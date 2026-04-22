@@ -1,21 +1,13 @@
 /**
  * callService.ts
  *
- * Backed by public.call_sessions (Phase 9). The deprecated `calls` table is
- * no longer referenced anywhere.
+ * Backed by public.call_sessions (Phase 9).
  *
- * DB columns on call_sessions:
- *   id, initiator_id, receiver_id, conversation_id, agora_channel,
- *   call_type (text), status, is_video, started_at, ended_at,
- *   duration_sec, created_at.
- *
- * Public API preserves the old `CallRecord` shape so consumers that read
- * `caller_id`, `channel_id`, `duration_secs` keep working.
+ * Uses Daily.co for media. Supabase signals via call_sessions.
+ * getDailyToken() hits the daily-get-token Edge Function to create/join rooms.
  */
 
 import { supabase } from './supabase';
-
-export const AGORA_APP_ID = '64d3d04f6626441897d5942a73fdd9d0';
 
 export type CallStatus = 'ringing' | 'accepted' | 'declined' | 'ended' | 'missed';
 
@@ -31,6 +23,12 @@ export type CallRecord = {
   ended_at: string | null;
   duration_secs: number | null;
   created_at: string;
+};
+
+export type DailyTokenResult = {
+  roomName: string;
+  roomUrl: string;
+  token: string;
 };
 
 type CallSessionRow = {
@@ -89,7 +87,7 @@ export const callService = {
       params.conversationId ??
       (await resolveDmConversationId(params.callerId, params.receiverId));
 
-    console.log('[SVC_INITIATE] insert', {
+    console.log('[SVC_INITIATE]', {
       caller: params.callerId, receiver: params.receiverId,
       channel: params.channelId, conversationId, isVideo: !!params.isVideo,
     });
@@ -122,7 +120,7 @@ export const callService = {
       .select('id, status, started_at');
     if (error) { console.log('[SVC_ACCEPT_ERR]', error.message); return false; }
     const rows = (data as any[]) || [];
-    console.log('[SVC_ACCEPT_OK]', { rowCount: rows.length, row: rows[0] });
+    console.log('[SVC_ACCEPT_OK]', { rowCount: rows.length });
     return rows.length > 0;
   },
 
@@ -138,10 +136,8 @@ export const callService = {
   },
 
   async endCall(callId: string, durationSecs: number): Promise<boolean> {
-    if (!callId) { console.log('[SVC_END_SKIP] no callId'); return false; }
+    if (!callId) return false;
     const dur = Math.max(0, Math.floor(durationSecs || 0));
-    console.log('[SVC_END] update', { callId, durationSecs: dur });
-
     const { data, error } = await supabase
       .from('call_sessions')
       .update({
@@ -151,10 +147,9 @@ export const callService = {
       })
       .eq('id', callId)
       .select('id, status, ended_at, duration_sec');
-
     if (error) { console.log('[SVC_END_ERR]', error.message); return false; }
     const rows = (data as any[]) || [];
-    console.log('[SVC_END_OK]', { rowCount: rows.length, row: rows[0] });
+    console.log('[SVC_END_OK]', { rowCount: rows.length });
     return rows.length > 0;
   },
 
@@ -217,6 +212,36 @@ export const callService = {
         }
       )
       .subscribe();
+  },
+
+  /**
+   * Fetch a Daily room URL + meeting token from the Supabase Edge Function.
+   * For 1-to-1 calls, pass callSessionId (server resolves room name).
+   * For multi-party meetings, pass roomName + kind='meeting'.
+   */
+  async getDailyToken(params: {
+    callSessionId?: string;
+    roomName?: string;
+    isOwner?: boolean;
+    kind?: 'call' | 'meeting';
+  }): Promise<DailyTokenResult> {
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess?.session?.access_token;
+    if (!token) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase.functions.invoke('daily-get-token', {
+      body: {
+        callSessionId: params.callSessionId,
+        roomName: params.roomName,
+        isOwner: params.isOwner ?? false,
+        kind: params.kind ?? 'call',
+      },
+    });
+
+    if (error) throw new Error(error.message || 'Could not get Daily token');
+    if (!data?.token || !data?.roomUrl) throw new Error('Invalid token response');
+
+    return data as DailyTokenResult;
   },
 
   formatDuration(seconds: number): string {

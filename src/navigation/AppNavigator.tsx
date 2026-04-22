@@ -72,6 +72,8 @@ import BecomeMentorScreen           from '../screens/mentorship/BecomeMentorScre
 import MentorshipRequestsScreen     from '../screens/mentorship/MentorshipRequestsScreen';
 import MentorshipDetailScreen       from '../screens/mentorship/MentorshipDetailScreen';
 
+import IncomingCallListener         from '../components/IncomingCallListener';
+
 const RootStack    = createNativeStackNavigator();
 const FeedStack    = createNativeStackNavigator();
 const NetworkStack = createNativeStackNavigator();
@@ -190,6 +192,15 @@ function MainTabs() {
   );
 }
 
+function MainTabsWithListener() {
+  return (
+    <>
+      <MainTabs />
+      <IncomingCallListener />
+    </>
+  );
+}
+
 export default function AppNavigator() {
   const { session, profile, loading } = useAuthStore();
 
@@ -226,7 +237,7 @@ export default function AppNavigator() {
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {isReady ? (
           <>
-            <RootStack.Screen name="Main" component={MainTabs} />
+            <RootStack.Screen name="Main" component={MainTabsWithListener} />
 
             <RootStack.Group>
               <RootStack.Screen name="Post"                 component={PostScreen} />
