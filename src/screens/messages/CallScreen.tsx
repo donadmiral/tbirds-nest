@@ -1,40 +1,26 @@
 /**
  * CallScreen.tsx
  *
- * Writes to `call_sessions` via callService. No direct access to the old
- * `calls` table.
+ * Daily.co media backend. Supabase signaling via call_sessions.
  *
- * Call row ownership: this screen is the source of truth for a call's
- * lifecycle. On mount:
- *   - If params.callId is provided (e.g. from incoming subscription or a
- *     ChatScreen that awaits initiateCall before navigating), use it.
- *   - Otherwise poll call_sessions for up to 5s to adopt a row ChatScreen
- *     may have created after navigating (current user code path).
- *   - If still nothing after 5s, create the row ourselves.
- *
- * endCall awaits the setup promise so hang-up pressed during setup cannot
- * lose the call id.
- *
- * AGORA: still gated by react-native-agora being present. In Expo Go the
- * timer never starts (no remote user joins), so duration_sec writes as 0.
- * That is expected until you prebuild. The DB path below lands regardless.
+ * Lifecycle:
+ *   - For incoming: callId arrives in params, we fetch Daily token, join room
+ *   - For outgoing: we adopt or create call_sessions row, fetch token, join room
+ *   - On remote participant joining: mark call accepted, start timer
+ *   - On hangup: leave Daily room, write duration to DB
  */
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image,
-  StatusBar, Alert, ScrollView,
+  StatusBar, Alert, ScrollView, Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Daily, { DailyCall, DailyEvent, DailyEventObjectParticipant } from '@daily-co/react-native-daily-js';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { AGORA_APP_ID, callService } from '../../services/callService';
-
-// Agora: loaded only in native builds, not Expo Go.
-const createAgoraRtcEngine: any = null;
-const ChannelProfileType: any = {};
-const ClientRoleType: any = {};
+import { callService } from '../../services/callService';
 
 function initials(n?: string | null) {
   if (!n) return 'U';
@@ -80,11 +66,12 @@ export default function CallScreen() {
   const [muted, setMuted]             = useState(false);
   const [speaker, setSpeaker]         = useState(true);
   const [videoOff, setVideoOff]       = useState(!isVideo);
-  const [agoraReady, setAgoraReady]   = useState(false);
+  const [dailyReady, setDailyReady]   = useState(false);
   const [suggestions, setSuggestions] = useState<SuggestedUser[]>([]);
   const [ending, setEnding]           = useState(false);
+  const [errorMsg, setErrorMsg]       = useState<string | null>(null);
 
-  const engineRef        = useRef<any>(null);
+  const callObjRef       = useRef<DailyCall | null>(null);
   const timerRef         = useRef<ReturnType<typeof setInterval> | null>(null);
   const callStartMsRef   = useRef<number | null>(null);
   const callIdRef        = useRef<string | null>(incomingCallId);
@@ -102,29 +89,16 @@ export default function CallScreen() {
   useEffect(() => {
     if (incomingCallId) {
       callIdRef.current = incomingCallId;
-      console.log('[CALL_SCREEN_USE_PARAM_ID]', { id: incomingCallId });
       return;
     }
-    if (isIncoming) {
-      // Incoming calls always come with callId. If we got here without one,
-      // something else is wrong. Log and do nothing.
-      console.log('[CALL_SCREEN_INCOMING_NO_ID]');
-      return;
-    }
-    if (!profile?.id || !callerId || !channelId) {
-      console.log('[CALL_SCREEN_SETUP_SKIP]', {
-        hasProfile: !!profile?.id, hasCallerId: !!callerId, hasChannel: !!channelId,
-      });
-      return;
-    }
+    if (isIncoming) return;
+    if (!profile?.id || !callerId || !channelId) return;
 
     const myId = profile.id;
 
     const setup = async (): Promise<string | null> => {
       const sinceIso = new Date(Date.now() - 15000).toISOString();
 
-      // Poll for a ChatScreen-created row for up to ~4s before creating our
-      // own. Network-dependent; typically resolves in <500ms.
       for (let attempt = 0; attempt < 8; attempt++) {
         const { data, error } = await supabase
           .from('call_sessions')
@@ -138,20 +112,14 @@ export default function CallScreen() {
           .limit(1)
           .maybeSingle();
 
-        if (error) {
-          console.log('[CALL_SCREEN_ADOPT_ERR]', error.message);
-          break;
-        }
+        if (error) break;
         if (data?.id) {
           callIdRef.current = data.id;
-          console.log('[CALL_SCREEN_ADOPT_OK]', { attempt, id: data.id });
           return data.id;
         }
         await new Promise(r => setTimeout(r, 500));
       }
 
-      // No row adopted, create one.
-      console.log('[CALL_SCREEN_CREATE_NEW]');
       const rec = await callService.initiateCall({
         callerId: myId,
         receiverId: callerId,
@@ -160,91 +128,118 @@ export default function CallScreen() {
       });
       if (rec?.id) {
         callIdRef.current = rec.id;
-        console.log('[CALL_SCREEN_CREATE_OK]', { id: rec.id });
         return rec.id;
       }
-      console.log('[CALL_SCREEN_CREATE_FAIL]');
       return null;
     };
 
     setupPromiseRef.current = setup();
   }, [incomingCallId, isIncoming, profile?.id, callerId, channelId, isVideo]);
 
-  // ── Agora init (native only) ────────────────────────────────────────────────
+  // ── Daily init + join room ──────────────────────────────────────────────────
   useEffect(() => {
-    if (!createAgoraRtcEngine || !AGORA_APP_ID || AGORA_APP_ID === 'YOUR_AGORA_APP_ID_HERE') {
-      console.log('[CALL] Agora SDK not available — native build required. Ringing UI only.');
-      return;
-    }
+    let cancelled = false;
 
-    let engine: any;
-    const init = async () => {
+    const joinDaily = async () => {
       try {
-        engine = createAgoraRtcEngine();
-        engineRef.current = engine;
+        // Wait for callId to be available (needed for token fetch)
+        let callId = callIdRef.current;
+        if (!callId && setupPromiseRef.current) {
+          callId = await setupPromiseRef.current;
+        }
+        if (!callId) {
+          setErrorMsg('Could not establish call');
+          return;
+        }
+        if (cancelled) return;
 
-        engine.initialize({
-          appId: AGORA_APP_ID,
-          channelProfile: ChannelProfileType.ChannelProfileCommunication,
+        // Fetch Daily token
+        const { roomUrl, token } = await callService.getDailyToken({
+          callSessionId: callId,
+          isOwner: !isIncoming,
+          kind: 'call',
         });
+        if (cancelled) return;
 
-        engine.addListener('onUserJoined', () => { onRemoteUserJoined(); });
-        engine.addListener('onUserOffline', () => { endCall(); });
-        engine.addListener('onJoinChannelSuccess', () => {
-          setAgoraReady(true);
+        // Create Daily call object
+        const call = Daily.createCallObject({
+          audioSource: true,
+          videoSource: isVideo,
+        });
+        callObjRef.current = call;
+
+        // Wire up events
+        call.on('joined-meeting' as DailyEvent, () => {
+          setDailyReady(true);
+          console.log('[DAILY] joined meeting');
           if (isIncoming) {
             setConnected(true);
             startTimer();
           }
         });
-        engine.addListener('onError', (err: number) => { console.log('[AGORA_ERROR]', err); });
 
-        engine.enableAudio();
-        if (isVideo) engine.enableVideo();
-
-        await engine.joinChannel('', channelId, 0, {
-          clientRoleType: ClientRoleType.ClientRoleBroadcaster,
-          publishMicrophoneTrack: true,
-          publishCameraTrack: isVideo,
-          autoSubscribeAudio: true,
-          autoSubscribeVideo: isVideo,
+        call.on('participant-joined' as DailyEvent, (ev: DailyEventObjectParticipant | any) => {
+          if (ev?.participant?.local) return;
+          console.log('[DAILY] remote joined');
+          setConnected(true);
+          startTimer();
+          if (callIdRef.current && !isIncoming) {
+            callService.acceptCall(callIdRef.current);
+          }
         });
 
-        setAgoraReady(true);
-      } catch (e) {
-        console.log('[AGORA_INIT_ERR]', e);
+        call.on('participant-left' as DailyEvent, (ev: DailyEventObjectParticipant | any) => {
+          if (ev?.participant?.local) return;
+          console.log('[DAILY] remote left');
+          endCall();
+        });
+
+        call.on('error' as DailyEvent, (ev: any) => {
+          console.log('[DAILY] error', ev);
+          setErrorMsg(ev?.errorMsg || 'Call error');
+        });
+
+        call.on('left-meeting' as DailyEvent, () => {
+          console.log('[DAILY] left meeting');
+        });
+
+        // Join
+        await call.join({
+          url: roomUrl,
+          token,
+          userName: profile?.full_name || 'User',
+        });
+      } catch (e: any) {
+        console.log('[DAILY_JOIN_ERR]', e?.message);
+        if (!cancelled) setErrorMsg(e?.message || 'Could not connect');
       }
     };
 
-    init();
+    joinDaily();
 
     return () => {
+      cancelled = true;
       if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-      try { engineRef.current?.leaveChannel(); engineRef.current?.release(); } catch {}
-      engineRef.current = null;
+      const call = callObjRef.current;
+      if (call) {
+        try { call.leave(); } catch {}
+        try { call.destroy(); } catch {}
+      }
+      callObjRef.current = null;
     };
   }, []);
-
-  const onRemoteUserJoined = async () => {
-    setConnected(true);
-    startTimer();
-    if (callIdRef.current) {
-      await callService.acceptCall(callIdRef.current);
-    }
-  };
 
   const startTimer = () => {
     if (timerRef.current) return;
     callStartMsRef.current = Date.now();
     elapsedRef.current = 0;
-    console.log('[CALL_TIMER_START]', { at: callStartMsRef.current, callId: callIdRef.current });
     timerRef.current = setInterval(() => {
       elapsedRef.current += 1;
       setElapsed(elapsedRef.current);
     }, 1000);
   };
 
-  // Suggested contacts
+  // Suggested contacts (for Add to call UI)
   useEffect(() => {
     if (!profile?.id || !callerId) return;
     supabase
@@ -266,10 +261,8 @@ export default function CallScreen() {
       .catch(() => {});
   }, [profile?.id, callerId]);
 
-  // ── End call ────────────────────────────────────────────────────────────────
   const endCall = async () => {
     if (endedRef.current) {
-      console.log('[CALL_END_SKIP] already ended');
       navigation.goBack();
       return;
     }
@@ -277,13 +270,15 @@ export default function CallScreen() {
     setEnding(true);
 
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    try { engineRef.current?.leaveChannel(); engineRef.current?.release(); } catch {}
-    engineRef.current = null;
 
-    // CRITICAL: await the setup promise so hang-up during setup cannot
-    // lose the call id.
+    const call = callObjRef.current;
+    if (call) {
+      try { await call.leave(); } catch {}
+      try { call.destroy(); } catch {}
+    }
+    callObjRef.current = null;
+
     if (!callIdRef.current && setupPromiseRef.current) {
-      console.log('[CALL_END_AWAIT_SETUP]');
       try { await setupPromiseRef.current; } catch {}
     }
 
@@ -292,34 +287,12 @@ export default function CallScreen() {
       : 0;
     const duration = Math.max(elapsedRef.current, wall);
 
-    console.log('[CALL_END_PRESS]', {
-      callId: callIdRef.current,
-      elapsedFromInterval: elapsedRef.current,
-      elapsedFromWallClock: wall,
-      durationUsed: duration,
-      connected,
-    });
-
     try {
       if (callIdRef.current) {
-        const ok = await callService.endCall(callIdRef.current, duration);
-        console.log('[CALL_END_WRITE_RESULT]', { ok });
-
-        const fresh = await callService.getCall(callIdRef.current);
-        console.log('[CALL_END_VERIFY]', {
-          id: fresh?.id,
-          status: fresh?.status,
-          ended_at: fresh?.ended_at,
-          duration_secs: fresh?.duration_secs,
-        });
-        if (!fresh || fresh.status !== 'ended') {
-          console.log('[CALL_END_VERIFY_FAIL] row did not update as expected');
-        }
-      } else {
-        console.log('[CALL_END_SKIP] no callId after awaiting setup');
+        await callService.endCall(callIdRef.current, duration);
       }
     } catch (e: any) {
-      console.log('[CALL_END_CATCH]', e?.message);
+      console.log('[CALL_END_ERR]', e?.message);
     } finally {
       setEnding(false);
       navigation.goBack();
@@ -327,22 +300,25 @@ export default function CallScreen() {
   };
 
   const toggleMute = () => {
+    const call = callObjRef.current; if (!call) return;
     const next = !muted;
     setMuted(next);
-    engineRef.current?.muteLocalAudioStream(next);
+    call.setLocalAudio(!next);
   };
 
   const toggleSpeaker = () => {
     const next = !speaker;
     setSpeaker(next);
-    engineRef.current?.setEnableSpeakerphone(next);
+    // Speaker routing on iOS needs native extension; Daily handles bluetooth + earpiece
+    // For now this just toggles a UI flag; Daily picks best output device.
   };
 
   const toggleVideo = () => {
+    const call = callObjRef.current; if (!call) return;
     if (!isVideo) { Alert.alert('Video', 'This is an audio call. Start a new video call to use video.'); return; }
     const next = !videoOff;
     setVideoOff(next);
-    engineRef.current?.muteLocalVideoStream(next);
+    call.setLocalVideo(!next);
   };
 
   const controls = [
@@ -391,13 +367,13 @@ export default function CallScreen() {
           <Text style={s.callerName}>{callerName}</Text>
 
           <View style={s.statusRow}>
-            <View style={[s.statusDot, { backgroundColor: connected ? '#22C55E' : '#FF9500' }]} />
+            <View style={[s.statusDot, { backgroundColor: errorMsg ? '#EF4444' : connected ? '#22C55E' : '#FF9500' }]} />
             <Text style={[s.statusTxt, connected && s.statusConnected]}>
-              {connected ? 'Connected' : 'Ringing...'}
+              {errorMsg ? errorMsg : connected ? 'Connected' : dailyReady ? 'Ringing...' : 'Connecting...'}
             </Text>
             {connected && (
               <View style={s.hdBadge}>
-                <Text style={s.hdTxt}>{agoraReady ? 'LIVE' : 'HD'}</Text>
+                <Text style={s.hdTxt}>LIVE</Text>
               </View>
             )}
           </View>
