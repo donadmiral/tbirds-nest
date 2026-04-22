@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "tbirds-nest",
+    "slug": "tbirds-nest",
+    "version": "1.0.0",
+    "scheme": "tbirds-nest",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.tbirdsnest.mobile"
+    },
+    "android": {
+      "package": "app.tbirdsnest.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-notifications",
+      "expo-secure-store",
+      "expo-image-picker",
+      "expo-video"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8cb0cfbe-80b5-477a-b490-fce2f21cd98f"
+      }
+    },
+    "owner": "donadmiral"
+  }
+}
