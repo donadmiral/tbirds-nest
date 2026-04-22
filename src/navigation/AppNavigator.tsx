@@ -74,6 +74,9 @@ import MentorshipDetailScreen       from '../screens/mentorship/MentorshipDetail
 
 import IncomingCallListener         from '../components/IncomingCallListener';
 
+import MeetingScreen                from '../screens/meetings/MeetingScreen';
+import NewMeetingScreen             from '../screens/meetings/NewMeetingScreen';
+
 const RootStack    = createNativeStackNavigator();
 const FeedStack    = createNativeStackNavigator();
 const NetworkStack = createNativeStackNavigator();
@@ -264,6 +267,8 @@ export default function AppNavigator() {
               <RootStack.Screen name="StoryViewer"       component={StoryViewerScreen} />
               <RootStack.Screen name="StoryCreationMenu" component={StoryCreationMenuScreen} />
               <RootStack.Screen name="StoryComposer"     component={StoryComposerScreen} />
+              <RootStack.Screen name="Meeting"           component={MeetingScreen} />
+              <RootStack.Screen name="NewMeeting"        component={NewMeetingScreen} />
             </RootStack.Group>
           </>
         ) : needsSetup ? (

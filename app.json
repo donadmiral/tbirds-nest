@@ -26,8 +26,11 @@
         "NSPhotoLibraryAddUsageDescription": "TBirds Nest needs permission to save photos and videos you receive.",
         "UIBackgroundModes": [
           "audio",
+          "voip",
+          "audio",
           "voip"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
