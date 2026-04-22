@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+﻿import { supabase } from './supabase';
 
 export const messagesService = {
   async getConversations(userId: string) {
@@ -90,7 +90,6 @@ export const messagesService = {
       .eq('id', conversationId);
   },
 
-  // 🔥 THIS IS WHAT YOU WERE MISSING
   async getUsersForMessaging(userId: string) {
     const { data, error } = await supabase
       .from('profiles')

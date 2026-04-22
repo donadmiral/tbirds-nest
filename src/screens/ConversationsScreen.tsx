@@ -1,18 +1,20 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
   TextInput, Image, ActivityIndicator, StatusBar,
-  ActionSheetIOS, Alert, Platform,
+  ActionSheetIOS, Alert, Platform, ScrollView, Share,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { meetingService, MyActiveMeeting } from '../../services/meetingService';
 
 type Conversation = {
   id: string;
-  other_user_id: string;
+  other_user_id: string | null;
   other_name: string;
   other_username: string | null;
   other_avatar: string | null;
@@ -26,6 +28,8 @@ type Conversation = {
   is_muted: boolean;
   is_archived: boolean;
 };
+
+type TabKey = 'all' | 'unread' | 'groups' | 'archived';
 
 function initials(n?: string | null) {
   if (!n) return 'U';
@@ -51,25 +55,28 @@ function avatarColor(id: string) {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
+const NAVY = '#0B1E3D';
+
 export default function ConversationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeMeetings, setActiveMeetings] = useState<MyActiveMeeting[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch]  = useState('');
-  const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
+  const [search, setSearch] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [tab, setTab] = useState<TabKey>('all');
+  const searchInputRef = useRef<TextInput | null>(null);
 
-  // Single-source unread counts for both DMs and groups via RPC.
+  // ── Load unread counts via RPC (single source of truth) ────────────────────
   const fetchUnreadMap = useCallback(async (): Promise<Record<string, number>> => {
     if (!userId) return {};
     const { data, error } = await supabase.rpc('get_unread_counts', { p_user_id: userId });
     if (error) { console.log('UNREAD_RPC_ERR', error); return {}; }
     const map: Record<string, number> = {};
-    (data || []).forEach((r: any) => {
-      map[r.conversation_id] = Number(r.unread_count) || 0;
-    });
+    (data || []).forEach((r: any) => { map[r.conversation_id] = Number(r.unread_count) || 0; });
     return map;
   }, [userId]);
 
@@ -78,30 +85,32 @@ export default function ConversationsScreen({ navigation }: any) {
     setConversations(prev => prev.map(c => ({ ...c, unread_count: map[c.id] || 0 })));
   }, [fetchUnreadMap]);
 
+  // ── Load active meetings (host-only for v1) ────────────────────────────────
+  const loadActiveMeetings = useCallback(async () => {
+    try {
+      const list = await meetingService.listMyActive();
+      setActiveMeetings(list);
+    } catch (e) { console.log('ACTIVE_MEETINGS_LOAD', e); }
+  }, []);
+
+  // ── Load conversations ─────────────────────────────────────────────────────
   const load = useCallback(async () => {
     if (!userId) return;
     try {
-      // DMs
       const { data: dmConvs } = await supabase
-        .from('conversations')
-        .select('*')
+        .from('conversations').select('*')
         .or(`user_1.eq.${userId},user_2.eq.${userId}`)
         .eq('is_group', false)
         .order('last_message_time', { ascending: false });
 
-      // Group conversations via conversation_members
       const { data: memberRows } = await supabase
-        .from('conversation_members')
-        .select('conversation_id')
-        .eq('user_id', userId);
+        .from('conversation_members').select('conversation_id').eq('user_id', userId);
 
       const groupIds = (memberRows || []).map((r: any) => r.conversation_id);
       let groupConvs: any[] = [];
       if (groupIds.length > 0) {
         const { data: gc } = await supabase
-          .from('conversations')
-          .select('*')
-          .in('id', groupIds)
+          .from('conversations').select('*').in('id', groupIds)
           .eq('is_group', true)
           .order('last_message_time', { ascending: false });
         groupConvs = gc || [];
@@ -112,18 +121,15 @@ export default function ConversationsScreen({ navigation }: any) {
 
       const convIds = allConvs.map((c: any) => c.id);
 
-      // Per-user settings (pin, mute, archive, delete). Non-fatal.
       const settingsMap: Record<string, any> = {};
       try {
         const { data: settings } = await supabase
           .from('conversation_settings')
           .select('conversation_id, is_pinned, is_muted, is_archived, is_deleted')
-          .eq('user_id', userId)
-          .in('conversation_id', convIds);
+          .eq('user_id', userId).in('conversation_id', convIds);
         (settings || []).forEach((s: any) => { settingsMap[s.conversation_id] = s; });
-      } catch (_) { /* table may not exist yet */ }
+      } catch (_) { /* may not exist yet */ }
 
-      // DM partner profiles
       const dmOtherIds = (dmConvs || [])
         .map((c: any) => c.user_1 === userId ? c.user_2 : c.user_1)
         .filter(Boolean);
@@ -134,7 +140,6 @@ export default function ConversationsScreen({ navigation }: any) {
         (profs || []).forEach((p: any) => { profileMap[p.id] = p; });
       }
 
-      // Unread counts via RPC. Handles DMs + groups in one shot.
       const unreadMap = await fetchUnreadMap();
 
       const list: Conversation[] = allConvs
@@ -143,26 +148,39 @@ export default function ConversationsScreen({ navigation }: any) {
           const s = settingsMap[c.id] || {};
           if (c.is_group) {
             return {
-              id: c.id, other_user_id: '',
+              id: c.id,
+              other_user_id: null,
               other_name: c.group_name || 'Group',
-              other_username: null, other_avatar: c.group_avatar_url || null,
-              last_message: c.last_message || '', last_message_time: c.last_message_time,
+              other_username: null,
+              other_avatar: c.group_avatar_url || null,
+              last_message: c.last_message || '',
+              last_message_time: c.last_message_time,
               unread_count: unreadMap[c.id] || 0,
-              is_group: true, group_emoji: c.group_emoji || '💬',
+              is_group: true,
+              group_emoji: c.group_emoji || '💬',
               group_avatar_url: c.group_avatar_url,
-              is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived,
+              is_pinned: !!s.is_pinned,
+              is_muted: !!s.is_muted,
+              is_archived: !!s.is_archived,
             };
           }
           const otherId = c.user_1 === userId ? c.user_2 : c.user_1;
           const p = profileMap[otherId] || {};
           return {
-            id: c.id, other_user_id: otherId,
+            id: c.id,
+            other_user_id: otherId,
             other_name: p.full_name || 'Member',
-            other_username: p.username || null, other_avatar: p.avatar_url || null,
-            last_message: c.last_message || '', last_message_time: c.last_message_time,
+            other_username: p.username || null,
+            other_avatar: p.avatar_url || null,
+            last_message: c.last_message || '',
+            last_message_time: c.last_message_time,
             unread_count: unreadMap[c.id] || 0,
-            is_group: false, group_emoji: null, group_avatar_url: null,
-            is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived,
+            is_group: false,
+            group_emoji: null,
+            group_avatar_url: null,
+            is_pinned: !!s.is_pinned,
+            is_muted: !!s.is_muted,
+            is_archived: !!s.is_archived,
           };
         });
 
@@ -178,15 +196,14 @@ export default function ConversationsScreen({ navigation }: any) {
     finally { setLoading(false); }
   }, [userId, fetchUnreadMap]);
 
-  // Realtime. Unique channel name per user so multiple clients do not collide.
+  // ── Focus effect: load + realtime ──────────────────────────────────────────
   useFocusEffect(useCallback(() => {
     load();
+    loadActiveMeetings();
 
     if (!userId) return;
-    const channelName = `inbox_live_${userId}`;
     const channel = supabase
-      .channel(channelName)
-      // Last-message preview and timestamp patch on conversations UPDATE.
+      .channel(`inbox_live_${userId}`)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'conversations',
       }, (payload) => {
@@ -209,22 +226,20 @@ export default function ConversationsScreen({ navigation }: any) {
           return next;
         });
       })
-      // New messages: bump unread count for the affected conversation.
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'messages',
       }, (payload) => {
         const m = payload.new as any;
-        if (!m?.conversation_id) return;
-        if (m.sender_id === userId) return; // our own send does not count
+        if (!m?.conversation_id || m.sender_id === userId) return;
+        // Patch just the affected conversation's count instead of full refresh.
         setConversations(prev => {
-          if (!prev.some(c => c.id === m.conversation_id)) return prev;
-          // Refresh the authoritative counts from the server.
-          refreshUnreads();
-          return prev;
+          const idx = prev.findIndex(c => c.id === m.conversation_id);
+          if (idx === -1) return prev;
+          const next = [...prev];
+          next[idx] = { ...next[idx], unread_count: (next[idx].unread_count || 0) + 1 };
+          return next;
         });
       })
-      // message_reads INSERT for me (e.g. I opened the chat on another device):
-      // refresh counts so this device's badges clear in real time.
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'message_reads',
         filter: `user_id=eq.${userId}`,
@@ -232,17 +247,19 @@ export default function ConversationsScreen({ navigation }: any) {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [load, userId, refreshUnreads]));
+  }, [load, loadActiveMeetings, userId, refreshUnreads]));
 
-  // Settings helpers (pin/mute/archive/delete/block) unchanged.
+  // ── Settings helpers ───────────────────────────────────────────────────────
   const upsertSetting = async (convId: string, patch: Partial<{
     is_pinned: boolean; is_muted: boolean; is_archived: boolean; is_deleted: boolean;
   }>) => {
     if (!userId) return;
-    try { await supabase.from('conversation_settings').upsert({
-      conversation_id: convId, user_id: userId,
-      ...patch, updated_at: new Date().toISOString(),
-    }, { onConflict: 'conversation_id,user_id' }); } catch (e) { console.log('[UPSERT_SETTING]', e); }
+    try {
+      await supabase.from('conversation_settings').upsert({
+        conversation_id: convId, user_id: userId,
+        ...patch, updated_at: new Date().toISOString(),
+      }, { onConflict: 'conversation_id,user_id' });
+    } catch (e) { console.log('[UPSERT_SETTING]', e); }
     setConversations(prev => prev.map(c =>
       c.id === convId ? { ...c, ...patch } : c
     ).filter(c => !('is_deleted' in patch && patch.is_deleted && c.id === convId)));
@@ -250,8 +267,8 @@ export default function ConversationsScreen({ navigation }: any) {
 
   const showContextMenu = (conv: Conversation) => {
     const options = [
-      conv.is_pinned   ? 'Unpin'   : 'Pin',
-      conv.is_muted    ? 'Unmute'  : 'Mute',
+      conv.is_pinned   ? 'Unpin'     : 'Pin',
+      conv.is_muted    ? 'Unmute'    : 'Mute',
       conv.is_archived ? 'Unarchive' : 'Archive',
       !conv.is_group   ? 'Block user' : null,
       'Delete chat',
@@ -272,7 +289,7 @@ export default function ConversationsScreen({ navigation }: any) {
               { text: 'Delete', style: 'destructive', onPress: () => upsertSetting(conv.id, { is_deleted: true }) },
             ]);
           }
-          if (choice === 'Block user') {
+          if (choice === 'Block user' && conv.other_user_id) {
             Alert.alert('Block user?', `${conv.other_name} will not be able to message you.`, [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Block', style: 'destructive', onPress: async () => {
@@ -285,51 +302,143 @@ export default function ConversationsScreen({ navigation }: any) {
       );
     } else {
       Alert.alert(conv.other_name, undefined, [
-        { text: conv.is_pinned ? 'Unpin' : 'Pin',     onPress: () => upsertSetting(conv.id, { is_pinned: !conv.is_pinned }) },
-        { text: conv.is_muted ? 'Unmute' : 'Mute',    onPress: () => upsertSetting(conv.id, { is_muted: !conv.is_muted }) },
-        { text: conv.is_archived ? 'Unarchive' : 'Archive', onPress: () => upsertSetting(conv.id, { is_archived: !conv.is_archived }) },
-        { text: 'Delete', style: 'destructive', onPress: () => upsertSetting(conv.id, { is_deleted: true }) },
+        { text: conv.is_pinned ? 'Unpin' : 'Pin',             onPress: () => upsertSetting(conv.id, { is_pinned: !conv.is_pinned }) },
+        { text: conv.is_muted ? 'Unmute' : 'Mute',            onPress: () => upsertSetting(conv.id, { is_muted: !conv.is_muted }) },
+        { text: conv.is_archived ? 'Unarchive' : 'Archive',   onPress: () => upsertSetting(conv.id, { is_archived: !conv.is_archived }) },
+        { text: 'Delete', style: 'destructive',               onPress: () => upsertSetting(conv.id, { is_deleted: true }) },
         { text: 'Cancel', style: 'cancel' },
       ]);
     }
   };
 
+  // ── Primary "+" action sheet ───────────────────────────────────────────────
+  const showPrimaryActions = () => {
+    const options = ['New message', 'New meeting', 'Join with link', 'New group', 'Cancel'];
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: options.length - 1 },
+        (i) => {
+          if (i === 0) navigation.navigate('Network');
+          if (i === 1) navigation.navigate('NewMeeting');
+          if (i === 2) promptJoinWithLink();
+          if (i === 3) navigation.navigate('CreateGroup');
+        }
+      );
+    } else {
+      Alert.alert('New', undefined, [
+        { text: 'New message', onPress: () => navigation.navigate('Network') },
+        { text: 'New meeting', onPress: () => navigation.navigate('NewMeeting') },
+        { text: 'Join with link', onPress: promptJoinWithLink },
+        { text: 'New group', onPress: () => navigation.navigate('CreateGroup') },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
+
+  const promptJoinWithLink = async () => {
+    // Try to read from clipboard first as a convenience
+    let clipboardText = '';
+    try { clipboardText = await Clipboard.getStringAsync(); } catch {}
+
+    const parsed = parseMeetingRoomName(clipboardText);
+    if (parsed) {
+      Alert.alert(
+        'Join meeting?',
+        `Link detected on your clipboard:\n\n${parsed}`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Join', onPress: () => navigation.navigate('Meeting', { roomName: parsed }) },
+        ]
+      );
+      return;
+    }
+
+    // Fallback: manual entry via Alert.prompt (iOS only)
+    if (Platform.OS === 'ios' && (Alert as any).prompt) {
+      (Alert as any).prompt(
+        'Join with link',
+        'Paste a TBirds Nest meeting link or room code',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Join',
+            onPress: (text?: string) => {
+              const name = parseMeetingRoomName(text || '');
+              if (!name) {
+                Alert.alert('Invalid link', 'That doesn’t look like a valid meeting link.');
+                return;
+              }
+              navigation.navigate('Meeting', { roomName: name });
+            }
+          },
+        ],
+        'plain-text'
+      );
+    } else {
+      Alert.alert('Join with link', 'Copy a meeting link to your clipboard, then tap Join with link again.');
+    }
+  };
+
+  // ── Open chat ──────────────────────────────────────────────────────────────
   const openChat = (conv: Conversation) => {
-    // Optimistically clear the badge on open. Server-side clear happens in
-    // ChatScreen via messageStatusService.markConversationViewed.
     setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c));
     navigation.navigate('Chat', {
       conversationId: conv.id,
-      userId: conv.other_user_id,
+      userId: conv.other_user_id || undefined,
       userName: conv.other_name,
-      otherUser: conv.is_group ? null : {
+      otherUser: conv.is_group ? null : (conv.other_user_id ? {
         id: conv.other_user_id,
         full_name: conv.other_name,
         username: conv.other_username,
         avatar_url: conv.other_avatar,
-      },
+      } : null),
       isGroup: conv.is_group,
       groupName: conv.is_group ? conv.other_name : undefined,
       groupEmoji: conv.is_group ? (conv.group_emoji || '💬') : undefined,
     });
   };
 
-  const filtered = conversations.filter(c => {
-    if (c.is_archived && tab !== 'all') return false;
-    const matchSearch = !search || c.other_name.toLowerCase().includes(search.toLowerCase());
-    const matchTab = tab === 'all'
-      ? true
-      : tab === 'unread' ? c.unread_count > 0
-      : tab === 'groups' ? c.is_group
-      : true;
-    return matchSearch && matchTab;
-  });
+  // ── Filtering ──────────────────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    return conversations.filter(c => {
+      // Archived visibility rule: only shown in "archived" tab
+      if (tab === 'archived') {
+        if (!c.is_archived) return false;
+      } else {
+        if (c.is_archived) return false;
+      }
 
+      if (tab === 'unread' && c.unread_count <= 0) return false;
+      if (tab === 'groups' && !c.is_group) return false;
+
+      if (search) {
+        const q = search.toLowerCase();
+        if (!c.other_name.toLowerCase().includes(q) &&
+            !(c.last_message || '').toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }, [conversations, tab, search]);
+
+  const pinned   = filtered.filter(c => c.is_pinned);
+  const unpinned = filtered.filter(c => !c.is_pinned);
+
+  // ── Counts for tab badges ──────────────────────────────────────────────────
+  const counts = useMemo(() => {
+    const nonArchived = conversations.filter(c => !c.is_archived);
+    return {
+      unread: nonArchived.filter(c => c.unread_count > 0 && !c.is_muted).length,
+      groups: nonArchived.filter(c => c.is_group).length,
+      archived: conversations.filter(c => c.is_archived).length,
+    };
+  }, [conversations]);
+
+  // ── Render a conversation row ──────────────────────────────────────────────
   const renderItem = ({ item }: { item: Conversation }) => {
     const hasUnread = item.unread_count > 0;
     return (
       <TouchableOpacity
-        style={[s.card, item.is_archived && s.cardArchived]}
+        style={s.card}
         onPress={() => openChat(item)}
         onLongPress={() => showContextMenu(item)}
         activeOpacity={0.85}
@@ -338,10 +447,10 @@ export default function ConversationsScreen({ navigation }: any) {
           {item.other_avatar
             ? <Image source={{ uri: item.other_avatar }} style={s.cardAvatar} />
             : item.is_group
-              ? <View style={[s.cardAvatar, { backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }]}>
+              ? <View style={[s.cardAvatar, { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' }]}>
                   <Text style={{ fontSize: 22 }}>{item.group_emoji || '💬'}</Text>
                 </View>
-              : <View style={[s.cardAvatar, { backgroundColor: avatarColor(item.other_user_id) }]}>
+              : <View style={[s.cardAvatar, { backgroundColor: avatarColor(item.other_user_id || item.id) }]}>
                   <Text style={s.cardAvatarTxt}>{initials(item.other_name)}</Text>
                 </View>}
           {item.is_pinned && <View style={s.pinBadge}><Text style={s.pinBadgeTxt}>📌</Text></View>}
@@ -352,7 +461,6 @@ export default function ConversationsScreen({ navigation }: any) {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
               <Text style={[s.cardName, hasUnread && s.cardNameBold]} numberOfLines={1}>{item.other_name}</Text>
               {item.is_muted && <Text style={{ fontSize: 11 }}>🔕</Text>}
-              {item.is_archived && <View style={s.archivedBadge}><Text style={s.archivedTxt}>Archived</Text></View>}
             </View>
             <Text style={[s.cardTime, hasUnread && s.cardTimeBold]}>{relTime(item.last_message_time)}</Text>
           </View>
@@ -372,104 +480,272 @@ export default function ConversationsScreen({ navigation }: any) {
     );
   };
 
-  const pinned   = filtered.filter(c => c.is_pinned);
-  const unpinned = filtered.filter(c => !c.is_pinned);
+  // ── Active meeting card ────────────────────────────────────────────────────
+  const shareMeeting = async (m: MyActiveMeeting) => {
+    const link = meetingService.shareLink(m.room_name);
+    try { await Share.share({ message: `Join my meeting on TBirds Nest: ${m.title}\n\n${link}` }); } catch {}
+  };
 
+  const renderActiveMeeting = (m: MyActiveMeeting) => (
+    <View key={m.id} style={s.activeCard}>
+      <View style={s.activePulseWrap}>
+        <View style={s.activePulse} />
+        <View style={s.activeIconWrap}>
+          <Feather name="video" size={16} color="#FFF" />
+        </View>
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={s.activeLabel}>LIVE MEETING</Text>
+        <Text style={s.activeTitle} numberOfLines={1}>{m.title}</Text>
+        <Text style={s.activeSub}>
+          {m.participant_count} active · {m.is_public ? 'Public' : 'Invite-only'}
+        </Text>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        <TouchableOpacity style={s.activeShareBtn} onPress={() => shareMeeting(m)} activeOpacity={0.8}>
+          <Feather name="share-2" size={14} color={NAVY} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={s.activeJoinBtn}
+          onPress={() => navigation.navigate('Meeting', { roomName: m.room_name, meetingId: m.id, isHost: true })}
+          activeOpacity={0.85}
+        >
+          <Text style={s.activeJoinTxt}>Rejoin</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  // ── Quick access tiles ─────────────────────────────────────────────────────
+  const quickAccess = [
+    { key: 'calls',    icon: 'phone',       label: 'Calls',     color: '#2563EB', onPress: () => navigation.navigate('CallLog') },
+    { key: 'meetings', icon: 'video',       label: 'Meetings',  color: '#7C3AED', onPress: () => navigation.navigate('NewMeeting') },
+    { key: 'requests', icon: 'user-plus',   label: 'Requests',  color: '#F59E0B', onPress: () => navigation.navigate('MessageRequests') },
+    { key: 'starred',  icon: 'star',        label: 'Starred',   color: '#EAB308', onPress: () => navigation.navigate('StarredMessages') },
+  ] as const;
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
 
+      {/* Header */}
       <View style={s.head}>
         <Text style={s.title}>Messages</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity
             style={s.iconBtn}
-            onPress={() => navigation.navigate('StarredMessages')}
-            accessibilityLabel="Starred messages"
+            onPress={() => {
+              setSearchOpen(s => !s);
+              setTimeout(() => searchInputRef.current?.focus(), 50);
+            }}
+            accessibilityLabel="Search"
             activeOpacity={0.7}
           >
-            <Feather name="star" size={18} color="#EAB308" />
+            <Feather name="search" size={18} color="#374151" />
           </TouchableOpacity>
           <TouchableOpacity
-            style={s.iconBtn}
-            onPress={() => navigation.navigate('SavedMessages')}
-            accessibilityLabel="Saved messages"
-            activeOpacity={0.7}
+            style={s.primaryBtn}
+            onPress={showPrimaryActions}
+            accessibilityLabel="New"
+            activeOpacity={0.85}
           >
-            <Feather name="bookmark" size={18} color="#374151" />
-          </TouchableOpacity>
-          <TouchableOpacity style={s.newBtn} onPress={() => navigation.navigate('Network')} activeOpacity={0.8}>
-            <Feather name="edit" size={14} color="#FFF" />
-            <Text style={s.newBtnTxt}>New</Text>
+            <Feather name="plus" size={18} color="#FFF" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={s.searchWrap}>
-        <Feather name="search" size={15} color="#8E8E93" />
-        <TextInput
-          value={search} onChangeText={setSearch}
-          placeholder="Search messages"
-          placeholderTextColor="#8E8E93" style={s.searchInput}
-          autoCapitalize="none" returnKeyType="search"
-        />
-        {search.length > 0 && <TouchableOpacity onPress={() => setSearch('')}><Feather name="x" size={15} color="#8E8E93" /></TouchableOpacity>}
-      </View>
-
-      <View style={s.tabs}>
-        {(['all', 'groups', 'unread'] as const).map(t => (
-          <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)} activeOpacity={0.8}>
-            <Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>
-              {t === 'all' ? 'All' : t === 'groups' ? 'Groups' : 'Unread'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {loading ? (
-        <View style={s.center}><ActivityIndicator color="#000" /></View>
-      ) : filtered.length === 0 ? (
-        <View style={s.empty}>
-          <Feather name="message-circle" size={44} color="#E5E5EA" />
-          <Text style={s.emptyTitle}>{search ? 'No results' : tab === 'unread' ? 'All caught up' : 'No messages yet'}</Text>
-          <Text style={s.emptySub}>{search ? 'Try a different search' : 'Connect with TBirds and start a conversation'}</Text>
-          {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('Network')}><Text style={s.emptyBtnTxt}>Find people</Text></TouchableOpacity>}
+      {/* Search (collapsible) */}
+      {searchOpen && (
+        <View style={s.searchWrap}>
+          <Feather name="search" size={15} color="#8E8E93" />
+          <TextInput
+            ref={searchInputRef}
+            value={search} onChangeText={setSearch}
+            placeholder="Search messages and people"
+            placeholderTextColor="#8E8E93" style={s.searchInput}
+            autoCapitalize="none" returnKeyType="search"
+          />
+          {search.length > 0
+            ? <TouchableOpacity onPress={() => setSearch('')}><Feather name="x" size={15} color="#8E8E93" /></TouchableOpacity>
+            : <TouchableOpacity onPress={() => { setSearchOpen(false); setSearch(''); }}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>}
         </View>
-      ) : (
-        <FlatList
-          data={[...pinned, ...unpinned]}
-          keyExtractor={i => i.id}
-          renderItem={renderItem}
-          contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + 40 }}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={pinned.length > 0 && unpinned.length > 0 ? (
-            <Text style={s.sectionLabel}>PINNED</Text>
-          ) : null}
-          ListHeaderComponentStyle={{ paddingHorizontal: 4, paddingBottom: 4 }}
-        />
       )}
+
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        stickyHeaderIndices={[2]}
+        showsVerticalScrollIndicator={false}
+      >
+
+        {/* Active meetings strip */}
+        {activeMeetings.length > 0 && (
+          <View style={s.activeStrip}>
+            {activeMeetings.length === 1
+              ? renderActiveMeeting(activeMeetings[0])
+              : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 14 }}>
+                  {activeMeetings.map(m => (
+                    <View key={m.id} style={{ width: 280 }}>{renderActiveMeeting(m)}</View>
+                  ))}
+                </ScrollView>
+              )
+            }
+          </View>
+        )}
+
+        {/* Quick access tiles */}
+        <View style={s.quickRow}>
+          {quickAccess.map(q => (
+            <TouchableOpacity key={q.key} style={s.quickTile} onPress={q.onPress} activeOpacity={0.8}>
+              <View style={[s.quickIcon, { backgroundColor: q.color + '22' }]}>
+                <Feather name={q.icon as any} size={18} color={q.color} />
+              </View>
+              <Text style={s.quickLabel}>{q.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Tabs (sticky) */}
+        <View style={s.tabsWrap}>
+          <View style={s.tabs}>
+            {(['all', 'unread', 'groups', 'archived'] as const).map(t => {
+              const badge =
+                t === 'unread' ? counts.unread :
+                t === 'groups' ? counts.groups :
+                t === 'archived' ? counts.archived : 0;
+              return (
+                <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)} activeOpacity={0.8}>
+                  <Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>
+                    {t === 'all' ? 'All' : t === 'unread' ? 'Unread' : t === 'groups' ? 'Groups' : 'Archived'}
+                  </Text>
+                  {badge > 0 && (
+                    <View style={[s.tabBadge, tab === t && s.tabBadgeActive]}>
+                      <Text style={[s.tabBadgeTxt, tab === t && s.tabBadgeTxtActive]}>{badge > 99 ? '99+' : badge}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Conversation list */}
+        {loading ? (
+          <View style={s.centerInline}><ActivityIndicator color="#000" /></View>
+        ) : filtered.length === 0 ? (
+          <View style={s.emptyInline}>
+            <Feather
+              name={tab === 'unread' ? 'check-circle' : tab === 'archived' ? 'archive' : 'message-circle'}
+              size={44}
+              color={tab === 'unread' ? '#22C55E' : '#E5E5EA'}
+            />
+            <Text style={s.emptyTitle}>
+              {search ? 'No results' :
+                tab === 'unread' ? "You're all caught up" :
+                tab === 'archived' ? 'No archived chats' :
+                tab === 'groups' ? 'No groups yet' :
+                'No messages yet'}
+            </Text>
+            <Text style={s.emptySub}>
+              {search ? 'Try a different search' :
+                tab === 'unread' ? 'No unread messages right now.' :
+                tab === 'archived' ? 'Long-press a chat to archive it.' :
+                tab === 'groups' ? 'Tap + to start a new group.' :
+                'Connect with TBirds and start a conversation.'}
+            </Text>
+            {!search && tab === 'all' && (
+              <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('Network')}>
+                <Text style={s.emptyBtnTxt}>Find people</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <View style={{ paddingHorizontal: 12, paddingTop: 4, gap: 8 }}>
+            {pinned.length > 0 && (
+              <Text style={s.sectionLabel}>PINNED</Text>
+            )}
+            {pinned.map(item => <View key={item.id}>{renderItem({ item })}</View>)}
+            {pinned.length > 0 && unpinned.length > 0 && (
+              <Text style={[s.sectionLabel, { marginTop: 10 }]}>ALL MESSAGES</Text>
+            )}
+            {unpinned.map(item => <View key={item.id}>{renderItem({ item })}</View>)}
+          </View>
+        )}
+
+      </ScrollView>
     </SafeAreaView>
   );
+}
+
+// Accepts:
+//   - https://tbirdsnest.app/meeting/abc12345
+//   - https://platinumcircles.daily.co/abc12345
+//   - tbirds-nest://meeting/abc12345
+//   - abc12345 (just the room code)
+function parseMeetingRoomName(raw?: string | null): string | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  if (!s) return null;
+
+  const patterns = [
+    /tbirdsnest\.app\/meeting\/([a-z0-9-]{4,60})/i,
+    /daily\.co\/([a-z0-9-]{4,60})/i,
+    /tbirds-nest:\/\/meeting\/([a-z0-9-]{4,60})/i,
+    /^([a-z0-9-]{4,60})$/i,
+  ];
+  for (const re of patterns) {
+    const m = s.match(re);
+    if (m) return m[1].toLowerCase();
+  }
+  return null;
 }
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFF' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
+  centerInline: { paddingVertical: 40, alignItems: 'center', justifyContent: 'center' },
+
+  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10 },
   title: { fontSize: 28, fontWeight: '800', color: '#000', letterSpacing: -0.8 },
-  newBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#000', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 },
-  newBtnTxt: { color: '#FFF', fontSize: 13, fontWeight: '700' },
-  iconBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 12, backgroundColor: '#F2F2F7', borderRadius: 13, paddingHorizontal: 12, paddingVertical: 10 },
+  iconBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  primaryBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
+
+  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 10, backgroundColor: '#F2F2F7', borderRadius: 13, paddingHorizontal: 12, paddingVertical: 10 },
   searchInput: { flex: 1, fontSize: 15, color: '#000', padding: 0 },
-  tabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 14, marginBottom: 8 },
-  tab: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: '#F2F2F7' },
+  cancelTxt: { color: '#2563EB', fontSize: 14, fontWeight: '600' },
+
+  activeStrip: { paddingBottom: 10 },
+  activeCard: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 14, padding: 12, borderRadius: 16, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' },
+  activePulseWrap: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
+  activePulse: { position: 'absolute', width: 42, height: 42, borderRadius: 21, backgroundColor: '#FCA5A5', opacity: 0.5 },
+  activeIconWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#DC2626', alignItems: 'center', justifyContent: 'center' },
+  activeLabel: { fontSize: 10, fontWeight: '800', color: '#DC2626', letterSpacing: 0.8, marginBottom: 2 },
+  activeTitle: { fontSize: 14, fontWeight: '700', color: '#000' },
+  activeSub: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+  activeJoinBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: '#DC2626' },
+  activeJoinTxt: { color: '#FFF', fontSize: 13, fontWeight: '800' },
+  activeShareBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#FECACA', alignItems: 'center', justifyContent: 'center' },
+
+  quickRow: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
+  quickTile: { alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 6, minWidth: 60 },
+  quickIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  quickLabel: { fontSize: 11, fontWeight: '700', color: '#374151' },
+
+  tabsWrap: { backgroundColor: '#FFF', paddingTop: 10, paddingBottom: 6 },
+  tabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 14 },
+  tab: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#F2F2F7' },
   tabActive: { backgroundColor: '#000' },
   tabTxt: { fontSize: 13, fontWeight: '700', color: '#3C3C43' },
   tabTxtActive: { color: '#FFF' },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#8E8E93', letterSpacing: 0.8 },
+  tabBadge: { backgroundColor: '#DC2626', borderRadius: 10, minWidth: 18, height: 18, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
+  tabBadgeActive: { backgroundColor: '#FFF' },
+  tabBadgeTxt: { color: '#FFF', fontSize: 10, fontWeight: '800' },
+  tabBadgeTxtActive: { color: '#000' },
+
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#8E8E93', letterSpacing: 0.8, paddingHorizontal: 4 },
+
   card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F7F7F7', borderRadius: 18, padding: 14 },
-  cardArchived: { opacity: 0.6 },
   cardAvatarWrap: { position: 'relative' },
   cardAvatar: { width: 50, height: 50, borderRadius: 16 },
   cardAvatarTxt: { fontSize: 18, fontWeight: '800', color: '#FFF' },
@@ -486,11 +762,10 @@ const s = StyleSheet.create({
   badge: { backgroundColor: '#000', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   badgeTxt: { color: '#FFF', fontSize: 11, fontWeight: '800' },
   mutedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D5DB' },
-  archivedBadge: { backgroundColor: '#F3F4F6', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  archivedTxt: { fontSize: 10, color: '#6B7280', fontWeight: '600' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 8 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000' },
+
+  emptyInline: { alignItems: 'center', paddingHorizontal: 40, paddingTop: 40, paddingBottom: 20, gap: 8 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000', marginTop: 6 },
   emptySub: { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
-  emptyBtn: { marginTop: 10, backgroundColor: '#000', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 13 },
+  emptyBtn: { marginTop: 14, backgroundColor: '#000', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 13 },
   emptyBtnTxt: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });
