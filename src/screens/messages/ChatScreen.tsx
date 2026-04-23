@@ -863,7 +863,7 @@ export default function ChatScreen() {
       isIncoming: false, isVideo,
     });
     try {
-      if (!isGroup && recipientId) await callService.initiateCall({ callerId: currentUserId, receiverId: recipientId, channelId: chanId });
+      if (!isGroup && recipientId) await callService.initiateCall({ callerId: currentUserId, receiverId: recipientId, channelId: chanId, isVideo });
     } catch {}
   }, [currentUserId, otherUser, passedUserId, conversationId, isGroup, groupName, chatTitle, navigation]);
 
