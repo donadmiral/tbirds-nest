@@ -1,3 +1,5 @@
+// src/services/callService.ts
+
 /**
  * callService.ts
  *
@@ -9,7 +11,7 @@
 
 import { supabase } from './supabase';
 
-export type CallStatus = 'ringing' | 'accepted' | 'declined' | 'ended' | 'missed';
+export type CallStatus = 'ringing' | 'active' | 'declined' | 'ended' | 'missed';
 
 export type CallRecord = {
   id: string;
@@ -115,7 +117,7 @@ export const callService = {
     if (!callId) { console.log('[SVC_ACCEPT_SKIP] no callId'); return false; }
     const { data, error } = await supabase
       .from('call_sessions')
-      .update({ status: 'accepted', started_at: new Date().toISOString() })
+      .update({ status: 'active', started_at: new Date().toISOString() })
       .eq('id', callId)
       .select('id, status, started_at');
     if (error) { console.log('[SVC_ACCEPT_ERR]', error.message); return false; }
@@ -186,11 +188,13 @@ export const callService = {
   },
 
   subscribeToIncomingCalls(userId: string, onIncoming: (call: CallRecord) => void) {
-    return supabase
+    console.log('[INCOMING_SUB_START] userId:', userId);
+    const channel = supabase
       .channel(`incoming_calls_${userId}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'call_sessions', filter: `receiver_id=eq.${userId}` },
         (payload) => {
+          console.log('[INCOMING_SUB_EVENT]', payload);
           const row = payload.new as CallSessionRow;
           if (row.status === 'ringing') {
             const rec = toRecord(row);
@@ -198,7 +202,10 @@ export const callService = {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[INCOMING_SUB_STATUS]', status);
+      });
+    return channel;
   },
 
   subscribeToCallStatus(callId: string, onStatusChange: (status: CallStatus) => void) {
@@ -227,18 +234,41 @@ export const callService = {
   }): Promise<DailyTokenResult> {
     const { data: sess } = await supabase.auth.getSession();
     const token = sess?.session?.access_token;
+    console.log('[DAILY_TOKEN_REQ] hasToken:', !!token, 'tokenLen:', token?.length || 0);
     if (!token) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase.functions.invoke('daily-get-token', {
-      body: {
-        callSessionId: params.callSessionId,
-        roomName: params.roomName,
-        isOwner: params.isOwner ?? false,
-        kind: params.kind ?? 'call',
+    const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    const SUPABASE_ANON = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    const url = `${SUPABASE_URL}/functions/v1/daily-get-token`;
+
+    const body = {
+      callSessionId: params.callSessionId,
+      roomName: params.roomName,
+      isOwner: params.isOwner ?? false,
+      kind: params.kind ?? 'call',
+    };
+
+    console.log('[DAILY_TOKEN_URL]', url);
+    console.log('[DAILY_TOKEN_BODY]', body);
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON as string,
+        Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify(body),
     });
 
-    if (error) throw new Error(error.message || 'Could not get Daily token');
+    const responseText = await res.text();
+    console.log('[DAILY_TOKEN_RAW]', { status: res.status, body: responseText });
+
+    if (!res.ok) {
+      throw new Error(`Edge Function ${res.status}: ${responseText}`);
+    }
+
+    const data = JSON.parse(responseText);
     if (!data?.token || !data?.roomUrl) throw new Error('Invalid token response');
 
     return data as DailyTokenResult;

@@ -2,17 +2,11 @@
  * CallScreen.tsx
  *
  * Daily.co media backend. Supabase signaling via call_sessions.
- *
- * Lifecycle:
- *   - For incoming: callId arrives in params, we fetch Daily token, join room
- *   - For outgoing: we adopt or create call_sessions row, fetch token, join room
- *   - On remote participant joining: mark call accepted, start timer
- *   - On hangup: leave Daily room, write duration to DB
  */
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image,
-  StatusBar, Alert, ScrollView, Platform,
+  StatusBar, Alert, ScrollView, Platform, PermissionsAndroid,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -85,7 +79,6 @@ export default function CallScreen() {
     });
   }, []);
 
-  // ── Setup: adopt or create the call_sessions row for outgoing calls ────────
   useEffect(() => {
     if (incomingCallId) {
       callIdRef.current = incomingCallId;
@@ -136,13 +129,21 @@ export default function CallScreen() {
     setupPromiseRef.current = setup();
   }, [incomingCallId, isIncoming, profile?.id, callerId, channelId, isVideo]);
 
-  // ── Daily init + join room ──────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
 
     const joinDaily = async () => {
       try {
-        // Wait for callId to be available (needed for token fetch)
+        console.log('[DAILY_FLOW] starting');
+
+        if (Platform.OS === 'android') {
+          const perms = [
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          ];
+          if (isVideo) perms.push(PermissionsAndroid.PERMISSIONS.CAMERA);
+          await PermissionsAndroid.requestMultiple(perms);
+        }
+
         let callId = callIdRef.current;
         if (!callId && setupPromiseRef.current) {
           callId = await setupPromiseRef.current;
@@ -152,23 +153,23 @@ export default function CallScreen() {
           return;
         }
         if (cancelled) return;
+        console.log('[DAILY_FLOW] have callId', callId);
 
-        // Fetch Daily token
         const { roomUrl, token } = await callService.getDailyToken({
           callSessionId: callId,
           isOwner: !isIncoming,
           kind: 'call',
         });
+        console.log('[DAILY_FLOW] got token, roomUrl:', roomUrl);
         if (cancelled) return;
 
-        // Create Daily call object
         const call = Daily.createCallObject({
           audioSource: true,
           videoSource: isVideo,
         });
         callObjRef.current = call;
+        console.log('[DAILY_FLOW] call object created');
 
-        // Wire up events
         call.on('joined-meeting' as DailyEvent, () => {
           setDailyReady(true);
           console.log('[DAILY] joined meeting');
@@ -195,23 +196,25 @@ export default function CallScreen() {
         });
 
         call.on('error' as DailyEvent, (ev: any) => {
-          console.log('[DAILY] error', ev);
-          setErrorMsg(ev?.errorMsg || 'Call error');
+          console.log('[DAILY_EVENT_ERROR]', JSON.stringify(ev));
+          setErrorMsg(ev?.errorMsg || ev?.error?.message || 'Call error');
         });
 
         call.on('left-meeting' as DailyEvent, () => {
           console.log('[DAILY] left meeting');
         });
 
-        // Join
+        console.log('[DAILY_FLOW] attempting join', { roomUrl, hasToken: !!token });
         await call.join({
           url: roomUrl,
           token,
           userName: profile?.full_name || 'User',
         });
+        console.log('[DAILY_FLOW] join() returned');
       } catch (e: any) {
-        console.log('[DAILY_JOIN_ERR]', e?.message);
-        if (!cancelled) setErrorMsg(e?.message || 'Could not connect');
+        console.log('[DAILY_JOIN_ERR_FULL]', JSON.stringify(e, Object.getOwnPropertyNames(e)));
+        console.log('[DAILY_JOIN_ERR]', e?.message || String(e));
+        if (!cancelled) setErrorMsg(e?.message || String(e) || 'Could not connect');
       }
     };
 
@@ -239,7 +242,6 @@ export default function CallScreen() {
     }, 1000);
   };
 
-  // Suggested contacts (for Add to call UI)
   useEffect(() => {
     if (!profile?.id || !callerId) return;
     supabase
@@ -309,8 +311,6 @@ export default function CallScreen() {
   const toggleSpeaker = () => {
     const next = !speaker;
     setSpeaker(next);
-    // Speaker routing on iOS needs native extension; Daily handles bluetooth + earpiece
-    // For now this just toggles a UI flag; Daily picks best output device.
   };
 
   const toggleVideo = () => {
@@ -352,8 +352,8 @@ export default function CallScreen() {
           </TouchableOpacity>
 
           <Text style={s.callTypeLabel}>
-            {isVideo ? '🎬  Video call' : '📞  Voice call'}
-            {!connected ? (isIncoming ? '  ·  Incoming' : '  ·  Calling...') : ''}
+            {isVideo ? 'Video call' : 'Voice call'}
+            {!connected ? (isIncoming ? '  -  Incoming' : '  -  Calling...') : ''}
           </Text>
 
           <TouchableOpacity onPress={viewProfile} style={s.avatarWrap} activeOpacity={0.85}>
@@ -438,7 +438,7 @@ export default function CallScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={s.sideCircle} activeOpacity={0.8}
-              onPress={() => Alert.alert('More', 'Hold, transfer, record — coming soon.')}>
+              onPress={() => Alert.alert('More', 'Coming soon.')}>
               <Feather name="more-horizontal" size={22} color="#1A1A1A" />
             </TouchableOpacity>
           </View>

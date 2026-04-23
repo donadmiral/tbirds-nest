@@ -1,8 +1,6 @@
 /**
  * IncomingCallListener
  * Mounts at app root, subscribes to incoming call_sessions for the logged-in user.
- * When a ringing row appears, pushes IncomingCallScreen so users see rings regardless
- * of which screen they're currently on.
  */
 import { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -14,17 +12,22 @@ export default function IncomingCallListener() {
   const nav = useNavigation<any>();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
+
   const activeCallIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      console.log('[INCOMING_LISTENER] no userId, skipping');
+      return;
+    }
+    console.log('[INCOMING_LISTENER_MOUNTED] userId:', userId);
 
     const handleIncoming = async (call: CallRecord) => {
+      console.log('[INCOMING_LISTENER_EVENT] received call:', call.id);
       if (!call.caller_id) return;
       if (activeCallIdRef.current === call.id) return;
       activeCallIdRef.current = call.id;
 
-      // Look up caller profile for avatar/name
       const { data: caller } = await supabase
         .from('profiles')
         .select('id, full_name, username, avatar_url')
@@ -41,9 +44,8 @@ export default function IncomingCallListener() {
         isVideo: call.is_video,
       });
 
-      // Clear the ref when call status changes
       const statusSub = callService.subscribeToCallStatus(call.id, (status) => {
-        if (status === 'ended' || status === 'declined' || status === 'missed' || status === 'accepted') {
+        if (status === 'ended' || status === 'declined' || status === 'missed' || status === 'active') {
           activeCallIdRef.current = null;
           statusSub.unsubscribe();
         }
@@ -53,6 +55,7 @@ export default function IncomingCallListener() {
     const sub = callService.subscribeToIncomingCalls(userId, handleIncoming);
 
     return () => {
+      console.log('[INCOMING_LISTENER_UNMOUNT]');
       sub.unsubscribe();
       activeCallIdRef.current = null;
     };
