@@ -2,16 +2,23 @@
  * CallScreen.tsx
  *
  * Daily.co media backend. Supabase signaling via call_sessions.
+ * Renders local + remote video via DailyMediaView.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image,
-  StatusBar, Alert, ScrollView, Platform, PermissionsAndroid,
+  StatusBar, Alert, ScrollView, Platform, PermissionsAndroid, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Daily, { DailyCall, DailyEvent, DailyEventObjectParticipant } from '@daily-co/react-native-daily-js';
+import Daily, {
+  DailyCall,
+  DailyEvent,
+  DailyEventObjectParticipant,
+  DailyMediaView,
+  DailyParticipant,
+} from '@daily-co/react-native-daily-js';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { callService } from '../../services/callService';
@@ -64,6 +71,9 @@ export default function CallScreen() {
   const [suggestions, setSuggestions] = useState<SuggestedUser[]>([]);
   const [ending, setEnding]           = useState(false);
   const [errorMsg, setErrorMsg]       = useState<string | null>(null);
+
+  const [localParticipant, setLocalParticipant]   = useState<DailyParticipant | null>(null);
+  const [remoteParticipant, setRemoteParticipant] = useState<DailyParticipant | null>(null);
 
   const callObjRef       = useRef<DailyCall | null>(null);
   const timerRef         = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -132,14 +142,27 @@ export default function CallScreen() {
   useEffect(() => {
     let cancelled = false;
 
+    const refreshParticipants = (call: DailyCall) => {
+      try {
+        const ps = call.participants();
+        const local = ps.local ?? null;
+        let remote: DailyParticipant | null = null;
+        for (const key of Object.keys(ps)) {
+          if (key !== 'local') { remote = (ps as any)[key]; break; }
+        }
+        setLocalParticipant(local);
+        setRemoteParticipant(remote);
+      } catch (e) {
+        console.log('[PARTICIPANTS_ERR]', e);
+      }
+    };
+
     const joinDaily = async () => {
       try {
         console.log('[DAILY_FLOW] starting');
 
         if (Platform.OS === 'android') {
-          const perms = [
-            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-          ];
+          const perms = [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO];
           if (isVideo) perms.push(PermissionsAndroid.PERMISSIONS.CAMERA);
           await PermissionsAndroid.requestMultiple(perms);
         }
@@ -153,26 +176,39 @@ export default function CallScreen() {
           return;
         }
         if (cancelled) return;
-        console.log('[DAILY_FLOW] have callId', callId);
 
         const { roomUrl, token } = await callService.getDailyToken({
           callSessionId: callId,
           isOwner: !isIncoming,
           kind: 'call',
         });
-        console.log('[DAILY_FLOW] got token, roomUrl:', roomUrl);
         if (cancelled) return;
 
         const call = Daily.createCallObject({
           audioSource: true,
           videoSource: isVideo,
-        });
+          startVideoOff: false,
+          startAudioOff: false,
+        } as any);
         callObjRef.current = call;
-        console.log('[DAILY_FLOW] call object created');
 
         call.on('joined-meeting' as DailyEvent, () => {
           setDailyReady(true);
           console.log('[DAILY] joined meeting');
+
+          if (isVideo) {
+            try {
+              call.setLocalVideo(true);
+              console.log('[DAILY] force-enabled local video');
+            } catch (e: any) {
+              console.log('[DAILY] setLocalVideo err', e?.message);
+            }
+          }
+          try {
+            call.setLocalAudio(true);
+          } catch {}
+
+          refreshParticipants(call);
           if (isIncoming) {
             setConnected(true);
             startTimer();
@@ -180,8 +216,9 @@ export default function CallScreen() {
         });
 
         call.on('participant-joined' as DailyEvent, (ev: DailyEventObjectParticipant | any) => {
+          console.log('[DAILY] participant-joined', ev?.participant?.user_name);
+          refreshParticipants(call);
           if (ev?.participant?.local) return;
-          console.log('[DAILY] remote joined');
           setConnected(true);
           startTimer();
           if (callIdRef.current && !isIncoming) {
@@ -189,10 +226,23 @@ export default function CallScreen() {
           }
         });
 
+        call.on('participant-updated' as DailyEvent, () => {
+          refreshParticipants(call);
+        });
+
         call.on('participant-left' as DailyEvent, (ev: DailyEventObjectParticipant | any) => {
+          console.log('[DAILY] participant-left');
+          refreshParticipants(call);
           if (ev?.participant?.local) return;
-          console.log('[DAILY] remote left');
           endCall();
+        });
+
+        call.on('track-started' as DailyEvent, () => {
+          refreshParticipants(call);
+        });
+
+        call.on('track-stopped' as DailyEvent, () => {
+          refreshParticipants(call);
         });
 
         call.on('error' as DailyEvent, (ev: any) => {
@@ -204,7 +254,6 @@ export default function CallScreen() {
           console.log('[DAILY] left meeting');
         });
 
-        console.log('[DAILY_FLOW] attempting join', { roomUrl, hasToken: !!token });
         await call.join({
           url: roomUrl,
           token,
@@ -212,7 +261,6 @@ export default function CallScreen() {
         });
         console.log('[DAILY_FLOW] join() returned');
       } catch (e: any) {
-        console.log('[DAILY_JOIN_ERR_FULL]', JSON.stringify(e, Object.getOwnPropertyNames(e)));
         console.log('[DAILY_JOIN_ERR]', e?.message || String(e));
         if (!cancelled) setErrorMsg(e?.message || String(e) || 'Could not connect');
       }
@@ -315,18 +363,19 @@ export default function CallScreen() {
 
   const toggleVideo = () => {
     const call = callObjRef.current; if (!call) return;
-    if (!isVideo) { Alert.alert('Video', 'This is an audio call. Start a new video call to use video.'); return; }
+    if (!isVideo) {
+      Alert.alert('Video', 'This is an audio call. Start a new video call to use video.');
+      return;
+    }
     const next = !videoOff;
     setVideoOff(next);
     call.setLocalVideo(!next);
   };
 
-  const controls = [
-    { label: muted ? 'Unmute' : 'Mute',             icon: muted    ? 'mic-off'  : 'mic',      active: muted,    onPress: toggleMute },
-    { label: speaker ? 'Speaker' : 'Earpiece',      icon: speaker  ? 'volume-2' : 'volume-x', active: speaker,  onPress: toggleSpeaker },
-    { label: videoOff ? 'Camera on' : 'Camera off', icon: videoOff ? 'video-off' : 'video',   active: !videoOff && isVideo, onPress: toggleVideo },
-    { label: 'Keypad', icon: 'hash', active: false, onPress: () => Alert.alert('Keypad', 'Dial-tone keypad coming soon.') },
-  ] as const;
+  const flipCamera = async () => {
+    const call = callObjRef.current; if (!call) return;
+    try { await call.cycleCamera(); } catch (e: any) { console.log('[FLIP_CAM_ERR]', e?.message); }
+  };
 
   const viewProfile = () => {
     if (!callerId) return;
@@ -334,6 +383,112 @@ export default function CallScreen() {
   };
 
   const onMinimise = () => { endCall(); };
+
+  const remoteHasVideo = !!remoteParticipant?.videoTrack;
+  const localHasVideo  = !!localParticipant?.videoTrack && !videoOff;
+
+  if (isVideo) {
+    return (
+      <View style={s.videoRoot}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+
+        <View style={s.remoteContainer}>
+          {remoteHasVideo ? (
+            <DailyMediaView
+              videoTrack={remoteParticipant?.videoTrack as any}
+              audioTrack={remoteParticipant?.audioTrack as any}
+              mirror={false}
+              zOrder={0}
+              objectFit="cover"
+              style={s.remoteVideo}
+            />
+          ) : (
+            <View style={s.remoteFallback}>
+              {callerAvatar ? (
+                <Image source={{ uri: callerAvatar }} style={s.remoteAvatar} />
+              ) : (
+                <View style={[s.remoteAvatar, { backgroundColor: avatarBg(callerId) }]}>
+                  <Text style={s.remoteAvatarTxt}>{initials(callerName)}</Text>
+                </View>
+              )}
+              <Text style={s.videoCallerName}>{callerName}</Text>
+              <View style={s.connectingRow}>
+                {!errorMsg && !connected && <ActivityIndicator color="rgba(255,255,255,0.8)" />}
+                <Text style={s.videoStatus}>
+                  {errorMsg ? errorMsg : remoteParticipant ? 'Connecting video...' : connected ? 'Connecting...' : isIncoming ? 'Connecting...' : 'Calling...'}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        <SafeAreaView style={s.videoTopBar} edges={['top']}>
+          <TouchableOpacity onPress={onMinimise} style={s.videoTopBtn}>
+            <Feather name="chevron-down" size={24} color="#FFF" />
+          </TouchableOpacity>
+
+          <View style={s.videoTopCenter}>
+            {connected && (
+              <>
+                <Text style={s.videoTopName}>{callerName}</Text>
+                <Text style={s.videoTopTimer}>{fmtTime(elapsed)}</Text>
+              </>
+            )}
+          </View>
+
+          <TouchableOpacity onPress={flipCamera} style={s.videoTopBtn} disabled={videoOff}>
+            <Feather name="refresh-cw" size={22} color={videoOff ? 'rgba(255,255,255,0.3)' : '#FFF'} />
+          </TouchableOpacity>
+        </SafeAreaView>
+
+        {localHasVideo && (
+          <View style={[s.selfView, { top: insets.top + 60 }]}>
+            <DailyMediaView
+              videoTrack={localParticipant?.videoTrack as any}
+              audioTrack={null as any}
+              mirror={true}
+              zOrder={1}
+              objectFit="cover"
+              style={s.selfViewInner}
+            />
+          </View>
+        )}
+
+        <SafeAreaView style={s.videoBottomBar} edges={['bottom']}>
+          <TouchableOpacity style={[s.videoCtrl, muted && s.videoCtrlActive]} onPress={toggleMute}>
+            <Feather name={muted ? 'mic-off' : 'mic'} size={24} color="#FFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[s.videoCtrl, videoOff && s.videoCtrlActive]} onPress={toggleVideo}>
+            <Feather name={videoOff ? 'video-off' : 'video'} size={24} color="#FFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[s.videoEndCircle, ending && { opacity: 0.5 }]}
+            onPress={endCall}
+            disabled={ending}
+          >
+            <Feather name="phone-off" size={26} color="#FFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[s.videoCtrl, speaker && s.videoCtrlActive]} onPress={toggleSpeaker}>
+            <Feather name={speaker ? 'volume-2' : 'volume-x'} size={24} color="#FFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={s.videoCtrl} onPress={() => Alert.alert('More', 'Coming soon.')}>
+            <Feather name="more-horizontal" size={24} color="#FFF" />
+          </TouchableOpacity>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  const controls = [
+    { label: muted ? 'Unmute' : 'Mute',             icon: muted    ? 'mic-off'  : 'mic',      active: muted,    onPress: toggleMute },
+    { label: speaker ? 'Speaker' : 'Earpiece',      icon: speaker  ? 'volume-2' : 'volume-x', active: speaker,  onPress: toggleSpeaker },
+    { label: videoOff ? 'Camera on' : 'Camera off', icon: videoOff ? 'video-off' : 'video',   active: !videoOff && isVideo, onPress: toggleVideo },
+    { label: 'Keypad', icon: 'hash', active: false, onPress: () => Alert.alert('Keypad', 'Coming soon.') },
+  ] as const;
 
   return (
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
@@ -352,7 +507,7 @@ export default function CallScreen() {
           </TouchableOpacity>
 
           <Text style={s.callTypeLabel}>
-            {isVideo ? 'Video call' : 'Voice call'}
+            Voice call
             {!connected ? (isIncoming ? '  -  Incoming' : '  -  Calling...') : ''}
           </Text>
 
@@ -485,4 +640,28 @@ const s = StyleSheet.create({
   bottomRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 36, paddingTop: 20, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#F0F0F0' },
   sideCircle:     { width: 64, height: 64, borderRadius: 22, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   endCircle:      { width: 68, height: 68, borderRadius: 24, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', shadowColor: '#EF4444', shadowOpacity: 0.35, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 8 },
+
+  videoRoot:       { flex: 1, backgroundColor: '#000' },
+  remoteContainer: { flex: 1, backgroundColor: '#0B1E3D' },
+  remoteVideo:     { flex: 1, width: '100%', height: '100%' },
+  remoteFallback:  { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B1E3D' },
+  remoteAvatar:    { width: 120, height: 120, borderRadius: 60, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  remoteAvatarTxt: { fontSize: 44, fontWeight: '800', color: '#FFF' },
+  videoCallerName: { fontSize: 24, fontWeight: '700', color: '#FFF', marginBottom: 14 },
+  connectingRow:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  videoStatus:     { fontSize: 14, color: 'rgba(255,255,255,0.7)' },
+
+  videoTopBar:     { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, backgroundColor: 'rgba(0,0,0,0.35)' },
+  videoTopBtn:     { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  videoTopCenter:  { flex: 1, alignItems: 'center' },
+  videoTopName:    { fontSize: 15, fontWeight: '700', color: '#FFF' },
+  videoTopTimer:   { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+
+  selfView:        { position: 'absolute', right: 16, width: 110, height: 160, borderRadius: 14, overflow: 'hidden', backgroundColor: '#222', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+  selfViewInner:   { flex: 1, width: '100%', height: '100%' },
+
+  videoBottomBar:  { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(0,0,0,0.55)' },
+  videoCtrl:       { width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
+  videoCtrlActive: { backgroundColor: 'rgba(255,255,255,0.4)' },
+  videoEndCircle:  { width: 64, height: 64, borderRadius: 32, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center' },
 });

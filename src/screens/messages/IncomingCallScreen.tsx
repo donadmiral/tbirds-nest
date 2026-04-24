@@ -1,8 +1,7 @@
 /**
  * IncomingCallScreen.tsx
  * Shows when someone calls you while app is open.
- * Accepts → joins Agora channel in CallScreen.
- * Requires react-native-agora (see callService.ts for setup).
+ * Accepts → joins Daily room in CallScreen.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -24,6 +23,7 @@ export default function IncomingCallScreen() {
   const callerAvatar: string | null = route.params?.callerAvatar ?? null;
   const callerUsername: string | null = route.params?.callerUsername ?? null;
   const otherUser = route.params?.otherUser ?? null;
+  const isVideo: boolean = route.params?.isVideo === true;
 
   const [declined, setDeclined] = useState(false);
 
@@ -37,13 +37,11 @@ export default function IncomingCallScreen() {
   const fadeIn = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Entrance animation
     Animated.parallel([
       Animated.timing(slideUp, { toValue: 0, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
       Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }),
     ]).start();
 
-    // Pulse rings
     const pulse = (scale: Animated.Value, opacity: Animated.Value, delay: number) =>
       Animated.loop(
         Animated.sequence([
@@ -64,7 +62,6 @@ export default function IncomingCallScreen() {
     const a3 = pulse(ring3, ring3Opacity, 1000);
     a1.start(); a2.start(); a3.start();
 
-    // Auto-dismiss after 30 seconds (missed call)
     const timeout = setTimeout(async () => {
       if (callId) await callService.markMissed(callId);
       navigation.goBack();
@@ -90,6 +87,7 @@ export default function IncomingCallScreen() {
       callerAvatar,
       otherUser,
       isIncoming: true,
+      isVideo,
     });
   };
 
@@ -104,7 +102,6 @@ export default function IncomingCallScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#060A14" />
       <Animated.View style={[s.container, { paddingTop: insets.top + 20, opacity: fadeIn, transform: [{ translateY: slideUp }] }]}>
 
-        {/* Top label */}
         <View style={s.topSection}>
           <View style={s.appPill}>
             <Text style={s.appPillTxt}>TBirds Nest</Text>
@@ -112,7 +109,6 @@ export default function IncomingCallScreen() {
           <Text style={s.incomingTxt}>Incoming Call</Text>
         </View>
 
-        {/* Avatar with pulse rings */}
         <View style={s.avatarSection}>
           <View style={s.pulseContainer}>
             <Animated.View style={[s.ring, { transform: [{ scale: ring3 }], opacity: ring3Opacity, borderColor: '#38BDF820' }]} />
@@ -128,13 +124,11 @@ export default function IncomingCallScreen() {
           {callerUsername && <Text style={s.callerHandle}>@{callerUsername}</Text>}
           <View style={s.callTypePill}>
             <View style={s.callTypeDot} />
-            <Text style={s.callTypeTxt}>Audio Call</Text>
+            <Text style={s.callTypeTxt}>{isVideo ? 'Video Call' : 'Audio Call'}</Text>
           </View>
         </View>
 
-        {/* Action buttons */}
         <View style={[s.actionSection, { paddingBottom: Math.max(insets.bottom + 20, 40) }]}>
-          {/* Swipe hint */}
           <Text style={s.hint}>Tap to respond</Text>
           <View style={s.btnRow}>
             <TouchableOpacity style={s.declineBtn} activeOpacity={0.85} onPress={handleDecline}>
@@ -146,7 +140,7 @@ export default function IncomingCallScreen() {
 
             <TouchableOpacity style={s.acceptBtn} activeOpacity={0.85} onPress={handleAccept}>
               <View style={[s.btnInner, s.acceptBtnInner]}>
-                <Text style={s.acceptIcon}>✆</Text>
+                <Text style={s.acceptIcon}>✓</Text>
               </View>
               <Text style={s.acceptLbl}>Accept</Text>
             </TouchableOpacity>
