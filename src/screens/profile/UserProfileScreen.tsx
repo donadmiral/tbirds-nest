@@ -1,3 +1,7 @@
+/**
+ * UserProfileScreen.tsx
+ * Design A — Classic iOS Style contact info, Clean Premium language.
+ */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
@@ -11,6 +15,13 @@ import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
 
 const SCREEN_W = Dimensions.get('window').width;
+
+const NAVY = '#0B1E3D';
+const NAVY_SOFT = '#1A3560';
+const BG_GREY = '#F7F7F9';
+const TEXT_PRIMARY = '#000000';
+const TEXT_SECONDARY = '#8E8E93';
+const HAIRLINE = '#E5E5EA';
 
 type UserProfile = {
   id: string; full_name: string; username: string; bio: string;
@@ -80,7 +91,6 @@ export default function UserProfileScreen() {
       ]);
       setStats({ posts: postsR.count ?? 0, connections: connR.count ?? 0, followers: followR.count ?? 0 });
 
-      // Posts with media array, matching Profile and Feed shape.
       let postsData: any[] = [];
       try {
         const { data } = await supabase
@@ -187,18 +197,29 @@ export default function UserProfileScreen() {
     }
   };
 
-  const connectLabel = () => {
-    if (connStatus === 'connected') return 'Connected';
-    if (connStatus === 'pending_sent') return 'Requested';
-    if (connStatus === 'pending_received') return 'Accept';
-    return 'Connect';
+  const openMessage = () => {
+    if (!profile) return;
+    navigation.navigate('Chat', {
+      userId: targetId,
+      userName: profile.full_name,
+      otherUser: {
+        id: profile.id,
+        full_name: profile.full_name,
+        username: profile.username,
+        avatar_url: profile.avatar_url,
+        bio: profile.bio,
+        location: profile.location,
+        degree_program: profile.degree_program,
+        graduation_year: profile.graduation_year,
+      },
+    });
   };
 
   const isOwnProfile = myId === targetId;
 
   if (loading) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
-      <View style={s.loader}><ActivityIndicator color="#007AFF" size="large" /></View>
+      <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
     </SafeAreaView>
   );
 
@@ -218,116 +239,72 @@ export default function UserProfileScreen() {
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
-          <Text style={s.backChev}>‹</Text>
-          <Text style={s.backLbl}>Back</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="chevron-left" size={26} color={NAVY} />
         </TouchableOpacity>
         <Text style={s.headerTitle} numberOfLines={1}>{profile.full_name || 'Profile'}</Text>
-        <View style={{ width: 60 }} />
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#007AFF" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={NAVY} />}
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 40, 60) }}
       >
-        <View style={s.identityCard}>
-          <View style={s.avatarRow}>
-            {profile.avatar_url
-              ? <Image source={{ uri: profile.avatar_url }} style={s.avatar} />
-              : <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarFbTxt}>{initials(profile.full_name)}</Text></View>}
-            <View style={s.statsRow}>
-              {[
-                { label: 'Posts', v: stats.posts },
-                { label: 'Connections', v: stats.connections },
-                { label: 'Followers', v: stats.followers },
-              ].map(stat => (
-                <View key={stat.label} style={s.statItem}>
-                  <Text style={s.statValue}>{stat.v}</Text>
-                  <Text style={s.statLabel}>{stat.label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
+        <View style={s.hero}>
+          {profile.avatar_url
+            ? <Image source={{ uri: profile.avatar_url }} style={s.avatar} />
+            : <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarFbTxt}>{initials(profile.full_name)}</Text></View>}
 
           <Text style={s.name}>{profile.full_name || 'Member'}</Text>
           {profile.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
-          {profile.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
 
-          <View style={s.metaRow}>
-            {profile.degree_program ? (
-              <View style={s.metaItem}>
-                <Feather name="book" size={13} color="#8E8E93" />
-                <Text style={s.metaTxt}>{profile.degree_program}{profile.graduation_year ? ` · ${profile.graduation_year}` : ''}</Text>
+          <View style={s.statsRow}>
+            {[
+              { label: 'Posts', v: stats.posts },
+              { label: 'Connections', v: stats.connections },
+              { label: 'Followers', v: stats.followers },
+            ].map(stat => (
+              <View key={stat.label} style={s.statItem}>
+                <Text style={s.statValue}>{stat.v}</Text>
+                <Text style={s.statLabel}>{stat.label}</Text>
               </View>
-            ) : null}
-            {profile.location ? (
-              <View style={s.metaItem}>
-                <Feather name="map-pin" size={13} color="#8E8E93" />
-                <Text style={s.metaTxt}>{profile.location}</Text>
-              </View>
-            ) : null}
-            {profile.role ? (
-              <View style={s.rolePill}>
-                <Text style={s.rolePillTxt}>{profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}</Text>
-              </View>
-            ) : null}
+            ))}
           </View>
 
           {!isOwnProfile && (
-            <View style={s.actions}>
-              <TouchableOpacity
-                style={[
-                  s.connectBtn,
-                  connStatus === 'connected' && s.connectedBtn,
-                  connStatus === 'pending_sent' && s.pendingSentBtn,
-                  connStatus === 'pending_received' && s.acceptBtn,
-                ]}
-                onPress={handleConnect} activeOpacity={0.8} disabled={actionBusy}
-              >
-                <Feather
-                  name={connStatus === 'connected' ? 'user-check' : connStatus === 'pending_sent' ? 'clock' : 'user-plus'}
-                  size={15}
-                  color={connStatus === 'connected' ? '#16A34A' : connStatus === 'pending_sent' ? '#7C3AED' : '#FFF'}
-                />
-                <Text style={[
-                  s.connectBtnTxt,
-                  connStatus === 'connected' && s.connectedBtnTxt,
-                  connStatus === 'pending_sent' && s.pendingSentBtnTxt,
-                ]}>{connectLabel()}</Text>
+            <View style={s.heroActions}>
+              <TouchableOpacity style={s.heroAction} activeOpacity={0.7} onPress={openMessage}>
+                <View style={s.heroActionInner}><Feather name="message-circle" size={20} color={NAVY} /></View>
+                <Text style={s.heroActionLbl}>Message</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
-                style={[s.followBtn, following && s.followingBtn]}
-                onPress={handleFollow} activeOpacity={0.8} disabled={actionBusy}
+                style={s.heroAction} activeOpacity={0.7}
+                onPress={handleConnect} disabled={actionBusy}
               >
-                <Feather name={following ? 'user-check' : 'user-plus'} size={15} color={following ? '#7C3AED' : '#8E8E93'} />
-                <Text style={[s.followBtnTxt, following && s.followingBtnTxt]}>{following ? 'Following' : 'Follow'}</Text>
+                <View style={[s.heroActionInner, connStatus === 'connected' && s.heroActionInnerActive]}>
+                  <Feather
+                    name={connStatus === 'connected' ? 'user-check' : connStatus === 'pending_sent' ? 'clock' : 'user-plus'}
+                    size={20}
+                    color={connStatus === 'connected' ? '#FFF' : NAVY}
+                  />
+                </View>
+                <Text style={s.heroActionLbl}>
+                  {connStatus === 'connected' ? 'Connected' : connStatus === 'pending_sent' ? 'Requested' : connStatus === 'pending_received' ? 'Accept' : 'Connect'}
+                </Text>
               </TouchableOpacity>
-
               <TouchableOpacity
-                style={s.messageBtn}
-                onPress={() => navigation.navigate('Chat', {
-                  userId: targetId,
-                  userName: profile.full_name,
-                  otherUser: {
-                    id: profile.id,
-                    full_name: profile.full_name,
-                    username: profile.username,
-                    avatar_url: profile.avatar_url,
-                    bio: profile.bio,
-                    location: profile.location,
-                    degree_program: profile.degree_program,
-                    graduation_year: profile.graduation_year,
-                  },
-                })}
-                activeOpacity={0.8}
+                style={s.heroAction} activeOpacity={0.7}
+                onPress={handleFollow} disabled={actionBusy}
               >
-                <Feather name="message-circle" size={15} color="#007AFF" />
-                <Text style={s.messageBtnTxt}>Message</Text>
+                <View style={[s.heroActionInner, following && s.heroActionInnerActive]}>
+                  <Feather name={following ? 'check' : 'plus'} size={20} color={following ? '#FFF' : NAVY} />
+                </View>
+                <Text style={s.heroActionLbl}>{following ? 'Following' : 'Follow'}</Text>
               </TouchableOpacity>
             </View>
           )}
+
           {isOwnProfile && (
             <TouchableOpacity
               style={s.editOwnBtn}
@@ -339,29 +316,81 @@ export default function UserProfileScreen() {
           )}
         </View>
 
-        <View style={s.postsSection}>
-          <Text style={s.postsSectionTitle}>Posts</Text>
+        {(profile.bio || profile.degree_program || profile.location) && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>About</Text>
+            {profile.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
+            {profile.degree_program ? (
+              <View style={s.itm}>
+                <View style={s.itmIconBg}>
+                  <Feather name="book" size={16} color={NAVY} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.itmTxt}>{profile.degree_program}</Text>
+                  {profile.graduation_year ? <Text style={s.itmSub}>Class of {profile.graduation_year}</Text> : null}
+                </View>
+              </View>
+            ) : null}
+            {profile.location ? (
+              <View style={s.itm}>
+                <View style={s.itmIconBg}>
+                  <Feather name="map-pin" size={16} color={NAVY} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.itmTxt}>{profile.location}</Text>
+                </View>
+              </View>
+            ) : null}
+            {profile.role ? (
+              <View style={s.itm}>
+                <View style={s.itmIconBg}>
+                  <Feather name="briefcase" size={16} color={NAVY} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.itmTxt}>{profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}</Text>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        )}
+
+        <View style={s.section}>
+          <View style={s.sectionHeaderRow}>
+            <Text style={s.sectionTitle}>Posts</Text>
+            {posts.length > 0 && <Text style={s.sectionMeta}>{posts.length}</Text>}
+          </View>
           {posts.length === 0 ? (
             <View style={s.emptyPosts}>
-              <Feather name="edit-3" size={32} color="#E5E5EA" />
+              <Feather name="edit-3" size={28} color="#E5E5EA" />
               <Text style={s.emptyPostsTxt}>No posts yet</Text>
             </View>
           ) : (
-            posts.map(post => (
-              <TouchableOpacity key={post.id} style={s.postCard} activeOpacity={0.88} onPress={() => navigation.navigate('Post', { postId: post.id })}>
+            posts.map((post, idx) => (
+              <TouchableOpacity
+                key={post.id}
+                style={[s.postCard, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('Post', { postId: post.id })}
+              >
                 {post.media.length > 0 ? (
-                  <View style={{ marginBottom: 10 }}>
+                  <View style={{ marginBottom: 10, borderRadius: 14, overflow: 'hidden' }}>
                     <MediaRenderer
                       media={post.media}
-                      containerWidth={SCREEN_W - 32}
-                      maxHeight={380}
+                      containerWidth={SCREEN_W - 64}
+                      maxHeight={360}
                     />
                   </View>
                 ) : null}
-                <Text style={s.postContent} numberOfLines={3}>{post.content}</Text>
+                {post.content ? <Text style={s.postContent} numberOfLines={4}>{post.content}</Text> : null}
                 <View style={s.postFooter}>
-                  <View style={s.postFooterItem}><Feather name="heart" size={13} color="#8E8E93" /><Text style={s.postFooterTxt}>{post.likes_count}</Text></View>
-                  <View style={s.postFooterItem}><Feather name="message-circle" size={13} color="#8E8E93" /><Text style={s.postFooterTxt}>{post.comments_count}</Text></View>
+                  <View style={s.postFooterItem}>
+                    <Feather name="heart" size={13} color={TEXT_SECONDARY} />
+                    <Text style={s.postFooterTxt}>{post.likes_count}</Text>
+                  </View>
+                  <View style={s.postFooterItem}>
+                    <Feather name="message-circle" size={13} color={TEXT_SECONDARY} />
+                    <Text style={s.postFooterTxt}>{post.comments_count}</Text>
+                  </View>
                   <Text style={s.postTime}>{relTime(post.created_at)}</Text>
                 </View>
               </TouchableOpacity>
@@ -374,57 +403,71 @@ export default function UserProfileScreen() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  notFoundTxt: { fontSize: 18, fontWeight: '600', color: '#3C3C43' },
-  goBackBtn: { backgroundColor: '#007AFF', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
-  goBackBtnTxt: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  backBtn: { flexDirection: 'row', alignItems: 'center', minWidth: 60 },
-  backChev: { fontSize: 30, color: '#007AFF', lineHeight: 34, marginRight: 1 },
-  backLbl: { fontSize: 17, color: '#007AFF' },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#000', flex: 1, textAlign: 'center' },
-  identityCard: { padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  avatarRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  avatar: { width: 80, height: 80, borderRadius: 40, marginRight: 20 },
-  avatarFb: { backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
-  avatarFbTxt: { fontSize: 28, fontWeight: '700', color: '#1D4ED8' },
-  statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around' },
-  statItem: { alignItems: 'center' },
-  statValue: { fontSize: 20, fontWeight: '700', color: '#000' },
-  statLabel: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
-  name: { fontSize: 20, fontWeight: '700', color: '#000', marginBottom: 2 },
-  handle: { fontSize: 14, color: '#007AFF', fontWeight: '500', marginBottom: 6 },
-  bio: { fontSize: 15, color: '#3C3C43', lineHeight: 21, marginBottom: 10 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 14 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaTxt: { fontSize: 13, color: '#8E8E93' },
-  rolePill: { backgroundColor: '#F2F2F7', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
-  rolePillTxt: { fontSize: 12, fontWeight: '600', color: '#3C3C43' },
-  actions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  connectBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#1D4ED8' },
-  connectedBtn: { backgroundColor: '#F0FDF4', borderWidth: 1, borderColor: '#BBF7D0' },
-  pendingSentBtn: { backgroundColor: '#F5F3FF', borderWidth: 1, borderColor: '#DDD6FE' },
-  acceptBtn: { backgroundColor: '#16A34A' },
-  connectBtnTxt: { fontSize: 14, fontWeight: '600', color: '#FFF' },
-  connectedBtnTxt: { color: '#16A34A', fontWeight: '700' },
-  pendingSentBtnTxt: { color: '#7C3AED', fontWeight: '600' },
-  followBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: '#E5E5EA', backgroundColor: '#FAFAFA' },
-  followingBtn: { backgroundColor: '#F5F3FF', borderColor: '#DDD6FE' },
-  followBtnTxt: { fontSize: 14, fontWeight: '500', color: '#8E8E93' },
-  followingBtnTxt: { color: '#7C3AED', fontWeight: '600' },
-  messageBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: '#007AFF', backgroundColor: '#EFF6FF' },
-  messageBtnTxt: { fontSize: 14, fontWeight: '600', color: '#007AFF' },
-  editOwnBtn: { paddingVertical: 11, borderRadius: 12, borderWidth: 1, borderColor: '#E5E5EA', alignItems: 'center' },
-  editOwnBtnTxt: { fontSize: 15, fontWeight: '600', color: '#000' },
-  postsSection: { paddingTop: 8 },
-  postsSectionTitle: { fontSize: 15, fontWeight: '700', color: '#000', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
-  emptyPosts: { alignItems: 'center', paddingVertical: 60, gap: 8 },
-  emptyPostsTxt: { fontSize: 15, color: '#8E8E93' },
-  postCard: { padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  postContent: { fontSize: 15, color: '#1A1A1A', lineHeight: 22, marginBottom: 10 },
+  safe: { flex: 1, backgroundColor: BG_GREY },
+  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: '#FFFFFF' },
+  notFoundTxt: { fontSize: 16, fontWeight: '600', color: '#3C3C43' },
+  goBackBtn: { backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
+  goBackBtnTxt: { color: '#FFF', fontSize: 14, fontWeight: '600' },
+
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 12, paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+  },
+  headerTitle: { fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY, flex: 1, textAlign: 'center' },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+
+  hero: {
+    alignItems: 'center',
+    paddingTop: 28, paddingHorizontal: 20, paddingBottom: 24,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+  },
+  avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 12, backgroundColor: '#EFF6FF' },
+  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: NAVY },
+  avatarFbTxt: { fontSize: 36, fontWeight: '700', color: '#FFF' },
+  name: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.4 },
+  handle: { fontSize: 14, color: NAVY, fontWeight: '500', marginTop: 4 },
+
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingHorizontal: 20, marginTop: 20, paddingVertical: 14, backgroundColor: BG_GREY, borderRadius: 16 },
+  statItem: { alignItems: 'center', flex: 1 },
+  statValue: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY },
+  statLabel: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 2, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
+
+  heroActions: { flexDirection: 'row', gap: 20, marginTop: 22 },
+  heroAction: { alignItems: 'center', gap: 6, minWidth: 70 },
+  heroActionInner: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
+  heroActionInnerActive: { backgroundColor: NAVY },
+  heroActionLbl: { fontSize: 11, fontWeight: '500', color: TEXT_PRIMARY },
+
+  editOwnBtn: { marginTop: 18, paddingVertical: 11, paddingHorizontal: 28, borderRadius: 22, borderWidth: 1, borderColor: HAIRLINE },
+  editOwnBtnTxt: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
+
+  section: {
+    backgroundColor: '#FFFFFF',
+    marginTop: 10,
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth,
+    borderTopColor: HAIRLINE, borderBottomColor: HAIRLINE,
+  },
+  sectionTitle: { fontSize: 11, fontWeight: '600', color: TEXT_SECONDARY, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionMeta: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
+
+  bio: { fontSize: 14, color: '#3C3C43', lineHeight: 21, marginBottom: 12 },
+
+  itm: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
+  itmIconBg: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  itmTxt: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '500' },
+  itmSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 1 },
+
+  emptyPosts: { alignItems: 'center', paddingVertical: 40, gap: 8 },
+  emptyPostsTxt: { fontSize: 14, color: TEXT_SECONDARY },
+  postCard: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
+  postContent: { fontSize: 14, color: '#1A1A1A', lineHeight: 20, marginBottom: 10 },
   postFooter: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   postFooterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  postFooterTxt: { fontSize: 13, color: '#8E8E93' },
-  postTime: { fontSize: 13, color: '#C7C7CC', marginLeft: 'auto' },
+  postFooterTxt: { fontSize: 12, color: TEXT_SECONDARY },
+  postTime: { fontSize: 12, color: '#C7C7CC', marginLeft: 'auto' },
 });

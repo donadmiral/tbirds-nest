@@ -1,7 +1,7 @@
 /**
  * ChatScreen.tsx
  * Unified DM + group + affiliation-aware chat.
- * Informative-mode enforcement: non-admins see a lock banner instead of the composer.
+ * Design: Clean Premium (Option 1) — navy sent bubbles, soft tails, instant send.
  */
 import React, {
   useCallback, useEffect, useMemo, useRef, useState,
@@ -28,11 +28,19 @@ import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
 
 const SCREEN_W = Dimensions.get('window').width;
-const MSG_IMG_W = Math.min(SCREEN_W * 0.72, 300);
-const MSG_IMG_H = Math.round(MSG_IMG_W * 0.82);
-const MSG_VID_H = Math.round(MSG_IMG_W * 0.60);
+const MSG_IMG_MAX_W = Math.min(SCREEN_W * 0.72, 300);
+const MSG_IMG_MAX_H = 360;
+const MSG_IMG_MIN_H = 140;
+const MSG_VID_H = Math.round(MSG_IMG_MAX_W * 0.60);
 const TENOR_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
 const REACTION_EMOJIS = ['❤️', '😂', '👍', '😮', '😢', '🔥', '🎯', '🙌'];
+
+const NAVY = '#0B1E3D';
+const NAVY_SOFT = '#1A3560';
+const BUBBLE_OTHER = '#F2F2F7';
+const TEXT_PRIMARY = '#000000';
+const TEXT_SECONDARY = '#8E8E93';
+const HAIRLINE = '#E5E5EA';
 
 type Reaction = { emoji: string; user_id: string };
 
@@ -49,6 +57,8 @@ type MessageItem = {
   media_url?: string | null;
   media_type?: string | null;
   media_b64?: string | null;
+  media_width?: number | null;
+  media_height?: number | null;
   reply_to_id?: string | null;
   _optimistic?: boolean;
   _reactions?: Reaction[];
@@ -155,6 +165,21 @@ function isLink(text?: string | null) {
   return !!text && /https?:\/\//i.test(text);
 }
 
+function computeImageDims(origW?: number | null, origH?: number | null) {
+  const w = origW && origW > 0 ? origW : MSG_IMG_MAX_W;
+  const h = origH && origH > 0 ? origH : Math.round(MSG_IMG_MAX_W * 0.75);
+  const ratio = w / h;
+  let boxW = MSG_IMG_MAX_W;
+  let boxH = Math.round(boxW / ratio);
+  if (boxH > MSG_IMG_MAX_H) {
+    boxH = MSG_IMG_MAX_H;
+    boxW = Math.round(boxH * ratio);
+    if (boxW > MSG_IMG_MAX_W) boxW = MSG_IMG_MAX_W;
+  }
+  if (boxH < MSG_IMG_MIN_H) boxH = MSG_IMG_MIN_H;
+  return { w: boxW, h: boxH };
+}
+
 function GifPicker({ onSelect, onBack }: { onSelect: (url: string) => void; onBack: () => void }) {
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
@@ -163,15 +188,15 @@ function GifPicker({ onSelect, onBack }: { onSelect: (url: string) => void; onBa
     <View style={{ padding: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
-          <Text style={{ fontSize: 14, color: '#007AFF', fontWeight: '600' }}>← Back</Text>
+          <Text style={{ fontSize: 14, color: NAVY, fontWeight: '600' }}>← Back</Text>
         </TouchableOpacity>
         <View style={{ flex: 1, backgroundColor: '#F2F2F7', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 }}>
           <TextInput value={search} onChangeText={setSearch} onSubmitEditing={() => setQuery(search)}
-            placeholder="Search GIFs..." placeholderTextColor="#8E8E93"
+            placeholder="Search GIFs..." placeholderTextColor={TEXT_SECONDARY}
             style={{ fontSize: 14, color: '#000', padding: 0 }} returnKeyType="search" />
         </View>
       </View>
-      {loading ? <ActivityIndicator color="#007AFF" style={{ marginVertical: 16 }} /> : (
+      {loading ? <ActivityIndicator color={NAVY} style={{ marginVertical: 16 }} /> : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {gifs.map((url, i) => (
             <TouchableOpacity key={i} onPress={() => onSelect(url)} style={{ marginRight: 8 }} activeOpacity={0.8}>
@@ -179,7 +204,7 @@ function GifPicker({ onSelect, onBack }: { onSelect: (url: string) => void; onBa
             </TouchableOpacity>
           ))}
           {gifs.length === 0 && !loading && (
-            <Text style={{ color: '#8E8E93', fontSize: 13, paddingVertical: 16 }}>No GIFs found.</Text>
+            <Text style={{ color: TEXT_SECONDARY, fontSize: 13, paddingVertical: 16 }}>No GIFs found.</Text>
           )}
         </ScrollView>
       )}
@@ -187,22 +212,66 @@ function GifPicker({ onSelect, onBack }: { onSelect: (url: string) => void; onBa
   );
 }
 
-function RemoteImage({ uri, b64, style, contentFit }: { uri: string; b64?: string | null; style: any; contentFit?: any }) {
+function SmartImage({ uri, b64, width, height, radius, contentFit }: { uri: string; b64?: string | null; width: number; height: number; radius: number; contentFit?: any }) {
   const mime = (() => {
     const ext = uri.split('.').pop()?.toLowerCase().split('?')[0] ?? '';
     return ext === 'png' ? 'image/png' : ext === 'gif' ? 'image/gif' : 'image/jpeg';
   })();
   if (b64) {
-    return <ExpoImage source={{ uri: `data:${mime};base64,${b64}` }} style={style} contentFit={contentFit ?? 'cover'} />;
+    return <ExpoImage source={{ uri: `data:${mime};base64,${b64}` }} style={{ width, height, borderRadius: radius }} contentFit={contentFit ?? 'cover'} />;
   }
   if (!uri || !uri.startsWith('http')) {
     return (
-      <View style={[style, { backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' }]}>
-        <Text style={{ fontSize: 24 }}>🖼</Text>
+      <View style={{ width, height, borderRadius: radius, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name="image" size={28} color="#8E8E93" />
       </View>
     );
   }
-  return <ExpoImage source={{ uri }} style={style} contentFit={contentFit ?? 'cover'} cachePolicy="memory-disk" onError={() => console.log('[IMG_ERR]', uri)} />;
+  return (
+    <ExpoImage
+      source={{ uri }}
+      style={{ width, height, borderRadius: radius, backgroundColor: '#F0F0F0' }}
+      contentFit={contentFit ?? 'cover'}
+      cachePolicy="memory-disk"
+      transition={150}
+      onError={() => console.log('[IMG_ERR]', uri)}
+    />
+  );
+}
+
+function AutoSizeImage({ uri, b64, onPress, onLongPress, onDims }: {
+  uri: string; b64?: string | null;
+  onPress?: () => void; onLongPress?: () => void;
+  onDims?: (w: number, h: number) => void;
+}) {
+  const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!uri) return;
+    if (uri.startsWith('http')) {
+      Image.getSize(uri,
+        (w, h) => { if (!cancelled) { const d = computeImageDims(w, h); setDims(d); onDims?.(w, h); } },
+        () => { if (!cancelled) setDims(computeImageDims(MSG_IMG_MAX_W, Math.round(MSG_IMG_MAX_W * 0.75))); }
+      );
+    } else {
+      setDims(computeImageDims(MSG_IMG_MAX_W, Math.round(MSG_IMG_MAX_W * 0.75)));
+    }
+    return () => { cancelled = true; };
+  }, [uri]);
+
+  const { w, h } = dims || computeImageDims(MSG_IMG_MAX_W, Math.round(MSG_IMG_MAX_W * 0.75));
+
+  const content = <SmartImage uri={uri} b64={b64} width={w} height={h} radius={18} />;
+
+  if (onPress || onLongPress) {
+    return (
+      <TouchableOpacity activeOpacity={0.9} onPress={onPress} onLongPress={onLongPress}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+  return content;
 }
 
 function VideoPlayer({ uri, width, height, fullscreen }: { uri: string; width: number; height: number; fullscreen?: boolean }) {
@@ -257,7 +326,6 @@ export default function ChatScreen() {
       .then(({ data }) => { if (data) setOtherUser(data); });
   }, [passedUserId]);
 
-  // Resolve conversationId eagerly for DMs. Without this, info modal has nothing to query.
   useEffect(() => {
     if (conversationId || isGroup || !currentUserId || !passedUserId) return;
     const a = [currentUserId, passedUserId].sort();
@@ -269,8 +337,6 @@ export default function ChatScreen() {
       .then(({ data }) => { if (data?.id) setConversationId(data.id); });
   }, [conversationId, isGroup, currentUserId, passedUserId]);
 
-  // Load affiliation info if this conversation is attached to one.
-  // Uses passed affiliationId if available, otherwise looks up via conversations.affiliation_id.
   useEffect(() => {
     if (!currentUserId) return;
     let cancelled = false;
@@ -390,11 +456,11 @@ export default function ChatScreen() {
       Animated.timing(typingOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
       const b = (v: Animated.Value, delay: number) => Animated.loop(Animated.sequence([
         Animated.delay(delay),
-        Animated.timing(v, { toValue: -5, duration: 260, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(v, { toValue: -4, duration: 260, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
         Animated.timing(v, { toValue: 0, duration: 260, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        Animated.delay(380),
+        Animated.delay(280),
       ]));
-      const a1 = b(dot1, 0), a2 = b(dot2, 150), a3 = b(dot3, 300);
+      const a1 = b(dot1, 0), a2 = b(dot2, 130), a3 = b(dot3, 260);
       a1.start(); a2.start(); a3.start();
       return () => { a1.stop(); a2.stop(); a3.stop(); };
     } else {
@@ -700,7 +766,7 @@ export default function ChatScreen() {
     setShowForwardPicker(true);
   };
 
-  const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null): Promise<boolean> => {
+  const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null, mediaWidth?: number, mediaHeight?: number): Promise<boolean> => {
     if (!currentUserId) return false;
     if (composerLocked) {
       Alert.alert('Announcements only', 'Only admins can post in this community.');
@@ -714,6 +780,7 @@ export default function ChatScreen() {
     const optimistic: MessageItem = {
       id: tempId, text: text || null, sender_id: currentUserId, receiver_id: receiverId, conversation_id: convId,
       created_at: now, media_url: mediaUrl || null, media_type: mediaType || null, media_b64: mediaB64 || null,
+      media_width: mediaWidth || null, media_height: mediaHeight || null,
       reply_to_id: replyId || null, _optimistic: true,
     };
     setMessages(prev => [optimistic, ...prev]);
@@ -729,7 +796,7 @@ export default function ChatScreen() {
         }
         return false;
       }
-      mergeMsg(data);
+      mergeMsg({ ...data, media_width: mediaWidth || null, media_height: mediaHeight || null, media_b64: mediaB64 || null });
       await refreshStatus();
       const preview = mediaUrl
         ? (mediaType === 'image' ? '📷 Photo' : mediaType === 'video' ? '🎬 Video' : mediaType === 'document' ? '📄 File' : '📎 Media')
@@ -745,13 +812,14 @@ export default function ChatScreen() {
   const sendMessage = useCallback(async () => {
     const clean = message.trim();
     if (!clean || sending) return;
+    setMessage('');
     setSending(true);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    await setTyping(false);
+    setTyping(false);
     const rid = replyTo?.id;
     setReplyTo(null);
     const ok = await doSend(clean, undefined, undefined, null, rid);
-    if (ok) setMessage('');
+    if (!ok) setMessage(clean);
     setSending(false);
   }, [message, sending, setTyping, replyTo, doSend]);
 
@@ -759,7 +827,7 @@ export default function ChatScreen() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[], quality: 0.85,
+      mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[], quality: 0.92,
       allowsMultipleSelection: true, selectionLimit: 10, base64: true,
     });
     if (result.canceled || !result.assets?.length) return;
@@ -775,7 +843,7 @@ export default function ChatScreen() {
             uri: asset.uri, kind: isVid ? 'video' : 'image', ext, mimeType: mime,
             width: asset.width, height: asset.height, base64: imgBase64,
           }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}` });
-          await doSend('', url, isVid ? 'video' : 'image', imgBase64);
+          await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height);
         } catch (upErr: any) { console.log('[CHAT_UPLOAD_ERR]', upErr?.message); continue; }
       }
     } catch (e: any) { Alert.alert('Upload failed', e?.message); } finally { setUploadingMedia(false); }
@@ -806,7 +874,7 @@ export default function ChatScreen() {
   const openCamera = useCallback(async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required'); return; }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.85, base64: true });
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.92, base64: true });
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
     setShowToolbar(false); setUploadingMedia(true);
@@ -816,7 +884,7 @@ export default function ChatScreen() {
         uri: asset.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg',
         width: asset.width, height: asset.height, base64: camBase64,
       }, { filename: `camera_${Date.now()}.jpg` });
-      await doSend('', url, 'image', camBase64);
+      await doSend('', url, 'image', camBase64, null, asset.width, asset.height);
     } catch { Alert.alert('Upload failed'); } finally { setUploadingMedia(false); }
   }, [currentUserId, doSend]);
 
@@ -867,17 +935,18 @@ export default function ChatScreen() {
     } catch {}
   }, [currentUserId, otherUser, passedUserId, conversationId, isGroup, groupName, chatTitle, navigation]);
 
+  const lastOwnIndex = useMemo(() => messages.findIndex(m => m.sender_id === currentUserId), [messages, currentUserId]);
+
   const getStatus = useCallback((item: MessageItem, isMe: boolean, index: number) => {
     if (!isMe) return null;
-    const latestOwnIdx = messages.findIndex(m => m.sender_id === currentUserId);
-    if (latestOwnIdx !== index) return null;
-    if (item._optimistic) return 'Sending...';
+    if (lastOwnIndex !== index) return null;
+    if (item._optimistic) return 'Sending';
     const viewed = item.viewed_at || (lastStatus?.id === item.id ? lastStatus.viewed_at : null);
     const delivered = item.delivered_at || (lastStatus?.id === item.id ? lastStatus.delivered_at : null);
-    if (viewed) return `Viewed ${fmtTime(viewed)}`;
+    if (viewed) return `Seen ${fmtTime(viewed)}`;
     if (delivered) return 'Delivered';
     return 'Sent';
-  }, [messages, currentUserId, lastStatus]);
+  }, [lastOwnIndex, currentUserId, lastStatus]);
 
   const listData = useMemo(() => {
     const source = searchQuery.trim()
@@ -911,6 +980,8 @@ export default function ChatScreen() {
     const replySourceMsg = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
     const replyPreview = replySourceMsg ? (replySourceMsg.text || (replySourceMsg.media_type === 'image' ? '📷 Photo' : '🎬 Video')) : null;
 
+    const isMediaOnly = (msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url && !msg.text;
+
     return (
       <View style={[s.row, isMe ? s.rowMe : s.rowOther]}>
         {!isMe && (
@@ -926,52 +997,52 @@ export default function ChatScreen() {
           {replyPreview && (
             <View style={[s.replyBar, isMe ? s.replyBarMe : s.replyBarOther]}>
               <View style={[s.replyAccent, isMe ? s.replyAccentMe : s.replyAccentOther]} />
-              <View>
-                <Text style={s.replyLabel}>{isMe ? 'You' : 'Replied'}</Text>
-                <Text style={[s.replyTxt, isMe && s.replyTxtMe]}>{replyPreview}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.replyLabel, isMe && s.replyLabelMe]}>{isMe ? 'You' : 'Replied'}</Text>
+                <Text style={[s.replyTxt, isMe && s.replyTxtMe]} numberOfLines={2}>{replyPreview}</Text>
               </View>
             </View>
           )}
-          {(msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url && !msg.text ? (
-            <TouchableOpacity activeOpacity={0.9}
-              onPress={() => msg.media_url && setFullscreenImg(msg.media_url)}
-              onLongPress={() => setSelectedMsg(msg)}
-              style={[s.imgBubble, msg._optimistic && { opacity: 0.55 }]}>
-              <RemoteImage uri={msg.media_url ?? ''} b64={msg.media_b64}
-                style={{ width: MSG_IMG_W, height: MSG_IMG_H, borderRadius: 14 }} />
+          {isMediaOnly ? (
+            <View style={s.imgWrap}>
+              <AutoSizeImage
+                uri={msg.media_url!}
+                b64={msg.media_b64}
+                onPress={() => msg.media_url && setFullscreenImg(msg.media_url)}
+                onLongPress={() => setSelectedMsg(msg)}
+              />
               {msg.media_type === 'gif' ? <View style={s.gifBadge}><Text style={s.gifBadgeTxt}>GIF</Text></View> : null}
               {isStarred && <View style={s.starBadge}><Text style={s.starBadgeTxt}>★</Text></View>}
-            </TouchableOpacity>
+            </View>
           ) : (
-            <View style={[s.bubble, isMe ? s.bubbleMe : s.bubbleOther, msg._optimistic && { opacity: 0.55 }]}>
-              {msg.text ? (
-                isLink(msg.text) ? (
-                  <TouchableOpacity onPress={() => Linking.openURL(msg.text!)}>
-                    <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther, s.linkTxt]}>{msg.text}</Text>
-                  </TouchableOpacity>
-                ) : <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther]}>{msg.text}</Text>
-              ) : null}
+            <View style={[
+              s.bubble,
+              isMe ? (replyPreview ? s.bubbleMeFlat : s.bubbleMe) : (replyPreview ? s.bubbleOtherFlat : s.bubbleOther),
+            ]}>
               {(msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url ? (
-                <TouchableOpacity activeOpacity={0.9}
-                  onPress={() => msg.media_url && setFullscreenImg(msg.media_url)}
-                  onLongPress={() => setSelectedMsg(msg)}>
-                  <RemoteImage uri={msg.media_url ?? ''} b64={msg.media_b64}
-                    style={{ width: MSG_IMG_W, height: MSG_IMG_H, borderRadius: 10 }} />
+                <View style={{ marginBottom: msg.text ? 8 : 0 }}>
+                  <AutoSizeImage
+                    uri={msg.media_url!}
+                    b64={msg.media_b64}
+                    onPress={() => msg.media_url && setFullscreenImg(msg.media_url)}
+                    onLongPress={() => setSelectedMsg(msg)}
+                  />
                   {msg.media_type === 'gif' ? <View style={s.gifBadge}><Text style={s.gifBadgeTxt}>GIF</Text></View> : null}
-                </TouchableOpacity>
+                </View>
               ) : null}
               {msg.media_type === 'video' && msg.media_url ? (
-                <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_W, height: MSG_VID_H }]}
+                <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_MAX_W, height: MSG_VID_H }]}
                   activeOpacity={0.85} onPress={() => setFullscreenVideo(msg.media_url!)}
                   onLongPress={() => setSelectedMsg(msg)}>
-                  <View style={s.videoPlayCircle}><Text style={s.videoPlayIcon}>▶</Text></View>
-                  <Text style={s.videoLabel}>Tap to play</Text>
+                  <View style={s.videoPlayCircle}><Feather name="play" size={24} color="#FFF" /></View>
                 </TouchableOpacity>
               ) : null}
               {msg.media_type === 'document' && msg.media_url ? (
                 <TouchableOpacity style={s.docBubble} activeOpacity={0.8}
                   onPress={() => { if (msg.media_url) Linking.openURL(msg.media_url); }}>
-                  <Text style={s.docIcon}>📄</Text>
+                  <View style={[s.docIconBg, isMe && s.docIconBgMe]}>
+                    <Feather name="file-text" size={20} color={isMe ? '#FFF' : NAVY} />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[s.docName, isMe && s.docNameMe]} numberOfLines={2}>
                       {msg.text?.replace('📄 ', '') || 'Document'}
@@ -980,7 +1051,16 @@ export default function ChatScreen() {
                   </View>
                 </TouchableOpacity>
               ) : null}
-              {isStarred && <View style={s.starBadgeInline}><Text style={s.starBadgeTxt}>★</Text></View>}
+              {msg.text ? (
+                isLink(msg.text) ? (
+                  <TouchableOpacity onPress={() => Linking.openURL(msg.text!)}>
+                    <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther, s.linkTxt]}>{msg.text}</Text>
+                  </TouchableOpacity>
+                ) : <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther]}>{msg.text}</Text>
+              ) : null}
+              {isStarred && msg.media_type !== 'image' && msg.media_type !== 'gif' && (
+                <View style={s.starBadgeInline}><Text style={s.starBadgeTxt}>★</Text></View>
+              )}
             </View>
           )}
           {reactions.length > 0 && (
@@ -994,8 +1074,8 @@ export default function ChatScreen() {
               ))}
             </View>
           )}
-          {(msg as any).edited_at && <Text style={[s.status, isMe ? s.statusMe : s.statusOther]}>edited</Text>}
-          {status && <Text style={[s.status, isMe ? s.statusMe : s.statusOther]}>{status}</Text>}
+          {(msg as any).edited_at && !status && <Text style={[s.status, isMe ? s.statusMe : s.statusOther]}>edited</Text>}
+          {status && <Text style={[s.status, isMe ? s.statusMe : s.statusOther]}>{status}{(msg as any).edited_at ? ' · edited' : ''}</Text>}
           {showTs && <Text style={[s.tsLabel, isMe ? s.tsLabelMe : s.tsLabelOther]}>{fmtTime(msg.created_at)}</Text>}
         </Pressable>
       </View>
@@ -1006,7 +1086,7 @@ export default function ChatScreen() {
   const toolbarMaxH = toolbarH.interpolate({ inputRange: [0, 1], outputRange: [0, 160] });
 
   const renderInfoMediaTab = () => {
-    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color="#007AFF" /></View>;
+    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={NAVY} /></View>;
     if (infoMedia.length === 0) return <Text style={s.infoEmpty}>No photos or videos yet</Text>;
     return (
       <View style={s.mediaGrid}>
@@ -1020,9 +1100,9 @@ export default function ChatScreen() {
                 else setFullscreenImg(m.media_url);
               }, 250);
             }}>
-            <RemoteImage uri={m.media_url} style={{ width: '100%', height: '100%', borderRadius: 4 }} contentFit="cover" />
+            <SmartImage uri={m.media_url} width={0} height={0} radius={4} contentFit="cover" />
             {m.media_type === 'video' && (
-              <View style={s.mediaPlayOverlay}><Text style={s.mediaPlayIcon}>▶</Text></View>
+              <View style={s.mediaPlayOverlay}><Feather name="play" size={20} color="#FFF" /></View>
             )}
             {m.media_type === 'gif' && (
               <View style={s.gifBadge}><Text style={s.gifBadgeTxt}>GIF</Text></View>
@@ -1034,14 +1114,16 @@ export default function ChatScreen() {
   };
 
   const renderInfoFilesTab = () => {
-    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color="#007AFF" /></View>;
+    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={NAVY} /></View>;
     if (infoFiles.length === 0) return <Text style={s.infoEmpty}>No files yet</Text>;
     return (
       <View>
         {infoFiles.map(f => (
           <TouchableOpacity key={f.id} style={s.infoFileRow} activeOpacity={0.7}
             onPress={() => { if (f.media_url) Linking.openURL(f.media_url); }}>
-            <Text style={s.infoFileIcon}>📄</Text>
+            <View style={s.infoFileIconBg}>
+              <Feather name="file-text" size={18} color={NAVY} />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={s.infoFileName} numberOfLines={1}>
                 {f.text?.replace('📄 ', '') || 'Document'}
@@ -1058,7 +1140,7 @@ export default function ChatScreen() {
   };
 
   const renderInfoStarredTab = () => {
-    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color="#007AFF" /></View>;
+    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={NAVY} /></View>;
     if (infoStarred.length === 0) return <Text style={s.infoEmpty}>No starred messages yet</Text>;
     return (
       <View>
@@ -1096,9 +1178,8 @@ export default function ChatScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.6}>
-          <Text style={s.backChev}>‹</Text>
-          <Text style={s.backLbl}>Back</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="chevron-left" size={26} color={NAVY} />
         </TouchableOpacity>
         <TouchableOpacity style={s.headerCenter} activeOpacity={0.7}
           onPress={() => setShowInfoModal(true)}>
@@ -1113,26 +1194,24 @@ export default function ChatScreen() {
             <Text style={s.hName} numberOfLines={1}>{chatTitle}</Text>
             {isAffiliationConversation
               ? <Text style={s.hSub}>{affiliation?.post_mode === 'informative' ? 'Announcements only' : 'Community chat'}</Text>
-              : !isGroup && otherTyping ? <Text style={s.hSub}>typing...</Text>
+              : !isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]}>typing...</Text>
               : !isGroup && otherUser?.username ? <Text style={s.hSub}>@{otherUser.username}</Text>
               : isGroup ? <Text style={s.hSub}>Tap for info</Text> : null}
           </View>
         </TouchableOpacity>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
+        <View style={s.headerActions}>
           {!isAffiliationConversation && (
-            <TouchableOpacity onPress={() => startCall(false)} style={s.callBtn} activeOpacity={0.6} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <View style={s.callBtnInner}><Text style={s.callBtnTxt}>📞</Text></View>
+            <TouchableOpacity onPress={() => startCall(false)} style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+              <Feather name="phone" size={18} color={NAVY} />
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => setSearchActive(p => !p)}
-            style={[s.callBtn, searchActive && { opacity: 1 }]} activeOpacity={0.6} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <View style={s.callBtnInner}>
-              <Feather name="search" size={17} color={searchActive ? '#2563EB' : '#444'} />
-            </View>
+            style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+            <Feather name="search" size={18} color={searchActive ? NAVY : '#3C3C43'} />
           </TouchableOpacity>
           {!isAffiliationConversation && (
-            <TouchableOpacity onPress={() => startCall(true)} style={s.callBtn} activeOpacity={0.6} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <View style={s.callBtnInner}><Text style={s.callBtnTxt}>📹</Text></View>
+            <TouchableOpacity onPress={() => startCall(true)} style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+              <Feather name="video" size={18} color={NAVY} />
             </TouchableOpacity>
           )}
         </View>
@@ -1140,26 +1219,30 @@ export default function ChatScreen() {
 
       {searchActive && (
         <View style={s.searchBar}>
-          <Feather name="search" size={15} color="#8E8E93" />
+          <Feather name="search" size={15} color={TEXT_SECONDARY} />
           <TextInput value={searchQuery} onChangeText={setSearchQuery}
-            placeholder="Search in conversation..." placeholderTextColor="#8E8E93"
+            placeholder="Search in conversation..." placeholderTextColor={TEXT_SECONDARY}
             style={s.searchBarInput} autoFocus returnKeyType="search" clearButtonMode="while-editing" />
           <TouchableOpacity onPress={() => { setSearchActive(false); setSearchQuery(''); }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Feather name="x" size={16} color="#8E8E93" />
+            <Feather name="x" size={16} color={TEXT_SECONDARY} />
           </TouchableOpacity>
         </View>
       )}
 
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}>
         {loading ? (
-          <View style={s.loader}><ActivityIndicator color="#007AFF" size="large" /></View>
+          <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
         ) : (
           <FlatList ref={flatListRef} data={listData} inverted
             keyExtractor={(item: any) => item.type === 'sep' ? item.id : item.data.id}
             renderItem={renderMsg} contentContainerStyle={s.list}
             keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive"
             showsVerticalScrollIndicator={false}
+            removeClippedSubviews
+            windowSize={10}
+            maxToRenderPerBatch={12}
+            initialNumToRender={15}
             ListEmptyComponent={
               <View style={s.empty}>
                 {isAffiliationConversation
@@ -1200,8 +1283,8 @@ export default function ChatScreen() {
               <Text style={s.replyBannerLabel}>Replying to {replyTo.sender_id === currentUserId ? 'yourself' : chatTitle}</Text>
               <Text style={s.replyBannerPrev} numberOfLines={1}>{replySource}</Text>
             </View>
-            <TouchableOpacity onPress={() => setReplyTo(null)} style={s.replyBannerClose}>
-              <Text style={s.replyBannerCloseTxt}>✕</Text>
+            <TouchableOpacity onPress={() => setReplyTo(null)} style={s.replyBannerClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Feather name="x" size={16} color={TEXT_SECONDARY} />
             </TouchableOpacity>
           </View>
         )}
@@ -1211,14 +1294,16 @@ export default function ChatScreen() {
             {showGifs ? <GifPicker onSelect={sendGif} onBack={() => setShowGifs(false)} /> : (
               <View style={s.toolbarGrid}>
                 {[
-                  { icon: '📷', label: 'Camera', action: openCamera },
-                  { icon: '🖼', label: 'Gallery', action: pickAndSendMedia },
-                  { icon: '🎬', label: 'GIFs', action: () => setShowGifs(true) },
-                  { icon: '📄', label: 'Files', action: pickAndSendDocument },
-                  { icon: 'ℹ', label: 'Info', action: () => { setShowToolbar(false); setShowInfoModal(true); } },
+                  { iconName: 'camera', label: 'Camera', action: openCamera },
+                  { iconName: 'image', label: 'Gallery', action: pickAndSendMedia },
+                  { iconName: 'film', label: 'GIFs', action: () => setShowGifs(true) },
+                  { iconName: 'file-text', label: 'Files', action: pickAndSendDocument },
+                  { iconName: 'info', label: 'Info', action: () => { setShowToolbar(false); setShowInfoModal(true); } },
                 ].map(btn => (
-                  <TouchableOpacity key={btn.label} style={s.toolbarBtn} onPress={btn.action}>
-                    <View style={s.toolbarBtnInner}><Text style={s.toolbarBtnIcon}>{btn.icon}</Text></View>
+                  <TouchableOpacity key={btn.label} style={s.toolbarBtn} onPress={btn.action} activeOpacity={0.7}>
+                    <View style={s.toolbarBtnInner}>
+                      <Feather name={btn.iconName as any} size={22} color={NAVY} />
+                    </View>
                     <Text style={s.toolbarBtnLbl}>{btn.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -1241,25 +1326,25 @@ export default function ChatScreen() {
           <View style={[s.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
             <TouchableOpacity style={s.addBtn}
               onPress={() => { setShowToolbar(p => { if (p) setShowGifs(false); return !p; }); }} activeOpacity={0.6}>
-              <Text style={[s.addBtnTxt, showToolbar && s.addBtnTxtActive]}>{showToolbar ? '✕' : '+'}</Text>
+              <Feather name={showToolbar ? 'x' : 'plus'} size={22} color={showToolbar ? TEXT_SECONDARY : NAVY} />
             </TouchableOpacity>
             <View style={s.inputWrap}>
               <TextInput ref={inputRef} value={message} onChangeText={handleTextChange}
                 placeholder={isAffiliationConversation && iAmAffiliationAdmin && affiliation?.post_mode === 'informative'
                   ? 'Post an announcement...'
-                  : 'Send a message...'}
-                placeholderTextColor="#8E8E93"
+                  : 'Message'}
+                placeholderTextColor={TEXT_SECONDARY}
                 style={s.input} multiline maxLength={2000} returnKeyType="default" blurOnSubmit={false} />
             </View>
             {uploadingMedia ? (
               <View style={s.sendBtn}><ActivityIndicator color="#FFF" size={14} /></View>
             ) : canSend ? (
-              <TouchableOpacity onPress={sendMessage} style={s.sendBtn} activeOpacity={0.7} disabled={sending}>
-                {sending ? <ActivityIndicator color="#FFF" size={14} /> : <Text style={s.sendArrow}>↑</Text>}
+              <TouchableOpacity onPress={sendMessage} style={s.sendBtn} activeOpacity={0.7}>
+                <Feather name="arrow-up" size={18} color="#FFF" />
               </TouchableOpacity>
             ) : (
               <View style={[s.sendBtn, { backgroundColor: '#E5E5EA' }]}>
-                <Text style={{ color: '#8E8E93', fontSize: 18 }}>↑</Text>
+                <Feather name="arrow-up" size={18} color={TEXT_SECONDARY} />
               </View>
             )}
           </View>
@@ -1277,12 +1362,12 @@ export default function ChatScreen() {
 
             <View style={s.infoContact}>
               {isAffiliationConversation
-                ? <View style={[s.infoAvatarFb, { width: 80, height: 80, borderRadius: 24 }]}>
-                    <Feather name="users" size={36} color="#3C3C43" />
+                ? <View style={[s.infoAvatarFb, { width: 90, height: 90, borderRadius: 45 }]}>
+                    <Feather name="users" size={38} color="#3C3C43" />
                   </View>
                 : isGroup
-                  ? <View style={[s.infoAvatarFb, { width: 80, height: 80, borderRadius: 24 }]}>
-                      <Text style={{ fontSize: 36 }}>{groupEmoji}</Text>
+                  ? <View style={[s.infoAvatarFb, { width: 90, height: 90, borderRadius: 45 }]}>
+                      <Text style={{ fontSize: 38 }}>{groupEmoji}</Text>
                     </View>
                   : otherUser?.avatar_url
                     ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.infoAvatar} contentFit="cover" />
@@ -1321,14 +1406,15 @@ export default function ChatScreen() {
                     ).catch(() => {});
                   }},
               ].map((q: any) => (
-                <TouchableOpacity key={q.label} style={s.infoQuickBtn} onPress={q.action}>
-                  <View style={s.infoQuickInner}><Feather name={q.icon} size={20} color="#3C3C43" /></View>
+                <TouchableOpacity key={q.label} style={s.infoQuickBtn} onPress={q.action} activeOpacity={0.7}>
+                  <View style={s.infoQuickInner}><Feather name={q.icon} size={20} color={NAVY} /></View>
                   <Text style={s.infoQuickLbl}>{q.label}</Text>
                 </TouchableOpacity>
               )) : (!isGroup ? [
-                { icon: '📞', label: 'Call', action: () => { setShowInfoModal(false); startCall(false); } },
-                { icon: '📹', label: 'Video', action: () => { setShowInfoModal(false); startCall(true); } },
-                { icon: infoMuted ? '🔕' : '🔔', label: infoMuted ? 'Unmute' : 'Mute',
+                { iconName: 'message-circle', label: 'Message', action: () => setShowInfoModal(false) },
+                { iconName: 'phone', label: 'Call', action: () => { setShowInfoModal(false); startCall(false); } },
+                { iconName: 'video', label: 'Video', action: () => { setShowInfoModal(false); startCall(true); } },
+                { iconName: infoMuted ? 'bell-off' : 'bell', label: infoMuted ? 'Unmute' : 'Mute',
                   action: async () => {
                     if (!currentUserId || !conversationId) return;
                     const next = !infoMuted;
@@ -1338,10 +1424,9 @@ export default function ChatScreen() {
                       { onConflict: 'conversation_id,user_id' }
                     ).catch(() => {});
                   }},
-                { icon: '👤', label: 'Profile', action: () => { setShowInfoModal(false); if (otherUser?.id) navigation.navigate('UserProfile', { userId: otherUser.id, user: otherUser }); } },
               ] : [
-                { icon: '👥', label: 'Manage', action: () => { setShowInfoModal(false); navigation.navigate('GroupManagement', { conversationId, groupName: chatTitle, groupEmoji }); } },
-                { icon: '🔔', label: infoMuted ? 'Unmute' : 'Mute',
+                { iconName: 'users', label: 'Manage', action: () => { setShowInfoModal(false); navigation.navigate('GroupManagement', { conversationId, groupName: chatTitle, groupEmoji }); } },
+                { iconName: infoMuted ? 'bell-off' : 'bell', label: infoMuted ? 'Unmute' : 'Mute',
                   action: async () => {
                     const next = !infoMuted; setInfoMuted(next);
                     await supabase.from('conversation_settings').upsert(
@@ -1349,7 +1434,7 @@ export default function ChatScreen() {
                       { onConflict: 'conversation_id,user_id' }
                     ).catch(() => {});
                   }},
-                { icon: '🚪', label: 'Leave', action: () => {
+                { iconName: 'log-out', label: 'Leave', action: () => {
                   setShowInfoModal(false);
                   Alert.alert('Leave group?', 'You will stop receiving messages from this group.', [
                     { text: 'Cancel', style: 'cancel' },
@@ -1361,8 +1446,10 @@ export default function ChatScreen() {
                   ]);
                 }},
               ]).map((q: any) => (
-                <TouchableOpacity key={q.label} style={s.infoQuickBtn} onPress={q.action}>
-                  <View style={s.infoQuickInner}><Text style={s.infoQuickIcon}>{q.icon}</Text></View>
+                <TouchableOpacity key={q.label} style={s.infoQuickBtn} onPress={q.action} activeOpacity={0.7}>
+                  <View style={s.infoQuickInner}>
+                    <Feather name={q.iconName} size={20} color={NAVY} />
+                  </View>
                   <Text style={s.infoQuickLbl}>{q.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -1410,7 +1497,7 @@ export default function ChatScreen() {
                   <View key={m.user_id} style={s.infoMemberRow}>
                     {m.profile?.avatar_url
                       ? <Image source={{ uri: m.profile.avatar_url }} style={s.infoMemberAvatar} />
-                      : <View style={[s.infoMemberAvatar, { backgroundColor: '#1D4ED8', alignItems: 'center', justifyContent: 'center' }]}>
+                      : <View style={[s.infoMemberAvatar, { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' }]}>
                           <Text style={{ fontSize: 12, color: '#FFF', fontWeight: '700' }}>
                             {(m.profile?.full_name?.[0] || 'U').toUpperCase()}
                           </Text>
@@ -1471,7 +1558,7 @@ export default function ChatScreen() {
             )}
             <TextInput value={editText} onChangeText={setEditText} style={s.editMsgInput}
               multiline autoFocus maxLength={2000}
-              placeholderTextColor="#8E8E93" placeholder="Edit your message..." />
+              placeholderTextColor={TEXT_SECONDARY} placeholder="Edit your message..." />
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -1488,27 +1575,27 @@ export default function ChatScreen() {
             </View>
             <View style={s.reactionActions}>
               {[
-                { icon: '↩', label: 'Reply', action: () => { setReplyTo(selectedMsg); setSelectedMsg(null); inputRef.current?.focus(); } },
-                { icon: '📋', label: 'Copy', action: async () => {
+                { iconName: 'corner-up-left', label: 'Reply', action: () => { setReplyTo(selectedMsg); setSelectedMsg(null); inputRef.current?.focus(); } },
+                { iconName: 'copy', label: 'Copy', action: async () => {
                   if (selectedMsg?.text) { await Clipboard.setStringAsync(selectedMsg.text); setSelectedMsg(null); Alert.alert('Copied'); }
                 }},
-                { icon: '📤', label: 'Share', action: async () => {
+                { iconName: 'share-2', label: 'Share', action: async () => {
                   if (!selectedMsg) return;
                   const content = selectedMsg.text || selectedMsg.media_url || '';
                   setSelectedMsg(null); await Share.share({ message: content });
                 }},
-                { icon: selectedMsg && starredIds.has(selectedMsg.id) ? '⭐' : '☆',
+                { iconName: 'star',
                   label: selectedMsg && starredIds.has(selectedMsg.id) ? 'Unstar' : 'Star',
                   action: () => { if (selectedMsg) { toggleStar(selectedMsg); setSelectedMsg(null); } }},
-                { icon: savedIds.has(selectedMsg?.id || '') ? '🔖' : '📌',
+                { iconName: 'bookmark',
                   label: savedIds.has(selectedMsg?.id || '') ? 'Unsave' : 'Save',
                   action: () => { if (selectedMsg) { toggleSaveMessage(selectedMsg.id); setSelectedMsg(null); } }},
-                { icon: '↪', label: 'Forward', action: () => { if (selectedMsg) { openForward(selectedMsg); setSelectedMsg(null); } }},
+                { iconName: 'corner-up-right', label: 'Forward', action: () => { if (selectedMsg) { openForward(selectedMsg); setSelectedMsg(null); } }},
                 ...(selectedMsg?.sender_id === currentUserId && selectedMsg?.text ? [{
-                  icon: '✏️', label: 'Edit', action: () => {
+                  iconName: 'edit-2', label: 'Edit', action: () => {
                     setEditingMsg(selectedMsg); setEditText(selectedMsg?.text || ''); setSelectedMsg(null);
                   }}] : []),
-                ...(selectedMsg?.sender_id === currentUserId ? [{ icon: '🗑', label: 'Delete', action: async () => {
+                ...(selectedMsg?.sender_id === currentUserId ? [{ iconName: 'trash-2', label: 'Delete', action: async () => {
                   if (!selectedMsg) return;
                   const msgId = selectedMsg.id;
                   const convId = selectedMsg.conversation_id;
@@ -1524,9 +1611,11 @@ export default function ChatScreen() {
                   }
                 }}] : []),
               ].map(a => (
-                <TouchableOpacity key={a.label} style={s.reactionActionBtn} onPress={a.action}>
-                  <Text style={s.reactionActionIcon}>{a.icon}</Text>
-                  <Text style={s.reactionActionLbl}>{a.label}</Text>
+                <TouchableOpacity key={a.label} style={s.reactionActionBtn} onPress={a.action} activeOpacity={0.7}>
+                  <View style={s.reactionActionInner}>
+                    <Feather name={a.iconName as any} size={18} color={a.label === 'Delete' ? '#EF4444' : NAVY} />
+                  </View>
+                  <Text style={[s.reactionActionLbl, a.label === 'Delete' && { color: '#EF4444' }]}>{a.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -1535,19 +1624,25 @@ export default function ChatScreen() {
       </Modal>
 
       <Modal visible={!!fullscreenImg} transparent animationType="fade" onRequestClose={() => setFullscreenImg(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', alignItems: 'center', justifyContent: 'center' }}>
-          <TouchableOpacity style={{ position: 'absolute', top: 52, right: 20, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' }}
-            onPress={() => setFullscreenImg(null)}>
-            <Feather name="x" size={22} color="#FFF" />
+        <View style={s.fullscreenRoot}>
+          <TouchableOpacity style={s.fullscreenClose} onPress={() => setFullscreenImg(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Feather name="x" size={24} color="#FFF" />
           </TouchableOpacity>
-          {fullscreenImg && <ExpoImage source={{ uri: fullscreenImg }} style={{ width: SCREEN_W, height: SCREEN_W }} contentFit="contain" cachePolicy="memory-disk" />}
           {fullscreenImg && (
-            <View style={{ marginTop: 24, flexDirection: 'row', gap: 10 }}>
-              <TouchableOpacity style={s.fsActionBtn} onPress={() => saveMediaToDevice(fullscreenImg, 'image')} disabled={savingToDevice}>
+            <ExpoImage
+              source={{ uri: fullscreenImg }}
+              style={{ width: SCREEN_W, flex: 1 }}
+              contentFit="contain"
+              cachePolicy="memory-disk"
+            />
+          )}
+          {fullscreenImg && (
+            <View style={s.fullscreenActions}>
+              <TouchableOpacity style={s.fsActionBtn} onPress={() => saveMediaToDevice(fullscreenImg, 'image')} disabled={savingToDevice} activeOpacity={0.7}>
                 {savingToDevice ? <ActivityIndicator color="#FFF" size={14} /> : <Feather name="download" size={16} color="#FFF" />}
                 <Text style={s.fsActionTxt}>{savingToDevice ? 'Saving...' : 'Save'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.fsActionBtn} onPress={() => Share.share({ message: fullscreenImg })}>
+              <TouchableOpacity style={s.fsActionBtn} onPress={() => Share.share({ message: fullscreenImg })} activeOpacity={0.7}>
                 <Feather name="share" size={16} color="#FFF" />
                 <Text style={s.fsActionTxt}>Share</Text>
               </TouchableOpacity>
@@ -1557,19 +1652,18 @@ export default function ChatScreen() {
       </Modal>
 
       <Modal visible={!!fullscreenVideo} transparent animationType="fade" onRequestClose={() => setFullscreenVideo(null)}>
-        <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
-          <TouchableOpacity style={{ position: 'absolute', top: 52, right: 20, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' }}
-            onPress={() => setFullscreenVideo(null)}>
-            <Feather name="x" size={22} color="#FFF" />
+        <View style={s.fullscreenRoot}>
+          <TouchableOpacity style={s.fullscreenClose} onPress={() => setFullscreenVideo(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Feather name="x" size={24} color="#FFF" />
           </TouchableOpacity>
           {fullscreenVideo && <VideoPlayer uri={fullscreenVideo} width={SCREEN_W} height={SCREEN_W * 0.75} fullscreen />}
           {fullscreenVideo && (
-            <View style={{ position: 'absolute', bottom: 40, flexDirection: 'row', gap: 10 }}>
-              <TouchableOpacity style={s.fsActionBtn} onPress={() => saveMediaToDevice(fullscreenVideo, 'video')} disabled={savingToDevice}>
+            <View style={s.fullscreenActions}>
+              <TouchableOpacity style={s.fsActionBtn} onPress={() => saveMediaToDevice(fullscreenVideo, 'video')} disabled={savingToDevice} activeOpacity={0.7}>
                 {savingToDevice ? <ActivityIndicator color="#FFF" size={14} /> : <Feather name="download" size={16} color="#FFF" />}
                 <Text style={s.fsActionTxt}>{savingToDevice ? 'Saving...' : 'Save'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.fsActionBtn} onPress={() => Share.share({ message: fullscreenVideo })}>
+              <TouchableOpacity style={s.fsActionBtn} onPress={() => Share.share({ message: fullscreenVideo })} activeOpacity={0.7}>
                 <Feather name="share" size={16} color="#FFF" />
                 <Text style={s.fsActionTxt}>Share</Text>
               </TouchableOpacity>
@@ -1580,7 +1674,7 @@ export default function ChatScreen() {
 
       <Modal visible={showForwardPicker} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowForwardPicker(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE }}>
             <Text style={{ fontSize: 17, fontWeight: '700' }}>Forward to...</Text>
             <TouchableOpacity onPress={() => { setShowForwardPicker(false); setForwardMsg(null); }}>
               <Feather name="x" size={22} color="#000" />
@@ -1590,6 +1684,7 @@ export default function ChatScreen() {
             contentContainerStyle={{ padding: 12, gap: 6 }}
             renderItem={({ item: c }) => (
               <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F7F7F7', borderRadius: 14, padding: 14 }}
+                activeOpacity={0.7}
                 onPress={async () => {
                   if (!forwardMsg || !currentUserId) return;
                   setShowForwardPicker(false);
@@ -1609,18 +1704,18 @@ export default function ChatScreen() {
                   }
                   setForwardMsg(null);
                 }}>
-                <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: c.is_group ? '#0B1E3D' : '#1D4ED8', alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: c.is_group ? NAVY : NAVY_SOFT, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ color: '#FFF', fontSize: c.is_group ? 18 : 16, fontWeight: '700' }}>{c.is_group ? (c.group_emoji || '💬') : '💬'}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 15, fontWeight: '600', color: '#111' }} numberOfLines={1}>
                     {c.is_group ? (c.group_name || 'Group') : 'Direct Message'}
                   </Text>
-                  <Text style={{ fontSize: 12, color: '#8E8E93' }} numberOfLines={1}>{c.last_message || 'No messages yet'}</Text>
+                  <Text style={{ fontSize: 12, color: TEXT_SECONDARY }} numberOfLines={1}>{c.last_message || 'No messages yet'}</Text>
                 </View>
               </TouchableOpacity>
             )}
-            ListEmptyComponent={<View style={{ alignItems: 'center', paddingTop: 60 }}><Text style={{ color: '#8E8E93' }}>No other conversations</Text></View>} />
+            ListEmptyComponent={<View style={{ alignItems: 'center', paddingTop: 60 }}><Text style={{ color: TEXT_SECONDARY }}>No other conversations</Text></View>} />
         </SafeAreaView>
       </Modal>
 
@@ -1632,31 +1727,28 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   flex: { flex: 1, backgroundColor: '#FFFFFF' },
 
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 6, paddingBottom: 10, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#C6C6C8', minHeight: 56 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', minWidth: 70, paddingVertical: 6, paddingRight: 4 },
-  backChev: { fontSize: 30, color: '#007AFF', lineHeight: 34, marginLeft: 2, marginRight: 1 },
-  backLbl: { fontSize: 17, color: '#007AFF' },
-  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', marginHorizontal: 10, marginBottom: 4, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 10, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE, minHeight: 58, gap: 8 },
+  backBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', marginHorizontal: 12, marginBottom: 4, marginTop: 2, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 },
   searchBarInput: { flex: 1, fontSize: 14, color: '#000', padding: 0 },
-  headerCenter: { flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  hAvatar: { width: 36, height: 36, borderRadius: 18 },
-  hAvatarFb: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
-  hAvatarTxt: { fontSize: 13, fontWeight: '600', color: '#3C3C43' },
-  hInfo: { alignItems: 'center', maxWidth: 160 },
-  hName: { fontSize: 16, fontWeight: '600', color: '#000000' },
-  hSub: { fontSize: 12, color: '#8E8E93', marginTop: 1 },
-  callBtn: { minWidth: 52, alignItems: 'flex-end', paddingLeft: 4, paddingRight: 6 },
-  callBtnInner: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  callBtnTxt: { fontSize: 20 },
+  headerCenter: { flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10 },
+  hAvatar: { width: 38, height: 38, borderRadius: 19 },
+  hAvatarFb: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
+  hAvatarTxt: { fontSize: 14, fontWeight: '600', color: '#3C3C43' },
+  hInfo: { alignItems: 'flex-start', maxWidth: 160 },
+  hName: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY, letterSpacing: -0.2 },
+  hSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+  headerActions: { flexDirection: 'row', gap: 4, alignItems: 'center' },
+  hActionBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
 
-  list: { paddingHorizontal: 0, paddingTop: 8, paddingBottom: 4, flexGrow: 1 },
-  sep: { alignItems: 'center', paddingVertical: 10 },
-  sepTxt: { fontSize: 12, color: '#8E8E93' },
+  list: { paddingHorizontal: 0, paddingTop: 10, paddingBottom: 6, flexGrow: 1 },
+  sep: { alignItems: 'center', paddingVertical: 12 },
+  sepTxt: { fontSize: 11, color: TEXT_SECONDARY, fontWeight: '600', letterSpacing: 0.3 },
 
-  row: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 2, paddingHorizontal: 8 },
+  row: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 3, paddingHorizontal: 12 },
   rowMe: { justifyContent: 'flex-end' },
   rowOther: { justifyContent: 'flex-start' },
-  sideAvatarSlot: { width: 28, marginRight: 4, alignItems: 'center', justifyContent: 'flex-end', marginBottom: 2 },
+  sideAvatarSlot: { width: 28, marginRight: 6, alignItems: 'center', justifyContent: 'flex-end', marginBottom: 2 },
   sideAvatar: { width: 28, height: 28, borderRadius: 14 },
   sideAvatarFb: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
   sideAvatarTxt: { fontSize: 10, fontWeight: '700', color: '#3C3C43' },
@@ -1664,89 +1756,91 @@ const s = StyleSheet.create({
   bubbleCol: { maxWidth: '80%', flexShrink: 1 },
   bubbleColMe: { alignItems: 'flex-end' },
   bubbleColOther: { alignItems: 'flex-start' },
-  bubble: { borderRadius: 20, overflow: 'hidden', position: 'relative' },
-  imgBubble: { borderRadius: 16, overflow: 'hidden', backgroundColor: '#F0F0F0', position: 'relative' },
-  bubbleMe: { backgroundColor: '#007AFF' },
-  bubbleOther: { backgroundColor: '#E5E5EA' },
-  bubbleTxt: { fontSize: 17, lineHeight: 22, paddingHorizontal: 14, paddingVertical: 9 },
+
+  bubble: { paddingHorizontal: 14, paddingVertical: 9, position: 'relative' },
+  bubbleMe: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
+  bubbleOther: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6 },
+  bubbleMeFlat: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
+  bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6 },
+
+  bubbleTxt: { fontSize: 15.5, lineHeight: 21, letterSpacing: -0.1 },
   bubbleTxtMe: { color: '#FFFFFF' },
-  bubbleTxtOther: { color: '#000000' },
+  bubbleTxtOther: { color: TEXT_PRIMARY },
   linkTxt: { textDecorationLine: 'underline' },
 
-  replyBar: { flexDirection: 'row', marginBottom: 5, borderRadius: 10, overflow: 'hidden' },
-  replyBarMe: { backgroundColor: 'rgba(0,0,0,0.25)' },
-  replyBarOther: { backgroundColor: 'rgba(0,0,0,0.07)' },
-  replyAccent: { width: 3 },
-  replyAccentMe: { backgroundColor: '#AED6FF' },
-  replyAccentOther: { backgroundColor: '#007AFF' },
-  replyLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.6)', paddingHorizontal: 9, paddingTop: 7, paddingBottom: 1 },
-  replyTxt: { fontSize: 13, color: '#3C3C43', paddingHorizontal: 9, paddingTop: 2, paddingBottom: 8, lineHeight: 18 },
-  replyTxtMe: { color: 'rgba(255,255,255,0.92)' },
+  imgWrap: { borderRadius: 18, overflow: 'hidden', position: 'relative' },
 
-  gifBadge: { position: 'absolute', bottom: 6, left: 8, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
-  gifBadgeTxt: { fontSize: 10, fontWeight: '700', color: '#FFF' },
-  starBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)', width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  starBadgeInline: { position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.15)', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  replyBar: { flexDirection: 'row', marginBottom: 4, borderRadius: 14, overflow: 'hidden', maxWidth: '100%' },
+  replyBarMe: { backgroundColor: 'rgba(255,255,255,0.14)' },
+  replyBarOther: { backgroundColor: 'rgba(11,30,61,0.06)' },
+  replyAccent: { width: 3 },
+  replyAccentMe: { backgroundColor: '#FFFFFF' },
+  replyAccentOther: { backgroundColor: NAVY },
+  replyLabel: { fontSize: 11, fontWeight: '700', color: NAVY, paddingHorizontal: 10, paddingTop: 7, paddingBottom: 1 },
+  replyLabelMe: { color: 'rgba(255,255,255,0.75)' },
+  replyTxt: { fontSize: 13, color: '#3C3C43', paddingHorizontal: 10, paddingTop: 2, paddingBottom: 8, lineHeight: 17 },
+  replyTxtMe: { color: 'rgba(255,255,255,0.88)' },
+
+  gifBadge: { position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
+  gifBadgeTxt: { fontSize: 10, fontWeight: '700', color: '#FFF', letterSpacing: 0.3 },
+  starBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.55)', width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  starBadgeInline: { position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.12)', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   starBadgeTxt: { fontSize: 12, color: '#FFD60A', fontWeight: '700' },
-  videoThumb: { width: MSG_IMG_W, height: MSG_VID_H, backgroundColor: '#1C1C1E', borderRadius: 12, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
-  videoPlayCircle: { width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
-  videoPlayIcon: { fontSize: 32, color: '#FFF' },
-  videoLabel: { fontSize: 13, color: '#EBEBF5', fontWeight: '500' },
-  docBubble: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12, minWidth: 180 },
-  docIcon: { fontSize: 28 },
-  docName: { fontSize: 14, fontWeight: '600', color: '#000', lineHeight: 18 },
+
+  videoThumb: { backgroundColor: '#1C1C1E', borderRadius: 14, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  videoPlayCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center' },
+
+  docBubble: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4, minWidth: 200 },
+  docIconBg: { width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  docIconBgMe: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  docName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, lineHeight: 19 },
   docNameMe: { color: '#FFF' },
-  docTap: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
-  docTapMe: { color: 'rgba(255,255,255,0.6)' },
+  docTap: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+  docTapMe: { color: 'rgba(255,255,255,0.65)' },
 
   reactionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
   reactionsRowMe: { justifyContent: 'flex-end' },
   reactionsRowOther: { justifyContent: 'flex-start' },
-  reactionPill: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: '#F2F2F7', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: '#C6C6C8' },
-  reactionPillMine: { backgroundColor: '#E5F0FF', borderColor: '#007AFF' },
-  reactionEmoji: { fontSize: 15 },
-  reactionCount: { fontSize: 12, fontWeight: '600', color: '#3C3C43' },
+  reactionPill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 9, paddingVertical: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  reactionPillMine: { backgroundColor: '#E8EEF8', borderColor: NAVY },
+  reactionEmoji: { fontSize: 14 },
+  reactionCount: { fontSize: 11, fontWeight: '600', color: '#3C3C43' },
 
-  status: { fontSize: 11, marginTop: 3 },
-  statusMe: { color: '#8E8E93', textAlign: 'right', marginRight: 2 },
-  statusOther: { color: '#8E8E93', marginLeft: 2 },
-  tsLabel: { fontSize: 11, color: '#8E8E93', marginTop: 2 },
-  tsLabelMe: { textAlign: 'right', marginRight: 2 },
-  tsLabelOther: { marginLeft: 2 },
+  status: { fontSize: 10.5, marginTop: 4, color: TEXT_SECONDARY, fontWeight: '500' },
+  statusMe: { textAlign: 'right', marginRight: 4 },
+  statusOther: { marginLeft: 4 },
+  tsLabel: { fontSize: 10.5, color: TEXT_SECONDARY, marginTop: 2 },
+  tsLabelMe: { textAlign: 'right', marginRight: 4 },
+  tsLabelOther: { marginLeft: 4 },
 
-  typingWrap: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 8, paddingBottom: 4, marginBottom: 2 },
-  typingBubble: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 12 },
-  typingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#8E8E93' },
+  typingWrap: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingBottom: 6, marginBottom: 2 },
+  typingBubble: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 11 },
+  typingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: TEXT_SECONDARY },
 
-  replyBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2F2F7', paddingHorizontal: 12, paddingVertical: 8, gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#C6C6C8' },
-  replyBannerAccent: { width: 3, height: 32, borderRadius: 2, backgroundColor: '#007AFF' },
+  replyBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F9', paddingHorizontal: 14, paddingVertical: 10, gap: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
+  replyBannerAccent: { width: 3, height: 32, borderRadius: 2, backgroundColor: NAVY },
   replyBannerContent: { flex: 1 },
-  replyBannerLabel: { fontSize: 12, fontWeight: '600', color: '#007AFF' },
+  replyBannerLabel: { fontSize: 12, fontWeight: '600', color: NAVY },
   replyBannerPrev: { fontSize: 13, color: '#3C3C43', marginTop: 1 },
   replyBannerClose: { padding: 4 },
-  replyBannerCloseTxt: { fontSize: 16, color: '#8E8E93' },
 
-  toolbar: { backgroundColor: '#F2F2F7', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#C6C6C8' },
+  toolbar: { backgroundColor: '#FFFFFF', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
   toolbarGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingVertical: 16, gap: 20, justifyContent: 'flex-start' },
   toolbarBtn: { alignItems: 'center', gap: 6 },
-  toolbarBtnInner: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: '#C6C6C8' },
-  toolbarBtnIcon: { fontSize: 24 },
+  toolbarBtnInner: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   toolbarBtnLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
 
-  bar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 8, paddingTop: 8, backgroundColor: '#FFFFFF', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#C6C6C8', gap: 8 },
-  addBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
-  addBtnTxt: { fontSize: 22, color: '#007AFF', fontWeight: '400', lineHeight: 26 },
-  addBtnTxtActive: { color: '#8E8E93' },
-  inputWrap: { flex: 1, backgroundColor: '#F2F2F7', borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, borderColor: '#C6C6C8', paddingHorizontal: 14, paddingTop: 9, paddingBottom: 9, minHeight: 38, justifyContent: 'center' },
-  input: { fontSize: 17, color: '#000000', maxHeight: 130, padding: 0, margin: 0 },
-  sendBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#007AFF', alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
-  sendArrow: { color: '#FFFFFF', fontSize: 18, fontWeight: '700', lineHeight: 22 },
+  bar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 10, paddingTop: 8, backgroundColor: '#FFFFFF', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE, gap: 8 },
+  addBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
+  inputWrap: { flex: 1, backgroundColor: '#F2F2F7', borderRadius: 22, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10, minHeight: 40, justifyContent: 'center' },
+  input: { fontSize: 16, color: TEXT_PRIMARY, maxHeight: 130, padding: 0, margin: 0, letterSpacing: -0.1 },
+  sendBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
 
   lockedBar: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: 16, paddingTop: 14,
     backgroundColor: '#F9FAFB',
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB',
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE,
   },
   lockedIcon: {
     width: 32, height: 32, borderRadius: 10,
@@ -1756,6 +1850,9 @@ const s = StyleSheet.create({
   lockedTitle: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
   lockedSub: { fontSize: 11, color: '#6B7280', marginTop: 1 },
 
+  fullscreenRoot: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
+  fullscreenClose: { position: 'absolute', top: 52, right: 20, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  fullscreenActions: { position: 'absolute', bottom: 40, flexDirection: 'row', gap: 10 },
   fsActionBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10 },
   fsActionTxt: { color: '#FFF', fontWeight: '600' },
 
@@ -1764,83 +1861,81 @@ const s = StyleSheet.create({
   emptyAvatar: { width: 72, height: 72, borderRadius: 36, marginBottom: 4 },
   emptyAvatarFb: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   emptyAvatarTxt: { fontSize: 28, fontWeight: '600', color: '#3C3C43' },
-  emptyName: { fontSize: 18, fontWeight: '600', color: '#000000' },
-  emptyHandle: { fontSize: 14, color: '#8E8E93' },
+  emptyName: { fontSize: 18, fontWeight: '600', color: TEXT_PRIMARY },
+  emptyHandle: { fontSize: 14, color: TEXT_SECONDARY },
   emptyHint: { fontSize: 13, color: '#C6C6C8', marginTop: 8, textAlign: 'center', paddingHorizontal: 40 },
 
   reactionOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  reactionSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 12, paddingBottom: 32 },
-  reactionEmojis: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#C6C6C8' },
-  reactionEmojiBtn: { padding: 8 },
+  reactionSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 14, paddingBottom: 34 },
+  reactionEmojis: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
+  reactionEmojiBtn: { padding: 6 },
   reactionEmojiTxt: { fontSize: 30 },
-  reactionActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', paddingHorizontal: 16, paddingVertical: 16, gap: 16 },
-  reactionActionBtn: { alignItems: 'center', gap: 6, minWidth: 64 },
-  reactionActionIcon: { fontSize: 22 },
-  reactionActionLbl: { fontSize: 12, color: '#3C3C43', fontWeight: '500' },
+  reactionActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', paddingHorizontal: 16, paddingVertical: 16, gap: 12 },
+  reactionActionBtn: { alignItems: 'center', gap: 6, minWidth: 62 },
+  reactionActionInner: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
+  reactionActionLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
 
-  infoSafe: { flex: 1, backgroundColor: '#F2F2F7' },
-  infoHeader: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#C6C6C8' },
+  infoSafe: { flex: 1, backgroundColor: '#F7F7F9' },
+  infoHeader: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
   infoDoneBtn: { paddingVertical: 4, paddingHorizontal: 4 },
-  infoDoneTxt: { fontSize: 17, color: '#007AFF', fontWeight: '600' },
-  infoContact: { backgroundColor: '#FFFFFF', alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20, marginBottom: 8 },
-  infoAvatar: { width: 80, height: 80, borderRadius: 40, marginBottom: 12 },
-  infoAvatarFb: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  infoAvatarTxt: { fontSize: 32, fontWeight: '600', color: '#3C3C43' },
-  infoName: { fontSize: 22, fontWeight: '700', color: '#000000', marginBottom: 4 },
-  infoHandle: { fontSize: 15, color: '#007AFF', marginBottom: 4 },
-  infoProg: { fontSize: 14, color: '#3C3C43', marginBottom: 4 },
-  infoLoc: { fontSize: 14, color: '#8E8E93' },
+  infoDoneTxt: { fontSize: 16, color: NAVY, fontWeight: '600' },
+  infoContact: { backgroundColor: '#FFFFFF', alignItems: 'center', paddingVertical: 32, paddingHorizontal: 20, marginBottom: 8 },
+  infoAvatar: { width: 90, height: 90, borderRadius: 45, marginBottom: 14 },
+  infoAvatarFb: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  infoAvatarTxt: { fontSize: 34, fontWeight: '600', color: '#3C3C43' },
+  infoName: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 4, letterSpacing: -0.3 },
+  infoHandle: { fontSize: 14, color: NAVY, marginBottom: 4, fontWeight: '500' },
+  infoProg: { fontSize: 13, color: '#3C3C43', marginBottom: 4 },
+  infoLoc: { fontSize: 13, color: TEXT_SECONDARY },
   infoQuickRow: { flexDirection: 'row', backgroundColor: '#FFFFFF', paddingVertical: 16, paddingHorizontal: 8, marginBottom: 8, justifyContent: 'space-around' },
   infoQuickBtn: { alignItems: 'center', gap: 6, flex: 1 },
-  infoQuickInner: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  infoQuickIcon: { fontSize: 22 },
-  infoQuickLbl: { fontSize: 12, color: '#3C3C43', fontWeight: '500' },
+  infoQuickInner: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
+  infoQuickLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
 
   infoTabsSection: { backgroundColor: '#FFFFFF', marginBottom: 8 },
-  infoTabBar: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
+  infoTabBar: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
   infoTab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  infoTabActive: { borderBottomWidth: 2, borderBottomColor: '#007AFF' },
-  infoTabTxt: { fontSize: 14, fontWeight: '600', color: '#8E8E93' },
-  infoTabTxtActive: { color: '#007AFF' },
-  infoTabBody: { paddingHorizontal: 16, paddingVertical: 14, minHeight: 140 },
+  infoTabActive: { borderBottomWidth: 2, borderBottomColor: NAVY },
+  infoTabTxt: { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY },
+  infoTabTxtActive: { color: NAVY },
+  infoTabBody: { paddingHorizontal: 14, paddingVertical: 12, minHeight: 140 },
   infoTabLoading: { alignItems: 'center', justifyContent: 'center', paddingVertical: 30 },
-  infoEmpty: { fontSize: 14, color: '#8E8E93', textAlign: 'center', paddingVertical: 24 },
+  infoEmpty: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', paddingVertical: 24 },
 
   mediaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 3 },
-  mediaGridItem: { width: '32.8%', aspectRatio: 1, borderRadius: 4, overflow: 'hidden', backgroundColor: '#F2F2F7', position: 'relative' },
+  mediaGridItem: { width: '32.8%', aspectRatio: 1, borderRadius: 6, overflow: 'hidden', backgroundColor: '#F2F2F7', position: 'relative' },
   mediaPlayOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.2)' },
-  mediaPlayIcon: { fontSize: 22, color: '#FFF' },
 
   infoFileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  infoFileIcon: { fontSize: 26 },
+  infoFileIconBg: { width: 38, height: 38, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
   infoFileName: { fontSize: 14, fontWeight: '600', color: '#111' },
-  infoFileMeta: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+  infoFileMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
 
   infoStarredRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   infoStarredTxt: { fontSize: 14, color: '#111', lineHeight: 19 },
-  infoStarredMeta: { fontSize: 12, color: '#8E8E93', marginTop: 4 },
+  infoStarredMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 4 },
   infoStarredUnstar: { padding: 4 },
-  infoStarredIcon: { fontSize: 22, color: '#FFD60A' },
+  infoStarredIcon: { fontSize: 20, color: '#FFD60A' },
 
   infoSection: { backgroundColor: '#FFFFFF', padding: 16, marginBottom: 8 },
-  infoSectionTitle: { fontSize: 13, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 12 },
+  infoSectionTitle: { fontSize: 12, fontWeight: '600', color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
   infoBio: { fontSize: 15, color: '#3C3C43', lineHeight: 22 },
   infoMemberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   infoMemberAvatar: { width: 36, height: 36, borderRadius: 10 },
   infoMemberName: { flex: 1, fontSize: 14, fontWeight: '600', color: '#111' },
-  infoAdminBadge: { backgroundColor: '#EFF6FF', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
-  infoAdminTxt: { fontSize: 11, color: '#2563EB', fontWeight: '700' },
-  infoSeeAll: { fontSize: 14, color: '#2563EB', fontWeight: '600', paddingVertical: 8 },
+  infoAdminBadge: { backgroundColor: NAVY, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  infoAdminTxt: { fontSize: 10, color: '#FFF', fontWeight: '700', letterSpacing: 0.3 },
+  infoSeeAll: { fontSize: 14, color: NAVY, fontWeight: '600', paddingVertical: 8 },
   infoDanger: { backgroundColor: '#FEF2F2', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   infoDangerTxt: { fontSize: 15, fontWeight: '700', color: '#DC2626' },
 
-  editMsgSheet: { backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 24 },
+  editMsgSheet: { backgroundColor: '#FFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingBottom: 24 },
   editMsgHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  editMsgTitle: { fontSize: 16, fontWeight: '700', color: '#000' },
-  editMsgCancelTxt: { fontSize: 16, color: '#8E8E93', fontWeight: '500' },
-  editMsgSaveTxt: { fontSize: 16, fontWeight: '700', color: '#007AFF' },
-  editOriginal: { backgroundColor: '#F7F7F7', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  editOriginalLabel: { fontSize: 11, fontWeight: '700', color: '#007AFF', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
-  editOriginalTxt: { fontSize: 14, color: '#8E8E93', lineHeight: 19 },
-  editMsgInput: { backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 14, fontSize: 17, color: '#000', minHeight: 90, textAlignVertical: 'top' },
+  editMsgTitle: { fontSize: 15, fontWeight: '700', color: '#000' },
+  editMsgCancelTxt: { fontSize: 15, color: TEXT_SECONDARY, fontWeight: '500' },
+  editMsgSaveTxt: { fontSize: 15, fontWeight: '700', color: NAVY },
+  editOriginal: { backgroundColor: '#F7F7F9', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
+  editOriginalLabel: { fontSize: 11, fontWeight: '700', color: NAVY, marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
+  editOriginalTxt: { fontSize: 14, color: TEXT_SECONDARY, lineHeight: 19 },
+  editMsgInput: { backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: '#000', minHeight: 90, textAlignVertical: 'top' },
 });

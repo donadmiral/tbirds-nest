@@ -1,7 +1,7 @@
 /**
  * GroupManagementScreen.tsx
- * WhatsApp-style info page: grouped cards, clean rows.
- * Media opens a dedicated gallery modal with 4-column grid.
+ * Design C — Group Info Layout, Clean Premium.
+ * Members list with admin/officer badges, shared media grid, group settings.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -21,22 +21,27 @@ import { uploadMedia } from '../../services/mediaService';
 import MediaViewer, { MediaViewerItem } from '../../components/messages/MediaViewer';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-// Gallery modal grid: 4 columns with tight 2px gaps, like WhatsApp.
 const GALLERY_GAP = 2;
 const GALLERY_TILE = Math.floor((SCREEN_W - GALLERY_GAP * 3) / 4);
-// Preview strip on info page: 4 columns, small margin.
-const PREVIEW_GAP = 2;
-const PREVIEW_TILE = Math.floor((SCREEN_W - 32 - PREVIEW_GAP * 3) / 4);
+const PREVIEW_GAP = 3;
+const PREVIEW_TILE = Math.floor((SCREEN_W - 32 - PREVIEW_GAP * 2) / 3);
+
+const NAVY = '#0B1E3D';
+const NAVY_SOFT = '#1A3560';
+const BG_GREY = '#F7F7F9';
+const TEXT_PRIMARY = '#000000';
+const TEXT_SECONDARY = '#8E8E93';
+const HAIRLINE = '#E5E5EA';
 
 function initials(n?: string | null) {
   if (!n) return '?';
   const p = n.trim().split(' ').filter(Boolean);
   return p.length === 1 ? p[0][0].toUpperCase() : (p[0][0] + p[1][0]).toUpperCase();
 }
-const BG = ['#1D4ED8','#065F46','#7C2D12','#5856D6','#C2410C','#0F766E','#7C3AED','#0B1E3D'];
+const AVATAR_BG = [NAVY, NAVY_SOFT, '#065F46', '#7C2D12', '#5856D6', '#C2410C', '#0F766E', '#7C3AED'];
 function avatarBg(id: string) {
-  let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) % BG.length;
-  return BG[Math.abs(h) % BG.length];
+  let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) % AVATAR_BG.length;
+  return AVATAR_BG[Math.abs(h) % AVATAR_BG.length];
 }
 function fmtDate(d?: string | null) {
   if (!d) return '';
@@ -132,7 +137,6 @@ export default function GroupManagementScreen({ route, navigation }: any) {
   const [files, setFiles] = useState<FileMsg[]>([]);
   const [starredCount, setStarredCount] = useState(0);
 
-  // Gallery modal + viewer
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryTab, setGalleryTab] = useState<GalleryTab>('media');
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -223,9 +227,6 @@ export default function GroupManagementScreen({ route, navigation }: any) {
   useEffect(() => { loadAll(); }, [loadAll]);
   useEffect(() => { loadMediaAndFiles(); }, [loadMediaAndFiles]);
 
-  // ========================================================================
-  // Save to device helpers
-  // ========================================================================
   const saveMediaDirectly = useCallback(async (m: MediaMsg) => {
     try {
       const perm = await MediaLibrary.requestPermissionsAsync();
@@ -303,9 +304,6 @@ export default function GroupManagementScreen({ route, navigation }: any) {
     setViewerOpen(true);
   };
 
-  // ========================================================================
-  // Avatar, name, description, permissions, mute, members
-  // ========================================================================
   const pickGroupAvatar = async () => {
     if (!canEditInfo) { Alert.alert('Admins only', 'Only admins can change the group photo.'); return; }
     if (!myId) return;
@@ -313,7 +311,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
     if (!perm.granted) { Alert.alert('Permission required', 'Allow photo access.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'] as ImagePicker.MediaType[],
-      quality: 0.85,
+      quality: 0.9,
       allowsEditing: true,
       aspect: [1, 1],
       base64: false,
@@ -455,20 +453,17 @@ export default function GroupManagementScreen({ route, navigation }: any) {
     setSearchQuery(''); setSearchResult([]); setShowAddMember(false);
   };
 
-  // ========================================================================
-  // Render
-  // ========================================================================
-  const previewThumbs = media.slice(0, 4);
+  const previewThumbs = media.slice(0, 6);
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
 
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
-          <Feather name="chevron-left" size={26} color="#000" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="chevron-left" size={26} color={NAVY} />
         </TouchableOpacity>
-        <Text style={s.headerTitle} numberOfLines={1}>{groupName}</Text>
+        <Text style={s.headerTitle} numberOfLines={1}>Group Info</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -476,7 +471,6 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
         <View style={s.hero}>
           <TouchableOpacity onPress={pickGroupAvatar} disabled={!canEditInfo || uploadingAvatar} activeOpacity={0.85}>
             <View style={s.heroAvatarWrap}>
@@ -485,13 +479,13 @@ export default function GroupManagementScreen({ route, navigation }: any) {
               ) : avatarUrl ? (
                 <ExpoImage source={{ uri: avatarUrl }} style={s.heroAvatar} contentFit="cover" />
               ) : (
-                <View style={s.heroAvatar}>
-                  <Text style={{ fontSize: 48 }}>{groupEmoji || '💬'}</Text>
+                <View style={[s.heroAvatar, { backgroundColor: NAVY }]}>
+                  <Text style={{ fontSize: 44, color: '#FFF' }}>{groupEmoji || '💬'}</Text>
                 </View>
               )}
               {canEditInfo && (
                 <View style={s.cameraOverlay}>
-                  <Feather name="camera" size={16} color="#FFF" />
+                  <Feather name="camera" size={15} color="#FFF" />
                 </View>
               )}
             </View>
@@ -519,17 +513,35 @@ export default function GroupManagementScreen({ route, navigation }: any) {
               activeOpacity={canEditInfo ? 0.7 : 1}
             >
               <Text style={s.heroName} numberOfLines={2}>{groupName}</Text>
-              {canEditInfo && <Feather name="edit-2" size={15} color="#6B7280" style={{ marginLeft: 6 }} />}
+              {canEditInfo && <Feather name="edit-2" size={14} color={TEXT_SECONDARY} style={{ marginLeft: 8 }} />}
             </TouchableOpacity>
           )}
-          <Text style={s.heroSub}>Group, {members.length} {members.length === 1 ? 'member' : 'members'}</Text>
+          <Text style={s.heroSub}>{members.length} {members.length === 1 ? 'member' : 'members'}</Text>
+
+          <View style={s.heroActions}>
+            <TouchableOpacity style={s.heroAction} activeOpacity={0.7}
+              onPress={() => navigation.goBack()}>
+              <View style={s.heroActionInner}><Feather name="message-circle" size={20} color={NAVY} /></View>
+              <Text style={s.heroActionLbl}>Message</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.heroAction} activeOpacity={0.7}
+              onPress={() => setShowAddMember(p => !p)}>
+              <View style={s.heroActionInner}><Feather name="user-plus" size={20} color={NAVY} /></View>
+              <Text style={s.heroActionLbl}>Invite</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.heroAction} activeOpacity={0.7}
+              onPress={() => setMuteSheetOpen(true)}>
+              <View style={s.heroActionInner}><Feather name={muteLabel ? 'bell-off' : 'bell'} size={20} color={NAVY} /></View>
+              <Text style={s.heroActionLbl}>{muteLabel ? 'Muted' : 'Mute'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Description */}
         {(description || canEditInfo) && (
-          <View style={s.card}>
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Description</Text>
             {editingDesc ? (
-              <>
+              <View>
                 <TextInput
                   value={descDraft}
                   onChangeText={setDescDraft}
@@ -549,7 +561,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
                     {savingDesc ? <ActivityIndicator size={14} color="#FFF" /> : <Text style={s.descSaveTxt}>Save</Text>}
                   </TouchableOpacity>
                 </View>
-              </>
+              </View>
             ) : (
               <TouchableOpacity
                 disabled={!canEditInfo}
@@ -564,28 +576,120 @@ export default function GroupManagementScreen({ route, navigation }: any) {
           </View>
         )}
 
-        {/* Media, links and docs + Starred */}
-        <View style={s.card}>
-          <Pressable
-            style={({ pressed }) => [s.row, pressed && s.rowPressed]}
-            onPress={() => { setGalleryTab('media'); setGalleryOpen(true); }}
-          >
-            <Feather name="image" size={22} color="#111" style={s.rowIcon} />
-            <Text style={s.rowLabel}>Media, links and docs</Text>
-            <View style={s.rowRight}>
-              <Text style={s.rowValue}>{mediaCount + files.length}</Text>
-              <Feather name="chevron-right" size={20} color="#C7C7CC" />
-            </View>
-          </Pressable>
+        <View style={s.section}>
+          <View style={s.sectionHeaderRow}>
+            <Text style={s.sectionTitle}>Members · {members.length}</Text>
+            {canAddMembers && (
+              <TouchableOpacity onPress={() => setShowAddMember(p => !p)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={s.sectionAction}>{showAddMember ? 'Done' : 'Add'}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-          {/* Preview strip: 4 thumbnails */}
-          {previewThumbs.length > 0 && (
+          {showAddMember && canAddMembers && (
+            <View style={{ paddingBottom: 8 }}>
+              <View style={s.addSearchWrap}>
+                <Feather name="search" size={14} color={TEXT_SECONDARY} />
+                <TextInput
+                  value={searchQuery}
+                  onChangeText={searchForAdd}
+                  placeholder="Search by name or username..."
+                  placeholderTextColor="#9CA3AF"
+                  style={s.addSearchInput}
+                  autoFocus
+                />
+              </View>
+              {searchResult.map(u => (
+                <TouchableOpacity key={u.id} style={s.memberRow} onPress={() => addMember(u)} activeOpacity={0.7}>
+                  {u.avatar_url
+                    ? <Image source={{ uri: u.avatar_url }} style={s.memberAvatar} />
+                    : <View style={[s.memberAvatar, { backgroundColor: avatarBg(u.id), alignItems: 'center', justifyContent: 'center' }]}>
+                        <Text style={s.memberAvatarTxt}>{initials(u.full_name)}</Text>
+                      </View>}
+                  <View style={s.memberInfo}>
+                    <Text style={s.memberName}>{u.full_name || u.username}</Text>
+                    {u.username && <Text style={s.memberHandle}>@{u.username}</Text>}
+                  </View>
+                  <View style={s.addBtnSmall}>
+                    <Feather name="plus" size={16} color="#FFF" />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {loading ? <ActivityIndicator color={NAVY} style={{ marginVertical: 16 }} /> : (
+            <View>
+              {members.slice(0, 8).map((m) => (
+                <View key={m.user_id} style={s.memberRow}>
+                  {m.profile?.avatar_url
+                    ? <Image source={{ uri: m.profile.avatar_url }} style={s.memberAvatar} />
+                    : <View style={[s.memberAvatar, { backgroundColor: avatarBg(m.user_id), alignItems: 'center', justifyContent: 'center' }]}>
+                        <Text style={s.memberAvatarTxt}>{initials(m.profile?.full_name)}</Text>
+                      </View>}
+                  <View style={s.memberInfo}>
+                    <Text style={s.memberName} numberOfLines={1}>
+                      {m.profile?.full_name || 'Member'}{m.user_id === myId ? ' (you)' : ''}
+                    </Text>
+                    {m.profile?.username ? <Text style={s.memberHandle}>@{m.profile.username}</Text> : null}
+                  </View>
+                  {m.role === 'admin' && <View style={s.adminBadge}><Text style={s.adminBadgeTxt}>Admin</Text></View>}
+                  {isAdmin && m.user_id !== myId && (
+                    <TouchableOpacity
+                      style={s.memberMenuBtn}
+                      onPress={() => {
+                        const options = [
+                          m.role === 'admin' ? 'Demote to member' : 'Make admin',
+                          'Remove from group',
+                          'Cancel',
+                        ];
+                        if (Platform.OS === 'ios') {
+                          ActionSheetIOS.showActionSheetWithOptions(
+                            { options, cancelButtonIndex: 2, destructiveButtonIndex: 1 },
+                            (i) => {
+                              if (i === 0) toggleAdmin(m);
+                              if (i === 1) removeMember(m);
+                            }
+                          );
+                        } else {
+                          Alert.alert(m.profile?.full_name || 'Member', undefined, [
+                            { text: m.role === 'admin' ? 'Demote' : 'Make admin', onPress: () => toggleAdmin(m) },
+                            { text: 'Remove', style: 'destructive', onPress: () => removeMember(m) },
+                            { text: 'Cancel', style: 'cancel' },
+                          ]);
+                        }
+                      }}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Feather name="more-horizontal" size={18} color={TEXT_SECONDARY} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+              {members.length > 8 && (
+                <TouchableOpacity style={s.seeAllBtn} onPress={() => { /* stay on screen, already showing */ }}>
+                  <Text style={s.seeAllTxt}>See all {members.length} members</Text>
+                  <Feather name="chevron-right" size={16} color={NAVY} />
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+
+        {previewThumbs.length > 0 && (
+          <View style={s.section}>
+            <View style={s.sectionHeaderRow}>
+              <Text style={s.sectionTitle}>Shared Media</Text>
+              <TouchableOpacity onPress={() => { setGalleryTab('media'); setGalleryOpen(true); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={s.sectionAction}>See all</Text>
+              </TouchableOpacity>
+            </View>
             <View style={s.previewStrip}>
               {previewThumbs.map((m, i) => (
                 <Pressable
                   key={m.id}
                   style={s.previewTile}
-                  onPress={() => { openViewerAt(i); }}
+                  onPress={() => openViewerAt(i)}
                 >
                   <ExpoImage source={{ uri: m.media_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                   {m.media_type === 'video' && (
@@ -596,45 +700,42 @@ export default function GroupManagementScreen({ route, navigation }: any) {
                 </Pressable>
               ))}
             </View>
-          )}
+          </View>
+        )}
 
-          <View style={s.divider} />
-
-          <Pressable
-            style={({ pressed }) => [s.row, pressed && s.rowPressed]}
-            onPress={() => {
-              // Navigate to global Starred messages scoped to this conversation
-              navigation.navigate('StarredMessages', { conversationId });
-            }}
-          >
-            <Feather name="star" size={22} color="#111" style={s.rowIcon} />
-            <Text style={s.rowLabel}>Starred</Text>
-            <View style={s.rowRight}>
-              <Text style={s.rowValue}>{starredCount > 0 ? starredCount : 'None'}</Text>
-              <Feather name="chevron-right" size={20} color="#C7C7CC" />
+        {files.length > 0 && (
+          <TouchableOpacity style={s.section} activeOpacity={0.7}
+            onPress={() => { setGalleryTab('docs'); setGalleryOpen(true); }}>
+            <View style={s.listRow}>
+              <View style={s.listIconBg}>
+                <Feather name="file-text" size={18} color={NAVY} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.listLabel}>Shared Files</Text>
+                <Text style={s.listMeta}>{files.length} {files.length === 1 ? 'document' : 'documents'}</Text>
+              </View>
+              <Feather name="chevron-right" size={18} color="#C6C6C8" />
             </View>
-          </Pressable>
-        </View>
+          </TouchableOpacity>
+        )}
 
-        {/* Notifications */}
-        <View style={s.card}>
-          <Pressable
-            style={({ pressed }) => [s.row, pressed && s.rowPressed]}
-            onPress={() => setMuteSheetOpen(true)}
-          >
-            <Feather name={muteLabel ? 'bell-off' : 'bell'} size={22} color="#111" style={s.rowIcon} />
-            <Text style={s.rowLabel}>Notifications</Text>
-            <View style={s.rowRight}>
-              <Text style={s.rowValue}>{muteLabel ? `Muted ${muteLabel}` : 'On'}</Text>
-              <Feather name="chevron-right" size={20} color="#C7C7CC" />
+        <TouchableOpacity style={s.section} activeOpacity={0.7}
+          onPress={() => navigation.navigate('StarredMessages', { conversationId })}>
+          <View style={s.listRow}>
+            <View style={s.listIconBg}>
+              <Feather name="star" size={18} color={NAVY} />
             </View>
-          </Pressable>
-        </View>
+            <View style={{ flex: 1 }}>
+              <Text style={s.listLabel}>Starred Messages</Text>
+              <Text style={s.listMeta}>{starredCount > 0 ? `${starredCount} starred` : 'None yet'}</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color="#C6C6C8" />
+          </View>
+        </TouchableOpacity>
 
-        {/* Group permissions (admin only) */}
         {isAdmin && (
-          <View style={s.card}>
-            <Text style={s.cardSectionLabel}>Group permissions</Text>
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Group Permissions</Text>
             <ToggleRow
               label="Only admins can edit group info"
               sub="Name, photo, description"
@@ -651,115 +752,12 @@ export default function GroupManagementScreen({ route, navigation }: any) {
           </View>
         )}
 
-        {/* Members header */}
-        <View style={s.membersHeader}>
-          <Text style={s.membersHeaderTxt}>
-            {members.length} {members.length === 1 ? 'member' : 'members'}
-          </Text>
-        </View>
-
-        {/* Members card */}
-        <View style={s.card}>
-          {canAddMembers && (
-            <>
-              <Pressable
-                style={({ pressed }) => [s.row, pressed && s.rowPressed]}
-                onPress={() => setShowAddMember(p => !p)}
-              >
-                <View style={s.addIconWrap}>
-                  <Feather name="user-plus" size={18} color="#FFF" />
-                </View>
-                <Text style={[s.rowLabel, { color: '#2563EB' }]}>Add members</Text>
-              </Pressable>
-              {showAddMember && (
-                <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
-                  <TextInput
-                    value={searchQuery}
-                    onChangeText={searchForAdd}
-                    placeholder="Search by name or username..."
-                    placeholderTextColor="#9CA3AF"
-                    style={s.addSearchInput}
-                    autoFocus
-                  />
-                  {searchResult.map(u => (
-                    <TouchableOpacity key={u.id} style={s.memberRow} onPress={() => addMember(u)} activeOpacity={0.75}>
-                      {u.avatar_url
-                        ? <Image source={{ uri: u.avatar_url }} style={s.memberAvatar} />
-                        : <View style={[s.memberAvatar, { backgroundColor: avatarBg(u.id), alignItems: 'center', justifyContent: 'center' }]}>
-                            <Text style={s.memberAvatarTxt}>{initials(u.full_name)}</Text>
-                          </View>}
-                      <View style={s.memberInfo}>
-                        <Text style={s.memberName}>{u.full_name || u.username}</Text>
-                        {u.username && <Text style={s.memberHandle}>@{u.username}</Text>}
-                      </View>
-                      <Feather name="plus-circle" size={20} color="#2563EB" />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-              <View style={s.divider} />
-            </>
-          )}
-
-          {loading ? <ActivityIndicator color="#000" style={{ marginTop: 16, marginBottom: 16 }} /> : members.map((m, idx) => (
-            <View key={m.user_id}>
-              <View style={s.memberRow}>
-                {m.profile?.avatar_url
-                  ? <Image source={{ uri: m.profile.avatar_url }} style={s.memberAvatar} />
-                  : <View style={[s.memberAvatar, { backgroundColor: avatarBg(m.user_id), alignItems: 'center', justifyContent: 'center' }]}>
-                      <Text style={s.memberAvatarTxt}>{initials(m.profile?.full_name)}</Text>
-                    </View>}
-                <View style={s.memberInfo}>
-                  <Text style={s.memberName} numberOfLines={1}>
-                    {m.profile?.full_name || 'Member'}{m.user_id === myId ? ' (you)' : ''}
-                  </Text>
-                  {m.profile?.username ? <Text style={s.memberHandle}>@{m.profile.username}</Text> : null}
-                </View>
-                {m.role === 'admin' && <View style={s.adminBadge}><Text style={s.adminBadgeTxt}>Admin</Text></View>}
-                {isAdmin && m.user_id !== myId && (
-                  <TouchableOpacity
-                    style={s.memberMenuBtn}
-                    onPress={() => {
-                      const options = [
-                        m.role === 'admin' ? 'Demote to member' : 'Make admin',
-                        'Remove from group',
-                        'Cancel',
-                      ];
-                      if (Platform.OS === 'ios') {
-                        ActionSheetIOS.showActionSheetWithOptions(
-                          { options, cancelButtonIndex: 2, destructiveButtonIndex: 1 },
-                          (i) => {
-                            if (i === 0) toggleAdmin(m);
-                            if (i === 1) removeMember(m);
-                          }
-                        );
-                      } else {
-                        Alert.alert(m.profile?.full_name || 'Member', undefined, [
-                          { text: m.role === 'admin' ? 'Demote' : 'Make admin', onPress: () => toggleAdmin(m) },
-                          { text: 'Remove', style: 'destructive', onPress: () => removeMember(m) },
-                          { text: 'Cancel', style: 'cancel' },
-                        ]);
-                      }
-                    }}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Feather name="more-horizontal" size={18} color="#6B7280" />
-                  </TouchableOpacity>
-                )}
-              </View>
-              {idx < members.length - 1 && <View style={s.dividerIndent} />}
-            </View>
-          ))}
-        </View>
-
-        {/* Leave */}
         <TouchableOpacity style={s.leaveBtn} onPress={leaveGroup} activeOpacity={0.85}>
-          <Feather name="log-out" size={18} color="#DC2626" />
+          <Feather name="log-out" size={17} color="#DC2626" />
           <Text style={s.leaveBtnTxt}>Leave group</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Mute sheet */}
       <Modal visible={muteSheetOpen} transparent animationType="slide" onRequestClose={() => setMuteSheetOpen(false)}>
         <TouchableOpacity style={s.sheetBackdrop} activeOpacity={1} onPress={() => setMuteSheetOpen(false)} />
         <View style={s.sheet}>
@@ -773,7 +771,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
             </TouchableOpacity>
           ))}
           {mutedUntil && (
-            <TouchableOpacity style={[s.sheetRow, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB' }]} onPress={unmute}>
+            <TouchableOpacity style={[s.sheetRow, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE }]} onPress={unmute}>
               <Text style={[s.sheetRowTxt, { color: '#DC2626', fontWeight: '700' }]}>Unmute</Text>
             </TouchableOpacity>
           )}
@@ -783,12 +781,11 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         </View>
       </Modal>
 
-      {/* Gallery modal: Media / Docs */}
       <Modal visible={galleryOpen} animationType="slide" onRequestClose={() => setGalleryOpen(false)}>
         <SafeAreaView style={s.gallerySafe} edges={['top']}>
           <View style={s.galleryHeader}>
             <TouchableOpacity onPress={() => setGalleryOpen(false)} style={s.backBtn} activeOpacity={0.7}>
-              <Feather name="chevron-left" size={26} color="#000" />
+              <Feather name="chevron-left" size={26} color={NAVY} />
             </TouchableOpacity>
             <View style={s.galleryTabs}>
               <Pressable
@@ -867,7 +864,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
                       delayLongPress={280}
                     >
                       <View style={s.fileIcon}>
-                        <Feather name="file-text" size={22} color="#2563EB" />
+                        <Feather name="file-text" size={20} color={NAVY} />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={s.fileName} numberOfLines={1}>{name}</Text>
@@ -877,7 +874,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
                         onPress={() => saveFileToDevice(f.media_url, name)}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
-                        <Feather name="download" size={20} color="#2563EB" />
+                        <Feather name="download" size={18} color={NAVY} />
                       </TouchableOpacity>
                     </Pressable>
                   );
@@ -888,7 +885,6 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         </SafeAreaView>
       </Modal>
 
-      {/* Fullscreen media viewer */}
       <MediaViewer
         visible={viewerOpen}
         items={viewerItems}
@@ -914,160 +910,124 @@ function ToggleRow({ label, sub, value, onChange }: { label: string; sub?: strin
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F2F2F7' },
+  safe: { flex: 1, backgroundColor: BG_GREY },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 8, paddingVertical: 10,
-    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 12, paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
   },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#000', flex: 1, textAlign: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY, flex: 1, textAlign: 'center' },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 
-  hero: { alignItems: 'center', paddingVertical: 24, paddingHorizontal: 20, gap: 8, backgroundColor: '#F2F2F7' },
+  hero: {
+    alignItems: 'center',
+    paddingTop: 28, paddingHorizontal: 20, paddingBottom: 24,
+    gap: 8, backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+  },
   heroAvatarWrap: { position: 'relative' },
-  heroAvatar: { width: 110, height: 110, borderRadius: 55, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  cameraOverlay: { position: 'absolute', bottom: 2, right: 2, width: 34, height: 34, borderRadius: 17, backgroundColor: '#1F2937', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#F2F2F7' },
-  nameRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 6 },
-  heroName: { fontSize: 26, fontWeight: '700', color: '#000', textAlign: 'center' },
-  heroSub: { fontSize: 14, color: '#6B7280', marginTop: 2 },
+  heroAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cameraOverlay: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#FFFFFF' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 10 },
+  heroName: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, textAlign: 'center', letterSpacing: -0.4 },
+  heroSub: { fontSize: 13, color: TEXT_SECONDARY, marginTop: 2 },
   nameEdit: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, alignSelf: 'stretch', marginTop: 8 },
-  nameInput: { flex: 1, fontSize: 20, fontWeight: '700', color: '#000', borderBottomWidth: 2, borderBottomColor: '#2563EB', paddingVertical: 4, textAlign: 'center' },
-  saveNameBtn: { backgroundColor: '#2563EB', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
-  saveNameTxt: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  cancelNameTxt: { color: '#6B7280', fontWeight: '600', fontSize: 14, paddingHorizontal: 8 },
+  nameInput: { flex: 1, fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, borderBottomWidth: 2, borderBottomColor: NAVY, paddingVertical: 4, textAlign: 'center' },
+  saveNameBtn: { backgroundColor: NAVY, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
+  saveNameTxt: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  cancelNameTxt: { color: TEXT_SECONDARY, fontWeight: '600', fontSize: 13, paddingHorizontal: 4 },
 
-  card: {
-    backgroundColor: '#FFF',
-    marginHorizontal: 16,
-    marginTop: 14,
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  cardSectionLabel: {
-    fontSize: 13, fontWeight: '600', color: '#6B7280',
-    paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4,
-  },
+  heroActions: { flexDirection: 'row', gap: 20, marginTop: 20 },
+  heroAction: { alignItems: 'center', gap: 6, minWidth: 64 },
+  heroActionInner: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
+  heroActionLbl: { fontSize: 11, fontWeight: '500', color: TEXT_PRIMARY },
 
-  row: {
-    flexDirection: 'row', alignItems: 'center',
+  section: {
+    backgroundColor: '#FFFFFF',
+    marginTop: 10,
     paddingHorizontal: 16, paddingVertical: 14,
-    minHeight: 52,
+    borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth,
+    borderTopColor: HAIRLINE, borderBottomColor: HAIRLINE,
   },
-  rowPressed: { backgroundColor: '#F3F4F6' },
-  rowIcon: { marginRight: 14, width: 24, textAlign: 'center' },
-  rowLabel: { fontSize: 16, color: '#111', flex: 1, fontWeight: '400' },
-  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  rowValue: { fontSize: 15, color: '#8E8E93' },
+  sectionTitle: { fontSize: 11, fontWeight: '600', color: TEXT_SECONDARY, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  sectionAction: { fontSize: 13, fontWeight: '600', color: NAVY },
 
-  previewStrip: {
-    flexDirection: 'row',
-    gap: PREVIEW_GAP,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  previewTile: {
-    width: PREVIEW_TILE, height: PREVIEW_TILE,
-    borderRadius: 6, overflow: 'hidden',
-    backgroundColor: '#F3F4F6',
-  },
-  videoPlayBadge: {
-    position: 'absolute', bottom: 4, left: 4,
-    width: 16, height: 16, borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center', justifyContent: 'center',
-  },
+  descInput: { minHeight: 80, maxHeight: 180, padding: 12, fontSize: 15, color: TEXT_PRIMARY, lineHeight: 21, backgroundColor: BG_GREY, borderRadius: 10 },
+  descActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 10 },
+  descCancel: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F3F4F6' },
+  descCancelTxt: { color: '#374151', fontWeight: '600', fontSize: 13 },
+  descSave: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: NAVY, minWidth: 70, alignItems: 'center' },
+  descSaveTxt: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  descText: { fontSize: 14, color: '#3C3C43', lineHeight: 21 },
+  descEmpty: { fontSize: 14, color: NAVY, fontWeight: '500' },
 
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E7EB', marginLeft: 54 },
-  dividerIndent: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E7EB', marginLeft: 70 },
+  addSearchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: BG_GREY, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 8 },
+  addSearchInput: { flex: 1, fontSize: 14, color: TEXT_PRIMARY, padding: 0 },
+  addBtnSmall: { width: 30, height: 30, borderRadius: 15, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
 
-  descInput: { minHeight: 80, maxHeight: 180, padding: 14, fontSize: 15, color: '#111', lineHeight: 21 },
-  descActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, padding: 12, paddingTop: 0 },
-  descCancel: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, backgroundColor: '#F3F4F6' },
-  descCancelTxt: { color: '#374151', fontWeight: '600', fontSize: 14 },
-  descSave: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 10, backgroundColor: '#2563EB', minWidth: 70, alignItems: 'center' },
-  descSaveTxt: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  descText: { fontSize: 15, color: '#111', lineHeight: 22, padding: 16 },
-  descEmpty: { fontSize: 15, color: '#2563EB', fontWeight: '500', padding: 16 },
-
-  toggleRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  toggleLabel: { fontSize: 15, fontWeight: '500', color: '#111' },
-  toggleSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  switch: { width: 50, height: 30, borderRadius: 15, backgroundColor: '#E5E7EB', padding: 2, justifyContent: 'center' },
-  switchOn: { backgroundColor: '#34C759' },
-  switchThumb: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#FFF' },
-  switchThumbOn: { transform: [{ translateX: 20 }] },
-
-  membersHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 32, paddingTop: 22, paddingBottom: 6,
-  },
-  membersHeaderTxt: { fontSize: 15, fontWeight: '700', color: '#111' },
-
-  addIconWrap: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#D1D5DB',
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 12,
-  },
-  addSearchInput: { backgroundColor: '#F3F4F6', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginTop: 8 },
-
-  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 16 },
-  memberAvatar: { width: 42, height: 42, borderRadius: 21 },
-  memberAvatarTxt: { fontSize: 15, fontWeight: '800', color: '#FFF' },
+  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
+  memberAvatar: { width: 40, height: 40, borderRadius: 20 },
+  memberAvatarTxt: { fontSize: 14, fontWeight: '700', color: '#FFF' },
   memberInfo: { flex: 1 },
-  memberName: { fontSize: 15, fontWeight: '500', color: '#111' },
-  memberHandle: { fontSize: 12, color: '#6B7280' },
-  adminBadge: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, marginRight: 4 },
-  adminBadgeTxt: { fontSize: 11, color: '#2563EB', fontWeight: '700' },
+  memberName: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY },
+  memberHandle: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 1 },
+  adminBadge: { backgroundColor: NAVY, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginRight: 4 },
+  adminBadgeTxt: { fontSize: 10, color: '#FFF', fontWeight: '700', letterSpacing: 0.3 },
   memberMenuBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 
-  leaveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginHorizontal: 16, marginTop: 20, backgroundColor: '#FFF', borderRadius: 14, paddingVertical: 16 },
-  leaveBtnTxt: { fontSize: 16, fontWeight: '500', color: '#DC2626' },
+  seeAllBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10, marginTop: 4, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#F0F0F0' },
+  seeAllTxt: { fontSize: 13, fontWeight: '600', color: NAVY },
+
+  previewStrip: { flexDirection: 'row', flexWrap: 'wrap', gap: PREVIEW_GAP },
+  previewTile: { width: PREVIEW_TILE, height: PREVIEW_TILE, borderRadius: 8, overflow: 'hidden', backgroundColor: '#F3F4F6' },
+  videoPlayBadge: { position: 'absolute', bottom: 4, left: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
+
+  listRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 2 },
+  listIconBg: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  listLabel: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY },
+  listMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginVertical: 4 },
+
+  toggleRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
+  toggleLabel: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY },
+  toggleSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+  switch: { width: 46, height: 28, borderRadius: 14, backgroundColor: '#E5E7EB', padding: 2, justifyContent: 'center' },
+  switchOn: { backgroundColor: '#34C759' },
+  switchThumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#FFF' },
+  switchThumbOn: { transform: [{ translateX: 18 }] },
+
+  leaveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginHorizontal: 16, marginTop: 18, backgroundColor: '#FFF', borderRadius: 14, paddingVertical: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE },
+  leaveBtnTxt: { fontSize: 15, fontWeight: '600', color: '#DC2626' },
 
   sheetBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 32 },
+  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingBottom: 34 },
   sheetHandle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#D1D5DB', marginTop: 10, marginBottom: 8 },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#111', textAlign: 'center', paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F3F4F6' },
+  sheetTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, textAlign: 'center', paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F3F4F6' },
   sheetRow: { paddingVertical: 16, paddingHorizontal: 24 },
-  sheetRowTxt: { fontSize: 16, color: '#111' },
-  sheetClose: { marginTop: 6, marginHorizontal: 16, paddingVertical: 14, backgroundColor: '#F3F4F6', borderRadius: 12, alignItems: 'center' },
-  sheetCloseTxt: { color: '#374151', fontWeight: '700', fontSize: 15 },
+  sheetRowTxt: { fontSize: 15, color: TEXT_PRIMARY },
+  sheetClose: { marginTop: 6, marginHorizontal: 16, paddingVertical: 14, backgroundColor: BG_GREY, borderRadius: 12, alignItems: 'center' },
+  sheetCloseTxt: { color: '#374151', fontWeight: '700', fontSize: 14 },
 
-  // Gallery modal
   gallerySafe: { flex: 1, backgroundColor: '#FFF' },
-  galleryHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 8, paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB',
-  },
-  galleryTabs: { flexDirection: 'row', gap: 4, backgroundColor: '#F2F2F7', borderRadius: 10, padding: 3 },
+  galleryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
+  galleryTabs: { flexDirection: 'row', gap: 4, backgroundColor: BG_GREY, borderRadius: 10, padding: 3 },
   galleryTab: { paddingHorizontal: 18, paddingVertical: 7, borderRadius: 8 },
   galleryTabActive: { backgroundColor: '#FFF' },
-  galleryTabTxt: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
-  galleryTabTxtActive: { color: '#111' },
-  galleryTile: {
-    width: GALLERY_TILE, height: GALLERY_TILE,
-    backgroundColor: '#F3F4F6',
-    overflow: 'hidden',
-  },
-  galleryVideoBadge: {
-    position: 'absolute', bottom: 4, left: 4,
-    flexDirection: 'row', alignItems: 'center', gap: 3,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4,
-  },
-  galleryGifBadge: {
-    position: 'absolute', bottom: 4, left: 4,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4,
-  },
+  galleryTabTxt: { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY },
+  galleryTabTxtActive: { color: NAVY },
+  galleryTile: { width: GALLERY_TILE, height: GALLERY_TILE, backgroundColor: '#F3F4F6', overflow: 'hidden' },
+  galleryVideoBadge: { position: 'absolute', bottom: 4, left: 4, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4 },
+  galleryGifBadge: { position: 'absolute', bottom: 4, left: 4, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4 },
   galleryGifTxt: { color: '#FFF', fontSize: 10, fontWeight: '700' },
   galleryEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   galleryEmptyTxt: { fontSize: 15, color: '#9CA3AF' },
-  galleryFooter: { textAlign: 'center', fontSize: 14, color: '#6B7280', paddingVertical: 18 },
+  galleryFooter: { textAlign: 'center', fontSize: 13, color: TEXT_SECONDARY, paddingVertical: 18 },
 
   fileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F3F4F6' },
-  fileIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
-  fileName: { fontSize: 15, fontWeight: '600', color: '#111' },
-  fileMeta: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  fileIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  fileName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
+  fileMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
 });
