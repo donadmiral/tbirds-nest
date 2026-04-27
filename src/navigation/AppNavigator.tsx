@@ -1,5 +1,5 @@
-import React from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,7 +7,10 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 
 import { useAuthStore } from '../stores/authStore';
+import { supabase } from '../services/supabase';
 import { linking } from './linking';
+import { CallProvider } from '../contexts/CallContext';
+import SplashLoader from '../components/SplashLoader';
 
 import LoginScreen          from '../screens/auth/LoginScreen';
 import SignUpScreen         from '../screens/auth/SignUpScreen';
@@ -52,8 +55,10 @@ import MentorshipScreen           from '../screens/profile/MentorshipScreen';
 import MingleScreen               from '../screens/mingle/MingleScreen';
 import MingleDetailsScreen        from '../screens/mingle/MingleDetailsScreen';
 
-import BirdsBusinessScreen        from '../screens/profile/BirdsBusinessScreen';
-import BirdsBusinessDetailsScreen from '../screens/profile/BirdsBusinessDetailsScreen';
+import InsightsHomeScreen         from '../screens/insights/InsightsHomeScreen';
+import BusinessProfileScreen      from '../screens/insights/BusinessProfileScreen';
+import CreateBusinessScreen       from '../screens/insights/CreateBusinessScreen';
+import CreateAdvertScreen         from '../screens/insights/CreateAdvertScreen';
 import StartupHubScreen           from '../screens/profile/StartupHubScreen';
 import StartupHubDetailsScreen    from '../screens/profile/StartupHubDetailsScreen';
 import MoreScreen                 from '../screens/more/MoreScreen';
@@ -73,6 +78,7 @@ import MentorshipRequestsScreen     from '../screens/mentorship/MentorshipReques
 import MentorshipDetailScreen       from '../screens/mentorship/MentorshipDetailScreen';
 
 import IncomingCallListener         from '../components/IncomingCallListener';
+import MiniCallBar                  from '../components/MiniCallBar';
 
 import MeetingScreen                from '../screens/meetings/MeetingScreen';
 import NewMeetingScreen             from '../screens/meetings/NewMeetingScreen';
@@ -164,24 +170,50 @@ function getTabIcon(name: string, focused: boolean): IoniconName {
 }
 
 function MainTabs() {
+  const { profile } = useAuthStore();
+  const userId = profile?.id ?? null;
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+
+  useEffect(() => {
+    if (!userId) { setUnreadNotifs(0); return; }
+    const loadUnread = async () => {
+      const { count } = await supabase
+        .from('notifications').select('id', { count: 'exact', head: true })
+        .eq('recipient_id', userId).is('read_at', null);
+      setUnreadNotifs(count || 0);
+    };
+    loadUnread();
+    const ch = supabase.channel(`tab_notifs_${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` }, () => loadUnread())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [userId]);
+
   return (
     <Tab.Navigator
       initialRouteName="Feed"
       screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarHideOnKeyboard: true,
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
-        tabBarIcon: ({ focused, color, size }) => (
-          <Ionicons name={getTabIcon(route.name, focused)} size={size} color={color} />
-        ),
+        headerShown: false, tabBarHideOnKeyboard: true,
+        tabBarActiveTintColor: '#0B1E3D', tabBarInactiveTintColor: '#8E8E93',
+        tabBarIcon: ({ focused, color, size }) => {
+          const iconName = getTabIcon(route.name, focused);
+          if (route.name === 'Feed' && unreadNotifs > 0) {
+            return (
+              <View style={{ width: size + 10, height: size, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={iconName} size={size} color={color} />
+                <View style={s.dot}>
+                  {unreadNotifs < 100 ? <Text style={s.dotTxt}>{unreadNotifs}</Text> : <Text style={s.dotTxt}>99+</Text>}
+                </View>
+              </View>
+            );
+          }
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#F0F0F0',
+          backgroundColor: '#FFFFFF', borderTopColor: '#F0F0F0',
           borderTopWidth: StyleSheet.hairlineWidth,
           height: Platform.OS === 'ios' ? 84 : 64,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
-          paddingTop: 8,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 8, paddingTop: 8,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       })}
@@ -200,20 +232,22 @@ function MainTabsWithListener() {
     <>
       <MainTabs />
       <IncomingCallListener />
+      <MiniCallBar />
     </>
   );
 }
 
 export default function AppNavigator() {
   const { session, profile, loading } = useAuthStore();
+  const [splashDone, setSplashDone] = useState(false);
 
-  if (loading) {
-    return (
-      <View style={s.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={s.loadingTxt}>Loading...</Text>
-      </View>
-    );
+  useEffect(() => {
+    const timer = setTimeout(() => setSplashDone(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading || !splashDone) {
+    return <SplashLoader />;
   }
 
   const isAuthed   = !!session;
@@ -221,72 +255,67 @@ export default function AppNavigator() {
   const isReady    = isAuthed && !!profile?.username;
 
   return (
-    <NavigationContainer
-      linking={linking}
-      fallback={<ActivityIndicator color="#007AFF" />}
-      theme={{
-        ...DefaultTheme,
-        colors: {
-          ...DefaultTheme.colors,
-          background: '#FFFFFF',
-          card: '#FFFFFF',
-          text: '#000000',
-          border: '#F0F0F0',
-          primary: '#007AFF',
-          notification: '#FF3B30',
-        },
-      }}
-    >
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        {isReady ? (
-          <>
-            <RootStack.Screen name="Main" component={MainTabsWithListener} />
+    <CallProvider>
+      <NavigationContainer
+        linking={linking}
+        fallback={<SplashLoader />}
+        theme={{
+          ...DefaultTheme,
+          colors: {
+            ...DefaultTheme.colors,
+            background: '#FFFFFF', card: '#FFFFFF', text: '#000000',
+            border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30',
+          },
+        }}
+      >
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          {isReady ? (
+            <>
+              <RootStack.Screen name="Main" component={MainTabsWithListener} />
 
-            <RootStack.Group>
-              <RootStack.Screen name="Post"                 component={PostScreen} />
-              <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
-              <RootStack.Screen name="Chat"                 component={ChatScreen} />
-              <RootStack.Screen name="MingleScreen"         component={MingleScreen} />
-              <RootStack.Screen name="MingleDetails"        component={MingleDetailsScreen} />
-              <RootStack.Screen name="Events"               component={EventsScreen} />
-              <RootStack.Screen name="BirdsBusinessScreen"  component={BirdsBusinessScreen} />
-              <RootStack.Screen name="BirdsBusinessDetails" component={BirdsBusinessDetailsScreen} />
-              <RootStack.Screen name="StartupHubScreen"     component={StartupHubScreen} />
-              <RootStack.Screen name="StartupHubDetails"    component={StartupHubDetailsScreen} />
-            </RootStack.Group>
+              <RootStack.Group>
+                <RootStack.Screen name="Post"                 component={PostScreen} />
+                <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
+                <RootStack.Screen name="Chat"                 component={ChatScreen} />
+                <RootStack.Screen name="MingleScreen"         component={MingleScreen} />
+                <RootStack.Screen name="MingleDetails"        component={MingleDetailsScreen} />
+                <RootStack.Screen name="Events"               component={EventsScreen} />
+                <RootStack.Screen name="InsightsScreen"       component={InsightsHomeScreen} />
+                <RootStack.Screen name="BusinessProfile"      component={BusinessProfileScreen} />
+                <RootStack.Screen name="CreateBusiness"       component={CreateBusinessScreen} />
+                <RootStack.Screen name="CreateAdvert"         component={CreateAdvertScreen} />
+                <RootStack.Screen name="StartupHubScreen"     component={StartupHubScreen} />
+                <RootStack.Screen name="StartupHubDetails"    component={StartupHubDetailsScreen} />
+              </RootStack.Group>
 
-            <RootStack.Group
-              screenOptions={{
-                presentation: 'fullScreenModal',
-                animation: 'fade',
-              }}
-            >
-              <RootStack.Screen name="Call"              component={CallScreen} />
-              <RootStack.Screen name="IncomingCall"      component={IncomingCallScreen} />
-              <RootStack.Screen name="CreateEvent"       component={CreateEventScreen} />
-              <RootStack.Screen name="StoryViewer"       component={StoryViewerScreen} />
-              <RootStack.Screen name="StoryCreationMenu" component={StoryCreationMenuScreen} />
-              <RootStack.Screen name="StoryComposer"     component={StoryComposerScreen} />
-              <RootStack.Screen name="Meeting"           component={MeetingScreen} />
-              <RootStack.Screen name="NewMeeting"        component={NewMeetingScreen} />
-            </RootStack.Group>
-          </>
-        ) : needsSetup ? (
-          <RootStack.Screen name="SetupProfile" component={SetupProfileScreen} />
-        ) : (
-          <>
-            <RootStack.Screen name="Login"        component={LoginScreen} />
-            <RootStack.Screen name="SignUp"       component={SignUpScreen} />
-            <RootStack.Screen name="VerifyEmail"  component={VerifyEmailScreen} />
-            <RootStack.Screen name="AuthCallback" component={AuthCallbackScreen} />
-          </>
-        )}
-      </RootStack.Navigator>
-    </NavigationContainer>
+              <RootStack.Group screenOptions={{ presentation: 'fullScreenModal', animation: 'fade' }}>
+                <RootStack.Screen name="Call"              component={CallScreen} />
+                <RootStack.Screen name="IncomingCall"      component={IncomingCallScreen} />
+                <RootStack.Screen name="CreateEvent"       component={CreateEventScreen} />
+                <RootStack.Screen name="StoryViewer"       component={StoryViewerScreen} />
+                <RootStack.Screen name="StoryCreationMenu" component={StoryCreationMenuScreen} />
+                <RootStack.Screen name="StoryComposer"     component={StoryComposerScreen} />
+                <RootStack.Screen name="Meeting"           component={MeetingScreen} />
+                <RootStack.Screen name="NewMeeting"        component={NewMeetingScreen} />
+              </RootStack.Group>
+            </>
+          ) : needsSetup ? (
+            <RootStack.Screen name="SetupProfile" component={SetupProfileScreen} />
+          ) : (
+            <>
+              <RootStack.Screen name="Login"        component={LoginScreen} />
+              <RootStack.Screen name="SignUp"       component={SignUpScreen} />
+              <RootStack.Screen name="VerifyEmail"  component={VerifyEmailScreen} />
+              <RootStack.Screen name="AuthCallback" component={AuthCallbackScreen} />
+            </>
+          )}
+        </RootStack.Navigator>
+      </NavigationContainer>
+    </CallProvider>
   );
 }
 
 const s = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
-  loadingTxt: { marginTop: 12, fontSize: 15, color: '#8E8E93' },
+  dot: { position: 'absolute', top: -3, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FFFFFF' },
+  dotTxt: { fontSize: 10, fontWeight: '700', color: '#FFFFFF' },
 });

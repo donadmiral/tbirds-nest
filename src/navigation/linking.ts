@@ -3,17 +3,17 @@ import type { LinkingOptions } from '@react-navigation/native';
 
 /**
  * Deep linking config. Handles:
- *   - tbirds-nest://auth/callback  (email verification redirect from Supabase)
+ *   - PlatinumCircles-nest://auth/callback  (email verification redirect from Supabase)
  *   - exp://...--/auth/callback     (same, for Expo Go development)
- *   - tbirds-nest://post/:postId    (future: push-notification deep links)
- *   - tbirds-nest://user/:userId    (future: shareable profile links)
+ *   - PlatinumCircles-nest://post/:postId    (future: push-notification deep links)
+ *   - PlatinumCircles-nest://user/:userId    (future: shareable profile links)
  *
  * When adding a new deep-linkable route, add it under the relevant screen
  * in the `screens` config below. Names must match the screen names
  * registered in AppNavigator exactly.
  */
 export const linking: LinkingOptions<any> = {
-  prefixes: [Linking.createURL('/'), 'tbirds-nest://'],
+  prefixes: [Linking.createURL('/'), 'PlatinumCircles-nest://'],
   config: {
     screens: {
       // Unauthenticated

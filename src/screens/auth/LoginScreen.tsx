@@ -13,6 +13,7 @@ import {
 import { showMessage } from 'react-native-flash-message';
 import { authService } from '../../services/authService';
 import { colors as themeColors, spacing as themeSpacing, radius as themeRadius, typography as themeTypography } from '../../utils/theme';
+import PlatinumCirclesLogo from '../../components/PlatinumCirclesLogo';
 
 const colors = {
   primary: themeColors?.primary ?? '#2563EB',
@@ -87,11 +88,11 @@ export default function LoginScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.logoWrap}>
-          <Text style={styles.logoEmoji}>🦅</Text>
+          <PlatinumCirclesLogo size={80} />
           <Text style={styles.appName}>
-            TBird's <Text style={styles.appNameAccent}>Nest</Text>
+            Platinum<Text style={styles.appNameAccent}>Circles</Text>
           </Text>
-          <Text style={styles.tagline}>The Thunderbird community platform</Text>
+          <Text style={styles.tagline}>Your exclusive community platform</Text>
         </View>
 
         <View style={styles.card}>
@@ -103,7 +104,7 @@ export default function LoginScreen({ navigation }: any) {
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="you@thunderbird.edu"
+              placeholder="you@example.com"
               placeholderTextColor={colors.text3}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -167,16 +168,13 @@ const styles = StyleSheet.create({
   },
   logoWrap: {
     alignItems: 'center',
-    marginBottom: spacing.xxl,
-  },
-  logoEmoji: {
-    fontSize: 52,
-    marginBottom: 8,
+    marginBottom: spacing.xxl + 8,
   },
   appName: {
     fontSize: typography.xxl,
     fontWeight: '700',
     color: colors.text,
+    marginTop: 12,
   },
   appNameAccent: {
     color: colors.primary,

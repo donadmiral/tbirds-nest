@@ -239,7 +239,7 @@ export default function MeetingScreen() {
     const link = meetingService.shareLink(meeting.room_name);
     try {
       await Share.share({
-        message: `Join my meeting on TBirds Nest: ${meeting.title}\n\n${link}`,
+        message: `Join my meeting on PlatinumCircles: ${meeting.title}\n\n${link}`,
       });
     } catch {}
   };

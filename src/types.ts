@@ -1,5 +1,5 @@
 /**
- * Global TypeScript types for TBirds Nest.
+ * Global TypeScript types for PlatinumCircles.
  *
  * Shapes match schema.sql. Whenever you add a column to a table, update the
  * matching type here. Keeping this file accurate is what gives you type

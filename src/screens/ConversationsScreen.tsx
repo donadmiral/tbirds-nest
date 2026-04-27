@@ -357,7 +357,7 @@ export default function ConversationsScreen({ navigation }: any) {
     if (Platform.OS === 'ios' && (Alert as any).prompt) {
       (Alert as any).prompt(
         'Join with link',
-        'Paste a TBirds Nest meeting link or room code',
+        'Paste a PlatinumCircles meeting link or room code',
         [
           { text: 'Cancel', style: 'cancel' },
           {
@@ -483,7 +483,7 @@ export default function ConversationsScreen({ navigation }: any) {
   // ── Active meeting card ────────────────────────────────────────────────────
   const shareMeeting = async (m: MyActiveMeeting) => {
     const link = meetingService.shareLink(m.room_name);
-    try { await Share.share({ message: `Join my meeting on TBirds Nest: ${m.title}\n\n${link}` }); } catch {}
+    try { await Share.share({ message: `Join my meeting on PlatinumCircles: ${m.title}\n\n${link}` }); } catch {}
   };
 
   const renderActiveMeeting = (m: MyActiveMeeting) => (
@@ -652,7 +652,7 @@ export default function ConversationsScreen({ navigation }: any) {
                 tab === 'unread' ? 'No unread messages right now.' :
                 tab === 'archived' ? 'Long-press a chat to archive it.' :
                 tab === 'groups' ? 'Tap + to start a new group.' :
-                'Connect with TBirds and start a conversation.'}
+                'Connect with PlatinumCircles and start a conversation.'}
             </Text>
             {!search && tab === 'all' && (
               <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('Network')}>
@@ -679,9 +679,9 @@ export default function ConversationsScreen({ navigation }: any) {
 }
 
 // Accepts:
-//   - https://tbirdsnest.app/meeting/abc12345
+//   - https://PlatinumCirclesnest.app/meeting/abc12345
 //   - https://platinumcircles.daily.co/abc12345
-//   - tbirds-nest://meeting/abc12345
+//   - PlatinumCircles-nest://meeting/abc12345
 //   - abc12345 (just the room code)
 function parseMeetingRoomName(raw?: string | null): string | null {
   if (!raw) return null;
@@ -689,9 +689,9 @@ function parseMeetingRoomName(raw?: string | null): string | null {
   if (!s) return null;
 
   const patterns = [
-    /tbirdsnest\.app\/meeting\/([a-z0-9-]{4,60})/i,
+    /PlatinumCirclesnest\.app\/meeting\/([a-z0-9-]{4,60})/i,
     /daily\.co\/([a-z0-9-]{4,60})/i,
-    /tbirds-nest:\/\/meeting\/([a-z0-9-]{4,60})/i,
+    /PlatinumCircles-nest:\/\/meeting\/([a-z0-9-]{4,60})/i,
     /^([a-z0-9-]{4,60})$/i,
   ];
   for (const re of patterns) {

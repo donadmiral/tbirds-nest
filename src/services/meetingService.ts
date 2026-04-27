@@ -104,6 +104,6 @@ export const meetingService = {
   },
 
   shareLink(roomName: string): string {
-    return `https://tbirdsnest.app/meeting/${roomName}`;
+    return `https://PlatinumCirclesnest.app/meeting/${roomName}`;
   },
 };

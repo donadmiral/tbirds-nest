@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
   TextInput, Image, ActivityIndicator, StatusBar,
-  ActionSheetIOS, Alert, Platform,
+  ActionSheetIOS, Alert, Platform, Animated,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -60,46 +60,19 @@ export default function ConversationsScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch]  = useState('');
   const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
-  const [requestCount, setRequestCount] = useState(0);
-
-  const fetchUnreadMap = useCallback(async (): Promise<Record<string, number>> => {
-    if (!userId) return {};
-    const { data, error } = await supabase.rpc('get_unread_counts', { p_user_id: userId });
-    if (error) { console.log('UNREAD_RPC_ERR', error); return {}; }
-    const map: Record<string, number> = {};
-    (data || []).forEach((r: any) => {
-      map[r.conversation_id] = Number(r.unread_count) || 0;
-    });
-    return map;
-  }, [userId]);
-
-  const refreshUnreads = useCallback(async () => {
-    const map = await fetchUnreadMap();
-    setConversations(prev => prev.map(c => ({ ...c, unread_count: map[c.id] || 0 })));
-  }, [fetchUnreadMap]);
-
-  const loadRequestCount = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const { data, error } = await supabase.rpc('get_message_requests');
-      if (error) { console.log('[Requests count error]', error); return; }
-      setRequestCount((data || []).length);
-    } catch (e) {
-      console.log('[Requests count]', e);
-    }
-  }, [userId]);
 
   const load = useCallback(async () => {
     if (!userId) return;
     try {
+      // Load DMs
       const { data: dmConvs } = await supabase
         .from('conversations')
         .select('*')
         .or(`user_1.eq.${userId},user_2.eq.${userId}`)
         .eq('is_group', false)
-        .neq('request_status', 'pending')
         .order('last_message_time', { ascending: false });
 
+      // Load group convs via conversation_members
       const { data: memberRows } = await supabase
         .from('conversation_members')
         .select('conversation_id')
@@ -122,7 +95,8 @@ export default function ConversationsScreen({ navigation }: any) {
 
       const convIds = allConvs.map((c: any) => c.id);
 
-      const settingsMap: Record<string, any> = {};
+      // Load conversation settings — non-fatal
+      let settingsMap: Record<string, any> = {};
       try {
         const { data: settings } = await supabase
           .from('conversation_settings')
@@ -130,8 +104,9 @@ export default function ConversationsScreen({ navigation }: any) {
           .eq('user_id', userId)
           .in('conversation_id', convIds);
         (settings || []).forEach((s: any) => { settingsMap[s.conversation_id] = s; });
-      } catch (_) { }
+      } catch (_) { /* table may not exist yet */ }
 
+      // Load DM partner profiles
       const dmOtherIds = (dmConvs || [])
         .map((c: any) => c.user_1 === userId ? c.user_2 : c.user_1)
         .filter(Boolean);
@@ -142,7 +117,14 @@ export default function ConversationsScreen({ navigation }: any) {
         (profs || []).forEach((p: any) => { profileMap[p.id] = p; });
       }
 
-      const unreadMap = await fetchUnreadMap();
+      // Unread counts
+      const { data: unreadData } = await supabase
+        .from('messages').select('conversation_id')
+        .eq('receiver_id', userId).neq('sender_id', userId).is('read_at', null);
+      const unreadMap: Record<string, number> = {};
+      (unreadData || []).forEach((m: any) => {
+        unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
+      });
 
       const list: Conversation[] = allConvs
         .filter((c: any) => !(settingsMap[c.id]?.is_deleted))
@@ -183,75 +165,90 @@ export default function ConversationsScreen({ navigation }: any) {
       setConversations(list);
     } catch (e) { console.log('CONV_LOAD', e); }
     finally { setLoading(false); }
-  }, [userId, fetchUnreadMap]);
+  }, [userId]);
 
-  useFocusEffect(useCallback(() => {
-    load();
-    loadRequestCount();
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
+  useEffect(() => {
     if (!userId) return;
-    const channelName = `inbox_live_${userId}`;
-    const channel = supabase
-      .channel(channelName)
-      .on('postgres_changes', {
-        event: 'UPDATE', schema: 'public', table: 'conversations',
-      }, (payload) => {
-        const updated = payload.new as any;
-        // If a request just got accepted, refresh both the list and the request count
-        if (updated.request_status === 'accepted' || updated.request_status === 'pending') {
-          loadRequestCount();
-          load();
-          return;
-        }
-        setConversations(prev => {
-          const idx = prev.findIndex(c => c.id === updated.id);
-          if (idx === -1) { load(); return prev; }
-          const next = [...prev];
-          next[idx] = {
-            ...next[idx],
-            last_message: updated.last_message ?? next[idx].last_message,
-            last_message_time: updated.last_message_time ?? next[idx].last_message_time,
-          };
-          next.sort((a, b) => {
-            if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
-            const ta = a.last_message_time ? new Date(a.last_message_time).getTime() : 0;
-            const tb = b.last_message_time ? new Date(b.last_message_time).getTime() : 0;
-            return tb - ta;
+
+    const sortInbox = (rows: Conversation[]) => {
+      return [...rows].sort((a, b) => {
+        if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+        const ta = a.last_message_time ? new Date(a.last_message_time).getTime() : 0;
+        const tb = b.last_message_time ? new Date(b.last_message_time).getTime() : 0;
+        return tb - ta;
+      });
+    };
+
+    const convCh = supabase
+      .channel(`inbox_conv_${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'conversations' },
+        (payload) => {
+          const convRow = payload.new as any;
+          setConversations(prev => {
+            const idx = prev.findIndex(c => c.id === convRow.id);
+            if (idx === -1) return prev;
+
+            const updated = [...prev];
+            updated[idx] = {
+              ...updated[idx],
+              last_message: convRow.last_message || updated[idx].last_message,
+              last_message_time: convRow.last_message_time || updated[idx].last_message_time,
+            };
+
+            return sortInbox(updated);
           });
-          return next;
-        });
-      })
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'conversations',
-      }, (payload) => {
-        const row = payload.new as any;
-        // New cross-school DM request arriving
-        if (row.request_status === 'pending' &&
-            (row.user_1 === userId || row.user_2 === userId) &&
-            row.request_sender_id !== userId) {
-          loadRequestCount();
         }
-      })
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'messages',
-      }, (payload) => {
-        const m = payload.new as any;
-        if (!m?.conversation_id) return;
-        if (m.sender_id === userId) return;
-        setConversations(prev => {
-          if (!prev.some(c => c.id === m.conversation_id)) return prev;
-          refreshUnreads();
-          return prev;
-        });
-      })
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'message_reads',
-        filter: `user_id=eq.${userId}`,
-      }, () => { refreshUnreads(); })
+      )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, [load, loadRequestCount, userId, refreshUnreads]));
+    const msgCh = supabase
+      .channel(`inbox_msg_${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${userId}` },
+        (payload) => {
+          const msg = payload.new as any;
+          if (!msg.conversation_id || msg.sender_id === userId) return;
+
+          setConversations(prev => {
+            const idx = prev.findIndex(c => c.id === msg.conversation_id);
+            if (idx === -1) {
+              load();
+              return prev;
+            }
+
+            const preview = msg.text || (
+              msg.media_type === 'image' ? '📷 Photo'
+              : msg.media_type === 'video' ? '🎬 Video'
+              : msg.media_type === 'document' ? '📄 File'
+              : '📎 Media'
+            );
+
+            const updated = [...prev];
+            updated[idx] = {
+              ...updated[idx],
+              unread_count: (updated[idx].unread_count || 0) + 1,
+              last_message: preview,
+              last_message_time: msg.created_at,
+            };
+
+            return sortInbox(updated);
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(convCh);
+      supabase.removeChannel(msgCh);
+    };
+  }, [userId, load]);
+
+  // ── Conversation settings helpers ─────────────────────────────────────────
 
   const upsertSetting = async (convId: string, patch: Partial<{
     is_pinned: boolean; is_muted: boolean; is_archived: boolean; is_deleted: boolean;
@@ -302,6 +299,7 @@ export default function ConversationsScreen({ navigation }: any) {
         }
       );
     } else {
+      // Android fallback
       Alert.alert(conv.other_name, undefined, [
         { text: conv.is_pinned ? 'Unpin' : 'Pin',     onPress: () => upsertSetting(conv.id, { is_pinned: !conv.is_pinned }) },
         { text: conv.is_muted ? 'Unmute' : 'Mute',    onPress: () => upsertSetting(conv.id, { is_muted: !conv.is_muted }) },
@@ -311,6 +309,8 @@ export default function ConversationsScreen({ navigation }: any) {
       ]);
     }
   };
+
+  // ── Open chat ─────────────────────────────────────────────────────────────
 
   const openChat = (conv: Conversation) => {
     setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c));
@@ -330,8 +330,10 @@ export default function ConversationsScreen({ navigation }: any) {
     });
   };
 
+  // ── Filter ────────────────────────────────────────────────────────────────
+
   const filtered = conversations.filter(c => {
-    if (c.is_archived && tab !== 'all') return false;
+    if (c.is_archived && tab !== 'all') return false; // archived only in All
     const matchSearch = !search || c.other_name.toLowerCase().includes(search.toLowerCase());
     const matchTab = tab === 'all'
       ? true
@@ -340,6 +342,8 @@ export default function ConversationsScreen({ navigation }: any) {
       : true;
     return matchSearch && matchTab;
   });
+
+  // ── Render conversation row ───────────────────────────────────────────────
 
   const renderItem = ({ item }: { item: Conversation }) => {
     const hasUnread = item.unread_count > 0;
@@ -350,6 +354,7 @@ export default function ConversationsScreen({ navigation }: any) {
         onLongPress={() => showContextMenu(item)}
         activeOpacity={0.85}
       >
+        {/* Avatar */}
         <View style={s.cardAvatarWrap}>
           {item.other_avatar
             ? <Image source={{ uri: item.other_avatar }} style={s.cardAvatar} />
@@ -363,6 +368,7 @@ export default function ConversationsScreen({ navigation }: any) {
           {item.is_pinned && <View style={s.pinBadge}><Text style={s.pinBadgeTxt}>📌</Text></View>}
         </View>
 
+        {/* Body */}
         <View style={s.cardBody}>
           <View style={s.cardRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
@@ -395,33 +401,12 @@ export default function ConversationsScreen({ navigation }: any) {
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
 
+      {/* Header */}
       <View style={s.head}>
         <Text style={s.title}>Messages</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity
-            style={s.iconBtn}
-            onPress={() => navigation.navigate('StarredMessages')}
-            accessibilityLabel="Starred messages"
-            activeOpacity={0.7}
-          >
-            <Feather name="star" size={18} color="#EAB308" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={s.iconBtn}
-            onPress={() => navigation.navigate('SavedMessages')}
-            accessibilityLabel="Saved messages"
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('SavedMessages')}>
             <Feather name="bookmark" size={18} color="#374151" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={s.newGroupBtn}
-            onPress={() => navigation.navigate('CreateGroup')}
-            accessibilityLabel="New group"
-            activeOpacity={0.8}
-          >
-            <Feather name="users" size={14} color="#FFF" />
-            <Text style={s.newGroupBtnTxt}>Group</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.newBtn} onPress={() => navigation.navigate('Network')} activeOpacity={0.8}>
             <Feather name="edit" size={14} color="#FFF" />
@@ -430,6 +415,7 @@ export default function ConversationsScreen({ navigation }: any) {
         </View>
       </View>
 
+      {/* Search */}
       <View style={s.searchWrap}>
         <Feather name="search" size={15} color="#8E8E93" />
         <TextInput
@@ -441,25 +427,7 @@ export default function ConversationsScreen({ navigation }: any) {
         {search.length > 0 && <TouchableOpacity onPress={() => setSearch('')}><Feather name="x" size={15} color="#8E8E93" /></TouchableOpacity>}
       </View>
 
-      {requestCount > 0 && (
-        <TouchableOpacity
-          style={s.requestsBanner}
-          onPress={() => navigation.navigate('MessageRequests')}
-          activeOpacity={0.85}
-        >
-          <View style={s.requestsIcon}>
-            <Feather name="mail" size={16} color="#1D4ED8" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={s.requestsTitle}>
-              {requestCount === 1 ? '1 message request' : `${requestCount} message requests`}
-            </Text>
-            <Text style={s.requestsSub}>From people outside your school</Text>
-          </View>
-          <Feather name="chevron-right" size={20} color="#9CA3AF" />
-        </TouchableOpacity>
-      )}
-
+      {/* Tabs */}
       <View style={s.tabs}>
         {(['all', 'groups', 'unread'] as const).map(t => (
           <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)} activeOpacity={0.8}>
@@ -470,23 +438,15 @@ export default function ConversationsScreen({ navigation }: any) {
         ))}
       </View>
 
+      {/* List */}
       {loading ? (
         <View style={s.center}><ActivityIndicator color="#000" /></View>
       ) : filtered.length === 0 ? (
         <View style={s.empty}>
           <Feather name="message-circle" size={44} color="#E5E5EA" />
           <Text style={s.emptyTitle}>{search ? 'No results' : tab === 'unread' ? 'All caught up' : 'No messages yet'}</Text>
-          <Text style={s.emptySub}>{search ? 'Try a different search' : 'Connect with TBirds and start a conversation'}</Text>
-          {!search && (
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
-              <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('Network')}>
-                <Text style={s.emptyBtnTxt}>Find people</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.emptyBtnOutline} onPress={() => navigation.navigate('CreateGroup')}>
-                <Text style={s.emptyBtnOutlineTxt}>New group</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          <Text style={s.emptySub}>{search ? 'Try a different search' : 'Connect with PlatinumCircles and start a conversation'}</Text>
+          {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('Network')}><Text style={s.emptyBtnTxt}>Find people</Text></TouchableOpacity>}
         </View>
       ) : (
         <FlatList
@@ -512,33 +472,9 @@ const s = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '800', color: '#000', letterSpacing: -0.8 },
   newBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#000', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 },
   newBtnTxt: { color: '#FFF', fontSize: 13, fontWeight: '700' },
-  newGroupBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#1D4ED8', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 },
-  newGroupBtnTxt: { color: '#FFF', fontSize: 13, fontWeight: '700' },
   iconBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
   searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 12, backgroundColor: '#F2F2F7', borderRadius: 13, paddingHorizontal: 12, paddingVertical: 10 },
   searchInput: { flex: 1, fontSize: 15, color: '#000', padding: 0 },
-
-  requestsBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 14,
-    marginBottom: 10,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#BFDBFE',
-  },
-  requestsIcon: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  requestsTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A8A' },
-  requestsSub: { fontSize: 11, color: '#3B82F6', marginTop: 1 },
-
   tabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 14, marginBottom: 8 },
   tab: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: '#F2F2F7' },
   tabActive: { backgroundColor: '#000' },
@@ -568,8 +504,6 @@ const s = StyleSheet.create({
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 8 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000' },
   emptySub: { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
-  emptyBtn: { backgroundColor: '#000', borderRadius: 14, paddingHorizontal: 22, paddingVertical: 13 },
+  emptyBtn: { marginTop: 10, backgroundColor: '#000', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 13 },
   emptyBtnTxt: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-  emptyBtnOutline: { borderWidth: 1.5, borderColor: '#000', borderRadius: 14, paddingHorizontal: 22, paddingVertical: 12 },
-  emptyBtnOutlineTxt: { color: '#000', fontSize: 15, fontWeight: '700' },
 });

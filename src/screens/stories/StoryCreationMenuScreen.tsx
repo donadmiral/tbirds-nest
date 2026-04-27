@@ -1,12 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 
+const NAVY = '#0B1E3D';
+const TEXT_PRIMARY = '#000000';
+const TEXT_SECONDARY = '#8E8E93';
+const HAIRLINE = '#E5E5EA';
+
 export default function StoryCreationMenuScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
 
   const openGallery = async (mediaType: 'image' | 'video') => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -35,75 +41,128 @@ export default function StoryCreationMenuScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn}>
-          <Feather name="x" size={24} color="#000" />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={s.closeBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.6}
+        >
+          <Feather name="x" size={22} color={NAVY} />
         </TouchableOpacity>
         <Text style={s.title}>New story</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <Text style={s.sub}>Choose how to start</Text>
+      <View style={s.body}>
+        <Text style={s.heading}>Share a moment</Text>
+        <Text style={s.sub}>Stories disappear after 24 hours.</Text>
 
-      <View style={s.grid}>
-        <TouchableOpacity style={[s.card, s.photoCard]} activeOpacity={0.85} onPress={() => openGallery('image')}>
-          <View style={s.cardIconWrap}>
-            <Feather name="image" size={34} color="#FFF" />
-          </View>
-          <Text style={s.cardTitle}>Photo</Text>
-          <Text style={s.cardDesc}>Pick up to 10 photos from your gallery</Text>
-        </TouchableOpacity>
+        <View style={s.list}>
+          <TouchableOpacity
+            style={s.card}
+            activeOpacity={0.85}
+            onPress={() => openGallery('image')}
+          >
+            <View style={s.cardIcon}>
+              <Feather name="image" size={22} color={NAVY} />
+            </View>
+            <View style={s.cardText}>
+              <Text style={s.cardTitle}>Photo</Text>
+              <Text style={s.cardDesc}>Pick up to 10 photos from your gallery</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#C7C7CC" />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[s.card, s.videoCard]} activeOpacity={0.85} onPress={() => openGallery('video')}>
-          <View style={s.cardIconWrap}>
-            <Feather name="video" size={32} color="#FFF" />
-          </View>
-          <Text style={s.cardTitle}>Video</Text>
-          <Text style={s.cardDesc}>Share a clip up to 15 seconds long</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={s.card}
+            activeOpacity={0.85}
+            onPress={() => openGallery('video')}
+          >
+            <View style={s.cardIcon}>
+              <Feather name="video" size={22} color={NAVY} />
+            </View>
+            <View style={s.cardText}>
+              <Text style={s.cardTitle}>Video</Text>
+              <Text style={s.cardDesc}>Share a clip up to 15 seconds</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#C7C7CC" />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[s.card, s.textCard]} activeOpacity={0.85} onPress={openTextMode}>
-          <View style={s.cardIconWrap}>
-            <Feather name="type" size={32} color="#FFF" />
-          </View>
-          <Text style={s.cardTitle}>Text</Text>
-          <Text style={s.cardDesc}>Write on a color or gradient background</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={s.card}
+            activeOpacity={0.85}
+            onPress={openTextMode}
+          >
+            <View style={s.cardIcon}>
+              <Feather name="type" size={22} color={NAVY} />
+            </View>
+            <View style={s.cardText}>
+              <Text style={s.cardTitle}>Text</Text>
+              <Text style={s.cardDesc}>Write on a color or gradient background</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#C7C7CC" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <Text style={s.footer}>Stories disappear after 24 hours.</Text>
+      <View style={[s.footerWrap, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+        <View style={s.footerDivider} />
+        <View style={s.footerRow}>
+          <Feather name="clock" size={13} color={TEXT_SECONDARY} />
+          <Text style={s.footerTxt}>Visible for 24 hours after posting</Text>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
+
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 12, paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0',
+    paddingHorizontal: 12, paddingTop: 4, paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+    backgroundColor: '#FFFFFF',
   },
-  closeBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '700', color: '#000' },
-  sub: { paddingHorizontal: 22, paddingTop: 22, paddingBottom: 6, fontSize: 14, color: '#6B7280' },
-
-  grid: { paddingHorizontal: 16, paddingTop: 14, gap: 14 },
-  card: {
-    borderRadius: 22, padding: 20, minHeight: 132,
-    justifyContent: 'space-between',
-  },
-  photoCard: { backgroundColor: '#0B1E3D' },
-  videoCard: { backgroundColor: '#7C3AED' },
-  textCard: { backgroundColor: '#F59E0B' },
-  cardIconWrap: {
-    width: 52, height: 52, borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+  closeBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center', justifyContent: 'center',
   },
-  cardTitle: { fontSize: 20, fontWeight: '800', color: '#FFF', marginTop: 10 },
-  cardDesc: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 2 },
+  title: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.2 },
 
-  footer: { textAlign: 'center', fontSize: 12, color: '#9CA3AF', paddingVertical: 20 },
+  body: { flex: 1, paddingHorizontal: 20, paddingTop: 32 },
+  heading: { fontSize: 26, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.4 },
+  sub: { fontSize: 14, color: TEXT_SECONDARY, marginTop: 6, marginBottom: 28 },
+
+  list: { gap: 10 },
+  card: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  cardIcon: {
+    width: 44, height: 44, borderRadius: 14,
+    backgroundColor: 'rgba(11,30,61,0.08)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  cardText: { flex: 1 },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY, letterSpacing: -0.1 },
+  cardDesc: { fontSize: 13, color: TEXT_SECONDARY, marginTop: 3, lineHeight: 17 },
+
+  footerWrap: { paddingTop: 10 },
+  footerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: HAIRLINE, marginBottom: 14 },
+  footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  footerTxt: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
 });

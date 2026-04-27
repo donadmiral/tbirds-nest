@@ -3,6 +3,7 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator,
   StatusBar, RefreshControl, Share, Alert, TextInput, Image,
   KeyboardAvoidingView, Platform, Keyboard, ScrollView, Dimensions, Modal,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -18,7 +19,7 @@ import { useAuthStore } from '../../stores/authStore';
 const SCREEN_W = Dimensions.get('window').width;
 const MEDIA_GAP = 2;
 
-type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number };
+type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number; width?: number | null; height?: number | null };
 type Post = {
   id: string; user_id: string; content: string;
   likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number;
@@ -60,39 +61,52 @@ function renderRichText(text: string, onHashtag: (t: string) => void, onMention:
 
 
 // ─── Dynamic aspect-ratio image ──────────────────────────────────────────────
-function DynamicImage({ uri, width }: { uri: string; width: number }) {
-  // Default to 4:3. Once we know the real size, update.
-  const [imgH, setImgH] = React.useState(width * 0.75);
+function DynamicImage({
+  uri,
+  width,
+  knownWidth,
+  knownHeight,
+}: {
+  uri: string;
+  width: number;
+  knownWidth?: number | null;
+  knownHeight?: number | null;
+}) {
+  const initialRatio = knownWidth && knownHeight && knownWidth > 0 && knownHeight > 0
+    ? knownWidth / knownHeight
+    : null;
+  const [ratio, setRatio] = React.useState<number | null>(initialRatio);
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    if (!uri) return;
+    let cancelled = false;
+    if (!uri || ratio) return;
     Image.getSize(
       uri,
       (w, h) => {
-        if (w > 0 && h > 0) {
-          const naturalRatio = h / w;
-          // Portrait: allow up to full square (1:1). Landscape: minimum 40% height.
-          // Avoids tiny slivers for ultra-wide and excessively tall boxes for ultra-portrait.
-          const clampedRatio = Math.min(Math.max(naturalRatio, 0.4), 1.25);
-          setImgH(Math.round(width * clampedRatio));
-        }
+        if (!cancelled && w > 0 && h > 0) setRatio(w / h);
       },
-      () => { /* keep default */ }
+      () => { if (!cancelled) setRatio(1); }
     );
-  }, [uri, width]);
+    return () => { cancelled = true; };
+  }, [uri, ratio]);
+
+  const safeRatio = ratio && Number.isFinite(ratio) && ratio > 0.1 && ratio < 10 ? ratio : 1;
 
   return (
     <View style={{
-      width, height: imgH,
-      borderRadius: 14, overflow: 'hidden',
+      width,
+      aspectRatio: safeRatio,
+      borderRadius: 14,
+      overflow: 'hidden',
       backgroundColor: '#F0F0F0',
       marginTop: 10,
     }}>
       <ExpoImage
         source={{ uri }}
-        style={{ width, height: imgH }}
+        style={{ width: '100%', height: '100%' }}
         contentFit="cover"
+        contentPosition="center"
         cachePolicy="memory-disk"
         transition={300}
         onLoad={() => { setLoaded(true); }}
@@ -100,7 +114,7 @@ function DynamicImage({ uri, width }: { uri: string; width: number }) {
       />
       {!loaded && (
         <View style={{
-          position: 'absolute', top: 0, left: 0, width, height: imgH,
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           alignItems: 'center', justifyContent: 'center',
           backgroundColor: '#F0F0F0',
         }}>
@@ -137,6 +151,9 @@ export default function FeedScreen({ navigation }: any) {
   const [menuPost, setMenuPost] = useState<Post | null>(null);
 
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const likedPostsRef = useRef<Record<string, boolean>>({});
+  const postsRef = useRef<Post[]>([]);
+  const likePendingRef = useRef<Set<string>>(new Set());
   const composerRef    = useRef<TextInput>(null);
   const lastTapMap     = useRef<Record<string, number>>({});
   const [heartAnim]    = useState(() => new Animated.Value(0));
@@ -152,6 +169,14 @@ export default function FeedScreen({ navigation }: any) {
       return () => setScreenFocused(false);
     }, [])
   );
+
+  useEffect(() => {
+    postsRef.current = posts;
+  }, [posts]);
+
+  useEffect(() => {
+    likedPostsRef.current = likedPosts;
+  }, [likedPosts]);
 
   // viewabilityConfig must be stable — defined outside render or in a ref
   const viewabilityConfig = useRef({
@@ -238,20 +263,39 @@ export default function FeedScreen({ navigation }: any) {
         (reposts || []).forEach((r: any) => { rm[r.post_id] = true; });
         setLikedPosts(lm); setBookmarkedPosts(bm); setRepostedPosts(rm);
         if (ids.length > 0) {
-          const { data: cData } = await supabase.from('post_comments').select('post_id, body, user_id').in('post_id', ids).is('parent_comment_id', null).order('created_at', { ascending: true });
+          const { data: cData } = await supabase
+            .from('post_comments')
+            .select('post_id, body, user_id, parent_comment_id, created_at')
+            .in('post_id', ids)
+            .order('created_at', { ascending: false });
+
+          const countMap: Record<string, number> = {};
+          (cData || []).forEach((c: any) => {
+            countMap[c.post_id] = (countMap[c.post_id] || 0) + 1;
+          });
+
+          setPosts(prev => prev.map(post => ({
+            ...post,
+            comments_count: countMap[post.id] ?? post.comments_count ?? 0,
+          })));
+
           const cpMap: Record<string, CommentPreview> = {};
-          const aIds = Array.from(new Set((cData || []).map((c: any) => c.user_id)));
+          const topLevelComments = (cData || []).filter((c: any) => !c.parent_comment_id);
+          const aIds = Array.from(new Set(topLevelComments.map((c: any) => c.user_id).filter(Boolean)));
           let authors: Record<string, any> = {};
+
           if (aIds.length > 0) {
             const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds);
             (aData || []).forEach((a: any) => { authors[a.id] = a; });
           }
-          (cData || []).forEach((c: any) => {
+
+          topLevelComments.forEach((c: any) => {
             if (!cpMap[c.post_id]) {
               const a = authors[c.user_id];
               cpMap[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User' };
             }
           });
+
           setCommentPreviews(cpMap);
         }
       }
@@ -261,24 +305,193 @@ export default function FeedScreen({ navigation }: any) {
 
   useEffect(() => {
     loadFeed(true);
+
+    const sortPosts = (items: Post[]) => {
+      if (feedMode === 'latest') {
+        return [...items].sort((a, b) =>
+          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        );
+      }
+      return [...items].sort((a, b) => b.score - a.score);
+    };
+
+    const buildPreview = (msg: any) => {
+      if (msg.text) return msg.text;
+      if (msg.body) return msg.body;
+      if (msg.media_type === 'image') return '📷 Photo';
+      if (msg.media_type === 'video') return '🎬 Video';
+      if (msg.media_type === 'document') return '📄 File';
+      return '📎 Media';
+    };
+
     const ch = supabase.channel('feed_live')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => scheduleRefresh())
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_comments' }, () => scheduleRefresh())
       .subscribe();
-    return () => { supabase.removeChannel(ch); if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current); };
-  }, [loadFeed, scheduleRefresh]);
+
+    const likeCh = supabase.channel('feed_likes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_likes' }, (payload) => {
+        const row = payload.new as any;
+        if (!row?.post_id) return;
+
+        const wasAlreadyLikedHere = !!likedPostsRef.current[row.post_id];
+
+        if (row.user_id === userId) {
+          setLikedPosts(prev => ({ ...prev, [row.post_id]: true }));
+        }
+
+        setPosts(prev => sortPosts(prev.map(p => {
+          if (p.id !== row.post_id) return p;
+          const shouldIncrement = row.user_id !== userId;
+          const next = {
+            ...p,
+            likes_count: shouldIncrement ? p.likes_count + 1 : p.likes_count,
+          };
+          return { ...next, score: scorePost(next) };
+        })));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_likes' }, (payload) => {
+        const row = payload.old as any;
+        if (!row?.post_id) return;
+
+        const wasLikedHere = !!likedPostsRef.current[row.post_id];
+
+        if (row.user_id === userId) {
+          setLikedPosts(prev => ({ ...prev, [row.post_id]: false }));
+        }
+
+        setPosts(prev => sortPosts(prev.map(p => {
+          if (p.id !== row.post_id) return p;
+          const shouldDecrement = row.user_id !== userId;
+          const next = {
+            ...p,
+            likes_count: shouldDecrement ? Math.max(0, p.likes_count - 1) : p.likes_count,
+          };
+          return { ...next, score: scorePost(next) };
+        })));
+      })
+      .subscribe();
+
+    const commentCh = supabase.channel('feed_comments')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_comments' }, async (payload) => {
+        const row = payload.new as any;
+        if (!row?.post_id) return;
+
+        setPosts(prev => sortPosts(prev.map(p => {
+          if (p.id !== row.post_id) return p;
+          const next = { ...p, comments_count: p.comments_count + 1 };
+          return { ...next, score: scorePost(next) };
+        })));
+
+        if (!row.parent_comment_id) {
+          let authorName = 'User';
+          if (row.user_id) {
+            const { data: author } = await supabase
+              .from('profiles')
+              .select('full_name, username')
+              .eq('id', row.user_id)
+              .maybeSingle();
+            authorName = author?.full_name || author?.username || 'User';
+          }
+          setCommentPreviews(prev => ({
+            ...prev,
+            [row.post_id]: { body: buildPreview(row), authorName },
+          }));
+        }
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_comments' }, (payload) => {
+        const row = payload.old as any;
+        if (!row?.post_id) return;
+
+        setPosts(prev => sortPosts(prev.map(p => {
+          if (p.id !== row.post_id) return p;
+          const next = { ...p, comments_count: Math.max(0, p.comments_count - 1) };
+          return { ...next, score: scorePost(next) };
+        })));
+      })
+      .subscribe();
+
+    const postUpdateCh = supabase.channel('feed_post_updates')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload) => {
+        const row = payload.new as any;
+        if (!row?.id) return;
+
+        setPosts(prev => sortPosts(prev.map(p => {
+          if (p.id !== row.id) return p;
+          const next = {
+            ...p,
+            likes_count: row.likes_count ?? p.likes_count,
+            comments_count: row.comments_count ?? p.comments_count,
+            reposts_count: row.reposts_count ?? p.reposts_count,
+            bookmarks_count: row.bookmarks_count ?? p.bookmarks_count,
+            views_count: row.views_count ?? p.views_count,
+          };
+          return { ...next, score: scorePost(next) };
+        })));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ch);
+      supabase.removeChannel(likeCh);
+      supabase.removeChannel(commentCh);
+      supabase.removeChannel(postUpdateCh);
+      if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+    };
+  }, [loadFeed, scheduleRefresh, userId, feedMode]);
 
   const toggleLike = async (postId: string) => {
     if (!userId || isBusy(`like-${postId}`)) return;
     setBusy(`like-${postId}`, true);
-    const was = !!likedPosts[postId];
-    setLikedPosts(p => ({ ...p, [postId]: !was }));
-    setPosts(p => p.map(x => x.id === postId ? { ...x, likes_count: x.likes_count + (was ? -1 : 1) } : x));
+
+    const was = !!likedPostsRef.current[postId];
+    const optimisticDelta = was ? -1 : 1;
+
+    // 1. Optimistic UI first. This is what makes it feel instant.
+    likePendingRef.current.add(postId);
+    setLikedPosts(prev => ({ ...prev, [postId]: !was }));
+    setPosts(prev => prev.map(post => {
+      if (post.id !== postId) return post;
+      const next = {
+        ...post,
+        likes_count: Math.max(0, post.likes_count + optimisticDelta),
+      };
+      return { ...next, score: scorePost(next) };
+    }));
+
     try {
-      if (was) await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
-      else await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });
-    } catch { setLikedPosts(p => ({ ...p, [postId]: was })); }
-    finally { setBusy(`like-${postId}`, false); }
+      // 2. Authoritative backend write. This function inserts/deletes and returns final DB truth.
+      const { data, error } = await supabase.rpc('toggle_post_like', { p_post_id: postId });
+      if (error) throw error;
+
+      const result = Array.isArray(data) ? data[0] : data;
+      const liked = !!result?.liked;
+      const likesCount = Number(result?.likes_count ?? 0);
+
+      // 3. Reconcile this device to DB truth. Other devices update via realtime.
+      setLikedPosts(prev => ({ ...prev, [postId]: liked }));
+      setPosts(prev => prev.map(post => {
+        if (post.id !== postId) return post;
+        const next = { ...post, likes_count: Math.max(0, likesCount) };
+        return { ...next, score: scorePost(next) };
+      }));
+    } catch (e: any) {
+      console.log('[LIKE_TOGGLE_ERR]', e?.code, e?.message, e?.details, e?.hint);
+
+      // Revert only on real backend failure.
+      setLikedPosts(prev => ({ ...prev, [postId]: was }));
+      setPosts(prev => prev.map(post => {
+        if (post.id !== postId) return post;
+        const next = {
+          ...post,
+          likes_count: Math.max(0, post.likes_count - optimisticDelta),
+        };
+        return { ...next, score: scorePost(next) };
+      }));
+      Alert.alert('Could not update like', 'Please try again.');
+    } finally {
+      likePendingRef.current.delete(postId);
+      setBusy(`like-${postId}`, false);
+    }
   };
 
   // ── Double-tap like ─────────────────────────────────────────────────────
@@ -293,7 +506,7 @@ export default function FeedScreen({ navigation }: any) {
         clearTimeout(singleTapTimers.current[postId]);
         delete singleTapTimers.current[postId];
       }
-      if (!likedPosts[postId]) toggleLike(postId);
+      if (!likedPostsRef.current[postId]) toggleLike(postId);
       setHeartPost(postId);
       heartAnim.setValue(0);
       Animated.sequence([
@@ -345,7 +558,7 @@ export default function FeedScreen({ navigation }: any) {
     setSharingPost(p => ({ ...p, [post.id]: true }));
     const author = profilesMap[post.user_id];
     try {
-      await Share.share({ message: `${author?.full_name || 'Someone'} on TBirds Nest:\n\n${post.content}` });
+      await Share.share({ message: `${author?.full_name || 'Someone'} on PlatinumCircles:\n\n${post.content}` });
     } catch {}
     setTimeout(() => setSharingPost(p => { const n = { ...p }; delete n[post.id]; return n; }), 600);
   };
@@ -548,18 +761,39 @@ export default function FeedScreen({ navigation }: any) {
   }, [posts, feedMode, search]);
 
   const renderMedia = (post: any) => {
-    const mediaItems: PostMedia[] = post.media?.length > 0
+    const mediaItems: (PostMedia & { width?: number | null; height?: number | null })[] = post.media?.length > 0
       ? post.media
       : (post.media_url ? [{ id: '0', url: post.media_url, media_type: 'image' as const, sort_order: 0 }] : []);
     if (!mediaItems.length) return null;
+
     return (
-      <MediaRenderer
-        media={mediaItems}
-        containerWidth={SCREEN_W}
-        fullBleed
-        maxHeight={420}
-        isActive={screenFocused && post.id === activePostId}
-      />
+      <View>
+        {mediaItems.map((m, idx) => {
+          const ratio = m.width && m.height && m.width > 0 && m.height > 0 ? m.width / m.height : 16 / 9;
+          return (
+            <View key={m.id || `${m.url}-${idx}`} style={{ marginBottom: idx < mediaItems.length - 1 ? MEDIA_GAP : 0 }}>
+              {m.media_type === 'video' ? (
+                <View style={{ width: SCREEN_W, aspectRatio: ratio, overflow: 'hidden', backgroundColor: '#000' }}>
+                  <MediaRenderer
+                    media={[m]}
+                    containerWidth={SCREEN_W}
+                    fullBleed
+                    maxHeight={SCREEN_W * 1.8}
+                    isActive={screenFocused && post.id === activePostId}
+                  />
+                </View>
+              ) : (
+                <DynamicImage
+                  uri={m.url}
+                  width={SCREEN_W}
+                  knownWidth={m.width}
+                  knownHeight={m.height}
+                />
+              )}
+            </View>
+          );
+        })}
+      </View>
     );
   };
 
@@ -692,7 +926,7 @@ export default function FeedScreen({ navigation }: any) {
         <View style={s.container}>
           <View style={s.header}>
             <View style={s.headerRow}>
-              <Text style={s.logo}>TBirds</Text>
+              <Text style={s.logo}>PlatinumCircles</Text>
               <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
                 <Feather name="bell" size={20} color="#000" />
               </TouchableOpacity>
@@ -714,6 +948,7 @@ export default function FeedScreen({ navigation }: any) {
               data={displayPosts}
               keyExtractor={p => p.id}
               renderItem={renderPost}
+              extraData={[likedPosts, bookmarkedPosts, repostedPosts, commentPreviews, heartPost]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="none"
@@ -723,7 +958,7 @@ export default function FeedScreen({ navigation }: any) {
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); }} tintColor="#000" />}
               ListEmptyComponent={
                 <View style={s.emptyWrap}>
-                  <Text style={s.emptyTitle}>{search ? 'No posts found' : 'Welcome to TBirds'}</Text>
+                  <Text style={s.emptyTitle}>{search ? 'No posts found' : 'Welcome to PlatinumCircles'}</Text>
                   <Text style={s.emptySub}>{search ? 'Try a different search.' : 'Be the first to share something.'}</Text>
                   {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => setComposerOpen(true)}><Text style={s.emptyBtnTxt}>Create a post</Text></TouchableOpacity>}
                 </View>
@@ -842,7 +1077,7 @@ export default function FeedScreen({ navigation }: any) {
               setTimeout(async () => {
                 if (!captured) return;
                 await Share.share({
-                  message: `${author?.full_name || 'Someone'} on TBirds Nest:\n\n${captured.content}`,
+                  message: `${author?.full_name || 'Someone'} on PlatinumCircles:\n\n${captured.content}`,
                 });
               }, 400);
             }}>

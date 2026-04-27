@@ -62,6 +62,8 @@ const VIDEO_MAX_SEC = 15;
 const SCREEN_W = Dimensions.get('window').width;
 const SCREEN_H = Dimensions.get('window').height;
 
+const NAVY = '#0B1E3D';
+
 const STYLE_PRESETS: Array<{ id: StickerStyle; label: string }> = [
   { id: 'classic',    label: 'Classic' },
   { id: 'bold',       label: 'Bold' },
@@ -199,7 +201,6 @@ export default function StoryComposerScreen() {
     }
   );
 
-  // Initialize drafts from route params (from StoryCreationMenu or direct entry).
   useEffect(() => {
     if (drafts.length > 0) return;
 
@@ -331,7 +332,6 @@ export default function StoryComposerScreen() {
   const handlePreviewTap = useCallback((e: any) => {
     if (publishing) return;
     if (!previewSize.w || !previewSize.h) return;
-    // Convert tap location to normalized coordinates within the preview area.
     const { locationX, locationY } = e.nativeEvent;
     const nx = Math.max(0.05, Math.min(0.95, locationX / previewSize.w));
     const ny = Math.max(0.05, Math.min(0.95, locationY / previewSize.h));
@@ -341,7 +341,6 @@ export default function StoryComposerScreen() {
   const publishAll = useCallback(async () => {
     if (!myId || publishing || drafts.length === 0) return;
 
-    // Validate text drafts have content.
     for (const d of drafts) {
       if (d.mediaType === 'text' && !(d.textBody?.trim() || d.stickers.length > 0)) {
         Alert.alert('Empty text story', 'Add some text before posting.');
@@ -360,8 +359,6 @@ export default function StoryComposerScreen() {
       setDrafts(prev => prev.map((x, idx) => idx === i ? { ...x, uploadState: 'uploading', errorMsg: null } : x));
 
       try {
-        // For text stories, merge the text body as a single sticker if no stickers exist,
-        // or prepend it as the primary sticker so StoryViewer can render it.
         let stickersForPayload: TextSticker[] = [...d.stickers];
         if (d.mediaType === 'text' && d.textBody?.trim()) {
           stickersForPayload = [
@@ -433,28 +430,32 @@ export default function StoryComposerScreen() {
       <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
 
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn}>
-            <Feather name="x" size={22} color="#FFF" />
-          </TouchableOpacity>
-          <Text style={s.headerTitleDark}>{activeIndex + 1} / {drafts.length}</Text>
+        {/* Floating top controls (over media) */}
+        <View style={s.topBar} pointerEvents="box-none">
           <TouchableOpacity
-            onPress={publishAll}
-            disabled={!canPublish}
-            style={[s.publishBtn, !canPublish && { opacity: 0.5 }]}
+            onPress={() => navigation.goBack()}
+            style={s.topIconBtn}
+            activeOpacity={0.75}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            {publishing ? <ActivityIndicator color="#FFF" size={16} />
-              : <Text style={s.publishBtnTxt}>Share {drafts.length > 1 ? `(${drafts.length})` : ''}</Text>}
+            <Feather name="x" size={20} color="#FFF" />
           </TouchableOpacity>
+
+          {drafts.length > 1 && (
+            <View style={s.countBadge}>
+              <Text style={s.countBadgeTxt}>{activeIndex + 1} / {drafts.length}</Text>
+            </View>
+          )}
+
+          <View style={{ flex: 1 }} />
         </View>
 
-        {/* Preview wrapper. This is the tap-to-type surface. */}
+        {/* Preview */}
         <Pressable
           style={s.previewWrap}
           onPress={handlePreviewTap}
           onLayout={e => setPreviewSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
         >
-          {/* Background layer */}
           {isText ? (
             <TextStoryBackgroundView background={active.textBackground ?? null} />
           ) : isVideo ? (
@@ -468,7 +469,6 @@ export default function StoryComposerScreen() {
             <Image source={{ uri: active.localUri }} style={s.previewMedia} resizeMode="cover" />
           ) : null}
 
-          {/* Text body input for text stories. Centered, always tappable. */}
           {isText && (
             <View style={s.textBodyWrap} pointerEvents="box-none">
               <TextInput
@@ -484,7 +484,6 @@ export default function StoryComposerScreen() {
             </View>
           )}
 
-          {/* Sticker overlay. Each sticker consumes its own touches so parent onPress won't fire. */}
           {active?.stickers.map(st => (
             <DraggableSticker
               key={st.id}
@@ -498,11 +497,10 @@ export default function StoryComposerScreen() {
             />
           ))}
 
-          {/* Hint for empty image/video preview */}
           {!isText && active?.stickers.length === 0 && active?.uploadState === 'idle' && (
             <View style={s.tapHint} pointerEvents="none">
               <View style={s.tapHintPill}>
-                <Feather name="type" size={14} color="#FFF" />
+                <Feather name="type" size={13} color="#FFF" />
                 <Text style={s.tapHintTxt}>Tap anywhere to add text</Text>
               </View>
             </View>
@@ -527,20 +525,22 @@ export default function StoryComposerScreen() {
             </View>
           )}
 
-          {/* Tool FABs, right side */}
+          {/* Right-side tool stack */}
           {active?.uploadState !== 'uploading' && active?.uploadState !== 'done' && (
             <View style={s.fabColumn} pointerEvents="box-none">
               {isText && (
-                <TouchableOpacity style={s.fabBtn}
+                <TouchableOpacity
+                  style={s.fabBtn}
                   onPress={(e) => { e.stopPropagation?.(); setBgPickerOpen(true); }}
-                  activeOpacity={0.8}
+                  activeOpacity={0.75}
                 >
                   <Feather name="droplet" size={18} color="#FFF" />
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={s.fabBtn}
+              <TouchableOpacity
+                style={s.fabBtn}
                 onPress={(e) => { e.stopPropagation?.(); openStickerEditor(); }}
-                activeOpacity={0.8}
+                activeOpacity={0.75}
               >
                 <Feather name="type" size={18} color="#FFF" />
               </TouchableOpacity>
@@ -548,39 +548,65 @@ export default function StoryComposerScreen() {
           )}
         </Pressable>
 
+        {/* Caption bubble (glass overlay on media) */}
         <View style={s.captionWrap}>
-          <TextInput
-            value={active?.caption || ''}
-            onChangeText={(t) => updateActive({ caption: t })}
-            placeholder="Add a caption..."
-            placeholderTextColor="rgba(255,255,255,0.5)"
-            style={s.captionInput}
-            maxLength={200}
-            editable={!publishing}
-          />
+          <View style={s.captionBubble}>
+            <Text style={s.captionLabel}>CAPTION</Text>
+            <TextInput
+              value={active?.caption || ''}
+              onChangeText={(t) => updateActive({ caption: t })}
+              placeholder="Add a caption..."
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              style={s.captionInput}
+              maxLength={200}
+              editable={!publishing}
+            />
+          </View>
         </View>
 
-        <View style={s.scopeWrap}>
+        {/* Bottom action row: audience pill + Post pill */}
+        <View style={[s.bottomRow, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
           <TouchableOpacity
-            style={[s.scopePill, active?.scope === 'institution' && s.scopePillActive]}
-            onPress={() => updateActive({ scope: 'institution' })}
+            style={s.audiencePill}
+            onPress={() => updateActive({ scope: active?.scope === 'institution' ? 'global' : 'institution' })}
+            activeOpacity={0.75}
             disabled={publishing}
           >
-            <Feather name="award" size={13} color={active?.scope === 'institution' ? '#FFF' : '#DDD'} />
-            <Text style={[s.scopePillTxt, active?.scope === 'institution' && s.scopePillTxtActive]}>My School</Text>
+            <View style={s.audienceIconBg}>
+              <Feather
+                name={active?.scope === 'institution' ? 'award' : 'globe'}
+                size={12}
+                color="#FFF"
+              />
+            </View>
+            <Text style={s.audienceTxt}>
+              {active?.scope === 'institution' ? 'My School' : 'Global'}
+            </Text>
+            <Feather name="chevron-down" size={12} color="rgba(255,255,255,0.65)" />
           </TouchableOpacity>
+
           <TouchableOpacity
-            style={[s.scopePill, active?.scope === 'global' && s.scopePillActive]}
-            onPress={() => updateActive({ scope: 'global' })}
-            disabled={publishing}
+            onPress={publishAll}
+            disabled={!canPublish}
+            style={[s.postPill, !canPublish && { opacity: 0.5 }]}
+            activeOpacity={0.85}
           >
-            <Feather name="globe" size={13} color={active?.scope === 'global' ? '#FFF' : '#DDD'} />
-            <Text style={[s.scopePillTxt, active?.scope === 'global' && s.scopePillTxtActive]}>Global</Text>
+            {publishing ? (
+              <ActivityIndicator color={NAVY} size={16} />
+            ) : (
+              <>
+                <Text style={s.postPillTxt}>
+                  Post{drafts.length > 1 ? ` ${drafts.length}` : ''}
+                </Text>
+                <Feather name="arrow-right" size={15} color={NAVY} />
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
+        {/* Drafts strip */}
         {drafts.length > 1 && (
-          <View style={[s.stripWrap, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+          <View style={s.stripWrap}>
             <FlatList
               data={drafts}
               keyExtractor={(d) => d.id}
@@ -720,7 +746,6 @@ export default function StoryComposerScreen() {
         </Pressable>
       )}
 
-      {/* Text background picker */}
       {bgPickerOpen && (
         <Pressable style={s.bgPickerBackdrop} onPress={() => setBgPickerOpen(false)}>
           <Pressable onPress={() => {}} style={s.bgPickerSheet}>
@@ -786,8 +811,6 @@ export function StickerTextView({
   );
 }
 
-// Simple CSS-less gradient simulation using stacked color bands.
-// Works without any native gradient library.
 function GradientStripes({
   colors, direction,
 }: { colors: [string, string]; direction: 'vertical' | 'diagonal' }) {
@@ -828,7 +851,6 @@ function TextStoryBackgroundView({
   return <GradientStripes colors={background.colors} direction={background.direction} />;
 }
 
-// Linear interpolation between two hex colors.
 function lerpColor(a: string, b: string, t: number): string {
   const pa = hexToRgb(a);
   const pb = hexToRgb(b);
@@ -887,7 +909,6 @@ function DraggableSticker({
 
   const commit = useCallback((x: number, y: number, sc: number) => {
     if (containerW <= 0 || containerH <= 0) return;
-    // No clamping. Let it land anywhere, even off-screen.
     onUpdate({
       nx: x / containerW,
       ny: y / containerH,
@@ -1005,19 +1026,24 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#000000' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 12, paddingVertical: 10,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+  topBar: {
+    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10,
+    gap: 10,
   },
-  closeBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  headerTitleDark: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
-  publishBtn: {
-    backgroundColor: '#007AFF', paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 18, minWidth: 84, alignItems: 'center',
+  topIconBtn: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.15)',
   },
-  publishBtnTxt: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+  countBadge: {
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 13, paddingHorizontal: 10, paddingVertical: 5,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.15)',
+  },
+  countBadgeTxt: { color: '#FFF', fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
 
   previewWrap: { flex: 1, backgroundColor: '#000', overflow: 'hidden' },
   previewMedia: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
@@ -1041,23 +1067,24 @@ const s = StyleSheet.create({
     width: '100%',
   },
 
-  tapHint: { position: 'absolute', top: 74, left: 0, right: 0, alignItems: 'center' },
+  tapHint: { position: 'absolute', top: 76, left: 0, right: 0, alignItems: 'center' },
   tapHintPill: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.15)',
   },
   tapHintTxt: { color: '#FFF', fontSize: 12, fontWeight: '600' },
 
   fabColumn: {
     position: 'absolute',
-    right: 12, top: 74, gap: 10,
+    right: 12, top: 76, gap: 10,
   },
   fabBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)',
   },
 
   uploadOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', gap: 12 },
@@ -1067,25 +1094,71 @@ const s = StyleSheet.create({
   errorOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 32 },
   errorOverlayTxt: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', textAlign: 'center' },
 
-  captionWrap: { paddingHorizontal: 14, paddingVertical: 8, backgroundColor: 'rgba(0,0,0,0.55)' },
-  captionInput: { color: '#FFFFFF', fontSize: 15, paddingVertical: 8, paddingHorizontal: 4 },
-
-  scopeWrap: { flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 10, backgroundColor: 'rgba(0,0,0,0.55)' },
-  scopePill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+  captionWrap: {
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    backgroundColor: '#000',
   },
-  scopePillActive: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  scopePillTxt: { fontSize: 12, fontWeight: '600', color: '#DDDDDD' },
-  scopePillTxtActive: { color: '#FFFFFF' },
+  captionBubble: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 14,
+    paddingHorizontal: 14, paddingTop: 10, paddingBottom: 6,
+  },
+  captionLabel: {
+    fontSize: 10, fontWeight: '700',
+    color: 'rgba(255,255,255,0.6)',
+    letterSpacing: 0.7,
+    marginBottom: 2,
+  },
+  captionInput: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    paddingVertical: 4,
+    padding: 0,
+    minHeight: 22,
+  },
 
-  stripWrap: { paddingTop: 10, backgroundColor: '#000000' },
+  bottomRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 14, paddingTop: 12,
+    backgroundColor: '#000',
+  },
+  audiencePill: {
+    flex: 1,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 22,
+    paddingHorizontal: 12, paddingVertical: 10,
+  },
+  audienceIconBg: {
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  audienceTxt: { flex: 1, color: '#FFF', fontSize: 13, fontWeight: '600', letterSpacing: -0.1 },
+
+  postPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    paddingHorizontal: 18, paddingVertical: 11,
+    minWidth: 100, justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+  },
+  postPillTxt: { color: NAVY, fontSize: 14, fontWeight: '700', letterSpacing: -0.1 },
+
+  stripWrap: {
+    paddingTop: 10, paddingBottom: 10,
+    backgroundColor: '#000',
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.08)',
+  },
   thumbWrap: {
     width: 56, height: 56, borderRadius: 10, overflow: 'hidden',
     borderWidth: 2, borderColor: 'transparent', position: 'relative',
   },
-  thumbWrapActive: { borderColor: '#007AFF' },
+  thumbWrapActive: { borderColor: '#FFF' },
   thumb: { width: '100%', height: '100%' },
   thumbText: { overflow: 'hidden' },
   badgeTL: {
@@ -1097,7 +1170,7 @@ const s = StyleSheet.create({
   badgeTR: {
     position: 'absolute', top: 3, right: 3,
     width: 18, height: 18, borderRadius: 9,
-    backgroundColor: 'rgba(0,122,255,0.85)',
+    backgroundColor: 'rgba(255,255,255,0.85)',
     alignItems: 'center', justifyContent: 'center',
   },
   thumbDone: {
@@ -1121,12 +1194,12 @@ const s = StyleSheet.create({
 
   editorBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.72)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     zIndex: 100,
   },
   editorWrap: {
     marginHorizontal: 12, marginBottom: 16,
-    backgroundColor: 'rgba(28,28,30,0.98)', borderRadius: 18,
+    backgroundColor: 'rgba(20,20,22,0.98)', borderRadius: 20,
     paddingTop: 10, paddingBottom: 14,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
   },
@@ -1135,21 +1208,24 @@ const s = StyleSheet.create({
     paddingHorizontal: 12, paddingBottom: 4,
   },
   editorTrash: {
-    width: 34, height: 34, borderRadius: 10,
+    width: 36, height: 36, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,59,48,0.15)',
   },
-  editorDone: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: '#007AFF' },
-  editorDoneTxt: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  editorDone: {
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+  },
+  editorDoneTxt: { color: NAVY, fontSize: 14, fontWeight: '700' },
 
   editorPreview: {
     alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 18, paddingHorizontal: 16, minHeight: 80,
+    paddingVertical: 20, paddingHorizontal: 16, minHeight: 80,
   },
   editorInput: {
     color: '#FFF', fontSize: 16, lineHeight: 21,
     paddingHorizontal: 14, paddingVertical: 10,
-    marginHorizontal: 12, borderRadius: 10,
+    marginHorizontal: 12, borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.08)',
     maxHeight: 90,
   },
@@ -1161,7 +1237,7 @@ const s = StyleSheet.create({
   },
   styleChipActive: { backgroundColor: '#FFFFFF' },
   styleChipTxt: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-  styleChipTxtActive: { color: '#000000' },
+  styleChipTxtActive: { color: NAVY },
 
   colorSwatch: {
     width: 28, height: 28, borderRadius: 14,
@@ -1176,7 +1252,7 @@ const s = StyleSheet.create({
     zIndex: 200,
   },
   bgPickerSheet: {
-    backgroundColor: '#1C1C1E', borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    backgroundColor: '#1C1C1E', borderTopLeftRadius: 22, borderTopRightRadius: 22,
     paddingTop: 10, paddingBottom: 14, paddingHorizontal: 16,
   },
   bgPickerHandle: {

@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
-  ActivityIndicator, StatusBar, Alert, RefreshControl, Dimensions,
+  ActivityIndicator, StatusBar, Alert, Share, RefreshControl, Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -13,6 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
+import { Image as ExpoImage } from 'expo-image';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -366,34 +367,81 @@ export default function UserProfileScreen() {
             </View>
           ) : (
             posts.map((post, idx) => (
-              <TouchableOpacity
+              <View
                 key={post.id}
                 style={[s.postCard, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('Post', { postId: post.id })}
               >
-                {post.media.length > 0 ? (
-                  <View style={{ marginBottom: 10, borderRadius: 14, overflow: 'hidden' }}>
-                    <MediaRenderer
-                      media={post.media}
-                      containerWidth={SCREEN_W - 64}
-                      maxHeight={360}
-                    />
-                  </View>
-                ) : null}
-                {post.content ? <Text style={s.postContent} numberOfLines={4}>{post.content}</Text> : null}
-                <View style={s.postFooter}>
-                  <View style={s.postFooterItem}>
-                    <Feather name="heart" size={13} color={TEXT_SECONDARY} />
-                    <Text style={s.postFooterTxt}>{post.likes_count}</Text>
-                  </View>
-                  <View style={s.postFooterItem}>
-                    <Feather name="message-circle" size={13} color={TEXT_SECONDARY} />
-                    <Text style={s.postFooterTxt}>{post.comments_count}</Text>
-                  </View>
-                  <Text style={s.postTime}>{relTime(post.created_at)}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <TouchableOpacity style={{ flex: 1 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
+                    <Text style={{ fontSize: 12, color: TEXT_SECONDARY }}>{relTime(post.created_at)}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      const buttons: any[] = [];
+                      if (isOwnProfile) {
+                        buttons.push({
+                          text: 'Delete post',
+                          style: 'destructive' as const,
+                          onPress: () => {
+                            Alert.alert('Delete post?', 'This will permanently remove your post.', [
+                              { text: 'Cancel', style: 'cancel' },
+                              { text: 'Delete', style: 'destructive', onPress: async () => {
+                                await supabase.from('posts').delete().eq('id', post.id);
+                                load();
+                              }},
+                            ]);
+                          },
+                        });
+                      }
+                      buttons.push({
+                        text: 'Share post',
+                        onPress: async () => {
+                          await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' });
+                        },
+                      });
+                      buttons.push({ text: 'Cancel', style: 'cancel' as const });
+                      Alert.alert(undefined as any, undefined, buttons);
+                    }}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    style={{ padding: 4 }}
+                  >
+                    <Feather name="more-horizontal" size={18} color={TEXT_SECONDARY} />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+                <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
+                  {post.media.length > 0 ? (
+                    <View style={{ marginBottom: 10 }}>
+                      {post.media.map((m, mIdx) => (
+                        <View key={m.id || mIdx} style={{ width: SCREEN_W - 64, aspectRatio: 4/5, borderRadius: 14, overflow: 'hidden', marginBottom: post.media.length > 1 ? 4 : 0 }}>
+                          {m.media_type === 'video' ? (
+                            <MediaRenderer media={[m]} containerWidth={SCREEN_W - 64} maxHeight={(SCREEN_W - 64) * 1.25} />
+                          ) : (
+                            <ExpoImage
+                              source={{ uri: m.url }}
+                              style={{ width: '100%', height: '100%' }}
+                              contentFit="cover"
+                              cachePolicy="memory-disk"
+                              transition={200}
+                            />
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+                  {post.content ? <Text style={s.postContent} numberOfLines={4}>{post.content}</Text> : null}
+                  <View style={s.postFooter}>
+                    <View style={s.postFooterItem}>
+                      <Feather name="heart" size={13} color={TEXT_SECONDARY} />
+                      <Text style={s.postFooterTxt}>{post.likes_count}</Text>
+                    </View>
+                    <View style={s.postFooterItem}>
+                      <Feather name="message-circle" size={13} color={TEXT_SECONDARY} />
+                      <Text style={s.postFooterTxt}>{post.comments_count}</Text>
+                    </View>
+                    <Text style={s.postTime}>{relTime(post.created_at)}</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             ))
           )}
         </View>

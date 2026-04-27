@@ -4,9 +4,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native';
 
 const LAST_UPDATED = 'January 1, 2025';
-const APP_NAME = 'TBirds Nest';
-const COMPANY = 'TBirds Nest';
-const EMAIL = 'legal@tbirdsnest.app';
+const APP_NAME = 'PlatinumCircles';
+const COMPANY = 'PlatinumCircles';
+const EMAIL = 'legal@PlatinumCirclesnest.app';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -130,7 +130,7 @@ export default function TermsScreen() {
 
         <Section title="17. Contact Information">
           <Para>If you have questions about these Terms of Service, please contact us at:</Para>
-          <Para>TBirds Nest{'\n'}Email: {EMAIL}{'\n'}Thunderbird School of Global Management{'\n'}Arizona State University{'\n'}Glendale, Arizona, United States</Para>
+          <Para>PlatinumCircles{'\n'}Email: {EMAIL}{'\n'}Thunderbird School of Global Management{'\n'}Arizona State University{'\n'}Glendale, Arizona, United States</Para>
         </Section>
       </ScrollView>
     </SafeAreaView>

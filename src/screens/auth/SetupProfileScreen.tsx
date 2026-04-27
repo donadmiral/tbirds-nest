@@ -16,6 +16,7 @@ import { showMessage } from 'react-native-flash-message';
 import { useAuthStore } from '../../stores/authStore';
 import { authService } from '../../services/authService';
 import { colors as themeColors, spacing as themeSpacing, radius as themeRadius, typography as themeTypography } from '../../utils/theme';
+import PlatinumCirclesLogo from '../../components/PlatinumCirclesLogo';
 
 const colors = {
   primary: themeColors?.primary ?? '#2563EB',
@@ -150,8 +151,13 @@ export default function SetupProfileScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.logoRow}>
+          <PlatinumCirclesLogo size={36} />
+          <Text style={styles.logoText}>Platinum<Text style={styles.logoAccent}>Circles</Text></Text>
+        </View>
+
         <Text style={styles.title}>Complete your profile</Text>
-        <Text style={styles.sub}>Help other T-Birds find and connect with you.</Text>
+        <Text style={styles.sub}>Help others in your circle find and connect with you.</Text>
 
         <TouchableOpacity style={styles.avatarWrap} onPress={pickAvatar} activeOpacity={0.85}>
           {avatar ? (
@@ -183,7 +189,7 @@ export default function SetupProfileScreen() {
             style={[styles.input, styles.multilineInput]}
             value={bio}
             onChangeText={setBio}
-            placeholder="Tell T-Birds about yourself..."
+            placeholder="Tell your circle about yourself..."
             placeholderTextColor={colors.text3}
             multiline
             textAlignVertical="top"
@@ -262,6 +268,20 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     paddingTop: 60,
     paddingBottom: 40,
+  },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  logoAccent: {
+    color: colors.primary,
   },
   title: {
     fontSize: typography.xxl,

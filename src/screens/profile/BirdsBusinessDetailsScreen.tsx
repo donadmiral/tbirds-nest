@@ -99,7 +99,7 @@ export default function BirdsBusinessDetailsScreen() {
     if (!post) return;
     try {
       await Share.share({
-        message: `${post.business_name} on TBirds Nest Bird's Business\n\n${post.offering}\n📍 ${post.location}\n\n${post.description}`,
+        message: `${post.business_name} on PlatinumCircles Bird's Business\n\n${post.offering}\n📍 ${post.location}\n\n${post.description}`,
       });
     } catch {}
   };

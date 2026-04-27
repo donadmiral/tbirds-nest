@@ -30,7 +30,7 @@ export const supabase = createClient(url, anonKey, {
   },
   global: {
     headers: {
-      'x-client-info': 'tbirds-nest-mobile',
+      'x-client-info': 'PlatinumCircles-nest-mobile',
     },
   },
 });

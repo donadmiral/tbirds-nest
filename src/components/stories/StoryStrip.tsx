@@ -18,6 +18,10 @@ type Props = {
   mode?: 'primary' | 'all' | 'global';
 };
 
+const NAVY = '#0B1E3D';
+const SEEN = '#D1D5DB';
+const TEXT_PRIMARY = '#1A1A1A';
+
 function initials(name?: string | null) {
   if (!name) return 'U';
   const p = name.trim().split(' ').filter(Boolean);
@@ -89,7 +93,7 @@ export default function StoryStrip({ mode = 'all' }: Props) {
     return (
       <TouchableOpacity
         style={s.bubble}
-        activeOpacity={0.8}
+        activeOpacity={0.75}
         onPress={() => {
           if (myHasStories && myId) {
             openViewer(myId);
@@ -137,7 +141,7 @@ export default function StoryStrip({ mode = 'all' }: Props) {
       <TouchableOpacity
         key={user.user_id}
         style={s.bubble}
-        activeOpacity={0.8}
+        activeOpacity={0.75}
         onPress={() => openViewer(user.user_id)}
       >
         <View
@@ -192,10 +196,10 @@ const s = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#F0F0F0',
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   loadingWrap: {
-    height: 88,
+    height: 92,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
@@ -204,27 +208,27 @@ const s = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 14,
-    gap: 12,
+    gap: 14,
   },
   bubble: {
-    width: 72,
+    width: 68,
     alignItems: 'center',
   },
   ringWrap: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2.5,
-    padding: 2,
-    marginBottom: 4,
+    borderWidth: 2,
+    padding: 2.5,
+    marginBottom: 6,
   },
   ringUnseen: {
-    borderColor: '#F59E0B',
+    borderColor: NAVY,
   },
   ringSeen: {
-    borderColor: '#D1D5DB',
+    borderColor: SEEN,
   },
   ringAddOwn: {
     borderColor: '#E5E7EB',
@@ -233,24 +237,24 @@ const s = StyleSheet.create({
   avatarInner: {
     width: '100%',
     height: '100%',
-    borderRadius: 32,
+    borderRadius: 30,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
   },
   avatar: {
     width: '100%',
     height: '100%',
-    borderRadius: 32,
+    borderRadius: 30,
   },
   avatarFb: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarFbTxt: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#1D4ED8',
+    color: NAVY,
   },
   plusBadge: {
     position: 'absolute',
@@ -259,7 +263,7 @@ const s = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#007AFF',
+    backgroundColor: NAVY,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -268,8 +272,9 @@ const s = StyleSheet.create({
   nameTxt: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#1A1A1A',
+    color: TEXT_PRIMARY,
     textAlign: 'center',
-    maxWidth: 72,
+    maxWidth: 68,
+    letterSpacing: -0.1,
   },
 });

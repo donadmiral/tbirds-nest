@@ -4,8 +4,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native';
 
 const LAST_UPDATED = 'January 1, 2025';
-const APP_NAME = 'TBirds Nest';
-const EMAIL = 'privacy@tbirdsnest.app';
+const APP_NAME = 'PlatinumCircles';
+const EMAIL = 'privacy@PlatinumCirclesnest.app';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return <View style={s.section}><Text style={s.sectionTitle}>{title}</Text>{children}</View>;
@@ -70,7 +70,7 @@ export default function PrivacyPolicyScreen() {
 
         <Section title="4. Privacy Controls">
           <Para>You control how your information is shared through your privacy settings:</Para>
-          <Bullet>Public profile: Your profile is visible to all signed-in TBirds Nest members</Bullet>
+          <Bullet>Public profile: Your profile is visible to all signed-in PlatinumCircles members</Bullet>
           <Bullet>Private profile: Only your accepted connections can see your full profile</Bullet>
           <Para>You can change your visibility settings at any time in Settings → Privacy. Note that content you post to the feed is visible to all authenticated members regardless of your profile privacy setting.</Para>
         </Section>
@@ -117,7 +117,7 @@ export default function PrivacyPolicyScreen() {
 
         <Section title="13. Contact Us">
           <Para>If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact our Privacy team:</Para>
-          <Para>Email: {EMAIL}{'\n'}TBirds Nest Privacy Team{'\n'}Thunderbird School of Global Management{'\n'}Arizona State University{'\n'}Glendale, Arizona, United States</Para>
+          <Para>Email: {EMAIL}{'\n'}PlatinumCircles Privacy Team{'\n'}Thunderbird School of Global Management{'\n'}Arizona State University{'\n'}Glendale, Arizona, United States</Para>
         </Section>
       </ScrollView>
     </SafeAreaView>

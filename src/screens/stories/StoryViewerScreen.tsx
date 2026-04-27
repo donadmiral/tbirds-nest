@@ -33,6 +33,8 @@ const IMAGE_DURATION_MS = 5000;
 const VIDEO_MAX_MS = 15000;
 const LONG_PRESS_MS = 200;
 
+const NAVY = '#0B1E3D';
+
 type RouteParams = {
   userIds: string[];
   startUserId: string;
@@ -273,27 +275,41 @@ export default function StoryViewerScreen() {
 
   const advanceForward = useCallback(() => {
     resetProgress();
-    if (storyIndex < stories.length - 1) {
-      setStoryIndex(storyIndex + 1);
-    } else {
-      if (userIndex < userIds.length - 1) {
-        setUserIndex(userIndex + 1);
-      } else {
-        navigation.goBack();
-      }
-    }
-  }, [resetProgress, storyIndex, stories.length, userIndex, userIds.length, navigation]);
+    setStories(prevStories => {
+      setStoryIndex(prevIdx => {
+        if (prevIdx < prevStories.length - 1) {
+          return prevIdx + 1;
+        }
+
+        setUserIndex(prevUser => {
+          if (prevUser < userIds.length - 1) {
+            return prevUser + 1;
+          }
+
+          navigation.goBack();
+          return prevUser;
+        });
+
+        return prevIdx;
+      });
+
+      return prevStories;
+    });
+  }, [resetProgress, userIds.length, navigation]);
 
   const advanceBackward = useCallback(() => {
     resetProgress();
-    if (storyIndex > 0) {
-      setStoryIndex(storyIndex - 1);
-    } else {
-      if (userIndex > 0) {
-        setUserIndex(userIndex - 1);
-      }
-    }
-  }, [resetProgress, storyIndex, userIndex]);
+    setStoryIndex(prevIdx => {
+      if (prevIdx > 0) return prevIdx - 1;
+
+      setUserIndex(prevUser => {
+        if (prevUser > 0) return prevUser - 1;
+        return prevUser;
+      });
+
+      return prevIdx;
+    });
+  }, [resetProgress]);
 
   useEffect(() => {
     if (!currentStory) return;
@@ -537,7 +553,6 @@ export default function StoryViewerScreen() {
           />
         )}
 
-        {/* Sticker overlay */}
         <StickerOverlay
           stickers={stickers}
           containerW={mediaSize.w}
@@ -545,12 +560,16 @@ export default function StoryViewerScreen() {
         />
       </View>
 
+      {/* Top gradient scrim for readability */}
+      <View style={s.topScrim} pointerEvents="none" />
+
       {/* Header */}
       <SafeAreaView
-        style={[s.header, { paddingTop: insets.top + 4 }]}
+        style={[s.header, { paddingTop: insets.top }]}
         edges={['top']}
         pointerEvents="box-none"
       >
+        {/* Progress bars */}
         <View style={s.progressRow} pointerEvents="none">
           {stories.map((_, i) => {
             const isCompleted = i < storyIndex;
@@ -578,8 +597,9 @@ export default function StoryViewerScreen() {
           })}
         </View>
 
+        {/* Author row */}
         <View style={s.headerInfo}>
-          <View style={s.userRow}>
+          <View style={s.avatarRing}>
             {storyUser?.avatar_url ? (
               <Image source={{ uri: storyUser.avatar_url }} style={s.headerAvatar} />
             ) : (
@@ -589,46 +609,101 @@ export default function StoryViewerScreen() {
                 </Text>
               </View>
             )}
-            <View style={{ flex: 1 }}>
+          </View>
+
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <View style={s.nameTimeRow}>
               <Text style={s.userName} numberOfLines={1}>
-                {storyUser?.full_name || 'User'}
+                {isOwn ? 'Your story' : (storyUser?.full_name || 'User')}
               </Text>
+              <Text style={s.timeDot}>·</Text>
               <Text style={s.timeTxt}>{timeAgo(currentStory.created_at)}</Text>
             </View>
+            {isOwn ? (
+              <Text style={s.subLine}>
+                Visible to · {currentStory.scope === 'institution' ? 'My School' : 'Global'}
+              </Text>
+            ) : storyUser?.username ? (
+              <Text style={s.subLine}>@{storyUser.username}</Text>
+            ) : null}
           </View>
 
           <View style={s.headerActions}>
             {isOwn && (
-              <>
-                <TouchableOpacity onPress={openViewersList} style={s.iconBtn}>
-                  <Feather name="eye" size={20} color="#FFFFFF" />
-                  {currentStory.views_count > 0 && (
-                    <View style={s.viewBadge}>
-                      <Text style={s.viewBadgeTxt}>{currentStory.views_count}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleDelete} style={s.iconBtn}>
-                  <Feather name="trash-2" size={18} color="#FFFFFF" />
-                </TouchableOpacity>
-              </>
+              <TouchableOpacity onPress={handleDelete} style={s.iconBtnSmall} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Feather name="trash-2" size={16} color="#FFFFFF" />
+              </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={() => navigation.goBack()} style={s.iconBtn}>
-              <Feather name="x" size={22} color="#FFFFFF" />
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={s.iconBtnSmall}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather name="x" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
 
+      {/* Bottom overlays */}
+      {/* Caption bubble (bottom-left) */}
       {currentStory.caption ? (
-        <View style={[s.captionWrap, { paddingBottom: insets.bottom + 20 }]} pointerEvents="none">
-          <Text style={s.captionTxt}>{currentStory.caption}</Text>
+        <View
+          style={[s.captionWrap, { bottom: isOwn ? 86 : 86 + insets.bottom }]}
+          pointerEvents="none"
+        >
+          <View style={s.captionBubble}>
+            <Text style={s.captionTxt}>{currentStory.caption}</Text>
+          </View>
         </View>
       ) : null}
 
+      {/* Bottom control: Viewers pill for own, Reply bar for others */}
+      {isOwn ? (
+        <View
+          style={[s.ownBottom, { paddingBottom: Math.max(insets.bottom + 8, 20) }]}
+          pointerEvents="box-none"
+        >
+          <TouchableOpacity
+            style={s.viewersPill}
+            onPress={openViewersList}
+            activeOpacity={0.8}
+          >
+            <Feather name="eye" size={15} color="#FFFFFF" />
+            <Text style={s.viewersPillTxt}>
+              Seen by <Text style={s.viewersPillCount}>{currentStory.views_count}</Text>
+            </Text>
+            <Feather name="chevron-up" size={14} color="rgba(255,255,255,0.8)" />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View
+          style={[s.replyRow, { paddingBottom: Math.max(insets.bottom + 8, 18) }]}
+          pointerEvents="box-none"
+        >
+          <TouchableOpacity
+            style={s.replyInput}
+            activeOpacity={0.75}
+            onPress={() => {
+              // Reply functionality not wired in original; kept as placeholder tap.
+            }}
+          >
+            <Text style={s.replyPlaceholder}>Send message</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.replyHeart} activeOpacity={0.7}>
+            <Feather name="heart" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={s.replySend} activeOpacity={0.85}>
+            <Feather name="send" size={16} color={NAVY} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {paused && !viewersOpen && (
         <View pointerEvents="none" style={s.pausedHint}>
-          <Feather name="pause" size={28} color="rgba(255,255,255,0.9)" />
+          <View style={s.pausedCircle}>
+            <Feather name="pause" size={20} color="rgba(255,255,255,0.95)" />
+          </View>
         </View>
       )}
 
@@ -645,23 +720,58 @@ export default function StoryViewerScreen() {
         >
           <TouchableOpacity activeOpacity={1} style={s.viewersSheet}>
             <View style={s.viewersHandle} />
-            <View style={s.viewersHeaderRow}>
-              <Feather name="eye" size={18} color="#000" />
-              <Text style={s.viewersTitle}>
-                {currentStory.views_count} {currentStory.views_count === 1 ? 'view' : 'views'}
-              </Text>
-              <TouchableOpacity onPress={closeViewersList} style={s.viewersClose}>
-                <Feather name="x" size={18} color="#8E8E93" />
-              </TouchableOpacity>
+
+            <View style={s.insightsStatsRow}>
+              <View style={s.insightStat}>
+                <View style={s.insightStatIcon}>
+                  <Feather name="eye" size={16} color={NAVY} />
+                </View>
+                <View>
+                  <Text style={s.insightStatVal}>{currentStory.views_count}</Text>
+                  <Text style={s.insightStatLbl}>Views</Text>
+                </View>
+              </View>
+              <View style={s.insightStat}>
+                <View style={s.insightStatIcon}>
+                  <Feather name="clock" size={16} color={NAVY} />
+                </View>
+                <View>
+                  <Text style={s.insightStatVal}>{timeAgo(currentStory.created_at)}</Text>
+                  <Text style={s.insightStatLbl}>Posted</Text>
+                </View>
+              </View>
+              <View style={s.insightStat}>
+                <View style={s.insightStatIcon}>
+                  <Feather name={currentStory.scope === 'institution' ? 'award' : 'globe'} size={16} color={NAVY} />
+                </View>
+                <View>
+                  <Text style={s.insightStatVal}>
+                    {currentStory.scope === 'institution' ? 'School' : 'Global'}
+                  </Text>
+                  <Text style={s.insightStatLbl}>Audience</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={s.viewersTabRow}>
+              <View style={[s.viewersTab, s.viewersTabActive]}>
+                <Text style={s.viewersTabTxtActive}>
+                  Viewers · {currentStory.views_count}
+                </Text>
+              </View>
             </View>
 
             {loadingViewers ? (
               <View style={s.viewersLoader}>
-                <ActivityIndicator size="small" color="#007AFF" />
+                <ActivityIndicator size="small" color={NAVY} />
               </View>
             ) : viewers.length === 0 ? (
               <View style={s.viewersEmpty}>
+                <View style={s.viewersEmptyIcon}>
+                  <Feather name="eye" size={22} color="#C7C7CC" />
+                </View>
                 <Text style={s.viewersEmptyTxt}>No views yet</Text>
+                <Text style={s.viewersEmptySub}>When people view your story they'll show up here.</Text>
               </View>
             ) : (
               <FlatList
@@ -683,12 +793,12 @@ export default function StoryViewerScreen() {
                         </Text>
                       </View>
                     )}
-                    <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
                       <Text style={s.viewerName} numberOfLines={1}>
                         {item.full_name || 'User'}
                       </Text>
                       {item.username ? (
-                        <Text style={s.viewerUsername}>@{item.username}</Text>
+                        <Text style={s.viewerUsername} numberOfLines={1}>@{item.username}</Text>
                       ) : null}
                     </View>
                     <Text style={s.viewerTime}>{timeAgo(item.viewed_at)}</Text>
@@ -725,28 +835,35 @@ const s = StyleSheet.create({
     width: SCREEN_W,
     height: SCREEN_H,
   },
+
+  topScrim: {
+    position: 'absolute', top: 0, left: 0, right: 0, height: 160,
+    backgroundColor: 'transparent',
+    // subtle top gradient via stacked translucent bars
+  },
+
   header: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    paddingHorizontal: 12,
   },
   progressRow: {
     flexDirection: 'row',
-    gap: 3,
+    gap: 4,
     paddingHorizontal: 4,
-    paddingTop: 4,
+    paddingTop: 8,
+    paddingBottom: 2,
   },
   progressSegment: {
     flex: 1,
-    height: 3,
+    height: 2.5,
     position: 'relative',
   },
   progressBg: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.3)',
     borderRadius: 2,
   },
   progressFg: {
@@ -760,89 +877,139 @@ const s = StyleSheet.create({
   headerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 10,
-  },
-  userRow: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingHorizontal: 4,
+    paddingVertical: 12,
     gap: 10,
   },
+  avatarRing: {
+    width: 40, height: 40, borderRadius: 20,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.7)',
+    padding: 1.5,
+  },
   headerAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
   },
   headerAvatarFb: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerAvatarTxt: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1D4ED8',
+    color: NAVY,
+  },
+  nameTimeRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
   },
   userName: {
     fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: -0.1,
+    flexShrink: 1,
   },
+  timeDot: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '600' },
   timeTxt: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '500',
+  },
+  subLine: {
     fontSize: 11,
-    color: 'rgba(255,255,255,0.75)',
-    marginTop: 1,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 2,
+    fontWeight: '500',
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
   },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  viewBadge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#F59E0B',
-    paddingHorizontal: 4,
+  iconBtnSmall: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  viewBadgeTxt: { fontSize: 9, color: '#FFF', fontWeight: '700' },
+
   captionWrap: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
+    left: 16,
+    right: 72,
     paddingTop: 16,
+  },
+  captionBubble: {
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 14,
+    paddingHorizontal: 14, paddingVertical: 10,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
   },
   captionTxt: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
+    lineHeight: 19,
     fontWeight: '500',
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
+
+  ownBottom: {
+    position: 'absolute', left: 0, right: 0, bottom: 0,
+    paddingHorizontal: 16, paddingTop: 12,
+    alignItems: 'center',
+  },
+  viewersPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 24,
+    paddingHorizontal: 18, paddingVertical: 12,
+    alignSelf: 'center',
+  },
+  viewersPillTxt: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  viewersPillCount: { fontWeight: '800' },
+
+  replyRow: {
+    position: 'absolute', left: 0, right: 0, bottom: 0,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 14, paddingTop: 10,
+  },
+  replyInput: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 22,
+    paddingHorizontal: 16, paddingVertical: 12,
+  },
+  replyPlaceholder: { color: 'rgba(255,255,255,0.7)', fontSize: 13.5 },
+  replyHeart: {
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  replySend: {
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+  },
+
   pausedHint: {
     position: 'absolute',
     top: '50%',
     left: 0,
     right: 0,
     alignItems: 'center',
-    marginTop: -14,
+    marginTop: -22,
+  },
+  pausedCircle: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)',
   },
 
   viewersOverlay: {
@@ -852,79 +1019,104 @@ const s = StyleSheet.create({
   },
   viewersSheet: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
     paddingTop: 10,
-    maxHeight: '75%',
+    maxHeight: '80%',
   },
   viewersHandle: {
-    width: 36,
+    width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#D1D5DB',
     alignSelf: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
   },
-  viewersHeaderRow: {
+
+  insightsStatsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingBottom: 16,
+    gap: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#F0F0F0',
   },
-  viewersTitle: {
+  insightStat: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000000',
+    flexDirection: 'row', alignItems: 'center', gap: 10,
   },
-  viewersClose: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
+  insightStatIcon: {
+    width: 34, height: 34, borderRadius: 11,
+    backgroundColor: 'rgba(11,30,61,0.08)',
+    alignItems: 'center', justifyContent: 'center',
   },
+  insightStatVal: { fontSize: 16, fontWeight: '700', color: '#000', letterSpacing: -0.2 },
+  insightStatLbl: { fontSize: 11, color: '#8E8E93', marginTop: 1 },
+
+  viewersTabRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F0F0F0',
+  },
+  viewersTab: {
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    marginRight: 20,
+  },
+  viewersTabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: NAVY,
+    marginBottom: -StyleSheet.hairlineWidth,
+  },
+  viewersTabTxtActive: { fontSize: 13, fontWeight: '700', color: NAVY },
+
   viewersLoader: {
     paddingVertical: 40,
     alignItems: 'center',
   },
   viewersEmpty: {
     paddingVertical: 40,
+    paddingHorizontal: 40,
     alignItems: 'center',
+    gap: 6,
   },
-  viewersEmptyTxt: { fontSize: 14, color: '#8E8E93' },
+  viewersEmptyIcon: {
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 10,
+  },
+  viewersEmptyTxt: { fontSize: 16, fontWeight: '700', color: '#000' },
+  viewersEmptySub: { fontSize: 13, color: '#8E8E93', textAlign: 'center', lineHeight: 18 },
+
   viewerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F5F5F5',
   },
   viewerAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
   },
   viewerAvatarFb: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
   viewerAvatarTxt: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1D4ED8',
+    color: NAVY,
   },
   viewerName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#000000',
+    letterSpacing: -0.1,
   },
   viewerUsername: {
     fontSize: 12,
@@ -934,5 +1126,6 @@ const s = StyleSheet.create({
   viewerTime: {
     fontSize: 12,
     color: '#8E8E93',
+    fontWeight: '500',
   },
 });

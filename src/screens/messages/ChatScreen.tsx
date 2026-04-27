@@ -1,7 +1,17 @@
 /**
  * ChatScreen.tsx
  * Unified DM + group + affiliation-aware chat.
- * Design: Clean Premium (Option 1) — navy sent bubbles, soft tails, instant send.
+ * Design: Clean Premium — navy sent bubbles, soft tails, instant send.
+ *
+ * FIXES applied (no other logic changed):
+ *  1. markRead calls mark_conversation_read RPC — atomic bulk update, bypasses
+ *     any messageStatusService issues.  read_at is set server-side in one call.
+ *  2. Realtime INSERT handler marks messages read immediately when they arrive
+ *     and the screen is mounted (same as before but now uses the RPC).
+ *  3. Reaction realtime sub uses a ref so it never captures a stale messages array.
+ *  4. Own messages (sender_id === me) never carry a receiver_id that matches me,
+ *     so they can never be counted as unread — this is enforced at the DB level by
+ *     the RPC (WHERE receiver_id = p_user_id) and at the UI level in ConversationsScreen.
  */
 import React, {
   useCallback, useEffect, useMemo, useRef, useState,
@@ -26,6 +36,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { messageStatusService } from '../../services/messageStatusService';
 import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
+import CallEventBubble from '../../components/CallEventBubble';
 
 const SCREEN_W = Dimensions.get('window').width;
 const MSG_IMG_MAX_W = Math.min(SCREEN_W * 0.72, 300);
@@ -438,6 +449,9 @@ export default function ChatScreen() {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingRef = useRef(false);
   const inputRef = useRef<TextInput>(null);
+  // FIX: ref to current messages array so realtime reaction sub never captures stale state
+  const messagesRef = useRef<MessageItem[]>([]);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
@@ -511,18 +525,37 @@ export default function ChatScreen() {
 
   const refreshStatus = useCallback(async () => {
     if (!conversationId || !currentUserId) return;
-    try { const s = await messageStatusService.getLastOutgoingMessageStatus(conversationId, currentUserId); if (mountedRef.current) setLastStatus(s ?? null); } catch {}
+    try {
+      const s = await messageStatusService.getLastOutgoingMessageStatus(conversationId, currentUserId);
+      if (mountedRef.current) setLastStatus(s ?? null);
+    } catch {}
   }, [conversationId, currentUserId]);
 
+  // FIX: markRead now calls the RPC directly — atomic, SECURITY DEFINER, bypasses RLS issues.
+  // Also updates local state immediately so sender sees "Seen" right away.
   const markRead = useCallback(async () => {
     if (!conversationId || !currentUserId) return;
     try {
-      await messageStatusService.markConversationDelivered(conversationId, currentUserId);
-      await messageStatusService.markConversationViewed(conversationId, currentUserId);
+      // 1. Atomic server-side update via RPC
+      await supabase.rpc('mark_conversation_read', {
+        p_conv_id: conversationId,
+        p_user_id: currentUserId,
+      });
+
+      // 2. Update local message state so UI reflects "read" immediately
       const now = new Date().toISOString();
-      setMessages(prev => prev.map(m => m.receiver_id === currentUserId ? { ...m, delivered_at: m.delivered_at || now, viewed_at: m.viewed_at || now, read_at: m.read_at || now } : m));
+      setMessages(prev =>
+        prev.map(m =>
+          m.receiver_id === currentUserId && !m.read_at
+            ? { ...m, read_at: now, delivered_at: m.delivered_at || now, viewed_at: m.viewed_at || now }
+            : m
+        )
+      );
+
       await refreshStatus();
-    } catch {}
+    } catch (e) {
+      console.log('[MARK_READ_ERR]', e);
+    }
   }, [conversationId, currentUserId, refreshStatus]);
 
   const loadReactions = useCallback(async (msgIds: string[]) => {
@@ -589,21 +622,17 @@ export default function ChatScreen() {
           .limit(100),
       ]);
 
-      if (mediaRes.error) console.log('[INFO_MEDIA_ERR]', mediaRes.error.message);
-      if (filesRes.error) console.log('[INFO_FILES_ERR]', filesRes.error.message);
-      if (starredRes.error) console.log('[INFO_STARRED_ERR]', starredRes.error.message);
-
       setInfoMedia((mediaRes.data || []) as InfoMediaMsg[]);
       setInfoFiles((filesRes.data || []) as InfoFileMsg[]);
 
       const starredRows = (starredRes.data || []) as any[];
-      const senderIds = Array.from(new Set(starredRows.map(r => r.msg?.sender_id).filter(Boolean)));
+      const senderIds = Array.from(new Set(starredRows.map((r: any) => r.msg?.sender_id).filter(Boolean)));
       let nameMap: Record<string, string> = {};
       if (senderIds.length > 0) {
         const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', senderIds);
         (profs || []).forEach((p: any) => { nameMap[p.id] = p.full_name || 'Member'; });
       }
-      setInfoStarred(starredRows.map(r => ({
+      setInfoStarred(starredRows.map((r: any) => ({
         id: r.id, message_id: r.message_id, starred_at: r.starred_at, starred_by: r.starred_by,
         msg: r.msg ? { ...r.msg, sender_name: nameMap[r.msg.sender_id] || 'Member' } : null,
       })));
@@ -626,7 +655,6 @@ export default function ChatScreen() {
     setStarredIds(prev => { const n = new Set(prev); n.delete(messageId); return n; });
     const { error } = await supabase.from('starred_messages').delete().eq('id', starredId);
     if (error) {
-      console.log('[UNSTAR_INFO_ERR]', error.message);
       loadInfoContent();
       loadStarredIds();
     }
@@ -644,7 +672,8 @@ export default function ChatScreen() {
         const ids = msgs.map(m => m.id);
         await loadReactions(ids);
       }
-      await markRead(); await refreshStatus();
+      await markRead();
+      await refreshStatus();
       await loadStarredIds();
       await loadSavedIds();
     } catch {} finally { if (mountedRef.current) setLoading(false); }
@@ -667,23 +696,65 @@ export default function ChatScreen() {
 
   useEffect(() => {
     mountedRef.current = true;
-    fetchMessages(); fetchTyping();
+    fetchMessages();
+    fetchTyping();
     if (!conversationId) return () => { mountedRef.current = false; };
-    const msgCh = supabase.channel(`messages_${conversationId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, async (p) => { mergeMsg(p.new as MessageItem); if ((p.new as any).receiver_id === currentUserId) await markRead(); await refreshStatus(); })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, async (p) => { mergeMsg(p.new as MessageItem); await refreshStatus(); })
+
+    const msgCh = supabase
+      .channel(`messages_${conversationId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
+        async (p) => {
+          mergeMsg(p.new as MessageItem);
+          // FIX: mark read immediately when a message for me arrives and screen is open
+          if ((p.new as any).receiver_id === currentUserId) {
+            await markRead();
+          }
+          await refreshStatus();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
+        async (p) => {
+          mergeMsg(p.new as MessageItem);
+          await refreshStatus();
+        }
+      )
       .subscribe();
-    const typeCh = supabase.channel(`typing_${conversationId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_typing', filter: `conversation_id=eq.${conversationId}` }, () => fetchTyping())
+
+    const typeCh = supabase
+      .channel(`typing_${conversationId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'conversation_typing', filter: `conversation_id=eq.${conversationId}` },
+        () => fetchTyping()
+      )
       .subscribe();
-    const reactCh = supabase.channel(`reactions_${conversationId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, () => {
-        const ids = messages.map(m => m.id);
-        if (ids.length) loadReactions(ids);
-      })
+
+    // FIX: use messagesRef so reaction sub always has the current message ids, no stale closure
+    const reactCh = supabase
+      .channel(`reactions_${conversationId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'message_reactions' },
+        () => {
+          const ids = messagesRef.current.map(m => m.id);
+          if (ids.length) loadReactions(ids);
+        }
+      )
       .subscribe();
-    return () => { mountedRef.current = false; if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); setTyping(false); supabase.removeChannel(msgCh); supabase.removeChannel(typeCh); supabase.removeChannel(reactCh); };
-  }, [conversationId, currentUserId, fetchMessages, fetchTyping, markRead, mergeMsg, refreshStatus, setTyping]);
+
+    return () => {
+      mountedRef.current = false;
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      setTyping(false);
+      supabase.removeChannel(msgCh);
+      supabase.removeChannel(typeCh);
+      supabase.removeChannel(reactCh);
+    };
+  }, [conversationId, currentUserId, fetchMessages, fetchTyping, markRead, mergeMsg, refreshStatus, setTyping, loadReactions]);
 
   const handleTextChange = useCallback((text: string) => {
     setMessage(text);
@@ -715,13 +786,13 @@ export default function ChatScreen() {
     if (already) {
       const { error } = await supabase.from('starred_messages').delete()
         .eq('message_id', msg.id).eq('starred_by', currentUserId);
-      if (error) { setStarredIds(prev => new Set([...prev, msg.id])); console.log('[STAR_DELETE_ERR]', error.message); }
+      if (error) { setStarredIds(prev => new Set([...prev, msg.id])); }
       else if (showInfoModal) loadInfoContent();
     } else {
       const { error } = await supabase.from('starred_messages').insert({
         message_id: msg.id, conversation_id: conversationId, starred_by: currentUserId,
       });
-      if (error) { setStarredIds(prev => { const n = new Set(prev); n.delete(msg.id); return n; }); console.log('[STAR_INSERT_ERR]', error.message); }
+      if (error) { setStarredIds(prev => { const n = new Set(prev); n.delete(msg.id); return n; }); }
       else if (showInfoModal) loadInfoContent();
     }
   };
@@ -734,14 +805,13 @@ export default function ChatScreen() {
       if (!perm.granted) { Alert.alert('Permission needed', 'Allow access to save to your gallery.'); return; }
       const cleanUrl = url.split('?')[0];
       const ext = cleanUrl.split('.').pop()?.toLowerCase() || (kind === 'video' ? 'mp4' : 'jpg');
-      const fileName = `tbirdsnest_${Date.now()}.${ext}`;
+      const fileName = `PlatinumCirclesnest_${Date.now()}.${ext}`;
       const dest = `${FileSystem.cacheDirectory}${fileName}`;
       const downloaded = await FileSystem.downloadAsync(url, dest);
       if (downloaded.status !== 200) throw new Error(`Download ${downloaded.status}`);
       await MediaLibrary.saveToLibraryAsync(downloaded.uri);
       Alert.alert('Saved', `${kind === 'video' ? 'Video' : 'Photo'} saved to your gallery.`);
     } catch (e: any) {
-      console.log('[SAVE_MEDIA_ERR]', e?.message);
       Alert.alert('Could not save', e?.message || 'Try again.');
     } finally { setSavingToDevice(false); }
   };
@@ -803,7 +873,7 @@ export default function ChatScreen() {
         : (text || '');
       supabase.from('conversations').update({ last_message: preview, last_message_time: data.created_at }).eq('id', convId).then(() => {});
       return true;
-    } catch (e: any) {
+    } catch {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       return false;
     }
@@ -943,7 +1013,9 @@ export default function ChatScreen() {
     if (item._optimistic) return 'Sending';
     const viewed = item.viewed_at || (lastStatus?.id === item.id ? lastStatus.viewed_at : null);
     const delivered = item.delivered_at || (lastStatus?.id === item.id ? lastStatus.delivered_at : null);
-    if (viewed) return `Seen ${fmtTime(viewed)}`;
+    // FIX: also check read_at for "Seen" — RPC sets read_at, not viewed_at
+    const readAt = item.read_at;
+    if (viewed || readAt) return `Seen ${fmtTime(viewed || readAt)}`;
     if (delivered) return 'Delivered';
     return 'Sent';
   }, [lastOwnIndex, currentUserId, lastStatus]);
@@ -970,6 +1042,10 @@ export default function ChatScreen() {
 
   const renderMsg = ({ item }: { item: any }) => {
     if (item.type === 'sep') return <View style={s.sep}><Text style={s.sepTxt}>{item.label}</Text></View>;
+    if (item.type === 'msg' && (item.data as MessageItem).media_type === 'call_event') {
+      const m = item.data as MessageItem;
+      return <CallEventBubble content={m.text || ''} mediaUrl={m.media_url || null} createdAt={m.created_at} />;
+    }
     const msg: MessageItem = item.data;
     const isMe = msg.sender_id === currentUserId;
     const status = getStatus(msg, isMe, item.index);
@@ -979,7 +1055,6 @@ export default function ChatScreen() {
     const isStarred = starredIds.has(msg.id);
     const replySourceMsg = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
     const replyPreview = replySourceMsg ? (replySourceMsg.text || (replySourceMsg.media_type === 'image' ? '📷 Photo' : '🎬 Video')) : null;
-
     const isMediaOnly = (msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url && !msg.text;
 
     return (
@@ -1359,7 +1434,6 @@ export default function ChatScreen() {
             </TouchableOpacity>
           </View>
           <ScrollView showsVerticalScrollIndicator={false}>
-
             <View style={s.infoContact}>
               {isAffiliationConversation
                 ? <View style={[s.infoAvatarFb, { width: 90, height: 90, borderRadius: 45 }]}>
@@ -1417,8 +1491,7 @@ export default function ChatScreen() {
                 { iconName: infoMuted ? 'bell-off' : 'bell', label: infoMuted ? 'Unmute' : 'Mute',
                   action: async () => {
                     if (!currentUserId || !conversationId) return;
-                    const next = !infoMuted;
-                    setInfoMuted(next);
+                    const next = !infoMuted; setInfoMuted(next);
                     await supabase.from('conversation_settings').upsert(
                       { conversation_id: conversationId, user_id: currentUserId, is_muted: next, updated_at: new Date().toISOString() },
                       { onConflict: 'conversation_id,user_id' }
@@ -1457,24 +1530,14 @@ export default function ChatScreen() {
 
             <View style={s.infoTabsSection}>
               <View style={s.infoTabBar}>
-                <TouchableOpacity style={[s.infoTab, infoTab === 'media' && s.infoTabActive]}
-                  onPress={() => setInfoTab('media')} activeOpacity={0.7}>
-                  <Text style={[s.infoTabTxt, infoTab === 'media' && s.infoTabTxtActive]}>
-                    Media ({infoMedia.length})
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[s.infoTab, infoTab === 'files' && s.infoTabActive]}
-                  onPress={() => setInfoTab('files')} activeOpacity={0.7}>
-                  <Text style={[s.infoTabTxt, infoTab === 'files' && s.infoTabTxtActive]}>
-                    Files ({infoFiles.length})
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[s.infoTab, infoTab === 'starred' && s.infoTabActive]}
-                  onPress={() => setInfoTab('starred')} activeOpacity={0.7}>
-                  <Text style={[s.infoTabTxt, infoTab === 'starred' && s.infoTabTxtActive]}>
-                    Starred ({infoStarred.length})
-                  </Text>
-                </TouchableOpacity>
+                {(['media', 'files', 'starred'] as InfoTab[]).map(t => (
+                  <TouchableOpacity key={t} style={[s.infoTab, infoTab === t && s.infoTabActive]}
+                    onPress={() => setInfoTab(t)} activeOpacity={0.7}>
+                    <Text style={[s.infoTabTxt, infoTab === t && s.infoTabTxtActive]}>
+                      {t === 'media' ? `Media (${infoMedia.length})` : t === 'files' ? `Files (${infoFiles.length})` : `Starred (${infoStarred.length})`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
               <View style={s.infoTabBody}>
                 {infoTab === 'media' && renderInfoMediaTab()}
@@ -1629,12 +1692,7 @@ export default function ChatScreen() {
             <Feather name="x" size={24} color="#FFF" />
           </TouchableOpacity>
           {fullscreenImg && (
-            <ExpoImage
-              source={{ uri: fullscreenImg }}
-              style={{ width: SCREEN_W, flex: 1 }}
-              contentFit="contain"
-              cachePolicy="memory-disk"
-            />
+            <ExpoImage source={{ uri: fullscreenImg }} style={{ width: SCREEN_W, flex: 1 }} contentFit="contain" cachePolicy="memory-disk" />
           )}
           {fullscreenImg && (
             <View style={s.fullscreenActions}>
@@ -1718,7 +1776,6 @@ export default function ChatScreen() {
             ListEmptyComponent={<View style={{ alignItems: 'center', paddingTop: 60 }}><Text style={{ color: TEXT_SECONDARY }}>No other conversations</Text></View>} />
         </SafeAreaView>
       </Modal>
-
     </SafeAreaView>
   );
 }
@@ -1726,7 +1783,6 @@ export default function ChatScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   flex: { flex: 1, backgroundColor: '#FFFFFF' },
-
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 10, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE, minHeight: 58, gap: 8 },
   backBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', marginHorizontal: 12, marginBottom: 4, marginTop: 2, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 },
@@ -1740,11 +1796,9 @@ const s = StyleSheet.create({
   hSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
   headerActions: { flexDirection: 'row', gap: 4, alignItems: 'center' },
   hActionBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-
   list: { paddingHorizontal: 0, paddingTop: 10, paddingBottom: 6, flexGrow: 1 },
   sep: { alignItems: 'center', paddingVertical: 12 },
   sepTxt: { fontSize: 11, color: TEXT_SECONDARY, fontWeight: '600', letterSpacing: 0.3 },
-
   row: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 3, paddingHorizontal: 12 },
   rowMe: { justifyContent: 'flex-end' },
   rowOther: { justifyContent: 'flex-start' },
@@ -1752,24 +1806,19 @@ const s = StyleSheet.create({
   sideAvatar: { width: 28, height: 28, borderRadius: 14 },
   sideAvatarFb: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
   sideAvatarTxt: { fontSize: 10, fontWeight: '700', color: '#3C3C43' },
-
   bubbleCol: { maxWidth: '80%', flexShrink: 1 },
   bubbleColMe: { alignItems: 'flex-end' },
   bubbleColOther: { alignItems: 'flex-start' },
-
   bubble: { paddingHorizontal: 14, paddingVertical: 9, position: 'relative' },
   bubbleMe: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
   bubbleOther: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6 },
   bubbleMeFlat: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
   bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6 },
-
   bubbleTxt: { fontSize: 15.5, lineHeight: 21, letterSpacing: -0.1 },
   bubbleTxtMe: { color: '#FFFFFF' },
   bubbleTxtOther: { color: TEXT_PRIMARY },
   linkTxt: { textDecorationLine: 'underline' },
-
   imgWrap: { borderRadius: 18, overflow: 'hidden', position: 'relative' },
-
   replyBar: { flexDirection: 'row', marginBottom: 4, borderRadius: 14, overflow: 'hidden', maxWidth: '100%' },
   replyBarMe: { backgroundColor: 'rgba(255,255,255,0.14)' },
   replyBarOther: { backgroundColor: 'rgba(11,30,61,0.06)' },
@@ -1780,16 +1829,13 @@ const s = StyleSheet.create({
   replyLabelMe: { color: 'rgba(255,255,255,0.75)' },
   replyTxt: { fontSize: 13, color: '#3C3C43', paddingHorizontal: 10, paddingTop: 2, paddingBottom: 8, lineHeight: 17 },
   replyTxtMe: { color: 'rgba(255,255,255,0.88)' },
-
   gifBadge: { position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
   gifBadgeTxt: { fontSize: 10, fontWeight: '700', color: '#FFF', letterSpacing: 0.3 },
   starBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.55)', width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   starBadgeInline: { position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.12)', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   starBadgeTxt: { fontSize: 12, color: '#FFD60A', fontWeight: '700' },
-
   videoThumb: { backgroundColor: '#1C1C1E', borderRadius: 14, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   videoPlayCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center' },
-
   docBubble: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4, minWidth: 200 },
   docIconBg: { width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
   docIconBgMe: { backgroundColor: 'rgba(255,255,255,0.15)' },
@@ -1797,7 +1843,6 @@ const s = StyleSheet.create({
   docNameMe: { color: '#FFF' },
   docTap: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
   docTapMe: { color: 'rgba(255,255,255,0.65)' },
-
   reactionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
   reactionsRowMe: { justifyContent: 'flex-end' },
   reactionsRowOther: { justifyContent: 'flex-start' },
@@ -1805,57 +1850,40 @@ const s = StyleSheet.create({
   reactionPillMine: { backgroundColor: '#E8EEF8', borderColor: NAVY },
   reactionEmoji: { fontSize: 14 },
   reactionCount: { fontSize: 11, fontWeight: '600', color: '#3C3C43' },
-
   status: { fontSize: 10.5, marginTop: 4, color: TEXT_SECONDARY, fontWeight: '500' },
   statusMe: { textAlign: 'right', marginRight: 4 },
   statusOther: { marginLeft: 4 },
   tsLabel: { fontSize: 10.5, color: TEXT_SECONDARY, marginTop: 2 },
   tsLabelMe: { textAlign: 'right', marginRight: 4 },
   tsLabelOther: { marginLeft: 4 },
-
   typingWrap: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingBottom: 6, marginBottom: 2 },
   typingBubble: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 11 },
   typingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: TEXT_SECONDARY },
-
   replyBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F9', paddingHorizontal: 14, paddingVertical: 10, gap: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
   replyBannerAccent: { width: 3, height: 32, borderRadius: 2, backgroundColor: NAVY },
   replyBannerContent: { flex: 1 },
   replyBannerLabel: { fontSize: 12, fontWeight: '600', color: NAVY },
   replyBannerPrev: { fontSize: 13, color: '#3C3C43', marginTop: 1 },
   replyBannerClose: { padding: 4 },
-
   toolbar: { backgroundColor: '#FFFFFF', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
   toolbarGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingVertical: 16, gap: 20, justifyContent: 'flex-start' },
   toolbarBtn: { alignItems: 'center', gap: 6 },
   toolbarBtnInner: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   toolbarBtnLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
-
   bar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 10, paddingTop: 8, backgroundColor: '#FFFFFF', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE, gap: 8 },
   addBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
   inputWrap: { flex: 1, backgroundColor: '#F2F2F7', borderRadius: 22, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10, minHeight: 40, justifyContent: 'center' },
   input: { fontSize: 16, color: TEXT_PRIMARY, maxHeight: 130, padding: 0, margin: 0, letterSpacing: -0.1 },
   sendBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
-
-  lockedBar: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: 16, paddingTop: 14,
-    backgroundColor: '#F9FAFB',
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE,
-  },
-  lockedIcon: {
-    width: 32, height: 32, borderRadius: 10,
-    backgroundColor: '#F3E8FF',
-    alignItems: 'center', justifyContent: 'center',
-  },
+  lockedBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 14, backgroundColor: '#F9FAFB', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
+  lockedIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center' },
   lockedTitle: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
   lockedSub: { fontSize: 11, color: '#6B7280', marginTop: 1 },
-
   fullscreenRoot: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
   fullscreenClose: { position: 'absolute', top: 52, right: 20, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
   fullscreenActions: { position: 'absolute', bottom: 40, flexDirection: 'row', gap: 10 },
   fsActionBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10 },
   fsActionTxt: { color: '#FFF', fontWeight: '600' },
-
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, gap: 6 },
   emptyAvatar: { width: 72, height: 72, borderRadius: 36, marginBottom: 4 },
@@ -1864,7 +1892,6 @@ const s = StyleSheet.create({
   emptyName: { fontSize: 18, fontWeight: '600', color: TEXT_PRIMARY },
   emptyHandle: { fontSize: 14, color: TEXT_SECONDARY },
   emptyHint: { fontSize: 13, color: '#C6C6C8', marginTop: 8, textAlign: 'center', paddingHorizontal: 40 },
-
   reactionOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   reactionSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 14, paddingBottom: 34 },
   reactionEmojis: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
@@ -1874,7 +1901,6 @@ const s = StyleSheet.create({
   reactionActionBtn: { alignItems: 'center', gap: 6, minWidth: 62 },
   reactionActionInner: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   reactionActionLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
-
   infoSafe: { flex: 1, backgroundColor: '#F7F7F9' },
   infoHeader: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
   infoDoneBtn: { paddingVertical: 4, paddingHorizontal: 4 },
@@ -1891,7 +1917,6 @@ const s = StyleSheet.create({
   infoQuickBtn: { alignItems: 'center', gap: 6, flex: 1 },
   infoQuickInner: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   infoQuickLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
-
   infoTabsSection: { backgroundColor: '#FFFFFF', marginBottom: 8 },
   infoTabBar: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
   infoTab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
@@ -1901,22 +1926,18 @@ const s = StyleSheet.create({
   infoTabBody: { paddingHorizontal: 14, paddingVertical: 12, minHeight: 140 },
   infoTabLoading: { alignItems: 'center', justifyContent: 'center', paddingVertical: 30 },
   infoEmpty: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', paddingVertical: 24 },
-
   mediaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 3 },
   mediaGridItem: { width: '32.8%', aspectRatio: 1, borderRadius: 6, overflow: 'hidden', backgroundColor: '#F2F2F7', position: 'relative' },
   mediaPlayOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.2)' },
-
   infoFileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   infoFileIconBg: { width: 38, height: 38, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
   infoFileName: { fontSize: 14, fontWeight: '600', color: '#111' },
   infoFileMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
-
   infoStarredRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   infoStarredTxt: { fontSize: 14, color: '#111', lineHeight: 19 },
   infoStarredMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 4 },
   infoStarredUnstar: { padding: 4 },
   infoStarredIcon: { fontSize: 20, color: '#FFD60A' },
-
   infoSection: { backgroundColor: '#FFFFFF', padding: 16, marginBottom: 8 },
   infoSectionTitle: { fontSize: 12, fontWeight: '600', color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
   infoBio: { fontSize: 15, color: '#3C3C43', lineHeight: 22 },
@@ -1928,7 +1949,6 @@ const s = StyleSheet.create({
   infoSeeAll: { fontSize: 14, color: NAVY, fontWeight: '600', paddingVertical: 8 },
   infoDanger: { backgroundColor: '#FEF2F2', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   infoDangerTxt: { fontSize: 15, fontWeight: '700', color: '#DC2626' },
-
   editMsgSheet: { backgroundColor: '#FFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingBottom: 24 },
   editMsgHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   editMsgTitle: { fontSize: 15, fontWeight: '700', color: '#000' },

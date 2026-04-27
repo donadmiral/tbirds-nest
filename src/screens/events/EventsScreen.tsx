@@ -199,7 +199,7 @@ export default function EventsScreen() {
                 {filter === 'mine' ? 'No events hosted yet' : 'No events'}
               </Text>
               <Text style={s.emptySub}>
-                {filter === 'mine' ? 'Host your first event and gather the TBirds community.' : 'Be the first to host a Mingle event.'}
+                {filter === 'mine' ? 'Host your first event and gather the PlatinumCircles community.' : 'Be the first to host a Mingle event.'}
               </Text>
               <TouchableOpacity
                 style={s.emptyBtn}

@@ -1,16 +1,29 @@
 /**
- * MediaRenderer.tsx — v5
+ * MediaRenderer.tsx
  *
- * Images: React Native Image (stable, no bad caching)
- * Videos: expo-video VideoView + useVideoPlayer (SDK 54, works in Expo Go)
- * Audio:  expo-audio setAudioModeAsync — plays through iOS silent mode
- * Zoom:   full-screen modal with pinch-to-zoom ScrollView
+ * Preserves feed look and media rendering.
+ * Fixes double-tap-to-like by NOT swallowing parent FeedScreen taps.
+ *
+ * Important:
+ * Your FeedScreen already wraps media with:
+ * onPress={() => handleDoubleTap(post.id, openPost)}
+ *
+ * This file keeps media visual quality intact and lets the parent wrapper receive taps.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View, FlatList, Modal, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Image, Platform,
-  Dimensions, StatusBar, Text,
+  View,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+  Platform,
+  Dimensions,
+  StatusBar,
+  Text,
+  TouchableOpacity,
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { setAudioModeAsync } from 'expo-audio';
@@ -29,30 +42,44 @@ type Props = {
   containerWidth: number;
   fullBleed?: boolean;
   maxHeight?: number;
-  /** When true, videos in this post autoplay. When false, they pause. */
   isActive?: boolean;
 };
 
 const SCREEN_W = Dimensions.get('window').width;
 const SCREEN_H = Dimensions.get('window').height;
 
-// ── Audio session setup — called once, lets video play in silent mode ─────────
-
 let audioSessionReady = false;
+
 async function ensureAudioSession() {
   if (audioSessionReady) return;
   try {
-    await setAudioModeAsync({ allowsRecording: false, playsInSilentModeIOS: true });
+    await setAudioModeAsync({
+      allowsRecording: false,
+      playsInSilentModeIOS: true,
+    });
     audioSessionReady = true;
   } catch (e) {
-    console.log('[MEDIA] audio session setup failed (non-fatal):', e);
+    console.log('[MEDIA] audio session setup failed:', e);
   }
 }
 
-// ── Zoom Modal ────────────────────────────────────────────────────────────────
+function getRatio(item: PostMedia) {
+  if (item.width && item.height && item.width > 0 && item.height > 0) {
+    return item.width / item.height;
+  }
+  return 4 / 5;
+}
+
+function getHeightFromRatio(width: number, ratio: number, maxHeight: number) {
+  const safeRatio = ratio && ratio > 0.1 && ratio < 10 ? ratio : 4 / 5;
+  return Math.min(Math.round(width / safeRatio), maxHeight);
+}
 
 function ZoomModal({
-  images, startIndex, visible, onClose,
+  images,
+  startIndex,
+  visible,
+  onClose,
 }: {
   images: PostMedia[];
   startIndex: number;
@@ -61,7 +88,9 @@ function ZoomModal({
 }) {
   const [active, setActive] = useState(startIndex);
 
-  useEffect(() => { if (visible) setActive(startIndex); }, [visible, startIndex]);
+  useEffect(() => {
+    if (visible) setActive(startIndex);
+  }, [visible, startIndex]);
 
   const onScroll = useCallback((e: any) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
@@ -73,7 +102,8 @@ function ZoomModal({
       <View style={z.overlay}>
         <StatusBar hidden />
         <TouchableOpacity
-          style={z.closeBtn} onPress={onClose}
+          style={z.closeBtn}
+          onPress={onClose}
           hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
         >
           <Text style={z.closeX}>✕</Text>
@@ -120,168 +150,204 @@ function ZoomModal({
   );
 }
 
-// ── Single Image ──────────────────────────────────────────────────────────────
-
 function SingleImage({
-  item, width, maxH, fullBleed, onPress,
+  item,
+  width,
+  maxH,
+  fullBleed,
 }: {
-  item: PostMedia; width: number; maxH: number; fullBleed: boolean; onPress: () => void;
+  item: PostMedia;
+  width: number;
+  maxH: number;
+  fullBleed: boolean;
 }) {
-  const [imgH, setImgH] = useState(() => {
-    if (item.width && item.height && item.width > 0 && item.height > 0) {
-      const ratio = Math.min(Math.max(item.height / item.width, 0.35), 1.5);
-      return Math.round(width * ratio);
-    }
-    return Math.round(width * 0.5625); // default 16:9
-  });
+  const initialRatio = item.width && item.height && item.width > 0 && item.height > 0
+    ? item.width / item.height
+    : null;
+
+  const [ratio, setRatio] = useState<number | null>(initialRatio);
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
 
   useEffect(() => {
-    if (item.width && item.height) return;
+    if (ratio) return;
     if (!item.url) return;
-    Image.getSize(item.url, (w, h) => {
-      if (w > 0 && h > 0) {
-        const ratio = Math.min(Math.max(h / w, 0.35), 1.5);
-        setImgH(Math.round(width * ratio));
-      }
-    }, () => {});
-  }, [item.url]);
 
-  const h = Math.min(imgH, maxH);
+    Image.getSize(
+      item.url,
+      (w, h) => {
+        if (w > 0 && h > 0) setRatio(w / h);
+      },
+      () => setRatio(4 / 5)
+    );
+  }, [item.url, ratio]);
+
+  const finalRatio = ratio || getRatio(item);
+  const height = getHeightFromRatio(width, finalRatio, maxH);
   const radius = fullBleed ? 0 : 14;
 
-  // Use contain for portrait/square (ratio >= 0.8), cover for landscape
-  const isPortrait = imgH >= width * 0.75;
-  const rm = isPortrait ? 'contain' : 'cover';
-  const bg = isPortrait ? '#000' : '#F0F0F0';
-
   return (
-    <TouchableOpacity
-      activeOpacity={0.96} onPress={onPress}
-      style={{ width, height: h, borderRadius: radius, overflow: 'hidden', backgroundColor: bg }}
+    <View
+      pointerEvents="none"
+      style={{
+        width,
+        height,
+        borderRadius: radius,
+        overflow: 'hidden',
+        backgroundColor: '#F0F0F0',
+      }}
     >
       <Image
         source={{ uri: item.url }}
-        style={{ width, height: h }}
-        resizeMode={rm}
+        style={{ width, height }}
+        resizeMode="cover"
         onLoad={() => setStatus('ok')}
         onError={(e) => {
           console.log('[IMG_ERR]', item.url, e.nativeEvent.error);
           setStatus('error');
         }}
       />
+
       {status === 'loading' && (
         <View style={[StyleSheet.absoluteFillObject, s.centered, { backgroundColor: '#F0F0F0' }]}>
           <ActivityIndicator color="#C7C7CC" size="small" />
         </View>
       )}
+
       {status === 'error' && (
         <View style={[StyleSheet.absoluteFillObject, s.centered, { backgroundColor: '#F2F2F7' }]}>
           <Text style={{ color: '#8E8E93', fontSize: 13 }}>Could not load image</Text>
         </View>
       )}
-    </TouchableOpacity>
+    </View>
   );
 }
 
-// ── Video ─────────────────────────────────────────────────────────────────────
-
-function VideoItem({ item, width, fullBleed, isActive }: { item: PostMedia; width: number; fullBleed: boolean; isActive: boolean }) {
-  const h = item.width && item.height
-    ? Math.min(Math.round(width * item.height / item.width), 400)
-    : Math.round(width * 0.6);
+function VideoItem({
+  item,
+  width,
+  fullBleed,
+  isActive,
+  maxHeight,
+}: {
+  item: PostMedia;
+  width: number;
+  fullBleed: boolean;
+  isActive: boolean;
+  maxHeight: number;
+}) {
+  const ratio = getRatio(item);
+  const height = getHeightFromRatio(width, ratio, maxHeight);
   const radius = fullBleed ? 0 : 14;
 
-  // Set up audio session so video plays even in iOS silent mode
-  useEffect(() => { ensureAudioSession(); }, []);
+  useEffect(() => {
+    ensureAudioSession();
+  }, []);
 
   const player = useVideoPlayer(item.url, p => {
-    p.loop = true;    // loop while in view — like Instagram/Twitter
+    p.loop = true;
     p.muted = false;
     p.volume = 1.0;
   });
 
-  // Autoplay when post scrolls into view, pause when it leaves
   useEffect(() => {
-    if (isActive) {
-      player.play();
-    } else {
-      player.pause();
-    }
-  }, [isActive]);
+    if (isActive) player.play();
+    else player.pause();
+  }, [isActive, player]);
 
   return (
-    <View style={{ width, height: h, borderRadius: radius, overflow: 'hidden', backgroundColor: '#000' }}>
+    <View
+      pointerEvents="none"
+      style={{
+        width,
+        height,
+        borderRadius: radius,
+        overflow: 'hidden',
+        backgroundColor: '#F0F0F0',
+      }}
+    >
       <VideoView
+        pointerEvents="none"
         player={player}
-        style={{ width, height: h }}
-        contentFit="contain"
-        nativeControls
+        style={{ width, height }}
+        contentFit="cover"
+        nativeControls={false}
         allowsPictureInPicture={false}
       />
     </View>
   );
 }
 
-// ── Carousel Item — handles image AND video in same list ─────────────────────
-
-const CAROUSEL_H = Math.round(SCREEN_W * 0.7);
-
 function CarouselItem({
-  item, width, onPress, isActive,
-}: { item: PostMedia; width: number; onPress: () => void; isActive: boolean }) {
-  // Video inside carousel — needs its own player instance
+  item,
+  width,
+  height,
+  isActive,
+}: {
+  item: PostMedia;
+  width: number;
+  height: number;
+  isActive: boolean;
+}) {
   if (item.media_type === 'video') {
-    useEffect(() => { ensureAudioSession(); }, []);
+    useEffect(() => {
+      ensureAudioSession();
+    }, []);
+
     const player = useVideoPlayer(item.url, p => {
       p.loop = true;
       p.muted = false;
       p.volume = 1.0;
     });
 
-    // Autoplay when carousel post is active
     useEffect(() => {
-      if (isActive) { player.play(); } else { player.pause(); }
-    }, [isActive]);
+      if (isActive) player.play();
+      else player.pause();
+    }, [isActive, player]);
+
     return (
-      <View style={{ width, height: CAROUSEL_H, backgroundColor: '#000' }}>
+      <View pointerEvents="none" style={{ width, height, backgroundColor: '#F0F0F0' }}>
         <VideoView
+          pointerEvents="none"
           player={player}
-          style={{ width, height: CAROUSEL_H }}
-          contentFit="contain"
-          nativeControls
+          style={{ width, height }}
+          contentFit="cover"
+          nativeControls={false}
           allowsPictureInPicture={false}
         />
       </View>
     );
   }
 
-  // Image inside carousel
   return (
-    <TouchableOpacity
-      activeOpacity={0.96}
-      onPress={onPress}
-      style={{ width, height: CAROUSEL_H, backgroundColor: '#111' }}
-    >
+    <View pointerEvents="none" style={{ width, height, backgroundColor: '#F0F0F0' }}>
       <Image
         source={{ uri: item.url }}
-        style={{ width, height: CAROUSEL_H }}
-        resizeMode="contain"
+        style={{ width, height }}
+        resizeMode="cover"
         onError={(e: any) => console.log('[CAROUSEL_IMG_ERR]', item.url, e.nativeEvent.error)}
       />
-    </TouchableOpacity>
+    </View>
   );
 }
 
-// ── Carousel ──────────────────────────────────────────────────────────────────
-
 function Carousel({
-  items, width, fullBleed, onItemPress, isActive,
+  items,
+  width,
+  fullBleed,
+  isActive,
+  maxHeight,
 }: {
-  items: PostMedia[]; width: number; fullBleed: boolean; onItemPress: (i: number) => void; isActive: boolean;
+  items: PostMedia[];
+  width: number;
+  fullBleed: boolean;
+  isActive: boolean;
+  maxHeight: number;
 }) {
   const [active, setActive] = useState(0);
   const radius = fullBleed ? 0 : 14;
+  const first = items[0];
+  const ratio = getRatio(first);
+  const height = getHeightFromRatio(width, ratio, maxHeight);
 
   const onScroll = useCallback((e: any) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / width);
@@ -298,16 +364,21 @@ function Carousel({
         keyExtractor={(_, i) => String(i)}
         onMomentumScrollEnd={onScroll}
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-        style={{ borderRadius: radius, overflow: 'hidden' }}
-        renderItem={({ item, index }) => (
+        style={{
+          borderRadius: radius,
+          overflow: 'hidden',
+          backgroundColor: '#F0F0F0',
+        }}
+        renderItem={({ item }) => (
           <CarouselItem
             item={item}
             width={width}
-            onPress={() => onItemPress(index)}
+            height={height}
             isActive={isActive}
           />
         )}
       />
+
       {items.length > 1 && (
         <View style={s.dots}>
           {items.map((_, i) => (
@@ -319,10 +390,12 @@ function Carousel({
   );
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
-
 export default function MediaRenderer({
-  media, containerWidth, fullBleed = false, maxHeight = 420, isActive = false,
+  media,
+  containerWidth,
+  fullBleed = false,
+  maxHeight = 420,
+  isActive = false,
 }: Props) {
   const [zoomIndex, setZoomIndex] = useState(0);
   const [zoomVisible, setZoomVisible] = useState(false);
@@ -331,56 +404,129 @@ export default function MediaRenderer({
 
   const sorted = [...media].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   const imageItems = sorted.filter(m => m.media_type !== 'video');
-  const openZoom = (i: number) => { setZoomIndex(i); setZoomVisible(true); };
 
-  // Single video
   if (sorted.length === 1 && sorted[0].media_type === 'video') {
     return (
       <View style={{ marginTop: 8 }}>
-        <VideoItem item={sorted[0]} width={containerWidth} fullBleed={fullBleed} isActive={isActive} />
+        <VideoItem
+          item={sorted[0]}
+          width={containerWidth}
+          fullBleed={fullBleed}
+          isActive={isActive}
+          maxHeight={maxHeight}
+        />
       </View>
     );
   }
 
-  // Single image
   if (sorted.length === 1) {
     return (
       <>
-        <ZoomModal images={imageItems} startIndex={zoomIndex} visible={zoomVisible} onClose={() => setZoomVisible(false)} />
+        <ZoomModal
+          images={imageItems}
+          startIndex={zoomIndex}
+          visible={zoomVisible}
+          onClose={() => setZoomVisible(false)}
+        />
         <View style={{ marginTop: 8 }}>
-          <SingleImage item={sorted[0]} width={containerWidth} maxH={maxHeight} fullBleed={fullBleed} onPress={() => openZoom(0)} />
+          <SingleImage
+            item={sorted[0]}
+            width={containerWidth}
+            maxH={maxHeight}
+            fullBleed={fullBleed}
+          />
         </View>
       </>
     );
   }
 
-  // Multiple — carousel
   return (
     <>
-      <ZoomModal images={imageItems} startIndex={zoomIndex} visible={zoomVisible} onClose={() => setZoomVisible(false)} />
+      <ZoomModal
+        images={imageItems}
+        startIndex={zoomIndex}
+        visible={zoomVisible}
+        onClose={() => setZoomVisible(false)}
+      />
       <View style={{ marginTop: 8 }}>
-        <Carousel items={sorted} width={containerWidth} fullBleed={fullBleed} onItemPress={openZoom} isActive={isActive} />
+        <Carousel
+          items={sorted}
+          width={containerWidth}
+          fullBleed={fullBleed}
+          isActive={isActive}
+          maxHeight={maxHeight}
+        />
       </View>
     </>
   );
 }
 
 const s = StyleSheet.create({
-  centered: { alignItems: 'center', justifyContent: 'center' },
-  dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingTop: 8, gap: 5 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D1D5DB' },
-  dotActive: { backgroundColor: '#111827', width: 18, borderRadius: 3 },
+  centered: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 8,
+    gap: 5,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#D1D5DB',
+  },
+  dotActive: {
+    backgroundColor: '#111827',
+    width: 18,
+    borderRadius: 3,
+  },
 });
 
 const z = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: '#000', justifyContent: 'center' },
-  closeBtn: {
-    position: 'absolute', top: Platform.OS === 'ios' ? 56 : 16, right: 20,
-    zIndex: 10, width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center',
+  overlay: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
   },
-  closeX: { color: '#FFF', fontSize: 16, fontWeight: '600' },
-  dots: { position: 'absolute', bottom: Platform.OS === 'ios' ? 48 : 24, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
-  dotActive: { backgroundColor: '#FFF', width: 18, borderRadius: 3 },
+  closeBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 56 : 16,
+    right: 20,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeX: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  dots: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 48 : 24,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+  dotActive: {
+    backgroundColor: '#FFF',
+    width: 18,
+    borderRadius: 3,
+  },
 });

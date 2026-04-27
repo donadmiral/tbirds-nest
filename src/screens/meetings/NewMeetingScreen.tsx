@@ -68,7 +68,7 @@ export default function NewMeetingScreen() {
   const shareLink = async (m: MyActiveMeeting) => {
     const link = meetingService.shareLink(m.room_name);
     await Share.share({
-      message: `Join my meeting on TBirds Nest: ${m.title}\n\n${link}`,
+      message: `Join my meeting on PlatinumCircles: ${m.title}\n\n${link}`,
     });
   };
 

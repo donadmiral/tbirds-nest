@@ -17,7 +17,7 @@ export default function AboutScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>‹</Text><Text style={s.backLbl}>Back</Text>
         </TouchableOpacity>
-        <Text style={s.headerTitle}>About TBirds Nest</Text>
+        <Text style={s.headerTitle}>About PlatinumCircles</Text>
         <View style={{ width: 60 }} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}>
@@ -27,7 +27,7 @@ export default function AboutScreen() {
           <View style={s.logoCircle}>
             <Text style={s.logoTxt}>T</Text>
           </View>
-          <Text style={s.appName}>TBirds Nest</Text>
+          <Text style={s.appName}>PlatinumCircles</Text>
           <Text style={s.tagline}>The home of the Thunderbird community</Text>
           <View style={s.versionRow}>
             <View style={s.versionPill}><Text style={s.versionTxt}>Version {VERSION} ({BUILD})</Text></View>
@@ -37,19 +37,19 @@ export default function AboutScreen() {
         {/* Mission */}
         <View style={s.missionCard}>
           <Text style={s.missionTitle}>Our Mission</Text>
-          <Text style={s.missionTxt}>TBirds Nest exists to connect the global Thunderbird community — students, alumni, faculty, and staff — in one professional space built specifically for us. We believe the power of Thunderbird lies in its people, and our mission is to make that network stronger, more accessible, and more meaningful every day.</Text>
+          <Text style={s.missionTxt}>PlatinumCircles exists to connect the global Thunderbird community — students, alumni, faculty, and staff — in one professional space built specifically for us. We believe the power of Thunderbird lies in its people, and our mission is to make that network stronger, more accessible, and more meaningful every day.</Text>
         </View>
 
         {/* Features */}
         <Text style={s.featuresTitle}>What You Can Do</Text>
         {[
           { icon: 'rss',         label: 'Feed',          desc: 'Share updates, ideas, and experiences with your cohort and the wider community.' },
-          { icon: 'users',       label: 'Network',        desc: 'Connect with fellow TBirds, orbit people you admire, and build your professional network.' },
-          { icon: 'briefcase',   label: 'Jobs',           desc: 'Discover career opportunities, request referrals, and track your applications — all within the TBirds community.' },
+          { icon: 'users',       label: 'Network',        desc: 'Connect with fellow PlatinumCircles, orbit people you admire, and build your professional network.' },
+          { icon: 'briefcase',   label: 'Jobs',           desc: 'Discover career opportunities, request referrals, and track your applications — all within the PlatinumCircles community.' },
           { icon: 'message-circle', label: 'Messaging',   desc: 'Have real conversations with classmates, mentors, and colleagues in private or group chats.' },
-          { icon: 'zap',         label: 'Mentorship',     desc: 'Find a mentor who has walked your path, or become one yourself for the next generation of TBirds.' },
-          { icon: 'star',        label: 'Startup Hub',    desc: 'Share your startup idea, attract interest from fellow TBirds investors and collaborators.' },
-          { icon: 'coffee',      label: 'Mingle',         desc: 'Organize and join events, hangouts, study sessions, and social gatherings — wherever TBirds are in the world.' },
+          { icon: 'zap',         label: 'Mentorship',     desc: 'Find a mentor who has walked your path, or become one yourself for the next generation of PlatinumCircles.' },
+          { icon: 'star',        label: 'Startup Hub',    desc: 'Share your startup idea, attract interest from fellow PlatinumCircles investors and collaborators.' },
+          { icon: 'coffee',      label: 'Mingle',         desc: 'Organize and join events, hangouts, study sessions, and social gatherings — wherever PlatinumCircles are in the world.' },
           { icon: 'shopping-bag', label: "Bird's Business", desc: 'Showcase and discover businesses founded by Thunderbird community members.' },
           { icon: 'award',       label: 'Mentorship',     desc: 'Get guidance from alumni with real-world expertise in your industry.' },
         ].map(f => (
@@ -86,13 +86,13 @@ export default function AboutScreen() {
             <Feather name="chevron-right" size={16} color="#C7C7CC" />
           </TouchableOpacity>
           <View style={s.linkDivider} />
-          <TouchableOpacity style={s.link} onPress={() => Linking.openURL('mailto:support@tbirdsnest.app')}>
+          <TouchableOpacity style={s.link} onPress={() => Linking.openURL('mailto:support@PlatinumCirclesnest.app')}>
             <Text style={s.linkTxt}>Contact Us</Text>
             <Feather name="chevron-right" size={16} color="#C7C7CC" />
           </TouchableOpacity>
         </View>
 
-        <Text style={s.copyright}>© 2025 TBirds Nest. All rights reserved.{'\n'}Thunderbird School of Global Management · ASU</Text>
+        <Text style={s.copyright}>© 2025 PlatinumCircles. All rights reserved.{'\n'}Thunderbird School of Global Management · ASU</Text>
       </ScrollView>
     </SafeAreaView>
   );

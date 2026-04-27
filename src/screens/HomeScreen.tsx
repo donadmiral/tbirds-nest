@@ -7,7 +7,7 @@ export default function HomeScreen() {
       style={styles.container}
       contentContainerStyle={styles.content}
     >
-      <Text style={styles.title}>TBirds Nest</Text>
+      <Text style={styles.title}>PlatinumCircles</Text>
       <View style={styles.card}>
         <Text>Welcome to your network</Text>
       </View>

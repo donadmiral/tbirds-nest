@@ -129,7 +129,7 @@ export default function SettingsScreen() {
   const handleSignOut = () => {
     Alert.alert(
       'Sign out?',
-      'You will need to sign in again to access TBirds Nest.',
+      'You will need to sign in again to access PlatinumCircles.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -270,7 +270,7 @@ export default function SettingsScreen() {
         <Section title="Support">
           <Row icon="help-circle" iconColor="#34C759" label="Help & Support" sublabel="FAQs, submit a ticket" onPress={() => navigation.navigate('HelpSupport')} />
           <View style={s.divider} />
-          <Row icon="mail" iconColor="#007AFF" label="Contact Us" sublabel="support@tbirdsnest.app" onPress={() => Linking.openURL('mailto:support@tbirdsnest.app?subject=TBirds%20Nest%20Inquiry').catch(() => Alert.alert('No mail app', 'Set up an email app on your device or email us directly at support@tbirdsnest.app'))} />
+          <Row icon="mail" iconColor="#007AFF" label="Contact Us" sublabel="support@PlatinumCirclesnest.app" onPress={() => Linking.openURL('mailto:support@PlatinumCirclesnest.app?subject=PlatinumCircles%20Nest%20Inquiry').catch(() => Alert.alert('No mail app', 'Set up an email app on your device or email us directly at support@PlatinumCirclesnest.app'))} />
           <View style={s.divider} />
           <Row icon="star" iconColor="#FFD60A" label="Rate the App" sublabel="Share your feedback" onPress={() => Alert.alert('Thank you!', 'App Store rating coming soon. In the meantime, send us feedback via Help & Support.')} />
         </Section>
@@ -280,7 +280,7 @@ export default function SettingsScreen() {
           <View style={s.divider} />
           <Row icon="shield" iconColor="#8E8E93"    label="Privacy Policy"   onPress={() => navigation.navigate('PrivacyPolicy')} />
           <View style={s.divider} />
-          <Row icon="info" iconColor="#8E8E93"      label="About TBirds Nest" onPress={() => navigation.navigate('About')} chevron={false}
+          <Row icon="info" iconColor="#8E8E93"      label="About PlatinumCircles" onPress={() => navigation.navigate('About')} chevron={false}
             right={<Text style={s.versionChip}>v1.0</Text>} />
         </Section>
 
@@ -288,7 +288,7 @@ export default function SettingsScreen() {
           <Row icon="log-out" iconColor="#FF3B30" label="Sign Out" danger onPress={handleSignOut} />
         </Section>
 
-        <Text style={s.footerTxt}>TBirds Nest · Thunderbird School of Global Management</Text>
+        <Text style={s.footerTxt}>PlatinumCircles · Thunderbird School of Global Management</Text>
       </ScrollView>
 
       <Modal visible={pwModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setPwModal(false); setNewPw(''); setConfirmPw(''); }}>
@@ -373,9 +373,9 @@ export default function SettingsScreen() {
           </View>
           <ScrollView contentContainerStyle={s.modalBody}>
             <Text style={s.privLabel}>Profile Visibility</Text>
-            <Text style={s.privDesc}>Control who can see your profile information on TBirds Nest.</Text>
+            <Text style={s.privDesc}>Control who can see your profile information on PlatinumCircles.</Text>
             {[
-              { value: 'public'  as const, icon: 'globe',    title: 'Public',  desc: 'Anyone signed in to TBirds Nest can view your full profile, posts, and connections.' },
+              { value: 'public'  as const, icon: 'globe',    title: 'Public',  desc: 'Anyone signed in to PlatinumCircles can view your full profile, posts, and connections.' },
               { value: 'private' as const, icon: 'lock',     title: 'Private', desc: 'Only your accepted connections can view your profile. Others will see only your name and avatar.' },
             ].map(opt => (
               <TouchableOpacity key={opt.value} style={[s.privOption, visibility === opt.value && s.privOptionActive]} onPress={() => setVisibility(opt.value)} activeOpacity={0.8}>

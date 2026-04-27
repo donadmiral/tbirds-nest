@@ -1,13 +1,30 @@
+/**
+ * StartupHubScreen.tsx
+ * Option A: Gradient hero cards. No stage filter pills.
+ * Industry filter chips. Stage shown as frosted badge on each card.
+ * Existing design preserved. Production fixes added:
+ * - true LinearGradient hero
+ * - startup_interest realtime listener
+ * - interest counts loaded via grouped RPC
+ * - unique constraint handled safely on duplicate interest insert
+ */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput,
   Modal, ScrollView, ActivityIndicator, Alert, StatusBar, RefreshControl,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
+
+const NAVY = '#0B1E3D';
+const TEXT_PRIMARY = '#000000';
+const TEXT_SECONDARY = '#8E8E93';
+const HAIRLINE = '#E5E5EA';
 
 type Startup = {
   id: string; founder_id: string; founder_name: string; startup_name: string;
@@ -17,10 +34,37 @@ type Startup = {
 };
 
 const STAGE_EMOJI: Record<string, string> = {
-  'All': '🌍', 'Idea': '💡', 'MVP': '🔧', 'Seed': '🌱', 'Series A+': '🚀', 'Profitable': '💰',
+  'Idea': '💡', 'MVP': '🔧', 'Seed': '🌱', 'Series A+': '🚀', 'Profitable': '💰',
 };
-const STAGES = ['All', 'Idea', 'MVP', 'Seed', 'Series A+', 'Profitable'];
+const STAGES = ['Idea', 'MVP', 'Seed', 'Series A+', 'Profitable'];
 const INDUSTRIES = ['Tech', 'Finance', 'Health', 'Education', 'Food', 'Energy', 'Media', 'Retail', 'Impact', 'Other'];
+
+const HERO_GRADIENTS = [
+  ['#0B1E3D', '#1A3560', '#4F7FBF'],
+  ['#065F46', '#10B981', '#34D399'],
+  ['#7C2D12', '#D97706', '#FBBF24'],
+  ['#5B21B6', '#8B5CF6', '#A78BFA'],
+  ['#BE185D', '#F472B6', '#FBCFE8'],
+  ['#1E3A8A', '#3B82F6', '#60A5FA'],
+];
+
+function getGradientIndex(id: string): number {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) % HERO_GRADIENTS.length;
+  return Math.abs(h) % HERO_GRADIENTS.length;
+}
+
+function MField({ label, value, set, placeholder, autoCapitalize }: {
+  label: string; value: string; set: (v: string) => void; placeholder: string; autoCapitalize?: 'none' | 'words';
+}) {
+  return (
+    <View style={st.mField}>
+      <Text style={st.mLabel}>{label}</Text>
+      <TextInput value={value} onChangeText={set} placeholder={placeholder}
+        placeholderTextColor="#C7C7CC" style={st.mInput} autoCapitalize={autoCapitalize} />
+    </View>
+  );
+}
 
 export default function StartupHubScreen() {
   const navigation = useNavigation<any>();
@@ -30,12 +74,14 @@ export default function StartupHubScreen() {
 
   const [startups, setStartups] = useState<Startup[]>([]);
   const [search, setSearch] = useState('');
-  const [stageFilter, setStageFilter] = useState('All');
+  const [industryFilter, setIndustryFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  // Create form
   const [startupName, setStartupName] = useState('');
   const [industry, setIndustry] = useState('');
   const [stage, setStage] = useState('');
@@ -45,28 +91,50 @@ export default function StartupHubScreen() {
   const [fundingNeed, setFundingNeed] = useState('');
   const [website, setWebsite] = useState('');
 
-  const clearForm = () => { setStartupName(''); setIndustry(''); setStage(''); setLocation(''); setOneLiner(''); setDescription(''); setFundingNeed(''); setWebsite(''); };
+  const clearForm = () => {
+    setStartupName(''); setIndustry(''); setStage(''); setLocation('');
+    setOneLiner(''); setDescription(''); setFundingNeed(''); setWebsite('');
+  };
 
   const load = useCallback(async (showLoader = true) => {
     if (!myId) return;
     try {
       if (showLoader) setLoading(true);
-      const { data: sp, error } = await supabase.from('startup_posts').select('*').order('created_at', { ascending: false });
+
+      const { data: sp, error } = await supabase
+        .from('startup_posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
       if (error) { setStartups([]); return; }
       const safePosts = sp || [];
       if (!safePosts.length) { setStartups([]); return; }
+
       const fids = Array.from(new Set(safePosts.map((p: any) => p.founder_id)));
       const { data: ps } = await supabase.from('profiles').select('id, full_name').in('id', fids);
       const pm: Record<string, string> = {};
       (ps || []).forEach((p: any) => { pm[p.id] = p.full_name || 'User'; });
-      const { data: interests } = await supabase.from('startup_interest').select('startup_id').eq('investor_id', myId);
+
+      const { data: interests } = await supabase
+        .from('startup_interest')
+        .select('startup_id')
+        .eq('investor_id', myId);
       const myInterests = new Set((interests || []).map((i: any) => i.startup_id));
-      const { data: allInterests } = await supabase.from('startup_interest').select('startup_id');
+
+      const { data: counts, error: countsErr } = await supabase.rpc('get_startup_interest_counts');
       const interestCounts: Record<string, number> = {};
-      (allInterests || []).forEach((i: any) => { interestCounts[i.startup_id] = (interestCounts[i.startup_id] || 0) + 1; });
+      if (!countsErr) {
+        (counts || []).forEach((c: any) => {
+          interestCounts[c.startup_id] = Number(c.count || 0);
+        });
+      }
+
       setStartups(safePosts.map((p: any) => ({
-        ...p, founder_name: pm[p.founder_id] || 'User',
-        interest_count: interestCounts[p.id] || 0, interested: myInterests.has(p.id),
+        ...p,
+        founder_name: pm[p.founder_id] || 'User',
+        interest_count: interestCounts[p.id] || 0,
+        interested: myInterests.has(p.id),
       })));
     } catch (e) { console.log('STARTUP_LOAD', e); }
     finally { setLoading(false); setRefreshing(false); }
@@ -76,7 +144,8 @@ export default function StartupHubScreen() {
     load(true);
     const ch = supabase.channel('startup_hub_live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'startup_posts' }, () => load(false))
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'startup_interest' }, () => load(false))
+      .subscribe((status) => console.log('STARTUP_REALTIME', status));
     return () => { supabase.removeChannel(ch); };
   }, [load]);
 
@@ -102,188 +171,301 @@ export default function StartupHubScreen() {
   };
 
   const toggleInterest = async (startup: Startup) => {
-    if (!myId) return;
-    if (startup.interested) {
-      await supabase.from('startup_interest').delete().eq('startup_id', startup.id).eq('investor_id', myId);
-    } else {
-      await supabase.from('startup_interest').insert({ startup_id: startup.id, investor_id: myId });
-    }
-    setStartups(prev => prev.map(s => s.id === startup.id ? { ...s, interested: !s.interested, interest_count: s.interest_count + (s.interested ? -1 : 1) } : s));
+    if (!myId || togglingId) return;
+    setTogglingId(startup.id);
+
+    const wasInterested = startup.interested;
+
+    // Update only local active state immediately. Count is reconciled by realtime/RPC.
+    setStartups(prev => prev.map(s => s.id === startup.id ? { ...s, interested: !wasInterested } : s));
+
+    try {
+      if (wasInterested) {
+        const { error } = await supabase
+          .from('startup_interest')
+          .delete()
+          .eq('startup_id', startup.id)
+          .eq('investor_id', myId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('startup_interest')
+          .insert({ startup_id: startup.id, investor_id: myId });
+        if (error && error.code !== '23505') throw error;
+      }
+      await load(false);
+    } catch (e: any) {
+      setStartups(prev => prev.map(s => s.id === startup.id ? { ...s, interested: wasInterested } : s));
+      Alert.alert('Error', e?.message || 'Could not update interest.');
+    } finally { setTogglingId(null); }
   };
 
-  const displayedStartups = useMemo(() => {
+  const displayed = useMemo(() => {
     const term = search.toLowerCase();
     return startups.filter(s => {
-      const matchStage = stageFilter === 'All' || s.stage === stageFilter;
-      const matchSearch = !term || s.startup_name.toLowerCase().includes(term) || s.industry.toLowerCase().includes(term) || s.one_liner.toLowerCase().includes(term);
-      return matchStage && matchSearch;
+      const matchInd = !industryFilter || s.industry === industryFilter;
+      const matchSearch = !term || s.startup_name.toLowerCase().includes(term) ||
+        s.industry.toLowerCase().includes(term) || s.one_liner.toLowerCase().includes(term) ||
+        s.founder_name.toLowerCase().includes(term);
+      return matchInd && matchSearch;
     });
-  }, [startups, search, stageFilter]);
+  }, [startups, search, industryFilter]);
+
+  const renderCard = ({ item: p }: { item: Startup }) => {
+    const gi = getGradientIndex(p.id);
+    const colors = HERO_GRADIENTS[gi];
+    const stageEmoji = STAGE_EMOJI[p.stage] || '✨';
+    const busy = togglingId === p.id;
+
+    return (
+      <TouchableOpacity
+        style={st.card}
+        activeOpacity={0.88}
+        onPress={() => navigation.navigate('StartupHubDetails', { postId: p.id })}
+      >
+        <LinearGradient colors={colors as any} style={st.hero}>
+          <View style={st.stageBadge}>
+            <Text style={st.stageBadgeTxt}>{stageEmoji} {p.stage}</Text>
+          </View>
+          {p.interest_count > 0 && (
+            <View style={st.interestBadge}>
+              <Text style={st.interestBadgeTxt}>⚡ {p.interest_count}</Text>
+            </View>
+          )}
+          <View style={st.heroBottom}>
+            <Text style={st.heroName}>{p.startup_name}</Text>
+            <Text style={st.heroLiner} numberOfLines={2}>{p.one_liner}</Text>
+          </View>
+        </LinearGradient>
+
+        <View style={st.cardBody}>
+          <View style={st.metaRow}>
+            <Feather name="user" size={12} color={TEXT_SECONDARY} />
+            <Text style={st.metaTxt}>{p.founder_name}</Text>
+            <Text style={st.metaDot}>.</Text>
+            <Feather name="map-pin" size={12} color={TEXT_SECONDARY} />
+            <Text style={st.metaTxt}>{p.location}</Text>
+          </View>
+          <View style={st.metaRow}>
+            <Feather name="briefcase" size={12} color={TEXT_SECONDARY} />
+            <Text style={st.metaTxt}>{p.industry}</Text>
+            {p.funding_need && (
+              <>
+                <Text style={st.metaDot}>.</Text>
+                <Feather name="target" size={12} color="#059669" />
+                <Text style={[st.metaTxt, { color: '#059669', fontWeight: '500' }]}>Seeking {p.funding_need}</Text>
+              </>
+            )}
+          </View>
+
+          <View style={st.cardFoot}>
+            <TouchableOpacity
+              style={[st.intBtn, p.interested && st.intBtnActive]}
+              onPress={(e) => { e.stopPropagation(); toggleInterest(p); }}
+              disabled={busy}
+              activeOpacity={0.7}
+            >
+              {busy
+                ? <ActivityIndicator color={p.interested ? '#FFF' : '#FF9500'} size={12} />
+                : <>
+                    <Text style={{ fontSize: 13 }}>⚡</Text>
+                    <Text style={[st.intBtnTxt, p.interested && st.intBtnTxtActive]}>
+                      {p.interested ? 'Interested' : 'Interest'}
+                    </Text>
+                  </>
+              }
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={st.viewBtn}
+              onPress={() => navigation.navigate('StartupHubDetails', { postId: p.id })}
+              activeOpacity={0.7}
+            >
+              <Text style={st.viewBtnTxt}>View Details</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
-          <Text style={s.backChev}>‹</Text><Text style={s.backLbl}>Back</Text>
-        </TouchableOpacity>
-        <View style={s.headerCenter}>
-          <Text style={s.headerTitle}>Startup Hub</Text>
-          <Text style={s.headerSub}>TBirds ventures & ideas</Text>
+
+      <View style={st.header}>
+        <View>
+          <Text style={st.title}>Startup Hub</Text>
+          <Text style={st.subtitle}>PlatinumCircles ventures and ideas</Text>
         </View>
-        <TouchableOpacity style={s.addBtn} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
-          <Feather name="plus" size={20} color="#FFF" />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={st.hdrBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+            <Feather name="chevron-left" size={20} color={NAVY} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[st.hdrBtn, st.hdrBtnFill]} onPress={() => setModalVisible(true)} activeOpacity={0.7}>
+            <Feather name="plus" size={20} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={st.searchBar}>
+        <Feather name="search" size={15} color={TEXT_SECONDARY} />
+        <TextInput value={search} onChangeText={setSearch} placeholder="Search startups..."
+          placeholderTextColor={TEXT_SECONDARY} style={st.searchInput} clearButtonMode="while-editing" />
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.filterRow}>
+        <TouchableOpacity style={[st.filterChip, !industryFilter && st.filterChipOn]}
+          onPress={() => setIndustryFilter('')} activeOpacity={0.7}>
+          <Text style={[st.filterChipTxt, !industryFilter && st.filterChipTxtOn]}>All</Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={s.searchWrap}>
-        <Feather name="search" size={16} color="#8E8E93" />
-        <TextInput value={search} onChangeText={setSearch} placeholder="Search startups..." placeholderTextColor="#8E8E93" style={s.searchInput} clearButtonMode="while-editing" />
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.stageRow}>
-        {STAGES.map(st => (
-          <TouchableOpacity key={st} style={[s.chip, stageFilter === st && s.chipActive]} onPress={() => setStageFilter(st)}>
-            <Text style={[s.chipTxt, stageFilter === st && s.chipTxtActive]}>{st}</Text>
+        {INDUSTRIES.map(ind => (
+          <TouchableOpacity key={ind} style={[st.filterChip, industryFilter === ind && st.filterChipOn]}
+            onPress={() => setIndustryFilter(industryFilter === ind ? '' : ind)} activeOpacity={0.7}>
+            <Text style={[st.filterChipTxt, industryFilter === ind && st.filterChipTxtOn]}>{ind}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
       {loading ? (
-        <View style={s.loader}><ActivityIndicator color="#007AFF" size="large" /></View>
+        <View style={st.center}><ActivityIndicator color={NAVY} size="large" /></View>
       ) : (
         <FlatList
-          data={displayedStartups}
+          data={displayed}
           keyExtractor={i => i.id}
+          renderItem={renderCard}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[s.list, !displayedStartups.length && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
+          contentContainerStyle={[st.list, !displayed.length && st.listEmpty, { paddingBottom: insets.bottom + 60 }]}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(false); }} tintColor="#007AFF" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(false); }} tintColor={NAVY} />}
           ListEmptyComponent={
-            <View style={s.empty}>
-              <Feather name="zap" size={40} color="#E5E5EA" />
-              <Text style={s.emptyTitle}>{search || stageFilter !== 'All' ? 'No results' : 'No startups yet'}</Text>
-              <Text style={s.emptyTxt}>{search || stageFilter !== 'All' ? 'Try a different search.' : 'Share your startup idea with the TBirds community.'}</Text>
-              {!search && stageFilter === 'All' && <TouchableOpacity style={s.emptyBtn} onPress={() => setModalVisible(true)}><Text style={s.emptyBtnTxt}>List my startup</Text></TouchableOpacity>}
+            <View style={st.empty}>
+              <View style={st.emptyIcon}><Feather name="zap" size={32} color="#C7C7CC" /></View>
+              <Text style={st.emptyTitle}>{search || industryFilter ? 'No results' : 'No startups yet'}</Text>
+              <Text style={st.emptySub}>{search || industryFilter ? 'Try a different search or category.' : 'Share your startup idea with the PlatinumCircles community.'}</Text>
+              {!search && !industryFilter && (
+                <TouchableOpacity style={st.emptyBtn} onPress={() => setModalVisible(true)} activeOpacity={0.85}>
+                  <Text style={st.emptyBtnTxt}>List my startup</Text>
+                </TouchableOpacity>
+              )}
             </View>
           }
-          renderItem={({ item: p }) => (
-            <TouchableOpacity style={s.card} activeOpacity={0.88} onPress={() => navigation.navigate('StartupHubDetails', { postId: p.id })}>
-              <View style={s.cardTop}>
-                <View style={s.stagePill}><Text style={s.stagePillTxt}>{p.stage}</Text></View>
-                <View style={s.industryPill}><Text style={s.industryPillTxt}>{p.industry}</Text></View>
-              </View>
-              <Text style={s.startupName}>{p.startup_name}</Text>
-              <Text style={s.oneLiner}>{p.one_liner}</Text>
-              <Text style={s.founder}>by {p.founder_name} · 📍 {p.location}</Text>
-              {p.funding_need && <Text style={s.funding}>🎯 Seeking {p.funding_need}</Text>}
-              <View style={s.cardActions}>
-                <TouchableOpacity style={s.viewBtn} onPress={() => navigation.navigate('StartupHubDetails', { postId: p.id })} activeOpacity={0.8}>
-                  <Text style={s.viewBtnTxt}>View details</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[s.interestBtn, p.interested && s.interestedBtn]} onPress={() => toggleInterest(p)} activeOpacity={0.8}>
-                  <Feather name="zap" size={14} color={p.interested ? '#FFF' : '#FF9500'} />
-                  <Text style={[s.interestBtnTxt, p.interested && s.interestedBtnTxt]}>{p.interest_count} Interested</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          )}
         />
       )}
 
-      <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { clearForm(); setModalVisible(false); }}>
+      <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet"
+        onRequestClose={() => { clearForm(); setModalVisible(false); }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
-          <View style={s.modalHeader}>
-            <TouchableOpacity onPress={() => { clearForm(); setModalVisible(false); }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
-            <Text style={s.modalTitle}>List Your Startup</Text>
+          <View style={st.modalHeader}>
+            <TouchableOpacity onPress={() => { clearForm(); setModalVisible(false); }}>
+              <Text style={st.modalCancel}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={st.modalTitle}>List Your Startup</Text>
             <TouchableOpacity onPress={handleCreate} disabled={submitting}>
-              {submitting ? <ActivityIndicator color="#007AFF" size={16} /> : <Text style={s.modalPost}>Post</Text>}
+              {submitting ? <ActivityIndicator color={NAVY} size={16} /> : <Text style={st.modalPost}>Post</Text>}
             </TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            {[
-              { label: 'Startup Name *', value: startupName, set: setStartupName, placeholder: 'e.g. ZimFin' },
-              { label: 'Location *', value: location, set: setLocation, placeholder: 'Phoenix, AZ' },
-              { label: 'One Liner *', value: oneLiner, set: setOneLiner, placeholder: 'We help X do Y through Z' },
-              { label: 'Funding Need', value: fundingNeed, set: setFundingNeed, placeholder: '$250k pre-seed' },
-              { label: 'Website', value: website, set: setWebsite, placeholder: 'https://...', autoCapitalize: 'none' as const },
-            ].map(f => (
-              <View key={f.label} style={s.modalField}>
-                <Text style={s.modalFieldLabel}>{f.label}</Text>
-                <TextInput value={f.value} onChangeText={f.set} placeholder={f.placeholder} placeholderTextColor="#C7C7CC" style={s.modalInput} autoCapitalize={f.autoCapitalize} />
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <ScrollView contentContainerStyle={st.modalBody} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <MField label="Startup Name *" value={startupName} set={setStartupName} placeholder="e.g. ZimFin" />
+              <MField label="Location *" value={location} set={setLocation} placeholder="Harare, Zimbabwe" />
+              <MField label="One Liner *" value={oneLiner} set={setOneLiner} placeholder="We help X do Y through Z" />
+              <MField label="Funding Need" value={fundingNeed} set={setFundingNeed} placeholder="$250k pre-seed" />
+              <MField label="Website" value={website} set={setWebsite} placeholder="https://..." autoCapitalize="none" />
+
+              <View style={st.mField}>
+                <Text style={st.mLabel}>Industry *</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                  {INDUSTRIES.map(i => (
+                    <TouchableOpacity key={i} style={[st.filterChip, industry === i && st.filterChipOn]}
+                      onPress={() => setIndustry(i)}>
+                      <Text style={[st.filterChipTxt, industry === i && st.filterChipTxtOn]}>{i}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
-            ))}
-            <View style={s.modalField}>
-              <Text style={s.modalFieldLabel}>Industry *</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingBottom: 4 }}>
-                {INDUSTRIES.map(i => <TouchableOpacity key={i} style={[s.chip, industry === i && s.chipActive]} onPress={() => setIndustry(i)}><Text style={[s.chipTxt, industry === i && s.chipTxtActive]}>{i}</Text></TouchableOpacity>)}
-              </ScrollView>
-            </View>
-            <View style={s.modalField}>
-              <Text style={s.modalFieldLabel}>Stage *</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingBottom: 4 }}>
-                {STAGES.filter(st => st !== 'All').map(st => <TouchableOpacity key={st} style={[s.chip, stage === st && s.chipActive]} onPress={() => setStage(st)}><Text style={[s.chipTxt, stage === st && s.chipTxtActive]}>{st}</Text></TouchableOpacity>)}
-              </ScrollView>
-            </View>
-            <View style={s.modalField}>
-              <Text style={s.modalFieldLabel}>Description *</Text>
-              <TextInput value={description} onChangeText={setDescription} placeholder="What problem are you solving? What makes you different?" placeholderTextColor="#C7C7CC" style={[s.modalInput, { minHeight: 110, paddingTop: 12 }]} multiline textAlignVertical="top" />
-            </View>
-          </ScrollView>
+
+              <View style={st.mField}>
+                <Text style={st.mLabel}>Stage *</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                  {STAGES.map(s => (
+                    <TouchableOpacity key={s} style={[st.stageChip, stage === s && st.stageChipOn]}
+                      onPress={() => setStage(s)}>
+                      <Text style={{ fontSize: 14 }}>{STAGE_EMOJI[s] || '✨'}</Text>
+                      <Text style={[st.stageChipTxt, stage === s && st.stageChipTxtOn]}>{s}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              <View style={st.mField}>
+                <Text style={st.mLabel}>Description *</Text>
+                <TextInput value={description} onChangeText={setDescription}
+                  placeholder="What problem are you solving? What makes you different?"
+                  placeholderTextColor="#C7C7CC"
+                  style={[st.mInput, { minHeight: 110, paddingTop: 12 }]}
+                  multiline textAlignVertical="top" />
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  backBtn: { flexDirection: 'row', alignItems: 'center', minWidth: 60 },
-  backChev: { fontSize: 30, color: '#007AFF', lineHeight: 34, marginRight: 1 },
-  backLbl: { fontSize: 17, color: '#007AFF' },
-  headerCenter: { alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#000' },
-  headerSub: { fontSize: 11, color: '#8E8E93', marginTop: 1 },
-  addBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginVertical: 10, backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 12, height: 40 },
-  searchInput: { flex: 1, fontSize: 15, color: '#000' },
-  stageRow: { paddingHorizontal: 16, paddingBottom: 10, gap: 6 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: '#E5E5EA', backgroundColor: '#F5F5F5' },
-  chipActive: { borderColor: '#5856D6' },
-  chipTxt: { fontSize: 11, fontWeight: '600', color: '#3C3C43', letterSpacing: -0.1 },
-  chipTxtActive: { color: '#5856D6', fontWeight: '700' },
-  list: { paddingHorizontal: 16, paddingTop: 4 },
+const st = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#FFF' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6 },
+  title: { fontSize: 26, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.4 },
+  subtitle: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+  hdrBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
+  hdrBtnFill: { backgroundColor: NAVY },
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', marginHorizontal: 16, marginBottom: 8, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 },
+  searchInput: { flex: 1, fontSize: 14, color: '#000', padding: 0 },
+  filterRow: { paddingHorizontal: 16, paddingBottom: 12, gap: 6 },
+  filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: HAIRLINE },
+  filterChipOn: { backgroundColor: NAVY, borderColor: NAVY },
+  filterChipTxt: { fontSize: 12, fontWeight: '600', color: '#3C3C43' },
+  filterChipTxtOn: { color: '#FFF' },
+  list: { paddingHorizontal: 0, paddingTop: 4 },
   listEmpty: { flexGrow: 1 },
-  card: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#F0F0F0' },
-  cardTop: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-  stagePill: { backgroundColor: '#FFF9EE', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#FEECC0' },
-  stagePillTxt: { fontSize: 12, fontWeight: '700', color: '#FF9500' },
-  industryPill: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  industryPillTxt: { fontSize: 12, fontWeight: '700', color: '#007AFF' },
-  startupName: { fontSize: 20, fontWeight: '700', color: '#000', marginBottom: 4 },
-  oneLiner: { fontSize: 14, color: '#3C3C43', lineHeight: 20, marginBottom: 6 },
-  founder: { fontSize: 13, color: '#8E8E93', marginBottom: 4 },
-  funding: { fontSize: 13, color: '#34C759', fontWeight: '500', marginBottom: 12 },
-  cardActions: { flexDirection: 'row', gap: 8 },
-  viewBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: '#E5E5EA', alignItems: 'center' },
-  viewBtnTxt: { fontSize: 13, fontWeight: '600', color: '#3C3C43' },
-  interestBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: '#FEECC0', backgroundColor: '#FFF9EE' },
-  interestedBtn: { backgroundColor: '#FF9500', borderColor: '#FF9500' },
-  interestBtnTxt: { fontSize: 13, fontWeight: '600', color: '#FF9500' },
-  interestedBtnTxt: { color: '#FFF' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 10 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#000', textAlign: 'center' },
-  emptyTxt: { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
-  emptyBtn: { marginTop: 8, backgroundColor: '#000', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
-  emptyBtnTxt: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  modalCancel: { fontSize: 17, color: '#8E8E93' },
-  modalTitle: { fontSize: 17, fontWeight: '600', color: '#000' },
-  modalPost: { fontSize: 17, fontWeight: '600', color: '#007AFF' },
-  modalBody: { padding: 20 },
-  modalField: { marginBottom: 18 },
-  modalFieldLabel: { fontSize: 13, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 },
-  modalInput: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#000' },
+  card: { marginHorizontal: 16, marginBottom: 14, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: '#F0F0F0' },
+  hero: { height: 120, padding: 14, justifyContent: 'flex-end', position: 'relative' },
+  stageBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  stageBadgeTxt: { fontSize: 11, fontWeight: '700', color: '#FFF' },
+  interestBadge: { position: 'absolute', top: 10, right: 10, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 3 },
+  interestBadgeTxt: { fontSize: 12, fontWeight: '600', color: '#FFF' },
+  heroBottom: {},
+  heroName: { fontSize: 20, fontWeight: '700', color: '#FFF', textShadowColor: 'rgba(0,0,0,0.3)', textShadowRadius: 4, textShadowOffset: { width: 0, height: 1 } },
+  heroLiner: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 3, lineHeight: 17 },
+  cardBody: { padding: 12 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
+  metaTxt: { fontSize: 12, color: TEXT_SECONDARY },
+  metaDot: { fontSize: 14, color: '#C7C7CC' },
+  cardFoot: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  intBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, backgroundColor: '#FFF9EE', borderWidth: 1, borderColor: '#FEECC0' },
+  intBtnActive: { backgroundColor: '#FF9500', borderColor: '#FF9500' },
+  intBtnTxt: { fontSize: 13, fontWeight: '600', color: '#FF9500' },
+  intBtnTxtActive: { color: '#FFF' },
+  viewBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 12, backgroundColor: NAVY },
+  viewBtnTxt: { fontSize: 13, fontWeight: '600', color: '#FFF' },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 8 },
+  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY, textAlign: 'center' },
+  emptySub: { fontSize: 13, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 18 },
+  emptyBtn: { marginTop: 14, backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
+  emptyBtnTxt: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
+  modalCancel: { fontSize: 17, color: TEXT_SECONDARY },
+  modalTitle: { fontSize: 17, fontWeight: '600', color: TEXT_PRIMARY },
+  modalPost: { fontSize: 17, fontWeight: '700', color: NAVY },
+  modalBody: { padding: 20, paddingBottom: 60 },
+  mField: { marginBottom: 18 },
+  mLabel: { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 },
+  mInput: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: TEXT_PRIMARY },
+  stageChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: HAIRLINE },
+  stageChipOn: { backgroundColor: NAVY, borderColor: NAVY },
+  stageChipTxt: { fontSize: 13, fontWeight: '600', color: '#3C3C43' },
+  stageChipTxtOn: { color: '#FFF' },
 });

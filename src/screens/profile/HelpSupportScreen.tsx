@@ -29,7 +29,7 @@ export default function HelpSupportScreen() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const openEmail = () => {
-    Linking.openURL('mailto:support@tbirdsnest.app?subject=TBirds%20Nest%20Support').catch(() =>
+    Linking.openURL('mailto:support@PlatinumCirclesnest.app?subject=PlatinumCircles%20Nest%20Support').catch(() =>
       Alert.alert('No email app', 'Set up an email app on your device to contact us this way.')
     );
   };
@@ -66,7 +66,7 @@ export default function HelpSupportScreen() {
           <Text style={s.sectionDesc}>Submit a support request below or contact us directly by email. We respond within 24 hours.</Text>
           <TouchableOpacity style={s.emailBtn} onPress={openEmail} activeOpacity={0.8}>
             <Feather name="mail" size={16} color="#007AFF" />
-            <Text style={s.emailBtnTxt}>Email support@tbirdsnest.app</Text>
+            <Text style={s.emailBtnTxt}>Email support@PlatinumCirclesnest.app</Text>
           </TouchableOpacity>
         </View>
 
