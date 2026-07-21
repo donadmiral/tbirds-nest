@@ -117,6 +117,7 @@ export default function JobsScreen({ navigation }: any) {
   const [scopeMode, setScopeMode] = useState<JobScope>('primary');
   const [search, setSearch] = useState('');
   const [showApplications, setShowApplications] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
 
   const [showPost, setShowPost] = useState(false);
   const [posting, setPosting] = useState(false);
@@ -196,6 +197,10 @@ export default function JobsScreen({ navigation }: any) {
     }
     return list;
   }, [jobs, activeTab, search]);
+
+  const savedJobs = useMemo(() => {
+    return jobs.filter(j => savedIds.has(j.id));
+  }, [jobs, savedIds]);
 
   const toggleSave = async (jobId: string) => {
     if (!userId || busyMap[`save-${jobId}`]) return;
@@ -412,7 +417,7 @@ export default function JobsScreen({ navigation }: any) {
             style={s.cardPoster}
           >
             {item.profile?.avatar_url
-              ? <Image source={{ uri: item.profile.avatar_url }} style={s.posterAvatar} />
+              ? <Image source={{ uri: item.profile.avatar_url }} style={s.posterAvatar} fadeDuration={200} />
               : <View style={s.posterAvatarFb}><Text style={s.posterAvatarTxt}>{initials(item.profile?.full_name || item.profile?.username)}</Text></View>}
             <Text style={s.posterName} numberOfLines={1}>{item.profile?.full_name || 'Poster'}</Text>
           </TouchableOpacity>
@@ -483,10 +488,80 @@ export default function JobsScreen({ navigation }: any) {
     );
   };
 
+  const renderSavedJob = ({ item }: { item: Job }) => {
+    const appStatus = appliedMap[item.id];
+    const catColor = CATEGORY_COLORS[item.category as string] || '#374151';
+
+    return (
+      <View style={s.card}>
+        <View style={s.cardBadgeRow}>
+          <View style={[s.catBadge, { backgroundColor: catColor + '18', borderColor: catColor + '40' }]}>
+            <Text style={[s.catBadgeTxt, { color: catColor }]}>
+              {CATEGORY_TABS.find(t => t.id === item.category)?.emoji} {categoryLabel(item.category as string)}
+            </Text>
+          </View>
+          {item.urgent && <View style={s.urgentBadge}><Text style={s.urgentTxt}>⚡ Urgent</Text></View>}
+        </View>
+
+        <View style={s.cardMain}>
+          <View style={s.cardLeft}>
+            <Text style={s.jobTitle} numberOfLines={2}>{item.title}</Text>
+            <Text style={s.jobCompany}>{item.company}</Text>
+            <View style={s.jobMetaRow}>
+              {item.location && <Text style={s.jobMeta}>📍 {item.location}</Text>}
+              {item.remote_type !== 'on_site' && (
+                <Text style={s.jobMeta}>{item.remote_type === 'remote' ? '🌐 Remote' : '🔀 Hybrid'}</Text>
+              )}
+            </View>
+            {item.salary_range && <Text style={s.salary}>💰 {item.salary_range}</Text>}
+            <View style={s.jobFooter}>
+              <Text style={s.jobTime}>{formatTime(item.created_at)}</Text>
+              {item.application_count > 0 && <Text style={s.jobApps}>{item.application_count} applied</Text>}
+            </View>
+          </View>
+          <TouchableOpacity
+            onPress={() => item.posted_by && navigation.navigate('UserProfile', { userId: item.posted_by })}
+            style={s.cardPoster}
+          >
+            {item.profile?.avatar_url
+              ? <Image source={{ uri: item.profile.avatar_url }} style={s.posterAvatar} fadeDuration={200} />
+              : <View style={s.posterAvatarFb}><Text style={s.posterAvatarTxt}>{initials(item.profile?.full_name || item.profile?.username)}</Text></View>}
+            <Text style={s.posterName} numberOfLines={1}>{item.profile?.full_name || 'Poster'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={s.cardActions}>
+          <TouchableOpacity style={[s.actionSave, s.actionSaveActive]} onPress={() => toggleSave(item.id)}>
+            <Text style={[s.actionSaveTxt, s.actionSaveTxtActive]}>🔖 Unsave</Text>
+          </TouchableOpacity>
+
+          {item.posted_by !== userId && (
+            <>
+              {appStatus ? (
+                <View style={[s.actionApplied, { backgroundColor: STATUS_META[appStatus].bg }]}>
+                  <Text style={[s.actionAppliedTxt, { color: STATUS_META[appStatus].color }]}>
+                    {STATUS_META[appStatus].label}
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity style={s.actionApply} onPress={() => { setShowSaved(false); setApplyTarget(item); }}>
+                  <Text style={s.actionApplyTxt}>Apply</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={s.actionMsg} onPress={() => { setShowSaved(false); messageJobPoster(item); }}>
+                <Text style={s.actionMsgTxt}>💬 Message</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   return (
-    <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F4F6F9" />
-      <View style={[s.container, { paddingTop: insets.top + 8 }]}>
+      <View style={s.container}>
 
         <View style={s.header}>
           <View style={s.headerRow}>
@@ -495,6 +570,9 @@ export default function JobsScreen({ navigation }: any) {
               <Text style={s.subtitle}>{jobs.length} opportunities</Text>
             </View>
             <View style={s.headerBtns}>
+              <TouchableOpacity style={s.savedBtn} onPress={() => setShowSaved(true)}>
+                <Text style={s.savedBtnTxt}>🔖 {savedIds.size > 0 ? savedIds.size : ''}</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={s.myAppsBtn} onPress={() => setShowApplications(true)}>
                 <Text style={s.myAppsBtnTxt}>My Apps {myApplications.length > 0 ? `(${myApplications.length})` : ''}</Text>
               </TouchableOpacity>
@@ -568,7 +646,10 @@ export default function JobsScreen({ navigation }: any) {
             renderItem={renderJob}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="none"
+            keyboardDismissMode="on-drag"
+            initialNumToRender={8}
+            maxToRenderPerBatch={6}
+            windowSize={7}
             contentContainerStyle={[s.list, !displayJobs.length && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
             ListEmptyComponent={
               <View style={s.empty}>
@@ -592,6 +673,29 @@ export default function JobsScreen({ navigation }: any) {
           />
         )}
       </View>
+
+      {/* Saved Jobs Modal */}
+      <Modal visible={showSaved} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowSaved(false)}>
+        <SafeAreaView style={s.modalSafe}>
+          <View style={s.modalHeader}>
+            <Text style={s.modalTitle}>Saved Jobs</Text>
+            <TouchableOpacity onPress={() => setShowSaved(false)} style={s.modalClose}><Text style={s.modalCloseTxt}>✕</Text></TouchableOpacity>
+          </View>
+          <FlatList
+            data={savedJobs}
+            keyExtractor={j => j.id}
+            renderItem={renderSavedJob}
+            contentContainerStyle={[s.list, !savedJobs.length && s.listEmpty, { paddingBottom: 60 }]}
+            ListEmptyComponent={
+              <View style={s.empty}>
+                <Text style={s.emptyEmoji}>🔖</Text>
+                <Text style={s.emptyTitle}>No saved jobs</Text>
+                <Text style={s.emptyTxt}>Tap the Save button on any job to bookmark it here for later.</Text>
+              </View>
+            }
+          />
+        </SafeAreaView>
+      </Modal>
 
       <Modal visible={showApplications} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowApplications(false)}>
         <SafeAreaView style={s.modalSafe}>
@@ -745,7 +849,7 @@ export default function JobsScreen({ navigation }: any) {
                     <View style={s.appCard}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                         {ap?.avatar_url
-                          ? <Image source={{ uri: ap.avatar_url }} style={s.referUserAvatar} />
+                          ? <Image source={{ uri: ap.avatar_url }} style={s.referUserAvatar} fadeDuration={200} />
                           : <View style={s.referUserAvatarFb}><Text style={s.referUserAvatarTxt}>{initials(ap?.full_name)}</Text></View>}
                         <View style={{ flex: 1 }}>
                           <Text style={s.appJobTitle}>{ap?.full_name || 'Applicant'}</Text>
@@ -972,11 +1076,13 @@ export default function JobsScreen({ navigation }: any) {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F4F6F9' },
   container: { flex: 1, backgroundColor: '#F4F6F9' },
-  header: { paddingHorizontal: 16, paddingBottom: 4, backgroundColor: '#F4F6F9' },
+  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, backgroundColor: '#F4F6F9' },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
   title: { fontSize: 28, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
   subtitle: { marginTop: 3, fontSize: 13, color: '#64748B', fontWeight: '500' },
-  headerBtns: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  headerBtns: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  savedBtn: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FEF9C3', borderRadius: 10, borderWidth: 1, borderColor: '#FDE047' },
+  savedBtnTxt: { fontSize: 13, fontWeight: '700', color: '#854D0E' },
   myAppsBtn: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#F1F5F9', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0' },
   myAppsBtnTxt: { fontSize: 13, fontWeight: '600', color: '#475569' },
   postBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#2563EB', borderRadius: 10 },

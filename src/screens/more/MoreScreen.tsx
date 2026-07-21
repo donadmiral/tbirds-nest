@@ -60,7 +60,7 @@ export default function MoreScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.background,
     padding: spacing.md,
   },
   title: {

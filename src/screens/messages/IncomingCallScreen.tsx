@@ -1,8 +1,9 @@
 /**
- * IncomingCallScreen.tsx — FINAL FIX
- * All imports at top. Uses CallContext for accept.
- * Auto-dismiss on caller cancel. Ringtone + vibration.
- * Inline realtime sub with unique channel name.
+ * IncomingCallScreen.tsx
+ *
+ * Uses audioService for ringtone (no local Audio.Sound).
+ * Auto-dismiss on caller cancel. Vibration pattern.
+ * Supports both 1-on-1 and group calls.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -11,15 +12,13 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Audio } from 'expo-av';
 import { supabase } from '../../services/supabase';
 import { callService } from '../../services/callService';
+import { audioService } from '../../services/audioService';
 import { useAuthStore } from '../../stores/authStore';
 import { useCallContext } from '../../contexts/CallContext';
 
 const VIB = Platform.OS === 'android' ? [0,800,600,800,600,800,2000] : [0,800,600,800];
-let ringtoneAsset: any = null;
-try { ringtoneAsset = require('../../assets/sounds/ringtone.mp3'); } catch {}
 
 export default function IncomingCallScreen() {
   const navigation = useNavigation<any>();
@@ -36,10 +35,12 @@ export default function IncomingCallScreen() {
   const callerUsername: string | null = route.params?.callerUsername ?? null;
   const otherUser = route.params?.otherUser ?? null;
   const isVideo: boolean = route.params?.isVideo === true;
+  const isGroupCall: boolean = route.params?.isGroupCall === true;
+  const groupName: string = route.params?.groupName || 'Group Call';
+  const conversationId: string | null = route.params?.conversationId ?? null;
   const callerId: string = otherUser?.id || '';
 
   const [dismissed, setDismissed] = useState(false);
-  const soundRef = useRef<Audio.Sound | null>(null);
   const vibRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
 
@@ -52,10 +53,15 @@ export default function IncomingCallScreen() {
   const slideUp = useRef(new Animated.Value(80)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
 
+  const stoppingRef = useRef(false);
+  const ringtoneStartedRef = useRef(false);
+
   const stopAlerts = () => {
+    if (stoppingRef.current) return;
+    stoppingRef.current = true;
     Vibration.cancel();
     if (vibRef.current) { clearInterval(vibRef.current); vibRef.current = null; }
-    if (soundRef.current) { soundRef.current.stopAsync().catch(()=>{}); soundRef.current.unloadAsync().catch(()=>{}); soundRef.current = null; }
+    audioService.stopAll();
   };
 
   const dismiss = () => {
@@ -65,16 +71,25 @@ export default function IncomingCallScreen() {
 
   useEffect(() => {
     mountedRef.current = true;
-    const startAudio = async () => {
-      try {
-        await Audio.setAudioModeAsync({ allowsRecordingIOS:false, playsInSilentModeIOS:true, staysActiveInBackground:false, shouldDuckAndroid:true });
-        if (ringtoneAsset) { const { sound } = await Audio.Sound.createAsync(ringtoneAsset, { isLooping:true, shouldPlay:true, volume:1.0 }); soundRef.current = sound; }
-      } catch {}
+    stoppingRef.current = false;
+
+    // Play ringtone via audioService (async, guarded against double-play)
+    const startRingtone = async () => {
+      if (ringtoneStartedRef.current) return;
+      ringtoneStartedRef.current = true;
+      await audioService.playRingtone();
     };
-    startAudio();
+    startRingtone();
+
+    // Vibration pattern
     Vibration.vibrate(VIB, false);
     vibRef.current = setInterval(() => { if (mountedRef.current) Vibration.vibrate(VIB, false); }, 4000);
-    return () => { mountedRef.current = false; stopAlerts(); };
+
+    return () => {
+      mountedRef.current = false;
+      ringtoneStartedRef.current = false;
+      stopAlerts();
+    };
   }, []);
 
   // Auto-dismiss with inline subscription (unique channel name)
@@ -99,24 +114,65 @@ export default function IncomingCallScreen() {
         Animated.parallel([Animated.timing(sc,{toValue:1,duration:0,useNativeDriver:true}),Animated.timing(op,{toValue:0.6,duration:0,useNativeDriver:true})])]));
     const a1=pulse(ring1,r1o,0); const a2=pulse(ring2,r2o,500); const a3=pulse(ring3,r3o,1000);
     a1.start(); a2.start(); a3.start();
-    const timeout = setTimeout(async () => { if (callId) await callService.markMissed(callId); dismiss(); }, 30000);
+    const timeout = setTimeout(async () => {
+      if (callId) {
+        if (isGroupCall && myId) {
+          await callService.declineGroupCall(callId, myId);
+        } else {
+          await callService.markMissed(callId);
+        }
+      }
+      dismiss();
+    }, 30000);
     return () => { a1.stop(); a2.stop(); a3.stop(); clearTimeout(timeout); };
   }, []);
 
   const getInitials = (n: string) => { const p = n.trim().split(' ').filter(Boolean); return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase(); };
 
+  const displayName = isGroupCall ? groupName : callerName;
+
   const handleAccept = async () => {
     stopAlerts();
-    if (callId) await callService.acceptCall(callId);
-    startCall({ callId, channelId, otherUserId: callerId, otherUserName: callerName, otherUserAvatar: callerAvatar, isVideo, isIncoming: true });
-    navigation.replace('Call', { callId, channelId, callerName, callerAvatar, otherUser, isIncoming:true, isVideo, fromContext:true });
+    if (isGroupCall) {
+      startCall({
+        callId, channelId,
+        otherUserId: callerId,
+        otherUserName: groupName,
+        otherUserAvatar: null,
+        isVideo, isIncoming: true,
+        isGroupCall: true,
+        conversationId,
+      });
+    } else {
+      startCall({
+        callId, channelId,
+        otherUserId: callerId,
+        otherUserName: callerName,
+        otherUserAvatar: callerAvatar,
+        isVideo, isIncoming: true,
+        isGroupCall: false,
+        conversationId: null,
+      });
+    }
+    navigation.replace('Call', {
+      callId, channelId,
+      callerName: displayName,
+      callerAvatar: isGroupCall ? null : callerAvatar,
+      otherUser, isIncoming: true, isVideo,
+      fromContext: true, isGroupCall,
+      groupName: isGroupCall ? groupName : undefined,
+      conversationId,
+    });
   };
 
   const handleDecline = async () => {
     stopAlerts();
     if (callId) {
-      await callService.declineCall(callId);
-      if (myId && callerId) { await callService.insertCallEventMessage({ callId, senderId:callerId, receiverId:myId, isVideo, status:'declined', durationSecs:0 }); }
+      if (isGroupCall && myId) {
+        await callService.declineGroupCall(callId, myId);
+      } else {
+        await callService.declineCall(callId);
+      }
     }
     setDismissed(true);
     setTimeout(() => { if (navigation.canGoBack()) navigation.goBack(); }, 200);
@@ -126,23 +182,33 @@ export default function IncomingCallScreen() {
     <SafeAreaView style={st.safe} edges={['left','right','bottom']}>
       <StatusBar barStyle="light-content" backgroundColor="#060A14" />
       <Animated.View style={[st.container,{paddingTop:insets.top+20,opacity:fadeIn,transform:[{translateY:slideUp}]}]}>
-        <View style={st.topSection}><View style={st.appPill}><Text style={st.appPillTxt}>PlatinumCircles</Text></View><Text style={st.incomingTxt}>Incoming Call</Text></View>
+        <View style={st.topSection}>
+          <View style={st.appPill}><Text style={st.appPillTxt}>PlatinumCircles</Text></View>
+          <Text style={st.incomingTxt}>{isGroupCall ? 'Group Call' : 'Incoming Call'}</Text>
+        </View>
         <View style={st.avatarSection}>
           <View style={st.pulseContainer}>
             <Animated.View style={[st.ring,{transform:[{scale:ring3}],opacity:r3o,borderColor:'#38BDF820'}]} />
             <Animated.View style={[st.ring,{transform:[{scale:ring2}],opacity:r2o,borderColor:'#38BDF840'}]} />
             <Animated.View style={[st.ring,{transform:[{scale:ring1}],opacity:r1o,borderColor:'#38BDF860'}]} />
-            <View style={st.avatarWrap}>{callerAvatar ? <Image source={{uri:callerAvatar}} style={st.avatar} /> : <View style={st.avatarFb}><Text style={st.avatarFbTxt}>{getInitials(callerName)}</Text></View>}</View>
+            <View style={st.avatarWrap}>
+              {isGroupCall
+                ? <View style={st.avatarFb}><Text style={st.avatarFbTxt}>G</Text></View>
+                : callerAvatar
+                  ? <Image source={{uri:callerAvatar}} style={st.avatar} />
+                  : <View style={st.avatarFb}><Text style={st.avatarFbTxt}>{getInitials(callerName)}</Text></View>}
+            </View>
           </View>
-          <Text style={st.callerName}>{callerName}</Text>
-          {callerUsername && <Text style={st.callerHandle}>@{callerUsername}</Text>}
+          <Text style={st.callerName}>{displayName}</Text>
+          {!isGroupCall && callerUsername && <Text style={st.callerHandle}>@{callerUsername}</Text>}
+          {isGroupCall && <Text style={st.callerHandle}>from {callerName}</Text>}
           <View style={st.callTypePill}><View style={st.callTypeDot} /><Text style={st.callTypeTxt}>{isVideo ? 'Video Call' : 'Audio Call'}</Text></View>
         </View>
         <View style={[st.actionSection,{paddingBottom:Math.max(insets.bottom+20,40)}]}>
           <Text style={st.hint}>Tap to respond</Text>
           <View style={st.btnRow}>
-            <TouchableOpacity style={st.declineBtn} activeOpacity={0.85} onPress={handleDecline}><View style={st.btnInner}><Text style={st.declineIcon}>✕</Text></View><Text style={st.declineLbl}>Decline</Text></TouchableOpacity>
-            <TouchableOpacity style={st.acceptBtn} activeOpacity={0.85} onPress={handleAccept}><View style={[st.btnInner,st.acceptBtnInner]}><Text style={st.acceptIcon}>✓</Text></View><Text style={st.acceptLbl}>Accept</Text></TouchableOpacity>
+            <TouchableOpacity style={st.declineBtn} activeOpacity={0.85} onPress={handleDecline}><View style={st.btnInner}><Text style={st.declineIcon}>&#x2715;</Text></View><Text style={st.declineLbl}>Decline</Text></TouchableOpacity>
+            <TouchableOpacity style={st.acceptBtn} activeOpacity={0.85} onPress={handleAccept}><View style={[st.btnInner,st.acceptBtnInner]}><Text style={st.acceptIcon}>&#x2713;</Text></View><Text style={st.acceptLbl}>Accept</Text></TouchableOpacity>
           </View>
         </View>
       </Animated.View>

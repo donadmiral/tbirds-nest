@@ -27,7 +27,6 @@ export type UploadResult = {
 
 export const MEDIA_LIMITS = {
   imageBytes: 10 * 1024 * 1024,
-  videoBytes: 50 * 1024 * 1024,
   documentBytes: 25 * 1024 * 1024,
   audioBytes: 15 * 1024 * 1024,
 };
@@ -93,9 +92,7 @@ export async function pickFromLibrary(opts?: {
     const ext = safeExt(a.uri, isVideo ? 'mp4' : 'jpg');
     const fileSize = (a as any).fileSize as number | undefined;
 
-    if (isVideo && fileSize && fileSize > MEDIA_LIMITS.videoBytes) {
-      throw new Error(`Video too large: ${(fileSize / 1024 / 1024).toFixed(0)} MB. Max 50 MB.`);
-    }
+    // Only enforce size limits on images, not videos
     if (!isVideo && fileSize && fileSize > MEDIA_LIMITS.imageBytes) {
       throw new Error(`Image too large: ${(fileSize / 1024 / 1024).toFixed(0)} MB. Max 10 MB.`);
     }

@@ -9,6 +9,8 @@ import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import * as Haptics from 'expo-haptics';
+import { ConversationsSkeleton } from '../../components/Skeleton';
 
 type Conversation = {
   id: string;
@@ -61,8 +63,17 @@ export default function ConversationsScreen({ navigation }: any) {
   const [search, setSearch]  = useState('');
   const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
 
+  const mountedRef = useRef(true);
+  const initialLoadDoneRef = useRef(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   const load = useCallback(async () => {
     if (!userId) return;
+    if (!initialLoadDoneRef.current) setLoading(true);
     try {
       // Load DMs
       const { data: dmConvs } = await supabase
@@ -91,7 +102,10 @@ export default function ConversationsScreen({ navigation }: any) {
       }
 
       const allConvs = [...(dmConvs || []), ...groupConvs];
-      if (allConvs.length === 0) { setConversations([]); return; }
+      if (allConvs.length === 0) {
+        if (mountedRef.current) setConversations([]);
+        return;
+      }
 
       const convIds = allConvs.map((c: any) => c.id);
 
@@ -162,12 +176,22 @@ export default function ConversationsScreen({ navigation }: any) {
         return tb - ta;
       });
 
-      setConversations(list);
-    } catch (e) { console.log('CONV_LOAD', e); }
-    finally { setLoading(false); }
+      if (mountedRef.current) setConversations(list);
+    } catch (e) { console.log('[Conversations] load error:', e); }
+    finally {
+      if (mountedRef.current) setLoading(false);
+      initialLoadDoneRef.current = true;
+    }
   }, [userId]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => {
+    if (initialLoadDoneRef.current) {
+      const timer = setTimeout(load, 500);
+      return () => clearTimeout(timer);
+    } else {
+      load();
+    }
+  }, [load]));
 
   useEffect(() => {
     if (!userId) return;
@@ -240,6 +264,42 @@ export default function ConversationsScreen({ navigation }: any) {
           });
         }
       )
+      // Phase 4.0A: Outgoing message listener
+      // Catches story replies and other messages sent by the user from outside ChatScreen
+      // so the conversations list updates immediately without waiting for a full reload
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `sender_id=eq.${userId}` },
+        (payload) => {
+          const msg = payload.new as any;
+          if (!msg.conversation_id) return;
+
+          const preview = msg.text || (
+            msg.media_type === 'image' ? '📷 Photo'
+            : msg.media_type === 'video' ? '🎬 Video'
+            : msg.media_type === 'document' ? '📄 File'
+            : '📎 Media'
+          );
+
+          setConversations(prev => {
+            const idx = prev.findIndex(c => c.id === msg.conversation_id);
+            if (idx === -1) {
+              load();
+              return prev;
+            }
+
+            const updated = [...prev];
+            updated[idx] = {
+              ...updated[idx],
+              last_message: preview,
+              last_message_time: msg.created_at,
+              // Do NOT increment unread_count — this is the user's own message
+            };
+
+            return sortInbox(updated);
+          });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -264,6 +324,7 @@ export default function ConversationsScreen({ navigation }: any) {
   };
 
   const showContextMenu = (conv: Conversation) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const options = [
       conv.is_pinned   ? 'Unpin'   : 'Pin',
       conv.is_muted    ? 'Unmute'  : 'Mute',
@@ -327,6 +388,7 @@ export default function ConversationsScreen({ navigation }: any) {
       isGroup: conv.is_group,
       groupName: conv.is_group ? conv.other_name : undefined,
       groupEmoji: conv.is_group ? (conv.group_emoji || '💬') : undefined,
+      groupAvatarUrl: conv.is_group ? conv.group_avatar_url : undefined,
     });
   };
 
@@ -357,7 +419,7 @@ export default function ConversationsScreen({ navigation }: any) {
         {/* Avatar */}
         <View style={s.cardAvatarWrap}>
           {item.other_avatar
-            ? <Image source={{ uri: item.other_avatar }} style={s.cardAvatar} />
+            ? <Image source={{ uri: item.other_avatar }} style={s.cardAvatar} fadeDuration={200} />
             : item.is_group
               ? <View style={[s.cardAvatar, { backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }]}>
                   <Text style={{ fontSize: 22 }}>{item.group_emoji || '💬'}</Text>
@@ -440,7 +502,7 @@ export default function ConversationsScreen({ navigation }: any) {
 
       {/* List */}
       {loading ? (
-        <View style={s.center}><ActivityIndicator color="#000" /></View>
+        <View style={s.center}><ConversationsSkeleton /></View>
       ) : filtered.length === 0 ? (
         <View style={s.empty}>
           <Feather name="message-circle" size={44} color="#E5E5EA" />
@@ -455,6 +517,11 @@ export default function ConversationsScreen({ navigation }: any) {
           renderItem={renderItem}
           contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + 40 }}
           showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+          removeClippedSubviews={Platform.OS === 'android'}
+          initialNumToRender={12}
+          maxToRenderPerBatch={10}
+          windowSize={10}
           ListHeaderComponent={pinned.length > 0 && unpinned.length > 0 ? (
             <Text style={s.sectionLabel}>PINNED</Text>
           ) : null}
@@ -468,16 +535,16 @@ export default function ConversationsScreen({ navigation }: any) {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFF' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
+  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
   title: { fontSize: 28, fontWeight: '800', color: '#000', letterSpacing: -0.8 },
-  newBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#000', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 },
+  newBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#0B1E3D', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 },
   newBtnTxt: { color: '#FFF', fontSize: 13, fontWeight: '700' },
   iconBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 12, backgroundColor: '#F2F2F7', borderRadius: 13, paddingHorizontal: 12, paddingVertical: 10 },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 12, backgroundColor: '#F2F2F7', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
   searchInput: { flex: 1, fontSize: 15, color: '#000', padding: 0 },
   tabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 14, marginBottom: 8 },
   tab: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: '#F2F2F7' },
-  tabActive: { backgroundColor: '#000' },
+  tabActive: { backgroundColor: '#0B1E3D' },
   tabTxt: { fontSize: 13, fontWeight: '700', color: '#3C3C43' },
   tabTxtActive: { color: '#FFF' },
   sectionLabel: { fontSize: 11, fontWeight: '700', color: '#8E8E93', letterSpacing: 0.8 },
@@ -496,7 +563,7 @@ const s = StyleSheet.create({
   cardTimeBold: { color: '#000', fontWeight: '700' },
   cardPreview: { fontSize: 13, color: '#8E8E93', flex: 1 },
   cardPreviewBold: { color: '#3C3C43', fontWeight: '500' },
-  badge: { backgroundColor: '#000', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  badge: { backgroundColor: '#0B1E3D', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   badgeTxt: { color: '#FFF', fontSize: 11, fontWeight: '800' },
   mutedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D5DB' },
   archivedBadge: { backgroundColor: '#F3F4F6', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
@@ -504,6 +571,6 @@ const s = StyleSheet.create({
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 8 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000' },
   emptySub: { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
-  emptyBtn: { marginTop: 10, backgroundColor: '#000', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 13 },
+  emptyBtn: { marginTop: 10, backgroundColor: '#0B1E3D', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 13 },
   emptyBtnTxt: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });

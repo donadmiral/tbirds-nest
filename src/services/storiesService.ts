@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 export type StoryMediaType = 'image' | 'video' | 'text';
 export type StoryScope = 'institution' | 'affiliation' | 'global';
 
-export type StoryStickerStyle = 'classic' | 'bold' | 'typewriter' | 'neon' | 'highlight';
+export type StoryStickerStyle = 'classic' | 'bold' | 'typewriter' | 'neon' | 'highlight' | 'outline' | 'shadow3d' | 'retro' | 'script';
 
 export type StoryTextSticker = {
   id: string;
@@ -14,11 +14,56 @@ export type StoryTextSticker = {
   ny: number;
   scale: number;
   rotation: number;
+  bgEnabled?: boolean;
+  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz';
+  fontSizeOverride?: number;
+  opacity?: number;
+  textAlign?: 'left' | 'center' | 'right';
+  url?: string;
+  locationName?: string;
+  locationDisplayName?: string;
+  locationLat?: number;
+  locationLng?: number;
+  locationPlaceId?: string;
+  mentionUserId?: string;
+  mentionUsername?: string;
+  questionPrompt?: string;
+  sliderEmoji?: string;
+  sliderLabel?: string;
+  quizQuestion?: string;
+  quizOptions?: { id: string; label: string; isCorrect: boolean }[];
 };
 
 export type StoryTextBackground =
   | { kind: 'solid'; color: string }
   | { kind: 'gradient'; colors: [string, string]; direction: 'vertical' | 'diagonal' };
+
+export type MediaFit = 'cover' | 'contain';
+
+export type MediaTransform = {
+  scale: number;
+  translateNX: number;
+  translateNY: number;
+  fit: MediaFit;
+};
+
+export const STORY_CATEGORIES = [
+  'Campus Life', 'Internship', 'Building in Public', 'Event',
+  'Achievement', 'Travel', 'Question', 'Announcement',
+  'Study', 'Career', 'Club', 'Graduation',
+] as const;
+
+export type StoryCategory = typeof STORY_CATEGORIES[number];
+
+export type StoryHighlight = {
+  id: string;
+  title: string;
+  cover_url: string | null;
+  sort_order: number;
+  story_count: number;
+  latest_story_media_url: string | null;
+  created_at: string;
+};
 
 export type StoryRow = {
   id: string;
@@ -37,6 +82,10 @@ export type StoryRow = {
   is_viewed?: boolean;
   stickers_json?: StoryTextSticker[] | null;
   text_background?: StoryTextBackground | null;
+  media_transform?: MediaTransform | null;
+  category?: StoryCategory | string | null;
+  dual_front_url?: string | null;
+  dual_layout?: any | null;
 };
 
 export type CatchupUser = {
@@ -59,7 +108,99 @@ export type StoryViewer = {
   viewed_at: string;
 };
 
+export type StoryReaction = {
+  user_id: string;
+  full_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  emoji: string;
+  created_at: string;
+};
+
 export type CatchupMode = 'primary' | 'all' | 'global';
+
+// Poll types
+
+export type StoryPollOption = {
+  id: string;
+  label: string;
+  position: number;
+  vote_count: number;
+};
+
+export type StoryPoll = {
+  poll_id: string;
+  story_id: string;
+  question: string;
+  nx: number;
+  ny: number;
+  scale: number;
+  options: StoryPollOption[];
+  my_vote: string | null;
+  total_votes: number;
+};
+
+export type StoryPollVoter = {
+  user_id: string;
+  full_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  voted_at: string;
+};
+
+function safeExtFromUri(uri: string, fallback: string): string {
+  try {
+    const clean = uri.split('?')[0].split('#')[0];
+    const ext = (clean.split('.').pop() || '').toLowerCase();
+    if (ext && ext.length <= 5 && /^[a-z0-9]+$/.test(ext)) return ext;
+  } catch {}
+  return fallback;
+}
+
+function resolveMediaMeta(
+  mediaType: StoryMediaType,
+  localUri: string,
+  hintMimeType?: string | null,
+  hintFileName?: string | null,
+): { ext: string; mimeType: string } {
+  if (hintMimeType && typeof hintMimeType === 'string') {
+    if (hintMimeType === 'video/quicktime') return { ext: 'mov', mimeType: 'video/quicktime' };
+    if (hintMimeType === 'video/mp4') return { ext: 'mp4', mimeType: 'video/mp4' };
+    if (hintMimeType === 'video/webm') return { ext: 'webm', mimeType: 'video/webm' };
+    if (hintMimeType === 'image/png') return { ext: 'png', mimeType: 'image/png' };
+    if (hintMimeType === 'image/webp') return { ext: 'webp', mimeType: 'image/webp' };
+    if (hintMimeType === 'image/jpeg' || hintMimeType === 'image/jpg') return { ext: 'jpg', mimeType: 'image/jpeg' };
+    if (hintMimeType.startsWith('video/')) return { ext: 'mp4', mimeType: hintMimeType };
+    if (hintMimeType.startsWith('image/')) return { ext: 'jpg', mimeType: hintMimeType };
+  }
+
+  if (hintFileName && typeof hintFileName === 'string') {
+    const fnExt = safeExtFromUri(hintFileName, '');
+    if (fnExt) {
+      if (mediaType === 'video') {
+        if (fnExt === 'mov') return { ext: 'mov', mimeType: 'video/quicktime' };
+        if (fnExt === 'mp4') return { ext: 'mp4', mimeType: 'video/mp4' };
+        if (fnExt === 'webm') return { ext: 'webm', mimeType: 'video/webm' };
+      } else {
+        if (fnExt === 'png') return { ext: 'png', mimeType: 'image/png' };
+        if (fnExt === 'webp') return { ext: 'webp', mimeType: 'image/webp' };
+        if (fnExt === 'heic') return { ext: 'heic', mimeType: 'image/heic' };
+        if (fnExt === 'jpg' || fnExt === 'jpeg') return { ext: 'jpg', mimeType: 'image/jpeg' };
+      }
+    }
+  }
+
+  const rawExt = safeExtFromUri(localUri, mediaType === 'video' ? 'mp4' : 'jpg');
+  if (mediaType === 'video') {
+    if (rawExt === 'mov') return { ext: 'mov', mimeType: 'video/quicktime' };
+    if (rawExt === 'webm') return { ext: 'webm', mimeType: 'video/webm' };
+    return { ext: 'mp4', mimeType: 'video/mp4' };
+  }
+  if (rawExt === 'png') return { ext: 'png', mimeType: 'image/png' };
+  if (rawExt === 'webp') return { ext: 'webp', mimeType: 'image/webp' };
+  if (rawExt === 'heic') return { ext: 'heic', mimeType: 'image/heic' };
+  return { ext: 'jpg', mimeType: 'image/jpeg' };
+}
 
 export async function uploadAndCreateStory(params: {
   userId: string;
@@ -72,6 +213,12 @@ export async function uploadAndCreateStory(params: {
   thumbnailLocalUri?: string | null;
   stickersJson?: StoryTextSticker[] | null;
   textBackground?: StoryTextBackground | null;
+  hintMimeType?: string | null;
+  hintFileName?: string | null;
+  mediaTransform?: MediaTransform | null;
+  category?: StoryCategory | string | null;
+  dualFrontLocalUri?: string | null;
+  dualLayout?: any | null;
 }): Promise<StoryRow> {
   const {
     userId,
@@ -84,10 +231,16 @@ export async function uploadAndCreateStory(params: {
     thumbnailLocalUri,
     stickersJson,
     textBackground,
+    hintMimeType,
+    hintFileName,
+    mediaTransform,
+    category,
+    dualFrontLocalUri,
+    dualLayout,
   } = params;
 
   if (!userId) throw new Error('userId required');
-  if (mediaType !== 'text' && !localUri) throw new Error('localUri required');
+  if (mediaType !== 'text' && !localUri) throw new Error('localUri required for image/video');
 
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
   const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
@@ -96,12 +249,13 @@ export async function uploadAndCreateStory(params: {
 
   let mediaPublicUrl: string | null = null;
   let thumbnailUrl: string | null = null;
+  let dualFrontPublicUrl: string | null = null;
 
-  // Upload media only for image/video stories.
   if (mediaType !== 'text' && localUri) {
-    const ext = mediaType === 'video' ? 'mp4' : 'jpg';
-    const mimeType = mediaType === 'video' ? 'video/mp4' : 'image/jpeg';
+    const { ext, mimeType } = resolveMediaMeta(mediaType, localUri, hintMimeType, hintFileName);
     const fileName = `${userId}/${Date.now()}.${ext}`;
+
+    console.log('[storiesService] Uploading:', { mediaType, ext, mimeType, fileName, uriTail: localUri.slice(-50), hintMimeType, hintFileName });
 
     const formData = new FormData();
     formData.append('file', {
@@ -109,6 +263,9 @@ export async function uploadAndCreateStory(params: {
       type: mimeType,
       name: `story.${ext}`,
     } as any);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
 
     const uploadRes = await fetch(
       `${supabaseUrl}/storage/v1/object/story-media/${fileName}`,
@@ -120,15 +277,84 @@ export async function uploadAndCreateStory(params: {
           'x-upsert': 'true',
         },
         body: formData,
+        signal: controller.signal,
       }
     );
 
+    clearTimeout(timeoutId);
+
     if (!uploadRes.ok) {
-      const err = await uploadRes.json().catch(() => ({}));
-      throw new Error(err?.error || `Upload failed: ${uploadRes.status}`);
+      const errBody = await uploadRes.text().catch(() => '');
+      console.log('[storiesService] Upload failed:', uploadRes.status, errBody);
+      throw new Error(`Upload failed: ${uploadRes.status} ${errBody}`);
     }
 
     mediaPublicUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${fileName}`;
+    console.log('[storiesService] Upload success:', mediaPublicUrl);
+
+    // ── Dual front photo upload (with retry + exponential backoff) ──
+    if (dualFrontLocalUri) {
+      const frontMeta = resolveMediaMeta('image', dualFrontLocalUri);
+      const frontRand = Math.random().toString(36).slice(2, 8);
+      const frontFileName = `${userId}/${Date.now()}_${frontRand}_front.${frontMeta.ext}`;
+      const MAX_FRONT_RETRIES = 2;
+
+      for (let attempt = 0; attempt <= MAX_FRONT_RETRIES; attempt++) {
+        let frontTimeoutId: ReturnType<typeof setTimeout> | null = null;
+        try {
+          if (attempt > 0) {
+            const backoffMs = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
+            console.log(`[storiesService] Dual front retry ${attempt}/${MAX_FRONT_RETRIES} (${backoffMs}ms backoff)`);
+            await new Promise(r => setTimeout(r, backoffMs));
+          }
+
+          console.log('[storiesService] Uploading dual front:', { frontFileName, attempt, uriTail: dualFrontLocalUri.slice(-50) });
+
+          const frontForm = new FormData();
+          frontForm.append('file', {
+            uri: dualFrontLocalUri,
+            type: frontMeta.mimeType,
+            name: `story_front.${frontMeta.ext}`,
+          } as any);
+
+          const frontController = new AbortController();
+          frontTimeoutId = setTimeout(() => frontController.abort(), 120000);
+
+          const frontRes = await fetch(
+            `${supabaseUrl}/storage/v1/object/story-media/${frontFileName}`,
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                apikey: supabaseKey,
+                'x-upsert': 'true',
+              },
+              body: frontForm,
+              signal: frontController.signal,
+            }
+          );
+
+          if (frontRes.ok) {
+            dualFrontPublicUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${frontFileName}`;
+            console.log('[storiesService] Dual front upload success:', dualFrontPublicUrl);
+            break; // success, exit retry loop
+          } else {
+            const frontErr = await frontRes.text().catch(() => '');
+            console.log('[storiesService] Dual front upload failed:', frontRes.status, frontErr);
+            if (attempt === MAX_FRONT_RETRIES) {
+              console.log('[storiesService] Dual front upload exhausted retries. Story publishes with rear only.');
+            }
+          }
+        } catch (frontUploadErr: any) {
+          console.log('[storiesService] Dual front upload error:', frontUploadErr?.message);
+          if (attempt === MAX_FRONT_RETRIES) {
+            console.log('[storiesService] Dual front upload exhausted retries. Story publishes with rear only.');
+          }
+        } finally {
+          if (frontTimeoutId !== null) clearTimeout(frontTimeoutId);
+        }
+      }
+    }
 
     if (thumbnailLocalUri) {
       try {
@@ -154,34 +380,59 @@ export async function uploadAndCreateStory(params: {
         );
         if (thumbRes.ok) {
           thumbnailUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${thumbName}`;
+        } else {
+          console.log('[storiesService] Thumb upload failed:', thumbRes.status);
         }
       } catch (e: any) {
-        console.log('[story thumb upload]', e?.message);
+        console.log('[storiesService] Thumb upload error:', e?.message);
       }
     }
   }
 
+  const insertPayload: any = {
+    user_id: userId,
+    media_url: mediaPublicUrl,
+    media_type: mediaType,
+    thumbnail_url: thumbnailUrl,
+    duration_sec: durationSec ?? null,
+    caption: caption?.trim() || null,
+    scope,
+    affiliation_id: affiliationId || null,
+  };
+
+  if (stickersJson && stickersJson.length > 0) {
+    insertPayload.stickers_json = stickersJson;
+  }
+  if (textBackground) {
+    insertPayload.text_background = textBackground;
+  }
+  if (mediaTransform && (mediaTransform.scale !== 1 || mediaTransform.translateNX !== 0 || mediaTransform.translateNY !== 0 || mediaTransform.fit !== 'cover')) {
+    insertPayload.media_transform = mediaTransform;
+  }
+  if (category) {
+    insertPayload.category = category;
+  }
+  if (dualFrontPublicUrl) {
+    insertPayload.dual_front_url = dualFrontPublicUrl;
+  }
+  if (dualLayout) {
+    insertPayload.dual_layout = dualLayout;
+  }
+
+  console.log('[storiesService] Inserting story row:', JSON.stringify(insertPayload).slice(0, 300));
+
   const { data, error } = await supabase
     .from('stories')
-    .insert({
-      user_id: userId,
-      media_url: mediaPublicUrl,
-      media_type: mediaType,
-      thumbnail_url: thumbnailUrl,
-      duration_sec: durationSec ?? null,
-      caption: caption?.trim() || null,
-      scope,
-      affiliation_id: affiliationId || null,
-      stickers_json: (stickersJson && stickersJson.length > 0) ? stickersJson : null,
-      text_background: textBackground || null,
-    })
+    .insert(insertPayload)
     .select()
     .single();
 
   if (error || !data) {
+    console.log('[storiesService] Insert error:', error?.message);
     throw error || new Error('Story insert failed');
   }
 
+  console.log('[storiesService] Story created:', data.id);
   return data as StoryRow;
 }
 
@@ -238,4 +489,270 @@ export const storiesService = {
     }
     return (data || []) as StoryViewer[];
   },
+
+  async toggleReaction(storyId: string, emoji: string): Promise<{ reacted: boolean; emoji: string }> {
+    const { data, error } = await supabase.rpc('toggle_story_reaction', {
+      p_story_id: storyId,
+      p_emoji: emoji,
+    });
+    if (error) {
+      console.log('[storiesService.toggleReaction]', error.message);
+      throw error;
+    }
+    return data as { reacted: boolean; emoji: string };
+  },
+
+  async getMyReactions(storyId: string): Promise<string[]> {
+    const { data, error } = await supabase.rpc('get_my_story_reactions', {
+      p_story_id: storyId,
+    });
+    if (error) {
+      console.log('[storiesService.getMyReactions]', error.message);
+      return [];
+    }
+    return (data || []).map((r: any) => r.emoji);
+  },
+
+  async getReactions(storyId: string): Promise<StoryReaction[]> {
+    const { data, error } = await supabase.rpc('get_story_reactions', {
+      p_story_id: storyId,
+    });
+    if (error) {
+      console.log('[storiesService.getReactions]', error.message);
+      return [];
+    }
+    return (data || []) as StoryReaction[];
+  },
+
+  // ── Poll methods ──
+
+  async createStoryPoll(
+    storyId: string,
+    question: string,
+    options: string[],
+  ): Promise<StoryPoll> {
+    if (options.length < 2 || options.length > 4) {
+      throw new Error('Poll requires 2 to 4 options');
+    }
+
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion) {
+      throw new Error('Poll question cannot be empty');
+    }
+
+    const trimmedOptions = options.map(o => o.trim());
+    for (let i = 0; i < trimmedOptions.length; i++) {
+      if (!trimmedOptions[i]) {
+        throw new Error(`Option ${i + 1} cannot be empty`);
+      }
+    }
+
+    const lowerSet = new Set<string>();
+    for (const opt of trimmedOptions) {
+      const lower = opt.toLowerCase();
+      if (lowerSet.has(lower)) {
+        throw new Error(`Duplicate option: ${opt}`);
+      }
+      lowerSet.add(lower);
+    }
+
+    // Insert poll
+    const { data: poll, error: pollErr } = await supabase
+      .from('story_polls')
+      .insert({
+        story_id: storyId,
+        question: trimmedQuestion,
+      })
+      .select('id')
+      .single();
+
+    if (pollErr || !poll) {
+      console.log('[storiesService.createStoryPoll] poll insert error:', pollErr?.message);
+      throw pollErr || new Error('Poll insert failed');
+    }
+
+    // Insert options
+    const optionRows = trimmedOptions.map((label, i) => ({
+      poll_id: poll.id,
+      label,
+      position: i,
+    }));
+
+    const { error: optErr } = await supabase
+      .from('story_poll_options')
+      .insert(optionRows);
+
+    if (optErr) {
+      console.log('[storiesService.createStoryPoll] options insert error:', optErr.message);
+      // Rollback: delete the poll (cascades options if any partial insert)
+      await supabase.from('story_polls').delete().eq('id', poll.id);
+      throw optErr;
+    }
+
+    // Return fresh poll data via RPC
+    const result = await this.getStoryPoll(storyId);
+    if (!result) {
+      throw new Error('Poll created but could not be read back');
+    }
+    return result;
+  },
+
+  async getStoryPoll(storyId: string): Promise<StoryPoll | null> {
+    const { data, error } = await supabase.rpc('get_story_poll', {
+      p_story_id: storyId,
+    });
+
+    if (error) {
+      console.log('[storiesService.getStoryPoll]', error.message);
+      throw error;
+    }
+
+    if (!data) return null;
+    return data as StoryPoll;
+  },
+
+  async voteStoryPoll(pollId: string, optionId: string): Promise<StoryPoll> {
+    const { data, error } = await supabase.rpc('vote_story_poll', {
+      p_poll_id: pollId,
+      p_option_id: optionId,
+    });
+
+    if (error) {
+      console.log('[storiesService.voteStoryPoll]', error.message);
+      throw error;
+    }
+
+    return data as StoryPoll;
+  },
+
+  async getStoryPollVoters(pollId: string, optionId: string): Promise<StoryPollVoter[]> {
+    const { data, error } = await supabase.rpc('get_story_poll_voters', {
+      p_poll_id: pollId,
+      p_option_id: optionId,
+    });
+
+    if (error) {
+      console.log('[storiesService.getStoryPollVoters]', error.message);
+      throw error;
+    }
+
+    return (data || []) as StoryPollVoter[];
+  },
+
+  // ── Highlight methods ──
+
+  async getUserHighlights(userId: string): Promise<StoryHighlight[]> {
+    const { data, error } = await supabase.rpc('get_user_highlights', { p_user_id: userId });
+    if (error) { console.log('[storiesService.getUserHighlights]', error.message); return []; }
+    return (data || []) as StoryHighlight[];
+  },
+
+  async getHighlightStories(highlightId: string): Promise<StoryRow[]> {
+    const { data, error } = await supabase.rpc('get_highlight_stories', { p_highlight_id: highlightId });
+    if (error) { console.log('[storiesService.getHighlightStories]', error.message); return []; }
+    return (data || []) as StoryRow[];
+  },
+
+  async createHighlight(title: string): Promise<StoryHighlight> {
+    const { data, error } = await supabase
+      .from('story_highlights')
+      .insert({ title, user_id: (await supabase.auth.getUser()).data.user?.id })
+      .select()
+      .single();
+    if (error || !data) { throw error || new Error('Could not create highlight'); }
+    return { ...data, story_count: 0, latest_story_media_url: null } as StoryHighlight;
+  },
+
+  async updateHighlight(highlightId: string, patch: { title?: string; cover_url?: string | null }): Promise<void> {
+    const { error } = await supabase
+      .from('story_highlights')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', highlightId);
+    if (error) throw error;
+  },
+
+  async deleteHighlight(highlightId: string): Promise<void> {
+    const { error } = await supabase.from('story_highlights').delete().eq('id', highlightId);
+    if (error) throw error;
+  },
+
+  async addStoryToHighlight(highlightId: string, storyId: string): Promise<void> {
+    const { error } = await supabase
+      .from('story_highlight_items')
+      .insert({ highlight_id: highlightId, story_id: storyId });
+    if (error) throw error;
+  },
+
+  async removeStoryFromHighlight(highlightId: string, storyId: string): Promise<void> {
+    const { error } = await supabase
+      .from('story_highlight_items')
+      .delete()
+      .eq('highlight_id', highlightId)
+      .eq('story_id', storyId);
+    if (error) throw error;
+  },
+
+  // ── Sticker response methods ──
+
+  async submitStickerResponse(params: {
+    storyId: string;
+    stickerId: string;
+    responseType: 'question' | 'slider' | 'quiz';
+    textValue?: string | null;
+    numberValue?: number | null;
+    optionId?: string | null;
+  }): Promise<any> {
+    const { data, error } = await supabase.rpc('submit_sticker_response', {
+      p_story_id: params.storyId,
+      p_sticker_id: params.stickerId,
+      p_response_type: params.responseType,
+      p_text_value: params.textValue || null,
+      p_number_value: params.numberValue ?? null,
+      p_option_id: params.optionId || null,
+    });
+    if (error) {
+      console.log('[storiesService.submitStickerResponse]', error.message);
+      throw error;
+    }
+    return data;
+  },
+
+  async getStickerResponses(storyId: string, stickerId: string): Promise<StickerResponse[]> {
+    const { data, error } = await supabase.rpc('get_sticker_responses', {
+      p_story_id: storyId,
+      p_sticker_id: stickerId,
+    });
+    if (error) {
+      console.log('[storiesService.getStickerResponses]', error.message);
+      return [];
+    }
+    return (data || []) as StickerResponse[];
+  },
+
+  async getMyStickerResponse(storyId: string, stickerId: string): Promise<StickerResponse | null> {
+    const { data, error } = await supabase.rpc('get_my_sticker_response', {
+      p_story_id: storyId,
+      p_sticker_id: stickerId,
+    });
+    if (error) {
+      console.log('[storiesService.getMyStickerResponse]', error.message);
+      return null;
+    }
+    return data as StickerResponse | null;
+  },
+};
+
+export type StickerResponse = {
+  id: string;
+  story_id: string;
+  sticker_id: string;
+  user_id: string;
+  response_type: string;
+  text_value: string | null;
+  number_value: number | null;
+  option_id: string | null;
+  created_at: string;
+  full_name?: string | null;
+  username?: string | null;
+  avatar_url?: string | null;
 };

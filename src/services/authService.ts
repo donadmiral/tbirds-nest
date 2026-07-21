@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { pickFromLibrary, uploadMedia } from './mediaService';
+import { isAsuEmail } from '../utils/isAsuEmail';
 
 export type SignUpResult = { needsEmailVerification: boolean };
 
@@ -7,6 +8,10 @@ export const authService = {
   /**
    * Create a new account. If the email is already registered but unverified,
    * re-send the verification email instead of surfacing an error.
+   *
+   * STEP 3: Account classification is handled by the database trigger
+   * on profiles insert (or by the backfill). But we also pass account_type
+   * in user_metadata so SetupProfileScreen can read it immediately.
    */
   async signUp(
     email: string,
@@ -14,12 +19,17 @@ export const authService = {
     fullName: string,
     redirectTo?: string
   ): Promise<SignUpResult> {
+    const isASU = isAsuEmail(email);
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectTo,
-        data: { full_name: fullName },
+        data: {
+          full_name: fullName,
+          account_type: isASU ? 'asu' : 'public',
+        },
       },
     });
 
@@ -28,6 +38,27 @@ export const authService = {
       return { needsEmailVerification: true };
     }
     if (error) throw error;
+
+    // Safety net: if DB trigger hasn't fired yet or account_type is NULL,
+    // stamp classification. Only writes if account_type is still NULL.
+    // This is idempotent and never overrides the trigger's work.
+    if (data?.user?.id) {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          account_type: isASU ? 'asu' : 'public',
+          institution: isASU ? 'ASU' : null,
+          is_verified_institution: false,
+          school: isASU ? 'Arizona State University' : null,
+        })
+        .eq('id', data.user.id)
+        .is('account_type', null);
+
+      if (updateError) {
+        console.log('[authService.signUp] profile classification error:', updateError.message);
+        // Non-fatal: the database trigger handles this
+      }
+    }
 
     return { needsEmailVerification: !data.session };
   },
@@ -59,11 +90,23 @@ export const authService = {
   },
 
   /**
-   * Send a password-reset email.
+   * Send a password-reset email with OTP code.
    */
   async resetPassword(email: string, redirectTo?: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
+    });
+    if (error) throw error;
+  },
+
+  /**
+   * Verify OTP code for password reset.
+   */
+  async verifyResetCode(email: string, code: string) {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'email',
     });
     if (error) throw error;
   },
@@ -88,8 +131,7 @@ export const authService = {
   },
 
   /**
-   * Upload an avatar image from a local URI. Backward-compatible with the
-   * previous signature. Every screen that saves avatars should use this.
+   * Upload an avatar image from a local URI.
    */
   async uploadAvatar(userId: string, uri: string): Promise<string> {
     const ext = (uri.split('.').pop()?.toLowerCase() || 'jpg').replace('jpeg', 'jpg');
@@ -104,8 +146,7 @@ export const authService = {
   },
 
   /**
-   * Convenience: open the library picker and upload the selected avatar
-   * in one call. Returns the public URL or null if the user cancelled.
+   * Convenience: open the library picker and upload the selected avatar.
    */
   async pickAndUploadAvatar(userId: string): Promise<string | null> {
     const picked = await pickFromLibrary({

@@ -12,14 +12,6 @@ if (!url || !anonKey) {
   );
 }
 
-/**
- * Canonical Supabase client for the whole app.
- *
- * - AsyncStorage is used on native so sessions persist across restarts.
- * - processLock serialises auth operations across multiple JS instances.
- * - detectSessionInUrl is off because we use deep links, not hash fragments.
- * - AppState listener keeps the token refreshing while the app is foregrounded.
- */
 export const supabase = createClient(url, anonKey, {
   auth: {
     storage: Platform.OS === 'web' ? undefined : AsyncStorage,
@@ -35,17 +27,45 @@ export const supabase = createClient(url, anonKey, {
   },
 });
 
+let _cachedUserId: string | null = null;
+let _heartbeat: ReturnType<typeof setInterval> | null = null;
+export function setCachedUserId(id: string | null) { _cachedUserId = id; }
+
 if (Platform.OS !== 'web') {
   AppState.addEventListener('change', (state) => {
-    if (state === 'active') supabase.auth.startAutoRefresh();
-    else supabase.auth.stopAutoRefresh();
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh();
+      if (_cachedUserId) {
+        supabase.from('user_presence').upsert({
+          user_id: _cachedUserId,
+          is_online: true,
+          last_seen: new Date().toISOString(),
+        })// @ts-ignore
+.then(() => {}).catch(() => {});
+        if (_heartbeat) clearInterval(_heartbeat);
+        _heartbeat = setInterval(() => {
+          if (_cachedUserId) {
+            supabase.from('user_presence').upsert({
+              user_id: _cachedUserId,
+              is_online: true,
+              last_seen: new Date().toISOString(),
+            }).then(() => {}, () => {});
+          }
+        }, 60000);
+      }
+    } else {
+      if (_heartbeat) { clearInterval(_heartbeat); _heartbeat = null; }
+      if (_cachedUserId) {
+        supabase.from('user_presence').upsert({
+          user_id: _cachedUserId,
+          is_online: false,
+          last_seen: new Date().toISOString(),
+        }).then(() => {}, () => {});
+      }
+      supabase.auth.stopAutoRefresh();
+    }
   });
 }
 
-/**
- * Exported so mediaService can POST directly to the storage REST endpoint
- * without re-reading process.env. Do not import these elsewhere unless you
- * genuinely need the raw URL or anon key.
- */
 export const SUPABASE_URL = url;
 export const SUPABASE_ANON_KEY = anonKey;

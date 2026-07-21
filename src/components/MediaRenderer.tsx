@@ -1,14 +1,12 @@
 /**
  * MediaRenderer.tsx
  *
- * Preserves feed look and media rendering.
- * Fixes double-tap-to-like by NOT swallowing parent FeedScreen taps.
- *
- * Important:
- * Your FeedScreen already wraps media with:
- * onPress={() => handleDoubleTap(post.id, openPost)}
- *
- * This file keeps media visual quality intact and lets the parent wrapper receive taps.
+ * CAROUSEL FIX:
+ * - Keeps single-image and single-video behavior unchanged.
+ * - Keeps carousel as a horizontal paginated ScrollView.
+ * - Locks the carousel outer container width and height.
+ * - Hides overflow so only one carousel page is visible at a time.
+ * - Forces ScrollView content into a horizontal row so media cannot stack vertically.
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -24,6 +22,8 @@ import {
   StatusBar,
   Text,
   TouchableOpacity,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { setAudioModeAsync } from 'expo-audio';
@@ -55,7 +55,7 @@ async function ensureAudioSession() {
   try {
     await setAudioModeAsync({
       allowsRecording: false,
-      playsInSilentModeIOS: true,
+      playsInSilentMode: true,
     });
     audioSessionReady = true;
   } catch (e) {
@@ -277,7 +277,28 @@ function VideoItem({
   );
 }
 
-function CarouselItem({
+function CarouselImageItem({
+  item,
+  width,
+  height,
+}: {
+  item: PostMedia;
+  width: number;
+  height: number;
+}) {
+  return (
+    <View style={{ width, height, backgroundColor: '#F0F0F0', overflow: 'hidden' }}>
+      <Image
+        source={{ uri: item.url }}
+        style={{ width, height }}
+        resizeMode="cover"
+        onError={(e: any) => console.log('[CAROUSEL_IMG_ERR]', item.url, e.nativeEvent.error)}
+      />
+    </View>
+  );
+}
+
+function CarouselVideoItem({
   item,
   width,
   height,
@@ -288,43 +309,29 @@ function CarouselItem({
   height: number;
   isActive: boolean;
 }) {
-  if (item.media_type === 'video') {
-    useEffect(() => {
-      ensureAudioSession();
-    }, []);
+  useEffect(() => {
+    ensureAudioSession();
+  }, []);
 
-    const player = useVideoPlayer(item.url, p => {
-      p.loop = true;
-      p.muted = false;
-      p.volume = 1.0;
-    });
+  const player = useVideoPlayer(item.url, p => {
+    p.loop = true;
+    p.muted = false;
+    p.volume = 1.0;
+  });
 
-    useEffect(() => {
-      if (isActive) player.play();
-      else player.pause();
-    }, [isActive, player]);
-
-    return (
-      <View pointerEvents="none" style={{ width, height, backgroundColor: '#F0F0F0' }}>
-        <VideoView
-          pointerEvents="none"
-          player={player}
-          style={{ width, height }}
-          contentFit="cover"
-          nativeControls={false}
-          allowsPictureInPicture={false}
-        />
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (isActive) player.play();
+    else player.pause();
+  }, [isActive, player]);
 
   return (
-    <View pointerEvents="none" style={{ width, height, backgroundColor: '#F0F0F0' }}>
-      <Image
-        source={{ uri: item.url }}
+    <View style={{ width, height, backgroundColor: '#F0F0F0', overflow: 'hidden' }}>
+      <VideoView
+        player={player}
         style={{ width, height }}
-        resizeMode="cover"
-        onError={(e: any) => console.log('[CAROUSEL_IMG_ERR]', item.url, e.nativeEvent.error)}
+        contentFit="cover"
+        nativeControls={false}
+        allowsPictureInPicture={false}
       />
     </View>
   );
@@ -344,40 +351,88 @@ function Carousel({
   maxHeight: number;
 }) {
   const [active, setActive] = useState(0);
-  const radius = fullBleed ? 0 : 14;
   const first = items[0];
   const ratio = getRatio(first);
-  const height = getHeightFromRatio(width, ratio, maxHeight);
+  const calculatedMediaHeight = getHeightFromRatio(width, ratio, maxHeight);
+  const radius = fullBleed ? 0.001 : 14;
 
-  const onScroll = useCallback((e: any) => {
+  const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / width);
     setActive(Math.max(0, Math.min(idx, items.length - 1)));
   }, [width, items.length]);
 
+  if (items.length < 2) {
+    const solo = items[0];
+    if (solo.media_type === 'video') {
+      return <VideoItem item={solo} width={width} fullBleed={fullBleed} isActive={isActive} maxHeight={maxHeight} />;
+    }
+    return <SingleImage item={solo} width={width} maxH={maxHeight} fullBleed={fullBleed} />;
+  }
+
   return (
-    <View>
-      <FlatList
-        data={items}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(_, i) => String(i)}
-        onMomentumScrollEnd={onScroll}
-        getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+    <View style={{ width }}>
+      <View
         style={{
+          width,
+          height: calculatedMediaHeight,
+          maxHeight: calculatedMediaHeight,
           borderRadius: radius,
           overflow: 'hidden',
           backgroundColor: '#F0F0F0',
         }}
-        renderItem={({ item }) => (
-          <CarouselItem
-            item={item}
-            width={width}
-            height={height}
-            isActive={isActive}
-          />
-        )}
-      />
+      >
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={onScroll}
+          scrollEventThrottle={16}
+          bounces={false}
+          nestedScrollEnabled
+          directionalLockEnabled
+          removeClippedSubviews
+          style={{
+            width,
+            height: calculatedMediaHeight,
+            maxHeight: calculatedMediaHeight,
+            overflow: 'hidden',
+          }}
+          contentContainerStyle={{
+            width: width * items.length,
+            height: calculatedMediaHeight,
+            maxHeight: calculatedMediaHeight,
+            flexDirection: 'row',
+            alignItems: 'stretch',
+          }}
+        >
+          {items.map((item, i) => (
+            <View
+              key={item.id || `carousel-${i}`}
+              style={{
+                width,
+                height: calculatedMediaHeight,
+                maxHeight: calculatedMediaHeight,
+                overflow: 'hidden',
+              }}
+            >
+              {item.media_type === 'video' ? (
+                <CarouselVideoItem
+                  item={item}
+                  width={width}
+                  height={calculatedMediaHeight}
+                  isActive={isActive && i === active}
+                />
+              ) : (
+                <CarouselImageItem
+                  item={item}
+                  width={width}
+                  height={calculatedMediaHeight}
+                />
+              )}
+            </View>
+          ))}
+        </ScrollView>
+      </View>
 
       {items.length > 1 && (
         <View style={s.dots}>
@@ -404,6 +459,10 @@ export default function MediaRenderer({
 
   const sorted = [...media].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   const imageItems = sorted.filter(m => m.media_type !== 'video');
+
+  if (__DEV__ && sorted.length > 1) {
+    console.log('[MediaRenderer] carousel mode:', sorted.length, 'items, fullBleed:', fullBleed, 'width:', containerWidth);
+  }
 
   if (sorted.length === 1 && sorted[0].media_type === 'video') {
     return (

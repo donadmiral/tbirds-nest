@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity,
-  Image, ActivityIndicator, RefreshControl, StatusBar, ScrollView, Alert, Modal,
+  Image, ActivityIndicator, RefreshControl, StatusBar, ScrollView, Alert, Modal, Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import * as Haptics from 'expo-haptics';
 
 type Profile = {
   id: string;
@@ -306,6 +307,7 @@ export default function NetworkScreen({ navigation }: any) {
         return;
       }
       setConnectionMap((p) => ({ ...p, [userId]: 'pending_sent' }));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e: any) {
       console.log('SEND_REQUEST_CATCH', e);
     } finally {
@@ -400,6 +402,7 @@ export default function NetworkScreen({ navigation }: any) {
     setBusy(`orb-${userId}`, true);
     try {
       setOrbitMap((p) => ({ ...p, [userId]: !was }));
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       if (was) {
         await supabase.from('orbits').delete().eq('follower_id', currentUserId).eq('following_id', userId);
       } else {
@@ -445,7 +448,7 @@ export default function NetworkScreen({ navigation }: any) {
 
   const AvatarView = ({ user, size = 52 }: { user: Profile; size?: number }) =>
     user.avatar_url
-      ? <Image source={{ uri: user.avatar_url }} style={{ width: size, height: size, borderRadius: size / 2 }} />
+      ? <Image source={{ uri: user.avatar_url }} style={{ width: size, height: size, borderRadius: size / 2 }} fadeDuration={200} />
       : <View style={[s.avatarFb, { width: size, height: size, borderRadius: size / 2 }]}>
           <Text style={[s.avatarFbTxt, { fontSize: size * 0.33 }]}>{initials(user.full_name || user.username)}</Text>
         </View>;
@@ -531,9 +534,11 @@ export default function NetworkScreen({ navigation }: any) {
           {(item as any).workplace
             ? <Text style={s.cardWorkplace} numberOfLines={1}>💼 {(item as any).workplace}</Text>
             : null}
-          <Text style={s.cardSchool} numberOfLines={1}>
-            🎓 {(item as any).school || 'Thunderbird School of Global Management'}
-          </Text>
+          {(item as any).school
+            ? <Text style={s.cardSchool} numberOfLines={1}>
+                🎓 {(item as any).school}
+              </Text>
+            : null}
           {(item.degree_program || (item as any).cohort)
             ? <Text style={s.cardMeta} numberOfLines={1}>
                 {[item.degree_program, (item as any).cohort].filter(Boolean).join(' · ')}
@@ -601,9 +606,9 @@ export default function NetworkScreen({ navigation }: any) {
   );
 
   return (
-    <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F4F6F9" />
-      <View style={[s.container, { paddingTop: insets.top + 8 }]}>
+      <View style={s.container}>
 
         <View style={s.header}>
           <View style={s.headerRow}>
@@ -667,6 +672,11 @@ export default function NetworkScreen({ navigation }: any) {
             renderItem={({ item }) => renderGroupCard({ item, table: tab as 'communities' | 'clubs' })}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            initialNumToRender={8}
+            maxToRenderPerBatch={6}
+            windowSize={7}
+            removeClippedSubviews={Platform.OS === 'android'}
             contentContainerStyle={[s.list, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
             ListHeaderComponent={
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, marginTop: 4 }}>
@@ -714,6 +724,11 @@ export default function NetworkScreen({ navigation }: any) {
                 renderItem={renderUserCard}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                initialNumToRender={10}
+                maxToRenderPerBatch={8}
+                windowSize={7}
+                removeClippedSubviews={Platform.OS === 'android'}
                 contentContainerStyle={[s.list, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
                 ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No members yet. Join to be the first!</Text></View>}
               />
@@ -726,7 +741,11 @@ export default function NetworkScreen({ navigation }: any) {
             renderItem={renderUserCard}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="none"
+            keyboardDismissMode="on-drag"
+            initialNumToRender={10}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            removeClippedSubviews={Platform.OS === 'android'}
             contentContainerStyle={[s.list, filteredUsers.length === 0 && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
             ListHeaderComponent={
               <>
@@ -864,7 +883,7 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F4F6F9' },
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: '#F4F6F9' },
-  header: { paddingHorizontal: 16, paddingBottom: 8, backgroundColor: '#F4F6F9' },
+  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, backgroundColor: '#F4F6F9' },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
   title: { fontSize: 28, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
   subtitle: { marginTop: 3, fontSize: 13, color: '#64748B', fontWeight: '500' },
@@ -883,7 +902,6 @@ const s = StyleSheet.create({
   list: { paddingHorizontal: 14 },
   listEmpty: { flexGrow: 1 },
   sectionLabel: { fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 4 },
-
   affCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: '#FFF', borderRadius: 18,
@@ -898,7 +916,6 @@ const s = StyleSheet.create({
   affTitle: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
   affSub: { fontSize: 12, color: '#64748B', marginTop: 2, lineHeight: 16 },
   affChevron: { fontSize: 20, color: '#9CA3AF', fontWeight: '500' },
-
   card: {
     backgroundColor: '#FFF', borderRadius: 18, borderWidth: 1, borderColor: '#E2E8F0',
     padding: 14, marginBottom: 10,
@@ -967,7 +984,7 @@ const s = StyleSheet.create({
   cohortModalSheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    paddingBottom: 32, maxHeight: '75%',
+    paddingBottom: 40, maxHeight: '75%',
   },
   cohortModalHandle: {
     width: 36, height: 4, borderRadius: 2, backgroundColor: '#D1D5DB',

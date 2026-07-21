@@ -1,6 +1,9 @@
 import { create } from 'zustand';
+import * as Linking from 'expo-linking';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '../services/supabase';
+import { showMessage } from 'react-native-flash-message';
+import { supabase, setCachedUserId } from '../services/supabase';
+import { registerForPushNotifications } from '../services/notificationBootstrap';
 import type { Profile } from '../types';
 
 type AuthState = {
@@ -9,20 +12,25 @@ type AuthState = {
   loading: boolean;
   initialized: boolean;
   pendingInstitutionId: string | null;
+  isVerifiedSchoolUser: boolean;
+  isPasswordRecovery: boolean;
+  suppressRecoveryRedirect: boolean;
+  recoveryUrl: string | null;
+
   initialize: () => Promise<void>;
   setSession: (session: Session | null) => void;
   setProfile: (profile: Profile | null) => void;
   setPendingInstitutionId: (id: string | null) => void;
+  setPasswordRecovery: (v: boolean) => void;
+  setSuppressRecoveryRedirect: (v: boolean) => void;
+  setRecoveryUrl: (url: string | null) => void;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
 
-/**
- * Module-level handle to the auth listener. Held outside the store so a
- * hot reload or a second call to initialize() can tear down the previous
- * subscription cleanly instead of stacking listeners.
- */
 let authListenerHandle: { subscription: { unsubscribe: () => void } } | null = null;
+
+let openedViaVerificationLink = false;
 
 async function loadProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
@@ -37,10 +45,6 @@ async function loadProfile(userId: string): Promise<Profile | null> {
   return (data ?? null) as Profile | null;
 }
 
-/**
- * Called after sign-in to apply the institution the user picked during
- * sign-up. Idempotent: re-calling with the same id is a no-op on the server.
- */
 async function claimPendingInstitution(institutionId: string): Promise<void> {
   try {
     const { error } = await supabase.rpc('claim_institution', {
@@ -56,57 +60,194 @@ async function claimPendingInstitution(institutionId: string): Promise<void> {
   }
 }
 
+function getVerifiedStatus(profile: Profile | null): boolean {
+  return !!(profile as any)?.is_verified_school_user;
+}
+
+async function checkInitialUrl(): Promise<{ isRecovery: boolean; isVerification: boolean; url: string | null }> {
+  try {
+    const url = await Linking.getInitialURL();
+    if (!url) return { isRecovery: false, isVerification: false, url: null };
+
+    console.log('[authStore] Initial URL:', url);
+
+    if (url.includes('type=recovery')) {
+      return { isRecovery: true, isVerification: false, url };
+    }
+    if (url.includes('auth/callback')) {
+      return { isRecovery: false, isVerification: true, url };
+    }
+  } catch (e) {
+    console.log('[authStore] checkInitialUrl error:', e);
+  }
+  return { isRecovery: false, isVerification: false, url: null };
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
   loading: true,
   initialized: false,
   pendingInstitutionId: null,
+  isVerifiedSchoolUser: false,
+  isPasswordRecovery: false,
+  suppressRecoveryRedirect: false,
+  recoveryUrl: null,
 
   initialize: async () => {
     try {
       set({ loading: true });
+
+      const { isRecovery, isVerification, url } = await checkInitialUrl();
+
+      if (isRecovery) {
+        console.log('[authStore] Password recovery link detected');
+        set({ isPasswordRecovery: true, recoveryUrl: url });
+      }
+      if (isVerification) {
+        console.log('[authStore] Verification link detected');
+        openedViaVerificationLink = true;
+      }
 
       const { data: { session } } = await supabase.auth.getSession();
 
       let profile: Profile | null = null;
       if (session?.user?.id) {
         profile = await loadProfile(session.user.id);
+        setCachedUserId(session.user.id);
+        supabase.from('user_presence').upsert({
+          user_id: session.user.id,
+          is_online: true,
+          last_seen: new Date().toISOString(),
+        // @ts-ignore
+}).then(() => {}).catch(() => {});
+
+        registerForPushNotifications(session.user.id).catch((e) =>
+          console.log('[authStore] push token registration failed:', e)
+        );
       }
 
       set({
         session: session ?? null,
         profile,
+        isVerifiedSchoolUser: getVerifiedStatus(profile),
         loading: false,
         initialized: true,
       });
 
-      // Clean up any prior listener before installing a new one.
       authListenerHandle?.subscription?.unsubscribe();
 
       const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
         console.log('[authStore] event:', event);
 
-        if (event === 'SIGNED_OUT' || !newSession) {
-          set({ session: null, profile: null, pendingInstitutionId: null });
+        if (get().suppressRecoveryRedirect) {
+          if (event === 'SIGNED_OUT' || !newSession) {
+            console.log('[authStore] Suppressed recovery: SIGNED_OUT, clearing all state');
+            setCachedUserId(null);
+            set({
+              session: null,
+              profile: null,
+              pendingInstitutionId: null,
+              isVerifiedSchoolUser: false,
+              isPasswordRecovery: false,
+              suppressRecoveryRedirect: false,
+              recoveryUrl: null,
+            });
+            return;
+          }
+          console.log('[authStore] Suppressed recovery event:', event);
           return;
         }
 
-        set({ session: newSession });
+        if (event === 'PASSWORD_RECOVERY') {
+          console.log('[authStore] PASSWORD_RECOVERY event fired');
+          set({ session: newSession, isPasswordRecovery: true });
+          return;
+        }
+
+        if (event === 'SIGNED_OUT' || !newSession) {
+          setCachedUserId(null);
+          set({
+            session: null,
+            profile: null,
+            pendingInstitutionId: null,
+            isVerifiedSchoolUser: false,
+            isPasswordRecovery: false,
+            suppressRecoveryRedirect: false,
+            recoveryUrl: null,
+          });
+          return;
+        }
+
+        if (get().isPasswordRecovery) {
+          set({ session: newSession });
+          return;
+        }
+
+        // ── CRITICAL FIX: Batch session + profile into ONE set() call ──
+        // Previously this was two separate set() calls:
+        //   set({ session: newSession })  ← triggered AppNavigator re-render
+        //   ... await loadProfile ...
+        //   set({ profile: p })           ← triggered ANOTHER re-render
+        //
+        // Now: load profile FIRST, then update everything in one atomic call.
+        // This prevents intermediate states where session is new but profile is stale,
+        // which caused navigation flicker and Android tab resets.
 
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-          // Claim the pending institution the user picked at sign-up.
+          if (event === 'SIGNED_IN' && openedViaVerificationLink) {
+            openedViaVerificationLink = false;
+            showMessage({
+              message: 'Email verified',
+              description: 'Your account is ready. Welcome to PlatinumCircles!',
+              type: 'success',
+              duration: 4000,
+            });
+          }
+
           const pending = get().pendingInstitutionId;
           if (event === 'SIGNED_IN' && pending && newSession.user?.id) {
             await claimPendingInstitution(pending);
             set({ pendingInstitutionId: null });
           }
 
+          // Load profile BEFORE updating state
           const p = await loadProfile(newSession.user.id);
-          set({ profile: p });
+          setCachedUserId(newSession.user.id);
+
+          // Single atomic state update
+          set({
+            session: newSession,
+            profile: p,
+            isVerifiedSchoolUser: getVerifiedStatus(p),
+          });
+
+          // Fire-and-forget side effects (do not trigger state changes)
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            supabase.from('user_presence').upsert({
+              user_id: newSession.user.id,
+              is_online: true,
+              last_seen: new Date().toISOString(),
+            // @ts-ignore
+}).then(() => {}).catch(() => {});
+
+            registerForPushNotifications(newSession.user.id).catch((e) =>
+              console.log('[authStore] push token re-registration failed:', e)
+            );
+          }
+        } else {
+          // For any other event, just update session
+          set({ session: newSession });
         }
       });
       authListenerHandle = data;
+
+      Linking.addEventListener('url', ({ url }) => {
+        if (url && url.includes('type=recovery')) {
+          console.log('[authStore] Warm-start recovery URL detected:', url);
+          set({ isPasswordRecovery: true, recoveryUrl: url });
+        }
+      });
     } catch (error) {
       console.log('[authStore.initialize]', error);
       set({
@@ -114,13 +255,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         profile: null,
         loading: false,
         initialized: true,
+        isVerifiedSchoolUser: false,
       });
     }
   },
 
   setSession: (session) => set({ session }),
-  setProfile: (profile) => set({ profile }),
+  setProfile: (profile) => set({ profile, isVerifiedSchoolUser: getVerifiedStatus(profile) }),
   setPendingInstitutionId: (id) => set({ pendingInstitutionId: id }),
+  setPasswordRecovery: (v) => set({ isPasswordRecovery: v }),
+  setSuppressRecoveryRedirect: (v) => set({ suppressRecoveryRedirect: v }),
+  setRecoveryUrl: (url) => set({ recoveryUrl: url }),
 
   signOut: async () => {
     const uid = get().session?.user?.id;
@@ -132,21 +277,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           last_seen: new Date().toISOString(),
         });
       }
+      setCachedUserId(null);
+      set({ suppressRecoveryRedirect: false });
       await supabase.auth.signOut();
     } catch (error) {
       console.log('[authStore.signOut]', error);
     } finally {
-      set({ session: null, profile: null, pendingInstitutionId: null });
+      set({
+        session: null,
+        profile: null,
+        pendingInstitutionId: null,
+        isVerifiedSchoolUser: false,
+        isPasswordRecovery: false,
+        suppressRecoveryRedirect: false,
+        recoveryUrl: null,
+      });
     }
   },
 
   refreshProfile: async () => {
     const uid = get().session?.user?.id;
     if (!uid) {
-      set({ profile: null });
+      set({ profile: null, isVerifiedSchoolUser: false });
       return;
     }
     const p = await loadProfile(uid);
-    set({ profile: p });
+    set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) });
   },
 }));

@@ -57,7 +57,7 @@ export default function SavedMessagesScreen({ navigation }: any) {
         `)
         .eq('user_id', userId)
         .order('saved_at', { ascending: false });
-      setSaved((data || []) as SavedMsg[]);
+      setSaved((data || []) as unknown as SavedMsg[]);
     } catch (e) {
       console.log('SAVED_MSGS_ERR', e);
     } finally {

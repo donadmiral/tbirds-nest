@@ -192,7 +192,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         setAdminOnlyInvite(!!conv.admin_only_invite);
       }
 
-      const loadedMembers = (memberRes.data || []) as Member[];
+      const loadedMembers = (memberRes.data || []) as unknown as Member[];
       setMembers(loadedMembers);
       const me = loadedMembers.find(m => m.user_id === myId);
       setIsAdmin(me?.role === 'admin');

@@ -8,9 +8,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
-import { supabase } from '../../services/supabase';
-import { useAuthStore } from '../../stores/authStore';
-import { meetingService, MyActiveMeeting } from '../../services/meetingService';
+import { supabase } from '../services/supabase';
+import { useAuthStore } from '../stores/authStore';
+import { meetingService, MyActiveMeeting } from '../services/meetingService';
 
 type Conversation = {
   id: string;
@@ -206,7 +206,7 @@ export default function ConversationsScreen({ navigation }: any) {
       .channel(`inbox_live_${userId}`)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'conversations',
-      }, (payload) => {
+      }, (payload: any) => {
         const updated = payload.new as any;
         setConversations(prev => {
           const idx = prev.findIndex(c => c.id === updated.id);

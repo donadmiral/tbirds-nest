@@ -335,7 +335,7 @@ export default function BusinessProfileScreen() {
         {activeTab === 'adverts' && (
           adverts.length === 0 ? (
             <View style={st.tabEmpty}>
-              <Feather name="megaphone" size={28} color="#C7C7CC" />
+              <Feather name="volume-2" size={28} color="#C7C7CC" />
               <Text style={st.tabEmptyTitle}>No adverts yet</Text>
               {isOwner && (
                 <TouchableOpacity style={st.tabEmptyBtn} onPress={() => navigation.navigate('CreateAdvert' as any, { businessId: business.id, businessName: business.name })}>

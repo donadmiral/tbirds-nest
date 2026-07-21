@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AppState, Platform, StyleSheet, Text, View, Animated, Pressable } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
+import * as Haptics from 'expo-haptics';
 import type { ComponentProps } from 'react';
 
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from '../services/supabase';
+import { callService } from '../services/callService';
+import { setActiveCallNavId, clearCallNavGuard, isCallNavActive } from '../services/notificationBootstrap';
 import { linking } from './linking';
 import { CallProvider } from '../contexts/CallContext';
 import SplashLoader from '../components/SplashLoader';
@@ -20,6 +25,7 @@ import VerifyEmailScreen    from '../screens/auth/VerifyEmailScreen';
 
 import FeedScreen           from '../screens/feed/FeedScreen';
 import PostScreen           from '../screens/feed/PostScreen';
+import TrendFeedScreen      from '../screens/feed/TrendFeedScreen';
 import SearchScreen         from '../screens/feed/SearchScreen';
 import NotificationsScreen  from '../screens/notifications/NotificationsScreen';
 
@@ -51,6 +57,9 @@ import TermsScreen                from '../screens/profile/TermsScreen';
 import PrivacyPolicyScreen        from '../screens/profile/PrivacyPolicyScreen';
 import AboutScreen                from '../screens/profile/AboutScreen';
 import MentorshipScreen           from '../screens/profile/MentorshipScreen';
+import FollowRequestsScreen       from '../screens/profile/FollowRequestsScreen';
+import BirdsBusinessScreen        from '../screens/profile/BirdsBusinessScreen';
+import BirdsBusinessDetailsScreen from '../screens/profile/BirdsBusinessDetailsScreen';
 
 import MingleScreen               from '../screens/mingle/MingleScreen';
 import MingleDetailsScreen        from '../screens/mingle/MingleDetailsScreen';
@@ -69,6 +78,9 @@ import CreateEventScreen   from '../screens/events/CreateEventScreen';
 import StoryViewerScreen         from '../screens/stories/StoryViewerScreen';
 import StoryComposerScreen       from '../screens/stories/StoryComposerScreen';
 import StoryCreationMenuScreen   from '../screens/stories/StoryCreationMenuScreen';
+import StoryCameraScreen         from '../screens/stories/StoryCameraScreen';
+import StoryDualCaptureScreen    from '../screens/stories/StoryDualCaptureScreen';
+import MemoryArrangementScreen   from '../screens/stories/MemoryArrangementScreen';
 
 import MentorshipHubScreen          from '../screens/mentorship/MentorshipHubScreen';
 import MentorListScreen             from '../screens/mentorship/MentorListScreen';
@@ -92,6 +104,8 @@ const ProfStack    = createNativeStackNavigator();
 const Tab          = createBottomTabNavigator();
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
+
+const navigationRef = React.createRef<any>();
 
 function FeedStackNav() {
   return (
@@ -147,14 +161,15 @@ function MessagesStackNav() {
 function ProfileStackNav() {
   return (
     <ProfStack.Navigator screenOptions={{ headerShown: false }}>
-      <ProfStack.Screen name="ProfileMain"   component={ProfileScreen} />
-      <ProfStack.Screen name="Settings"      component={SettingsScreen} />
-      <ProfStack.Screen name="Terms"         component={TermsScreen} />
-      <ProfStack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
-      <ProfStack.Screen name="About"         component={AboutScreen} />
-      <ProfStack.Screen name="HelpSupport"   component={HelpSupportScreen} />
-      <ProfStack.Screen name="Mentorship"    component={MentorshipScreen} />
-      <ProfStack.Screen name="More"          component={MoreScreen} />
+      <ProfStack.Screen name="ProfileMain"     component={ProfileScreen} />
+      <ProfStack.Screen name="Settings"        component={SettingsScreen} />
+      <ProfStack.Screen name="Terms"           component={TermsScreen} />
+      <ProfStack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <ProfStack.Screen name="About"           component={AboutScreen} />
+      <ProfStack.Screen name="HelpSupport"     component={HelpSupportScreen} />
+      <ProfStack.Screen name="Mentorship"      component={MentorshipScreen} />
+      <ProfStack.Screen name="More"            component={MoreScreen} />
+      <ProfStack.Screen name="FollowRequests"  component={FollowRequestsScreen} />
     </ProfStack.Navigator>
   );
 }
@@ -169,25 +184,76 @@ function getTabIcon(name: string, focused: boolean): IoniconName {
   }
 }
 
+// Phase 8B: Physical tab bar button with micro-compression + haptic
+function TabBarButton({ children, onPress, onLongPress, accessibilityState, style }: any) {
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const lastActiveRef = React.useRef(accessibilityState?.selected);
+
+  React.useEffect(() => {
+    // Haptic on tab change (not on re-press of active tab)
+    if (accessibilityState?.selected && !lastActiveRef.current) {
+      Haptics.selectionAsync();
+    }
+    lastActiveRef.current = accessibilityState?.selected;
+  }, [accessibilityState?.selected]);
+
+  const handlePressIn = React.useCallback(() => {
+    Animated.timing(scaleAnim, { toValue: 0.95, duration: 100, useNativeDriver: true }).start();
+  }, [scaleAnim]);
+
+  const handlePressOut = React.useCallback(() => {
+    Animated.spring(scaleAnim, { toValue: 1, tension: 100, friction: 14, useNativeDriver: true }).start();
+  }, [scaleAnim]);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[style, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleAnim }], alignItems: 'center', justifyContent: 'center' }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 function MainTabs() {
-  const { profile } = useAuthStore();
+  const profile = useAuthStore(s => s.profile);
   const userId = profile?.id ?? null;
   const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!userId) { setUnreadNotifs(0); return; }
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     const loadUnread = async () => {
       const { count } = await supabase
         .from('notifications').select('id', { count: 'exact', head: true })
         .eq('recipient_id', userId).is('read_at', null);
-      setUnreadNotifs(count || 0);
+      const c = count || 0;
+      setUnreadNotifs(c);
+      Notifications.setBadgeCountAsync(c).catch(() => {});
+    };
+    const debouncedLoad = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadUnread, 300);
     };
     loadUnread();
     const ch = supabase.channel(`tab_notifs_${userId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` }, () => loadUnread())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` }, debouncedLoad)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` }, debouncedLoad)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(ch);
+    };
   }, [userId]);
+
+  const tabBarHeight = 56 + Math.max(insets.bottom, Platform.OS === 'android' ? 16 : 0);
+  const tabBarPaddingBottom = Math.max(insets.bottom, Platform.OS === 'android' ? 16 : 0);
 
   return (
     <Tab.Navigator
@@ -195,6 +261,7 @@ function MainTabs() {
       screenOptions={({ route }) => ({
         headerShown: false, tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: '#0B1E3D', tabBarInactiveTintColor: '#8E8E93',
+        tabBarButton: (props) => <TabBarButton {...props} />,
         tabBarIcon: ({ focused, color, size }) => {
           const iconName = getTabIcon(route.name, focused);
           if (route.name === 'Feed' && unreadNotifs > 0) {
@@ -210,10 +277,11 @@ function MainTabs() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
-          backgroundColor: '#FFFFFF', borderTopColor: '#F0F0F0',
+          backgroundColor: '#FAFAFA', borderTopColor: '#EEEEEE',
           borderTopWidth: StyleSheet.hairlineWidth,
-          height: Platform.OS === 'ios' ? 84 : 64,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 8, paddingTop: 8,
+          height: tabBarHeight,
+          paddingBottom: tabBarPaddingBottom,
+          paddingTop: 8,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       })}
@@ -228,46 +296,148 @@ function MainTabs() {
 }
 
 function MainTabsWithListener() {
-  return (
-    <>
-      <MainTabs />
-      <IncomingCallListener />
-      <MiniCallBar />
-    </>
-  );
+  return <MainTabs />;
+}
+
+function useNotificationTapHandler() {
+  const responseListener = useRef<any>(null);
+
+  useEffect(() => {
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(async (response) => {
+      const data = response.notification.request.content.data;
+      if (!data || !navigationRef.current) return;
+      console.log('[PUSH_TAP] type:', data.type);
+      try { await handleNotificationTap(data); } catch (e) { console.log('[PUSH_TAP] error:', e); }
+    });
+
+    Notifications.getLastNotificationResponseAsync().then(async (response) => {
+      if (!response) return;
+      const data = response.notification.request.content.data;
+      if (!data || !data.type) return;
+      console.log('[PUSH_TAP] cold start, type:', data.type);
+      const waitForNav = () => new Promise<void>((resolve) => {
+        const check = () => { if (navigationRef.current) { resolve(); return; } setTimeout(check, 200); };
+        check(); setTimeout(resolve, 5000);
+      });
+      await waitForNav();
+      if (!navigationRef.current) return;
+      try { await handleNotificationTap(data); } catch (e) { console.log('[PUSH_TAP] cold start error:', e); }
+    });
+
+    return () => { if (responseListener.current) responseListener.current?.remove(); };
+  }, []);
+}
+
+async function handleNotificationTap(data: any) {
+  if (!navigationRef.current) return;
+  switch (data.type) {
+    case 'incoming_call': await handleIncomingCallTap(data); break;
+    case 'message':
+      if (data.conversation_id) navigationRef.current.navigate('Chat', { conversationId: data.conversation_id });
+      break;
+    case 'like': case 'comment': case 'reply': case 'repost': case 'mention':
+      if (data.post_id) navigationRef.current.navigate('Post', { postId: data.post_id, commentId: data.comment_id || undefined });
+      break;
+    case 'connection_request': case 'connection_accepted': case 'follow':
+      navigationRef.current.navigate('Main', { screen: 'Feed', params: { screen: 'Notifications' } });
+      break;
+    case 'missed_call':
+      navigationRef.current.navigate('Main', { screen: 'Messages', params: { screen: 'CallLog' } });
+      break;
+    case 'campus_moment':
+      navigationRef.current.navigate('Main', { screen: 'Feed', params: { screen: 'FeedMain' } });
+      break;
+    default:
+      navigationRef.current.navigate('Main', { screen: 'Feed', params: { screen: 'Notifications' } });
+      break;
+  }
+}
+
+async function handleIncomingCallTap(data: any) {
+  const callId = data.call_id;
+  if (!callId) return;
+  if (isCallNavActive()) { console.log('[PUSH_TAP] call nav already active, ignoring'); return; }
+  let call: any = null;
+  for (let i = 0; i < 3; i++) {
+    try { call = await callService.getCall(callId); } catch {}
+    if (call) break;
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  if (!call) { console.log('[PUSH_TAP] call not found after retries:', callId); return; }
+  if (call.status !== 'ringing') { console.log('[PUSH_TAP] call not ringing, status:', call.status); return; }
+  setActiveCallNavId(callId);
+  try {
+    const callerId = call.caller_id || call.initiator_id;
+    const { data: caller } = await supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', callerId).single();
+    const recheck = await callService.getCall(callId);
+    if (!recheck || recheck.status !== 'ringing') { console.log('[PUSH_TAP] call ended during fetch'); clearCallNavGuard(); return; }
+    let groupName = 'Group Call';
+    if (call.is_group_call && call.conversation_id) {
+      const { data: conv } = await supabase.from('conversations').select('group_name').eq('id', call.conversation_id).maybeSingle();
+      if (conv?.group_name) groupName = conv.group_name;
+    }
+    console.log('[PUSH_TAP] navigating to IncomingCall:', callId);
+    navigationRef.current.navigate('IncomingCall', {
+      callId: call.id, channelId: call.channel_id || data.channel_id,
+      callerName: caller?.full_name || data.caller_name || 'Unknown',
+      callerAvatar: caller?.avatar_url || null, callerUsername: caller?.username || null,
+      otherUser: caller || { id: callerId, full_name: 'Unknown', avatar_url: null },
+      isVideo: call.is_video ?? data.is_video ?? false,
+      isGroupCall: call.is_group_call ?? data.is_group_call ?? false,
+      groupName: call.is_group_call ? groupName : undefined,
+      conversationId: call.conversation_id || data.conversation_id || null,
+    });
+  } catch (e: any) { console.log('[PUSH_TAP] error:', e?.message); clearCallNavGuard(); }
+}
+
+function useBadgeClearOnForeground() {
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') { /* Badge re-set by MainTabs useEffect */ }
+    });
+    return () => sub.remove();
+  }, []);
 }
 
 export default function AppNavigator() {
-  const { session, profile, loading } = useAuthStore();
+  const session = useAuthStore(s => s.session);
+  const profile = useAuthStore(s => s.profile);
+  const loading = useAuthStore(s => s.loading);
+  const isPasswordRecovery = useAuthStore(s => s.isPasswordRecovery);
   const [splashDone, setSplashDone] = useState(false);
+
+  useNotificationTapHandler();
+  useBadgeClearOnForeground();
 
   useEffect(() => {
     const timer = setTimeout(() => setSplashDone(true), 1500);
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading || !splashDone) {
-    return <SplashLoader />;
+  if (loading || !splashDone) return <SplashLoader />;
+
+  if (isPasswordRecovery) {
+    return (
+      <CallProvider>
+        <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
+          theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF', text: '#000000', border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30' } }}>
+          <RootStack.Navigator screenOptions={{ headerShown: false }}>
+            <RootStack.Screen name="AuthCallback" component={AuthCallbackScreen} />
+          </RootStack.Navigator>
+        </NavigationContainer>
+      </CallProvider>
+    );
   }
 
-  const isAuthed   = !!session;
+  const isAuthed = !!session;
+  if (isAuthed && profile === null) return <SplashLoader />;
   const needsSetup = isAuthed && !profile?.username;
   const isReady    = isAuthed && !!profile?.username;
 
   return (
     <CallProvider>
-      <NavigationContainer
-        linking={linking}
-        fallback={<SplashLoader />}
-        theme={{
-          ...DefaultTheme,
-          colors: {
-            ...DefaultTheme.colors,
-            background: '#FFFFFF', card: '#FFFFFF', text: '#000000',
-            border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30',
-          },
-        }}
-      >
+      <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
+        theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF', text: '#000000', border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30' } }}>
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {isReady ? (
             <>
@@ -275,6 +445,7 @@ export default function AppNavigator() {
 
               <RootStack.Group>
                 <RootStack.Screen name="Post"                 component={PostScreen} />
+                <RootStack.Screen name="TrendFeed"            component={TrendFeedScreen} />
                 <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
                 <RootStack.Screen name="Chat"                 component={ChatScreen} />
                 <RootStack.Screen name="MingleScreen"         component={MingleScreen} />
@@ -286,15 +457,25 @@ export default function AppNavigator() {
                 <RootStack.Screen name="CreateAdvert"         component={CreateAdvertScreen} />
                 <RootStack.Screen name="StartupHubScreen"     component={StartupHubScreen} />
                 <RootStack.Screen name="StartupHubDetails"    component={StartupHubDetailsScreen} />
+                <RootStack.Screen name="BirdsBusinessScreen"  component={BirdsBusinessScreen} />
+                <RootStack.Screen name="BirdsBusinessDetails" component={BirdsBusinessDetailsScreen} />
               </RootStack.Group>
 
+              {/* Phase 8: Story creation cinematic realm — dark atmospheric fade entry */}
+              <RootStack.Group screenOptions={{ presentation: 'fullScreenModal', animation: 'fade' }}>
+                <RootStack.Screen name="StoryCreationMenu"    component={StoryCreationMenuScreen} />
+                <RootStack.Screen name="StoryComposer"        component={StoryComposerScreen} />
+                <RootStack.Screen name="StoryCamera"          component={StoryCameraScreen} />
+                <RootStack.Screen name="StoryDualCapture"     component={StoryDualCaptureScreen} />
+                <RootStack.Screen name="MemoryArrangement"    component={MemoryArrangementScreen} />
+              </RootStack.Group>
+
+              {/* Immersive overlays — calls, viewer, meetings */}
               <RootStack.Group screenOptions={{ presentation: 'fullScreenModal', animation: 'fade' }}>
                 <RootStack.Screen name="Call"              component={CallScreen} />
                 <RootStack.Screen name="IncomingCall"      component={IncomingCallScreen} />
                 <RootStack.Screen name="CreateEvent"       component={CreateEventScreen} />
                 <RootStack.Screen name="StoryViewer"       component={StoryViewerScreen} />
-                <RootStack.Screen name="StoryCreationMenu" component={StoryCreationMenuScreen} />
-                <RootStack.Screen name="StoryComposer"     component={StoryComposerScreen} />
                 <RootStack.Screen name="Meeting"           component={MeetingScreen} />
                 <RootStack.Screen name="NewMeeting"        component={NewMeetingScreen} />
               </RootStack.Group>
@@ -310,6 +491,8 @@ export default function AppNavigator() {
             </>
           )}
         </RootStack.Navigator>
+        {isReady && <IncomingCallListener />}
+        {isReady && <MiniCallBar />}
       </NavigationContainer>
     </CallProvider>
   );

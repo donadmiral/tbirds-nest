@@ -1,39 +1,54 @@
 /**
- * IncomingCallListener.tsx — FINAL FIX
- * Guards against ghost re-calls by:
- * 1. Double-checking call status before navigating
- * 2. Tracking handled call IDs to prevent re-trigger
- * 3. Ignoring any call that is not status='ringing'
+ * IncomingCallListener.tsx
+ * Listens for incoming calls via call_sessions with receiver_id = me.
+ * Works for both 1-on-1 and group calls (group calls insert one
+ * call_sessions row per member with receiver_id set).
+ *
+ * Guards against ghost re-calls by tracking handled call IDs.
+ * Syncs with shared call navigation guard to prevent duplicate
+ * navigation when push tap handler also fires.
  */
 import { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../stores/authStore';
 import { callService, CallRecord } from '../services/callService';
 import { supabase } from '../services/supabase';
+import { setActiveCallNavId, clearCallNavGuard, isCallNavActive } from '../services/notificationBootstrap';
 
 export default function IncomingCallListener() {
   const nav = useNavigation<any>();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
   const activeCallIdRef = useRef<string | null>(null);
-  // Track all call IDs we've already handled to prevent ghost re-triggers
   const handledCallIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!userId) return;
 
+    console.log('[CALL_LISTENER] Setting up subscription for user:', userId);
+
     const handleIncoming = async (call: CallRecord) => {
+      console.log('[CALL_LISTENER] Incoming call:', call.id, 'isGroup:', call.is_group_call, 'status:', call.status);
+
       if (!call.caller_id) return;
-      // Skip if we already handled this call (prevents ghost re-call)
       if (handledCallIdsRef.current.has(call.id)) return;
       if (activeCallIdRef.current === call.id) return;
-
-      // CRITICAL: Only process calls with status 'ringing'
       if (call.status !== 'ringing') return;
 
-      // Double-check fresh status from DB
+      // If push tap handler already handling this call, skip
+      if (isCallNavActive(call.id)) {
+        handledCallIdsRef.current.add(call.id);
+        return;
+      }
+
       const fresh = await callService.getCall(call.id);
       if (!fresh || fresh.status !== 'ringing') {
+        handledCallIdsRef.current.add(call.id);
+        return;
+      }
+
+      // Check again after fetch (push tap could have claimed it)
+      if (isCallNavActive(call.id)) {
         handledCallIdsRef.current.add(call.id);
         return;
       }
@@ -41,27 +56,50 @@ export default function IncomingCallListener() {
       activeCallIdRef.current = call.id;
       handledCallIdsRef.current.add(call.id);
 
+      // Set shared guard so push tap handler knows we are handling this call
+      setActiveCallNavId(call.id);
+
+      // Get caller profile
       const { data: caller } = await supabase
         .from('profiles').select('id, full_name, username, avatar_url')
         .eq('id', call.caller_id).single();
 
-      // Re-verify after profile fetch
       const recheck = await callService.getCall(call.id);
       if (!recheck || recheck.status !== 'ringing') {
         activeCallIdRef.current = null;
+        clearCallNavGuard();
         return;
       }
 
+      // For group calls, get group name from conversation
+      let groupName = 'Group Call';
+      let groupEmoji = '\u{1F4AC}';
+      if (call.is_group_call && call.conversation_id) {
+        const { data: conv } = await supabase
+          .from('conversations')
+          .select('group_name, group_emoji')
+          .eq('id', call.conversation_id)
+          .maybeSingle();
+        if (conv?.group_name) groupName = conv.group_name;
+        if (conv?.group_emoji) groupEmoji = conv.group_emoji;
+      }
+
+      console.log('[CALL_LISTENER] Navigating to IncomingCall, isGroup:', call.is_group_call, 'group:', groupName);
+
       nav.navigate('IncomingCall', {
-        callId: call.id, channelId: call.channel_id,
+        callId: call.id,
+        channelId: call.channel_id,
         callerName: caller?.full_name || 'Unknown',
         callerAvatar: caller?.avatar_url || null,
         callerUsername: caller?.username || null,
         otherUser: caller || { id: call.caller_id, full_name: 'Unknown', avatar_url: null },
         isVideo: call.is_video,
+        isGroupCall: call.is_group_call,
+        groupName: call.is_group_call ? groupName : undefined,
+        groupEmoji: call.is_group_call ? groupEmoji : undefined,
+        conversationId: call.conversation_id,
       });
 
-      // Subscribe to status to clear active ref
       const subUid = `${call.id}_listener_${Date.now()}`;
       const statusSub = supabase.channel(`call_status_${subUid}`)
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'call_sessions', filter: `id=eq.${call.id}` },
@@ -69,14 +107,22 @@ export default function IncomingCallListener() {
             const st = (payload.new as any).status;
             if (st === 'ended' || st === 'declined' || st === 'missed' || st === 'active') {
               activeCallIdRef.current = null;
+              clearCallNavGuard();
               statusSub.unsubscribe();
             }
           })
         .subscribe();
     };
 
-    const sub = callService.subscribeToIncomingCalls(userId, handleIncoming);
-    return () => { sub.unsubscribe(); activeCallIdRef.current = null; };
+    // Single subscription handles both 1-on-1 and group calls
+    const directSub = callService.subscribeToIncomingCalls(userId, handleIncoming);
+
+    return () => {
+      console.log('[CALL_LISTENER] Cleaning up subscription');
+      directSub.unsubscribe();
+      activeCallIdRef.current = null;
+      clearCallNavGuard();
+    };
   }, [userId, nav]);
 
   return null;

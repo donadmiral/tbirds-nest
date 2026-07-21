@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
   ActivityIndicator, Alert, StatusBar, RefreshControl, TextInput,
-  KeyboardAvoidingView, Platform, Share,
+  KeyboardAvoidingView, Platform, Share, Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -16,6 +16,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import SafeImage from '../../components/SafeImage';
+import * as Haptics from 'expo-haptics';
 
 const NAVY = '#0B1E3D';
 const TEXT_PRIMARY = '#000000';
@@ -110,6 +111,7 @@ export default function MingleDetailsScreen() {
       } else {
         await supabase.from('mingle_post_attendees').insert({ post_id: postId, user_id: myId });
         setJoined(true);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setAttendees(prev => [...prev, { id: Date.now().toString(), user_id: myId, full_name: profile?.full_name || 'You', avatar_url: profile?.avatar_url || null }]);
       }
     } catch { Alert.alert('Error', 'Could not update attendance.'); }
@@ -124,6 +126,7 @@ export default function MingleDetailsScreen() {
     try {
       const { data: inserted, error } = await supabase.from('mingle_comments').insert({ post_id: postId, user_id: myId, body }).select('*').single();
       if (error) { setDraft(body); Alert.alert('Error', error.message); return; }
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setComments(prev => [...prev, { id: inserted.id, user_id: myId, body: commentText(inserted), created_at: inserted.created_at, author_name: profile?.full_name || 'You', author_avatar: profile?.avatar_url || null }]);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
     } catch (e: any) { setDraft(body); }
@@ -156,7 +159,7 @@ export default function MingleDetailsScreen() {
 
       {/* Header */}
       <View style={st.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={st.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => { Keyboard.dismiss(); navigation.goBack(); }} style={st.backBtn} activeOpacity={0.7}>
           <Feather name="chevron-left" size={24} color={NAVY} />
         </TouchableOpacity>
         <Text style={st.headerTitle} numberOfLines={1}>{post.title}</Text>
@@ -170,6 +173,7 @@ export default function MingleDetailsScreen() {
                 { text: 'Cancel', style: 'cancel' },
                 { text: 'Delete', style: 'destructive', onPress: async () => {
                   await supabase.from('mingle_posts').delete().eq('id', post.id);
+                  Keyboard.dismiss();
                   navigation.goBack();
                 }},
               ]);
@@ -229,7 +233,7 @@ export default function MingleDetailsScreen() {
                 {attendees.slice(0, 10).map(a => (
                   <TouchableOpacity key={a.id} style={st.attendeeItem} onPress={() => navigation.navigate('UserProfile', { userId: a.user_id })} activeOpacity={0.8}>
                     {a.avatar_url
-                      ? <Image source={{ uri: a.avatar_url }} style={st.attendeeAvatar} />
+                      ? <Image source={{ uri: a.avatar_url }} style={st.attendeeAvatar} fadeDuration={200} />
                       : <View style={[st.attendeeAvatar, st.attendeeAvatarFb]}><Text style={st.attendeeAvatarTxt}>{initials(a.full_name)}</Text></View>}
                     <Text style={st.attendeeName} numberOfLines={1}>{a.full_name}</Text>
                   </TouchableOpacity>
@@ -244,7 +248,7 @@ export default function MingleDetailsScreen() {
             {comments.map(c => (
               <View key={c.id} style={st.commentRow}>
                 {c.author_avatar
-                  ? <Image source={{ uri: c.author_avatar }} style={st.commentAvatar} />
+                  ? <Image source={{ uri: c.author_avatar }} style={st.commentAvatar} fadeDuration={200} />
                   : <View style={[st.commentAvatar, st.commentAvatarFb]}><Text style={st.commentAvatarTxt}>{initials(c.author_name)}</Text></View>}
                 <View style={st.commentBubble}>
                   <View style={st.commentTop}>

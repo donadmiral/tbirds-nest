@@ -532,8 +532,8 @@ function ParticipantTile({
     <View style={s.tileInner}>
       {hasVideo ? (
         <DailyMediaView
-          videoTrack={participant.videoTrack ?? null}
-          audioTrack={participant.local ? null : participant.audioTrack ?? null}
+          videoTrack={participant.videoTrack || null}
+          audioTrack={participant.local ? null : (participant.audioTrack || null)}
           mirror={participant.local}
           zOrder={0}
           objectFit="cover"

@@ -21,7 +21,7 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "PlatinumCircles needs microphone access to let you make voice and video calls with your community.",
-        "NSCameraUsageDescription": "PlatinumCircles needs camera access for video calls and profile photos.",
+        "NSCameraUsageDescription": "PlatinumCircles needs camera access for video calls, profile photos, and dual camera stories.",
         "NSPhotoLibraryUsageDescription": "PlatinumCircles needs photo access to share images in your conversations and stories.",
         "NSPhotoLibraryAddUsageDescription": "PlatinumCircles needs permission to save photos and videos you receive.",
         "UIBackgroundModes": [
@@ -76,7 +76,8 @@
         }
       ],
       "expo-font",
-      "expo-asset"
+      "expo-asset",
+      "sentry-expo"
     ],
     "extra": {
       "eas": {

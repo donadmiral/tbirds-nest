@@ -2,19 +2,23 @@
  * PostScreen.tsx
  * Matches Feed's Clean Premium (navy) language. Clickable mentions/hashtags.
  * Supports post_comments content || body dual column.
+ * Uses PostCarousel for multi-photo/video display.
+ * Media displays edge-to-edge with no side padding.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
-  TextInput, KeyboardAvoidingView, Platform, ActivityIndicator,
+  TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard,
   Alert, RefreshControl, StatusBar, Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
+import { PostMedia } from '../../components/MediaRenderer';
+import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import * as Haptics from 'expo-haptics';
 
 const SCREEN_W = Dimensions.get('window').width;
 const NAVY = '#0B1E3D';
@@ -113,7 +117,10 @@ export default function PostScreen({ route, navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       setScreenFocused(true);
-      return () => setScreenFocused(false);
+      return () => {
+        setScreenFocused(false);
+        Keyboard.dismiss();
+      };
     }, [])
   );
 
@@ -224,6 +231,7 @@ export default function PostScreen({ route, navigation }: any) {
     if (!userId || !post) return;
     const was = likedPost;
     setLikedPost(!was);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPost(p => p ? { ...p, likes_count: Math.max(0, p.likes_count + (was ? -1 : 1)) } : p);
     try {
       if (was) {
@@ -242,7 +250,8 @@ export default function PostScreen({ route, navigation }: any) {
 
   const toggleCommentLike = async (commentId: string) => {
     if (!userId) return;
-    const was = !!commentData.likedIds[commentId];
+    const was = commentData.likedIds[commentId];
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCommentData(prev => ({
       ...prev,
       likedIds: { ...prev.likedIds, [commentId]: !was },
@@ -288,7 +297,6 @@ export default function PostScreen({ route, navigation }: any) {
     setMentionOn(false);
     setMentions([]);
     try {
-      // Insert into BOTH body and content so mention trigger works and legacy code reads correctly
       const { error } = await supabase.from('post_comments').insert({
         post_id: postId,
         user_id: userId,
@@ -300,6 +308,7 @@ export default function PostScreen({ route, navigation }: any) {
         setInput(body);
         Alert.alert('Error', 'Could not post comment.');
       } else {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         await load();
         setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 200);
       }
@@ -322,7 +331,7 @@ export default function PostScreen({ route, navigation }: any) {
               activeOpacity={0.8}
             >
               {a?.avatar_url
-                ? <Image source={{ uri: a.avatar_url }} style={s.commentAvatar} />
+                ? <Image source={{ uri: a.avatar_url }} style={s.commentAvatar} fadeDuration={200} />
                 : <View style={s.commentAvatarFb}><Text style={s.commentAvatarTxt}>{initials(a?.full_name || a?.username)}</Text></View>}
               <View>
                 <Text style={s.commentName}>{a?.full_name || 'Member'}</Text>
@@ -420,6 +429,13 @@ export default function PostScreen({ route, navigation }: any) {
               if (row.type === 'post' && post) {
                 const a = post.author;
                 const roleLine = a?.degree_program || null;
+
+                const mediaItems: CarouselMedia[] = post.post_media?.length
+                  ? (post.post_media as CarouselMedia[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+                  : post.media_url
+                    ? [{ id: '0', url: post.media_url, media_type: 'image' as const, sort_order: 0 }]
+                    : [];
+
                 return (
                   <View style={s.postBanner}>
                     <TouchableOpacity
@@ -428,7 +444,7 @@ export default function PostScreen({ route, navigation }: any) {
                       activeOpacity={0.8}
                     >
                       {a?.avatar_url
-                        ? <Image source={{ uri: a.avatar_url }} style={s.postAvatar} />
+                        ? <Image source={{ uri: a.avatar_url }} style={s.postAvatar} fadeDuration={200} />
                         : <View style={[s.postAvatar, s.postAvatarFb]}><Text style={s.postAvatarFbTxt}>{initials(a?.full_name || a?.username)}</Text></View>}
                       <View style={{ flex: 1 }}>
                         <Text style={s.postAuthorName}>{a?.full_name || 'Member'}</Text>
@@ -442,20 +458,15 @@ export default function PostScreen({ route, navigation }: any) {
                       onHashtag={handleHashtagTap}
                       style={s.postBody}
                     />
-                    {(() => {
-                      const mediaItems: PostMedia[] = post.post_media?.length
-                        ? post.post_media
-                        : post.media_url
-                          ? [{ id: '0', url: post.media_url, media_type: 'image' as const, sort_order: 0 }]
-                          : [];
-                      if (!mediaItems.length) return null;
-                      const W = SCREEN_W - 32;
-                      return (
-                        <View style={s.mediaWrap}>
-                          <MediaRenderer media={mediaItems} containerWidth={W} fullBleed={false} maxHeight={480} isActive={screenFocused} />
-                        </View>
-                      );
-                    })()}
+                    {mediaItems.length > 0 && (
+                      <View style={s.mediaEdgeWrap}>
+                        <PostCarousel
+                          media={mediaItems}
+                          containerWidth={SCREEN_W}
+                          isActive={screenFocused}
+                        />
+                      </View>
+                    )}
                     {(post.likes_count > 0 || post.comments_count > 0 || post.reposts_count > 0) && (
                       <View style={s.postCounts}>
                         <View style={s.countsLeft}>
@@ -512,7 +523,7 @@ export default function PostScreen({ route, navigation }: any) {
             <View style={s.mentionDrop}>
               {mentions.map(u => (
                 <TouchableOpacity key={u.id} style={s.mentionRow} onPress={() => insertMention(u)}>
-                  {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={s.mentionAvatar} /> : <View style={s.mentionAvatarFb}><Text style={s.mentionAvatarTxt}>{initials(u.full_name || u.username)}</Text></View>}
+                  {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={s.mentionAvatar} fadeDuration={200} /> : <View style={s.mentionAvatarFb}><Text style={s.mentionAvatarTxt}>{initials(u.full_name || u.username)}</Text></View>}
                   <View><Text style={s.mentionName}>{u.full_name || u.username}</Text>{u.username && <Text style={s.mentionHandle}>@{u.username}</Text>}</View>
                 </TouchableOpacity>
               ))}
@@ -532,7 +543,7 @@ export default function PostScreen({ route, navigation }: any) {
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={insets.top + 52}>
             <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
               {profile?.avatar_url
-                ? <Image source={{ uri: profile.avatar_url }} style={s.inputAvatar} />
+                ? <Image source={{ uri: profile.avatar_url }} style={s.inputAvatar} fadeDuration={200} />
                 : <View style={s.inputAvatarFb}><Text style={s.inputAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
               <TextInput
                 ref={inputRef}
@@ -576,27 +587,31 @@ const s = StyleSheet.create({
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY, flex: 1, textAlign: 'center' },
 
-  postBanner: { padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
-  postAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
+  postBanner: { paddingTop: 16, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
+  postAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12, paddingHorizontal: 16 },
   postAvatar: { width: 46, height: 46, borderRadius: 23 },
   postAvatarFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   postAvatarFbTxt: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   postAuthorName: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY, letterSpacing: -0.1 },
   postAuthorRole: { fontSize: 12, color: '#3C3C43', marginTop: 1 },
   postAuthorSub: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 1 },
-  postBody: { fontSize: 16, lineHeight: 24, color: '#1A1A1A', marginBottom: 14 },
+  postBody: { fontSize: 16, lineHeight: 24, color: '#1A1A1A', marginBottom: 14, paddingHorizontal: 16 },
+
+  // Edge-to-edge media: negative margin cancels parent padding
+  mediaEdgeWrap: { marginHorizontal: 0, marginBottom: 14 },
+
   mediaWrap: { borderRadius: 12, overflow: 'hidden', marginBottom: 14 },
 
   hashTag: { color: NAVY, fontWeight: '500' },
   mention: { color: NAVY, fontWeight: '500' },
 
-  postCounts: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  postCounts: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingHorizontal: 16 },
   countsLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   likeBubble: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center' },
   postCount: { fontSize: 13, color: TEXT_SECONDARY },
-  postDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginBottom: 4 },
+  postDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginBottom: 4, marginHorizontal: 16 },
 
-  postActionsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 6 },
+  postActionsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 6, paddingHorizontal: 16 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8 },
   actionTxt: { fontSize: 13, fontWeight: '500', color: '#3C3C43' },
 

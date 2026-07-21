@@ -1,11 +1,12 @@
 /**
- * CallScreen.tsx — FINAL (lifecycle fix + video top bar safe area fix)
+ * CallScreen.tsx
  *
- * Video call top bar:
- *  - Uses insets.top directly for paddingTop (not SafeAreaView wrapper)
- *  - zIndex ensures controls render above video layer
- *  - hitSlop on all buttons for reliable touch targets
- *  - Render order: video first, controls last (on top)
+ * Audio call: bottom controls pinned to bottom using flex layout.
+ * Video call: unchanged from working version.
+ * All call logic driven by CallContext state machine.
+ *
+ * CHANGE: Removed local ringback/Audio.Sound code.
+ * Ringback is now managed by CallContext via audioService.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -48,10 +49,11 @@ export default function CallScreen() {
   const { profile } = useAuthStore();
   const ctx = useCallContext();
   const {
-    callState, activeCall, elapsed, muted, videoOff, held,
-    connected, dailyReady, errorMsg, localParticipant, remoteParticipant,
-    wasEverActive, startCall, endCall, clearCallState,
-    toggleMute, toggleVideo, toggleHold, flipCamera,
+    callState, activeCall, elapsed, muted, videoOff, held, speakerOn,
+    networkQuality, connected, dailyReady, errorMsg, localParticipant,
+    remoteParticipant, remoteParticipants, wasEverActive,
+    startCall, endCall, clearCallState,
+    toggleMute, toggleVideo, toggleHold, toggleSpeaker, flipCamera,
   } = ctx;
 
   const params = route.params as any;
@@ -61,6 +63,8 @@ export default function CallScreen() {
   const channelId = activeCall?.channelId || params?.channelId || '';
   const isVideo = activeCall?.isVideo ?? params?.isVideo ?? false;
   const isIncoming = activeCall?.isIncoming ?? params?.isIncoming ?? false;
+  const isGroupCall = activeCall?.isGroupCall ?? params?.isGroupCall ?? false;
+  const groupCallName = params?.groupName || params?.callerName || 'Group Call';
   const fromContext = params?.fromContext === true || params?.fromMiniBar === true;
 
   const [showKeypad, setShowKeypad] = useState(false);
@@ -73,28 +77,26 @@ export default function CallScreen() {
     if (fromContext) return;
     if (startedRef.current) return;
     if (callState !== 'idle') return;
-    if (!callerId || !channelId) return;
+    if (!channelId) return;
+    if (!callerId && !isGroupCall) return;
     startedRef.current = true;
     startCall({
       callId: params?.callId ?? null, channelId,
-      otherUserId: callerId, otherUserName: callerName,
-      otherUserAvatar: callerAvatar, isVideo, isIncoming,
+      otherUserId: callerId, otherUserName: isGroupCall ? groupCallName : callerName,
+      otherUserAvatar: isGroupCall ? null : callerAvatar, isVideo, isIncoming,
+      isGroupCall, conversationId: params?.conversationId ?? null,
     });
-  }, [fromContext, callState, callerId, channelId]);
+  }, [fromContext, callState, callerId, channelId, isGroupCall]);
 
-  // Auto-goBack + clearCallState when call ends
   useEffect(() => {
     if (callState === 'idle' && wasEverActive) {
       const t = setTimeout(() => {
         if (navigation.canGoBack()) navigation.goBack();
-        // Clear after a short delay so navigation completes first
         setTimeout(() => { clearCallState(); }, 200);
       }, 300);
       return () => clearTimeout(t);
     }
   }, [callState, wasEverActive]);
-
-  // No clearCallState on unmount. If user minimizes, call stays alive.
 
   useEffect(() => {
     if (!profile?.id || !callerId) return;
@@ -108,7 +110,8 @@ export default function CallScreen() {
         if (!ids.length) return;
         const { data: ps } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', ids);
         setSuggestions((ps || []) as SuggestedUser[]);
-      }).catch(() => {});
+      })// @ts-ignore
+.then(() => {}).catch(() => {});
   }, [profile?.id, callerId]);
 
   const pressKeypadDigit = (digit: string) => { setDtmfDigits(prev => prev + digit); Vibration.vibrate(30); };
@@ -119,13 +122,30 @@ export default function CallScreen() {
   const localHasVideo = !!localParticipant?.videoTrack && !videoOff;
   const ending = callState === 'ending';
 
-  // ── VIDEO CALL UI ──
+  // Derive status text from callState
+  const statusText = errorMsg
+    || (callState === 'active' ? 'Connected'
+    : callState === 'degraded' ? 'Poor connection'
+    : callState === 'reconnecting' ? 'Reconnecting...'
+    : callState === 'connecting' ? 'Connecting...'
+    : callState === 'ringing' ? 'Ringing...'
+    : callState === 'initiating' ? 'Connecting...'
+    : callState === 'ending' ? 'Ending...'
+    : callState === 'failed' ? (errorMsg || 'Call failed')
+    : '');
+
+  const statusDotColor = errorMsg ? '#EF4444'
+    : callState === 'active' ? '#22C55E'
+    : callState === 'degraded' ? '#FF9500'
+    : callState === 'reconnecting' ? '#EF4444'
+    : '#FF9500';
+
+  // VIDEO CALL UI
   if (isVideo) {
     return (
       <View style={s.videoRoot}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
 
-        {/* Layer 1: Remote video (bottom layer) */}
         <View style={s.remoteContainer}>
           {remoteHasVideo ? (
             <DailyMediaView videoTrack={remoteParticipant?.videoTrack as any}
@@ -139,13 +159,12 @@ export default function CallScreen() {
               <Text style={s.videoCallerName}>{callerName}</Text>
               <View style={s.connectingRow}>
                 {!errorMsg && !connected && <ActivityIndicator color="rgba(255,255,255,0.8)" />}
-                <Text style={s.videoStatus}>{errorMsg || (connected ? 'Connected' : isIncoming ? 'Connecting...' : 'Calling...')}</Text>
+                <Text style={s.videoStatus}>{statusText}</Text>
               </View>
             </View>
           )}
         </View>
 
-        {/* Layer 2: Self view (middle layer) */}
         {localHasVideo && (
           <View style={[s.selfView, { top: insets.top + 56 }]} pointerEvents="none">
             <DailyMediaView videoTrack={localParticipant?.videoTrack as any} audioTrack={null as any}
@@ -153,12 +172,10 @@ export default function CallScreen() {
           </View>
         )}
 
-        {/* Layer 3: Top controls (ABOVE video, respects safe area) */}
         <View style={[s.videoTopBar, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={onMinimise} style={s.videoTopBtn} hitSlop={HIT} activeOpacity={0.7}>
             <Feather name="chevron-down" size={24} color="#FFF" />
           </TouchableOpacity>
-
           <View style={s.videoTopCenter}>
             {connected && (
               <>
@@ -167,13 +184,11 @@ export default function CallScreen() {
               </>
             )}
           </View>
-
           <TouchableOpacity onPress={flipCamera} style={s.videoTopBtn} disabled={videoOff} hitSlop={HIT} activeOpacity={0.7}>
             <Feather name="refresh-cw" size={22} color={videoOff ? 'rgba(255,255,255,0.3)' : '#FFF'} />
           </TouchableOpacity>
         </View>
 
-        {/* Layer 4: Bottom controls (ABOVE video, respects safe area) */}
         <View style={[s.videoBottomBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
           <TouchableOpacity style={[s.videoCtrl, muted && s.videoCtrlActive]} onPress={toggleMute} hitSlop={HIT} activeOpacity={0.7}>
             <Feather name={muted ? 'mic-off' : 'mic'} size={24} color="#FFF" />
@@ -193,40 +208,63 @@ export default function CallScreen() {
         </View>
 
         <MoreMenu visible={showMore} onClose={() => setShowMore(false)} muted={muted} held={held} isVideo={isVideo}
-          onMute={toggleMute} onFlip={flipCamera} onHold={toggleHold} />
+          speakerOn={speakerOn} onMute={toggleMute} onFlip={flipCamera} onHold={toggleHold} onSpeaker={toggleSpeaker} />
       </View>
     );
   }
 
-  // ── AUDIO CALL UI ──
+  // AUDIO CALL UI
   const controls = [
     { label: muted ? 'Unmute' : 'Mute', icon: muted ? 'mic-off' : 'mic', active: muted, onPress: toggleMute },
-    { label: 'Keypad', icon: 'grid', active: false, onPress: () => setShowKeypad(true) },
+    { label: speakerOn ? 'Earpiece' : 'Speaker', icon: speakerOn ? 'volume-2' : 'volume-1', active: speakerOn, onPress: toggleSpeaker },
     { label: held ? 'Resume' : 'Hold', icon: held ? 'play' : 'pause', active: held, onPress: toggleHold },
     { label: 'More', icon: 'more-horizontal', active: false, onPress: () => setShowMore(true) },
   ] as const;
 
   return (
-    <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
+    <View style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor="#0B1E3D" />
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} scrollEnabled={false}>
+
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
         <View style={[s.hero, { paddingTop: insets.top + 16 }]}>
           <TouchableOpacity onPress={onMinimise} style={s.backBtn} activeOpacity={0.7} hitSlop={HIT}>
             <Feather name="chevron-down" size={22} color="rgba(255,255,255,0.6)" /><Text style={s.backTxt}>Minimize</Text></TouchableOpacity>
-          <Text style={s.callTypeLabel}>Voice call{!connected ? (isIncoming ? '  -  Incoming' : '  -  Calling...') : ''}</Text>
-          <TouchableOpacity onPress={viewProfile} style={s.avatarWrap} activeOpacity={0.85}>
-            {callerAvatar ? <Image source={{ uri: callerAvatar }} style={s.avatar} />
+          <Text style={s.callTypeLabel}>{isGroupCall ? 'Group' : 'Voice'} call{!connected ? (isIncoming ? '  -  Incoming' : '  -  Calling...') : ''}</Text>
+          <TouchableOpacity onPress={isGroupCall ? undefined : viewProfile} style={s.avatarWrap} activeOpacity={0.85} disabled={isGroupCall}>
+            {isGroupCall
+              ? <View style={[s.avatar, { backgroundColor: '#1a3560' }]}><Feather name="users" size={36} color="#FFF" /></View>
+              : callerAvatar ? <Image source={{ uri: callerAvatar }} style={s.avatar} />
               : <View style={[s.avatar, { backgroundColor: avatarBg(callerId) }]}><Text style={s.avatarTxt}>{initials(callerName)}</Text></View>}
           </TouchableOpacity>
-          <Text style={s.callerName}>{callerName}</Text>
+          <Text style={s.callerName}>{isGroupCall ? groupCallName : callerName}</Text>
+          {isGroupCall && remoteParticipants.length > 0 && (
+            <Text style={s.groupParticipantCount}>{remoteParticipants.length + 1} participants</Text>
+          )}
           <View style={s.statusRow}>
-            <View style={[s.statusDot, { backgroundColor: errorMsg ? '#EF4444' : connected ? '#22C55E' : '#FF9500' }]} />
-            <Text style={[s.statusTxt, connected && s.statusConnected]}>{errorMsg || (connected ? 'Connected' : dailyReady ? 'Ringing...' : 'Connecting...')}</Text>
+            <View style={[s.statusDot, { backgroundColor: statusDotColor }]} />
+            <Text style={[s.statusTxt, connected && s.statusConnected]}>{statusText}</Text>
             {connected && <View style={s.hdBadge}><Text style={s.hdTxt}>LIVE</Text></View>}
+            {connected && networkQuality && (
+              <View style={s.qualityBadge}>
+                <Feather name="wifi" size={12} color={
+                  networkQuality === 'excellent' || networkQuality === 'good' ? '#22C55E'
+                  : networkQuality === 'low' ? '#FF9500' : '#EF4444'
+                } />
+              </View>
+            )}
           </View>
+          {(callState === 'degraded' || callState === 'reconnecting') && (
+            <View style={[s.networkBanner, callState === 'reconnecting' && s.networkBannerRed]}>
+              <Feather name={callState === 'reconnecting' ? 'wifi-off' : 'alert-triangle'} size={14}
+                color={callState === 'reconnecting' ? '#FEE2E2' : '#FEF3C7'} />
+              <Text style={[s.networkBannerTxt, callState === 'reconnecting' && s.networkBannerTxtRed]}>
+                {callState === 'reconnecting' ? 'Reconnecting...' : 'Poor connection'}
+              </Text>
+            </View>
+          )}
           <Text style={s.timer}>{fmtTime(elapsed)}</Text>
         </View>
-        <View style={s.bottom}>
+        <View style={s.middle}>
           <View style={s.controlsGrid}>
             {controls.map(ctrl => (
               <TouchableOpacity key={ctrl.label} style={s.ctrl} onPress={ctrl.onPress} activeOpacity={0.75} hitSlop={HIT}>
@@ -245,16 +283,18 @@ export default function CallScreen() {
                   <View style={s.addPlusBtn}><Feather name="user-plus" size={15} color="#FFF" /></View></TouchableOpacity>))}
             </View>
           )}
-          <View style={[s.bottomRow, { paddingBottom: Math.max(insets.bottom, 20) }]}>
-            <TouchableOpacity style={s.sideCircle} activeOpacity={0.8} onPress={() => navigation.navigate('CallLog')} hitSlop={HIT}>
-              <Feather name="clock" size={22} color="#1A1A1A" /></TouchableOpacity>
-            <TouchableOpacity style={[s.endCircle, ending && { opacity: 0.5 }]} onPress={endCall} activeOpacity={0.85} disabled={ending} hitSlop={HIT}>
-              <Feather name="phone-off" size={26} color="#FFF" /></TouchableOpacity>
-            <TouchableOpacity style={s.sideCircle} activeOpacity={0.8} onPress={onMinimise} hitSlop={HIT}>
-              <Feather name="minimize-2" size={22} color="#1A1A1A" /></TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
+
+      <View style={[s.pinnedBottom, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <TouchableOpacity style={s.sideCircle} activeOpacity={0.8} onPress={() => navigation.navigate('CallLog')} hitSlop={HIT}>
+          <Feather name="clock" size={22} color="#1A1A1A" /></TouchableOpacity>
+        <TouchableOpacity style={[s.endCircle, ending && { opacity: 0.5 }]} onPress={endCall} activeOpacity={0.85} disabled={ending} hitSlop={HIT}>
+          <Feather name="phone-off" size={26} color="#FFF" /></TouchableOpacity>
+        <TouchableOpacity style={s.sideCircle} activeOpacity={0.8} onPress={onMinimise} hitSlop={HIT}>
+          <Feather name="minimize-2" size={22} color="#1A1A1A" /></TouchableOpacity>
+      </View>
+
       <Modal visible={showKeypad} transparent animationType="slide" onRequestClose={() => setShowKeypad(false)}>
         <TouchableOpacity style={s.sheetOverlay} activeOpacity={1} onPress={() => setShowKeypad(false)}>
           <View style={s.keypadSheet}><View style={s.sheetHandle} />
@@ -267,18 +307,20 @@ export default function CallScreen() {
           </View></TouchableOpacity>
       </Modal>
       <MoreMenu visible={showMore} onClose={() => setShowMore(false)} muted={muted} held={held} isVideo={isVideo}
-        onMute={toggleMute} onFlip={flipCamera} onHold={toggleHold} />
-    </SafeAreaView>
+        speakerOn={speakerOn} onMute={toggleMute} onFlip={flipCamera} onHold={toggleHold} onSpeaker={toggleSpeaker} />
+    </View>
   );
 }
 
-function MoreMenu({ visible, onClose, muted, held, isVideo, onMute, onFlip, onHold }: {
+function MoreMenu({ visible, onClose, muted, held, isVideo, speakerOn, onMute, onFlip, onHold, onSpeaker }: {
   visible: boolean; onClose: () => void; muted: boolean; held: boolean;
-  isVideo: boolean; onMute: () => void; onFlip: () => void; onHold: () => void;
+  isVideo: boolean; speakerOn: boolean;
+  onMute: () => void; onFlip: () => void; onHold: () => void; onSpeaker: () => void;
 }) {
   if (!visible) return null;
   const actions = [
     { icon: muted ? 'mic-off' : 'mic', label: muted ? 'Unmute' : 'Mute', active: muted, onPress: () => { onMute(); onClose(); } },
+    { icon: speakerOn ? 'volume-2' : 'volume-1', label: speakerOn ? 'Earpiece' : 'Speaker', active: speakerOn, onPress: () => { onSpeaker(); onClose(); } },
     ...(isVideo ? [{ icon: 'refresh-cw', label: 'Flip Camera', active: false, onPress: () => { onFlip(); onClose(); } }] : []),
     { icon: held ? 'play' : 'pause', label: held ? 'Resume Call' : 'Hold Call', active: held, onPress: () => { onHold(); onClose(); } },
   ];
@@ -294,7 +336,6 @@ function MoreMenu({ visible, onClose, muted, held, isVideo, onMute, onFlip, onHo
               <Text style={s.moreLabel}>{a.label}</Text>
               {a.active && <View style={s.moreCheck}><Feather name="check" size={16} color="#22C55E" /></View>}
             </TouchableOpacity>))}
-          <View style={s.moreNote}><Text style={s.moreNoteTxt}>Speaker routing is managed by your device.</Text></View>
         </View></TouchableOpacity>
     </Modal>
   );
@@ -302,16 +343,25 @@ function MoreMenu({ visible, onClose, muted, held, isVideo, onMute, onFlip, onHo
 
 const NAVY = '#0B1E3D';
 const s = StyleSheet.create({
-  safe:{flex:1,backgroundColor:NAVY},hero:{backgroundColor:NAVY,paddingHorizontal:24,paddingBottom:32,alignItems:'center'},
+  safe:{flex:1,backgroundColor:'#FFF'},
+  hero:{backgroundColor:NAVY,paddingHorizontal:24,paddingBottom:32,alignItems:'center'},
   backBtn:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:6,marginBottom:16,paddingVertical:4},backTxt:{fontSize:14,color:'rgba(255,255,255,0.45)',fontWeight:'500'},
   callTypeLabel:{fontSize:12,fontWeight:'700',letterSpacing:1.5,color:'rgba(255,255,255,0.35)',marginBottom:20,textTransform:'uppercase'},
   avatarWrap:{marginBottom:16},avatar:{width:88,height:88,borderRadius:28,alignItems:'center',justifyContent:'center'},avatarTxt:{fontSize:32,fontWeight:'800',color:'#FFF'},
   callerName:{fontSize:26,fontWeight:'800',color:'#FFF',letterSpacing:-0.5,marginBottom:10,textAlign:'center'},
+  groupParticipantCount:{fontSize:13,fontWeight:'600',color:'rgba(255,255,255,0.5)',marginBottom:4},
   statusRow:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:16},statusDot:{width:8,height:8,borderRadius:4},
   statusTxt:{fontSize:14,color:'rgba(255,255,255,0.45)',fontWeight:'600'},statusConnected:{color:'#22C55E'},
   hdBadge:{backgroundColor:'rgba(34,197,94,0.15)',borderRadius:6,paddingHorizontal:8,paddingVertical:3,borderWidth:1,borderColor:'rgba(34,197,94,0.25)'},
-  hdTxt:{fontSize:11,fontWeight:'700',color:'#22C55E'},timer:{fontSize:48,fontWeight:'200',color:'#FFF',letterSpacing:4},
-  bottom:{flex:1,backgroundColor:'#FFF',paddingTop:28},controlsGrid:{flexDirection:'row',justifyContent:'space-around',paddingHorizontal:12,marginBottom:16},
+  hdTxt:{fontSize:11,fontWeight:'700',color:'#22C55E'},
+  qualityBadge:{marginLeft:4},
+  networkBanner:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:'rgba(245,158,11,0.15)',borderRadius:10,paddingHorizontal:14,paddingVertical:8,marginBottom:12,borderWidth:1,borderColor:'rgba(245,158,11,0.25)'},
+  networkBannerRed:{backgroundColor:'rgba(239,68,68,0.15)',borderColor:'rgba(239,68,68,0.25)'},
+  networkBannerTxt:{fontSize:13,fontWeight:'600',color:'#FEF3C7'},
+  networkBannerTxtRed:{color:'#FEE2E2'},
+  timer:{fontSize:48,fontWeight:'200',color:'#FFF',letterSpacing:4},
+  middle:{flex:1,backgroundColor:'#FFF',paddingTop:28},
+  controlsGrid:{flexDirection:'row',justifyContent:'space-around',paddingHorizontal:12,marginBottom:16},
   ctrl:{alignItems:'center',gap:8,minWidth:60},ctrlCircle:{width:60,height:60,borderRadius:20,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   ctrlCircleActive:{backgroundColor:NAVY},ctrlLabel:{fontSize:11,fontWeight:'600',color:'#8E8E93',textAlign:'center'},
   addSection:{paddingHorizontal:20,paddingTop:12,paddingBottom:8,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F0F0F0'},
@@ -320,11 +370,10 @@ const s = StyleSheet.create({
   addAvatar:{width:40,height:40,borderRadius:13,alignItems:'center',justifyContent:'center'},addAvatarTxt:{fontSize:14,fontWeight:'800',color:'#FFF'},
   addName:{fontSize:14,fontWeight:'600',color:'#000'},addSub:{fontSize:12,color:'#8E8E93',marginTop:1},
   addPlusBtn:{width:38,height:38,borderRadius:12,backgroundColor:NAVY,alignItems:'center',justifyContent:'center'},
-  bottomRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:36,paddingTop:20,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F0F0F0'},
+  pinnedBottom:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:36,paddingTop:20,backgroundColor:'#FFF',borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F0F0F0'},
   sideCircle:{width:64,height:64,borderRadius:22,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   endCircle:{width:68,height:68,borderRadius:24,backgroundColor:'#EF4444',alignItems:'center',justifyContent:'center',shadowColor:'#EF4444',shadowOpacity:0.35,shadowRadius:14,shadowOffset:{width:0,height:5},elevation:8},
 
-  // VIDEO LAYOUT — safe area fix
   videoRoot:{flex:1,backgroundColor:'#000'},
   remoteContainer:{...StyleSheet.absoluteFillObject,backgroundColor:NAVY},
   remoteVideo:{flex:1,width:'100%',height:'100%'},
@@ -335,7 +384,6 @@ const s = StyleSheet.create({
   connectingRow:{flexDirection:'row',alignItems:'center',gap:10},
   videoStatus:{fontSize:14,color:'rgba(255,255,255,0.7)'},
 
-  // Top bar: absolute, uses inline paddingTop with insets.top
   videoTopBar:{
     position:'absolute',top:0,left:0,right:0,
     flexDirection:'row',alignItems:'center',justifyContent:'space-between',
@@ -352,7 +400,6 @@ const s = StyleSheet.create({
   videoTopName:{fontSize:15,fontWeight:'700',color:'#FFF'},
   videoTopTimer:{fontSize:12,color:'rgba(255,255,255,0.7)',marginTop:2},
 
-  // Self view
   selfView:{
     position:'absolute',right:16,width:110,height:160,borderRadius:14,
     overflow:'hidden',backgroundColor:'#222',borderWidth:1,borderColor:'rgba(255,255,255,0.3)',
@@ -360,7 +407,6 @@ const s = StyleSheet.create({
   },
   selfViewInner:{flex:1,width:'100%',height:'100%'},
 
-  // Bottom bar: absolute, uses inline paddingBottom with insets.bottom
   videoBottomBar:{
     position:'absolute',bottom:0,left:0,right:0,
     flexDirection:'row',alignItems:'center',justifyContent:'space-around',
@@ -388,6 +434,4 @@ const s = StyleSheet.create({
   moreIcon:{width:44,height:44,borderRadius:14,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   moreLabel:{fontSize:16,fontWeight:'500',color:'#000',flex:1},
   moreCheck:{width:28,height:28,borderRadius:14,backgroundColor:'#F0FDF4',alignItems:'center',justifyContent:'center'},
-  moreNote:{marginTop:16,backgroundColor:'#F7F7F9',borderRadius:12,padding:12},
-  moreNoteTxt:{fontSize:12,color:'#8E8E93',lineHeight:17},
 });

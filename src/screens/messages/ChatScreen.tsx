@@ -324,6 +324,7 @@ export default function ChatScreen() {
   const isGroup: boolean = route.params?.isGroup ?? false;
   const groupName: string = route.params?.groupName ?? '';
   const groupEmoji: string = route.params?.groupEmoji ?? '💬';
+  const groupAvatarUrl: string | null = route.params?.groupAvatarUrl ?? null;
   const passedAffiliationId: string | null = route.params?.affiliationId ?? null;
   const [otherUser, setOtherUser] = useState<any>(passedUser);
   const [affiliation, setAffiliation] = useState<AffiliationInfo | null>(null);
@@ -443,13 +444,13 @@ export default function ChatScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showTimestamp, setShowTimestamp] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [otherOnline, setOtherOnline] = useState(false);
 
   const mountedRef = useRef(true);
   const flatListRef = useRef<FlatList<any>>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingRef = useRef(false);
   const inputRef = useRef<TextInput>(null);
-  // FIX: ref to current messages array so realtime reaction sub never captures stale state
   const messagesRef = useRef<MessageItem[]>([]);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
@@ -531,18 +532,14 @@ export default function ChatScreen() {
     } catch {}
   }, [conversationId, currentUserId]);
 
-  // FIX: markRead now calls the RPC directly — atomic, SECURITY DEFINER, bypasses RLS issues.
-  // Also updates local state immediately so sender sees "Seen" right away.
   const markRead = useCallback(async () => {
     if (!conversationId || !currentUserId) return;
     try {
-      // 1. Atomic server-side update via RPC
       await supabase.rpc('mark_conversation_read', {
         p_conv_id: conversationId,
         p_user_id: currentUserId,
       });
 
-      // 2. Update local message state so UI reflects "read" immediately
       const now = new Date().toISOString();
       setMessages(prev =>
         prev.map(m =>
@@ -691,8 +688,24 @@ export default function ChatScreen() {
   const setTyping = useCallback(async (isTyping: boolean) => {
     if (!conversationId || !currentUserId || lastTypingRef.current === isTyping) return;
     lastTypingRef.current = isTyping;
-    try { await supabase.from('conversation_typing').upsert({ conversation_id: conversationId, user_id: currentUserId, is_typing: isTyping, updated_at: new Date().toISOString() }); } catch {}
+    try { await supabase.from('conversation_typing').upsert({ conversation_id: conversationId, user_id: currentUserId, is_typing: isTyping, updated_at: new Date().toISOString() }, { onConflict: 'conversation_id,user_id' }); } catch {}
   }, [conversationId, currentUserId]);
+
+  useEffect(() => {
+    if (!isGroup && otherUser?.id) {
+      const isRecent = (lastSeen: string | null) => !!lastSeen && (Date.now() - new Date(lastSeen).getTime() < 120000);
+      supabase.from('user_presence').select('is_online, last_seen').eq('user_id', otherUser.id).maybeSingle()
+        .then(({ data }) => { if (data) setOtherOnline(!!data.is_online && isRecent(data.last_seen)); });
+      const presSub = supabase.channel(`presence_${otherUser.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence', filter: `user_id=eq.${otherUser.id}` },
+          (payload) => {
+            const p = payload.new as any;
+            setOtherOnline(!!p?.is_online && isRecent(p?.last_seen));
+          })
+        .subscribe();
+      return () => { supabase.removeChannel(presSub); };
+    }
+  }, [isGroup, otherUser?.id]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -707,7 +720,6 @@ export default function ChatScreen() {
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
         async (p) => {
           mergeMsg(p.new as MessageItem);
-          // FIX: mark read immediately when a message for me arrives and screen is open
           if ((p.new as any).receiver_id === currentUserId) {
             await markRead();
           }
@@ -733,7 +745,6 @@ export default function ChatScreen() {
       )
       .subscribe();
 
-    // FIX: use messagesRef so reaction sub always has the current message ids, no stale closure
     const reactCh = supabase
       .channel(`reactions_${conversationId}`)
       .on(
@@ -991,19 +1002,33 @@ export default function ChatScreen() {
 
   const startCall = useCallback(async (isVideo = false) => {
     if (!currentUserId) return;
-    const recipientId = otherUser?.id ?? passedUserId;
-    if (!recipientId && !isGroup) { Alert.alert('Cannot call'); return; }
-    const chanId = conversationId || `${currentUserId}_${recipientId || groupName}`;
-    navigation.navigate('Call', {
-      callId: null, channelId: chanId, callerName: otherUser?.full_name || chatTitle,
-      callerAvatar: otherUser?.avatar_url || null,
-      otherUser: otherUser ?? { id: recipientId, full_name: chatTitle, avatar_url: null },
-      isIncoming: false, isVideo,
-    });
-    try {
-      if (!isGroup && recipientId) await callService.initiateCall({ callerId: currentUserId, receiverId: recipientId, channelId: chanId, isVideo });
-    } catch {}
-  }, [currentUserId, otherUser, passedUserId, conversationId, isGroup, groupName, chatTitle, navigation]);
+
+    if (isGroup) {
+      if (!conversationId) { Alert.alert('Cannot call', 'No conversation found.'); return; }
+      const chanId = `group_${conversationId}_${Date.now()}`;
+      navigation.navigate('Call', {
+        callId: null, channelId: chanId,
+        callerName: chatTitle, callerAvatar: null,
+        otherUser: { id: '', full_name: chatTitle, avatar_url: null },
+        isIncoming: false, isVideo, isGroupCall: true,
+        groupName: chatTitle, conversationId,
+      });
+    } else {
+      const recipientId = otherUser?.id ?? passedUserId;
+      if (!recipientId) { Alert.alert('Cannot call'); return; }
+      const chanId = conversationId || `${currentUserId}_${recipientId}`;
+      navigation.navigate('Call', {
+        callId: null, channelId: chanId,
+        callerName: otherUser?.full_name || chatTitle,
+        callerAvatar: otherUser?.avatar_url || null,
+        otherUser: otherUser ?? { id: recipientId, full_name: chatTitle, avatar_url: null },
+        isIncoming: false, isVideo, isGroupCall: false,
+      });
+      try {
+        await callService.initiateCall({ callerId: currentUserId, receiverId: recipientId, channelId: chanId, isVideo });
+      } catch {}
+    }
+  }, [currentUserId, otherUser, passedUserId, conversationId, isGroup, chatTitle, navigation]);
 
   const lastOwnIndex = useMemo(() => messages.findIndex(m => m.sender_id === currentUserId), [messages, currentUserId]);
 
@@ -1013,7 +1038,6 @@ export default function ChatScreen() {
     if (item._optimistic) return 'Sending';
     const viewed = item.viewed_at || (lastStatus?.id === item.id ? lastStatus.viewed_at : null);
     const delivered = item.delivered_at || (lastStatus?.id === item.id ? lastStatus.delivered_at : null);
-    // FIX: also check read_at for "Seen" — RPC sets read_at, not viewed_at
     const readAt = item.read_at;
     if (viewed || readAt) return `Seen ${fmtTime(viewed || readAt)}`;
     if (delivered) return 'Delivered';
@@ -1126,13 +1150,27 @@ export default function ChatScreen() {
                   </View>
                 </TouchableOpacity>
               ) : null}
-              {msg.text ? (
-                isLink(msg.text) ? (
-                  <TouchableOpacity onPress={() => Linking.openURL(msg.text!)}>
-                    <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther, s.linkTxt]}>{msg.text}</Text>
-                  </TouchableOpacity>
-                ) : <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther]}>{msg.text}</Text>
-              ) : null}
+              {(() => {
+                const isStoryReply = msg.text?.startsWith('Replied to your story:\n');
+                const displayText = isStoryReply ? msg.text!.replace('Replied to your story:\n', '') : msg.text;
+                return (
+                  <>
+                    {isStoryReply && (
+                      <View style={s.storyReplyLabel}>
+                        <Feather name="camera" size={14} color={isMe ? 'rgba(255,255,255,0.7)' : '#2563EB'} />
+                        <Text style={[s.storyReplyTxt, isMe ? s.storyReplyTxtMe : s.storyReplyTxtOther]}>Story reply</Text>
+                      </View>
+                    )}
+                    {displayText ? (
+                      isLink(displayText) ? (
+                        <TouchableOpacity onPress={() => Linking.openURL(displayText!)}>
+                          <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther, s.linkTxt]}>{displayText}</Text>
+                        </TouchableOpacity>
+                      ) : <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther]}>{displayText}</Text>
+                    ) : null}
+                  </>
+                );
+              })()}
               {isStarred && msg.media_type !== 'image' && msg.media_type !== 'gif' && (
                 <View style={s.starBadgeInline}><Text style={s.starBadgeTxt}>★</Text></View>
               )}
@@ -1175,7 +1213,7 @@ export default function ChatScreen() {
                 else setFullscreenImg(m.media_url);
               }, 250);
             }}>
-            <SmartImage uri={m.media_url} width={0} height={0} radius={4} contentFit="cover" />
+            <ExpoImage source={{ uri: m.media_url }} style={{ width: Math.floor((SCREEN_W - 28 - 6) / 3), height: Math.floor((SCREEN_W - 28 - 6) / 3) }} contentFit="cover" cachePolicy="memory-disk" />
             {m.media_type === 'video' && (
               <View style={s.mediaPlayOverlay}><Feather name="play" size={20} color="#FFF" /></View>
             )}
@@ -1261,7 +1299,9 @@ export default function ChatScreen() {
           {isAffiliationConversation
             ? <View style={s.hAvatarFb}><Feather name="users" size={18} color="#3C3C43" /></View>
             : isGroup
-              ? <View style={s.hAvatarFb}><Text style={{ fontSize: 20 }}>{groupEmoji}</Text></View>
+              ? (groupAvatarUrl
+                ? <ExpoImage source={{ uri: groupAvatarUrl }} style={s.hAvatar} contentFit="cover" />
+                : <View style={s.hAvatarFb}><Text style={{ fontSize: 20 }}>{groupEmoji}</Text></View>)
               : otherUser?.avatar_url
                 ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.hAvatar} contentFit="cover" />
                 : <View style={s.hAvatarFb}><Text style={s.hAvatarTxt}>{otherInits}</Text></View>}
@@ -1270,6 +1310,7 @@ export default function ChatScreen() {
             {isAffiliationConversation
               ? <Text style={s.hSub}>{affiliation?.post_mode === 'informative' ? 'Announcements only' : 'Community chat'}</Text>
               : !isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]}>typing...</Text>
+              : !isGroup && otherOnline ? <Text style={[s.hSub, { color: '#34C759' }]}>online</Text>
               : !isGroup && otherUser?.username ? <Text style={s.hSub}>@{otherUser.username}</Text>
               : isGroup ? <Text style={s.hSub}>Tap for info</Text> : null}
           </View>
@@ -1440,9 +1481,11 @@ export default function ChatScreen() {
                     <Feather name="users" size={38} color="#3C3C43" />
                   </View>
                 : isGroup
-                  ? <View style={[s.infoAvatarFb, { width: 90, height: 90, borderRadius: 45 }]}>
-                      <Text style={{ fontSize: 38 }}>{groupEmoji}</Text>
-                    </View>
+                  ? (groupAvatarUrl
+                    ? <ExpoImage source={{ uri: groupAvatarUrl }} style={s.infoAvatar} contentFit="cover" />
+                    : <View style={[s.infoAvatarFb, { width: 90, height: 90, borderRadius: 45 }]}>
+                        <Text style={{ fontSize: 38 }}>{groupEmoji}</Text>
+                      </View>)
                   : otherUser?.avatar_url
                     ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.infoAvatar} contentFit="cover" />
                     : <View style={s.infoAvatarFb}><Text style={s.infoAvatarTxt}>{otherInits}</Text></View>}
@@ -1477,7 +1520,8 @@ export default function ChatScreen() {
                     await supabase.from('conversation_settings').upsert(
                       { conversation_id: conversationId, user_id: currentUserId, is_muted: next, updated_at: new Date().toISOString() },
                       { onConflict: 'conversation_id,user_id' }
-                    ).catch(() => {});
+                    )// @ts-ignore
+.then(() => {}).catch(() => {});
                   }},
               ].map((q: any) => (
                 <TouchableOpacity key={q.label} style={s.infoQuickBtn} onPress={q.action} activeOpacity={0.7}>
@@ -1495,7 +1539,8 @@ export default function ChatScreen() {
                     await supabase.from('conversation_settings').upsert(
                       { conversation_id: conversationId, user_id: currentUserId, is_muted: next, updated_at: new Date().toISOString() },
                       { onConflict: 'conversation_id,user_id' }
-                    ).catch(() => {});
+                    )// @ts-ignore
+.then(() => {}).catch(() => {});
                   }},
               ] : [
                 { iconName: 'users', label: 'Manage', action: () => { setShowInfoModal(false); navigation.navigate('GroupManagement', { conversationId, groupName: chatTitle, groupEmoji }); } },
@@ -1505,7 +1550,7 @@ export default function ChatScreen() {
                     await supabase.from('conversation_settings').upsert(
                       { conversation_id: conversationId, user_id: currentUserId, is_muted: next, updated_at: new Date().toISOString() },
                       { onConflict: 'conversation_id,user_id' }
-                    ).catch(() => {});
+                    ).then(() => {}, () => {});
                   }},
                 { iconName: 'log-out', label: 'Leave', action: () => {
                   setShowInfoModal(false);
@@ -1843,6 +1888,11 @@ const s = StyleSheet.create({
   docNameMe: { color: '#FFF' },
   docTap: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
   docTapMe: { color: 'rgba(255,255,255,0.65)' },
+  // Story reply label
+  storyReplyLabel: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
+  storyReplyTxt: { fontSize: 11, fontWeight: '700', letterSpacing: 0.2 },
+  storyReplyTxtMe: { color: 'rgba(255,255,255,0.6)' },
+  storyReplyTxtOther: { color: '#2563EB' },
   reactionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
   reactionsRowMe: { justifyContent: 'flex-end' },
   reactionsRowOther: { justifyContent: 'flex-start' },
@@ -1880,9 +1930,9 @@ const s = StyleSheet.create({
   lockedTitle: { fontSize: 13, fontWeight: '700', color: '#1F2937' },
   lockedSub: { fontSize: 11, color: '#6B7280', marginTop: 1 },
   fullscreenRoot: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  fullscreenClose: { position: 'absolute', top: 52, right: 20, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  fullscreenClose: { position: 'absolute', top: 60, right: 20, zIndex: 10, width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   fullscreenActions: { position: 'absolute', bottom: 40, flexDirection: 'row', gap: 10 },
-  fsActionBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10 },
+  fsActionBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10 },
   fsActionTxt: { color: '#FFF', fontWeight: '600' },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, gap: 6 },
@@ -1927,7 +1977,7 @@ const s = StyleSheet.create({
   infoTabLoading: { alignItems: 'center', justifyContent: 'center', paddingVertical: 30 },
   infoEmpty: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', paddingVertical: 24 },
   mediaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 3 },
-  mediaGridItem: { width: '32.8%', aspectRatio: 1, borderRadius: 6, overflow: 'hidden', backgroundColor: '#F2F2F7', position: 'relative' },
+  mediaGridItem: { width: Math.floor((SCREEN_W - 28 - 6) / 3), height: Math.floor((SCREEN_W - 28 - 6) / 3), borderRadius: 6, overflow: 'hidden', backgroundColor: '#F2F2F7', position: 'relative' },
   mediaPlayOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.2)' },
   infoFileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   infoFileIconBg: { width: 38, height: 38, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },

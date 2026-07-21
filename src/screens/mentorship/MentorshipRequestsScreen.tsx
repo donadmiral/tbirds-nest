@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, Image,
   ActivityIndicator, StatusBar, Alert, Modal, TextInput,
+  KeyboardAvoidingView, Platform, Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -10,6 +11,7 @@ import {
   getIncomingRequests, acceptMentorshipRequest, declineMentorshipRequest,
   IncomingRequest,
 } from '../../services/mentorshipService';
+import * as Haptics from 'expo-haptics';
 
 function initials(n?: string | null) {
   if (!n) return '?';
@@ -60,6 +62,7 @@ export default function MentorshipRequestsScreen() {
     setBusy(r.request_id, true);
     try {
       const mentorshipId = await acceptMentorshipRequest(r.request_id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setRequests(prev => prev.filter(x => x.request_id !== r.request_id));
       Alert.alert(
         'Accepted',
@@ -84,10 +87,12 @@ export default function MentorshipRequestsScreen() {
   const confirmDecline = async () => {
     if (!declineOpen) return;
     const r = declineOpen;
+    Keyboard.dismiss();
     setDeclineOpen(null);
     setBusy(r.request_id, true);
     try {
       await declineMentorshipRequest(r.request_id, declineNote.trim() || undefined);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setRequests(prev => prev.filter(x => x.request_id !== r.request_id));
     } catch (e: any) {
       Alert.alert('Could not decline', e?.message || 'Please try again.');
@@ -102,7 +107,7 @@ export default function MentorshipRequestsScreen() {
       <View style={s.card}>
         <View style={s.topRow}>
           {item.avatar_url ? (
-            <Image source={{ uri: item.avatar_url }} style={s.avatar} />
+            <Image source={{ uri: item.avatar_url }} style={s.avatar} fadeDuration={200} />
           ) : (
             <View style={[s.avatar, { backgroundColor: colorFor(item.mentee_id) }]}>
               <Text style={s.avatarTxt}>{initials(item.full_name)}</Text>
@@ -175,6 +180,8 @@ export default function MentorshipRequestsScreen() {
           data={requests}
           keyExtractor={r => r.request_id}
           renderItem={renderItem}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ padding: 14, gap: 12, paddingBottom: insets.bottom + 40 }}
           showsVerticalScrollIndicator={false}
         />
@@ -184,9 +191,9 @@ export default function MentorshipRequestsScreen() {
         visible={!!declineOpen}
         transparent
         animationType="slide"
-        onRequestClose={() => setDeclineOpen(null)}
+        onRequestClose={() => { Keyboard.dismiss(); setDeclineOpen(null); }}
       >
-        <View style={s.modalBackdrop}>
+        <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={s.modalSheet}>
             <View style={s.modalHandle} />
             <Text style={s.modalTitle}>Decline request</Text>
@@ -203,7 +210,7 @@ export default function MentorshipRequestsScreen() {
               textAlignVertical="top"
             />
             <View style={s.modalActions}>
-              <TouchableOpacity style={[s.btn, s.btnDecline, { flex: 1 }]} onPress={() => setDeclineOpen(null)}>
+              <TouchableOpacity style={[s.btn, s.btnDecline, { flex: 1 }]} onPress={() => { Keyboard.dismiss(); setDeclineOpen(null); }}>
                 <Text style={s.btnDeclineTxt}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[s.btn, s.btnConfirm, { flex: 1 }]} onPress={confirmDecline}>
@@ -211,7 +218,7 @@ export default function MentorshipRequestsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -268,7 +275,7 @@ const s = StyleSheet.create({
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalSheet: {
     backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: 16, paddingBottom: 32,
+    padding: 16, paddingBottom: 40,
   },
   modalHandle: {
     width: 36, height: 4, borderRadius: 2,

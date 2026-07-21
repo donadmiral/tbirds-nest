@@ -18,6 +18,9 @@ import {
   institutionsService, affiliationsService,
   type ProfileInstitution, type ProfileAffiliation, type Institution,
 } from '../../services/institutionsService';
+import { storiesService, type StoryHighlight } from '../../services/storiesService';
+import HighlightRow from '../../components/stories/HighlightRow';
+import { ProfileSkeleton } from '../../components/Skeleton';
 
 const SCREEN_W = Dimensions.get('window').width;
 const NAVY = '#0B1E3D';
@@ -99,7 +102,7 @@ const COMMUNITY = [
   { label: 'Mingle',      sub: 'Events & meetups',    ring: '#FF6CAB', bg: '#FFF0F7', emoji: '🔗', featherIcon: null, featherColor: null, route: 'MingleScreen' },
   { label: 'Startup',     sub: 'Founders & ideas',    ring: '#5856D6', bg: '#F0EEFF', emoji: '🚀', featherIcon: null, featherColor: null, route: 'StartupHubScreen' },
   { label: 'Mentorship',  sub: 'Guide & grow',        ring: '#34C759', bg: '#EDFBF0', emoji: '🏮', featherIcon: null, featherColor: null, route: 'Mentorship' },
-  { label: "Bird's Biz",  sub: 'Alumni businesses',   ring: '#4364F7', bg: '#EFF3FF', emoji: '🏪', featherIcon: null, featherColor: null, route: 'BirdsBusinessScreen' },
+  { label: 'Insights',  sub: 'Alumni businesses',   ring: '#4364F7', bg: '#EFF3FF', emoji: '🏪', featherIcon: null, featherColor: null, route: 'InsightsScreen' },
   { label: 'Jobs',        sub: 'Roles & referrals',   ring: '#5856D6', bg: '#F0EEFF', emoji: null, featherIcon: 'briefcase',  featherColor: '#5856D6', route: 'Jobs' },
   { label: 'Support',     sub: 'FAQs & tickets',      ring: '#34C759', bg: '#EDFBF0', emoji: null, featherIcon: 'help-circle', featherColor: '#34C759', route: 'HelpSupport' },
 ] as const;
@@ -153,20 +156,16 @@ export default function ProfileScreen() {
   const [instResults, setInstResults] = useState<Institution[]>([]);
   const [addingInstitution, setAddingInstitution] = useState(false);
 
+  const [highlights, setHighlights] = useState<StoryHighlight[]>([]);
+
   const normalizePost = (row: any): Post => {
     const mediaArr: PostMedia[] = Array.isArray(row.post_media) && row.post_media.length > 0
       ? (row.post_media as PostMedia[]).sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       : (row.media_url ? [{ id: '0', url: row.media_url, media_type: 'image' as const, sort_order: 0 }] : []);
     return {
-      id: row.id,
-      content: row.content || row.body || '',
-      likes_count: row.likes_count ?? 0,
-      comments_count: row.comments_count ?? 0,
-      reposts_count: row.reposts_count ?? 0,
-      created_at: row.created_at,
-      media_url: row.media_url || null,
-      media: mediaArr,
-      user_id: row.user_id,
+      id: row.id, content: row.content || row.body || '', likes_count: row.likes_count ?? 0,
+      comments_count: row.comments_count ?? 0, reposts_count: row.reposts_count ?? 0,
+      created_at: row.created_at, media_url: row.media_url || null, media: mediaArr, user_id: row.user_id,
     };
   };
 
@@ -178,8 +177,7 @@ export default function ProfileScreen() {
         const p: Profile = {
           id: pd.id, full_name: pd.full_name||'', username: pd.username||'',
           bio: pd.bio||'', location: pd.location||'', degree_program: pd.degree_program||'',
-          graduation_year: pd.graduation_year??null,
-          graduation_semester: pd.graduation_semester??null,
+          graduation_year: pd.graduation_year??null, graduation_semester: pd.graduation_semester??null,
           avatar_url: pd.avatar_url||null, email: pd.email||'', role: pd.role||'student',
           profile_visibility: pd.profile_visibility||'public',
         };
@@ -194,6 +192,14 @@ export default function ProfileScreen() {
       setStats({ posts: postCount??0, connections:(c1??0)+(c2??0), followers: followerCount??0, following: followingCount??0 });
     } catch(e){ console.log('PROFILE_LOAD',e); }
     finally { setLoading(false); setRefreshing(false); }
+  }, [userId]);
+
+  const loadHighlights = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const list = await storiesService.getUserHighlights(userId);
+      setHighlights(list);
+    } catch (e) { console.log('[loadHighlights]', e); }
   }, [userId]);
 
   const loadTabContent = useCallback(async (tab: ProfileTab) => {
@@ -212,103 +218,49 @@ export default function ProfileScreen() {
         setTabPosts(postsData.map(normalizePost));
         setTabCounts(prev => ({ ...prev, posts: postsData.length }));
       }
-
       if (tab === 'reposts') {
         const { data: repostRows } = await supabase.from('post_reposts').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
         const postIds = (repostRows || []).map((r: any) => r.post_id);
         if (postIds.length > 0) {
           let postsData: any[] = [];
-          try {
-            const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds);
-            postsData = data || [];
-          } catch {
-            const { data } = await supabase.from('posts').select('*').in('id', postIds);
-            postsData = data || [];
-          }
+          try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds); postsData = data || []; }
+          catch { const { data } = await supabase.from('posts').select('*').in('id', postIds); postsData = data || []; }
           const authorIds = Array.from(new Set(postsData.map((p: any) => p.user_id)));
           let authorMap: Record<string, any> = {};
-          if (authorIds.length > 0) {
-            const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds);
-            (authors || []).forEach((a: any) => { authorMap[a.id] = a; });
-          }
+          if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
           const repostTimeMap: Record<string, string> = {};
           (repostRows || []).forEach((r: any) => { repostTimeMap[r.post_id] = r.created_at; });
-          // Sort by repost time, keep original created_at on the post
-          const sorted = postsData
-            .map((p: any) => ({
-              ...normalizePost(p),
-              _repostLabel: 'You reposted',
-              _repostedAt: repostTimeMap[p.id] || null,
-              _originalAuthor: authorMap[p.user_id] || null,
-            }))
-            .sort((a, b) => {
-              const ta = a._repostedAt ? new Date(a._repostedAt).getTime() : 0;
-              const tb = b._repostedAt ? new Date(b._repostedAt).getTime() : 0;
-              return tb - ta;
-            });
+          const sorted = postsData.map((p: any) => ({ ...normalizePost(p), _repostLabel: 'You reposted', _repostedAt: repostTimeMap[p.id] || null, _originalAuthor: authorMap[p.user_id] || null })).sort((a, b) => { const ta = a._repostedAt ? new Date(a._repostedAt).getTime() : 0; const tb = b._repostedAt ? new Date(b._repostedAt).getTime() : 0; return tb - ta; });
           setTabReposts(sorted);
-        } else {
-          setTabReposts([]);
-        }
+        } else { setTabReposts([]); }
         setTabCounts(prev => ({ ...prev, reposts: postIds.length }));
       }
-
       if (tab === 'saved') {
         const { data: bookmarkRows } = await supabase.from('post_bookmarks').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
         const postIds = (bookmarkRows || []).map((r: any) => r.post_id);
         if (postIds.length > 0) {
           let postsData: any[] = [];
-          try {
-            const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds);
-            postsData = data || [];
-          } catch {
-            const { data } = await supabase.from('posts').select('*').in('id', postIds);
-            postsData = data || [];
-          }
+          try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds); postsData = data || []; }
+          catch { const { data } = await supabase.from('posts').select('*').in('id', postIds); postsData = data || []; }
           const authorIds = Array.from(new Set(postsData.map((p: any) => p.user_id)));
           let authorMap: Record<string, any> = {};
-          if (authorIds.length > 0) {
-            const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds);
-            (authors || []).forEach((a: any) => { authorMap[a.id] = a; });
-          }
+          if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
           const bookmarkTimeMap: Record<string, string> = {};
           (bookmarkRows || []).forEach((r: any) => { bookmarkTimeMap[r.post_id] = r.created_at; });
-          // Sort by saved time, keep original created_at on the post
-          const sorted = postsData
-            .map((p: any) => ({
-              ...normalizePost(p),
-              _savedAt: bookmarkTimeMap[p.id] || null,
-              _originalAuthor: authorMap[p.user_id] || null,
-            }))
-            .sort((a, b) => {
-              const ta = a._savedAt ? new Date(a._savedAt).getTime() : 0;
-              const tb = b._savedAt ? new Date(b._savedAt).getTime() : 0;
-              return tb - ta;
-            });
+          const sorted = postsData.map((p: any) => ({ ...normalizePost(p), _savedAt: bookmarkTimeMap[p.id] || null, _originalAuthor: authorMap[p.user_id] || null })).sort((a, b) => { const ta = a._savedAt ? new Date(a._savedAt).getTime() : 0; const tb = b._savedAt ? new Date(b._savedAt).getTime() : 0; return tb - ta; });
           setTabSaved(sorted);
-        } else {
-          setTabSaved([]);
-        }
+        } else { setTabSaved([]); }
         setTabCounts(prev => ({ ...prev, saved: postIds.length }));
       }
-
       if (tab === 'tagged') {
         if (!profile?.username) { setTabTagged([]); setTabCounts(prev => ({ ...prev, tagged: 0 })); return; }
         const mention = `@${profile.username}`;
         let postsData: any[] = [];
-        try {
-          const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50);
-          postsData = data || [];
-        } catch {
-          const { data } = await supabase.from('posts').select('*').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50);
-          postsData = data || [];
-        }
+        try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50); postsData = data || []; }
+        catch { const { data } = await supabase.from('posts').select('*').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50); postsData = data || []; }
         const authorIds = Array.from(new Set(postsData.map((p: any) => p.user_id)));
         let authorMap: Record<string, any> = {};
-        if (authorIds.length > 0) {
-          const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds);
-          (authors || []).forEach((a: any) => { authorMap[a.id] = a; });
-        }
+        if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
         setTabTagged(postsData.map((p: any) => ({ ...normalizePost(p), _originalAuthor: authorMap[p.user_id] || null })));
         setTabCounts(prev => ({ ...prev, tagged: postsData.length }));
       }
@@ -325,10 +277,7 @@ export default function ProfileScreen() {
         supabase.from('post_bookmarks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
       ]);
       let tc = 0;
-      if (profile?.username) {
-        const { count } = await supabase.from('posts').select('id', { count: 'exact', head: true }).ilike('content', `%@${profile.username}%`);
-        tc = count ?? 0;
-      }
+      if (profile?.username) { const { count } = await supabase.from('posts').select('id', { count: 'exact', head: true }).ilike('content', `%@${profile.username}%`); tc = count ?? 0; }
       setTabCounts({ posts: pc ?? 0, reposts: rc ?? 0, saved: sc ?? 0, tagged: tc });
     } catch {}
   }, [userId, profile?.username]);
@@ -341,13 +290,12 @@ export default function ProfileScreen() {
         institutionsService.getProfileInstitutions(userId),
         affiliationsService.getProfileAffiliations(userId),
       ]);
-      setMyInstitutions(insts);
-      setMyAffiliations(affs);
+      setMyInstitutions(insts); setMyAffiliations(affs);
     } catch (e: any) { console.log('[loadMemberships]', e?.message); }
     finally { setInstLoading(false); }
   }, [userId]);
 
-  useFocusEffect(useCallback(() => { load(); loadMemberships(); }, [load, loadMemberships]));
+  useFocusEffect(useCallback(() => { load(); loadMemberships(); loadHighlights(); }, [load, loadMemberships, loadHighlights]));
 
   useEffect(() => {
     if (profile) { loadTabContent(activeTab); loadTabCounts(); }
@@ -392,10 +340,7 @@ export default function ProfileScreen() {
         const { data } = await supabase.from('orbits').select('following_id').eq('follower_id',userId);
         ids=(data||[]).map((r:any)=>r.following_id);
       }
-      if (ids.length>0) {
-        const { data: people } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id',ids);
-        setStatsPeople((people||[]) as Person[]);
-      }
+      if (ids.length>0) { const { data: people } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id',ids); setStatsPeople((people||[]) as Person[]); }
     } catch(e){ console.log('STATS',e); }
     finally { setStatsLoading(false); }
   };
@@ -461,85 +406,71 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleHighlightTap = useCallback((h: StoryHighlight) => {
+    if (!userId) return;
+    navigation.navigate('StoryViewer', {
+      userIds: [userId],
+      startUserId: userId,
+      highlightId: h.id,
+      highlightTitle: h.title,
+    });
+  }, [userId, navigation]);
+
+  const handleHighlightCreate = useCallback(() => {
+    Alert.prompt(
+      'New Highlight',
+      'Enter a name for your highlight',
+      async (title) => {
+        const trimmed = (title || '').trim();
+        if (!trimmed) return;
+        try {
+          await storiesService.createHighlight(trimmed);
+          loadHighlights();
+        } catch (e: any) { Alert.alert('Error', e?.message || 'Could not create highlight'); }
+      },
+      'plain-text',
+      '',
+      'default'
+    );
+  }, [loadHighlights]);
+
+  const handleHighlightLongPress = useCallback((h: StoryHighlight) => {
+    Alert.alert(h.title, undefined, [
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try { await storiesService.deleteHighlight(h.id); loadHighlights(); }
+        catch (e: any) { Alert.alert('Error', e?.message || 'Could not delete'); }
+      }},
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }, [loadHighlights]);
+
   const renderPostCard = (post: Post) => {
     const isOwnPost = post.user_id === userId;
     const author = post._originalAuthor || (isOwnPost ? { full_name: profile?.full_name || '', avatar_url: profile?.avatar_url || null } : null);
     const displayName = author?.full_name || 'Member';
     const displayAvatar = author?.avatar_url;
-    // Media width: card has 16px padding each side = 32px total
     const mediaWidth = SCREEN_W - 32;
-
     return (
       <TouchableOpacity key={post.id} style={st.postCard} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
-        {post._repostLabel && (
-          <View style={st.repostBanner}>
-            <Feather name="repeat" size={12} color="#059669" />
-            <Text style={st.repostBannerTxt}>{post._repostLabel}{post._repostedAt ? ' \u00b7 ' + relTime(post._repostedAt) : ''}</Text>
-          </View>
-        )}
-        {post._savedAt && !post._repostLabel && (
-          <View style={st.repostBanner}>
-            <Feather name="bookmark" size={12} color={NAVY} />
-            <Text style={[st.repostBannerTxt, { color: NAVY }]}>Saved {relTime(post._savedAt)}</Text>
-          </View>
-        )}
+        {post._repostLabel && (<View style={st.repostBanner}><Feather name="repeat" size={12} color="#059669" /><Text style={st.repostBannerTxt}>{post._repostLabel}{post._repostedAt ? ' \u00b7 ' + relTime(post._repostedAt) : ''}</Text></View>)}
+        {post._savedAt && !post._repostLabel && (<View style={st.repostBanner}><Feather name="bookmark" size={12} color={NAVY} /><Text style={[st.repostBannerTxt, { color: NAVY }]}>Saved {relTime(post._savedAt)}</Text></View>)}
         <View style={st.postHeader}>
-          {displayAvatar
-            ? <Image source={{ uri: displayAvatar }} style={st.postAvatar} />
-            : <View style={[st.postAvatar, st.postAvatarFb]}><Text style={st.postAvatarTxt}>{initials(displayName)}</Text></View>}
-          <View style={{ flex: 1 }}>
-            <Text style={st.postAuthorName} numberOfLines={1}>{displayName}</Text>
-            <Text style={st.postTime}>{relTime(post.created_at)}</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => {
-              const buttons: any[] = [];
-              if (isOwnPost) {
-                buttons.push({
-                  text: 'Delete post',
-                  style: 'destructive' as const,
-                  onPress: () => {
-                    Alert.alert('Delete post?', 'This will permanently remove your post.', [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Delete', style: 'destructive', onPress: async () => {
-                        await supabase.from('posts').delete().eq('id', post.id);
-                        load();
-                      }},
-                    ]);
-                  },
-                });
-              }
-              buttons.push({
-                text: 'Share post',
-                onPress: async () => {
-                  await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' });
-                },
-              });
-              buttons.push({ text: 'Cancel', style: 'cancel' as const });
-              Alert.alert(undefined as any, undefined, buttons);
-            }}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ padding: 4 }}
-          >
-            <Feather name="more-horizontal" size={18} color={TEXT_SECONDARY} />
-          </TouchableOpacity>
+          {displayAvatar ? <ExpoImage source={{ uri: displayAvatar }} style={st.postAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /> : <View style={[st.postAvatar, st.postAvatarFb]}><Text style={st.postAvatarTxt}>{initials(displayName)}</Text></View>}
+          <View style={{ flex: 1 }}><Text style={st.postAuthorName} numberOfLines={1}>{displayName}</Text><Text style={st.postTime}>{relTime(post.created_at)}</Text></View>
+          <TouchableOpacity onPress={() => {
+            const buttons: any[] = [];
+            if (isOwnPost) { buttons.push({ text: 'Delete post', style: 'destructive' as const, onPress: () => { Alert.alert('Delete post?', 'This will permanently remove your post.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { await supabase.from('posts').delete().eq('id', post.id); load(); } }]); } }); }
+            buttons.push({ text: 'Share post', onPress: async () => { await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' }); } });
+            buttons.push({ text: 'Cancel', style: 'cancel' as const });
+            Alert.alert(undefined as any, undefined, buttons);
+          }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ padding: 4 }}><Feather name="more-horizontal" size={18} color={TEXT_SECONDARY} /></TouchableOpacity>
         </View>
         {post.content ? <Text style={st.postContent} numberOfLines={4}>{post.content}</Text> : null}
         {post.media.length > 0 && (
           <View style={st.postMediaWrap}>
             {post.media.map((m, idx) => (
               <View key={m.id || idx} style={{ width: mediaWidth, aspectRatio: 4/5, borderRadius: 12, overflow: 'hidden', marginBottom: post.media.length > 1 ? 4 : 0 }}>
-                {m.media_type === 'video' ? (
-                  <MediaRenderer media={[m]} containerWidth={mediaWidth} maxHeight={mediaWidth * 1.25} />
-                ) : (
-                  <ExpoImage
-                    source={{ uri: m.url }}
-                    style={{ width: '100%', height: '100%' }}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                    transition={200}
-                  />
-                )}
+                {m.media_type === 'video' ? (<MediaRenderer media={[m]} containerWidth={mediaWidth} maxHeight={mediaWidth * 1.25} />) : (<ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={150} />)}
               </View>
             ))}
           </View>
@@ -562,13 +493,7 @@ export default function ProfileScreen() {
       tagged:  { icon: 'at-sign',  title: 'No tagged posts',    sub: 'When someone mentions you in a post, it will show up here.' },
     };
     const c = configs[tab];
-    return (
-      <View style={st.tabEmpty}>
-        <View style={st.tabEmptyIcon}><Feather name={c.icon as any} size={28} color="#C7C7CC" /></View>
-        <Text style={st.tabEmptyTitle}>{c.title}</Text>
-        <Text style={st.tabEmptySub}>{c.sub}</Text>
-      </View>
-    );
+    return (<View style={st.tabEmpty}><View style={st.tabEmptyIcon}><Feather name={c.icon as any} size={28} color="#C7C7CC" /></View><Text style={st.tabEmptyTitle}>{c.title}</Text><Text style={st.tabEmptySub}>{c.sub}</Text></View>);
   };
 
   const getTabData = () => {
@@ -580,7 +505,6 @@ export default function ProfileScreen() {
     }
   };
 
-  // ── Edit mode ──
   if (editing) {
     return (
       <SafeAreaView style={st.safe} edges={['top','left','right']}>
@@ -588,15 +512,13 @@ export default function ProfileScreen() {
         <View style={st.editHeader}>
           <TouchableOpacity onPress={()=>setEditing(false)}><Text style={st.editCancel}>Cancel</Text></TouchableOpacity>
           <Text style={st.editTitle}>Edit Profile</Text>
-          <TouchableOpacity onPress={saveProfile} disabled={saving}>
-            {saving?<ActivityIndicator color={NAVY} size="small"/>:<Text style={st.editSave}>Save</Text>}
-          </TouchableOpacity>
+          <TouchableOpacity onPress={saveProfile} disabled={saving}>{saving?<ActivityIndicator color={NAVY} size="small"/>:<Text style={st.editSave}>Save</Text>}</TouchableOpacity>
         </View>
-        <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}>
-          <ScrollView contentContainerStyle={[st.editScroll,{paddingBottom:insets.bottom+40}]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+          <ScrollView contentContainerStyle={[st.editScroll,{paddingBottom:insets.bottom+40}]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} automaticallyAdjustKeyboardInsets>
             <View style={st.editPhotoRow}>
               <TouchableOpacity onPress={changePhoto} disabled={uploadingPhoto} activeOpacity={0.8} style={{position:'relative'}}>
-                {profile?.avatar_url?<Image source={{uri:profile.avatar_url}} style={st.editAvatar}/>:<View style={[st.editAvatar,st.editAvatarFb]}><Text style={st.editAvatarTxt}>{initials(profile?.full_name)}</Text></View>}
+                {profile?.avatar_url?<ExpoImage source={{uri:profile.avatar_url}} style={st.editAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<View style={[st.editAvatar,st.editAvatarFb]}><Text style={st.editAvatarTxt}>{initials(profile?.full_name)}</Text></View>}
                 <View style={st.editCameraBadge}><Feather name="camera" size={14} color="#FFF"/></View>
               </TouchableOpacity>
               <View style={{flex:1,gap:4}}>
@@ -640,7 +562,7 @@ export default function ProfileScreen() {
     );
   }
 
-  if (loading) return <SafeAreaView style={st.safe}><View style={st.center}><ActivityIndicator color={NAVY} size="large"/></View></SafeAreaView>;
+  if (loading) return <SafeAreaView style={st.safe}><ProfileSkeleton /></SafeAreaView>;
   if (!profile) return <SafeAreaView style={st.safe}><View style={st.center}><Text style={{color:TEXT_SECONDARY}}>Profile not found.</Text></View></SafeAreaView>;
 
   const statsModalTitle = statsModal === 'connections' ? 'Connections' : statsModal === 'followers' ? 'Followers' : statsModal === 'following' ? 'Following' : '';
@@ -650,106 +572,90 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={st.safe} edges={['top','left','right']}>
       <StatusBar barStyle="dark-content"/>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadMemberships();loadTabContent(activeTab);}} tintColor={NAVY}/>}
-        contentContainerStyle={{paddingBottom:insets.bottom+60}}
-      >
-        {/* Top bar */}
-        <View style={st.topBar}>
-          <Text style={st.screenTitle}>Profile</Text>
-          <View style={{flexDirection:'row',gap:8,alignItems:'center'}}>
+      <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadMemberships();loadHighlights();loadTabContent(activeTab);}} tintColor={NAVY}/>} contentContainerStyle={{paddingBottom:insets.bottom+60}}>
+        {/* Identity environment */}
+        <View style={st.identityRegion}>
+          <View style={st.identityTopRow}>
             <TouchableOpacity style={st.iconBtn} onPress={()=>navigation.navigate('Settings')} activeOpacity={0.7}><Feather name="settings" size={20} color={TEXT_PRIMARY}/></TouchableOpacity>
             <TouchableOpacity style={[st.iconBtn,{width:'auto',paddingHorizontal:14,flexDirection:'row',gap:5}]} onPress={openEdit} activeOpacity={0.7}><Feather name="edit-2" size={14} color={TEXT_PRIMARY}/><Text style={{fontSize:14,fontWeight:'600',color:TEXT_PRIMARY}}>Edit</Text></TouchableOpacity>
           </View>
-        </View>
 
-        {/* Avatar + info */}
-        <View style={st.avatarRow}>
-          <View style={{alignItems:'center',gap:6}}>
+          <View style={st.identityCenter}>
             <TouchableOpacity onPress={changePhoto} disabled={uploadingPhoto} activeOpacity={0.8} style={{position:'relative'}}>
-              {uploadingPhoto?<View style={[st.avatar,st.avatarLoading]}><ActivityIndicator color={NAVY}/></View>:profile.avatar_url?<Image source={{uri:profile.avatar_url}} style={st.avatar}/>:<View style={[st.avatar,st.avatarFb]}><Text style={st.avatarFbTxt}>{initials(profile.full_name)}</Text></View>}
+              {uploadingPhoto?<View style={[st.avatar,st.avatarLoading]}><ActivityIndicator color={NAVY}/></View>:profile.avatar_url?<ExpoImage source={{uri:profile.avatar_url}} style={st.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<View style={[st.avatar,st.avatarFb]}><Text style={st.avatarFbTxt}>{initials(profile.full_name)}</Text></View>}
               <View style={st.cameraBadge}><Feather name="camera" size={13} color="#FFF"/></View>
             </TouchableOpacity>
-          </View>
-          <View style={{flex:1,paddingTop:4}}>
             <Text style={st.nameText}>{profile.full_name||'Your Name'}</Text>
             {profile.username?<Text style={st.handleText}>@{profile.username}</Text>:null}
             {profile.role?<View style={st.roleBadge}><Text style={st.roleBadgeTxt}>{profile.role.charAt(0).toUpperCase()+profile.role.slice(1)}</Text></View>:null}
+            {profile.bio?<Text style={st.identityBio}>{profile.bio}</Text>:<TouchableOpacity onPress={openEdit}><Text style={st.bioEmpty}>Add a bio...</Text></TouchableOpacity>}
+            <View style={st.identityMeta}>
+              {profile.degree_program?<View style={st.metaRow}><Feather name="book" size={13} color={TEXT_SECONDARY}/><Text style={st.metaTxt}>{profile.degree_program}</Text></View>:null}
+              {profile.graduation_year?<View style={st.metaRow}><Feather name="calendar" size={13} color={TEXT_SECONDARY}/><Text style={st.metaTxt}>{fmtGrad(profile.graduation_year,profile.graduation_semester)}</Text></View>:null}
+              {profile.location?<View style={st.metaRow}><Feather name="map-pin" size={13} color={TEXT_SECONDARY}/><Text style={st.metaTxt}>{profile.location}</Text></View>:null}
+            </View>
+          </View>
+
+          <View style={st.statsBar}>
+            <View style={st.statCell}><Text style={st.statNum}>{stats.posts}</Text><Text style={st.statLbl}>Posts</Text></View>
+            <View style={st.statDivider}/>
+            <TouchableOpacity style={st.statCell} onPress={()=>openStats('connections')} activeOpacity={0.7}><Text style={st.statNum}>{stats.connections}</Text><Text style={st.statLbl}>Connections</Text></TouchableOpacity>
+            <View style={st.statDivider}/>
+            <TouchableOpacity style={st.statCell} onPress={()=>openStats('followers')} activeOpacity={0.7}><Text style={st.statNum}>{stats.followers}</Text><Text style={st.statLbl}>Followers</Text></TouchableOpacity>
+            <View style={st.statDivider}/>
+            <TouchableOpacity style={st.statCell} onPress={()=>openStats('following')} activeOpacity={0.7}><Text style={st.statNum}>{stats.following}</Text><Text style={st.statLbl}>Following</Text></TouchableOpacity>
           </View>
         </View>
 
-        {/* Stats */}
-        <View style={st.statsBar}>
-          <View style={st.statCell}><Text style={st.statNum}>{stats.posts}</Text><Text style={st.statLbl}>Posts</Text></View>
-          <View style={st.statDivider}/>
-          <TouchableOpacity style={st.statCell} onPress={()=>openStats('connections')} activeOpacity={0.7}><Text style={st.statNum}>{stats.connections}</Text><Text style={st.statLbl}>Connections</Text></TouchableOpacity>
-          <View style={st.statDivider}/>
-          <TouchableOpacity style={st.statCell} onPress={()=>openStats('followers')} activeOpacity={0.7}><Text style={st.statNum}>{stats.followers}</Text><Text style={st.statLbl}>Followers</Text></TouchableOpacity>
-          <View style={st.statDivider}/>
-          <TouchableOpacity style={st.statCell} onPress={()=>openStats('following')} activeOpacity={0.7}><Text style={st.statNum}>{stats.following}</Text><Text style={st.statLbl}>Following</Text></TouchableOpacity>
-        </View>
+        <HighlightRow
+          highlights={highlights}
+          isOwnProfile={true}
+          onTap={handleHighlightTap}
+          onCreateNew={handleHighlightCreate}
+          onLongPress={handleHighlightLongPress}
+        />
 
-        {/* Bio + meta */}
-        <View style={st.bioSection}>
-          {profile.bio?<Text style={st.bioTxt}>{profile.bio}</Text>:<TouchableOpacity onPress={openEdit}><Text style={st.bioEmpty}>Add a bio...</Text></TouchableOpacity>}
-          <View style={{gap:5,marginTop:8}}>
-            {profile.degree_program?<View style={st.metaRow}><Feather name="book" size={13} color={TEXT_SECONDARY}/><Text style={st.metaTxt}>{profile.degree_program}</Text></View>:null}
-            {profile.graduation_year?<View style={st.metaRow}><Feather name="calendar" size={13} color={TEXT_SECONDARY}/><Text style={st.metaTxt}>{fmtGrad(profile.graduation_year,profile.graduation_semester)}</Text></View>:null}
-            {profile.location?<View style={st.metaRow}><Feather name="map-pin" size={13} color={TEXT_SECONDARY}/><Text style={st.metaTxt}>{profile.location}</Text></View>:null}
-          </View>
-        </View>
-
-        {/* Community */}
         <View style={st.communitySection}>
           <Text style={st.communityTitle}>Community</Text>
-          <View style={st.communityGrid}>
-            {COMMUNITY.map(item=>(<TouchableOpacity key={item.label} style={st.communityCell} activeOpacity={0.8} onPress={()=>navigation.navigate(item.route as any)}><View style={[st.communityRingWrap,{borderColor:item.ring}]}><View style={[st.communityCircle,{backgroundColor:item.bg}]}>{item.emoji?<Text style={{fontSize:26}}>{item.emoji}</Text>:<Feather name={(item as any).featherIcon} size={26} color={(item as any).featherColor}/>}</View></View><Text style={st.communityLabel}>{item.label}</Text><Text style={st.communitySub}>{item.sub}</Text></TouchableOpacity>))}
+          <View style={st.communityList}>
+            {COMMUNITY.map(item=>(<TouchableOpacity key={item.label} style={st.communityRow} activeOpacity={0.7} onPress={()=>navigation.navigate(item.route as any)}><View style={[st.communityIconBadge,{backgroundColor:item.bg}]}>{item.emoji?<Text style={{fontSize:18}}>{item.emoji}</Text>:<Feather name={(item as any).featherIcon} size={18} color={(item as any).featherColor}/>}</View><View style={st.communityRowText}><Text style={st.communityLabel}>{item.label}</Text><Text style={st.communitySub}>{item.sub}</Text></View><Feather name="chevron-right" size={16} color="#C7C7CC" /></TouchableOpacity>))}
           </View>
         </View>
 
-        {/* Schools + Affiliations (above tabs) */}
         <View style={st.instSection}>
           <View style={st.instHeader}>
             <Text style={st.instSectionTitle}>Schools</Text>
             <TouchableOpacity onPress={()=>{setInstQuery('');setInstResults([]);setAddInstOpen(true);searchInstitutionsForAdd('');}} activeOpacity={0.7} hitSlop={{top:10,bottom:10,left:10,right:10}}><Feather name="plus-circle" size={20} color={NAVY}/></TouchableOpacity>
           </View>
           {instLoading&&myInstitutions.length===0?<ActivityIndicator color={NAVY} style={{paddingVertical:12}}/>:myInstitutions.length===0?(<TouchableOpacity onPress={()=>{setAddInstOpen(true);searchInstitutionsForAdd('');}} style={st.instEmpty} activeOpacity={0.7}><Feather name="award" size={18} color={NAVY}/><Text style={st.instEmptyTxt}>Add your school</Text></TouchableOpacity>):(
-            myInstitutions.map(pi=>(<View key={pi.id} style={st.instItemRow}><View style={st.instItemIcon}>{pi.institution_logo_url?<Image source={{uri:pi.institution_logo_url}} style={{width:36,height:36,borderRadius:8}}/>:<Feather name="award" size={18} color={NAVY}/>}</View><View style={{flex:1}}><View style={{flexDirection:'row',alignItems:'center',gap:6}}><Text style={st.instItemName} numberOfLines={1}>{pi.institution_short_name||pi.institution_name}</Text>{pi.is_primary&&<View style={st.primaryChip}><Text style={st.primaryChipTxt}>Primary</Text></View>}{pi.verified_via_email&&<Feather name="check-circle" size={13} color="#059669"/>}</View><Text style={st.instItemMeta}>{pi.relationship_type.charAt(0).toUpperCase()+pi.relationship_type.slice(1)}{pi.start_year?' \u00b7 '+pi.start_year+(pi.end_year?'\u2013'+pi.end_year:''):''}</Text></View><TouchableOpacity onPress={()=>{const buttons=pi.is_primary?[{text:'Remove',style:'destructive' as const,onPress:()=>handleRemoveInstitution(pi.institution_id,pi.institution_name)},{text:'Cancel',style:'cancel' as const}]:[{text:'Make primary',onPress:()=>handleSetPrimary(pi.institution_id)},{text:'Remove',style:'destructive' as const,onPress:()=>handleRemoveInstitution(pi.institution_id,pi.institution_name)},{text:'Cancel',style:'cancel' as const}];Alert.alert(pi.institution_name,undefined,buttons);}} hitSlop={{top:10,bottom:10,left:10,right:10}}><Feather name="more-horizontal" size={18} color={TEXT_SECONDARY}/></TouchableOpacity></View>))
+            myInstitutions.map(pi=>(<View key={pi.id} style={st.instItemRow}><View style={st.instItemIcon}>{pi.institution_logo_url?<ExpoImage source={{uri:pi.institution_logo_url}} style={{width:36,height:36,borderRadius:8}} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<Feather name="award" size={18} color={NAVY}/>}</View><View style={{flex:1}}><View style={{flexDirection:'row',alignItems:'center',gap:6}}><Text style={st.instItemName} numberOfLines={1}>{pi.institution_short_name||pi.institution_name}</Text>{pi.is_primary&&<View style={st.primaryChip}><Text style={st.primaryChipTxt}>Primary</Text></View>}{pi.verified_via_email&&<Feather name="check-circle" size={13} color="#059669"/>}</View><Text style={st.instItemMeta}>{pi.relationship_type.charAt(0).toUpperCase()+pi.relationship_type.slice(1)}{pi.start_year?' \u00b7 '+pi.start_year+(pi.end_year?'\u2013'+pi.end_year:''):''}</Text></View><TouchableOpacity onPress={()=>{const buttons=pi.is_primary?[{text:'Remove',style:'destructive' as const,onPress:()=>handleRemoveInstitution(pi.institution_id,pi.institution_name)},{text:'Cancel',style:'cancel' as const}]:[{text:'Make primary',onPress:()=>handleSetPrimary(pi.institution_id)},{text:'Remove',style:'destructive' as const,onPress:()=>handleRemoveInstitution(pi.institution_id,pi.institution_name)},{text:'Cancel',style:'cancel' as const}];Alert.alert(pi.institution_name,undefined,buttons);}} hitSlop={{top:10,bottom:10,left:10,right:10}}><Feather name="more-horizontal" size={18} color={TEXT_SECONDARY}/></TouchableOpacity></View>))
           )}
           {myAffiliations.length>0&&(<><Text style={[st.instSectionTitle,{marginTop:20,marginBottom:10}]}>Affiliations</Text>{myAffiliations.map(a=>(<View key={a.id} style={st.instItemRow}><View style={[st.instItemIcon,{backgroundColor:'#F0EEFF'}]}><Feather name="users" size={16} color="#5856D6"/></View><View style={{flex:1}}><Text style={st.instItemName} numberOfLines={1}>{a.affiliation_name}</Text><Text style={st.instItemMeta}>{a.kind.replace(/_/g,' ')}{a.institution_name?' \u00b7 '+a.institution_name:' \u00b7 Global'}{a.is_official?' \u00b7 Official':''}</Text></View></View>))}</>)}
         </View>
 
-        {/* Pill tabs */}
         <View style={st.tabsContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.tabsScroll}>
-            {([
-              {key:'posts' as ProfileTab,label:'Posts',count:tabCounts.posts},
-              {key:'reposts' as ProfileTab,label:'Reposts',count:tabCounts.reposts},
-              {key:'saved' as ProfileTab,label:'Saved',count:tabCounts.saved},
-              {key:'tagged' as ProfileTab,label:'Tagged',count:tabCounts.tagged},
-            ]).map(t=>(<TouchableOpacity key={t.key} style={[st.tabPill,activeTab===t.key&&st.tabPillActive]} onPress={()=>setActiveTab(t.key)} activeOpacity={0.7}><Text style={[st.tabPillTxt,activeTab===t.key&&st.tabPillTxtActive]}>{t.label}</Text>{t.count>0&&(<View style={[st.tabPillCount,activeTab===t.key&&st.tabPillCountActive]}><Text style={[st.tabPillCountTxt,activeTab===t.key&&st.tabPillCountTxtActive]}>{t.count}</Text></View>)}</TouchableOpacity>))}
+            {([{key:'posts' as ProfileTab,label:'Posts',count:tabCounts.posts},{key:'reposts' as ProfileTab,label:'Reposts',count:tabCounts.reposts},{key:'saved' as ProfileTab,label:'Saved',count:tabCounts.saved},{key:'tagged' as ProfileTab,label:'Tagged',count:tabCounts.tagged}]).map(t=>(<TouchableOpacity key={t.key} style={[st.tabPill,activeTab===t.key&&st.tabPillActive]} onPress={()=>setActiveTab(t.key)} activeOpacity={0.7}><Text style={[st.tabPillTxt,activeTab===t.key&&st.tabPillTxtActive]}>{t.label}</Text>{t.count>0&&(<View style={[st.tabPillCount,activeTab===t.key&&st.tabPillCountActive]}><Text style={[st.tabPillCountTxt,activeTab===t.key&&st.tabPillCountTxtActive]}>{t.count}</Text></View>)}</TouchableOpacity>))}
           </ScrollView>
         </View>
 
-        {/* Tab content */}
         {tabLoading?(<View style={{paddingVertical:40,alignItems:'center'}}><ActivityIndicator color={NAVY}/></View>):tabData.length===0?emptyState(activeTab):tabData.map(post=>renderPostCard(post))}
       </ScrollView>
 
-      {/* Stats modal */}
       <Modal visible={!!statsModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={()=>setStatsModal(null)}>
         <SafeAreaView style={{flex:1,backgroundColor:'#FFF'}}>
           <View style={st.modalHeader}><View style={{width:60}}/><Text style={st.modalTitle}>{statsModalTitle}</Text><TouchableOpacity onPress={()=>setStatsModal(null)} style={{width:60,alignItems:'flex-end'}}><Feather name="x" size={22} color="#000"/></TouchableOpacity></View>
-          {statsLoading?<View style={st.center}><ActivityIndicator color={NAVY} size="large"/></View>:statsPeople.length===0?<View style={st.empty}><Feather name="users" size={40} color="#E5E5EA"/><Text style={st.emptyTitle}>Nobody here yet</Text><Text style={st.emptyTxt}>{statsEmptyMsg}</Text></View>:<FlatList data={statsPeople} keyExtractor={p=>p.id} contentContainerStyle={{padding:16}} renderItem={({item:person})=>(<TouchableOpacity style={st.personRow} activeOpacity={0.85} onPress={()=>{setStatsModal(null);navigation.navigate('UserProfile',{userId:person.id});}}>{person.avatar_url?<Image source={{uri:person.avatar_url}} style={st.personAvatar}/>:<View style={[st.personAvatar,st.personAvatarFb]}><Text style={st.personAvatarTxt}>{initials(person.full_name)}</Text></View>}<View style={{flex:1}}><Text style={st.personName}>{person.full_name||'Member'}</Text>{person.username?<Text style={st.personHandle}>@{person.username}</Text>:null}</View><Feather name="chevron-right" size={16} color="#C7C7CC"/></TouchableOpacity>)}/>}
+          {statsLoading?<View style={st.center}><ActivityIndicator color={NAVY} size="large"/></View>:statsPeople.length===0?<View style={st.empty}><Feather name="users" size={40} color="#E5E5EA"/><Text style={st.emptyTitle}>Nobody here yet</Text><Text style={st.emptyTxt}>{statsEmptyMsg}</Text></View>:<FlatList data={statsPeople} keyExtractor={p=>p.id} contentContainerStyle={{padding:16}} renderItem={({item:person})=>(<TouchableOpacity style={st.personRow} activeOpacity={0.85} onPress={()=>{setStatsModal(null);navigation.navigate('UserProfile',{userId:person.id});}}>{person.avatar_url?<ExpoImage source={{uri:person.avatar_url}} style={st.personAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<View style={[st.personAvatar,st.personAvatarFb]}><Text style={st.personAvatarTxt}>{initials(person.full_name)}</Text></View>}<View style={{flex:1}}><Text style={st.personName}>{person.full_name||'Member'}</Text>{person.username?<Text style={st.personHandle}>@{person.username}</Text>:null}</View><Feather name="chevron-right" size={16} color="#C7C7CC"/></TouchableOpacity>)}/>}
         </SafeAreaView>
       </Modal>
 
-      {/* Add institution modal */}
       <Modal visible={addInstOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={()=>setAddInstOpen(false)}>
         <SafeAreaView style={{flex:1,backgroundColor:'#FFF'}}>
           <View style={st.modalHeader}><View style={{width:60}}/><Text style={st.modalTitle}>Add school</Text><TouchableOpacity onPress={()=>setAddInstOpen(false)} style={{width:60,alignItems:'flex-end'}}><Feather name="x" size={22} color="#000"/></TouchableOpacity></View>
-          <TextInput value={instQuery} onChangeText={searchInstitutionsForAdd} placeholder="Search schools..." placeholderTextColor={TEXT_SECONDARY} style={st.addInstSearch} autoCapitalize="none" autoFocus/>
-          <FlatList data={instResults} keyExtractor={it=>it.id} renderItem={({item})=>(<TouchableOpacity style={st.addInstRow} onPress={()=>handleAddInstitution(item)} disabled={addingInstitution} activeOpacity={0.7}><View style={st.instItemIcon}><Feather name="award" size={18} color={NAVY}/></View><View style={{flex:1}}><Text style={st.instItemName} numberOfLines={1}>{item.name}</Text><Text style={st.instItemMeta}>{[item.short_name,item.city,item.state].filter(Boolean).join(' \u00b7 ')||item.country}</Text></View>{addingInstitution?<ActivityIndicator size={14} color={NAVY}/>:<Feather name="plus-circle" size={20} color={NAVY}/>}</TouchableOpacity>)} ListEmptyComponent={<Text style={{padding:20,textAlign:'center',color:TEXT_SECONDARY}}>No matching schools found</Text>}/>
+          <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+            <TextInput value={instQuery} onChangeText={searchInstitutionsForAdd} placeholder="Search schools..." placeholderTextColor={TEXT_SECONDARY} style={st.addInstSearch} autoCapitalize="none" autoFocus/>
+            <FlatList data={instResults} keyExtractor={it=>it.id} keyboardShouldPersistTaps="handled" contentContainerStyle={{paddingBottom:20}} renderItem={({item})=>(<TouchableOpacity style={st.addInstRow} onPress={()=>handleAddInstitution(item)} disabled={addingInstitution} activeOpacity={0.7}><View style={st.instItemIcon}><Feather name="award" size={18} color={NAVY}/></View><View style={{flex:1}}><Text style={st.instItemName} numberOfLines={1}>{item.name}</Text><Text style={st.instItemMeta}>{[item.short_name,item.city,item.state].filter(Boolean).join(' \u00b7 ')||item.country}</Text></View>{addingInstitution?<ActivityIndicator size={14} color={NAVY}/>:<Feather name="plus-circle" size={20} color={NAVY}/>}</TouchableOpacity>)} ListEmptyComponent={<Text style={{padding:20,textAlign:'center',color:TEXT_SECONDARY}}>No matching schools found</Text>}/>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
@@ -759,38 +665,42 @@ export default function ProfileScreen() {
 const st = StyleSheet.create({
   safe:{flex:1,backgroundColor:'#FFF'},
   center:{flex:1,alignItems:'center',justifyContent:'center'},
-  topBar:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingTop:10,paddingBottom:14},
-  screenTitle:{fontSize:26,fontWeight:'700',color:TEXT_PRIMARY,letterSpacing:-0.4},
-  iconBtn:{width:36,height:36,borderRadius:18,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
-  avatarRow:{flexDirection:'row',alignItems:'flex-start',paddingHorizontal:16,marginBottom:16,gap:16},
-  avatar:{width:82,height:82,borderRadius:41},
+  identityRegion:{backgroundColor:'#F9F9FB',paddingBottom:20,marginBottom:8},
+  identityTopRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingTop:10,paddingBottom:20},
+  iconBtn:{width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.04)',alignItems:'center',justifyContent:'center'},
+  identityCenter:{alignItems:'center',paddingHorizontal:24},
+  avatar:{width:96,height:96,borderRadius:48},
   avatarLoading:{backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   avatarFb:{backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
-  avatarFbTxt:{fontSize:30,fontWeight:'700',color:NAVY},
-  cameraBadge:{position:'absolute',bottom:0,right:0,width:26,height:26,borderRadius:13,backgroundColor:NAVY,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:'#FFF'},
-  nameText:{fontSize:20,fontWeight:'700',color:TEXT_PRIMARY,marginBottom:3},
-  handleText:{fontSize:14,color:NAVY,fontWeight:'500',marginBottom:6},
-  roleBadge:{alignSelf:'flex-start',backgroundColor:'#F2F2F7',borderRadius:8,paddingHorizontal:10,paddingVertical:4},
+  avatarFbTxt:{fontSize:34,fontWeight:'700',color:NAVY},
+  cameraBadge:{position:'absolute',bottom:2,right:2,width:28,height:28,borderRadius:14,backgroundColor:NAVY,alignItems:'center',justifyContent:'center',borderWidth:2.5,borderColor:'#F9F9FB'},
+  nameText:{fontSize:24,fontWeight:'800',color:TEXT_PRIMARY,marginTop:14,letterSpacing:-0.4},
+  handleText:{fontSize:15,color:NAVY,fontWeight:'500',marginTop:3},
+  roleBadge:{marginTop:8,backgroundColor:'rgba(11,30,61,0.06)',borderRadius:8,paddingHorizontal:12,paddingVertical:5},
   roleBadgeTxt:{fontSize:12,fontWeight:'600',color:'#3C3C43'},
-  statsBar:{flexDirection:'row',alignItems:'center',marginHorizontal:16,marginBottom:18,backgroundColor:'#F9F9F9',borderRadius:14,borderWidth:StyleSheet.hairlineWidth,borderColor:HAIRLINE,overflow:'hidden'},
+  identityBio:{fontSize:15,color:'#3C3C43',lineHeight:22,textAlign:'center',marginTop:12,paddingHorizontal:8},
+  bioEmpty:{fontSize:15,color:'#C7C7CC',marginTop:12},
+  identityMeta:{gap:5,marginTop:10,alignItems:'center'},
+  metaRow:{flexDirection:'row',alignItems:'center',gap:6},
+  metaTxt:{fontSize:14,color:'#6B6B6B',flexShrink:1},
+  statsBar:{flexDirection:'row',alignItems:'center',marginHorizontal:16,marginTop:20,backgroundColor:'#FFFFFF',borderRadius:14,overflow:'hidden'},
   statCell:{flex:1,alignItems:'center',paddingVertical:14},
   statNum:{fontSize:20,fontWeight:'700',color:TEXT_PRIMARY},
   statLbl:{fontSize:11,color:TEXT_SECONDARY,marginTop:2,textAlign:'center'},
   statDivider:{width:StyleSheet.hairlineWidth,height:36,backgroundColor:HAIRLINE},
-  bioSection:{paddingHorizontal:16,marginBottom:20},
   bioTxt:{fontSize:15,color:'#1A1A1A',lineHeight:22},
   bioEmpty:{fontSize:15,color:'#C7C7CC'},
   metaRow:{flexDirection:'row',alignItems:'center',gap:6},
   metaTxt:{fontSize:14,color:'#6B6B6B',flexShrink:1},
-  communitySection:{paddingHorizontal:16,marginBottom:12},
-  communityTitle:{fontSize:18,fontWeight:'800',color:TEXT_PRIMARY,marginBottom:16,letterSpacing:-0.3},
-  communityGrid:{flexDirection:'row',flexWrap:'wrap',gap:6,justifyContent:'space-between'},
-  communityCell:{width:'31%',alignItems:'center',gap:7,marginBottom:6},
-  communityRingWrap:{width:72,height:72,borderRadius:36,borderWidth:2.5,alignItems:'center',justifyContent:'center',shadowColor:'#000',shadowOpacity:0.07,shadowRadius:8,shadowOffset:{width:0,height:3},elevation:3},
-  communityCircle:{width:62,height:62,borderRadius:31,alignItems:'center',justifyContent:'center'},
-  communityLabel:{fontSize:12,fontWeight:'700',color:TEXT_PRIMARY,textAlign:'center'},
-  communitySub:{fontSize:10,color:TEXT_SECONDARY,textAlign:'center',lineHeight:13},
-  instSection:{paddingHorizontal:16,marginBottom:12},
+  communitySection:{paddingHorizontal:16,marginBottom:16},
+  communityTitle:{fontSize:14,fontWeight:'700',color:TEXT_PRIMARY,marginBottom:10},
+  communityList:{gap:2},
+  communityRow:{flexDirection:'row',alignItems:'center',gap:12,paddingVertical:11,paddingHorizontal:4},
+  communityIconBadge:{width:36,height:36,borderRadius:10,alignItems:'center',justifyContent:'center'},
+  communityRowText:{flex:1},
+  communityLabel:{fontSize:15,fontWeight:'600',color:TEXT_PRIMARY},
+  communitySub:{fontSize:12,color:TEXT_SECONDARY,marginTop:1},
+  instSection:{paddingHorizontal:16,marginBottom:16},
   instHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:10},
   instSectionTitle:{fontSize:15,fontWeight:'700',color:TEXT_PRIMARY},
   instEmpty:{flexDirection:'row',alignItems:'center',gap:8,backgroundColor:'#F2F2F7',borderRadius:12,padding:14},
@@ -801,7 +711,7 @@ const st = StyleSheet.create({
   instItemMeta:{fontSize:12,color:TEXT_SECONDARY,marginTop:2},
   primaryChip:{backgroundColor:NAVY,borderRadius:6,paddingHorizontal:6,paddingVertical:2},
   primaryChipTxt:{fontSize:10,color:'#FFF',fontWeight:'700'},
-  tabsContainer:{backgroundColor:'#FFFFFF',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:HAIRLINE,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:HAIRLINE},
+  tabsContainer:{backgroundColor:'#FFFFFF',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:HAIRLINE},
   tabsScroll:{paddingHorizontal:14,paddingVertical:12,gap:8,flexDirection:'row',alignItems:'center'},
   tabPill:{flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:14,height:34,borderRadius:17,backgroundColor:'#FFFFFF',borderWidth:StyleSheet.hairlineWidth,borderColor:HAIRLINE},
   tabPillActive:{backgroundColor:NAVY,borderColor:NAVY},
@@ -829,7 +739,7 @@ const st = StyleSheet.create({
   tabEmptyIcon:{width:64,height:64,borderRadius:32,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center',marginBottom:10},
   tabEmptyTitle:{fontSize:16,fontWeight:'700',color:TEXT_PRIMARY},
   tabEmptySub:{fontSize:13,color:TEXT_SECONDARY,textAlign:'center',lineHeight:18},
-  addInstSearch:{margin:14,backgroundColor:'#F2F2F7',borderRadius:10,paddingHorizontal:12,paddingVertical:10,fontSize:15},
+  addInstSearch:{margin:14,backgroundColor:'#F2F2F7',borderRadius:12,paddingHorizontal:12,paddingVertical:10,fontSize:15},
   addInstRow:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,paddingVertical:12,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F2F2F7'},
   modalHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:HAIRLINE},
   modalTitle:{fontSize:17,fontWeight:'600',color:TEXT_PRIMARY},

@@ -9,15 +9,19 @@ import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { Image as ExpoImage } from 'expo-image';
-import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
-import { useFocusEffect } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import StoryBar from '../../components/stories/StoryStrip';
+import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
+import CampusMomentCard from '../../components/CampusMomentCard';
+import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
+import { FeedSkeleton } from '../../components/Skeleton';
 
 const SCREEN_W = Dimensions.get('window').width;
-const MEDIA_GAP = 2;
+const NAVY = '#0B1E3D';
 
 type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number; width?: number | null; height?: number | null };
 type Post = {
@@ -51,6 +55,34 @@ function initials(name?: string | null) {
 }
 function fmtCount(n: number) { return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n); }
 
+function isVideoUrl(url: string): boolean {
+  const clean = url.split('?')[0].split('#')[0].toLowerCase();
+  return clean.endsWith('.mp4') || clean.endsWith('.mov') || clean.endsWith('.webm') || clean.endsWith('.quicktime');
+}
+
+function detectMediaType(asset: any): 'image' | 'video' {
+  if (asset.type === 'video') return 'video';
+  if (asset.type === 'image') return 'image';
+  if (asset.mimeType && typeof asset.mimeType === 'string') {
+    if (asset.mimeType.startsWith('video/')) return 'video';
+    if (asset.mimeType.startsWith('image/')) return 'image';
+  }
+  if (asset.uri && typeof asset.uri === 'string') {
+    if (isVideoUrl(asset.uri)) return 'video';
+  }
+  if (asset.duration && asset.duration > 0) return 'video';
+  return 'image';
+}
+
+function safeExtFromUri(uri: string, fallback: string): string {
+  try {
+    const clean = uri.split('?')[0].split('#')[0];
+    const ext = (clean.split('.').pop() || '').toLowerCase();
+    if (ext && ext.length <= 5 && /^[a-z0-9]+$/.test(ext)) return ext;
+  } catch {}
+  return fallback;
+}
+
 function renderRichText(text: string, onHashtag: (t: string) => void, onMention: (u: string) => void) {
   return text.split(/([@#][\w.]+)/g).map((part, i) => {
     if (part.startsWith('#')) return <Text key={i} style={s.hashTag} onPress={() => onHashtag(part.slice(1))}>{part}</Text>;
@@ -59,76 +91,11 @@ function renderRichText(text: string, onHashtag: (t: string) => void, onMention:
   });
 }
 
-
-// ─── Dynamic aspect-ratio image ──────────────────────────────────────────────
-function DynamicImage({
-  uri,
-  width,
-  knownWidth,
-  knownHeight,
-}: {
-  uri: string;
-  width: number;
-  knownWidth?: number | null;
-  knownHeight?: number | null;
-}) {
-  const initialRatio = knownWidth && knownHeight && knownWidth > 0 && knownHeight > 0
-    ? knownWidth / knownHeight
-    : null;
-  const [ratio, setRatio] = React.useState<number | null>(initialRatio);
-  const [loaded, setLoaded] = React.useState(false);
-
-  React.useEffect(() => {
-    let cancelled = false;
-    if (!uri || ratio) return;
-    Image.getSize(
-      uri,
-      (w, h) => {
-        if (!cancelled && w > 0 && h > 0) setRatio(w / h);
-      },
-      () => { if (!cancelled) setRatio(1); }
-    );
-    return () => { cancelled = true; };
-  }, [uri, ratio]);
-
-  const safeRatio = ratio && Number.isFinite(ratio) && ratio > 0.1 && ratio < 10 ? ratio : 1;
-
-  return (
-    <View style={{
-      width,
-      aspectRatio: safeRatio,
-      borderRadius: 14,
-      overflow: 'hidden',
-      backgroundColor: '#F0F0F0',
-      marginTop: 10,
-    }}>
-      <ExpoImage
-        source={{ uri }}
-        style={{ width: '100%', height: '100%' }}
-        contentFit="cover"
-        contentPosition="center"
-        cachePolicy="memory-disk"
-        transition={300}
-        onLoad={() => { setLoaded(true); }}
-        onError={(e: any) => console.log('[IMG_ERR]', uri, e.error)}
-      />
-      {!loaded && (
-        <View style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          alignItems: 'center', justifyContent: 'center',
-          backgroundColor: '#F0F0F0',
-        }}>
-          <ActivityIndicator color="#C7C7CC" size="small" />
-        </View>
-      )}
-    </View>
-  );
-}
-
 export default function FeedScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
+  const isVerifiedSchoolUser = !!(profile as any)?.is_verified_school_user;
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [profilesMap, setProfilesMap] = useState<ProfileMap>({});
@@ -145,63 +112,94 @@ export default function FeedScreen({ navigation }: any) {
   const [composerText, setComposerText] = useState('');
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
   const [posting, setPosting] = useState(false);
+  const [exclusivePost, setExclusivePost] = useState(false);
   const [mentionResults, setMentionResults] = useState<ProfileLite[]>([]);
   const [mentionActive, setMentionActive] = useState(false);
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const [momentRefreshKey, setMomentRefreshKey] = useState(0);
 
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const likedPostsRef = useRef<Record<string, boolean>>({});
+  const bookmarkedPostsRef = useRef<Record<string, boolean>>({});
+  const repostedPostsRef = useRef<Record<string, boolean>>({});
+  const commentPreviewsRef = useRef<Record<string, CommentPreview>>({});
+  const sharingPostRef = useRef<Record<string, boolean>>({});
   const postsRef = useRef<Post[]>([]);
-  const likePendingRef = useRef<Set<string>>(new Set());
+  const busyKeysRef = useRef<Record<string, boolean>>({});
   const composerRef    = useRef<TextInput>(null);
   const lastTapMap     = useRef<Record<string, number>>({});
+  const singleTapTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const [heartAnim]    = useState(() => new Animated.Value(0));
   const [heartPost,    setHeartPost]    = useState<string | null>(null);
   const [activePostId, setActivePostId]   = useState<string | null>(null);
   const [screenFocused, setScreenFocused] = useState(true);
 
-  // Pause all feed videos when navigating to another screen (e.g. PostScreen).
-  // Restore normal autoplay when returning to the feed.
-  useFocusEffect(
-    useCallback(() => {
-      setScreenFocused(true);
-      return () => setScreenFocused(false);
-    }, [])
-  );
+  const loadFeedRef = useRef<(showLoader: boolean) => Promise<void>>(undefined);
 
   useEffect(() => {
-    postsRef.current = posts;
-  }, [posts]);
+    setScreenFocused(true);
+    return () => {
+      setScreenFocused(false);
+      Keyboard.dismiss();
+    };
+  }, []);
 
   useEffect(() => {
-    likedPostsRef.current = likedPosts;
-  }, [likedPosts]);
+    if (!userId) { setUnreadNotifs(0); return; }
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const loadUnread = async () => {
+      const { count } = await supabase
+        .from('notifications').select('id', { count: 'exact', head: true })
+        .eq('recipient_id', userId).is('read_at', null);
+      setUnreadNotifs(count || 0);
+    };
+    const debouncedLoad = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadUnread, 300);
+    };
+    loadUnread();
+    const ch = supabase.channel(`feed_notif_badge_${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` }, debouncedLoad)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` }, debouncedLoad)
+      .subscribe();
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(ch);
+    };
+  }, [userId]);
 
-  // viewabilityConfig must be stable — defined outside render or in a ref
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 55, // correct key — no 'ity' suffix
-  }).current;
+  useEffect(() => { postsRef.current = posts; }, [posts]);
+  useEffect(() => { likedPostsRef.current = likedPosts; }, [likedPosts]);
+  useEffect(() => { bookmarkedPostsRef.current = bookmarkedPosts; }, [bookmarkedPosts]);
+  useEffect(() => { repostedPostsRef.current = repostedPosts; }, [repostedPosts]);
+  useEffect(() => { commentPreviewsRef.current = commentPreviews; }, [commentPreviews]);
+  useEffect(() => { sharingPostRef.current = sharingPost; }, [sharingPost]);
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 55 }).current;
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
-    // Pick the first fully-in-view item that has any media
     const first = viewableItems.find((v: any) => v.isViewable);
     setActivePostId(first?.item?.id ?? null);
   }, []);
 
-  const isBusy = (k: string) => !!busyKeys[k];
-  const setBusy = (k: string, v: boolean) =>
+  const isBusy = (k: string) => !!busyKeysRef.current[k];
+  const setBusy = (k: string, v: boolean) => {
+    busyKeysRef.current[k] = v;
     setBusyKeys(p => { const n = { ...p }; if (v) n[k] = true; else delete n[k]; return n; });
+  };
 
   const scheduleRefresh = useCallback(() => {
     if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
-    realtimeTimerRef.current = setTimeout(() => loadFeed(false), 2000);
+    realtimeTimerRef.current = setTimeout(() => {
+      loadFeedRef.current?.(false);
+    }, 2000);
   }, []);
 
   const loadFeed = useCallback(async (showLoader = false) => {
     try {
       if (showLoader) setLoading(true);
-      // Try full query with post_media join
       let rawPosts: any[] | null = null;
       let queryError: any = null;
 
@@ -212,7 +210,6 @@ export default function FeedScreen({ navigation }: any) {
         .limit(80);
 
       if (e1) {
-        // post_media join failed (schema mismatch) — fall back to posts-only query
         console.log('[FEED] join failed, falling back:', e1.message);
         const { data: d2, error: e2 } = await supabase
           .from('posts')
@@ -228,7 +225,6 @@ export default function FeedScreen({ navigation }: any) {
 
       if (queryError) {
         console.log('[FEED] query error:', queryError.message);
-        // Do NOT wipe existing posts — just stop refreshing
         return;
       }
       if (!rawPosts) return;
@@ -304,6 +300,10 @@ export default function FeedScreen({ navigation }: any) {
   }, [userId]);
 
   useEffect(() => {
+    loadFeedRef.current = loadFeed;
+  }, [loadFeed]);
+
+  useEffect(() => {
     loadFeed(true);
 
     const sortPosts = (items: Post[]) => {
@@ -315,15 +315,6 @@ export default function FeedScreen({ navigation }: any) {
       return [...items].sort((a, b) => b.score - a.score);
     };
 
-    const buildPreview = (msg: any) => {
-      if (msg.text) return msg.text;
-      if (msg.body) return msg.body;
-      if (msg.media_type === 'image') return '📷 Photo';
-      if (msg.media_type === 'video') return '🎬 Video';
-      if (msg.media_type === 'document') return '📄 File';
-      return '📎 Media';
-    };
-
     const ch = supabase.channel('feed_live')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => scheduleRefresh())
       .subscribe();
@@ -332,40 +323,28 @@ export default function FeedScreen({ navigation }: any) {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_likes' }, (payload) => {
         const row = payload.new as any;
         if (!row?.post_id) return;
-
         const wasAlreadyLikedHere = !!likedPostsRef.current[row.post_id];
-
         if (row.user_id === userId) {
           setLikedPosts(prev => ({ ...prev, [row.post_id]: true }));
         }
-
         setPosts(prev => sortPosts(prev.map(p => {
           if (p.id !== row.post_id) return p;
           const shouldIncrement = row.user_id !== userId || !wasAlreadyLikedHere;
-          const next = {
-            ...p,
-            likes_count: shouldIncrement ? p.likes_count + 1 : p.likes_count,
-          };
+          const next = { ...p, likes_count: shouldIncrement ? p.likes_count + 1 : p.likes_count };
           return { ...next, score: scorePost(next) };
         })));
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_likes' }, (payload) => {
         const row = payload.old as any;
         if (!row?.post_id) return;
-
         const wasLikedHere = !!likedPostsRef.current[row.post_id];
-
         if (row.user_id === userId) {
           setLikedPosts(prev => ({ ...prev, [row.post_id]: false }));
         }
-
         setPosts(prev => sortPosts(prev.map(p => {
           if (p.id !== row.post_id) return p;
           const shouldDecrement = row.user_id !== userId || wasLikedHere;
-          const next = {
-            ...p,
-            likes_count: shouldDecrement ? Math.max(0, p.likes_count - 1) : p.likes_count,
-          };
+          const next = { ...p, likes_count: shouldDecrement ? Math.max(0, p.likes_count - 1) : p.likes_count };
           return { ...next, score: scorePost(next) };
         })));
       })
@@ -375,38 +354,52 @@ export default function FeedScreen({ navigation }: any) {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_comments' }, async (payload) => {
         const row = payload.new as any;
         if (!row?.post_id) return;
-
         setPosts(prev => sortPosts(prev.map(p => {
           if (p.id !== row.post_id) return p;
           const next = { ...p, comments_count: p.comments_count + 1 };
           return { ...next, score: scorePost(next) };
         })));
-
         if (!row.parent_comment_id) {
           let authorName = 'User';
           if (row.user_id) {
             const { data: author } = await supabase
-              .from('profiles')
-              .select('full_name, username')
-              .eq('id', row.user_id)
-              .maybeSingle();
+              .from('profiles').select('full_name, username').eq('id', row.user_id).maybeSingle();
             authorName = author?.full_name || author?.username || 'User';
           }
           setCommentPreviews(prev => ({
             ...prev,
-            [row.post_id]: { body: buildPreview(row), authorName },
+            [row.post_id]: { body: row.body || row.text || '', authorName },
           }));
         }
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_comments' }, (payload) => {
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_comments' }, async (payload) => {
         const row = payload.old as any;
         if (!row?.post_id) return;
-
         setPosts(prev => sortPosts(prev.map(p => {
           if (p.id !== row.post_id) return p;
           const next = { ...p, comments_count: Math.max(0, p.comments_count - 1) };
           return { ...next, score: scorePost(next) };
         })));
+        try {
+          const { data: latestComment } = await supabase
+            .from('post_comments')
+            .select('body, user_id')
+            .eq('post_id', row.post_id)
+            .is('parent_comment_id', null)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (latestComment) {
+            let aName = 'User';
+            if (latestComment.user_id) {
+              const { data: a } = await supabase.from('profiles').select('full_name, username').eq('id', latestComment.user_id).maybeSingle();
+              aName = a?.full_name || a?.username || 'User';
+            }
+            setCommentPreviews(prev => ({ ...prev, [row.post_id]: { body: latestComment.body, authorName: aName } }));
+          } else {
+            setCommentPreviews(prev => { const n = { ...prev }; delete n[row.post_id]; return n; });
+          }
+        } catch {}
       })
       .subscribe();
 
@@ -414,7 +407,6 @@ export default function FeedScreen({ navigation }: any) {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload) => {
         const row = payload.new as any;
         if (!row?.id) return;
-
         setPosts(prev => sortPosts(prev.map(p => {
           if (p.id !== row.id) return p;
           const next = {
@@ -439,35 +431,24 @@ export default function FeedScreen({ navigation }: any) {
     };
   }, [loadFeed, scheduleRefresh, userId, feedMode]);
 
-  const toggleLike = async (postId: string) => {
+  const toggleLike = useCallback(async (postId: string) => {
     if (!userId || isBusy(`like-${postId}`)) return;
     setBusy(`like-${postId}`, true);
-
     const was = !!likedPostsRef.current[postId];
     const optimisticDelta = was ? -1 : 1;
-
-    // 1. Optimistic UI first. This is what makes it feel instant.
-    likePendingRef.current.add(postId);
     setLikedPosts(prev => ({ ...prev, [postId]: !was }));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPosts(prev => prev.map(post => {
       if (post.id !== postId) return post;
-      const next = {
-        ...post,
-        likes_count: Math.max(0, post.likes_count + optimisticDelta),
-      };
+      const next = { ...post, likes_count: Math.max(0, post.likes_count + optimisticDelta) };
       return { ...next, score: scorePost(next) };
     }));
-
     try {
-      // 2. Authoritative backend write. This function inserts/deletes and returns final DB truth.
       const { data, error } = await supabase.rpc('toggle_post_like', { p_post_id: postId });
       if (error) throw error;
-
       const result = Array.isArray(data) ? data[0] : data;
       const liked = !!result?.liked;
       const likesCount = Number(result?.likes_count ?? 0);
-
-      // 3. Reconcile this device to DB truth. Other devices update via realtime.
       setLikedPosts(prev => ({ ...prev, [postId]: liked }));
       setPosts(prev => prev.map(post => {
         if (post.id !== postId) return post;
@@ -476,37 +457,28 @@ export default function FeedScreen({ navigation }: any) {
       }));
     } catch (e: any) {
       console.log('[LIKE_TOGGLE_ERR]', e?.code, e?.message, e?.details, e?.hint);
-
-      // Revert only on real backend failure.
       setLikedPosts(prev => ({ ...prev, [postId]: was }));
       setPosts(prev => prev.map(post => {
         if (post.id !== postId) return post;
-        const next = {
-          ...post,
-          likes_count: Math.max(0, post.likes_count - optimisticDelta),
-        };
+        const next = { ...post, likes_count: Math.max(0, post.likes_count - optimisticDelta) };
         return { ...next, score: scorePost(next) };
       }));
       Alert.alert('Could not update like', 'Please try again.');
     } finally {
-      likePendingRef.current.delete(postId);
       setBusy(`like-${postId}`, false);
     }
-  };
+  }, [userId]);
 
-  // ── Double-tap like ─────────────────────────────────────────────────────
-  const singleTapTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-
-  const handleDoubleTap = (postId: string, onSingleTap: () => void) => {
+  const handleDoubleTap = useCallback((postId: string, onSingleTap: () => void) => {
     const now = Date.now();
     const last = lastTapMap.current[postId] || 0;
     if (now - last < 300) {
-      // Double tap detected — cancel pending single-tap nav
       if (singleTapTimers.current[postId]) {
         clearTimeout(singleTapTimers.current[postId]);
         delete singleTapTimers.current[postId];
       }
       if (!likedPostsRef.current[postId]) toggleLike(postId);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setHeartPost(postId);
       heartAnim.setValue(0);
       Animated.sequence([
@@ -515,115 +487,149 @@ export default function FeedScreen({ navigation }: any) {
         Animated.timing(heartAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
       ]).start(() => setHeartPost(null));
     } else {
-      // First tap — wait to see if double tap follows
       singleTapTimers.current[postId] = setTimeout(() => {
         delete singleTapTimers.current[postId];
         onSingleTap();
       }, 220);
     }
     lastTapMap.current[postId] = now;
-  };
+  }, [toggleLike]);
 
-  const toggleBookmark = async (postId: string) => {
+  const toggleBookmark = useCallback(async (postId: string) => {
     if (!userId || isBusy(`bk-${postId}`)) return;
     setBusy(`bk-${postId}`, true);
-    const was = !!bookmarkedPosts[postId];
+    const was = !!bookmarkedPostsRef.current[postId];
     setBookmarkedPosts(p => ({ ...p, [postId]: !was }));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      if (was) await supabase.from('post_bookmarks').delete().eq('post_id', postId).eq('user_id', userId);
-      else await supabase.from('post_bookmarks').insert({ post_id: postId, user_id: userId });
-    } catch { setBookmarkedPosts(p => ({ ...p, [postId]: was })); }
-    finally { setBusy(`bk-${postId}`, false); }
-  };
+      if (was) {
+        const { error } = await supabase.from('post_bookmarks').delete().eq('post_id', postId).eq('user_id', userId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('post_bookmarks').insert({ post_id: postId, user_id: userId });
+        if (error) throw error;
+      }
+    } catch {
+      setBookmarkedPosts(p => ({ ...p, [postId]: was }));
+    } finally {
+      setBusy(`bk-${postId}`, false);
+    }
+  }, [userId]);
 
-  const toggleRepost = async (postId: string) => {
+  const toggleRepost = useCallback(async (postId: string) => {
     if (!userId || isBusy(`rp-${postId}`)) return;
     setBusy(`rp-${postId}`, true);
-    const was = !!repostedPosts[postId];
+    const was = !!repostedPostsRef.current[postId];
     setRepostedPosts(p => ({ ...p, [postId]: !was }));
-    setPosts(p => p.map(x => x.id === postId ? { ...x, reposts_count: x.reposts_count + (was ? -1 : 1) } : x));
+    setPosts(p => p.map(x => x.id === postId ? { ...x, reposts_count: Math.max(0, x.reposts_count + (was ? -1 : 1)) } : x));
     try {
-      if (was) await supabase.from('post_reposts').delete().eq('post_id', postId).eq('user_id', userId);
-      else await supabase.from('post_reposts').insert({ post_id: postId, user_id: userId });
-    } catch { setRepostedPosts(p => ({ ...p, [postId]: was })); }
-    finally { setBusy(`rp-${postId}`, false); }
-  };
+      if (was) {
+        const { error } = await supabase.from('post_reposts').delete().eq('post_id', postId).eq('user_id', userId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('post_reposts').insert({ post_id: postId, user_id: userId });
+        if (error) throw error;
+      }
+    } catch {
+      setRepostedPosts(p => ({ ...p, [postId]: was }));
+      setPosts(p => p.map(x => x.id === postId ? { ...x, reposts_count: Math.max(0, x.reposts_count + (was ? 1 : -1)) } : x));
+    } finally {
+      setBusy(`rp-${postId}`, false);
+    }
+  }, [userId]);
 
-  // sharingPost: maps postId → true while share sheet is open + 600ms after close.
-  // This disables the Comment pill so iOS ghost-touch after sheet dismiss
-  // cannot trigger navigation.
-
-  const sharePost = async (post: Post) => {
-    if (sharingPost[post.id]) return;
+  const sharePost = useCallback(async (post: Post) => {
+    if (sharingPostRef.current[post.id]) return;
     setSharingPost(p => ({ ...p, [post.id]: true }));
     const author = profilesMap[post.user_id];
     try {
       await Share.share({ message: `${author?.full_name || 'Someone'} on PlatinumCircles:\n\n${post.content}` });
     } catch {}
     setTimeout(() => setSharingPost(p => { const n = { ...p }; delete n[post.id]; return n; }), 600);
-  };
+  }, [profilesMap]);
 
   const pickMedia = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
-      allowsMultipleSelection: true,
-      selectionLimit: 10,
-      quality: 0.85,
-    });
-    if (!result.canceled && result.assets) {
-      const MAX_VIDEO_BYTES = 50 * 1024 * 1024;  // 50 MB
-      const MAX_IMAGE_BYTES = 10 * 1024 * 1024;  // 10 MB
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
+        allowsMultipleSelection: true,
+        selectionLimit: 10,
+        quality: 1,
+        allowsEditing: false,
+        exif: false,
+      });
+      if (result.canceled || !result.assets?.length) return;
 
       const picked: LocalMedia[] = [];
       for (const a of result.assets) {
-        const isVideo = a.type === 'video';
-        const ext = isVideo ? 'mp4' : 'jpg';
-        const fileSize = (a as any).fileSize ?? undefined;
+        try {
+          const mediaType = detectMediaType(a);
+          const isVideo = mediaType === 'video';
+          const rawExt = safeExtFromUri(a.uri, isVideo ? 'mp4' : 'jpg');
+          const ext = isVideo ? (['mov', 'mp4', 'webm'].includes(rawExt) ? rawExt : 'mp4') : rawExt;
+          const fileSize = (a as any).fileSize ?? undefined;
 
-        // Reject files that are too large — clear error, not silent fallback
-        if (isVideo && fileSize && fileSize > MAX_VIDEO_BYTES) {
-          Alert.alert('Video too large', `Maximum video size is 50 MB. Your file is ${(fileSize / 1024 / 1024).toFixed(0)} MB. Please trim or compress it first.`);
-          continue;
-        }
-        if (!isVideo && fileSize && fileSize > MAX_IMAGE_BYTES) {
-          Alert.alert('Image too large', `Maximum image size is 10 MB.`);
-          continue;
-        }
-
-        // Generate thumbnail for video preview
-        let thumbnail: string | undefined;
-        if (isVideo) {
-          try {
-            const result = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 0, quality: 0.7 });
-            thumbnail = result.uri;
-          } catch (e) {
-            console.log('[THUMB_ERR]', e);
+          let thumbnail: string | undefined;
+          if (isVideo) {
+            try {
+              const thumbResult = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 0, quality: 0.7 });
+              thumbnail = thumbResult.uri;
+            } catch (thumbErr: any) {
+              console.log('[THUMB_ERR]', thumbErr?.message || thumbErr);
+            }
           }
-        }
 
-        picked.push({
-          uri: a.uri,
-          type: isVideo ? 'video' as const : 'image' as const,
-          ext,
-          width: a.width ?? undefined,
-          height: a.height ?? undefined,
-          fileSize,
-          thumbnail,
-        });
+          picked.push({ uri: a.uri, type: mediaType, ext, width: a.width ?? undefined, height: a.height ?? undefined, fileSize, thumbnail });
+        } catch (assetErr: any) {
+          console.log('[PICK_ASSET_ERR]', assetErr?.message || assetErr);
+        }
       }
-      setComposerMedia(p => [...p, ...picked].slice(0, 10));
+
+      if (picked.length > 0) {
+        setComposerMedia(p => [...p, ...picked].slice(0, 10));
+      }
+    } catch (outerErr: any) {
+      const msg = outerErr?.message || String(outerErr);
+      if (msg.includes('3164') || msg.includes('PHPhotos')) {
+        Alert.alert('Video not available', 'This video may be stored in iCloud and not downloaded to your device. Open Photos, wait for the video to fully download, then try again.');
+      } else {
+        Alert.alert('Could not pick media', msg || 'Please try again.');
+      }
     }
   };
 
   const openCamera = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required'); return; }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
-    if (!result.canceled && result.assets?.[0]) {
-      const a = result.assets[0];
-      setComposerMedia(p => [...p, { uri: a.uri, type: 'image', ext: 'jpg' }]);
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 1,
+        mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
+        allowsEditing: false,
+      });
+      if (!result.canceled && result.assets?.[0]) {
+        const a = result.assets[0];
+        const mediaType = detectMediaType(a);
+        const isVideo = mediaType === 'video';
+        const rawExt = safeExtFromUri(a.uri, isVideo ? 'mp4' : 'jpg');
+        const ext = isVideo ? (['mov', 'mp4', 'webm'].includes(rawExt) ? rawExt : 'mp4') : rawExt;
+
+        let thumbnail: string | undefined;
+        if (isVideo) {
+          try {
+            const thumbResult = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 0, quality: 0.7 });
+            thumbnail = thumbResult.uri;
+          } catch (e) {
+            console.log('[CAMERA_THUMB_ERR]', e);
+          }
+        }
+
+        setComposerMedia(p => [...p, { uri: a.uri, type: mediaType, ext, width: a.width ?? undefined, height: a.height ?? undefined, thumbnail }]);
+      }
+    } catch (e: any) {
+      console.log('[CAMERA_ERR]', e?.message || e);
     }
   };
 
@@ -646,34 +652,38 @@ export default function FeedScreen({ navigation }: any) {
     setPosting(true);
     try {
       let mediaUrl: string | null = null;
-      // Upload ALL selected media using FormData (most reliable in Expo Go)
       const uploadedMedia: { url: string; media_type: 'image' | 'video'; width?: number; height?: number; sort_order: number }[] = [];
       const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
       const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token || supabaseKey;
 
+      let uploadFailed = false;
+
       for (let i = 0; i < composerMedia.length; i++) {
         const m = composerMedia[i];
         try {
           const isVideo = m.type === 'video';
-
-          // Double-check size — catches items added via camera that skipped the picker check
-          const MAX_BYTES = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
-          if (m.fileSize && m.fileSize > MAX_BYTES) {
-            const mb = (m.fileSize / 1024 / 1024).toFixed(0);
-            console.log(`[POST_UPLOAD] #${i} SKIPPED — too large: ${mb} MB`);
-            Alert.alert('File too large', `${isVideo ? 'Video' : 'Image'} is ${mb} MB. Max ${isVideo ? '50' : '10'} MB.`);
-            continue;
+          const rawExt = safeExtFromUri(m.uri, isVideo ? 'mp4' : 'jpg');
+          let mimeType: string;
+          let ext: string;
+          if (isVideo) {
+            if (rawExt === 'mov') { mimeType = 'video/quicktime'; ext = 'mov'; }
+            else if (rawExt === 'webm') { mimeType = 'video/webm'; ext = 'webm'; }
+            else { mimeType = 'video/mp4'; ext = 'mp4'; }
+          } else {
+            if (rawExt === 'png') { mimeType = 'image/png'; ext = 'png'; }
+            else if (rawExt === 'webp') { mimeType = 'image/webp'; ext = 'webp'; }
+            else if (rawExt === 'heic') { mimeType = 'image/heic'; ext = 'heic'; }
+            else { mimeType = 'image/jpeg'; ext = 'jpg'; }
           }
-          const mimeType = isVideo ? 'video/mp4' : 'image/jpeg';
-          const ext      = isVideo ? 'mp4' : 'jpg';
+
           const fileName = `${userId}/${Date.now()}_${i}.${ext}`;
-
-          console.log(`[POST_UPLOAD] #${i}`, { uri: m.uri, mimeType, fileName });
-
           const formData = new FormData();
           formData.append('file', { uri: m.uri, type: mimeType, name: `media_${i}.${ext}` } as any);
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 120000);
 
           const uploadRes = await fetch(
             `${supabaseUrl}/storage/v1/object/post-media/${fileName}`,
@@ -681,43 +691,56 @@ export default function FeedScreen({ navigation }: any) {
               method: 'POST',
               headers: { Authorization: `Bearer ${token}`, apikey: supabaseKey, 'x-upsert': 'true' },
               body: formData,
+              signal: controller.signal,
             }
           );
 
-          const uploadJson = await uploadRes.json().catch(() => ({}));
-          console.log(`[POST_UPLOAD] #${i} Status:`, uploadRes.status, JSON.stringify(uploadJson));
+          clearTimeout(timeoutId);
 
-          if (!uploadRes.ok) throw new Error(uploadJson?.error || `Upload failed: ${uploadRes.status}`);
+          if (!uploadRes.ok) {
+            const errText = await uploadRes.text().catch(() => '');
+            throw new Error(`Upload failed: ${uploadRes.status} ${errText}`);
+          }
 
           const publicUrl = `${supabaseUrl}/storage/v1/object/public/post-media/${fileName}`;
-          console.log(`[POST_UPLOAD] #${i} URL:`, publicUrl);
-
           uploadedMedia.push({ url: publicUrl, media_type: isVideo ? 'video' : 'image', width: m.width, height: m.height, sort_order: i });
           if (i === 0) mediaUrl = publicUrl;
 
         } catch (e: any) {
-          console.log(`[POST_UPLOAD] #${i} FAILED:`, e?.message);
+          uploadFailed = true;
+          Alert.alert('Upload failed', `Media #${i + 1} failed: ${e?.message || 'Unknown error'}. Post was not created.`);
+          break;
         }
       }
 
-      if (composerMedia.length > 0 && uploadedMedia.length === 0) {
-        console.log('[POST] All media uploads failed — posting text only');
+      if (uploadFailed) {
+        setPosting(false);
+        return;
       }
+
+      const hasText = !!(composerText.trim());
+      const hasMedia = uploadedMedia.length > 0;
+
+      if (!hasText && !hasMedia) {
+        Alert.alert('Nothing to post', 'Add some text or media before posting.');
+        setPosting(false);
+        return;
+      }
+
       const insertData: any = {
         user_id: userId,
         content: composerText.trim() || null,
+        is_exclusive: exclusivePost,
       };
       if (mediaUrl) insertData.media_url = mediaUrl;
 
       const { data: newPost, error } = await supabase
         .from('posts').insert(insertData).select('id').single();
       if (error) {
-        console.log('POST_INSERT_ERR', error.message);
         Alert.alert('Post failed', error.message);
         return;
       }
 
-      // Insert all media into post_media table — failure here does NOT block the post
       if (newPost?.id && uploadedMedia.length > 0) {
         try {
           const mediaRows = uploadedMedia.map(m => ({
@@ -725,27 +748,26 @@ export default function FeedScreen({ navigation }: any) {
             url: m.url,
             media_type: m.media_type,
             sort_order: m.sort_order,
-            // Only include width/height if defined — avoids schema cache errors
             ...(m.width  != null ? { width:  m.width  } : {}),
             ...(m.height != null ? { height: m.height } : {}),
           }));
           const { error: mErr } = await supabase.from('post_media').insert(mediaRows);
-          if (mErr) console.log('[POST] post_media insert failed (non-fatal):', mErr.message);
-          else console.log('[POST] post_media inserted:', mediaRows.length, 'rows');
+          if (mErr) {
+            Alert.alert('Warning', 'Post created but media metadata failed to save. Media may not display correctly.');
+          }
         } catch (e: any) {
-          console.log('[POST] post_media insert exception (non-fatal):', e?.message);
+          console.log('[POST] post_media insert exception:', e?.message);
         }
       }
 
-      // Always close composer and refresh feed — even if media insert failed
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setComposerOpen(false);
       setComposerText('');
       setComposerMedia([]);
+      setExclusivePost(false);
       Keyboard.dismiss();
-      // Small delay to let DB propagate, then refresh
       setTimeout(() => loadFeed(false), 300);
     } catch (e: any) {
-      console.log('CREATE_POST_CATCH', e?.message);
       Alert.alert('Error', 'Could not post. Check your connection and try again.');
     } finally {
       setPosting(false);
@@ -760,103 +782,68 @@ export default function FeedScreen({ navigation }: any) {
     return list;
   }, [posts, feedMode, search]);
 
-  const renderMedia = (post: any) => {
-    const mediaItems: (PostMedia & { width?: number | null; height?: number | null })[] = post.media?.length > 0
+  const renderMedia = useCallback((post: any, isActive: boolean) => {
+    const mediaItems: CarouselMedia[] = Array.isArray(post.media) && post.media.length > 0
       ? post.media
-      : (post.media_url ? [{ id: '0', url: post.media_url, media_type: 'image' as const, sort_order: 0 }] : []);
-    if (!mediaItems.length) return null;
+      : (post.media_url ? [{
+          id: '0',
+          url: post.media_url,
+          media_type: isVideoUrl(post.media_url) ? 'video' as const : 'image' as const,
+          sort_order: 0,
+        }] : []);
+    if (mediaItems.length === 0) return null;
 
     return (
-      <View>
-        {mediaItems.map((m, idx) => {
-          const ratio = m.width && m.height && m.width > 0 && m.height > 0 ? m.width / m.height : 16 / 9;
-          return (
-            <View key={m.id || `${m.url}-${idx}`} style={{ marginBottom: idx < mediaItems.length - 1 ? MEDIA_GAP : 0 }}>
-              {m.media_type === 'video' ? (
-                <View style={{ width: SCREEN_W, aspectRatio: ratio, overflow: 'hidden', backgroundColor: '#000' }}>
-                  <MediaRenderer
-                    media={[m]}
-                    containerWidth={SCREEN_W}
-                    fullBleed
-                    maxHeight={SCREEN_W * 1.8}
-                    isActive={screenFocused && post.id === activePostId}
-                  />
-                </View>
-              ) : (
-                <DynamicImage
-                  uri={m.url}
-                  width={SCREEN_W}
-                  knownWidth={m.width}
-                  knownHeight={m.height}
-                />
-              )}
-            </View>
-          );
-        })}
-      </View>
+      <PostCarousel
+        media={mediaItems}
+        containerWidth={SCREEN_W}
+        isActive={isActive}
+      />
     );
-  };
+  }, []);
 
-    const renderPost = ({ item: post }: { item: Post }) => {
+  const renderPost = useCallback(({ item: post }: { item: Post }) => {
     const author = profilesMap[post.user_id];
-    const isLiked = !!likedPosts[post.id];
-    const isBookmarked = !!bookmarkedPosts[post.id];
-    const isReposted = !!repostedPosts[post.id];
-    const preview = commentPreviews[post.id];
-    const isSharing = !!sharingPost[post.id];
-    // Block navigation for 600ms after share sheet closes to prevent ghost touch
+    const isLiked = !!likedPostsRef.current[post.id];
+    const isBookmarked = !!bookmarkedPostsRef.current[post.id];
+    const isReposted = !!repostedPostsRef.current[post.id];
+    const preview = commentPreviewsRef.current[post.id];
+    const isSharing = !!sharingPostRef.current[post.id];
     const openPost = () => { if (!isSharing) navigation.navigate('Post', { postId: post.id }); };
 
     return (
       <View style={s.postCard}>
         <View style={s.postTopRow}>
           <TouchableOpacity style={s.postMeta} onPress={() => navigation.navigate('UserProfile', { userId: post.user_id, user: author })} activeOpacity={0.8}>
-            {author?.avatar_url ? <Image source={{ uri: author.avatar_url }} style={s.avatar} /> : <View style={s.avatarFb}><Text style={s.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>}
+            {author?.avatar_url ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /> : <View style={s.avatarFb}><Text style={s.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>}
             <View style={s.postMetaTxt}>
               <Text style={s.postAuthor} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}</Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={s.menuBtn}
-            onPress={() => setMenuPost(post)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
+          <TouchableOpacity style={s.menuBtn} onPress={() => setMenuPost(post)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Text style={s.menuBtnTxt}>···</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity activeOpacity={0.95} onPress={openPost}>
+        <TouchableOpacity activeOpacity={0.95} onPress={() => handleDoubleTap(post.id, openPost)}>
           <Text style={s.content}>{renderRichText(post.content, () => {}, () => {})}</Text>
         </TouchableOpacity>
 
         {(() => {
-          const media = renderMedia(post);
+          const media = renderMedia(post, screenFocused && post.id === activePostId);
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
             <View style={{ position: 'relative' }}>
-              <TouchableOpacity
-                activeOpacity={0.97}
-                onPress={() => handleDoubleTap(post.id, openPost)}
-              >
+              <TouchableOpacity activeOpacity={0.97} onPress={() => handleDoubleTap(post.id, openPost)}>
                 {media}
               </TouchableOpacity>
-              {/* Heart burst overlay */}
               {heartPost === post.id && (
-                <Animated.View
-                  pointerEvents="none"
-                  style={{
-                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                    alignItems: 'center', justifyContent: 'center',
-                    opacity: heartAnim,
-                    transform: [{ scale: heartAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1.3] }) }],
-                  }}
-                >
+                <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', opacity: heartAnim, transform: [{ scale: heartAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1.3] }) }] }}>
                   <Text style={{ fontSize: 80 }}>❤️</Text>
                 </Animated.View>
               )}
-              {/* Video view count badge */}
               {isVidPost && (post.views_count ?? 0) > 0 && (
                 <View style={{ position:'absolute', bottom:10, left:10, flexDirection:'row', alignItems:'center', gap:4, backgroundColor:'rgba(0,0,0,0.55)', borderRadius:12, paddingHorizontal:8, paddingVertical:4 }}>
                   <Feather name="eye" size={11} color="#FFF" />
@@ -875,20 +862,13 @@ export default function FeedScreen({ navigation }: any) {
           </View>
         )}
 
-        <View style={s.divider} />
-
         <View style={s.actions}>
           <TouchableOpacity style={[s.pill, isLiked && s.pillLiked]} onPress={() => toggleLike(post.id)} activeOpacity={0.75} disabled={isBusy(`like-${post.id}`)}>
             <Feather name="heart" size={14} color={isLiked ? '#E53935' : '#6B7280'} />
             <Text style={[s.pillTxt, isLiked && s.pillTxtLiked]}>{post.likes_count > 0 ? fmtCount(post.likes_count) : 'Like'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={s.pill}
-            onPress={() => navigation.navigate('Post', { postId: post.id, focusComment: true })}
-            activeOpacity={0.75}
-            disabled={!!sharingPost[post.id]}
-          >
+          <TouchableOpacity style={s.pill} onPress={() => navigation.navigate('Post', { postId: post.id, focusComment: true })} activeOpacity={0.75} disabled={isSharing}>
             <Feather name="message-circle" size={14} color="#6B7280" />
             <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : 'Comment'}</Text>
           </TouchableOpacity>
@@ -917,7 +897,18 @@ export default function FeedScreen({ navigation }: any) {
         )}
       </View>
     );
-  };
+  }, [
+    profilesMap,
+    heartPost,
+    handleDoubleTap,
+    renderMedia,
+    toggleLike,
+    toggleBookmark,
+    toggleRepost,
+    sharePost,
+  ]);
+
+  const flatListExtra = heartPost;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
@@ -928,7 +919,14 @@ export default function FeedScreen({ navigation }: any) {
             <View style={s.headerRow}>
               <Text style={s.logo}>PlatinumCircles</Text>
               <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
-                <Feather name="bell" size={20} color="#000" />
+                <View>
+                  <Feather name="bell" size={20} color="#000" />
+                  {unreadNotifs > 0 && (
+                    <View style={s.bellBadge}>
+                      <Text style={s.bellBadgeTxt}>{unreadNotifs > 99 ? '99+' : unreadNotifs}</Text>
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
             </View>
             <TextInput value={search} onChangeText={setSearch} placeholder="Search posts..." placeholderTextColor="#9CA3AF" style={s.searchInput} returnKeyType="search" clearButtonMode="while-editing" />
@@ -942,20 +940,32 @@ export default function FeedScreen({ navigation }: any) {
           </View>
 
           {loading ? (
-            <View style={s.loader}><ActivityIndicator color="#000" size="large" /></View>
+            <FeedSkeleton />
           ) : (
             <FlatList
               data={displayPosts}
               keyExtractor={p => p.id}
               renderItem={renderPost}
-              extraData={[likedPosts, bookmarkedPosts, repostedPosts, commentPreviews, heartPost]}
+              extraData={flatListExtra}
+              initialNumToRender={5}
+              maxToRenderPerBatch={5}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === 'android'}
               showsVerticalScrollIndicator={false}
+              decelerationRate={0.994}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="none"
               onViewableItemsChanged={onViewableItemsChanged}
               viewabilityConfig={viewabilityConfig}
+              onScrollBeginDrag={() => {
+                Object.keys(singleTapTimers.current).forEach(k => {
+                  clearTimeout(singleTapTimers.current[k]);
+                  delete singleTapTimers.current[k];
+                });
+              }}
+              ListHeaderComponent={<><StoryBar /><CampusMomentCard refreshKey={momentRefreshKey} /><TrendingTopicsStrip /></>}
               contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 80, 100) }]}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); }} tintColor="#000" />}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
               ListEmptyComponent={
                 <View style={s.emptyWrap}>
                   <Text style={s.emptyTitle}>{search ? 'No posts found' : 'Welcome to PlatinumCircles'}</Text>
@@ -972,7 +982,7 @@ export default function FeedScreen({ navigation }: any) {
                 <View style={s.mentionDropdown}>
                   {mentionResults.map(u => (
                     <TouchableOpacity key={u.id} style={s.mentionRow} onPress={() => insertMention(u)}>
-                      {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={s.mAvatar} /> : <View style={s.mAvatarFb}><Text style={s.mAvatarTxt}>{initials(u.full_name || u.username)}</Text></View>}
+                      {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={s.mAvatar} fadeDuration={200} /> : <View style={s.mAvatarFb}><Text style={s.mAvatarTxt}>{initials(u.full_name || u.username)}</Text></View>}
                       <View><Text style={s.mName}>{u.full_name}</Text><Text style={s.mUser}>@{u.username}</Text></View>
                     </TouchableOpacity>
                   ))}
@@ -980,24 +990,24 @@ export default function FeedScreen({ navigation }: any) {
               )}
               <View style={s.composerCard}>
                 <View style={s.cAuthorRow}>
-                  {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.cAvatar} /> : <View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
+                  {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.cAvatar} fadeDuration={200} /> : <View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
                   <Text style={s.cName}>{profile?.full_name || 'You'}</Text>
                 </View>
                 <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor="#9CA3AF" multiline autoFocus maxLength={2000} />
                 {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
+                {exclusivePost && (
+                  <View style={s.exclusiveBanner}>
+                    <Feather name="shield" size={13} color="#2563EB" />
+                    <Text style={s.exclusiveBannerTxt}>This post will only be visible to verified school members</Text>
+                  </View>
+                )}
                 {composerMedia.length > 0 && (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.cMediaScroll} keyboardShouldPersistTaps="handled">
                     {composerMedia.map((m, i) => (
                       <View key={i} style={s.cThumb}>
-                        <Image
-                          source={{ uri: m.type === 'video' ? (m.thumbnail || m.uri) : m.uri }}
-                          style={s.cThumbImg}
-                          resizeMode="cover"
-                        />
+                        <Image source={{ uri: m.type === 'video' ? (m.thumbnail || m.uri) : m.uri }} style={s.cThumbImg} resizeMode="cover" />
                         {m.type === 'video' && (
-                          <View style={s.cVideoOverlay}>
-                            <Text style={s.cVideoPlayIcon}>▶</Text>
-                          </View>
+                          <View style={s.cVideoOverlay}><Text style={s.cVideoPlayIcon}>▶</Text></View>
                         )}
                         <TouchableOpacity style={s.cRemove} onPress={() => setComposerMedia(p => p.filter((_, j) => j !== i))}><Text style={s.cRemoveTxt}>×</Text></TouchableOpacity>
                       </View>
@@ -1009,10 +1019,15 @@ export default function FeedScreen({ navigation }: any) {
                   <View style={s.cToolbarLeft}>
                     <TouchableOpacity style={s.toolBtn} onPress={pickMedia}><Feather name="image" size={20} color="#6B7280" /></TouchableOpacity>
                     <TouchableOpacity style={s.toolBtn} onPress={openCamera}><Feather name="camera" size={20} color="#6B7280" /></TouchableOpacity>
+                    {isVerifiedSchoolUser && (
+                      <TouchableOpacity style={[s.toolBtn, exclusivePost && s.toolBtnActive]} onPress={() => setExclusivePost(p => !p)}>
+                        <Feather name="shield" size={20} color={exclusivePost ? '#2563EB' : '#6B7280'} />
+                      </TouchableOpacity>
+                    )}
                     {composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
-                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setExclusivePost(false); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
                     </TouchableOpacity>
@@ -1030,62 +1045,47 @@ export default function FeedScreen({ navigation }: any) {
         </View>
       </KeyboardAvoidingView>
 
-      {/* ── Post options sheet ── */}
-      <Modal
-        visible={!!menuPost}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setMenuPost(null)}
-      >
+      <Modal visible={!!menuPost} transparent animationType="slide" onRequestClose={() => setMenuPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setMenuPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
-
-            {/* Post snippet */}
-            {menuPost && (
-              <Text style={s.menuPreview} numberOfLines={2}>{menuPost.content}</Text>
-            )}
+            {menuPost && <Text style={s.menuPreview} numberOfLines={2}>{menuPost.content}</Text>}
             <View style={s.menuDivider} />
 
-            {/* ── Own post options ── */}
             {menuPost?.user_id === userId && (
-              <>
-                <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
-                  setMenuPost(null);
-                  Alert.alert('Delete post?', 'This will permanently remove your post and all its comments.', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Delete', style: 'destructive', onPress: async () => {
-                      await supabase.from('posts').delete().eq('id', menuPost!.id);
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
+                setMenuPost(null);
+                Alert.alert('Delete post?', 'This will permanently remove your post and all its comments.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: async () => {
+                    try {
+                      const { error } = await supabase.from('posts').delete().eq('id', menuPost!.id);
+                      if (error) throw error;
                       loadFeed(false);
-                    }},
-                  ]);
-                }}>
-                  <Feather name="trash-2" size={18} color="#FF3B30" />
-                  <Text style={[s.menuOptionTxt, { color: '#FF3B30' }]}>Delete post</Text>
-                </TouchableOpacity>
-              </>
+                    } catch (e: any) {
+                      Alert.alert('Delete failed', e?.message || 'Could not delete post. Please try again.');
+                    }
+                  }},
+                ]);
+              }}>
+                <Feather name="trash-2" size={18} color="#FF3B30" />
+                <Text style={[s.menuOptionTxt, { color: '#FF3B30' }]}>Delete post</Text>
+              </TouchableOpacity>
             )}
 
-            {/* ── Share — close modal FIRST then wait for dismiss animation ── */}
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
               const captured = menuPost;
               const author = captured ? profilesMap[captured.user_id] : null;
               setMenuPost(null);
-              // Wait 400ms for Modal slide-down animation to finish before
-              // opening the native share sheet. Two native sheets cannot
-              // stack simultaneously on iOS — this prevents the blank screen.
               setTimeout(async () => {
                 if (!captured) return;
-                await Share.share({
-                  message: `${author?.full_name || 'Someone'} on PlatinumCircles:\n\n${captured.content}`,
-                });
+                await Share.share({ message: `${author?.full_name || 'Someone'} on PlatinumCircles:\n\n${captured.content}` });
               }, 400);
             }}>
               <Feather name="share-2" size={18} color="#000" />
               <Text style={s.menuOptionTxt}>Share post</Text>
             </TouchableOpacity>
 
-            {/* ── Save / Remove bookmark ── */}
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
               if (!menuPost) return;
               toggleBookmark(menuPost.id);
@@ -1097,7 +1097,6 @@ export default function FeedScreen({ navigation }: any) {
               </Text>
             </TouchableOpacity>
 
-            {/* ── Copy text ── */}
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={async () => {
               if (!menuPost) return;
               await Clipboard.setStringAsync(menuPost.content || '');
@@ -1108,7 +1107,6 @@ export default function FeedScreen({ navigation }: any) {
               <Text style={s.menuOptionTxt}>Copy text</Text>
             </TouchableOpacity>
 
-            {/* ── Not interested (mute post from feed) ── */}
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
               const id = menuPost?.id;
               setMenuPost(null);
@@ -1118,7 +1116,6 @@ export default function FeedScreen({ navigation }: any) {
               <Text style={s.menuOptionTxt}>Not interested</Text>
             </TouchableOpacity>
 
-            {/* ── Mute user (hide all posts from them) ── */}
             {menuPost?.user_id !== userId && (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
                 const authorId = menuPost?.user_id;
@@ -1142,10 +1139,8 @@ export default function FeedScreen({ navigation }: any) {
               </TouchableOpacity>
             )}
 
-            {/* ── Report ── */}
             {menuPost?.user_id !== userId && (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
-                const captured = menuPost;
                 setMenuPost(null);
                 setTimeout(() => {
                   Alert.alert(
@@ -1166,7 +1161,6 @@ export default function FeedScreen({ navigation }: any) {
               </TouchableOpacity>
             )}
 
-            {/* ── Cancel ── */}
             <TouchableOpacity style={[s.menuOption, s.menuCancel]} activeOpacity={0.75} onPress={() => setMenuPost(null)}>
               <Text style={s.menuCancelTxt}>Cancel</Text>
             </TouchableOpacity>
@@ -1182,8 +1176,8 @@ const s = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { paddingHorizontal: 16, paddingBottom: 4, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4, marginBottom: 12 },
-  logo: { fontSize: 26, fontWeight: '800', color: '#000000', letterSpacing: -0.5 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, marginBottom: 12 },
+  logo: { fontSize: 26, fontWeight: '800', color: NAVY, letterSpacing: -0.5 },
   iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F8F8F8', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center' },
   searchInput: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
   tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: '#F5F5F5', borderRadius: 12, padding: 3 },
@@ -1191,10 +1185,10 @@ const s = StyleSheet.create({
   tabActive: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
   tabTxt: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
   tabTxtActive: { color: '#000000', fontWeight: '600' },
-  list: { paddingHorizontal: 0, paddingTop: 6 },
+  list: { paddingHorizontal: 0, paddingTop: 8 },
   listEmpty: { flexGrow: 1 },
-  postCard: { backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  postTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10 },
+  postCard: { backgroundColor: '#FFFFFF', marginBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
+  postTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 18, paddingBottom: 10 },
   postMeta: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: { width: 42, height: 42, borderRadius: 21, marginRight: 10 },
   avatarFb: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
@@ -1204,23 +1198,13 @@ const s = StyleSheet.create({
   postSub: { marginTop: 1, fontSize: 12, color: '#8E8E93' },
   menuBtn: { paddingHorizontal: 8, paddingVertical: 6 },
   menuBtnTxt: { fontSize: 16, color: '#C7C7CC', letterSpacing: 1 },
-  content: { fontSize: 15, lineHeight: 22, color: '#1A1A1A', paddingHorizontal: 16, paddingBottom: 12 },
+  content: { fontSize: 15, lineHeight: 22, color: '#1A1A1A', paddingHorizontal: 16, paddingBottom: 14 },
   hashTag: { color: '#007AFF', fontWeight: '500' },
   mention: { color: '#5856D6', fontWeight: '500' },
-  mediaSingle: { width: '100%', height: 280, backgroundColor: '#F5F5F5' },
-  mediaRow: { flexDirection: 'row', gap: MEDIA_GAP },
-  mediaPair: { flex: 1, height: 200, overflow: 'hidden' },
-  triLeft: { flex: 2, height: 220, overflow: 'hidden', marginRight: MEDIA_GAP },
-  triSmall: { flex: 1, overflow: 'hidden' },
-  mediaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: MEDIA_GAP },
-  gridItem: { width: (SCREEN_W - MEDIA_GAP) / 2, height: 160, overflow: 'hidden' },
-  ovOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.52)' },
-  ovTxt: { fontSize: 24, fontWeight: '700', color: '#fff' },
-  metricsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4, gap: 4 },
+  metricsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6, gap: 4 },
   metric: { fontSize: 13, color: '#8E8E93' },
   metricDot: { fontSize: 12, color: '#C7C7CC' },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginHorizontal: 16, marginTop: 6 },
-  actions: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, gap: 6 },
+  actions: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, gap: 6 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: '#E8E8E8', backgroundColor: '#FAFAFA' },
   pillLiked: { backgroundColor: '#FFF0F0', borderColor: '#FFCDD2' },
   pillReposted: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
@@ -1229,11 +1213,11 @@ const s = StyleSheet.create({
   pillTxt: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
   pillTxtLiked: { color: '#E53935', fontWeight: '600' },
   pillTxtReposted: { color: '#059669', fontWeight: '600' },
-  cpWrap: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 2 },
+  cpWrap: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 6 },
   cpAuthor: { fontWeight: '700', color: '#000000', fontSize: 13 },
   cpTxt: { fontSize: 13, lineHeight: 18, color: '#3C3C43' },
   viewAll: { fontSize: 12, color: '#8E8E93', marginTop: 3 },
-  composerContainer: { position: 'absolute', left: 12, right: 12, zIndex: 100 },
+  composerContainer: { position: 'absolute', left: 12, right: 12, zIndex: 100, maxHeight: '80%' },
   mentionDropdown: { backgroundColor: '#FFF', borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', marginBottom: 6, overflow: 'hidden' },
   mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
   mAvatar: { width: 34, height: 34, borderRadius: 17 },
@@ -1249,6 +1233,8 @@ const s = StyleSheet.create({
   cName: { fontSize: 14, fontWeight: '700', color: '#000000' },
   cInput: { minHeight: 80, maxHeight: 160, fontSize: 15, color: '#000000', textAlignVertical: 'top', lineHeight: 22, marginBottom: 8 },
   charCount: { fontSize: 12, color: '#FF3B30', textAlign: 'right', marginBottom: 4 },
+  exclusiveBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 8 },
+  exclusiveBannerTxt: { fontSize: 12, color: '#2563EB', fontWeight: '500', flex: 1 },
   cMediaScroll: { marginBottom: 10 },
   cThumb: { width: 80, height: 80, borderRadius: 10, marginRight: 8, overflow: 'hidden' },
   cThumbImg: { width: '100%', height: '100%' },
@@ -1262,54 +1248,30 @@ const s = StyleSheet.create({
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F5F5F5', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center' },
+  toolBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' },
   mediaCount: { fontSize: 12, color: '#8E8E93', fontWeight: '600' },
   cancelBtn: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
   cancelTxt: { color: '#3C3C43', fontSize: 14, fontWeight: '500' },
-  postBtn: { backgroundColor: '#000000', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 9, minWidth: 64, alignItems: 'center' },
+  postBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 9, minWidth: 64, alignItems: 'center' },
   postBtnOff: { opacity: 0.3 },
   postBtnTxt: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  fab: { position: 'absolute', right: 18, width: 54, height: 54, borderRadius: 27, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
+  fab: { position: 'absolute', right: 18, width: 54, height: 54, borderRadius: 27, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
   fabTxt: { color: '#FFF', fontSize: 26, fontWeight: '300', lineHeight: 30 },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 60 },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: '#000000', textAlign: 'center' },
   emptySub: { marginTop: 8, fontSize: 14, lineHeight: 20, color: '#8E8E93', textAlign: 'center' },
-  emptyBtn: { marginTop: 20, backgroundColor: '#000000', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
+  emptyBtn: { marginTop: 20, backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
   emptyBtnTxt: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-
-  // Post options menu sheet
-  menuOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
-  },
-  menuSheet: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 10,
-    paddingBottom: 32,
-    paddingHorizontal: 16,
-  },
-  menuHandle: {
-    width: 36, height: 4, borderRadius: 2,
-    backgroundColor: '#E0E0E0',
-    alignSelf: 'center', marginBottom: 14,
-  },
-  menuPreview: {
-    fontSize: 14, color: '#8E8E93', lineHeight: 20,
-    marginBottom: 12, paddingHorizontal: 4,
-  },
+  menuOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  menuSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, paddingBottom: 32, paddingHorizontal: 16 },
+  menuHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#E0E0E0', alignSelf: 'center', marginBottom: 14 },
+  menuPreview: { fontSize: 14, color: '#8E8E93', lineHeight: 20, marginBottom: 12, paddingHorizontal: 4 },
   menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginBottom: 8 },
-  menuOption: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingVertical: 16, paddingHorizontal: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5',
-  },
+  menuOption: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
   menuOptionTxt: { fontSize: 16, color: '#000000', fontWeight: '400' },
-  menuCancel: {
-    justifyContent: 'center', marginTop: 8,
-    borderBottomWidth: 0,
-  },
+  menuCancel: { justifyContent: 'center', marginTop: 8, borderBottomWidth: 0 },
   menuCancelTxt: { fontSize: 16, color: '#8E8E93', fontWeight: '500', textAlign: 'center', width: '100%' },
+  bellBadge: { position: 'absolute', top: -6, right: -8, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FFFFFF' },
+  bellBadgeTxt: { fontSize: 10, fontWeight: '700', color: '#FFFFFF' },
 });

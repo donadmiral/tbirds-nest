@@ -14,6 +14,7 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
 import { Image as ExpoImage } from 'expo-image';
+import VerifiedBadge from '../../components/VerifiedBadge';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -27,7 +28,8 @@ const HAIRLINE = '#E5E5EA';
 type UserProfile = {
   id: string; full_name: string; username: string; bio: string;
   location: string; degree_program: string; graduation_year: number | null;
-  avatar_url: string | null; role: string;
+  avatar_url: string | null; role: string; profile_visibility: string;
+  is_verified_school_user: boolean;
 };
 type Stats = { posts: number; connections: number; followers: number };
 type Post = {
@@ -70,6 +72,7 @@ export default function UserProfileScreen() {
   const [connStatus, setConnStatus] = useState<ConnectionStatus>('none');
   const [connRequestId, setConnRequestId] = useState<string | null>(null);
   const [following, setFollowing] = useState(false);
+  const [followRequested, setFollowRequested] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
@@ -82,6 +85,8 @@ export default function UserProfileScreen() {
         id: pd.id, full_name: pd.full_name || '', username: pd.username || '',
         bio: pd.bio || '', location: pd.location || '', degree_program: pd.degree_program || '',
         graduation_year: pd.graduation_year ?? null, avatar_url: pd.avatar_url || null, role: pd.role || 'student',
+        profile_visibility: pd.profile_visibility || 'public',
+        is_verified_school_user: !!pd.is_verified_school_user,
       });
 
       const [postsR, connR, followR] = await Promise.all([
@@ -139,6 +144,14 @@ export default function UserProfileScreen() {
         const { data: orb } = await supabase.from('orbits').select('id')
           .eq('follower_id', myId).eq('following_id', targetId).maybeSingle();
         setFollowing(!!orb);
+
+        if (!orb) {
+          const { data: fr } = await supabase.from('follow_requests').select('id, status')
+            .eq('requester_id', myId).eq('target_id', targetId).eq('status', 'pending').maybeSingle();
+          setFollowRequested(!!fr);
+        } else {
+          setFollowRequested(false);
+        }
       }
     } catch (e) { console.log('USER_PROFILE_LOAD', e); }
     finally { setLoading(false); setRefreshing(false); }
@@ -179,18 +192,14 @@ export default function UserProfileScreen() {
   const handleFollow = async () => {
     if (!myId || actionBusy) return;
     setActionBusy(true);
-    const was = following;
     try {
-      setFollowing(!was);
-      if (was) {
-        const { error } = await supabase.from('orbits').delete()
-          .eq('follower_id', myId).eq('following_id', targetId);
-        if (error) { setFollowing(true); throw error; }
-      } else {
-        const { error } = await supabase.from('orbits')
-          .insert({ follower_id: myId, following_id: targetId });
-        if (error) { setFollowing(false); throw error; }
-      }
+      const { data, error } = await supabase.rpc('handle_follow_action', { p_target_id: targetId });
+      if (error) throw error;
+      const action = data?.action;
+      if (action === 'followed') { setFollowing(true); setFollowRequested(false); }
+      else if (action === 'unfollowed') { setFollowing(false); setFollowRequested(false); }
+      else if (action === 'requested') { setFollowing(false); setFollowRequested(true); }
+      else if (action === 'request_cancelled') { setFollowing(false); setFollowRequested(false); }
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Could not update follow.');
     } finally {
@@ -217,6 +226,8 @@ export default function UserProfileScreen() {
   };
 
   const isOwnProfile = myId === targetId;
+  const isPrivate = profile?.profile_visibility === 'private';
+  const canViewContent = isOwnProfile || !isPrivate || following || connStatus === 'connected';
 
   if (loading) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
@@ -258,7 +269,14 @@ export default function UserProfileScreen() {
             : <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarFbTxt}>{initials(profile.full_name)}</Text></View>}
 
           <Text style={s.name}>{profile.full_name || 'Member'}</Text>
+          {profile.is_verified_school_user && <VerifiedBadge size={14} showLabel />}
           {profile.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
+          {isPrivate && !isOwnProfile && (
+            <View style={s.privateBadge}>
+              <Feather name="lock" size={11} color={TEXT_SECONDARY} />
+              <Text style={s.privateBadgeTxt}>Private account</Text>
+            </View>
+          )}
 
           <View style={s.statsRow}>
             {[
@@ -298,10 +316,10 @@ export default function UserProfileScreen() {
                 style={s.heroAction} activeOpacity={0.7}
                 onPress={handleFollow} disabled={actionBusy}
               >
-                <View style={[s.heroActionInner, following && s.heroActionInnerActive]}>
-                  <Feather name={following ? 'check' : 'plus'} size={20} color={following ? '#FFF' : NAVY} />
+                <View style={[s.heroActionInner, (following || followRequested) && s.heroActionInnerActive]}>
+                  <Feather name={following ? 'check' : followRequested ? 'clock' : 'plus'} size={20} color={following || followRequested ? '#FFF' : NAVY} />
                 </View>
-                <Text style={s.heroActionLbl}>{following ? 'Following' : 'Follow'}</Text>
+                <Text style={s.heroActionLbl}>{following ? 'Following' : followRequested ? 'Requested' : 'Follow'}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -317,134 +335,146 @@ export default function UserProfileScreen() {
           )}
         </View>
 
-        {(profile.bio || profile.degree_program || profile.location) && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>About</Text>
-            {profile.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
-            {profile.degree_program ? (
-              <View style={s.itm}>
-                <View style={s.itmIconBg}>
-                  <Feather name="book" size={16} color={NAVY} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.itmTxt}>{profile.degree_program}</Text>
-                  {profile.graduation_year ? <Text style={s.itmSub}>Class of {profile.graduation_year}</Text> : null}
-                </View>
+        {canViewContent ? (
+          <>
+            {(profile.bio || profile.degree_program || profile.location) && (
+              <View style={s.section}>
+                <Text style={s.sectionTitle}>About</Text>
+                {profile.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
+                {profile.degree_program ? (
+                  <View style={s.itm}>
+                    <View style={s.itmIconBg}>
+                      <Feather name="book" size={16} color={NAVY} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.itmTxt}>{profile.degree_program}</Text>
+                      {profile.graduation_year ? <Text style={s.itmSub}>Class of {profile.graduation_year}</Text> : null}
+                    </View>
+                  </View>
+                ) : null}
+                {profile.location ? (
+                  <View style={s.itm}>
+                    <View style={s.itmIconBg}>
+                      <Feather name="map-pin" size={16} color={NAVY} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.itmTxt}>{profile.location}</Text>
+                    </View>
+                  </View>
+                ) : null}
+                {profile.role ? (
+                  <View style={s.itm}>
+                    <View style={s.itmIconBg}>
+                      <Feather name="briefcase" size={16} color={NAVY} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.itmTxt}>{profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}</Text>
+                    </View>
+                  </View>
+                ) : null}
               </View>
-            ) : null}
-            {profile.location ? (
-              <View style={s.itm}>
-                <View style={s.itmIconBg}>
-                  <Feather name="map-pin" size={16} color={NAVY} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.itmTxt}>{profile.location}</Text>
-                </View>
+            )}
+
+            <View style={s.section}>
+              <View style={s.sectionHeaderRow}>
+                <Text style={s.sectionTitle}>Posts</Text>
+                {posts.length > 0 && <Text style={s.sectionMeta}>{posts.length}</Text>}
               </View>
-            ) : null}
-            {profile.role ? (
-              <View style={s.itm}>
-                <View style={s.itmIconBg}>
-                  <Feather name="briefcase" size={16} color={NAVY} />
+              {posts.length === 0 ? (
+                <View style={s.emptyPosts}>
+                  <Feather name="edit-3" size={28} color="#E5E5EA" />
+                  <Text style={s.emptyPostsTxt}>No posts yet</Text>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.itmTxt}>{profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}</Text>
-                </View>
-              </View>
-            ) : null}
+              ) : (
+                posts.map((post, idx) => (
+                  <View
+                    key={post.id}
+                    style={[s.postCard, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <TouchableOpacity style={{ flex: 1 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
+                        <Text style={{ fontSize: 12, color: TEXT_SECONDARY }}>{relTime(post.created_at)}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => {
+                          const buttons: any[] = [];
+                          if (isOwnProfile) {
+                            buttons.push({
+                              text: 'Delete post',
+                              style: 'destructive' as const,
+                              onPress: () => {
+                                Alert.alert('Delete post?', 'This will permanently remove your post.', [
+                                  { text: 'Cancel', style: 'cancel' },
+                                  { text: 'Delete', style: 'destructive', onPress: async () => {
+                                    await supabase.from('posts').delete().eq('id', post.id);
+                                    load();
+                                  }},
+                                ]);
+                              },
+                            });
+                          }
+                          buttons.push({
+                            text: 'Share post',
+                            onPress: async () => {
+                              await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' });
+                            },
+                          });
+                          buttons.push({ text: 'Cancel', style: 'cancel' as const });
+                          Alert.alert(undefined as any, undefined, buttons);
+                        }}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        style={{ padding: 4 }}
+                      >
+                        <Feather name="more-horizontal" size={18} color={TEXT_SECONDARY} />
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
+                      {post.media.length > 0 ? (
+                        <View style={{ marginBottom: 10 }}>
+                          {post.media.map((m, mIdx) => (
+                            <View key={m.id || mIdx} style={{ width: SCREEN_W - 64, aspectRatio: 4/5, borderRadius: 14, overflow: 'hidden', marginBottom: post.media.length > 1 ? 4 : 0 }}>
+                              {m.media_type === 'video' ? (
+                                <MediaRenderer media={[m]} containerWidth={SCREEN_W - 64} maxHeight={(SCREEN_W - 64) * 1.25} />
+                              ) : (
+                                <ExpoImage
+                                  source={{ uri: m.url }}
+                                  style={{ width: '100%', height: '100%' }}
+                                  contentFit="cover"
+                                  cachePolicy="memory-disk"
+                                  transition={200}
+                                />
+                              )}
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
+                      {post.content ? <Text style={s.postContent} numberOfLines={4}>{post.content}</Text> : null}
+                      <View style={s.postFooter}>
+                        <View style={s.postFooterItem}>
+                          <Feather name="heart" size={13} color={TEXT_SECONDARY} />
+                          <Text style={s.postFooterTxt}>{post.likes_count}</Text>
+                        </View>
+                        <View style={s.postFooterItem}>
+                          <Feather name="message-circle" size={13} color={TEXT_SECONDARY} />
+                          <Text style={s.postFooterTxt}>{post.comments_count}</Text>
+                        </View>
+                        <Text style={s.postTime}>{relTime(post.created_at)}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+            </View>
+          </>
+        ) : (
+          <View style={s.lockedSection}>
+            <View style={s.lockedIcon}>
+              <Feather name="lock" size={32} color="#C7C7CC" />
+            </View>
+            <Text style={s.lockedTitle}>This account is private</Text>
+            <Text style={s.lockedSub}>Follow this account to see their posts and activity.</Text>
           </View>
         )}
-
-        <View style={s.section}>
-          <View style={s.sectionHeaderRow}>
-            <Text style={s.sectionTitle}>Posts</Text>
-            {posts.length > 0 && <Text style={s.sectionMeta}>{posts.length}</Text>}
-          </View>
-          {posts.length === 0 ? (
-            <View style={s.emptyPosts}>
-              <Feather name="edit-3" size={28} color="#E5E5EA" />
-              <Text style={s.emptyPostsTxt}>No posts yet</Text>
-            </View>
-          ) : (
-            posts.map((post, idx) => (
-              <View
-                key={post.id}
-                style={[s.postCard, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <TouchableOpacity style={{ flex: 1 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
-                    <Text style={{ fontSize: 12, color: TEXT_SECONDARY }}>{relTime(post.created_at)}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      const buttons: any[] = [];
-                      if (isOwnProfile) {
-                        buttons.push({
-                          text: 'Delete post',
-                          style: 'destructive' as const,
-                          onPress: () => {
-                            Alert.alert('Delete post?', 'This will permanently remove your post.', [
-                              { text: 'Cancel', style: 'cancel' },
-                              { text: 'Delete', style: 'destructive', onPress: async () => {
-                                await supabase.from('posts').delete().eq('id', post.id);
-                                load();
-                              }},
-                            ]);
-                          },
-                        });
-                      }
-                      buttons.push({
-                        text: 'Share post',
-                        onPress: async () => {
-                          await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' });
-                        },
-                      });
-                      buttons.push({ text: 'Cancel', style: 'cancel' as const });
-                      Alert.alert(undefined as any, undefined, buttons);
-                    }}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    style={{ padding: 4 }}
-                  >
-                    <Feather name="more-horizontal" size={18} color={TEXT_SECONDARY} />
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
-                  {post.media.length > 0 ? (
-                    <View style={{ marginBottom: 10 }}>
-                      {post.media.map((m, mIdx) => (
-                        <View key={m.id || mIdx} style={{ width: SCREEN_W - 64, aspectRatio: 4/5, borderRadius: 14, overflow: 'hidden', marginBottom: post.media.length > 1 ? 4 : 0 }}>
-                          {m.media_type === 'video' ? (
-                            <MediaRenderer media={[m]} containerWidth={SCREEN_W - 64} maxHeight={(SCREEN_W - 64) * 1.25} />
-                          ) : (
-                            <ExpoImage
-                              source={{ uri: m.url }}
-                              style={{ width: '100%', height: '100%' }}
-                              contentFit="cover"
-                              cachePolicy="memory-disk"
-                              transition={200}
-                            />
-                          )}
-                        </View>
-                      ))}
-                    </View>
-                  ) : null}
-                  {post.content ? <Text style={s.postContent} numberOfLines={4}>{post.content}</Text> : null}
-                  <View style={s.postFooter}>
-                    <View style={s.postFooterItem}>
-                      <Feather name="heart" size={13} color={TEXT_SECONDARY} />
-                      <Text style={s.postFooterTxt}>{post.likes_count}</Text>
-                    </View>
-                    <View style={s.postFooterItem}>
-                      <Feather name="message-circle" size={13} color={TEXT_SECONDARY} />
-                      <Text style={s.postFooterTxt}>{post.comments_count}</Text>
-                    </View>
-                    <Text style={s.postTime}>{relTime(post.created_at)}</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            ))
-          )}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -477,6 +507,8 @@ const s = StyleSheet.create({
   avatarFbTxt: { fontSize: 36, fontWeight: '700', color: '#FFF' },
   name: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.4 },
   handle: { fontSize: 14, color: NAVY, fontWeight: '500', marginTop: 4 },
+  privateBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, backgroundColor: '#F2F2F7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  privateBadgeTxt: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
 
   statsRow: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingHorizontal: 20, marginTop: 20, paddingVertical: 14, backgroundColor: BG_GREY, borderRadius: 16 },
   statItem: { alignItems: 'center', flex: 1 },
@@ -518,4 +550,9 @@ const s = StyleSheet.create({
   postFooterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   postFooterTxt: { fontSize: 12, color: TEXT_SECONDARY },
   postTime: { fontSize: 12, color: '#C7C7CC', marginLeft: 'auto' },
+
+  lockedSection: { alignItems: 'center', paddingVertical: 80, paddingHorizontal: 32, gap: 10 },
+  lockedIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  lockedTitle: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY },
+  lockedSub: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
 });

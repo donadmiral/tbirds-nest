@@ -3,20 +3,14 @@ import { supabase } from './supabase';
 
 export const pushTokenService = {
   async saveToken(userId: string, expoPushToken: string, deviceName?: string) {
-    const { error } = await supabase
-      .from('user_push_tokens')
-      .upsert(
-        {
-          user_id: userId,
-          expo_push_token: expoPushToken,
-          device_name: deviceName ?? null,
-          platform: Platform.OS,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'user_id,expo_push_token',
-        }
-      );
+    // Use RPC to handle cross-user cleanup + upsert in one call
+    // The RPC is SECURITY DEFINER so it can delete tokens from other users
+    const { error } = await supabase.rpc('save_push_token', {
+      p_user_id: userId,
+      p_token: expoPushToken,
+      p_device_name: deviceName ?? null,
+      p_platform: Platform.OS,
+    });
 
     if (error) {
       console.log('SAVE_PUSH_TOKEN_ERROR', error);
