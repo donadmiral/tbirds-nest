@@ -172,7 +172,7 @@ export default function SignUpScreen({ navigation }: any) {
               <View style={s.asuTextWrap}>
                 <Text style={s.publicTitle}>Public account</Text>
                 <Text style={s.asuSub}>
-                  You'll join the global PlatinumCircles network. Use an @asu.edu email instead for the exclusive ASU network.
+                  You'll join Platinum Circles and connect with professionals, employers, and sellers across Zimbabwe and beyond.
                 </Text>
               </View>
             </View>

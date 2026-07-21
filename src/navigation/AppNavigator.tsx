@@ -30,13 +30,12 @@ import SearchScreen         from '../screens/feed/SearchScreen';
 import NotificationsScreen  from '../screens/notifications/NotificationsScreen';
 
 import NetworkScreen                  from '../screens/network/NetworkScreen';
-import AffiliationsScreen             from '../screens/network/AffiliationsScreen';
-import CreateAffiliationScreen        from '../screens/network/CreateAffiliationScreen';
-import AffiliationDetailScreen        from '../screens/network/AffiliationDetailScreen';
-import AffiliationAdminScreen         from '../screens/network/AffiliationAdminScreen';
-import AffiliationJoinRequestsScreen  from '../screens/network/AffiliationJoinRequestsScreen';
 
 import JobsScreen           from '../screens/jobs/JobsScreen';
+
+import MarketScreen         from '../screens/market/MarketScreen';
+import ListingDetailScreen  from '../screens/market/ListingDetailScreen';
+import CreateListingScreen  from '../screens/market/CreateListingScreen';
 
 import ConversationsScreen     from '../screens/messages/ConversationsScreen';
 import ChatScreen              from '../screens/messages/ChatScreen';
@@ -56,24 +55,10 @@ import HelpSupportScreen          from '../screens/profile/HelpSupportScreen';
 import TermsScreen                from '../screens/profile/TermsScreen';
 import PrivacyPolicyScreen        from '../screens/profile/PrivacyPolicyScreen';
 import AboutScreen                from '../screens/profile/AboutScreen';
-import MentorshipScreen           from '../screens/profile/MentorshipScreen';
 import FollowRequestsScreen       from '../screens/profile/FollowRequestsScreen';
-import BirdsBusinessScreen        from '../screens/profile/BirdsBusinessScreen';
-import BirdsBusinessDetailsScreen from '../screens/profile/BirdsBusinessDetailsScreen';
 
-import MingleScreen               from '../screens/mingle/MingleScreen';
-import MingleDetailsScreen        from '../screens/mingle/MingleDetailsScreen';
 
-import InsightsHomeScreen         from '../screens/insights/InsightsHomeScreen';
-import BusinessProfileScreen      from '../screens/insights/BusinessProfileScreen';
-import CreateBusinessScreen       from '../screens/insights/CreateBusinessScreen';
-import CreateAdvertScreen         from '../screens/insights/CreateAdvertScreen';
-import StartupHubScreen           from '../screens/profile/StartupHubScreen';
-import StartupHubDetailsScreen    from '../screens/profile/StartupHubDetailsScreen';
-import MoreScreen                 from '../screens/more/MoreScreen';
 
-import EventsScreen        from '../screens/events/EventsScreen';
-import CreateEventScreen   from '../screens/events/CreateEventScreen';
 
 import StoryViewerScreen         from '../screens/stories/StoryViewerScreen';
 import StoryComposerScreen       from '../screens/stories/StoryComposerScreen';
@@ -82,18 +67,10 @@ import StoryCameraScreen         from '../screens/stories/StoryCameraScreen';
 import StoryDualCaptureScreen    from '../screens/stories/StoryDualCaptureScreen';
 import MemoryArrangementScreen   from '../screens/stories/MemoryArrangementScreen';
 
-import MentorshipHubScreen          from '../screens/mentorship/MentorshipHubScreen';
-import MentorListScreen             from '../screens/mentorship/MentorListScreen';
-import MentorProfileScreen          from '../screens/mentorship/MentorProfileScreen';
-import BecomeMentorScreen           from '../screens/mentorship/BecomeMentorScreen';
-import MentorshipRequestsScreen     from '../screens/mentorship/MentorshipRequestsScreen';
-import MentorshipDetailScreen       from '../screens/mentorship/MentorshipDetailScreen';
 
 import IncomingCallListener         from '../components/IncomingCallListener';
 import MiniCallBar                  from '../components/MiniCallBar';
 
-import MeetingScreen                from '../screens/meetings/MeetingScreen';
-import NewMeetingScreen             from '../screens/meetings/NewMeetingScreen';
 
 const RootStack    = createNativeStackNavigator();
 const FeedStack    = createNativeStackNavigator();
@@ -120,18 +97,9 @@ function FeedStackNav() {
 function NetworkStackNav() {
   return (
     <NetworkStack.Navigator screenOptions={{ headerShown: false }}>
-      <NetworkStack.Screen name="NetworkMain"               component={NetworkScreen} />
-      <NetworkStack.Screen name="Affiliations"              component={AffiliationsScreen} />
-      <NetworkStack.Screen name="CreateAffiliation"         component={CreateAffiliationScreen} />
-      <NetworkStack.Screen name="AffiliationDetail"         component={AffiliationDetailScreen} />
-      <NetworkStack.Screen name="AffiliationAdmin"          component={AffiliationAdminScreen} />
-      <NetworkStack.Screen name="AffiliationJoinRequests"   component={AffiliationJoinRequestsScreen} />
-      <NetworkStack.Screen name="MentorshipHub"             component={MentorshipHubScreen} />
-      <NetworkStack.Screen name="MentorList"                component={MentorListScreen} />
-      <NetworkStack.Screen name="MentorProfile"             component={MentorProfileScreen} />
-      <NetworkStack.Screen name="BecomeMentor"              component={BecomeMentorScreen} />
-      <NetworkStack.Screen name="MentorshipRequests"        component={MentorshipRequestsScreen} />
-      <NetworkStack.Screen name="MentorshipDetail"          component={MentorshipDetailScreen} />
+      <NetworkStack.Screen name="MarketMain"     component={MarketScreen} />
+      <NetworkStack.Screen name="ListingDetail"  component={ListingDetailScreen} />
+      <NetworkStack.Screen name="CreateListing"  component={CreateListingScreen} />
     </NetworkStack.Navigator>
   );
 }
@@ -167,9 +135,8 @@ function ProfileStackNav() {
       <ProfStack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <ProfStack.Screen name="About"           component={AboutScreen} />
       <ProfStack.Screen name="HelpSupport"     component={HelpSupportScreen} />
-      <ProfStack.Screen name="Mentorship"      component={MentorshipScreen} />
-      <ProfStack.Screen name="More"            component={MoreScreen} />
       <ProfStack.Screen name="FollowRequests"  component={FollowRequestsScreen} />
+      <ProfStack.Screen name="MyNetwork"       component={NetworkScreen} />
     </ProfStack.Navigator>
   );
 }
@@ -177,7 +144,7 @@ function ProfileStackNav() {
 function getTabIcon(name: string, focused: boolean): IoniconName {
   switch (name) {
     case 'Feed':     return focused ? 'home'        : 'home-outline';
-    case 'Network':  return focused ? 'people'      : 'people-outline';
+    case 'Market':   return focused ? 'storefront'  : 'storefront-outline';
     case 'Jobs':     return focused ? 'briefcase'   : 'briefcase-outline';
     case 'Messages': return focused ? 'chatbubbles' : 'chatbubbles-outline';
     default:         return focused ? 'person'      : 'person-outline';
@@ -287,7 +254,7 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Feed"     component={FeedStackNav} />
-      <Tab.Screen name="Network"  component={NetworkStackNav} />
+      <Tab.Screen name="Market"   component={NetworkStackNav} />
       <Tab.Screen name="Jobs"     component={JobsStackNav} />
       <Tab.Screen name="Messages" component={MessagesStackNav} />
       <Tab.Screen name="Profile"  component={ProfileStackNav} />
@@ -448,17 +415,6 @@ export default function AppNavigator() {
                 <RootStack.Screen name="TrendFeed"            component={TrendFeedScreen} />
                 <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
                 <RootStack.Screen name="Chat"                 component={ChatScreen} />
-                <RootStack.Screen name="MingleScreen"         component={MingleScreen} />
-                <RootStack.Screen name="MingleDetails"        component={MingleDetailsScreen} />
-                <RootStack.Screen name="Events"               component={EventsScreen} />
-                <RootStack.Screen name="InsightsScreen"       component={InsightsHomeScreen} />
-                <RootStack.Screen name="BusinessProfile"      component={BusinessProfileScreen} />
-                <RootStack.Screen name="CreateBusiness"       component={CreateBusinessScreen} />
-                <RootStack.Screen name="CreateAdvert"         component={CreateAdvertScreen} />
-                <RootStack.Screen name="StartupHubScreen"     component={StartupHubScreen} />
-                <RootStack.Screen name="StartupHubDetails"    component={StartupHubDetailsScreen} />
-                <RootStack.Screen name="BirdsBusinessScreen"  component={BirdsBusinessScreen} />
-                <RootStack.Screen name="BirdsBusinessDetails" component={BirdsBusinessDetailsScreen} />
               </RootStack.Group>
 
               {/* Phase 8: Story creation cinematic realm — dark atmospheric fade entry */}
@@ -474,10 +430,7 @@ export default function AppNavigator() {
               <RootStack.Group screenOptions={{ presentation: 'fullScreenModal', animation: 'fade' }}>
                 <RootStack.Screen name="Call"              component={CallScreen} />
                 <RootStack.Screen name="IncomingCall"      component={IncomingCallScreen} />
-                <RootStack.Screen name="CreateEvent"       component={CreateEventScreen} />
                 <RootStack.Screen name="StoryViewer"       component={StoryViewerScreen} />
-                <RootStack.Screen name="Meeting"           component={MeetingScreen} />
-                <RootStack.Screen name="NewMeeting"        component={NewMeetingScreen} />
               </RootStack.Group>
             </>
           ) : needsSetup ? (

@@ -99,10 +99,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const COMMUNITY = [
-  { label: 'Mingle',      sub: 'Events & meetups',    ring: '#FF6CAB', bg: '#FFF0F7', emoji: '🔗', featherIcon: null, featherColor: null, route: 'MingleScreen' },
-  { label: 'Startup',     sub: 'Founders & ideas',    ring: '#5856D6', bg: '#F0EEFF', emoji: '🚀', featherIcon: null, featherColor: null, route: 'StartupHubScreen' },
-  { label: 'Mentorship',  sub: 'Guide & grow',        ring: '#34C759', bg: '#EDFBF0', emoji: '🏮', featherIcon: null, featherColor: null, route: 'Mentorship' },
-  { label: 'Insights',  sub: 'Alumni businesses',   ring: '#4364F7', bg: '#EFF3FF', emoji: '🏪', featherIcon: null, featherColor: null, route: 'InsightsScreen' },
   { label: 'Jobs',        sub: 'Roles & referrals',   ring: '#5856D6', bg: '#F0EEFF', emoji: null, featherIcon: 'briefcase',  featherColor: '#5856D6', route: 'Jobs' },
   { label: 'Support',     sub: 'FAQs & tickets',      ring: '#34C759', bg: '#EDFBF0', emoji: null, featherIcon: 'help-circle', featherColor: '#34C759', route: 'HelpSupport' },
 ] as const;

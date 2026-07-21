@@ -16,7 +16,6 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import StoryBar from '../../components/stories/StoryStrip';
 import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
-import CampusMomentCard from '../../components/CampusMomentCard';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import { FeedSkeleton } from '../../components/Skeleton';
 
@@ -963,7 +962,7 @@ export default function FeedScreen({ navigation }: any) {
                   delete singleTapTimers.current[k];
                 });
               }}
-              ListHeaderComponent={<><StoryBar /><CampusMomentCard refreshKey={momentRefreshKey} /><TrendingTopicsStrip /></>}
+              ListHeaderComponent={<><StoryBar /><TrendingTopicsStrip /></>}
               contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 80, 100) }]}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
               ListEmptyComponent={

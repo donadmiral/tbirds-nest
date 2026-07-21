@@ -749,7 +749,7 @@ export default function NetworkScreen({ navigation }: any) {
             contentContainerStyle={[s.list, filteredUsers.length === 0 && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
             ListHeaderComponent={
               <>
-                {tab === 'all' && <AffiliationsEntryCard />}
+                
                 <Text style={s.sectionLabel}>
                   {filteredUsers.length} {filteredUsers.length === 1 ? 'person' : 'people'}
                 </Text>

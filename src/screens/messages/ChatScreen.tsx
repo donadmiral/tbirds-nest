@@ -1504,7 +1504,7 @@ export default function ChatScreen() {
             </View>
 
             <View style={s.infoQuickRow}>
-              {isAffiliationConversation && affiliation ? [
+              {false && isAffiliationConversation && affiliation ? [
                 { icon: 'users', label: 'View community',
                   action: () => {
                     setShowInfoModal(false);

@@ -38,7 +38,8 @@ export type Bucket =
   | 'avatars'
   | 'mingle-media'
   | 'business-media'
-  | 'startup-media';
+  | 'startup-media'
+  | 'market-media';
 
 function mimeFor(kind: MediaKind, ext: string): string {
   if (kind === 'image') {

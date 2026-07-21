@@ -1,10 +1,8 @@
 /**
  * isAsuEmail.ts
- * Shared helper for ASU email detection.
- * Catches @asu.edu and all subdomains like @thunderbird.asu.edu, @students.asu.edu
- * Does NOT catch fake domains like @fakeasu.edu or @asu.edu.fake.com
+ * Legacy helper from the school-network era. Platinum Circles is now an
+ * open network, so every account is treated the same. Always returns false.
  */
-export function isAsuEmail(email: string): boolean {
-  const lower = email.toLowerCase().trim();
-  return lower.endsWith('@asu.edu') || lower.endsWith('.asu.edu');
+export function isAsuEmail(_email: string): boolean {
+  return false;
 }

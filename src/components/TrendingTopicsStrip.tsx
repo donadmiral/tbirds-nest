@@ -271,7 +271,7 @@ export default function TrendingTopicsStrip({ refreshSignal }: Props) {
         </>
       )}
 
-      {events.length > 0 && (
+      {false && events.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
