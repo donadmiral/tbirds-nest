@@ -9,13 +9,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 
-type Tab = 'people' | 'posts' | 'jobs' | 'events';
+type Tab = 'people' | 'posts' | 'jobs';
 
 const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'people', label: 'People', emoji: '👥' },
   { id: 'posts',  label: 'Posts',  emoji: '📝' },
   { id: 'jobs',   label: 'Jobs',   emoji: '💼' },
-  { id: 'events', label: 'Events', emoji: '📅' },
 ];
 
 const RECENT_KEY = 'tbn_recent_searches_v1';
@@ -50,7 +49,6 @@ export default function SearchScreen({ navigation }: any) {
   const [people, setPeople] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -78,14 +76,14 @@ export default function SearchScreen({ navigation }: any) {
   const runSearch = useCallback(async (term: string) => {
     const q = term.trim();
     if (!q) {
-      setPeople([]); setPosts([]); setJobs([]); setEvents([]);
+      setPeople([]); setPosts([]); setJobs([]);
       return;
     }
     setLoading(true);
     try {
       const like = `%${q}%`;
 
-      const [pplRes, postRes, jobRes, evtRes] = await Promise.all([
+      const [pplRes, postRes, jobRes] = await Promise.all([
         supabase
           .from('profiles')
           .select('id, full_name, username, avatar_url, degree_program, cohort, location, bio')
@@ -102,12 +100,6 @@ export default function SearchScreen({ navigation }: any) {
           .from('jobs')
           .select('id, title, company, location, category, salary_range, posted_by, created_at')
           .or(`title.ilike.${like},company.ilike.${like},location.ilike.${like},industry.ilike.${like}`)
-          .order('created_at', { ascending: false })
-          .limit(20),
-        supabase
-          .from('mingle_posts')
-          .select('id, host_id, title, category, location, event_time, image_url, created_at')
-          .or(`title.ilike.${like},location.ilike.${like},category.ilike.${like}`)
           .order('created_at', { ascending: false })
           .limit(20),
       ]);
@@ -127,7 +119,6 @@ export default function SearchScreen({ navigation }: any) {
       setPeople(pplRes.data || []);
       setPosts(postList);
       setJobs(jobRes.data || []);
-      setEvents(evtRes.data || []);
     } catch (e) {
       console.log('SEARCH_ERR', e);
     } finally {
@@ -150,8 +141,7 @@ export default function SearchScreen({ navigation }: any) {
     people: people.length,
     posts:  posts.length,
     jobs:   jobs.length,
-    events: events.length,
-  }), [people, posts, jobs, events]);
+  }), [people, posts, jobs]);
 
   const renderPerson = ({ item }: { item: any }) => (
     <TouchableOpacity
@@ -216,37 +206,15 @@ export default function SearchScreen({ navigation }: any) {
     </TouchableOpacity>
   );
 
-  const renderEvent = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={s.eventRow}
-      activeOpacity={0.85}
-      onPress={() => { saveRecent(query); navigation.navigate('MingleDetails', { postId: item.id }); }}
-    >
-      {item.image_url
-        ? <Image source={{ uri: item.image_url }} style={s.eventImg} />
-        : <View style={[s.eventImg, { backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' }]}>
-            <Text style={{ fontSize: 22 }}>📅</Text>
-          </View>}
-      <View style={{ flex: 1 }}>
-        <Text style={s.eventTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={s.eventMeta} numberOfLines={1}>{item.category}</Text>
-        <Text style={s.eventMeta} numberOfLines={1}>📍 {item.location}</Text>
-        <Text style={s.eventMeta} numberOfLines={1}>⏰ {item.event_time}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
   const currentData =
     activeTab === 'people' ? people :
     activeTab === 'posts'  ? posts  :
-    activeTab === 'jobs'   ? jobs   :
-    events;
+    jobs;
 
   const currentRenderer =
     activeTab === 'people' ? renderPerson :
     activeTab === 'posts'  ? renderPost :
-    activeTab === 'jobs'   ? renderJob :
-    renderEvent;
+    renderJob;
 
   const showResults = query.trim().length > 0;
 
@@ -261,7 +229,7 @@ export default function SearchScreen({ navigation }: any) {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Search people, posts, jobs, events..."
+            placeholder="Search people, posts, and jobs..."
             placeholderTextColor="#8E8E93"
             style={s.searchInput}
             autoFocus
@@ -315,7 +283,7 @@ export default function SearchScreen({ navigation }: any) {
             <View style={s.emptyIntro}>
               <Feather name="search" size={44} color="#E5E5EA" />
               <Text style={s.emptyIntroTitle}>Discover the community</Text>
-              <Text style={s.emptyIntroSub}>Find classmates, posts, jobs, and events.</Text>
+              <Text style={s.emptyIntroSub}>Find people, posts, and jobs.</Text>
             </View>
           }
           renderItem={({ item }) => (

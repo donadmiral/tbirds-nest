@@ -18,7 +18,7 @@ type Props = {
   showLabel?: boolean;
 };
 
-export default function VerifiedBadge({ size = 14, label = 'ASU Verified', showLabel = false }: Props) {
+export default function VerifiedBadge({ size = 14, label = 'Verified', showLabel = false }: Props) {
   return (
     <View style={st.wrap}>
       <View style={[st.circle, { width: size + 4, height: size + 4, borderRadius: (size + 4) / 2 }]}>
