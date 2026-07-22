@@ -824,7 +824,7 @@ export default function FeedScreen({ navigation }: any) {
     return list;
   }, [posts, feedMode, search, followingIds]);
 
-  const renderMedia = useCallback((post: any, isActive: boolean) => {
+  const renderMedia = useCallback((post: any, isActive: boolean, onMediaPress?: () => void) => {
     const mediaItems: CarouselMedia[] = Array.isArray(post.media) && post.media.length > 0
       ? post.media
       : (post.media_url ? [{
@@ -840,7 +840,9 @@ export default function FeedScreen({ navigation }: any) {
         media={mediaItems}
         containerWidth={SCREEN_W}
         isActive={isActive}
+        onMediaPress={onMediaPress}
       />
+
     );
   }, []);
 
@@ -894,14 +896,15 @@ export default function FeedScreen({ navigation }: any) {
         })()}
 
         {(() => {
-          const media = renderMedia(post, screenFocused && post.id === activePostId);
+          const media = renderMedia(post, screenFocused && post.id === activePostId, () => handleDoubleTap(post.id, openPost));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
             <View style={{ position: 'relative' }}>
-              <TouchableOpacity activeOpacity={0.97} onPress={() => handleDoubleTap(post.id, openPost)}>
+              <View>
                 {media}
-              </TouchableOpacity>
+              </View>
+
               {heartPost === post.id && (
                 <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', opacity: heartAnim, transform: [{ scale: heartAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1.3] }) }] }}>
                   <Text style={{ fontSize: 80 }}>❤️</Text>

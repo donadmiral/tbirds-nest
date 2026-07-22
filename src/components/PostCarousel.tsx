@@ -38,6 +38,7 @@ type Props = {
   media: CarouselMedia[];
   containerWidth: number;
   isActive?: boolean;
+  onMediaPress?: () => void;
 };
 
 // 4:5 portrait = height is 1.25x width (same as Instagram)
@@ -205,7 +206,7 @@ function CarouselVideo({
   );
 }
 
-export default function PostCarousel({ media, containerWidth, isActive = true }: Props) {
+export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const slideHeight = Math.round(containerWidth * HEIGHT_RATIO);
   const total = media.length;
@@ -233,13 +234,16 @@ export default function PostCarousel({ media, containerWidth, isActive = true }:
       );
     }
     return (
-      <CarouselImage
-        uri={item.url}
-        width={containerWidth}
-        height={slideHeight}
-      />
+      <TouchableOpacity activeOpacity={0.97} onPress={onMediaPress} disabled={!onMediaPress}>
+        <CarouselImage
+          uri={item.url}
+          width={containerWidth}
+          height={slideHeight}
+        />
+      </TouchableOpacity>
     );
-  }, [containerWidth, slideHeight, activeIndex, isActive]);
+  }, [containerWidth, slideHeight, activeIndex, isActive, onMediaPress]);
+
 
   if (total === 0) return null;
 
@@ -258,12 +262,15 @@ export default function PostCarousel({ media, containerWidth, isActive = true }:
               isScreenActive={isActive}
             />
           ) : (
-            <CarouselImage
-              uri={item.url}
-              width={containerWidth}
-              height={slideHeight}
-            />
+            <TouchableOpacity activeOpacity={0.97} onPress={onMediaPress} disabled={!onMediaPress}>
+              <CarouselImage
+                uri={item.url}
+                width={containerWidth}
+                height={slideHeight}
+              />
+            </TouchableOpacity>
           )}
+
         </View>
       </View>
     );
