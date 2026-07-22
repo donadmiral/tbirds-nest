@@ -30,6 +30,7 @@ type Post = {
   likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number;
   created_at?: string | null; media_url?: string | null; location?: string | null;
   channel?: string | null;
+  quoted_post_id?: string | null;
   media: MediaItem[]; score: number;
 };
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
@@ -122,6 +123,8 @@ export default function FeedScreen({ navigation }: any) {
   const [mentionActive, setMentionActive] = useState(false);
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
+  const [quotingPost, setQuotingPost] = useState<Post | null>(null);
+  const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string }>>({});
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [momentRefreshKey, setMomentRefreshKey] = useState(0);
 
@@ -241,6 +244,7 @@ export default function FeedScreen({ navigation }: any) {
         created_at: row.created_at, media_url: row.media_url ?? null,
         location: row.location ?? null,
         channel: row.channel ?? null,
+        quoted_post_id: row.quoted_post_id ?? null,
         media: Array.isArray(row.post_media)
           ? (row.post_media as PostMediaRow[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
           : (Array.isArray(row.media) ? row.media : []),
@@ -249,7 +253,16 @@ export default function FeedScreen({ navigation }: any) {
       setPosts(scored);
       const likerIds = scored.filter(p => p.likes_count > 0).map(p => p.id);
       if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(m); });
-      const uids = Array.from(new Set(scored.map(p => p.user_id)));
+      const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
+      let qRows: any[] = [];
+      if (qIds.length > 0) {
+        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id').in('id', qIds);
+        qRows = qData ?? [];
+        const qm: Record<string, { content: string; user_id: string }> = {};
+        qRows.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id }; });
+        setQuotedMap(qm);
+      }
+      const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
       const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
       const pm: ProfileMap = {};
       (pData || []).forEach((p: any) => { pm[p.id] = p; });
@@ -746,6 +759,7 @@ export default function FeedScreen({ navigation }: any) {
         content: composerText.trim() || null,
         is_exclusive: exclusivePost,
         channel: innovationPost ? 'innovation' : null,
+        ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
       };
       if (mediaUrl) insertData.media_url = mediaUrl;
 
@@ -781,6 +795,7 @@ export default function FeedScreen({ navigation }: any) {
       setComposerMedia([]);
       setExclusivePost(false);
       setInnovationPost(false);
+      setQuotingPost(null);
       Keyboard.dismiss();
       setTimeout(() => loadFeed(false), 300);
     } catch (e: any) {
@@ -860,6 +875,18 @@ export default function FeedScreen({ navigation }: any) {
         <TouchableOpacity activeOpacity={0.95} onPress={() => handleDoubleTap(post.id, openPost)}>
           <Text style={s.content}>{renderRichText(post.content, openHashtag, openMention)}</Text>
         </TouchableOpacity>
+        {(() => {
+          const qid = post.quoted_post_id;
+          if (!qid) return null;
+          const q = quotedMap[qid];
+          const qAuthor = q ? profilesMap[q.user_id] : undefined;
+          return (
+            <TouchableOpacity style={{ marginHorizontal: 16, marginTop: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: qid })}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0A0A0A' }} numberOfLines={1}>{qAuthor?.full_name || qAuthor?.username || 'Post'}</Text>
+              <Text style={{ fontSize: 13, color: '#374151', marginTop: 2 }} numberOfLines={2}>{q?.content || 'Tap to view'}</Text>
+            </TouchableOpacity>
+          );
+        })()}
 
         {(() => {
           const media = renderMedia(post, screenFocused && post.id === activePostId);
@@ -904,7 +931,7 @@ export default function FeedScreen({ navigation }: any) {
             <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : 'Comment'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, isReposted && s.pillReposted]} onPress={() => toggleRepost(post.id)} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
+          <TouchableOpacity style={[s.pill, isReposted && s.pillReposted]} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
             <Feather name="repeat" size={14} color={isReposted ? '#059669' : '#6B7280'} />
             <Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{post.reposts_count > 0 ? fmtCount(post.reposts_count) : 'Repost'}</Text>
           </TouchableOpacity>
@@ -945,6 +972,7 @@ export default function FeedScreen({ navigation }: any) {
   }, [
     profilesMap,
     likerNames,
+    quotedMap,
     heartPost,
     handleDoubleTap,
     renderMedia,
@@ -1032,6 +1060,14 @@ export default function FeedScreen({ navigation }: any) {
 
           {composerOpen && (
             <KeyboardAvoidingView style={[s.composerContainer, { bottom: insets.bottom + 16 }]} behavior={Platform.OS === 'ios' ? 'position' : undefined}>
+              {quotingPost && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderColor: '#E5E7EB', borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#374151' }}>Quoting {profilesMap[quotingPost.user_id]?.full_name || profilesMap[quotingPost.user_id]?.username || 'post'}</Text>
+                  <TouchableOpacity onPress={() => setQuotingPost(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Feather name="x" size={13} color="#6B7280" />
+                  </TouchableOpacity>
+                </View>
+              )}
               {mentionActive && mentionResults.length > 0 && (
                 <View style={s.mentionDropdown}>
                   {mentionResults.map(u => (
@@ -1088,7 +1124,7 @@ export default function FeedScreen({ navigation }: any) {
                     {composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
-                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setExclusivePost(false); setInnovationPost(false); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setExclusivePost(false); setInnovationPost(false); setQuotingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
                     </TouchableOpacity>
