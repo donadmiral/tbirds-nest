@@ -290,10 +290,10 @@ export default function FeedScreen({ navigation }: any) {
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows: any[] = [];
       if (qIds.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id').in('id', qIds);
+        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order)').in('id', qIds);
         qRows = qData ?? [];
         const qm: Record<string, { content: string; user_id: string }> = {};
-        qRows.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id }; });
+        qRows.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; });
         setQuotedMap(qm);
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
@@ -974,9 +974,9 @@ export default function FeedScreen({ navigation }: any) {
       const qIds2 = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows2: any[] = [];
       if (qIds2.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id').in('id', qIds2);
+        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order)').in('id', qIds2);
         qRows2 = qData ?? [];
-        setQuotedMap(prev => { const qm = { ...prev }; qRows2.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id }; }); return qm; });
+        setQuotedMap(prev => { const qm = { ...prev }; qRows2.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; }); return qm; });
       }
       const uids2 = Array.from(new Set([...scored.map(p => p.user_id), ...qRows2.map((qr: any) => qr.user_id)]));
       const missingU = uids2.filter(u => !profilesMap[u]);
@@ -1120,9 +1120,20 @@ export default function FeedScreen({ navigation }: any) {
           const q = quotedMap[qid];
           const qAuthor = q ? profilesMap[q.user_id] : undefined;
           return (
-            <TouchableOpacity style={{ marginHorizontal: 16, marginTop: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: qid })}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0A0A0A' }} numberOfLines={1}>{qAuthor?.full_name || qAuthor?.username || 'Post'}</Text>
-              <Text style={{ fontSize: 13, color: '#374151', marginTop: 2 }} numberOfLines={2}>{q?.content || 'Tap to view'}</Text>
+            <TouchableOpacity style={{ marginHorizontal: 16, marginTop: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: qid })}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0A0A0A' }} numberOfLines={1}>{qAuthor?.full_name || qAuthor?.username || 'Post'}</Text>
+                <Text style={{ fontSize: 13, color: '#374151', marginTop: 2 }} numberOfLines={2}>{q?.content || 'Tap to view'}</Text>
+              </View>
+              {(q as any)?.media?.url ? (
+                (q as any).media.media_type === 'video' ? (
+                  <View style={{ width: 64, height: 64, borderRadius: 8, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 13, color: '#FFFFFF', marginLeft: 2 }}>{'\u25B6'}</Text>
+                  </View>
+                ) : (
+                  <ExpoImage source={{ uri: (q as any).media.url }} style={{ width: 64, height: 64, borderRadius: 8 }} contentFit="cover" />
+                )
+              ) : null}
             </TouchableOpacity>
           );
         })()}
