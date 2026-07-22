@@ -40,7 +40,7 @@ export const BASE_FONT_SIZES: Record<StoryStickerStyle, number> = {
   outline: 32,
   shadow3d: 34,
   retro: 28,
-  script: 30,
+  script: 36,
 };
 
 /**
@@ -85,7 +85,7 @@ export function stickerTextStyle(
       const lh = Math.round(fs * 1.235);
       return {
         textStyle: {
-          fontSize: fs, fontWeight: '900' as const, lineHeight: lh,
+          fontSize: fs, fontFamily: 'SpaceGrotesk_700Bold', lineHeight: lh,
           color: pillTextColor || color,
           letterSpacing: -0.5,
           ...(wantsPill ? {} : {
@@ -102,9 +102,9 @@ export function stickerTextStyle(
       const lh = Math.round(fs * 1.308);
       return {
         textStyle: {
-          fontSize: fs, fontWeight: '600' as const, lineHeight: lh,
+          fontSize: fs, lineHeight: lh,
           color: pillTextColor || color,
-          fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+          fontFamily: 'SpaceMono_400Regular',
           letterSpacing: 0.5,
         },
         wrapperStyle: pillWrapper || {
@@ -119,7 +119,7 @@ export function stickerTextStyle(
       const lh = Math.round(fs * 1.25);
       return {
         textStyle: {
-          fontSize: fs, fontWeight: '800' as const, lineHeight: lh,
+          fontSize: fs, fontFamily: 'SpaceGrotesk_700Bold', lineHeight: lh,
           color: pillTextColor || color,
           ...(wantsPill ? {} : {
             textShadowColor: color,
@@ -184,7 +184,7 @@ export function stickerTextStyle(
       const lh = Math.round(fs * 1.235);
       return {
         textStyle: {
-          fontSize: fs, fontWeight: '900' as const, lineHeight: lh,
+          fontSize: fs, fontFamily: 'ArchivoBlack_400Regular', lineHeight: lh,
           color: pillTextColor || '#FFFFFF',
           letterSpacing: -0.5,
           ...(wantsPill ? {} : {
@@ -202,9 +202,9 @@ export function stickerTextStyle(
       const isLight = isColorLight(color);
       return {
         textStyle: {
-          fontSize: fs, fontWeight: '800' as const, lineHeight: lh,
+          fontSize: fs, fontFamily: 'ArchivoBlack_400Regular', lineHeight: lh,
           color: isLight ? '#000000' : '#FFFFFF',
-          letterSpacing: 3,
+          letterSpacing: 2,
           textTransform: 'uppercase' as const,
         },
         wrapperStyle: pillWrapper || {
@@ -215,14 +215,13 @@ export function stickerTextStyle(
       };
     }
     case 'script': {
-      const fs = fontSizeOverride ?? 30;
+      const fs = fontSizeOverride ?? 36;
       const lh = Math.round(fs * 1.333);
       return {
         textStyle: {
-          fontSize: fs, fontWeight: '400' as const, lineHeight: lh,
+          fontSize: fs, lineHeight: lh,
           color: pillTextColor || color,
-          fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-          fontStyle: 'italic' as const,
+          fontFamily: 'Caveat_600SemiBold',
           ...(wantsPill ? {} : {
             textShadowColor: 'rgba(0,0,0,0.3)',
             textShadowOffset: { width: 0, height: 1 },

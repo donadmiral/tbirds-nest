@@ -1710,7 +1710,7 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { paddingHorizontal: 16, paddingBottom: 4, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, marginBottom: 12 },
-  logo: { fontSize: 25, fontWeight: '800', color: '#0A0A0A', letterSpacing: -0.8 },
+  logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: '#0A0A0A', letterSpacing: -0.5 },
   iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F8F8F8', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center' },
   searchInput: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
   tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: '#F5F5F5', borderRadius: 12, padding: 3 },

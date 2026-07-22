@@ -56,7 +56,7 @@ const DELETE_ZONE_HEIGHT = 80;
 const SAFE_TOP_PX = 70;
 const SAFE_BOTTOM_PX = 20;
 
-const STICKER_COLORS = ['#FFFFFF','#000000','#FF3B30','#FF9500','#FFCC00','#34C759','#007AFF','#AF52DE'];
+const STICKER_COLORS = ['#FFFFFF','#0A0A0A','#E8A13A','#C62F1D','#8B7BB8','#2F9E63','#0B1E3D','#C9BFB0'];
 const EMOJI_LIST = [
   '😀','😍','😂','😭','😎','🥳','😮','😡','🤯','🥹',
   '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💯',
@@ -68,12 +68,12 @@ type TextBgOption = { id: string; label: string; bg: StoryTextBackground; previe
 const TEXT_BG_OPTIONS: TextBgOption[] = [
   { id: 'navy', label: 'Navy', bg: { kind: 'solid', color: '#0B1E3D' }, previewColors: ['#0B1E3D'], isDark: true },
   { id: 'warmblack', label: 'Night', bg: { kind: 'solid', color: 'rgb(6,12,24)' }, previewColors: ['rgb(6,12,24)'], isDark: true },
-  { id: 'slate', label: 'Slate', bg: { kind: 'solid', color: '#334155' }, previewColors: ['#334155'], isDark: true },
+  { id: 'granite', label: 'Granite', bg: { kind: 'solid', color: '#45494F' }, previewColors: ['#45494F'], isDark: true },
   { id: 'white', label: 'White', bg: { kind: 'solid', color: '#FFFFFF' }, previewColors: ['#FFFFFF'], isDark: false },
   { id: 'platinum', label: 'Platinum', bg: { kind: 'gradient', colors: ['#C9BFB0', '#A89F91'], direction: 'diagonal' }, previewColors: ['#C9BFB0', '#A89F91'], isDark: false },
-  { id: 'dusk', label: 'Dusk', bg: { kind: 'gradient', colors: ['#1a1a2e', '#16213e'], direction: 'vertical' }, previewColors: ['#1a1a2e', '#16213e'], isDark: true },
-  { id: 'sunrise', label: 'Sunrise', bg: { kind: 'gradient', colors: ['#ff9a9e', '#fecfef'], direction: 'diagonal' }, previewColors: ['#ff9a9e', '#fecfef'], isDark: false },
-  { id: 'ocean', label: 'Ocean', bg: { kind: 'gradient', colors: ['#667eea', '#764ba2'], direction: 'diagonal' }, previewColors: ['#667eea', '#764ba2'], isDark: true },
+  { id: 'jacaranda', label: 'Jacaranda', bg: { kind: 'gradient', colors: ['#3E3468', '#8B7BB8'], direction: 'diagonal' }, previewColors: ['#3E3468', '#8B7BB8'], isDark: true },
+  { id: 'flamelily', label: 'Flame Lily', bg: { kind: 'gradient', colors: ['#B3271A', '#E8A13A'], direction: 'diagonal' }, previewColors: ['#B3271A', '#E8A13A'], isDark: true },
+  { id: 'kariba', label: 'Kariba', bg: { kind: 'gradient', colors: ['#E0A83C', '#1C2E4A'], direction: 'vertical' }, previewColors: ['#E0A83C', '#1C2E4A'], isDark: true },
 ];
 
 function getDefaultStickerColor(bgId: string): string {
@@ -559,7 +559,6 @@ export default function StoryComposerScreen() {
     return <View style={[style || StyleSheet.absoluteFill, { backgroundColor: (bg as any)?.color || '#0B1E3D' }]} />;
   };
 
-  const invokeRotate = bloom.invokeRotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] });
 
   // ══════════════════════════════════════════════════════════
   // RENDER
@@ -629,17 +628,23 @@ export default function StoryComposerScreen() {
           <View style={st.closeBtnInner}><Feather name="x" size={18} color={textColor.primary} /></View>
         </TouchableOpacity>
 
-        {/* Undo/Redo */}
-        {(undoCount > 0 || redoCount > 0) && (
-          <View style={[st.undoRedoWrap, { top: insets.top + 8 }]}>
+        {/* Top tool row — Instagram construction */}
+        <View style={[st.undoRedoWrap, { top: insets.top + 8 }]}>
+          {(undoCount > 0 || redoCount > 0) && <>
             <TouchableOpacity style={st.undoBtn} onPress={undo} disabled={undoCount === 0 || publish.publishing} activeOpacity={0.6}>
               <Feather name="corner-up-left" size={14} color={undoCount > 0 ? textColor.muted : textColor.whisper} />
             </TouchableOpacity>
             <TouchableOpacity style={st.undoBtn} onPress={redo} disabled={redoCount === 0 || publish.publishing} activeOpacity={0.6}>
               <Feather name="corner-up-right" size={14} color={redoCount > 0 ? textColor.muted : textColor.whisper} />
             </TouchableOpacity>
-          </View>
-        )}
+            <View style={st.toolRowGap} />
+          </>}
+          {bloomTools.map((tool: BloomToolDef) => (
+            <TouchableOpacity key={tool.id} style={st.topToolBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); handleBloomToolAction(tool.id); }} activeOpacity={0.7} disabled={publish.publishing} accessibilityLabel={tool.accessibilityLabel}>
+              <Feather name={tool.icon} size={19} color="#FFF" />
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Post button */}
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(14, insets.bottom + 14) }]}>
@@ -648,31 +653,7 @@ export default function StoryComposerScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Bloom invoke */}
-        <Animated.View style={[st.invokeBtn, { backgroundColor: bloom.bloomOpen ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.5)' }]}>
-          <TouchableOpacity style={st.invokeTouchable} onPress={bloom.bloomOpen ? bloom.closeBloom : bloom.openBloom} activeOpacity={0.8} disabled={publish.publishing} accessibilityLabel={bloom.bloomOpen ? 'Close creative tools' : 'Add creative element'}>
-            <Animated.View style={{ transform: [{ rotate: invokeRotate }] }}>
-              <Feather name="plus" size={20} color={bloom.bloomOpen ? accent.warm : '#FFF'} />
-            </Animated.View>
-          </TouchableOpacity>
-        </Animated.View>
 
-        {/* Bloom tools */}
-        {bloom.bloomOpen && bloomTools.map((tool: BloomToolDef, i: number) => {
-          const rad = (tool.angle * Math.PI) / 180;
-          const dx = Math.cos(rad) * BLOOM_RADIUS;
-          const dy = Math.sin(rad) * BLOOM_RADIUS;
-          const prog = bloom.bloomToolAnims[i].progress;
-          const toolScale = prog.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] });
-          return (
-            <Animated.View key={tool.id} style={[st.bloomTool, { right: 14 + 24 - 20 - dx, bottom: 80 + (INVOKE_SIZE / 2) - (BLOOM_TOOL_SIZE / 2) - dy, opacity: prog, transform: [{ scale: toolScale }] }]}>
-              <TouchableOpacity style={st.bloomToolTouchable} onPress={() => bloom.handleBloomToolTap(tool.id)} activeOpacity={0.7} hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}>
-                <Feather name={tool.icon} size={20} color="#FFF" />
-              </TouchableOpacity>
-              <Animated.Text style={[st.bloomToolLabel, { opacity: bloom.bloomLabelOpacity }]}>{tool.label}</Animated.Text>
-            </Animated.View>
-          );
-        })}
 
         {/* Campus moment banner */}
         {campusMomentPromptText && (
@@ -709,38 +690,55 @@ export default function StoryComposerScreen() {
       )}
 
       {/* ── MODALS (text editor, emoji, poll, link, location, mention, question, slider, quiz, overflow, preview) ── */}
-      {/* Text Editor Modal */}
-      <Modal visible={textEditorOpen} transparent animationType="slide" onRequestClose={closeTextEditor}>
-        <View style={st.textEditorOverlay}>
-          {isTextStory && active?.textBackground && <View style={StyleSheet.absoluteFill}>{renderTextBg(active.textBackground)}<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.55)' }]} /></View>}
+      {/* Text Editor Modal — Instagram construction */}
+      <Modal visible={textEditorOpen} transparent animationType="fade" onRequestClose={closeTextEditor}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={st.textEditorOverlay}>
+          {isTextStory && active?.textBackground && <View style={StyleSheet.absoluteFill} pointerEvents="none">{renderTextBg(active.textBackground)}<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)' }]} /></View>}
           <View style={[st.textEditorHeader, { paddingTop: Math.max(insets.top, 12) }]}>
-            <TouchableOpacity onPress={closeTextEditor}><Text style={st.textEditorCancel}>Cancel</Text></TouchableOpacity>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TouchableOpacity onPress={closeTextEditor} style={st.editorActionBtn}><Feather name="x" size={16} color="#FFF" /></TouchableOpacity>
+              <TouchableOpacity style={st.editorActionBtn} onPress={() => setStickerTextAlign(a => a === 'center' ? 'left' : a === 'left' ? 'right' : 'center')}>
+                <Feather name={`align-${stickerTextAlign}` as any} size={16} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={[st.editorActionBtn, stickerBgEnabled && st.editorActionBtnOn]} onPress={() => setStickerBgEnabled(b => !b)}>
+                <Feather name="square" size={16} color={stickerBgEnabled ? '#020408' : '#FFF'} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setStickerFontSize(p => Math.max(0, (p || BASE_FONT_SIZES[stickerStyle] || 28) - 2))} style={st.editorActionBtn}><Text style={st.fontSizeBtnTxt}>A-</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setStickerFontSize(p => Math.min(72, (p || BASE_FONT_SIZES[stickerStyle] || 28) + 2))} style={st.editorActionBtn}><Text style={st.fontSizeBtnTxt}>A+</Text></TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               {editingStickerId && <TouchableOpacity onPress={() => duplicateSticker(editingStickerId)} style={st.editorActionBtn}><Feather name="copy" size={16} color="#FFF" /></TouchableOpacity>}
-              {editingStickerId && <TouchableOpacity onPress={() => bringForward(editingStickerId)} style={st.editorActionBtn}><Feather name="arrow-up" size={16} color="#FFF" /></TouchableOpacity>}
-              {editingStickerId && <TouchableOpacity onPress={() => sendBackward(editingStickerId)} style={st.editorActionBtn}><Feather name="arrow-down" size={16} color="#FFF" /></TouchableOpacity>}
+              {editingStickerId && <TouchableOpacity onPress={deleteEditingSticker} style={st.editorActionBtn}><Feather name="trash-2" size={16} color="#FF3B30" /></TouchableOpacity>}
               <TouchableOpacity onPress={saveSticker}><Text style={st.textEditorDone}>Done</Text></TouchableOpacity>
             </View>
           </View>
-          <View style={st.textEditorLivePreview}>{(() => { const p = stickerTextStyle(stickerStyle, stickerColor, stickerBgEnabled, stickerFontSize > 0 ? stickerFontSize : undefined); return <View style={[p.wrapperStyle, stickerOpacity < 1 && { opacity: stickerOpacity }]}><Text style={[p.textStyle, { textAlign: stickerTextAlign, maxWidth: STICKER_TEXT_MAX_W }]}>{stickerText || 'Preview'}</Text></View>; })()}</View>
-          <View style={st.textEditorInputWrap}><TextInput ref={stickerInputRef} value={stickerText} onChangeText={setStickerText} placeholder="Type here..." placeholderTextColor="rgba(255,255,255,0.3)" style={st.textEditorInput} maxLength={100} autoFocus keyboardAppearance="dark" /></View>
-          <ScrollView ref={stylePickerRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.stylePickerScroll}>
-            {STICKER_STYLES.map(ss => (<TouchableOpacity key={ss} style={[st.styleBtn, stickerStyle === ss && st.styleBtnActive]} onPress={() => setStickerStyle(ss)}><Text style={[st.styleBtnTxt, stickerStyle === ss && st.styleBtnTxtActive]}>{STICKER_STYLE_LABELS[ss]?.short || ss}</Text></TouchableOpacity>))}
-            {STICKER_COLORS.map(c => (<TouchableOpacity key={c} style={[st.colorSwatch, stickerColor === c && st.colorSwatchActive]} onPress={() => setStickerColor(c)}><View style={[st.colorSwatchInner, { backgroundColor: c }]} /></TouchableOpacity>))}
-          </ScrollView>
-          <TouchableOpacity style={st.advancedToggle} onPress={() => setTextEditorAdvanced(p => !p)}><Feather name="sliders" size={14} color={textEditorAdvanced ? accent.warm : 'rgba(255,255,255,0.4)'} /><Text style={[st.advancedToggleTxt, textEditorAdvanced && { color: accent.warm }]}>{textEditorAdvanced ? 'Less' : 'More'}</Text></TouchableOpacity>
-          {textEditorAdvanced && <>
-            <View style={st.extraControlsRow}>
-              <TouchableOpacity style={[st.extraBtn, stickerBgEnabled && st.extraBtnActive]} onPress={() => setStickerBgEnabled(b => !b)}><Feather name="square" size={14} color={stickerBgEnabled ? '#020408' : '#FFF'} /><Text style={[st.extraBtnTxt, stickerBgEnabled && st.extraBtnTxtActive]}>BG</Text></TouchableOpacity>
-              <View style={st.fontSizeControl}><TouchableOpacity onPress={() => setStickerFontSize(p => Math.max(0, (p || BASE_FONT_SIZES[stickerStyle] || 28) - 2))} style={st.fontSizeBtn}><Text style={st.fontSizeBtnTxt}>A-</Text></TouchableOpacity><Text style={st.fontSizeLbl}>{stickerFontSize > 0 ? stickerFontSize : (BASE_FONT_SIZES[stickerStyle] || 28)}</Text><TouchableOpacity onPress={() => setStickerFontSize(p => Math.min(72, (p || BASE_FONT_SIZES[stickerStyle] || 28) + 2))} style={st.fontSizeBtn}><Text style={st.fontSizeBtnTxt}>A+</Text></TouchableOpacity></View>
-              <View style={st.alignControl}>{(['left','center','right'] as const).map(a => <TouchableOpacity key={a} style={[st.alignBtn, stickerTextAlign === a && st.alignBtnActive]} onPress={() => setStickerTextAlign(a)}><Feather name={`align-${a}`} size={13} color={stickerTextAlign === a ? '#020408' : '#FFF'} /></TouchableOpacity>)}</View>
-            </View>
-            <View style={st.opacityRow}><Text style={st.opacityLabel}>Opacity</Text><View style={st.opacityTrack}>{[0.3,0.5,0.7,1.0].map(v => <TouchableOpacity key={v} style={[st.opacityDot, stickerOpacity === v && st.opacityDotActive]} onPress={() => setStickerOpacity(v)}><Text style={[st.opacityDotTxt, stickerOpacity === v && st.opacityDotTxtActive]}>{Math.round(v*100)}%</Text></TouchableOpacity>)}</View></View>
-          </>}
-          {editingStickerId && <TouchableOpacity style={st.deleteBtn} onPress={deleteEditingSticker}><Feather name="trash-2" size={16} color="#FF3B30" /><Text style={st.deleteBtnTxt}>Delete</Text></TouchableOpacity>}
-        </View>
+          <View style={st.editorCenter}>
+            {(() => { const p = stickerTextStyle(stickerStyle, stickerColor, stickerBgEnabled, stickerFontSize > 0 ? stickerFontSize : undefined); return (
+              <View style={[p.wrapperStyle, stickerOpacity < 1 && { opacity: stickerOpacity }]}>
+                <TextInput ref={stickerInputRef} value={stickerText} onChangeText={setStickerText} placeholder="Type here" placeholderTextColor="rgba(255,255,255,0.35)" style={[p.textStyle as any, { textAlign: stickerTextAlign, maxWidth: STICKER_TEXT_MAX_W, minWidth: 40, padding: 0 }]} maxLength={100} autoFocus multiline keyboardAppearance="dark" />
+              </View>
+            ); })()}
+          </View>
+          <View style={st.editorBottom}>
+            <ScrollView ref={stylePickerRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.stylePickerScroll} keyboardShouldPersistTaps="always">
+              {STICKER_STYLES.map(ss => { const fp = stickerTextStyle(ss, '#FFFFFF', false); return (
+                <TouchableOpacity key={ss} style={[st.fontPill, stickerStyle === ss && st.fontPillActive]} onPress={() => setStickerStyle(ss)}>
+                  <Text style={[{ color: '#FFF', fontFamily: (fp.textStyle as any).fontFamily, fontWeight: (fp.textStyle as any).fontWeight, fontStyle: (fp.textStyle as any).fontStyle }, st.fontPillTxt, stickerStyle === ss && st.fontPillTxtActive]} numberOfLines={1}>{(STICKER_STYLE_LABELS as any)[ss] || ss}</Text>
+                </TouchableOpacity>
+              ); })}
+            </ScrollView>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
+              {STICKER_COLORS.map(c => (
+                <TouchableOpacity key={c} style={[st.colorSwatch, stickerColor === c && st.colorSwatchActive]} onPress={() => setStickerColor(c)}><View style={[st.colorSwatchInner, { backgroundColor: c }]} /></TouchableOpacity>
+              ))}
+              <View style={{ width: 10 }} />
+              {[0.3, 0.5, 0.7, 1.0].map(v => (
+                <TouchableOpacity key={v} style={[st.opacityDot, stickerOpacity === v && st.opacityDotActive]} onPress={() => setStickerOpacity(v)}><Text style={[st.opacityDotTxt, stickerOpacity === v && st.opacityDotTxtActive]}>{Math.round(v * 100)}%</Text></TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
-
       {/* Emoji Modal */}
       <Modal visible={emojiTrayOpen} transparent animationType="slide" onRequestClose={closeEmojiTray}>
         <TouchableOpacity style={st.emojiOverlay} activeOpacity={1} onPress={closeEmojiTray}>
@@ -944,8 +942,10 @@ const st = StyleSheet.create({
   dualBubbleImg: { width: '100%', height: '100%' },
   closeBtn: { position: 'absolute', left: 12, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', zIndex: Z_CHROME },
   closeBtnInner: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  undoRedoWrap: { position: 'absolute', right: 10, flexDirection: 'row', gap: 4, zIndex: Z_CHROME },
-  undoBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
+  undoRedoWrap: { position: 'absolute', right: 12, flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: Z_CHROME },
+  undoBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
+  topToolBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
+  toolRowGap: { width: 6 },
   captionFloating: { position: 'absolute', left: 14, right: 100, zIndex: 50 },
   captionInput: { backgroundColor: 'rgba(0,0,0,0.35)', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, color: '#FFF', fontSize: typeSize.caption, fontWeight: fontWeight.medium, borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.12)' },
   postPillWrap: { position: 'absolute', right: 14, zIndex: Z_CHROME },
@@ -978,6 +978,14 @@ const st = StyleSheet.create({
   textEditorCancel: { color: textColor.secondary, fontSize: typeSize.body, fontWeight: fontWeight.medium },
   textEditorDone: { color: accent.warm, fontSize: typeSize.body, fontWeight: fontWeight.bold },
   editorActionBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: surface.secondary, alignItems: 'center', justifyContent: 'center' },
+  editorActionBtnOn: { backgroundColor: '#FFFFFF' },
+  editorCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
+  editorBottom: { paddingBottom: 10 },
+  fontPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.14)' },
+  fontPillActive: { backgroundColor: '#FFFFFF' },
+  fontPillTxt: { fontSize: 13 },
+  fontPillTxtActive: { color: '#020408' },
+  colorRowScroll: { paddingHorizontal: 12, gap: 8, alignItems: 'center', paddingVertical: 8 },
   textEditorLivePreview: { alignItems: 'center', justifyContent: 'center', paddingVertical: space.md, paddingHorizontal: space.md, minHeight: 60 },
   textEditorInputWrap: { marginHorizontal: space.md, marginBottom: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: borderColor.default },
   textEditorInput: { color: '#FFF', fontSize: typeSize.body, fontWeight: fontWeight.medium, paddingVertical: space.sm, padding: 0 },

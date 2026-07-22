@@ -8,6 +8,11 @@ import FlashMessage from 'react-native-flash-message';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { useAuthStore } from './src/stores/authStore';
+import { useFonts } from 'expo-font';
+import { SpaceGrotesk_500Medium, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
+import { Caveat_600SemiBold } from '@expo-google-fonts/caveat';
+import { ArchivoBlack_400Regular } from '@expo-google-fonts/archivo-black';
+import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
 
 /**
  * Single QueryClient for the whole app. Defaults tuned for a mobile social
@@ -36,6 +41,10 @@ const queryClient = new QueryClient({
 
 export default function App() {
   const initialize = useAuthStore((state) => state.initialize);
+  const [fontsLoaded] = useFonts({
+    SpaceGrotesk_500Medium, SpaceGrotesk_700Bold, Caveat_600SemiBold,
+    ArchivoBlack_400Regular, SpaceMono_400Regular,
+  });
 
   useEffect(() => {
     initialize();

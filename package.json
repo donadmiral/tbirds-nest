@@ -17,6 +17,10 @@
   "dependencies": {
     "@daily-co/react-native-daily-js": "^0.84.1",
     "@daily-co/react-native-webrtc": "^124.0.6-daily.1",
+    "@expo-google-fonts/archivo-black": "^0.4.1",
+    "@expo-google-fonts/caveat": "^0.4.2",
+    "@expo-google-fonts/space-grotesk": "^0.4.1",
+    "@expo-google-fonts/space-mono": "^0.4.2",
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
