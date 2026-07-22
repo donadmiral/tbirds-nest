@@ -387,6 +387,8 @@ function Carousel({
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={onScroll}
           scrollEventThrottle={16}
+          decelerationRate="fast"
+          overScrollMode="never"
           bounces={false}
           nestedScrollEnabled
           directionalLockEnabled
@@ -439,6 +441,11 @@ function Carousel({
           {items.map((_, i) => (
             <View key={i} style={[s.dot, i === active && s.dotActive]} />
           ))}
+        </View>
+      )}
+      {items.length > 1 && (
+        <View style={s.counterChip} pointerEvents="none">
+          <Text style={s.counterTxt}>{active + 1}/{items.length}</Text>
         </View>
       )}
     </View>
@@ -540,8 +547,22 @@ const s = StyleSheet.create({
   },
   dotActive: {
     backgroundColor: '#111827',
-    width: 18,
+    width: 6,
     borderRadius: 3,
+  },
+  counterChip: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  counterTxt: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 

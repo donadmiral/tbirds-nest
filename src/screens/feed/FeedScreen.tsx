@@ -27,6 +27,7 @@ type Post = {
   id: string; user_id: string; content: string;
   likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number;
   created_at?: string | null; media_url?: string | null; location?: string | null;
+  channel?: string | null;
   media: MediaItem[]; score: number;
 };
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
@@ -105,13 +106,14 @@ export default function FeedScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
-  const [feedMode, setFeedMode] = useState<'forYou' | 'latest'>('forYou');
+  const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation'>('forYou');
   const [search, setSearch] = useState('');
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState('');
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
   const [posting, setPosting] = useState(false);
   const [exclusivePost, setExclusivePost] = useState(false);
+  const [innovationPost, setInnovationPost] = useState(false);
   const [mentionResults, setMentionResults] = useState<ProfileLite[]>([]);
   const [mentionActive, setMentionActive] = useState(false);
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
@@ -234,6 +236,7 @@ export default function FeedScreen({ navigation }: any) {
         reposts_count: row.reposts_count ?? 0, bookmarks_count: row.bookmarks_count ?? 0,
         created_at: row.created_at, media_url: row.media_url ?? null,
         location: row.location ?? null,
+        channel: row.channel ?? null,
         media: Array.isArray(row.post_media)
           ? (row.post_media as PostMediaRow[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
           : (Array.isArray(row.media) ? row.media : []),
@@ -306,7 +309,7 @@ export default function FeedScreen({ navigation }: any) {
     loadFeed(true);
 
     const sortPosts = (items: Post[]) => {
-      if (feedMode === 'latest') {
+      if (feedMode === 'latest' || feedMode === 'innovation') {
         return [...items].sort((a, b) =>
           new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
         );
@@ -730,6 +733,7 @@ export default function FeedScreen({ navigation }: any) {
         user_id: userId,
         content: composerText.trim() || null,
         is_exclusive: exclusivePost,
+        channel: innovationPost ? 'innovation' : null,
       };
       if (mediaUrl) insertData.media_url = mediaUrl;
 
@@ -764,6 +768,7 @@ export default function FeedScreen({ navigation }: any) {
       setComposerText('');
       setComposerMedia([]);
       setExclusivePost(false);
+      setInnovationPost(false);
       Keyboard.dismiss();
       setTimeout(() => loadFeed(false), 300);
     } catch (e: any) {
@@ -775,9 +780,11 @@ export default function FeedScreen({ navigation }: any) {
 
   const displayPosts = useMemo(() => {
     let list = [...posts];
+    if (feedMode === 'innovation') list = list.filter(p => p.channel === 'innovation');
     const term = search.trim().toLowerCase();
     if (term) list = list.filter(p => (p.content || '').toLowerCase().includes(term));
     if (feedMode === 'forYou') list.sort((a, b) => b.score - a.score);
+    else list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     return list;
   }, [posts, feedMode, search]);
 
@@ -930,9 +937,9 @@ export default function FeedScreen({ navigation }: any) {
             </View>
             <TextInput value={search} onChangeText={setSearch} placeholder="Search posts..." placeholderTextColor="#9CA3AF" style={s.searchInput} returnKeyType="search" clearButtonMode="while-editing" />
             <View style={s.tabRow}>
-              {(['forYou', 'latest'] as const).map(m => (
+              {(['forYou', 'latest', 'innovation'] as const).map(m => (
                 <TouchableOpacity key={m} style={[s.tab, feedMode === m && s.tabActive]} onPress={() => setFeedMode(m)}>
-                  <Text style={[s.tabTxt, feedMode === m && s.tabTxtActive]}>{m === 'forYou' ? 'For You' : 'Latest'}</Text>
+                  <Text style={[s.tabTxt, feedMode === m && s.tabTxtActive]}>{m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : 'Innovation'}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -997,7 +1004,13 @@ export default function FeedScreen({ navigation }: any) {
                 {exclusivePost && (
                   <View style={s.exclusiveBanner}>
                     <Feather name="shield" size={13} color="#2563EB" />
-                    <Text style={s.exclusiveBannerTxt}>This post will only be visible to verified school members</Text>
+                    <Text style={s.exclusiveBannerTxt}>Only verified members can see this post</Text>
+                  </View>
+                )}
+                {innovationPost && (
+                  <View style={[s.exclusiveBanner, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>
+                    <Feather name="zap" size={13} color="#D97706" />
+                    <Text style={[s.exclusiveBannerTxt, { color: '#B45309' }]}>Posting to Innovation — showcasing what Zimbabwe is building</Text>
                   </View>
                 )}
                 {composerMedia.length > 0 && (
@@ -1018,6 +1031,7 @@ export default function FeedScreen({ navigation }: any) {
                   <View style={s.cToolbarLeft}>
                     <TouchableOpacity style={s.toolBtn} onPress={pickMedia}><Feather name="image" size={20} color="#6B7280" /></TouchableOpacity>
                     <TouchableOpacity style={s.toolBtn} onPress={openCamera}><Feather name="camera" size={20} color="#6B7280" /></TouchableOpacity>
+                    <TouchableOpacity style={[s.toolBtn, innovationPost && s.toolBtnActive]} onPress={() => setInnovationPost(p => !p)}><Feather name="zap" size={20} color={innovationPost ? '#D97706' : '#6B7280'} /></TouchableOpacity>
                     {isVerifiedSchoolUser && (
                       <TouchableOpacity style={[s.toolBtn, exclusivePost && s.toolBtnActive]} onPress={() => setExclusivePost(p => !p)}>
                         <Feather name="shield" size={20} color={exclusivePost ? '#2563EB' : '#6B7280'} />
@@ -1026,7 +1040,7 @@ export default function FeedScreen({ navigation }: any) {
                     {composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
-                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setExclusivePost(false); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setExclusivePost(false); setInnovationPost(false); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
                     </TouchableOpacity>

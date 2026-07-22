@@ -234,23 +234,23 @@ function MainTabs() {
           if (route.name === 'Feed' && unreadNotifs > 0) {
             return (
               <View style={{ width: size + 10, height: size, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={iconName} size={size} color={color} />
+                <Ionicons name={iconName} size={size + 2} color={color} />
                 <View style={s.dot}>
                   {unreadNotifs < 100 ? <Text style={s.dotTxt}>{unreadNotifs}</Text> : <Text style={s.dotTxt}>99+</Text>}
                 </View>
               </View>
             );
           }
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={size + 2} color={color} />;
         },
+        tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: '#FAFAFA', borderTopColor: '#EEEEEE',
+          backgroundColor: 'rgba(255,255,255,0.96)', borderTopColor: '#E5E5EA',
           borderTopWidth: StyleSheet.hairlineWidth,
           height: tabBarHeight,
           paddingBottom: tabBarPaddingBottom,
-          paddingTop: 8,
+          paddingTop: 10,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       })}
     >
       <Tab.Screen name="Feed"     component={FeedStackNav} />
