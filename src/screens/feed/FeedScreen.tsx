@@ -142,6 +142,8 @@ export default function FeedScreen({ navigation }: any) {
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
   const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
+  const [likersPost, setLikersPost] = useState<Post | null>(null);
+  const [likersList, setLikersList] = useState<any[]>([]);
   const [sendPost, setSendPost] = useState<Post | null>(null);
   const [sendConvs, setSendConvs] = useState<any[]>([]);
   const [sendBusy, setSendBusy] = useState(false);
@@ -589,6 +591,36 @@ export default function FeedScreen({ navigation }: any) {
       setBusy(`rp-${postId}`, false);
     }
   }, [userId]);
+
+  const openLikers = useCallback(async (post: Post) => {
+    setLikersPost(post);
+    setLikersList([]);
+    const { data: lk } = await supabase.from('post_likes').select('user_id, created_at').eq('post_id', post.id).order('created_at', { ascending: false }).limit(100);
+    const uids = Array.from(new Set((lk ?? []).map((r: any) => r.user_id)));
+    if (uids.length === 0) return;
+    const { data: profs } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
+    const pm: Record<string, any> = {};
+    (profs ?? []).forEach((p: any) => { pm[p.id] = p; });
+    setLikersList(uids.map(u => pm[u]).filter(Boolean));
+  }, []);
+
+  const toggleFollow = useCallback(async (targetId: string) => {
+    if (!userId || targetId === userId) return;
+    const was = followingIds.has(targetId);
+    setFollowingIds(prev => { const n = new Set(prev); if (was) n.delete(targetId); else n.add(targetId); return n; });
+    try {
+      if (was) {
+        const { error } = await supabase.from('orbits').delete().eq('follower_id', userId).eq('following_id', targetId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('orbits').insert({ follower_id: userId, following_id: targetId });
+        if (error && error.code !== '23505') throw error;
+      }
+    } catch (e: any) {
+      setFollowingIds(prev => { const n = new Set(prev); if (was) n.add(targetId); else n.delete(targetId); return n; });
+      Alert.alert('Could not update follow', e?.message || 'Try again.');
+    }
+  }, [userId, followingIds]);
 
   const openSendSheet = useCallback(async (post: Post) => {
     if (!userId) return;
@@ -1112,7 +1144,7 @@ export default function FeedScreen({ navigation }: any) {
         </View>
 
         {post.likes_count > 0 && (
-          <TouchableOpacity style={{ paddingHorizontal: 16, paddingTop: 4 }} onPress={openPost} activeOpacity={0.8}>
+          <TouchableOpacity style={{ paddingHorizontal: 16, paddingTop: 4 }} onPress={() => openLikers(post)} activeOpacity={0.8}>
             <Text style={{ fontSize: 13, fontWeight: '600', color: '#0A0A0A' }}>
               {(() => {
                 const n = post.likes_count;
@@ -1321,6 +1353,34 @@ export default function FeedScreen({ navigation }: any) {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <Modal visible={!!likersPost} transparent animationType="slide" onRequestClose={() => setLikersPost(null)}>
+        <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setLikersPost(null)}>
+          <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
+            <View style={s.menuHandle} />
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0A0A0A', paddingHorizontal: 16, paddingBottom: 8 }}>Likes</Text>
+            {likersList.length === 0 && <Text style={{ fontSize: 13, color: '#8E8E93', paddingHorizontal: 16, paddingBottom: 16 }}>Loading...</Text>}
+            <ScrollView style={{ maxHeight: 380 }}>
+              {likersList.map((p: any) => (
+                <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 9, gap: 12 }}>
+                  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }} activeOpacity={0.8} onPress={() => { setLikersPost(null); navigation.navigate('UserProfile', { userId: p.id, user: p }); }}>
+                    {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: '#1D4ED8' }}>{initials(p.full_name || p.username)}</Text></View>}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: '#0A0A0A' }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                      {p.username ? <Text style={{ fontSize: 12, color: '#8E8E93' }} numberOfLines={1}>@{p.username}</Text> : null}
+                    </View>
+                  </TouchableOpacity>
+                  {userId && p.id !== userId && (
+                    <TouchableOpacity onPress={() => toggleFollow(p.id)} activeOpacity={0.8} style={{ paddingHorizontal: 16, paddingVertical: 7, borderRadius: 16, backgroundColor: followingIds.has(p.id) ? '#F5F5F5' : NAVY }}>
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: followingIds.has(p.id) ? '#3C3C43' : '#FFFFFF' }}>{followingIds.has(p.id) ? 'Following' : 'Follow'}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       <Modal visible={!!sendPost} transparent animationType="slide" onRequestClose={() => setSendPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setSendPost(null)}>
