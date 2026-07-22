@@ -110,6 +110,9 @@ export default function FeedScreen({ navigation }: any) {
   const [commentPreviews, setCommentPreviews] = useState<Record<string, CommentPreview>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const hasMoreRef = useRef(true);
+  const loadingMoreRef = useRef(false);
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation'>('forYou');
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
@@ -257,6 +260,7 @@ export default function FeedScreen({ navigation }: any) {
       }));
       const scored = normalized.map(p => ({ ...p, score: scorePost(p) }));
       setPosts(scored);
+      hasMoreRef.current = scored.length >= 80;
       const likerIds = scored.filter(p => p.likes_count > 0).map(p => p.id);
       if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(m); });
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
@@ -852,6 +856,86 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
+  const loadMore = useCallback(async () => {
+    if (loadingMoreRef.current || !hasMoreRef.current || posts.length === 0) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    try {
+      const oldest = posts.reduce((m, p) => (p.created_at && (!m || p.created_at < m) ? p.created_at : m), null as string | null);
+      if (!oldest) { hasMoreRef.current = false; return; }
+      const { data: d1, error: e1 } = await supabase
+        .from('posts')
+        .select('*, post_media(id, url, media_type, width, height, sort_order)')
+        .lt('created_at', oldest)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (e1 || !d1) return;
+      if (d1.length < 30) hasMoreRef.current = false;
+      const existing = new Set(posts.map(p => p.id));
+      const freshRows = (d1 as any[]).filter((row: any) => !existing.has(row.id));
+      if (freshRows.length === 0) return;
+      const normalized = freshRows.map((row: any): Omit<Post, 'score'> => ({
+        id: row.id, user_id: row.user_id, content: row.content ?? row.body ?? '',
+        likes_count: row.likes_count ?? 0, comments_count: row.comments_count ?? 0, views_count: row.views_count ?? 0,
+        reposts_count: row.reposts_count ?? 0, bookmarks_count: row.bookmarks_count ?? 0,
+        created_at: row.created_at, media_url: row.media_url ?? null,
+        location: row.location ?? null,
+        channel: row.channel ?? null,
+        quoted_post_id: row.quoted_post_id ?? null,
+        thread_parent_id: row.thread_parent_id ?? null,
+        media: Array.isArray(row.post_media)
+          ? (row.post_media as PostMediaRow[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          : [],
+      }));
+      const scored = normalized.map(p => ({ ...p, score: scorePost(p) }));
+      setPosts(prev => [...prev, ...scored.filter(p => !prev.some(x => x.id === p.id))]);
+      const ids = scored.map(p => p.id);
+      const likerIds2 = scored.filter(p => p.likes_count > 0).map(p => p.id);
+      if (likerIds2.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds2 }).then(({ data }) => { if (data) setLikerNames(prev => { const m = { ...prev }; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); return m; }); });
+      const qIds2 = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
+      let qRows2: any[] = [];
+      if (qIds2.length > 0) {
+        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id').in('id', qIds2);
+        qRows2 = qData ?? [];
+        setQuotedMap(prev => { const qm = { ...prev }; qRows2.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id }; }); return qm; });
+      }
+      const uids2 = Array.from(new Set([...scored.map(p => p.user_id), ...qRows2.map((qr: any) => qr.user_id)]));
+      const missingU = uids2.filter(u => !profilesMap[u]);
+      if (missingU.length > 0) {
+        const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', missingU);
+        if (pData) setProfilesMap(prev => { const pm = { ...prev }; pData.forEach((p: any) => { pm[p.id] = p; }); return pm; });
+      }
+      if (userId && ids.length > 0) {
+        const [{ data: likes }, { data: bookmarks }, { data: reposts }] = await Promise.all([
+          supabase.from('post_likes').select('post_id').eq('user_id', userId).in('post_id', ids),
+          supabase.from('post_bookmarks').select('post_id').eq('user_id', userId).in('post_id', ids),
+          supabase.from('post_reposts').select('post_id').eq('user_id', userId).in('post_id', ids),
+        ]);
+        setLikedPosts(prev => { const m = { ...prev }; (likes ?? []).forEach((r: any) => { m[r.post_id] = true; }); return m; });
+        setBookmarkedPosts(prev => { const m = { ...prev }; (bookmarks ?? []).forEach((r: any) => { m[r.post_id] = true; }); return m; });
+        setRepostedPosts(prev => { const m = { ...prev }; (reposts ?? []).forEach((r: any) => { m[r.post_id] = true; }); return m; });
+      }
+      const { data: cData } = await supabase.from('post_comments')
+        .select('post_id, body, user_id, parent_comment_id, created_at')
+        .in('post_id', ids)
+        .order('created_at', { ascending: false });
+      if (cData && cData.length > 0) {
+        const countMap: Record<string, number> = {};
+        cData.forEach((c: any) => { countMap[c.post_id] = (countMap[c.post_id] || 0) + 1; });
+        setPosts(prev => prev.map(post => countMap[post.id] != null ? { ...post, comments_count: countMap[post.id] } : post));
+        const topC = cData.filter((c: any) => !c.parent_comment_id);
+        const aIds2 = Array.from(new Set(topC.map((c: any) => c.user_id).filter(Boolean)));
+        const authors2: Record<string, any> = {};
+        if (aIds2.length > 0) {
+          const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds2);
+          (aData ?? []).forEach((a: any) => { authors2[a.id] = a; });
+        }
+        setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { if (!cp[c.post_id]) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User' }; } }); return cp; });
+      }
+    } catch (e) { console.log('[LOAD_MORE_ERR]', e); }
+    finally { loadingMoreRef.current = false; setLoadingMore(false); }
+  }, [posts, userId, profilesMap]);
+
   const displayPosts = useMemo(() => {
     let list = [...posts];
     if (feedMode === 'innovation') list = list.filter(p => p.channel === 'innovation');
@@ -1083,6 +1167,10 @@ export default function FeedScreen({ navigation }: any) {
               scrollEventThrottle={16}
               keyExtractor={p => p.id}
               renderItem={renderPost}
+              onEndReached={loadMore}
+              onEndReachedThreshold={0.6}
+              ListFooterComponent={loadingMore ? <View style={{ paddingVertical: 24 }}><ActivityIndicator color={NAVY} /></View> : null}
+
               extraData={flatListExtra}
               initialNumToRender={5}
               maxToRenderPerBatch={5}
