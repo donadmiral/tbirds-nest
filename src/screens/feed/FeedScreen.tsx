@@ -31,6 +31,7 @@ type Post = {
   created_at?: string | null; media_url?: string | null; location?: string | null;
   channel?: string | null;
   quoted_post_id?: string | null;
+  thread_parent_id?: string | null;
   media: MediaItem[]; score: number;
 };
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
@@ -124,6 +125,7 @@ export default function FeedScreen({ navigation }: any) {
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
+  const [threadingPost, setThreadingPost] = useState<Post | null>(null);
   const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string }>>({});
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [momentRefreshKey, setMomentRefreshKey] = useState(0);
@@ -245,6 +247,7 @@ export default function FeedScreen({ navigation }: any) {
         location: row.location ?? null,
         channel: row.channel ?? null,
         quoted_post_id: row.quoted_post_id ?? null,
+        thread_parent_id: row.thread_parent_id ?? null,
         media: Array.isArray(row.post_media)
           ? (row.post_media as PostMediaRow[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
           : (Array.isArray(row.media) ? row.media : []),
@@ -760,6 +763,7 @@ export default function FeedScreen({ navigation }: any) {
         is_exclusive: exclusivePost,
         channel: innovationPost ? 'innovation' : null,
         ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
+        ...(threadingPost ? { thread_parent_id: threadingPost.id } : {}),
       };
       if (mediaUrl) insertData.media_url = mediaUrl;
 
@@ -796,6 +800,7 @@ export default function FeedScreen({ navigation }: any) {
       setExclusivePost(false);
       setInnovationPost(false);
       setQuotingPost(null);
+      setThreadingPost(null);
       Keyboard.dismiss();
       setTimeout(() => loadFeed(false), 300);
     } catch (e: any) {
@@ -912,6 +917,11 @@ export default function FeedScreen({ navigation }: any) {
           );
         })()}
 
+        {post.thread_parent_id && (
+          <TouchableOpacity style={{ paddingHorizontal: 16, paddingTop: 8 }} onPress={openPost} activeOpacity={0.8}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: NAVY }}>Show this thread</Text>
+          </TouchableOpacity>
+        )}
         {(post.likes_count > 0 || post.comments_count > 0) && (
           <View style={s.metricsRow}>
             {post.likes_count > 0 && <Text style={s.metric}>{fmtCount(post.likes_count)} {post.likes_count === 1 ? 'like' : 'likes'}</Text>}
@@ -1060,6 +1070,14 @@ export default function FeedScreen({ navigation }: any) {
 
           {composerOpen && (
             <KeyboardAvoidingView style={[s.composerContainer, { bottom: insets.bottom + 16 }]} behavior={Platform.OS === 'ios' ? 'position' : undefined}>
+              {threadingPost && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderColor: '#E5E7EB', borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#374151' }}>Adding to your thread</Text>
+                  <TouchableOpacity onPress={() => setThreadingPost(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Feather name="x" size={13} color="#6B7280" />
+                  </TouchableOpacity>
+                </View>
+              )}
               {quotingPost && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderColor: '#E5E7EB', borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: '#374151' }}>Quoting {profilesMap[quotingPost.user_id]?.full_name || profilesMap[quotingPost.user_id]?.username || 'post'}</Text>
@@ -1124,7 +1142,7 @@ export default function FeedScreen({ navigation }: any) {
                     {composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
-                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setExclusivePost(false); setInnovationPost(false); setQuotingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setExclusivePost(false); setInnovationPost(false); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
                     </TouchableOpacity>
@@ -1167,6 +1185,19 @@ export default function FeedScreen({ navigation }: any) {
               }}>
                 <Feather name="trash-2" size={18} color="#FF3B30" />
                 <Text style={[s.menuOptionTxt, { color: '#FF3B30' }]}>Delete post</Text>
+              </TouchableOpacity>
+            )}
+
+            {menuPost?.user_id === userId && (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
+                const captured = menuPost;
+                setMenuPost(null);
+                setQuotingPost(null);
+                setThreadingPost(captured);
+                setComposerOpen(true);
+              }}>
+                <Feather name="corner-down-right" size={18} color="#000" />
+                <Text style={s.menuOptionTxt}>Add to thread</Text>
               </TouchableOpacity>
             )}
 
