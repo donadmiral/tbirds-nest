@@ -19,6 +19,7 @@ import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
 import BuiltInZimbabweStrip from '../../components/BuiltInZimbabweStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
+import ImageView from 'react-native-image-viewing';
 import { FeedSkeleton } from '../../components/Skeleton';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -127,6 +128,7 @@ export default function FeedScreen({ navigation }: any) {
   const [mentionActive, setMentionActive] = useState(false);
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
+  const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
   const [sendPost, setSendPost] = useState<Post | null>(null);
   const [sendConvs, setSendConvs] = useState<any[]>([]);
   const [sendBusy, setSendBusy] = useState(false);
@@ -1022,7 +1024,15 @@ export default function FeedScreen({ navigation }: any) {
         })()}
 
         {(() => {
-          const media = renderMedia(post, screenFocused && post.id === activePostId, () => handleDoubleTap(post.id, openPost));
+          const openViewer = (idx?: number) => {
+            const items: any[] = (post.media && post.media.length > 0) ? post.media : (post.media_url ? [{ url: post.media_url, media_type: 'image' }] : []);
+            const imgs = items.filter((m: any) => m.media_type === 'image').map((m: any) => ({ uri: m.url }));
+            if (imgs.length === 0) { openPost(); return; }
+            const tapped = items[idx ?? 0];
+            const vIdx = tapped ? imgs.findIndex(i => i.uri === tapped.url) : 0;
+            setViewer({ images: imgs, index: vIdx >= 0 ? vIdx : 0 });
+          };
+          const media = renderMedia(post, screenFocused && post.id === activePostId, (idx?: number) => handleDoubleTap(post.id, () => openViewer(idx)));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
@@ -1310,6 +1320,15 @@ export default function FeedScreen({ navigation }: any) {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      <ImageView
+        images={viewer?.images ?? []}
+        imageIndex={viewer?.index ?? 0}
+        visible={!!viewer}
+        onRequestClose={() => setViewer(null)}
+        swipeToCloseEnabled
+        doubleTapToZoomEnabled
+      />
 
       <Modal visible={!!menuPost} transparent animationType="slide" onRequestClose={() => setMenuPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setMenuPost(null)}>

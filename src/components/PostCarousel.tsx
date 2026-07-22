@@ -38,7 +38,7 @@ type Props = {
   media: CarouselMedia[];
   containerWidth: number;
   isActive?: boolean;
-  onMediaPress?: () => void;
+  onMediaPress?: (index?: number) => void;
 };
 
 // 4:5 portrait = height is 1.25x width (same as Instagram)
@@ -234,7 +234,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
       );
     }
     return (
-      <TouchableOpacity activeOpacity={0.97} onPress={onMediaPress} disabled={!onMediaPress}>
+      <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(index)} disabled={!onMediaPress}>
         <CarouselImage
           uri={item.url}
           width={containerWidth}
@@ -262,7 +262,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
               isScreenActive={isActive}
             />
           ) : (
-            <TouchableOpacity activeOpacity={0.97} onPress={onMediaPress} disabled={!onMediaPress}>
+            <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(0)} disabled={!onMediaPress}>
               <CarouselImage
                 uri={item.url}
                 width={containerWidth}
