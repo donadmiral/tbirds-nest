@@ -1131,6 +1131,11 @@ export default function FeedScreen({ navigation }: any) {
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: '#D97706', fontWeight: '700' }}> · Innovation</Text>}</Text>
             </View>
           </TouchableOpacity>
+          {userId && post.user_id !== userId && !followingIds.has(post.user_id) && (
+            <TouchableOpacity onPress={() => toggleFollow(post.user_id)} activeOpacity={0.8} style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, borderWidth: 1, borderColor: NAVY, marginRight: 6 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '600', color: NAVY }}>Follow</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={s.menuBtn} onPress={() => setMenuPost(post)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Feather name="more-horizontal" size={18} color="#8E8E93" />
           </TouchableOpacity>
