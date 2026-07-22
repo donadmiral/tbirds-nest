@@ -125,6 +125,8 @@ export default function PostScreen({ route, navigation }: any) {
   );
 
   const [refreshing, setRefreshing] = useState(false);
+  const [threadAbove, setThreadAbove] = useState<any[]>([]);
+  const [threadBelow, setThreadBelow] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -154,6 +156,28 @@ export default function PostScreen({ route, navigation }: any) {
           bookmarks_count: pd.bookmarks_count ?? 0,
           post_media: Array.isArray(pd.post_media) ? pd.post_media : [],
         });
+        try {
+          const above: any[] = [];
+          let cursor = pd.thread_parent_id ?? null;
+          let hops = 0;
+          while (cursor && hops < 10) {
+            const { data: par } = await supabase.from('posts').select('id, user_id, content, body, created_at, thread_parent_id').eq('id', cursor).maybeSingle();
+            if (!par) break;
+            above.unshift({ ...par, content: par.content ?? par.body ?? '' });
+            cursor = par.thread_parent_id ?? null;
+            hops++;
+          }
+          const { data: kids } = await supabase.from('posts').select('id, user_id, content, body, created_at').eq('thread_parent_id', postId).order('created_at', { ascending: true });
+          const below = (kids ?? []).map((k: any) => ({ ...k, content: k.content ?? k.body ?? '' }));
+          const tIds = Array.from(new Set([...above, ...below].map((t: any) => t.user_id)));
+          const tMap: Record<string, any> = {};
+          if (tIds.length > 0) {
+            const { data: tAuthors } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', tIds);
+            (tAuthors ?? []).forEach((a: any) => { tMap[a.id] = a; });
+          }
+          setThreadAbove(above.map((t: any) => ({ ...t, author: tMap[t.user_id] ?? null })));
+          setThreadBelow(below.map((t: any) => ({ ...t, author: tMap[t.user_id] ?? null })));
+        } catch (e) { console.log('THREAD_LOAD_ERR', e); }
         if (userId) {
           const { data: ld } = await supabase.from('post_likes')
             .select('post_id').eq('user_id', userId).eq('post_id', postId).maybeSingle();
@@ -387,11 +411,14 @@ export default function PostScreen({ route, navigation }: any) {
     | { type: 'post'; key: string }
     | { type: 'divider'; key: string; count: number }
     | { type: 'comment'; key: string; item: Comment }
+    | { type: 'thread'; key: string; item: any; pos: 'above' | 'below' }
     | { type: 'empty'; key: string };
 
   const rows: Row[] = [];
   if (post) {
+    threadAbove.forEach((t: any) => rows.push({ type: 'thread', key: 't-' + t.id, item: t, pos: 'above' } as any));
     rows.push({ type: 'post', key: '__post' });
+    threadBelow.forEach((t: any) => rows.push({ type: 'thread', key: 't-' + t.id, item: t, pos: 'below' } as any));
     rows.push({ type: 'divider', key: '__div', count: commentData.items.length });
     if (commentData.loaded && commentData.items.length === 0) {
       rows.push({ type: 'empty', key: '__empty' });
@@ -426,6 +453,19 @@ export default function PostScreen({ route, navigation }: any) {
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
             renderItem={({ item: row }) => {
+              if (row.type === 'thread') {
+                const t = (row as any).item;
+                const openT = () => { const nav: any = navigation; if (nav.push) { nav.push('Post', { postId: t.id }); } else { nav.navigate('Post', { postId: t.id }); } };
+                return (
+                  <TouchableOpacity style={{ flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10 }} activeOpacity={0.85} onPress={openT}>
+                    <View style={{ width: 2, backgroundColor: '#D1D5DB', borderRadius: 1, marginRight: 12 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#0A0A0A' }} numberOfLines={1}>{t.author?.full_name || t.author?.username || 'Member'} <Text style={{ fontWeight: '400', color: '#8E8E93' }}>{relTime(t.created_at)}</Text></Text>
+                      <Text style={{ fontSize: 14, color: '#111827', marginTop: 2 }} numberOfLines={3}>{t.content}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }
               if (row.type === 'post' && post) {
                 const a = post.author;
                 const roleLine = a?.degree_program || null;
