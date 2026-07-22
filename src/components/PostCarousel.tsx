@@ -43,6 +43,9 @@ type Props = {
 // 4:5 portrait = height is 1.25x width (same as Instagram)
 const HEIGHT_RATIO = 5 / 4; // 1.25
 
+// Feed sound rule: autoplay muted; once the user unmutes, new videos inherit sound this session
+let sessionMuted = true;
+
 function CarouselImage({ uri, width, height }: { uri: string; width: number; height: number }) {
   const [loaded, setLoaded] = useState(false);
 
@@ -76,7 +79,7 @@ function CarouselVideo({
 }) {
   const videoRef = useRef<Video>(null);
   const [paused, setPaused] = useState(false);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(sessionMuted);
   const [showControls, setShowControls] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsOpacity = useRef(new Animated.Value(0)).current;
@@ -119,7 +122,7 @@ function CarouselVideo({
   };
 
   const toggleMute = () => {
-    setMuted(prev => !prev);
+    setMuted(prev => { sessionMuted = !prev; return !prev; });
     scheduleHide();
   };
 
