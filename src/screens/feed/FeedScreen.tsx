@@ -144,6 +144,7 @@ export default function FeedScreen({ navigation }: any) {
   const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
   const [likersPost, setLikersPost] = useState<Post | null>(null);
   const [likersList, setLikersList] = useState<any[]>([]);
+  const [wtfSuggestions, setWtfSuggestions] = useState<any[]>([]);
   const [sendPost, setSendPost] = useState<Post | null>(null);
   const [sendConvs, setSendConvs] = useState<any[]>([]);
   const [sendBusy, setSendBusy] = useState(false);
@@ -294,6 +295,15 @@ export default function FeedScreen({ navigation }: any) {
       const pm: ProfileMap = {};
       (pData || []).forEach((p: any) => { pm[p.id] = p; });
       setProfilesMap(pm);
+      if (userId) {
+        supabase.from('profiles')
+          .select('id, full_name, username, avatar_url, headline, connections_count')
+          .neq('id', userId)
+          .is('deactivated_at', null)
+          .order('connections_count', { ascending: false, nullsFirst: false })
+          .limit(15)
+          .then(({ data: sug }) => { if (sug) setWtfSuggestions(sug); });
+      }
       if (userId) {
         const ids = scored.map(p => p.id);
         const [{ data: likes }, { data: bookmarks }, { data: reposts }] = await Promise.all([
@@ -994,8 +1004,12 @@ export default function FeedScreen({ navigation }: any) {
     } else {
       list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     }
+    const wtfVisible = wtfSuggestions.filter((p: any) => !followingIds.has(p.id));
+    if (!search && wtfVisible.length >= 3 && list.length > 8) {
+      list = [...list.slice(0, 8), { id: '__wtf', __suggestions: true } as any, ...list.slice(8)];
+    }
     return list;
-  }, [posts, feedMode, search, followingIds]);
+  }, [posts, feedMode, search, followingIds, wtfSuggestions]);
 
   const renderMedia = useCallback((post: any, isActive: boolean, onMediaPress?: () => void) => {
     const mediaItems: CarouselMedia[] = Array.isArray(post.media) && post.media.length > 0
@@ -1029,6 +1043,29 @@ export default function FeedScreen({ navigation }: any) {
   }, [navigation]);
 
   const renderPost = useCallback(({ item: post }: { item: Post }) => {
+    if ((post as any).__suggestions) {
+      const vis = wtfSuggestions.filter((p: any) => !followingIds.has(p.id)).slice(0, 8);
+      if (vis.length === 0) return <View />;
+      return (
+        <View style={{ paddingTop: 12, paddingBottom: 14, borderBottomWidth: 6, borderBottomColor: '#F2F3F5', backgroundColor: '#FFFFFF' }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: '#0A0A0A', paddingHorizontal: 16, marginBottom: 10, letterSpacing: -0.1 }}>Who to follow</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { mediaTouchRef.current = false; }} onTouchCancel={() => { mediaTouchRef.current = false; }}>
+            {vis.map((p: any) => (
+              <View key={p.id} style={{ width: 148, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E7EB', borderRadius: 14, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, backgroundColor: '#FFFFFF' }}>
+                <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPress={() => navigation.navigate('UserProfile', { userId: p.id, user: p })}>
+                  {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#1D4ED8' }}>{initials(p.full_name || p.username)}</Text></View>}
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0A0A0A', marginTop: 8 }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                  <Text style={{ fontSize: 11.5, color: '#8E8E93', marginTop: 2 }} numberOfLines={1}>{p.headline || (p.username ? '@' + p.username : '')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => toggleFollow(p.id)} activeOpacity={0.8} style={{ marginTop: 10, paddingHorizontal: 22, paddingVertical: 7, borderRadius: 16, backgroundColor: NAVY }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#FFFFFF' }}>Follow</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
     const author = profilesMap[post.user_id];
     const isLiked = !!likedPostsRef.current[post.id];
     const isBookmarked = !!bookmarkedPostsRef.current[post.id];
@@ -1171,6 +1208,9 @@ export default function FeedScreen({ navigation }: any) {
     profilesMap,
     likerNames,
     quotedMap,
+    followingIds,
+    wtfSuggestions,
+    toggleFollow,
     heartPost,
     handleDoubleTap,
     renderMedia,
