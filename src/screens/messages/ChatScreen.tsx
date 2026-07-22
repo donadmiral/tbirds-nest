@@ -1060,23 +1060,27 @@ export default function ChatScreen() {
     return out;
   }, [messages, searchQuery]);
 
-  const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any }>>({});
+  const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string } | null }>>({});
   useEffect(() => {
     const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
     const missing = ids.filter(id => !sharedPostsMap[id]);
     if (missing.length === 0) return;
     (async () => {
-      const { data: sp } = await supabase.from('posts').select('id, user_id, content, body').in('id', missing);
+      const { data: sp } = await supabase.from('posts').select('id, user_id, content, body, media_url, post_media(url, media_type, sort_order)').in('id', missing);
       const rows = sp ?? [];
       const uids = Array.from(new Set(rows.map((r: any) => r.user_id)));
       const am: Record<string, any> = {};
       if (uids.length > 0) {
-        const { data: aus } = await supabase.from('profiles').select('id, full_name, username').in('id', uids);
+        const { data: aus } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
         (aus ?? []).forEach((a: any) => { am[a.id] = a; });
       }
       setSharedPostsMap(prev => {
         const n = { ...prev };
-        rows.forEach((r: any) => { n[r.id] = { content: r.content ?? r.body ?? '', author: am[r.user_id] ?? null }; });
+        rows.forEach((r: any) => {
+          const pmArr = Array.isArray(r.post_media) ? [...r.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : [];
+          const firstMedia = pmArr[0] ? { url: pmArr[0].url, media_type: pmArr[0].media_type } : (r.media_url ? { url: r.media_url, media_type: 'image' } : null);
+          n[r.id] = { content: r.content ?? r.body ?? '', author: am[r.user_id] ?? null, media: firstMedia };
+        });
         missing.forEach(id => { if (!n[id]) n[id] = { content: 'Post unavailable', author: null }; });
         return n;
       });
@@ -1118,11 +1122,32 @@ export default function ChatScreen() {
           onPress={() => setShowTimestamp(prev => prev === msg.id ? null : msg.id)}
           onLongPress={() => setSelectedMsg(msg)} delayLongPress={380}>
           {msg.shared_post_id && (
-            <TouchableOpacity style={{ backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 4, minWidth: 180 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0A0A0A' }} numberOfLines={1}>{sharedPost?.author?.full_name || sharedPost?.author?.username || 'Post'}</Text>
-              <Text style={{ fontSize: 13, color: '#374151', marginTop: 2 }} numberOfLines={3}>{sharedPost?.content || 'Tap to view'}</Text>
+            <TouchableOpacity style={{ width: 232, backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 14, overflow: 'hidden', marginBottom: 4 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onLongPress={() => setSelectedMsg(msg)} delayLongPress={380}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 8 }}>
+                {sharedPost?.author?.avatar_url
+                  ? <ExpoImage source={{ uri: sharedPost.author.avatar_url }} style={{ width: 24, height: 24, borderRadius: 12 }} contentFit="cover" />
+                  : <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#E5E7EB' }} />}
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0A0A0A', flex: 1 }} numberOfLines={1}>{sharedPost?.author?.full_name || sharedPost?.author?.username || 'Post'}</Text>
+              </View>
+              {sharedPost?.media?.url ? (
+                sharedPost.media.media_type === 'video' ? (
+                  <View style={{ width: '100%', height: 232, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 15, color: '#0A0A0A', marginLeft: 3 }}>{'\u25B6'}</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <ExpoImage source={{ uri: sharedPost.media.url }} style={{ width: '100%', height: 232 }} contentFit="cover" />
+                )
+              ) : null}
+              {(sharedPost?.content ?? '') !== '' ? (
+                <Text style={{ fontSize: 13, color: '#374151', paddingHorizontal: 10, paddingVertical: 8 }} numberOfLines={sharedPost?.media?.url ? 2 : 4}>{sharedPost?.content}</Text>
+              ) : (!sharedPost?.media?.url ? (
+                <Text style={{ fontSize: 13, color: '#8E8E93', paddingHorizontal: 10, paddingBottom: 8 }}>Tap to view post</Text>
+              ) : null)}
             </TouchableOpacity>
           )}
+
           {replyPreview && (
             <View style={[s.replyBar, isMe ? s.replyBarMe : s.replyBarOther]}>
               <View style={[s.replyAccent, isMe ? s.replyAccentMe : s.replyAccentOther]} />
