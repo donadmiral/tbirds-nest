@@ -828,7 +828,7 @@ export default function FeedScreen({ navigation }: any) {
             </View>
           </TouchableOpacity>
           <TouchableOpacity style={s.menuBtn} onPress={() => setMenuPost(post)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Text style={s.menuBtnTxt}>···</Text>
+            <Feather name="more-horizontal" size={18} color="#8E8E93" />
           </TouchableOpacity>
         </View>
 
@@ -1212,8 +1212,8 @@ const s = StyleSheet.create({
   menuBtn: { paddingHorizontal: 8, paddingVertical: 6 },
   menuBtnTxt: { fontSize: 16, color: '#C7C7CC', letterSpacing: 1 },
   content: { fontSize: 15, lineHeight: 22, color: '#1A1A1A', paddingHorizontal: 16, paddingBottom: 14 },
-  hashTag: { color: '#007AFF', fontWeight: '500' },
-  mention: { color: '#5856D6', fontWeight: '500' },
+  hashTag: { color: '#0B1E3D', fontWeight: '600' },
+  mention: { color: '#0B1E3D', fontWeight: '600' },
   metricsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6, gap: 4 },
   metric: { fontSize: 13, color: '#8E8E93' },
   metricDot: { fontSize: 12, color: '#C7C7CC' },

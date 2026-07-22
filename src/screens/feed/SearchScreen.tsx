@@ -11,10 +11,10 @@ import { useAuthStore } from '../../stores/authStore';
 
 type Tab = 'people' | 'posts' | 'jobs';
 
-const TABS: { id: Tab; label: string; emoji: string }[] = [
-  { id: 'people', label: 'People', emoji: '👥' },
-  { id: 'posts',  label: 'Posts',  emoji: '📝' },
-  { id: 'jobs',   label: 'Jobs',   emoji: '💼' },
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'people', label: 'People' },
+  { id: 'posts',  label: 'Posts' },
+  { id: 'jobs',   label: 'Jobs' },
 ];
 
 const RECENT_KEY = 'tbn_recent_searches_v1';
@@ -258,7 +258,7 @@ export default function SearchScreen({ navigation }: any) {
                 activeOpacity={0.7}
               >
                 <Text style={[s.tabTxt, isActive && s.tabTxtActive]}>
-                  {t.emoji} {t.label}{count > 0 ? ` ${count}` : ''}
+                  {t.label}{count > 0 ? `  ${count}` : ''}
                 </Text>
               </TouchableOpacity>
             );
