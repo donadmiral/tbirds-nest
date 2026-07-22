@@ -4,6 +4,7 @@ import {
   StatusBar, RefreshControl, Share, Alert, TextInput, Image,
   KeyboardAvoidingView, Platform, Keyboard, ScrollView, Dimensions, Modal,
   Animated,
+  PanResponder,
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -116,6 +117,18 @@ export default function FeedScreen({ navigation }: any) {
   const loadingMoreRef = useRef(false);
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation'>('forYou');
+  const mediaTouchRef = useRef(false);
+  const feedModeRef = useRef(feedMode);
+  feedModeRef.current = feedMode;
+  const tabSwipe = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (_e, g) => !mediaTouchRef.current && Math.abs(g.dx) > 40 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
+    onPanResponderRelease: (_e, g) => {
+      const order = ['forYou', 'latest', 'innovation'] as const;
+      const i = order.indexOf(feedModeRef.current);
+      if (g.dx < -40 && i < order.length - 1) { setFeedMode(order[i + 1]); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
+      else if (g.dx > 40 && i > 0) { setFeedMode(order[i - 1]); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
+    },
+  })).current;
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [composerOpen, setComposerOpen] = useState(false);
@@ -1037,7 +1050,11 @@ export default function FeedScreen({ navigation }: any) {
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
             <View style={{ position: 'relative' }}>
-              <View>
+              <View
+                onTouchStart={() => { mediaTouchRef.current = true; }}
+                onTouchEnd={() => { mediaTouchRef.current = false; }}
+                onTouchCancel={() => { mediaTouchRef.current = false; }}
+              >
                 {media}
               </View>
 
@@ -1171,6 +1188,7 @@ export default function FeedScreen({ navigation }: any) {
           {loading ? (
             <FeedSkeleton />
           ) : (
+            <View style={s.flex} {...tabSwipe.panHandlers}>
             <FlatList
               data={displayPosts}
               onScroll={handleTabBarScroll}
@@ -1209,6 +1227,7 @@ export default function FeedScreen({ navigation }: any) {
                 </View>
               }
             />
+            </View>
           )}
 
           {composerOpen && (
