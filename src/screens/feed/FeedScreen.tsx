@@ -118,6 +118,7 @@ export default function FeedScreen({ navigation }: any) {
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation'>('forYou');
   const mediaTouchRef = useRef(false);
+  const hiddenIdsRef = useRef<Set<string>>(new Set());
   const feedModeRef = useRef(feedMode);
   feedModeRef.current = feedMode;
   const tabSwipe = useRef(PanResponder.create({
@@ -262,6 +263,11 @@ export default function FeedScreen({ navigation }: any) {
         return;
       }
       if (!rawPosts) return;
+      if (userId) {
+        const { data: hid } = await supabase.from('hidden_posts').select('post_id').eq('user_id', userId);
+        hiddenIdsRef.current = new Set((hid ?? []).map((h: any) => h.post_id));
+      }
+      rawPosts = (rawPosts as any[]).filter((row: any) => !hiddenIdsRef.current.has(row.id));
 
       const normalized = (rawPosts as any[]).map((row: any): Omit<Post, 'score'> => ({
         id: row.id, user_id: row.user_id, content: row.content ?? row.body ?? '',
@@ -602,6 +608,22 @@ export default function FeedScreen({ navigation }: any) {
     }
   }, [userId]);
 
+  const hidePost = useCallback(async (postId: string) => {
+    hiddenIdsRef.current.add(postId);
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    if (!userId) return;
+    const { error } = await supabase.from('hidden_posts').insert({ user_id: userId, post_id: postId });
+    if (error && error.code !== '23505') console.log('[HIDE_ERR]', error.message);
+  }, [userId]);
+
+  const reportPost = useCallback(async (postId: string, reason: string) => {
+    if (!userId) return;
+    const { error } = await supabase.from('post_reports').insert({ reporter_id: userId, post_id: postId, reason });
+    if (error) { Alert.alert('Could not report', error.message); return; }
+    hidePost(postId);
+    Alert.alert('Reported', 'Thanks. This post has been hidden from your feed.');
+  }, [userId, hidePost]);
+
   const openLikers = useCallback(async (post: Post) => {
     setLikersPost(post);
     setLikersList([]);
@@ -929,7 +951,7 @@ export default function FeedScreen({ navigation }: any) {
       if (e1 || !d1) return;
       if (d1.length < 30) hasMoreRef.current = false;
       const existing = new Set(posts.map(p => p.id));
-      const freshRows = (d1 as any[]).filter((row: any) => !existing.has(row.id));
+      const freshRows = (d1 as any[]).filter((row: any) => !existing.has(row.id) && !hiddenIdsRef.current.has(row.id));
       if (freshRows.length === 0) return;
       const normalized = freshRows.map((row: any): Omit<Post, 'score'> => ({
         id: row.id, user_id: row.user_id, content: row.content ?? row.body ?? '',
@@ -1523,6 +1545,38 @@ export default function FeedScreen({ navigation }: any) {
               <Feather name="copy" size={18} color="#000" />
               <Text style={s.menuOptionTxt}>Copy text</Text>
             </TouchableOpacity>
+
+            {menuPost?.user_id !== userId && (
+              <>
+                <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
+                  const id = menuPost?.id;
+                  setMenuPost(null);
+                  if (id) hidePost(id);
+                }}>
+                  <Feather name="eye-off" size={18} color="#000" />
+                  <Text style={s.menuOptionTxt}>Not interested</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
+                  const captured = menuPost;
+                  setMenuPost(null);
+                  if (!captured) return;
+                  setTimeout(() => {
+                    Alert.alert('Report post', 'Why are you reporting this?', [
+                      { text: 'Spam', onPress: () => reportPost(captured.id, 'spam') },
+                      { text: 'Harassment', onPress: () => reportPost(captured.id, 'harassment') },
+                      { text: 'False information', onPress: () => reportPost(captured.id, 'false_information') },
+                      { text: 'Inappropriate content', onPress: () => reportPost(captured.id, 'inappropriate') },
+                      { text: 'Cancel', style: 'cancel' },
+                    ]);
+                  }, 350);
+                }}>
+                  <Feather name="flag" size={18} color="#FF3B30" />
+                  <Text style={[s.menuOptionTxt, { color: '#FF3B30' }]}>Report post</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
 
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
               const id = menuPost?.id;
