@@ -36,6 +36,8 @@ import JobsScreen           from '../screens/jobs/JobsScreen';
 import MarketScreen         from '../screens/market/MarketScreen';
 import ListingDetailScreen  from '../screens/market/ListingDetailScreen';
 import CreateListingScreen  from '../screens/market/CreateListingScreen';
+import { BlurView } from 'expo-blur';
+import AdaptiveTabBar from '../components/AdaptiveTabBar';
 
 import ConversationsScreen     from '../screens/messages/ConversationsScreen';
 import ChatScreen              from '../screens/messages/ChatScreen';
@@ -224,6 +226,7 @@ function MainTabs() {
 
   return (
     <Tab.Navigator
+      tabBar={(p) => <AdaptiveTabBar {...p} />}
       initialRouteName="Feed"
       screenOptions={({ route }) => ({
         headerShown: false, tabBarHideOnKeyboard: true,
@@ -245,12 +248,29 @@ function MainTabs() {
         },
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: 'rgba(255,255,255,0.96)', borderTopColor: '#E5E5EA',
-          borderTopWidth: StyleSheet.hairlineWidth,
-          height: tabBarHeight,
-          paddingBottom: tabBarPaddingBottom,
-          paddingTop: 10,
+          position: 'absolute',
+          left: 16,
+          right: 16,
+          bottom: tabBarPaddingBottom + 10,
+          height: 64,
+          borderRadius: 32,
+          overflow: 'hidden',
+          backgroundColor: 'rgba(255,255,255,0.88)',
+          borderTopWidth: 0,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: 'rgba(0,0,0,0.08)',
+          paddingBottom: 0,
+          paddingTop: 0,
+          shadowColor: '#000',
+          shadowOpacity: 0.14,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 8 },
+          elevation: 14,
         },
+        tabBarItemStyle: { height: 64 },
+        tabBarBackground: () => (
+          <BlurView tint="systemChromeMaterialLight" intensity={90} style={StyleSheet.absoluteFill} />
+        ),
       })}
     >
       <Tab.Screen name="Feed"     component={FeedStackNav} />

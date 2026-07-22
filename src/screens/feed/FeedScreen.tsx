@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import StoryBar from '../../components/stories/StoryStrip';
+import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import { FeedSkeleton } from '../../components/Skeleton';
@@ -107,6 +108,7 @@ export default function FeedScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation'>('forYou');
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState('');
@@ -304,6 +306,12 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => {
     loadFeedRef.current = loadFeed;
   }, [loadFeed]);
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase.from('orbits').select('following_id').eq('follower_id', userId).limit(1000)
+      .then(({ data }) => { if (data) setFollowingIds(new Set(data.map((r: any) => r.following_id))); });
+  }, [userId]);
 
   useEffect(() => {
     loadFeed(true);
@@ -545,7 +553,7 @@ export default function FeedScreen({ navigation }: any) {
     setSharingPost(p => ({ ...p, [post.id]: true }));
     const author = profilesMap[post.user_id];
     try {
-      await Share.share({ message: `${author?.full_name || 'Someone'} on PlatinumCircles:\n\n${post.content}` });
+      await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${post.content}\n\nOpen in the app: platinum-circles://post/${post.id}` });
     } catch {}
     setTimeout(() => setSharingPost(p => { const n = { ...p }; delete n[post.id]; return n; }), 600);
   }, [profilesMap]);
@@ -783,10 +791,14 @@ export default function FeedScreen({ navigation }: any) {
     if (feedMode === 'innovation') list = list.filter(p => p.channel === 'innovation');
     const term = search.trim().toLowerCase();
     if (term) list = list.filter(p => (p.content || '').toLowerCase().includes(term));
-    if (feedMode === 'forYou') list.sort((a, b) => b.score - a.score);
-    else list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    if (feedMode === 'forYou') {
+      const boost = (p: Post) => p.score + (followingIds.has(p.user_id) ? 500 : 0);
+      list.sort((a, b) => boost(b) - boost(a));
+    } else {
+      list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    }
     return list;
-  }, [posts, feedMode, search]);
+  }, [posts, feedMode, search, followingIds]);
 
   const renderMedia = useCallback((post: any, isActive: boolean) => {
     const mediaItems: CarouselMedia[] = Array.isArray(post.media) && post.media.length > 0
@@ -808,6 +820,15 @@ export default function FeedScreen({ navigation }: any) {
     );
   }, []);
 
+  const openHashtag = useCallback((tag: string) => {
+    navigation.navigate('TrendFeed', { tag });
+  }, [navigation]);
+
+  const openMention = useCallback(async (uname: string) => {
+    const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url').eq('username', uname).maybeSingle();
+    if (data?.id) navigation.navigate('UserProfile', { userId: data.id, user: data });
+  }, [navigation]);
+
   const renderPost = useCallback(({ item: post }: { item: Post }) => {
     const author = profilesMap[post.user_id];
     const isLiked = !!likedPostsRef.current[post.id];
@@ -824,7 +845,7 @@ export default function FeedScreen({ navigation }: any) {
             {author?.avatar_url ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /> : <View style={s.avatarFb}><Text style={s.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>}
             <View style={s.postMetaTxt}>
               <Text style={s.postAuthor} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
-              <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}</Text>
+              <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: '#D97706', fontWeight: '700' }}> · Innovation</Text>}</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity style={s.menuBtn} onPress={() => setMenuPost(post)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
@@ -833,7 +854,7 @@ export default function FeedScreen({ navigation }: any) {
         </View>
 
         <TouchableOpacity activeOpacity={0.95} onPress={() => handleDoubleTap(post.id, openPost)}>
-          <Text style={s.content}>{renderRichText(post.content, () => {}, () => {})}</Text>
+          <Text style={s.content}>{renderRichText(post.content, openHashtag, openMention)}</Text>
         </TouchableOpacity>
 
         {(() => {
@@ -923,7 +944,7 @@ export default function FeedScreen({ navigation }: any) {
         <View style={s.container}>
           <View style={s.header}>
             <View style={s.headerRow}>
-              <Text style={s.logo}>PlatinumCircles</Text>
+              <Text style={s.logo}>Platinum<Text style={{ color: '#8E9BAE' }}>Circles</Text></Text>
               <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
                 <View>
                   <Feather name="bell" size={20} color="#000" />
@@ -935,13 +956,19 @@ export default function FeedScreen({ navigation }: any) {
                 </View>
               </TouchableOpacity>
             </View>
-            <TextInput value={search} onChangeText={setSearch} placeholder="Search posts..." placeholderTextColor="#9CA3AF" style={s.searchInput} returnKeyType="search" clearButtonMode="while-editing" />
+
             <View style={s.tabRow}>
-              {(['forYou', 'latest', 'innovation'] as const).map(m => (
-                <TouchableOpacity key={m} style={[s.tab, feedMode === m && s.tabActive]} onPress={() => setFeedMode(m)}>
-                  <Text style={[s.tabTxt, feedMode === m && s.tabTxtActive]}>{m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : 'Innovation'}</Text>
-                </TouchableOpacity>
-              ))}
+              {(['forYou', 'latest', 'innovation'] as const).map(m => {
+                const on = feedMode === m;
+                const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : 'Innovation';
+                const accent = m === 'innovation' ? '#D97706' : '#0B1E3D';
+                return (
+                  <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 6, marginRight: 22 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
+                    <Text style={{ fontSize: 15, fontWeight: on ? '800' : '500', color: on ? '#0A0A0A' : '#A3A3A3', letterSpacing: -0.2 }}>{label}</Text>
+                    <View style={{ height: 3, width: 20, borderRadius: 2, marginTop: 5, backgroundColor: on ? accent : 'transparent' }} />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
@@ -950,6 +977,8 @@ export default function FeedScreen({ navigation }: any) {
           ) : (
             <FlatList
               data={displayPosts}
+              onScroll={handleTabBarScroll}
+              scrollEventThrottle={16}
               keyExtractor={p => p.id}
               renderItem={renderPost}
               extraData={flatListExtra}
@@ -1092,7 +1121,7 @@ export default function FeedScreen({ navigation }: any) {
               setMenuPost(null);
               setTimeout(async () => {
                 if (!captured) return;
-                await Share.share({ message: `${author?.full_name || 'Someone'} on PlatinumCircles:\n\n${captured.content}` });
+                await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${captured.content}\n\nOpen in the app: platinum-circles://post/${captured.id}` });
               }, 400);
             }}>
               <Feather name="share-2" size={18} color="#000" />
@@ -1190,7 +1219,7 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { paddingHorizontal: 16, paddingBottom: 4, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, marginBottom: 12 },
-  logo: { fontSize: 26, fontWeight: '800', color: NAVY, letterSpacing: -0.5 },
+  logo: { fontSize: 25, fontWeight: '800', color: '#0A0A0A', letterSpacing: -0.8 },
   iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F8F8F8', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center' },
   searchInput: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
   tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: '#F5F5F5', borderRadius: 12, padding: 3 },

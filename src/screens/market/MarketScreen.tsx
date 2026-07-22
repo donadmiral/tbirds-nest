@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useFocusEffect } from '@react-navigation/native';
+import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 
 import { marketService, Listing, MARKET_CATEGORIES } from '../../services/marketService';
 
@@ -157,9 +158,11 @@ export default function MarketScreen({ navigation }: any) {
           keyExtractor={(l) => l.id}
           numColumns={2}
           columnWrapperStyle={{ gap: GUTTER, paddingHorizontal: GUTTER }}
-          contentContainerStyle={{ gap: GUTTER, paddingTop: 4, paddingBottom: 24 }}
+          contentContainerStyle={{ gap: GUTTER, paddingTop: 4, paddingBottom: 110 }}
           renderItem={renderItem}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}
+          onScroll={handleTabBarScroll}
+          scrollEventThrottle={16}
         />
       )}
     </SafeAreaView>
