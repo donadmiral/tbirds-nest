@@ -73,14 +73,15 @@ function CarouselImage({ uri, width, height }: { uri: string; width: number; hei
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive,
+  uri, width, height, isVisible, isScreenActive, onTapOverride,
 }: {
   uri: string; width: number; height: number;
-  isVisible: boolean; isScreenActive: boolean;
+  isVisible: boolean; isScreenActive: boolean; onTapOverride?: () => void;
 }) {
   const videoRef = useRef<Video>(null);
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(sessionMuted);
+  const [progress, setProgress] = useState(0);
   const [showControls, setShowControls] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsOpacity = useRef(new Animated.Value(0)).current;
@@ -157,7 +158,7 @@ function CarouselVideo({
     <TouchableOpacity
       style={{ width, height, backgroundColor: '#000' }}
       activeOpacity={1}
-      onPress={toggleControls}
+      onPress={onTapOverride ?? toggleControls}
     >
       <Video
         ref={videoRef}
@@ -167,7 +168,16 @@ function CarouselVideo({
         shouldPlay={shouldPlay}
         isLooping
         isMuted={muted}
+        progressUpdateIntervalMillis={250}
+        onPlaybackStatusUpdate={(st: AVPlaybackStatus) => {
+          if (st.isLoaded && st.durationMillis) setProgress(st.positionMillis / st.durationMillis);
+        }}
       />
+
+      {/* Playback progress bar */}
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' }} pointerEvents="none">
+        <View style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%`, height: '100%', backgroundColor: '#FFFFFF' }} />
+      </View>
 
       {/* Mute button always visible bottom-right */}
       <TouchableOpacity
@@ -230,6 +240,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           height={slideHeight}
           isVisible={index === activeIndex}
           isScreenActive={isActive}
+          onTapOverride={onMediaPress ? () => onMediaPress(index) : undefined}
         />
       );
     }
@@ -260,6 +271,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
               height={slideHeight}
               isVisible={true}
               isScreenActive={isActive}
+              onTapOverride={onMediaPress ? () => onMediaPress(0) : undefined}
             />
           ) : (
             <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(0)} disabled={!onMediaPress}>

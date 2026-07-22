@@ -21,6 +21,7 @@ import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
 import BuiltInZimbabweStrip from '../../components/BuiltInZimbabweStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import ImageView from 'react-native-image-viewing';
+import { Video as AVVideo, ResizeMode as AVResizeMode } from 'expo-av';
 import { FeedSkeleton } from '../../components/Skeleton';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -143,6 +144,7 @@ export default function FeedScreen({ navigation }: any) {
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
   const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
+  const [fsVideo, setFsVideo] = useState<{ url: string } | null>(null);
   const [likersPost, setLikersPost] = useState<Post | null>(null);
   const [likersList, setLikersList] = useState<any[]>([]);
   const [wtfSuggestions, setWtfSuggestions] = useState<any[]>([]);
@@ -1141,6 +1143,8 @@ export default function FeedScreen({ navigation }: any) {
         {(() => {
           const openViewer = (idx?: number) => {
             const items: any[] = (post.media && post.media.length > 0) ? post.media : (post.media_url ? [{ url: post.media_url, media_type: 'image' }] : []);
+            const tappedItem = items[idx ?? 0];
+            if (tappedItem && tappedItem.media_type === 'video') { setFsVideo({ url: tappedItem.url }); return; }
             const imgs = items.filter((m: any) => m.media_type === 'image').map((m: any) => ({ uri: m.url }));
             if (imgs.length === 0) { openPost(); return; }
             const tapped = items[idx ?? 0];
@@ -1481,6 +1485,25 @@ export default function FeedScreen({ navigation }: any) {
         swipeToCloseEnabled
         doubleTapToZoomEnabled
       />
+
+      <Modal visible={!!fsVideo} animationType="fade" onRequestClose={() => setFsVideo(null)}>
+        <View style={{ flex: 1, backgroundColor: '#000' }}>
+          {fsVideo && (
+            <AVVideo
+              source={{ uri: fsVideo.url }}
+              style={{ flex: 1 }}
+              resizeMode={AVResizeMode.CONTAIN}
+              shouldPlay
+              isLooping
+              useNativeControls
+            />
+          )}
+          <TouchableOpacity onPress={() => setFsVideo(null)} style={{ position: 'absolute', top: 54, left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', zIndex: 10 }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Feather name="x" size={20} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
 
       <Modal visible={!!menuPost} transparent animationType="slide" onRequestClose={() => setMenuPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setMenuPost(null)}>
