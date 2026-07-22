@@ -22,6 +22,7 @@ import BuiltInZimbabweStrip from '../../components/BuiltInZimbabweStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import ImageView from 'react-native-image-viewing';
 import { Video as AVVideo, ResizeMode as AVResizeMode } from 'expo-av';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedSkeleton } from '../../components/Skeleton';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -39,7 +40,7 @@ type Post = {
 };
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
 type ProfileMap = Record<string, ProfileLite>;
-type CommentPreview = { body: string; authorName: string };
+type CommentPreview = { body: string; authorName: string; likes?: number };
 type LocalMedia = { uri: string; type: 'image' | 'video'; ext: string; width?: number; height?: number; fileSize?: number; thumbnail?: string; };
 type PostMediaRow = { id: string; url: string; media_type: 'image' | 'video'; width?: number | null; height?: number | null; sort_order: number };
 
@@ -145,6 +146,27 @@ export default function FeedScreen({ navigation }: any) {
   const [menuPost, setMenuPost] = useState<Post | null>(null);
   const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
   const [fsVideo, setFsVideo] = useState<{ url: string } | null>(null);
+  useEffect(() => {
+    AsyncStorage.getItem('pc_draft').then(v => {
+      if (!v) return;
+      try {
+        const d = JSON.parse(v);
+        if (d?.text) setComposerText(d.text);
+        if (d?.exclusive) setExclusivePost(true);
+        if (d?.innovation) setInnovationPost(true);
+      } catch {}
+    }).catch(() => {});
+  }, []);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (composerText.trim().length > 0) {
+        AsyncStorage.setItem('pc_draft', JSON.stringify({ text: composerText, exclusive: exclusivePost, innovation: innovationPost })).catch(() => {});
+      } else {
+        AsyncStorage.removeItem('pc_draft').catch(() => {});
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [composerText, exclusivePost, innovationPost]);
   const [likersPost, setLikersPost] = useState<Post | null>(null);
   const [likersList, setLikersList] = useState<any[]>([]);
   const [wtfSuggestions, setWtfSuggestions] = useState<any[]>([]);
@@ -327,7 +349,7 @@ export default function FeedScreen({ navigation }: any) {
         if (ids.length > 0) {
           const { data: cData } = await supabase
             .from('post_comments')
-            .select('post_id, body, user_id, parent_comment_id, created_at')
+            .select('post_id, body, user_id, parent_comment_id, created_at, likes_count')
             .in('post_id', ids)
             .order('created_at', { ascending: false });
 
@@ -352,9 +374,10 @@ export default function FeedScreen({ navigation }: any) {
           }
 
           topLevelComments.forEach((c: any) => {
-            if (!cpMap[c.post_id]) {
+            const cur = cpMap[c.post_id];
+            if (!cur || (c.likes_count ?? 0) > (cur.likes ?? 0)) {
               const a = authors[c.user_id];
-              cpMap[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User' };
+              cpMap[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User', likes: c.likes_count ?? 0 };
             }
           });
 
@@ -997,7 +1020,7 @@ export default function FeedScreen({ navigation }: any) {
         setRepostedPosts(prev => { const m = { ...prev }; (reposts ?? []).forEach((r: any) => { m[r.post_id] = true; }); return m; });
       }
       const { data: cData } = await supabase.from('post_comments')
-        .select('post_id, body, user_id, parent_comment_id, created_at')
+        .select('post_id, body, user_id, parent_comment_id, created_at, likes_count')
         .in('post_id', ids)
         .order('created_at', { ascending: false });
       if (cData && cData.length > 0) {
@@ -1011,7 +1034,7 @@ export default function FeedScreen({ navigation }: any) {
           const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds2);
           (aData ?? []).forEach((a: any) => { authors2[a.id] = a; });
         }
-        setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { if (!cp[c.post_id]) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User' }; } }); return cp; });
+        setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { const cur = cp[c.post_id]; if (!cur || (c.likes_count ?? 0) > (cur.likes ?? 0)) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User', likes: c.likes_count ?? 0 }; } }); return cp; });
       }
     } catch (e) { console.log('[LOAD_MORE_ERR]', e); }
     finally { loadingMoreRef.current = false; setLoadingMore(false); }
@@ -1234,7 +1257,7 @@ export default function FeedScreen({ navigation }: any) {
         {preview && (
           <TouchableOpacity style={s.cpWrap} onPress={openPost} activeOpacity={0.8}>
             <Text style={s.cpTxt} numberOfLines={2}>
-              <Text style={s.cpAuthor}>{preview.authorName} </Text>{preview.body}
+              <Text style={s.cpAuthor}>{preview.authorName} </Text>{preview.body}{(preview.likes ?? 0) > 0 ? <Text style={{ color: '#8E8E93' }}>{'  ·  ' + fmtCount(preview.likes!) + ((preview.likes === 1) ? ' like' : ' likes')}</Text> : null}
             </Text>
             {post.comments_count > 1 && <Text style={s.viewAll}>View all {post.comments_count} comments</Text>}
           </TouchableOpacity>
@@ -1413,7 +1436,7 @@ export default function FeedScreen({ navigation }: any) {
                     {composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
-                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerText(''); setComposerMedia([]); setExclusivePost(false); setInnovationPost(false); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerMedia([]); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
                     </TouchableOpacity>
