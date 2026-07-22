@@ -71,6 +71,7 @@ type MessageItem = {
   media_width?: number | null;
   media_height?: number | null;
   reply_to_id?: string | null;
+  shared_post_id?: string | null;
   _optimistic?: boolean;
   _reactions?: Reaction[];
 };
@@ -1059,6 +1060,28 @@ export default function ChatScreen() {
     return out;
   }, [messages, searchQuery]);
 
+  const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any }>>({});
+  useEffect(() => {
+    const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
+    const missing = ids.filter(id => !sharedPostsMap[id]);
+    if (missing.length === 0) return;
+    (async () => {
+      const { data: sp } = await supabase.from('posts').select('id, user_id, content, body').in('id', missing);
+      const rows = sp ?? [];
+      const uids = Array.from(new Set(rows.map((r: any) => r.user_id)));
+      const am: Record<string, any> = {};
+      if (uids.length > 0) {
+        const { data: aus } = await supabase.from('profiles').select('id, full_name, username').in('id', uids);
+        (aus ?? []).forEach((a: any) => { am[a.id] = a; });
+      }
+      setSharedPostsMap(prev => {
+        const n = { ...prev };
+        rows.forEach((r: any) => { n[r.id] = { content: r.content ?? r.body ?? '', author: am[r.user_id] ?? null }; });
+        missing.forEach(id => { if (!n[id]) n[id] = { content: 'Post unavailable', author: null }; });
+        return n;
+      });
+    })();
+  }, [messages, sharedPostsMap]);
   const replySource = useMemo(() => {
     if (!replyTo) return null;
     return replyTo.text || (replyTo.media_type === 'image' ? '📷 Photo' : replyTo.media_type === 'video' ? '🎬 Video' : '📎 Media');
@@ -1080,6 +1103,7 @@ export default function ChatScreen() {
     const replySourceMsg = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
     const replyPreview = replySourceMsg ? (replySourceMsg.text || (replySourceMsg.media_type === 'image' ? '📷 Photo' : '🎬 Video')) : null;
     const isMediaOnly = (msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url && !msg.text;
+    const sharedPost = msg.shared_post_id ? sharedPostsMap[msg.shared_post_id] : null;
 
     return (
       <View style={[s.row, isMe ? s.rowMe : s.rowOther]}>
@@ -1093,6 +1117,12 @@ export default function ChatScreen() {
         <Pressable style={[s.bubbleCol, isMe ? s.bubbleColMe : s.bubbleColOther]}
           onPress={() => setShowTimestamp(prev => prev === msg.id ? null : msg.id)}
           onLongPress={() => setSelectedMsg(msg)} delayLongPress={380}>
+          {msg.shared_post_id && (
+            <TouchableOpacity style={{ backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 4, minWidth: 180 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0A0A0A' }} numberOfLines={1}>{sharedPost?.author?.full_name || sharedPost?.author?.username || 'Post'}</Text>
+              <Text style={{ fontSize: 13, color: '#374151', marginTop: 2 }} numberOfLines={3}>{sharedPost?.content || 'Tap to view'}</Text>
+            </TouchableOpacity>
+          )}
           {replyPreview && (
             <View style={[s.replyBar, isMe ? s.replyBarMe : s.replyBarOther]}>
               <View style={[s.replyAccent, isMe ? s.replyAccentMe : s.replyAccentOther]} />

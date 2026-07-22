@@ -124,6 +124,9 @@ export default function FeedScreen({ navigation }: any) {
   const [mentionActive, setMentionActive] = useState(false);
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
+  const [sendPost, setSendPost] = useState<Post | null>(null);
+  const [sendConvs, setSendConvs] = useState<any[]>([]);
+  const [sendBusy, setSendBusy] = useState(false);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
   const [threadingPost, setThreadingPost] = useState<Post | null>(null);
   const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string }>>({});
@@ -568,6 +571,45 @@ export default function FeedScreen({ navigation }: any) {
     }
   }, [userId]);
 
+  const openSendSheet = useCallback(async (post: Post) => {
+    if (!userId) return;
+    setSendPost(post);
+    setSendConvs([]);
+    const { data: convs } = await supabase.from('conversations')
+      .select('id, user_1, user_2, last_message_time')
+      .eq('type', 'direct')
+      .or(`user_1.eq.${userId},user_2.eq.${userId}`)
+      .order('last_message_time', { ascending: false })
+      .limit(12);
+    const rows = convs ?? [];
+    const otherIds = Array.from(new Set(rows.map((c: any) => (c.user_1 === userId ? c.user_2 : c.user_1)).filter(Boolean)));
+    const pm: Record<string, any> = {};
+    if (otherIds.length > 0) {
+      const { data: profs } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', otherIds);
+      (profs ?? []).forEach((p: any) => { pm[p.id] = p; });
+    }
+    setSendConvs(rows.map((c: any) => { const oid = c.user_1 === userId ? c.user_2 : c.user_1; return { ...c, other: pm[oid] ?? null, otherId: oid }; }));
+  }, [userId]);
+
+  const sendPostTo = useCallback(async (conv: any) => {
+    if (!userId || !sendPost || sendBusy) return;
+    setSendBusy(true);
+    try {
+      const { error } = await supabase.from('messages').insert({
+        conversation_id: conv.id, sender_id: userId, receiver_id: conv.otherId ?? null,
+        text: null, shared_post_id: sendPost.id,
+      });
+      if (error) throw error;
+      await supabase.from('conversations').update({ last_message: 'Shared a post', last_message_time: new Date().toISOString(), last_message_sender_id: userId }).eq('id', conv.id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setSendPost(null);
+    } catch (e: any) {
+      Alert.alert('Could not send', e?.message || 'Try again.');
+    } finally {
+      setSendBusy(false);
+    }
+  }, [userId, sendPost, sendBusy]);
+
   const sharePost = useCallback(async (post: Post) => {
     if (sharingPostRef.current[post.id]) return;
     setSharingPost(p => ({ ...p, [post.id]: true }));
@@ -953,7 +995,7 @@ export default function FeedScreen({ navigation }: any) {
             <Feather name="bookmark" size={14} color={isBookmarked ? '#2563EB' : '#6B7280'} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => sharePost(post)} activeOpacity={0.75}>
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
             <Feather name="share-2" size={14} color="#6B7280" />
           </TouchableOpacity>
         </View>
@@ -1162,6 +1204,24 @@ export default function FeedScreen({ navigation }: any) {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <Modal visible={!!sendPost} transparent animationType="slide" onRequestClose={() => setSendPost(null)}>
+        <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setSendPost(null)}>
+          <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
+            <View style={s.menuHandle} />
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0A0A0A', paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
+            {sendConvs.length === 0 && <Text style={{ fontSize: 13, color: '#8E8E93', paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
+            <ScrollView style={{ maxHeight: 320 }}>
+              {sendConvs.map((c: any) => (
+                <TouchableOpacity key={c.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(c)} disabled={sendBusy}>
+                  {c.other?.avatar_url ? <ExpoImage source={{ uri: c.other.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: '#6B7280' }}>{initials(c.other?.full_name || c.other?.username)}</Text></View>}
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#0A0A0A' }} numberOfLines={1}>{c.other?.full_name || c.other?.username || 'Member'}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       <Modal visible={!!menuPost} transparent animationType="slide" onRequestClose={() => setMenuPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setMenuPost(null)}>
