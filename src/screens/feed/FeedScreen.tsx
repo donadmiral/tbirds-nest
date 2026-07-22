@@ -914,6 +914,16 @@ export default function FeedScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
+        {post.likes_count > 0 && (
+          <TouchableOpacity style={{ paddingHorizontal: 16, paddingTop: 4 }} onPress={openPost} activeOpacity={0.8}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#0A0A0A' }}>
+              {isLiked
+                ? (post.likes_count === 1 ? 'Liked by you' : `Liked by you and ${post.likes_count - 1} ${post.likes_count === 2 ? 'other' : 'others'}`)
+                : `${post.likes_count} ${post.likes_count === 1 ? 'like' : 'likes'}`}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {preview && (
           <TouchableOpacity style={s.cpWrap} onPress={openPost} activeOpacity={0.8}>
             <Text style={s.cpTxt} numberOfLines={2}>
