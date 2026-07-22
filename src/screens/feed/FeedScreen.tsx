@@ -101,6 +101,7 @@ export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [profilesMap, setProfilesMap] = useState<ProfileMap>({});
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [likerNames, setLikerNames] = useState<Record<string, string[]>>({});
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
   const [commentPreviews, setCommentPreviews] = useState<Record<string, CommentPreview>>({});
@@ -245,6 +246,8 @@ export default function FeedScreen({ navigation }: any) {
       }));
       const scored = normalized.map(p => ({ ...p, score: scorePost(p) }));
       setPosts(scored);
+      const likerIds = scored.filter(p => p.likes_count > 0).map(p => p.id);
+      if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(m); });
       const uids = Array.from(new Set(scored.map(p => p.user_id)));
       const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
       const pm: ProfileMap = {};
@@ -917,9 +920,13 @@ export default function FeedScreen({ navigation }: any) {
         {post.likes_count > 0 && (
           <TouchableOpacity style={{ paddingHorizontal: 16, paddingTop: 4 }} onPress={openPost} activeOpacity={0.8}>
             <Text style={{ fontSize: 13, fontWeight: '600', color: '#0A0A0A' }}>
-              {isLiked
-                ? (post.likes_count === 1 ? 'Liked by you' : `Liked by you and ${post.likes_count - 1} ${post.likes_count === 2 ? 'other' : 'others'}`)
-                : `${post.likes_count} ${post.likes_count === 1 ? 'like' : 'likes'}`}
+              {(() => {
+                const n = post.likes_count;
+                const names = likerNames[post.id] ?? [];
+                if (isLiked) return n === 1 ? 'Liked by you' : `Liked by you and ${n - 1} ${n === 2 ? 'other' : 'others'}`;
+                if (names.length > 0) return n === 1 ? `Liked by ${names[0]}` : `Liked by ${names[0]} and ${n - 1} ${n === 2 ? 'other' : 'others'}`;
+                return `${n} ${n === 1 ? 'like' : 'likes'}`;
+              })()}
             </Text>
           </TouchableOpacity>
         )}
@@ -936,6 +943,7 @@ export default function FeedScreen({ navigation }: any) {
     );
   }, [
     profilesMap,
+    likerNames,
     heartPost,
     handleDoubleTap,
     renderMedia,
