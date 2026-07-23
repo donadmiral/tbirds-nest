@@ -55,13 +55,13 @@ const ImmersiveReplyField = React.memo(function ImmersiveReplyField({
         pointerEvents="box-none"
       >
         <TouchableOpacity onPress={onCloseReply} style={s.dismissTap}>
-          <Feather name="x" size={18} color="rgba(245,240,235,0.6)" />
+          <Feather name="x" size={19} color="rgba(255,255,255,0.92)" />
         </TouchableOpacity>
         <TextInput
           ref={inputRef}
           style={s.textInput}
           placeholder="Say something..."
-          placeholderTextColor="rgba(245,240,235,0.3)"
+          placeholderTextColor="rgba(255,255,255,0.6)"
           value={replyText}
           onChangeText={onChangeText}
           multiline={false}
@@ -101,11 +101,11 @@ const ImmersiveReplyField = React.memo(function ImmersiveReplyField({
         onLongPress={onLongPressHeart}
         delayLongPress={300}
       >
-        <Feather name="heart" size={19} color={heartActive ? '#FF3B30' : 'rgba(245,240,235,0.7)'} />
+        <Feather name="heart" size={19} color={heartActive ? '#FF3B30' : 'rgba(255,255,255,0.92)'} />
       </TouchableOpacity>
 
       <TouchableOpacity style={s.sendDefault} activeOpacity={0.8} onPress={onOpenReply}>
-        <Feather name="send" size={15} color="rgba(245,240,235,0.6)" />
+        <Feather name="send" size={16} color="rgba(255,255,255,0.92)" />
       </TouchableOpacity>
     </ReAnimated.View>
   );
@@ -126,10 +126,10 @@ const s = StyleSheet.create({
   },
   textInput: {
     flex: 1, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(245,240,235,0.07)',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(245,240,235,0.10)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.28)',
     paddingHorizontal: 16,
-    color: 'rgba(245,240,235,0.92)', fontSize: 14.5,
+    color: '#FFFFFF', fontSize: 15, fontWeight: '500',
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
@@ -145,8 +145,8 @@ const s = StyleSheet.create({
   },
   promptTap: {
     flex: 1, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(245,240,235,0.07)',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(245,240,235,0.10)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.28)',
     justifyContent: 'center', paddingHorizontal: 16,
   },
   promptText: {
@@ -154,8 +154,8 @@ const s = StyleSheet.create({
   },
   heartCircle: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(245,240,235,0.07)',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(245,240,235,0.10)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.28)',
     alignItems: 'center', justifyContent: 'center',
   },
   heartActive: {
@@ -163,7 +163,7 @@ const s = StyleSheet.create({
   },
   sendDefault: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(245,240,235,0.07)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center', justifyContent: 'center',
   },
 });

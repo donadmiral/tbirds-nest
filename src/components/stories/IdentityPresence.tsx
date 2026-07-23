@@ -50,7 +50,7 @@ const IdentityPresence = React.memo(function IdentityPresence({
   return (
     <>
       {/* Close: top-right, safe-area aware, 44x44 touch target */}
-      <ReAnimated.View style={[s.closeBtnWrap, { top: topInset + 10 }, closeBtnStyle]}>
+      <ReAnimated.View style={[s.closeBtnWrap, { top: topInset + 30 }, closeBtnStyle]}>
         <TouchableOpacity onPress={onClose} style={s.closeBtn} activeOpacity={0.7}>
           <Feather name="x" size={20} color="rgba(245,240,235,0.85)" />
         </TouchableOpacity>
@@ -130,7 +130,7 @@ const s = StyleSheet.create({
   closeBtnWrap: { position: 'absolute', right: 14, zIndex: 15 },
   closeBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(3,6,16,0.25)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center', justifyContent: 'center',
   },
 
@@ -148,16 +148,16 @@ const s = StyleSheet.create({
 
   nameContext: { flex: 1, minWidth: 0 },
   name: {
-    fontSize: 15.5, fontWeight: '600', color: 'rgba(245,240,235,0.95)',
+    fontSize: 16, fontWeight: '700', color: '#FFFFFF',
     letterSpacing: -0.2,
     textShadowColor: 'rgba(0,0,0,0.7)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8,
   },
   contextRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
   contextText: {
-    fontSize: 12.5, color: 'rgba(245,240,235,0.45)', fontWeight: '500',
+    fontSize: 13, color: 'rgba(255,255,255,0.88)', fontWeight: '600',
     textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
-  contextDot: { fontSize: 10, color: 'rgba(245,240,235,0.25)', marginHorizontal: 5 },
+  contextDot: { fontSize: 10, color: 'rgba(255,255,255,0.6)', marginHorizontal: 5 },
   categoryText: {
     fontSize: 11.5, color: 'rgba(196,184,168,0.6)', fontWeight: '600', letterSpacing: 0.3,
     textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3,
