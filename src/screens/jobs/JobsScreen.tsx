@@ -283,7 +283,8 @@ export default function JobsScreen({ navigation }: any) {
   const messageJobPoster = async (job: Job) => {
     if (!userId || !job.posted_by) return;
     try {
-      const convId = await jobsService.getOrCreateConversationWithPoster(userId, job.posted_by);
+      const { data: convId, error: convErr } = await supabase.rpc('start_dm_ctx', { p_receiver_id: job.posted_by, p_context: 'jobs', p_ref_id: job.id });
+      if (convErr || !convId) throw convErr || new Error('Could not start conversation');
       navigation.navigate('Chat', {
         conversationId: convId,
         userId: job.posted_by,

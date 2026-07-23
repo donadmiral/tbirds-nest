@@ -169,6 +169,9 @@ export default function StoryComposerScreen() {
 
   const initialAssets: any[] = route.params?.assets ?? [];
   const mode: string = route.params?.mode ?? 'image';
+  const seedStickers: any[] = route.params?.seedStickers ?? [];
+  const seedCaption: string = route.params?.seedCaption ?? '';
+  const seedText: string = route.params?.seedText ?? '';
   const campusMomentPromptId: string | null = route.params?.campusMomentPromptId ?? null;
   const campusMomentPromptText: string | null = route.params?.campusMomentPromptText ?? null;
   const isDual = mode === 'dual';
@@ -314,7 +317,7 @@ export default function StoryComposerScreen() {
     if (mode === 'text') {
       setDrafts([{
         id: newDraftId(), localUri: null, thumbnailUri: null, mediaType: 'text', caption: '',
-        scope: 'global', audience, reach, uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
+        scope: 'global', audience, reach, uploadState: 'idle', durationSec: null, pollData: null, stickers: seedStickers,
         imageW: 0, imageH: 0, mediaFit: 'cover' as MediaFit,
         mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
         category: null, textBgId: 'navy', textBackground: TEXT_BG_OPTIONS[0].bg,
@@ -333,7 +336,7 @@ export default function StoryComposerScreen() {
       if (frontUri) Image.prefetch(frontUri).catch(() => {});
       setDrafts([{
         id: newDraftId(), localUri: rearUri, thumbnailUri: null, mediaType: 'image', caption: '',
-        scope: 'global', audience, reach, uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
+        scope: 'global', audience, reach, uploadState: 'idle', durationSec: null, pollData: null, stickers: seedStickers,
         imageW: da.rearDimensions?.width || 0, imageH: da.rearDimensions?.height || 0,
         mediaFit: 'cover' as MediaFit,
         mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },

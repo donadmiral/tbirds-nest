@@ -63,7 +63,7 @@ export default function ConversationsScreen({ navigation }: any) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch]  = useState('');
-  const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
+  const [tab, setTab]        = useState<'all' | 'market' | 'jobs' | 'groups' | 'unread'>('all');
 
   const mountedRef = useRef(true);
   const initialLoadDoneRef = useRef(false);
@@ -399,8 +399,11 @@ export default function ConversationsScreen({ navigation }: any) {
   const filtered = conversations.filter(c => {
     if (c.is_archived && tab !== 'all') return false; // archived only in All
     const matchSearch = !search || c.other_name.toLowerCase().includes(search.toLowerCase());
+    const ctx = (c as any).context || 'personal';
     const matchTab = tab === 'all'
-      ? true
+      ? ctx === 'personal'
+      : tab === 'market' ? ctx === 'market'
+      : tab === 'jobs' ? ctx === 'jobs'
       : tab === 'unread' ? c.unread_count > 0
       : tab === 'groups' ? c.is_group
       : true;
@@ -493,10 +496,10 @@ export default function ConversationsScreen({ navigation }: any) {
 
       {/* Tabs */}
       <View style={s.tabs}>
-        {(['all', 'groups', 'unread'] as const).map(t => (
+        {(['all', 'market', 'jobs', 'groups', 'unread'] as const).map(t => (
           <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)} activeOpacity={0.8}>
             <Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>
-              {t === 'all' ? 'All' : t === 'groups' ? 'Groups' : 'Unread'}
+              {t === 'all' ? 'Chats' : t === 'market' ? 'Market' : t === 'jobs' ? 'Jobs' : t === 'groups' ? 'Groups' : 'Unread'}
             </Text>
           </TouchableOpacity>
         ))}

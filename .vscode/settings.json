@@ -1,24 +1,17 @@
 {
-  "deno.enablePaths": [
-    "supabase/functions"
-  ],
-  "deno.lint": true,
-  "deno.unstable": [
-    "bare-node-builtins",
-    "byonm",
-    "sloppy-imports",
-    "unsafe-proto",
-    "webgpu",
-    "broadcast-channel",
-    "worker-options",
-    "cron",
-    "kv",
-    "ffi",
-    "fs",
-    "http",
-    "net"
-  ],
-  "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+  "files.watcherExclude": {
+    "**/.expo/**": true,
+    "**/.expo-shared/**": true,
+    "**/node_modules/**": true,
+    "**/.git/objects/**": true,
+    "**/android/build/**": true,
+    "**/ios/build/**": true
+  },
+  "search.exclude": {
+    "**/.expo": true,
+    "**/node_modules": true
+  },
+  "files.exclude": {
+    "**/.expo": true
   }
 }

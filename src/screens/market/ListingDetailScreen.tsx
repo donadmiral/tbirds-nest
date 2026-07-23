@@ -55,7 +55,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
     if (!listing || !userId || isOwner) return;
     setBusy(true);
     try {
-      const { data, error } = await supabase.rpc('start_dm', { p_receiver_id: listing.seller_id });
+      const { data, error } = await supabase.rpc('start_dm_ctx', { p_receiver_id: listing.seller_id, p_context: 'market', p_ref_id: listing.id });
       if (error || !data) throw error || new Error('Could not start conversation');
       navigation.navigate('Chat', {
         conversationId: data as string,

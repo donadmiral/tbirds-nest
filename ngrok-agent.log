@@ -4002,3 +4002,49 @@ t=2026-07-23T16:40:53-0400 lvl=dbug msg="client switching protocols" id=3cd72482
 2026-07-23T20:44:52.187Z t=2026-07-23T16:44:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=34
 2026-07-23T20:45:02.189Z t=2026-07-23T16:45:02-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
 2026-07-23T20:45:12.188Z t=2026-07-23T16:45:12-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:45:22.190Z t=2026-07-23T16:45:22-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
+2026-07-23T20:45:32.204Z t=2026-07-23T16:45:32-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=53
+2026-07-23T20:45:42.188Z t=2026-07-23T16:45:42-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:45:52.197Z t=2026-07-23T16:45:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=44
+2026-07-23T20:45:53.064Z t=2026-07-23T16:45:53-0400 lvl=dbug msg="half join complete" obj=join id=408a949661a8 from=72.73.64.22:63366 to=[::1]:8081 nbytes=365 err=nil
+2026-07-23T20:45:53.067Z t=2026-07-23T16:45:53-0400 lvl=dbug msg=http.ReadRequest id=b70d25f7d568 typ=proxy err=EOF
+t=2026-07-23T16:45:53-0400 lvl=dbug msg="half join complete" obj=join id=408a949661a8 from=[::1]:8081 to=72.73.64.22:63366 nbytes=129 err="writeto tcp [::1]:62920->[::1]:8081: read tcp [::1]:62920->[::1]:8081: use of closed network connection"
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b id=c10b3204771c type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close id=b70d25f7d568 typ=proxy err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close id=ecf4a270cc72 err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=http.ReadResponse id=b70d25f7d568 typ=proxy err="unexpected EOF"
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b id=c10b3204771c type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close id=b70d25f7d568 typ=proxy err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close id=ecf4a270cc72 err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b id=c10b3204771c type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close id=b70d25f7d568 typ=proxy err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b id=c10b3204771c type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close id=b70d25f7d568 typ=proxy err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b id=c10b3204771c type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:45:53-0400 lvl=dbug msg=close id=b70d25f7d568 typ=proxy err=nil
+2026-07-23T20:46:02.190Z t=2026-07-23T16:46:02-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:46:12.191Z t=2026-07-23T16:46:12-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:46:22.191Z t=2026-07-23T16:46:22-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:46:32.192Z t=2026-07-23T16:46:32-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:46:42.192Z t=2026-07-23T16:46:42-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:46:52.378Z t=2026-07-23T16:46:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=223
+2026-07-23T20:47:02.193Z t=2026-07-23T16:47:02-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:47:12.192Z t=2026-07-23T16:47:12-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:47:22.192Z t=2026-07-23T16:47:22-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:47:32.196Z t=2026-07-23T16:47:32-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
+2026-07-23T20:47:42.194Z t=2026-07-23T16:47:42-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:47:52.195Z t=2026-07-23T16:47:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=24
+2026-07-23T20:48:02.198Z t=2026-07-23T16:48:02-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=41
+2026-07-23T20:48:12.196Z t=2026-07-23T16:48:12-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:48:22.197Z t=2026-07-23T16:48:22-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
+2026-07-23T20:48:32.199Z t=2026-07-23T16:48:32-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
+2026-07-23T20:48:42.198Z t=2026-07-23T16:48:42-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=34
+2026-07-23T20:48:52.199Z t=2026-07-23T16:48:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:49:02.201Z t=2026-07-23T16:49:02-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=40
+2026-07-23T20:49:12.198Z t=2026-07-23T16:49:12-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:49:22.200Z t=2026-07-23T16:49:22-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
+2026-07-23T20:49:32.199Z t=2026-07-23T16:49:32-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:49:42.199Z t=2026-07-23T16:49:42-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:49:52.208Z t=2026-07-23T16:49:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=45
+2026-07-23T20:50:02.201Z t=2026-07-23T16:50:02-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:50:12.203Z t=2026-07-23T16:50:12-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=1cefddd5d987 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
