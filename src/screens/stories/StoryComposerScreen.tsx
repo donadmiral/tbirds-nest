@@ -21,6 +21,7 @@ import DraggableSticker from '../../components/stories/DraggableSticker';
 import type { SmartGuideEntry } from '../../components/stories/DraggableSticker';
 import MediaCanvas from '../../components/stories/MediaCanvas';
 import CategoryPicker from '../../components/stories/CategoryPicker';
+import StickerIcon from '../../components/stories/StickerIcons';
 import {
   getBloomTools, BLOOM_RADIUS, INVOKE_SIZE, BLOOM_TOOL_SIZE,
   type BloomToolDef,
@@ -788,7 +789,7 @@ export default function StoryComposerScreen() {
                     onPress={() => { setOverflowOpen(false); setTimeout(() => t.run(), 220); }}
                   >
                     <View style={[st.trayIcon, t.on && st.trayIconOn]}>
-                      <Feather name={t.icon as any} size={21} color={t.on ? '#020408' : '#FFFFFF'} />
+                      <StickerIcon name={t.id as any} size={22} color={t.on ? '#020408' : '#FFFFFF'} bg={t.on ? '#FFFFFF' : '#141414'} />
                     </View>
                     <Text style={st.trayLabel} numberOfLines={1}>{t.label}</Text>
                   </TouchableOpacity>
