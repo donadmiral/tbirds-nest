@@ -1,3 +1,4 @@
+import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, Image,
@@ -651,7 +652,7 @@ export default function JobsScreen({ navigation }: any) {
             initialNumToRender={8}
             maxToRenderPerBatch={6}
             windowSize={7}
-            contentContainerStyle={[s.list, !displayJobs.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+            onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, !displayJobs.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListEmptyComponent={
               <View style={s.empty}>
                 <Text style={s.emptyEmoji}>💼</Text>
@@ -686,7 +687,7 @@ export default function JobsScreen({ navigation }: any) {
             data={savedJobs}
             keyExtractor={j => j.id}
             renderItem={renderSavedJob}
-            contentContainerStyle={[s.list, !savedJobs.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+            onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, !savedJobs.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListEmptyComponent={
               <View style={s.empty}>
                 <Text style={s.emptyEmoji}>🔖</Text>
@@ -707,7 +708,7 @@ export default function JobsScreen({ navigation }: any) {
           <FlatList
             data={myApplications}
             keyExtractor={a => a.id}
-            contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+            onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No applications yet.</Text></View>}
             renderItem={({ item }) => {
               const sm = STATUS_META[item.status];
@@ -841,7 +842,7 @@ export default function JobsScreen({ navigation }: any) {
               <FlatList
                 data={jobApplicants}
                 keyExtractor={a => a.id}
-                contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+                onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
                 ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No applicants yet.</Text></View>}
                 renderItem={({ item }) => {
                   const sm = STATUS_META[item.status];
@@ -907,7 +908,7 @@ export default function JobsScreen({ navigation }: any) {
               <FlatList
                 data={jobRecs}
                 keyExtractor={r => r.id}
-                contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+                onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
                 ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No recommendations yet.</Text></View>}
                 renderItem={({ item }) => {
                   const rec = item as JobRecommendation;

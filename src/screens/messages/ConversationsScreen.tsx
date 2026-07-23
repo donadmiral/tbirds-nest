@@ -1,3 +1,4 @@
+import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
@@ -516,7 +517,7 @@ export default function ConversationsScreen({ navigation }: any) {
           data={[...pinned, ...unpinned]}
           keyExtractor={i => i.id}
           renderItem={renderItem}
-          contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
+          onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
           removeClippedSubviews={Platform.OS === 'android'}

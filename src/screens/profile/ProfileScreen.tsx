@@ -1,3 +1,4 @@
+import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
@@ -460,7 +461,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={st.safe} edges={['top','left','right']}>
       <StatusBar barStyle="dark-content"/>
-      <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadHighlights();loadTabContent(activeTab);}} tintColor={NAVY}/>} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
+      <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadHighlights();loadTabContent(activeTab);}} tintColor={NAVY}/>} onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
         {/* Identity environment */}
         <View style={st.identityRegion}>
           <View style={st.identityTopRow}>

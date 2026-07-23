@@ -1,3 +1,4 @@
+import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 /**
  * NotificationsScreen.tsx
  * Design: Option 3 — Card Style, Clean Premium.
@@ -433,7 +434,7 @@ export default function NotificationsScreen({ navigation }: any) {
           keyExtractor={(n) => n.id}
           renderItem={renderNotif}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
+          onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[
             s.list,
             filtered.length === 0 && { flexGrow: 1 },
             { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE },

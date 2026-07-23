@@ -2631,3 +2631,270 @@ t=2026-07-23T16:12:35-0400 lvl=dbug msg="received extras" obj=tunnels.session re
 2026-07-23T20:17:45.267Z t=2026-07-23T16:17:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
 2026-07-23T20:17:55.268Z t=2026-07-23T16:17:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
 2026-07-23T20:18:05.266Z t=2026-07-23T16:18:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:18:15.267Z t=2026-07-23T16:18:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:18:18.982Z t=2026-07-23T16:18:18-0400 lvl=dbug msg="tunnel Accept" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b reqType=3 remoteAddr=3.12.62.205:443
+2026-07-23T20:18:19.047Z t=2026-07-23T16:18:18-0400 lvl=dbug msg="dial private connection" id=29e20fc8269a addr=localhost:8081 err=nil
+t=2026-07-23T16:18:18-0400 lvl=dbug msg="joining tunnel conn to backend" id=29e20fc8269a header="{ID:dc3e28de45059893c4d8a358c7d18593 ClientAddr:72.73.64.22:62856 Proto:https EdgeType:0 PassthroughTLS:false}"
+t=2026-07-23T16:18:18-0400 lvl=info msg="join connections" obj=join id=5e53cdda7a51 l=[::1]:8081 r=72.73.64.22:62856
+t=2026-07-23T16:18:18-0400 lvl=dbug msg="got request" id=6ca9861660e1 typ=proxy path=/index.bundle
+t=2026-07-23T16:18:19-0400 lvl=dbug msg="add entry" obj=storage entrysz=513 sz=47208743
+t=2026-07-23T16:18:19-0400 lvl=dbug msg="add entry" obj=storage entrysz=513 sz=47208743
+2026-07-23T20:18:19.055Z t=2026-07-23T16:18:19-0400 lvl=dbug msg="got response for request" id=6ca9861660e1 typ=proxy reqpath=/index.bundle
+t=2026-07-23T16:18:19-0400 lvl=dbug msg="add entry" obj=storage entrysz=874 sz=47208743
+2026-07-23T20:18:26.143Z t=2026-07-23T16:18:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=35
+2026-07-23T20:18:35.301Z t=2026-07-23T16:18:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=70
+2026-07-23T20:18:35.406Z t=2026-07-23T16:18:35-0400 lvl=dbug msg="half join complete" obj=join id=5e53cdda7a51 from=[::1]:8081 to=72.73.64.22:62856 nbytes=16377700 err=nil
+2026-07-23T20:18:35.411Z t=2026-07-23T16:18:35-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=df52f732e8b8 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close id=6ca9861660e1 typ=proxy err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close id=29e20fc8269a err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="half join complete" obj=join id=5e53cdda7a51 from=72.73.64.22:62856 to=[::1]:8081 nbytes=513 err="readfrom tcp [::1]:64742->[::1]:8081: stream closed"
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=http.ReadRequest id=6ca9861660e1 typ=proxy err=EOF
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=df52f732e8b8 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close id=6ca9861660e1 typ=proxy err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close id=29e20fc8269a err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=df52f732e8b8 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close id=6ca9861660e1 typ=proxy err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=df52f732e8b8 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close id=6ca9861660e1 typ=proxy err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=df52f732e8b8 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=close id=6ca9861660e1 typ=proxy err=nil
+2026-07-23T20:18:35.416Z t=2026-07-23T16:18:35-0400 lvl=dbug msg="add entry" obj=storage entrysz=5243393 sz=47208743
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="purge entry" obj=storage sz=52451646
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="purge entry" obj=storage sz=52451152
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="purge entry" obj=storage sz=47207759
+t=2026-07-23T16:18:35-0400 lvl=dbug msg=http.ReadResponse id=6ca9861660e1 typ=proxy err="unexpected EOF"
+2026-07-23T20:18:35.979Z t=2026-07-23T16:18:35-0400 lvl=dbug msg="tunnel Accept" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b reqType=3 remoteAddr=3.12.62.205:443
+2026-07-23T20:18:35.993Z t=2026-07-23T16:18:35-0400 lvl=dbug msg="dial private connection" id=466a82e9859d addr=localhost:8081 err=nil
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="joining tunnel conn to backend" id=466a82e9859d header="{ID:dc3e28de45059893c4d8a358c7d18593 ClientAddr:72.73.64.22:59119 Proto:https EdgeType:0 PassthroughTLS:false}"
+t=2026-07-23T16:18:35-0400 lvl=info msg="join connections" obj=join id=a511d8f1c227 l=[::1]:8081 r=72.73.64.22:59119
+2026-07-23T20:18:35.997Z t=2026-07-23T16:18:35-0400 lvl=dbug msg="got request" id=9232969f8cb6 typ=proxy path=/message
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="add entry" obj=storage entrysz=365 sz=47207759
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="add entry" obj=storage entrysz=365 sz=47207759
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="http client requested connection upgrade" id=9232969f8cb6 typ=proxy
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="got response for request" id=9232969f8cb6 typ=proxy reqpath=/message
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="add entry" obj=storage entrysz=494 sz=47207759
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="add entry" obj=storage entrysz=494 sz=47207759
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="server accepted upgrade request, switching protocols" id=9232969f8cb6 typ=proxy to=websocket
+t=2026-07-23T16:18:35-0400 lvl=dbug msg="client switching protocols" id=9232969f8cb6 typ=proxy to=websocket
+2026-07-23T20:18:36.559Z t=2026-07-23T16:18:36-0400 lvl=dbug msg="tunnel Accept" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b reqType=3 remoteAddr=3.12.62.205:443
+2026-07-23T20:18:36.566Z t=2026-07-23T16:18:36-0400 lvl=dbug msg="dial private connection" id=f331ba317048 addr=localhost:8081 err=nil
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="joining tunnel conn to backend" id=f331ba317048 header="{ID:dc3e28de45059893c4d8a358c7d18593 ClientAddr:72.73.64.22:59127 Proto:https EdgeType:0 PassthroughTLS:false}"
+t=2026-07-23T16:18:36-0400 lvl=info msg="join connections" obj=join id=3b30b8c3ae3c l=[::1]:8081 r=72.73.64.22:59127
+2026-07-23T20:18:36.570Z t=2026-07-23T16:18:36-0400 lvl=dbug msg="got request" id=9605b76e178d typ=proxy path=/hot
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="add entry" obj=storage entrysz=361 sz=47208253
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="add entry" obj=storage entrysz=361 sz=47208253
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="http client requested connection upgrade" id=9605b76e178d typ=proxy
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="got response for request" id=9605b76e178d typ=proxy reqpath=/hot
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="add entry" obj=storage entrysz=490 sz=47208253
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="add entry" obj=storage entrysz=490 sz=47208253
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="server accepted upgrade request, switching protocols" id=9605b76e178d typ=proxy to=websocket
+t=2026-07-23T16:18:36-0400 lvl=dbug msg="client switching protocols" id=9605b76e178d typ=proxy to=websocket
+2026-07-23T20:18:45.267Z t=2026-07-23T16:18:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=32
+2026-07-23T20:18:55.269Z t=2026-07-23T16:18:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
+2026-07-23T20:19:05.267Z t=2026-07-23T16:19:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:19:15.269Z t=2026-07-23T16:19:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:19:25.271Z t=2026-07-23T16:19:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
+2026-07-23T20:19:35.268Z t=2026-07-23T16:19:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:19:45.270Z t=2026-07-23T16:19:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:19:55.269Z t=2026-07-23T16:19:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:20:05.292Z t=2026-07-23T16:20:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=59
+2026-07-23T20:20:15.270Z t=2026-07-23T16:20:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:20:25.269Z t=2026-07-23T16:20:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:20:35.270Z t=2026-07-23T16:20:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:20:45.270Z t=2026-07-23T16:20:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:20:55.271Z t=2026-07-23T16:20:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:21:05.271Z t=2026-07-23T16:21:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:21:15.272Z t=2026-07-23T16:21:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=28
+2026-07-23T20:21:25.273Z t=2026-07-23T16:21:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:21:35.272Z t=2026-07-23T16:21:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:21:45.274Z t=2026-07-23T16:21:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:21:55.280Z t=2026-07-23T16:21:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=42
+2026-07-23T20:22:05.274Z t=2026-07-23T16:22:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:22:15.276Z t=2026-07-23T16:22:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:22:25.275Z t=2026-07-23T16:22:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:22:35.276Z t=2026-07-23T16:22:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:22:45.275Z t=2026-07-23T16:22:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:22:55.275Z t=2026-07-23T16:22:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=35
+2026-07-23T20:23:05.278Z t=2026-07-23T16:23:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:23:15.277Z t=2026-07-23T16:23:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:23:25.277Z t=2026-07-23T16:23:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:23:35.280Z t=2026-07-23T16:23:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=39
+2026-07-23T20:23:36.029Z t=2026-07-23T16:23:36-0400 lvl=dbug msg="half join complete" obj=join id=a511d8f1c227 from=72.73.64.22:59119 to=[::1]:8081 nbytes=365 err=nil
+2026-07-23T20:23:36.033Z t=2026-07-23T16:23:36-0400 lvl=dbug msg=http.ReadRequest id=9232969f8cb6 typ=proxy err=EOF
+t=2026-07-23T16:23:36-0400 lvl=dbug msg="half join complete" obj=join id=a511d8f1c227 from=[::1]:8081 to=72.73.64.22:59119 nbytes=129 err="writeto tcp [::1]:64746->[::1]:8081: read tcp [::1]:64746->[::1]:8081: use of closed network connection"
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=b10f904c2ac2 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close id=9232969f8cb6 typ=proxy err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close id=466a82e9859d err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=http.ReadResponse id=9232969f8cb6 typ=proxy err="unexpected EOF"
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=b10f904c2ac2 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close id=9232969f8cb6 typ=proxy err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close id=466a82e9859d err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=b10f904c2ac2 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close id=9232969f8cb6 typ=proxy err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=b10f904c2ac2 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close id=9232969f8cb6 typ=proxy err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=b10f904c2ac2 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:23:36-0400 lvl=dbug msg=close id=9232969f8cb6 typ=proxy err=nil
+2026-07-23T20:23:45.277Z t=2026-07-23T16:23:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:23:55.278Z t=2026-07-23T16:23:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:24:05.279Z t=2026-07-23T16:24:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:24:15.281Z t=2026-07-23T16:24:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=38
+2026-07-23T20:24:25.280Z t=2026-07-23T16:24:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:24:31.539Z t=2026-07-23T16:24:31-0400 lvl=dbug msg="tunnel Accept" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b reqType=3 remoteAddr=3.12.62.205:443
+2026-07-23T20:24:31.582Z t=2026-07-23T16:24:31-0400 lvl=dbug msg="dial private connection" id=9cd362759434 addr=localhost:8081 err=nil
+2026-07-23T20:24:31.584Z t=2026-07-23T16:24:31-0400 lvl=dbug msg="joining tunnel conn to backend" id=9cd362759434 header="{ID:dc3e28de45059893c4d8a358c7d18593 ClientAddr:72.73.64.22:62877 Proto:https EdgeType:0 PassthroughTLS:false}"
+t=2026-07-23T16:24:31-0400 lvl=info msg="join connections" obj=join id=dfba5029fed0 l=[::1]:8081 r=72.73.64.22:62877
+t=2026-07-23T16:24:31-0400 lvl=dbug msg="got request" id=805f1191e2d7 typ=proxy path=/symbolicate
+t=2026-07-23T16:24:31-0400 lvl=dbug msg="add entry" obj=storage entrysz=403 sz=47208743
+2026-07-23T20:24:31.591Z t=2026-07-23T16:24:31-0400 lvl=dbug msg="add entry" obj=storage entrysz=8479 sz=47208743
+2026-07-23T20:24:31.621Z t=2026-07-23T16:24:31-0400 lvl=dbug msg="got response for request" id=805f1191e2d7 typ=proxy reqpath=/symbolicate
+t=2026-07-23T16:24:31-0400 lvl=dbug msg="add entry" obj=storage entrysz=8766 sz=47208743
+t=2026-07-23T16:24:31-0400 lvl=dbug msg="add entry" obj=storage entrysz=13987 sz=47208743
+2026-07-23T20:24:35.280Z t=2026-07-23T16:24:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=33
+2026-07-23T20:24:37.635Z t=2026-07-23T16:24:37-0400 lvl=dbug msg="half join complete" obj=join id=dfba5029fed0 from=[::1]:8081 to=72.73.64.22:62877 nbytes=5508 err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg="half join complete" obj=join id=dfba5029fed0 from=72.73.64.22:62877 to=[::1]:8081 nbytes=8479 err=nil
+2026-07-23T20:24:37.637Z t=2026-07-23T16:24:37-0400 lvl=dbug msg=http.ReadRequest id=805f1191e2d7 typ=proxy err=EOF
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=dd4ee0ef01a9 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close id=805f1191e2d7 typ=proxy err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close id=9cd362759434 err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=dd4ee0ef01a9 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=http.ReadResponse id=805f1191e2d7 typ=proxy err="unexpected EOF"
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close id=805f1191e2d7 typ=proxy err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close id=9cd362759434 err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=dd4ee0ef01a9 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close id=805f1191e2d7 typ=proxy err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=dd4ee0ef01a9 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close id=805f1191e2d7 typ=proxy err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=dd4ee0ef01a9 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:24:37-0400 lvl=dbug msg=close id=805f1191e2d7 typ=proxy err=nil
+2026-07-23T20:24:45.281Z t=2026-07-23T16:24:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:24:55.282Z t=2026-07-23T16:24:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:25:05.283Z t=2026-07-23T16:25:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:25:15.290Z t=2026-07-23T16:25:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=43
+2026-07-23T20:25:25.284Z t=2026-07-23T16:25:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:25:35.285Z t=2026-07-23T16:25:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:25:45.286Z t=2026-07-23T16:25:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:25:55.285Z t=2026-07-23T16:25:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=34
+2026-07-23T20:26:05.287Z t=2026-07-23T16:26:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:26:15.287Z t=2026-07-23T16:26:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:26:25.288Z t=2026-07-23T16:26:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:26:35.322Z t=2026-07-23T16:26:35-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=69
+2026-07-23T20:26:45.287Z t=2026-07-23T16:26:45-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=35
+2026-07-23T20:26:55.288Z t=2026-07-23T16:26:55-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=37
+2026-07-23T20:27:05.288Z t=2026-07-23T16:27:05-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:27:15.289Z t=2026-07-23T16:27:15-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=35
+2026-07-23T20:27:25.290Z t=2026-07-23T16:27:25-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=36
+2026-07-23T20:27:54.486Z t=2026-07-23T16:27:54-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=934d1b0651b6 err="read tcp 10.14.94.97:52197->3.12.62.205:443: wsarecv: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond."
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=dial obj=tunnels.session network=tcp address=connect.ngrok-agent.com:443 timeout=10s
+2026-07-23T20:27:54.491Z t=2026-07-23T16:27:54-0400 lvl=dbug msg="half join complete" obj=join id=3b30b8c3ae3c from=72.73.64.22:59127 to=[::1]:8081 nbytes=3043 err="readfrom tcp [::1]:64747->[::1]:8081: session closed"
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=http.ReadRequest id=9605b76e178d typ=proxy err=EOF
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=disconnect obj=tunnels.session sess="&{raw:{_:[] _:{} v:0x244a3faac00}}" err="read tcp 10.14.94.97:52197->3.12.62.205:443: wsarecv: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond."
+t=2026-07-23T16:27:54-0400 lvl=dbug msg="half join complete" obj=join id=3b30b8c3ae3c from=[::1]:8081 to=72.73.64.22:59127 nbytes=1325485 err="writeto tcp [::1]:64747->[::1]:8081: read tcp [::1]:64747->[::1]:8081: use of closed network connection"
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=0e2f37311adf type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close id=9605b76e178d typ=proxy err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close id=f331ba317048 err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=0e2f37311adf type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close id=9605b76e178d typ=proxy err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close id=f331ba317048 err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=0e2f37311adf type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close id=9605b76e178d typ=proxy err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=0e2f37311adf type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close id=9605b76e178d typ=proxy err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b id=0e2f37311adf type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=close id=9605b76e178d typ=proxy err=nil
+t=2026-07-23T16:27:54-0400 lvl=dbug msg=http.ReadResponse id=9605b76e178d typ=proxy err="unexpected EOF"
+2026-07-23T20:28:04.487Z t=2026-07-23T16:28:04-0400 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp 3.12.62.205:443: i/o timeout"
+t=2026-07-23T16:28:04-0400 lvl=dbug msg="sleep before reconnect" obj=tunnels.session secs=0
+t=2026-07-23T16:28:04-0400 lvl=dbug msg=disconnect obj=tunnels.session sess="&{raw:{_:[] _:{} v:0x244a3faac00}}" err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp 3.12.62.205:443: i/o timeout"
+2026-07-23T20:28:04.987Z t=2026-07-23T16:28:04-0400 lvl=dbug msg=dial obj=tunnels.session network=tcp address=connect.ngrok-agent.com:443 timeout=10s
+2026-07-23T20:28:14.988Z t=2026-07-23T16:28:14-0400 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp 3.12.62.205:443: i/o timeout"
+t=2026-07-23T16:28:14-0400 lvl=dbug msg="sleep before reconnect" obj=tunnels.session secs=1
+t=2026-07-23T16:28:14-0400 lvl=dbug msg=disconnect obj=tunnels.session sess="&{raw:{_:[] _:{} v:0x244a3faac00}}" err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp 3.12.62.205:443: i/o timeout"
+2026-07-23T20:28:15.988Z t=2026-07-23T16:28:15-0400 lvl=dbug msg=dial obj=tunnels.session network=tcp address=connect.ngrok-agent.com:443 timeout=10s
+2026-07-23T20:28:25.988Z t=2026-07-23T16:28:25-0400 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp 3.12.62.205:443: i/o timeout"
+t=2026-07-23T16:28:25-0400 lvl=dbug msg="sleep before reconnect" obj=tunnels.session secs=2
+t=2026-07-23T16:28:25-0400 lvl=dbug msg=disconnect obj=tunnels.session sess="&{raw:{_:[] _:{} v:0x244a3faac00}}" err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp 3.12.62.205:443: i/o timeout"
+2026-07-23T20:28:27.989Z t=2026-07-23T16:28:27-0400 lvl=dbug msg=dial obj=tunnels.session network=tcp address=connect.ngrok-agent.com:443 timeout=10s
+2026-07-23T20:28:32.098Z t=2026-07-23T16:28:32-0400 lvl=dbug msg="overriding CRL distribution point" issuer_subject="CN=Root CA,OU=prod,O=ngrok Inc,L=San Francisco,ST=California,C=US" previous=http://crl.ngrok.com/ngrok.crl new=http://crl.ngrok-agent.com/ngrok.crl
+2026-07-23T20:28:32.101Z t=2026-07-23T16:28:32-0400 lvl=dbug msg="checking crl" issuer_subject="CN=Root CA,OU=prod,O=ngrok Inc,L=San Francisco,ST=California,C=US" url=http://crl.ngrok-agent.com/ngrok.crl
+t=2026-07-23T16:28:32-0400 lvl=dbug msg="no crl found" issuer_subject="CN=connect.ngrok-agent.com,O=ngrok Inc.,L=San Francisco,ST=California,C=US"
+t=2026-07-23T16:28:32-0400 lvl=dbug msg="no crl found" issuer_subject="CN=Intermediate CA,OU=prod,O=ngrok Inc,ST=California,C=US"
+2026-07-23T20:28:32.165Z t=2026-07-23T16:28:32-0400 lvl=dbug msg="successful verify of CRL" issuer_subject="CN=Root CA,OU=prod,O=ngrok Inc,L=San Francisco,ST=California,C=US" url=http://crl.ngrok-agent.com/ngrok.crl check_cert="CN=Root CA,OU=prod,O=ngrok Inc,L=San Francisco,ST=California,C=US"
+t=2026-07-23T16:28:32-0400 lvl=dbug msg="found valid crl" issuer_subject="CN=Root CA,OU=prod,O=ngrok Inc,L=San Francisco,ST=California,C=US" url=http://crl.ngrok-agent.com/ngrok.crl
+2026-07-23T20:28:32.167Z t=2026-07-23T16:28:32-0400 lvl=dbug msg="open stream" obj=tunnels.session obj=csess id=4278a0f1a4f4 reqtype=0 err=nil
+t=2026-07-23T16:28:32-0400 lvl=dbug msg="encode request" obj=tunnels.session obj=csess id=4278a0f1a4f4 sid=3 req="&{Version:[3 2] ClientID:140a59f5afd14d77faa89243ae18ef5b Extra:{OS:windows Arch:amd64 Authtoken:HIDDEN Version:3.39.9 Hostname: UserAgent:ngrok-agent-go/3.39.9 ({\"proxy_type\":\"none\",\"config_version\":\"3\",\"agent_binary_path\":\"C:\\\\app\\\\tbirds-nest\\\\tbirds-nest\\\\node_modules\\\\@expo\\\\ngrok-bin-win32-x64\\\\ngrok.exe\",\"host_uptime_seconds\":234269,\"machine_hostname\":\"DonDon\",\"machine_name\":\"DONDON\",\"os_distro\":\"Microsoft Windows 11 Home\",\"os_version\":\"25H2\",\"agent_pid\":21896,\"hashed_hardware_address\":\"c5bd4b333bf2c2eb68e8d026f5206de2833df74067216e8a089d9da04f40daf8\",\"windows_analytics\":{}}) ngrok-go/1.12.1 Metadata: Cookie:hrBCI+FQCScfb5lPcNiSwjn+X6uZpjcx$VhR9YI+nq3WZsu0qxrOBhC3THYDOmMSDc88qytTVTNTJhFrV7TlUN9baEBIicu0zAFHkzr9gLiZP7zLHDCHCoCF+xTliky+XSiNj4U8OwTVwZvY79s6KZ4ow1Lh276+ryvKByP2aznBywKAsvFAUGsdTtTpe2t7Zua0ofM/oSq2qTdTIueejCoX24F7209frODjDi4PD01oYnrZxZmzErk+s3dIVh/cXSrw4K0UGAw== HeartbeatInterval:10000000000 HeartbeatTolerance:60000000000 Fingerprint:<nil> UpdateUnsupportedError:0x244a3ffc400 StopUnsupportedError:0x244a3ffc400 RestartUnsupportedError:0x244a3ffc1d0 ProxyType: MutualTLS:false ServiceRun:false ConfigVersion: CustomInterface:false CustomCAs:false ClientType:ngrok-agent-go LegNumber:0}}" err=nil
+2026-07-23T20:28:32.227Z t=2026-07-23T16:28:32-0400 lvl=dbug msg="decoded response" obj=tunnels.session obj=csess id=4278a0f1a4f4 sid=3 resp="&{Version:3 ClientID:140a59f5afd14d77faa89243ae18ef5b Error: Extra:{Version:prod Region:us Cookie:hrBCI+FQCScfb5lPcNiSwjn+X6uZpjcx$VhR9YI+nq3WZsu0qxrOBhC3THYDOmMSDc88qytTVTNTJhFrV7TlUN9baEBIicu0zAFHkzr9gLiZP7zLHDCHCoCF+xTliky+XSiNj4U8OwTVwZvY79s6KZ4ow1Lh276+ryvKByP2aznBywKAsvFAUGsdTtTpe2t7Zua0ofM/oSq2qTdTIueejCoX24F7209frODjDi4PD01oYnrZxZmzErk+s3dIVh/cXSrw4K0UGAw== AccountName:donadmiral SessionDuration:0 PlanName:Pay-as-you-go Banner:🚪 One gateway for every AI model. Available in early access *now*: https://ngrok.com/r/ai DeprecationWarning:<nil> ConnectAddresses:[]}}" err=nil
+2026-07-23T20:28:32.230Z t=2026-07-23T16:28:32-0400 lvl=dbug msg="open stream" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b reqtype=1 err=nil
+t=2026-07-23T16:28:32-0400 lvl=dbug msg="encode request" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b sid=7 req="&{ID: ClientID:dc3e28de45059893c4d8a358c7d18593 Proto:https ForwardsTo:http://localhost:8081 ForwardsProto: Opts:0x244a3f08960 Extra:{Name:expo-1784823450341-jisi Token:e74N4juYYWFN8AN1VkQNRJwVmOPcdYSP$3WLTIDrx47TEWh7Wujq8DaYHfeCThFYAXeTzz66MLT3xK77KEk8wA7UvTnh4waPOoIfSgsTp/X2GsUcQUSFy876xID7NGgPAOefcGu87zIZcLJEp1cryVPxDJMVXnGk9vsuYoLGfzL29KaDJsm1gC8EQ75rJnXb9JW9GWcLG1cSfvfTsIY0r2Xiw6B1aP0xv0fdPT5ktgdDMIM10xwMOJaML+M5C5YuWRpc9dlOIXxVlQuUhXxDx8xl0ZJIokx/Zy7yDtYgXV9p0ZJiY3Inkoj3a8Zv6P/ifBQpet7QewEwAqg4ANXtU3AFFjGfFTiceCep2kHUczt+cooSv/ADz0kBF8uA5CNwM/aY6PzUcNZZ59N33yEOHMWZdi1tgDBN0UDLLFCjvZrD0LCDDpB6ofN66HphAzja8gpNVDwRPWJuUY/z/LzFGQ5hA36nczmmyotpW7YUrcEqU1RmjAOGEcyu7TeG7uBwr9hGvDKjshBLuHyu9wZLkXObXM95KuuJ709sLA/tDOAtyp6LLQCCojcjCi+FlCXRVZFy1B7WPV+tSS4djiTeukb6WnS50jtQcFDVRa4tv5FPJm7lZprqd3PQ/GCewbZMfTqCXyJ9bINX0+1xHLqn1vkmxXW5wXr2oTlfbZ6fHS72jTMAfwSAhyr8t/RGTmVUCgvZkySaz8EzZyU5kwfqkXZayHHoMtaQpXQjnBm47VE5rPFXf78hvw3IvdZhLv5jeJ7dLEgQkNMQb5Ro1Ior+v8Q/DCQlrHA8ZmXvt848SxKsX8GkGZTxo5jxGR1Zy3QXtC0s IPPolicyRef: Metadata: Description: Bindings:[] PoolingEnabled:false}}" err=nil
+2026-07-23T20:28:32.419Z t=2026-07-23T16:28:32-0400 lvl=dbug msg="decoded response" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b sid=7 resp="&{ClientID:dc3e28de45059893c4d8a358c7d18593 URL:https://ashy-flask-trusting.ngrok-free.dev Proto:https Opts:map[Auth: BasicAuth:<nil> CircuitBreaker:<nil> Compression:<nil> Domain: HostHeaderRewrite:false Hostname:ashy-flask-trusting.ngrok-free.dev IPRestriction:<nil> LocalURLScheme: MutualTLSCA:<nil> OAuth:<nil> OIDC:<nil> Policy:<nil> ProxyProto:0 RequestHeaders:<nil> ResponseHeaders:<nil> Subdomain: TrafficPolicy: URL: UpstreamCAPEM:<nil> UserAgentFilter:<nil> VerifyUpstreamTLS:false WebhookVerification:<nil> WebsocketTCPConverter:<nil>] Error: Extra:{Token:e74N4juYYWFN8AN1VkQNRJwVmOPcdYSP$3WLTIDrx47TEWh7Wujq8DaYHfeCThFYAXeTzz66MLT3xK77KEk8wA7UvTnh4waPOoIfSgsTp/X2GsUcQUSFy876xID7NGgPAOefcGu87zIZcLJEp1cryVPxDJMVXnGk9vsuYoLGfzL29KaDJsm1gC8EQ75rJnXb9JW9GWcLG1cSfvfTsIY0r2Xiw6B1aP0xv0fdPT5ktgdDMIM10xwMOJaML+M5C5YuWRpc9dlOIXxVlQuUhXxDx8xl0ZJIokx/Zy7yDtYgXV9p0ZJiY3Inkoj3a8Zv6P/ifBQpet7QewEwAqg4ANXtU3AFFjGfFTiceCep2kHUczt+cooSv/ADz0kBF8uA5CNwM/aY6PzUcNZZ59N33yEOHMWZdi1tgDBN0UDLLFCjvZrD0LCDDpB6ofN66HphAzja8gpNVDwRPWJuUY/z/LzFGQ5hA36nczmmyotpW7YUrcEqU1RmjAOGEcyu7TeG7uBwr9hGvDKjshBLuHyu9wZLkXObXM95KuuJ709sLA/tDOAtyp6LLQCCojcjCi+FlCXRVZFy1B7WPV+tSS4djiTeukb6WnS50jtQcFDVRa4tv5FPJm7lZprqd3PQ/GCewbZMfTqCXyJ9bINX0+1xHLqn1vkmxXW5wXr2oTlfbZ6fHS72jTMAfwSAhyr8t/RGTmVUCgvZkySaz8EzZyU5kwfqkXZayHHoMtaQpXQjnBm47VE5rPFXf78hvw3IvdZhLv5jeJ7dLEgQkNMQb5Ro1Ior+v8Q/DCQlrHA8ZmXvt848SxKsX8GkGZTxo5jxGR1Zy3QXtC0s}}" err=nil
+2026-07-23T20:28:32.421Z t=2026-07-23T16:28:32-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2026-07-23T16:28:32-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-07-23T16:28:32-0400 lvl=dbug msg="received extras" obj=tunnels.session region=us version=prod
+2026-07-23T20:28:35.291Z t=2026-07-23T16:28:35-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=a6c842790a87 clientid=140a59f5afd14d77faa89243ae18ef5b
+2026-07-23T20:28:40.994Z t=2026-07-23T16:28:40-0400 lvl=dbug msg="tunnel Accept" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b reqType=3 remoteAddr=3.136.132.147:443
+2026-07-23T20:28:41.020Z t=2026-07-23T16:28:41-0400 lvl=dbug msg="dial private connection" id=454e5f7e7cbb addr=localhost:8081 err=nil
+t=2026-07-23T16:28:41-0400 lvl=dbug msg="joining tunnel conn to backend" id=454e5f7e7cbb header="{ID:dc3e28de45059893c4d8a358c7d18593 ClientAddr:72.73.64.22:62881 Proto:https EdgeType:0 PassthroughTLS:false}"
+t=2026-07-23T16:28:41-0400 lvl=info msg="join connections" obj=join id=e25ff28115d9 l=[::1]:8081 r=72.73.64.22:62881
+t=2026-07-23T16:28:41-0400 lvl=dbug msg="got request" id=e22d7b79bfcd typ=proxy path=/index.bundle
+t=2026-07-23T16:28:41-0400 lvl=dbug msg="add entry" obj=storage entrysz=513 sz=47222730
+t=2026-07-23T16:28:41-0400 lvl=dbug msg="add entry" obj=storage entrysz=513 sz=47222730
+2026-07-23T20:28:41.024Z t=2026-07-23T16:28:41-0400 lvl=dbug msg="got response for request" id=e22d7b79bfcd typ=proxy reqpath=/index.bundle
+t=2026-07-23T16:28:41-0400 lvl=dbug msg="add entry" obj=storage entrysz=874 sz=47222730
+2026-07-23T20:28:42.210Z t=2026-07-23T16:28:42-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=43
+2026-07-23T20:28:52.240Z t=2026-07-23T16:28:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=73
+2026-07-23T20:28:53.547Z t=2026-07-23T16:28:53-0400 lvl=dbug msg="half join complete" obj=join id=e25ff28115d9 from=[::1]:8081 to=72.73.64.22:62881 nbytes=16379339 err=nil
+2026-07-23T20:28:53.550Z t=2026-07-23T16:28:53-0400 lvl=dbug msg="half join complete" obj=join id=e25ff28115d9 from=72.73.64.22:62881 to=[::1]:8081 nbytes=513 err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=http.ReadRequest id=e22d7b79bfcd typ=proxy err=EOF
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b id=dc6174c23620 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close id=e22d7b79bfcd typ=proxy err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close id=454e5f7e7cbb err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b id=dc6174c23620 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close id=e22d7b79bfcd typ=proxy err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close id=454e5f7e7cbb err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b id=dc6174c23620 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close id=e22d7b79bfcd typ=proxy err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b id=dc6174c23620 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close id=e22d7b79bfcd typ=proxy err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b id=dc6174c23620 type=proxy sess=140a59f5afd14d77faa89243ae18ef5b err=nil
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=close id=e22d7b79bfcd typ=proxy err=nil
+2026-07-23T20:28:53.553Z t=2026-07-23T16:28:53-0400 lvl=dbug msg="add entry" obj=storage entrysz=5243393 sz=47222730
+t=2026-07-23T16:28:53-0400 lvl=dbug msg="purge entry" obj=storage sz=47222730
+t=2026-07-23T16:28:53-0400 lvl=dbug msg=http.ReadResponse id=e22d7b79bfcd typ=proxy err="unexpected EOF"
+2026-07-23T20:28:54.161Z t=2026-07-23T16:28:54-0400 lvl=dbug msg="tunnel Accept" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b reqType=3 remoteAddr=3.136.132.147:443
+2026-07-23T20:28:54.173Z t=2026-07-23T16:28:54-0400 lvl=dbug msg="dial private connection" id=1a03cec2583d addr=localhost:8081 err=nil
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="joining tunnel conn to backend" id=1a03cec2583d header="{ID:dc3e28de45059893c4d8a358c7d18593 ClientAddr:72.73.64.22:56085 Proto:https EdgeType:0 PassthroughTLS:false}"
+t=2026-07-23T16:28:54-0400 lvl=info msg="join connections" obj=join id=b42f52abba80 l=[::1]:8081 r=72.73.64.22:56085
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="got request" id=297056d72f5f typ=proxy path=/message
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="add entry" obj=storage entrysz=365 sz=47222730
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="add entry" obj=storage entrysz=365 sz=47222730
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="http client requested connection upgrade" id=297056d72f5f typ=proxy
+2026-07-23T20:28:54.178Z t=2026-07-23T16:28:54-0400 lvl=dbug msg="got response for request" id=297056d72f5f typ=proxy reqpath=/message
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="add entry" obj=storage entrysz=494 sz=47222730
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="add entry" obj=storage entrysz=494 sz=47222730
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="server accepted upgrade request, switching protocols" id=297056d72f5f typ=proxy to=websocket
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="client switching protocols" id=297056d72f5f typ=proxy to=websocket
+2026-07-23T20:28:54.718Z t=2026-07-23T16:28:54-0400 lvl=dbug msg="tunnel Accept" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b reqType=3 remoteAddr=3.136.132.147:443
+2026-07-23T20:28:54.726Z t=2026-07-23T16:28:54-0400 lvl=dbug msg="dial private connection" id=f54bda0af081 addr=localhost:8081 err=nil
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="joining tunnel conn to backend" id=f54bda0af081 header="{ID:dc3e28de45059893c4d8a358c7d18593 ClientAddr:72.73.64.22:56092 Proto:https EdgeType:0 PassthroughTLS:false}"
+t=2026-07-23T16:28:54-0400 lvl=info msg="join connections" obj=join id=d5263d236b3b l=[::1]:8081 r=72.73.64.22:56092
+2026-07-23T20:28:54.730Z t=2026-07-23T16:28:54-0400 lvl=dbug msg="got request" id=ebb43cb88e64 typ=proxy path=/hot
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="add entry" obj=storage entrysz=361 sz=47223224
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="add entry" obj=storage entrysz=361 sz=47223224
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="http client requested connection upgrade" id=ebb43cb88e64 typ=proxy
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="got response for request" id=ebb43cb88e64 typ=proxy reqpath=/hot
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="add entry" obj=storage entrysz=490 sz=47223224
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="add entry" obj=storage entrysz=490 sz=47223224
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="server accepted upgrade request, switching protocols" id=ebb43cb88e64 typ=proxy to=websocket
+t=2026-07-23T16:28:54-0400 lvl=dbug msg="client switching protocols" id=ebb43cb88e64 typ=proxy to=websocket
+2026-07-23T20:29:02.210Z t=2026-07-23T16:29:02-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=44
+2026-07-23T20:29:12.210Z t=2026-07-23T16:29:12-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=42
+2026-07-23T20:29:22.209Z t=2026-07-23T16:29:22-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=41
+2026-07-23T20:29:32.208Z t=2026-07-23T16:29:32-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=41
+2026-07-23T20:29:42.208Z t=2026-07-23T16:29:42-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=41
+2026-07-23T20:29:52.213Z t=2026-07-23T16:29:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=40
+2026-07-23T20:30:02.210Z t=2026-07-23T16:30:02-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=40
+2026-07-23T20:30:12.209Z t=2026-07-23T16:30:12-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=40
+2026-07-23T20:30:22.218Z t=2026-07-23T16:30:22-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=48
+2026-07-23T20:30:32.213Z t=2026-07-23T16:30:32-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=42
+2026-07-23T20:30:42.210Z t=2026-07-23T16:30:42-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=40
+2026-07-23T20:30:52.212Z t=2026-07-23T16:30:52-0400 lvl=dbug msg="heartbeat received" obj=tunnels.session obj=csess id=4278a0f1a4f4 clientid=140a59f5afd14d77faa89243ae18ef5b latency_ms=41

@@ -1,3 +1,4 @@
+import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity,
@@ -678,7 +679,7 @@ export default function NetworkScreen({ navigation }: any) {
             maxToRenderPerBatch={6}
             windowSize={7}
             removeClippedSubviews={Platform.OS === 'android'}
-            contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+            onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListHeaderComponent={
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, marginTop: 4 }}>
                 <Text style={s.sectionLabel}>
@@ -730,7 +731,7 @@ export default function NetworkScreen({ navigation }: any) {
                 maxToRenderPerBatch={8}
                 windowSize={7}
                 removeClippedSubviews={Platform.OS === 'android'}
-                contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+                onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
                 ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No members yet. Join to be the first!</Text></View>}
               />
             )}
@@ -747,7 +748,7 @@ export default function NetworkScreen({ navigation }: any) {
             maxToRenderPerBatch={8}
             windowSize={7}
             removeClippedSubviews={Platform.OS === 'android'}
-            contentContainerStyle={[s.list, filteredUsers.length === 0 && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+            onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, filteredUsers.length === 0 && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListHeaderComponent={
               <>
                 
