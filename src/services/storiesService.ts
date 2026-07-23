@@ -48,9 +48,9 @@ export type MediaTransform = {
 };
 
 export const STORY_CATEGORIES = [
-  'Campus Life', 'Internship', 'Building in Public', 'Event',
-  'Achievement', 'Travel', 'Question', 'Announcement',
-  'Study', 'Career', 'Club', 'Graduation',
+  'Hiring', 'Looking for Work', 'Building in Public', 'Business',
+  'Marketplace', 'Achievement', 'Event', 'Question',
+  'Announcement', 'Innovation', 'Community', 'Travel',
 ] as const;
 
 export type StoryCategory = typeof STORY_CATEGORIES[number];

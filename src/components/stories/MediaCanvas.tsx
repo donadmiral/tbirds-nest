@@ -18,6 +18,20 @@ import {
 import { Feather } from '@expo/vector-icons';
 import type { MediaFit, MediaTransform } from '../../services/storiesService';
 
+// ── Video layer: plays the recorded/selected clip (Instagram behaviour) ──
+let ExpoVideoView: any = null;
+let useExpoVideoPlayer: any = null;
+try {
+  const vm = require('expo-video');
+  ExpoVideoView = vm.VideoView;
+  useExpoVideoPlayer = vm.useVideoPlayer;
+} catch {}
+
+function StoryVideoLayer({ uri }: { uri: string }) {
+  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = false; p.play(); });
+  return <ExpoVideoView style={StyleSheet.absoluteFill} player={player} contentFit="cover" nativeControls={false} />;
+}
+
 // ── Constants ──
 const MIN_SCALE = 1.0;
 const MAX_SCALE = 5.0;
@@ -397,15 +411,17 @@ export default function MediaCanvas({
       {/* Base media layer */}
       {mediaType === 'image' && localUri ? gestureWrappedContent : null}
 
-      {/* Video placeholder */}
-      {mediaType === 'video' && uploadState === 'idle' && (
+      {/* Video layer */}
+      {mediaType === 'video' && localUri && ExpoVideoView && useExpoVideoPlayer ? (
+        <StoryVideoLayer key={localUri} uri={localUri} />
+      ) : mediaType === 'video' && uploadState === 'idle' ? (
         <View style={styles.videoOverlay}>
           <View style={styles.playCircle}>
             <Feather name="play" size={32} color="#FFF" />
           </View>
           <Text style={styles.videoLabel}>Video story</Text>
         </View>
-      )}
+      ) : null}
 
       {/* Upload states */}
       {uploadState === 'uploading' && (
