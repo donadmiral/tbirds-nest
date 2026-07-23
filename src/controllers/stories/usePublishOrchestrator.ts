@@ -26,6 +26,8 @@ interface Draft {
   mediaType: 'image' | 'video' | 'text';
   caption: string;
   scope: 'institution' | 'global';
+  audience?: 'everyone' | 'close_friends' | 'except';
+  reach?: 'followers' | 'wider';
   uploadState: 'idle' | 'uploading' | 'done' | 'error';
   errorMsg?: string | null;
   durationSec?: number | null;
@@ -108,6 +110,8 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           mediaType: d.mediaType,
           caption: d.caption || null,
           scope: d.scope,
+          audience: (d as any).audience || 'everyone',
+          reach: (d as any).reach || 'followers',
           durationSec: d.mediaType === 'video' ? (d.durationSec || 15) : null,
           thumbnailLocalUri: null,
           stickersJson: stickerPayload,

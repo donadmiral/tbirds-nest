@@ -4,6 +4,7 @@ import {
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useFocusEffect } from '@react-navigation/native';
@@ -158,7 +159,7 @@ export default function MarketScreen({ navigation }: any) {
           keyExtractor={(l) => l.id}
           numColumns={2}
           columnWrapperStyle={{ gap: GUTTER, paddingHorizontal: GUTTER }}
-          contentContainerStyle={{ gap: GUTTER, paddingTop: 4, paddingBottom: 110 }}
+          contentContainerStyle={{ gap: GUTTER, paddingTop: 4, paddingBottom: TAB_BAR_CLEARANCE + 24 }}
           renderItem={renderItem}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}
           onScroll={handleTabBarScroll}

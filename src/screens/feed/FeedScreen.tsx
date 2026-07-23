@@ -6,7 +6,8 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { Image as ExpoImage } from 'expo-image';
@@ -1354,7 +1355,7 @@ export default function FeedScreen({ navigation }: any) {
                 });
               }}
               ListHeaderComponent={<><StoryBar /><TrendingTopicsStrip />{feedMode === 'innovation' && <BuiltInZimbabweStrip />}</>}
-              contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 80, 100) }]}
+              contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
               ListEmptyComponent={
                 <View style={s.emptyWrap}>

@@ -4,6 +4,7 @@ import {
   Image, ActivityIndicator, RefreshControl, StatusBar, ScrollView, Alert, Modal, Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import * as Haptics from 'expo-haptics';
@@ -677,7 +678,7 @@ export default function NetworkScreen({ navigation }: any) {
             maxToRenderPerBatch={6}
             windowSize={7}
             removeClippedSubviews={Platform.OS === 'android'}
-            contentContainerStyle={[s.list, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
+            contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListHeaderComponent={
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, marginTop: 4 }}>
                 <Text style={s.sectionLabel}>
@@ -729,7 +730,7 @@ export default function NetworkScreen({ navigation }: any) {
                 maxToRenderPerBatch={8}
                 windowSize={7}
                 removeClippedSubviews={Platform.OS === 'android'}
-                contentContainerStyle={[s.list, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
+                contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
                 ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No members yet. Join to be the first!</Text></View>}
               />
             )}
@@ -746,7 +747,7 @@ export default function NetworkScreen({ navigation }: any) {
             maxToRenderPerBatch={8}
             windowSize={7}
             removeClippedSubviews={Platform.OS === 'android'}
-            contentContainerStyle={[s.list, filteredUsers.length === 0 && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
+            contentContainerStyle={[s.list, filteredUsers.length === 0 && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListHeaderComponent={
               <>
                 

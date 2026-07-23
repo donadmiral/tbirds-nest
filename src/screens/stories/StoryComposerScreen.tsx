@@ -85,7 +85,7 @@ function getDefaultStickerColor(bgId: string): string {
 type PollData = { question: string; options: string[] };
 type Draft = {
   id: string; localUri: string | null; thumbnailUri: string | null;
-  mediaType: 'image' | 'video' | 'text'; caption: string; scope: 'global' | 'global';
+  mediaType: 'image' | 'video' | 'text'; caption: string; scope: 'global'; audience?: 'everyone' | 'close_friends' | 'except'; reach?: 'followers' | 'wider';
   uploadState: 'idle' | 'uploading' | 'done' | 'error'; errorMsg?: string | null;
   durationSec?: number | null; pollData?: PollData | null; stickers?: StoryTextSticker[];
   imageW?: number; imageH?: number; mediaFit: MediaFit; mediaTransform: MediaTransform;
@@ -200,6 +200,17 @@ export default function StoryComposerScreen() {
   const entryRan = useRef(false);
 
   // ── Bloom tools ──
+  const [audience, setAudienceState] = useState<'everyone' | 'close_friends' | 'except'>('everyone');
+  const isBusiness = (profile as any)?.account_type === 'business';
+  const [reach, setReachState] = useState<'followers' | 'wider'>('followers');
+  const toggleReach = useCallback(() => { setReachState(prev => { const next = prev === 'followers' ? 'wider' : 'followers'; setDrafts(ds => ds.map(d => ({ ...d, reach: next } as any))); return next; }); }, []);
+  const cycleAudience = useCallback(() => {
+    setAudienceState(prev => {
+      const next = prev === 'everyone' ? 'close_friends' : 'everyone';
+      setDrafts(ds => ds.map(d => ({ ...d, audience: next } as any)));
+      return next;
+    });
+  }, []);
   const bloomTools = useMemo(() => getBloomTools(isDual ? 'dual' : (mode as any)), [isDual, mode]);
 
   // ── CONTROLLER: Bloom (no deps on other controllers) ──
@@ -303,7 +314,7 @@ export default function StoryComposerScreen() {
     if (mode === 'text') {
       setDrafts([{
         id: newDraftId(), localUri: null, thumbnailUri: null, mediaType: 'text', caption: '',
-        scope: 'global', uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
+        scope: 'global', audience, reach, uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
         imageW: 0, imageH: 0, mediaFit: 'cover' as MediaFit,
         mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
         category: null, textBgId: 'navy', textBackground: TEXT_BG_OPTIONS[0].bg,
@@ -322,7 +333,7 @@ export default function StoryComposerScreen() {
       if (frontUri) Image.prefetch(frontUri).catch(() => {});
       setDrafts([{
         id: newDraftId(), localUri: rearUri, thumbnailUri: null, mediaType: 'image', caption: '',
-        scope: 'global', uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
+        scope: 'global', audience, reach, uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
         imageW: da.rearDimensions?.width || 0, imageH: da.rearDimensions?.height || 0,
         mediaFit: 'cover' as MediaFit,
         mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
@@ -341,7 +352,7 @@ export default function StoryComposerScreen() {
         }
         return {
           id: newDraftId(), localUri: uri, thumbnailUri: null, mediaType: isVideo ? 'video' as const : 'image' as const,
-          caption: '', scope: 'global' as const, uploadState: 'idle' as const,
+          caption: '', scope: 'global' as const, audience, reach, uploadState: 'idle' as const,
           durationSec: isVideo ? (asset.duration || asset.durationSec ? Math.round((asset.duration || asset.durationSec * 1000) / 1000) : null) : null,
           pollData: null, stickers: [], imageW: asset.width || 0, imageH: asset.height || 0,
           mediaFit: 'cover' as MediaFit,
@@ -644,6 +655,22 @@ export default function StoryComposerScreen() {
           ))}
         </View>
 
+        {/* Business reach switch */}
+        {isBusiness && (
+        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 96 }]}>
+          <TouchableOpacity onPress={toggleReach} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: reach === 'wider' ? '#0B1E3D' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: reach === 'wider' ? '#E8A13A' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
+            <Feather name={reach === 'wider' ? 'trending-up' : 'users'} size={13} color={reach === 'wider' ? '#E8A13A' : '#FFFFFF'} />
+            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{reach === 'wider' ? 'Wider reach' : 'Followers'}</Text>
+          </TouchableOpacity>
+        </Animated.View>
+        )}
+        {/* Audience picker */}
+        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 52 }]}>
+          <TouchableOpacity onPress={cycleAudience} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
+            <Feather name={audience === 'close_friends' ? 'star' : 'globe'} size={13} color="#FFFFFF" />
+            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{audience === 'close_friends' ? 'Close friends' : 'Everyone'}</Text>
+          </TouchableOpacity>
+        </Animated.View>
         {/* Post button */}
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) }]}>
           <TouchableOpacity onPress={publish.publishAll} disabled={!canPublish} style={[st.postPillInner, !canPublish && { opacity: 0.4 }]} activeOpacity={0.85}>

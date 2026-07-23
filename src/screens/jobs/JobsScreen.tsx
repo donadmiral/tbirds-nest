@@ -5,6 +5,7 @@ import {
   StatusBar, Alert, Modal, KeyboardAvoidingView, Platform, Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { supabase } from '../../services/supabase';
 import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope } from '../../services/jobsService';
 import { useAuthStore } from '../../stores/authStore';
@@ -650,7 +651,7 @@ export default function JobsScreen({ navigation }: any) {
             initialNumToRender={8}
             maxToRenderPerBatch={6}
             windowSize={7}
-            contentContainerStyle={[s.list, !displayJobs.length && s.listEmpty, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}
+            contentContainerStyle={[s.list, !displayJobs.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListEmptyComponent={
               <View style={s.empty}>
                 <Text style={s.emptyEmoji}>💼</Text>
@@ -685,7 +686,7 @@ export default function JobsScreen({ navigation }: any) {
             data={savedJobs}
             keyExtractor={j => j.id}
             renderItem={renderSavedJob}
-            contentContainerStyle={[s.list, !savedJobs.length && s.listEmpty, { paddingBottom: 60 }]}
+            contentContainerStyle={[s.list, !savedJobs.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListEmptyComponent={
               <View style={s.empty}>
                 <Text style={s.emptyEmoji}>🔖</Text>
@@ -706,7 +707,7 @@ export default function JobsScreen({ navigation }: any) {
           <FlatList
             data={myApplications}
             keyExtractor={a => a.id}
-            contentContainerStyle={[s.list, { paddingBottom: 60 }]}
+            contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
             ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No applications yet.</Text></View>}
             renderItem={({ item }) => {
               const sm = STATUS_META[item.status];
@@ -840,7 +841,7 @@ export default function JobsScreen({ navigation }: any) {
               <FlatList
                 data={jobApplicants}
                 keyExtractor={a => a.id}
-                contentContainerStyle={[s.list, { paddingBottom: 60 }]}
+                contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
                 ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No applicants yet.</Text></View>}
                 renderItem={({ item }) => {
                   const sm = STATUS_META[item.status];
@@ -906,7 +907,7 @@ export default function JobsScreen({ navigation }: any) {
               <FlatList
                 data={jobRecs}
                 keyExtractor={r => r.id}
-                contentContainerStyle={[s.list, { paddingBottom: 60 }]}
+                contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
                 ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No recommendations yet.</Text></View>}
                 renderItem={({ item }) => {
                   const rec = item as JobRecommendation;

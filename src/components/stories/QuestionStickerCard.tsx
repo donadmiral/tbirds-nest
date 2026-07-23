@@ -1,25 +1,11 @@
 /**
- * QuestionStickerCard — Personal question prompt for story viewer
- *
- * Emotional design:
- * - The input row should feel like a warm invitation, not a form field
- * - Answered state communicates personal connection
- * - Owner view shows response count with gentle affordance
- * - Token-governed styling consistent with PollCard/QuizStickerCard
+ * QuestionStickerCard - Instagram construction.
+ * Light card, prompt in black, a soft input-looking row beneath it.
  */
-
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import {
-  surface, text as textColor, accent, border as borderColor,
-  space, borderRadius,
-  typeSize, fontWeight as fw,
-} from '../../constants/tokens';
 
-// ── Types ──
-
-type QuestionStickerCardProps = {
+type Props = {
   prompt: string;
   interactive: boolean;
   isOwn: boolean;
@@ -29,163 +15,44 @@ type QuestionStickerCardProps = {
   onTapViewResponses?: () => void;
 };
 
-// ── Component ──
-
 export default function QuestionStickerCard({
-  prompt,
-  interactive,
-  isOwn,
-  myAnswer,
-  responseCount = 0,
-  onTapAnswer,
-  onTapViewResponses,
-}: QuestionStickerCardProps) {
+  prompt, interactive, isOwn, myAnswer, responseCount = 0, onTapAnswer, onTapViewResponses,
+}: Props) {
+  const answered = !!myAnswer;
+
   return (
     <View style={s.card}>
-      <View style={s.header}>
-        <View style={s.iconWrap}>
-          <Feather name="message-circle" size={12} color="#60A5FA" />
-        </View>
-        <Text style={s.headerLabel}>QUESTION</Text>
-      </View>
+      <Text style={s.prompt} numberOfLines={3}>{prompt}</Text>
 
-      <Text style={s.prompt}>{prompt}</Text>
-
-      {interactive && isOwn && (
-        <TouchableOpacity style={s.ownerRow} onPress={onTapViewResponses} activeOpacity={0.7}>
-          <Feather name="users" size={13} color={textColor.muted} />
-          <Text style={s.ownerTxt}>
-            {responseCount === 0
-              ? 'No answers yet'
-              : `${responseCount} ${responseCount === 1 ? 'answer' : 'answers'}`}
+      {isOwn ? (
+        <TouchableOpacity style={s.field} activeOpacity={0.85} onPress={onTapViewResponses}>
+          <Text style={s.fieldTxt} numberOfLines={1}>
+            {responseCount > 0
+              ? `${responseCount} ${responseCount === 1 ? 'response' : 'responses'}`
+              : 'No responses yet'}
           </Text>
-          {responseCount > 0 && (
-            <Feather name="chevron-right" size={13} color={textColor.faint} />
-          )}
         </TouchableOpacity>
-      )}
-
-      {interactive && !isOwn && !myAnswer && (
-        <TouchableOpacity style={s.inputRow} onPress={onTapAnswer} activeOpacity={0.75}>
-          <Text style={s.inputPlaceholder}>Share your thoughts...</Text>
-          <Feather name="send" size={13} color={textColor.faint} />
+      ) : (
+        <TouchableOpacity
+          style={[s.field, answered && s.fieldAnswered]}
+          activeOpacity={0.85}
+          onPress={interactive && !answered ? onTapAnswer : undefined}
+          disabled={!interactive || answered}
+        >
+          <Text style={[s.fieldTxt, answered && s.fieldTxtAnswered]} numberOfLines={1}>
+            {answered ? myAnswer : 'Type something...'}
+          </Text>
         </TouchableOpacity>
-      )}
-
-      {interactive && !isOwn && myAnswer && (
-        <TouchableOpacity style={s.answeredRow} onPress={onTapAnswer} activeOpacity={0.75}>
-          <View style={s.answeredBadge}>
-            <Feather name="check" size={11} color={accent.success} />
-          </View>
-          <Text style={s.answeredTxt} numberOfLines={1}>{myAnswer}</Text>
-          <Feather name="edit-2" size={11} color={textColor.faint} />
-        </TouchableOpacity>
-      )}
-
-      {!interactive && (
-        <View style={s.inputRow}>
-          <Text style={s.inputPlaceholder}>Share your thoughts...</Text>
-        </View>
       )}
     </View>
   );
 }
 
-// ── Styles ──
-
 const s = StyleSheet.create({
-  card: {
-    width: 240,
-    backgroundColor: 'rgba(20,20,20,0.85)',
-    borderRadius: borderRadius.storyCanvas,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm + 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: borderColor.soft,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.xs,
-    marginBottom: space.xs,
-  },
-  iconWrap: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(96,165,250,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerLabel: {
-    fontSize: typeSize.micro,
-    fontWeight: fw.bold,
-    color: textColor.faint,
-    letterSpacing: 0.8,
-  },
-  prompt: {
-    fontSize: typeSize.emphasis,
-    fontWeight: fw.bold,
-    color: textColor.primary,
-    lineHeight: 20,
-    marginBottom: space.sm,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: surface.secondary,
-    borderRadius: 14,
-    paddingHorizontal: space.sm + 2,
-    paddingVertical: space.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: borderColor.soft,
-  },
-  inputPlaceholder: {
-    fontSize: typeSize.caption,
-    fontWeight: fw.medium,
-    color: textColor.faint,
-  },
-  answeredRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.xs,
-    backgroundColor: 'rgba(52,199,89,0.1)',
-    borderRadius: 14,
-    paddingHorizontal: space.sm + 2,
-    paddingVertical: space.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(52,199,89,0.2)',
-  },
-  answeredBadge: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(52,199,89,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  answeredTxt: {
-    flex: 1,
-    fontSize: typeSize.caption,
-    fontWeight: fw.semibold,
-    color: 'rgba(255,255,255,0.85)',
-  },
-  ownerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.xs,
-    backgroundColor: surface.secondary,
-    borderRadius: 14,
-    paddingHorizontal: space.sm + 2,
-    paddingVertical: space.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: borderColor.soft,
-  },
-  ownerTxt: {
-    flex: 1,
-    fontSize: typeSize.caption,
-    fontWeight: fw.semibold,
-    color: textColor.muted,
-  },
+  card: { width: 268, backgroundColor: 'rgba(255,255,255,0.94)', borderRadius: 18, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  prompt: { fontSize: 16, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.3, textAlign: 'center', marginBottom: 12 },
+  field: { height: 44, borderRadius: 11, backgroundColor: 'rgba(10,10,10,0.06)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
+  fieldAnswered: { backgroundColor: 'rgba(10,10,10,0.14)' },
+  fieldTxt: { fontSize: 15, fontWeight: '500', color: 'rgba(10,10,10,0.45)', letterSpacing: -0.2 },
+  fieldTxtAnswered: { color: '#0A0A0A', fontWeight: '700' },
 });

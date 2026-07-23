@@ -208,6 +208,8 @@ export async function uploadAndCreateStory(params: {
   mediaType: StoryMediaType;
   caption?: string | null;
   scope: StoryScope;
+  audience?: 'everyone' | 'close_friends' | 'except' | null;
+  reach?: 'followers' | 'wider' | null;
   affiliationId?: string | null;
   durationSec?: number | null;
   thumbnailLocalUri?: string | null;
@@ -226,6 +228,8 @@ export async function uploadAndCreateStory(params: {
     mediaType,
     caption,
     scope,
+    audience,
+    reach,
     affiliationId,
     durationSec,
     thumbnailLocalUri,
@@ -397,6 +401,8 @@ export async function uploadAndCreateStory(params: {
     duration_sec: durationSec ?? null,
     caption: caption?.trim() || null,
     scope,
+    audience: audience || 'everyone',
+    reach: reach || 'followers',
     affiliation_id: affiliationId || null,
   };
 

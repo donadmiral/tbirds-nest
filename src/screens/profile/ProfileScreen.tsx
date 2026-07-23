@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView, Platform, FlatList, Modal, Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -459,7 +460,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={st.safe} edges={['top','left','right']}>
       <StatusBar barStyle="dark-content"/>
-      <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadHighlights();loadTabContent(activeTab);}} tintColor={NAVY}/>} contentContainerStyle={{paddingBottom:insets.bottom+60}}>
+      <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadHighlights();loadTabContent(activeTab);}} tintColor={NAVY}/>} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
         {/* Identity environment */}
         <View style={st.identityRegion}>
           <View style={st.identityTopRow}>

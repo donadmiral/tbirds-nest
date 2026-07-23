@@ -13,7 +13,7 @@
  * - Snap: magnetic spring to center (not hard threshold)
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -41,8 +41,6 @@ const SNAP_CENTER_EXIT = 0.06; // Hysteresis: wider exit prevents oscillation
 const STICKER_HIT_W = 180;
 const STICKER_HIT_H = 80;
 const STICKER_HIT_H_WRAP = 160;
-// Finger padding added around a measured pill so its grab area matches what is drawn.
-const PILL_HIT_PAD = 14;
 const STICKER_TEXT_MAX_W_RATIO = 0.85;
 const BOUNDARY_X_MIN = 0.02;
 const BOUNDARY_X_MAX = 0.98;
@@ -188,15 +186,15 @@ export interface DraggableStickerProps {
 // ── Helpers (pure, used in worklets via runOnJS bridge) ──
 
 function fireHapticLight() {
-  
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 }
 
 function fireHapticMedium() {
-  
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 }
 
 function fireHapticSelection() {
-  
+  Haptics.selectionAsync();
 }
 
 // ── Worklet helpers ──
@@ -246,7 +244,6 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   const isMention = sticker.kind === 'mention';
   const isPill = isLink || isLocation || isMention;
   const isTextSticker = !isEmoji && !isPill;
-  const [pillSize, setPillSize] = useState<{ w: number; h: number } | null>(null);
 
   // ── Physics profile ──
   const profile = useMemo(() => getProfile(sticker.kind), [sticker.kind]);
@@ -690,12 +687,8 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   // ── Hit area ──
 
   const baseHitH = textMayWrap ? STICKER_HIT_H_WRAP : STICKER_HIT_H;
-  const hitW = (isPill && pillSize)
-    ? Math.max(72, pillSize.w * Math.max(1, sticker.scale) + PILL_HIT_PAD * 2)
-    : Math.max(textMaxWidth || STICKER_HIT_W, STICKER_HIT_W * sticker.scale);
-  const hitH = (isPill && pillSize)
-    ? Math.max(52, pillSize.h * sticker.scale + PILL_HIT_PAD * 2)
-    : Math.max(baseHitH, baseHitH * sticker.scale);
+  const hitW = Math.max(textMaxWidth || STICKER_HIT_W, STICKER_HIT_W * sticker.scale);
+  const hitH = Math.max(baseHitH, baseHitH * sticker.scale);
   const baseLeft = sticker.nx * containerW;
   const baseTop = sticker.ny * containerH;
 
@@ -731,7 +724,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
         ]}
       >
         <View style={{ flex: 1, alignItems: containerAlign, justifyContent: 'center' }}>
-          <View style={wrapperStyle} onLayout={isPill ? (e) => { const { width, height } = e.nativeEvent.layout; setPillSize(prev => prev ? prev : { w: width, h: height }); } : undefined}>
+          <View style={wrapperStyle}>
             {isPill ? (
               <StickerPill label={sticker.text} kind={sticker.kind as 'link' | 'location' | 'mention'} />
             ) : (

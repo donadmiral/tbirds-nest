@@ -1,54 +1,17 @@
 /**
- * SliderStickerCard — Expressive emoji slider for story viewer
- *
- * Emotional design:
- * - Emoji tracks finger position in real-time (UI thread)
- * - Fill grows smoothly with gesture
- * - Haptic landmarks at 25%, 50%, 75%, 100%
- * - Emoji scales up during drag (1.0 → 1.3) for feedback
- * - On release: emoji springs to position, fill animates to average
- * - Token-governed styling
- *
- * Replaces PanResponder with Reanimated + RNGH v2 Gesture API
+ * SliderStickerCard - Instagram construction.
+ * Light card, black label, emoji rides the track under your finger.
+ * After answering, the fill settles and the average is marked.
  */
-
 import React, { useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  runOnJS,
-  Easing,
+  useSharedValue, useAnimatedStyle, withTiming, withSpring, runOnJS, Easing,
 } from 'react-native-reanimated';
-import {
-  surface, text as textColor, border as borderColor,
-  space, borderRadius,
-  typeSize, fontWeight as fw,
-} from '../../constants/tokens';
 
-// ── Constants ──
-
-const CARD_WIDTH = 240;
-const TRACK_WIDTH = 200;
-const TRACK_HEIGHT = 6;
-const EMOJI_SIZE = 32;
-const TRACK_PADDING = (CARD_WIDTH - 32 - TRACK_WIDTH) / 2;
-
-const SPRING_SETTLE = { damping: 14, stiffness: 180 };
-const SOFT_SETTLE = { duration: 400, easing: Easing.bezier(0.16, 1, 0.3, 1) };
-
-// Haptic landmark positions (normalized 0-1)
-const LANDMARKS = [0.25, 0.5, 0.75, 1.0];
-const LANDMARK_THRESHOLD = 0.03;
-
-// ── Types ──
-
-type SliderStickerCardProps = {
+type Props = {
   label: string;
   emoji: string;
   interactive: boolean;
@@ -57,266 +20,104 @@ type SliderStickerCardProps = {
   averageValue?: number | null;
   responseCount?: number;
   onSubmit?: (value: number) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 };
 
-// ── Haptic helpers ──
+const CARD_W = 252;
+const PAD = 16;
+const TRACK_W = CARD_W - PAD * 2;
+const TRACK_H = 7;
+const KNOB = 34;
+const SPRING = { damping: 15, stiffness: 190 };
+const SOFT = { duration: 420, easing: Easing.bezier(0.16, 1, 0.3, 1) };
 
-function fireHapticLight() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-}
-
-function fireHapticMedium() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-}
-
-function fireSubmit(onSubmit: ((v: number) => void) | undefined, value: number) {
-  onSubmit?.(Math.round(value * 100) / 100);
-}
-
-// ── Component ──
+function tap() { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
 
 export default function SliderStickerCard({
-  label,
-  emoji,
-  interactive,
-  isOwn,
-  myValue,
-  averageValue,
-  responseCount = 0,
-  onSubmit,
-}: SliderStickerCardProps) {
-  const hasResponded = myValue != null;
-  const displayValue = hasResponded ? (averageValue ?? myValue ?? 0) : 0;
-  const showAverage = hasResponded || isOwn;
-  const canDrag = interactive && !isOwn && !hasResponded;
+  label, emoji, interactive, isOwn, myValue, averageValue, responseCount = 0,
+  onSubmit, onDragStart, onDragEnd,
+}: Props) {
+  const answered = myValue !== null && myValue !== undefined;
+  const startValue = answered ? (myValue as number) : (isOwn ? (averageValue ?? 0.5) : 0.5);
 
-  // ── Shared values ──
-
-  const dragPosition = useSharedValue(0); // 0-1 normalized
-  const fillWidth = useSharedValue(showAverage ? displayValue * TRACK_WIDTH : 0);
-  const emojiX = useSharedValue(showAverage ? displayValue * TRACK_WIDTH : 0);
-  const emojiScale = useSharedValue(1);
-  const isDragging = useSharedValue(false);
-  const lastLandmark = useSharedValue(-1);
-
-  // ── Sync from props ──
+  const value = useSharedValue(startValue);
+  const dragging = useSharedValue(0);
 
   useEffect(() => {
-    if (showAverage) {
-      fillWidth.value = withTiming(displayValue * TRACK_WIDTH, SOFT_SETTLE);
-      emojiX.value = withTiming(displayValue * TRACK_WIDTH, SOFT_SETTLE);
-    }
-  }, [displayValue, showAverage]);
+    value.value = withTiming(startValue, SOFT);
+  }, [startValue]);
 
-  // ── Gesture ──
+  const commit = useCallback((v: number) => {
+    onDragEnd?.();
+    if (!interactive || isOwn || answered) return;
+    onSubmit?.(Math.max(0, Math.min(1, v)));
+  }, [interactive, isOwn, answered, onSubmit, onDragEnd]);
 
-  const panGesture = React.useMemo(() => {
-    if (!canDrag) return Gesture.Pan().enabled(false);
+  const begin = useCallback(() => { onDragStart?.(); tap(); }, [onDragStart]);
 
-    return Gesture.Pan()
-      .onStart((e) => {
-        'worklet';
-        isDragging.value = true;
-        emojiScale.value = withSpring(1.3, SPRING_SETTLE);
-        lastLandmark.value = -1;
+  const locked = isOwn || answered || !interactive;
 
-        // Calculate initial position from touch
-        const trackStartX = TRACK_PADDING;
-        const localX = Math.max(0, Math.min(TRACK_WIDTH, e.x - trackStartX));
-        const norm = localX / TRACK_WIDTH;
-        dragPosition.value = norm;
-        fillWidth.value = localX;
-        emojiX.value = localX;
-      })
-      .onUpdate((e) => {
-        'worklet';
-        const trackStartX = TRACK_PADDING;
-        const localX = Math.max(0, Math.min(TRACK_WIDTH, e.x - trackStartX));
-        const norm = localX / TRACK_WIDTH;
-        dragPosition.value = norm;
-        fillWidth.value = localX;
-        emojiX.value = localX;
+  const pan = Gesture.Pan()
+    .enabled(!locked)
+    .onBegin(() => { dragging.value = withTiming(1, { duration: 120 }); runOnJS(begin)(); })
+    .onUpdate(e => {
+      const next = Math.max(0, Math.min(1, e.x / TRACK_W));
+      value.value = next;
+    })
+    .onEnd(() => {
+      dragging.value = withTiming(0, { duration: 180 });
+      runOnJS(commit)(value.value);
+    })
+    .onFinalize(() => { dragging.value = withTiming(0, { duration: 180 }); });
 
-        // Haptic landmarks
-        for (let i = 0; i < LANDMARKS.length; i++) {
-          if (Math.abs(norm - LANDMARKS[i]) < LANDMARK_THRESHOLD && lastLandmark.value !== i) {
-            lastLandmark.value = i;
-            runOnJS(fireHapticLight)();
-          }
-        }
-      })
-      .onEnd(() => {
-        'worklet';
-        isDragging.value = false;
-        emojiScale.value = withSpring(1, SPRING_SETTLE);
-
-        const finalValue = dragPosition.value;
-        runOnJS(fireHapticMedium)();
-        runOnJS(fireSubmit)(onSubmit, finalValue);
-      });
-  }, [canDrag, onSubmit]);
-
-  // ── Animated styles ──
-
-  const fillAnimStyle = useAnimatedStyle(() => ({
-    width: fillWidth.value,
-  }));
-
-  const emojiAnimStyle = useAnimatedStyle(() => ({
+  const fillStyle = useAnimatedStyle(() => ({ width: ((value.value * 100) + '%') as any }));
+  const knobStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: emojiX.value - EMOJI_SIZE / 2 },
-      { scale: emojiScale.value },
+      { translateX: value.value * TRACK_W - KNOB / 2 },
+      { scale: withSpring(1 + dragging.value * 0.22, SPRING) },
     ],
   }));
 
-  // ── Display value ──
-
-  const pctDisplay = showAverage ? `${Math.round(displayValue * 100)}%` : null;
+  const avgLeft = averageValue !== null && averageValue !== undefined ? averageValue * TRACK_W : null;
 
   return (
     <View style={s.card}>
-      <View style={s.header}>
-        <View style={s.iconWrap}>
-          <Feather name="sliders" size={12} color="#FBBF24" />
-        </View>
-        <Text style={s.headerLabel}>SLIDER</Text>
-        {showAverage && responseCount > 0 && (
-          <Text style={s.countLabel}>
-            {responseCount} {responseCount === 1 ? 'rating' : 'ratings'}
-          </Text>
-        )}
-      </View>
+      <Text style={s.label} numberOfLines={2}>{label}</Text>
 
-      <Text style={s.label}>{label}</Text>
-
-      <GestureDetector gesture={panGesture}>
-        <View style={s.trackContainer}>
-          <View style={s.trackBg}>
-            <Animated.View style={[s.trackFill, fillAnimStyle]} />
+      <GestureDetector gesture={pan}>
+        <View style={s.trackArea}>
+          <View style={s.track}>
+            <Animated.View style={[s.fill, fillStyle]} />
           </View>
-
-          <Animated.View style={[s.emojiMark, emojiAnimStyle]}>
-            <Text style={s.emojiText}>{emoji}</Text>
+          {avgLeft !== null && (isOwn || answered) && (
+            <View style={[s.avgMark, { left: avgLeft - 1 }]} pointerEvents="none" />
+          )}
+          <Animated.View style={[s.knob, knobStyle]} pointerEvents="none">
+            <Text style={s.knobTxt}>{emoji}</Text>
           </Animated.View>
         </View>
       </GestureDetector>
 
-      {pctDisplay && (
-        <Text style={s.avgText}>{pctDisplay}</Text>
-      )}
-
-      {canDrag && (
-        <Text style={s.hintText}>Drag to rate</Text>
-      )}
-
-      {interactive && !isOwn && hasResponded && (
-        <View style={s.answeredBadge}>
-          <Feather name="check" size={10} color="#34C759" />
-          <Text style={s.answeredText}>Rated</Text>
-        </View>
+      {(isOwn || answered) && (
+        <Text style={s.meta}>
+          {responseCount > 0
+            ? `${responseCount} ${responseCount === 1 ? 'response' : 'responses'}`
+            : 'No responses yet'}
+        </Text>
       )}
     </View>
   );
 }
 
-// ── Styles ──
-
 const s = StyleSheet.create({
-  card: {
-    width: CARD_WIDTH,
-    backgroundColor: 'rgba(20,20,20,0.85)',
-    borderRadius: borderRadius.storyCanvas,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm + 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: borderColor.soft,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.xs,
-    marginBottom: space.xs,
-  },
-  iconWrap: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(251,191,36,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerLabel: {
-    fontSize: typeSize.micro,
-    fontWeight: fw.bold,
-    color: textColor.faint,
-    letterSpacing: 0.8,
-    flex: 1,
-  },
-  countLabel: {
-    fontSize: typeSize.micro,
-    fontWeight: fw.semibold,
-    color: textColor.faint,
-  },
-  label: {
-    fontSize: typeSize.emphasis,
-    fontWeight: fw.bold,
-    color: textColor.primary,
-    lineHeight: 20,
-    marginBottom: space.sm,
-  },
-  trackContainer: {
-    height: EMOJI_SIZE + 12,
-    justifyContent: 'center',
-    paddingHorizontal: TRACK_PADDING,
-  },
-  trackBg: {
-    width: TRACK_WIDTH,
-    height: TRACK_HEIGHT,
-    borderRadius: TRACK_HEIGHT / 2,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    overflow: 'hidden',
-  },
-  trackFill: {
-    height: '100%',
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    borderRadius: TRACK_HEIGHT / 2,
-  },
-  emojiMark: {
-    position: 'absolute',
-    top: (EMOJI_SIZE + 12 - EMOJI_SIZE) / 2,
-    left: TRACK_PADDING,
-    width: EMOJI_SIZE,
-    height: EMOJI_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emojiText: {
-    fontSize: 24,
-  },
-  avgText: {
-    fontSize: typeSize.caption,
-    fontWeight: fw.bold,
-    color: textColor.secondary,
-    textAlign: 'center',
-    marginTop: space.xs,
-  },
-  hintText: {
-    fontSize: typeSize.micro,
-    fontWeight: fw.medium,
-    color: textColor.faint,
-    textAlign: 'center',
-    marginTop: space.xs,
-  },
-  answeredBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.xxs,
-    alignSelf: 'center',
-    marginTop: space.xs,
-  },
-  answeredText: {
-    fontSize: typeSize.micro,
-    fontWeight: fw.semibold,
-    color: 'rgba(52,199,89,0.8)',
-  },
+  card: { width: CARD_W, backgroundColor: 'rgba(255,255,255,0.94)', borderRadius: 18, paddingHorizontal: PAD, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  label: { fontSize: 16, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.3, textAlign: 'center', marginBottom: 18 },
+  trackArea: { height: KNOB, justifyContent: 'center' },
+  track: { height: TRACK_H, borderRadius: TRACK_H / 2, backgroundColor: 'rgba(10,10,10,0.10)', overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: TRACK_H / 2, backgroundColor: 'rgba(10,10,10,0.55)' },
+  avgMark: { position: 'absolute', width: 2, height: 16, borderRadius: 1, backgroundColor: 'rgba(10,10,10,0.35)' },
+  knob: { position: 'absolute', left: 0, width: KNOB, height: KNOB, alignItems: 'center', justifyContent: 'center' },
+  knobTxt: { fontSize: 26 },
+  meta: { marginTop: 12, fontSize: 12.5, fontWeight: '600', color: 'rgba(10,10,10,0.5)', textAlign: 'center' },
 });

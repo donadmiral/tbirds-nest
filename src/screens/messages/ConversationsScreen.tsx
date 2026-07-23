@@ -5,6 +5,7 @@ import {
   ActionSheetIOS, Alert, Platform, Animated,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
@@ -515,7 +516,7 @@ export default function ConversationsScreen({ navigation }: any) {
           data={[...pinned, ...unpinned]}
           keyExtractor={i => i.id}
           renderItem={renderItem}
-          contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + 40 }}
+          contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
           removeClippedSubviews={Platform.OS === 'android'}

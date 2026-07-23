@@ -33,6 +33,7 @@ import EnvironmentLayer from '../../components/stories/EnvironmentLayer';
 import IdentityPresence from '../../components/stories/IdentityPresence';
 import MemoryCaption from '../../components/stories/MemoryCaption';
 import StoryProgressBar from '../../components/stories/StoryProgressBar';
+import StorySettingsSheet from '../../components/stories/StorySettingsSheet';
 import ImmersiveReplyField from '../../components/stories/ImmersiveReplyField';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
@@ -135,8 +136,9 @@ export default function StoryViewerScreen() {
     if (lastViewerPosition && lastViewerPosition.sessionKey === sessionKey && Date.now() - lastViewerPosition.timestamp < 5 * 60 * 1000) return { userIndex: lastViewerPosition.userIndex, storyIndex: lastViewerPosition.storyIndex };
     return null;
   }, [sessionKey]);
-  const initialUserIndex = useMemo(() => { if (resumePosition) return resumePosition.userIndex; const idx = userIds.indexOf(startUserId); return idx >= 0 ? idx : 0; }, [userIds, startUserId, resumePosition]);
-  const resumeStoryIndex = resumePosition?.storyIndex ?? -1;
+  // The tapped avatar always wins. Resume only applies within that same user.
+  const initialUserIndex = useMemo(() => { const idx = userIds.indexOf(startUserId); return idx >= 0 ? idx : 0; }, [userIds, startUserId]);
+  const resumeStoryIndex = (resumePosition && resumePosition.userIndex === initialUserIndex) ? resumePosition.storyIndex : -1;
   const resumeConsumedRef = useRef(false);
 
   const [userIndex, setUserIndex] = useState(initialUserIndex);
@@ -163,6 +165,7 @@ export default function StoryViewerScreen() {
   const tappableStickerRectsRef = useRef<{ left: number; right: number; top: number; bottom: number }[]>([]);
 
   const [viewersOpen, setViewersOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [viewers, setViewers] = useState<StoryViewer[]>([]);
   const [loadingViewers, setLoadingViewers] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -468,13 +471,25 @@ export default function StoryViewerScreen() {
       {poll && (() => { const clampedTop = Math.max(insets.top + 90, Math.min(poll.ny * SCREEN_H - 100, SCREEN_H - 360)); const clampedLeft = (poll.nx * SCREEN_W) - (SCREEN_W * 0.4); return (<View style={[s.pollOverlay, { top: clampedTop, left: clampedLeft }]} pointerEvents="auto" onLayout={(e) => { const layout = e.nativeEvent.layout; pollLayoutRef.current = { top: clampedTop, bottom: clampedTop + layout.height, left: clampedLeft, right: clampedLeft + layout.width }; }}><PollCard poll={poll} isOwn={isOwn} onVote={handlePollVote} onOpenVoters={openPollVoters} /></View>); })()}
       <StoryProgressBar progressSV={progressSV} currentIndex={storyIndex} totalStories={stories.length} chromeOpacity={chromeOpacity} topInset={insets.top} isPaused={paused} bottomInset={insets.bottom} />
       <MemoryCaption caption={currentStory.caption} chromeOpacity={chromeOpacity} bottomOffset={isOwn ? 130 : 125 + insets.bottom} />
-      <IdentityPresence user={storyUser} isOwn={isOwn ?? false} timeAgo={timeAgo(currentStory.created_at)} scope={currentStory.scope} category={(currentStory as any).category} viewsCount={currentStory.views_count} chromeOpacity={chromeOpacity} topInset={insets.top} onOpenViewers={isOwn ? openViewersList : undefined} onSaveHighlight={isOwn ? () => { pauseFor('highlight'); setHighlightSheetOpen(true); } : undefined} onDelete={isOwn ? handleDelete : undefined} onClose={saveAndGoBack} bottomInset={insets.bottom} />
-      {!isOwn && (<ImmersiveReplyField replyMode={replyMode} replyText={replyText} onChangeText={setReplyText} sendingReply={sendingReply} heartActive={heartActive} chromeOpacity={chromeOpacity} onOpenReply={openReplyInput} onCloseReply={closeReplyInput} onSendReply={sendReply} onHeartTap={handleHeartTap} onLongPressHeart={openPicker} canSend={canSendReply} keyboardHeight={keyboardHeight} bottomInset={insets.bottom} inputRef={replyInputRef} />)}
+      <IdentityPresence user={storyUser} isOwn={isOwn ?? false} timeAgo={timeAgo(currentStory.created_at)} scope={currentStory.scope} category={(currentStory as any).category} viewsCount={currentStory.views_count} chromeOpacity={chromeOpacity} topInset={insets.top} onOpenViewers={isOwn ? openViewersList : undefined} onSaveHighlight={isOwn ? () => { pauseFor('highlight'); setHighlightSheetOpen(true); } : undefined} onOpenSettings={isOwn ? () => { pauseFor('settings'); setSettingsOpen(true); } : undefined} onDelete={isOwn ? handleDelete : undefined} onClose={saveAndGoBack} bottomInset={insets.bottom} />
+      {!isOwn && (currentStory as any).allow_replies !== false && (<ImmersiveReplyField replyMode={replyMode} replyText={replyText} onChangeText={setReplyText} sendingReply={sendingReply} heartActive={heartActive} chromeOpacity={chromeOpacity} onOpenReply={openReplyInput} onCloseReply={closeReplyInput} onSendReply={sendReply} onHeartTap={handleHeartTap} onLongPressHeart={openPicker} canSend={canSendReply} keyboardHeight={keyboardHeight} bottomInset={insets.bottom} inputRef={replyInputRef} />)}
 
       {reactionToast && (<View pointerEvents="none" style={s.toastWrap}><View style={s.toastBubble}><Text style={s.toastEmoji}>{reactionToast}</Text><Text style={s.toastText}>Sent</Text></View></View>)}
       {replyToast && (<View pointerEvents="none" style={s.replyToastWrap}><View style={s.replyToastBubble}><Feather name="check" size={14} color="rgba(245,240,235,0.8)" /><Text style={s.replyToastText}>Delivered</Text></View></View>)}
 
       {pickerOpen && (<TouchableOpacity style={s.pickerBackdrop} activeOpacity={1} onPress={closePicker}><ReAnimated.View style={[s.pickerContainer, { bottom: 100 + insets.bottom }, pickerAnimStyle]}>{REACTION_EMOJIS.map(emoji => (<TouchableOpacity key={emoji} style={[s.pickerEmoji, myReactions.has(emoji) && s.pickerEmojiActive]} activeOpacity={0.7} onPress={() => handlePickerEmoji(emoji)}><Text style={s.pickerEmojiText}>{emoji}</Text></TouchableOpacity>))}</ReAnimated.View></TouchableOpacity>)}
+
+      {isOwn && currentStory && (
+        <StorySettingsSheet
+          visible={settingsOpen}
+          onClose={() => { setSettingsOpen(false); resumeFrom('settings'); }}
+          mediaUrl={currentStory.media_url}
+          allowReplies={(currentStory as any).allow_replies !== false}
+          allowReactions={(currentStory as any).allow_reactions !== false}
+          allowSharing={(currentStory as any).allow_sharing !== false}
+          onChange={async (patch) => { setStories(prev => prev.map(st => st.id === currentStory.id ? ({ ...st, ...patch } as any) : st)); try { await supabase.from('stories').update(patch).eq('id', currentStory.id); } catch (e) { console.log('[StorySettings]', e); } }}
+        />
+      )}
 
       <Modal visible={viewersOpen} transparent animationType="slide" onRequestClose={closeViewersList}>
         <TouchableOpacity style={s.viewersOverlay} activeOpacity={1} onPress={closeViewersList}>

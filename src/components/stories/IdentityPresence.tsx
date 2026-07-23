@@ -23,6 +23,7 @@ type IdentityPresenceProps = {
   topInset: number;
   onOpenViewers?: () => void;
   onSaveHighlight?: () => void;
+  onOpenSettings?: () => void;
   onDelete?: () => void;
   onClose: () => void;
   bottomInset: number;
@@ -36,7 +37,7 @@ function initialsFrom(name?: string | null) {
 
 const IdentityPresence = React.memo(function IdentityPresence({
   user, isOwn, timeAgo, scope, category, viewsCount, chromeOpacity,
-  topInset, onOpenViewers, onSaveHighlight, onDelete, onClose, bottomInset,
+  topInset, onOpenViewers, onSaveHighlight, onOpenSettings, onDelete, onClose, bottomInset,
 }: IdentityPresenceProps) {
   const presenceStyle = useAnimatedStyle(() => ({
     opacity: Math.max(0.5, chromeOpacity.value),
@@ -99,6 +100,11 @@ const IdentityPresence = React.memo(function IdentityPresence({
               </TouchableOpacity>
             )}
             <View style={s.ownerActions}>
+              {onOpenSettings && (
+                <TouchableOpacity onPress={onOpenSettings} style={s.actionCircle}>
+                  <Feather name="settings" size={16} color="rgba(245,240,235,0.65)" />
+                </TouchableOpacity>
+              )}
               {onSaveHighlight && (
                 <TouchableOpacity onPress={onSaveHighlight} style={s.actionCircle}>
                   <Feather name="bookmark" size={16} color="rgba(245,240,235,0.65)" />

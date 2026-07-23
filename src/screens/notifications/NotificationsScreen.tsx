@@ -10,6 +10,7 @@ import {
   ActivityIndicator, Image, StatusBar, RefreshControl, ScrollView, Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { supabase } from '../../services/supabase';
@@ -435,7 +436,7 @@ export default function NotificationsScreen({ navigation }: any) {
           contentContainerStyle={[
             s.list,
             filtered.length === 0 && { flexGrow: 1 },
-            { paddingBottom: Math.max(insets.bottom + 20, 40) },
+            { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE },
           ]}
           refreshControl={
             <RefreshControl
