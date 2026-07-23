@@ -194,7 +194,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.85,
+        quality: 1,
         skipProcessing: Platform.OS === 'android',
       });
       goToComposer(photo.uri, 'image', photo.width, photo.height);
@@ -317,7 +317,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
         allowsMultipleSelection: true,
         selectionLimit: 10,
-        quality: 0.9,
+        quality: 1,
       });
       if (!res.canceled && res.assets && res.assets.length > 0) {
         const first = res.assets[0];
@@ -448,6 +448,20 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
           </TouchableOpacity>
         </View>
         <Text style={s.hintTxt}>{recording ? (zoom > 0.02 ? 'Slide up to zoom · ' + Math.round(zoom * 100) + '%' : 'Release to stop · slide up to zoom') : 'Tap for photo, hold for video'}</Text>
+        {!recording && (
+          <View style={s.modeRow}>
+            <TouchableOpacity onPress={() => navigation.navigate('StoryComposer', { mode: 'text', assets: [] })} activeOpacity={0.7} style={s.modeItem}>
+              <Text style={s.modeRowTxt}>TEXT</Text>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={1} style={s.modeItem}>
+              <Text style={[s.modeRowTxt, s.modeRowTxtOn]}>STORY</Text>
+              <View style={s.modeDot} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('StoryDualCapture')} activeOpacity={0.7} style={s.modeItem}>
+              <Text style={s.modeRowTxt}>DUAL</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -479,5 +493,10 @@ const s = StyleSheet.create({
 
   flipBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
 
+  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 26, marginTop: 14 },
+  modeItem: { alignItems: 'center', paddingHorizontal: 6, paddingVertical: 4 },
+  modeRowTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 12.5, fontWeight: '700', letterSpacing: 1.2 },
+  modeRowTxtOn: { color: '#FFFFFF' },
+  modeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#FFFFFF', marginTop: 5 },
   hintTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '500', marginTop: 12 },
 });

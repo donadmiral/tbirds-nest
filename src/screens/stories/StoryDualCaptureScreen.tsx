@@ -13,7 +13,7 @@ import {
   Dimensions, Alert, Animated, Image, Easing,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -27,6 +27,8 @@ const BUBBLE_W = 120;
 const BUBBLE_H = 160;
 const BUBBLE_RADIUS = 28;
 const MAX_RETRIES = 8;
+// Front lens needs time for auto-exposure to meter the face after the flip.
+const FRONT_SETTLE_MS = 350;
 const RETRY_MS = 250;
 
 type Phase =
@@ -111,7 +113,7 @@ export default function StoryDualCaptureScreen() {
     triggerFlash();
 
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.92 });
+      const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
       if (!photo?.uri || !mountedRef.current) {
         Alert.alert('Capture failed', 'Could not take photo.');
         return;
@@ -136,10 +138,10 @@ export default function StoryDualCaptureScreen() {
       // After freeze, transition to countdown
       timerRef.current = setTimeout(() => {
         if (!mountedRef.current) return;
-        Animated.timing(freezeOpacity, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+        Animated.timing(freezeOpacity, { toValue: 0, duration: 250, useNativeDriver: true }).start();
         setCountdown(3);
         setPhase('countdown');
-      }, 800);
+      }, 450);
 
     } catch (err: any) {
       if (mountedRef.current) {
@@ -198,10 +200,11 @@ export default function StoryDualCaptureScreen() {
     frontCapturedRef.current = false;
 
     const attempt = async () => {
+      await wait(FRONT_SETTLE_MS);
       while (retries < MAX_RETRIES && !frontCapturedRef.current && mountedRef.current) {
         try {
           if (cameraRef.current) {
-            const photo = await cameraRef.current.takePictureAsync({ quality: 0.92 });
+            const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
             if (photo?.uri && mountedRef.current && !frontCapturedRef.current) {
               frontCapturedRef.current = true;
               triggerFlash();
@@ -264,10 +267,9 @@ export default function StoryDualCaptureScreen() {
       if (mountedRef.current) {
         console.log('[RUNTIME] BEFORE_REPLACE', { hasAsset: !!asset, hasFront: !!asset?.frontUri, hasRear: !!asset?.rearUri });
         try {
-          navigation.replace('StoryComposer', {
+          navigation.navigate('StoryComposer', {
             mode: 'dual',
             assets: [asset],
-            openArrangement: true,
             ...extraParams,
           });
           console.log('[RUNTIME] AFTER_REPLACE');
@@ -299,6 +301,14 @@ export default function StoryDualCaptureScreen() {
     overlayOpacity.setValue(0);
     resultOpacity.setValue(0);
   }, []);
+
+  // Returning to this screen must always show a live camera, never a spent capture.
+  useFocusEffect(
+    useCallback(() => {
+      resetToIdle();
+      return undefined;
+    }, [resetToIdle])
+  );
 
   // ── PERMISSION SCREENS ─────────────────────────────────────
   if (!permission) return <View style={s.loading}><ActivityIndicator color="#FFF" size="large" /></View>;

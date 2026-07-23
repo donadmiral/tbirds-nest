@@ -8,77 +8,56 @@ type StickerPillProps = {
   onPress?: () => void;
 };
 
+// Instagram construction: solid white pill, black bold label, small dark glyph.
 const PILL_CONFIG = {
-  link: {
-    iconName: 'link' as const,
-    iconColor: '#FFF',
-    iconBg: 'rgba(255,255,255,0.15)',
-    showChevron: true,
-  },
-  location: {
-    iconName: 'map-pin' as const,
-    iconColor: '#FF6B6B',
-    iconBg: 'rgba(255,107,107,0.2)',
-    showChevron: false,
-  },
-  mention: {
-    iconName: 'at-sign' as const,
-    iconColor: '#60A5FA',
-    iconBg: 'rgba(96,165,250,0.2)',
-    showChevron: false,
-  },
+  link: { iconName: 'link-2' as const, prefix: '' },
+  location: { iconName: 'map-pin' as const, prefix: '' },
+  mention: { iconName: null, prefix: '@' },
 } as const;
 
 export default function StickerPill({ label, kind, onPress }: StickerPillProps) {
   const config = PILL_CONFIG[kind];
+  const text = kind === 'mention' && !label.startsWith('@') ? '@' + label : label;
 
   const content = (
     <View style={{
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 7,
-      backgroundColor: 'rgba(0,0,0,0.75)',
-      borderRadius: 22,
-      paddingHorizontal: 16,
-      paddingVertical: 11,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.15)',
+      gap: 5,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 9,
+      paddingHorizontal: 11,
+      paddingVertical: 7,
+      shadowColor: '#000',
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
     }}>
-      <View style={{
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        backgroundColor: config.iconBg,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <Feather name={config.iconName} size={12} color={config.iconColor} />
-      </View>
-      <Text style={{
-        color: '#FFF',
-        fontSize: 13,
-        fontWeight: '700',
-        maxWidth: 110,
-      }} numberOfLines={1}>
-        {label}
+      {config.iconName ? (
+        <Feather name={config.iconName} size={13} color="#0A0A0A" />
+      ) : null}
+      <Text
+        style={{
+          color: '#0A0A0A',
+          fontSize: 15,
+          fontWeight: '700',
+          letterSpacing: -0.3,
+          maxWidth: 190,
+        }}
+        numberOfLines={1}
+      >
+        {text}
       </Text>
-      {config.showChevron && (
-        <Feather name="chevron-right" size={12} color="rgba(255,255,255,0.4)" />
-      )}
     </View>
   );
 
   if (onPress) {
     return (
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.7}
-        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-      >
+      <TouchableOpacity onPress={onPress} activeOpacity={0.85} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
         {content}
       </TouchableOpacity>
     );
   }
-
   return content;
 }

@@ -652,7 +652,7 @@ export default function MemoryArrangementScreen() {
     };
 
     if (reduceMotion) {
-      navigation.replace('StoryComposer', composerParams);
+      navigation.navigate('StoryComposer', composerParams);
       return;
     }
 
@@ -676,7 +676,7 @@ export default function MemoryArrangementScreen() {
       }),
     ]).start(() => {
       if (mountedRef.current) {
-        navigation.replace('StoryComposer', composerParams);
+        navigation.navigate('StoryComposer', composerParams);
       }
     });
   }, [primaryCamera, selectedPreset, asset, extraParams, reduceMotion, navigation]);

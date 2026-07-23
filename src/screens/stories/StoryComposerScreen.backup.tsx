@@ -84,7 +84,7 @@ function getDefaultStickerColor(bgId: string): string {
 type PollData = { question: string; options: string[] };
 type Draft = {
   id: string; localUri: string | null; thumbnailUri: string | null;
-  mediaType: 'image' | 'video' | 'text'; caption: string; scope: 'global' | 'global';
+  mediaType: 'image' | 'video' | 'text'; caption: string; scope: 'institution' | 'global';
   uploadState: 'idle' | 'uploading' | 'done' | 'error'; errorMsg?: string | null;
   durationSec?: number | null; pollData?: PollData | null; stickers?: StoryTextSticker[];
   imageW?: number; imageH?: number; mediaFit: MediaFit; mediaTransform: MediaTransform;
@@ -302,7 +302,7 @@ export default function StoryComposerScreen() {
     if (mode === 'text') {
       setDrafts([{
         id: newDraftId(), localUri: null, thumbnailUri: null, mediaType: 'text', caption: '',
-        scope: 'global', uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
+        scope: 'institution', uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
         imageW: 0, imageH: 0, mediaFit: 'cover' as MediaFit,
         mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
         category: null, textBgId: 'navy', textBackground: TEXT_BG_OPTIONS[0].bg,
@@ -321,7 +321,7 @@ export default function StoryComposerScreen() {
       if (frontUri) Image.prefetch(frontUri).catch(() => {});
       setDrafts([{
         id: newDraftId(), localUri: rearUri, thumbnailUri: null, mediaType: 'image', caption: '',
-        scope: 'global', uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
+        scope: 'institution', uploadState: 'idle', durationSec: null, pollData: null, stickers: [],
         imageW: da.rearDimensions?.width || 0, imageH: da.rearDimensions?.height || 0,
         mediaFit: 'cover' as MediaFit,
         mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
@@ -340,7 +340,7 @@ export default function StoryComposerScreen() {
         }
         return {
           id: newDraftId(), localUri: uri, thumbnailUri: null, mediaType: isVideo ? 'video' as const : 'image' as const,
-          caption: '', scope: 'global' as const, uploadState: 'idle' as const,
+          caption: '', scope: 'institution' as const, uploadState: 'idle' as const,
           durationSec: isVideo ? (asset.duration || asset.durationSec ? Math.round((asset.duration || asset.durationSec * 1000) / 1000) : null) : null,
           pollData: null, stickers: [], imageW: asset.width || 0, imageH: asset.height || 0,
           mediaFit: 'cover' as MediaFit,
@@ -357,6 +357,8 @@ export default function StoryComposerScreen() {
   // ══════════════════════════════════════════════════════════
 
   const [previewSize, setPreviewSize] = useState({ w: SCREEN_W, h: SCREEN_H });
+  const [previewMode, setPreviewMode] = useState(false);
+  const [previewModalSize, setPreviewModalSize] = useState({ w: SCREEN_W, h: SCREEN_H });
   const undoStackRef = useRef<StoryTextSticker[][]>([]);
   const redoStackRef = useRef<StoryTextSticker[][]>([]);
   const MAX_HISTORY = 30;
@@ -376,6 +378,7 @@ export default function StoryComposerScreen() {
   const [stickerFontSize, setStickerFontSize] = useState(0);
   const [stickerOpacity, setStickerOpacity] = useState(1.0);
   const [stickerTextAlign, setStickerTextAlign] = useState<'left' | 'center' | 'right'>('center');
+  const [textEditorAdvanced, setTextEditorAdvanced] = useState(false);
   const stickerInputRef = useRef<TextInput>(null);
   const stylePickerRef = useRef<ScrollView>(null);
 
@@ -763,66 +766,33 @@ export default function StoryComposerScreen() {
         </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
       </Modal>
 
-      {/* Sticker Tray - Instagram construction */}
+      {/* Overflow Modal */}
       <Modal visible={overflowOpen} transparent animationType="slide" onRequestClose={() => setOverflowOpen(false)}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setOverflowOpen(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-            <View style={[st.overflowSheet, { paddingBottom: Math.max(insets.bottom, 18) }]}>
-              <View style={st.overflowHandle} />
-              <Text style={st.trayTitle}>Stickers</Text>
-              <View style={st.trayGrid}>
-                {[
-                  { id: 'poll', icon: 'bar-chart-2', label: hasPoll ? 'Edit poll' : 'Poll', on: hasPoll, run: openPollEditor },
-                  { id: 'question', icon: 'help-circle', label: 'Question', on: stickerCounts.question > 0, run: () => openQuestionModal() },
-                  { id: 'quiz', icon: 'check-square', label: 'Quiz', on: stickerCounts.quiz > 0, run: () => openQuizModal() },
-                  { id: 'slider', icon: 'sliders', label: 'Slider', on: stickerCounts.slider > 0, run: () => openSliderModal() },
-                  { id: 'mention', icon: 'at-sign', label: 'Mention', on: stickerCounts.mention > 0, run: openMentionModal },
-                  { id: 'location', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
-                  { id: 'link', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
-                  { id: 'emoji', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
-                ].map(t => (
-                  <TouchableOpacity
-                    key={t.id}
-                    style={st.trayTile}
-                    activeOpacity={0.7}
-                    onPress={() => { Haptics.selectionAsync(); setOverflowOpen(false); setTimeout(() => t.run(), 220); }}
-                  >
-                    <View style={[st.trayIcon, t.on && st.trayIconOn]}>
-                      <Feather name={t.icon as any} size={21} color={t.on ? '#020408' : '#FFFFFF'} />
-                    </View>
-                    <Text style={st.trayLabel} numberOfLines={1}>{t.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {hasPoll && (
-                <TouchableOpacity style={st.trayRemove} activeOpacity={0.7} onPress={() => { setOverflowOpen(false); removePoll(); }}>
-                  <Feather name="trash-2" size={15} color="#FF3B30" />
-                  <Text style={st.trayRemoveTxt}>Remove poll</Text>
-                </TouchableOpacity>
-              )}
-
-              <Text style={st.traySection}>Topic</Text>
-              <CategoryPicker selected={active?.category || null} onChange={cat => updateActive({ category: cat })} disabled={publish.publishing} />
-
-              {isTextStory && (
-                <>
-                  <Text style={st.traySection}>Background</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 4, gap: 10, paddingVertical: 8 }}>
-                    {TEXT_BG_OPTIONS.map(o => (
-                      <TouchableOpacity key={o.id} style={[st.bgSwatch, active?.textBgId === o.id && st.bgSwatchActive]} onPress={() => updateActive({ textBgId: o.id, textBackground: o.bg })} activeOpacity={0.7} disabled={publish.publishing}>
-                        {o.previewColors.length === 1
-                          ? <View style={[st.bgSwatchInner, { backgroundColor: o.previewColors[0] }, o.id === 'white' && st.bgSwatchWhite]} />
-                          : <LinearGradient colors={o.previewColors} style={st.bgSwatchInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </>
-              )}
-            </View>
-          </TouchableOpacity>
+          <View style={[st.overflowSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={st.overflowHandle} />
+            <TouchableOpacity style={st.overflowRow} onPress={() => { setOverflowOpen(false); openPollEditor(); }} activeOpacity={0.6}><Feather name="bar-chart-2" size={18} color={hasPoll ? accent.warm : textColor.secondary} /><Text style={st.overflowLabel}>{hasPoll ? 'Edit Poll' : 'Poll'}</Text></TouchableOpacity>
+            {hasPoll && <TouchableOpacity style={st.overflowRow} onPress={() => { setOverflowOpen(false); removePoll(); }} activeOpacity={0.6}><Feather name="trash-2" size={18} color="#FF3B30" /><Text style={[st.overflowLabel, { color: '#FF3B30' }]}>Remove Poll</Text></TouchableOpacity>}
+            <TouchableOpacity style={st.overflowRow} onPress={() => { setOverflowOpen(false); openLinkModal(); }} activeOpacity={0.6}><Feather name="link" size={18} color={stickerCounts.link > 0 ? accent.warm : textColor.secondary} /><Text style={st.overflowLabel}>Link</Text></TouchableOpacity>
+            <TouchableOpacity style={st.overflowRow} onPress={() => { setOverflowOpen(false); openLocationModal(); }} activeOpacity={0.6}><Feather name="map-pin" size={18} color={stickerCounts.location > 0 ? accent.warm : textColor.secondary} /><Text style={st.overflowLabel}>Location</Text></TouchableOpacity>
+            <TouchableOpacity style={st.overflowRow} onPress={() => { setOverflowOpen(false); openMentionModal(); }} activeOpacity={0.6}><Feather name="at-sign" size={18} color={stickerCounts.mention > 0 ? accent.warm : textColor.secondary} /><Text style={st.overflowLabel}>Mention</Text></TouchableOpacity>
+            <View style={st.overflowDivider} />
+            <TouchableOpacity style={st.overflowRow} onPress={() => { setOverflowOpen(false); openQuestionModal(); }} activeOpacity={0.6}><Feather name="help-circle" size={18} color={stickerCounts.question > 0 ? accent.warm : textColor.secondary} /><Text style={st.overflowLabel}>Question</Text></TouchableOpacity>
+            <TouchableOpacity style={st.overflowRow} onPress={() => { setOverflowOpen(false); openSliderModal(); }} activeOpacity={0.6}><Feather name="sliders" size={18} color={stickerCounts.slider > 0 ? accent.warm : textColor.secondary} /><Text style={st.overflowLabel}>Slider</Text></TouchableOpacity>
+            <TouchableOpacity style={st.overflowRow} onPress={() => { setOverflowOpen(false); openQuizModal(); }} activeOpacity={0.6}><Feather name="check-square" size={18} color={stickerCounts.quiz > 0 ? accent.warm : textColor.secondary} /><Text style={st.overflowLabel}>Quiz</Text></TouchableOpacity>
+            <View style={st.overflowDivider} />
+            <View style={st.overflowRow}><Feather name="tag" size={18} color={active?.category ? accent.warm : textColor.secondary} /><View style={{ flex: 1 }}><CategoryPicker selected={active?.category || null} onChange={cat => updateActive({ category: cat })} disabled={publish.publishing} /></View></View>
+            {isTextStory && <>
+              <View style={st.overflowDivider} />
+              <Text style={st.overflowSectionLabel}>Background</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 4, gap: 8, paddingVertical: 8 }}>
+                {TEXT_BG_OPTIONS.map(o => <TouchableOpacity key={o.id} style={[st.bgSwatch, active?.textBgId === o.id && st.bgSwatchActive]} onPress={() => updateActive({ textBgId: o.id, textBackground: o.bg })} activeOpacity={0.7} disabled={publish.publishing}>{o.previewColors.length === 1 ? <View style={[st.bgSwatchInner, { backgroundColor: o.previewColors[0] }, o.id === 'white' && st.bgSwatchWhite]} /> : <LinearGradient colors={o.previewColors} style={st.bgSwatchInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />}</TouchableOpacity>)}
+              </ScrollView>
+            </>}
+          </View>
         </TouchableOpacity>
       </Modal>
+
       {/* Link Modal */}
       <Modal visible={linkModalOpen} transparent animationType="slide" onRequestClose={closeLinkModal}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeLinkModal}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
@@ -1079,15 +1049,7 @@ const st = StyleSheet.create({
   overflowRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14 },
   overflowLabel: { color: textColor.primary, fontSize: 15.5, fontWeight: '500', letterSpacing: -0.2 },
   overflowDivider: { height: StyleSheet.hairlineWidth, backgroundColor: borderColor.soft, marginVertical: 4 },
-  trayTitle: { color: '#FFF', fontSize: 17, fontWeight: '800', letterSpacing: -0.4, paddingHorizontal: 4, paddingBottom: 14 },
-  trayGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  trayTile: { width: '25%', alignItems: 'center', paddingVertical: 10 },
-  trayIcon: { width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
-  trayIconOn: { backgroundColor: '#FFFFFF' },
-  trayLabel: { color: 'rgba(255,255,255,0.72)', fontSize: 11.5, fontWeight: '600', letterSpacing: -0.1, marginTop: 7 },
-  traySection: { color: 'rgba(255,255,255,0.45)', fontSize: 11, fontWeight: '700', letterSpacing: 1.1, paddingHorizontal: 4, paddingTop: 16, paddingBottom: 2, textTransform: 'uppercase' },
-  trayRemove: { flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start', paddingHorizontal: 4, paddingTop: 10 },
-  trayRemoveTxt: { color: '#FF3B30', fontSize: 13.5, fontWeight: '600' },  overflowSectionLabel: { color: textColor.secondary, fontSize: typeSize.micro, fontWeight: fontWeight.semibold, paddingHorizontal: 4, paddingTop: 4 },
+  overflowSectionLabel: { color: textColor.secondary, fontSize: typeSize.micro, fontWeight: fontWeight.semibold, paddingHorizontal: 4, paddingTop: 4 },
   bgSwatch: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: 'transparent', padding: 2 },
   bgSwatchActive: { borderColor: accent.warm },
   bgSwatchInner: { flex: 1, borderRadius: 16 },

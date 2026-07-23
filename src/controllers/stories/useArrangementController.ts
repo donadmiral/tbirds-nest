@@ -71,10 +71,12 @@ export function useArrangementController(input: ArrangementControllerInput): Arr
   // ── Close arrangement: commit layout, restore gestures ──
   const closeArrangement = useCallback(() => {
     const bubble = getBubbleTransform();
-    const layout: DualLayout = {
+    const layout: any = {
       mode: 'pip_front_small',
       primaryCamera,
       bubble: {
+        nx: screenW > 0 ? bubble.x / screenW : 0.05,
+        ny: screenH > 0 ? bubble.y / screenH : 0.06,
         x: bubble.x,
         y: bubble.y,
         scale: bubble.scale,

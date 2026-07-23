@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { showMessage } from 'react-native-flash-message';
 import { storiesService } from '../../services/storiesService';
 import { supabase } from '../../services/supabase';
 import { campusMomentService } from '../../services/campusMomentService';
@@ -186,7 +187,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
         Animated.timing(mediaOpacity, { toValue: 0, duration: duration.medium, useNativeDriver: true }),
         Animated.timing(mediaScale, { toValue: 0.96, duration: duration.medium, useNativeDriver: true }),
       ]).start(() => {
-        if (mountedRef.current) navigation.goBack();
+        if (mountedRef.current) { showMessage({ message: 'Story shared', type: 'success', duration: 1800 }); const nav: any = navigation; if (typeof nav.popToTop === 'function') nav.popToTop(); else nav.goBack(); }
       });
     } else if (successCount === 0) {
       Alert.alert('Upload failed', 'Could not upload. Please try again.');

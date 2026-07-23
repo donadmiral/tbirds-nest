@@ -279,7 +279,7 @@ function StoryStrip({ mode = 'all' }: Props) {
   }, [load]);
 
   const openCreationMenu = () => {
-    navigation.navigate('StoryCreationMenu');
+    navigation.navigate('StoryCamera');
   };
 
   const openViewer = (startUserId: string) => {
@@ -287,7 +287,7 @@ function StoryStrip({ mode = 'all' }: Props) {
 
     // Phase 4.0A: Record all userIds sent to the viewer
     // On return, these will be optimistically marked as seen
-    viewerOpenedForRef.current = new Set(userIds);
+    viewerOpenedForRef.current = new Set([startUserId]);
 
     navigation.navigate('StoryViewer', {
       userIds,

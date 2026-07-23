@@ -75,7 +75,6 @@ export interface BloomToolDef {
 export const BLOOM_TOOLS_RIGHT: readonly BloomToolDef[] = [
   { id: 'text', icon: 'type', label: 'Text', angle: ARC_R4_TOP, priority: 1, category: 'creative', accessibilityLabel: 'Add text overlay', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: true, enabledInText: true },
   { id: 'sticker', icon: 'smile', label: 'Sticker', angle: ARC_R4_MID2, priority: 2, category: 'creative', accessibilityLabel: 'Add emoji sticker', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: true, enabledInText: true },
-  { id: 'enhance', icon: 'sun', label: 'Enhance', angle: ARC_R4_MID3, priority: 3, category: 'ai', accessibilityLabel: 'AI enhance this moment', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
   { id: 'more', icon: 'more-horizontal', label: 'More', angle: ARC_R4_BOT, priority: 4, category: 'interactive', accessibilityLabel: 'More creative tools', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: true, enabledInText: true },
 ] as const;
 
@@ -83,7 +82,6 @@ export const BLOOM_TOOLS_RIGHT: readonly BloomToolDef[] = [
 export const BLOOM_TOOLS_LEFT: readonly BloomToolDef[] = [
   { id: 'text', icon: 'type', label: 'Text', angle: ARC_L4_TOP, priority: 1, category: 'creative', accessibilityLabel: 'Add text overlay', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: true, enabledInText: true },
   { id: 'sticker', icon: 'smile', label: 'Sticker', angle: ARC_L4_MID2, priority: 2, category: 'creative', accessibilityLabel: 'Add emoji sticker', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: true, enabledInText: true },
-  { id: 'enhance', icon: 'sun', label: 'Enhance', angle: ARC_L4_MID3, priority: 3, category: 'ai', accessibilityLabel: 'AI enhance this moment', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
   { id: 'more', icon: 'more-horizontal', label: 'More', angle: ARC_L4_BOT, priority: 4, category: 'interactive', accessibilityLabel: 'More creative tools', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: true, enabledInText: true },
 ] as const;
 
@@ -91,7 +89,6 @@ export const BLOOM_TOOLS_LEFT: readonly BloomToolDef[] = [
 export const BLOOM_TOOLS_RIGHT_DUAL: readonly BloomToolDef[] = [
   { id: 'text', icon: 'type', label: 'Text', angle: ARC_R5_1, priority: 1, category: 'creative', accessibilityLabel: 'Add text overlay', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
   { id: 'sticker', icon: 'smile', label: 'Sticker', angle: ARC_R5_2, priority: 2, category: 'creative', accessibilityLabel: 'Add emoji sticker', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
-  { id: 'enhance', icon: 'sun', label: 'Enhance', angle: ARC_R5_3, priority: 3, category: 'ai', accessibilityLabel: 'AI enhance this moment', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
   { id: 'more', icon: 'more-horizontal', label: 'More', angle: ARC_R5_4, priority: 4, category: 'interactive', accessibilityLabel: 'More creative tools', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
   { id: 'layout', icon: 'grid', label: 'Layout', angle: ARC_R5_5, priority: 5, category: 'layout', accessibilityLabel: 'Adjust memory layout', haptic: HAPTIC_PRESET, enabledInImage: false, enabledInDual: true, enabledInVideo: false, enabledInText: false },
 ] as const;
@@ -99,7 +96,6 @@ export const BLOOM_TOOLS_RIGHT_DUAL: readonly BloomToolDef[] = [
 export const BLOOM_TOOLS_LEFT_DUAL: readonly BloomToolDef[] = [
   { id: 'text', icon: 'type', label: 'Text', angle: ARC_L5_1, priority: 1, category: 'creative', accessibilityLabel: 'Add text overlay', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
   { id: 'sticker', icon: 'smile', label: 'Sticker', angle: ARC_L5_2, priority: 2, category: 'creative', accessibilityLabel: 'Add emoji sticker', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
-  { id: 'enhance', icon: 'sun', label: 'Enhance', angle: ARC_L5_3, priority: 3, category: 'ai', accessibilityLabel: 'AI enhance this moment', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
   { id: 'more', icon: 'more-horizontal', label: 'More', angle: ARC_L5_4, priority: 4, category: 'interactive', accessibilityLabel: 'More creative tools', haptic: HAPTIC_PRESET, enabledInImage: true, enabledInDual: true, enabledInVideo: false, enabledInText: false },
   { id: 'layout', icon: 'grid', label: 'Layout', angle: ARC_L5_5, priority: 5, category: 'layout', accessibilityLabel: 'Adjust memory layout', haptic: HAPTIC_PRESET, enabledInImage: false, enabledInDual: true, enabledInVideo: false, enabledInText: false },
 ] as const;

@@ -146,7 +146,7 @@ export default function StoryCreationMenuScreen() {
   }, []);
 
   const openTextStory = () => {
-    navigation.replace('StoryComposer', { mode: 'text', assets: [], ...extraParams });
+    navigation.navigate('StoryComposer', { mode: 'text', assets: [], ...extraParams });
   };
 
   const openPhotoGallery = async () => {
@@ -169,7 +169,7 @@ export default function StoryCreationMenuScreen() {
           width: a.width,
           height: a.height,
         }));
-        navigation.replace('StoryComposer', { mode: 'image', assets, ...extraParams });
+        navigation.navigate('StoryComposer', { mode: 'image', assets, ...extraParams });
       }
     } catch (err: any) {
       const msg = err?.message || '';
@@ -210,7 +210,7 @@ export default function StoryCreationMenuScreen() {
         // Accept both file:// and ph:// URIs. expo-image-picker resolves
         // iCloud assets before returning. If it returned a URI, the asset
         // is available. The old check rejected ph:// URIs unnecessarily.
-        navigation.replace('StoryComposer', {
+        navigation.navigate('StoryComposer', {
           mode: 'video',
           assets: [{ localUri, mediaType: 'video', width: asset.width, height: asset.height, durationSec }],
           ...extraParams,
@@ -257,10 +257,10 @@ export default function StoryCreationMenuScreen() {
             <MenuOption icon="film" label="Video" onPress={openVideoGallery} />
           </Animated.View>
           <Animated.View style={{ opacity: row4Opacity, transform: [{ translateY: row4TransY }] }}>
-            <MenuOption icon="camera" label="Camera" onPress={() => navigation.replace('StoryCamera')} />
+            <MenuOption icon="camera" label="Camera" onPress={() => navigation.navigate('StoryCamera')} />
           </Animated.View>
           <Animated.View style={{ opacity: row5Opacity, transform: [{ translateY: row5TransY }] }}>
-            <MenuOption icon="aperture" label="Dual" onPress={() => navigation.replace('StoryDualCapture', extraParams)} />
+            <MenuOption icon="aperture" label="Dual" onPress={() => navigation.navigate('StoryDualCapture', extraParams)} />
           </Animated.View>
         </View>
 
