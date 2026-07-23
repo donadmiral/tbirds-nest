@@ -96,8 +96,7 @@ export function useArrangementController(input: ArrangementControllerInput): Arr
 
   // ── Swap cameras ──
   const handleSwap = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle[HAPTIC_SWAP]);
-    setPrimaryCamera(prev => prev === 'rear' ? 'front' : 'rear');
+        setPrimaryCamera(prev => prev === 'rear' ? 'front' : 'rear');
   }, []);
 
   // ── Preset selection: delegates animation to BubbleController ──

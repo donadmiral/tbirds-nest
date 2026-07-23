@@ -188,15 +188,15 @@ export interface DraggableStickerProps {
 // ── Helpers (pure, used in worklets via runOnJS bridge) ──
 
 function fireHapticLight() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  
 }
 
 function fireHapticMedium() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  
 }
 
 function fireHapticSelection() {
-  Haptics.selectionAsync();
+  
 }
 
 // ── Worklet helpers ──

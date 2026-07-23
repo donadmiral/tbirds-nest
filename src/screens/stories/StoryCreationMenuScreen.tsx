@@ -51,7 +51,7 @@ function MenuOption({
   return (
     <Pressable
       onPress={() => {
-        Haptics.selectionAsync();
+        
         onPress();
       }}
       onPressIn={handlePressIn}

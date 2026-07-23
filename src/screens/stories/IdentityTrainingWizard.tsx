@@ -267,8 +267,7 @@ export default function IdentityTrainingWizard({
 
     if (result.canceled || !result.assets) return;
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
+    
     const newPhotos: SelectedPhoto[] = result.assets.map(asset => ({
       uri: asset.uri,
       width: asset.width || 0,
@@ -280,8 +279,7 @@ export default function IdentityTrainingWizard({
   }, [photos.length]);
 
   const removePhoto = useCallback((uri: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setPhotos(prev => prev.filter(p => p.uri !== uri));
+        setPhotos(prev => prev.filter(p => p.uri !== uri));
   }, []);
 
   // ── Upload and activate identity ──
@@ -295,8 +293,7 @@ export default function IdentityTrainingWizard({
       return;
     }
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setWizardState('uploading');
+        setWizardState('uploading');
 
     const identityService = getFaceIdentityService();
 
@@ -314,8 +311,7 @@ export default function IdentityTrainingWizard({
 
       if (uploaded >= MIN_PHOTOS) {
         // Identity is ready immediately (no training wait)
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setWizardState('completed');
+                setWizardState('completed');
       } else if (uploaded > 0) {
         setWizardState('failed');
         setTrainingProgress({
@@ -495,8 +491,7 @@ export default function IdentityTrainingWizard({
             <TouchableOpacity
               style={st.completedBtn}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                onComplete();
+                                onComplete();
               }}
               activeOpacity={0.85}
             >

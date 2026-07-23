@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
   fitToggle: {
     position: 'absolute',
     bottom: 16,
-    right: 16,
+    left: 16,
     width: 36,
     height: 36,
     borderRadius: 18,

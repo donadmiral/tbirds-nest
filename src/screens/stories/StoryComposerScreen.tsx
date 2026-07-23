@@ -446,11 +446,11 @@ export default function StoryComposerScreen() {
 
   // ── Text editor ──
   const openTextEditor = useCallback((existingId?: string) => {
-    if (existingId && active?.stickers) { const ex = active.stickers.find(s => s.id === existingId); if (ex) { setEditingStickerId(existingId); setStickerText(ex.text); setStickerStyle(ex.style); setStickerColor(ex.color); setStickerBgEnabled(!!ex.bgEnabled); setStickerFontSize(ex.fontSizeOverride ?? 0); setStickerOpacity(ex.opacity ?? 1.0); setStickerTextAlign(ex.textAlign ?? 'center'); setTextEditorOpen(true); setTextEditorAdvanced(false); const si = STICKER_STYLES.indexOf(ex.style); if (si > 0) setTimeout(() => stylePickerRef.current?.scrollTo({ x: si * 72, animated: false }), 100); setTimeout(() => stickerInputRef.current?.focus(), 200); return; } }
+    if (existingId && active?.stickers) { const ex = active.stickers.find(s => s.id === existingId); if (ex) { setEditingStickerId(existingId); setStickerText(ex.text); setStickerStyle(ex.style); setStickerColor(ex.color); setStickerBgEnabled(!!ex.bgEnabled); setStickerFontSize(ex.fontSizeOverride ?? 0); setStickerOpacity(ex.opacity ?? 1.0); setStickerTextAlign(ex.textAlign ?? 'center'); setTextEditorOpen(true); const si = STICKER_STYLES.indexOf(ex.style); if (si > 0) setTimeout(() => stylePickerRef.current?.scrollTo({ x: si * 72, animated: false }), 100); setTimeout(() => stickerInputRef.current?.focus(), 200); return; } }
     if ((active?.stickers?.length ?? 0) >= MAX_STICKERS) { Alert.alert('Limit reached', `Maximum ${MAX_STICKERS} text overlays per story.`); return; }
-    setEditingStickerId(null); setStickerText(''); setStickerStyle('classic'); setStickerColor(active?.mediaType === 'text' ? getDefaultStickerColor(active.textBgId) : '#FFFFFF'); setStickerBgEnabled(false); setStickerFontSize(0); setStickerOpacity(1.0); setStickerTextAlign('center'); setTextEditorOpen(true); setTextEditorAdvanced(false); setTimeout(() => stickerInputRef.current?.focus(), 200);
+    setEditingStickerId(null); setStickerText(''); setStickerStyle('classic'); setStickerColor(active?.mediaType === 'text' ? getDefaultStickerColor(active.textBgId) : '#FFFFFF'); setStickerBgEnabled(false); setStickerFontSize(0); setStickerOpacity(1.0); setStickerTextAlign('center'); setTextEditorOpen(true); setTimeout(() => stickerInputRef.current?.focus(), 200);
   }, [active]);
-  const closeTextEditor = useCallback(() => { setTextEditorOpen(false); setStickerText(''); setEditingStickerId(null); setTextEditorAdvanced(false); }, []);
+  const closeTextEditor = useCallback(() => { setTextEditorOpen(false); setStickerText(''); setEditingStickerId(null); }, []);
   const saveSticker = useCallback(() => {
     const tr = stickerText.trim(); if (!tr) { if (editingStickerId) updateStickers((active?.stickers || []).filter(s => s.id !== editingStickerId)); closeTextEditor(); return; }
     const extra = { bgEnabled: stickerBgEnabled, fontSizeOverride: stickerFontSize > 0 ? stickerFontSize : undefined, opacity: stickerOpacity < 1.0 ? stickerOpacity : undefined, textAlign: stickerTextAlign !== 'center' ? stickerTextAlign : undefined };
@@ -637,16 +637,16 @@ export default function StoryComposerScreen() {
             <View style={st.toolRowGap} />
           </>}
           {bloomTools.map((tool: BloomToolDef) => (
-            <TouchableOpacity key={tool.id} style={st.topToolBtn} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); handleBloomToolAction(tool.id); }} activeOpacity={0.7} disabled={publish.publishing} accessibilityLabel={tool.accessibilityLabel}>
+            <TouchableOpacity key={tool.id} style={st.topToolBtn} onPress={() => { handleBloomToolAction(tool.id); }} activeOpacity={0.7} disabled={publish.publishing} accessibilityLabel={tool.accessibilityLabel}>
               <Feather name={tool.icon} size={19} color="#FFF" />
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Post button */}
-        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(14, insets.bottom + 14) }]}>
+        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) }]}>
           <TouchableOpacity onPress={publish.publishAll} disabled={!canPublish} style={[st.postPillInner, !canPublish && { opacity: 0.4 }]} activeOpacity={0.85}>
-            {publish.publishing ? <ActivityIndicator color="#FFF" size={14} /> : <><Text style={st.postPillTxt}>Post</Text><Feather name="arrow-up" size={13} color="#FFF" /></>}
+            {publish.publishing ? <ActivityIndicator color="#0A0A0A" size={14} /> : <><Text style={st.postPillTxt}>Post</Text><Feather name="arrow-up" size={13} color="#0A0A0A" /></>}
           </TouchableOpacity>
         </Animated.View>
 
@@ -785,7 +785,7 @@ export default function StoryComposerScreen() {
                     key={t.id}
                     style={st.trayTile}
                     activeOpacity={0.7}
-                    onPress={() => { Haptics.selectionAsync(); setOverflowOpen(false); setTimeout(() => t.run(), 220); }}
+                    onPress={() => { setOverflowOpen(false); setTimeout(() => t.run(), 220); }}
                   >
                     <View style={[st.trayIcon, t.on && st.trayIconOn]}>
                       <Feather name={t.icon as any} size={21} color={t.on ? '#020408' : '#FFFFFF'} />
@@ -976,11 +976,11 @@ const st = StyleSheet.create({
   undoBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
   topToolBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
   toolRowGap: { width: 6 },
-  captionFloating: { position: 'absolute', left: 14, right: 100, zIndex: 50 },
-  captionInput: { backgroundColor: 'rgba(0,0,0,0.35)', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, color: '#FFF', fontSize: typeSize.caption, fontWeight: fontWeight.medium, borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.12)' },
+  captionFloating: { position: 'absolute', left: 14, right: 116, zIndex: 50 },
+  captionInput: { backgroundColor: 'rgba(0,0,0,0.78)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 11, color: '#FFFFFF', fontSize: 14.5, fontWeight: '500', borderWidth: 1, borderColor: 'rgba(255,255,255,0.30)', minHeight: 42 },
   postPillWrap: { position: 'absolute', right: 14, zIndex: Z_CHROME },
-  postPillInner: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 22, backgroundColor: accent.warm, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 4 },
-  postPillTxt: { color: '#FFF', fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  postPillInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingHorizontal: 20, minHeight: 42, borderRadius: 20, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
+  postPillTxt: { color: '#0A0A0A', fontSize: 14.5, fontWeight: '800', letterSpacing: -0.2 },
   invokeBtn: { position: 'absolute', bottom: 80, right: 14, width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', zIndex: Z_CHROME, overflow: 'hidden' },
   invokeTouchable: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   bloomTool: { position: 'absolute', width: BLOOM_TOOL_SIZE, height: BLOOM_TOOL_SIZE, borderRadius: BLOOM_TOOL_SIZE / 2, alignItems: 'center', justifyContent: 'center', zIndex: Z_BLOOM },

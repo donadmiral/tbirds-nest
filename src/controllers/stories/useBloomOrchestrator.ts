@@ -89,8 +89,7 @@ export function useBloomOrchestrator(input: BloomOrchestratorInput): BloomOrches
   const openBloom = useCallback(() => {
     if (bloomOpen || publishing) return;
     setBloomOpen(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
+    
     if (reduceMotion) {
       bloomToolAnims.forEach(a => a.progress.setValue(1));
       bloomLabelOpacity.setValue(1);
@@ -162,8 +161,7 @@ export function useBloomOrchestrator(input: BloomOrchestratorInput): BloomOrches
 
   // ── Tool tap: close bloom, delay, then dispatch ──
   const handleBloomToolTap = useCallback((toolId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    closeBloom();
+        closeBloom();
 
     // Clear any pending tool open
     if (toolOpenTimeoutRef.current) clearTimeout(toolOpenTimeoutRef.current);

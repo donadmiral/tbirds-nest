@@ -26,7 +26,7 @@ export function useKeyboardOrchestrator(input: KeyboardOrchestratorInput): Keybo
   const { closeBloom } = input;
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const captionBottomAnim = useRef(new Animated.Value(56)).current;
+  const captionBottomAnim = useRef(new Animated.Value(48)).current;
   const controlsOpacityAnim = useRef(new Animated.Value(1)).current;
 
   // Store closeBloom in a ref so the keyboard listener doesn't stale-close

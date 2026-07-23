@@ -396,7 +396,7 @@ export default function MemoryArrangementScreen() {
     if (snapKey !== lastSnapZoneRef.current) {
       lastSnapZoneRef.current = snapKey;
       if (inSnapX || inSnapY) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        
       }
     }
     setGuideX(inSnapX ? snap.snapX : null);
@@ -413,7 +413,7 @@ export default function MemoryArrangementScreen() {
     if (state === GHState.BEGAN) {
       panBaseX.current = bubbleX.current;
       panBaseY.current = bubbleY.current;
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      
       setSelectedPreset(null);
     }
 
@@ -474,14 +474,14 @@ export default function MemoryArrangementScreen() {
       let springConfig;
       if (hasSnap) {
         springConfig = SPRINGS.snapPull;
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        
       } else if (velocity > THROW_VELOCITY) {
         springConfig = SPRINGS.fling;
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        
       } else if (rawX !== clamped.x || rawY !== clamped.y) {
         // Was outside safe zone, springing back
         springConfig = SPRINGS.rubberReturn;
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        
       } else {
         springConfig = SPRINGS.bubbleSettle;
       }
@@ -545,7 +545,7 @@ export default function MemoryArrangementScreen() {
       bubbleY.current = clamped.y;
 
       if (snapped) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        
       }
 
       if (reduceMotion) {
@@ -568,7 +568,7 @@ export default function MemoryArrangementScreen() {
     if (swapping.current) return;
 
     swapping.current = true;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
 
     const dur = reduceMotion ? 200 : 200; // phase duration
 
@@ -598,7 +598,7 @@ export default function MemoryArrangementScreen() {
   const selectPreset = useCallback((preset: CompositionPreset) => {
     if (swapping.current) return;
 
-    Haptics.selectionAsync();
+    
     setSelectedPreset(preset.id);
 
     const targetX = preset.nx * SCREEN_W;
@@ -631,7 +631,7 @@ export default function MemoryArrangementScreen() {
     if (swapping.current) return;
     console.log('[Arrangement.handleDone]', { primaryCamera, nx: bubbleX.current / SCREEN_W, ny: bubbleY.current / SCREEN_H, scale: bubbleScale.current, preset: selectedPreset });
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    
 
     const layoutState: DualLayoutState = {
       version: 1,

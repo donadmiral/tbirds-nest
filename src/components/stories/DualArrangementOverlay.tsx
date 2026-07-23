@@ -178,17 +178,17 @@ export default function DualArrangementOverlay({
 
   // ── Handlers ──
   const handlePresetTap = useCallback((preset: CompositionPreset) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle[HAPTIC_PRESET]);
+    
     onPresetSelect(preset);
   }, [onPresetSelect]);
 
   const handleSwap = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle[HAPTIC_SWAP]);
+    
     onSwap();
   }, [onSwap]);
 
   const handleDone = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle[HAPTIC_DONE]);
+    
     onDone();
   }, [onDone]);
 
