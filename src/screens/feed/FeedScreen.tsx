@@ -21,7 +21,6 @@ import { useAuthStore } from '../../stores/authStore';
 import StoryBar from '../../components/stories/StoryStrip';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
-import BuiltInZimbabweStrip from '../../components/BuiltInZimbabweStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import ImageView from 'react-native-image-viewing';
 import { Video as AVVideo, ResizeMode as AVResizeMode } from 'expo-av';
@@ -143,6 +142,7 @@ export default function FeedScreen({ navigation }: any) {
   const [posting, setPosting] = useState(false);
   const [exclusivePost, setExclusivePost] = useState(false);
   const [innovationPost, setInnovationPost] = useState(false);
+  const [articleTitle, setArticleTitle] = useState('');
   const [mentionResults, setMentionResults] = useState<ProfileLite[]>([]);
   const [mentionActive, setMentionActive] = useState(false);
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
@@ -915,6 +915,7 @@ export default function FeedScreen({ navigation }: any) {
         content: composerText.trim() || null,
         is_exclusive: exclusivePost,
         channel: innovationPost ? 'innovation' : null,
+        ...(innovationPost && articleTitle.trim() ? { article_title: articleTitle.trim(), read_minutes: Math.max(1, Math.round((composerText.trim().split(/\s+/).length || 0) / 200)) } : {}),
         ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
         ...(threadingPost ? { thread_parent_id: threadingPost.id } : {}),
       };
@@ -1358,7 +1359,7 @@ export default function FeedScreen({ navigation }: any) {
                   delete singleTapTimers.current[k];
                 });
               }}
-              ListHeaderComponent={<><StoryBar /><TrendingTopicsStrip />{feedMode === 'innovation' && <BuiltInZimbabweStrip />}</>}
+              ListHeaderComponent={<><StoryBar /><TrendingTopicsStrip /></>}
               contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
               ListEmptyComponent={
@@ -1412,6 +1413,16 @@ export default function FeedScreen({ navigation }: any) {
                     <Feather name="shield" size={13} color="#2563EB" />
                     <Text style={s.exclusiveBannerTxt}>Only verified members can see this post</Text>
                   </View>
+                )}
+                {innovationPost && (
+                  <TextInput
+                    value={articleTitle}
+                    onChangeText={setArticleTitle}
+                    placeholder="Article title (optional)"
+                    placeholderTextColor="#9CA3AF"
+                    style={{ fontSize: 21, fontWeight: '800', color: '#0A0A0A', letterSpacing: -0.5, paddingVertical: 8, marginBottom: 4 }}
+                    multiline
+                  />
                 )}
                 {innovationPost && (
                   <View style={[s.exclusiveBanner, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>

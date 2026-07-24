@@ -1,3 +1,4 @@
+import ArticleReaderScreen from '../screens/feed/ArticleReaderScreen';
 import React, { useEffect, useRef, useState } from 'react';
 import { AppState, Platform, StyleSheet, Text, View, Animated, Pressable } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
@@ -92,6 +93,7 @@ function FeedStackNav() {
       <FeedStack.Screen name="FeedMain"      component={FeedScreen} />
       <FeedStack.Screen name="Search"        component={SearchScreen} />
       <FeedStack.Screen name="Notifications" component={NotificationsScreen} />
+      <FeedStack.Screen name="ArticleReader" component={ArticleReaderScreen} />
     </FeedStack.Navigator>
   );
 }
