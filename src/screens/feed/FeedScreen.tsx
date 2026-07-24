@@ -325,7 +325,7 @@ export default function FeedScreen({ navigation }: any) {
         setQuotedMap(qm);
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
-      const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
+      const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility').in('id', uids);
       const pm: ProfileMap = {};
       (pData || []).forEach((p: any) => { pm[p.id] = p; });
       setProfilesMap(pm);
@@ -400,6 +400,8 @@ export default function FeedScreen({ navigation }: any) {
     if (!userId) return;
     supabase.from('follows').select('following_id').eq('follower_id', userId).limit(1000)
       .then(({ data }) => { if (data) setFollowingIds(new Set(data.map((r: any) => r.following_id))); });
+    supabase.from('follow_requests').select('target_id').eq('requester_id', userId).eq('status', 'pending').limit(1000)
+      .then(({ data }) => { if (data) setRequestedIds(new Set(data.map((r: any) => r.target_id))); });
   }, [userId]);
 
   useEffect(() => {
@@ -670,21 +672,31 @@ export default function FeedScreen({ navigation }: any) {
     const wasFollowing = followingIds.has(targetId);
     const wasRequested = requestedIds.has(targetId);
 
-    // Optimistic, exactly like Instagram: flip first, reconcile after.
-    setFollowingIds(prev => { const n = new Set(prev); if (wasFollowing) n.delete(targetId); else n.add(targetId); return n; });
+    const isPrivate = (profilesMap as any)[targetId]?.profile_visibility === 'private';
+    // Optimistic: paint the state the server will actually return.
+    if (wasFollowing || wasRequested) {
+      setFollowingIds(prev => { const n = new Set(prev); n.delete(targetId); return n; });
+      setRequestedIds(prev => { const n = new Set(prev); n.delete(targetId); return n; });
+    } else if (isPrivate) {
+      setRequestedIds(prev => { const n = new Set(prev); n.add(targetId); return n; });
+    } else {
+      setFollowingIds(prev => { const n = new Set(prev); n.add(targetId); return n; });
+    }
 
     try {
       const { data, error } = await supabase.rpc('handle_follow_action', { p_target_id: targetId });
       if (error) throw error;
       const action = (data as any)?.action;
-      setFollowingIds(prev => { const n = new Set(prev); if (action === 'followed') n.add(targetId); else n.delete(targetId); return n; });
-      setRequestedIds(prev => { const n = new Set(prev); if (action === 'requested') n.add(targetId); else n.delete(targetId); return n; });
+      if (action === 'followed' || action === 'unfollowed' || action === 'requested' || action === 'request_cancelled') {
+        setFollowingIds(prev => { const n = new Set(prev); if (action === 'followed') n.add(targetId); else n.delete(targetId); return n; });
+        setRequestedIds(prev => { const n = new Set(prev); if (action === 'requested') n.add(targetId); else n.delete(targetId); return n; });
+      }
     } catch (e: any) {
       setFollowingIds(prev => { const n = new Set(prev); if (wasFollowing) n.add(targetId); else n.delete(targetId); return n; });
       setRequestedIds(prev => { const n = new Set(prev); if (wasRequested) n.add(targetId); else n.delete(targetId); return n; });
       Alert.alert('Could not update follow', e?.message || 'Try again.');
     }
-  }, [userId, followingIds, requestedIds]);
+  }, [userId, followingIds, requestedIds, profilesMap]);
 
   const openSendSheet = useCallback(async (post: Post) => {
     if (!userId) return;
@@ -1014,7 +1026,7 @@ export default function FeedScreen({ navigation }: any) {
       const uids2 = Array.from(new Set([...scored.map(p => p.user_id), ...qRows2.map((qr: any) => qr.user_id)]));
       const missingU = uids2.filter(u => !profilesMap[u]);
       if (missingU.length > 0) {
-        const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', missingU);
+        const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility').in('id', missingU);
         if (pData) setProfilesMap(prev => { const pm = { ...prev }; pData.forEach((p: any) => { pm[p.id] = p; }); return pm; });
       }
       if (userId && ids.length > 0) {
