@@ -15,12 +15,21 @@ export default function MutedStoriesScreen({ navigation }: any) {
     try {
       const { data: me } = await supabase.auth.getUser();
       if (!me?.user) { setRows([]); return; }
-      const { data } = await supabase
+      const { data: mutes, error: mErr } = await supabase
         .from('muted_stories')
-        .select('muted_id, created_at, profile:profiles!muted_stories_muted_id_fkey(id, full_name, username, avatar_url)')
+        .select('muted_id, created_at')
         .eq('user_id', me.user.id)
         .order('created_at', { ascending: false });
-      setRows((data || []).filter((r: any) => r.profile));
+      if (mErr) { console.log('[MutedStories] mutes', mErr.message); setRows([]); return; }
+      const ids = (mutes || []).map((m: any) => m.muted_id);
+      if (!ids.length) { setRows([]); return; }
+      const { data: profs, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, username, avatar_url')
+        .in('id', ids);
+      if (pErr) { console.log('[MutedStories] profiles', pErr.message); }
+      const byId = new Map((profs || []).map((p: any) => [p.id, p]));
+      setRows((mutes || []).map((m: any) => ({ ...m, profile: byId.get(m.muted_id) || { id: m.muted_id, full_name: 'Unknown', username: '', avatar_url: null } })));
     } catch (e) { console.log('[MutedStories]', e); }
     finally { setLoading(false); }
   }, []);
