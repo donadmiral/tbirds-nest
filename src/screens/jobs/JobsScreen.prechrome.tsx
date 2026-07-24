@@ -545,69 +545,79 @@ export default function JobsScreen({ navigation }: any) {
       <View style={s.container}>
 
         <View style={s.header}>
-          <View style={s.hsTopRow}>
-            <Text style={s.hsPageTitle}>Jobs</Text>
-            <View style={s.hsTopActions}>
-              <TouchableOpacity onPress={() => setShowSaved(true)} style={s.hsTopBtn}>
-                <Text style={s.hsTopBtnTxt}>Saved{savedIds.size > 0 ? ' ' + savedIds.size : ''}</Text>
+          <View style={s.headerRow}>
+            <View>
+              <Text style={s.title}>Jobs</Text>
+              <Text style={s.subtitle}>{jobs.length} opportunities</Text>
+            </View>
+            <View style={s.headerBtns}>
+              <TouchableOpacity style={s.savedBtn} onPress={() => setShowSaved(true)}>
+                <Text style={s.savedBtnTxt}>🔖 {savedIds.size > 0 ? savedIds.size : ''}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowApplications(true)} style={s.hsTopBtn}>
-                <Text style={s.hsTopBtnTxt}>Applications{myApplications.length > 0 ? ' ' + myApplications.length : ''}</Text>
+              <TouchableOpacity style={s.myAppsBtn} onPress={() => setShowApplications(true)}>
+                <Text style={s.myAppsBtnTxt}>My Apps {myApplications.length > 0 ? `(${myApplications.length})` : ''}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowPost(true)} style={s.hsPostBtn}>
-                <Text style={s.hsPostBtnTxt}>Post</Text>
+              <TouchableOpacity style={s.postBtn} onPress={() => setShowPost(true)}>
+                <Text style={s.postBtnTxt}>+ Post</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           <TextInput
             value={search} onChangeText={setSearch}
-            placeholder="Search jobs by title, keyword, or company"
+            placeholder="Search roles, companies, locations..."
             placeholderTextColor="#9CA3AF"
-            style={s.hsSearch}
+            style={s.search}
             returnKeyType="search"
             clearButtonMode="while-editing"
           />
 
-          <View style={s.hsTabRow}>
+          {/* Scope toggle */}
+          <View style={s.scopeRow}>
             {SCOPE_TABS.map(sc => (
               <TouchableOpacity
                 key={sc.id}
-                style={[s.hsTab, scopeMode === sc.id && s.hsTabActive]}
+                style={[s.scopeTab, scopeMode === sc.id && s.scopeTabActive]}
                 onPress={() => setScopeMode(sc.id as JobScope)}
                 activeOpacity={0.7}
               >
-                <Text style={[s.hsTabTxt, scopeMode === sc.id && s.hsTabTxtActive]}>{sc.label}</Text>
+                <Text style={[s.scopeTabTxt, scopeMode === sc.id && s.scopeTabTxtActive]}>
+                  {sc.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.hsChipRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.tabScroll} contentContainerStyle={s.tabContent}>
             {CATEGORY_TABS.map(t => (
               <TouchableOpacity
                 key={t.id}
-                style={[s.hsChip, activeTab === t.id && s.hsChipActive]}
+                style={[s.tab, activeTab === t.id && s.tabActive]}
                 onPress={() => setActiveTab(t.id)}
-                activeOpacity={0.75}
               >
-                <Text style={[s.hsChipTxt, activeTab === t.id && s.hsChipTxtActive]}>{t.label}</Text>
+                <Text style={[s.tabTxt, activeTab === t.id && s.tabTxtActive]}>
+                  {t.emoji} {t.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          <View style={s.hsResultRow}>
-            <Text style={s.hsResultCount}>
-              {displayJobs.length} {displayJobs.length === 1 ? 'job' : 'jobs'}
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+          <View style={s.sortRow}>
+            <Text style={s.resultsCount}>{displayJobs.length} {displayJobs.length === 1 ? 'job' : 'jobs'}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
               {SORT_OPTIONS.map(o => (
-                <TouchableOpacity key={o.id} onPress={() => setSortBy(o.id as any)} activeOpacity={0.7}>
-                  <Text style={[s.hsSortTxt, sortBy === o.id && s.hsSortTxtActive]}>{o.label}</Text>
+                <TouchableOpacity
+                  key={o.id}
+                  style={[s.sortChip, sortBy === o.id && s.sortChipActive]}
+                  onPress={() => setSortBy(o.id as any)}
+                >
+                  <Text style={[s.sortChipTxt, sortBy === o.id && s.sortChipTxtActive]}>{o.label}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
         </View>
+
         {loading ? (
           <View style={s.loader}><ActivityIndicator size="large" color="#2563EB" /><Text style={s.loaderTxt}>Loading jobs...</Text></View>
         ) : (
@@ -1033,28 +1043,6 @@ export default function JobsScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  hsTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 12 },
-  hsPageTitle: { fontSize: 26, fontWeight: '700', color: '#111827', letterSpacing: -0.6 },
-  hsTopActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  hsTopBtn: { paddingVertical: 4 },
-  hsTopBtnTxt: { fontSize: 13.5, fontWeight: '600', color: '#4B5563' },
-  hsPostBtn: { backgroundColor: '#2B6FED', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7 },
-  hsPostBtnTxt: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
-  hsSearch: { marginHorizontal: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#111827' },
-  hsTabRow: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E0E0E0' },
-  hsTab: { marginRight: 22, paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  hsTabActive: { borderBottomColor: '#2B6FED' },
-  hsTabTxt: { fontSize: 14.5, fontWeight: '600', color: '#6B7280' },
-  hsTabTxtActive: { color: '#2B6FED', fontWeight: '700' },
-  hsChipRow: { paddingHorizontal: 16, gap: 8, paddingVertical: 12 },
-  hsChip: { paddingHorizontal: 13, height: 32, borderRadius: 16, borderWidth: 1, borderColor: '#D1D5DB', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
-  hsChipActive: { backgroundColor: '#EFF3FA', borderColor: '#2B6FED' },
-  hsChipTxt: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  hsChipTxtActive: { color: '#2B6FED' },
-  hsResultRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12, gap: 16 },
-  hsResultCount: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  hsSortTxt: { fontSize: 13.5, fontWeight: '600', color: '#9CA3AF' },
-  hsSortTxtActive: { color: '#2B6FED' },
   hsCardRoot: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E0E0E0', marginBottom: 10, overflow: 'hidden' },
   hsSecondary: { flexDirection: 'row', gap: 18, paddingHorizontal: 14, paddingBottom: 12, paddingTop: 2 },
   hsLink: { paddingVertical: 4 },
