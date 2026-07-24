@@ -1339,6 +1339,16 @@ export default function FeedScreen({ navigation }: any) {
           <View style={s.header}>
             <View style={s.headerRow}>
               <Text style={s.logo}>Platinum<Text style={{ color: '#8E9BAE' }}>Circles</Text></Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <TouchableOpacity
+                style={s.iconBtn}
+                onPress={() => navigation.navigate('Search')}
+                accessibilityRole="button"
+                accessibilityLabel="Search"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Feather name="search" size={20} color="#000" />
+              </TouchableOpacity>
               <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
                 <View>
                   <Feather name="bell" size={20} color="#000" />
@@ -1349,6 +1359,7 @@ export default function FeedScreen({ navigation }: any) {
                   )}
                 </View>
               </TouchableOpacity>
+              </View>
             </View>
 
             <View style={s.tabRow}>
