@@ -7,6 +7,7 @@ import {
   ScrollView,
   Animated,
   Image,
+  Alert,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -334,6 +335,28 @@ function StoryStrip({ mode = 'all' }: Props) {
     );
   };
 
+  const muteUser = (user: CatchupUser) => {
+    if (!myId || user.user_id === myId) return;
+    Alert.alert(
+      'Mute ' + (user.full_name || 'this person') + '?',
+      'Their stories stop appearing here. You stay following them and they are not told.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Mute',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await supabase.from('muted_stories').upsert({ user_id: myId, muted_id: user.user_id });
+              load();
+            } catch (e: any) {
+              Alert.alert('Could not mute', e?.message || 'Try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
   const renderUserBubble = (user: CatchupUser) => {
     return (
       <TouchableOpacity
@@ -341,6 +364,8 @@ function StoryStrip({ mode = 'all' }: Props) {
         style={s.bubble}
         activeOpacity={0.75}
         onPress={() => openViewer(user.user_id)}
+        onLongPress={() => muteUser(user)}
+        delayLongPress={450}
       >
         <View style={s.ringContainer}>
           {user.has_unseen
