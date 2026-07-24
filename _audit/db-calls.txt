@@ -1,0 +1,527 @@
+﻿src\components\market\ReportListingSheet.tsx:27: const { error } = await supabase.from('listing_reports').upsert({
+src\components\market\SellerReviews.tsx:59: supabase.rpc('get_seller_rating', { p_seller_id: sellerId }),
+src\components\market\SellerReviews.tsx:60: supabase.from('seller_reviews')
+src\components\market\SellerReviews.tsx:76: const { error } = await supabase.from('seller_reviews').upsert({
+src\components\market\SellerTrust.tsx:18: supabase.from('profiles').select('created_at, is_verified').eq('id', sellerId).maybeSingle(),
+src\components\market\SellerTrust.tsx:19: supabase.from('marketplace_listings').select('id', { count: 'exact', head: true })
+src\components\market\SellerTrust.tsx:21: supabase.rpc('get_seller_rating', { p_seller_id: sellerId }),
+src\components\stories\ReferenceFacePicker.tsx:47: .from('identity_training_photos')
+src\components\stories\StoryStrip.tsx:350: await supabase.from('muted_stories').upsert({ user_id: myId, muted_id: user.user_id });
+src\components\IncomingCallListener.tsx:64: .from('profiles').select('id, full_name, username, avatar_url')
+src\components\IncomingCallListener.tsx:79: .from('conversations')
+src\components\TrendingList.tsx:25: const { data, error } = await supabase.rpc('get_trending_topics', { p_limit: 25 });
+src\components\TrendingList.tsx:35: if (me?.user) await supabase.from('trend_dismissals').upsert({ user_id: me.user.id, tag });
+src\components\TrendingTopicsStrip.tsx:73: .from('posts')
+src\components\TrendingTopicsStrip.tsx:146: .from('mingle_posts')
+src\components\TrendingTopicsStrip.tsx:155: .from('mingle_post_attendees')
+src\components\TrendingTopicsStrip.tsx:189: const { data: rpcData, error: rpcErr } = await supabase.rpc('get_trending_topics', {
+src\controllers\stories\usePublishOrchestrator.ts:146: await supabase.from('notifications').insert({
+src\navigation\AppNavigator.tsx:207: .from('notifications').select('id', { count: 'exact', head: true })
+src\navigation\AppNavigator.tsx:362: const { data: caller } = await supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', callerId).single();
+src\navigation\AppNavigator.tsx:367: const { data: conv } = await supabase.from('conversations').select('group_name').eq('id', call.conversation_id).maybeSingle();
+src\screens\auth\SetupProfileScreen.tsx:97: .from('profiles')
+src\screens\auth\VerifyEmailScreen.tsx:144: const { error: verifyErr } = await supabase.from('profiles').update({
+src\screens\feed\FeedScreen.tsx:218: .from('notifications').select('id', { count: 'exact', head: true })
+src\screens\feed\FeedScreen.tsx:271: .from('posts')
+src\screens\feed\FeedScreen.tsx:279: .from('posts')
+src\screens\feed\FeedScreen.tsx:296: const { data: hid } = await supabase.from('hidden_posts').select('post_id').eq('user_id', userId);
+src\screens\feed\FeedScreen.tsx:318: if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(m); });
+src\screens\feed\FeedScreen.tsx:322: const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order)').in('id', qIds);
+src\screens\feed\FeedScreen.tsx:329: const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility').in('id', uids);
+src\screens\feed\FeedScreen.tsx:334: supabase.from('profiles')
+src\screens\feed\FeedScreen.tsx:345: supabase.from('post_likes').select('post_id').eq('user_id', userId).in('post_id', ids),
+src\screens\feed\FeedScreen.tsx:346: supabase.from('post_bookmarks').select('post_id').eq('user_id', userId).in('post_id', ids),
+src\screens\feed\FeedScreen.tsx:347: supabase.from('post_reposts').select('post_id').eq('user_id', userId).in('post_id', ids),
+src\screens\feed\FeedScreen.tsx:356: .from('post_comments')
+src\screens\feed\FeedScreen.tsx:377: const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds);
+src\screens\feed\FeedScreen.tsx:402: supabase.from('follows').select('following_id').eq('follower_id', userId).limit(1000)
+src\screens\feed\FeedScreen.tsx:404: supabase.from('follow_requests').select('target_id').eq('requester_id', userId).eq('status', 'pending').limit(1000)
+src\screens\feed\FeedScreen.tsx:468: .from('profiles').select('full_name, username').eq('id', row.user_id).maybeSingle();
+src\screens\feed\FeedScreen.tsx:487: .from('post_comments')
+src\screens\feed\FeedScreen.tsx:497: const { data: a } = await supabase.from('profiles').select('full_name, username').eq('id', latestComment.user_id).maybeSingle();
+src\screens\feed\FeedScreen.tsx:549: const { data, error } = await supabase.rpc('toggle_post_like', { p_post_id: postId });
+src\screens\feed\FeedScreen.tsx:608: const { error } = await supabase.from('post_bookmarks').delete().eq('post_id', postId).eq('user_id', userId);
+src\screens\feed\FeedScreen.tsx:611: const { error } = await supabase.from('post_bookmarks').insert({ post_id: postId, user_id: userId });
+src\screens\feed\FeedScreen.tsx:629: const { error } = await supabase.from('post_reposts').delete().eq('post_id', postId).eq('user_id', userId);
+src\screens\feed\FeedScreen.tsx:632: const { error } = await supabase.from('post_reposts').insert({ post_id: postId, user_id: userId });
+src\screens\feed\FeedScreen.tsx:647: const { error } = await supabase.from('hidden_posts').insert({ user_id: userId, post_id: postId });
+src\screens\feed\FeedScreen.tsx:653: const { error } = await supabase.from('post_reports').insert({ reporter_id: userId, post_id: postId, reason });
+src\screens\feed\FeedScreen.tsx:662: const { data: lk } = await supabase.from('post_likes').select('user_id, created_at').eq('post_id', post.id).order('created_at', { ascending: false }).limit(100);
+src\screens\feed\FeedScreen.tsx:665: const { data: profs } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
+src\screens\feed\FeedScreen.tsx:688: const { data, error } = await supabase.rpc('handle_follow_action', { p_target_id: targetId });
+src\screens\feed\FeedScreen.tsx:706: const { data: convs } = await supabase.from('conversations')
+src\screens\feed\FeedScreen.tsx:716: const { data: profs } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', otherIds);
+src\screens\feed\FeedScreen.tsx:726: const { error } = await supabase.from('messages').insert({
+src\screens\feed\FeedScreen.tsx:731: await supabase.from('conversations').update({ last_message: 'Shared a post', last_message_time: new Date().toISOString(), last_message_sender_id: userId }).eq('id', conv.id);
+src\screens\feed\FeedScreen.tsx:841: supabase.from('profiles').select('id, full_name, username, avatar_url').ilike('username', `${match[1]}%`).limit(5).then(({ data }) => setMentionResults((data || []) as ProfileLite[]));
+src\screens\feed\FeedScreen.tsx:942: .from('posts').insert(insertData).select('id').single();
+src\screens\feed\FeedScreen.tsx:958: const { error: mErr } = await supabase.from('post_media').insert(mediaRows);
+src\screens\feed\FeedScreen.tsx:992: .from('posts')
+src\screens\feed\FeedScreen.tsx:1019: if (likerIds2.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds2 }).then(({ data }) => { if (data) setLikerNames(prev => { const m = { ...prev }; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); return m; }); });
+src\screens\feed\FeedScreen.tsx:1023: const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order)').in('id', qIds2);
+src\screens\feed\FeedScreen.tsx:1030: const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility').in('id', missingU);
+src\screens\feed\FeedScreen.tsx:1035: supabase.from('post_likes').select('post_id').eq('user_id', userId).in('post_id', ids),
+src\screens\feed\FeedScreen.tsx:1036: supabase.from('post_bookmarks').select('post_id').eq('user_id', userId).in('post_id', ids),
+src\screens\feed\FeedScreen.tsx:1037: supabase.from('post_reposts').select('post_id').eq('user_id', userId).in('post_id', ids),
+src\screens\feed\FeedScreen.tsx:1043: const { data: cData } = await supabase.from('post_comments')
+src\screens\feed\FeedScreen.tsx:1055: const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds2);
+src\screens\feed\FeedScreen.tsx:1109: const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url').eq('username', uname).maybeSingle();
+src\screens\feed\FeedScreen.tsx:1626: const { error } = await supabase.from('posts').delete().eq('id', menuPost!.id);
+src\screens\feed\PostScreen.tsx:142: .from('posts')
+src\screens\feed\PostScreen.tsx:147: const { data: ad } = await supabase.from('profiles')
+src\screens\feed\PostScreen.tsx:164: const { data: par } = await supabase.from('posts').select('id, user_id, content, body, created_at, thread_parent_id').eq('id', cursor).maybeSingle();
+src\screens\feed\PostScreen.tsx:170: const { data: kids } = await supabase.from('posts').select('id, user_id, content, body, created_at').eq('thread_parent_id', postId).order('created_at', { ascending: true });
+src\screens\feed\PostScreen.tsx:175: const { data: tAuthors } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', tIds);
+src\screens\feed\PostScreen.tsx:182: const { data: ld } = await supabase.from('post_likes')
+src\screens\feed\PostScreen.tsx:189: .from('post_comments')
+src\screens\feed\PostScreen.tsx:204: .from('profiles').select('id, full_name, username, avatar_url').in('id', authorIds);
+src\screens\feed\PostScreen.tsx:225: const { data: cl } = await supabase.from('comment_likes')
+src\screens\feed\PostScreen.tsx:262: const { error } = await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
+src\screens\feed\PostScreen.tsx:265: const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });
+src\screens\feed\PostScreen.tsx:287: if (was) await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', userId);
+src\screens\feed\PostScreen.tsx:288: else await supabase.from('comment_likes').insert({ comment_id: commentId, user_id: userId });
+src\screens\feed\PostScreen.tsx:292: const { data } = await supabase.from('profiles')
+src\screens\feed\PostScreen.tsx:304: supabase.from('profiles').select('id, full_name, username, avatar_url')
+src\screens\feed\PostScreen.tsx:324: const { error } = await supabase.from('post_comments').insert({
+src\screens\feed\PostScreen.tsx:394: await supabase.from('post_comments').delete().eq('id', c.id);
+src\screens\feed\SavedPostsScreen.tsx:66: .from('post_bookmarks')
+src\screens\feed\SavedPostsScreen.tsx:82: .from('posts')
+src\screens\feed\SavedPostsScreen.tsx:95: .from('profiles')
+src\screens\feed\SavedPostsScreen.tsx:144: const { error } = await supabase.from('post_bookmarks')
+src\screens\feed\SearchScreen.tsx:88: .from('profiles')
+src\screens\feed\SearchScreen.tsx:94: .from('posts')
+src\screens\feed\SearchScreen.tsx:100: .from('jobs')
+src\screens\feed\SearchScreen.tsx:111: .from('profiles')
+src\screens\feed\TrendFeedScreen.tsx:91: .from('profiles')
+src\screens\feed\TrendFeedScreen.tsx:112: const { data, error: rpcErr } = await supabase.rpc('get_posts_by_hashtag', {
+src\screens\feed\TrendFeedScreen.tsx:139: .from('posts')
+src\screens\jobs\JobsScreen.backup.tsx:286: const { data: convId, error: convErr } = await supabase.rpc('start_dm_ctx', { p_receiver_id: job.posted_by, p_context: 'jobs', p_ref_id: job.id });
+src\screens\jobs\JobsScreen.backup.tsx:307: const { data } = await supabase.from('profiles')
+src\screens\jobs\JobsScreen.prechrome.tsx:285: const { data: convId, error: convErr } = await supabase.rpc('start_dm_ctx', { p_receiver_id: job.posted_by, p_context: 'jobs', p_ref_id: job.id });
+src\screens\jobs\JobsScreen.prechrome.tsx:306: const { data } = await supabase.from('profiles')
+src\screens\jobs\JobsScreen.prehs.tsx:285: const { data: convId, error: convErr } = await supabase.rpc('start_dm_ctx', { p_receiver_id: job.posted_by, p_context: 'jobs', p_ref_id: job.id });
+src\screens\jobs\JobsScreen.prehs.tsx:306: const { data } = await supabase.from('profiles')
+src\screens\jobs\JobsScreen.tsx:285: const { data: convId, error: convErr } = await supabase.rpc('start_dm_ctx', { p_receiver_id: job.posted_by, p_context: 'jobs', p_ref_id: job.id });
+src\screens\jobs\JobsScreen.tsx:306: const { data } = await supabase.from('profiles')
+src\screens\market\ListingDetailScreen.tsx:89: const { error } = await supabase.from('blocked_users').upsert({ blocker_id: userId, blocked_id: listing.seller_id });
+src\screens\market\ListingDetailScreen.tsx:102: const { data, error } = await supabase.rpc('start_dm_ctx', { p_receiver_id: listing.seller_id, p_context: 'market', p_ref_id: listing.id });
+src\screens\messages\CallLogScreen.tsx:77: .from('profiles')
+src\screens\messages\CallScreen.tsx:103: supabase.from('connections').select('requester_id, recipient_id')
+src\screens\messages\CallScreen.tsx:111: const { data: ps } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', ids);
+src\screens\messages\ChatScreen.tsx:338: supabase.from('profiles').select('id, full_name, username, avatar_url, bio, location, degree_program, graduation_year, email')
+src\screens\messages\ChatScreen.tsx:346: supabase.from('conversations')
+src\screens\messages\ChatScreen.tsx:363: .from('conversations')
+src\screens\messages\ChatScreen.tsx:376: supabase.from('affiliations')
+src\screens\messages\ChatScreen.tsx:380: supabase.from('profile_affiliations')
+src\screens\messages\ChatScreen.tsx:462: const { data: conv } = await supabase.from('conversations').select('context, context_ref_id').eq('id', conversationId).maybeSingle();
+src\screens\messages\ChatScreen.tsx:467: const { data } = await supabase.from('marketplace_listings').select('*').eq('id', refId).maybeSingle();
+src\screens\messages\ChatScreen.tsx:474: const { data } = await supabase.from('jobs').select('id, title, company, location').eq('id', refId).maybeSingle();
+src\screens\messages\ChatScreen.tsx:548: const { data } = await supabase.from('saved_messages').select('message_id').eq('user_id', currentUserId);
+src\screens\messages\ChatScreen.tsx:554: const { data } = await supabase.from('starred_messages')
+src\screens\messages\ChatScreen.tsx:570: await supabase.rpc('mark_conversation_read', {
+src\screens\messages\ChatScreen.tsx:592: const { data } = await supabase.from('message_reactions').select('message_id, emoji, user_id').in('message_id', msgIds);
+src\screens\messages\ChatScreen.tsx:603: const { data: existing } = await supabase.from('conversations').select('id').eq('type', 'direct')
+src\screens\messages\ChatScreen.tsx:606: const { data: created, error } = await supabase.from('conversations').insert({
+src\screens\messages\ChatScreen.tsx:618: const { data } = await supabase.from('conversation_members')
+src\screens\messages\ChatScreen.tsx:633: supabase.from('messages')
+src\screens\messages\ChatScreen.tsx:640: supabase.from('messages')
+src\screens\messages\ChatScreen.tsx:647: supabase.from('starred_messages')
+src\screens\messages\ChatScreen.tsx:661: const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', senderIds);
+src\screens\messages\ChatScreen.tsx:685: const { error } = await supabase.from('starred_messages').delete().eq('id', starredId);
+src\screens\messages\ChatScreen.tsx:697: const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId).order('created_at', { ascending: false });
+src\screens\messages\ChatScreen.tsx:714: const { data } = await supabase.from('conversation_typing').select('*').eq('conversation_id', conversationId);
+src\screens\messages\ChatScreen.tsx:723: try { await supabase.from('conversation_typing').upsert({ conversation_id: conversationId, user_id: currentUserId, is_typing: isTyping, updated_at: new Date().toISOString() }, { onConflict: 'conversation_id,user_id' }); } catch {}
+src\screens\messages\ChatScreen.tsx:729: supabase.from('user_presence').select('is_online, last_seen').eq('user_id', otherUser.id).maybeSingle()
+src\screens\messages\ChatScreen.tsx:813: await supabase.from('saved_messages').delete().eq('user_id', currentUserId).eq('message_id', msgId);
+src\screens\messages\ChatScreen.tsx:816: await supabase.from('saved_messages').insert({ user_id: currentUserId, message_id: msgId });
+src\screens\messages\ChatScreen.tsx:830: const { error } = await supabase.from('starred_messages').delete()
+src\screens\messages\ChatScreen.tsx:835: const { error } = await supabase.from('starred_messages').insert({
+src\screens\messages\ChatScreen.tsx:866: supabase.from('conversations').select('id, user_1, user_2, group_name, is_group, group_emoji, last_message, last_message_time')
+src\screens\messages\ChatScreen.tsx:869: supabase.from('conversation_members').select('conversation_id').eq('user_id', currentUserId ?? ''),
+src\screens\messages\ChatScreen.tsx:874: const { data: gc } = await supabase.from('conversations').select('id, group_name, is_group, group_emoji, last_message, last_message_time').in('id', groupIds).limit(20);
+src\screens\messages\ChatScreen.tsx:901: const { data, error } = await supabase.from('messages').insert([{
+src\screens\messages\ChatScreen.tsx:917: supabase.from('conversations').update({ last_message: preview, last_message_time: data.created_at }).eq('id', convId).then(() => {});
+src\screens\messages\ChatScreen.tsx:1007: const { data: existing } = await supabase.from('message_reactions').select('id, emoji').eq('message_id', msgId).eq('user_id', currentUserId).maybeSingle();
+src\screens\messages\ChatScreen.tsx:1009: if (existing.emoji === emoji) await supabase.from('message_reactions').delete().eq('id', existing.id);
+src\screens\messages\ChatScreen.tsx:1010: else await supabase.from('message_reactions').update({ emoji }).eq('id', existing.id);
+src\screens\messages\ChatScreen.tsx:1012: await supabase.from('message_reactions').insert({ message_id: msgId, user_id: currentUserId, emoji });
+src\screens\messages\ChatScreen.tsx:1023: const { error } = await supabase.from('messages').update({ text: newText, edited_at: new Date().toISOString() })
+src\screens\messages\ChatScreen.tsx:1027: const { data: latest } = await supabase.from('messages').select('id').eq('conversation_id', editingMsg.conversation_id)
+src\screens\messages\ChatScreen.tsx:1030: await supabase.from('conversations').update({ last_message: newText }).eq('id', editingMsg.conversation_id);
+src\screens\messages\ChatScreen.tsx:1100: const { data: sp } = await supabase.from('posts').select('id, user_id, content, body, media_url, post_media(url, media_type, sort_order)').in('id', missing);
+src\screens\messages\ChatScreen.tsx:1105: const { data: aus } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
+src\screens\messages\ChatScreen.tsx:1444: await supabase.from('messages').insert({
+src\screens\messages\ChatScreen.tsx:1455: await supabase.from('messages').insert({
+src\screens\messages\ChatScreen.tsx:1462: await supabase.from('conversations').update({
+src\screens\messages\ChatScreen.tsx:1665: await supabase.from('conversation_settings').upsert(
+src\screens\messages\ChatScreen.tsx:1684: await supabase.from('conversation_settings').upsert(
+src\screens\messages\ChatScreen.tsx:1695: await supabase.from('conversation_settings').upsert(
+src\screens\messages\ChatScreen.tsx:1705: await supabase.from('conversation_members').delete()
+src\screens\messages\ChatScreen.tsx:1778: await supabase.from('blocked_users').insert({ blocker_id: currentUserId, blocked_id: recipientId }).select().maybeSingle();
+src\screens\messages\ChatScreen.tsx:1857: const { error } = await supabase.from('messages').delete().eq('id', msgId).eq('sender_id', currentUserId!);
+src\screens\messages\ChatScreen.tsx:1860: const { data: latest } = await supabase.from('messages').select('text, media_type, created_at')
+src\screens\messages\ChatScreen.tsx:1863: await supabase.from('conversations').update({ last_message: preview, last_message_time: latest?.created_at ?? null }).eq('id', convId);
+src\screens\messages\ChatScreen.tsx:1940: const { error } = await supabase.from('messages').insert({
+src\screens\messages\ChatScreen.tsx:1947: await supabase.from('conversations').update({
+src\screens\messages\ConversationsScreen.tsx:82: .from('conversations')
+src\screens\messages\ConversationsScreen.tsx:90: .from('conversation_members')
+src\screens\messages\ConversationsScreen.tsx:98: .from('conversations')
+src\screens\messages\ConversationsScreen.tsx:118: .from('conversation_settings')
+src\screens\messages\ConversationsScreen.tsx:132: .from('profiles').select('id, full_name, username, avatar_url').in('id', dmOtherIds);
+src\screens\messages\ConversationsScreen.tsx:138: .from('messages').select('conversation_id')
+src\screens\messages\ConversationsScreen.tsx:319: try { await supabase.from('conversation_settings').upsert({
+src\screens\messages\ConversationsScreen.tsx:357: await supabase.from('blocked_users').insert({ blocker_id: userId, blocked_id: conv.other_user_id }).select().maybeSingle();
+src\screens\messages\CreateGroupScreen.tsx:49: .from('connections')
+src\screens\messages\CreateGroupScreen.tsx:71: .from('profiles')
+src\screens\messages\CreateGroupScreen.tsx:94: .from('profiles')
+src\screens\messages\CreateGroupScreen.tsx:135: const { data: newConvId, error } = await supabase.rpc('create_group_conversation', {
+src\screens\messages\GroupManagementScreen.tsx:167: supabase.from('conversations')
+src\screens\messages\GroupManagementScreen.tsx:171: supabase.from('conversation_members')
+src\screens\messages\GroupManagementScreen.tsx:175: supabase.from('conversation_settings')
+src\screens\messages\GroupManagementScreen.tsx:180: supabase.from('starred_messages')
+src\screens\messages\GroupManagementScreen.tsx:213: .from('messages')
+src\screens\messages\GroupManagementScreen.tsx:329: const { error } = await supabase.from('conversations').update({ group_avatar_url: url }).eq('id', conversationId);
+src\screens\messages\GroupManagementScreen.tsx:345: const { error } = await supabase.from('conversations').update({
+src\screens\messages\GroupManagementScreen.tsx:361: const { error } = await supabase.from('conversations').update({ description: trimmed || null }).eq('id', conversationId);
+src\screens\messages\GroupManagementScreen.tsx:373: const { error } = await supabase.from('conversations').update({ [field]: value }).eq('id', conversationId);
+src\screens\messages\GroupManagementScreen.tsx:387: const { error } = await supabase.from('conversation_settings')
+src\screens\messages\GroupManagementScreen.tsx:397: await supabase.from('conversation_settings').upsert(
+src\screens\messages\GroupManagementScreen.tsx:406: const { error } = await supabase.from('conversation_members').update({ role: newRole })
+src\screens\messages\GroupManagementScreen.tsx:417: await supabase.from('conversation_members').delete().eq('conversation_id', conversationId).eq('user_id', member.user_id);
+src\screens\messages\GroupManagementScreen.tsx:427: await supabase.from('conversation_members').delete().eq('conversation_id', conversationId).eq('user_id', myId);
+src\screens\messages\GroupManagementScreen.tsx:440: const { data } = await supabase.from('profiles')
+src\screens\messages\GroupManagementScreen.tsx:450: const { error } = await supabase.from('conversation_members').insert({ conversation_id: conversationId, user_id: user.id, role: 'member' });
+src\screens\messages\MessageRequestsScreen.tsx:60: const { data, error } = await supabase.rpc('get_message_requests');
+src\screens\messages\MessageRequestsScreen.tsx:83: const { error } = await supabase.rpc('accept_message_request', {
+src\screens\messages\MessageRequestsScreen.tsx:123: const { error } = await supabase.rpc('decline_message_request', {
+src\screens\messages\SavedMessagesScreen.tsx:49: .from('saved_messages')
+src\screens\messages\SavedMessagesScreen.tsx:71: await supabase.from('saved_messages').delete().eq('id', id);
+src\screens\messages\StarredMessagesScreen.tsx:72: .from('starred_messages')
+src\screens\messages\StarredMessagesScreen.tsx:83: .from('conversations')
+src\screens\messages\StarredMessagesScreen.tsx:101: .from('profiles').select('id, full_name, avatar_url').in('id', allProfileIds);
+src\screens\messages\StarredMessagesScreen.tsx:139: const { error } = await supabase.from('starred_messages').delete().eq('id', row.id);
+src\screens\network\NetworkScreen.tsx:103: const { data: me } = await supabase.from('profiles')
+src\screens\network\NetworkScreen.tsx:106: const { data: connData } = await supabase.from('connections')
+src\screens\network\NetworkScreen.tsx:113: const { data: candidates } = await supabase.from('profiles')
+src\screens\network\NetworkScreen.tsx:129: .from('profile_affiliations')
+src\screens\network\NetworkScreen.tsx:155: .from('profiles')
+src\screens\network\NetworkScreen.tsx:162: .from('profiles')
+src\screens\network\NetworkScreen.tsx:172: .from('connections')
+src\screens\network\NetworkScreen.tsx:187: .from('follows')
+src\screens\network\NetworkScreen.tsx:194: const { data: reqData } = await supabase.from('follow_requests').select('target_id').eq('requester_id', currentUserId).eq('status', 'pending');
+src\screens\network\NetworkScreen.tsx:200: supabase.from('communities').select('id, name, emoji, description, member_count').order('name'),
+src\screens\network\NetworkScreen.tsx:201: supabase.from('clubs').select('id, name, emoji, description, member_count').order('name'),
+src\screens\network\NetworkScreen.tsx:207: supabase.from('community_members').select('community_id').eq('user_id', currentUserId),
+src\screens\network\NetworkScreen.tsx:208: supabase.from('club_members').select('club_id').eq('user_id', currentUserId),
+src\screens\network\NetworkScreen.tsx:237: .from('profiles')
+src\screens\network\NetworkScreen.tsx:271: const { error: rpcErr } = await supabase.rpc('get_or_create_group_conversation', {
+src\screens\network\NetworkScreen.tsx:296: .from('connections')
+src\screens\network\NetworkScreen.tsx:308: .from('connections')
+src\screens\network\NetworkScreen.tsx:329: await supabase.from('connections')
+src\screens\network\NetworkScreen.tsx:345: await supabase.from('connections')
+src\screens\network\NetworkScreen.tsx:361: await supabase.from('connections')
+src\screens\network\NetworkScreen.tsx:413: const { data, error } = await supabase.rpc('handle_follow_action', { p_target_id: userId });
+src\screens\notifications\NotificationsScreen.tsx:143: .from('notifications')
+src\screens\notifications\NotificationsScreen.tsx:155: .from('profiles')
+src\screens\notifications\NotificationsScreen.tsx:170: .from('connections')
+src\screens\notifications\NotificationsScreen.tsx:229: const { error } = await supabase.from('notifications')
+src\screens\notifications\NotificationsScreen.tsx:243: await supabase.from('notifications').update({ read_at: now }).eq('id', notif.id);
+src\screens\notifications\NotificationsScreen.tsx:249: const { error } = await supabase.from('connections')
+src\screens\notifications\NotificationsScreen.tsx:256: await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notif.id);
+src\screens\notifications\NotificationsScreen.tsx:264: const { error } = await supabase.from('connections')
+src\screens\notifications\NotificationsScreen.tsx:271: await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notif.id);
+src\screens\profile\FollowRequestsScreen.tsx:66: .from('follow_requests')
+src\screens\profile\FollowRequestsScreen.tsx:85: .from('profiles')
+src\screens\profile\FollowRequestsScreen.tsx:115: const { data, error } = await supabase.rpc('respond_follow_request', {
+src\screens\profile\HelpSupportScreen.tsx:42: const { error } = await supabase.from('support_tickets').insert([{ user_id: myId, subject: subject.trim(), message: message.trim(), status: 'open' }]);
+src\screens\profile\MutedStoriesScreen.tsx:19: .from('muted_stories')
+src\screens\profile\MutedStoriesScreen.tsx:27: .from('profiles')
+src\screens\profile\MutedStoriesScreen.tsx:44: await supabase.from('muted_stories').delete().eq('user_id', me.user.id).eq('muted_id', mutedId);
+src\screens\profile\ProfileScreen.pretabs.tsx:131: const { data: pd } = await supabase.from('profiles').select('*').eq('id', userId).single();
+src\screens\profile\ProfileScreen.pretabs.tsx:142: const { count: postCount } = await supabase.from('posts').select('id',{count:'exact',head:true}).eq('user_id',userId);
+src\screens\profile\ProfileScreen.pretabs.tsx:143: const { count: c1 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('requester_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.pretabs.tsx:144: const { count: c2 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('recipient_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.pretabs.tsx:145: const { count: followerCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('following_id',userId);
+src\screens\profile\ProfileScreen.pretabs.tsx:146: const { count: followingCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('follower_id',userId);
+src\screens\profile\ProfileScreen.pretabs.tsx:167: const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.pretabs.tsx:170: const { data } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.pretabs.tsx:177: const { data: repostRows } = await supabase.from('post_reposts').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.pretabs.tsx:181: try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretabs.tsx:182: catch { const { data } = await supabase.from('posts').select('*').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretabs.tsx:185: if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
+src\screens\profile\ProfileScreen.pretabs.tsx:194: const { data: bookmarkRows } = await supabase.from('post_bookmarks').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.pretabs.tsx:198: try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretabs.tsx:199: catch { const { data } = await supabase.from('posts').select('*').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretabs.tsx:202: if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
+src\screens\profile\ProfileScreen.pretabs.tsx:214: try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretabs.tsx:215: catch { const { data } = await supabase.from('posts').select('*').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretabs.tsx:218: if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
+src\screens\profile\ProfileScreen.pretabs.tsx:230: supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.pretabs.tsx:231: supabase.from('post_reposts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.pretabs.tsx:232: supabase.from('post_bookmarks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.pretabs.tsx:235: if (profile?.username) { const { count } = await supabase.from('posts').select('id', { count: 'exact', head: true }).ilike('content', `%@${profile.username}%`); tc = count ?? 0; }
+src\screens\profile\ProfileScreen.pretabs.tsx:262: const { error: dbErr } = await supabase.from('profiles').update({ avatar_url: url }).eq('id', userId);
+src\screens\profile\ProfileScreen.pretabs.tsx:275: const { data: r1 } = await supabase.from('connections').select('recipient_id').eq('requester_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.pretabs.tsx:276: const { data: r2 } = await supabase.from('connections').select('requester_id').eq('recipient_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.pretabs.tsx:279: const { data } = await supabase.from('follows').select('follower_id').eq('following_id',userId);
+src\screens\profile\ProfileScreen.pretabs.tsx:282: const { data } = await supabase.from('follows').select('following_id').eq('follower_id',userId);
+src\screens\profile\ProfileScreen.pretabs.tsx:285: if (ids.length>0) { const { data: people } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id',ids); setStatsPeople((people||[]) as Person[]); }
+src\screens\profile\ProfileScreen.pretabs.tsx:303: const { error } = await supabase.from('profiles').update({
+src\screens\profile\ProfileScreen.pretabs.tsx:367: if (isOwnPost) { buttons.push({ text: 'Delete post', style: 'destructive' as const, onPress: () => { Alert.alert('Delete post?', 'This will permanently remove your post.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { await supabase.from('posts').delete().eq('id', post.id); load(); } }]); } }); }
+src\screens\profile\ProfileScreen.pretw.tsx:131: const { data: pd } = await supabase.from('profiles').select('*').eq('id', userId).single();
+src\screens\profile\ProfileScreen.pretw.tsx:142: const { count: postCount } = await supabase.from('posts').select('id',{count:'exact',head:true}).eq('user_id',userId);
+src\screens\profile\ProfileScreen.pretw.tsx:143: const { count: c1 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('requester_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.pretw.tsx:144: const { count: c2 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('recipient_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.pretw.tsx:145: const { count: followerCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('following_id',userId);
+src\screens\profile\ProfileScreen.pretw.tsx:146: const { count: followingCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('follower_id',userId);
+src\screens\profile\ProfileScreen.pretw.tsx:167: const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.pretw.tsx:170: const { data } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.pretw.tsx:177: const { data: repostRows } = await supabase.from('post_reposts').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.pretw.tsx:181: try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretw.tsx:182: catch { const { data } = await supabase.from('posts').select('*').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretw.tsx:185: if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
+src\screens\profile\ProfileScreen.pretw.tsx:194: const { data: bookmarkRows } = await supabase.from('post_bookmarks').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.pretw.tsx:198: try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretw.tsx:199: catch { const { data } = await supabase.from('posts').select('*').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretw.tsx:202: if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
+src\screens\profile\ProfileScreen.pretw.tsx:214: try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretw.tsx:215: catch { const { data } = await supabase.from('posts').select('*').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50); postsData = data || []; }
+src\screens\profile\ProfileScreen.pretw.tsx:218: if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
+src\screens\profile\ProfileScreen.pretw.tsx:230: supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.pretw.tsx:231: supabase.from('post_reposts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.pretw.tsx:232: supabase.from('post_bookmarks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.pretw.tsx:235: if (profile?.username) { const { count } = await supabase.from('posts').select('id', { count: 'exact', head: true }).ilike('content', `%@${profile.username}%`); tc = count ?? 0; }
+src\screens\profile\ProfileScreen.pretw.tsx:262: const { error: dbErr } = await supabase.from('profiles').update({ avatar_url: url }).eq('id', userId);
+src\screens\profile\ProfileScreen.pretw.tsx:275: const { data: r1 } = await supabase.from('connections').select('recipient_id').eq('requester_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.pretw.tsx:276: const { data: r2 } = await supabase.from('connections').select('requester_id').eq('recipient_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.pretw.tsx:279: const { data } = await supabase.from('follows').select('follower_id').eq('following_id',userId);
+src\screens\profile\ProfileScreen.pretw.tsx:282: const { data } = await supabase.from('follows').select('following_id').eq('follower_id',userId);
+src\screens\profile\ProfileScreen.pretw.tsx:285: if (ids.length>0) { const { data: people } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id',ids); setStatsPeople((people||[]) as Person[]); }
+src\screens\profile\ProfileScreen.pretw.tsx:303: const { error } = await supabase.from('profiles').update({
+src\screens\profile\ProfileScreen.pretw.tsx:367: if (isOwnPost) { buttons.push({ text: 'Delete post', style: 'destructive' as const, onPress: () => { Alert.alert('Delete post?', 'This will permanently remove your post.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { await supabase.from('posts').delete().eq('id', post.id); load(); } }]); } }); }
+src\screens\profile\ProfileScreen.tsx:131: const { data: pd } = await supabase.from('profiles').select('*').eq('id', userId).single();
+src\screens\profile\ProfileScreen.tsx:142: const { count: postCount } = await supabase.from('posts').select('id',{count:'exact',head:true}).eq('user_id',userId);
+src\screens\profile\ProfileScreen.tsx:143: const { count: c1 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('requester_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.tsx:144: const { count: c2 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('recipient_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.tsx:145: const { count: followerCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('following_id',userId);
+src\screens\profile\ProfileScreen.tsx:146: const { count: followingCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('follower_id',userId);
+src\screens\profile\ProfileScreen.tsx:167: const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.tsx:170: const { data } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.tsx:177: const { data: repostRows } = await supabase.from('post_reposts').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.tsx:181: try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.tsx:182: catch { const { data } = await supabase.from('posts').select('*').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.tsx:185: if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
+src\screens\profile\ProfileScreen.tsx:194: const { data: bookmarkRows } = await supabase.from('post_bookmarks').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+src\screens\profile\ProfileScreen.tsx:198: try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.tsx:199: catch { const { data } = await supabase.from('posts').select('*').in('id', postIds); postsData = data || []; }
+src\screens\profile\ProfileScreen.tsx:202: if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
+src\screens\profile\ProfileScreen.tsx:215: .from('posts')
+src\screens\profile\ProfileScreen.tsx:222: const { data } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(80);
+src\screens\profile\ProfileScreen.tsx:239: supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.tsx:240: supabase.from('post_reposts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.tsx:241: supabase.from('post_bookmarks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+src\screens\profile\ProfileScreen.tsx:244: if (profile?.username) { const { count } = await supabase.from('posts').select('id', { count: 'exact', head: true }).ilike('content', `%@${profile.username}%`); tc = count ?? 0; }
+src\screens\profile\ProfileScreen.tsx:271: const { error: dbErr } = await supabase.from('profiles').update({ avatar_url: url }).eq('id', userId);
+src\screens\profile\ProfileScreen.tsx:284: const { data: r1 } = await supabase.from('connections').select('recipient_id').eq('requester_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.tsx:285: const { data: r2 } = await supabase.from('connections').select('requester_id').eq('recipient_id',userId).eq('status','accepted');
+src\screens\profile\ProfileScreen.tsx:288: const { data } = await supabase.from('follows').select('follower_id').eq('following_id',userId);
+src\screens\profile\ProfileScreen.tsx:291: const { data } = await supabase.from('follows').select('following_id').eq('follower_id',userId);
+src\screens\profile\ProfileScreen.tsx:294: if (ids.length>0) { const { data: people } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id',ids); setStatsPeople((people||[]) as Person[]); }
+src\screens\profile\ProfileScreen.tsx:312: const { error } = await supabase.from('profiles').update({
+src\screens\profile\ProfileScreen.tsx:376: if (isOwnPost) { buttons.push({ text: 'Delete post', style: 'destructive' as const, onPress: () => { Alert.alert('Delete post?', 'This will permanently remove your post.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { await supabase.from('posts').delete().eq('id', post.id); load(); } }]); } }); }
+src\screens\profile\SettingsScreen.tsx:85: supabase.from('profiles').select('*').eq('id', profile.id).single().then(({ data }) => {
+src\screens\profile\SettingsScreen.tsx:94: supabase.from('follow_requests')
+src\screens\profile\SettingsScreen.tsx:107: await supabase.from('profiles').update({ [field]: value }).eq('id', profile.id);
+src\screens\profile\SettingsScreen.tsx:140: await supabase.from('profiles').update({ profile_visibility: visibility }).eq('id', profile.id);
+src\screens\profile\SettingsScreen.tsx:183: .from('profiles')
+src\screens\profile\SettingsScreen.tsx:202: const { error } = await supabase.rpc('delete_user_account', { p_user_id: profile.id });
+src\screens\profile\UserProfileScreen.tsx:83: const { data: pd } = await supabase.from('profiles').select('*').eq('id', targetId).single();
+src\screens\profile\UserProfileScreen.tsx:93: supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', targetId),
+src\screens\profile\UserProfileScreen.tsx:94: supabase.from('connections').select('id', { count: 'exact', head: true })
+src\screens\profile\UserProfileScreen.tsx:96: supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', targetId),
+src\screens\profile\UserProfileScreen.tsx:103: .from('posts')
+src\screens\profile\UserProfileScreen.tsx:111: .from('posts')
+src\screens\profile\UserProfileScreen.tsx:135: const { data: conn } = await supabase.from('connections')
+src\screens\profile\UserProfileScreen.tsx:144: const { data: orb } = await supabase.from('follows').select('id')
+src\screens\profile\UserProfileScreen.tsx:149: const { data: fr } = await supabase.from('follow_requests').select('id, status')
+src\screens\profile\UserProfileScreen.tsx:167: const { data, error } = await supabase.from('connections')
+src\screens\profile\UserProfileScreen.tsx:174: const { error } = await supabase.from('connections').delete().eq('id', connRequestId);
+src\screens\profile\UserProfileScreen.tsx:179: const { error } = await supabase.from('connections')
+src\screens\profile\UserProfileScreen.tsx:196: const { data, error } = await supabase.rpc('handle_follow_action', { p_target_id: targetId });
+src\screens\profile\UserProfileScreen.tsx:409: await supabase.from('posts').delete().eq('id', post.id);
+src\screens\stories\StoryComposerScreen.tsx:526: const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { setMentionResults([]); setMentionLoading(false); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
+src\screens\stories\StoryViewerScreen.tsx:301: if (highlightId) { setLoading(true); try { const [hlStories, profileRes] = await Promise.all([storiesService.getHighlightStories(highlightId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle()]); setStories(hlStories); setStoryUser(profileRes.data || null); setStoryIndex(0); } catch (e) { console.log('[StoryViewer.loadHighlight]', e); setStories([]); } finally { setLoading(false); } return; }
+src\screens\stories\StoryViewerScreen.tsx:305: try { const [userStories, profileRes] = await Promise.all([storiesService.getUserStories(currentUserId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle()]); setStories(userStories); setStoryUser(profileRes.data || null); if (!resumeConsumedRef.current && resumeStoryIndex >= 0 && resumeStoryIndex < userStories.length) { setStoryIndex(resumeStoryIndex); resumeConsumedRef.current = true; } else { const firstUnseen = userStories.findIndex(s => !s.is_viewed); setStoryIndex(firstUnseen >= 0 ? firstUnseen : 0); } } catch (e) { console.log('[StoryViewer.load]', e); setStories([]); } finally { setLoading(false); }
+src\screens\stories\StoryViewerScreen.tsx:309: useEffect(() => { let cancelled = false; const preloadUser = async (userId: string) => { if (!userId || nextUserCache.current.has(userId)) return; try { const [userStories, profileRes] = await Promise.all([storiesService.getUserStories(userId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', userId).maybeSingle()]); if (cancelled) return; if (nextUserCache.current.size >= 3) { const firstKey = nextUserCache.current.keys().next().value; if (firstKey) nextUserCache.current.delete(firstKey); } nextUserCache.current.set(userId, { stories: userStories, profile: profileRes.data || null }); if (userStories.length > 0) { const first = userStories[0]; if (first.media_type === 'image' && first.media_url) { preloadStatus.current.set(first.media_url, 'pending'); Image.prefetch(first.media_url).then(() => { if (!cancelled) preloadStatus.current.set(first.media_url, 'done'); }).catch(() => { if (!cancelled) preloadStatus.current.set(first.media_url, 'failed'); }); } } } catch (e) { console.log('[StoryViewer.preloadUser]', e); } }; const n1Id = userIds[userIndex + 1]; const n2Id = userIds[userIndex + 2]; (async () => { if (n1Id) await preloadUser(n1Id); if (cancelled) return; if (n2Id) await preloadUser(n2Id); })(); return () => { cancelled = true; }; }, [userIndex, userIds]);
+src\screens\stories\StoryViewerScreen.tsx:357: const sendReply = useCallback(async () => { if (!currentStory || !myId) return; const storyOwnerId = currentStory.user_id; const trimmed = replyText.trim(); if (!trimmed || sendingReply) return; setSendingReply(true); try { const sorted = [myId, storyOwnerId].sort(); const messageText = `Replied to your story:\n${trimmed}`; const { data: existing, error: findErr } = await supabase.from('conversations').select('id').or(`and(user_1.eq.${myId},user_2.eq.${storyOwnerId}),and(user_1.eq.${storyOwnerId},user_2.eq.${myId})`).eq('type', 'direct').eq('is_group', false).maybeSingle(); if (findErr) { Alert.alert('Error', 'Could not find conversation.'); setSendingReply(false); return; } let convId: string; if (existing) { convId = existing.id; } else { const { data: created, error: createErr } = await supabase.from('conversations').insert({ user_1: sorted[0], user_2: sorted[1], type: 'direct', is_group: false, last_message: '', last_message_time: new Date().toISOString() }).select('id').single(); if (createErr || !created) { Alert.alert('Error', 'Could not create conversation.'); setSendingReply(false); return; } convId = created.id; } const { error: msgErr } = await supabase.from('messages').insert({ conversation_id: convId, sender_id: myId, receiver_id: storyOwnerId, text: messageText }); if (msgErr) { Alert.alert('Error', 'Could not send reply.'); setSendingReply(false); return; } try { await supabase.from('conversations').update({ last_message: messageText, last_message_time: new Date().toISOString() }).eq('id', convId); } catch {} setReplyText(''); setReplyMode(false); Keyboard.dismiss(); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); setReplyToast(true); if (replyToastTimer.current) clearTimeout(replyToastTimer.current); replyToastTimer.current = setTimeout(() => setReplyToast(false), 2000); resumeFrom('reply'); } catch (e) { console.log('[sendReply]', e); Alert.alert('Error', 'Something went wrong.'); } finally { setSendingReply(false); } }, [currentStory, myId, replyText, sendingReply, resumeFrom]);
+src\screens\stories\StoryViewerScreen.tsx:497: onChange={async (patch) => { setStories(prev => prev.map(st => st.id === currentStory.id ? ({ ...st, ...patch } as any) : st)); try { await supabase.from('stories').update(patch).eq('id', currentStory.id); } catch (e) { console.log('[StorySettings]', e); } }}
+src\services\ai\faceIdentityService.ts:88: .from('user_identity_models')
+src\services\ai\faceIdentityService.ts:176: .from('identity_training_photos')
+src\services\ai\faceIdentityService.ts:219: .from('identity_training_photos')
+src\services\ai\faceIdentityService.ts:235: .from('enhancement_history')
+src\services\ai\faceIdentityService.ts:240: .from('user_identity_models')
+src\services\ai\faceIdentityService.ts:331: await supabase.from('identity_training_photos').insert({
+src\services\ai\faceIdentityService.ts:353: .from('user_identity_models')
+src\services\authService.ts:47: .from('profiles')
+src\services\authService.ts:124: .from('profiles')
+src\services\authService.ts:165: const { error } = await supabase.from('user_presence').upsert({
+src\services\callService.ts:49: const { data } = await supabase.from('conversations').select('id').eq('type', 'direct')
+src\services\callService.ts:53: const { data, error } = await supabase.from('call_sessions').insert({
+src\services\callService.ts:73: const { data: members } = await supabase.from('conversation_members')
+src\services\callService.ts:88: const { data: callerSession, error: callerErr } = await supabase.from('call_sessions').insert({
+src\services\callService.ts:114: const { error: memberErr } = await supabase.from('call_sessions').insert(rows);
+src\services\callService.ts:132: const { error } = await supabase.from('call_sessions')
+src\services\callService.ts:153: const { data: call } = await supabase.from('call_sessions')
+src\services\callService.ts:159: await supabase.from('call_sessions')
+src\services\callService.ts:171: await supabase.from('call_sessions')
+src\services\callService.ts:187: const { data, error } = await supabase.from('call_sessions')
+src\services\callService.ts:195: const { data, error } = await supabase.from('call_sessions')
+src\services\callService.ts:204: const { data, error } = await supabase.from('call_sessions')
+src\services\callService.ts:212: const { data, error } = await supabase.from('call_sessions')
+src\services\callService.ts:220: const { data } = await supabase.from('call_sessions').select('*').eq('id', callId).maybeSingle();
+src\services\callService.ts:225: const { data, error } = await supabase.from('call_sessions').select('*')
+src\services\callService.ts:234: const { error } = await supabase.rpc('record_call_event', { p_call_id: callId });
+src\services\campusMomentService.ts:30: const { data, error } = await supabase.rpc('get_todays_moment', {
+src\services\campusMomentService.ts:43: const { data, error } = await supabase.rpc('get_moment_feed', {
+src\services\campusMomentService.ts:54: const { data, error } = await supabase.rpc('post_campus_moment', {
+src\services\campusMomentService.ts:67: .from('profile_institutions')
+src\services\campusMomentService.ts:78: .from('profile_institutions')
+src\services\campusMomentService.ts:90: .from('institutions')
+src\services\feedService.ts:7: .from('posts')
+src\services\feedService.ts:20: .from('posts')
+src\services\feedService.ts:29: const { error } = await supabase.from('posts').delete().eq('id', postId);
+src\services\feedService.ts:34: const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });
+src\services\feedService.ts:39: const { error } = await supabase.from('post_likes').delete().match({ post_id: postId, user_id: userId });
+src\services\feedService.ts:45: .from('post_comments')
+src\services\feedService.ts:55: .from('post_comments')
+src\services\feedService.ts:64: const { error } = await supabase.from('post_comments').delete().eq('id', commentId);
+src\services\feedService.ts:70: supabase.from('post_shares').insert({ original_post_id: postId, shared_by: userId }),
+src\services\feedService.ts:71: supabase.from('posts').insert({ user_id: userId, body }).select().single(),
+src\services\feedService.ts:83: const { error } = await supabase.storage.from('media').upload(path, formData);
+src\services\feedService.ts:85: const { data } = supabase.storage.from('media').getPublicUrl(path);
+src\services\institutionsService.ts:70: .from('institutions')
+src\services\institutionsService.ts:80: .from('institutions')
+src\services\institutionsService.ts:95: const { data, error } = await supabase.rpc('match_email_to_institution', { p_email: email });
+src\services\institutionsService.ts:108: .from('institutions')
+src\services\institutionsService.ts:120: const { data, error } = await supabase.rpc('get_profile_institutions', { p_profile_id: profileId });
+src\services\institutionsService.ts:136: const { data, error } = await supabase.rpc('claim_institution', {
+src\services\institutionsService.ts:151: const { error } = await supabase.rpc('set_primary_institution', {
+src\services\institutionsService.ts:162: .from('profile_institutions')
+src\services\institutionsService.ts:171: .from('profile_institutions')
+src\services\institutionsService.ts:191: .from('institutions')
+src\services\institutionsService.ts:217: .from('affiliations')
+src\services\institutionsService.ts:237: const { data, error } = await supabase.rpc('get_profile_affiliations', { p_profile_id: profileId });
+src\services\institutionsService.ts:254: .from('affiliations')
+src\services\institutionsService.ts:270: const { data, error } = await supabase.rpc('join_affiliation', {
+src\services\institutionsService.ts:279: const { error } = await supabase.rpc('leave_affiliation', {
+src\services\jobsService.ts:126: .from('profiles')
+src\services\jobsService.ts:139: .from('institutions')
+src\services\jobsService.ts:165: const { data, error } = await supabase.rpc('get_scoped_jobs', {
+src\services\jobsService.ts:177: let query = supabase.from('jobs').select('*').limit(limit);
+src\services\jobsService.ts:219: .from('jobs')
+src\services\jobsService.ts:249: const { error } = await supabase.from('jobs').delete().eq('id', jobId);
+src\services\jobsService.ts:258: .from('job_saves')
+src\services\jobsService.ts:268: .from('job_saves')
+src\services\jobsService.ts:280: .from('job_saves')
+src\services\jobsService.ts:297: .from('job_applications')
+src\services\jobsService.ts:312: .from('jobs')
+src\services\jobsService.ts:318: .from('jobs')
+src\services\jobsService.ts:330: .from('job_applications')
+src\services\jobsService.ts:346: .from('job_applications')
+src\services\jobsService.ts:357: .from('jobs')
+src\services\jobsService.ts:367: .from('job_applications')
+src\services\jobsService.ts:378: .from('profiles')
+src\services\jobsService.ts:394: .from('job_applications')
+src\services\jobsService.ts:411: .from('job_recommendations')
+src\services\jobsService.ts:430: .from('job_recommendations')
+src\services\jobsService.ts:441: .from('profiles')
+src\services\jobsService.ts:458: const { error } = await supabase.from('job_referrals').insert({
+src\services\jobsService.ts:480: const { data, error } = await supabase.rpc('start_dm', {
+src\services\jobsService.ts:495: const { data, error } = await supabase.rpc('start_dm', { p_receiver_id: user2 });
+src\services\jobsService.ts:501: .from('conversations')
+src\services\marketService.ts:50: .from('marketplace_listings')
+src\services\marketService.ts:78: .from('marketplace_listings')
+src\services\marketService.ts:92: const { data } = await supabase.from('saved_listings').select('listing_id').eq('user_id', me.user.id);
+src\services\marketService.ts:100: .from('saved_listings')
+src\services\marketService.ts:111: if (on) await supabase.from('saved_listings').upsert({ user_id: me.user.id, listing_id: listingId });
+src\services\marketService.ts:112: else await supabase.from('saved_listings').delete().eq('user_id', me.user.id).eq('listing_id', listingId);
+src\services\marketService.ts:116: .from('marketplace_listings')
+src\services\marketService.ts:140: .from('marketplace_listings')
+src\services\marketService.ts:160: .from('marketplace_listings')
+src\services\messageService.ts:10: .from('conversations')
+src\services\messageService.ts:19: .from('conversations')
+src\services\messagesService.ts:6: .from('conversations')
+src\services\messagesService.ts:21: .from('conversations')
+src\services\messagesService.ts:29: .from('conversations')
+src\services\messagesService.ts:51: .from('messages')
+src\services\messagesService.ts:70: const { error } = await supabase.from('messages').insert([
+src\services\messagesService.ts:85: .from('conversations')
+src\services\messagesService.ts:95: .from('profiles')
+src\services\messagesService.ts:112: .from('messages')
+src\services\messageStatusService.ts:22: .from('messages')
+src\services\messageStatusService.ts:40: const { error } = await supabase.rpc('mark_conversation_read', {
+src\services\messageStatusService.ts:53: .from('messages')
+src\services\networkService.ts:37: .from('profiles')
+src\services\networkService.ts:50: .from('connections')
+src\services\networkService.ts:79: .from('connections')
+src\services\networkService.ts:102: .from('connections')
+src\services\networkService.ts:112: .from('connections')
+src\services\networkService.ts:121: .from('connections')
+src\services\networkService.ts:130: .from('connections')
+src\services\networkService.ts:140: .from('connections')
+src\services\networkService.ts:151: .from('connections')
+src\services\networkService.ts:162: .from('connections')
+src\services\networkService.ts:179: .from('follows')
+src\services\networkService.ts:190: .from('follows')
+src\services\networkService.ts:199: .from('follows')
+src\services\networkService.ts:210: .from('follows')
+src\services\networkService.ts:214: .from('follows')
+src\services\networkService.ts:248: .from('profiles')
+src\services\networkService.ts:265: .from('profiles')
+src\services\networkService.ts:269: await supabase.from('notifications').insert({
+src\services\networkService.ts:286: .from('profiles')
+src\services\networkService.ts:290: await supabase.from('notifications').insert({
+src\services\networkService.ts:307: .from('profiles')
+src\services\networkService.ts:311: await supabase.from('notifications').insert({
+src\services\otherServices.ts:7: .from('user_push_tokens')
+src\services\otherServices.ts:29: .from('user_push_tokens')
+src\services\pushTokenService.ts:8: const { error } = await supabase.rpc('save_push_token', {
+src\services\pushTokenService.ts:23: .from('user_push_tokens')
+src\services\storiesService.ts:433: .from('stories')
+src\services\storiesService.ts:445: const { error: shareErr } = await supabase.from('story_shared_with').insert(rows);
+src\services\storiesService.ts:455: const { data, error } = await supabase.rpc('get_catchup_feed', {
+src\services\storiesService.ts:467: const { data, error } = await supabase.rpc('get_user_stories', {
+src\services\storiesService.ts:481: .from('follows')
+src\services\storiesService.ts:491: const { data } = await supabase.from('close_friends').select('friend_id').eq('owner_id', me.user.id);
+src\services\storiesService.ts:499: await supabase.from('close_friends').upsert({ owner_id: me.user.id, friend_id: friendId });
+src\services\storiesService.ts:501: await supabase.from('close_friends').delete().eq('owner_id', me.user.id).eq('friend_id', friendId);
+src\services\storiesService.ts:505: const { error } = await supabase.rpc('mark_story_viewed', {
+src\services\storiesService.ts:514: const { error } = await supabase.from('stories').delete().eq('id', storyId);
+src\services\storiesService.ts:522: const { data, error } = await supabase.rpc('get_story_viewers', {
+src\services\storiesService.ts:533: const { data, error } = await supabase.rpc('toggle_story_reaction', {
+src\services\storiesService.ts:545: const { data, error } = await supabase.rpc('get_my_story_reactions', {
+src\services\storiesService.ts:556: const { data, error } = await supabase.rpc('get_story_reactions', {
+src\services\storiesService.ts:600: .from('story_polls')
+src\services\storiesService.ts:621: .from('story_poll_options')
+src\services\storiesService.ts:627: await supabase.from('story_polls').delete().eq('id', poll.id);
+src\services\storiesService.ts:640: const { data, error } = await supabase.rpc('get_story_poll', {
+src\services\storiesService.ts:654: const { data, error } = await supabase.rpc('vote_story_poll', {
+src\services\storiesService.ts:668: const { data, error } = await supabase.rpc('get_story_poll_voters', {
+src\services\storiesService.ts:684: const { data, error } = await supabase.rpc('get_user_highlights', { p_user_id: userId });
+src\services\storiesService.ts:690: const { data, error } = await supabase.rpc('get_highlight_stories', { p_highlight_id: highlightId });
+src\services\storiesService.ts:697: .from('story_highlights')
+src\services\storiesService.ts:707: .from('story_highlights')
+src\services\storiesService.ts:714: const { error } = await supabase.from('story_highlights').delete().eq('id', highlightId);
+src\services\storiesService.ts:720: .from('story_highlight_items')
+src\services\storiesService.ts:727: .from('story_highlight_items')
+src\services\storiesService.ts:744: const { data, error } = await supabase.rpc('submit_sticker_response', {
+src\services\storiesService.ts:760: const { data, error } = await supabase.rpc('get_sticker_responses', {
+src\services\storiesService.ts:772: const { data, error } = await supabase.rpc('get_my_sticker_response', {
+src\services\supabase.ts:39: supabase.from('user_presence').upsert({
+src\services\supabase.ts:48: supabase.from('user_presence').upsert({
+src\services\supabase.ts:59: supabase.from('user_presence').upsert({
+src\stores\authStore.ts:37: .from('profiles')
+src\stores\authStore.ts:50: const { error } = await supabase.rpc('claim_institution', {
+src\stores\authStore.ts:118: supabase.from('user_presence').upsert({
+src\stores\authStore.ts:227: supabase.from('user_presence').upsert({
+src\stores\authStore.ts:274: await supabase.from('user_presence').upsert({

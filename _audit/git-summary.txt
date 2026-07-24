@@ -1,0 +1,44 @@
+﻿COMMITS
+f4d18b65 Remove remaining orbit naming from types and About copy
+8dba03df Remove stray backup file
+67bf1233 Route NetworkScreen follow through handle_follow_action, add Requested state, drop orbit naming
+19fa9e4e Fix follow button flicker: visibility-aware optimistic paint, hydrate pending requests, harden follow RPC
+b2ceeeec Fix muted stories list: replace unresolvable profiles embed with two-step fetch
+d402eb75 Fix muted stories row placement in settings
+09478a7e Mute stories from the strip
+bbbf9d5a Double-tap to heart in the story viewer
+91a76211 Show save bookmark on all listings
+b1476e43 Market saved listings and seller dashboard tabs
+300e4ae9 Follow button persists and shows Following state
+628a3fa4 Handshake styling for Jobs modals
+effd7795 Marketplace filter sheet
+7b74b1c2 Twitter-style profile: tabs, no community list, no highlight circles
+195e8774 Twitter-style profile header
+cefae9c6 Twitter-style article cards in the feed
+19fe1175 Article reader route, remove Built in Zimbabwe strip
+1ce72e55 Trending: acceleration, representative posts, dismissals
+7b3af874 Twitter-style Trending tab
+c2b4f588 Handshake browse chrome for Jobs
+61bc19a6 Handshake-style job cards
+6510be06 Seller trust signals on listing detail
+28eb620d Listing reports with auto-hide moderation
+a6be5973 Facebook-style listing creation wizard
+f5276be1 Four-option story audience with per-story share list
+173cedea Facebook Marketplace card proportions
+32d4d597 WhatsApp chat chrome: date pills, input capsule, send button
+5a08859c WhatsApp conversation list rows
+923e48aa WhatsApp bubble geometry in chat
+f37e5b71 Pinned listing and job context in Market and Jobs threads
+b9ce712e Conversation context: Market and Jobs threads separated from personal chats
+c43f4121 Story viewer chrome: legible text, solid reply bar, close button clear of progress
+a8eb3141 Hide-on-scroll tab bar on every tab screen
+0fb93eb2 Consistent bottom tab clearance across all screens
+cd9a0717 Custom SVG sticker tray icons
+60130ceb Composer chrome: solid caption, bright post pill, aligned baseline, fit toggle collision
+a68b6d1f Dual layout: viewer reads all layout shapes, writer stores fractions
+0d6e5ff3 Camera slide-to-zoom capture; story categories updated for pivot
+7c5056a8 Instagram text editor: type-in-style, font carousel, split controls
+6628dace Follow chip on post headers
+
+STATUS
+?? _audit/

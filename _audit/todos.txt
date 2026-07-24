@@ -1,0 +1,6 @@
+﻿src\screens\messages\CallScreen.tsx:113: })// @ts-ignore
+src\screens\messages\ChatScreen.tsx:1668: )// @ts-ignore
+src\screens\messages\ChatScreen.tsx:1687: )// @ts-ignore
+src\services\supabase.ts:43: })// @ts-ignore
+src\stores\authStore.ts:122: // @ts-ignore
+src\stores\authStore.ts:231: // @ts-ignore
