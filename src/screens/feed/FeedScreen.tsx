@@ -50,6 +50,30 @@ function scorePost(p: Omit<Post, 'score'>): number {
   const h = (Date.now() - new Date(p.created_at || Date.now()).getTime()) / 3600000;
   return ((p.likes_count * 2) + (p.comments_count * 5) + (p.reposts_count * 3)) * Math.exp(-h / 36) + (h < 1 ? 20 : 0);
 }
+const PAGE_SIZE = 20;
+
+function feedModeToServer(m: string): string {
+  return m === 'forYou' ? 'for_you' : m === 'innovation' ? 'innovation' : 'latest';
+}
+
+/** Map one get_feed row into the Post shape the render code already expects. */
+function mapFeedRow(r: any): Post {
+  const base: Omit<Post, 'score'> = {
+    id: r.post_id, user_id: r.author_id, content: r.content ?? r.body ?? '',
+    likes_count: r.likes_count ?? 0, comments_count: r.comments_count ?? 0, views_count: 0,
+    reposts_count: r.reposts_count ?? 0, bookmarks_count: r.bookmarks_count ?? 0,
+    created_at: r.created_at, media_url: r.media_url ?? null,
+    location: null,
+    channel: r.channel ?? null,
+    quoted_post_id: r.quoted_post_id ?? null,
+    thread_parent_id: r.thread_parent_id ?? null,
+    media: Array.isArray(r.media)
+      ? [...r.media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      : [],
+  };
+  return { ...base, score: scorePost(base) };
+}
+
 function relTime(d?: string | null) {
   if (!d) return '';
   const diff = Date.now() - new Date(d).getTime();
@@ -118,6 +142,8 @@ export default function FeedScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const hasMoreRef = useRef(true);
+  const cursorRef = useRef<{ key: number; id: string } | null>(null);
+  const modeFirstRun = useRef(true);
   const loadingMoreRef = useRef(false);
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation' | 'trending'>('forYou');
@@ -263,56 +289,36 @@ export default function FeedScreen({ navigation }: any) {
   const loadFeed = useCallback(async (showLoader = false) => {
     try {
       if (showLoader) setLoading(true);
-      let rawPosts: any[] | null = null;
-      let queryError: any = null;
-
-      const { data: d1, error: e1 } = await supabase
-        .from('posts')
-        .select('*, post_media(id, url, media_type, width, height, sort_order)')
-        .order('created_at', { ascending: false })
-        .limit(80);
-
-      if (e1) {
-        console.log('[FEED] join failed, falling back:', e1.message);
-        const { data: d2, error: e2 } = await supabase
-          .from('posts')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(80);
-        rawPosts = d2;
-        queryError = e2;
-      } else {
-        rawPosts = d1;
-        queryError = e1;
-      }
-
-      if (queryError) {
-        console.log('[FEED] query error:', queryError.message);
-        return;
-      }
-      if (!rawPosts) return;
       if (userId) {
         const { data: hid } = await supabase.from('hidden_posts').select('post_id').eq('user_id', userId);
         hiddenIdsRef.current = new Set((hid ?? []).map((h: any) => h.post_id));
       }
-      rawPosts = (rawPosts as any[]).filter((row: any) => !hiddenIdsRef.current.has(row.id));
 
-      const normalized = (rawPosts as any[]).map((row: any): Omit<Post, 'score'> => ({
-        id: row.id, user_id: row.user_id, content: row.content ?? row.body ?? '',
-        likes_count: row.likes_count ?? 0, comments_count: row.comments_count ?? 0, views_count: row.views_count ?? 0,
-        reposts_count: row.reposts_count ?? 0, bookmarks_count: row.bookmarks_count ?? 0,
-        created_at: row.created_at, media_url: row.media_url ?? null,
-        location: row.location ?? null,
-        channel: row.channel ?? null,
-        quoted_post_id: row.quoted_post_id ?? null,
-        thread_parent_id: row.thread_parent_id ?? null,
-        media: Array.isArray(row.post_media)
-          ? (row.post_media as PostMediaRow[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-          : (Array.isArray(row.media) ? row.media : []),
-      }));
-      const scored = normalized.map(p => ({ ...p, score: scorePost(p) }));
+      const { data: feedRows, error: feedErr } = await supabase.rpc('get_feed', {
+        p_mode: feedModeToServer(feedModeRef.current),
+        p_cursor_key: null,
+        p_cursor_id: null,
+        p_limit: PAGE_SIZE,
+      });
+      if (feedErr) { console.log('[FEED] get_feed failed:', feedErr.message); return; }
+
+      const rows = (feedRows ?? []) as any[];
+      const scored = rows.map(mapFeedRow);
       setPosts(scored);
-      hasMoreRef.current = scored.length >= 80;
+      cursorRef.current = rows.length
+        ? { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id }
+        : null;
+      hasMoreRef.current = rows.length >= PAGE_SIZE;
+
+      const pmFromFeed: ProfileMap = {};
+      const lm0: Record<string, boolean> = {}, bm0: Record<string, boolean> = {}, rm0: Record<string, boolean> = {};
+      rows.forEach((r: any) => {
+        pmFromFeed[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar };
+        if (r.viewer_liked) lm0[r.post_id] = true;
+        if (r.viewer_bookmarked) bm0[r.post_id] = true;
+        if (r.viewer_reposted) rm0[r.post_id] = true;
+      });
+      setLikedPosts(lm0); setBookmarkedPosts(bm0); setRepostedPosts(rm0);
       const likerIds = scored.filter(p => p.likes_count > 0).map(p => p.id);
       if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(m); });
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
@@ -326,7 +332,7 @@ export default function FeedScreen({ navigation }: any) {
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
       const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility').in('id', uids);
-      const pm: ProfileMap = {};
+      const pm: ProfileMap = { ...pmFromFeed };
       (pData || []).forEach((p: any) => { pm[p.id] = p; });
       setProfilesMap(pm);
       if (userId) {
@@ -340,16 +346,6 @@ export default function FeedScreen({ navigation }: any) {
       }
       if (userId) {
         const ids = scored.map(p => p.id);
-        const [{ data: likes }, { data: bookmarks }, { data: reposts }] = await Promise.all([
-          supabase.from('post_likes').select('post_id').eq('user_id', userId).in('post_id', ids),
-          supabase.from('post_bookmarks').select('post_id').eq('user_id', userId).in('post_id', ids),
-          supabase.from('post_reposts').select('post_id').eq('user_id', userId).in('post_id', ids),
-        ]);
-        const lm: Record<string, boolean> = {}, bm: Record<string, boolean> = {}, rm: Record<string, boolean> = {};
-        (likes || []).forEach((r: any) => { lm[r.post_id] = true; });
-        (bookmarks || []).forEach((r: any) => { bm[r.post_id] = true; });
-        (reposts || []).forEach((r: any) => { rm[r.post_id] = true; });
-        setLikedPosts(lm); setBookmarkedPosts(bm); setRepostedPosts(rm);
         if (ids.length > 0) {
           const { data: cData } = await supabase
             .from('post_comments')
@@ -397,6 +393,14 @@ export default function FeedScreen({ navigation }: any) {
   }, [loadFeed]);
 
   useEffect(() => {
+    feedModeRef.current = feedMode;
+    if (modeFirstRun.current) { modeFirstRun.current = false; return; }
+    cursorRef.current = null;
+    hasMoreRef.current = true;
+    loadFeedRef.current?.(true);
+  }, [feedMode]);
+
+  useEffect(() => {
     if (!userId) return;
     supabase.from('follows').select('following_id').eq('follower_id', userId).limit(1000)
       .then(({ data }) => { if (data) setFollowingIds(new Set(data.map((r: any) => r.following_id))); });
@@ -407,14 +411,9 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => {
     loadFeed(true);
 
-    const sortPosts = (items: Post[]) => {
-      if (feedMode === 'latest' || feedMode === 'innovation') {
-        return [...items].sort((a, b) =>
-          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-        );
-      }
-      return [...items].sort((a, b) => b.score - a.score);
-    };
+    // Order is decided by get_feed on the server. Never re-sort under the
+    // reader's thumb because a like arrived over realtime.
+    const sortPosts = (items: Post[]) => items;
 
     const ch = supabase.channel('feed_live')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => scheduleRefresh())
@@ -985,34 +984,25 @@ export default function FeedScreen({ navigation }: any) {
     loadingMoreRef.current = true;
     setLoadingMore(true);
     try {
-      const oldest = posts.reduce((m, p) => (p.created_at && (!m || p.created_at < m) ? p.created_at : m), null as string | null);
-      if (!oldest) { hasMoreRef.current = false; return; }
-      const { data: d1, error: e1 } = await supabase
-        .from('posts')
-        .select('*, post_media(id, url, media_type, width, height, sort_order)')
-        .lt('created_at', oldest)
-        .order('created_at', { ascending: false })
-        .limit(30);
-      if (e1 || !d1) return;
-      if (d1.length < 30) hasMoreRef.current = false;
-      const existing = new Set(posts.map(p => p.id));
-      const freshRows = (d1 as any[]).filter((row: any) => !existing.has(row.id) && !hiddenIdsRef.current.has(row.id));
-      if (freshRows.length === 0) return;
-      const normalized = freshRows.map((row: any): Omit<Post, 'score'> => ({
-        id: row.id, user_id: row.user_id, content: row.content ?? row.body ?? '',
-        likes_count: row.likes_count ?? 0, comments_count: row.comments_count ?? 0, views_count: row.views_count ?? 0,
-        reposts_count: row.reposts_count ?? 0, bookmarks_count: row.bookmarks_count ?? 0,
-        created_at: row.created_at, media_url: row.media_url ?? null,
-        location: row.location ?? null,
-        channel: row.channel ?? null,
-        quoted_post_id: row.quoted_post_id ?? null,
-        thread_parent_id: row.thread_parent_id ?? null,
-        media: Array.isArray(row.post_media)
-          ? (row.post_media as PostMediaRow[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-          : [],
-      }));
-      const scored = normalized.map(p => ({ ...p, score: scorePost(p) }));
+      const cur = cursorRef.current;
+      if (!cur) { hasMoreRef.current = false; return; }
+      const { data: moreRows, error: moreErr } = await supabase.rpc('get_feed', {
+        p_mode: feedModeToServer(feedModeRef.current),
+        p_cursor_key: cur.key,
+        p_cursor_id: cur.id,
+        p_limit: PAGE_SIZE,
+      });
+      if (moreErr) { console.log('[FEED] get_feed page failed:', moreErr.message); return; }
+      const rows = (moreRows ?? []) as any[];
+      if (rows.length < PAGE_SIZE) hasMoreRef.current = false;
+      if (rows.length === 0) return;
+      cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
+      const scored = rows.map(mapFeedRow);
       setPosts(prev => [...prev, ...scored.filter(p => !prev.some(x => x.id === p.id))]);
+      setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar }; }); return pm; });
+      setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked) m[r.post_id] = true; }); return m; });
+      setBookmarkedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_bookmarked) m[r.post_id] = true; }); return m; });
+      setRepostedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_reposted) m[r.post_id] = true; }); return m; });
       const ids = scored.map(p => p.id);
       const likerIds2 = scored.filter(p => p.likes_count > 0).map(p => p.id);
       if (likerIds2.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds2 }).then(({ data }) => { if (data) setLikerNames(prev => { const m = { ...prev }; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); return m; }); });
@@ -1029,16 +1019,7 @@ export default function FeedScreen({ navigation }: any) {
         const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility').in('id', missingU);
         if (pData) setProfilesMap(prev => { const pm = { ...prev }; pData.forEach((p: any) => { pm[p.id] = p; }); return pm; });
       }
-      if (userId && ids.length > 0) {
-        const [{ data: likes }, { data: bookmarks }, { data: reposts }] = await Promise.all([
-          supabase.from('post_likes').select('post_id').eq('user_id', userId).in('post_id', ids),
-          supabase.from('post_bookmarks').select('post_id').eq('user_id', userId).in('post_id', ids),
-          supabase.from('post_reposts').select('post_id').eq('user_id', userId).in('post_id', ids),
-        ]);
-        setLikedPosts(prev => { const m = { ...prev }; (likes ?? []).forEach((r: any) => { m[r.post_id] = true; }); return m; });
-        setBookmarkedPosts(prev => { const m = { ...prev }; (bookmarks ?? []).forEach((r: any) => { m[r.post_id] = true; }); return m; });
-        setRepostedPosts(prev => { const m = { ...prev }; (reposts ?? []).forEach((r: any) => { m[r.post_id] = true; }); return m; });
-      }
+      // viewer flags now arrive with the get_feed rows above
       const { data: cData } = await supabase.from('post_comments')
         .select('post_id, body, user_id, parent_comment_id, created_at, likes_count')
         .in('post_id', ids)
