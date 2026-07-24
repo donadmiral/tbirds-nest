@@ -27,9 +27,11 @@ export type ConnectionRow = {
  *
  * Schema truth:
  *   connections.requester_id / connections.recipient_id
- *   follows.follower_id / follows.following_id
+ *   orbits.follower_id / orbits.following_id
  *
- * The follows table stores one-way follows, exposed through followService.
+ * The orbits table is used for one-way follows. We keep the table name
+ * for backward compatibility but expose it under followService below.
+ * "Orbit" was an old UI term for "Follow".
  */
 export const networkService = {
   async getUsers(currentUserId: string): Promise<Profile[]> {
@@ -170,8 +172,8 @@ export const networkService = {
 };
 
 /**
- * Follow service. Writes to the follows table.
- * Column names: follows.follower_id, follows.following_id.
+ * Follow service. Uses the orbits table under the hood.
+ * Column names: orbits.follower_id, orbits.following_id.
  */
 export const followService = {
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
@@ -222,7 +224,19 @@ export const followService = {
   },
 };
 
-
+/**
+ * Backward-compatible alias. Old code that imports orbitService still works.
+ * Prefer followService in new code.
+ */
+export const orbitService = {
+  getOrbitStatus: (a: string, b: string) => followService.isFollowing(a, b),
+  orbitUser: (a: string, b: string) => followService.follow(a, b),
+  unOrbitUser: (a: string, b: string) => followService.unfollow(a, b),
+  getOrbitCounts: async (userId: string) => {
+    const c = await followService.getCounts(userId);
+    return { orbiters: c.followers, orbiting: c.following };
+  },
+};
 
 // ── Helpers ─────────────────────────────────────────────────
 

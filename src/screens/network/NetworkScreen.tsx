@@ -72,7 +72,8 @@ export default function NetworkScreen({ navigation }: any) {
 
   const [users, setUsers] = useState<Profile[]>([]);
   const [connectionMap, setConnectionMap] = useState<Record<string, ConnectionStatus>>({});
-  const [orbitMap, setOrbitMap] = useState<Record<string, boolean>>({});
+  const [followMap, setFollowMap] = useState<Record<string, boolean>>({});
+  const [requestedMap, setRequestedMap] = useState<Record<string, boolean>>({});
   const [busyMap, setBusyMap] = useState<Record<string, boolean>>({});
 
   const [communities, setCommunities] = useState<Group[]>([]);
@@ -182,14 +183,18 @@ export default function NetworkScreen({ navigation }: any) {
       });
       setConnectionMap(cMap);
 
-      const { data: orbitData } = await supabase
+      const { data: followData } = await supabase
         .from('follows')
         .select('following_id')
         .eq('follower_id', currentUserId);
 
       const oMap: Record<string, boolean> = {};
-      (orbitData || []).forEach((o: any) => { oMap[o.following_id] = true; });
-      setOrbitMap(oMap);
+      (followData || []).forEach((o: any) => { oMap[o.following_id] = true; });
+      setFollowMap(oMap);
+      const { data: reqData } = await supabase.from('follow_requests').select('target_id').eq('requester_id', currentUserId).eq('status', 'pending');
+      const rMap: Record<string, boolean> = {};
+      (reqData || []).forEach((r: any) => { rMap[r.target_id] = true; });
+      setRequestedMap(rMap);
 
       const [{ data: commData }, { data: clubData }] = await Promise.all([
         supabase.from('communities').select('id, name, emoji, description, member_count').order('name'),
@@ -399,21 +404,29 @@ export default function NetworkScreen({ navigation }: any) {
   };
 
   const toggleFollow = async (userId: string) => {
-    if (!currentUserId || busyMap[`orb-${userId}`]) return;
-    const was = !!orbitMap[userId];
-    setBusy(`orb-${userId}`, true);
+    if (!currentUserId || busyMap[`follow-${userId}`]) return;
+    const was = !!followMap[userId];
+    setBusy(`follow-${userId}`, true);
     try {
-      setOrbitMap((p) => ({ ...p, [userId]: !was }));
+      if (was) setFollowMap((p) => ({ ...p, [userId]: false }));
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      if (was) {
-        await supabase.from('follows').delete().eq('follower_id', currentUserId).eq('following_id', userId);
-      } else {
-        await supabase.from('follows').insert({ follower_id: currentUserId, following_id: userId });
+      const { data, error } = await supabase.rpc('handle_follow_action', { p_target_id: userId });
+      if (error) throw error;
+      const action = (data as any)?.action;
+      if (action === 'followed') {
+        setFollowMap((p) => ({ ...p, [userId]: true }));
+        setRequestedMap((p) => ({ ...p, [userId]: false }));
+      } else if (action === 'requested') {
+        setFollowMap((p) => ({ ...p, [userId]: false }));
+        setRequestedMap((p) => ({ ...p, [userId]: true }));
+      } else if (action === 'unfollowed' || action === 'request_cancelled') {
+        setFollowMap((p) => ({ ...p, [userId]: false }));
+        setRequestedMap((p) => ({ ...p, [userId]: false }));
       }
     } catch (e) {
-      setOrbitMap((p) => ({ ...p, [userId]: was }));
+      setFollowMap((p) => ({ ...p, [userId]: was }));
     } finally {
-      setBusy(`orb-${userId}`, false);
+      setBusy(`follow-${userId}`, false);
     }
   };
 
@@ -508,15 +521,16 @@ export default function NetworkScreen({ navigation }: any) {
   };
 
   const FollowButton = ({ userId }: { userId: string }) => {
-    const isFollowing = !!orbitMap[userId];
+    const isFollowing = !!followMap[userId];
+    const isRequested = !!requestedMap[userId];
     return (
       <TouchableOpacity
-        style={[s.orbitBtn, isFollowing && s.orbitBtnActive]}
+        style={[s.followBtn, (isFollowing || isRequested) && s.followBtnActive]}
         onPress={() => toggleFollow(userId)}
-        disabled={!!busyMap[`orb-${userId}`]}
+        disabled={!!busyMap[`follow-${userId}`]}
       >
-        <Text style={[s.orbitBtnTxt, isFollowing && s.orbitBtnTxtActive]}>
-          {isFollowing ? '● Following' : '+ Follow'}
+        <Text style={[s.followBtnTxt, (isFollowing || isRequested) && s.followBtnTxtActive]}>
+          {isFollowing ? '● Following' : isRequested ? 'Requested' : '+ Follow'}
         </Text>
       </TouchableOpacity>
     );
@@ -944,10 +958,10 @@ const s = StyleSheet.create({
   btnDeclineTxt:  { color: '#475569', fontSize: 13, fontWeight: '600' },
   btnMessage:     { backgroundColor: '#EFF6FF', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: '#BFDBFE' },
   btnMessageTxt:  { color: '#1D4ED8', fontSize: 13, fontWeight: '700' },
-  orbitBtn: { borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-  orbitBtnActive: { borderColor: '#7C3AED', backgroundColor: '#F5F3FF' },
-  orbitBtnTxt: { fontSize: 12, fontWeight: '600', color: '#64748B' },
-  orbitBtnTxtActive: { color: '#7C3AED' },
+  followBtn: { borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  followBtnActive: { borderColor: '#7C3AED', backgroundColor: '#F5F3FF' },
+  followBtnTxt: { fontSize: 12, fontWeight: '600', color: '#64748B' },
+  followBtnTxtActive: { color: '#7C3AED' },
   groupCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: '#FFF', borderRadius: 18, borderWidth: 1, borderColor: '#E2E8F0',
