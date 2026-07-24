@@ -294,6 +294,7 @@ export default function SettingsScreen() {
               ) : undefined
             }
           />
+          <Row icon="volume-x" iconColor="#8E8E93" label="Muted stories" sublabel="People whose stories you hide" onPress={() => navigation.navigate('MutedStories')} />
         </Section>
 
         <Section title="Notifications">

@@ -1,3 +1,4 @@
+import MutedStoriesScreen from '../screens/profile/MutedStoriesScreen';
 import ArticleReaderScreen from '../screens/feed/ArticleReaderScreen';
 import React, { useEffect, useRef, useState } from 'react';
 import { AppState, Platform, StyleSheet, Text, View, Animated, Pressable } from 'react-native';
@@ -135,6 +136,7 @@ function ProfileStackNav() {
     <ProfStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfStack.Screen name="ProfileMain"     component={ProfileScreen} />
       <ProfStack.Screen name="Settings"        component={SettingsScreen} />
+      <ProfStack.Screen name="MutedStories" component={MutedStoriesScreen} />
       <ProfStack.Screen name="Terms"           component={TermsScreen} />
       <ProfStack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <ProfStack.Screen name="About"           component={AboutScreen} />
