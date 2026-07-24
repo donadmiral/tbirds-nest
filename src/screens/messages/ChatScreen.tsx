@@ -462,7 +462,7 @@ export default function ChatScreen() {
         const refId = (conv as any)?.context_ref_id;
         if (!ctx || ctx === 'personal' || !refId) { if (!cancelled) setCtxCard(null); return; }
         if (ctx === 'market') {
-          const { data } = await supabase.from('listings').select('id, title, price, currency, images, image_url, status').eq('id', refId).maybeSingle();
+          const { data } = await supabase.from('marketplace_listings').select('*').eq('id', refId).maybeSingle();
           if (!data || cancelled) return;
           const d: any = data;
           const img = Array.isArray(d.images) && d.images.length ? d.images[0] : (d.image_url || null);
@@ -1959,15 +1959,15 @@ const s = StyleSheet.create({
   sideAvatar: { width: 28, height: 28, borderRadius: 14 },
   sideAvatarFb: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
   sideAvatarTxt: { fontSize: 10, fontWeight: '700', color: '#3C3C43' },
-  bubbleCol: { maxWidth: '80%', flexShrink: 1 },
+  bubbleCol: { maxWidth: '78%', flexShrink: 1 },
   bubbleColMe: { alignItems: 'flex-end' },
   bubbleColOther: { alignItems: 'flex-start' },
-  bubble: { paddingHorizontal: 14, paddingVertical: 9, position: 'relative' },
-  bubbleMe: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
-  bubbleOther: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6 },
-  bubbleMeFlat: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
-  bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6 },
-  bubbleTxt: { fontSize: 15.5, lineHeight: 21, letterSpacing: -0.1 },
+  bubble: { paddingHorizontal: 10, paddingVertical: 7, position: 'relative', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  bubbleMe: { backgroundColor: NAVY, borderRadius: 8, borderTopRightRadius: 3 },
+  bubbleOther: { backgroundColor: BUBBLE_OTHER, borderRadius: 8, borderTopLeftRadius: 3 },
+  bubbleMeFlat: { backgroundColor: NAVY, borderRadius: 8 },
+  bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 8 },
+  bubbleTxt: { fontSize: 15.5, lineHeight: 20, letterSpacing: -0.1 },
   bubbleTxtMe: { color: '#FFFFFF' },
   bubbleTxtOther: { color: TEXT_PRIMARY },
   linkTxt: { textDecorationLine: 'underline' },
