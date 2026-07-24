@@ -140,6 +140,7 @@ export default function FeedScreen({ navigation }: any) {
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
   const [commentPreviews, setCommentPreviews] = useState<Record<string, CommentPreview>>({});
   const [loading, setLoading] = useState(true);
+  const [feedError, setFeedError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const hasMoreRef = useRef(true);
@@ -301,7 +302,8 @@ export default function FeedScreen({ navigation }: any) {
         p_cursor_id: null,
         p_limit: PAGE_SIZE,
       });
-      if (feedErr) { console.log('[FEED] get_feed failed:', feedErr.message); return; }
+      if (feedErr) { console.log('[FEED] get_feed failed:', feedErr.message); setFeedError(feedErr.message); return; }
+      setFeedError(null);
 
       const rows = (feedRows ?? []) as any[];
       const scored = rows.map(mapFeedRow);
@@ -385,7 +387,10 @@ export default function FeedScreen({ navigation }: any) {
           setCommentPreviews(cpMap);
         }
       }
-    } catch (e) { console.log('LOAD_FEED', e); }
+    } catch (e: any) {
+      console.log('LOAD_FEED', e);
+      setFeedError(e?.message || 'Something went wrong loading your feed.');
+    }
     finally { setLoading(false); setRefreshing(false); }
   }, [userId]);
 
@@ -1380,6 +1385,20 @@ export default function FeedScreen({ navigation }: any) {
 
           {feedMode === 'trending' ? (
             <TrendingList onOpenTag={(tag) => { setFeedMode('latest'); setSearch('#' + tag); }} />
+          ) : feedError && posts.length === 0 ? (
+            <View style={[s.emptyWrap, { flex: 1, justifyContent: 'center' }]}>
+              <Feather name="alert-circle" size={40} color={light.ink.faint} />
+              <Text style={s.emptyTitle}>Could not load your feed</Text>
+              <Text style={s.emptySub}>{feedError}</Text>
+              <TouchableOpacity
+                style={s.emptyBtn}
+                onPress={() => { setFeedError(null); loadFeed(true); }}
+                accessibilityRole="button"
+                accessibilityLabel="Retry loading the feed"
+              >
+                <Text style={s.emptyBtnTxt}>Try again</Text>
+              </TouchableOpacity>
+            </View>
           ) : loading ? (
             <FeedSkeleton />
           ) : (
@@ -1411,7 +1430,36 @@ export default function FeedScreen({ navigation }: any) {
                   delete singleTapTimers.current[k];
                 });
               }}
-              ListHeaderComponent={<><StoryBar /><TrendingTopicsStrip /></>}
+              ListHeaderComponent={
+                <>
+                  {feedError ? (
+                    <View style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 8,
+                      marginHorizontal: 14, marginTop: 4, marginBottom: 8,
+                      paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12,
+                      backgroundColor: light.status.dangerBg,
+                    }}>
+                      <Feather name="alert-circle" size={15} color={light.status.danger} />
+                      <Text
+                        style={{ flex: 1, fontSize: 12.5, fontWeight: '600', color: light.status.danger }}
+                        numberOfLines={2}
+                      >
+                        {feedError}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => { setFeedError(null); loadFeed(true); }}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Retry loading the feed"
+                      >
+                        <Text style={{ fontSize: 12.5, fontWeight: '800', color: light.status.danger }}>Retry</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                  <StoryBar />
+                  <TrendingTopicsStrip />
+                </>
+              }
               contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
               ListEmptyComponent={
