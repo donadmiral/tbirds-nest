@@ -29,16 +29,16 @@ const SORT_OPTIONS = [
 ] as const;
 
 const SCOPE_TABS = [
-  { id: 'all', label: 'All Zimbabwe' },
-  { id: 'primary', label: 'Near me' },
-  { id: 'global', label: 'Remote' },
+  { id: 'primary', label: 'My School' },
+  { id: 'all', label: 'All Schools' },
+  { id: 'global', label: 'Global' },
 ] as const;
 
 const INDUSTRIES = [
-  'Agriculture', 'Mining', 'Finance & Banking', 'Technology', 'Healthcare', 'Energy',
-  'Construction', 'Transport & Logistics', 'Retail & Trade', 'Education', 'Government',
-  'NGO & Development', 'Media & Creative', 'Manufacturing', 'Tourism & Hospitality',
-  'Legal', 'Human Resources', 'Entrepreneurship',
+  'Consulting', 'Finance & Banking', 'Technology', 'Healthcare', 'Energy',
+  'Supply Chain', 'Marketing', 'Real Estate', 'Education', 'Government & Policy',
+  'Non-profit', 'Media & Entertainment', 'Retail & Consumer', 'Manufacturing',
+  'Hospitality & Tourism', 'Legal', 'Human Resources', 'Entrepreneurship',
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -72,7 +72,7 @@ function computeMatchScore(job: Job, userProfile: any): number {
   if (userProfile.location && job.location && job.location.toLowerCase().includes(userProfile.location.toLowerCase().split(',')[0])) score += 15;
   if (job.remote_type === 'remote') score += 8;
   if (job.urgent) score += 5;
-  if (job.verified) score += 5;
+  if (job.visa_sponsorship) score += 5;
   return Math.min(99, score);
 }
 
@@ -116,7 +116,7 @@ export default function JobsScreen({ navigation }: any) {
 
   const [activeTab, setActiveTab] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'salary' | 'urgent'>('recent');
-  const [scopeMode, setScopeMode] = useState<JobScope>('all');
+  const [scopeMode, setScopeMode] = useState<JobScope>('primary');
   const [search, setSearch] = useState('');
   const [showApplications, setShowApplications] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
@@ -129,7 +129,8 @@ export default function JobsScreen({ navigation }: any) {
     category: 'full_time' as JobCategory,
     remote_type: 'on_site' as 'remote' | 'hybrid' | 'on_site',
     experience_level: 'mid' as 'entry' | 'mid' | 'senior' | 'executive',
-    urgent: false,
+    visa_sponsorship: false, urgent: false,
+    scope: 'institution' as 'institution' | 'global',
   });
 
   const [applyTarget, setApplyTarget] = useState<Job | null>(null);
@@ -349,11 +350,13 @@ export default function JobsScreen({ navigation }: any) {
         experience_level: postForm.experience_level,
         industry: postForm.industry || undefined,
         salary_range: postForm.salary_range.trim() || undefined,
+        visa_sponsorship: postForm.visa_sponsorship,
         urgent: postForm.urgent,
         apply_url: postForm.apply_url.trim() || undefined,
+        scope: postForm.scope,
       });
       setShowPost(false);
-      setPostForm({ title:'', company:'', location:'', description:'', salary_range:'', apply_url:'', industry:'', category:'full_time', remote_type:'on_site', experience_level:'mid', urgent:false });
+      setPostForm({ title:'', company:'', location:'', description:'', salary_range:'', apply_url:'', industry:'', category:'full_time', remote_type:'on_site', experience_level:'mid', visa_sponsorship:false, urgent:false, scope: 'institution' });
       await loadAll(false);
       Alert.alert('Posted!', 'Your job listing is now live.');
     } catch (e) {
@@ -366,109 +369,128 @@ export default function JobsScreen({ navigation }: any) {
     const isSaved = savedIds.has(item.id);
     const appStatus = appliedMap[item.id];
     const score = computeMatchScore(item, profile);
+    const scoreColor = matchColor(score);
+    const catColor = CATEGORY_COLORS[item.category as string] || '#374151';
     const isOwn = item.posted_by === userId;
     const statusMeta = appStatus ? STATUS_META[appStatus] : null;
-    const logo = (item.company || '?').trim().charAt(0).toUpperCase();
-    const isNew = Date.now() - new Date(item.created_at).getTime() < 86400000;
-    const soon = item.deadline ? (new Date(item.deadline).getTime() - Date.now()) < 259200000 : false;
-    const place = item.remote_type === 'remote' ? 'Remote'
-      : item.remote_type === 'hybrid' ? (item.location ? item.location + ' - Hybrid' : 'Hybrid')
-      : (item.location || '');
 
     return (
-      <View style={s.hsCardRoot}>
-        <View style={s.hsCard}>
-          <View style={s.hsLogo}><Text style={s.hsLogoTxt}>{logo}</Text></View>
-
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-              <Text style={[s.hsTitle, { flex: 1 }]} numberOfLines={2}>{item.title}</Text>
-              <TouchableOpacity style={s.hsSave} onPress={() => toggleSave(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Text style={{ fontSize: 17, color: isSaved ? '#2B6FED' : '#C7C7CC' }}>{isSaved ? 'B' : 'b'}</Text>
-              </TouchableOpacity>
+      <View style={s.card}>
+        <View style={s.cardBadgeRow}>
+          <View style={[s.catBadge, { backgroundColor: catColor + '18', borderColor: catColor + '40' }]}>
+            <Text style={[s.catBadgeTxt, { color: catColor }]}>
+              {CATEGORY_TABS.find(t => t.id === item.category)?.emoji} {categoryLabel(item.category as string)}
+            </Text>
+          </View>
+          {item.scope === 'global' ? (
+            <View style={s.globalBadge}>
+              <Text style={s.globalBadgeTxt}>🌐 Global</Text>
             </View>
-
-            <Text style={s.hsCompany} numberOfLines={1}>{item.company}</Text>
-            {!!place && <Text style={s.hsMeta} numberOfLines={1}>{place}</Text>}
-            {!!item.salary_range && <Text style={s.hsSalary}>{item.salary_range}</Text>}
-
-            <View style={s.hsTagRow}>
-              <View style={s.hsTag}><Text style={s.hsTagTxt}>{categoryLabel(item.category as string)}</Text></View>
-              {item.experience_level ? (
-                <View style={s.hsTag}><Text style={s.hsTagTxt}>{String(item.experience_level)}</Text></View>
-              ) : null}
-              {isNew ? (
-                <View style={[s.hsTag, s.hsTagNew]}><Text style={[s.hsTagTxt, s.hsTagNewTxt]}>New</Text></View>
-              ) : null}
-              {soon ? (
-                <View style={[s.hsTag, s.hsTagSoon]}><Text style={[s.hsTagTxt, s.hsTagSoonTxt]}>Apply soon</Text></View>
-              ) : null}
-              {item.verified ? (
-                <View style={s.hsTag}><Text style={s.hsTagTxt}>Verified</Text></View>
-              ) : null}
-              {score >= 70 ? (
-                <View style={[s.hsTag, s.hsTagNew]}><Text style={[s.hsTagTxt, s.hsTagNewTxt]}>{score}% match</Text></View>
-              ) : null}
+          ) : item.institution_name ? (
+            <View style={s.schoolBadge}>
+              <Text style={s.schoolBadgeTxt} numberOfLines={1}>🏫 {item.institution_name}</Text>
             </View>
-
-            {statusMeta ? (
-              <View style={[s.statusBanner, { backgroundColor: statusMeta.bg, marginTop: 10 }]}>
-                <Text style={[s.statusBannerTxt, { color: statusMeta.color }]}>{statusMeta.label}</Text>
-              </View>
-            ) : null}
-
-            <View style={s.hsFooter}>
-              <Text style={s.hsPosted}>
-                {formatTime(item.created_at)}{item.application_count > 0 ? '  -  ' + item.application_count + ' applied' : ''}
-              </Text>
-              {!isOwn && (
-                appStatus ? (
-                  <View style={[s.hsApply, s.hsApplied]}>
-                    <Text style={[s.hsApplyTxt, s.hsAppliedTxt]}>Applied</Text>
-                  </View>
-                ) : (
-                  <TouchableOpacity style={s.hsApply} onPress={() => setApplyTarget(item)} activeOpacity={0.85}>
-                    <Text style={s.hsApplyTxt}>Apply</Text>
-                  </TouchableOpacity>
-                )
-              )}
-            </View>
+          ) : null}
+          {item.urgent && <View style={s.urgentBadge}><Text style={s.urgentTxt}>⚡ Urgent</Text></View>}
+          {item.visa_sponsorship && <View style={s.visaBadge}><Text style={s.visaTxt}>✈ Visa OK</Text></View>}
+          {item.verified && <View style={s.verifiedBadge}><Text style={s.verifiedTxt}>✓ Verified</Text></View>}
+          <View style={[s.scorePill, { backgroundColor: scoreColor + '18' }]}>
+            <Text style={[s.scoreTxt, { color: scoreColor }]}>{score}% match</Text>
           </View>
         </View>
 
-        {!isOwn && (
-          <View style={s.hsSecondary}>
-            <TouchableOpacity style={s.hsLink} onPress={() => messageJobPoster(item)}>
-              <Text style={s.hsLinkTxt}>Message recruiter</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={s.hsLink} onPress={() => setRecTarget(item)}>
-              <Text style={s.hsLinkTxt}>Refer someone</Text>
-            </TouchableOpacity>
+        <View style={s.cardMain}>
+          <View style={s.cardLeft}>
+            <Text style={s.jobTitle} numberOfLines={2}>{item.title}</Text>
+            <Text style={s.jobCompany}>{item.company}</Text>
+            <View style={s.jobMetaRow}>
+              {item.location && <Text style={s.jobMeta}>📍 {item.location}</Text>}
+              {item.remote_type !== 'on_site' && (
+                <Text style={s.jobMeta}>{item.remote_type === 'remote' ? '🌐 Remote' : '🔀 Hybrid'}</Text>
+              )}
+            </View>
+            {item.salary_range && <Text style={s.salary}>💰 {item.salary_range}</Text>}
+            <View style={s.jobFooter}>
+              <Text style={s.jobTime}>{formatTime(item.created_at)}</Text>
+              {item.application_count > 0 && <Text style={s.jobApps}>{item.application_count} applied</Text>}
+            </View>
+          </View>
+          <TouchableOpacity
+            onPress={() => item.posted_by && navigation.navigate('UserProfile', { userId: item.posted_by })}
+            style={s.cardPoster}
+          >
+            {item.profile?.avatar_url
+              ? <Image source={{ uri: item.profile.avatar_url }} style={s.posterAvatar} fadeDuration={200} />
+              : <View style={s.posterAvatarFb}><Text style={s.posterAvatarTxt}>{initials(item.profile?.full_name || item.profile?.username)}</Text></View>}
+            <Text style={s.posterName} numberOfLines={1}>{item.profile?.full_name || 'Poster'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {score >= 70 && (
+          <View style={s.whyRow}>
+            <Text style={s.whyTxt}>
+              {score >= 85 ? '⭐ Strong match for your profile' : '✓ Matches your background'}
+            </Text>
           </View>
         )}
 
-        {isOwn && (
-          <View style={s.hsSecondary}>
-            <TouchableOpacity style={s.hsLink} onPress={() => loadApplicants(item)}>
-              <Text style={s.hsLinkTxt}>{item.application_count > 0 ? item.application_count + ' applicants' : 'Applicants'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={s.hsLink} onPress={() => loadRecommendations(item)}>
-              <Text style={s.hsLinkTxt}>Referrals</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={s.hsLink}
-              onPress={() => Alert.alert('Delete job?', 'This cannot be undone.', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: async () => { await jobsService.deleteJob(item.id); loadAll(false); } },
-              ])}
-            >
-              <Text style={[s.hsLinkTxt, { color: '#DC2626' }]}>Delete</Text>
-            </TouchableOpacity>
+        {statusMeta && (
+          <View style={[s.statusBanner, { backgroundColor: statusMeta.bg }]}>
+            <Text style={[s.statusBannerTxt, { color: statusMeta.color }]}>{statusMeta.label}</Text>
           </View>
         )}
+
+        <View style={s.cardActions}>
+          <TouchableOpacity style={[s.actionSave, isSaved && s.actionSaveActive]} onPress={() => toggleSave(item.id)}>
+            <Text style={[s.actionSaveTxt, isSaved && s.actionSaveTxtActive]}>{isSaved ? '🔖 Saved' : '♡ Save'}</Text>
+          </TouchableOpacity>
+
+          {!isOwn && (
+            <>
+              {appStatus ? (
+                <View style={[s.actionApplied, { backgroundColor: STATUS_META[appStatus].bg }]}>
+                  <Text style={[s.actionAppliedTxt, { color: STATUS_META[appStatus].color }]}>
+                    {STATUS_META[appStatus].label}
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity style={s.actionApply} onPress={() => setApplyTarget(item)}>
+                  <Text style={s.actionApplyTxt}>Apply</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={s.actionRecommend} onPress={() => setRecTarget(item)}>
+                <Text style={s.actionRecommendTxt}>Recommend</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.actionMsg} onPress={() => messageJobPoster(item)}>
+                <Text style={s.actionMsgTxt}>💬 Message</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {isOwn && (
+            <View style={s.posterActions}>
+              <TouchableOpacity style={s.posterActionBtn} onPress={() => loadApplicants(item)}>
+                <Text style={s.posterActionTxt}>👥 {item.application_count > 0 ? `${item.application_count} Applicants` : 'Applicants'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.posterActionBtn} onPress={() => loadRecommendations(item)}>
+                <Text style={s.posterActionTxt}>⭐ Recommendations</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.actionDelete}
+                onPress={() => Alert.alert('Delete job?', 'This cannot be undone.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: async () => { await jobsService.deleteJob(item.id); loadAll(false); } },
+                ])}
+              >
+                <Text style={s.actionDeleteTxt}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
     );
   };
+
   const renderSavedJob = ({ item }: { item: Job }) => {
     const appStatus = appliedMap[item.id];
     const catColor = CATEGORY_COLORS[item.category as string] || '#374151';
@@ -637,12 +659,12 @@ export default function JobsScreen({ navigation }: any) {
                 <Text style={s.emptyEmoji}>💼</Text>
                 <Text style={s.emptyTitle}>
                   {search ? 'No jobs found' :
-                    scopeMode === 'primary' ? 'Nothing near you yet' :
-                    scopeMode === 'global' ? 'No remote roles yet' : 'No jobs yet'}
+                    scopeMode === 'primary' ? 'Nothing from your school yet' :
+                    scopeMode === 'global' ? 'No global jobs yet' : 'No jobs yet'}
                 </Text>
                 <Text style={s.emptyTxt}>
                   {search ? 'Try a different search.' :
-                    scopeMode === 'primary' ? 'Be the first to post a role in your area.' :
+                    scopeMode === 'primary' ? 'Be the first to post for your school.' :
                     'Try switching scopes.'}
                 </Text>
                 <TouchableOpacity style={s.emptyPostBtn} onPress={() => setShowPost(true)}>
@@ -920,7 +942,7 @@ export default function JobsScreen({ navigation }: any) {
               <Text style={s.fieldLabel2}>Visibility</Text>
               <View style={s.toggleRow}>
                 {([
-                  { id: 'institution', label: 'Invite only', desc: 'Shared with people you send it to' },
+                  { id: 'institution', label: '🏫 My School', desc: 'Visible only to your school' },
                   { id: 'global', label: '🌐 Global', desc: 'Visible everywhere' },
                 ] as const).map(sc => (
                   <TouchableOpacity
@@ -1014,6 +1036,18 @@ export default function JobsScreen({ navigation }: any) {
                 multiline numberOfLines={6}
               />
 
+              <View style={s.switchRow}>
+                <View style={s.switchInfo}>
+                  <Text style={s.switchLabel}>✈ Visa Sponsorship Available</Text>
+                  <Text style={s.switchSub}>Helps international students filter</Text>
+                </View>
+                <TouchableOpacity
+                  style={[s.switchBtn, postForm.visa_sponsorship && s.switchBtnOn]}
+                  onPress={() => setPostForm(p => ({...p, visa_sponsorship: !p.visa_sponsorship}))}
+                >
+                  <Text style={s.switchBtnTxt}>{postForm.visa_sponsorship ? 'Yes' : 'No'}</Text>
+                </TouchableOpacity>
+              </View>
 
               <View style={s.switchRow}>
                 <View style={s.switchInfo}>
@@ -1043,32 +1077,6 @@ export default function JobsScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  hsCardRoot: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E0E0E0', marginBottom: 10, overflow: 'hidden' },
-  hsSecondary: { flexDirection: 'row', gap: 18, paddingHorizontal: 14, paddingBottom: 12, paddingTop: 2 },
-  hsLink: { paddingVertical: 4 },
-  hsLinkTxt: { fontSize: 13, fontWeight: '600', color: '#2B6FED' },
-  hsCard: { flexDirection: 'row', gap: 12, padding: 14 },
-  hsLogo: { width: 48, height: 48, borderRadius: 10, backgroundColor: '#EFF3FA', alignItems: 'center', justifyContent: 'center' },
-  hsLogoTxt: { fontSize: 18, fontWeight: '800', color: '#2B6FED' },
-  hsTitle: { fontSize: 16, fontWeight: '700', color: '#2B6FED', letterSpacing: -0.3 },
-  hsCompany: { fontSize: 14, color: '#4B5563', marginTop: 2 },
-  hsMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
-  hsMeta: { fontSize: 13, color: '#6B7280' },
-  hsSalary: { fontSize: 13.5, fontWeight: '700', color: '#059669', marginTop: 5 },
-  hsTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  hsTag: { backgroundColor: '#F3F4F6', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  hsTagTxt: { fontSize: 11.5, fontWeight: '600', color: '#374151' },
-  hsTagNew: { backgroundColor: '#DBEAFE' },
-  hsTagNewTxt: { color: '#1D4ED8' },
-  hsTagSoon: { backgroundColor: '#FFEDD5' },
-  hsTagSoonTxt: { color: '#C2410C' },
-  hsSave: { padding: 4 },
-  hsFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
-  hsPosted: { fontSize: 12, color: '#9CA3AF' },
-  hsApply: { backgroundColor: '#2B6FED', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
-  hsApplyTxt: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '700' },
-  hsApplied: { backgroundColor: '#F3F4F6' },
-  hsAppliedTxt: { color: '#6B7280' },
   safe: { flex: 1, backgroundColor: '#F4F6F9' },
   container: { flex: 1, backgroundColor: '#F4F6F9' },
   header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, backgroundColor: '#F4F6F9' },
@@ -1114,12 +1122,14 @@ const s = StyleSheet.create({
   cardBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10, alignItems: 'center' },
   catBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
   catBadgeTxt: { fontSize: 11, fontWeight: '700' },
-  locationBadge: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, maxWidth: 160 },
-  locationBadgeTxt: { fontSize: 11, fontWeight: '700', color: '#1D4ED8' },
+  schoolBadge: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, maxWidth: 160 },
+  schoolBadgeTxt: { fontSize: 11, fontWeight: '700', color: '#1D4ED8' },
   globalBadge: { backgroundColor: '#F3F4F6', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   globalBadgeTxt: { fontSize: 11, fontWeight: '700', color: '#374151' },
   urgentBadge: { backgroundColor: '#FEF3C7', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   urgentTxt: { fontSize: 11, fontWeight: '700', color: '#D97706' },
+  visaBadge: { backgroundColor: '#ECFDF5', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  visaTxt: { fontSize: 11, fontWeight: '700', color: '#059669' },
   verifiedBadge: { backgroundColor: '#F0F9FF', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   verifiedTxt: { fontSize: 11, fontWeight: '700', color: '#0284C7' },
   scorePill: { marginLeft: 'auto', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3 },
