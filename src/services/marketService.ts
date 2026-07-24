@@ -40,6 +40,11 @@ export const marketService = {
     category?: string | null;
     limit?: number;
     before?: string | null;
+    minPrice?: number | null;
+    maxPrice?: number | null;
+    condition?: string | null;
+    city?: string | null;
+    sort?: 'recent' | 'price_low' | 'price_high';
   }): Promise<Listing[]> {
     let q = supabase
       .from('marketplace_listings')
@@ -53,6 +58,12 @@ export const marketService = {
       q = q.ilike('title', `%${opts.search.trim()}%`);
     }
     if (opts?.before) q = q.lt('created_at', opts.before);
+    if (opts?.minPrice != null) q = q.gte('price', opts.minPrice);
+    if (opts?.maxPrice != null) q = q.lte('price', opts.maxPrice);
+    if (opts?.condition) q = q.eq('condition', opts.condition);
+    if (opts?.city && opts.city.trim().length > 0) q = q.ilike('location_city', '%' + opts.city.trim() + '%');
+    if (opts?.sort === 'price_low') q = q.order('price', { ascending: true });
+    else if (opts?.sort === 'price_high') q = q.order('price', { ascending: false });
 
     const { data, error } = await q;
     if (error) {

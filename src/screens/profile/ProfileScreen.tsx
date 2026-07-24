@@ -208,16 +208,25 @@ export default function ProfileScreen() {
         setTabCounts(prev => ({ ...prev, saved: postIds.length }));
       }
       if (tab === 'tagged') {
-        if (!profile?.username) { setTabTagged([]); setTabCounts(prev => ({ ...prev, tagged: 0 })); return; }
-        const mention = `@${profile.username}`;
+        // media tab: your own posts that carry an image or video
         let postsData: any[] = [];
-        try { const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50); postsData = data || []; }
-        catch { const { data } = await supabase.from('posts').select('*').ilike('content', `%${mention}%`).order('created_at', { ascending: false }).limit(50); postsData = data || []; }
-        const authorIds = Array.from(new Set(postsData.map((p: any) => p.user_id)));
-        let authorMap: Record<string, any> = {};
-        if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
-        setTabTagged(postsData.map((p: any) => ({ ...normalizePost(p), _originalAuthor: authorMap[p.user_id] || null })));
-        setTabCounts(prev => ({ ...prev, tagged: postsData.length }));
+        try {
+          const { data } = await supabase
+            .from('posts')
+            .select('*, post_media(id, url, media_type, width, height, sort_order)')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(80);
+          postsData = data || [];
+        } catch {
+          const { data } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(80);
+          postsData = data || [];
+        }
+        const withMedia = postsData.filter((p: any) =>
+          (Array.isArray(p.post_media) && p.post_media.length > 0) || !!p.media_url
+        );
+        setTabTagged(withMedia.map((p: any) => normalizePost(p)));
+        setTabCounts(prev => ({ ...prev, tagged: withMedia.length }));
       }
     } catch (e) { console.log('[PROFILE_TAB]', e); }
     finally { setTabLoading(false); }
@@ -395,7 +404,7 @@ export default function ProfileScreen() {
       posts:   { icon: 'edit-3',   title: 'No posts yet',       sub: 'Share something with the community.' },
       reposts: { icon: 'repeat',   title: 'No reposts yet',     sub: 'Repost content you find valuable.' },
       saved:   { icon: 'bookmark', title: 'No saved posts yet', sub: 'Bookmark posts from the feed and they will appear here.' },
-      tagged:  { icon: 'at-sign',  title: 'No tagged posts',    sub: 'When someone mentions you in a post, it will show up here.' },
+      tagged: { icon: 'image', title: 'No media yet', sub: 'Photos and videos you post will show here.' },
     };
     const c = configs[tab];
     return (<View style={st.tabEmpty}><View style={st.tabEmptyIcon}><Feather name={c.icon as any} size={28} color="#C7C7CC" /></View><Text style={st.tabEmptyTitle}>{c.title}</Text><Text style={st.tabEmptySub}>{c.sub}</Text></View>);

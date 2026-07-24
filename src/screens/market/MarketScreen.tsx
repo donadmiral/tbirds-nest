@@ -1,3 +1,4 @@
+import MarketFilterSheet, { MarketFilters, EMPTY_FILTERS } from '../../components/market/MarketFilterSheet';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator, Dimensions, FlatList, RefreshControl, StyleSheet,
@@ -36,21 +37,26 @@ export default function MarketScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
+  const [filters, setFilters] = useState<MarketFilters>(EMPTY_FILTERS);
+  const [filterOpen, setFilterOpen] = useState(false);
   const searchTimer = useRef<any>(null);
 
   const load = useCallback(async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
-    const rows = await marketService.listListings({ search, category });
+    const rows = await marketService.listListings({ search, category,
+      minPrice: filters.minPrice ? Number(filters.minPrice) : null,
+      maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
+      condition: filters.condition, city: filters.city || null, sort: filters.sort });
     setListings(rows);
     setLoading(false);
     setRefreshing(false);
-  }, [search, category]);
+  }, [search, category, filters]);
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => { load(); }, 350);
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
-  }, [search, category, load]);
+  }, [search, category, filters, load]);
 
   useFocusEffect(useCallback(() => { load({ silent: true }); }, [load]));
 
@@ -104,6 +110,13 @@ export default function MarketScreen({ navigation }: any) {
           <Feather name="plus" size={20} color={BG} />
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginHorizontal: 14, marginBottom: 8, backgroundColor: '#F3F4F6', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 }} onPress={() => setFilterOpen(true)} activeOpacity={0.75}>
+        <Feather name="sliders" size={13} color="#111827" />
+        <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#111827' }}>Filters</Text>
+      </TouchableOpacity>
+
+      <MarketFilterSheet visible={filterOpen} onClose={() => setFilterOpen(false)} value={filters} onApply={setFilters} />
 
       <View style={s.searchWrap}>
         <Feather name="search" size={16} color={GRAY_400} style={{ marginRight: 8 }} />
