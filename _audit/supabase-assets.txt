@@ -1,6 +1,0 @@
-﻿EDGE FUNCTIONS
-crisp-bridge
-daily-get-token
-send-push-notification
-
-MIGRATIONS: none found

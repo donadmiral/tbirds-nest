@@ -3,3 +3,10 @@ node_modules
 .env
 .env.local
 .expo/
+
+# audit artifacts
+_audit/
+_audit.zip
+_full-source.zip
+*.bak
+
