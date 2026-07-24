@@ -1,3 +1,4 @@
+import SellerTrust from '../../components/market/SellerTrust';
 import ReportListingSheet from '../../components/market/ReportListingSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
@@ -55,6 +56,22 @@ export default function ListingDetailScreen({ navigation, route }: any) {
 
   const insets = useSafeAreaInsets();
   const [reportOpen, setReportOpen] = useState(false);
+
+  const blockSeller = () => {
+    if (!listing || !userId) return;
+    Alert.alert(
+      'Block this seller?',
+      'You will not see their listings and they will not see yours. You can undo this in settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Block', style: 'destructive', onPress: async () => {
+          const { error } = await supabase.from('blocked_users').upsert({ blocker_id: userId, blocked_id: listing.seller_id });
+          if (error) { Alert.alert('Could not block', error.message); return; }
+          navigation.goBack();
+        } },
+      ]
+    );
+  };
   const isOwner = !!listing && !!userId && listing.seller_id === userId;
 
   const messageSeller = async () => {
@@ -173,17 +190,24 @@ export default function ListingDetailScreen({ navigation, route }: any) {
                 )}
               </View>
               {listing.seller?.username ? <Text style={s.sellerHandle}>@{listing.seller.username}</Text> : null}
+              <SellerTrust sellerId={listing.seller_id} />
             </View>
             <Feather name="chevron-right" size={18} color="#C7C7CC" />
           </TouchableOpacity>
         </View>
         {!!listing && <SellerReviews sellerId={listing.seller_id} listingId={listing.id} currentUserId={userId} />}
 
-        {!!listing && !isOwner && (
+        {!!listing && !isOwner && (<>
           <TouchableOpacity style={{ alignSelf: 'center', marginTop: 22, marginBottom: 6, flexDirection: 'row', alignItems: 'center', gap: 6 }} onPress={() => setReportOpen(true)} activeOpacity={0.7}>
             <Feather name="flag" size={13} color="#9CA3AF" />
             <Text style={{ fontSize: 13.5, color: '#9CA3AF', fontWeight: '600' }}>Report listing</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={{ alignSelf: 'center', marginTop: 10, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }} onPress={blockSeller} activeOpacity={0.7}>
+            <Feather name="slash" size={13} color="#9CA3AF" />
+            <Text style={{ fontSize: 13.5, color: '#9CA3AF', fontWeight: '600' }}>Block seller</Text>
+          </TouchableOpacity>
+          </>
         )}
 
         {!!listing && (
