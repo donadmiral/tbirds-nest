@@ -1,3 +1,4 @@
+import TrendingList from '../../components/TrendingList';
 import * as FileSystem from 'expo-file-system/legacy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -120,7 +121,7 @@ export default function FeedScreen({ navigation }: any) {
   const hasMoreRef = useRef(true);
   const loadingMoreRef = useRef(false);
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
-  const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation'>('forYou');
+  const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation' | 'trending'>('forYou');
   const mediaTouchRef = useRef(false);
   const hiddenIdsRef = useRef<Set<string>>(new Set());
   const feedModeRef = useRef(feedMode);
@@ -128,7 +129,7 @@ export default function FeedScreen({ navigation }: any) {
   const tabSwipe = useRef(PanResponder.create({
     onMoveShouldSetPanResponder: (_e, g) => !mediaTouchRef.current && Math.abs(g.dx) > 40 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
     onPanResponderRelease: (_e, g) => {
-      const order = ['forYou', 'latest', 'innovation'] as const;
+      const order = ['forYou', 'latest', 'innovation', 'trending'] as const;
       const i = order.indexOf(feedModeRef.current);
       if (g.dx < -40 && i < order.length - 1) { setFeedMode(order[i + 1]); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
       else if (g.dx > 40 && i > 0) { setFeedMode(order[i - 1]); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
@@ -1310,9 +1311,9 @@ export default function FeedScreen({ navigation }: any) {
             </View>
 
             <View style={s.tabRow}>
-              {(['forYou', 'latest', 'innovation'] as const).map(m => {
+              {(['forYou', 'latest', 'innovation', 'trending'] as const).map(m => {
                 const on = feedMode === m;
-                const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : 'Innovation';
+                const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : m === 'innovation' ? 'Innovation' : 'Trending';
                 const accent = m === 'innovation' ? '#D97706' : '#0B1E3D';
                 return (
                   <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 6, marginRight: 22 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
@@ -1324,7 +1325,9 @@ export default function FeedScreen({ navigation }: any) {
             </View>
           </View>
 
-          {loading ? (
+          {feedMode === 'trending' ? (
+            <TrendingList onOpenTag={(tag) => { setFeedMode('latest'); setSearch('#' + tag); }} />
+          ) : loading ? (
             <FeedSkeleton />
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
