@@ -529,23 +529,25 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+        <HighlightRow
+          highlights={highlights}
+          isOwnProfile={true}
+          onTap={handleHighlightTap}
+          onCreateNew={handleHighlightCreate}
+          onLongPress={handleHighlightLongPress}
+        />
 
+        <View style={st.communitySection}>
+          <Text style={st.communityTitle}>Community</Text>
+          <View style={st.communityList}>
+            {COMMUNITY.map(item=>(<TouchableOpacity key={item.label} style={st.communityRow} activeOpacity={0.7} onPress={()=>navigation.navigate(item.route as any)}><View style={[st.communityIconBadge,{backgroundColor:item.bg}]}>{item.emoji?<Text style={{fontSize:18}}>{item.emoji}</Text>:<Feather name={(item as any).featherIcon} size={18} color={(item as any).featherColor}/>}</View><View style={st.communityRowText}><Text style={st.communityLabel}>{item.label}</Text><Text style={st.communitySub}>{item.sub}</Text></View><Feather name="chevron-right" size={16} color="#C7C7CC" /></TouchableOpacity>))}
+          </View>
+        </View>
 
-        <View style={st.twTabRow}>
-          {([
-            { key: 'posts' as ProfileTab, label: 'Posts' },
-            { key: 'reposts' as ProfileTab, label: 'Reposts' },
-            { key: 'saved' as ProfileTab, label: 'Likes' },
-            { key: 'tagged' as ProfileTab, label: 'Media' },
-          ]).map(t => {
-            const on = activeTab === t.key;
-            return (
-              <TouchableOpacity key={t.key} style={st.twTab} onPress={() => setActiveTab(t.key)} activeOpacity={0.7}>
-                <Text style={[st.twTabTxt, on && st.twTabTxtOn]}>{t.label}</Text>
-                {on ? <View style={st.twTabBar} /> : null}
-              </TouchableOpacity>
-            );
-          })}
+        <View style={st.tabsContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.tabsScroll}>
+            {([{key:'posts' as ProfileTab,label:'Posts',count:tabCounts.posts},{key:'reposts' as ProfileTab,label:'Reposts',count:tabCounts.reposts},{key:'saved' as ProfileTab,label:'Saved',count:tabCounts.saved},{key:'tagged' as ProfileTab,label:'Tagged',count:tabCounts.tagged}]).map(t=>(<TouchableOpacity key={t.key} style={[st.tabPill,activeTab===t.key&&st.tabPillActive]} onPress={()=>setActiveTab(t.key)} activeOpacity={0.7}><Text style={[st.tabPillTxt,activeTab===t.key&&st.tabPillTxtActive]}>{t.label}</Text>{t.count>0&&(<View style={[st.tabPillCount,activeTab===t.key&&st.tabPillCountActive]}><Text style={[st.tabPillCountTxt,activeTab===t.key&&st.tabPillCountTxtActive]}>{t.count}</Text></View>)}</TouchableOpacity>))}
+          </ScrollView>
         </View>
 
         {tabLoading?(<View style={{paddingVertical:40,alignItems:'center'}}><ActivityIndicator color={NAVY}/></View>):tabData.length===0?emptyState(activeTab):tabData.map(post=>renderPostCard(post))}
@@ -563,11 +565,6 @@ export default function ProfileScreen() {
 }
 
 const st = StyleSheet.create({
-  twTabRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#EFF3F4', backgroundColor: '#FFFFFF' },
-  twTab: { flex: 1, alignItems: 'center', paddingVertical: 15, position: 'relative' },
-  twTabTxt: { fontSize: 15, fontWeight: '600', color: '#536471' },
-  twTabTxtOn: { color: '#0F1419', fontWeight: '700' },
-  twTabBar: { position: 'absolute', bottom: 0, height: 4, width: 56, borderRadius: 2, backgroundColor: '#1D9BF0' },
   twBanner: { height: 140, backgroundColor: '#CBD5E1' },
   twSettings: { position: 'absolute', right: 14, top: 14, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
   twHead: { paddingHorizontal: 16, paddingBottom: 12 },
