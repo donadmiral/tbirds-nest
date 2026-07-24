@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+/**
+ * CreateListingScreen - Facebook Marketplace style wizard.
+ * Photos -> Details -> Meetup -> Preview, with per-step validation.
+ */
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
@@ -17,13 +21,16 @@ const GRAY_100 = '#F3F4F6';
 const GRAY_400 = '#9CA3AF';
 const GRAY_500 = '#6B7280';
 const GRAY_900 = '#111827';
+const RED = '#DC2626';
 
-const MAX_IMAGES = 6;
+const MAX_IMAGES = 10;
+const STEPS = ['Photos', 'Details', 'Meetup', 'Preview'];
 
 export default function CreateListingScreen({ navigation }: any) {
   const { profile } = useAuthStore();
   const userId: string | undefined = profile?.id;
 
+  const [step, setStep] = useState(0);
   const [media, setMedia] = useState<PickedMedia[]>([]);
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -33,40 +40,51 @@ export default function CreateListingScreen({ navigation }: any) {
   const [city, setCity] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
-
-  const addPhotos = async () => {
-    try {
-      const picked = await pickFromLibrary({
-        allowVideos: false,
-        multiple: true,
-        selectionLimit: MAX_IMAGES - media.length,
-        quality: 0.8,
-      });
-      if (picked.length) setMedia((prev) => [...prev, ...picked].slice(0, MAX_IMAGES));
-    } catch (e: any) {
-      Alert.alert('Photos', e?.message || 'Could not open photo library');
-    }
-  };
-
-  const removePhoto = (index: number) => {
-    setMedia((prev) => prev.filter((_, i) => i !== index));
-  };
+  const [touched, setTouched] = useState(false);
 
   const priceNumber = Number(price.replace(/,/g, ''));
-  const formValid =
-    title.trim().length >= 3 &&
-    price.trim().length > 0 &&
-    Number.isFinite(priceNumber) &&
-    priceNumber >= 0 &&
-    media.length > 0;
+  const priceOk = price.trim().length > 0 && Number.isFinite(priceNumber) && priceNumber >= 0;
+  const titleOk = title.trim().length >= 3;
+  const cityOk = city.trim().length >= 2;
+
+  const stepValid = useMemo(() => {
+    if (step === 0) return media.length > 0;
+    if (step === 1) return titleOk && priceOk && !!condition;
+    if (step === 2) return cityOk;
+    return true;
+  }, [step, media.length, titleOk, priceOk, condition, cityOk]);
+
+  const addPhotos = async () => {
+    const picked = await pickFromLibrary({ multiple: true, limit: MAX_IMAGES - media.length });
+    if (picked?.length) setMedia(prev => [...prev, ...picked].slice(0, MAX_IMAGES));
+  };
+
+  const next = () => {
+    setTouched(true);
+    if (!stepValid) return;
+    setTouched(false);
+    setStep(s => Math.min(s + 1, STEPS.length - 1));
+  };
+
+  const back = () => {
+    if (step === 0) {
+      if (media.length || title || price) {
+        Alert.alert('Discard listing?', 'Your progress will be lost.', [
+          { text: 'Keep editing', style: 'cancel' },
+          { text: 'Discard', style: 'destructive', onPress: () => navigation.goBack() },
+        ]);
+      } else navigation.goBack();
+      return;
+    }
+    setTouched(false);
+    setStep(s => s - 1);
+  };
 
   const submit = async () => {
-    if (!userId || !formValid || saving) return;
+    if (!userId || saving) return;
     setSaving(true);
     try {
-      const { uploaded, failed } = await uploadBatch('market-media', userId, media, {
-        pathPrefix: 'listings',
-      });
+      const { uploaded, failed } = await uploadBatch('market-media', userId, media, { pathPrefix: 'listings' });
       if (!uploaded.length) throw new Error('Image upload failed. Check your connection and try again.');
       if (failed.length) console.log('[CreateListing] some images failed:', failed.length);
 
@@ -89,125 +107,149 @@ export default function CreateListingScreen({ navigation }: any) {
     }
   };
 
+  const Err = ({ show, text }: any) => show ? <Text style={s.err}>{text}</Text> : null;
+
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="x" size={24} color={GRAY_900} />
+        <TouchableOpacity onPress={back} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name={step === 0 ? 'x' : 'chevron-left'} size={24} color={GRAY_900} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>New listing</Text>
-        <TouchableOpacity
-          onPress={submit}
-          disabled={!formValid || saving}
-          style={[s.publishBtn, (!formValid || saving) && { opacity: 0.4 }]}
-          activeOpacity={0.85}
-        >
-          {saving ? <ActivityIndicator color={BG} size={14} /> : <Text style={s.publishTxt}>Publish</Text>}
-        </TouchableOpacity>
+        <Text style={s.headerTitle}>{STEPS[step]}</Text>
+        <Text style={s.stepCount}>{step + 1} of {STEPS.length}</Text>
+      </View>
+
+      <View style={s.progressTrack}>
+        <View style={[s.progressFill, { width: (((step + 1) / STEPS.length) * 100) + '%' } as any]} />
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
-            {media.map((m, i) => (
-              <View key={`${m.uri}-${i}`}>
-                <ExpoImage source={{ uri: m.uri }} style={s.photo} contentFit="cover" />
-                <TouchableOpacity style={s.photoRemove} onPress={() => removePhoto(i)}>
-                  <Feather name="x" size={12} color={BG} />
-                </TouchableOpacity>
+        <ScrollView contentContainerStyle={s.body} keyboardShouldPersistTaps="handled">
+
+          {step === 0 && (
+            <>
+              <Text style={s.lead}>Add up to {MAX_IMAGES} photos. The first one is your cover.</Text>
+              <View style={s.grid}>
+                {media.map((m, i) => (
+                  <View key={m.uri + i} style={s.tile}>
+                    <ExpoImage source={{ uri: m.uri }} style={s.tileImg} contentFit="cover" />
+                    {i === 0 && <View style={s.coverTag}><Text style={s.coverTxt}>Cover</Text></View>}
+                    <TouchableOpacity style={s.remove} onPress={() => setMedia(prev => prev.filter((_, x) => x !== i))}>
+                      <Feather name="x" size={13} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                {media.length < MAX_IMAGES && (
+                  <TouchableOpacity style={[s.tile, s.tileAdd]} onPress={addPhotos} activeOpacity={0.7}>
+                    <Feather name="plus" size={26} color={GRAY_400} />
+                  </TouchableOpacity>
+                )}
               </View>
-            ))}
-            {media.length < MAX_IMAGES && (
-              <TouchableOpacity style={s.photoAdd} onPress={addPhotos} activeOpacity={0.8}>
-                <Feather name="camera" size={22} color={GRAY_500} />
-                <Text style={s.photoAddTxt}>{media.length === 0 ? 'Add photos' : 'Add more'}</Text>
-              </TouchableOpacity>
-            )}
-          </ScrollView>
+              <Err show={touched && media.length === 0} text="Add at least one photo." />
+            </>
+          )}
 
-          <Text style={s.label}>Title</Text>
-          <TextInput
-            style={s.input}
-            value={title}
-            onChangeText={setTitle}
-            placeholder="What are you selling?"
-            placeholderTextColor={GRAY_400}
-            maxLength={80}
-          />
+          {step === 1 && (
+            <>
+              <Text style={s.label}>Title</Text>
+              <TextInput
+                style={[s.input, touched && !titleOk && s.inputErr]}
+                value={title} onChangeText={setTitle}
+                placeholder="What are you selling?" placeholderTextColor={GRAY_400} maxLength={100}
+              />
+              <Err show={touched && !titleOk} text="Give it a title of at least 3 characters." />
 
-          <Text style={s.label}>Price</Text>
-          <View style={s.priceRow}>
-            <View style={s.currencyToggle}>
-              {(['USD', 'ZWG'] as ListingCurrency[]).map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[s.currencyChip, currency === c && s.currencyChipActive]}
-                  onPress={() => setCurrency(c)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[s.currencyTxt, currency === c && s.currencyTxtActive]}>{c}</Text>
+              <Text style={s.label}>Price</Text>
+              <View style={s.priceRow}>
+                <TouchableOpacity style={s.currBtn} onPress={() => setCurrency(currency === 'USD' ? ('ZWL' as any) : 'USD')}>
+                  <Text style={s.currTxt}>{currency}</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-            <TextInput
-              style={[s.input, { flex: 1, marginTop: 0 }]}
-              value={price}
-              onChangeText={setPrice}
-              placeholder="0.00"
-              placeholderTextColor={GRAY_400}
-              keyboardType="decimal-pad"
-            />
-          </View>
+                <TextInput
+                  style={[s.input, { flex: 1 }, touched && !priceOk && s.inputErr]}
+                  value={price} onChangeText={t => setPrice(t.replace(/[^0-9.]/g, ''))}
+                  placeholder="0" placeholderTextColor={GRAY_400} keyboardType="decimal-pad"
+                />
+              </View>
+              <Err show={touched && !priceOk} text="Enter a price. Use 0 for free." />
 
-          <Text style={s.label}>Category</Text>
-          <View style={s.chipWrap}>
-            {MARKET_CATEGORIES.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[s.chip, category === c && s.chipActive]}
-                onPress={() => setCategory(c)}
-                activeOpacity={0.8}
-              >
-                <Text style={[s.chipTxt, category === c && s.chipTxtActive]}>{c}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+              <Text style={s.label}>Category</Text>
+              <View style={s.chips}>
+                {MARKET_CATEGORIES.map((c: string) => (
+                  <TouchableOpacity key={c} style={[s.chip, category === c && s.chipActive]} onPress={() => setCategory(c)}>
+                    <Text style={[s.chipTxt, category === c && s.chipTxtActive]}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-          <Text style={s.label}>Condition</Text>
-          <View style={s.chipWrap}>
-            {MARKET_CONDITIONS.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[s.chip, condition === c && s.chipActive]}
-                onPress={() => setCondition(condition === c ? null : c)}
-                activeOpacity={0.8}
-              >
-                <Text style={[s.chipTxt, condition === c && s.chipTxtActive]}>{c}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+              <Text style={s.label}>Condition</Text>
+              <View style={s.chips}>
+                {MARKET_CONDITIONS.map((c: string) => (
+                  <TouchableOpacity key={c} style={[s.chip, condition === c && s.chipActive]} onPress={() => setCondition(condition === c ? null : c)}>
+                    <Text style={[s.chipTxt, condition === c && s.chipTxtActive]}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Err show={touched && !condition} text="Pick a condition." />
 
-          <Text style={s.label}>City</Text>
-          <TextInput
-            style={s.input}
-            value={city}
-            onChangeText={setCity}
-            placeholder="Harare, Bulawayo, Mutare..."
-            placeholderTextColor={GRAY_400}
-            maxLength={40}
-          />
+              <Text style={s.label}>Description</Text>
+              <TextInput
+                style={[s.input, s.textarea]} value={description} onChangeText={setDescription}
+                placeholder="Describe your item (optional)" placeholderTextColor={GRAY_400}
+                multiline textAlignVertical="top"
+              />
+            </>
+          )}
 
-          <Text style={s.label}>Description</Text>
-          <TextInput
-            style={[s.input, s.inputMulti]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Details buyers should know"
-            placeholderTextColor={GRAY_400}
-            multiline
-            maxLength={1500}
-          />
+          {step === 2 && (
+            <>
+              <Text style={s.lead}>Where will buyers meet you? Give an area, not your exact address.</Text>
+              <Text style={s.label}>Meetup area</Text>
+              <TextInput
+                style={[s.input, touched && !cityOk && s.inputErr]}
+                value={city} onChangeText={setCity}
+                placeholder="e.g. Avondale, Harare" placeholderTextColor={GRAY_400}
+              />
+              <Err show={touched && !cityOk} text="Enter a meetup area." />
+
+              <View style={s.safety}>
+                <Text style={s.safetyTitle}>Stay safe</Text>
+                <Text style={s.safetyTxt}>Meet in a busy public place during the day.</Text>
+                <Text style={s.safetyTxt}>Inspect the item before you pay.</Text>
+                <Text style={s.safetyTxt}>Keep conversations inside Platinum Circles.</Text>
+                <Text style={s.safetyTxt}>Never send money before seeing the item.</Text>
+              </View>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <Text style={s.lead}>This is how buyers will see it.</Text>
+              <View style={s.preview}>
+                {media[0] ? <ExpoImage source={{ uri: media[0].uri }} style={s.previewImg} contentFit="cover" /> : null}
+                <View style={{ padding: 12 }}>
+                  <Text style={s.previewPrice}>{currency} {priceNumber.toFixed(2)}</Text>
+                  <Text style={s.previewTitle} numberOfLines={2}>{title}</Text>
+                  <Text style={s.previewMeta}>{[condition, city].filter(Boolean).join('  ·  ')}</Text>
+                </View>
+              </View>
+              {!!description && <Text style={s.previewDesc}>{description}</Text>}
+              <Text style={s.previewNote}>{media.length} {media.length === 1 ? 'photo' : 'photos'}  ·  {category}</Text>
+            </>
+          )}
+
         </ScrollView>
+
+        <View style={s.footer}>
+          {step < STEPS.length - 1 ? (
+            <TouchableOpacity style={[s.cta, !stepValid && s.ctaOff]} onPress={next} activeOpacity={0.85}>
+              <Text style={s.ctaTxt}>Next</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={[s.cta, saving && s.ctaOff]} onPress={submit} disabled={saving} activeOpacity={0.85}>
+              {saving ? <ActivityIndicator color={BG} /> : <Text style={s.ctaTxt}>Publish</Text>}
+            </TouchableOpacity>
+          )}
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -215,45 +257,45 @@ export default function CreateListingScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: GRAY_900 },
-  publishBtn: {
-    backgroundColor: NAVY, paddingHorizontal: 14, height: 32, borderRadius: 16,
-    alignItems: 'center', justifyContent: 'center', minWidth: 74,
-  },
-  publishTxt: { color: BG, fontSize: 14, fontWeight: '700' },
-  photo: { width: 92, height: 92, borderRadius: 12, backgroundColor: GRAY_100 },
-  photoRemove: {
-    position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: 10,
-    backgroundColor: GRAY_900, alignItems: 'center', justifyContent: 'center',
-  },
-  photoAdd: {
-    width: 92, height: 92, borderRadius: 12, backgroundColor: GRAY_100,
-    alignItems: 'center', justifyContent: 'center', gap: 4,
-  },
-  photoAddTxt: { fontSize: 11, fontWeight: '600', color: GRAY_500 },
-  label: { fontSize: 13, fontWeight: '700', color: GRAY_500, marginTop: 18, marginBottom: 6 },
-  input: {
-    backgroundColor: GRAY_100, borderRadius: 12, paddingHorizontal: 14,
-    height: 46, fontSize: 15, color: GRAY_900,
-  },
-  inputMulti: { height: 110, paddingTop: 12, textAlignVertical: 'top' },
-  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  currencyToggle: { flexDirection: 'row', backgroundColor: GRAY_100, borderRadius: 12, padding: 3 },
-  currencyChip: { paddingHorizontal: 12, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  currencyChipActive: { backgroundColor: NAVY },
-  currencyTxt: { fontSize: 13, fontWeight: '700', color: GRAY_500 },
-  currencyTxtActive: { color: BG },
-  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingHorizontal: 12, height: 32, borderRadius: 16, backgroundColor: GRAY_100,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: GRAY_900, letterSpacing: -0.4 },
+  stepCount: { fontSize: 13, color: GRAY_500, fontWeight: '600' },
+  progressTrack: { height: 3, backgroundColor: GRAY_100 },
+  progressFill: { height: 3, backgroundColor: NAVY },
+  body: { padding: 16, paddingBottom: 24 },
+  lead: { fontSize: 14, color: GRAY_500, marginBottom: 14, lineHeight: 19 },
+  label: { fontSize: 13, fontWeight: '700', color: GRAY_900, marginTop: 16, marginBottom: 7 },
+  input: { backgroundColor: GRAY_100, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15.5, color: GRAY_900, borderWidth: 1, borderColor: 'transparent' },
+  inputErr: { borderColor: RED },
+  textarea: { minHeight: 96 },
+  err: { fontSize: 12.5, color: RED, marginTop: 6, fontWeight: '500' },
+  priceRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  currBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13 },
+  currTxt: { color: BG, fontWeight: '800', fontSize: 14 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { paddingHorizontal: 14, height: 34, borderRadius: 17, backgroundColor: GRAY_100, alignItems: 'center', justifyContent: 'center' },
   chipActive: { backgroundColor: NAVY },
-  chipTxt: { fontSize: 13, fontWeight: '600', color: GRAY_500 },
+  chipTxt: { fontSize: 13.5, fontWeight: '600', color: GRAY_900 },
   chipTxtActive: { color: BG },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tile: { width: '31.5%', aspectRatio: 1, borderRadius: 10, overflow: 'hidden', backgroundColor: GRAY_100 },
+  tileImg: { width: '100%', height: '100%' },
+  tileAdd: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#E5E7EB', borderStyle: 'dashed' },
+  coverTag: { position: 'absolute', left: 5, bottom: 5, backgroundColor: 'rgba(0,0,0,0.72)', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
+  coverTxt: { color: '#FFF', fontSize: 10, fontWeight: '700' },
+  remove: { position: 'absolute', right: 4, top: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
+  safety: { marginTop: 22, backgroundColor: '#F7F8FA', borderRadius: 14, padding: 14, gap: 6 },
+  safetyTitle: { fontSize: 14, fontWeight: '800', color: GRAY_900, marginBottom: 2 },
+  safetyTxt: { fontSize: 13.5, color: GRAY_500, lineHeight: 19 },
+  preview: { borderRadius: 14, overflow: 'hidden', backgroundColor: BG, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E7EB' },
+  previewImg: { width: '100%', aspectRatio: 1.15 },
+  previewPrice: { fontSize: 18, fontWeight: '800', color: GRAY_900, letterSpacing: -0.4 },
+  previewTitle: { fontSize: 14.5, color: GRAY_900, marginTop: 2 },
+  previewMeta: { fontSize: 12.5, color: GRAY_500, marginTop: 3 },
+  previewDesc: { fontSize: 14, color: GRAY_900, lineHeight: 20, marginTop: 14 },
+  previewNote: { fontSize: 12.5, color: GRAY_500, marginTop: 12 },
+  footer: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 18, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB' },
+  cta: { height: 50, borderRadius: 14, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
+  ctaOff: { opacity: 0.45 },
+  ctaTxt: { color: BG, fontSize: 16, fontWeight: '700' },
 });

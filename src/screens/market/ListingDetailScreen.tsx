@@ -1,3 +1,6 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+import SellerReviews from '../../components/market/SellerReviews';
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet,
@@ -49,6 +52,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
     return () => { cancelled = true; };
   }, [listingId]));
 
+  const insets = useSafeAreaInsets();
   const isOwner = !!listing && !!userId && listing.seller_id === userId;
 
   const messageSeller = async () => {
@@ -111,7 +115,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 100 }} keyboardShouldPersistTaps="handled">
         <View>
           <ScrollView
             horizontal
@@ -171,9 +175,11 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             <Feather name="chevron-right" size={18} color="#C7C7CC" />
           </TouchableOpacity>
         </View>
+        {!!listing && <SellerReviews sellerId={listing.seller_id} listingId={listing.id} currentUserId={userId} />}
+
       </ScrollView>
 
-      <View style={s.footer}>
+      <View style={[s.footer, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
         {isOwner ? (
           listing.status === 'available' ? (
             <TouchableOpacity style={[s.cta, { backgroundColor: RED }]} onPress={markSold} activeOpacity={0.85}>
@@ -233,7 +239,8 @@ const s = StyleSheet.create({
   sellerName: { fontSize: 15, fontWeight: '700', color: GRAY_900 },
   sellerHandle: { fontSize: 13, color: GRAY_500 },
   footer: {
-    padding: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', backgroundColor: BG,
+    paddingHorizontal: 16, paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', backgroundColor: BG,
   },
   cta: {
     height: 50, borderRadius: 14, backgroundColor: NAVY,
