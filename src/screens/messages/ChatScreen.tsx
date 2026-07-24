@@ -449,6 +449,35 @@ export default function ChatScreen() {
 
   const mountedRef = useRef(true);
   const flatListRef = useRef<FlatList<any>>(null);
+
+  // Pinned context for Market / Jobs threads
+  const [ctxCard, setCtxCard] = useState<{ kind: 'market' | 'jobs'; title: string; sub: string; image: string | null; refId: string } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!conversationId) { setCtxCard(null); return; }
+      try {
+        const { data: conv } = await supabase.from('conversations').select('context, context_ref_id').eq('id', conversationId).maybeSingle();
+        const ctx = (conv as any)?.context;
+        const refId = (conv as any)?.context_ref_id;
+        if (!ctx || ctx === 'personal' || !refId) { if (!cancelled) setCtxCard(null); return; }
+        if (ctx === 'market') {
+          const { data } = await supabase.from('listings').select('id, title, price, currency, images, image_url, status').eq('id', refId).maybeSingle();
+          if (!data || cancelled) return;
+          const d: any = data;
+          const img = Array.isArray(d.images) && d.images.length ? d.images[0] : (d.image_url || null);
+          const price = d.price != null ? ((d.currency || 'USD') + ' ' + d.price) : '';
+          setCtxCard({ kind: 'market', title: d.title || 'Listing', sub: [price, d.status].filter(Boolean).join('  ·  '), image: img, refId: d.id });
+        } else if (ctx === 'jobs') {
+          const { data } = await supabase.from('jobs').select('id, title, company, location').eq('id', refId).maybeSingle();
+          if (!data || cancelled) return;
+          const d: any = data;
+          setCtxCard({ kind: 'jobs', title: d.title || 'Role', sub: [d.company, d.location].filter(Boolean).join('  ·  '), image: null, refId: d.id });
+        }
+      } catch (e) { console.log('[ChatContext]', e); }
+    })();
+    return () => { cancelled = true; };
+  }, [conversationId]);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingRef = useRef(false);
   const inputRef = useRef<TextInput>(null);
@@ -1401,6 +1430,24 @@ export default function ChatScreen() {
         </View>
       )}
 
+      {ctxCard && (
+        <TouchableOpacity
+          style={s.ctxCard}
+          activeOpacity={0.85}
+          onPress={() => { if (ctxCard.kind === 'market') navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId: ctxCard.refId } }); }}
+        >
+          {ctxCard.image
+            ? <Image source={{ uri: ctxCard.image }} style={s.ctxThumb} />
+            : <View style={[s.ctxThumb, s.ctxThumbFallback]}><Feather name={ctxCard.kind === 'jobs' ? 'briefcase' : 'tag'} size={18} color="#8E8E93" /></View>}
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={s.ctxLabel}>{ctxCard.kind === 'jobs' ? 'JOB ENQUIRY' : 'MARKETPLACE'}</Text>
+            <Text style={s.ctxTitle} numberOfLines={1}>{ctxCard.title}</Text>
+            {!!ctxCard.sub && <Text style={s.ctxSub} numberOfLines={1}>{ctxCard.sub}</Text>}
+          </View>
+          <Feather name="chevron-right" size={16} color="#C7C7CC" />
+        </TouchableOpacity>
+      )}
+
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}>
         {loading ? (
           <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
@@ -1881,6 +1928,12 @@ export default function ChatScreen() {
 }
 
 const s = StyleSheet.create({
+  ctxCard: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: '#F7F8FA', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
+  ctxThumb: { width: 46, height: 46, borderRadius: 8, backgroundColor: '#E5E5EA' },
+  ctxThumbFallback: { alignItems: 'center', justifyContent: 'center' },
+  ctxLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1, color: '#8E8E93' },
+  ctxTitle: { fontSize: 14.5, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.2, marginTop: 2 },
+  ctxSub: { fontSize: 12.5, fontWeight: '500', color: '#6B7280', marginTop: 1 },
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   flex: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 10, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE, minHeight: 58, gap: 8 },
