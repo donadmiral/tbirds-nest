@@ -1,3 +1,4 @@
+import ReportListingSheet from '../../components/market/ReportListingSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import SellerReviews from '../../components/market/SellerReviews';
@@ -53,6 +54,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   }, [listingId]));
 
   const insets = useSafeAreaInsets();
+  const [reportOpen, setReportOpen] = useState(false);
   const isOwner = !!listing && !!userId && listing.seller_id === userId;
 
   const messageSeller = async () => {
@@ -176,6 +178,17 @@ export default function ListingDetailScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
         {!!listing && <SellerReviews sellerId={listing.seller_id} listingId={listing.id} currentUserId={userId} />}
+
+        {!!listing && !isOwner && (
+          <TouchableOpacity style={{ alignSelf: 'center', marginTop: 22, marginBottom: 6, flexDirection: 'row', alignItems: 'center', gap: 6 }} onPress={() => setReportOpen(true)} activeOpacity={0.7}>
+            <Feather name="flag" size={13} color="#9CA3AF" />
+            <Text style={{ fontSize: 13.5, color: '#9CA3AF', fontWeight: '600' }}>Report listing</Text>
+          </TouchableOpacity>
+        )}
+
+        {!!listing && (
+          <ReportListingSheet visible={reportOpen} onClose={() => setReportOpen(false)} listingId={listing.id} reporterId={userId} />
+        )}
 
       </ScrollView>
 

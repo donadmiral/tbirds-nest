@@ -7,7 +7,8 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 
@@ -30,6 +31,7 @@ export default function CreateListingScreen({ navigation }: any) {
   const { profile } = useAuthStore();
   const userId: string | undefined = profile?.id;
 
+  const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
   const [media, setMedia] = useState<PickedMedia[]>([]);
   const [title, setTitle] = useState('');
@@ -123,7 +125,7 @@ export default function CreateListingScreen({ navigation }: any) {
         <View style={[s.progressFill, { width: (((step + 1) / STEPS.length) * 100) + '%' } as any]} />
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
         <ScrollView contentContainerStyle={s.body} keyboardShouldPersistTaps="handled">
 
           {step === 0 && (
@@ -239,7 +241,7 @@ export default function CreateListingScreen({ navigation }: any) {
 
         </ScrollView>
 
-        <View style={s.footer}>
+        <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 12) + TAB_BAR_CLEARANCE }]}>
           {step < STEPS.length - 1 ? (
             <TouchableOpacity style={[s.cta, !stepValid && s.ctaOff]} onPress={next} activeOpacity={0.85}>
               <Text style={s.ctaTxt}>Next</Text>
@@ -262,7 +264,7 @@ const s = StyleSheet.create({
   stepCount: { fontSize: 13, color: GRAY_500, fontWeight: '600' },
   progressTrack: { height: 3, backgroundColor: GRAY_100 },
   progressFill: { height: 3, backgroundColor: NAVY },
-  body: { padding: 16, paddingBottom: 24 },
+  body: { padding: 16, paddingBottom: 40 },
   lead: { fontSize: 14, color: GRAY_500, marginBottom: 14, lineHeight: 19 },
   label: { fontSize: 13, fontWeight: '700', color: GRAY_900, marginTop: 16, marginBottom: 7 },
   input: { backgroundColor: GRAY_100, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15.5, color: GRAY_900, borderWidth: 1, borderColor: 'transparent' },
@@ -294,7 +296,7 @@ const s = StyleSheet.create({
   previewMeta: { fontSize: 12.5, color: GRAY_500, marginTop: 3 },
   previewDesc: { fontSize: 14, color: GRAY_900, lineHeight: 20, marginTop: 14 },
   previewNote: { fontSize: 12.5, color: GRAY_500, marginTop: 12 },
-  footer: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 18, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB' },
+  footer: { paddingHorizontal: 16, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', backgroundColor: BG },
   cta: { height: 50, borderRadius: 14, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   ctaOff: { opacity: 0.45 },
   ctaTxt: { color: BG, fontSize: 16, fontWeight: '700' },
