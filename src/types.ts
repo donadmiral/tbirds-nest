@@ -118,12 +118,7 @@ export type Connection = {
   updated_at?: string;
 };
 
-export type Orbit = {
-  id: string;
-  orbiter_id: string;
-  orbited_user_id: string;
-  created_at: string;
-};
+
 
 // ─── Feature screens ─────────────────────────────────────────────────────────
 
@@ -189,7 +184,7 @@ export type NotificationItem = {
   type:
     | 'connection_request'
     | 'connection_accepted'
-    | 'orbit'
+    | 'follow'
     | 'post_like'
     | 'post_comment'
     | 'post_mention'

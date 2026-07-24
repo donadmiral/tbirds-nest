@@ -44,7 +44,7 @@ export default function AboutScreen() {
         <Text style={s.featuresTitle}>What You Can Do</Text>
         {[
           { icon: 'rss',         label: 'Feed',          desc: 'Share updates, ideas, and experiences with your cohort and the wider community.' },
-          { icon: 'users',       label: 'Network',        desc: 'Connect with fellow PlatinumCircles, orbit people you admire, and build your professional network.' },
+          { icon: 'users',       label: 'Network',        desc: 'Follow people you admire and build your professional network.' },
           { icon: 'briefcase',   label: 'Jobs',           desc: 'Discover career opportunities, request referrals, and track your applications — all within the PlatinumCircles community.' },
           { icon: 'message-circle', label: 'Messaging',   desc: 'Have real conversations with classmates, mentors, and colleagues in private or group chats.' },
           { icon: 'zap',         label: 'Mentorship',     desc: 'Find a mentor who has walked your path, or become one yourself for the next generation of PlatinumCircles.' },
