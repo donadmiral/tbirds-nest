@@ -63,7 +63,7 @@ function OptionRow({
   }, [revealed, pct, index]);
 
   const barStyle = useAnimatedStyle(() => ({
-    width: (fill.value * 100).toString() + '%',
+    width: (((fill.value * 100).toString() + '%') as any),
   }));
 
   return (

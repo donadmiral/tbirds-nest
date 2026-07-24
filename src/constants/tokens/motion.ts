@@ -87,7 +87,7 @@ export const stagger = {
 export const motion = {
   // Feedback
   tapResponse: { duration: duration.micro, easing: easing.default },
-  toggleSwitch: { duration: duration.micro, easing: easing.snappy },
+  toggleSwitch: { duration: duration.micro, easing: easing.default },
   colorChange: { duration: duration.micro, easing: easing.default },
 
   // Transitions
@@ -120,7 +120,7 @@ export const motion = {
   composerEntry: { duration: duration.medium, easing: easing.softSettle },
   composerControlsEntry: { duration: duration.small, easing: easing.softSettle },
   stickerMount: { duration: 200, easing: easing.softSettle },
-  stickerSnap: { duration: 80, easing: easing.snappy },
+  stickerSnap: { duration: 80, easing: easing.default },
   stickerDelete: { duration: 150, easing: easing.exit },
   backgroundSwitch: { duration: duration.small, easing: easing.default },
   deleteZoneReveal: { duration: 150, easing: easing.default },

@@ -1,3 +1,4 @@
+import StoryAudienceSheet from '../../components/stories/StoryAudienceSheet';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList,
@@ -204,6 +205,7 @@ export default function StoryComposerScreen() {
 
   // ── Bloom tools ──
   const [audience, setAudienceState] = useState<'everyone' | 'close_friends' | 'except'>('everyone');
+  const [audienceSheetOpen, setAudienceSheetOpen] = useState(false);
   const isBusiness = (profile as any)?.account_type === 'business';
   const [reach, setReachState] = useState<'followers' | 'wider'>('followers');
   const toggleReach = useCallback(() => { setReachState(prev => { const next = prev === 'followers' ? 'wider' : 'followers'; setDrafts(ds => ds.map(d => ({ ...d, reach: next } as any))); return next; }); }, []);
@@ -667,9 +669,16 @@ export default function StoryComposerScreen() {
           </TouchableOpacity>
         </Animated.View>
         )}
+        <StoryAudienceSheet
+          visible={audienceSheetOpen}
+          onClose={() => setAudienceSheetOpen(false)}
+          audience={audience}
+          onChange={(a, people) => { setAudienceState(a as any); setDrafts(ds => ds.map(d => ({ ...d, audience: a, sharedWith: people || null } as any))); }}
+        />
+
         {/* Audience picker */}
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 52 }]}>
-          <TouchableOpacity onPress={cycleAudience} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
+          <TouchableOpacity onPress={() => setAudienceSheetOpen(true)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
             <Feather name={audience === 'close_friends' ? 'star' : 'globe'} size={13} color="#FFFFFF" />
             <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{audience === 'close_friends' ? 'Close friends' : 'Everyone'}</Text>
           </TouchableOpacity>

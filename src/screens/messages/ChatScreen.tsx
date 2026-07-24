@@ -1,3 +1,4 @@
+import SendMoneySheet from '../../components/SendMoneySheet';
 /**
  * ChatScreen.tsx
  * Unified DM + group + affiliation-aware chat.
@@ -452,6 +453,7 @@ export default function ChatScreen() {
 
   // Pinned context for Market / Jobs threads
   const [ctxCard, setCtxCard] = useState<{ kind: 'market' | 'jobs'; title: string; sub: string; image: string | null; refId: string } | null>(null);
+  const [payOpen, setPayOpen] = useState(false);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -1430,6 +1432,42 @@ export default function ChatScreen() {
         </View>
       )}
 
+      {!isGroup && !!passedUserId && !!conversationId && (
+        <SendMoneySheet
+          visible={payOpen}
+          onClose={() => setPayOpen(false)}
+          recipientId={passedUserId}
+          recipientName={(route.params as any)?.userName || 'them'}
+          conversationId={conversationId}
+          onRequested={async (amt, cur) => {
+            try {
+              await supabase.from('messages').insert({
+                conversation_id: conversationId,
+                sender_id: currentUserId,
+                receiver_id: passedUserId,
+                text: 'Requested ' + cur + ' ' + amt.toFixed(2),
+                is_system_message: true,
+              });
+            } catch (e) { console.log('[PaymentRequest]', e); }
+          }}
+          onSent={async (amt, cur, txId) => {
+            try {
+              await supabase.from('messages').insert({
+                conversation_id: conversationId,
+                sender_id: currentUserId,
+                receiver_id: passedUserId,
+                text: 'Sent ' + cur + ' ' + amt.toFixed(2),
+                is_system_message: true,
+              });
+              await supabase.from('conversations').update({
+                last_message: 'Sent ' + cur + ' ' + amt.toFixed(2),
+                last_message_time: new Date().toISOString(),
+              }).eq('id', conversationId);
+            } catch (e) { console.log('[PaymentMessage]', e); }
+          }}
+        />
+      )}
+
       {ctxCard && (
         <TouchableOpacity
           style={s.ctxCard}
@@ -1546,6 +1584,11 @@ export default function ChatScreen() {
               onPress={() => { setShowToolbar(p => { if (p) setShowGifs(false); return !p; }); }} activeOpacity={0.6}>
               <Feather name={showToolbar ? 'x' : 'plus'} size={22} color={showToolbar ? TEXT_SECONDARY : NAVY} />
             </TouchableOpacity>
+            {!isGroup && !!passedUserId && (
+              <TouchableOpacity style={s.addBtn} onPress={() => setPayOpen(true)} activeOpacity={0.6}>
+                <Feather name="dollar-sign" size={21} color={NAVY} />
+              </TouchableOpacity>
+            )}
             <View style={s.inputWrap}>
               <TextInput ref={inputRef} value={message} onChangeText={handleTextChange}
                 placeholder={isAffiliationConversation && iAmAffiliationAdmin && affiliation?.post_mode === 'informative'

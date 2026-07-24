@@ -26,7 +26,8 @@ interface Draft {
   mediaType: 'image' | 'video' | 'text';
   caption: string;
   scope: 'institution' | 'global';
-  audience?: 'everyone' | 'close_friends' | 'except';
+  audience?: 'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except';
+  sharedWith?: string[];
   reach?: 'followers' | 'wider';
   uploadState: 'idle' | 'uploading' | 'done' | 'error';
   errorMsg?: string | null;
@@ -111,6 +112,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           caption: d.caption || null,
           scope: d.scope,
           audience: (d as any).audience || 'everyone',
+          sharedWith: (d as any).sharedWith || null,
           reach: (d as any).reach || 'followers',
           durationSec: d.mediaType === 'video' ? (d.durationSec || 15) : null,
           thumbnailLocalUri: null,

@@ -208,7 +208,8 @@ export async function uploadAndCreateStory(params: {
   mediaType: StoryMediaType;
   caption?: string | null;
   scope: StoryScope;
-  audience?: 'everyone' | 'close_friends' | 'except' | null;
+  audience?: 'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except' | null;
+  sharedWith?: string[] | null;
   reach?: 'followers' | 'wider' | null;
   affiliationId?: string | null;
   durationSec?: number | null;
@@ -229,6 +230,7 @@ export async function uploadAndCreateStory(params: {
     caption,
     scope,
     audience,
+    sharedWith,
     reach,
     affiliationId,
     durationSec,
@@ -438,7 +440,11 @@ export async function uploadAndCreateStory(params: {
     throw error || new Error('Story insert failed');
   }
 
-  console.log('[storiesService] Story created:', data.id);
+  if (audience === 'only_with' && sharedWith && sharedWith.length > 0) {
+    const rows = sharedWith.map((uid: string) => ({ story_id: data.id, user_id: uid }));
+    const { error: shareErr } = await supabase.from('story_shared_with').insert(rows);
+    if (shareErr) console.log('[storiesService] shared_with error:', shareErr.message);
+  }  console.log('[storiesService] Story created:', data.id);
   return data as StoryRow;
 }
 
@@ -468,6 +474,33 @@ export const storiesService = {
     return (data || []) as StoryRow[];
   },
 
+  async getFollowing(): Promise<any[]> {
+    const { data: me } = await supabase.auth.getUser();
+    if (!me?.user) return [];
+    const { data } = await supabase
+      .from('orbits')
+      .select('following_id, profile:profiles!orbits_following_id_fkey(id, full_name, username, avatar_url)')
+      .eq('follower_id', me.user.id)
+      .limit(200);
+    return (data || []).map((r: any) => r.profile).filter(Boolean);
+  },
+
+  async getCloseFriends(): Promise<string[]> {
+    const { data: me } = await supabase.auth.getUser();
+    if (!me?.user) return [];
+    const { data } = await supabase.from('close_friends').select('friend_id').eq('owner_id', me.user.id);
+    return (data || []).map((r: any) => r.friend_id);
+  },
+
+  async setCloseFriend(friendId: string, on: boolean): Promise<void> {
+    const { data: me } = await supabase.auth.getUser();
+    if (!me?.user) return;
+    if (on) {
+      await supabase.from('close_friends').upsert({ owner_id: me.user.id, friend_id: friendId });
+    } else {
+      await supabase.from('close_friends').delete().eq('owner_id', me.user.id).eq('friend_id', friendId);
+    }
+  },
   async markViewed(storyId: string): Promise<void> {
     const { error } = await supabase.rpc('mark_story_viewed', {
       p_story_id: storyId,

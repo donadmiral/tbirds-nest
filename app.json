@@ -76,8 +76,8 @@
         }
       ],
       "expo-font",
-      "expo-asset",
-      "sentry-expo"
+      "expo-asset"
+      
     ],
     "extra": {
       "eas": {
