@@ -151,6 +151,8 @@ export default function FeedScreen({ navigation }: any) {
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'innovation' | 'trending'>('forYou');
   const mediaTouchRef = useRef(false);
   const hiddenIdsRef = useRef<Set<string>>(new Set());
+  const seenPendingRef = useRef<Set<string>>(new Set());
+  const seenSentRef = useRef<Set<string>>(new Set());
   const feedModeRef = useRef(feedMode);
   feedModeRef.current = feedMode;
   const tabSwipe = useRef(PanResponder.create({
@@ -273,7 +275,33 @@ export default function FeedScreen({ navigation }: any) {
   const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
     const first = viewableItems.find((v: any) => v.isViewable);
     setActivePostId(first?.item?.id ?? null);
+    // Queue anything that scrolled into view. Flushed in batches below so a
+    // fast scroll does not fire one insert per post.
+    viewableItems.forEach((v: any) => {
+      const id = v?.item?.id;
+      if (id && !seenSentRef.current.has(id)) seenPendingRef.current.add(id);
+    });
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    const flushSeen = async () => {
+      const batch = Array.from(seenPendingRef.current);
+      if (batch.length === 0) return;
+      seenPendingRef.current.clear();
+      batch.forEach(id => seenSentRef.current.add(id));
+      const { error } = await supabase
+        .from('post_seen')
+        .upsert(batch.map(id => ({ user_id: userId, post_id: id })), { onConflict: 'user_id,post_id' });
+      if (error) {
+        console.log('[FEED] post_seen upsert failed:', error.message);
+        // let them retry on the next flush rather than losing them silently
+        batch.forEach(id => seenSentRef.current.delete(id));
+      }
+    };
+    const timer = setInterval(flushSeen, 6000);
+    return () => { clearInterval(timer); flushSeen(); };
+  }, [userId]);
 
   const isBusy = (k: string) => !!busyKeysRef.current[k];
   const setBusy = (k: string, v: boolean) => {
