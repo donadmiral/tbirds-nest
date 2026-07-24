@@ -3,7 +3,7 @@ import ReportListingSheet from '../../components/market/ReportListingSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import SellerReviews from '../../components/market/SellerReviews';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet,
   Text, TouchableOpacity, View,
@@ -56,6 +56,27 @@ export default function ListingDetailScreen({ navigation, route }: any) {
 
   const insets = useSafeAreaInsets();
   const [reportOpen, setReportOpen] = useState(false);
+  const [savedListing, setSavedListing] = useState(false);
+
+  useEffect(() => {
+    let off = false;
+    (async () => {
+      if (!listing?.id) return;
+      try {
+        const ids = await marketService.getSavedIds();
+        if (!off) setSavedListing(ids.has(listing.id));
+      } catch (e) { console.log('[savedIds]', e); }
+    })();
+    return () => { off = true; };
+  }, [listing?.id]);
+
+  const toggleSaved = useCallback(async () => {
+    if (!listing?.id) return;
+    const next = !savedListing;
+    setSavedListing(next);
+    try { await marketService.toggleSaved(listing.id, next); }
+    catch (e: any) { setSavedListing(!next); Alert.alert('Could not save', e?.message || 'Try again.'); }
+  }, [listing?.id, savedListing]);
 
   const blockSeller = () => {
     if (!listing || !userId) return;
@@ -195,6 +216,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             <Feather name="chevron-right" size={18} color="#C7C7CC" />
           </TouchableOpacity>
         </View>
+
         {!!listing && <SellerReviews sellerId={listing.seller_id} listingId={listing.id} currentUserId={userId} />}
 
         {!!listing && !isOwner && (<>
@@ -216,7 +238,17 @@ export default function ListingDetailScreen({ navigation, route }: any) {
 
       </ScrollView>
 
-      <View style={[s.footer, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
+      <View style={[s.footer, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE, flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
+          {/* saveInFooter */}
+          {!!listing && (
+            <TouchableOpacity
+              onPress={toggleSaved}
+              activeOpacity={0.8}
+              style={{ width: 50, height: 50, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', borderColor: savedListing ? '#0B1E3D' : '#D1D5DB', backgroundColor: savedListing ? '#EFF3FA' : '#FFFFFF' }}
+            >
+              <Feather name="bookmark" size={19} color={savedListing ? '#0B1E3D' : '#6B7280'} />
+            </TouchableOpacity>
+          )}
         {isOwner ? (
           listing.status === 'available' ? (
             <TouchableOpacity style={[s.cta, { backgroundColor: RED }]} onPress={markSold} activeOpacity={0.85}>
@@ -280,7 +312,7 @@ const s = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', backgroundColor: BG,
   },
   cta: {
-    height: 50, borderRadius: 14, backgroundColor: NAVY,
+    flex: 1, height: 50, borderRadius: 14, backgroundColor: NAVY,
     alignItems: 'center', justifyContent: 'center',
   },
   ctaTxt: { color: BG, fontSize: 16, fontWeight: '700' },
