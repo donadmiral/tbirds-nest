@@ -24,3 +24,5 @@ export { radius, borderRadius } from './radius';
 export { blur, shadow, elevation, material } from './elevation';
 export { typeSize, lineHeight, letterSpacing, fontWeight, type, storyType } from './typography';
 export { haptic, feedback } from './haptics';
+export { light } from './light';
+export type { LightTheme } from './light';

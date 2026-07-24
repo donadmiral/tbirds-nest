@@ -26,9 +26,10 @@ import ImageView from 'react-native-image-viewing';
 import { Video as AVVideo, ResizeMode as AVResizeMode } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedSkeleton } from '../../components/Skeleton';
+import { light } from '../../constants/tokens';
 
 const SCREEN_W = Dimensions.get('window').width;
-const NAVY = '#0B1E3D';
+const NAVY = light.brand.base;
 
 type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number; width?: number | null; height?: number | null };
 type Post = {
@@ -1095,18 +1096,18 @@ export default function FeedScreen({ navigation }: any) {
       const vis = wtfSuggestions.filter((p: any) => !followingIds.has(p.id)).slice(0, 8);
       if (vis.length === 0) return <View />;
       return (
-        <View style={{ paddingTop: 12, paddingBottom: 14, borderBottomWidth: 6, borderBottomColor: '#F2F3F5', backgroundColor: '#FFFFFF' }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: '#0A0A0A', paddingHorizontal: 16, marginBottom: 10, letterSpacing: -0.1 }}>Who to follow</Text>
+        <View style={{ paddingTop: 12, paddingBottom: 14, borderBottomWidth: 6, borderBottomColor: '#F2F3F5', backgroundColor: light.surface.canvas }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, marginBottom: 10, letterSpacing: -0.1 }}>Who to follow</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { mediaTouchRef.current = false; }} onTouchCancel={() => { mediaTouchRef.current = false; }}>
             {vis.map((p: any) => (
-              <View key={p.id} style={{ width: 148, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E7EB', borderRadius: 14, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, backgroundColor: '#FFFFFF' }}>
+              <View key={p.id} style={{ width: 148, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, borderRadius: 14, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, backgroundColor: light.surface.canvas }}>
                 <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPress={() => navigation.navigate('UserProfile', { userId: p.id, user: p })}>
-                  {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#1D4ED8' }}>{initials(p.full_name || p.username)}</Text></View>}
-                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0A0A0A', marginTop: 8 }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
-                  <Text style={{ fontSize: 11.5, color: '#8E8E93', marginTop: 2 }} numberOfLines={1}>{p.headline || (p.username ? '@' + p.username : '')}</Text>
+                  {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: light.status.link }}>{initials(p.full_name || p.username)}</Text></View>}
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: light.ink.primary, marginTop: 8 }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                  <Text style={{ fontSize: 11.5, color: light.ink.muted, marginTop: 2 }} numberOfLines={1}>{p.headline || (p.username ? '@' + p.username : '')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => toggleFollow(p.id)} activeOpacity={0.8} style={{ marginTop: 10, paddingHorizontal: 22, paddingVertical: 7, borderRadius: 16, backgroundColor: NAVY }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#FFFFFF' }}>Follow</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: light.ink.inverse }}>Follow</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -1129,7 +1130,7 @@ export default function FeedScreen({ navigation }: any) {
             {author?.avatar_url ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /> : <View style={s.avatarFb}><Text style={s.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>}
             <View style={s.postMetaTxt}>
               <Text style={s.postAuthor} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
-              <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: '#D97706', fontWeight: '700' }}> · Innovation</Text>}</Text>
+              <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: light.status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
             </View>
           </TouchableOpacity>
           {userId && post.user_id !== userId && (() => {
@@ -1142,7 +1143,7 @@ export default function FeedScreen({ navigation }: any) {
                 style={[
                   { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, borderWidth: 1, marginRight: 6 },
                   isFollowing || isRequested
-                    ? { borderColor: '#D8D8DC', backgroundColor: 'transparent' }
+                    ? { borderColor: light.surface.hairline, backgroundColor: 'transparent' }
                     : { borderColor: NAVY, backgroundColor: NAVY },
                 ]}
                 accessibilityLabel={isFollowing ? 'Following' : 'Follow'}
@@ -1155,7 +1156,7 @@ export default function FeedScreen({ navigation }: any) {
           })()}
           {/* followChipOn */}
           <TouchableOpacity style={s.menuBtn} onPress={() => setMenuPost(post)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Feather name="more-horizontal" size={18} color="#8E8E93" />
+            <Feather name="more-horizontal" size={18} color={light.ink.muted} />
           </TouchableOpacity>
         </View>
 
@@ -1196,13 +1197,13 @@ export default function FeedScreen({ navigation }: any) {
           return (
             <TouchableOpacity style={{ marginHorizontal: 16, marginTop: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: qid })}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0A0A0A' }} numberOfLines={1}>{qAuthor?.full_name || qAuthor?.username || 'Post'}</Text>
-                <Text style={{ fontSize: 13, color: '#374151', marginTop: 2 }} numberOfLines={2}>{q?.content || 'Tap to view'}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: light.ink.primary }} numberOfLines={1}>{qAuthor?.full_name || qAuthor?.username || 'Post'}</Text>
+                <Text style={{ fontSize: 13, color: light.ink.secondary, marginTop: 2 }} numberOfLines={2}>{q?.content || 'Tap to view'}</Text>
               </View>
               {(q as any)?.media?.url ? (
                 (q as any).media.media_type === 'video' ? (
-                  <View style={{ width: 64, height: 64, borderRadius: 8, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 13, color: '#FFFFFF', marginLeft: 2 }}>{'\u25B6'}</Text>
+                  <View style={{ width: 64, height: 64, borderRadius: 8, backgroundColor: light.ink.primary, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 13, color: light.ink.inverse, marginLeft: 2 }}>{'\u25B6'}</Text>
                   </View>
                 ) : (
                   <ExpoImage source={{ uri: (q as any).media.url }} style={{ width: 64, height: 64, borderRadius: 8 }} contentFit="cover" />
@@ -1243,8 +1244,8 @@ export default function FeedScreen({ navigation }: any) {
               )}
               {isVidPost && (post.views_count ?? 0) > 0 && (
                 <View style={{ position:'absolute', bottom:10, left:10, flexDirection:'row', alignItems:'center', gap:4, backgroundColor:'rgba(0,0,0,0.55)', borderRadius:12, paddingHorizontal:8, paddingVertical:4 }}>
-                  <Feather name="eye" size={11} color="#FFF" />
-                  <Text style={{ color:'#FFF', fontSize:11, fontWeight:'600' }}>{fmtCount(post.views_count ?? 0)}</Text>
+                  <Feather name="eye" size={11} color={light.ink.inverse} />
+                  <Text style={{ color:light.ink.inverse, fontSize:11, fontWeight:'600' }}>{fmtCount(post.views_count ?? 0)}</Text>
                 </View>
               )}
             </View>
@@ -1271,7 +1272,7 @@ export default function FeedScreen({ navigation }: any) {
           </TouchableOpacity>
 
           <TouchableOpacity style={s.pill} onPress={() => navigation.navigate('Post', { postId: post.id, focusComment: true })} activeOpacity={0.75} disabled={isSharing}>
-            <Feather name="message-circle" size={14} color="#6B7280" />
+            <Feather name="message-circle" size={14} color={light.ink.muted} />
             <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : 'Comment'}</Text>
           </TouchableOpacity>
 
@@ -1285,13 +1286,13 @@ export default function FeedScreen({ navigation }: any) {
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
-            <Feather name="share-2" size={14} color="#6B7280" />
+            <Feather name="share-2" size={14} color={light.ink.muted} />
           </TouchableOpacity>
         </View>
 
         {post.likes_count > 0 && (
           <TouchableOpacity style={{ paddingHorizontal: 16, paddingTop: 4 }} onPress={() => openLikers(post)} activeOpacity={0.8}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: '#0A0A0A' }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: light.ink.primary }}>
               {(() => {
                 const n = post.likes_count;
                 const names = likerNames[post.id] ?? [];
@@ -1306,7 +1307,7 @@ export default function FeedScreen({ navigation }: any) {
         {preview && (
           <TouchableOpacity style={s.cpWrap} onPress={openPost} activeOpacity={0.8}>
             <Text style={s.cpTxt} numberOfLines={2}>
-              <Text style={s.cpAuthor}>{preview.authorName} </Text>{preview.body}{(preview.likes ?? 0) > 0 ? <Text style={{ color: '#8E8E93' }}>{'  ·  ' + fmtCount(preview.likes!) + ((preview.likes === 1) ? ' like' : ' likes')}</Text> : null}
+              <Text style={s.cpAuthor}>{preview.authorName} </Text>{preview.body}{(preview.likes ?? 0) > 0 ? <Text style={{ color: light.ink.muted }}>{'  ·  ' + fmtCount(preview.likes!) + ((preview.likes === 1) ? ' like' : ' likes')}</Text> : null}
             </Text>
             {post.comments_count > 1 && <Text style={s.viewAll}>View all {post.comments_count} comments</Text>}
           </TouchableOpacity>
@@ -1333,7 +1334,7 @@ export default function FeedScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={light.surface.canvas} />
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={s.container}>
           <View style={s.header}>
@@ -1347,11 +1348,11 @@ export default function FeedScreen({ navigation }: any) {
                 accessibilityLabel="Search"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Feather name="search" size={20} color="#000" />
+                <Feather name="search" size={20} color={light.ink.primary} />
               </TouchableOpacity>
               <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
                 <View>
-                  <Feather name="bell" size={20} color="#000" />
+                  <Feather name="bell" size={20} color={light.ink.primary} />
                   {unreadNotifs > 0 && (
                     <View style={s.bellBadge}>
                       <Text style={s.bellBadgeTxt}>{unreadNotifs > 99 ? '99+' : unreadNotifs}</Text>
@@ -1427,18 +1428,18 @@ export default function FeedScreen({ navigation }: any) {
           {composerOpen && (
             <KeyboardAvoidingView style={[s.composerContainer, { bottom: insets.bottom + 16 }]} behavior={Platform.OS === 'ios' ? 'position' : undefined}>
               {threadingPost && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderColor: '#E5E7EB', borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#374151' }}>Adding to your thread</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: light.surface.canvas, borderColor: light.surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: light.ink.secondary }}>Adding to your thread</Text>
                   <TouchableOpacity onPress={() => setThreadingPost(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <Feather name="x" size={13} color="#6B7280" />
+                    <Feather name="x" size={13} color={light.ink.muted} />
                   </TouchableOpacity>
                 </View>
               )}
               {quotingPost && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderColor: '#E5E7EB', borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#374151' }}>Quoting {profilesMap[quotingPost.user_id]?.full_name || profilesMap[quotingPost.user_id]?.username || 'post'}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: light.surface.canvas, borderColor: light.surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: light.ink.secondary }}>Quoting {profilesMap[quotingPost.user_id]?.full_name || profilesMap[quotingPost.user_id]?.username || 'post'}</Text>
                   <TouchableOpacity onPress={() => setQuotingPost(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <Feather name="x" size={13} color="#6B7280" />
+                    <Feather name="x" size={13} color={light.ink.muted} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -1457,11 +1458,11 @@ export default function FeedScreen({ navigation }: any) {
                   {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.cAvatar} fadeDuration={200} /> : <View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
                   <Text style={s.cName}>{profile?.full_name || 'You'}</Text>
                 </View>
-                <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor="#9CA3AF" multiline autoFocus maxLength={2000} />
+                <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={light.ink.faint} multiline autoFocus maxLength={2000} />
                 {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
                 {exclusivePost && (
                   <View style={s.exclusiveBanner}>
-                    <Feather name="shield" size={13} color="#2563EB" />
+                    <Feather name="shield" size={13} color={light.status.link} />
                     <Text style={s.exclusiveBannerTxt}>Only verified members can see this post</Text>
                   </View>
                 )}
@@ -1470,14 +1471,14 @@ export default function FeedScreen({ navigation }: any) {
                     value={articleTitle}
                     onChangeText={setArticleTitle}
                     placeholder="Article title (optional)"
-                    placeholderTextColor="#9CA3AF"
-                    style={{ fontSize: 21, fontWeight: '800', color: '#0A0A0A', letterSpacing: -0.5, paddingVertical: 8, marginBottom: 4 }}
+                    placeholderTextColor={light.ink.faint}
+                    style={{ fontSize: 21, fontWeight: '800', color: light.ink.primary, letterSpacing: -0.5, paddingVertical: 8, marginBottom: 4 }}
                     multiline
                   />
                 )}
                 {innovationPost && (
-                  <View style={[s.exclusiveBanner, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>
-                    <Feather name="zap" size={13} color="#D97706" />
+                  <View style={[s.exclusiveBanner, { backgroundColor: light.status.innovationBg, borderColor: light.status.innovation }]}>
+                    <Feather name="zap" size={13} color={light.status.innovation} />
                     <Text style={[s.exclusiveBannerTxt, { color: '#B45309' }]}>Posting to Innovation — showcasing what Zimbabwe is building</Text>
                   </View>
                 )}
@@ -1497,8 +1498,8 @@ export default function FeedScreen({ navigation }: any) {
                 )}
                 <View style={s.cToolbar}>
                   <View style={s.cToolbarLeft}>
-                    <TouchableOpacity style={s.toolBtn} onPress={pickMedia}><Feather name="image" size={20} color="#6B7280" /></TouchableOpacity>
-                    <TouchableOpacity style={s.toolBtn} onPress={openCamera}><Feather name="camera" size={20} color="#6B7280" /></TouchableOpacity>
+                    <TouchableOpacity style={s.toolBtn} onPress={pickMedia}><Feather name="image" size={20} color={light.ink.muted} /></TouchableOpacity>
+                    <TouchableOpacity style={s.toolBtn} onPress={openCamera}><Feather name="camera" size={20} color={light.ink.muted} /></TouchableOpacity>
                     <TouchableOpacity style={[s.toolBtn, innovationPost && s.toolBtnActive]} onPress={() => setInnovationPost(p => !p)}><Feather name="zap" size={20} color={innovationPost ? '#D97706' : '#6B7280'} /></TouchableOpacity>
                     {isVerifiedSchoolUser && (
                       <TouchableOpacity style={[s.toolBtn, exclusivePost && s.toolBtnActive]} onPress={() => setExclusivePost(p => !p)}>
@@ -1530,16 +1531,16 @@ export default function FeedScreen({ navigation }: any) {
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setLikersPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0A0A0A', paddingHorizontal: 16, paddingBottom: 8 }}>Likes</Text>
-            {likersList.length === 0 && <Text style={{ fontSize: 13, color: '#8E8E93', paddingHorizontal: 16, paddingBottom: 16 }}>Loading...</Text>}
+            <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Likes</Text>
+            {likersList.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>Loading...</Text>}
             <ScrollView style={{ maxHeight: 380 }}>
               {likersList.map((p: any) => (
                 <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 9, gap: 12 }}>
                   <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }} activeOpacity={0.8} onPress={() => { setLikersPost(null); navigation.navigate('UserProfile', { userId: p.id, user: p }); }}>
-                    {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: '#1D4ED8' }}>{initials(p.full_name || p.username)}</Text></View>}
+                    {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.status.link }}>{initials(p.full_name || p.username)}</Text></View>}
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: '#0A0A0A' }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
-                      {p.username ? <Text style={{ fontSize: 12, color: '#8E8E93' }} numberOfLines={1}>@{p.username}</Text> : null}
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                      {p.username ? <Text style={{ fontSize: 12, color: light.ink.muted }} numberOfLines={1}>@{p.username}</Text> : null}
                     </View>
                   </TouchableOpacity>
                   {userId && p.id !== userId && (
@@ -1558,13 +1559,13 @@ export default function FeedScreen({ navigation }: any) {
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setSendPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0A0A0A', paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
-            {sendConvs.length === 0 && <Text style={{ fontSize: 13, color: '#8E8E93', paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
+            <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
+            {sendConvs.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
             <ScrollView style={{ maxHeight: 320 }}>
               {sendConvs.map((c: any) => (
                 <TouchableOpacity key={c.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(c)} disabled={sendBusy}>
-                  {c.other?.avatar_url ? <ExpoImage source={{ uri: c.other.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: '#6B7280' }}>{initials(c.other?.full_name || c.other?.username)}</Text></View>}
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#0A0A0A' }} numberOfLines={1}>{c.other?.full_name || c.other?.username || 'Member'}</Text>
+                  {c.other?.avatar_url ? <ExpoImage source={{ uri: c.other.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.ink.muted }}>{initials(c.other?.full_name || c.other?.username)}</Text></View>}
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{c.other?.full_name || c.other?.username || 'Member'}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -1582,7 +1583,7 @@ export default function FeedScreen({ navigation }: any) {
       />
 
       <Modal visible={!!fsVideo} animationType="fade" onRequestClose={() => setFsVideo(null)}>
-        <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <View style={{ flex: 1, backgroundColor: light.ink.primary }}>
           {fsVideo && (
             <AVVideo
               source={{ uri: fsVideo.url }}
@@ -1594,7 +1595,7 @@ export default function FeedScreen({ navigation }: any) {
             />
           )}
           <TouchableOpacity onPress={() => setFsVideo(null)} style={{ position: 'absolute', top: 54, left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', zIndex: 10 }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Feather name="x" size={20} color="#FFF" />
+            <Feather name="x" size={20} color={light.ink.inverse} />
           </TouchableOpacity>
         </View>
       </Modal>
@@ -1623,8 +1624,8 @@ export default function FeedScreen({ navigation }: any) {
                   }},
                 ]);
               }}>
-                <Feather name="trash-2" size={18} color="#FF3B30" />
-                <Text style={[s.menuOptionTxt, { color: '#FF3B30' }]}>Delete post</Text>
+                <Feather name="trash-2" size={18} color={light.status.danger} />
+                <Text style={[s.menuOptionTxt, { color: light.status.danger }]}>Delete post</Text>
               </TouchableOpacity>
             )}
 
@@ -1636,7 +1637,7 @@ export default function FeedScreen({ navigation }: any) {
                 setThreadingPost(captured);
                 setComposerOpen(true);
               }}>
-                <Feather name="corner-down-right" size={18} color="#000" />
+                <Feather name="corner-down-right" size={18} color={light.ink.primary} />
                 <Text style={s.menuOptionTxt}>Add to thread</Text>
               </TouchableOpacity>
             )}
@@ -1681,7 +1682,7 @@ export default function FeedScreen({ navigation }: any) {
                 }
               }, 350);
             }}>
-              <Feather name="plus-square" size={18} color="#000" />
+              <Feather name="plus-square" size={18} color={light.ink.primary} />
               <Text style={s.menuOptionTxt}>Add to your story</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
@@ -1693,7 +1694,7 @@ export default function FeedScreen({ navigation }: any) {
                 await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${captured.content}\n\nOpen in the app: platinum-circles://post/${captured.id}` });
               }, 400);
             }}>
-              <Feather name="share-2" size={18} color="#000" />
+              <Feather name="share-2" size={18} color={light.ink.primary} />
               <Text style={s.menuOptionTxt}>Share post</Text>
             </TouchableOpacity>
 
@@ -1702,7 +1703,7 @@ export default function FeedScreen({ navigation }: any) {
               toggleBookmark(menuPost.id);
               setMenuPost(null);
             }}>
-              <Feather name="bookmark" size={18} color="#000" />
+              <Feather name="bookmark" size={18} color={light.ink.primary} />
               <Text style={s.menuOptionTxt}>
                 {menuPost && bookmarkedPosts[menuPost.id] ? 'Remove bookmark' : 'Save post'}
               </Text>
@@ -1714,7 +1715,7 @@ export default function FeedScreen({ navigation }: any) {
               setMenuPost(null);
               Alert.alert('Copied', 'Post text copied to clipboard.');
             }}>
-              <Feather name="copy" size={18} color="#000" />
+              <Feather name="copy" size={18} color={light.ink.primary} />
               <Text style={s.menuOptionTxt}>Copy text</Text>
             </TouchableOpacity>
 
@@ -1725,7 +1726,7 @@ export default function FeedScreen({ navigation }: any) {
                   setMenuPost(null);
                   if (id) hidePost(id);
                 }}>
-                  <Feather name="eye-off" size={18} color="#000" />
+                  <Feather name="eye-off" size={18} color={light.ink.primary} />
                   <Text style={s.menuOptionTxt}>Not interested</Text>
                 </TouchableOpacity>
 
@@ -1743,8 +1744,8 @@ export default function FeedScreen({ navigation }: any) {
                     ]);
                   }, 350);
                 }}>
-                  <Feather name="flag" size={18} color="#FF3B30" />
-                  <Text style={[s.menuOptionTxt, { color: '#FF3B30' }]}>Report post</Text>
+                  <Feather name="flag" size={18} color={light.status.danger} />
+                  <Text style={[s.menuOptionTxt, { color: light.status.danger }]}>Report post</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -1755,7 +1756,7 @@ export default function FeedScreen({ navigation }: any) {
               setMenuPost(null);
               if (id) setPosts(prev => prev.filter(p => p.id !== id));
             }}>
-              <Feather name="eye-off" size={18} color="#6B7280" />
+              <Feather name="eye-off" size={18} color={light.ink.muted} />
               <Text style={s.menuOptionTxt}>Not interested</Text>
             </TouchableOpacity>
 
@@ -1775,7 +1776,7 @@ export default function FeedScreen({ navigation }: any) {
                   ]
                 );
               }}>
-                <Feather name="volume-x" size={18} color="#6B7280" />
+                <Feather name="volume-x" size={18} color={light.ink.muted} />
                 <Text style={s.menuOptionTxt}>
                   Mute {menuPost ? profilesMap[menuPost.user_id]?.full_name || 'user' : 'user'}
                 </Text>
@@ -1799,8 +1800,8 @@ export default function FeedScreen({ navigation }: any) {
                   );
                 }, 400);
               }}>
-                <Feather name="flag" size={18} color="#FF9500" />
-                <Text style={[s.menuOptionTxt, { color: '#FF9500' }]}>Report post</Text>
+                <Feather name="flag" size={18} color={light.status.warning} />
+                <Text style={[s.menuOptionTxt, { color: light.status.warning }]}>Report post</Text>
               </TouchableOpacity>
             )}
 
@@ -1815,113 +1816,113 @@ export default function FeedScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  articleCard: { borderWidth: StyleSheet.hairlineWidth, borderColor: '#D8D8DC', borderRadius: 16, overflow: 'hidden', marginTop: 6, backgroundColor: '#FFFFFF' },
+  articleCard: { borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, borderRadius: 16, overflow: 'hidden', marginTop: 6, backgroundColor: light.surface.canvas },
   articleCover: { width: '100%', height: 170, backgroundColor: '#EFEFF4' },
   articleBody: { padding: 14 },
-  articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: '#D97706' },
-  articleTitle: { fontSize: 19, fontWeight: '800', color: '#0A0A0A', letterSpacing: -0.5, lineHeight: 24, marginTop: 5 },
+  articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: light.status.innovation },
+  articleTitle: { fontSize: 19, fontWeight: '800', color: light.ink.primary, letterSpacing: -0.5, lineHeight: 24, marginTop: 5 },
   articleExcerpt: { fontSize: 14.5, color: '#4B5563', lineHeight: 20, marginTop: 6 },
-  articleMeta: { fontSize: 12.5, fontWeight: '600', color: '#8E8E93', marginTop: 10 },
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  articleMeta: { fontSize: 12.5, fontWeight: '600', color: light.ink.muted, marginTop: 10 },
+  safe: { flex: 1, backgroundColor: light.surface.canvas },
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { paddingHorizontal: 16, paddingBottom: 4, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
+  container: { flex: 1, backgroundColor: light.surface.canvas },
+  header: { paddingHorizontal: 16, paddingBottom: 4, backgroundColor: light.surface.canvas, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: light.surface.hairline },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, marginBottom: 12 },
-  logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: '#0A0A0A', letterSpacing: -0.5 },
-  iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F8F8F8', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center' },
-  searchInput: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
-  tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: '#F5F5F5', borderRadius: 12, padding: 3 },
+  logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: light.ink.primary, letterSpacing: -0.5 },
+  iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' },
+  searchInput: { backgroundColor: light.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
+  tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: light.surface.raised, borderRadius: 12, padding: 3 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
-  tabActive: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
-  tabTxt: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
-  tabTxtActive: { color: '#000000', fontWeight: '600' },
+  tabActive: { backgroundColor: light.surface.canvas, shadowColor: light.ink.primary, shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
+  tabTxt: { fontSize: 13, fontWeight: '500', color: light.ink.muted },
+  tabTxtActive: { color: light.ink.primary, fontWeight: '600' },
   list: { paddingHorizontal: 0, paddingTop: 8 },
   listEmpty: { flexGrow: 1 },
-  postCard: { backgroundColor: '#FFFFFF', borderBottomWidth: 6, borderBottomColor: '#F2F3F5' },
+  postCard: { backgroundColor: light.surface.canvas, borderBottomWidth: 6, borderBottomColor: '#F2F3F5' },
   postTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 },
   postMeta: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-  avatarFb: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  avatarFbTxt: { fontSize: 15, fontWeight: '700', color: '#1D4ED8' },
+  avatarFb: { width: 40, height: 40, borderRadius: 20, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  avatarFbTxt: { fontSize: 15, fontWeight: '700', color: light.status.link },
   postMetaTxt: { flex: 1 },
-  postAuthor: { fontSize: 15, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.1 },
-  postSub: { marginTop: 1, fontSize: 13, color: '#8E8E93' },
+  postAuthor: { fontSize: 15, fontWeight: '700', color: light.ink.primary, letterSpacing: -0.1 },
+  postSub: { marginTop: 1, fontSize: 13, color: light.ink.muted },
   menuBtn: { paddingHorizontal: 8, paddingVertical: 6 },
-  menuBtnTxt: { fontSize: 16, color: '#C7C7CC', letterSpacing: 1 },
-  content: { fontSize: 15, lineHeight: 21, color: '#0A0A0A', paddingHorizontal: 16, paddingBottom: 12 },
-  hashTag: { color: '#0B1E3D', fontWeight: '600' },
-  mention: { color: '#0B1E3D', fontWeight: '600' },
+  menuBtnTxt: { fontSize: 16, color: light.ink.faint, letterSpacing: 1 },
+  content: { fontSize: 15, lineHeight: 21, color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 12 },
+  hashTag: { color: light.brand.base, fontWeight: '600' },
+  mention: { color: light.brand.base, fontWeight: '600' },
   metricsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 2, gap: 4 },
-  metric: { fontSize: 13, color: '#8E8E93' },
-  metricDot: { fontSize: 12, color: '#C7C7CC' },
+  metric: { fontSize: 13, color: light.ink.muted },
+  metricDot: { fontSize: 12, color: light.ink.faint },
   actions: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 6, gap: 18 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 0, paddingVertical: 8, borderRadius: 18, borderWidth: 0, borderColor: 'transparent', backgroundColor: 'transparent' },
-  pillLiked: { backgroundColor: '#FFF0F0', paddingHorizontal: 12 },
+  pillLiked: { backgroundColor: light.status.dangerBg, paddingHorizontal: 12 },
   pillReposted: { backgroundColor: '#F0FDF4', paddingHorizontal: 12 },
-  pillSaved: { backgroundColor: '#EFF6FF', paddingHorizontal: 12 },
+  pillSaved: { backgroundColor: light.status.linkBg, paddingHorizontal: 12 },
   pillIcon: { paddingHorizontal: 10 },
-  pillTxt: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
-  pillTxtLiked: { color: '#E53935', fontWeight: '600' },
-  pillTxtReposted: { color: '#059669', fontWeight: '600' },
+  pillTxt: { fontSize: 13, fontWeight: '500', color: light.ink.muted },
+  pillTxtLiked: { color: light.status.danger, fontWeight: '600' },
+  pillTxtReposted: { color: light.status.success, fontWeight: '600' },
   cpWrap: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 4 },
-  cpAuthor: { fontWeight: '700', color: '#000000', fontSize: 13 },
-  cpTxt: { fontSize: 13, lineHeight: 18, color: '#3C3C43' },
-  viewAll: { fontSize: 12, color: '#8E8E93', marginTop: 3 },
+  cpAuthor: { fontWeight: '700', color: light.ink.primary, fontSize: 13 },
+  cpTxt: { fontSize: 13, lineHeight: 18, color: light.ink.secondary },
+  viewAll: { fontSize: 12, color: light.ink.muted, marginTop: 3 },
   composerContainer: { position: 'absolute', left: 12, right: 12, zIndex: 100, maxHeight: '80%' },
-  mentionDropdown: { backgroundColor: '#FFF', borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', marginBottom: 6, overflow: 'hidden' },
+  mentionDropdown: { backgroundColor: light.surface.canvas, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, marginBottom: 6, overflow: 'hidden' },
   mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
   mAvatar: { width: 34, height: 34, borderRadius: 17 },
-  mAvatarFb: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
-  mAvatarTxt: { fontSize: 12, fontWeight: '700', color: '#1D4ED8' },
-  mName: { fontSize: 14, fontWeight: '600', color: '#000000' },
-  mUser: { fontSize: 12, color: '#8E8E93' },
-  composerCard: { backgroundColor: '#FFF', borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', padding: 16, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 10 },
+  mAvatarFb: { width: 34, height: 34, borderRadius: 17, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' },
+  mAvatarTxt: { fontSize: 12, fontWeight: '700', color: light.status.link },
+  mName: { fontSize: 14, fontWeight: '600', color: light.ink.primary },
+  mUser: { fontSize: 12, color: light.ink.muted },
+  composerCard: { backgroundColor: light.surface.canvas, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, padding: 16, shadowColor: light.ink.primary, shadowOpacity: 0.12, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 10 },
   cAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   cAvatar: { width: 36, height: 36, borderRadius: 18 },
-  cAvatarFb: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
-  cAvatarTxt: { fontSize: 13, fontWeight: '700', color: '#1D4ED8' },
-  cName: { fontSize: 14, fontWeight: '700', color: '#000000' },
-  cInput: { minHeight: 80, maxHeight: 160, fontSize: 15, color: '#000000', textAlignVertical: 'top', lineHeight: 22, marginBottom: 8 },
-  charCount: { fontSize: 12, color: '#FF3B30', textAlign: 'right', marginBottom: 4 },
-  exclusiveBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 8 },
-  exclusiveBannerTxt: { fontSize: 12, color: '#2563EB', fontWeight: '500', flex: 1 },
+  cAvatarFb: { width: 36, height: 36, borderRadius: 18, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' },
+  cAvatarTxt: { fontSize: 13, fontWeight: '700', color: light.status.link },
+  cName: { fontSize: 14, fontWeight: '700', color: light.ink.primary },
+  cInput: { minHeight: 80, maxHeight: 160, fontSize: 15, color: light.ink.primary, textAlignVertical: 'top', lineHeight: 22, marginBottom: 8 },
+  charCount: { fontSize: 12, color: light.status.danger, textAlign: 'right', marginBottom: 4 },
+  exclusiveBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: light.status.linkBg, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 8 },
+  exclusiveBannerTxt: { fontSize: 12, color: light.status.link, fontWeight: '500', flex: 1 },
   cMediaScroll: { marginBottom: 10 },
   cThumb: { width: 80, height: 80, borderRadius: 10, marginRight: 8, overflow: 'hidden' },
   cThumbImg: { width: '100%', height: '100%' },
   cVideoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.25)' },
-  cVideoPlayIcon: { fontSize: 22, color: '#FFF' },
+  cVideoPlayIcon: { fontSize: 22, color: light.ink.inverse },
   cRemove: { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   cRemoveTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  cAddMore: { width: 80, height: 80, borderRadius: 10, backgroundColor: '#F5F5F5', borderWidth: 1.5, borderColor: '#E8E8E8', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
-  cAddMoreTxt: { fontSize: 28, color: '#C7C7CC', fontWeight: '300' },
+  cAddMore: { width: 80, height: 80, borderRadius: 10, backgroundColor: light.surface.raised, borderWidth: 1.5, borderColor: light.surface.hairline, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  cAddMoreTxt: { fontSize: 28, color: light.ink.faint, fontWeight: '300' },
   cToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F5F5F5', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center' },
-  toolBtnActive: { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' },
-  mediaCount: { fontSize: 12, color: '#8E8E93', fontWeight: '600' },
-  cancelBtn: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
-  cancelTxt: { color: '#3C3C43', fontSize: 14, fontWeight: '500' },
+  toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' },
+  toolBtnActive: { backgroundColor: light.status.linkBg, borderColor: '#BFDBFE' },
+  mediaCount: { fontSize: 12, color: light.ink.muted, fontWeight: '600' },
+  cancelBtn: { backgroundColor: light.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
+  cancelTxt: { color: light.ink.secondary, fontSize: 14, fontWeight: '500' },
   postBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 9, minWidth: 64, alignItems: 'center' },
   postBtnOff: { opacity: 0.3 },
-  postBtnTxt: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  fab: { position: 'absolute', right: 18, width: 54, height: 54, borderRadius: 27, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
-  fabTxt: { color: '#FFF', fontSize: 26, fontWeight: '300', lineHeight: 30 },
+  postBtnTxt: { color: light.ink.inverse, fontSize: 14, fontWeight: '700' },
+  fab: { position: 'absolute', right: 18, width: 54, height: 54, borderRadius: 27, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: light.ink.primary, shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
+  fabTxt: { color: light.ink.inverse, fontSize: 26, fontWeight: '300', lineHeight: 30 },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 60 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#000000', textAlign: 'center' },
-  emptySub: { marginTop: 8, fontSize: 14, lineHeight: 20, color: '#8E8E93', textAlign: 'center' },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: light.ink.primary, textAlign: 'center' },
+  emptySub: { marginTop: 8, fontSize: 14, lineHeight: 20, color: light.ink.muted, textAlign: 'center' },
   emptyBtn: { marginTop: 20, backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
-  emptyBtnTxt: { color: '#FFF', fontSize: 15, fontWeight: '600' },
+  emptyBtnTxt: { color: light.ink.inverse, fontSize: 15, fontWeight: '600' },
   menuOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  menuSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, paddingBottom: 32, paddingHorizontal: 16 },
+  menuSheet: { backgroundColor: light.surface.canvas, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, paddingBottom: 32, paddingHorizontal: 16 },
   menuHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#E0E0E0', alignSelf: 'center', marginBottom: 14 },
-  menuPreview: { fontSize: 14, color: '#8E8E93', lineHeight: 20, marginBottom: 12, paddingHorizontal: 4 },
-  menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginBottom: 8 },
+  menuPreview: { fontSize: 14, color: light.ink.muted, lineHeight: 20, marginBottom: 12, paddingHorizontal: 4 },
+  menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: light.surface.sunken, marginBottom: 8 },
   menuOption: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
-  menuOptionTxt: { fontSize: 16, color: '#000000', fontWeight: '400' },
+  menuOptionTxt: { fontSize: 16, color: light.ink.primary, fontWeight: '400' },
   menuCancel: { justifyContent: 'center', marginTop: 8, borderBottomWidth: 0 },
-  menuCancelTxt: { fontSize: 16, color: '#8E8E93', fontWeight: '500', textAlign: 'center', width: '100%' },
-  bellBadge: { position: 'absolute', top: -6, right: -8, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FFFFFF' },
-  bellBadgeTxt: { fontSize: 10, fontWeight: '700', color: '#FFFFFF' },
+  menuCancelTxt: { fontSize: 16, color: light.ink.muted, fontWeight: '500', textAlign: 'center', width: '100%' },
+  bellBadge: { position: 'absolute', top: -6, right: -8, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: light.status.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FFFFFF' },
+  bellBadgeTxt: { fontSize: 10, fontWeight: '700', color: light.ink.inverse },
 });
