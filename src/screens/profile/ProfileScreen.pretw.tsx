@@ -463,72 +463,38 @@ export default function ProfileScreen() {
       <StatusBar barStyle="dark-content"/>
       <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadHighlights();loadTabContent(activeTab);}} tintColor={NAVY}/>} onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
         {/* Identity environment */}
-        <View style={st.twBanner}>
-          {(profile as any).banner_url ? (
-            <ExpoImage source={{ uri: (profile as any).banner_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" />
-          ) : null}
-          <TouchableOpacity style={st.twSettings} onPress={() => navigation.navigate('Settings')} activeOpacity={0.75}>
-            <Feather name="settings" size={18} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={st.twHead}>
-          <View style={st.twAvatarRow}>
-            <TouchableOpacity onPress={changePhoto} disabled={uploadingPhoto} activeOpacity={0.85} style={st.twAvatarWrap}>
-              {uploadingPhoto ? (
-                <View style={[st.twAvatar, st.avatarLoading]}><ActivityIndicator color={NAVY} /></View>
-              ) : profile.avatar_url ? (
-                <ExpoImage source={{ uri: profile.avatar_url }} style={st.twAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />
-              ) : (
-                <View style={[st.twAvatar, st.avatarFb]}><Text style={st.twAvatarTxt}>{initials(profile.full_name)}</Text></View>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={st.twEditBtn} onPress={openEdit} activeOpacity={0.8}>
-              <Text style={st.twEditTxt}>Edit profile</Text>
-            </TouchableOpacity>
+        <View style={st.identityRegion}>
+          <View style={st.identityTopRow}>
+            <TouchableOpacity style={st.iconBtn} onPress={()=>navigation.navigate('Settings')} activeOpacity={0.7}><Feather name="settings" size={20} color={TEXT_PRIMARY}/></TouchableOpacity>
+            <TouchableOpacity style={[st.iconBtn,{width:'auto',paddingHorizontal:14,flexDirection:'row',gap:5}]} onPress={openEdit} activeOpacity={0.7}><Feather name="edit-2" size={14} color={TEXT_PRIMARY}/><Text style={{fontSize:14,fontWeight:'600',color:TEXT_PRIMARY}}>Edit</Text></TouchableOpacity>
           </View>
 
-          <Text style={st.twName}>{profile.full_name || 'Your Name'}</Text>
-          {profile.username ? <Text style={st.twHandle}>@{profile.username}</Text> : null}
-
-          {profile.bio ? (
-            <Text style={st.twBio}>{profile.bio}</Text>
-          ) : (
-            <TouchableOpacity onPress={openEdit}><Text style={st.twBioEmpty}>Add a bio</Text></TouchableOpacity>
-          )}
-
-          <View style={st.twMetaRow}>
-            {profile.location ? (
-              <View style={st.twMetaItem}>
-                <Feather name="map-pin" size={13} color="#6B7280" />
-                <Text style={st.twMeta}>{profile.location}</Text>
-              </View>
-            ) : null}
-            {(profile as any).created_at ? (
-              <View style={st.twMetaItem}>
-                <Feather name="calendar" size={13} color="#6B7280" />
-                <Text style={st.twMeta}>
-                  Joined {new Date((profile as any).created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-          <View style={st.twCounts}>
-            <TouchableOpacity style={st.twCountItem} onPress={() => openStats('following')} activeOpacity={0.7}>
-              <Text style={st.twCountNum}>{stats.following}</Text>
-              <Text style={st.twCountLbl}>Following</Text>
+          <View style={st.identityCenter}>
+            <TouchableOpacity onPress={changePhoto} disabled={uploadingPhoto} activeOpacity={0.8} style={{position:'relative'}}>
+              {uploadingPhoto?<View style={[st.avatar,st.avatarLoading]}><ActivityIndicator color={NAVY}/></View>:profile.avatar_url?<ExpoImage source={{uri:profile.avatar_url}} style={st.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<View style={[st.avatar,st.avatarFb]}><Text style={st.avatarFbTxt}>{initials(profile.full_name)}</Text></View>}
+              <View style={st.cameraBadge}><Feather name="camera" size={13} color="#FFF"/></View>
             </TouchableOpacity>
-            <TouchableOpacity style={st.twCountItem} onPress={() => openStats('followers')} activeOpacity={0.7}>
-              <Text style={st.twCountNum}>{stats.followers}</Text>
-              <Text style={st.twCountLbl}>Followers</Text>
-            </TouchableOpacity>
-            <View style={st.twCountItem}>
-              <Text style={st.twCountNum}>{stats.posts}</Text>
-              <Text style={st.twCountLbl}>Posts</Text>
+            <Text style={st.nameText}>{profile.full_name||'Your Name'}</Text>
+            {profile.username?<Text style={st.handleText}>@{profile.username}</Text>:null}
+            {profile.role?<View style={st.roleBadge}><Text style={st.roleBadgeTxt}>{profile.role.charAt(0).toUpperCase()+profile.role.slice(1)}</Text></View>:null}
+            {profile.bio?<Text style={st.identityBio}>{profile.bio}</Text>:<TouchableOpacity onPress={openEdit}><Text style={st.bioEmpty}>Add a bio...</Text></TouchableOpacity>}
+            <View style={st.identityMeta}>
+              {profile.degree_program?<View style={st.metaRow}><Feather name="briefcase" size={13} color={TEXT_SECONDARY}/><Text style={st.metaTxt}>{profile.degree_program}</Text></View>:null}
+              {profile.location?<View style={st.metaRow}><Feather name="map-pin" size={13} color={TEXT_SECONDARY}/><Text style={st.metaTxt}>{profile.location}</Text></View>:null}
             </View>
           </View>
+
+          <View style={st.statsBar}>
+            <View style={st.statCell}><Text style={st.statNum}>{stats.posts}</Text><Text style={st.statLbl}>Posts</Text></View>
+            <View style={st.statDivider}/>
+            <TouchableOpacity style={st.statCell} onPress={()=>openStats('connections')} activeOpacity={0.7}><Text style={st.statNum}>{stats.connections}</Text><Text style={st.statLbl}>Connections</Text></TouchableOpacity>
+            <View style={st.statDivider}/>
+            <TouchableOpacity style={st.statCell} onPress={()=>openStats('followers')} activeOpacity={0.7}><Text style={st.statNum}>{stats.followers}</Text><Text style={st.statLbl}>Followers</Text></TouchableOpacity>
+            <View style={st.statDivider}/>
+            <TouchableOpacity style={st.statCell} onPress={()=>openStats('following')} activeOpacity={0.7}><Text style={st.statNum}>{stats.following}</Text><Text style={st.statLbl}>Following</Text></TouchableOpacity>
+          </View>
         </View>
+
         <HighlightRow
           highlights={highlights}
           isOwnProfile={true}
@@ -565,27 +531,6 @@ export default function ProfileScreen() {
 }
 
 const st = StyleSheet.create({
-  twBanner: { height: 140, backgroundColor: '#CBD5E1' },
-  twSettings: { position: 'absolute', right: 14, top: 14, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
-  twHead: { paddingHorizontal: 16, paddingBottom: 12 },
-  twAvatarRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -42 },
-  twAvatarWrap: { borderRadius: 44, borderWidth: 4, borderColor: '#FFFFFF', backgroundColor: '#FFFFFF' },
-  twAvatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E5E5EA' },
-  avatarFb: { alignItems: 'center', justifyContent: 'center' },
-  twAvatarTxt: { fontSize: 28, fontWeight: '800', color: '#8E8E93' },
-  twEditBtn: { borderWidth: 1, borderColor: '#CFD9DE', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 8, marginBottom: 6 },
-  twEditTxt: { fontSize: 14.5, fontWeight: '700', color: '#0F1419' },
-  twName: { fontSize: 21, fontWeight: '800', color: '#0F1419', letterSpacing: -0.5, marginTop: 10 },
-  twHandle: { fontSize: 15, color: '#536471', marginTop: 1 },
-  twBio: { fontSize: 15, color: '#0F1419', lineHeight: 21, marginTop: 12 },
-  twBioEmpty: { fontSize: 15, color: '#8E8E93', marginTop: 12 },
-  twMetaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 12 },
-  twMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  twMeta: { fontSize: 14.5, color: '#536471' },
-  twCounts: { flexDirection: 'row', gap: 20, marginTop: 14 },
-  twCountItem: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  twCountNum: { fontSize: 14.5, fontWeight: '700', color: '#0F1419' },
-  twCountLbl: { fontSize: 14.5, color: '#536471' },
   safe:{flex:1,backgroundColor:'#FFF'},
   center:{flex:1,alignItems:'center',justifyContent:'center'},
   identityRegion:{backgroundColor:'#F9F9FB',paddingBottom:20,marginBottom:8},
