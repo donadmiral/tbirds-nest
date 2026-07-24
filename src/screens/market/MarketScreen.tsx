@@ -1,3 +1,4 @@
+import { useAuthStore } from '../../stores/authStore';
 import MarketFilterSheet, { MarketFilters, EMPTY_FILTERS } from '../../components/market/MarketFilterSheet';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -38,11 +39,21 @@ export default function MarketScreen({ navigation }: any) {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [filters, setFilters] = useState<MarketFilters>(EMPTY_FILTERS);
+  const [marketTab, setMarketTab] = useState<'browse' | 'saved' | 'selling'>('browse');
+  const { profile: meProfile } = useAuthStore();
   const [filterOpen, setFilterOpen] = useState(false);
   const searchTimer = useRef<any>(null);
 
   const load = useCallback(async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
+    if (marketTab === 'saved') {
+      const saved = await marketService.getSavedListings();
+      setListings(saved); setLoading(false); setRefreshing(false); return;
+    }
+    if (marketTab === 'selling') {
+      const mine = meProfile?.id ? await marketService.myListings(meProfile.id) : [];
+      setListings(mine); setLoading(false); setRefreshing(false); return;
+    }
     const rows = await marketService.listListings({ search, category,
       minPrice: filters.minPrice ? Number(filters.minPrice) : null,
       maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
@@ -50,7 +61,7 @@ export default function MarketScreen({ navigation }: any) {
     setListings(rows);
     setLoading(false);
     setRefreshing(false);
-  }, [search, category, filters]);
+  }, [search, category, filters, marketTab, meProfile?.id]);
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -111,6 +122,20 @@ export default function MarketScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      <View style={{ flexDirection: 'row', paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB', marginBottom: 10 }}>
+        {(['browse', 'saved', 'selling'] as const).map(t => (
+          <TouchableOpacity
+            key={t}
+            style={{ marginRight: 22, paddingVertical: 11, borderBottomWidth: 2, borderBottomColor: marketTab === t ? '#0B1E3D' : 'transparent' }}
+            onPress={() => setMarketTab(t)}
+            activeOpacity={0.7}
+          >
+            <Text style={{ fontSize: 14.5, fontWeight: marketTab === t ? '700' : '600', color: marketTab === t ? '#0B1E3D' : '#6B7280' }}>
+              {t === 'browse' ? 'Browse' : t === 'saved' ? 'Saved' : 'Selling'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
       <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginHorizontal: 14, marginBottom: 8, backgroundColor: '#F3F4F6', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 }} onPress={() => setFilterOpen(true)} activeOpacity={0.75}>
         <Feather name="sliders" size={13} color="#111827" />
         <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#111827' }}>Filters</Text>

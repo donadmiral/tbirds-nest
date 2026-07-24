@@ -178,7 +178,7 @@ export const networkService = {
 export const followService = {
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
     const { data, error } = await supabase
-      .from('orbits')
+      .from('follows')
       .select('id')
       .eq('follower_id', followerId)
       .eq('following_id', followingId)
@@ -189,7 +189,7 @@ export const followService = {
 
   async follow(followerId: string, followingId: string) {
     const { error } = await supabase
-      .from('orbits')
+      .from('follows')
       .insert({ follower_id: followerId, following_id: followingId });
     if (error) throw error;
     await notifyFollow(followerId, followingId);
@@ -198,7 +198,7 @@ export const followService = {
 
   async unfollow(followerId: string, followingId: string) {
     const { error } = await supabase
-      .from('orbits')
+      .from('follows')
       .delete()
       .eq('follower_id', followerId)
       .eq('following_id', followingId);
@@ -209,11 +209,11 @@ export const followService = {
   async getCounts(userId: string) {
     const [followers, following] = await Promise.all([
       supabase
-        .from('orbits')
+        .from('follows')
         .select('id', { count: 'exact', head: true })
         .eq('following_id', userId),
       supabase
-        .from('orbits')
+        .from('follows')
         .select('id', { count: 'exact', head: true })
         .eq('follower_id', userId),
     ]);

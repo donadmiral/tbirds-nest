@@ -478,8 +478,8 @@ export const storiesService = {
     const { data: me } = await supabase.auth.getUser();
     if (!me?.user) return [];
     const { data } = await supabase
-      .from('orbits')
-      .select('following_id, profile:profiles!orbits_following_id_fkey(id, full_name, username, avatar_url)')
+      .from('follows')
+      .select('following_id, profile:profiles!follows_following_id_fkey(id, full_name, username, avatar_url)')
       .eq('follower_id', me.user.id)
       .limit(200);
     return (data || []).map((r: any) => r.profile).filter(Boolean);

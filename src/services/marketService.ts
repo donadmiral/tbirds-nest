@@ -86,6 +86,31 @@ export const marketService = {
     return data as any;
   },
 
+  async getSavedIds(): Promise<Set<string>> {
+    const { data: me } = await supabase.auth.getUser();
+    if (!me?.user) return new Set();
+    const { data } = await supabase.from('saved_listings').select('listing_id').eq('user_id', me.user.id);
+    return new Set((data || []).map((r: any) => r.listing_id));
+  },
+
+  async getSavedListings(): Promise<Listing[]> {
+    const { data: me } = await supabase.auth.getUser();
+    if (!me?.user) return [];
+    const { data, error } = await supabase
+      .from('saved_listings')
+      .select(`listing:marketplace_listings(*, ${SELLER_SELECT})`)
+      .eq('user_id', me.user.id)
+      .order('created_at', { ascending: false });
+    if (error) { console.log('[marketService.getSavedListings]', error.message); return []; }
+    return (data || []).map((r: any) => r.listing).filter(Boolean);
+  },
+
+  async toggleSaved(listingId: string, on: boolean): Promise<void> {
+    const { data: me } = await supabase.auth.getUser();
+    if (!me?.user) return;
+    if (on) await supabase.from('saved_listings').upsert({ user_id: me.user.id, listing_id: listingId });
+    else await supabase.from('saved_listings').delete().eq('user_id', me.user.id).eq('listing_id', listingId);
+  },
   async myListings(userId: string): Promise<Listing[]> {
     const { data, error } = await supabase
       .from('marketplace_listings')

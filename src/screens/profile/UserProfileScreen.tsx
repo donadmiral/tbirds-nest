@@ -93,7 +93,7 @@ export default function UserProfileScreen() {
         supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', targetId),
         supabase.from('connections').select('id', { count: 'exact', head: true })
           .or(`requester_id.eq.${targetId},recipient_id.eq.${targetId}`).eq('status', 'accepted'),
-        supabase.from('orbits').select('id', { count: 'exact', head: true }).eq('following_id', targetId),
+        supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', targetId),
       ]);
       setStats({ posts: postsR.count ?? 0, connections: connR.count ?? 0, followers: followR.count ?? 0 });
 
@@ -141,7 +141,7 @@ export default function UserProfileScreen() {
         else if (conn.requester_id === myId) { setConnStatus('pending_sent'); setConnRequestId(conn.id); }
         else { setConnStatus('pending_received'); setConnRequestId(conn.id); }
 
-        const { data: orb } = await supabase.from('orbits').select('id')
+        const { data: orb } = await supabase.from('follows').select('id')
           .eq('follower_id', myId).eq('following_id', targetId).maybeSingle();
         setFollowing(!!orb);
 

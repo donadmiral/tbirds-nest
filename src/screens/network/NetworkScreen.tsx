@@ -183,7 +183,7 @@ export default function NetworkScreen({ navigation }: any) {
       setConnectionMap(cMap);
 
       const { data: orbitData } = await supabase
-        .from('orbits')
+        .from('follows')
         .select('following_id')
         .eq('follower_id', currentUserId);
 
@@ -406,9 +406,9 @@ export default function NetworkScreen({ navigation }: any) {
       setOrbitMap((p) => ({ ...p, [userId]: !was }));
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       if (was) {
-        await supabase.from('orbits').delete().eq('follower_id', currentUserId).eq('following_id', userId);
+        await supabase.from('follows').delete().eq('follower_id', currentUserId).eq('following_id', userId);
       } else {
-        await supabase.from('orbits').insert({ follower_id: currentUserId, following_id: userId });
+        await supabase.from('follows').insert({ follower_id: currentUserId, following_id: userId });
       }
     } catch (e) {
       setOrbitMap((p) => ({ ...p, [userId]: was }));

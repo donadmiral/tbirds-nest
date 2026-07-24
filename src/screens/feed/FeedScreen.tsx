@@ -135,6 +135,7 @@ export default function FeedScreen({ navigation }: any) {
     },
   })).current;
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState('');
@@ -397,7 +398,7 @@ export default function FeedScreen({ navigation }: any) {
 
   useEffect(() => {
     if (!userId) return;
-    supabase.from('orbits').select('following_id').eq('follower_id', userId).limit(1000)
+    supabase.from('follows').select('following_id').eq('follower_id', userId).limit(1000)
       .then(({ data }) => { if (data) setFollowingIds(new Set(data.map((r: any) => r.following_id))); });
   }, [userId]);
 
@@ -666,21 +667,24 @@ export default function FeedScreen({ navigation }: any) {
 
   const toggleFollow = useCallback(async (targetId: string) => {
     if (!userId || targetId === userId) return;
-    const was = followingIds.has(targetId);
-    setFollowingIds(prev => { const n = new Set(prev); if (was) n.delete(targetId); else n.add(targetId); return n; });
+    const wasFollowing = followingIds.has(targetId);
+    const wasRequested = requestedIds.has(targetId);
+
+    // Optimistic, exactly like Instagram: flip first, reconcile after.
+    setFollowingIds(prev => { const n = new Set(prev); if (wasFollowing) n.delete(targetId); else n.add(targetId); return n; });
+
     try {
-      if (was) {
-        const { error } = await supabase.from('orbits').delete().eq('follower_id', userId).eq('following_id', targetId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('orbits').insert({ follower_id: userId, following_id: targetId });
-        if (error && error.code !== '23505') throw error;
-      }
+      const { data, error } = await supabase.rpc('handle_follow_action', { p_target_id: targetId });
+      if (error) throw error;
+      const action = (data as any)?.action;
+      setFollowingIds(prev => { const n = new Set(prev); if (action === 'followed') n.add(targetId); else n.delete(targetId); return n; });
+      setRequestedIds(prev => { const n = new Set(prev); if (action === 'requested') n.add(targetId); else n.delete(targetId); return n; });
     } catch (e: any) {
-      setFollowingIds(prev => { const n = new Set(prev); if (was) n.add(targetId); else n.delete(targetId); return n; });
+      setFollowingIds(prev => { const n = new Set(prev); if (wasFollowing) n.add(targetId); else n.delete(targetId); return n; });
+      setRequestedIds(prev => { const n = new Set(prev); if (wasRequested) n.add(targetId); else n.delete(targetId); return n; });
       Alert.alert('Could not update follow', e?.message || 'Try again.');
     }
-  }, [userId, followingIds]);
+  }, [userId, followingIds, requestedIds]);
 
   const openSendSheet = useCallback(async (post: Post) => {
     if (!userId) return;
@@ -1137,20 +1141,21 @@ export default function FeedScreen({ navigation }: any) {
           </TouchableOpacity>
           {userId && post.user_id !== userId && (() => {
             const isFollowing = followingIds.has(post.user_id);
+            const isRequested = requestedIds.has(post.user_id);
             return (
               <TouchableOpacity
                 onPress={() => toggleFollow(post.user_id)}
                 activeOpacity={0.8}
                 style={[
                   { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, borderWidth: 1, marginRight: 6 },
-                  isFollowing
+                  isFollowing || isRequested
                     ? { borderColor: '#D8D8DC', backgroundColor: 'transparent' }
                     : { borderColor: NAVY, backgroundColor: NAVY },
                 ]}
                 accessibilityLabel={isFollowing ? 'Following' : 'Follow'}
               >
-                <Text style={{ fontSize: 12.5, fontWeight: '600', color: isFollowing ? '#3C3C43' : '#FFFFFF' }}>
-                  {isFollowing ? 'Following' : 'Follow'}
+                <Text style={{ fontSize: 12.5, fontWeight: '600', color: (isFollowing || isRequested) ? '#3C3C43' : '#FFFFFF' }}>
+                  {isFollowing ? 'Following' : isRequested ? 'Requested' : 'Follow'}
                 </Text>
               </TouchableOpacity>
             );

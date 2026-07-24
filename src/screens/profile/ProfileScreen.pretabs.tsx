@@ -142,8 +142,8 @@ export default function ProfileScreen() {
       const { count: postCount } = await supabase.from('posts').select('id',{count:'exact',head:true}).eq('user_id',userId);
       const { count: c1 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('requester_id',userId).eq('status','accepted');
       const { count: c2 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('recipient_id',userId).eq('status','accepted');
-      const { count: followerCount } = await supabase.from('orbits').select('id',{count:'exact',head:true}).eq('following_id',userId);
-      const { count: followingCount } = await supabase.from('orbits').select('id',{count:'exact',head:true}).eq('follower_id',userId);
+      const { count: followerCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('following_id',userId);
+      const { count: followingCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('follower_id',userId);
       setStats({ posts: postCount??0, connections:(c1??0)+(c2??0), followers: followerCount??0, following: followingCount??0 });
     } catch(e){ console.log('PROFILE_LOAD',e); }
     finally { setLoading(false); setRefreshing(false); }
@@ -276,10 +276,10 @@ export default function ProfileScreen() {
         const { data: r2 } = await supabase.from('connections').select('requester_id').eq('recipient_id',userId).eq('status','accepted');
         ids=[...(r1||[]).map((r:any)=>r.recipient_id),...(r2||[]).map((r:any)=>r.requester_id)];
       } else if (type==='followers') {
-        const { data } = await supabase.from('orbits').select('follower_id').eq('following_id',userId);
+        const { data } = await supabase.from('follows').select('follower_id').eq('following_id',userId);
         ids=(data||[]).map((r:any)=>r.follower_id);
       } else {
-        const { data } = await supabase.from('orbits').select('following_id').eq('follower_id',userId);
+        const { data } = await supabase.from('follows').select('following_id').eq('follower_id',userId);
         ids=(data||[]).map((r:any)=>r.following_id);
       }
       if (ids.length>0) { const { data: people } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id',ids); setStatsPeople((people||[]) as Person[]); }
