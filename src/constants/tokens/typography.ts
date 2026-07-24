@@ -19,6 +19,8 @@
 export const typeSize = {
   /** 11px - Micro labels. Section headers, uppercase markers. */
   micro: 11,
+  /** 12px - Small. Dense metadata, badge and chip text. */
+  small: 12,
   /** 13px - Captions. Timestamps, metadata, subtle info. */
   caption: 13,
   /** 14px - Body. Messages, descriptions, input text. */
@@ -27,8 +29,12 @@ export const typeSize = {
   emphasis: 15,
   /** 16px - Subhead. Modal titles, section names. */
   subhead: 16,
+  /** 19px - Heading. Screen section headings, card titles. */
+  heading: 19,
   /** 20px - Title. Menu items, prominent labels. */
   title: 20,
+  /** 28px - Display. Screen titles, wordmark. */
+  display: 28,
 } as const;
 
 // ── Line Height multipliers ──
