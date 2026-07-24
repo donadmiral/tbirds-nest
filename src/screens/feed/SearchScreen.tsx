@@ -223,7 +223,17 @@ export default function SearchScreen({ navigation }: any) {
       <StatusBar barStyle="dark-content" />
 
       <View style={s.header}>
-        <Text style={s.title}>Search</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Feather name="chevron-left" size={26} color="#000" />
+          </TouchableOpacity>
+          <Text style={s.title}>Search</Text>
+        </View>
         <View style={s.searchBox}>
           <Feather name="search" size={16} color="#8E8E93" />
           <TextInput
@@ -279,6 +289,8 @@ export default function SearchScreen({ navigation }: any) {
             ) : null
           }
           contentContainerStyle={[{ paddingBottom: insets.bottom + 40 }, !recent.length && { flexGrow: 1 }]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           ListEmptyComponent={
             <View style={s.emptyIntro}>
               <Feather name="search" size={44} color="#E5E5EA" />
