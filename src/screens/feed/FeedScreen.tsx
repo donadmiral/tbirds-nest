@@ -1146,7 +1146,33 @@ export default function FeedScreen({ navigation }: any) {
         </View>
 
         <TouchableOpacity activeOpacity={0.95} onPress={() => handleDoubleTap(post.id, openPost)}>
-          <Text style={s.content}>{renderRichText(post.content, openHashtag, openMention)}</Text>
+          {(post as any).article_title ? (
+            <TouchableOpacity
+              style={s.articleCard}
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('ArticleReader', { article: {
+                title: (post as any).article_title,
+                body: post.content,
+                cover: post.media?.[0]?.media_type === 'image' ? post.media[0].url : ((post as any).media_url || null),
+                author: author?.full_name || 'Member',
+                readMinutes: (post as any).read_minutes || null,
+              } })}
+            >
+              {post.media?.[0]?.media_type === 'image' ? (
+                <Image source={{ uri: post.media[0].url }} style={s.articleCover} />
+              ) : null}
+              <View style={s.articleBody}>
+                <Text style={s.articleKicker}>ARTICLE</Text>
+                <Text style={s.articleTitle} numberOfLines={3}>{(post as any).article_title}</Text>
+                <Text style={s.articleExcerpt} numberOfLines={2}>{post.content}</Text>
+                <Text style={s.articleMeta}>
+                  {(post as any).read_minutes ? (post as any).read_minutes + ' min read' : 'Read article'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <Text style={s.content}>{renderRichText(post.content, openHashtag, openMention)}</Text>
+          )}
         </TouchableOpacity>
         {(() => {
           const qid = post.quoted_post_id;
@@ -1764,6 +1790,13 @@ export default function FeedScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
+  articleCard: { borderWidth: StyleSheet.hairlineWidth, borderColor: '#D8D8DC', borderRadius: 16, overflow: 'hidden', marginTop: 6, backgroundColor: '#FFFFFF' },
+  articleCover: { width: '100%', height: 170, backgroundColor: '#EFEFF4' },
+  articleBody: { padding: 14 },
+  articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: '#D97706' },
+  articleTitle: { fontSize: 19, fontWeight: '800', color: '#0A0A0A', letterSpacing: -0.5, lineHeight: 24, marginTop: 5 },
+  articleExcerpt: { fontSize: 14.5, color: '#4B5563', lineHeight: 20, marginTop: 6 },
+  articleMeta: { fontSize: 12.5, fontWeight: '600', color: '#8E8E93', marginTop: 10 },
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: '#FFFFFF' },
