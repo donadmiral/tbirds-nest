@@ -40,7 +40,6 @@ import { uploadMedia } from '../../services/mediaService';
 import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
-import ChatInfoSections from '../../components/ChatInfoSections';
 import CallEventBubble from '../../components/CallEventBubble';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -1896,40 +1895,8 @@ export default function ChatScreen() {
               </View>
             )}
 
-              <ChatInfoSections
-                conversationId={conversationId}
-                otherUserId={otherUser?.id ?? passedUserId ?? null}
-                otherName={chatTitle}
-                isGroup={isGroup}
-                muted={infoMuted}
-                onToggleMute={async () => {
-                  const next = !infoMuted;
-                  setInfoMuted(next);
-                  if (conversationId && currentUserId) {
-                    await supabase.from('conversation_settings').upsert(
-                      { conversation_id: conversationId, user_id: currentUserId, is_muted: next, updated_at: new Date().toISOString() },
-                      { onConflict: 'conversation_id,user_id' });
-                  }
-                }}
-                onClose={() => setShowInfoModal(false)}
-                navigation={navigation}
-              />
-
             {!isAffiliationConversation && !isGroup && (
               <View style={s.infoSection}>
-                  <TouchableOpacity style={[s.infoDanger, { backgroundColor: '#F4F5F7', marginBottom: 10 }]} onPress={() => {
-                    Alert.alert('Clear this chat?', 'Messages disappear for you only. The other person keeps their copy.', [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Clear', style: 'destructive', onPress: async () => {
-                        const { error } = await supabase.rpc('clear_conversation', { p_conversation_id: conversationId });
-                        if (error) { Alert.alert('Could not clear', error.message); return; }
-                        setMessages([]);
-                        setShowInfoModal(false);
-                      }},
-                    ]);
-                  }}>
-                    <Text style={[s.infoDangerTxt, { color: TEXT_SECONDARY }]}>Clear chat</Text>
-                  </TouchableOpacity>
                 <TouchableOpacity style={s.infoDanger} onPress={() => {
                   Alert.alert('Block user?', `${chatTitle} will not be able to message you.`, [
                     { text: 'Cancel', style: 'cancel' },
