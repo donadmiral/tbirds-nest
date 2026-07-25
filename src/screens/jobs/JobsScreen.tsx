@@ -7,6 +7,8 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+import { useFocusEffect } from '@react-navigation/native';
+import { useUnreadStore } from '../../stores/unreadStore';
 import { supabase } from '../../services/supabase';
 import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope } from '../../services/jobsService';
 import { useAuthStore } from '../../stores/authStore';
@@ -115,6 +117,8 @@ export default function JobsScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
 
   const [activeTab, setActiveTab] = useState<string>('all');
+  const jobsUnread = useUnreadStore(st => st.counts.jobs);
+  useFocusEffect(useCallback(() => { useUnreadStore.getState().refresh(); }, []));
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'salary' | 'urgent'>('recent');
   const [scopeMode, setScopeMode] = useState<JobScope>('all');
   const [search, setSearch] = useState('');
@@ -548,6 +552,9 @@ export default function JobsScreen({ navigation }: any) {
           <View style={s.hsTopRow}>
             <Text style={s.hsPageTitle}>Jobs</Text>
             <View style={s.hsTopActions}>
+              <TouchableOpacity onPress={() => navigation.navigate('JobsInbox')} style={s.hsTopBtn}>
+                <Text style={s.hsTopBtnTxt}>Messages{jobsUnread > 0 ? ' ' + (jobsUnread > 99 ? '99+' : jobsUnread) : ''}</Text>
+              </TouchableOpacity>
               <TouchableOpacity onPress={() => setShowSaved(true)} style={s.hsTopBtn}>
                 <Text style={s.hsTopBtnTxt}>Saved{savedIds.size > 0 ? ' ' + savedIds.size : ''}</Text>
               </TouchableOpacity>

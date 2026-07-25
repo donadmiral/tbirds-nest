@@ -58,6 +58,7 @@ import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import BlockedAccountsScreen from '../screens/profile/BlockedAccountsScreen';
 import CreateBusinessScreen from '../screens/profile/CreateBusinessScreen';
 import BusinessesScreen from '../screens/profile/BusinessesScreen';
+import ContextInboxScreen from '../screens/messages/ContextInboxScreen';
 import BusinessManageScreen from '../screens/profile/BusinessManageScreen';
 import SavedPostsScreen from '../screens/feed/SavedPostsScreen';
 import SettingsScreen             from '../screens/profile/SettingsScreen';
@@ -111,6 +112,7 @@ function NetworkStackNav() {
       <NetworkStack.Screen name="MarketMain"     component={MarketScreen} />
       <NetworkStack.Screen name="ListingDetail"  component={ListingDetailScreen} />
       <NetworkStack.Screen name="CreateListing"  component={CreateListingScreen} />
+      <NetworkStack.Screen name="MarketInbox"   component={ContextInboxScreen} initialParams={{ context: 'market' }} />
     </NetworkStack.Navigator>
   );
 }
@@ -119,6 +121,7 @@ function JobsStackNav() {
   return (
     <JobsStack.Navigator screenOptions={{ headerShown: false }}>
       <JobsStack.Screen name="JobsMain" component={JobsScreen} />
+      <JobsStack.Screen name="JobsInbox" component={ContextInboxScreen} initialParams={{ context: 'jobs' }} />
     </JobsStack.Navigator>
   );
 }

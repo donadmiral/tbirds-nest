@@ -9,6 +9,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { useUnreadStore } from '../../stores/unreadStore';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import * as Haptics from 'expo-haptics';
@@ -63,7 +64,8 @@ export default function ConversationsScreen({ navigation }: any) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch]  = useState('');
-  const [tab, setTab]        = useState<'all' | 'market' | 'jobs' | 'groups' | 'unread'>('all');
+  const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
+  useFocusEffect(useCallback(() => { useUnreadStore.getState().refresh(); }, []));
 
   const mountedRef = useRef(true);
   const initialLoadDoneRef = useRef(false);
@@ -397,13 +399,14 @@ export default function ConversationsScreen({ navigation }: any) {
   // ── Filter ────────────────────────────────────────────────────────────────
 
   const filtered = conversations.filter(c => {
+    // Market and job conversations live in their own tabs now, never here.
+    const ctxOf = (c as any).context || 'personal';
+    if (ctxOf === 'market' || ctxOf === 'jobs') return false;
     if (c.is_archived && tab !== 'all') return false; // archived only in All
     const matchSearch = !search || c.other_name.toLowerCase().includes(search.toLowerCase());
     const ctx = (c as any).context || 'personal';
     const matchTab = tab === 'all'
       ? ctx === 'personal'
-      : tab === 'market' ? ctx === 'market'
-      : tab === 'jobs' ? ctx === 'jobs'
       : tab === 'unread' ? c.unread_count > 0
       : tab === 'groups' ? c.is_group
       : true;
@@ -496,10 +499,10 @@ export default function ConversationsScreen({ navigation }: any) {
 
       {/* Tabs */}
       <View style={s.tabs}>
-        {(['all', 'market', 'jobs', 'groups', 'unread'] as const).map(t => (
+        {(['all', 'groups', 'unread'] as const).map(t => (
           <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)} activeOpacity={0.8}>
             <Text style={[s.tabTxt, tab === t && s.tabTxtActive]}>
-              {t === 'all' ? 'Chats' : t === 'market' ? 'Market' : t === 'jobs' ? 'Jobs' : t === 'groups' ? 'Groups' : 'Unread'}
+              {t === 'all' ? 'Chats' : t === 'groups' ? 'Groups' : 'Unread'}
             </Text>
           </TouchableOpacity>
         ))}

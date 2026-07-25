@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+import { useUnreadStore } from '../../stores/unreadStore';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useFocusEffect } from '@react-navigation/native';
@@ -40,6 +41,8 @@ export default function MarketScreen({ navigation }: any) {
   const [category, setCategory] = useState<string | null>(null);
   const [filters, setFilters] = useState<MarketFilters>(EMPTY_FILTERS);
   const [marketTab, setMarketTab] = useState<'browse' | 'saved' | 'selling'>('browse');
+  const marketUnread = useUnreadStore(st => st.counts.market);
+  useFocusEffect(React.useCallback(() => { useUnreadStore.getState().refresh(); }, []));
   const { profile: meProfile } = useAuthStore();
   const [filterOpen, setFilterOpen] = useState(false);
   const searchTimer = useRef<any>(null);
@@ -113,6 +116,21 @@ export default function MarketScreen({ navigation }: any) {
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.header}>
         <Text style={s.headerTitle}>Market</Text>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity
+          style={{ width: 38, height: 38, alignItems: 'center', justifyContent: 'center' }}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('MarketInbox')}
+          accessibilityRole="button"
+          accessibilityLabel="Market messages"
+        >
+          <Feather name="message-circle" size={21} color="#0B1E3D" />
+          {marketUnread > 0 ? (
+            <View style={{ position: 'absolute', top: 4, right: 3, minWidth: 17, height: 17, borderRadius: 9, paddingHorizontal: 4, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>{marketUnread > 99 ? '99+' : marketUnread}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
         <TouchableOpacity
           style={s.headerBtn}
           activeOpacity={0.8}
