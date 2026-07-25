@@ -16,6 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import { PostMedia } from '../../components/MediaRenderer';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import { useFocusEffect } from '@react-navigation/native';
+import { light } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import * as Haptics from 'expo-haptics';
@@ -32,6 +33,7 @@ type Comment = {
   user_id: string;
   body: string;
   parent_comment_id?: string | null;
+  dislikes_count?: number;
   likes_count: number;
   created_at: string;
   replies: Comment[];
@@ -107,9 +109,9 @@ export default function PostScreen({ route, navigation }: any) {
 
   const [commentData, setCommentData] = useState<{
     items: Comment[];
-    likedIds: Record<string, boolean>;
+    reactions: Record<string, number>;
     loaded: boolean;
-  }>({ items: [], likedIds: {}, loaded: false });
+  }>({ items: [], reactions: {}, loaded: false });
 
   const [loading, setLoading] = useState(true);
   const [screenFocused, setScreenFocused] = useState(false);
@@ -187,7 +189,7 @@ export default function PostScreen({ route, navigation }: any) {
 
       const { data: rows, error: cErr } = await supabase
         .from('post_comments')
-        .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, created_at')
+        .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
@@ -220,14 +222,15 @@ export default function PostScreen({ route, navigation }: any) {
       }));
 
       const allCommentIds = allRows.map((c: any) => c.id);
-      let likedIds: Record<string, boolean> = {};
+      const reactions: Record<string, number> = {};
       if (userId && allCommentIds.length > 0) {
-        const { data: cl } = await supabase.from('comment_likes')
-          .select('comment_id').eq('user_id', userId).in('comment_id', allCommentIds);
-        (cl ?? []).forEach((r: any) => { likedIds[r.comment_id] = true; });
+        const { data: cr, error: crErr } = await supabase.from('comment_reactions')
+          .select('comment_id, value').eq('user_id', userId).in('comment_id', allCommentIds);
+        if (crErr) console.log('[COMMENT_REACTIONS]', crErr.message);
+        (cr ?? []).forEach((r: any) => { reactions[r.comment_id] = r.value; });
       }
 
-      setCommentData({ items: hydrated, likedIds, loaded: true });
+      setCommentData({ items: hydrated, reactions, loaded: true });
     } catch (e) {
       console.log('LOAD_POST_CATCH', e);
       setCommentData(prev => ({ ...prev, loaded: true }));
@@ -272,20 +275,41 @@ export default function PostScreen({ route, navigation }: any) {
     }
   };
 
-  const toggleCommentLike = async (commentId: string) => {
+  /**
+   * One entry point for both reactions. Tapping the active one clears it,
+   * tapping the other flips it. The server returns the authoritative counts so
+   * the UI never has to guess what a flip did to two numbers at once.
+   */
+  const reactToComment = async (commentId: string, value: 1 | -1) => {
     if (!userId) return;
-    const was = commentData.likedIds[commentId];
+    const prevValue = commentData.reactions[commentId] ?? 0;
+    const nextValue = prevValue === value ? 0 : value;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setCommentData(prev => ({
-      ...prev,
-      likedIds: { ...prev.likedIds, [commentId]: !was },
-      items: prev.items.map(c => {
-        if (c.id === commentId) return { ...c, likes_count: Math.max(0, c.likes_count + (was ? -1 : 1)) };
-        return { ...c, replies: c.replies.map(r => r.id === commentId ? { ...r, likes_count: Math.max(0, r.likes_count + (was ? -1 : 1)) } : r) };
-      }),
-    }));
-    if (was) await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', userId);
-    else await supabase.from('comment_likes').insert({ comment_id: commentId, user_id: userId });
+
+    const applyCounts = (id: string, likes?: number, dislikes?: number) =>
+      setCommentData(prev => ({
+        ...prev,
+        reactions: { ...prev.reactions, [id]: nextValue },
+        items: prev.items.map(c => {
+          const patch = (t: any) => t.id === id
+            ? { ...t, likes_count: likes ?? t.likes_count, dislikes_count: dislikes ?? t.dislikes_count }
+            : t;
+          return { ...patch(c), replies: c.replies.map(patch) };
+        }),
+      }));
+
+    applyCounts(commentId);
+
+    const { data, error } = await supabase.rpc('set_comment_reaction', {
+      p_comment_id: commentId,
+      p_value: value,
+    });
+    if (error) {
+      console.log('[COMMENT_REACTION]', error.message);
+      setCommentData(prev => ({ ...prev, reactions: { ...prev.reactions, [commentId]: prevValue } }));
+      return;
+    }
+    applyCounts(commentId, (data as any)?.likes, (data as any)?.dislikes);
   };
 
   const handleMentionTap = async (username: string) => {
@@ -341,7 +365,9 @@ export default function PostScreen({ route, navigation }: any) {
   };
 
   const renderComment = (c: Comment, isReply = false): React.ReactElement => {
-    const isLiked = !!commentData.likedIds[c.id];
+    const myReaction = commentData.reactions[c.id] ?? 0;
+    const isLiked = myReaction === 1;
+    const isDisliked = myReaction === -1;
     const isOwn = c.user_id === userId;
     const a = c.author;
     return (
@@ -371,7 +397,22 @@ export default function PostScreen({ route, navigation }: any) {
             style={s.commentBody}
           />
           <View style={s.commentActions}>
-            <TouchableOpacity style={s.commentAction} onPress={() => toggleCommentLike(c.id)} activeOpacity={0.75}>
+            <TouchableOpacity
+              style={s.commentAction}
+              onPress={() => reactToComment(c.id, -1)}
+              activeOpacity={0.75}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={isDisliked ? 'Remove dislike' : 'Dislike comment'}
+            >
+              <Feather name="thumbs-down" size={13} color={isDisliked ? light.status.danger : light.ink.muted} />
+              {(c.dislikes_count ?? 0) > 0 && (
+                <Text style={[s.commentActionTxt, isDisliked && { color: light.status.danger }]}>
+                  {c.dislikes_count}
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={s.commentAction} onPress={() => reactToComment(c.id, 1)} activeOpacity={0.75}>
               <Feather name="heart" size={13} color={isLiked ? '#FF3B30' : TEXT_SECONDARY} />
               {c.likes_count > 0 && <Text style={[s.commentActionTxt, isLiked && { color: '#FF3B30' }]}>{c.likes_count}</Text>}
             </TouchableOpacity>
