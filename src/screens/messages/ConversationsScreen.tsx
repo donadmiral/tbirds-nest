@@ -10,6 +10,7 @@ import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUnreadStore } from '../../stores/unreadStore';
+import { storiesService } from '../../services/storiesService';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import * as Haptics from 'expo-haptics';
@@ -65,6 +66,19 @@ export default function ConversationsScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch]  = useState('');
   const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
+  // Reuses the same source the story strip draws from, so a ring here and a
+  // ring on the feed never disagree.
+  const [storyRings, setStoryRings] = useState<Record<string, boolean>>({});
+  useFocusEffect(useCallback(() => {
+    let alive = true;
+    storiesService.getCatchupFeed('all', 60).then(users => {
+      if (!alive) return;
+      const map: Record<string, boolean> = {};
+      (users || []).forEach((u: any) => { if (u?.user_id) map[u.user_id] = !!u.has_unseen; });
+      setStoryRings(map);
+    });
+    return () => { alive = false; };
+  }, []));
   useFocusEffect(useCallback(() => { useUnreadStore.getState().refresh(); }, []));
 
   const mountedRef = useRef(true);
@@ -417,6 +431,12 @@ export default function ConversationsScreen({ navigation }: any) {
 
   const renderItem = ({ item }: { item: Conversation }) => {
     const hasUnread = item.unread_count > 0;
+    const storyRing = !item.is_group && item.other_user_id ? storyRings[item.other_user_id] : undefined;
+    const ringStyle = storyRing === undefined
+      ? null
+      : storyRing
+        ? { borderWidth: 3, borderColor: '#B08D3F' }
+        : { borderWidth: 2, borderColor: 'rgba(11,30,61,0.20)' };
     return (
       <TouchableOpacity
         style={[s.card, item.is_archived && s.cardArchived]}
@@ -425,7 +445,16 @@ export default function ConversationsScreen({ navigation }: any) {
         activeOpacity={0.85}
       >
         {/* Avatar */}
-        <View style={s.cardAvatarWrap}>
+        <TouchableOpacity
+          style={[s.cardAvatarWrap, ringStyle]}
+          activeOpacity={storyRing === undefined ? 1 : 0.75}
+          onPress={() => {
+            if (storyRing === undefined || !item.other_user_id) { openChat(item); return; }
+            navigation.navigate('StoryViewer', { userIds: [item.other_user_id], startUserId: item.other_user_id });
+          }}
+          accessibilityRole='button'
+          accessibilityLabel={storyRing === undefined ? 'Open chat' : 'View story'}
+        >
           {item.other_avatar
             ? <Image source={{ uri: item.other_avatar }} style={s.cardAvatar} fadeDuration={200} />
             : item.is_group
@@ -436,7 +465,7 @@ export default function ConversationsScreen({ navigation }: any) {
                   <Text style={s.cardAvatarTxt}>{initials(item.other_name)}</Text>
                 </View>}
           {item.is_pinned && <View style={s.pinBadge}><Text style={s.pinBadgeTxt}>📌</Text></View>}
-        </View>
+        </TouchableOpacity>
 
         {/* Body */}
         <View style={s.cardBody}>
@@ -541,6 +570,7 @@ export default function ConversationsScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
+
   safe: { flex: 1, backgroundColor: '#FFF' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
@@ -558,7 +588,7 @@ const s = StyleSheet.create({
   sectionLabel: { fontSize: 11, fontWeight: '700', color: '#8E8E93', letterSpacing: 0.8 },
   card: { flexDirection: 'row', alignItems: 'center', gap: 13, backgroundColor: '#FFFFFF', borderRadius: 0, paddingHorizontal: 16, paddingVertical: 10 },
   cardArchived: { opacity: 0.6 },
-  cardAvatarWrap: { position: 'relative' },
+  cardAvatarWrap: { position: 'relative', padding: 2.5, borderRadius: 30, borderWidth: 0, borderColor: 'transparent' },
   cardAvatar: { width: 49, height: 49, borderRadius: 24.5 },
   cardAvatarTxt: { fontSize: 18, fontWeight: '800', color: '#FFF' },
   pinBadge: { position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
