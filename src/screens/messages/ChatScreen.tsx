@@ -53,7 +53,7 @@ const REACTION_EMOJIS = ['❤️', '😂', '👍', '😮', '😢', '🔥', '🎯
 
 const NAVY = '#0B1E3D';
 const NAVY_SOFT = '#1A3560';
-const BUBBLE_OTHER = '#F2F2F7';
+const BUBBLE_OTHER = '#FFFFFF';
 const TEXT_PRIMARY = '#000000';
 const TEXT_SECONDARY = '#8E8E93';
 const HAIRLINE = '#E5E5EA';
@@ -1114,6 +1114,22 @@ export default function ChatScreen() {
     })();
   }, [messages, paymentsMap]);
 
+
+  // The list is inverted, so index - 1 renders BELOW this message. A run ends
+  // where the message below comes from someone else or after a gap. Only the
+  // bottom of a run gets a tail, an avatar and a timestamp.
+  const groupEnds = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    for (let i = 0; i < messages.length; i++) {
+      const mm = messages[i];
+      const below = messages[i - 1];
+      const continues = !!below
+        && below.sender_id === mm.sender_id
+        && Math.abs(new Date(below.created_at ?? 0).getTime() - new Date(mm.created_at ?? 0).getTime()) < 120000;
+      map[mm.id] = !continues;
+    }
+    return map;
+  }, [messages]);
   const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string } | null }>>({});
   useEffect(() => {
     const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
@@ -1153,6 +1169,7 @@ export default function ChatScreen() {
     }
     const msg: MessageItem = item.data;
     const isMe = msg.sender_id === currentUserId;
+    const endsGroup = groupEnds[msg.id] !== false;
     const status = getStatus(msg, isMe, item.index);
     const showTs = showTimestamp === msg.id;
     const reactions = msg._reactions || [];
@@ -1167,7 +1184,7 @@ export default function ChatScreen() {
     // quietly changing shape.
     if ((msg as any).deleted_at) {
       return (
-        <View style={[s.row, isMe ? s.rowMe : s.rowOther]}>
+        <View style={[s.row, isMe ? s.rowMe : s.rowOther, endsGroup && s.rowEndsGroup]}>
           <View style={{
             flexDirection: 'row', alignItems: 'center', gap: 6,
             paddingHorizontal: 13, paddingVertical: 9, borderRadius: 18,
@@ -1186,7 +1203,7 @@ export default function ChatScreen() {
     return (
       <View style={[s.row, isMe ? s.rowMe : s.rowOther]}>
         {!isMe && (
-          <View style={s.sideAvatarSlot}>
+          <View style={[s.sideAvatarSlot, !endsGroup && { opacity: 0 }]}>
             {otherUser?.avatar_url
               ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.sideAvatar} contentFit="cover" />
               : <View style={s.sideAvatarFb}><Text style={s.sideAvatarTxt}>{otherInits}</Text></View>}
@@ -1246,6 +1263,7 @@ export default function ChatScreen() {
             <View style={[
               s.bubble,
               isMe ? (replyPreview ? s.bubbleMeFlat : s.bubbleMe) : (replyPreview ? s.bubbleOtherFlat : s.bubbleOther),
+                !endsGroup && s.bubbleInRun,
             ]}>
               {(msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url ? (
                 <View style={{ marginBottom: msg.text ? 8 : 0 }}>
@@ -2155,7 +2173,7 @@ const s = StyleSheet.create({
   ctxLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1, color: '#8E8E93' },
   ctxTitle: { fontSize: 14.5, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.2, marginTop: 2 },
   ctxSub: { fontSize: 12.5, fontWeight: '500', color: '#6B7280', marginTop: 1 },
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  safe: { flex: 1, backgroundColor: '#F6F5F2' },
   flex: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 10, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE, minHeight: 58, gap: 8 },
   backBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
@@ -2170,12 +2188,14 @@ const s = StyleSheet.create({
   hSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
   headerActions: { flexDirection: 'row', gap: 4, alignItems: 'center' },
   hActionBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  list: { paddingHorizontal: 0, paddingTop: 10, paddingBottom: 6, flexGrow: 1 },
+  list: { paddingHorizontal: 0, paddingTop: 14, paddingBottom: 10, flexGrow: 1 },
   sep: { alignItems: 'center', paddingVertical: 14 },
-  sepTxt: { fontSize: 12, color: '#54656F', fontWeight: '600', letterSpacing: 0.2, backgroundColor: '#FFFFFF', overflow: 'hidden', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  row: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 2, paddingHorizontal: 9 },
+  sepTxt: { fontSize: 12, color: '#54656F', fontWeight: '600', letterSpacing: 0.2, backgroundColor: '#FFFFFF', overflow: 'hidden', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5, shadowColor: '#000', shadowOpacity: 0, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  row: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 4, paddingHorizontal: 12 },
   rowMe: { justifyContent: 'flex-end' },
   rowOther: { justifyContent: 'flex-start' },
+  rowEndsGroup: { marginBottom: 10 },
+  bubbleInRun: { borderBottomRightRadius: 20, borderBottomLeftRadius: 20 },
   sideAvatarSlot: { width: 28, marginRight: 6, alignItems: 'center', justifyContent: 'flex-end', marginBottom: 2 },
   sideAvatar: { width: 28, height: 28, borderRadius: 14 },
   sideAvatarFb: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
@@ -2183,11 +2203,11 @@ const s = StyleSheet.create({
   bubbleCol: { maxWidth: '78%', flexShrink: 1 },
   bubbleColMe: { alignItems: 'flex-end' },
   bubbleColOther: { alignItems: 'flex-start' },
-  bubble: { paddingHorizontal: 10, paddingVertical: 7, position: 'relative', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  bubbleMe: { backgroundColor: NAVY, borderRadius: 8, borderTopRightRadius: 3 },
-  bubbleOther: { backgroundColor: BUBBLE_OTHER, borderRadius: 8, borderTopLeftRadius: 3 },
-  bubbleMeFlat: { backgroundColor: NAVY, borderRadius: 8 },
-  bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 8 },
+  bubble: { paddingHorizontal: 13, paddingVertical: 9, position: 'relative', shadowColor: '#000', shadowOpacity: 0, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  bubbleMe: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
+  bubbleOther: { backgroundColor: '#FFFFFF', borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.07)' },
+  bubbleMeFlat: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
+  bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.07)' },
   bubbleTxt: { fontSize: 15.5, lineHeight: 20, letterSpacing: -0.1 },
   bubbleTxtMe: { color: '#FFFFFF' },
   bubbleTxtOther: { color: TEXT_PRIMARY },
@@ -2229,7 +2249,7 @@ const s = StyleSheet.create({
   reactionPillMine: { backgroundColor: '#E8EEF8', borderColor: NAVY },
   reactionEmoji: { fontSize: 14 },
   reactionCount: { fontSize: 11, fontWeight: '600', color: '#3C3C43' },
-  status: { fontSize: 10.5, marginTop: 4, color: TEXT_SECONDARY, fontWeight: '500' },
+  status: { fontSize: 11, marginTop: 5, color: TEXT_SECONDARY, fontWeight: '500', letterSpacing: 0.1 },
   statusMe: { textAlign: 'right', marginRight: 4 },
   statusOther: { marginLeft: 4 },
   tsLabel: { fontSize: 10.5, color: TEXT_SECONDARY, marginTop: 2 },
