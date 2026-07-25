@@ -10,3 +10,17 @@ _audit.zip
 _full-source.zip
 *.bak
 
+
+# patch-script backups
+*.feedbak
+*.errbak
+*.bannerbak
+*.seenbak
+*.viewbak
+*.dwellbak
+*.insbak
+*.trendbak
+*.reactbak
+*.searchbak
+*.tokenbak
+
