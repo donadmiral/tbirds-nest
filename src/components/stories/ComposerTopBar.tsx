@@ -105,7 +105,7 @@ const s = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.26)',
     shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
   textBtnLabel: {
@@ -114,7 +114,7 @@ const s = StyleSheet.create({
   countBadge: {
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 14, paddingHorizontal: 11, paddingVertical: 5,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.26)',
     shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1,
   },
   countBadgeTxt: { color: '#FFF', fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },

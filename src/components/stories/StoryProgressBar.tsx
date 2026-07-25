@@ -47,6 +47,6 @@ export default function StoryProgressBar({ progressSV, currentIndex, totalStorie
 
 const s = StyleSheet.create({
   wrap: { position: 'absolute', left: 8, right: 8, flexDirection: 'row', gap: 3, zIndex: 40 },
-  track: { flex: 1, height: 2.5, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.32)', overflow: 'hidden' },
+  track: { flex: 1, height: 2.5, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.34)', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } },
   fill: { height: '100%', borderRadius: 2, backgroundColor: '#FFFFFF' },
 });
