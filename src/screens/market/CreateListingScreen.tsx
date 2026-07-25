@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+import { authorId as currentAuthorId } from '../../stores/actorStore';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 
@@ -91,7 +92,7 @@ export default function CreateListingScreen({ navigation }: any) {
       if (failed.length) console.log('[CreateListing] some images failed:', failed.length);
 
       await marketService.createListing({
-        seller_id: userId,
+        seller_id: currentAuthorId(userId) ?? userId,
         title: title.trim(),
         description: description.trim(),
         price: priceNumber,

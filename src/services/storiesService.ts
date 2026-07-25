@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { authorId as currentAuthorId } from '../stores/actorStore';
 
 export type StoryMediaType = 'image' | 'video' | 'text';
 export type StoryScope = 'institution' | 'affiliation' | 'global';
@@ -396,7 +397,7 @@ export async function uploadAndCreateStory(params: {
   }
 
   const insertPayload: any = {
-    user_id: userId,
+    user_id: currentAuthorId(userId) ?? userId,
     media_url: mediaPublicUrl,
     media_type: mediaType,
     thumbnail_url: thumbnailUrl,

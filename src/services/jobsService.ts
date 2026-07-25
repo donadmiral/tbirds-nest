@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { authorId as currentAuthorId } from '../stores/actorStore';
 
 /**
  * Canonical jobs service. Every jobs call in the app goes through this.
@@ -218,7 +219,7 @@ export const jobsService = {
     const { data, error } = await supabase
       .from('jobs')
       .insert({
-        posted_by: userId,
+        posted_by: currentAuthorId(userId) ?? userId,
         title: input.title,
         company: input.company,
         location: input.location || null,
