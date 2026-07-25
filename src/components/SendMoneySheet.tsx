@@ -2,7 +2,7 @@
  * SendMoneySheet - Apple Cash flow.
  * Link once, then: amount -> Pay or Request -> biometric confirm.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { paymentsService } from '../services/paymentsService';
@@ -18,12 +18,16 @@ type Props = {
   conversationId: string;
   onSent?: (amount: number, currency: string, txId: string) => void;
   onRequested?: (amount: number, currency: string) => void;
+  /** When the payment is for a Market listing, so the record says what was bought. */
+  listingId?: string | null;
+  /** Pre-fills the keypad, e.g. a listing price. */
+  initialAmount?: number | null;
 };
 
 const KEYS = ['1','2','3','4','5','6','7','8','9','.','0','del'];
 
 export default function SendMoneySheet({
-  visible, onClose, recipientId, recipientName, conversationId, onSent, onRequested,
+  visible, onClose, recipientId, recipientName, conversationId, onSent, onRequested, listingId, initialAmount,
 }: Props) {
   const [checking, setChecking] = useState(true);
   const [linked, setLinked] = useState(false);
@@ -33,10 +37,16 @@ export default function SendMoneySheet({
   const [wallet, setWallet] = useState<any>(null);
   const [raw, setRaw] = useState('0');
   const [busy, setBusy] = useState(false);
+  // One key per intent, not per tap. A retry after a timeout reuses it, which is
+  // what stops the bridge charging twice.
+  const idemKeyRef = useRef<string>("");
 
   useEffect(() => {
     if (!visible) return;
-    setChecking(true); setEmail(''); setOtp(''); setOtpSent(false); setRaw('0');
+    setChecking(true); setEmail(''); setOtp(''); setOtpSent(false);
+    setRaw(initialAmount && initialAmount > 0 ? String(initialAmount) : '0');
+    idemKeyRef.current =
+      Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     paymentsService.getBalance()
       .then(r => { setLinked(!!r?.linked); setWallet(r?.linked ? r : null); })
       .catch(() => { setLinked(false); setWallet(null); })
@@ -91,7 +101,11 @@ export default function SendMoneySheet({
     if (amount <= 0) return;
     setBusy(true);
     try {
-      const r = await paymentsService.sendMoney({ recipientId, amount, conversationId });
+      const r = await paymentsService.sendMoney({
+        recipientId, amount, conversationId,
+        listingId: listingId ?? null,
+        idempotencyKey: idemKeyRef.current,
+      });
       if (r?.success) { onSent?.(amount, r.currency || 'USD', r.tx_id); onClose(); }
       else Alert.alert('Not sent', r?.error || 'Please try again.');
     } catch (e: any) {

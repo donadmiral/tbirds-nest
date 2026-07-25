@@ -82,7 +82,8 @@ Deno.serve(async (req) => {
     }
 
     if (req.method === "POST" && action === "pay") {
-      const { recipient_id, amount, currency = "USD", conversation_id, note } = await req.json();
+      const body = await req.json();
+      const { recipient_id, amount, currency = "USD", conversation_id, note, idempotency_key } = body;
       if (!recipient_id || !amount || !conversation_id) {
         return json({ success: false, error: "Missing recipient_id, amount or conversation_id" }, 400);
       }
@@ -97,12 +98,47 @@ Deno.serve(async (req) => {
         return json({ success: false, error: "Not a participant in this conversation" }, 403);
       }
 
-      // Idempotency: one payment row per attempt, its id is the partner reference
+      if (!(Number(amount) > 0) || Number(amount) > 100000) {
+        return json({ success: false, error: "Amount must be greater than zero and under 100,000" }, 400);
+      }
+      if (!["USD", "ZWG"].includes(currency)) {
+        return json({ success: false, error: "Unsupported currency" }, 400);
+      }
+      if (!idempotency_key || String(idempotency_key).length < 8) {
+        return json({ success: false, error: "Missing idempotency key" }, 400);
+      }
+
+      // A repeat of the same intent must never charge again. Return what
+      // happened the first time instead.
+      const { data: prior } = await supabase.from("chat_payments")
+        .select("id, status, tx_id, error")
+        .eq("sender_id", user.id).eq("idempotency_key", idempotency_key).maybeSingle();
+      if (prior) {
+        if (prior.status === "pending") {
+          return json({ success: false, pending: true, payment_id: prior.id,
+            error: "That payment is still going through. Check your history before sending again." }, 409);
+        }
+        return json({ success: prior.status === "completed", tx_id: prior.tx_id,
+          error: prior.error, payment_id: prior.id, idempotent: true },
+          prior.status === "completed" ? 200 : 400);
+      }
+
+      // The row is created before the charge, so a crash mid-flight leaves a
+      // pending record rather than a silent debit.
       const { data: pay, error: payErr } = await supabase.from("chat_payments").insert({
-        conversation_id, sender_id: user.id, recipient_id,
+        listing_id: body?.listing_id ?? null,
+        conversation_id, sender_id: user.id, recipient_id, idempotency_key,
         amount, currency, status: "pending", note: note ?? null,
       }).select("id").single();
-      if (payErr || !pay) return json({ success: false, error: payErr?.message || "Could not start payment" }, 500);
+      if (payErr) {
+        // 23505 is a unique violation: two requests raced with the same key.
+        if (payErr.code === "23505") {
+          return json({ success: false, pending: true,
+            error: "That payment is already going through." }, 409);
+        }
+        return json({ success: false, error: payErr.message }, 500);
+      }
+      if (!pay) return json({ success: false, error: "Could not start payment" }, 500);
 
       const r = await fetch(CRISP_URL + "?endpoint=p2p", {
         method: "POST",

@@ -196,7 +196,106 @@ export function BusinessReviews({ businessId, canReview }: { businessId: string;
   );
 }
 
+type SellerListing = {
+  listing_id: string; title: string; price: number | null; currency: string | null;
+  condition: string | null; location_city: string | null; images: string[] | null;
+  status: string; delivery_available: boolean; delivery_fee: number | null;
+};
+
+/**
+ * A seller's shop, on their profile. Applies to a person selling one fridge as
+ * much as to a business with a catalogue, which is why it is not gated on
+ * account_type. Sold items are hidden by default: a shop shows what you can buy.
+ */
+export function SellerListings({ sellerId, navigation, isSelf }: { sellerId: string; navigation: any; isSelf: boolean }) {
+  const [rows, setRows] = useState<SellerListing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showSold, setShowSold] = useState(false);
+
+  const load = useCallback(async () => {
+    setError(null);
+    const { data, error: err } = await supabase.rpc('get_seller_listings', {
+      p_seller_id: sellerId, p_cursor: null, p_limit: 40, p_include_sold: showSold,
+    });
+    if (err) { setError(err.message); setLoading(false); return; }
+    setRows((data ?? []) as SellerListing[]);
+    setLoading(false);
+  }, [sellerId, showSold]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <View style={s.pad}><ActivityIndicator color={light.brand.base} /></View>;
+  if (error) return (
+    <View style={s.empty}>
+      <Feather name="alert-circle" size={26} color={light.ink.faint} />
+      <Text style={s.emptyTitle}>Could not load listings</Text>
+      <Text style={s.emptySub}>{error}</Text>
+      <TouchableOpacity onPress={() => { setLoading(true); load(); }}><Text style={s.link}>Try again</Text></TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <View>
+      {isSelf ? (
+        <TouchableOpacity style={s.soldToggle} onPress={() => { setLoading(true); setShowSold(v => !v); }} activeOpacity={0.7}>
+          <Feather name={showSold ? 'check-square' : 'square'} size={14} color={light.ink.muted} />
+          <Text style={s.soldTxt}>Show sold items</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {rows.length === 0 ? (
+        <View style={s.empty}>
+          <Feather name="shopping-bag" size={26} color={light.ink.faint} />
+          <Text style={s.emptyTitle}>Nothing for sale</Text>
+          <Text style={s.emptySub}>
+            {isSelf ? 'Listings you post in Market appear here.' : 'This seller has nothing listed right now.'}
+          </Text>
+        </View>
+      ) : (
+        <View style={s.grid}>
+          {rows.map(l => {
+            const priceLabel = money(l.price, l.currency);
+            const sold = l.status === 'sold';
+            return (
+              <TouchableOpacity
+                key={l.listing_id}
+                style={s.card}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId: l.listing_id } })}
+              >
+                {l.images?.[0] ? (
+                  <Image source={{ uri: l.images[0] }} style={s.thumb} resizeMode="cover" />
+                ) : (
+                  <View style={[s.thumb, s.thumbEmpty]}><Feather name="image" size={22} color={light.ink.faint} /></View>
+                )}
+                {sold ? <View style={s.soldBadge}><Text style={s.soldBadgeTxt}>SOLD</Text></View> : null}
+                <View style={s.cardBody}>
+                  <Text style={s.cardTitle} numberOfLines={2}>{l.title}</Text>
+                  <View style={s.cardFoot}>
+                    {priceLabel ? <Text style={s.price}>{priceLabel}</Text> : <View />}
+                    {l.delivery_available ? <Feather name="truck" size={11} color={light.ink.muted} /> : null}
+                  </View>
+                  {l.location_city ? <Text style={s.cardMeta} numberOfLines={1}>{l.location_city}</Text> : null}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+    </View>
+  );
+}
 const s = StyleSheet.create({
+  soldToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingTop: 12 },
+  soldTxt: { fontSize: typeSize.caption, color: light.ink.muted },
+  soldBadge: {
+    position: 'absolute', top: 8, left: 8,
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: radius.sm,
+    backgroundColor: light.surface.scrim,
+  },
+  soldBadgeTxt: { fontSize: 9, fontWeight: fontWeight.heavy, color: light.ink.inverse, letterSpacing: 0.6 },
+  cardMeta: { fontSize: typeSize.micro, color: light.ink.muted },
   pad: { padding: 14 },
   empty: { alignItems: 'center', paddingVertical: 44, paddingHorizontal: 36, gap: 6 },
   emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.ink.primary, marginTop: 4 },

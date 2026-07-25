@@ -11,7 +11,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import ProfileHeader from '../../components/ProfileHeader';
-import { BusinessProducts, BusinessReviews } from '../../components/BusinessTabs';
+import { BusinessProducts, BusinessReviews, SellerListings } from '../../components/BusinessTabs';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
@@ -80,6 +80,7 @@ export default function UserProfileScreen() {
   const [followRequested, setFollowRequested] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [bizTab, setBizTab] = useState('posts');
+  const [listingCount, setListingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
@@ -293,9 +294,19 @@ export default function UserProfileScreen() {
           profile={profile}
           stats={{ posts: stats.posts, followers: stats.followers, following: stats.following ?? 0 }}
           isSelf={isOwnProfile}
-          tabs={profile.account_type === 'business'
-            ? [{ key: 'posts', label: 'Posts' }, { key: 'products', label: 'Products' }, { key: 'reviews', label: 'Reviews' }]
-            : []}
+          tabs={[
+            { key: 'posts', label: 'Posts' },
+            ...(listingCount > 0 ? [{ key: 'listings', label: 'Listings' }] : []),
+            ...(profile.account_type === 'business'
+              ? [{ key: 'products', label: 'Products' }, { key: 'reviews', label: 'Reviews' }]
+              : []),
+          ].length > 1 ? [
+            { key: 'posts', label: 'Posts' },
+            ...(listingCount > 0 ? [{ key: 'listings', label: 'Listings' }] : []),
+            ...(profile.account_type === 'business'
+              ? [{ key: 'products', label: 'Products' }, { key: 'reviews', label: 'Reviews' }]
+              : []),
+          ] : []}
           activeTab={bizTab}
           onTabChange={setBizTab}
           onEdit={isOwnProfile ? () => navigation.navigate('Profile', { screen: 'EditProfile' }) : undefined}
@@ -326,7 +337,9 @@ export default function UserProfileScreen() {
           )}
         />
 
-        {canViewContent && profile.account_type === 'business' && bizTab === 'products' ? (
+        {canViewContent && bizTab === 'listings' ? (
+          <SellerListings sellerId={targetId} navigation={navigation} isSelf={isOwnProfile} />
+        ) : canViewContent && profile.account_type === 'business' && bizTab === 'products' ? (
           <BusinessProducts businessId={targetId} navigation={navigation} />
         ) : canViewContent && profile.account_type === 'business' && bizTab === 'reviews' ? (
           <BusinessReviews businessId={targetId} canReview={!isOwnProfile} />

@@ -51,7 +51,7 @@ export const paymentsService = {
   },
 
   /** Biometric gate, then transfer. Never call the bridge without this. */
-  async sendMoney(params: { recipientId: string; amount: number; conversationId: string; currency?: string; note?: string }) {
+  async sendMoney(params: { recipientId: string; amount: number; conversationId: string; currency?: string; note?: string; listingId?: string | null; idempotencyKey: string }) {
     // Native module is absent until the dev client is rebuilt. Allowed in dev only.
     if (!LocalAuthentication?.hasHardwareAsync) {
       if (!__DEV__) {
@@ -80,6 +80,8 @@ export const paymentsService = {
         currency: params.currency || 'USD',
         conversation_id: params.conversationId,
         note: params.note ?? null,
+        listing_id: params.listingId ?? null,
+        idempotency_key: params.idempotencyKey,
       }),
     });
   },
