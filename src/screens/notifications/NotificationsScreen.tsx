@@ -1,466 +1,427 @@
-import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 /**
- * NotificationsScreen.tsx
- * Design: Option 3 — Card Style, Clean Premium.
- * Real-time via Supabase. Inline accept/decline for connection requests.
- * Filters: All, Requests, Likes, Mentions, Comments.
+ * NotificationsScreen
+ *
+ * Social engagement only. Messages, calls and the retired connection concept
+ * live where they belong and keep their own unread counts; duplicating them
+ * here is what made the old list unreadable, and it is why Instagram does not
+ * put DMs in notifications either.
+ *
+ * Grouped server-side: repeated engagement on one post, and repeated follows,
+ * collapse into a single row. Six likes on a post is one line, not six.
+ *
+ * No category tabs. Time sections instead, because people scan notifications
+ * chronologically and tabs hide the thing you are looking for.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Image, StatusBar, RefreshControl, ScrollView, Alert,
+  View, Text, StyleSheet, SectionList, TouchableOpacity, ActivityIndicator,
+  Image, RefreshControl, StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import { Image as ExpoImage } from 'expo-image';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 
-const NAVY = '#0B1E3D';
-const BG_GREY = '#F7F7F9';
-const TEXT_PRIMARY = '#000000';
-const TEXT_SECONDARY = '#8E8E93';
-const HAIRLINE = '#E5E5EA';
-
-type NotifType =
-  | 'like' | 'comment' | 'reply' | 'repost' | 'mention'
-  | 'follow' | 'tag' | 'connection_request' | 'connection_accepted'
-  | 'message' | 'event' | 'mentorship';
-
-type Notification = {
-  id: string;
-  type: NotifType | string;
-  recipient_id: string;
-  actor_id: string | null;
+type Notif = {
+  notification_id: string;
+  type: string;
   message: string | null;
-  data: any;
   body_preview: string | null;
+  data: any;
   read_at: string | null;
   created_at: string;
-  actor?: { id?: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
-  _connectionId?: string | null;
-  _connectionStatus?: string | null;
+  actor_id: string | null;
+  actor_name: string | null;
+  actor_username: string | null;
+  actor_avatar: string | null;
+  others_count: number;
+  other_avatars: string[] | null;
+  post_id: string | null;
+  post_thumb: string | null;
+  post_text: string | null;
+  viewer_follows: boolean;
+  unread_in_group: number;
 };
 
-type Filter = 'all' | 'requests' | 'likes' | 'mentions' | 'comments';
+const HAIR = StyleSheet.hairlineWidth;
 
-const FILTERS: { id: Filter; label: string; match: (n: Notification) => boolean }[] = [
-  { id: 'all', label: 'All', match: () => true },
-  { id: 'requests', label: 'Requests', match: (n) => n.type === 'connection_request' || n.type === 'connection_accepted' || n.type === 'follow' },
-  { id: 'likes', label: 'Likes', match: (n) => n.type === 'like' || n.type === 'repost' },
-  { id: 'mentions', label: 'Mentions', match: (n) => n.type === 'mention' || n.type === 'tag' },
-  { id: 'comments', label: 'Comments', match: (n) => n.type === 'comment' || n.type === 'reply' },
-];
-
-function getTypeMeta(type: string): { icon: any; color: string; defaultLabel: string } {
-  switch (type) {
-    case 'like':
-      return { icon: 'heart', color: '#FF3B30', defaultLabel: 'liked your post' };
-    case 'comment':
-      return { icon: 'message-circle', color: '#0B1E3D', defaultLabel: 'commented on your post' };
-    case 'reply':
-      return { icon: 'corner-up-left', color: '#AF52DE', defaultLabel: 'replied to your comment' };
-    case 'repost':
-      return { icon: 'repeat', color: '#34C759', defaultLabel: 'reposted your post' };
-    case 'mention':
-      return { icon: 'at-sign', color: '#FF9500', defaultLabel: 'mentioned you' };
-    case 'follow':
-      return { icon: 'user-plus', color: '#0B1E3D', defaultLabel: 'started following you' };
-    case 'connection_request':
-      return { icon: 'user-plus', color: '#0B1E3D', defaultLabel: 'sent you a connection request' };
-    case 'connection_accepted':
-      return { icon: 'user-check', color: '#34C759', defaultLabel: 'accepted your connection' };
-    case 'tag':
-      return { icon: 'tag', color: '#5856D6', defaultLabel: 'tagged you' };
-    case 'message':
-      return { icon: 'message-square', color: '#0B1E3D', defaultLabel: 'sent you a message' };
-    case 'event':
-      return { icon: 'calendar', color: '#FF9500', defaultLabel: 'event update' };
-    case 'mentorship':
-      return { icon: 'award', color: '#AF52DE', defaultLabel: 'mentorship update' };
-    default:
-      return { icon: 'bell', color: '#8E8E93', defaultLabel: 'notification' };
-  }
-}
-
-function getInitials(name?: string | null) {
-  if (!name) return '?';
+function initials(name?: string | null) {
+  if (!name) return 'U';
   const p = name.trim().split(' ').filter(Boolean);
   return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase();
 }
 
-const AVATAR_BG = ['#0B1E3D', '#1A3560', '#065F46', '#7C2D12', '#5856D6', '#C2410C', '#0F766E', '#AF52DE'];
-function avatarBg(id?: string | null) {
-  if (!id) return NAVY;
-  let h = 0;
-  for (const c of id) h = (h * 31 + c.charCodeAt(0)) % AVATAR_BG.length;
-  return AVATAR_BG[Math.abs(h) % AVATAR_BG.length];
+function relTime(iso: string) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return 'now';
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  if (s < 604800) return `${Math.floor(s / 86400)}d`;
+  return `${Math.floor(s / 604800)}w`;
 }
 
-function formatTime(d: string) {
-  const diff = Date.now() - new Date(d).getTime();
-  const m = Math.floor(diff / 60000), h = Math.floor(m / 60), dy = Math.floor(h / 24);
-  if (m < 1) return 'now';
-  if (m < 60) return `${m}m`;
-  if (h < 24) return `${h}h`;
-  if (dy < 7) return `${dy}d`;
-  return new Date(d).toLocaleDateString([], { month: 'short', day: 'numeric' });
+/** The accent glyph that sits on the avatar, so the kind reads before the words do. */
+function badgeFor(type: string): { icon: any; bg: string } | null {
+  switch (type) {
+    case 'like':
+    case 'comment_like':     return { icon: 'heart', bg: '#F04A5C' };
+    case 'comment':
+    case 'reply':            return { icon: 'message-circle', bg: '#3E7BFA' };
+    case 'repost':           return { icon: 'repeat', bg: '#2F9E63' };
+    case 'mention':          return { icon: 'at-sign', bg: '#7C5CFF' };
+    case 'follow':
+    case 'follow_request':
+    case 'follow_accepted':  return { icon: 'user-plus', bg: '#0B1E3D' };
+    case 'story_reaction':   return { icon: 'zap', bg: '#E8A33D' };
+    case 'message_reaction': return { icon: 'smile', bg: '#E8A33D' };
+    case 'payment_received': return { icon: 'credit-card', bg: '#2F9E63' };
+    case 'job_application':  return { icon: 'briefcase', bg: '#0B1E3D' };
+    case 'job_referral':     return { icon: 'send', bg: '#0B1E3D' };
+    case 'story_mention':    return { icon: 'at-sign', bg: '#7C5CFF' };
+    case 'business_member':  return { icon: 'users', bg: '#B08D3F' };
+    default:                 return null;
+  }
+}
+
+/**
+ * A row should read as a sentence someone would say out loud, and it should
+ * carry the thing itself: the emoji they reacted with, the words they wrote.
+ * "Don reacted 🔥 to your story" tells you more than "Don reacted to your story"
+ * and costs nothing, because the trigger already stored it.
+ */
+function quote(s?: string | null): string {
+  const t = (s || '').trim();
+  if (!t) return '';
+  return t.length > 70 ? `"${t.slice(0, 70).trimEnd()}…"` : `"${t}"`;
+}
+
+function lineFor(n: Notif): { lead: string; rest: string } {
+  const name = n.actor_name || 'Someone';
+  const others = n.others_count;
+  const lead = others > 0
+    ? `${name} and ${others} other${others === 1 ? '' : 's'}`
+    : name;
+
+  const plural = others > 0;
+  const emoji = (n.body_preview || '').trim();
+
+  switch (n.type) {
+    case 'like':
+      return { lead, rest: plural ? ' liked your post' : ' liked your post' };
+
+    case 'comment_like': {
+      const c = quote(n.body_preview);
+      return { lead, rest: c ? ` liked your comment ${c}` : ' liked your comment' };
+    }
+
+    case 'comment': {
+      const c = quote(n.body_preview);
+      return { lead, rest: c ? ` commented ${c}` : ' commented on your post' };
+    }
+
+    case 'reply': {
+      const c = quote(n.body_preview);
+      return { lead, rest: c ? ` replied ${c}` : ' replied to you' };
+    }
+
+    case 'repost':
+      return { lead, rest: ' shared your post' };
+
+    case 'mention': {
+      const c = quote(n.body_preview);
+      return { lead, rest: c ? ` mentioned you ${c}` : ' mentioned you' };
+    }
+
+    case 'follow':
+      return { lead, rest: plural ? ' started following you' : ' started following you' };
+
+    case 'follow_request':
+      return { lead, rest: ' asked to follow you' };
+
+    case 'follow_accepted':
+      return { lead, rest: ' accepted your follow request' };
+
+    case 'story_reaction':
+      return { lead, rest: emoji ? ` reacted ${emoji} to your story` : ' reacted to your story' };
+
+    case 'message_reaction':
+      return { lead, rest: emoji ? ` reacted ${emoji} to your message` : ' reacted to your message' };
+
+    case 'payment_received': {
+      // The trigger writes the whole sentence with the amount in it.
+      const msg = (n.message || '').trim();
+      const stripped = msg.startsWith(name) ? msg.slice(name.length) : ` sent you money`;
+      const note = n.body_preview ? ` · ${n.body_preview}` : '';
+      return { lead, rest: stripped + note };
+    }
+
+    case 'job_application':
+      return { lead, rest: n.body_preview ? ` applied for ${n.body_preview}` : ' applied to your job' };
+
+    case 'job_referral':
+      return { lead, rest: n.body_preview ? ' referred you for ' + n.body_preview : ' referred you for a job' };
+
+    case 'story_mention':
+      return { lead, rest: n.body_preview ? ' mentioned you in their story ' + quote(n.body_preview) : ' mentioned you in their story' };
+
+    case 'business_member':
+      return { lead: n.message || 'You joined a business', rest: n.body_preview ? ` · ${n.body_preview}` : '' };
+
+    default: {
+      const msg = (n.message || '').trim();
+      const stripped = msg.toLowerCase().startsWith(name.toLowerCase())
+        ? msg.slice(name.length)
+        : ` ${msg}`;
+      return { lead, rest: stripped };
+    }
+  }
+}
+
+function sectionFor(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const days = Math.floor((now.getTime() - d.getTime()) / 86400000);
+  if (d.toDateString() === now.toDateString()) return 'Today';
+  if (days < 7) return 'This week';
+  if (days < 30) return 'This month';
+  return 'Earlier';
 }
 
 export default function NotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
-  const userId = profile?.id ?? null;
+  const userId = (profile as any)?.id ?? null;
 
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [rows, setRows] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<Filter>('all');
-  const [actionBusy, setActionBusy] = useState<Record<string, boolean>>({});
-  const mountedRef = useRef(true);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const mounted = useRef(true);
 
-  const unreadCount = useMemo(() => notifications.filter(n => !n.read_at).length, [notifications]);
-  const counts = useMemo(() => {
-    const out: Record<Filter, number> = { all: 0, requests: 0, likes: 0, mentions: 0, comments: 0 };
-    for (const n of notifications) {
-      if (n.read_at) continue;
-      out.all += 1;
-      for (const f of FILTERS) if (f.id !== 'all' && f.match(n)) out[f.id] += 1;
-    }
-    return out;
-  }, [notifications]);
+  useEffect(() => () => { mounted.current = false; }, []);
 
-  const filtered = useMemo(() => {
-    const f = FILTERS.find(x => x.id === activeFilter) || FILTERS[0];
-    return notifications.filter(f.match);
-  }, [notifications, activeFilter]);
+  const load = useCallback(async () => {
+    setError(null);
+    const { data, error: err } = await supabase.rpc('get_notifications', {
+      p_limit: 60, p_cursor: null,
+    });
+    if (!mounted.current) return;
+    if (err) { setError(err.message); setLoading(false); setRefreshing(false); return; }
+    setRows((data ?? []) as Notif[]);
+    setLoading(false);
+    setRefreshing(false);
+  }, []);
 
-  const loadNotifications = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('id, type, recipient_id, actor_id, message, data, body_preview, read_at, created_at')
-        .eq('recipient_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(100);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
-      if (error || !data) return;
-
-      const actorIds = Array.from(new Set(data.map((n: any) => n.actor_id).filter(Boolean)));
-      const actorMap: Record<string, Notification['actor']> = {};
-      if (actorIds.length > 0) {
-        const { data: actors } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url')
-          .in('id', actorIds);
-        (actors || []).forEach((a: any) => {
-          actorMap[a.id] = { id: a.id, full_name: a.full_name, username: a.username, avatar_url: a.avatar_url };
-        });
-      }
-
-      const connRequestActors = data
-        .filter((n: any) => n.type === 'connection_request' && n.actor_id)
-        .map((n: any) => n.actor_id);
-
-      const connMap: Record<string, { id: string; status: string }> = {};
-      if (connRequestActors.length > 0) {
-        const { data: conns } = await supabase
-          .from('connections')
-          .select('id, requester_id, status')
-          .eq('recipient_id', userId)
-          .in('requester_id', connRequestActors);
-        (conns || []).forEach((c: any) => {
-          connMap[c.requester_id] = { id: c.id, status: c.status };
-        });
-      }
-
-      const hydrated: Notification[] = data.map((n: any) => {
-        const conn = n.actor_id ? connMap[n.actor_id] : null;
-        return {
-          ...n,
-          actor: n.actor_id ? actorMap[n.actor_id] : undefined,
-          _connectionId: conn?.id ?? null,
-          _connectionStatus: conn?.status ?? null,
-        };
-      });
-
-      if (mountedRef.current) setNotifications(hydrated);
-    } catch (e) {
-      console.log('[NOTIFS_LOAD_ERR]', e);
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    }
-  }, [userId]);
-
+  // New notifications arrive while the screen is open.
   useEffect(() => {
-    mountedRef.current = true;
-    loadNotifications();
     if (!userId) return;
-
     const ch = supabase
-      .channel(`notifications_${userId}`)
-      .on(
-        'postgres_changes',
+      .channel('notifs:' + userId)
+      .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` },
-        () => loadNotifications()
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` },
-        () => loadNotifications()
-      )
+        () => { load(); })
       .subscribe();
-
-    return () => {
-      mountedRef.current = false;
-      supabase.removeChannel(ch);
-    };
-  }, [loadNotifications, userId]);
+    return () => { supabase.removeChannel(ch); };
+  }, [userId, load]);
 
   const markAllRead = async () => {
-    if (!userId || unreadCount === 0) return;
-    const now = new Date().toISOString();
-    setNotifications(prev => prev.map(n => n.read_at ? n : { ...n, read_at: now }));
-    const { error } = await supabase.from('notifications')
-      .update({ read_at: now })
-      .eq('recipient_id', userId)
-      .is('read_at', null);
-    if (error) {
-      console.log('[MARK_ALL_ERR]', error.message);
-      loadNotifications();
+    const unread = rows.filter(r => r.unread_in_group > 0);
+    if (unread.length === 0) return;
+    setRows(prev => prev.map(r => ({ ...r, unread_in_group: 0, read_at: new Date().toISOString() })));
+    const { error: err } = await supabase.rpc('mark_notifications_read', { p_ids: null });
+    if (err) { console.log('[NOTIF_READ]', err.message); load(); }
+  };
+
+  const open = async (n: Notif) => {
+    if (n.unread_in_group > 0) {
+      setRows(prev => prev.map(r => r.notification_id === n.notification_id
+        ? { ...r, unread_in_group: 0 } : r));
+      supabase.rpc('mark_notifications_read', { p_ids: [n.notification_id] });
+    }
+
+    const d = n.data || {};
+    if (n.post_id || d.post_id) {
+      navigation.navigate('Post', { postId: n.post_id || d.post_id, commentId: d.comment_id });
+    } else if (n.type === 'payment_received' && d.conversation_id) {
+      navigation.navigate('Messages', { screen: 'Chat', params: { conversationId: d.conversation_id } });
+    } else if (n.type === 'job_application' && d.job_id) {
+      navigation.navigate('Jobs');
+    } else if (n.type === 'business_member' && d.business_id) {
+      navigation.navigate('Profile', { screen: 'BusinessManage', params: { businessId: d.business_id } });
+    } else if (n.actor_id) {
+      navigation.navigate('UserProfile', { userId: n.actor_id });
     }
   };
 
-  const markOneRead = async (notif: Notification) => {
-    if (notif.read_at) return;
-    const now = new Date().toISOString();
-    setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read_at: now } : n));
-    await supabase.from('notifications').update({ read_at: now }).eq('id', notif.id);
+  const followBack = async (n: Notif) => {
+    if (!n.actor_id || busy[n.notification_id]) return;
+    setBusy(b => ({ ...b, [n.notification_id]: true }));
+    const { error: err } = await supabase.rpc('handle_follow_action', { p_target_id: n.actor_id });
+    setBusy(b => { const c = { ...b }; delete c[n.notification_id]; return c; });
+    if (err) { console.log('[FOLLOW_BACK]', err.message); return; }
+    setRows(prev => prev.map(r => r.notification_id === n.notification_id
+      ? { ...r, viewer_follows: !r.viewer_follows } : r));
   };
 
-  const acceptRequest = async (notif: Notification) => {
-    if (!notif._connectionId || actionBusy[notif.id]) return;
-    setActionBusy(prev => ({ ...prev, [notif.id]: true }));
-    const { error } = await supabase.from('connections')
-      .update({ status: 'accepted', updated_at: new Date().toISOString() })
-      .eq('id', notif._connectionId);
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, _connectionStatus: 'accepted', read_at: new Date().toISOString() } : n));
-      await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notif.id);
-    }
-    setActionBusy(prev => ({ ...prev, [notif.id]: false }));
+  const respondRequest = async (n: Notif, action: 'accept' | 'reject') => {
+    const reqId = n.data?.request_id;
+    if (!reqId || busy[n.notification_id]) return;
+    setBusy(b => ({ ...b, [n.notification_id]: true }));
+    const { error: err } = await supabase.rpc('respond_follow_request', {
+      p_request_id: reqId, p_action: action,
+    });
+    setBusy(b => { const c = { ...b }; delete c[n.notification_id]; return c; });
+    if (err) { console.log('[FOLLOW_REQ]', err.message); return; }
+    setRows(prev => prev.filter(r => r.notification_id !== n.notification_id));
   };
 
-  const declineRequest = async (notif: Notification) => {
-    if (!notif._connectionId || actionBusy[notif.id]) return;
-    setActionBusy(prev => ({ ...prev, [notif.id]: true }));
-    const { error } = await supabase.from('connections')
-      .delete()
-      .eq('id', notif._connectionId);
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, _connectionStatus: 'declined', read_at: new Date().toISOString() } : n));
-      await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notif.id);
-    }
-    setActionBusy(prev => ({ ...prev, [notif.id]: false }));
-  };
+  const sections = useMemo(() => {
+    const order = ['Today', 'This week', 'This month', 'Earlier'];
+    const buckets: Record<string, Notif[]> = {};
+    rows.forEach(r => {
+      const k = sectionFor(r.created_at);
+      (buckets[k] ||= []).push(r);
+    });
+    return order.filter(k => buckets[k]?.length).map(k => ({ title: k, data: buckets[k] }));
+  }, [rows]);
 
-  const handlePress = async (notif: Notification) => {
-    await markOneRead(notif);
-    const postId = notif.data?.post_id;
-    const commentId = notif.data?.comment_id;
-    const conversationId = notif.data?.conversation_id;
+  const unreadTotal = rows.reduce((sum, r) => sum + (r.unread_in_group > 0 ? 1 : 0), 0);
 
-    if (postId) {
-      navigation.navigate('Post', { postId, commentId });
-      return;
-    }
-    if (conversationId) {
-      navigation.navigate('Chat', { conversationId });
-      return;
-    }
-    if (notif.actor_id) {
-      navigation.navigate('UserProfile', { userId: notif.actor_id });
-    }
-  };
-
-  const renderNotif = ({ item }: { item: Notification }) => {
-    const meta = getTypeMeta(item.type);
-    const actor = item.actor;
-    const actorName = actor?.full_name || (actor?.username ? `@${actor.username}` : 'Someone');
-    const labelAction = item.message?.trim() || meta.defaultLabel;
-    const isUnread = !item.read_at;
-    const isRequest = item.type === 'connection_request';
-    const requestHandled = isRequest && (item._connectionStatus === 'accepted' || item._connectionStatus === 'declined' || !item._connectionId);
-    const showActions = isRequest && item._connectionId && item._connectionStatus === 'pending' && !actionBusy[item.id];
-    const busy = actionBusy[item.id];
+  const renderRow = ({ item }: { item: Notif }) => {
+    const badge = badgeFor(item.type);
+    const { lead, rest } = lineFor(item);
+    const unread = item.unread_in_group > 0;
+    const showFollow = item.type === 'follow' && !!item.actor_id;
+    const showRequest = item.type === 'follow_request' && !!item.data?.request_id;
 
     return (
       <TouchableOpacity
-        style={[s.card, isUnread && s.cardUnread]}
-        activeOpacity={0.82}
-        onPress={() => handlePress(item)}
+        style={[s.row, unread && s.rowUnread]}
+        activeOpacity={0.72}
+        onPress={() => open(item)}
       >
-        <View style={s.avaWrap}>
-          {actor?.avatar_url ? (
-            <ExpoImage source={{ uri: actor.avatar_url }} style={s.ava} contentFit="cover" />
+        <View style={s.avatarWrap}>
+          {item.actor_avatar ? (
+            <Image source={{ uri: item.actor_avatar }} style={s.avatar} />
           ) : (
-            <View style={[s.ava, { backgroundColor: avatarBg(actor?.id) }]}>
-              <Text style={s.avaTxt}>{getInitials(actorName)}</Text>
+            <View style={[s.avatar, s.avatarFb]}>
+              <Text style={s.avatarTxt}>{initials(item.actor_name)}</Text>
             </View>
           )}
-          <View style={[s.typeBadge, { backgroundColor: meta.color }]}>
-            <Feather name={meta.icon} size={10} color="#FFF" />
-          </View>
-        </View>
-
-        <View style={s.nc}>
-          <View style={s.nTop}>
-            <Text style={s.nBody} numberOfLines={2}>
-              <Text style={s.nActor}>{actorName}</Text>
-              <Text style={s.nAction}> {labelAction}</Text>
-            </Text>
-            <Text style={s.nTime}>{formatTime(item.created_at)}</Text>
-          </View>
-
-          {item.body_preview ? (
-            <Text style={s.nPreview} numberOfLines={2}>“{item.body_preview}”</Text>
+          {badge ? (
+            <View style={[s.badge, { backgroundColor: badge.bg }]}>
+              <Feather name={badge.icon} size={10} color="#FFFFFF" />
+            </View>
           ) : null}
-
-          {requestHandled && item._connectionStatus === 'accepted' && (
-            <View style={s.nStatus}>
-              <Feather name="check" size={12} color="#34C759" />
-              <Text style={[s.nStatusTxt, { color: '#34C759' }]}>Connected</Text>
-            </View>
-          )}
-          {requestHandled && item._connectionStatus === 'declined' && (
-            <View style={s.nStatus}>
-              <Text style={s.nStatusTxt}>Declined</Text>
-            </View>
-          )}
-
-          {showActions && (
-            <View style={s.nActions}>
-              <TouchableOpacity
-                style={s.btnPrimary}
-                onPress={(e) => { e.stopPropagation(); acceptRequest(item); }}
-                activeOpacity={0.8}
-                disabled={busy}
-              >
-                {busy ? <ActivityIndicator size={12} color="#FFF" /> : <Text style={s.btnPrimaryTxt}>Accept</Text>}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={s.btnSecondary}
-                onPress={(e) => { e.stopPropagation(); declineRequest(item); }}
-                activeOpacity={0.8}
-                disabled={busy}
-              >
-                <Text style={s.btnSecondaryTxt}>Decline</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
+
+        <View style={s.body}>
+          <Text style={s.line} numberOfLines={2}>
+            <Text style={s.lead}>{lead}</Text>
+            <Text style={s.rest}>{rest}</Text>
+          </Text>
+          <View style={s.metaRow}>
+            <Text style={s.time}>{relTime(item.created_at)}</Text>
+            {item.others_count > 0 && item.unread_in_group > 1 ? (
+              <Text style={s.count}>{item.unread_in_group} new</Text>
+            ) : null}
+          </View>
+
+          {showRequest ? (
+            <View style={s.requestRow}>
+              <TouchableOpacity
+                style={s.accept}
+                onPress={() => respondRequest(item, 'accept')}
+                disabled={!!busy[item.notification_id]}
+              >
+                <Text style={s.acceptTxt}>Confirm</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.decline}
+                onPress={() => respondRequest(item, 'reject')}
+                disabled={!!busy[item.notification_id]}
+              >
+                <Text style={s.declineTxt}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+        </View>
+
+        {item.post_thumb ? (
+          <Image source={{ uri: item.post_thumb }} style={s.thumb} />
+        ) : item.post_id && item.post_text ? (
+          <View style={[s.thumb, s.thumbText]}>
+            <Text style={s.thumbTxt} numberOfLines={3}>{item.post_text}</Text>
+          </View>
+        ) : showFollow ? (
+          <TouchableOpacity
+            style={[s.followBtn, item.viewer_follows && s.followingBtn]}
+            onPress={() => followBack(item)}
+            disabled={!!busy[item.notification_id]}
+          >
+            {busy[item.notification_id] ? (
+              <ActivityIndicator size="small" color={item.viewer_follows ? light.ink.primary : light.ink.inverse} />
+            ) : (
+              <Text style={[s.followTxt, item.viewer_follows && s.followingTxt]}>
+                {item.viewer_follows ? 'Following' : 'Follow'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        ) : null}
       </TouchableOpacity>
     );
   };
 
-  if (!userId) {
-    return (
-      <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
-        <View style={s.loader}><Text style={s.emptySub}>Sign in to see notifications.</Text></View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
+      <StatusBar barStyle="dark-content" />
       <View style={s.header}>
-        <Text style={s.headerTitle}>Notifications</Text>
-        <TouchableOpacity
-          onPress={markAllRead}
-          disabled={unreadCount === 0}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={[s.headerAction, unreadCount === 0 && { color: '#C7C7CC' }]}>
-            Mark all read
-          </Text>
-        </TouchableOpacity>
+        <Text style={s.title}>Activity</Text>
+        {unreadTotal > 0 ? (
+          <TouchableOpacity onPress={markAllRead} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={s.markAll}>Mark all read</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={s.chipsScroll}
-        contentContainerStyle={s.chipsRow}
-      >
-        {FILTERS.map(f => {
-          const active = activeFilter === f.id;
-          const count = counts[f.id];
-          return (
-            <TouchableOpacity
-              key={f.id}
-              style={[s.chip, active && s.chipActive]}
-              onPress={() => setActiveFilter(f.id)}
-              activeOpacity={0.75}
-            >
-              <Text style={[s.chipTxt, active && s.chipTxtActive]}>{f.label}</Text>
-              {count > 0 && (
-                <View style={[s.chipCount, active && s.chipCountActive]}>
-                  <Text style={[s.chipCountTxt, active && s.chipCountTxtActive]}>{count}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
       {loading ? (
-        <View style={s.loader}>
-          <ActivityIndicator color={NAVY} size="large" />
+        <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
+      ) : error ? (
+        <View style={s.centered}>
+          <Feather name="alert-circle" size={30} color={light.ink.faint} />
+          <Text style={s.emptyTitle}>Could not load your activity</Text>
+          <Text style={s.emptySub}>{error}</Text>
+          <TouchableOpacity style={s.retry} onPress={() => { setLoading(true); load(); }}>
+            <Text style={s.retryTxt}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      ) : rows.length === 0 ? (
+        <View style={s.centered}>
+          <Feather name="bell" size={30} color={light.ink.faint} />
+          <Text style={s.emptyTitle}>Nothing yet</Text>
+          <Text style={s.emptySub}>
+            Likes, comments, follows and mentions show up here. Messages and calls stay in their own tabs.
+          </Text>
         </View>
       ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(n) => n.id}
-          renderItem={renderNotif}
-          showsVerticalScrollIndicator={false}
-          onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[
-            s.list,
-            filtered.length === 0 && { flexGrow: 1 },
-            { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE },
-          ]}
+        <SectionList
+          sections={sections}
+          keyExtractor={r => r.notification_id}
+          renderItem={renderRow}
+          stickySectionHeadersEnabled={false}
+          contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={async () => { setRefreshing(true); await loadNotifications(); }}
-              tintColor={NAVY}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={light.ink.faint} />
           }
-          ListEmptyComponent={
-            <View style={s.empty}>
-              <View style={s.emptyIcon}>
-                <Feather name="bell" size={32} color="#C7C7CC" />
-              </View>
-              <Text style={s.emptyTitle}>
-                {activeFilter === 'all' ? 'No notifications yet' : 'Nothing here'}
-              </Text>
-              <Text style={s.emptySub}>
-                {activeFilter === 'all'
-                  ? 'When someone connects, likes, or mentions you, it will show up here.'
-                  : 'Try a different filter.'}
-              </Text>
-            </View>
-          }
+          renderSectionHeader={({ section }) => (
+            <Text style={s.sectionTitle}>{section.title}</Text>
+          )}
         />
       )}
     </SafeAreaView>
@@ -468,88 +429,60 @@ export default function NotificationsScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: BG_GREY },
-
+  safe: { flex: 1, backgroundColor: light.surface.canvas },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+    paddingHorizontal: 16, paddingTop: space.xs, paddingBottom: space.sm,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.3 },
-  headerAction: { fontSize: 13, fontWeight: '500', color: NAVY },
+  title: { fontSize: typeSize.display, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.9 },
+  markAll: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: light.status.link },
 
-  chipsScroll: {
-    backgroundColor: '#FFFFFF',
-    flexGrow: 0, flexShrink: 0,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
-  },
-  chipsRow: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 8,
-    alignItems: 'center',
-  },
-  chip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 14,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#FFFFFF',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE,
-  },
-  chipActive: { backgroundColor: NAVY, borderColor: NAVY },
-  chipTxt: { fontSize: 13, fontWeight: '600', color: '#3C3C43' },
-  chipTxtActive: { color: '#FFFFFF' },
-  chipCount: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 8, backgroundColor: 'rgba(11,30,61,0.08)' },
-  chipCountActive: { backgroundColor: 'rgba(255,255,255,0.22)' },
-  chipCountTxt: { fontSize: 11, fontWeight: '700', color: NAVY },
-  chipCountTxtActive: { color: '#FFFFFF' },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 42, gap: 6 },
+  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.ink.primary, marginTop: 6 },
+  emptySub: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center', lineHeight: 19 },
+  retry: { marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: light.brand.base },
+  retryTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
-  list: { padding: 10 },
-
-  card: {
-    flexDirection: 'row', alignItems: 'flex-start', gap: 12,
-    padding: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    marginBottom: 8,
-  },
-  cardUnread: {
-    borderLeftWidth: 3,
-    borderLeftColor: NAVY,
-    paddingLeft: 11,
+  sectionTitle: {
+    fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.2,
+    textTransform: 'uppercase', color: light.ink.muted,
+    paddingHorizontal: 16, paddingTop: space.md, paddingBottom: space.xs,
   },
 
-  avaWrap: { position: 'relative', flexShrink: 0 },
-  ava: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  avaTxt: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
-  typeBadge: {
-    position: 'absolute', bottom: -2, right: -2,
-    width: 20, height: 20, borderRadius: 10,
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: 16, paddingVertical: 11 },
+  rowUnread: { backgroundColor: light.brand.tintBg },
+
+  avatarWrap: { position: 'relative' },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: light.surface.sunken },
+  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.base },
+  avatarTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  badge: {
+    position: 'absolute', right: -2, bottom: -2,
+    width: 19, height: 19, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: '#FFFFFF',
+    borderWidth: 2, borderColor: light.surface.canvas,
   },
 
-  nc: { flex: 1, minWidth: 0 },
-  nTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
-  nBody: { fontSize: 14, lineHeight: 19, color: '#1A1A1A', flex: 1 },
-  nActor: { fontWeight: '600', color: TEXT_PRIMARY },
-  nAction: { fontWeight: '400', color: '#3C3C43' },
-  nTime: { fontSize: 11, color: TEXT_SECONDARY, fontWeight: '500', paddingTop: 2 },
-  nPreview: { fontSize: 12, color: '#6E6E73', lineHeight: 17, marginTop: 4, fontStyle: 'italic' },
-  nActions: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  btnPrimary: { backgroundColor: NAVY, paddingHorizontal: 16, paddingVertical: 7, borderRadius: 16, minWidth: 72, alignItems: 'center' },
-  btnPrimaryTxt: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
-  btnSecondary: { backgroundColor: '#F2F2F7', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 16, minWidth: 72, alignItems: 'center' },
-  btnSecondaryTxt: { fontSize: 12, fontWeight: '600', color: NAVY },
-  nStatus: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
-  nStatusTxt: { fontSize: 12, fontWeight: '600', color: TEXT_SECONDARY },
+  body: { flex: 1, gap: 2 },
+  line: { fontSize: typeSize.caption, lineHeight: 18, color: light.ink.secondary },
+  lead: { fontWeight: fontWeight.bold, color: light.ink.primary },
+  rest: { color: light.ink.secondary },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  time: { fontSize: typeSize.micro, color: light.ink.faint },
+  count: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.brand.base },
 
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  requestRow: { flexDirection: 'row', gap: 8, marginTop: 7 },
+  accept: { paddingHorizontal: 18, paddingVertical: 7, borderRadius: radius.md, backgroundColor: light.brand.base },
+  acceptTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.inverse },
+  decline: { paddingHorizontal: 18, paddingVertical: 7, borderRadius: radius.md, backgroundColor: 'rgba(11,30,61,0.06)' },
+  declineTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary },
 
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, paddingTop: 80 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 6 },
-  emptySub: { fontSize: 13, lineHeight: 19, color: TEXT_SECONDARY, textAlign: 'center' },
+  thumb: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: light.surface.sunken },
+  thumbText: { padding: 5, justifyContent: 'center', borderWidth: HAIR, borderColor: light.surface.hairline },
+  thumbTxt: { fontSize: 8, lineHeight: 10, color: light.ink.muted },
+
+  followBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: radius.md, backgroundColor: light.brand.base, minWidth: 80, alignItems: 'center' },
+  followingBtn: { backgroundColor: 'rgba(11,30,61,0.06)' },
+  followTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.inverse },
+  followingTxt: { color: light.ink.primary },
 });

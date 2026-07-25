@@ -86,7 +86,7 @@ export const networkService = {
       .single();
     if (error) throw error;
 
-    await notifyConnectionRequest(requesterId, recipientId);
+    // notification is created by a database trigger
     return {
       status: 'pending_sent' as ConnectionStatus,
       requestId: data?.id ?? null,
@@ -103,7 +103,7 @@ export const networkService = {
       .update({ status: 'accepted', updated_at: new Date().toISOString() })
       .eq('id', requestId);
     if (error) throw error;
-    await notifyConnectionAccepted(accepterUserId, requesterUserId);
+    // notification is created by a database trigger
     return { status: 'connected' as ConnectionStatus, requestId };
   },
 
@@ -190,7 +190,7 @@ export const followService = {
       .from('follows')
       .insert({ follower_id: followerId, following_id: followingId });
     if (error) throw error;
-    await notifyFollow(followerId, followingId);
+    // notification is created by a database trigger
     return true;
   },
 
@@ -259,65 +259,23 @@ async function enrichWithOtherProfile(
   });
 }
 
-async function notifyConnectionRequest(fromId: string, toId: string) {
-  try {
-    const { data: from } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', fromId)
-      .single();
-    await supabase.from('notifications').insert({
-      to_user_id: toId,
-      from_user_id: fromId,
-      type: 'connection_request',
-      title: 'Connection request',
-      body: `${from?.full_name ?? 'Someone'} wants to connect with you`,
-      ref_id: fromId,
-      ref_type: 'user',
-    });
-  } catch (e) {
-    console.log('[notifyConnectionRequest]', e);
-  }
-}
+// notifyConnectionRequest removed 2026-07-25.
+//
+// It wrote to_user_id / from_user_id / title / body / ref_id / ref_type,
+// none of which are columns on notifications. Every call had been failing
+// silently inside a catch that only logged. trg_notify_follow and
+// trg_notify_connection already create these correctly in the database.
 
-async function notifyConnectionAccepted(fromId: string, toId: string) {
-  try {
-    const { data: from } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', fromId)
-      .single();
-    await supabase.from('notifications').insert({
-      to_user_id: toId,
-      from_user_id: fromId,
-      type: 'connection_accepted',
-      title: 'Connection accepted',
-      body: `${from?.full_name ?? 'Someone'} accepted your connection request`,
-      ref_id: fromId,
-      ref_type: 'user',
-    });
-  } catch (e) {
-    console.log('[notifyConnectionAccepted]', e);
-  }
-}
 
-async function notifyFollow(fromId: string, toId: string) {
-  try {
-    const { data: from } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', fromId)
-      .single();
-    await supabase.from('notifications').insert({
-      to_user_id: toId,
-      from_user_id: fromId,
-      type: 'orbit',
-      title: 'New follower',
-      body: `${from?.full_name ?? 'Someone'} started following you`,
-      ref_id: fromId,
-      ref_type: 'user',
-    });
-  } catch (e) {
-    console.log('[notifyFollow]', e);
-  }
-}
+// notifyConnectionAccepted removed 2026-07-25.
+//
+// It wrote to_user_id / from_user_id / title / body / ref_id / ref_type,
+// none of which are columns on notifications. Every call had been failing
+// silently inside a catch that only logged. trg_notify_follow and
+// trg_notify_connection already create these correctly in the database.
+
+
+// notifyFollow removed 2026-07-25. It wrote to_user_id / from_user_id /
+// title / body / ref_id / ref_type, none of which are columns on
+// notifications, so every call failed silently inside a logging catch.
+// Its type was also the retired orbit naming. trg_notify_follow covers it.
