@@ -21,6 +21,8 @@
 
 // ── Types ──
 
+import { replicatePing, replicateCreate, replicateWait } from './replicateProxy';
+
 export interface FaceRegion {
   x: number;
   y: number;
@@ -135,9 +137,6 @@ class ReplicateProvider implements EnhancementProvider {
   readonly name = 'replicate';
   private baseUrl = 'https://api.replicate.com/v1';
 
-  private get token(): string {
-    return process.env.EXPO_PUBLIC_REPLICATE_API_TOKEN || '';
-  }
 
   async enhance(input: EnhancementInput): Promise<EnhancementResult> {
     const start = Date.now();
@@ -175,14 +174,7 @@ class ReplicateProvider implements EnhancementProvider {
   }
 
   async checkHealth(): Promise<boolean> {
-    try {
-      const res = await fetch(`${this.baseUrl}/models`, {
-        headers: { Authorization: `Token ${this.token}` },
-      });
-      return res.ok;
-    } catch {
-      return false;
-    }
+    return replicatePing();
   }
 
   private async runCodeFormer(imageBase64: string, fidelity: number): Promise<string> {
@@ -217,50 +209,15 @@ class ReplicateProvider implements EnhancementProvider {
   }
 
   private async createPrediction(version: string, inputData: Record<string, any>): Promise<string> {
-    const res = await fetch(`${this.baseUrl}/predictions`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Token ${this.token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ version, input: inputData }),
-    });
-
-    if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(`Replicate create failed: ${res.status} ${errBody}`);
-    }
-
-    const data = await res.json();
-    return this.pollPrediction(data.urls.get);
+    // Goes through the replicate-proxy Edge Function; the token is no longer
+    // in the app bundle.
+    const id = await replicateCreate(version, inputData);
+    const output = await replicateWait(id);
+    if (typeof output === 'string') return output;
+    if (Array.isArray(output) && output.length > 0) return output[0];
+    throw new Error('Empty output');
   }
 
-  private async pollPrediction(url: string): Promise<string> {
-    const maxAttempts = 60; // 60 seconds max
-    for (let i = 0; i < maxAttempts; i++) {
-      const res = await fetch(url, {
-        headers: { Authorization: `Token ${this.token}` },
-      });
-
-      if (!res.ok) throw new Error(`Poll failed: ${res.status}`);
-      const data = await res.json();
-
-      if (data.status === 'succeeded') {
-        const output = data.output;
-        // Replicate returns either a string URL or array of URLs
-        if (typeof output === 'string') return output;
-        if (Array.isArray(output) && output.length > 0) return output[0];
-        throw new Error('Empty prediction output');
-      }
-
-      if (data.status === 'failed' || data.status === 'canceled') {
-        throw new Error(`Prediction ${data.status}: ${data.error || 'unknown'}`);
-      }
-
-      await new Promise(r => setTimeout(r, 1000));
-    }
-    throw new Error('Prediction timeout after 60s');
-  }
 }
 
 // ── Fal provider (fallback) ──

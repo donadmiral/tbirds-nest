@@ -1,4 +1,4 @@
-﻿/**
+/**
  * identityReconstructionService.ts
  *
  * Two-pass identity transfer pipeline:
@@ -14,6 +14,7 @@
  * Speed: ~16 seconds total (4 variations)
  */
 
+import { replicateCreate, replicateWait } from './replicateProxy';
 import type { FaceRegion, QualityAnalysis } from './enhancementService';
 import { supabase } from '../supabase';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
@@ -143,16 +144,12 @@ function computeFidelities(center: number): Array<{ id: string; label: string; f
 }
 
 class IdentityReconstructionServiceClass {
-  private get token(): string | null {
-    return process.env.EXPO_PUBLIC_REPLICATE_API_TOKEN || null;
-  }
 
   async reconstruct(input: ReconstructionInput): Promise<ReconstructionResult> {
     console.log('[Reconstruction] CodeFormer‑only pipeline started');
     console.log('[Reconstruction] userId:', input.userId || 'none');
     console.log('[Reconstruction] refs:', input.referencePhotoUrls.length);
 
-    if (!this.token) throw new Error('Replicate API token not configured');
     if (!input.referencePhotoUrls || input.referencePhotoUrls.length === 0) {
       throw new Error('No reference photos. Select your best photo first.');
     }
@@ -243,55 +240,24 @@ class IdentityReconstructionServiceClass {
 
 
   private async runCodeFormer(imageUrl: string, fidelity: number): Promise<string> {
-    const createRes = await fetch(`${REPLICATE_API_BASE}/predictions`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        'Content-Type': 'application/json',
+    // Goes through the replicate-proxy Edge Function; the token is no longer
+    // in the app bundle.
+    const id = await replicateCreate(
+      '78f2bab438ab0ffc85a68cdfd316a2ecd3994b5dd26aa6b3d203357b45e5eb1b',
+      {
+        image: imageUrl,
+        upscale: 1,
+        face_upsample: false,
+        background_enhance: false,
+        codeformer_fidelity: fidelity,
       },
-      body: JSON.stringify({
-        version: '78f2bab438ab0ffc85a68cdfd316a2ecd3994b5dd26aa6b3d203357b45e5eb1b',
-        input: {
-          image: imageUrl,
-          upscale: 1,
-          face_upsample: false,
-          background_enhance: false,
-          codeformer_fidelity: fidelity,
-        },
-      }),
-    });
-    if (!createRes.ok) {
-      const errBody = await createRes.text();
-      throw new Error(`CodeFormer failed: ${createRes.status} ${errBody}`);
-    }
-    const prediction = await createRes.json();
-    return this.pollPrediction(prediction.urls.get);
+    );
+    const output = await replicateWait(id, { maxAttempts: MAX_POLL_SECONDS });
+    if (typeof output === 'string') return output;
+    if (Array.isArray(output) && output.length > 0) return output[0];
+    throw new Error('Empty output');
   }
 
-  private async pollPrediction(pollUrl: string): Promise<string> {
-    for (let i = 0; i < MAX_POLL_SECONDS; i++) {
-      const res = await fetch(pollUrl, {
-        headers: { Authorization: `Bearer ${this.token}` },
-      });
-      if (!res.ok) throw new Error(`Poll failed: ${res.status}`);
-      const data = await res.json();
-
-      if (data.status === 'succeeded') {
-        const output = data.output;
-        if (typeof output === 'string') return output;
-        if (Array.isArray(output) && output.length > 0) return output[0];
-        throw new Error('Empty output');
-      }
-      if (data.status === 'failed' || data.status === 'canceled') {
-        throw new Error(`Prediction ${data.status}: ${data.error || 'unknown'}`);
-      }
-      if (i > 0 && i % 10 === 0) {
-        console.log(`[Reconstruction] Waiting... ${i}s`);
-      }
-      await new Promise(r => setTimeout(r, 1000));
-    }
-    throw new Error('Prediction timeout');
-  }
 
   private async normalizeOrientation(sourceFileUri: string): Promise<string> {
     try {
