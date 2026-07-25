@@ -37,7 +37,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { messageStatusService } from '../../services/messageStatusService';
 import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
-import { useVoiceRecorder } from '../../controllers/messages/useVoiceRecorder';
+import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
 import CallEventBubble from '../../components/CallEventBubble';
 
@@ -1612,6 +1612,37 @@ export default function ChatScreen() {
             </View>
           </View>
         ) : (
+          voice.recording ? (
+            <View style={[s.voiceBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+              <TouchableOpacity
+                onPress={() => voice.cancel()}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityRole='button'
+                accessibilityLabel='Cancel recording'
+              >
+                <Feather name='trash-2' size={19} color='#FF3B30' />
+              </TouchableOpacity>
+
+              <View style={s.voiceDot} />
+              <Text style={s.voiceTimer}>{formatVoiceDuration(voice.seconds)}</Text>
+              <Text style={s.voiceHint} numberOfLines={1}>
+                {voice.atLimit ? 'Maximum length reached' : 'Recording'}
+              </Text>
+
+              <TouchableOpacity
+                onPress={sendVoiceNote}
+                disabled={sendingVoice}
+                style={s.voiceSend}
+                activeOpacity={0.85}
+                accessibilityRole='button'
+                accessibilityLabel='Send voice message'
+              >
+                {sendingVoice
+                  ? <ActivityIndicator color='#FFF' size={14} />
+                  : <Feather name='arrow-up' size={18} color='#FFF' />}
+              </TouchableOpacity>
+            </View>
+          ) : (
           <View style={[s.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
             <TouchableOpacity style={s.addBtn}
               onPress={() => { setShowToolbar(p => { if (p) setShowGifs(false); return !p; }); }} activeOpacity={0.6}>
@@ -1638,8 +1669,7 @@ export default function ChatScreen() {
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                onPressIn={() => { if (!composerLocked) voice.start(); }}
-                onPressOut={sendVoiceNote}
+                onPress={() => { if (!composerLocked) voice.start(); }}
                 disabled={composerLocked || sendingVoice}
                 style={[s.sendBtn, voice.recording && { backgroundColor: '#FF3B30' }]}
                 activeOpacity={0.8}
@@ -1652,6 +1682,7 @@ export default function ChatScreen() {
               </TouchableOpacity>
             )}
           </View>
+          )
         )}
       </KeyboardAvoidingView>
 
@@ -2014,6 +2045,11 @@ export default function ChatScreen() {
 }
 
 const s = StyleSheet.create({
+  voiceBar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingTop: 10, backgroundColor: '#FFFFFF', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)' },
+  voiceDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#FF3B30' },
+  voiceTimer: { fontSize: 15, fontWeight: '700', color: '#0B1E3D', minWidth: 46 },
+  voiceHint: { flex: 1, fontSize: 13, color: '#6B7280' },
+  voiceSend: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' },
   ctxCard: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: '#F7F8FA', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
   ctxThumb: { width: 46, height: 46, borderRadius: 8, backgroundColor: '#E5E5EA' },
   ctxThumbFallback: { alignItems: 'center', justifyContent: 'center' },

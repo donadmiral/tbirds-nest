@@ -14,14 +14,54 @@
  * because a failed send should not lose the recording.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AudioModule, RecordingPresets, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
+import { AudioModule, AudioQuality, IOSOutputFormat, RecordingPresets, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 
 export const MAX_VOICE_SECONDS = 300;
+
+/**
+ * Tuned for speech, not for music.
+ *
+ * Mono on purpose: a phone has one microphone, so stereo writes the identical
+ * signal into two channels and doubles the file for no audible difference.
+ *
+ * 96 kbps AAC at 48 kHz is roughly four times what WhatsApp uses for voice
+ * notes and well past transparent for a human voice, while a five minute
+ * message still lands near 3.6 MB. That matters where mobile data is
+ * expensive: a recording nobody can afford to receive is not high quality.
+ */
+export const VOICE_RECORDING_OPTIONS = {
+  ...RecordingPresets.HIGH_QUALITY,
+  extension: '.m4a',
+  sampleRate: 48000,
+  numberOfChannels: 1,
+  bitRate: 96000,
+  android: {
+    ...RecordingPresets.HIGH_QUALITY.android,
+    extension: '.m4a',
+    outputFormat: 'mpeg4',
+    audioEncoder: 'aac',
+    sampleRate: 48000,
+    numberOfChannels: 1,
+    bitRate: 96000,
+  },
+  ios: {
+    ...RecordingPresets.HIGH_QUALITY.ios,
+    extension: '.m4a',
+    outputFormat: IOSOutputFormat.MPEG4AAC,
+    audioQuality: AudioQuality.MAX,
+    sampleRate: 48000,
+    numberOfChannels: 1,
+    bitRate: 96000,
+    linearPCMBitDepth: 16,
+    linearPCMIsBigEndian: false,
+    linearPCMIsFloat: false,
+  },
+} as const;
 
 export type VoiceResult = { uri: string; durationSec: number };
 
 export function useVoiceRecorder() {
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorder = useAudioRecorder(VOICE_RECORDING_OPTIONS as any);
   const state = useAudioRecorderState(recorder);
 
   const [recording, setRecording] = useState(false);
