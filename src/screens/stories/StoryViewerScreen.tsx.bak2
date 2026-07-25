@@ -475,7 +475,7 @@ export default function StoryViewerScreen() {
         {holdoverMedia && holdoverMedia.type === 'video' && (<View style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: '#020408' }]} />)}
 
         {hasDual && isSplitMode ? renderSplitDual() : (
-          <ZoomableMedia onZoomChange={(z) => { if (z) pauseFor('zoom'); else resumeFrom('zoom'); }}>
+          {/* Pinch to zoom, Instagram-style: springs back on release rather than               leaving you zoomed while the story timer runs. */}           <ZoomableMedia onZoomChange={(z) => { if (z) pauseFor('zoom'); else resumeFrom('zoom'); }}>
           <ReAnimated.View style={[StyleSheet.absoluteFill, activeMediaAnimStyle, { zIndex: 1 }]}>
             {isText ? ((() => { const bg = (currentStory as any)?.text_background; if (bg?.kind === 'gradient' && bg.colors?.length === 2) { return (<LinearGradient colors={bg.colors} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 }} style={s.media} />); } const solidColor = bg?.kind === 'solid' && bg.color ? bg.color : '#0B1E3D'; return <View style={[s.media, { backgroundColor: solidColor }]} />; })()
             ) : isVideo ? (<VideoView style={s.media} player={videoPlayer} contentFit="cover" nativeControls={false} onFirstFrameRender={() => setMediaReady(true)} />
