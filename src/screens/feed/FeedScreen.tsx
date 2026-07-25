@@ -8,7 +8,8 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -24,6 +25,8 @@ import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import ProductPickerSheet from '../../components/ProductPickerSheet';
+import ActorSwitcher from '../../components/ActorSwitcher';
+import { useActorStore, authorId as currentAuthorId } from '../../stores/actorStore';
 import ImageView from 'react-native-image-viewing';
 import { Video as AVVideo, ResizeMode as AVResizeMode } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -491,6 +494,7 @@ export default function FeedScreen({ navigation }: any) {
       .then(({ data }) => { if (data) setFollowingIds(new Set(data.map((r: any) => r.following_id))); });
     supabase.from('follow_requests').select('target_id').eq('requester_id', userId).eq('status', 'pending').limit(1000)
       .then(({ data }) => { if (data) setRequestedIds(new Set(data.map((r: any) => r.target_id))); });
+    useActorStore.getState().loadActors();
   }, [userId]);
 
   useEffect(() => {
@@ -1011,7 +1015,7 @@ export default function FeedScreen({ navigation }: any) {
       }
 
       const insertData: any = {
-        user_id: userId,
+        user_id: currentAuthorId(userId),
         content: composerText.trim() || null,
         is_exclusive: exclusivePost,
         channel: innovationPost ? 'innovation' : null,
@@ -1652,6 +1656,7 @@ export default function FeedScreen({ navigation }: any) {
                     <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)}><Feather name="tag" size={20} color={composerProducts.length > 0 ? light.brand.base : light.ink.muted} /></TouchableOpacity>{composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
+                    <ActorSwitcher />
                     <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerMedia([]); setComposerProducts([]); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}

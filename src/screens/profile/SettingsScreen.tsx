@@ -7,6 +7,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../stores/authStore';
+import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
 
 const MAROON = '#8C1D40';
@@ -33,18 +34,19 @@ type RowProps = {
   onPress?: () => void; danger?: boolean;
   right?: React.ReactNode; chevron?: boolean;
 };
-function Row({ icon, iconBg, iconColor = '#007AFF', label, sublabel, onPress, danger, right, chevron = true }: RowProps) {
-  const bg = iconBg ?? (iconColor + '18');
+function Row({ icon, label, sublabel, onPress, danger, right, chevron = true }: RowProps) {
+  // iconColor and iconBg are accepted for call-site compatibility and
+  // deliberately ignored. A different pastel tile per row is what made this
+  // screen read as generated. One weight, colour only where it means something.
+  const tint = danger ? light.status.danger : light.ink.muted;
   return (
-    <TouchableOpacity style={s.row} onPress={onPress} activeOpacity={onPress ? 0.7 : 1} disabled={!onPress}>
-      <View style={[s.rowIcon, { backgroundColor: bg }]}>
-        <Feather name={icon as any} size={17} color={iconColor} />
-      </View>
+    <TouchableOpacity style={s.row} onPress={onPress} activeOpacity={onPress ? 0.6 : 1} disabled={!onPress}>
+      <Feather name={icon as any} size={18} color={tint} style={s.rowIcon} />
       <View style={s.rowContent}>
         <Text style={[s.rowLabel, danger && s.rowLabelDanger]}>{label}</Text>
         {sublabel ? <Text style={s.rowSublabel}>{sublabel}</Text> : null}
       </View>
-      {right ?? (chevron && onPress ? <Feather name="chevron-right" size={16} color="#C7C7CC" /> : null)}
+      {right ?? (chevron && onPress ? <Feather name="chevron-right" size={16} color={light.ink.faint} /> : null)}
     </TouchableOpacity>
   );
 }
@@ -295,6 +297,10 @@ export default function SettingsScreen() {
             }
           />
           <Row icon="volume-x" iconColor="#8E8E93" label="Muted stories" sublabel="People whose stories you hide" onPress={() => navigation.navigate('MutedStories')} />
+          <Row icon="bookmark" iconColor="#0B1E3D" label="Saved posts" sublabel="Posts you bookmarked" onPress={() => navigation.navigate("SavedPosts")} />
+          <Row icon="slash" iconColor="#FF3B30" label="Blocked accounts" sublabel="See and undo who you blocked" onPress={() => navigation.navigate("BlockedAccounts")} />
+          <Row icon="briefcase" label="Create a business" sublabel="Its own profile, followers and posts" onPress={() => navigation.navigate("CreateBusiness")} />
+          <Row icon="mail" iconColor="#5856D6" label="Message requests" sublabel="Messages from people you do not follow" onPress={() => navigation.navigate("Messages", { screen: "MessageRequests" })} />
         </Section>
 
         <Section title="Notifications">
@@ -461,74 +467,90 @@ export default function SettingsScreen() {
   );
 }
 
+const HAIR = StyleSheet.hairlineWidth;
+
+/**
+ * Settings visual language, matched to EditProfileScreen.
+ *
+ * White canvas rather than Apple's grey page with floating cards. Sections
+ * separated by space and hairlines. Uppercase micro labels with letter-spacing.
+ * Navy ink throughout, platinum for the account chip, red only for destructive.
+ */
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F2F2F7' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#F2F2F7' },
+  safe: { flex: 1, backgroundColor: light.surface.canvas },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: space.sm, backgroundColor: light.surface.canvas, borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline },
   backBtn: { flexDirection: 'row', alignItems: 'center', minWidth: 60 },
-  backChev: { fontSize: 30, color: '#007AFF', lineHeight: 34, marginRight: 1 },
-  backLbl: { fontSize: 17, color: '#007AFF' },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#000' },
-  scroll: { paddingHorizontal: 16, paddingTop: 12 },
-  profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 16, padding: 14, marginBottom: 28, gap: 12 },
+  backChev: { fontSize: 28, color: light.ink.primary, lineHeight: 32, marginRight: 2 },
+  backLbl: { fontSize: typeSize.body, color: light.ink.primary },
+  headerTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
+  scroll: { paddingHorizontal: 14, paddingTop: space.md },
+
+  profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: light.surface.raised, borderRadius: radius.lg, padding: space.sm, marginBottom: space.xl, gap: space.sm, borderWidth: HAIR, borderColor: light.surface.hairline },
   profileCardAvatar: { width: 52, height: 52, borderRadius: 26 },
-  profileCardAvatarFb: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#007AFF', alignItems: 'center', justifyContent: 'center' },
-  profileCardAvatarTxt: { fontSize: 22, fontWeight: '700', color: '#FFF' },
+  profileCardAvatarFb: { width: 52, height: 52, borderRadius: 26, backgroundColor: light.brand.warm, alignItems: 'center', justifyContent: 'center' },
+  profileCardAvatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: light.brand.base },
   profileCardInfo: { flex: 1 },
-  profileCardName: { fontSize: 16, fontWeight: '700', color: '#000' },
-  profileCardEmail: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
-  accountTypeBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginTop: 6 },
-  accountTypeBadgeASU: { backgroundColor: '#FFF5F0', borderWidth: 0.5, borderColor: '#FECDD3' },
-  accountTypeBadgePending: { backgroundColor: '#FFFBEB', borderWidth: 0.5, borderColor: '#FDE68A' },
-  accountTypeBadgePublic: { backgroundColor: '#EFF6FF', borderWidth: 0.5, borderColor: '#BFDBFE' },
-  accountTypeTxt: { fontSize: 11, fontWeight: '700' },
-  section: { marginBottom: 28 },
-  sectionTitle: { fontSize: 13, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, paddingLeft: 4 },
-  sectionCard: { backgroundColor: '#FFF', borderRadius: 14, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 13, gap: 12 },
-  rowIcon: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  profileCardName: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.3 },
+  profileCardEmail: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 2 },
+  accountTypeBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.sm, marginTop: 6, backgroundColor: 'rgba(201,191,176,0.30)' },
+  accountTypeBadgeASU: { backgroundColor: 'rgba(201,191,176,0.30)' },
+  accountTypeBadgePending: { backgroundColor: light.status.innovationBg },
+  accountTypeBadgePublic: { backgroundColor: light.brand.tintBg },
+  accountTypeTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.heavy, letterSpacing: 0.4 },
+
+  section: { marginBottom: space.xl },
+  sectionTitle: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: light.ink.muted, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: space.xs, paddingLeft: 2 },
+  sectionCard: { backgroundColor: light.surface.canvas, borderRadius: radius.md, borderWidth: HAIR, borderColor: light.surface.hairline, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.sm, paddingVertical: 13, gap: space.sm },
+  rowIcon: { width: 22, textAlign: 'center' },
   rowContent: { flex: 1 },
-  rowLabel: { fontSize: 16, color: '#000' },
-  rowLabelDanger: { color: '#FF3B30' },
-  rowSublabel: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginLeft: 58 },
-  versionChip: { fontSize: 13, color: '#8E8E93', backgroundColor: '#F2F2F7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  footerTxt: { textAlign: 'center', fontSize: 13, color: '#C7C7CC', marginBottom: 8 },
+  rowLabel: { fontSize: typeSize.emphasis, color: light.ink.primary, fontWeight: fontWeight.medium },
+  rowLabelDanger: { color: light.status.danger },
+  rowSublabel: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 2, lineHeight: 15 },
+  divider: { height: HAIR, backgroundColor: light.surface.divider, marginLeft: 46 },
+
+  versionChip: { fontSize: typeSize.caption, color: light.ink.muted, backgroundColor: light.surface.raised, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.sm },
+  footerTxt: { textAlign: 'center', fontSize: typeSize.caption, color: light.ink.faint, marginBottom: space.xs },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  badge: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  badgeTxt: { fontSize: 12, fontWeight: '700', color: '#FFF' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  modalCancel: { fontSize: 17, color: '#8E8E93', minWidth: 60 },
-  modalTitle: { fontSize: 17, fontWeight: '600', color: '#000' },
-  modalSave: { fontSize: 17, fontWeight: '700', color: '#007AFF', textAlign: 'right', minWidth: 60 },
-  modalBody: { padding: 20 },
-  modalFieldLabel: { fontSize: 13, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 },
-  pwInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: '#EFF6FF', borderRadius: 12, padding: 14, marginBottom: 20 },
-  pwInfoTxt: { flex: 1, fontSize: 14, color: '#007AFF', lineHeight: 20 },
-  pwInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, marginBottom: 8 },
-  pwInput: { flex: 1, fontSize: 16, color: '#000', paddingVertical: 13 },
+  badge: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: light.status.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  badgeTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.heavy, color: light.ink.inverse },
+
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: space.sm, borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline },
+  modalCancel: { fontSize: typeSize.body, color: light.ink.muted, minWidth: 60 },
+  modalTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
+  modalSave: { fontSize: typeSize.body, fontWeight: fontWeight.bold, color: light.brand.base, textAlign: 'right', minWidth: 60 },
+  modalBody: { padding: space.edge },
+  modalFieldLabel: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: light.ink.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: space.xs },
+
+  pwInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: light.brand.tintBg, borderRadius: radius.md, padding: space.sm, marginBottom: space.edge },
+  pwInfoTxt: { flex: 1, fontSize: typeSize.body, color: light.ink.secondary, lineHeight: 20 },
+  pwInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: light.surface.raised, borderRadius: radius.md, borderWidth: HAIR, borderColor: light.surface.hairline, paddingHorizontal: space.sm, marginBottom: space.xs },
+  pwInput: { flex: 1, fontSize: typeSize.body, color: light.ink.primary, paddingVertical: 12 },
   pwEye: { padding: 6 },
-  pwStrength: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
+  pwStrength: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: space.xs },
   pwCheck: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  pwCheckTxt: { fontSize: 12, color: '#C7C7CC' },
-  pwMismatch: { fontSize: 13, color: '#FF3B30', marginBottom: 8 },
-  pwSubmitBtn: { backgroundColor: '#000', borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 16 },
+  pwCheckTxt: { fontSize: typeSize.micro, color: light.ink.faint },
+  pwMismatch: { fontSize: typeSize.caption, color: light.status.danger, marginBottom: space.xs },
+  pwSubmitBtn: { backgroundColor: light.brand.base, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center', marginTop: space.md },
   pwSubmitBtnOff: { opacity: 0.35 },
-  pwSubmitBtnTxt: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  privLabel: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 6 },
-  privDesc: { fontSize: 14, color: '#3C3C43', lineHeight: 20, marginBottom: 18 },
-  privOption: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 14, borderWidth: 1.5, borderColor: '#E5E5EA', marginBottom: 12 },
-  privOptionActive: { borderColor: '#007AFF', backgroundColor: '#F0F7FF' },
-  privOptionIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center' },
-  privOptionIconActive: { backgroundColor: '#EFF6FF' },
-  privOptionTitle: { fontSize: 16, fontWeight: '700', color: '#000', marginBottom: 4 },
-  privOptionDesc: { fontSize: 13, color: '#8E8E93', lineHeight: 18 },
-  privNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: '#F5F5F5', borderRadius: 12, padding: 14, marginTop: 8 },
-  privNoteTxt: { flex: 1, fontSize: 13, color: '#8E8E93', lineHeight: 18 },
-  deleteWarning: { alignItems: 'center', backgroundColor: '#FEF2F2', borderRadius: 14, padding: 24, marginBottom: 24, gap: 8 },
-  deleteWarningTitle: { fontSize: 18, fontWeight: '700', color: '#FF3B30' },
-  deleteWarningTxt: { fontSize: 14, color: '#991B1B', textAlign: 'center', lineHeight: 20 },
-  deleteInput: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 16, color: '#000', textAlign: 'center', letterSpacing: 2, marginBottom: 16 },
-  deleteBtn: { backgroundColor: '#FF3B30', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  pwSubmitBtnTxt: { color: light.ink.inverse, fontSize: typeSize.subhead, fontWeight: fontWeight.bold },
+
+  privLabel: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: light.ink.primary, marginBottom: 6 },
+  privDesc: { fontSize: typeSize.body, color: light.ink.secondary, lineHeight: 20, marginBottom: space.md },
+  privOption: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md, borderWidth: 1.5, borderColor: light.surface.hairline, marginBottom: space.sm },
+  privOptionActive: { borderColor: light.brand.base, backgroundColor: light.brand.tintBg },
+  privOptionIcon: { width: 44, height: 44, borderRadius: radius.md, backgroundColor: light.surface.raised, alignItems: 'center', justifyContent: 'center' },
+  privOptionIconActive: { backgroundColor: 'rgba(201,191,176,0.30)' },
+  privOptionTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.bold, color: light.ink.primary, marginBottom: 3 },
+  privOptionDesc: { fontSize: typeSize.caption, color: light.ink.muted, lineHeight: 18 },
+  privNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: light.surface.raised, borderRadius: radius.md, padding: space.sm, marginTop: space.xs },
+  privNoteTxt: { flex: 1, fontSize: typeSize.caption, color: light.ink.muted, lineHeight: 18 },
+
+  deleteWarning: { alignItems: 'center', backgroundColor: light.status.dangerBg, borderRadius: radius.md, padding: space.lg, marginBottom: space.lg, gap: space.xs },
+  deleteWarningTitle: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: light.status.danger },
+  deleteWarningTxt: { fontSize: typeSize.body, color: light.status.danger, textAlign: 'center', lineHeight: 20 },
+  deleteInput: { backgroundColor: light.surface.raised, borderRadius: radius.md, borderWidth: HAIR, borderColor: light.surface.hairline, paddingHorizontal: space.sm, paddingVertical: 13, fontSize: typeSize.subhead, color: light.ink.primary, textAlign: 'center', letterSpacing: 2, marginBottom: space.md },
+  deleteBtn: { backgroundColor: light.status.danger, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center' },
   deleteBtnOff: { opacity: 0.35 },
-  deleteBtnTxt: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  deleteBtnTxt: { color: light.ink.inverse, fontSize: typeSize.subhead, fontWeight: fontWeight.bold },
 });

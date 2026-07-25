@@ -54,6 +54,10 @@ import CallLogScreen           from '../screens/messages/CallLogScreen';
 
 import ProfileScreen              from '../screens/profile/ProfileScreen';
 import UserProfileScreen          from '../screens/profile/UserProfileScreen';
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import BlockedAccountsScreen from '../screens/profile/BlockedAccountsScreen';
+import CreateBusinessScreen from '../screens/profile/CreateBusinessScreen';
+import SavedPostsScreen from '../screens/feed/SavedPostsScreen';
 import SettingsScreen             from '../screens/profile/SettingsScreen';
 import HelpSupportScreen          from '../screens/profile/HelpSupportScreen';
 import TermsScreen                from '../screens/profile/TermsScreen';
@@ -136,6 +140,10 @@ function ProfileStackNav() {
     <ProfStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfStack.Screen name="ProfileMain"     component={ProfileScreen} />
       <ProfStack.Screen name="Settings"        component={SettingsScreen} />
+      <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
+      <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
+      <ProfStack.Screen name="CreateBusiness"  component={CreateBusinessScreen} />
+      <ProfStack.Screen name="SavedPosts"      component={SavedPostsScreen} />
       <ProfStack.Screen name="MutedStories" component={MutedStoriesScreen} />
       <ProfStack.Screen name="Terms"           component={TermsScreen} />
       <ProfStack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />

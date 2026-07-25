@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+import ProfileHeader from '../../components/ProfileHeader';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -91,6 +92,7 @@ export default function ProfileScreen() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [tabPosts, setTabPosts] = useState<Post[]>([]);
   const [tabReposts, setTabReposts] = useState<Post[]>([]);
   const [tabSaved, setTabSaved] = useState<Post[]>([]);
@@ -128,23 +130,23 @@ export default function ProfileScreen() {
   const load = useCallback(async () => {
     if (!userId) return;
     try {
-      const { data: pd } = await supabase.from('profiles').select('*').eq('id', userId).single();
-      if (pd) {
-        const p: Profile = {
-          id: pd.id, full_name: pd.full_name||'', username: pd.username||'',
-          bio: pd.bio||'', location: pd.location||'', degree_program: pd.degree_program||'',
-          avatar_url: pd.avatar_url||null, email: pd.email||'', role: pd.role||'student',
-          profile_visibility: pd.profile_visibility||'public',
-        };
-        setProfile(p);
-        if (setAuthProfile) setAuthProfile({ ...(authProfile as any), ...p });
-      }
-      const { count: postCount } = await supabase.from('posts').select('id',{count:'exact',head:true}).eq('user_id',userId);
-      const { count: c1 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('requester_id',userId).eq('status','accepted');
-      const { count: c2 } = await supabase.from('connections').select('id',{count:'exact',head:true}).eq('recipient_id',userId).eq('status','accepted');
-      const { count: followerCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('following_id',userId);
-      const { count: followingCount } = await supabase.from('follows').select('id',{count:'exact',head:true}).eq('follower_id',userId);
-      setStats({ posts: postCount??0, connections:(c1??0)+(c2??0), followers: followerCount??0, following: followingCount??0 });
+      const { data: pj, error: pErr } = await supabase.rpc('get_profile', { p_profile_id: userId });
+      if (pErr) { console.log('PROFILE_LOAD', pErr.message); setLoadError(pErr.message); return; }
+      setLoadError(null);
+      const pd: any = pj || {};
+      setProfile({
+        id: pd.id, full_name: pd.full_name || '', username: pd.username || '',
+        bio: pd.bio || '', location: pd.location || '', degree_program: pd.degree_program || '',
+        avatar_url: pd.avatar_url || null, email: pd.email || '', role: pd.role || 'student',
+        profile_visibility: pd.profile_visibility || 'public',
+        banner_url: pd.banner_url || null, headline: pd.headline || null,
+        workplace: pd.workplace || null, account_type: pd.account_type || 'personal',
+        is_verified: !!pd.is_verified, created_at: pd.created_at, business: pd.business || null,
+      } as any);
+      if (setAuthProfile) setAuthProfile({ ...(authProfile as any), ...pd });
+      const c = pd.counts || {};
+      setTabCounts({ posts: c.posts ?? 0, reposts: c.reposts ?? 0, saved: c.saved ?? 0, tagged: c.media ?? 0 });
+      setStats({ posts: c.posts ?? 0, connections: 0, followers: c.followers ?? 0, following: c.following ?? 0, reach: c.reach ?? null } as any);
     } catch(e){ console.log('PROFILE_LOAD',e); }
     finally { setLoading(false); setRefreshing(false); }
   }, [userId]);
@@ -232,19 +234,10 @@ export default function ProfileScreen() {
     finally { setTabLoading(false); }
   }, [userId, profile?.username]);
 
-  const loadTabCounts = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const [{ count: pc }, { count: rc }, { count: sc }] = await Promise.all([
-        supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('post_reposts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('post_bookmarks').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-      ]);
-      let tc = 0;
-      if (profile?.username) { const { count } = await supabase.from('posts').select('id', { count: 'exact', head: true }).ilike('content', `%@${profile.username}%`); tc = count ?? 0; }
-      setTabCounts({ posts: pc ?? 0, reposts: rc ?? 0, saved: sc ?? 0, tagged: tc });
-    } catch {}
-  }, [userId, profile?.username]);
+  // Counts arrive with get_profile now. The old version derived the Media
+  // badge from ilike('content', '%@username%'), which counted mentions rather
+  // than media and substring-matched other usernames.
+  const loadTabCounts = useCallback(async () => {}, []);
 
   useFocusEffect(useCallback(() => { load(); loadHighlights(); }, [load, loadHighlights]));
 
@@ -301,7 +294,7 @@ export default function ProfileScreen() {
     setEditName(profile.full_name); setEditUsername(profile.username); setEditBio(profile.bio);
     setEditLocation(profile.location); setEditDegree(profile.degree_program);
     setEditRole(profile.role||'student'); setEditVisibility(profile.profile_visibility||'public');
-    setEditing(true);
+    navigation.navigate('EditProfile');
   };
 
   const saveProfile = async () => {
@@ -471,91 +464,19 @@ export default function ProfileScreen() {
     <SafeAreaView style={st.safe} edges={['top','left','right']}>
       <StatusBar barStyle="dark-content"/>
       <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadHighlights();loadTabContent(activeTab);}} tintColor={NAVY}/>} onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
-        {/* Identity environment */}
-        <View style={st.twBanner}>
-          {(profile as any).banner_url ? (
-            <ExpoImage source={{ uri: (profile as any).banner_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" />
-          ) : null}
-          <TouchableOpacity style={st.twSettings} onPress={() => navigation.navigate('Settings')} activeOpacity={0.75}>
-            <Feather name="settings" size={18} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={st.twHead}>
-          <View style={st.twAvatarRow}>
-            <TouchableOpacity onPress={changePhoto} disabled={uploadingPhoto} activeOpacity={0.85} style={st.twAvatarWrap}>
-              {uploadingPhoto ? (
-                <View style={[st.twAvatar, st.avatarLoading]}><ActivityIndicator color={NAVY} /></View>
-              ) : profile.avatar_url ? (
-                <ExpoImage source={{ uri: profile.avatar_url }} style={st.twAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />
-              ) : (
-                <View style={[st.twAvatar, st.avatarFb]}><Text style={st.twAvatarTxt}>{initials(profile.full_name)}</Text></View>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={st.twEditBtn} onPress={openEdit} activeOpacity={0.8}>
-              <Text style={st.twEditTxt}>Edit profile</Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text style={st.twName}>{profile.full_name || 'Your Name'}</Text>
-          {profile.username ? <Text style={st.twHandle}>@{profile.username}</Text> : null}
-
-          {profile.bio ? (
-            <Text style={st.twBio}>{profile.bio}</Text>
-          ) : (
-            <TouchableOpacity onPress={openEdit}><Text style={st.twBioEmpty}>Add a bio</Text></TouchableOpacity>
-          )}
-
-          <View style={st.twMetaRow}>
-            {profile.location ? (
-              <View style={st.twMetaItem}>
-                <Feather name="map-pin" size={13} color="#6B7280" />
-                <Text style={st.twMeta}>{profile.location}</Text>
-              </View>
-            ) : null}
-            {(profile as any).created_at ? (
-              <View style={st.twMetaItem}>
-                <Feather name="calendar" size={13} color="#6B7280" />
-                <Text style={st.twMeta}>
-                  Joined {new Date((profile as any).created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-          <View style={st.twCounts}>
-            <TouchableOpacity style={st.twCountItem} onPress={() => openStats('following')} activeOpacity={0.7}>
-              <Text style={st.twCountNum}>{stats.following}</Text>
-              <Text style={st.twCountLbl}>Following</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={st.twCountItem} onPress={() => openStats('followers')} activeOpacity={0.7}>
-              <Text style={st.twCountNum}>{stats.followers}</Text>
-              <Text style={st.twCountLbl}>Followers</Text>
-            </TouchableOpacity>
-            <View style={st.twCountItem}>
-              <Text style={st.twCountNum}>{stats.posts}</Text>
-              <Text style={st.twCountLbl}>Posts</Text>
-            </View>
-          </View>
-        </View>
-
-
-        <View style={st.twTabRow}>
-          {([
-            { key: 'posts' as ProfileTab, label: 'Posts' },
-            { key: 'reposts' as ProfileTab, label: 'Reposts' },
-            { key: 'saved' as ProfileTab, label: 'Likes' },
-            { key: 'tagged' as ProfileTab, label: 'Media' },
-          ]).map(t => {
-            const on = activeTab === t.key;
-            return (
-              <TouchableOpacity key={t.key} style={st.twTab} onPress={() => setActiveTab(t.key)} activeOpacity={0.7}>
-                <Text style={[st.twTabTxt, on && st.twTabTxtOn]}>{t.label}</Text>
-                {on ? <View style={st.twTabBar} /> : null}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <ProfileHeader
+          profile={profile}
+          stats={stats}
+          uploadingPhoto={uploadingPhoto}
+          isSelf
+          tabs={[{ key: 'posts', label: 'Posts' }, { key: 'reposts', label: 'Reposts' }, { key: 'saved', label: 'Likes' }, { key: 'tagged', label: 'Media' }]}
+          activeTab={activeTab}
+          onTabChange={(k) => setActiveTab(k as ProfileTab)}
+          onSettings={() => navigation.navigate('Settings')}
+          onEdit={openEdit}
+          onChangePhoto={changePhoto}
+          onOpenStats={openStats}
+        />
 
         {tabLoading?(<View style={{paddingVertical:40,alignItems:'center'}}><ActivityIndicator color={NAVY}/></View>):tabData.length===0?emptyState(activeTab):tabData.map(post=>renderPostCard(post))}
       </ScrollView>

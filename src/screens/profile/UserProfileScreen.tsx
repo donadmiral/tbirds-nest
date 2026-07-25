@@ -10,6 +10,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import ProfileHeader from '../../components/ProfileHeader';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
@@ -30,8 +31,11 @@ type UserProfile = {
   location: string; degree_program: string; graduation_year: number | null;
   avatar_url: string | null; role: string; profile_visibility: string;
   is_verified_school_user: boolean;
+  banner_url?: string | null; headline?: string | null; workplace?: string | null;
+  account_type?: string; is_verified?: boolean; created_at?: string;
+  business?: any; can_view_content?: boolean;
 };
-type Stats = { posts: number; connections: number; followers: number };
+type Stats = { posts: number; connections: number; followers: number; following?: number };
 type Post = {
   id: string;
   content: string;
@@ -73,6 +77,7 @@ export default function UserProfileScreen() {
   const [connRequestId, setConnRequestId] = useState<string | null>(null);
   const [following, setFollowing] = useState(false);
   const [followRequested, setFollowRequested] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
@@ -80,22 +85,25 @@ export default function UserProfileScreen() {
   const load = useCallback(async () => {
     if (!targetId) return;
     try {
-      const { data: pd } = await supabase.from('profiles').select('*').eq('id', targetId).single();
-      if (pd) setProfile({
+      const { data: pj, error: pErr } = await supabase.rpc('get_profile', { p_profile_id: targetId });
+      if (pErr) { console.log('USER_PROFILE_LOAD', pErr.message); setLoadError(pErr.message); return; }
+      setLoadError(null);
+      const pd: any = pj || {};
+      setProfile({
         id: pd.id, full_name: pd.full_name || '', username: pd.username || '',
         bio: pd.bio || '', location: pd.location || '', degree_program: pd.degree_program || '',
-        graduation_year: pd.graduation_year ?? null, avatar_url: pd.avatar_url || null, role: pd.role || 'student',
+        graduation_year: null, avatar_url: pd.avatar_url || null, role: pd.role || 'student',
         profile_visibility: pd.profile_visibility || 'public',
-        is_verified_school_user: !!pd.is_verified_school_user,
+        is_verified_school_user: false,
+        banner_url: pd.banner_url || null, headline: pd.headline || null,
+        workplace: pd.workplace || null, account_type: pd.account_type || 'personal',
+        is_verified: !!pd.is_verified, created_at: pd.created_at,
+        business: pd.business || null, can_view_content: !!pd.can_view_content,
       });
-
-      const [postsR, connR, followR] = await Promise.all([
-        supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', targetId),
-        supabase.from('connections').select('id', { count: 'exact', head: true })
-          .or(`requester_id.eq.${targetId},recipient_id.eq.${targetId}`).eq('status', 'accepted'),
-        supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', targetId),
-      ]);
-      setStats({ posts: postsR.count ?? 0, connections: connR.count ?? 0, followers: followR.count ?? 0 });
+      const c = pd.counts || {};
+      setStats({ posts: c.posts ?? 0, connections: 0, followers: c.followers ?? 0, following: c.following ?? 0 });
+      setFollowing(!!pd.viewer_follows);
+      setFollowRequested(!!pd.viewer_requested);
 
       let postsData: any[] = [];
       try {
@@ -189,6 +197,22 @@ export default function UserProfileScreen() {
     }
   };
 
+  const confirmBlock = () => {
+    if (!myId || isOwnProfile) return;
+    const who = profile?.full_name || (profile?.username ? '@' + profile.username : 'this person');
+    Alert.alert(
+      'Block ' + who + '?',
+      'They will not be able to see your posts or message you. You can undo this in Settings, under Blocked accounts.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Block', style: 'destructive', onPress: async () => {
+          const { error } = await supabase.from('blocked_users').insert({ blocker_id: myId, blocked_id: targetId });
+          if (error) { Alert.alert('Could not block', error.message); return; }
+          navigation.goBack();
+        } },
+      ],
+    );
+  };
   const handleFollow = async () => {
     if (!myId || actionBusy) return;
     setActionBusy(true);
@@ -263,77 +287,40 @@ export default function UserProfileScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={NAVY} />}
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 40, 60) }}
       >
-        <View style={s.hero}>
-          {profile.avatar_url
-            ? <Image source={{ uri: profile.avatar_url }} style={s.avatar} />
-            : <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarFbTxt}>{initials(profile.full_name)}</Text></View>}
-
-          <Text style={s.name}>{profile.full_name || 'Member'}</Text>
-          {profile.is_verified_school_user && <VerifiedBadge size={14} showLabel />}
-          {profile.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
-          {isPrivate && !isOwnProfile && (
-            <View style={s.privateBadge}>
-              <Feather name="lock" size={11} color={TEXT_SECONDARY} />
-              <Text style={s.privateBadgeTxt}>Private account</Text>
-            </View>
-          )}
-
-          <View style={s.statsRow}>
-            {[
-              { label: 'Posts', v: stats.posts },
-              { label: 'Connections', v: stats.connections },
-              { label: 'Followers', v: stats.followers },
-            ].map(stat => (
-              <View key={stat.label} style={s.statItem}>
-                <Text style={s.statValue}>{stat.v}</Text>
-                <Text style={s.statLabel}>{stat.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {!isOwnProfile && (
-            <View style={s.heroActions}>
-              <TouchableOpacity style={s.heroAction} activeOpacity={0.7} onPress={openMessage}>
-                <View style={s.heroActionInner}><Feather name="message-circle" size={20} color={NAVY} /></View>
-                <Text style={s.heroActionLbl}>Message</Text>
+        <ProfileHeader
+          profile={profile}
+          stats={{ posts: stats.posts, followers: stats.followers, following: stats.following ?? 0 }}
+          isSelf={isOwnProfile}
+          tabs={[]}
+          activeTab=""
+          onTabChange={() => {}}
+          onEdit={isOwnProfile ? () => navigation.navigate('Profile', { screen: 'EditProfile' }) : undefined}
+          actions={isOwnProfile ? undefined : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <TouchableOpacity onPress={confirmBlock} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="More options" style={{ width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="more-horizontal" size={16} color={NAVY} /></TouchableOpacity>
+              <TouchableOpacity
+                onPress={openMessage}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Message"
+                style={{ width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Feather name="message-circle" size={16} color={NAVY} />
               </TouchableOpacity>
               <TouchableOpacity
-                style={s.heroAction} activeOpacity={0.7}
-                onPress={handleConnect} disabled={actionBusy}
+                onPress={handleFollow}
+                disabled={actionBusy}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                style={{ paddingHorizontal: 18, paddingVertical: 9, borderRadius: 999, backgroundColor: (following || followRequested) ? 'rgba(11,30,61,0.05)' : NAVY, borderWidth: StyleSheet.hairlineWidth, borderColor: (following || followRequested) ? 'rgba(11,30,61,0.08)' : NAVY }}
               >
-                <View style={[s.heroActionInner, connStatus === 'connected' && s.heroActionInnerActive]}>
-                  <Feather
-                    name={connStatus === 'connected' ? 'user-check' : connStatus === 'pending_sent' ? 'clock' : 'user-plus'}
-                    size={20}
-                    color={connStatus === 'connected' ? '#FFF' : NAVY}
-                  />
-                </View>
-                <Text style={s.heroActionLbl}>
-                  {connStatus === 'connected' ? 'Connected' : connStatus === 'pending_sent' ? 'Requested' : connStatus === 'pending_received' ? 'Accept' : 'Connect'}
+                <Text style={{ fontSize: 13, fontWeight: '800', color: (following || followRequested) ? NAVY : '#FFFFFF' }}>
+                  {following ? 'Following' : followRequested ? 'Requested' : 'Follow'}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={s.heroAction} activeOpacity={0.7}
-                onPress={handleFollow} disabled={actionBusy}
-              >
-                <View style={[s.heroActionInner, (following || followRequested) && s.heroActionInnerActive]}>
-                  <Feather name={following ? 'check' : followRequested ? 'clock' : 'plus'} size={20} color={following || followRequested ? '#FFF' : NAVY} />
-                </View>
-                <Text style={s.heroActionLbl}>{following ? 'Following' : followRequested ? 'Requested' : 'Follow'}</Text>
-              </TouchableOpacity>
             </View>
           )}
-
-          {isOwnProfile && (
-            <TouchableOpacity
-              style={s.editOwnBtn}
-              onPress={() => navigation.navigate('Profile', { screen: 'ProfileMain', params: { edit: true } })}
-              activeOpacity={0.8}
-            >
-              <Text style={s.editOwnBtnTxt}>Edit Profile</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        />
 
         {canViewContent ? (
           <>
