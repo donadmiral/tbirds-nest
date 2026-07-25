@@ -19,6 +19,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { useUnreadStore } from '../../stores/unreadStore';
 import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
 
 type Row = {
@@ -75,6 +76,7 @@ export default function ContextInboxScreen({ route, navigation }: any) {
     setRows((data ?? []) as Row[]);
     setLoading(false);
     setRefreshing(false);
+    useUnreadStore.getState().refresh();
   }, [ctx]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));

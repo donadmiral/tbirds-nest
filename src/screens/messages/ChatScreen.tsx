@@ -39,6 +39,7 @@ import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
 import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
+import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
 import CallEventBubble from '../../components/CallEventBubble';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -75,6 +76,7 @@ type MessageItem = {
   media_height?: number | null;
   reply_to_id?: string | null;
   shared_post_id?: string | null;
+  payment_id?: string | null;
   _optimistic?: boolean;
   _reactions?: Reaction[];
 };
@@ -1095,6 +1097,22 @@ export default function ChatScreen() {
     return out;
   }, [messages, searchQuery]);
 
+  const [paymentsMap, setPaymentsMap] = useState<Record<string, ChatPayment>>({});
+  useEffect(() => {
+    const ids = Array.from(new Set(messages.map(m => m.payment_id).filter(Boolean))) as string[];
+    const missing = ids.filter(id => !paymentsMap[id]);
+    if (missing.length === 0) return;
+    (async () => {
+      const { data, error } = await supabase.rpc('get_payments_by_ids', { p_ids: missing });
+      if (error) { console.log('[PAYMENTS]', error.message); return; }
+      setPaymentsMap(prev => {
+        const next = { ...prev };
+        (data ?? []).forEach((r: any) => { next[r.payment_id] = r as ChatPayment; });
+        return next;
+      });
+    })();
+  }, [messages, paymentsMap]);
+
   const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string } | null }>>({});
   useEffect(() => {
     const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
@@ -1218,6 +1236,13 @@ export default function ChatScreen() {
                   />
                   {msg.media_type === 'gif' ? <View style={s.gifBadge}><Text style={s.gifBadgeTxt}>GIF</Text></View> : null}
                 </View>
+              ) : null}
+              {msg.payment_id && paymentsMap[msg.payment_id] ? (
+                <PaymentBubble
+                  payment={paymentsMap[msg.payment_id]}
+                  isMine={isMe}
+                  otherName={otherUser?.full_name}
+                />
               ) : null}
               {msg.media_type === 'audio' && msg.media_url ? (
                 <VoiceNote
@@ -1650,7 +1675,7 @@ export default function ChatScreen() {
             </TouchableOpacity>
             {!isGroup && !!passedUserId && (
               <TouchableOpacity style={s.addBtn} onPress={() => setPayOpen(true)} activeOpacity={0.6}>
-                <Feather name="dollar-sign" size={21} color={NAVY} />
+                <Feather name="credit-card" size={21} color={NAVY} />
               </TouchableOpacity>
             )}
             <View style={s.inputWrap}>
