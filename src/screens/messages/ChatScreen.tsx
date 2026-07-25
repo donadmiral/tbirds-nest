@@ -452,7 +452,7 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList<any>>(null);
 
   // Pinned context for Market / Jobs threads
-  const [ctxCard, setCtxCard] = useState<{ kind: 'market' | 'jobs'; title: string; sub: string; image: string | null; refId: string } | null>(null);
+  const [ctxCard, setCtxCard] = useState<{ kind: 'market' | 'jobs'; title: string; sub: string; image: string | null; refId: string; price?: number | null; currency?: string | null } | null>(null);
   const [payOpen, setPayOpen] = useState(false);
   useEffect(() => {
     let cancelled = false;
@@ -469,7 +469,7 @@ export default function ChatScreen() {
           const d: any = data;
           const img = Array.isArray(d.images) && d.images.length ? d.images[0] : (d.image_url || null);
           const price = d.price != null ? ((d.currency || 'USD') + ' ' + d.price) : '';
-          setCtxCard({ kind: 'market', title: d.title || 'Listing', sub: [price, d.status].filter(Boolean).join('  ·  '), image: img, refId: d.id });
+          setCtxCard({ kind: 'market', title: d.title || 'Listing', sub: [price, d.status].filter(Boolean).join('  ·  '), image: img, refId: d.id, price: d.price != null ? Number(d.price) : null, currency: d.currency || 'USD' });
         } else if (ctx === 'jobs') {
           const { data } = await supabase.from('jobs').select('id, title, company, location').eq('id', refId).maybeSingle();
           if (!data || cancelled) return;
@@ -1437,6 +1437,8 @@ export default function ChatScreen() {
           visible={payOpen}
           onClose={() => setPayOpen(false)}
           recipientId={passedUserId}
+          listingId={ctxCard?.kind === 'market' ? ctxCard.refId : null}
+          initialAmount={ctxCard?.kind === 'market' ? (ctxCard.price ?? null) : null}
           recipientName={(route.params as any)?.userName || 'them'}
           conversationId={conversationId}
           onRequested={async (amt, cur) => {
