@@ -58,7 +58,7 @@ export default function CreateListingScreen({ navigation }: any) {
   }, [step, media.length, titleOk, priceOk, condition, cityOk]);
 
   const addPhotos = async () => {
-    const picked = await pickFromLibrary({ multiple: true, limit: MAX_IMAGES - media.length });
+    const picked = await pickFromLibrary({ multiple: true, selectionLimit: MAX_IMAGES - media.length });
     if (picked?.length) setMedia(prev => [...prev, ...picked].slice(0, MAX_IMAGES));
   };
 
