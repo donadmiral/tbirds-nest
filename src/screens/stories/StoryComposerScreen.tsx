@@ -86,7 +86,7 @@ function getDefaultStickerColor(bgId: string): string {
 type PollData = { question: string; options: string[] };
 type Draft = {
   id: string; localUri: string | null; thumbnailUri: string | null;
-  mediaType: 'image' | 'video' | 'text'; caption: string; scope: 'global'; audience?: 'everyone' | 'close_friends' | 'except'; reach?: 'followers' | 'wider';
+  mediaType: 'image' | 'video' | 'text'; caption: string; scope: 'global'; audience?: 'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except'; sharedWith?: string[] | null; reach?: 'followers' | 'wider';
   uploadState: 'idle' | 'uploading' | 'done' | 'error'; errorMsg?: string | null;
   durationSec?: number | null; pollData?: PollData | null; stickers?: StoryTextSticker[];
   imageW?: number; imageH?: number; mediaFit: MediaFit; mediaTransform: MediaTransform;
@@ -204,18 +204,16 @@ export default function StoryComposerScreen() {
   const entryRan = useRef(false);
 
   // ── Bloom tools ──
-  const [audience, setAudienceState] = useState<'everyone' | 'close_friends' | 'except'>('everyone');
+  // only_with was missing from this union, which is the only reason the
+  // sheet's people picker never worked: it hands back the ids, the service
+  // writes story_shared_with, and this line refused to hold the value.
+  const [audience, setAudienceState] = useState<'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except'>('everyone');
   const [audienceSheetOpen, setAudienceSheetOpen] = useState(false);
   const isBusiness = (profile as any)?.account_type === 'business';
   const [reach, setReachState] = useState<'followers' | 'wider'>('followers');
   const toggleReach = useCallback(() => { setReachState(prev => { const next = prev === 'followers' ? 'wider' : 'followers'; setDrafts(ds => ds.map(d => ({ ...d, reach: next } as any))); return next; }); }, []);
-  const cycleAudience = useCallback(() => {
-    setAudienceState(prev => {
-      const next = prev === 'everyone' ? 'close_friends' : 'everyone';
-      setDrafts(ds => ds.map(d => ({ ...d, audience: next } as any)));
-      return next;
-    });
-  }, []);
+  // cycleAudience removed: it only flipped everyone <-> close_friends and
+  // could never reach only_with. The pill opens StoryAudienceSheet instead.
   const bloomTools = useMemo(() => getBloomTools(isDual ? 'dual' : (mode as any)), [isDual, mode]);
 
   // ── CONTROLLER: Bloom (no deps on other controllers) ──
@@ -679,7 +677,7 @@ export default function StoryComposerScreen() {
         {/* Audience picker */}
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 52 }]}>
           <TouchableOpacity onPress={() => setAudienceSheetOpen(true)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
-            <Feather name={audience === 'close_friends' ? 'star' : 'globe'} size={13} color="#FFFFFF" />
+            <Feather name={(audience === 'close_friends' ? 'star' : audience === 'only_with' ? 'user-check' : audience === 'followers' ? 'users' : 'globe') as any} size={13} color="#FFFFFF" />
             <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{audience === 'close_friends' ? 'Close friends' : 'Everyone'}</Text>
           </TouchableOpacity>
         </Animated.View>

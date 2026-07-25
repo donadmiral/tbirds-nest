@@ -55,6 +55,21 @@ const TIMEOUT_DEFAULT_MS = 500;
 const TIMEOUT_VIDEO_MS = 800;
 
 const NAVY = palette.navy;
+// scope (School / Global) was the school-era concept. audience is the real one.
+const AUD_LABEL: Record<string, string> = {
+  everyone: 'Everyone',
+  followers: 'Followers',
+  close_friends: 'Close friends',
+  only_with: 'Selected',
+  except: 'Everyone', // an empty hide-list means everyone
+};
+const AUD_ICON: Record<string, any> = {
+  everyone: 'globe',
+  followers: 'users',
+  close_friends: 'star',
+  only_with: 'user-check',
+  except: 'globe',
+};
 const REACTION_EMOJIS = ['\u2764\uFE0F', '\uD83D\uDD25', '\uD83D\uDE02', '\uD83D\uDE2E', '\uD83D\uDE22', '\uD83D\uDC4F'];
 
 const DUAL_BUBBLE_BASE_W = 120;
@@ -505,9 +520,9 @@ export default function StoryViewerScreen() {
             <View style={s.insightsStatsRow}>
               <View style={s.insightStat}><View style={s.insightStatIcon}><Feather name="eye" size={15} color={NAVY} /></View><View><Text style={s.insightStatVal}>{currentStory.views_count}</Text><Text style={s.insightStatLbl}>Views</Text></View></View>
               <View style={s.insightStat}><View style={s.insightStatIcon}><Feather name="heart" size={15} color={NAVY} /></View><View><Text style={s.insightStatVal}>{reactionsCount}</Text><Text style={s.insightStatLbl}>Reactions</Text></View></View>
-              <View style={s.insightStat}><View style={s.insightStatIcon}><Feather name={currentStory.scope === 'institution' ? 'award' : 'globe'} size={15} color={NAVY} /></View><View><Text style={s.insightStatVal}>{currentStory.scope === 'institution' ? 'School' : 'Global'}</Text><Text style={s.insightStatLbl}>Audience</Text></View></View>
+              <View style={s.insightStat}><View style={s.insightStatIcon}><Feather name={AUD_ICON[(currentStory as any).audience || 'everyone']} size={15} color={NAVY} /></View><View><Text style={s.insightStatVal}>{AUD_LABEL[(currentStory as any).audience || 'everyone']}</Text><Text style={s.insightStatLbl}>Audience</Text></View></View>
             </View>
-            <View style={s.viewersTabRow}><View style={[s.viewersTab, s.viewersTabActive]}><Text style={s.viewersTabTxtActive}>Your circle · {currentStory.views_count}</Text></View></View>
+              <Text style={s.viewersHeading}>Viewers</Text>
             {loadingViewers ? (<View style={s.viewersLoader}><ActivityIndicator size="small" color={NAVY} /></View>) : viewers.length === 0 ? (<View style={s.viewersEmpty}><View style={s.viewersEmptyIcon}><Feather name="users" size={20} color="#C7C7CC" /></View><Text style={s.viewersEmptyTxt}>No one yet</Text><Text style={s.viewersEmptySub}>Your circle will appear here.</Text></View>) : (
               <FlatList data={viewers} keyExtractor={(v) => v.user_id} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} renderItem={({ item }) => { const userEmojis = viewerReactions.get(item.user_id); return (
                 <TouchableOpacity style={s.viewerRow} activeOpacity={0.7} onPress={() => openViewerProfile(item.user_id)}>
@@ -578,6 +593,7 @@ const s = StyleSheet.create({
   insightStatVal: { fontSize: 15, fontWeight: '700', color: '#000', letterSpacing: -0.2 },
   insightStatLbl: { fontSize: 11, color: '#8E8E93', marginTop: 1 },
   viewersTabRow: { flexDirection: 'row', paddingHorizontal: 20, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
+  viewersHeading: { fontSize: 12, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase', color: '#8E8E93', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 6 },
   viewersTab: { paddingVertical: 10, paddingHorizontal: 2, marginRight: 20 },
   viewersTabActive: { borderBottomWidth: 2, borderBottomColor: NAVY, marginBottom: -StyleSheet.hairlineWidth },
   viewersTabTxtActive: { fontSize: 13, fontWeight: '700', color: NAVY },
