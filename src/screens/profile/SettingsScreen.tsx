@@ -299,7 +299,7 @@ export default function SettingsScreen() {
           <Row icon="volume-x" iconColor="#8E8E93" label="Muted stories" sublabel="People whose stories you hide" onPress={() => navigation.navigate('MutedStories')} />
           <Row icon="bookmark" iconColor="#0B1E3D" label="Saved posts" sublabel="Posts you bookmarked" onPress={() => navigation.navigate("SavedPosts")} />
           <Row icon="slash" iconColor="#FF3B30" label="Blocked accounts" sublabel="See and undo who you blocked" onPress={() => navigation.navigate("BlockedAccounts")} />
-          <Row icon="briefcase" label="Create a business" sublabel="Its own profile, followers and posts" onPress={() => navigation.navigate("CreateBusiness")} />
+          <Row icon="briefcase" label="Businesses" sublabel="Pages you run, and your team" onPress={() => navigation.navigate("Businesses")} />
           <Row icon="mail" iconColor="#5856D6" label="Message requests" sublabel="Messages from people you do not follow" onPress={() => navigation.navigate("Messages", { screen: "MessageRequests" })} />
         </Section>
 

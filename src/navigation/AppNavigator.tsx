@@ -57,6 +57,8 @@ import UserProfileScreen          from '../screens/profile/UserProfileScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import BlockedAccountsScreen from '../screens/profile/BlockedAccountsScreen';
 import CreateBusinessScreen from '../screens/profile/CreateBusinessScreen';
+import BusinessesScreen from '../screens/profile/BusinessesScreen';
+import BusinessManageScreen from '../screens/profile/BusinessManageScreen';
 import SavedPostsScreen from '../screens/feed/SavedPostsScreen';
 import SettingsScreen             from '../screens/profile/SettingsScreen';
 import HelpSupportScreen          from '../screens/profile/HelpSupportScreen';
@@ -143,6 +145,8 @@ function ProfileStackNav() {
       <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
       <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
       <ProfStack.Screen name="CreateBusiness"  component={CreateBusinessScreen} />
+      <ProfStack.Screen name="Businesses"      component={BusinessesScreen} />
+      <ProfStack.Screen name="BusinessManage"  component={BusinessManageScreen} />
       <ProfStack.Screen name="SavedPosts"      component={SavedPostsScreen} />
       <ProfStack.Screen name="MutedStories" component={MutedStoriesScreen} />
       <ProfStack.Screen name="Terms"           component={TermsScreen} />
