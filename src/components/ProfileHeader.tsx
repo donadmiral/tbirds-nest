@@ -8,15 +8,16 @@
  * the user's content, not a backdrop, so the name sits below it and the avatar
  * overlaps the boundary instead.
  *
- * What stays ours: stats as a rail of platinum-tinted pills rather than grey
- * inline text nobody notices, a platinum underline on the active tab, and a
- * fourth pill on your own profile showing total reach.
+ * Ours: stats as a rail of platinum-tinted pills rather than grey inline text,
+ * a platinum underline on the active tab, a reach pill on your own profile, and
+ * live opening hours on a business.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
+import { openNow, hoursSummary, hasHours, DAY_ORDER, dayLabel } from '../utils/businessHours';
 
 const BANNER_H = 150;
 const AVATAR = 78;
@@ -42,17 +43,58 @@ type Props = {
 function initials(name?: string | null) {
   if (!name) return 'U';
   const p = name.trim().split(' ').filter(Boolean);
-  return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase();
+  return p.length === 1 ? p[0][0].toUpperCase() : p[0][0].toUpperCase() + p[1][0].toUpperCase();
 }
 
 function fmt(n?: number | null) {
   if (n == null) return '0';
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+  return n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
 }
 
 function joinedLabel(iso?: string) {
   if (!iso) return null;
-  return `Joined ${new Date(iso).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}`;
+  return 'Joined ' + new Date(iso).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+}
+
+/** Live open or closed, with the week available on tap. */
+function BusinessHours({ hours }: { hours: any }) {
+  const [open, setOpen] = useState(false);
+  if (!hasHours(hours)) return null;
+  const isOpen = openNow(hours);
+  const summary = hoursSummary(hours);
+
+  return (
+    <View style={s.hoursWrap}>
+      <TouchableOpacity
+        style={s.hoursRow}
+        onPress={() => setOpen(v => !v)}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={isOpen ? 'Open now. Show opening hours.' : 'Closed. Show opening hours.'}
+      >
+        <Feather name="clock" size={12} color={light.ink.muted} />
+        <Text style={[s.hoursState, isOpen ? s.hoursOpen : s.hoursClosed]}>
+          {isOpen ? 'Open' : 'Closed'}
+        </Text>
+        <Text style={s.meta}>{summary}</Text>
+        <Feather name={open ? 'chevron-up' : 'chevron-down'} size={13} color={light.ink.faint} />
+      </TouchableOpacity>
+
+      {open ? (
+        <View style={s.hoursWeek}>
+          {DAY_ORDER.map(k => {
+            const r = hours?.[k]?.[0];
+            return (
+              <View key={k} style={s.hoursDay}>
+                <Text style={s.hoursDayLbl}>{dayLabel(k)}</Text>
+                <Text style={s.hoursDayVal}>{r ? r[0] + ' - ' + r[1] : 'Closed'}</Text>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
+    </View>
+  );
 }
 
 export default function ProfileHeader({
@@ -66,12 +108,7 @@ export default function ProfileHeader({
     <View>
       <View style={s.banner}>
         {profile?.banner_url ? (
-          <ExpoImage
-            source={{ uri: profile.banner_url }}
-            style={s.bannerImg}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-          />
+          <ExpoImage source={{ uri: profile.banner_url }} style={s.bannerImg} contentFit="cover" cachePolicy="memory-disk" />
         ) : (
           <View style={[s.bannerImg, s.bannerFallback]} />
         )}
@@ -92,11 +129,7 @@ export default function ProfileHeader({
 
       <View style={s.body}>
         <View style={s.avatarRow}>
-          <TouchableOpacity
-            onPress={onChangePhoto}
-            disabled={!onChangePhoto || uploadingPhoto}
-            activeOpacity={0.85}
-          >
+          <TouchableOpacity onPress={onChangePhoto} disabled={!onChangePhoto || uploadingPhoto} activeOpacity={0.85}>
             {uploadingPhoto ? (
               <View style={[s.avatar, s.avatarLoading]}><ActivityIndicator color={light.brand.base} /></View>
             ) : profile?.avatar_url ? (
@@ -166,19 +199,29 @@ export default function ProfileHeader({
           </View>
         ) : null}
 
+        {business ? <BusinessHours hours={business.hours} /> : null}
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.rail}>
           <TouchableOpacity style={s.pill} activeOpacity={0.75} onPress={() => onOpenStats?.('followers')}>
             <Text style={s.pillNum}>{fmt(stats?.followers)}</Text>
             <Text style={s.pillLbl}>Followers</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.pill} activeOpacity={0.75} onPress={() => onOpenStats?.('following')}>
-            <Text style={s.pillNum}>{fmt(stats?.following)}</Text>
-            <Text style={s.pillLbl}>Following</Text>
-          </TouchableOpacity>
+          {!business ? (
+            <TouchableOpacity style={s.pill} activeOpacity={0.75} onPress={() => onOpenStats?.('following')}>
+              <Text style={s.pillNum}>{fmt(stats?.following)}</Text>
+              <Text style={s.pillLbl}>Following</Text>
+            </TouchableOpacity>
+          ) : null}
           <View style={s.pill}>
             <Text style={s.pillNum}>{fmt(stats?.posts)}</Text>
             <Text style={s.pillLbl}>Posts</Text>
           </View>
+          {business && business.review_count > 0 ? (
+            <View style={[s.pill, s.pillAccent]}>
+              <Text style={s.pillNum}>{Number(business.avg_rating ?? 0).toFixed(1)}</Text>
+              <Text style={s.pillLbl}>Rating</Text>
+            </View>
+          ) : null}
           {isSelf && stats?.reach != null ? (
             <TouchableOpacity style={[s.pill, s.pillAccent]} activeOpacity={0.75} onPress={onOpenInsights}>
               <Text style={s.pillNum}>{fmt(stats.reach)}</Text>
@@ -210,6 +253,8 @@ export default function ProfileHeader({
   );
 }
 
+const HAIR = StyleSheet.hairlineWidth;
+
 const s = StyleSheet.create({
   banner: { height: BANNER_H, backgroundColor: light.brand.base },
   bannerImg: { width: '100%', height: '100%' },
@@ -228,8 +273,7 @@ const s = StyleSheet.create({
   },
   avatar: {
     width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2,
-    borderWidth: 3, borderColor: light.surface.canvas,
-    backgroundColor: light.surface.sunken,
+    borderWidth: 3, borderColor: light.surface.canvas, backgroundColor: light.surface.sunken,
   },
   avatarLoading: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.surface.canvas },
   avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.warm },
@@ -237,7 +281,7 @@ const s = StyleSheet.create({
   editBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: space.sm, paddingVertical: 7, marginBottom: 4,
-    borderRadius: radius.full, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline,
+    borderRadius: radius.full, borderWidth: HAIR, borderColor: light.surface.hairline,
   },
   editTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary },
 
@@ -257,6 +301,16 @@ const s = StyleSheet.create({
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: 230 },
   meta: { fontSize: typeSize.caption, color: light.ink.muted },
 
+  hoursWrap: { marginTop: space.xs },
+  hoursRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  hoursState: { fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  hoursOpen: { color: light.status.success },
+  hoursClosed: { color: light.status.danger },
+  hoursWeek: { marginTop: 6, paddingLeft: 17, gap: 3 },
+  hoursDay: { flexDirection: 'row', justifyContent: 'space-between', maxWidth: 240 },
+  hoursDayLbl: { fontSize: typeSize.micro, color: light.ink.muted },
+  hoursDayVal: { fontSize: typeSize.micro, color: light.ink.secondary, fontWeight: fontWeight.medium },
+
   rail: { gap: space.xs, paddingTop: space.sm, paddingBottom: space.sm },
   pill: {
     alignItems: 'center', minWidth: 78,
@@ -267,7 +321,7 @@ const s = StyleSheet.create({
   pillNum: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
   pillLbl: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1 },
 
-  tabRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: light.surface.hairline },
+  tabRow: { flexDirection: 'row', borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline },
   tab: { flex: 1, alignItems: 'center', paddingVertical: space.sm },
   tabTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.ink.muted },
   tabTxtOn: { color: light.ink.primary, fontWeight: fontWeight.heavy },

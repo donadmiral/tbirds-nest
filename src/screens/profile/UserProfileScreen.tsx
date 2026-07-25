@@ -11,6 +11,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import ProfileHeader from '../../components/ProfileHeader';
+import { BusinessProducts, BusinessReviews } from '../../components/BusinessTabs';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
@@ -78,6 +79,7 @@ export default function UserProfileScreen() {
   const [following, setFollowing] = useState(false);
   const [followRequested, setFollowRequested] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [bizTab, setBizTab] = useState('posts');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
@@ -291,9 +293,11 @@ export default function UserProfileScreen() {
           profile={profile}
           stats={{ posts: stats.posts, followers: stats.followers, following: stats.following ?? 0 }}
           isSelf={isOwnProfile}
-          tabs={[]}
-          activeTab=""
-          onTabChange={() => {}}
+          tabs={profile.account_type === 'business'
+            ? [{ key: 'posts', label: 'Posts' }, { key: 'products', label: 'Products' }, { key: 'reviews', label: 'Reviews' }]
+            : []}
+          activeTab={bizTab}
+          onTabChange={setBizTab}
           onEdit={isOwnProfile ? () => navigation.navigate('Profile', { screen: 'EditProfile' }) : undefined}
           actions={isOwnProfile ? undefined : (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -322,7 +326,11 @@ export default function UserProfileScreen() {
           )}
         />
 
-        {canViewContent ? (
+        {canViewContent && profile.account_type === 'business' && bizTab === 'products' ? (
+          <BusinessProducts businessId={targetId} navigation={navigation} />
+        ) : canViewContent && profile.account_type === 'business' && bizTab === 'reviews' ? (
+          <BusinessReviews businessId={targetId} canReview={!isOwnProfile} />
+        ) : canViewContent ? (
           <>
             {(profile.bio || profile.degree_program || profile.location) && (
               <View style={s.section}>
