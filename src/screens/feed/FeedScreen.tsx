@@ -22,6 +22,8 @@ import StoryBar from '../../components/stories/StoryStrip';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
+import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
+import ProductPickerSheet from '../../components/ProductPickerSheet';
 import ImageView from 'react-native-image-viewing';
 import { Video as AVVideo, ResizeMode as AVResizeMode } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -40,7 +42,7 @@ type Post = {
   channel?: string | null;
   quoted_post_id?: string | null;
   thread_parent_id?: string | null;
-  media: MediaItem[]; score: number; is_trending?: boolean;
+  media: MediaItem[]; score: number; is_trending?: boolean; products?: PostProduct[];
 };
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
 type ProfileMap = Record<string, ProfileLite>;
@@ -64,6 +66,7 @@ function mapFeedRow(r: any): Post {
     id: r.post_id, user_id: r.author_id, content: r.content ?? r.body ?? '',
     likes_count: r.likes_count ?? 0, comments_count: r.comments_count ?? 0, views_count: r.views_count ?? 0,
     is_trending: !!r.is_trending,
+    products: Array.isArray(r.products) ? r.products : [],
     reposts_count: r.reposts_count ?? 0, bookmarks_count: r.bookmarks_count ?? 0,
     created_at: r.created_at, media_url: r.media_url ?? null,
     location: null,
@@ -180,6 +183,8 @@ export default function FeedScreen({ navigation }: any) {
   const [exclusivePost, setExclusivePost] = useState(false);
   const [innovationPost, setInnovationPost] = useState(false);
   const [articleTitle, setArticleTitle] = useState('');
+  const [composerProducts, setComposerProducts] = useState<PostProduct[]>([]);
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [mentionResults, setMentionResults] = useState<ProfileLite[]>([]);
   const [mentionActive, setMentionActive] = useState(false);
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
@@ -216,7 +221,7 @@ export default function FeedScreen({ navigation }: any) {
   const [sendBusy, setSendBusy] = useState(false);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
   const [threadingPost, setThreadingPost] = useState<Post | null>(null);
-  const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string }>>({});
+  const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; media?: { url: string; media_type: string } | null }>>({});
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [momentRefreshKey, setMomentRefreshKey] = useState(0);
 
@@ -403,7 +408,7 @@ export default function FeedScreen({ navigation }: any) {
       if (qIds.length > 0) {
         const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order)').in('id', qIds);
         qRows = qData ?? [];
-        const qm: Record<string, { content: string; user_id: string }> = {};
+        const qm: Record<string, { content: string; user_id: string; media?: { url: string; media_type: string } | null }> = {};
         qRows.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; });
         setQuotedMap(qm);
       }
@@ -1046,7 +1051,9 @@ export default function FeedScreen({ navigation }: any) {
       setComposerOpen(false);
       setComposerText('');
       setComposerMedia([]);
+      if (newPost?.id && composerProducts.length > 0) { const { error: prodErr } = await supabase.rpc('set_post_products', { p_post_id: newPost.id, p_products: composerProducts.map((pr, i) => ({ ...pr, sort_order: i })) }); if (prodErr) { console.log('[POST] set_post_products failed:', prodErr.message); Alert.alert('Warning', 'Post created but the product cards did not save.'); } }
       setExclusivePost(false);
+      setComposerProducts([]);
       setInnovationPost(false);
       setQuotingPost(null);
       setThreadingPost(null);
@@ -1374,6 +1381,14 @@ export default function FeedScreen({ navigation }: any) {
             <Feather name="share-2" size={14} color={light.ink.muted} />
           </TouchableOpacity>
         </View>
+        {post.products && post.products.length > 0 && (
+          <ProductCarousel
+            products={post.products}
+            onOpenListing={(listingId) =>
+              navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId } })
+            }
+          />
+        )}
 
         {post.likes_count > 0 && (
           <TouchableOpacity style={{ paddingHorizontal: 16, paddingTop: 4 }} onPress={() => openLikers(post)} activeOpacity={0.8}>
@@ -1634,10 +1649,10 @@ export default function FeedScreen({ navigation }: any) {
                         <Feather name="shield" size={20} color={exclusivePost ? '#2563EB' : '#6B7280'} />
                       </TouchableOpacity>
                     )}
-                    {composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
+                    <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)}><Feather name="tag" size={20} color={composerProducts.length > 0 ? light.brand.base : light.ink.muted} /></TouchableOpacity>{composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
-                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerMedia([]); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerMedia([]); setComposerProducts([]); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
                     </TouchableOpacity>
@@ -1648,7 +1663,7 @@ export default function FeedScreen({ navigation }: any) {
           )}
 
           {!composerOpen && (
-            <TouchableOpacity activeOpacity={0.9} onPress={() => setComposerOpen(true)} style={[s.fab, { bottom: Math.max(insets.bottom + 18, 24) }]}>
+            <TouchableOpacity activeOpacity={0.9} onPress={() => setComposerOpen(true)} style={[s.fab, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
               <Text style={s.fabTxt}>+</Text>
             </TouchableOpacity>
           )}
@@ -1728,6 +1743,8 @@ export default function FeedScreen({ navigation }: any) {
         </View>
       </Modal>
 
+
+      <ProductPickerSheet visible={productPickerOpen} sellerId={userId} selected={composerProducts} onClose={() => setProductPickerOpen(false)} onSave={setComposerProducts} />
 
       <PostInsightsSheet
         postId={insightsPostId}

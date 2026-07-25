@@ -255,7 +255,7 @@ const s = StyleSheet.create({
   errorSub: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center' },
   retry: {
     marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm,
-    borderRadius: radius.pill, backgroundColor: light.brand.base,
+    borderRadius: radius.full, backgroundColor: light.brand.base,
   },
   retryTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
