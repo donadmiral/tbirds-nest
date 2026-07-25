@@ -27,7 +27,6 @@ import { Video as AVVideo, ResizeMode as AVResizeMode } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedSkeleton } from '../../components/Skeleton';
 import { light } from '../../constants/tokens';
-import PostInsightsSheet from '../../components/PostInsightsSheet';
 
 const SCREEN_W = Dimensions.get('window').width;
 const NAVY = light.brand.base;
@@ -40,7 +39,7 @@ type Post = {
   channel?: string | null;
   quoted_post_id?: string | null;
   thread_parent_id?: string | null;
-  media: MediaItem[]; score: number; is_trending?: boolean;
+  media: MediaItem[]; score: number;
 };
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
 type ProfileMap = Record<string, ProfileLite>;
@@ -62,8 +61,7 @@ function feedModeToServer(m: string): string {
 function mapFeedRow(r: any): Post {
   const base: Omit<Post, 'score'> = {
     id: r.post_id, user_id: r.author_id, content: r.content ?? r.body ?? '',
-    likes_count: r.likes_count ?? 0, comments_count: r.comments_count ?? 0, views_count: r.views_count ?? 0,
-    is_trending: !!r.is_trending,
+    likes_count: r.likes_count ?? 0, comments_count: r.comments_count ?? 0, views_count: 0,
     reposts_count: r.reposts_count ?? 0, bookmarks_count: r.bookmarks_count ?? 0,
     created_at: r.created_at, media_url: r.media_url ?? null,
     location: null,
@@ -184,7 +182,6 @@ export default function FeedScreen({ navigation }: any) {
   const [mentionActive, setMentionActive] = useState(false);
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
-  const [insightsPostId, setInsightsPostId] = useState<string | null>(null);
   const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
   const [fsVideo, setFsVideo] = useState<{ url: string } | null>(null);
   useEffect(() => {
@@ -320,9 +317,7 @@ export default function FeedScreen({ navigation }: any) {
     const open = videoDwellRef.current;
     videoDwellRef.current = null;
     if (!open || !userId) return;
-    // Dwell keeps running if the reader stops scrolling, so cap the report.
-    // A clip is watched, not camped on: sixty seconds is the ceiling.
-    const seconds = Math.min(Math.round((Date.now() - open.start) / 1000), 60);
+    const seconds = Math.round((Date.now() - open.start) / 1000);
     if (seconds < 1) return;
     supabase
       .rpc('record_video_view', {
@@ -335,17 +330,17 @@ export default function FeedScreen({ navigation }: any) {
   }, [userId]);
 
   useEffect(() => {
-    if (videoDwellRef.current && (!screenFocused || videoDwellRef.current.postId !== activePostId)) {
+    if (videoDwellRef.current && videoDwellRef.current.postId !== activePostId) {
       closeVideoDwell();
     }
-    if (!screenFocused || !activePostId || !userId) return;
+    if (!activePostId || !userId) return;
     const active = posts.find(x => x.id === activePostId);
-    if (!active) return;
+    if (!active || active.user_id === userId) return;
     const isVideo = !!active.media?.some((m: any) => m.media_type === 'video');
     if (isVideo && videoDwellRef.current?.postId !== activePostId) {
       videoDwellRef.current = { postId: activePostId, start: Date.now() };
     }
-  }, [activePostId, posts, userId, screenFocused, closeVideoDwell]);
+  }, [activePostId, posts, userId, closeVideoDwell]);
 
   useEffect(() => closeVideoDwell, [closeVideoDwell]);
 
@@ -1210,12 +1205,6 @@ export default function FeedScreen({ navigation }: any) {
             <View style={s.postMetaTxt}>
               <Text style={s.postAuthor} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: light.status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
-              {post.is_trending && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: light.status.innovationBg }}>
-                  <Feather name="trending-up" size={10} color={light.status.innovation} />
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: light.status.innovation, letterSpacing: 0.3 }}>TRENDING</Text>
-                </View>
-              )}
             </View>
           </TouchableOpacity>
           {userId && post.user_id !== userId && (() => {
@@ -1729,29 +1718,12 @@ export default function FeedScreen({ navigation }: any) {
       </Modal>
 
 
-      <PostInsightsSheet
-        postId={insightsPostId}
-        onClose={() => setInsightsPostId(null)}
-        onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
-      />
-
       <Modal visible={!!menuPost} transparent animationType="slide" onRequestClose={() => setMenuPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setMenuPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
             {menuPost && <Text style={s.menuPreview} numberOfLines={2}>{menuPost.content}</Text>}
             <View style={s.menuDivider} />
-
-            {menuPost?.user_id === userId && (
-              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
-                const captured = menuPost;
-                setMenuPost(null);
-                if (captured) setInsightsPostId(captured.id);
-              }}>
-                <Feather name="bar-chart-2" size={18} color={light.ink.primary} />
-                <Text style={s.menuOptionTxt}>View insights</Text>
-              </TouchableOpacity>
-            )}
 
             {menuPost?.user_id === userId && (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
