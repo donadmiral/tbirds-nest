@@ -517,6 +517,23 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         videoSource: params.isVideo,
         startVideoOff: false,
         startAudioOff: false,
+        dailyConfig: {
+          // The audio win on a phone is processing, not bitrate. These three
+          // matter more to how a call sounds than any codec setting.
+          userMediaAudioConstraints: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          // 720p ceiling with Daily adapting downward. Forcing 1080p on a weak
+          // connection produces freezing and dropped frames, which is worse
+          // than clean 720p, and mobile data here is expensive.
+          userMediaVideoConstraints: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30, max: 30 },
+          },
+        },
       } as any);
       callObjRef.current = call;
 
@@ -528,6 +545,14 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           try { call.setLocalVideo(true); } catch {}
         }
         try { call.setLocalAudio(true); } catch {}
+        try {
+          (call as any).setBandwidth?.({
+            kbs: params.isVideo ? 1200 : 64,
+            trackConstraints: params.isVideo
+              ? { width: 1280, height: 720, frameRate: 30 }
+              : undefined,
+          });
+        } catch {}
         refreshParticipants(call);
 
         if (params.isIncoming || params.isGroupCall) {

@@ -1669,15 +1669,6 @@ export default function ChatScreen() {
             </View>
           ) : (
           <View style={[s.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-            <TouchableOpacity style={s.addBtn}
-              onPress={() => { setShowToolbar(p => { if (p) setShowGifs(false); return !p; }); }} activeOpacity={0.6}>
-              <Feather name={showToolbar ? 'x' : 'plus'} size={22} color={showToolbar ? TEXT_SECONDARY : NAVY} />
-            </TouchableOpacity>
-            {!isGroup && !!passedUserId && (
-              <TouchableOpacity style={s.addBtn} onPress={() => setPayOpen(true)} activeOpacity={0.6}>
-                <Feather name="credit-card" size={21} color={NAVY} />
-              </TouchableOpacity>
-            )}
             <View style={s.inputWrap}>
               <TextInput ref={inputRef} value={message} onChangeText={handleTextChange}
                 placeholder={isAffiliationConversation && iAmAffiliationAdmin && affiliation?.post_mode === 'informative'
@@ -1685,12 +1676,29 @@ export default function ChatScreen() {
                   : 'Message'}
                 placeholderTextColor={TEXT_SECONDARY}
                 style={s.input} multiline maxLength={2000} returnKeyType="default" blurOnSubmit={false} />
+
+              {/* Attachment and payment live inside the pill, the way WhatsApp
+                  does it, so the bar reads as one control rather than a row of
+                  loose buttons. */}
+              <TouchableOpacity style={s.inlineBtn}
+                onPress={() => { setShowToolbar(p => { if (p) setShowGifs(false); return !p; }); }}
+                activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+                <Feather name={showToolbar ? 'x' : 'plus'} size={21} color={showToolbar ? NAVY : TEXT_SECONDARY} />
+              </TouchableOpacity>
+
+              {!isGroup && !!passedUserId && (
+                <TouchableOpacity style={s.inlineBtn} onPress={() => setPayOpen(true)}
+                  activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+                  <Feather name="credit-card" size={20} color={TEXT_SECONDARY} />
+                </TouchableOpacity>
+              )}
             </View>
+
             {uploadingMedia ? (
               <View style={s.sendBtn}><ActivityIndicator color="#FFF" size={14} /></View>
             ) : canSend ? (
               <TouchableOpacity onPress={sendMessage} style={s.sendBtn} activeOpacity={0.7}>
-                <Feather name="arrow-up" size={18} color="#FFF" />
+                <Feather name="arrow-up" size={19} color="#FFF" />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -1703,7 +1711,7 @@ export default function ChatScreen() {
               >
                 {sendingVoice
                   ? <ActivityIndicator color='#FFF' size={14} />
-                  : <Feather name='mic' size={18} color={voice.recording ? '#FFF' : TEXT_SECONDARY} />}
+                  : <Feather name='mic' size={19} color='#FFF' />}
               </TouchableOpacity>
             )}
           </View>
@@ -1774,6 +1782,7 @@ export default function ChatScreen() {
                 </TouchableOpacity>
               )) : (!isGroup ? [
                 { iconName: 'message-circle', label: 'Message', action: () => setShowInfoModal(false) },
+                { iconName: 'user', label: 'Profile', action: () => { setShowInfoModal(false); if (otherUser?.id) navigation.navigate('UserProfile', { userId: otherUser.id }); } },
                 { iconName: 'phone', label: 'Call', action: () => { setShowInfoModal(false); startCall(false); } },
                 { iconName: 'video', label: 'Video', action: () => { setShowInfoModal(false); startCall(true); } },
                 { iconName: infoMuted ? 'bell-off' : 'bell', label: infoMuted ? 'Unmute' : 'Mute',
@@ -2175,11 +2184,12 @@ const s = StyleSheet.create({
   toolbarBtn: { alignItems: 'center', gap: 6 },
   toolbarBtnInner: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   toolbarBtnLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
-  bar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 8, paddingTop: 7, backgroundColor: '#F0F2F5', borderTopWidth: 0, gap: 7 },
+  bar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 10, paddingTop: 8, backgroundColor: '#F0F2F5', borderTopWidth: 0, gap: 8 },
   addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginBottom: 1 },
-  inputWrap: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 21, paddingHorizontal: 15, paddingTop: 10, paddingBottom: 10, minHeight: 42, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E4E4E7' },
-  input: { fontSize: 16, color: TEXT_PRIMARY, maxHeight: 130, padding: 0, margin: 0, letterSpacing: -0.1, lineHeight: 21 },
-  sendBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', marginBottom: 0 },
+  inlineBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', marginBottom: -3 },
+  inputWrap: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 4, backgroundColor: '#FFFFFF', borderRadius: 22, paddingLeft: 16, paddingRight: 6, paddingTop: 9, paddingBottom: 9, minHeight: 44, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E4E4E7', shadowColor: '#0B1E3D', shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  input: { flex: 1, fontSize: 16, color: TEXT_PRIMARY, maxHeight: 130, padding: 0, margin: 0, paddingTop: 2, paddingBottom: 2, letterSpacing: -0.1, lineHeight: 21 },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: '#0B1E3D', shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
   lockedBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 14, backgroundColor: '#F9FAFB', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
   lockedIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center' },
   lockedTitle: { fontSize: 13, fontWeight: '700', color: '#1F2937' },

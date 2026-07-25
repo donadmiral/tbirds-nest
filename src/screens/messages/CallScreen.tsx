@@ -17,6 +17,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { DailyMediaView } from '@daily-co/react-native-daily-js';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useCallContext } from '../../contexts/CallContext';
@@ -172,6 +173,11 @@ export default function CallScreen() {
           </View>
         )}
 
+        <LinearGradient
+          pointerEvents='none'
+          colors={['rgba(0,0,0,0.62)', 'rgba(0,0,0,0)']}
+          style={[s.callScrimTop, { height: insets.top + 96 }]}
+        />
         <View style={[s.videoTopBar, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={onMinimise} style={s.videoTopBtn} hitSlop={HIT} activeOpacity={0.7}>
             <Feather name="chevron-down" size={24} color="#FFF" />
@@ -189,6 +195,11 @@ export default function CallScreen() {
           </TouchableOpacity>
         </View>
 
+        <LinearGradient
+          pointerEvents='none'
+          colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.72)']}
+          style={[s.callScrimBottom, { height: Math.max(insets.bottom, 16) + 150 }]}
+        />
         <View style={[s.videoBottomBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
           <TouchableOpacity style={[s.videoCtrl, muted && s.videoCtrlActive]} onPress={toggleMute} hitSlop={HIT} activeOpacity={0.7}>
             <Feather name={muted ? 'mic-off' : 'mic'} size={24} color="#FFF" />
@@ -343,6 +354,8 @@ function MoreMenu({ visible, onClose, muted, held, isVideo, speakerOn, onMute, o
 
 const NAVY = '#0B1E3D';
 const s = StyleSheet.create({
+  callScrimTop:{position:'absolute',top:0,left:0,right:0},
+  callScrimBottom:{position:'absolute',bottom:0,left:0,right:0},
   safe:{flex:1,backgroundColor:'#FFF'},
   hero:{backgroundColor:NAVY,paddingHorizontal:24,paddingBottom:32,alignItems:'center'},
   backBtn:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:6,marginBottom:16,paddingVertical:4},backTxt:{fontSize:14,color:'rgba(255,255,255,0.45)',fontWeight:'500'},
@@ -402,7 +415,7 @@ const s = StyleSheet.create({
 
   selfView:{
     position:'absolute',right:16,width:110,height:160,borderRadius:14,
-    overflow:'hidden',backgroundColor:'#222',borderWidth:1,borderColor:'rgba(255,255,255,0.3)',
+    overflow:'hidden',backgroundColor:'#111',borderWidth:1,borderColor:'rgba(255,255,255,0.22)',shadowColor:'#000',shadowOpacity:0.45,shadowRadius:16,shadowOffset:{width:0,height:8},elevation:10,
     zIndex:5,
   },
   selfViewInner:{flex:1,width:'100%',height:'100%'},
@@ -414,9 +427,9 @@ const s = StyleSheet.create({
     backgroundColor:'rgba(0,0,0,0.55)',
     zIndex:10,
   },
-  videoCtrl:{width:54,height:54,borderRadius:27,backgroundColor:'rgba(255,255,255,0.18)',alignItems:'center',justifyContent:'center'},
-  videoCtrlActive:{backgroundColor:'rgba(255,255,255,0.4)'},
-  videoEndCircle:{width:64,height:64,borderRadius:32,backgroundColor:'#EF4444',alignItems:'center',justifyContent:'center'},
+  videoCtrl:{width:54,height:54,borderRadius:27,backgroundColor:'rgba(18,22,30,0.55)',borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,0.28)',alignItems:'center',justifyContent:'center'},
+  videoCtrlActive:{backgroundColor:'#FFFFFF',borderColor:'#FFFFFF'},
+  videoEndCircle:{width:64,height:64,borderRadius:32,backgroundColor:'#EF4444',alignItems:'center',justifyContent:'center',shadowColor:'#EF4444',shadowOpacity:0.5,shadowRadius:14,shadowOffset:{width:0,height:5},elevation:8},
 
   sheetOverlay:{flex:1,backgroundColor:'rgba(0,0,0,0.5)',justifyContent:'flex-end'},
   sheetHandle:{width:36,height:4,borderRadius:2,backgroundColor:'#E0E0E0',alignSelf:'center',marginBottom:16},
