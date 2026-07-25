@@ -37,6 +37,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { messageStatusService } from '../../services/messageStatusService';
 import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
+import { useVoiceRecorder } from '../../controllers/messages/useVoiceRecorder';
+import VoiceNote from '../../components/VoiceNote';
 import CallEventBubble from '../../components/CallEventBubble';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -446,6 +448,8 @@ export default function ChatScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showTimestamp, setShowTimestamp] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const voice = useVoiceRecorder();
+  const [sendingVoice, setSendingVoice] = useState(false);
   const [otherOnline, setOtherOnline] = useState(false);
 
   const mountedRef = useRef(true);
@@ -1215,6 +1219,15 @@ export default function ChatScreen() {
                   {msg.media_type === 'gif' ? <View style={s.gifBadge}><Text style={s.gifBadgeTxt}>GIF</Text></View> : null}
                 </View>
               ) : null}
+              {msg.media_type === 'audio' && msg.media_url ? (
+                <VoiceNote
+                  uri={msg.media_url}
+                  durationSec={msg.media_width ?? null}
+                  tint={isMe ? '#FFFFFF' : NAVY}
+                  dim={isMe ? 'rgba(255,255,255,0.45)' : 'rgba(11,30,61,0.28)'}
+                  onTint={isMe ? NAVY : '#FFFFFF'}
+                />
+              ) : null}
               {msg.media_type === 'video' && msg.media_url ? (
                 <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_MAX_W, height: MSG_VID_H }]}
                   activeOpacity={0.85} onPress={() => setFullscreenVideo(msg.media_url!)}
@@ -1282,6 +1295,24 @@ export default function ChatScreen() {
   };
 
   const canSend = message.trim().length > 0 && !composerLocked;
+  // Stop, upload, then send. The recording is only discarded once the message
+  // exists, so a failed upload does not lose what was said.
+  const sendVoiceNote = useCallback(async () => {
+    const result = await voice.stop();
+    if (!result) return;
+    setSendingVoice(true);
+    try {
+      const { url } = await uploadMedia('chat-media', currentUserId!, {
+        uri: result.uri, kind: 'audio', ext: 'm4a', mimeType: 'audio/m4a', base64: null,
+      }, { filename: 'voice_' + Date.now() + '.m4a' });
+      await doSend('', url, 'audio', null, replyTo?.id ?? null, result.durationSec, undefined);
+    } catch (e: any) {
+      console.log('[VOICE] send failed:', e?.message);
+      Alert.alert('Could not send', 'Your voice message did not send. Please try again.');
+    } finally {
+      setSendingVoice(false);
+    }
+  }, [voice, currentUserId, replyTo]);
   const toolbarMaxH = toolbarH.interpolate({ inputRange: [0, 1], outputRange: [0, 160] });
 
   const renderInfoMediaTab = () => {
@@ -1606,9 +1637,19 @@ export default function ChatScreen() {
                 <Feather name="arrow-up" size={18} color="#FFF" />
               </TouchableOpacity>
             ) : (
-              <View style={[s.sendBtn, { backgroundColor: '#E5E5EA' }]}>
-                <Feather name="arrow-up" size={18} color={TEXT_SECONDARY} />
-              </View>
+              <TouchableOpacity
+                onPressIn={() => { if (!composerLocked) voice.start(); }}
+                onPressOut={sendVoiceNote}
+                disabled={composerLocked || sendingVoice}
+                style={[s.sendBtn, voice.recording && { backgroundColor: '#FF3B30' }]}
+                activeOpacity={0.8}
+                accessibilityRole='button'
+                accessibilityLabel='Record a voice message'
+              >
+                {sendingVoice
+                  ? <ActivityIndicator color='#FFF' size={14} />
+                  : <Feather name='mic' size={18} color={voice.recording ? '#FFF' : TEXT_SECONDARY} />}
+              </TouchableOpacity>
             )}
           </View>
         )}
