@@ -26,6 +26,7 @@ import {
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
 import StickerOverlay from '../../components/stories/StickerOverlay';
+import ZoomableMedia from '../../components/stories/ZoomableMedia';
 import PollCard from '../../components/stories/PollCard';
 import SaveToHighlightSheet from '../../components/stories/SaveToHighlightSheet';
 import StickerResponsesSheet from '../../components/stories/StickerResponsesSheet';
@@ -474,11 +475,13 @@ export default function StoryViewerScreen() {
         {holdoverMedia && holdoverMedia.type === 'video' && (<View style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: '#020408' }]} />)}
 
         {hasDual && isSplitMode ? renderSplitDual() : (
+          {/* Pinch to zoom, Instagram-style: springs back on release rather than               leaving you zoomed while the story timer runs. */}           <ZoomableMedia onZoomChange={(z) => { if (z) pauseFor('zoom'); else resumeFrom('zoom'); }}>
           <ReAnimated.View style={[StyleSheet.absoluteFill, activeMediaAnimStyle, { zIndex: 1 }]}>
             {isText ? ((() => { const bg = (currentStory as any)?.text_background; if (bg?.kind === 'gradient' && bg.colors?.length === 2) { return (<LinearGradient colors={bg.colors} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 }} style={s.media} />); } const solidColor = bg?.kind === 'solid' && bg.color ? bg.color : '#0B1E3D'; return <View style={[s.media, { backgroundColor: solidColor }]} />; })()
             ) : isVideo ? (<VideoView style={s.media} player={videoPlayer} contentFit="cover" nativeControls={false} onFirstFrameRender={() => setMediaReady(true)} />
             ) : (<>{mediaFitMode === 'contain' && currentStory.media_url && (<Image source={{ uri: currentStory.media_url }} style={[s.media, { position: 'absolute', zIndex: -1, opacity: 0.22 }]} resizeMode="cover" blurRadius={35} fadeDuration={0} />)}<Image source={hasDual && effectivePrimaryUrl ? { uri: effectivePrimaryUrl } : (currentStory.media_url ? { uri: currentStory.media_url } : undefined)} style={[s.media, mediaHasTransform && !hasDual ? { transform: [{ translateX: mediaMt!.translateNX * mediaSize.w }, { translateY: mediaMt!.translateNY * mediaSize.h }, { scale: mediaMt!.scale }] } : undefined]} resizeMode={mediaFitMode} fadeDuration={0} onLoadEnd={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></>)}
           </ReAnimated.View>
+          </ZoomableMedia>
         )}
         </ReAnimated.View>
 
