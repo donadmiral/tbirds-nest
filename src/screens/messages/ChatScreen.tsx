@@ -1657,7 +1657,7 @@ export default function ChatScreen() {
                     setShowInfoModal(false);
                     navigation.getParent()?.navigate('Main', {
                       screen: 'Network',
-                      params: { screen: 'AffiliationDetail', params: { affiliationId: affiliation.id } },
+                      params: { screen: 'AffiliationDetail', params: { affiliationId: affiliation?.id } },
                     });
                   }},
                 { icon: infoMuted ? 'bell-off' : 'bell', label: infoMuted ? 'Unmute' : 'Mute',
