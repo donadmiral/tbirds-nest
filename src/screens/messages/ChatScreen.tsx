@@ -48,7 +48,6 @@ const MSG_IMG_MAX_W = Math.min(SCREEN_W * 0.72, 300);
 const MSG_IMG_MAX_H = 360;
 const MSG_IMG_MIN_H = 140;
 const MSG_VID_H = Math.round(MSG_IMG_MAX_W * 0.60);
-const TENOR_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
 const REACTION_EMOJIS = ['❤️', '😂', '👍', '😮', '😢', '🔥', '🎯', '🙌'];
 
 const NAVY = '#0B1E3D';
@@ -124,30 +123,9 @@ type AffiliationInfo = {
   my_role: 'member' | 'officer' | 'admin' | 'founder' | 'alumni' | null;
 };
 
-function useFetchGifs(search: string) {
-  const [gifs, setGifs] = React.useState<string[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  React.useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setGifs([]);
-    const q = search.trim();
-    const url = q
-      ? `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(q)}&key=${TENOR_KEY}&limit=30&media_filter=gif`
-      : `https://tenor.googleapis.com/v2/featured?key=${TENOR_KEY}&limit=30&media_filter=gif`;
-    fetch(url).then(r => r.json()).then(d => {
-      if (!cancelled && d.results) {
-        const urls = d.results
-          .map((g: any) => g.media_formats?.gif?.url ?? g.media_formats?.tinygif?.url ?? null)
-          .filter(Boolean);
-        setGifs(urls);
-      }
-    }).catch(e => console.log('GIF_FETCH_ERR', e))
-    .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [search]);
-  return { gifs, loading };
-}
+// GIF search removed: Google shut down the Tenor API on 30 June 2026 and stopped
+// issuing keys in January, so the old integration cannot be revived. Giphy is the
+// intended replacement, which needs an account and a key before it can be built.
 
 function fmtTime(d?: string | null) {
   if (!d) return '';
@@ -198,34 +176,23 @@ function computeImageDims(origW?: number | null, origH?: number | null) {
   return { w: boxW, h: boxH };
 }
 
-function GifPicker({ onSelect, onBack }: { onSelect: (url: string) => void; onBack: () => void }) {
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
-  const { gifs, loading } = useFetchGifs(query);
+function GifPicker({ onBack }: { onSelect: (url: string) => void; onBack: () => void }) {
   return (
-    <View style={{ padding: 12 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
-          <Text style={{ fontSize: 14, color: NAVY, fontWeight: '600' }}>← Back</Text>
-        </TouchableOpacity>
-        <View style={{ flex: 1, backgroundColor: '#F2F2F7', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 }}>
-          <TextInput value={search} onChangeText={setSearch} onSubmitEditing={() => setQuery(search)}
-            placeholder="Search GIFs..." placeholderTextColor={TEXT_SECONDARY}
-            style={{ fontSize: 14, color: '#000', padding: 0 }} returnKeyType="search" />
-        </View>
+    <View style={{ paddingHorizontal: 20, paddingVertical: 28, alignItems: 'center', gap: 8 }}>
+      <View style={{
+        width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center',
+        backgroundColor: 'rgba(11,30,61,0.06)',
+      }}>
+        <Feather name="film" size={20} color={TEXT_SECONDARY} />
       </View>
-      {loading ? <ActivityIndicator color={NAVY} style={{ marginVertical: 16 }} /> : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {gifs.map((url, i) => (
-            <TouchableOpacity key={i} onPress={() => onSelect(url)} style={{ marginRight: 8 }} activeOpacity={0.8}>
-              <ExpoImage source={{ uri: url }} style={{ width: 90, height: 90, borderRadius: 8 }} contentFit="cover" />
-            </TouchableOpacity>
-          ))}
-          {gifs.length === 0 && !loading && (
-            <Text style={{ color: TEXT_SECONDARY, fontSize: 13, paddingVertical: 16 }}>No GIFs found.</Text>
-          )}
-        </ScrollView>
-      )}
+      <Text style={{ fontSize: 15, fontWeight: '700', color: '#0B1E3D' }}>GIFs are coming soon</Text>
+      <Text style={{ fontSize: 13, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 19 }}>
+        Our GIF provider shut down its service. We are moving to a new one and this will
+        be back shortly.
+      </Text>
+      <TouchableOpacity onPress={onBack} style={{ marginTop: 6, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Back</Text>
+      </TouchableOpacity>
     </View>
   );
 }
