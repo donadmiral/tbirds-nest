@@ -16,6 +16,7 @@ type StickerOverlayProps = {
   containerW: number;
   containerH: number;
   onMentionTap?: (userId: string) => void;
+  onHashtagTap?: (tag: string) => void;
   interactive?: boolean;
   // Engagement sticker interaction callbacks (viewer only)
   engagementProps?: {
@@ -49,6 +50,7 @@ export function renderStickerContent(
   onMentionTap?: (userId: string) => void,
   interactive: boolean = true,
   engagementProps?: StickerOverlayProps['engagementProps'],
+  onHashtagTap?: (tag: string) => void,
 ): React.ReactNode {
   const isEmoji = sticker.kind === 'emoji';
   const isLink = sticker.kind === 'link';
@@ -130,6 +132,8 @@ export function renderStickerContent(
           Linking.openURL(mapsUrl).catch(() => {});
         } else if (isMention && sticker.mentionUserId && onMentionTap) {
           onMentionTap(sticker.mentionUserId);
+        } else if (sticker.kind === 'hashtag' && onHashtagTap) {
+          onHashtagTap(sticker.hashtag || sticker.text.replace(/^#/, ''));
         }
       };
     }
@@ -168,6 +172,7 @@ export default function StickerOverlay({
   containerW,
   containerH,
   onMentionTap,
+  onHashtagTap,
   interactive = true,
   engagementProps,
 }: StickerOverlayProps) {
@@ -208,7 +213,7 @@ export default function StickerOverlay({
               elevation: interactive && (isPill || isEngagement) ? 30 : 20,
             }}
           >
-            {renderStickerContent(st, onMentionTap, interactive, engagementProps)}
+            {renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap)}
           </View>
         );
       })}

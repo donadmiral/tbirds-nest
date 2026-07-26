@@ -487,7 +487,7 @@ export default function StoryViewerScreen() {
 
         {renderPipDual()}
         {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><Text style={{ color: 'rgba(245,240,235,0.15)', fontSize: 12, marginTop: 14, letterSpacing: 0.5, fontWeight: '500' }}>Unavailable</Text></View>)}
-        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onMentionTap={(userId) => navigation.navigate('UserProfile', { userId })} engagementProps={engagementProps} />
+        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { navigation.navigate('Search' as never, { query: '#' + tag } as never); }} onMentionTap={(userId) => navigation.navigate('UserProfile', { userId })} engagementProps={engagementProps} />
       </View>
       </Animated.View>
       </ReAnimated.View>
