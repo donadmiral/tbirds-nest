@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons';
 
 type StickerPillProps = {
   label: string;
-  kind: 'link' | 'location' | 'mention';
+  kind: 'link' | 'location' | 'mention' | 'hashtag';
   onPress?: () => void;
 };
 
@@ -13,11 +13,15 @@ const PILL_CONFIG = {
   link: { iconName: 'link-2' as const, prefix: '' },
   location: { iconName: 'map-pin' as const, prefix: '' },
   mention: { iconName: null, prefix: '@' },
+  hashtag: { iconName: null, prefix: '#' },
 } as const;
 
 export default function StickerPill({ label, kind, onPress }: StickerPillProps) {
   const config = PILL_CONFIG[kind];
-  const text = kind === 'mention' && !label.startsWith('@') ? '@' + label : label;
+  const text =
+    kind === 'mention' && !label.startsWith('@') ? '@' + label
+    : kind === 'hashtag' && !label.startsWith('#') ? '#' + label
+    : label;
 
   const content = (
     <View style={{

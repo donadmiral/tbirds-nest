@@ -420,6 +420,8 @@ export default function StoryComposerScreen() {
   const mentionDebounceRef = useRef<any>(null);
 
   // Question
+  const [hashtagModalOpen, setHashtagModalOpen] = useState(false);
+  const [hashtagText, setHashtagText] = useState('');
   const [questionModalOpen, setQuestionModalOpen] = useState(false);
   const [questionPrompt, setQuestionPrompt] = useState('');
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
@@ -525,6 +527,28 @@ export default function StoryComposerScreen() {
   const onMentionSearchChange = useCallback((t: string) => { setMentionSearch(t); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => searchUsers(t), 300); }, [searchUsers]);
   const addMentionSticker = useCallback((u: any) => { updateStickers([...(active?.stickers || []), { id: newStickerId(), text: `@${u.username || u.full_name}`, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.55, scale: 1, rotation: 0, kind: 'mention', mentionUserId: u.id, mentionUsername: u.username || u.full_name }]); closeMentionModal(); }, [active, updateStickers, closeMentionModal]);
 
+  // ── Hashtag ──
+  // No search and no external service: a hashtag is just text, and forcing a
+  // picker on it would be slower than typing. Tapping it in the viewer opens
+  // search for that tag, which is what makes it worth having over plain text.
+  const openHashtagModal = useCallback(() => {
+    if ((active?.stickers?.length ?? 0) >= MAX_STICKERS) return;
+    setHashtagText('');
+    setHashtagModalOpen(true);
+  }, [active]);
+  const closeHashtagModal = useCallback(() => { setHashtagModalOpen(false); setHashtagText(''); }, []);
+  const addHashtagSticker = useCallback(() => {
+    const raw = hashtagText.trim().replace(/^#/, '');
+    const tag = raw.replace(/[^A-Za-z0-9_]/g, '');
+    if (!tag) { Alert.alert('Required', 'Enter a hashtag.'); return; }
+    if (tag.length > 30) { Alert.alert('Too long', 'Keep hashtags under 30 characters.'); return; }
+    updateStickers([...(active?.stickers || []), {
+      id: newStickerId(), text: `#${tag}`, style: 'classic' as StoryStickerStyle,
+      color: '#FFFFFF', nx: 0.5, ny: 0.5, scale: 1, rotation: 0,
+      kind: 'hashtag', hashtag: tag,
+    }]);
+    closeHashtagModal();
+  }, [hashtagText, active, updateStickers, closeHashtagModal]);
   // ── Question ──
   const openQuestionModal = useCallback((existingId?: string) => { if (existingId && active?.stickers) { const ex = active.stickers.find(s => s.id === existingId && s.kind === 'question'); if (ex) { setEditingQuestionId(existingId); setQuestionPrompt(ex.questionPrompt || ex.text || ''); setQuestionModalOpen(true); return; } } if ((active?.stickers?.length ?? 0) >= MAX_STICKERS) return; setEditingQuestionId(null); setQuestionPrompt(''); setQuestionModalOpen(true); }, [active]);
   const saveQuestion = useCallback(() => { const t = questionPrompt.trim(); if (!t || t.length > 120) { Alert.alert(t ? 'Too long' : 'Required', t ? 'Keep under 120.' : 'Enter a prompt.'); return; } if (editingQuestionId) { updateStickers((active?.stickers || []).map(s => s.id === editingQuestionId ? { ...s, text: t, questionPrompt: t } : s)); } else { updateStickers([...(active?.stickers || []), { id: newStickerId(), text: t, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.4, scale: 1, rotation: 0, kind: 'question', questionPrompt: t }]); } setQuestionModalOpen(false); setQuestionPrompt(''); setEditingQuestionId(null); }, [questionPrompt, editingQuestionId, active, updateStickers]);
@@ -543,7 +567,7 @@ export default function StoryComposerScreen() {
   const canPublish = drafts.length > 0 && !publish.publishing;
   const hasPoll = !!active?.pollData;
   const isTextStory = active?.mediaType === 'text';
-  const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length }; }, [active?.stickers]);
+  const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, hashtag: st.filter(s => s.kind === 'hashtag').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length }; }, [active?.stickers]);
 
   // ── Empty state ──
   if (drafts.length === 0) {
@@ -815,6 +839,7 @@ export default function StoryComposerScreen() {
                   { id: 'quiz', icon: 'check-square', label: 'Quiz', on: stickerCounts.quiz > 0, run: () => openQuizModal() },
                   { id: 'slider', icon: 'sliders', label: 'Slider', on: stickerCounts.slider > 0, run: () => openSliderModal() },
                   { id: 'mention', icon: 'at-sign', label: 'Mention', on: stickerCounts.mention > 0, run: openMentionModal },
+                  { id: 'hashtag', icon: 'hash', label: 'Hashtag', on: stickerCounts.hashtag > 0, run: openHashtagModal },
                   { id: 'location', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
                   { id: 'link', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
                   { id: 'emoji', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
@@ -923,6 +948,16 @@ export default function StoryComposerScreen() {
         </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
       </Modal>
 
+      {/* Hashtag Modal */}
+      <Modal visible={hashtagModalOpen} transparent animationType="slide" onRequestClose={closeHashtagModal}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeHashtagModal}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={st.sheetHeader}><TouchableOpacity onPress={closeHashtagModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Add Hashtag</Text><TouchableOpacity onPress={addHashtagSticker}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <View style={st.sheetInputWrap}><TextInput value={hashtagText} onChangeText={t => setHashtagText(t.replace(/[^A-Za-z0-9_#]/g, ''))} placeholder="#harare" placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={31} autoFocus autoCapitalize="none" autoCorrect={false} keyboardAppearance="dark" /></View>
+            <Text style={st.charCount}>Letters, numbers and underscores</Text>
+          </View>
+        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+      </Modal>
       {/* Slider Modal */}
       <Modal visible={sliderModalOpen} transparent animationType="slide" onRequestClose={() => { setSliderModalOpen(false); setEditingSliderId(null); }}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>

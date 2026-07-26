@@ -1,0 +1,30 @@
+      <Modal visible={questionModalOpen} transparent animationType="slide" onRequestClose={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingQuestionId ? 'Edit Question' : 'Add Question'}</Text><TouchableOpacity onPress={saveQuestion}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <View style={st.sheetInputWrap}><TextInput value={questionPrompt} onChangeText={setQuestionPrompt} placeholder="Ask me anything..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="dark" /></View>
+            <Text style={st.charCount}>{questionPrompt.length}/120</Text>
+          </View>
+        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+      </Modal>
+
+      {/* Slider Modal */}
+      <Modal visible={sliderModalOpen} transparent animationType="slide" onRequestClose={() => { setSliderModalOpen(false); setEditingSliderId(null); }}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingSliderId ? 'Edit Slider' : 'Add Slider'}</Text><TouchableOpacity onPress={saveSlider}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <View style={st.sheetInputWrap}><TextInput value={sliderLabel} onChangeText={setSliderLabel} placeholder="How much do you love...?" placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={80} autoFocus keyboardAppearance="dark" /></View>
+            <View style={st.sliderEmojiRow}><Text style={st.sliderEmojiLabel}>Emoji</Text><TextInput value={sliderEmoji} onChangeText={t => setSliderEmoji(t.slice(0, 4))} style={st.sliderEmojiInput} maxLength={4} keyboardAppearance="dark" /></View>
+          </View>
+        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+      </Modal>
+
+      {/* Quiz Modal */}
+      <Modal visible={quizModalOpen} transparent animationType="slide" onRequestClose={() => { setQuizModalOpen(false); setEditingQuizId(null); }}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setQuizModalOpen(false); setEditingQuizId(null); }}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setQuizModalOpen(false); setEditingQuizId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingQuizId ? 'Edit Quiz' : 'Add Quiz'}</Text><TouchableOpacity onPress={saveQuiz}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={{ maxHeight: SCREEN_H * 0.45 }} contentContainerStyle={{ paddingBottom: space.md }}>
+              <View style={st.sheetInputWrap}><TextInput value={quizQuestion} onChangeText={setQuizQuestion} placeholder="Quiz question..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="dark" /></View>
+              {quizOptions.map((o, i) => (
+                <View key={o.id} style={st.quizOptionRow}>

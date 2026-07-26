@@ -39,7 +39,7 @@ function getWidthForKind(kind?: string): number {
   // Phase 2.3: Text stickers need wider container for wrapping parity with composer
   // Emoji and pill stickers keep the original 160px
   if (kind === 'emoji') return 160;
-  if (kind === 'link' || kind === 'location' || kind === 'mention') return 160;
+  if (kind === 'link' || kind === 'location' || kind === 'mention' || kind === 'hashtag') return 160;
   // Text stickers: use the same max width as the composer
   return TEXT_STICKER_MAX_W;
 }
@@ -136,7 +136,7 @@ export function renderStickerContent(
     return (
       <StickerPill
         label={sticker.text}
-        kind={sticker.kind as 'link' | 'location' | 'mention'}
+        kind={sticker.kind as 'link' | 'location' | 'mention' | 'hashtag'}
         onPress={handlePress}
       />
     );
@@ -177,7 +177,7 @@ export default function StickerOverlay({
     <View style={[StyleSheet.absoluteFill, { zIndex: 20, elevation: 20 }]} pointerEvents="box-none">
       {stickers.map(st => {
         const isEmoji = st.kind === 'emoji';
-        const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention';
+        const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag';
         const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz';
         const containerAlign = isEmoji || isPill ? 'center' as const
           : st.textAlign === 'left' ? 'flex-start' as const
