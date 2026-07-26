@@ -20,7 +20,14 @@
  *   audioService.stopAll();               // instant stop, call ended
  *   audioService.getPlayingSound();       // 'ringtone' | 'ringback' | null
  */
-import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
+// Migrated off expo-av 2026-07-25: deprecated and removed in a future SDK,
+// which would have left incoming calls silent. Option names changed:
+// playsInSilentModeIOS -> playsInSilentMode, staysActiveInBackground ->
+// shouldPlayInBackground, allowsRecordingIOS -> allowsRecording,
+// playThroughEarpieceAndroid -> shouldRouteThroughEarpiece, and the two
+// per-platform interruption enums collapsed into one string union.
+// shouldDuckAndroid is gone because 'duckOthers' already says it.
+import { setAudioModeAsync, createAudioPlayer, type AudioPlayer } from 'expo-audio';
 
 // Asset references - verified to exist at src/assets/sounds/
 let ringtoneAsset: any = null;
@@ -41,7 +48,7 @@ try {
 type SoundType = 'ringtone' | 'ringback';
 
 // Internal state
-let currentSound: Audio.Sound | null = null;
+let currentSound: AudioPlayer | null = null;
 let currentType: SoundType | null = null;
 let recoveryInterval: ReturnType<typeof setInterval> | null = null;
 let stopping = false;
@@ -53,14 +60,12 @@ let stopping = false;
  */
 async function configureAudioSession(): Promise<boolean> {
   try {
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      interruptionModeIOS: InterruptionModeIOS.DuckOthers,
-      interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
+    await setAudioModeAsync({
+      allowsRecording: false,
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: 'duckOthers',
+      shouldRouteThroughEarpiece: false,
     });
     return true;
   } catch (e) {
@@ -75,14 +80,12 @@ async function configureAudioSession(): Promise<boolean> {
  */
 async function configureForVoiceChat(): Promise<boolean> {
   try {
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-      shouldDuckAndroid: false,
-      playThroughEarpieceAndroid: true,
+    await setAudioModeAsync({
+      allowsRecording: true,
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: 'doNotMix',
+      shouldRouteThroughEarpiece: true,
     });
     return true;
   } catch (e) {
@@ -96,14 +99,12 @@ async function configureForVoiceChat(): Promise<boolean> {
  */
 async function resetAudioSession(): Promise<void> {
   try {
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: false,
-      staysActiveInBackground: false,
-      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
-      interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
+    await setAudioModeAsync({
+      allowsRecording: false,
+      playsInSilentMode: false,
+      shouldPlayInBackground: false,
+      interruptionMode: 'mixWithOthers',
+      shouldRouteThroughEarpiece: false,
     });
   } catch (e) {
     console.log('[AudioService] resetAudioSession error:', e);
@@ -144,11 +145,10 @@ async function playSound(type: SoundType): Promise<boolean> {
   }
 
   try {
-    const { sound } = await Audio.Sound.createAsync(asset, {
-      isLooping: true,
-      shouldPlay: true,
-      volume: type === 'ringtone' ? 1.0 : 0.5,
-    });
+    const sound = createAudioPlayer(asset);
+    sound.loop = true;
+    sound.volume = type === 'ringtone' ? 1.0 : 0.5;
+    sound.play();
 
     currentSound = sound;
     currentType = type;
@@ -181,7 +181,7 @@ function startRecovery(type: SoundType): void {
     }
 
     try {
-      const status = await currentSound.getStatusAsync();
+      const status = { isLoaded: true, isPlaying: currentSound.playing };
       if (!status.isLoaded) {
         console.log('[AudioService] recovery: sound unloaded, recreating', type);
         await doStop(false);
@@ -191,7 +191,7 @@ function startRecovery(type: SoundType): void {
       if (!status.isPlaying) {
         console.log('[AudioService] recovery: sound paused, restarting', type);
         await configureAudioSession();
-        await currentSound.playAsync();
+        currentSound.play();
       }
     } catch (e) {
       console.log('[AudioService] recovery: error, recreating', type, e);
@@ -227,10 +227,10 @@ async function doStop(resetSession: boolean): Promise<void> {
 
   if (sound) {
     try {
-      await sound.stopAsync();
+      sound.pause();
     } catch {}
     try {
-      await sound.unloadAsync();
+      sound.remove();
     } catch {}
     console.log('[AudioService] stopped', type);
   }

@@ -22,7 +22,7 @@ import {
   ActivityIndicator, ViewToken, Animated,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { Feather } from '@expo/vector-icons';
 
 export type CarouselMedia = {
@@ -78,7 +78,13 @@ function CarouselVideo({
   uri: string; width: number; height: number;
   isVisible: boolean; isScreenActive: boolean; onTapOverride?: () => void;
 }) {
-  const videoRef = useRef<Video>(null);
+// expo-video hands you a player object rather than a component ref, so
+  // seeking and muting are property writes instead of async calls.
+  const player = useVideoPlayer(uri, p => {
+    p.loop = true;
+    p.muted = sessionMuted;
+    p.timeUpdateEventInterval = 0.25;
+  });
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(sessionMuted);
   const [progress, setProgress] = useState(0);
@@ -87,6 +93,17 @@ function CarouselVideo({
   const controlsOpacity = useRef(new Animated.Value(0)).current;
 
   const shouldPlay = isVisible && isScreenActive && !paused;
+
+  // shouldPlay was a prop on expo-av's Video. On a player object it is an effect.
+  useEffect(() => { if (shouldPlay) player.play(); else player.pause(); }, [shouldPlay, player]);
+  useEffect(() => { player.muted = muted; }, [muted, player]);
+  useEffect(() => {
+    const sub = player.addListener('timeUpdate', (e: any) => {
+      const d = player.duration;
+      if (d > 0) setProgress((e?.currentTime ?? player.currentTime) / d);
+    });
+    return () => { sub.remove(); };
+  }, [player]);
 
   // Auto-hide controls after 3 seconds
   const scheduleHide = useCallback(() => {
@@ -130,10 +147,9 @@ function CarouselVideo({
 
   const skipForward = async () => {
     try {
-      const status = await videoRef.current?.getStatusAsync();
-      if (status?.isLoaded && status.durationMillis) {
-        const newPos = Math.min(status.positionMillis + 10000, status.durationMillis);
-        await videoRef.current?.setPositionAsync(newPos);
+      // Seconds now, not milliseconds.
+      if (player.duration > 0) {
+        player.currentTime = Math.min(player.currentTime + 10, player.duration);
       }
     } catch (e) {
       console.log('[SKIP_FWD_ERR]', e);
@@ -143,11 +159,7 @@ function CarouselVideo({
 
   const skipBackward = async () => {
     try {
-      const status = await videoRef.current?.getStatusAsync();
-      if (status?.isLoaded) {
-        const newPos = Math.max(status.positionMillis - 10000, 0);
-        await videoRef.current?.setPositionAsync(newPos);
-      }
+      player.currentTime = Math.max(player.currentTime - 10, 0);
     } catch (e) {
       console.log('[SKIP_BACK_ERR]', e);
     }
@@ -160,18 +172,12 @@ function CarouselVideo({
       activeOpacity={1}
       onPress={onTapOverride ?? toggleControls}
     >
-      <Video
-        ref={videoRef}
-        source={{ uri }}
+      <VideoView
         style={{ width: '100%', height: '100%' }}
-        resizeMode={ResizeMode.COVER}
-        shouldPlay={shouldPlay}
-        isLooping
-        isMuted={muted}
-        progressUpdateIntervalMillis={250}
-        onPlaybackStatusUpdate={(st: AVPlaybackStatus) => {
-          if (st.isLoaded && st.durationMillis) setProgress(st.positionMillis / st.durationMillis);
-        }}
+        player={player}
+        contentFit="cover"
+        nativeControls={false}
+        allowsFullscreen={false}
       />
 
       {/* Playback progress bar */}

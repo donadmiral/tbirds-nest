@@ -34,6 +34,7 @@ import EnvironmentLayer from '../../components/stories/EnvironmentLayer';
 import IdentityPresence from '../../components/stories/IdentityPresence';
 import MemoryCaption from '../../components/stories/MemoryCaption';
 import StoryProgressBar from '../../components/stories/StoryProgressBar';
+import StoryOptionsSheet from '../../components/stories/StoryOptionsSheet';
 import StorySettingsSheet from '../../components/stories/StorySettingsSheet';
 import ImmersiveReplyField from '../../components/stories/ImmersiveReplyField';
 
@@ -197,6 +198,7 @@ export default function StoryViewerScreen() {
   const [replyText, setReplyText] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
   const [replyToast, setReplyToast] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const replyInputRef = useRef<TextInput>(null);
   const replyToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -394,7 +396,6 @@ export default function StoryViewerScreen() {
   const dualLayout = useMemo(() => parseDualLayout((currentStory as any)?.dual_layout), [currentStory]);
   const dualFrontUrl: string | undefined = (currentStory as any)?.dual_front_url ?? undefined;
   const hasDual = !!dualFrontUrl && !!dualLayout;
-  console.log('[Viewer.dual]', { storyId: currentStory?.id?.slice(0, 8), hasDual, dualFrontUrl: !!dualFrontUrl, dualLayout: dualLayout ? JSON.stringify(dualLayout).slice(0, 150) : null });
   const dualMode = dualLayout?.mode ?? 'pip_front_small';
 
   const rearUrl = currentStory?.media_url;
@@ -497,6 +498,30 @@ export default function StoryViewerScreen() {
       <StoryProgressBar progressSV={progressSV} currentIndex={storyIndex} totalStories={stories.length} chromeOpacity={chromeOpacity} topInset={insets.top} isPaused={paused} bottomInset={insets.bottom} />
       <MemoryCaption caption={currentStory.caption} chromeOpacity={chromeOpacity} bottomOffset={isOwn ? 130 : 125 + insets.bottom} />
       <IdentityPresence user={storyUser} isOwn={isOwn ?? false} timeAgo={timeAgo(currentStory.created_at)} scope={currentStory.scope} category={(currentStory as any).category} viewsCount={currentStory.views_count} chromeOpacity={chromeOpacity} topInset={insets.top} onOpenViewers={isOwn ? openViewersList : undefined} onSaveHighlight={isOwn ? () => { pauseFor('highlight'); setHighlightSheetOpen(true); } : undefined} onOpenSettings={isOwn ? () => { pauseFor('settings'); setSettingsOpen(true); } : undefined} onDelete={isOwn ? handleDelete : undefined} onClose={saveAndGoBack} bottomInset={insets.bottom} />
+      {/* Owners already get viewers, highlights, settings and delete from
+          IdentityPresence. Everyone else previously had nothing at all: no
+          mute, no report, no share. */}
+      {!isOwn && (
+        <TouchableOpacity
+          style={[s.storyMoreBtn, { top: insets.top + 96 }]}
+          onPress={() => { pauseFor('options'); setOptionsOpen(true); }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Story options"
+        >
+          <Feather name="more-horizontal" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
+
+      <StoryOptionsSheet
+        visible={optionsOpen}
+        onClose={() => { setOptionsOpen(false); resumeFrom('options'); }}
+        isMine={!!isOwn}
+        storyId={currentStory?.id ?? null}
+        authorId={currentStory?.user_id ?? null}
+        authorName={storyUser?.full_name || 'this person'}
+        mediaUrl={currentStory?.media_url}
+      />
       {!isOwn && (currentStory as any).allow_replies !== false && (<ImmersiveReplyField replyMode={replyMode} replyText={replyText} onChangeText={setReplyText} sendingReply={sendingReply} heartActive={heartActive} chromeOpacity={chromeOpacity} onOpenReply={openReplyInput} onCloseReply={closeReplyInput} onSendReply={sendReply} onHeartTap={handleHeartTap} onLongPressHeart={openPicker} canSend={canSendReply} keyboardHeight={keyboardHeight} bottomInset={insets.bottom} inputRef={replyInputRef} />)}
 
       {reactionToast && (<View pointerEvents="none" style={s.toastWrap}><View style={s.toastBubble}><Text style={s.toastEmoji}>{reactionToast}</Text><Text style={s.toastText}>Sent</Text></View></View>)}
@@ -571,6 +596,7 @@ const s = StyleSheet.create({
   rootLoading: { flex: 1, backgroundColor: '#020408', alignItems: 'center', justifyContent: 'center' },
   emptyTxt: { color: 'rgba(245,240,235,0.4)', fontSize: 15, letterSpacing: 0.3 },
   mediaWrap: { ...StyleSheet.absoluteFillObject, backgroundColor: '#020408', overflow: 'hidden' },
+  storyMoreBtn: { position: 'absolute', right: 14, width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.35)', zIndex: 30 },
   media: { width: SCREEN_W, height: SCREEN_H },
   dualBubble: { position: 'absolute', overflow: 'hidden', borderColor: 'rgba(255,255,255,0.5)', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
   dualBubbleImg: { width: '100%', height: '100%' },

@@ -1,0 +1,120 @@
+function CarouselVideo({
+  uri, width, height, isVisible, isScreenActive, onTapOverride,
+}: {
+  uri: string; width: number; height: number;
+  isVisible: boolean; isScreenActive: boolean; onTapOverride?: () => void;
+}) {
+  const videoRef = useRef<Video>(null);
+  const [paused, setPaused] = useState(false);
+  const [muted, setMuted] = useState(sessionMuted);
+  const [progress, setProgress] = useState(0);
+  const [showControls, setShowControls] = useState(false);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const controlsOpacity = useRef(new Animated.Value(0)).current;
+
+  const shouldPlay = isVisible && isScreenActive && !paused;
+
+  // Auto-hide controls after 3 seconds
+  const scheduleHide = useCallback(() => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => {
+      Animated.timing(controlsOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+        setShowControls(false);
+      });
+    }, 3000);
+  }, [controlsOpacity]);
+
+  // Clean up timer
+  useEffect(() => {
+    return () => {
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+    };
+  }, []);
+
+  const toggleControls = () => {
+    if (showControls) {
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+      Animated.timing(controlsOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+        setShowControls(false);
+      });
+    } else {
+      setShowControls(true);
+      Animated.timing(controlsOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+      scheduleHide();
+    }
+  };
+
+  const togglePause = () => {
+    setPaused(prev => !prev);
+    scheduleHide();
+  };
+
+  const toggleMute = () => {
+    setMuted(prev => { sessionMuted = !prev; return !prev; });
+    scheduleHide();
+  };
+
+  const skipForward = async () => {
+    try {
+      const status = await videoRef.current?.getStatusAsync();
+      if (status?.isLoaded && status.durationMillis) {
+        const newPos = Math.min(status.positionMillis + 10000, status.durationMillis);
+        await videoRef.current?.setPositionAsync(newPos);
+      }
+    } catch (e) {
+      console.log('[SKIP_FWD_ERR]', e);
+    }
+    scheduleHide();
+  };
+
+  const skipBackward = async () => {
+    try {
+      const status = await videoRef.current?.getStatusAsync();
+      if (status?.isLoaded) {
+        const newPos = Math.max(status.positionMillis - 10000, 0);
+        await videoRef.current?.setPositionAsync(newPos);
+      }
+    } catch (e) {
+      console.log('[SKIP_BACK_ERR]', e);
+    }
+    scheduleHide();
+  };
+
+  return (
+    <TouchableOpacity
+      style={{ width, height, backgroundColor: '#000' }}
+      activeOpacity={1}
+      onPress={onTapOverride ?? toggleControls}
+    >
+      <Video
+        ref={videoRef}
+        source={{ uri }}
+        style={{ width: '100%', height: '100%' }}
+        resizeMode={ResizeMode.COVER}
+        shouldPlay={shouldPlay}
+        isLooping
+        isMuted={muted}
+        progressUpdateIntervalMillis={250}
+        onPlaybackStatusUpdate={(st: AVPlaybackStatus) => {
+          if (st.isLoaded && st.durationMillis) setProgress(st.positionMillis / st.durationMillis);
+        }}
+      />
+
+      {/* Playback progress bar */}
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' }} pointerEvents="none">
+        <View style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%`, height: '100%', backgroundColor: '#FFFFFF' }} />
+      </View>
+
+      {/* Mute button always visible bottom-right */}
+      <TouchableOpacity
+        style={st.muteBtn}
+        onPress={toggleMute}
+        activeOpacity={0.8}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Feather name={muted ? 'volume-x' : 'volume-2'} size={14} color="#FFF" />
+      </TouchableOpacity>
+
+      {/* Controls overlay */}
+      {showControls && (
+        <Animated.View
