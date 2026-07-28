@@ -16,8 +16,7 @@ import { showMessage } from 'react-native-flash-message';
 import { authService } from '../../services/authService';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { isAsuEmail } from '../../utils/isAsuEmail';
-import PlatinumCirclesLogo from '../../components/PlatinumCirclesLogo';
+import PearlMark from '../../components/brand/PearlMark';
 
 const NAVY = '#0B1E3D';
 const NAVY_DEEP = '#080E1A';
@@ -37,7 +36,7 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
   const [checking, setChecking] = useState(false);
-  const [verifiedIsASU, setVerifiedIsASU] = useState(false);
+  const verifiedIsASU = false; // school era retired 2026-07-28
   const [navigating, setNavigating] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -120,8 +119,6 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
 
     const userId = session?.user?.id;
     const userEmail = session?.user?.email || '';
-    const asuUser = isAsuEmail(userEmail);
-    setVerifiedIsASU(asuUser);
 
     // Animate checkmark, then fade in content
     Animated.spring(checkScale, {
@@ -220,7 +217,7 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
         </Animated.View>
 
         <Animated.View style={{ opacity: fadeIn, alignItems: 'center' }}>
-          <PlatinumCirclesLogo size={48} />
+          <PearlMark size={72} />
 
           <Text style={s.successTitle}>Welcome to PlatinumCircles</Text>
           <Text style={s.successSub}>
@@ -363,11 +360,11 @@ const s = StyleSheet.create({
   checkingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   checkingTxt: { fontSize: 13, color: NAVY, fontWeight: '500' },
   resendBtn: {
-    backgroundColor: GRAY_100, borderRadius: 12,
+    backgroundColor: NAVY, borderRadius: 99,
     paddingVertical: 13, paddingHorizontal: 28, minWidth: 180, alignItems: 'center',
   },
   btnDisabled: { opacity: 0.5 },
-  resendTxt: { fontSize: 14, fontWeight: '600', color: GRAY_500 },
+  resendTxt: { fontSize: 14, fontWeight: '600', color: '#F5F0E8' },
   checkBtn: { marginTop: 12, paddingVertical: 10, paddingHorizontal: 20 },
   checkBtnTxt: { fontSize: 14, fontWeight: '600', color: NAVY },
   backBtn: { marginTop: 8, paddingVertical: 10, paddingHorizontal: 20 },

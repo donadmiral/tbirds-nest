@@ -17,7 +17,6 @@ import { showMessage } from 'react-native-flash-message';
 import { supabase } from '../../services/supabase';
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../stores/authStore';
-import { isAsuEmail } from '../../utils/isAsuEmail';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
@@ -40,7 +39,7 @@ export default function SetupProfileScreen() {
   const { session, refreshProfile } = useAuthStore();
   const userEmail = session?.user?.email ?? '';
   const userFullName = session?.user?.user_metadata?.full_name ?? '';
-  const isASU = isAsuEmail(userEmail);
+  const isASU = false; // school era retired 2026-07-28
 
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -65,7 +64,6 @@ export default function SetupProfileScreen() {
   // Public-specific
   const [headline, setHeadline] = useState('');
   const [workplace, setWorkplace] = useState('');
-  const [school, setSchool] = useState('');
 
   const [saving, setSaving] = useState(false);
 
@@ -162,7 +160,6 @@ export default function SetupProfileScreen() {
       } else {
         updates.headline = headline.trim() || null;
         updates.workplace = workplace.trim() || null;
-        updates.school = school.trim() || null;
       }
 
       await authService.updateProfile(userId, updates);
@@ -352,10 +349,6 @@ export default function SetupProfileScreen() {
                 <TextInput style={s.input} value={workplace} onChangeText={setWorkplace} placeholder="Company / Organization" placeholderTextColor={GRAY_400} autoCapitalize="words" />
               </View>
 
-              <View style={s.inputWrap}>
-                <Feather name="award" size={16} color={GRAY_400} style={s.inputIcon} />
-                <TextInput style={s.input} value={school} onChangeText={setSchool} placeholder="School / University (optional)" placeholderTextColor={GRAY_400} autoCapitalize="words" />
-              </View>
             </>
           )}
 
@@ -431,8 +424,8 @@ const s = StyleSheet.create({
   sectionLabel: { fontSize: 14, fontWeight: '700', color: GRAY_900, marginTop: 16, marginBottom: 10 },
   inputWrap: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: GRAY_100, borderWidth: 0.5, borderColor: GRAY_200,
-    borderRadius: 12, marginBottom: 10, position: 'relative',
+    backgroundColor: '#FBFBFA', borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)',
+    borderRadius: 14, marginBottom: 10, position: 'relative',
   },
   inputReadOnly: { opacity: 0.6 },
   inputReadOnlyTxt: { flex: 1, paddingVertical: 14, paddingHorizontal: 10, fontSize: 15, color: GRAY_700 },
@@ -447,10 +440,10 @@ const s = StyleSheet.create({
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: GRAY_200, marginVertical: 10 },
   asuInlineBadge: { backgroundColor: MAROON, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, marginRight: 10 },
   asuInlineTxt: { fontSize: 11, fontWeight: '800', color: GOLD, letterSpacing: 0.5 },
-  primaryBtn: { backgroundColor: NAVY, borderRadius: 12, paddingVertical: 15, alignItems: 'center', justifyContent: 'center', minHeight: 50 },
+  primaryBtn: { backgroundColor: NAVY, borderRadius: 99, paddingVertical: 15, alignItems: 'center', justifyContent: 'center', minHeight: 50 },
   primaryBtnASU: { backgroundColor: GOLD },
   primaryBtnDisabled: { opacity: 0.5 },
-  primaryBtnTxt: { fontSize: 16, fontWeight: '700', color: WHITE },
+  primaryBtnTxt: { fontSize: 16, fontWeight: '700', color: '#F5F0E8', letterSpacing: 0.4 },
   primaryBtnTxtASU: { color: MAROON },
   avatarWrap: { width: 80, height: 80, alignSelf: 'center', marginBottom: 4, position: 'relative' },
   avatarPlaceholder: {
