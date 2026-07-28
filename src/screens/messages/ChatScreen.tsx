@@ -453,6 +453,7 @@ export default function ChatScreen() {
   const [editTarget, setEditTarget] = useState<{ uri: string; width: number; height: number } | null>(null);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [liveGroupCall, setLiveGroupCall] = useState<{ id: string; is_video: boolean; joinedNames: string[] } | null>(null);
+  const startingCallRef = useRef(false);
   const voice = useVoiceRecorder();
   const [sendingVoice, setSendingVoice] = useState(false);
   const [otherOnline, setOtherOnline] = useState(false);
@@ -845,7 +846,6 @@ useEffect(() => {
           const { data: parts } = await supabase.from('call_participants')
             .select('user_id').eq('call_session_id', data.id).eq('status', 'joined');
           const ids = (parts || []).map((p: any) => p.user_id);
-          console.log('[BANNER]', { status: data.status, joined: ids.length });
           if (data.status === 'active' && ids.length === 0) { if (live) setLiveGroupCall(null); return; }
           if (ids.length) {
             const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
@@ -1214,6 +1214,9 @@ const pickAndSendDocument = useCallback(async () => {
 
   const startCall = useCallback(async (isVideo = false) => {
     if (!currentUserId) return;
+    if (startingCallRef.current) return; // double-tap made twin sessions 3ms apart
+    startingCallRef.current = true;
+    setTimeout(() => { startingCallRef.current = false; }, 2000);
 
     if (isGroup) {
       if (!conversationId) { Alert.alert('Cannot call', 'No conversation found.'); return; }

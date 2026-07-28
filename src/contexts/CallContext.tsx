@@ -144,7 +144,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
   // ── Refs (stable across renders) ────────────────────────────────────────
 
-  const tracerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const callObjRef = useRef<DailyCall | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callStartMsRef = useRef<number | null>(null);
@@ -550,15 +550,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           (call as any).setNativeInCallAudioMode(params.isVideo ? 'video' : 'voice');
           console.log('[Audio] inCallAudioMode engaged:', params.isVideo ? 'video' : 'voice');
         } catch (e: any) { console.log('[Audio] inCallAudioMode error:', e?.message); }
-        if (tracerRef.current) clearInterval(tracerRef.current);
-        tracerRef.current = setInterval(() => {
-          try {
-            const parts: any = call.participants();
-            if (Object.keys(parts).length === 0) { if (tracerRef.current) { clearInterval(tracerRef.current); tracerRef.current = null; } return; }
-            const rem = Object.entries(parts).filter(([k]) => k !== 'local').map(([k, p]: any) => ({ id: String(k).slice(0, 8), audio: p?.tracks?.audio?.state, sub: p?.tracks?.audio?.subscribed === true }));
-            console.log('[TRACER]', JSON.stringify({ n: Object.keys(parts).length, localAudio: parts?.local?.tracks?.audio?.state, rem }));
-          } catch {}
-        }, 5000);
+
         try {
           (call as any).setBandwidth?.({
             kbs: params.isVideo ? 1200 : 64,
@@ -716,7 +708,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         clearRingingTimeout();
         clearReconnectTimeout();
         clearDegradedTimeout();
-        if (tracerRef.current) { clearInterval(tracerRef.current); tracerRef.current = null; }
+
+        if (activeCallRef.current?.isGroupCall && callIdRef.current) {
+          supabase.rpc('leave_group_call', { p_session_id: callIdRef.current }).then(() => {}, () => {});
+        }
         if (callObjRef.current) {
           try { await callObjRef.current.leave(); } catch {}
           try { callObjRef.current.destroy(); } catch {}

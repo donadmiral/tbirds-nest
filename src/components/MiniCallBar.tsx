@@ -13,6 +13,14 @@ import { useNavigation, CommonActions } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { useCallContext } from '../contexts/CallContext';
 
+function focusedRouteName(state: any): string | null {
+  if (!state) return null;
+  const route = state.routes?.[state.index ?? 0];
+  if (!route) return null;
+  if (route.state) return focusedRouteName(route.state);
+  return route.name ?? null;
+}
+
 function fmtTime(s: number) {
   const m = Math.floor(s / 60);
   const sec = s % 60;
@@ -24,7 +32,9 @@ export default function MiniCallBar() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
 
-  if (callState === 'idle' || callState === 'ending' || !activeCall) return null;
+  let onCallScreen = false;
+  try { onCallScreen = focusedRouteName(navigation.getState?.()) === 'Call'; } catch {}
+  if (callState === 'idle' || callState === 'ending' || !activeCall || onCallScreen) return null;
 
   const statusText = connected
     ? fmtTime(elapsed)
