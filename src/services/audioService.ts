@@ -29,9 +29,10 @@
 // shouldDuckAndroid is gone because 'duckOthers' already says it.
 import { setAudioModeAsync, createAudioPlayer, type AudioPlayer } from 'expo-audio';
 
-// TEMPORARY ISOLATION TEST: when false, expo-audio never touches the iOS audio
-// session and never creates players. Ring sounds are OFF while testing whether
-// expo-audio is what kills WebRTC playout.
+// PROVEN 2026-07-28, both halves: expo-audio kills WebRTC playout at the
+// native level — its setAudioModeAsync calls AND its players independently.
+// It must never run during call flows. Ringing is vibration + push until
+// CallKit owns it natively.
 const CALL_SOUNDS_ENABLED = false;
 
 // Asset references - verified to exist at src/assets/sounds/
