@@ -144,6 +144,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
   // ── Refs (stable across renders) ────────────────────────────────────────
 
+  const tracerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callObjRef = useRef<DailyCall | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callStartMsRef = useRef<number | null>(null);
@@ -546,6 +547,19 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         }
         try { call.setLocalAudio(true); } catch {}
         try {
+          (call as any).setNativeInCallAudioMode(params.isVideo ? 'video' : 'voice');
+          console.log('[Audio] inCallAudioMode engaged:', params.isVideo ? 'video' : 'voice');
+        } catch (e: any) { console.log('[Audio] inCallAudioMode error:', e?.message); }
+        if (tracerRef.current) clearInterval(tracerRef.current);
+        tracerRef.current = setInterval(() => {
+          try {
+            const parts: any = call.participants();
+            if (Object.keys(parts).length === 0) { if (tracerRef.current) { clearInterval(tracerRef.current); tracerRef.current = null; } return; }
+            const rem = Object.entries(parts).filter(([k]) => k !== 'local').map(([k, p]: any) => ({ id: String(k).slice(0, 8), audio: p?.tracks?.audio?.state, sub: p?.tracks?.audio?.subscribed === true }));
+            console.log('[TRACER]', JSON.stringify({ n: Object.keys(parts).length, localAudio: parts?.local?.tracks?.audio?.state, rem }));
+          } catch {}
+        }, 5000);
+        try {
           (call as any).setBandwidth?.({
             kbs: params.isVideo ? 1200 : 64,
             trackConstraints: params.isVideo
@@ -702,6 +716,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         clearRingingTimeout();
         clearReconnectTimeout();
         clearDegradedTimeout();
+        if (tracerRef.current) { clearInterval(tracerRef.current); tracerRef.current = null; }
         if (callObjRef.current) {
           try { await callObjRef.current.leave(); } catch {}
           try { callObjRef.current.destroy(); } catch {}
@@ -719,30 +734,16 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   // MUST be declared before onCallConnected which references it.
 
   const applySpeakerRoute = useCallback((toSpeaker: boolean) => {
+    // Daily's native in-call audio mode is the only working route control:
+    // 'video' = speakerphone, 'voice' = earpiece. The old setAudioDevice path
+    // never existed on this SDK and the expo-av fallback was proven dead.
+    const call = callObjRef.current as any;
+    if (!call) return;
     try {
-      const WebRTCModule = (Daily as any)?.WebRTCModule;
-      if (WebRTCModule?.setAudioDevice) {
-        setTimeout(() => {
-          try {
-            WebRTCModule.setAudioDevice(toSpeaker ? 'speakerphone' : 'earpiece');
-          } catch (e) {
-            console.log('[Speaker] setAudioDevice error:', e);
-          }
-        }, 100);
-        return;
-      }
-    } catch {}
-    // Fallback: expo-av audio routing
-    try {
-      const { Audio } = require('expo-av');
-      Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-        playThroughEarpieceAndroid: !toSpeaker,
-      }).catch(() => {});
-    } catch (e) {
-      console.log('[Speaker] fallback error:', e);
+      call.setNativeInCallAudioMode(toSpeaker ? 'video' : 'voice');
+      console.log('[Speaker] route ->', toSpeaker ? 'speaker' : 'earpiece');
+    } catch (e: any) {
+      console.log('[Speaker] route error:', e?.message);
     }
   }, []);
 

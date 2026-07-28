@@ -29,6 +29,11 @@
 // shouldDuckAndroid is gone because 'duckOthers' already says it.
 import { setAudioModeAsync, createAudioPlayer, type AudioPlayer } from 'expo-audio';
 
+// TEMPORARY ISOLATION TEST: when false, expo-audio never touches the iOS audio
+// session and never creates players. Ring sounds are OFF while testing whether
+// expo-audio is what kills WebRTC playout.
+const CALL_SOUNDS_ENABLED = false;
+
 // Asset references - verified to exist at src/assets/sounds/
 let ringtoneAsset: any = null;
 let ringbackAsset: any = null;
@@ -59,11 +64,11 @@ let stopping = false;
  * after interruptions (other apps, system sounds, Siri).
  */
 async function configureAudioSession(): Promise<boolean> {
+  if (!CALL_SOUNDS_ENABLED) return true;
   try {
     await setAudioModeAsync({
       allowsRecording: false,
       playsInSilentMode: true,
-      shouldPlayInBackground: true,
       interruptionMode: 'duckOthers',
       shouldRouteThroughEarpiece: false,
     });
@@ -79,35 +84,33 @@ async function configureAudioSession(): Promise<boolean> {
  * Switches to voice-chat mode so Daily.co audio works correctly.
  */
 async function configureForVoiceChat(): Promise<boolean> {
-  try {
-    await setAudioModeAsync({
-      allowsRecording: true,
-      playsInSilentMode: true,
-      shouldPlayInBackground: true,
-      interruptionMode: 'doNotMix',
-      shouldRouteThroughEarpiece: true,
-    });
-    return true;
-  } catch (e) {
-    console.log('[AudioService] configureForVoiceChat error:', e);
-    return false;
-  }
+  // Daily's WebRTC audio unit owns the session during a call.
+  // Grabbing it with expo-audio here was proven to kill playout (silent calls,
+  // OSStatus 561017449 insufficient-priority in every log). Do nothing.
+  return true;
 }
 
 /**
  * Reset audio session to default after call ends.
  */
 async function resetAudioSession(): Promise<void> {
-  try {
-    await setAudioModeAsync({
-      allowsRecording: false,
-      playsInSilentMode: false,
-      shouldPlayInBackground: false,
-      interruptionMode: 'mixWithOthers',
-      shouldRouteThroughEarpiece: false,
-    });
-  } catch (e) {
-    console.log('[AudioService] resetAudioSession error:', e);
+  // WebRTC's audio unit releases the session 1-2s after hangup; an immediate
+  // reset is denied (OSStatus 561017449 on every hangup log). Retry with backoff.
+  if (!CALL_SOUNDS_ENABLED) return;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+        interruptionMode: 'mixWithOthers',
+        shouldRouteThroughEarpiece: false,
+      });
+      return;
+    } catch (e) {
+      if (attempt === 2) { console.log('[AudioService] resetAudioSession failed after retries:', e); return; }
+      await new Promise(r => setTimeout(r, 1500));
+    }
   }
 }
 
@@ -116,6 +119,7 @@ async function resetAudioSession(): Promise<void> {
  * Replaces any currently playing sound.
  */
 async function playSound(type: SoundType): Promise<boolean> {
+  if (!CALL_SOUNDS_ENABLED) return false;
   // Guard: already playing this sound
   if (currentType === type && currentSound !== null) {
     console.log('[AudioService] already playing', type);
@@ -189,9 +193,11 @@ function startRecovery(type: SoundType): void {
         return;
       }
       if (!status.isPlaying) {
-        console.log('[AudioService] recovery: sound paused, restarting', type);
-        await configureAudioSession();
-        currentSound.play();
+        const ok = await configureAudioSession();
+        if (ok && currentSound) {
+          console.log('[AudioService] recovery: restarting', type);
+          currentSound.play();
+        }
       }
     } catch (e) {
       console.log('[AudioService] recovery: error, recreating', type, e);

@@ -845,15 +845,17 @@ useEffect(() => {
           const { data: parts } = await supabase.from('call_participants')
             .select('user_id').eq('call_session_id', data.id).eq('status', 'joined');
           const ids = (parts || []).map((p: any) => p.user_id);
+          console.log('[BANNER]', { status: data.status, joined: ids.length });
+          if (data.status === 'active' && ids.length === 0) { if (live) setLiveGroupCall(null); return; }
           if (ids.length) {
             const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
             joinedNames = (profs || []).map((p: any) => String(p.full_name || '').split(' ')[0]).filter(Boolean);
           }
-        } catch {}
+        } catch (e: any) { console.log('[BANNER] participants query error:', e?.message); }
         if (live) setLiveGroupCall({ id: data.id, is_video: !!data.is_video, joinedNames });
       } catch {}
     };
-    check();
+    supabase.rpc('sweep_dead_calls').then(() => { if (live) check(); }, () => { if (live) check(); });
     const iv = setInterval(check, 20000);
     const ch = supabase.channel(`gcall_watch_${conversationId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'call_sessions', filter: `conversation_id=eq.${conversationId}` }, () => check())
