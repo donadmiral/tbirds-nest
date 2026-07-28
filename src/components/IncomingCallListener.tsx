@@ -15,6 +15,8 @@ import { callService, CallRecord } from '../services/callService';
 import { supabase } from '../services/supabase';
 import { View, Text, TouchableOpacity, Image, Vibration, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCallContext } from '../contexts/CallContext';
 import { audioService } from '../services/audioService';
 import { setActiveCallNavId, clearCallNavGuard, isCallNavActive } from '../services/notificationBootstrap';
 
@@ -22,8 +24,12 @@ export default function IncomingCallListener() {
   const nav = useNavigation<any>();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
+  const insets = useSafeAreaInsets();
+  const { callState, startCall } = useCallContext();
+  const callStateRef = useRef(callState);
+  useEffect(() => { callStateRef.current = callState; }, [callState]);
   const activeCallIdRef = useRef<string | null>(null);
-  const [banner, setBanner] = useState<{ call: any; name: string; avatar: string | null; isGroup: boolean } | null>(null);
+  const [banner, setBanner] = useState<{ callId: string; navParams: any; name: string; avatar: string | null; isGroup: boolean; isVideo: boolean } | null>(null);
   const bannerRef = useRef<any>(null);
   useEffect(() => { bannerRef.current = banner; }, [banner]);
   const clearBanner = useCallback(() => {
@@ -45,6 +51,7 @@ export default function IncomingCallListener() {
       if (handledCallIdsRef.current.has(call.id)) return;
       if (activeCallIdRef.current === call.id) return;
       if (call.status !== 'ringing') return;
+      if (callStateRef.current !== 'idle') { handledCallIdsRef.current.add(call.id); return; } // busy: call waiting is a Phase B item
 
       // If push tap handler already handling this call, skip
       if (isCallNavActive(call.id)) {
@@ -95,9 +102,7 @@ export default function IncomingCallListener() {
         if (conv?.group_emoji) groupEmoji = conv.group_emoji;
       }
 
-      console.log('[CALL_LISTENER] Navigating to IncomingCall, isGroup:', call.is_group_call, 'group:', groupName);
-
-      nav.navigate('IncomingCall', {
+      const navParams = {
         callId: call.id,
         channelId: call.channel_id,
         callerName: caller?.full_name || 'Unknown',
@@ -109,7 +114,21 @@ export default function IncomingCallListener() {
         groupName: call.is_group_call ? groupName : undefined,
         groupEmoji: call.is_group_call ? groupEmoji : undefined,
         conversationId: call.conversation_id,
+      };
+      setBanner({
+        callId: call.id, navParams,
+        name: call.is_group_call ? groupName : (caller?.full_name || 'Unknown'),
+        avatar: call.is_group_call ? null : (caller?.avatar_url || null),
+        isGroup: call.is_group_call, isVideo: call.is_video,
       });
+      try { Vibration.vibrate([0, 400, 800], true); } catch {}
+      setTimeout(() => {
+        if (bannerRef.current?.callId === call.id) {
+          clearBanner();
+          activeCallIdRef.current = null;
+          clearCallNavGuard();
+        }
+      }, 45000);
 
       const subUid = `${call.id}_listener_${Date.now()}`;
       const statusSub = supabase.channel(`call_status_${subUid}`)
@@ -117,6 +136,7 @@ export default function IncomingCallListener() {
           (payload) => {
             const st = (payload.new as any).status;
             if (st === 'ended' || st === 'declined' || st === 'missed' || (st === 'active' && !call.is_group_call)) {
+              if (bannerRef.current?.callId === call.id) clearBanner();
               activeCallIdRef.current = null;
               clearCallNavGuard();
               statusSub.unsubscribe();
@@ -162,5 +182,89 @@ export default function IncomingCallListener() {
     };
   }, [userId, nav]);
 
-  return null;
+  if (!banner) return null;
+  return (
+    <TouchableOpacity
+      style={[st.wrap, { top: insets.top + 6 }]}
+      activeOpacity={0.92}
+      onPress={() => {
+        const b = banner; if (!b) return;
+        setBanner(null);
+        try { Vibration.cancel(); } catch {}
+        nav.navigate('IncomingCall', b.navParams);
+      }}
+    >
+      {banner.avatar
+        ? <Image source={{ uri: banner.avatar }} style={st.avatar} />
+        : <View style={[st.avatar, st.avatarFb]}><Feather name={banner.isGroup ? 'users' : 'user'} size={18} color="#FFF" /></View>}
+      <View style={st.mid}>
+        <Text style={st.name} numberOfLines={1}>{banner.name}</Text>
+        <Text style={st.sub}>Incoming {banner.isVideo ? 'video' : 'voice'} call</Text>
+      </View>
+      <TouchableOpacity
+        style={[st.circle, st.decline]}
+        activeOpacity={0.8}
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        onPress={() => {
+          const b = banner; if (!b) return;
+          clearBanner();
+          if (b.isGroup) { supabase.rpc('decline_group_call', { p_session_id: b.callId }).then(() => {}, () => {}); }
+          else { callService.declineCall(b.callId).catch(() => {}); }
+          activeCallIdRef.current = null;
+          clearCallNavGuard();
+        }}
+      >
+        <Feather name="phone-off" size={16} color="#FFF" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[st.circle, st.accept]}
+        activeOpacity={0.8}
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        onPress={() => {
+          const b = banner; if (!b) return;
+          clearBanner();
+          clearCallNavGuard();
+          startCall({
+            callId: b.navParams.callId, channelId: b.navParams.channelId,
+            otherUserId: b.navParams.otherUser?.id || '',
+            otherUserName: b.isGroup ? (b.navParams.groupName || 'Group Call') : b.name,
+            otherUserAvatar: b.isGroup ? null : b.avatar,
+            isVideo: b.isVideo, isIncoming: true, isGroupCall: b.isGroup,
+            conversationId: b.navParams.conversationId ?? null,
+          });
+          nav.navigate('Call', {
+            callId: b.navParams.callId, channelId: b.navParams.channelId,
+            callerName: b.isGroup ? (b.navParams.groupName || 'Group Call') : b.name,
+            callerAvatar: b.isGroup ? null : b.avatar,
+            otherUser: b.navParams.otherUser,
+            isIncoming: true, isVideo: b.isVideo, fromContext: true,
+            isGroupCall: b.isGroup,
+            groupName: b.isGroup ? b.navParams.groupName : undefined,
+            conversationId: b.navParams.conversationId,
+          });
+        }}
+      >
+        <Feather name={banner.isVideo ? 'video' : 'phone'} size={16} color="#FFF" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
 }
+
+const st = StyleSheet.create({
+  wrap: {
+    position: 'absolute', left: 12, right: 12, zIndex: 9998,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#0B1E3D', borderRadius: 18,
+    paddingHorizontal: 14, paddingVertical: 12,
+    shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 14, shadowOffset: { width: 0, height: 6 },
+    elevation: 10,
+  },
+  avatar: { width: 40, height: 40, borderRadius: 20 },
+  avatarFb: { backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
+  mid: { flex: 1 },
+  name: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  sub: { color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 1 },
+  circle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  decline: { backgroundColor: '#EF4444' },
+  accept: { backgroundColor: '#10B981' },
+});
