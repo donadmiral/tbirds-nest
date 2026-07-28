@@ -18,7 +18,7 @@ import { showMessage } from 'react-native-flash-message';
 import { Feather } from '@expo/vector-icons';
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../stores/authStore';
-import PlatinumCirclesLogo from '../../components/PlatinumCirclesLogo';
+import PearlMark from '../../components/brand/PearlMark';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
@@ -27,9 +27,9 @@ const NAVY = '#0B1E3D';
 const NAVY_MID = '#141E30';
 const WHITE = '#FFFFFF';
 const WHITE_08 = 'rgba(255,255,255,0.08)';
-const WHITE_15 = 'rgba(255,255,255,0.15)';
-const WHITE_30 = 'rgba(255,255,255,0.30)';
-const WHITE_45 = 'rgba(255,255,255,0.45)';
+const WHITE_15 = 'rgba(11,30,61,0.12)'; // card-zone hairline
+const WHITE_30 = 'rgba(11,30,61,0.30)'; // card-zone neutral
+const WHITE_45 = 'rgba(11,30,61,0.45)'; // card-zone neutral (the form is a light sheet now)
 const WHITE_60 = 'rgba(255,255,255,0.60)';
 
 type ForgotStep = 'email' | 'reset';
@@ -198,7 +198,7 @@ export default function LoginScreen({ navigation }: any) {
               </TouchableOpacity>
 
               <View style={s.forgotContent}>
-                <PlatinumCirclesLogo size={56} />
+                <PearlMark size={64} />
 
                 {/* STEP 1: Enter email */}
                 {forgotStep === 'email' && (
@@ -234,7 +234,7 @@ export default function LoginScreen({ navigation }: any) {
                       activeOpacity={0.85}
                     >
                       {forgotLoading ? (
-                        <ActivityIndicator color={NAVY} size={16} />
+                        <ActivityIndicator color={WHITE} size={16} />
                       ) : (
                         <Text style={s.primaryBtnTxt}>Send code</Text>
                       )}
@@ -303,7 +303,7 @@ export default function LoginScreen({ navigation }: any) {
                       activeOpacity={0.85}
                     >
                       {forgotLoading ? (
-                        <ActivityIndicator color={NAVY} size={16} />
+                        <ActivityIndicator color={WHITE} size={16} />
                       ) : (
                         <Text style={s.primaryBtnTxt}>Reset password</Text>
                       )}
@@ -336,15 +336,16 @@ export default function LoginScreen({ navigation }: any) {
           <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
             <Animated.View style={[s.logoWrap, { opacity: fadeAnim, transform: [{ scale: logoScale }] }]}>
-              <PlatinumCirclesLogo size={88} />
+              <PearlMark size={116} />
             </Animated.View>
 
             <Animated.View style={[s.brandWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-              <Text style={s.brandName}>PlatinumCircles</Text>
-              <Text style={s.brandTag}>YOUR EXCLUSIVE COMMUNITY</Text>
+              <Text style={s.brandName}>PLATINUM CIRCLES</Text>
             </Animated.View>
 
             <Animated.View style={[s.formWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+              <Text style={s.sheetTitle}>Welcome back</Text>
+              <Text style={s.sheetSub}>Sign in to your circle</Text>
               <View style={s.inputWrap}>
                 <Feather name="mail" size={16} color={WHITE_45} style={s.inputIcon} />
                 <TextInput
@@ -393,7 +394,7 @@ export default function LoginScreen({ navigation }: any) {
                 activeOpacity={0.85}
               >
                 {loading ? (
-                  <ActivityIndicator color={NAVY} size={16} />
+                  <ActivityIndicator color={WHITE} size={16} />
                 ) : (
                   <Text style={s.primaryBtnTxt}>Sign In</Text>
                 )}
@@ -437,14 +438,19 @@ const s = StyleSheet.create({
   },
   logoWrap: { alignItems: 'center', marginBottom: 16 },
   brandWrap: { alignItems: 'center', marginBottom: 40 },
-  brandName: { fontSize: 28, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },
+  brandName: { fontSize: 16, fontWeight: '400', color: '#EDE7DB', letterSpacing: 7 },
   brandTag: { fontSize: 11, color: WHITE_30, letterSpacing: 2, marginTop: 6 },
-  formWrap: { width: '100%' },
+  formWrap: {
+    width: '100%', backgroundColor: WHITE, borderRadius: 28, padding: 22, paddingTop: 24,
+    shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 12,
+  },
+  sheetTitle: { fontSize: 24, fontWeight: '800', color: NAVY, letterSpacing: -0.4 },
+  sheetSub: { fontSize: 13, color: 'rgba(11,30,61,0.45)', marginTop: 3, marginBottom: 16 },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: WHITE_08,
-    borderWidth: 0.5,
+    backgroundColor: '#FBFBFA',
+    borderWidth: 1,
     borderColor: WHITE_15,
     borderRadius: 14,
     marginBottom: 12,
@@ -456,7 +462,7 @@ const s = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 12,
     fontSize: 15,
-    color: WHITE,
+    color: NAVY,
   },
   eyeBtn: {
     position: 'absolute',
@@ -468,29 +474,29 @@ const s = StyleSheet.create({
   forgotBtn: { alignSelf: 'flex-end', marginBottom: 20, marginTop: 2 },
   forgotTxt: { fontSize: 13, color: WHITE_45, fontWeight: '500' },
   primaryBtn: {
-    backgroundColor: WHITE,
-    borderRadius: 14,
+    backgroundColor: NAVY,
+    borderRadius: 99,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 52,
   },
   primaryBtnDisabled: { opacity: 0.6 },
-  primaryBtnTxt: { fontSize: 16, fontWeight: '700', color: NAVY },
+  primaryBtnTxt: { fontSize: 16, fontWeight: '700', color: '#F5F0E8', letterSpacing: 0.4 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
   dividerLine: { flex: 1, height: 0.5, backgroundColor: WHITE_15 },
   dividerTxt: { fontSize: 12, color: WHITE_30, marginHorizontal: 14, fontWeight: '500' },
   outlineBtn: {
     borderWidth: 1,
-    borderColor: WHITE_30,
-    borderRadius: 14,
+    borderColor: WHITE_15,
+    borderRadius: 99,
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  outlineBtnTxt: { fontSize: 15, fontWeight: '600', color: WHITE },
+  outlineBtnTxt: { fontSize: 15, fontWeight: '600', color: NAVY },
   footer: { alignItems: 'center', marginTop: 32, paddingHorizontal: 20 },
-  footerTxt: { fontSize: 11, color: WHITE_30, textAlign: 'center', lineHeight: 16 },
+  footerTxt: { fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 16 },
   backBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -505,8 +511,11 @@ const s = StyleSheet.create({
     paddingTop: SCREEN_H * 0.12,
     paddingBottom: 40,
   },
-  forgotContent: { alignItems: 'center', gap: 12 },
-  forgotTitle: { fontSize: 24, fontWeight: '700', color: WHITE, marginTop: 16 },
+  forgotContent: {
+    alignItems: 'center', gap: 12, backgroundColor: WHITE, borderRadius: 28, padding: 22, paddingTop: 26,
+    shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 12,
+  },
+  forgotTitle: { fontSize: 24, fontWeight: '700', color: NAVY, marginTop: 16 },
   forgotSub: {
     fontSize: 14,
     color: WHITE_45,
