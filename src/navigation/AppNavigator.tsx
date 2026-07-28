@@ -461,6 +461,7 @@ export default function AppNavigator() {
                 <RootStack.Screen name="TrendFeed"            component={TrendFeedScreen} />
                 <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
                 <RootStack.Screen name="Chat"                 component={ChatScreen} />
+                <RootStack.Screen name="GroupManagement"      component={GroupManagementScreen} />
                 <RootStack.Screen name="JobDetail"            component={JobDetailScreen} />
                 <RootStack.Screen name="Applicants"           component={ApplicantsScreen} />
                 <RootStack.Screen name="SavedJobs"            component={SavedJobsScreen} />
