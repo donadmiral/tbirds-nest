@@ -35,6 +35,25 @@ export const MARKET_CONDITIONS = ['New', 'Like New', 'Good', 'Fair'] as const;
 const SELLER_SELECT = 'seller:profiles!marketplace_listings_seller_id_fkey(id, full_name, username, avatar_url, is_verified)';
 
 export const marketService = {
+async getMarketFeed(opts: { search?: string | null; category?: string | null; city?: string | null; limit?: number }): Promise<Listing[]> {
+    const { data: ranked, error } = await supabase.rpc('get_market_feed', {
+      p_category: opts.category || null,
+      p_search: opts.search?.trim() || null,
+      p_city: opts.city?.trim() || null,
+      p_limit: opts.limit ?? 30,
+      p_offset: 0,
+    });
+    if (error || !ranked?.length) return [];
+    const ids = (ranked as any[]).map(r => r.id);
+    const { data: rows } = await supabase
+      .from('marketplace_listings')
+      .select(`*, ${SELLER_SELECT}`)
+      .in('id', ids);
+    const byId: Record<string, any> = {};
+    (rows || []).forEach((r: any) => { byId[r.id] = r; });
+    return ids.map(id => byId[id]).filter(Boolean) as Listing[];
+  },
+
   async listListings(opts?: {
     search?: string;
     category?: string | null;

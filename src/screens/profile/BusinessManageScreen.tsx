@@ -66,6 +66,20 @@ function isValidTime(t: string): boolean {
 
 export default function BusinessManageScreen({ route, navigation }: any) {
   const businessId: string = route?.params?.businessId;
+  const [inboxUnread, setInboxUnread] = useState(0);
+  useEffect(() => {
+    if (!businessId) return;
+    let live = true;
+    const tick = async () => {
+      try {
+        const { data } = await supabase.rpc('get_business_unread', { p_business_id: businessId });
+        if (live) setInboxUnread(typeof data === 'number' ? data : 0);
+      } catch {}
+    };
+    tick();
+    const iv = setInterval(tick, 25000);
+    return () => { live = false; clearInterval(iv); };
+  }, [businessId]);
   const insets = useSafeAreaInsets();
   const { profile: authProfile } = useAuthStore();
   const myId = (authProfile as any)?.id ?? null;
@@ -253,6 +267,33 @@ export default function BusinessManageScreen({ route, navigation }: any) {
               <Feather name="external-link" size={14} color={light.status.link} />
               <Text style={s.viewProfileTxt}>View public profile</Text>
             </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 14, backgroundColor: '#0B1E3D' }}
+          activeOpacity={0.88}
+          onPress={() => (navigation as any).navigate('BusinessInbox', { businessId: profile?.id, businessName: profile?.full_name || 'Business' })}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#FFFFFF' }}>Open inbox</Text>
+              {inboxUnread > 0 && (
+                <View style={{ minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5, marginLeft: 8 }}>
+                  <Text style={{ color: '#FFF', fontSize: 11.5, fontWeight: '800' }}>{inboxUnread > 99 ? '99+' : inboxUnread}</Text>
+                </View>
+              )}
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 1 }}>Customer messages · replies send as the business</Text>
+          </View>
+          <Text style={{ fontSize: 20, color: 'rgba(201,191,176,0.9)', fontWeight: '600' }}>{'›'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.16)', backgroundColor: '#FFFFFF' }}
+          activeOpacity={0.88}
+          onPress={() => (navigation as any).navigate('Campaigns', { businessId: profile?.id, businessName: profile?.full_name || 'Business' })}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#0B1E3D' }}>Campaigns</Text>
+            <Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>Promote posts into the feed · live reach and clicks</Text>
+          </View>
+          <Text style={{ fontSize: 20, color: 'rgba(11,30,61,0.35)', fontWeight: '600' }}>{'›'}</Text>
+        </TouchableOpacity>
             {myRole ? <View style={s.roleChip}><Text style={s.roleTxt}>{myRole}</Text></View> : null}
           </View>
 

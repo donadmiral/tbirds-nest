@@ -175,31 +175,6 @@ export type JobPost = {
   created_at: string;
 };
 
-// ─── Notifications ───────────────────────────────────────────────────────────
-
-export type NotificationItem = {
-  id: string;
-  to_user_id: string;
-  from_user_id: string | null;
-  type:
-    | 'connection_request'
-    | 'connection_accepted'
-    | 'follow'
-    | 'post_like'
-    | 'post_comment'
-    | 'post_mention'
-    | 'mingle_join'
-    | 'mentorship_request'
-    | 'mentorship_accepted'
-    | 'system';
-  title: string;
-  body: string;
-  ref_id?: string | null;
-  ref_type?: 'user' | 'post' | 'mingle' | 'comment' | null;
-  read_at?: string | null;
-  created_at: string;
-};
-
 // ─── Calls ───────────────────────────────────────────────────────────────────
 
 export type CallRecord = {

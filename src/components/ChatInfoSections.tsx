@@ -128,7 +128,7 @@ export default function ChatInfoSections({
       <View style={s.section}>
         <Text style={s.sectionTitle}>Notifications</Text>
         <View style={s.row}>
-          <Feather name={muted ? 'bell-off' : 'bell'} size={17} color={light.ink.muted} />
+          <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name={muted ? 'bell-off' : 'bell'} size={15} color="#0B1E3D" /></View>
           <View style={s.rowText}>
             <Text style={s.rowLabel}>Mute this chat</Text>
             <Text style={s.rowHint}>You still receive the messages, without the alert.</Text>
@@ -174,7 +174,7 @@ export default function ChatInfoSections({
                 <Image source={{ uri: g.group_avatar_url }} style={s.groupAvatar} />
               ) : (
                 <View style={[s.groupAvatar, s.groupAvatarFb]}>
-                  <Feather name="users" size={15} color={light.ink.muted} />
+                  <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="users" size={14} color="#0B1E3D" /></View>
                 </View>
               )}
               <View style={s.rowText}>
@@ -189,7 +189,7 @@ export default function ChatInfoSections({
 
       <View style={s.section}>
         <View style={s.securityRow}>
-          <Feather name="lock" size={15} color={light.ink.muted} />
+          <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="lock" size={14} color="#0B1E3D" /></View>
           <Text style={s.securityTxt}>
             Messages are secured in transit and stored encrypted at rest. They are not
             end-to-end encrypted, so Platinum Circles can access them if required by law.
@@ -205,7 +205,7 @@ export default function ChatInfoSections({
             disabled={reporting || reported}
             activeOpacity={0.75}
           >
-            <Feather name="flag" size={15} color={reported ? light.ink.faint : light.status.danger} />
+            <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(220,38,38,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="flag" size={14} color={reported ? '#9CA3AF' : '#DC2626'} /></View>
             <Text style={[s.reportTxt, reported && { color: light.ink.faint }]}>
               {reported ? 'Reported' : 'Report ' + otherName}
             </Text>

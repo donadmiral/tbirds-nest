@@ -35,7 +35,10 @@ export default function StoryAudienceSheet({ visible, onClose, audience, onChang
   const toggle = useCallback(async (id: string) => {
     const on = !close.has(id);
     setClose(prev => { const n = new Set(prev); if (on) n.add(id); else n.delete(id); return n; });
-    try { await storiesService.setCloseFriend(id, on); } catch {}
+    try { await storiesService.setCloseFriend(id, on); } catch {
+      // the server refused — the checkmark must not lie about who is a close friend
+      setClose(prev => { const n = new Set(prev); if (on) n.delete(id); else n.add(id); return n; });
+    }
   }, [close]);
 
   const Row = ({ icon, title, sub, active, onPress, tint }: any) => (

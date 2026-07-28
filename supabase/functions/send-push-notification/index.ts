@@ -67,12 +67,18 @@ serve(async (req) => {
     // Check user's notification preferences
     const { data: profile } = await admin
       .from("profiles")
-      .select("notif_messages, notif_connections, notif_jobs, full_name")
+      .select("notif_messages, notif_connections, notif_jobs, notif_prefs, full_name")
       .eq("id", recipientId)
       .single();
 
     // Respect user preferences
     if (profile) {
+      // ONE rule for every type: an explicit false in notif_prefs silences it;
+      // a missing key means enabled. Legacy booleans below remain as fallback.
+      const prefs = (profile as any).notif_prefs || {};
+      if (prefs[type] === false) {
+        return json(200, { skipped: "preference" });
+      }
       const msgTypes = ["message"];
       const connTypes = ["connection_request", "connection_accepted", "follow"];
       const jobTypes = ["job", "job_application"];

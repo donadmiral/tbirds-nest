@@ -221,6 +221,15 @@ export default function StoryViewerScreen() {
   const [responsesSheet, dispatchResponsesSheet] = useReducer(responsesSheetReducer, responsesSheetInitial);
 
   const pauseStackRef = useRef<Set<string>>(new Set());
+  const chromeOpacity = useSharedValue(1);
+  const chromeIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const CHROME_IDLE_MS = 2200;
+  const CHROME_FOCUS_LEVEL = 0.65;
+  const CHROME_ENGAGE_LEVEL = 0.45;
+
+  const startChromeIdle = useCallback(() => { if (chromeIdleTimer.current) clearTimeout(chromeIdleTimer.current); if (pauseStackRef.current.size > 0) return; chromeIdleTimer.current = setTimeout(() => { chromeOpacity.value = withTiming(CHROME_FOCUS_LEVEL, { duration: 1400, easing: REasing.out(REasing.ease) }); }, CHROME_IDLE_MS); }, []);
+  const restoreChrome = useCallback(() => { if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } chromeOpacity.value = withTiming(1, { duration: 400, easing: REasing.out(REasing.ease) }); }, []);
+  const dimChromeForEngagement = useCallback(() => { if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } chromeOpacity.value = withTiming(CHROME_ENGAGE_LEVEL, { duration: 360, easing: REasing.out(REasing.ease) }); }, []);
   const pauseFor = useCallback((reason: string) => { pauseStackRef.current.add(reason); setPaused(true); if (reason !== 'longPress') { dimChromeForEngagement(); } }, [dimChromeForEngagement]);
   const resumeFrom = useCallback((reason: string) => { pauseStackRef.current.delete(reason); if (pauseStackRef.current.size === 0) { setPaused(false); restoreChrome(); startChromeIdle(); } }, [restoreChrome, startChromeIdle]);
 
@@ -234,15 +243,6 @@ export default function StoryViewerScreen() {
   const pickerOpacitySV = useSharedValue(0);
   const pickerScaleSV = useSharedValue(0.92);
 
-  const chromeOpacity = useSharedValue(1);
-  const chromeIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const CHROME_IDLE_MS = 2200;
-  const CHROME_FOCUS_LEVEL = 0.65;
-  const CHROME_ENGAGE_LEVEL = 0.45;
-
-  const startChromeIdle = useCallback(() => { if (chromeIdleTimer.current) clearTimeout(chromeIdleTimer.current); if (pauseStackRef.current.size > 0) return; chromeIdleTimer.current = setTimeout(() => { chromeOpacity.value = withTiming(CHROME_FOCUS_LEVEL, { duration: 1400, easing: REasing.out(REasing.ease) }); }, CHROME_IDLE_MS); }, []);
-  const restoreChrome = useCallback(() => { if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } chromeOpacity.value = withTiming(1, { duration: 400, easing: REasing.out(REasing.ease) }); }, []);
-  const dimChromeForEngagement = useCallback(() => { if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } chromeOpacity.value = withTiming(CHROME_ENGAGE_LEVEL, { duration: 360, easing: REasing.out(REasing.ease) }); }, []);
   const headerChromeStyle = useAnimatedStyle(() => ({ opacity: Math.max(0.55, chromeOpacity.value) }));
   const bottomChromeStyle = useAnimatedStyle(() => ({ opacity: Math.max(0.6, Math.min(1, chromeOpacity.value * 1.1)) }));
   const progressChromeStyle = useAnimatedStyle(() => ({ opacity: Math.max(0.4, chromeOpacity.value * 0.85) }));
@@ -250,20 +250,6 @@ export default function StoryViewerScreen() {
 
   const nextUserCache = useRef<Map<string, { stories: StoryRow[]; profile: any }>>(new Map());
   const preloadStatus = useRef<Map<string, 'pending' | 'done' | 'failed'>>(new Map());
-
-  // Dual viewer swap state (viewer-only, does not persist)
-  const [dualSwapped, setDualSwapped] = useState(false);
-  const dualSwapOpacity = useSharedValue(1);
-  const dualSwapAnimStyle = useAnimatedStyle(() => ({ opacity: dualSwapOpacity.value }));
-  const bubbleEntryScale = useSharedValue(0);
-  const bubbleEntryAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: bubbleEntryScale.value }] }));
-  useEffect(() => { setDualSwapped(false); dualSwapOpacity.value = 1; bubbleEntryScale.value = 0; }, [storyIndex, userIndex]);
-  useEffect(() => { if (hasDual && mediaReady) { bubbleEntryScale.value = withSpring(1, { damping: 14, stiffness: 160, mass: 1.0 }); } }, [hasDual, mediaReady]);
-  const handleDualSwapTap = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    dualSwapOpacity.value = withSequence(withTiming(0, { duration: 120 }), withTiming(1, { duration: 180, easing: REasing.out(REasing.cubic) }));
-    setTimeout(() => setDualSwapped(prev => !prev), 120);
-  }, [dualSwapOpacity]);
 
   useEffect(() => { return () => { nextUserCache.current.clear(); if (mediaReadyTimeoutRef.current) clearTimeout(mediaReadyTimeoutRef.current); if (holdoverCleanupRef.current) clearTimeout(holdoverCleanupRef.current); if (replyFocusTimerRef.current) clearTimeout(replyFocusTimerRef.current); if (progressStartTimerRef.current) clearTimeout(progressStartTimerRef.current); }; }, []);
   useEffect(() => { const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'; const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'; const showSub = Keyboard.addListener(showEvent, (e) => { setKeyboardHeight(e.endCoordinates.height); }); const hideSub = Keyboard.addListener(hideEvent, () => { setKeyboardHeight(0); }); return () => { showSub.remove(); hideSub.remove(); }; }, []);
@@ -287,6 +273,20 @@ export default function StoryViewerScreen() {
   const isVideo = currentStory?.media_type === 'video';
   const isText = currentStory?.media_type === 'text';
   const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; } });
+  // Dual viewer swap state (viewer-only, does not persist)
+  const [dualSwapped, setDualSwapped] = useState(false);
+  const dualSwapOpacity = useSharedValue(1);
+  const dualSwapAnimStyle = useAnimatedStyle(() => ({ opacity: dualSwapOpacity.value }));
+  const bubbleEntryScale = useSharedValue(0);
+  const bubbleEntryAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: bubbleEntryScale.value }] }));
+  useEffect(() => { setDualSwapped(false); dualSwapOpacity.value = 1; bubbleEntryScale.value = 0; }, [storyIndex, userIndex]);
+  const handleDualSwapTap = useCallback(() => {
+    if (isVideo) return; // v1: video swap lands with player.replace() in the polish pass
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    dualSwapOpacity.value = withSequence(withTiming(0, { duration: 120 }), withTiming(1, { duration: 180, easing: REasing.out(REasing.cubic) }));
+    setTimeout(() => setDualSwapped(prev => !prev), 120);
+  }, [dualSwapOpacity, isVideo]);
+
 
   const captureHoldover = useCallback(() => { const cur = storiesRef.current[storyIndexRef.current]; if (!cur || !cur.media_url) { setHoldoverMedia(null); return; } setHoldoverMedia({ url: cur.media_url, type: cur.media_type === 'video' ? 'video' : 'image', transform: parseMediaTransform((cur as any).media_transform) }); }, []);
   const prepareCrossfade = useCallback(() => { cancelAnimation(mediaOpacitySV); if (holdoverCleanupRef.current) { clearTimeout(holdoverCleanupRef.current); holdoverCleanupRef.current = null; } if (mediaReadyTimeoutRef.current) { clearTimeout(mediaReadyTimeoutRef.current); mediaReadyTimeoutRef.current = null; } mediaOpacitySV.value = 0; }, [mediaOpacitySV]);
@@ -364,23 +364,23 @@ export default function StoryViewerScreen() {
   canReactRef.current = !!currentStory && currentStory.user_id !== myId && (currentStory as any).allow_reactions !== false;
   const handleHeartTap = useCallback(() => { handleReaction('\u2764\uFE0F'); }, [handleReaction]);
 
+  const openReplyInput = useCallback(() => { pauseFor('reply'); setReplyMode(true); if (replyFocusTimerRef.current) clearTimeout(replyFocusTimerRef.current); replyFocusTimerRef.current = setTimeout(() => replyInputRef.current?.focus(), 50); }, [pauseFor]);
+  const closeReplyInput = useCallback(() => { Keyboard.dismiss(); setReplyMode(false); setReplyText(''); resumeFrom('reply'); }, [resumeFrom]);
   const openPicker = useCallback(() => { if (replyMode) closeReplyInput(); pauseFor('picker'); Haptics.selectionAsync(); pickerOpacitySV.value = 0; pickerScaleSV.value = 0.92; setPickerOpen(true); pickerOpacitySV.value = withTiming(1, { duration: 180, easing: REasing.out(REasing.ease) }); pickerScaleSV.value = withTiming(1, { duration: 180, easing: REasing.out(REasing.ease) }); }, [replyMode, closeReplyInput, pauseFor, pickerOpacitySV, pickerScaleSV]);
   const closePicker = useCallback(() => { resumeFrom('picker'); pickerOpacitySV.value = withTiming(0, { duration: 120, easing: REasing.in(REasing.ease) }); pickerScaleSV.value = withTiming(0.92, { duration: 120, easing: REasing.in(REasing.ease) }); setTimeout(() => { setPickerOpen(false); }, 130); }, [resumeFrom, pickerOpacitySV, pickerScaleSV]);
   const handlePickerEmoji = useCallback((emoji: string) => { closePicker(); handleReaction(emoji); }, [closePicker, handleReaction]);
   useEffect(() => { if (pickerOpen) { setPickerOpen(false); resumeFrom('picker'); } }, [storyIndex, userIndex]);
 
-  const openReplyInput = useCallback(() => { pauseFor('reply'); setReplyMode(true); if (replyFocusTimerRef.current) clearTimeout(replyFocusTimerRef.current); replyFocusTimerRef.current = setTimeout(() => replyInputRef.current?.focus(), 50); }, [pauseFor]);
-  const closeReplyInput = useCallback(() => { Keyboard.dismiss(); setReplyMode(false); setReplyText(''); resumeFrom('reply'); }, [resumeFrom]);
 
   const sendReply = useCallback(async () => { if (!currentStory || !myId) return; const storyOwnerId = currentStory.user_id; const trimmed = replyText.trim(); if (!trimmed || sendingReply) return; setSendingReply(true); try { const sorted = [myId, storyOwnerId].sort(); const messageText = `Replied to your story:\n${trimmed}`; const { data: existing, error: findErr } = await supabase.from('conversations').select('id').or(`and(user_1.eq.${myId},user_2.eq.${storyOwnerId}),and(user_1.eq.${storyOwnerId},user_2.eq.${myId})`).eq('type', 'direct').eq('is_group', false).maybeSingle(); if (findErr) { Alert.alert('Error', 'Could not find conversation.'); setSendingReply(false); return; } let convId: string; if (existing) { convId = existing.id; } else { const { data: created, error: createErr } = await supabase.from('conversations').insert({ user_1: sorted[0], user_2: sorted[1], type: 'direct', is_group: false, last_message: '', last_message_time: new Date().toISOString() }).select('id').single(); if (createErr || !created) { Alert.alert('Error', 'Could not create conversation.'); setSendingReply(false); return; } convId = created.id; } const { error: msgErr } = await supabase.from('messages').insert({ conversation_id: convId, sender_id: myId, receiver_id: storyOwnerId, text: messageText }); if (msgErr) { Alert.alert('Error', 'Could not send reply.'); setSendingReply(false); return; } try { await supabase.from('conversations').update({ last_message: messageText, last_message_time: new Date().toISOString() }).eq('id', convId); } catch {} setReplyText(''); setReplyMode(false); Keyboard.dismiss(); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); setReplyToast(true); if (replyToastTimer.current) clearTimeout(replyToastTimer.current); replyToastTimer.current = setTimeout(() => setReplyToast(false), 2000); resumeFrom('reply'); } catch (e) { console.log('[sendReply]', e); Alert.alert('Error', 'Something went wrong.'); } finally { setSendingReply(false); } }, [currentStory, myId, replyText, sendingReply, resumeFrom]);
 
   const handlePollVote = useCallback(async (optionId: string) => { if (!poll || votingOptionId) return; setVotingOptionId(optionId); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); try { const updated = await storiesService.voteStoryPoll(poll.poll_id, optionId); setPoll(updated); } catch (e) { console.log('[StoryPoll.vote]', e); Alert.alert('Error', 'Could not submit vote.'); } finally { setVotingOptionId(null); } }, [poll, votingOptionId]);
+  const closeViewersList = () => { setViewersOpen(false); setViewers([]); setViewerReactions(new Map()); setReactionsCount(0); resumeFrom('viewers'); };
   const openPollVoters = useCallback(async (optionId: string) => { if (!poll) return; if (viewersOpen) closeViewersList(); pauseFor('pollVoters'); setPollVotersOptionId(optionId); setPollVotersOpen(true); setLoadingPollVoters(true); try { const voters = await storiesService.getStoryPollVoters(poll.poll_id, optionId); setPollVoters(voters); } catch (e) { console.log('[StoryPoll.voters]', e); setPollVoters([]); } finally { setLoadingPollVoters(false); } }, [poll, viewersOpen, closeViewersList, pauseFor]);
   const closePollVoters = useCallback(() => { setPollVotersOpen(false); setPollVoters([]); setPollVotersOptionId(null); resumeFrom('pollVoters'); }, [resumeFrom]);
   useEffect(() => { return () => { if (toastTimer.current) clearTimeout(toastTimer.current); if (replyToastTimer.current) clearTimeout(replyToastTimer.current); if (caughtUpTimer.current) clearTimeout(caughtUpTimer.current); }; }, []);
 
   const openViewersList = async () => { if (!currentStory) return; if (pollVotersOpen) closePollVoters(); pauseFor('viewers'); setViewersOpen(true); setLoadingViewers(true); try { const isOwnStory = currentStory.user_id === myId; const [list, reactions] = await Promise.all([storiesService.getViewers(currentStory.id), isOwnStory ? storiesService.getReactions(currentStory.id) : Promise.resolve([])]); setViewers(list); const rMap = new Map<string, string[]>(); (reactions || []).forEach((r: StoryReaction) => { const existing = rMap.get(r.user_id) || []; existing.push(r.emoji); rMap.set(r.user_id, existing); }); setViewerReactions(rMap); setReactionsCount(rMap.size); } catch (e) { console.log('[getViewers]', e); } finally { setLoadingViewers(false); } };
-  const closeViewersList = () => { setViewersOpen(false); setViewers([]); setViewerReactions(new Map()); setReactionsCount(0); resumeFrom('viewers'); };
   const openViewerProfile = (userId: string) => { closeViewersList(); setTimeout(() => { navigation.navigate('UserProfile', { userId }); }, 300); };
 
   const handleEngagementTap = useCallback((_stickerId: string) => { pauseFor('engagement'); }, [pauseFor]);
@@ -396,6 +396,7 @@ export default function StoryViewerScreen() {
   const dualLayout = useMemo(() => parseDualLayout((currentStory as any)?.dual_layout), [currentStory]);
   const dualFrontUrl: string | undefined = (currentStory as any)?.dual_front_url ?? undefined;
   const hasDual = !!dualFrontUrl && !!dualLayout;
+  useEffect(() => { if (hasDual && mediaReady) { bubbleEntryScale.value = withSpring(1, { damping: 14, stiffness: 160, mass: 1.0 }); } }, [hasDual, mediaReady]);
   const dualMode = dualLayout?.mode ?? 'pip_front_small';
 
   const rearUrl = currentStory?.media_url;
@@ -488,7 +489,7 @@ export default function StoryViewerScreen() {
 
         {renderPipDual()}
         {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><Text style={{ color: 'rgba(245,240,235,0.15)', fontSize: 12, marginTop: 14, letterSpacing: 0.5, fontWeight: '500' }}>Unavailable</Text></View>)}
-        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { navigation.navigate('Search' as never, { query: '#' + tag } as never); }} onMentionTap={(userId) => navigation.navigate('UserProfile', { userId })} engagementProps={engagementProps} />
+        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { navigation.navigate('Search' as never, { query: '#' + tag } as never); }} onMentionTap={(userId) => navigation.navigate('UserProfile', { userId })} onPostTap={(postId) => { (navigation as any).navigate('Post', { postId }); }} engagementProps={engagementProps} />
       </View>
       </Animated.View>
       </ReAnimated.View>

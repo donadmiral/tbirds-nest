@@ -1,5 +1,6 @@
 // src/services/mediaService.ts
 import * as ImagePicker from 'expo-image-picker';
+import { useSettingsStore } from '../stores/settingsStore';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase';
 
@@ -81,7 +82,8 @@ export async function pickFromLibrary(opts?: {
     mediaTypes,
     allowsMultipleSelection: !!opts?.multiple,
     selectionLimit: opts?.selectionLimit ?? 10,
-    quality: opts?.quality ?? 0.85,
+    // Data saver halves upload weight; explicit quality from callers wins.
+    quality: opts?.quality ?? (useSettingsStore.getState().uploadQuality === 'data-saver' ? 0.5 : 0.85),
     base64: !!opts?.includeBase64,
   });
   if (result.canceled || !result.assets?.length) return [];
@@ -128,7 +130,8 @@ export async function pickFromCamera(opts?: {
   const perm = await ImagePicker.requestCameraPermissionsAsync();
   if (!perm.granted) throw new Error('Camera permission denied');
   const result = await ImagePicker.launchCameraAsync({
-    quality: opts?.quality ?? 0.85,
+    // Data saver halves upload weight; explicit quality from callers wins.
+    quality: opts?.quality ?? (useSettingsStore.getState().uploadQuality === 'data-saver' ? 0.5 : 0.85),
     base64: !!opts?.includeBase64,
   });
   if (result.canceled || !result.assets?.[0]) return null;

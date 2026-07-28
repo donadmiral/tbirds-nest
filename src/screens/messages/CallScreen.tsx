@@ -14,7 +14,7 @@ import {
   StatusBar, Alert, ScrollView, ActivityIndicator, Modal, Vibration,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { DailyMediaView } from '@daily-co/react-native-daily-js';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -61,7 +61,7 @@ export default function CallScreen() {
   const callerName = activeCall?.otherUserName || params?.callerName || params?.otherUser?.full_name || 'User';
   const callerAvatar = activeCall?.otherUserAvatar || params?.callerAvatar || params?.otherUser?.avatar_url || null;
   const callerId = activeCall?.otherUserId || params?.otherUser?.id || params?.userId || '';
-  const channelId = activeCall?.channelId || params?.channelId || '';
+  const channelId = activeCall?.channelId || params?.channelId || params?.callId || '';
   const isVideo = activeCall?.isVideo ?? params?.isVideo ?? false;
   const isIncoming = activeCall?.isIncoming ?? params?.isIncoming ?? false;
   const isGroupCall = activeCall?.isGroupCall ?? params?.isGroupCall ?? false;
@@ -90,6 +90,12 @@ export default function CallScreen() {
   }, [fromContext, callState, callerId, channelId, isGroupCall]);
 
   useEffect(() => {
+    if (!isGroupCall || !params?.callId) return;
+    supabase.rpc('join_group_call', { p_session_id: params.callId }).then(() => {}, () => {});
+    return () => { supabase.rpc('leave_group_call', { p_session_id: params.callId }).then(() => {}, () => {}); };
+  }, []);
+
+  useEffect(() => {
     if (callState === 'idle' && wasEverActive) {
       const t = setTimeout(() => {
         if (navigation.canGoBack()) navigation.goBack();
@@ -101,12 +107,11 @@ export default function CallScreen() {
 
   useEffect(() => {
     if (!profile?.id || !callerId) return;
-    supabase.from('connections').select('requester_id, recipient_id')
-      .or(`requester_id.eq.${profile.id},recipient_id.eq.${profile.id}`)
-      .eq('status', 'accepted')
+    supabase.from('follows').select('following_id')
+      .eq('follower_id', profile.id)
       .then(async ({ data }) => {
         if (!data?.length) return;
-        const ids = data.map((r: any) => r.requester_id === profile.id ? r.recipient_id : r.requester_id)
+        const ids = data.map((r: any) => r.following_id)
           .filter((id: string) => id !== callerId).slice(0, 3);
         if (!ids.length) return;
         const { data: ps } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', ids);
@@ -148,7 +153,15 @@ export default function CallScreen() {
         <StatusBar barStyle="light-content" backgroundColor="#000" />
 
         <View style={s.remoteContainer}>
-          {remoteHasVideo ? (
+          {isGroupCall && remoteParticipants.length > 0 ? (
+            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap' }}>
+              {remoteParticipants.map((p: any, i: number) => (
+                <View key={p.session_id || i} style={{ width: remoteParticipants.length === 1 ? '100%' : '50%', height: remoteParticipants.length <= 2 ? '100%' : '50%', backgroundColor: '#111' }}>
+                  <DailyMediaView videoTrack={p.videoTrack as any} audioTrack={p.audioTrack as any} mirror={false} zOrder={0} objectFit="cover" style={{ flex: 1 }} />
+                </View>
+              ))}
+            </View>
+          ) : remoteHasVideo ? (
             <DailyMediaView videoTrack={remoteParticipant?.videoTrack as any}
               audioTrack={remoteParticipant?.audioTrack as any}
               mirror={false} zOrder={0} objectFit="cover" style={s.remoteVideo} />
@@ -191,7 +204,7 @@ export default function CallScreen() {
             )}
           </View>
           <TouchableOpacity onPress={flipCamera} style={s.videoTopBtn} disabled={videoOff} hitSlop={HIT} activeOpacity={0.7}>
-            <Feather name="refresh-cw" size={22} color={videoOff ? 'rgba(255,255,255,0.3)' : '#FFF'} />
+            <Ionicons name="camera-reverse" size={22} color={videoOff ? 'rgba(255,255,255,0.3)' : '#FFF'} />
           </TouchableOpacity>
         </View>
 
@@ -202,19 +215,19 @@ export default function CallScreen() {
         />
         <View style={[s.videoBottomBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
           <TouchableOpacity style={[s.videoCtrl, muted && s.videoCtrlActive]} onPress={toggleMute} hitSlop={HIT} activeOpacity={0.7}>
-            <Feather name={muted ? 'mic-off' : 'mic'} size={24} color="#FFF" />
+            <Ionicons name={muted ? 'mic-off' : 'mic'} size={24} color="#FFF" />
           </TouchableOpacity>
           <TouchableOpacity style={[s.videoCtrl, videoOff && s.videoCtrlActive]} onPress={toggleVideo} hitSlop={HIT} activeOpacity={0.7}>
-            <Feather name={videoOff ? 'video-off' : 'video'} size={24} color="#FFF" />
+            <Ionicons name={videoOff ? 'videocam-off' : 'videocam'} size={24} color="#FFF" />
           </TouchableOpacity>
           <TouchableOpacity style={[s.videoEndCircle, ending && { opacity: 0.5 }]} onPress={endCall} disabled={ending} hitSlop={HIT} activeOpacity={0.7}>
-            <Feather name="phone-off" size={26} color="#FFF" />
+            <Ionicons name="call" size={27} color="#FFF" style={{ transform: [{ rotate: '135deg' }] }} />
           </TouchableOpacity>
           <TouchableOpacity style={s.videoCtrl} onPress={flipCamera} disabled={videoOff} hitSlop={HIT} activeOpacity={0.7}>
-            <Feather name="refresh-cw" size={22} color={videoOff ? 'rgba(255,255,255,0.3)' : '#FFF'} />
+            <Ionicons name="camera-reverse" size={22} color={videoOff ? 'rgba(255,255,255,0.3)' : '#FFF'} />
           </TouchableOpacity>
           <TouchableOpacity style={s.videoCtrl} onPress={() => setShowMore(true)} hitSlop={HIT} activeOpacity={0.7}>
-            <Feather name="more-horizontal" size={24} color="#FFF" />
+            <Ionicons name="ellipsis-horizontal" size={24} color="#FFF" />
           </TouchableOpacity>
         </View>
 
@@ -227,9 +240,10 @@ export default function CallScreen() {
   // AUDIO CALL UI
   const controls = [
     { label: muted ? 'Unmute' : 'Mute', icon: muted ? 'mic-off' : 'mic', active: muted, onPress: toggleMute },
-    { label: speakerOn ? 'Earpiece' : 'Speaker', icon: speakerOn ? 'volume-2' : 'volume-1', active: speakerOn, onPress: toggleSpeaker },
+    // icon names below are Ionicons
+    { label: 'Speaker', icon: 'volume-high', active: speakerOn, onPress: toggleSpeaker },
     { label: held ? 'Resume' : 'Hold', icon: held ? 'play' : 'pause', active: held, onPress: toggleHold },
-    { label: 'More', icon: 'more-horizontal', active: false, onPress: () => setShowMore(true) },
+    { label: 'More', icon: 'ellipsis-horizontal', active: false, onPress: () => setShowMore(true) },
   ] as const;
 
   return (
@@ -249,8 +263,14 @@ export default function CallScreen() {
           </TouchableOpacity>
           <Text style={s.callerName}>{isGroupCall ? groupCallName : callerName}</Text>
           {isGroupCall && remoteParticipants.length > 0 && (
-            <Text style={s.groupParticipantCount}>{remoteParticipants.length + 1} participants</Text>
+            <Text style={s.groupParticipantCount}>{remoteParticipants.length + 1} in call</Text>
+          ) || null}
+          {isGroupCall && remoteParticipants.length > 0 && (
+            <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, textAlign: 'center', marginTop: 2 }} numberOfLines={2}>
+              You{remoteParticipants.map((p: any) => p.user_name ? ', ' + String(p.user_name).split(' ')[0] : '').join('')}
+            </Text>
           )}
+          
           <View style={s.statusRow}>
             <View style={[s.statusDot, { backgroundColor: statusDotColor }]} />
             <Text style={[s.statusTxt, connected && s.statusConnected]}>{statusText}</Text>
@@ -280,7 +300,7 @@ export default function CallScreen() {
             {controls.map(ctrl => (
               <TouchableOpacity key={ctrl.label} style={s.ctrl} onPress={ctrl.onPress} activeOpacity={0.75} hitSlop={HIT}>
                 <View style={[s.ctrlCircle, ctrl.active && s.ctrlCircleActive]}>
-                  <Feather name={ctrl.icon as any} size={22} color={ctrl.active ? '#FFF' : '#1A1A1A'} /></View>
+                  <Ionicons name={ctrl.icon as any} size={23} color={ctrl.active ? '#FFF' : '#1A1A1A'} /></View>
                 <Text style={s.ctrlLabel}>{ctrl.label}</Text></TouchableOpacity>))}
           </View>
           {suggestions.length > 0 && (
@@ -301,7 +321,7 @@ export default function CallScreen() {
         <TouchableOpacity style={s.sideCircle} activeOpacity={0.8} onPress={() => navigation.navigate('CallLog')} hitSlop={HIT}>
           <Feather name="clock" size={22} color="#1A1A1A" /></TouchableOpacity>
         <TouchableOpacity style={[s.endCircle, ending && { opacity: 0.5 }]} onPress={endCall} activeOpacity={0.85} disabled={ending} hitSlop={HIT}>
-          <Feather name="phone-off" size={26} color="#FFF" /></TouchableOpacity>
+          <Ionicons name="call" size={27} color="#FFF" style={{ transform: [{ rotate: '135deg' }] }} /></TouchableOpacity>
         <TouchableOpacity style={s.sideCircle} activeOpacity={0.8} onPress={onMinimise} hitSlop={HIT}>
           <Feather name="minimize-2" size={22} color="#1A1A1A" /></TouchableOpacity>
       </View>
@@ -331,7 +351,7 @@ function MoreMenu({ visible, onClose, muted, held, isVideo, speakerOn, onMute, o
   if (!visible) return null;
   const actions = [
     { icon: muted ? 'mic-off' : 'mic', label: muted ? 'Unmute' : 'Mute', active: muted, onPress: () => { onMute(); onClose(); } },
-    { icon: speakerOn ? 'volume-2' : 'volume-1', label: speakerOn ? 'Earpiece' : 'Speaker', active: speakerOn, onPress: () => { onSpeaker(); onClose(); } },
+    { icon: 'volume-2', label: 'Speaker', active: speakerOn, onPress: () => { onSpeaker(); onClose(); } },
     ...(isVideo ? [{ icon: 'refresh-cw', label: 'Flip Camera', active: false, onPress: () => { onFlip(); onClose(); } }] : []),
     { icon: held ? 'play' : 'pause', label: held ? 'Resume Call' : 'Hold Call', active: held, onPress: () => { onHold(); onClose(); } },
   ];
@@ -375,7 +395,7 @@ const s = StyleSheet.create({
   timer:{fontSize:48,fontWeight:'200',color:'#FFF',letterSpacing:4},
   middle:{flex:1,backgroundColor:'#FFF',paddingTop:28},
   controlsGrid:{flexDirection:'row',justifyContent:'space-around',paddingHorizontal:12,marginBottom:16},
-  ctrl:{alignItems:'center',gap:8,minWidth:60},ctrlCircle:{width:60,height:60,borderRadius:20,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
+  ctrl:{alignItems:'center',gap:8,minWidth:60},ctrlCircle:{width:62,height:62,borderRadius:31,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   ctrlCircleActive:{backgroundColor:NAVY},ctrlLabel:{fontSize:11,fontWeight:'600',color:'#8E8E93',textAlign:'center'},
   addSection:{paddingHorizontal:20,paddingTop:12,paddingBottom:8,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F0F0F0'},
   addTitle:{fontSize:11,fontWeight:'700',color:'#8E8E93',letterSpacing:1,textTransform:'uppercase',marginBottom:10},

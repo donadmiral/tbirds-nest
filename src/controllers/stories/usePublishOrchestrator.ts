@@ -17,7 +17,6 @@ import * as Haptics from 'expo-haptics';
 import { showMessage } from 'react-native-flash-message';
 import { storiesService } from '../../services/storiesService';
 import { supabase } from '../../services/supabase';
-import { campusMomentService } from '../../services/campusMomentService';
 import { duration } from '../../constants/tokens';
 
 interface Draft {
@@ -49,7 +48,6 @@ export interface PublishOrchestratorInput {
   closeBloom: () => void;
   mediaOpacity: Animated.Value;
   mediaScale: Animated.Value;
-  campusMomentPromptId: string | null;
 }
 
 export interface PublishOrchestratorOutput {
@@ -62,7 +60,6 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
   const {
     drafts, setDrafts, myId, navigation,
     closeBloom, mediaOpacity, mediaScale,
-    campusMomentPromptId,
   } = input;
 
   const [publishing, setPublishing] = useState(false);
@@ -114,7 +111,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           audience: (d as any).audience || 'everyone',
           sharedWith: (d as any).sharedWith || null,
           reach: (d as any).reach || 'followers',
-          durationSec: d.mediaType === 'video' ? (d.durationSec || 15) : null,
+          durationSec: d.mediaType === 'video' ? Math.round(d.durationSec || 15) : null,
           thumbnailLocalUri: null,
           stickersJson: stickerPayload,
           mediaTransform: d.mediaTransform || null,
@@ -157,14 +154,6 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           }
         }
 
-        // Link campus moment if first draft
-        if (campusMomentPromptId && i === 0) {
-          try {
-            await campusMomentService.postCampusMoment(campusMomentPromptId, story.id);
-          } catch (momentErr: any) {
-            console.log('[Publish] moment linking failed:', momentErr?.message);
-          }
-        }
 
         // Mark done
         if (mountedRef.current) {
@@ -200,7 +189,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
     } else {
       Alert.alert('Partial upload', `${successCount} uploaded, ${failCount} failed.`);
     }
-  }, [myId, drafts, setDrafts, navigation, closeBloom, mediaOpacity, mediaScale, campusMomentPromptId, publishing]);
+  }, [myId, drafts, setDrafts, navigation, closeBloom, mediaOpacity, mediaScale, publishing]);
 
   return {
     publishing,

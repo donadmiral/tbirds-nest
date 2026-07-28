@@ -45,20 +45,19 @@ export default function CreateGroupScreen({ navigation }: any) {
     (async () => {
       setLoadingInitial(true);
       try {
-        const { data: conns, error: cErr } = await supabase
-          .from('connections')
-          .select('requester_id, recipient_id, status')
-          .or(`requester_id.eq.${myId},recipient_id.eq.${myId}`)
-          .eq('status', 'accepted')
+        const { data: rows, error: fErr } = await supabase
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', myId)
           .limit(50);
 
-        if (cErr) {
-          console.log('[CreateGroup connections error]', cErr);
+        if (fErr) {
+          console.log('[CreateGroup follows error]', fErr);
         }
 
         const otherIds = Array.from(new Set(
-          (conns || [])
-            .map((c: any) => c.requester_id === myId ? c.recipient_id : c.requester_id)
+          (rows || [])
+            .map((r: any) => r.following_id)
             .filter(Boolean)
         ));
 

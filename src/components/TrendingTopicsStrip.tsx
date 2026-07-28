@@ -19,15 +19,6 @@ type TrendingTopic = {
   velocity: number;
 };
 
-type TrendingEvent = {
-  id: string;
-  title: string;
-  attendees: number;
-  location: string;
-  time: string;
-  category: string;
-};
-
 const TAG_COLORS: { bg: string; border: string; text: string; badge: string }[] = [
   { bg: '#EEEDFE', border: '#CECBF6', text: '#3C3489', badge: '#CECBF6' },
   { bg: '#E1F5EE', border: '#9FE1CB', text: '#085041', badge: '#9FE1CB' },
@@ -36,17 +27,6 @@ const TAG_COLORS: { bg: string; border: string; text: string; badge: string }[] 
   { bg: '#FAECE7', border: '#F5C4B3', text: '#712B13', badge: '#F5C4B3' },
   { bg: '#FBEAF0', border: '#F4C0D1', text: '#993556', badge: '#F4C0D1' },
 ];
-
-const EVENT_ICONS: Record<string, string> = {
-  Dinner: '🍽️',
-  'Coffee Chat': '☕',
-  Study: '📚',
-  Trip: '✈️',
-  Sports: '⚽',
-  Networking: '🤝',
-  Party: '🎉',
-  Other: '✨',
-};
 
 function getTagColor(index: number) {
   return TAG_COLORS[index % TAG_COLORS.length];
@@ -62,7 +42,7 @@ export default function TrendingTopicsStrip({ refreshSignal }: Props) {
   const myId = profile?.id ?? null;
 
   const [topics, setTopics] = useState<TrendingTopic[]>([]);
-  const [events, setEvents] = useState<TrendingEvent[]>([]);
+
   const [error, setError] = useState(false);
 
   const clientSideFallback = useCallback(async (): Promise<TrendingTopic[]> => {
@@ -140,46 +120,6 @@ export default function TrendingTopicsStrip({ refreshSignal }: Props) {
     }
   }, []);
 
-  const loadEvents = useCallback(async () => {
-    try {
-      const { data: minglePosts, error: mingleErr } = await supabase
-        .from('mingle_posts')
-        .select('id, title, category, location, event_time, created_at')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (mingleErr || !minglePosts || minglePosts.length === 0) return;
-
-      const postIds = minglePosts.map((p: any) => p.id);
-      const { data: attData } = await supabase
-        .from('mingle_post_attendees')
-        .select('post_id')
-        .in('post_id', postIds);
-
-      const attCount: Record<string, number> = {};
-      (attData || []).forEach((a: any) => {
-        attCount[a.post_id] = (attCount[a.post_id] || 0) + 1;
-      });
-
-      const eventList: TrendingEvent[] = minglePosts
-        .map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          attendees: attCount[p.id] || 0,
-          location: p.location || '',
-          time: p.event_time || '',
-          category: p.category || 'Other',
-        }))
-        .filter((e: TrendingEvent) => e.attendees >= 2)
-        .sort((a: TrendingEvent, b: TrendingEvent) => b.attendees - a.attendees)
-        .slice(0, 5);
-
-      setEvents(eventList);
-    } catch {
-      // Mingle fetch failure is non-fatal
-    }
-  }, []);
-
   const load = useCallback(async () => {
     if (!myId) {
       return;
@@ -197,12 +137,10 @@ export default function TrendingTopicsStrip({ refreshSignal }: Props) {
       } else {
         setTopics((rpcData || []) as TrendingTopic[]);
       }
-
-      await loadEvents();
     } catch {
       setError(true);
     }
-  }, [myId, clientSideFallback, loadEvents]);
+  }, [myId, clientSideFallback]);
 
   useEffect(() => {
     load();
@@ -235,7 +173,7 @@ export default function TrendingTopicsStrip({ refreshSignal }: Props) {
     };
   }, [load]);
 
-  if (error || (topics.length === 0 && events.length === 0)) {
+  if (error || topics.length === 0) {
     return null;
   }
 
@@ -271,39 +209,6 @@ export default function TrendingTopicsStrip({ refreshSignal }: Props) {
         </>
       )}
 
-      {false && events.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.eventRow}
-        >
-          {events.map((event) => (
-            <TouchableOpacity
-              key={event.id}
-              style={styles.eventCard}
-              activeOpacity={0.75}
-              onPress={() => {
-                navigation.navigate('MingleDetails', { postId: event.id });
-              }}
-            >
-              <View style={styles.eventIcon}>
-                <Text style={{ fontSize: 16 }}>
-                  {EVENT_ICONS[event.category] || '✨'}
-                </Text>
-              </View>
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
-                <Text style={styles.eventMeta} numberOfLines={1}>
-                  {event.attendees} going{event.location ? ` · ${event.location}` : ''}{event.time ? ` · ${event.time}` : ''}
-                </Text>
-              </View>
-              <View style={styles.joinChip}>
-                <Text style={styles.joinChipText}>Join</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
     </View>
   );
 }

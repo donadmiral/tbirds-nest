@@ -6,10 +6,10 @@ import SellerReviews from '../../components/market/SellerReviews';
 import React, { useCallback, useState, useEffect } from 'react';
 import {
   ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet,
-  Text, TouchableOpacity, View,
-} from 'react-native';
+  Text, TouchableOpacity, View, Modal, TextInput , KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { Share } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -95,6 +95,23 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   };
   const isOwner = !!listing && !!userId && listing.seller_id === userId;
 
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [offerAmt, setOfferAmt] = useState('');
+  const [offerBusy, setOfferBusy] = useState(false);
+  const submitOffer = async () => {
+    const amt = Number(offerAmt.replace(/,/g, ''));
+    if (!listing || !Number.isFinite(amt) || amt <= 0) { Alert.alert('Enter a valid amount'); return; }
+    setOfferBusy(true);
+    try {
+      const { error } = await supabase.rpc('make_offer', { p_listing_id: listing.id, p_amount: amt });
+      if (error) throw error;
+      setOfferOpen(false); setOfferAmt('');
+      messageSeller(); // land in the thread where the offer now lives
+    } catch (e: any) {
+      Alert.alert('Offer not sent', e?.message || 'Try again.');
+    } finally { setOfferBusy(false); }
+  };
+
   const messageSeller = async () => {
     if (!listing || !userId || isOwner) return;
     setBusy(true);
@@ -174,8 +191,24 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             ))}
           </ScrollView>
           <TouchableOpacity style={s.backBtnFloat} onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={20} color={GRAY_900} />
+            <Ionicons name="chevron-back" size={21} color={GRAY_900} />
           </TouchableOpacity>
+          <View style={{ position: 'absolute', top: 12, right: 12, flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity onPress={toggleSaved} activeOpacity={0.8}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.94)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 }}>
+              <Ionicons name={savedListing ? 'heart' : 'heart-outline'} size={19} color={savedListing ? '#FF3040' : '#0B1E3D'} />
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8}
+              onPress={() => listing && Share.share({ message: listing.title + ' · ' + priceLabel(listing) + ' on Platinum Circles' })}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.94)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 }}>
+              <Ionicons name="share-outline" size={18} color="#0B1E3D" />
+            </TouchableOpacity>
+          </View>
+          {images.length > 1 && (
+            <View style={{ position: 'absolute', bottom: 14, right: 12, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.7)' }}>
+              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#FFF' }}>{imgIndex + 1}/{images.length}</Text>
+            </View>
+          )}
           {images.length > 1 && (
             <View style={s.dots}>
               {images.map((_, i) => (
@@ -194,6 +227,14 @@ export default function ListingDetailScreen({ navigation, route }: any) {
           <Text style={s.meta}>
             {[listing.category, listing.condition, listing.location_city].filter(Boolean).join(' · ')}
           </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 10, padding: 11, borderRadius: 12, backgroundColor: (listing as any).delivery_available ? 'rgba(5,150,105,0.08)' : 'rgba(11,30,61,0.04)' }}>
+            <Ionicons name={(listing as any).delivery_available ? 'bicycle' : 'location'} size={17} color={(listing as any).delivery_available ? '#059669' : '#0B1E3D'} />
+            <Text style={{ flex: 1, fontSize: 13, fontWeight: '600', color: '#0B1E3D' }}>
+              {(listing as any).delivery_available
+                ? 'Delivery available' + ((listing as any).delivery_fee ? ' · ' + listing.currency + ' ' + (listing as any).delivery_fee : ' · free') + ((listing as any).delivery_note ? '. ' + (listing as any).delivery_note : '')
+                : 'Collection · meet the seller'}
+            </Text>
+          </View>
 
           {listing.description ? <Text style={s.desc}>{listing.description}</Text> : null}
 
@@ -260,18 +301,56 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             </View>
           )
         ) : (
-          <TouchableOpacity
-            style={[s.cta, busy && { opacity: 0.6 }]}
-            onPress={messageSeller}
-            disabled={busy || listing.status !== 'available'}
-            activeOpacity={0.85}
-          >
-            {busy
-              ? <ActivityIndicator color={BG} size={16} />
-              : <Text style={s.ctaTxt}>{listing.status === 'available' ? 'Message seller' : 'No longer available'}</Text>}
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 10, flex: 1 }}>
+            <TouchableOpacity
+              style={[s.cta, { flex: 1 }, busy && { opacity: 0.6 }]}
+              onPress={messageSeller}
+              disabled={busy || listing.status !== 'available'}
+              activeOpacity={0.85}
+            >
+              {busy
+                ? <ActivityIndicator color={BG} size={16} />
+                : <Text style={s.ctaTxt}>{listing.status === 'available' ? 'Message seller' : 'No longer available'}</Text>}
+            </TouchableOpacity>
+            {listing.status === 'available' && (
+              <TouchableOpacity
+                style={[s.cta, { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#0B1E3D' }]}
+                onPress={() => { setOfferAmt(''); setOfferOpen(true); }}
+                activeOpacity={0.85}
+              >
+                <Text style={[s.ctaTxt, { color: '#0B1E3D' }]}>Make offer</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </View>
+      <Modal visible={offerOpen} transparent animationType="slide" onRequestClose={() => setOfferOpen(false)}>
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(11,30,61,0.45)' }} activeOpacity={1} onPress={() => setOfferOpen(false)} />
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View style={{ backgroundColor: '#FFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 40 }}>
+          <Text style={{ fontSize: 17, fontWeight: '800', color: '#0B1E3D' }}>Make an offer</Text>
+          <Text style={{ fontSize: 13, color: 'rgba(11,30,61,0.55)', marginTop: 3 }}>Asking {listing ? listing.currency + ' ' + listing.price : ''}</Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
+            {[0.9, 0.8, 0.7].map(f => {
+              const v = listing ? Math.round(Number(listing.price) * f) : 0;
+              return (
+                <TouchableOpacity key={f} onPress={() => setOfferAmt(String(v))}
+                  style={{ flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' }}>{listing?.currency} {v}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <TextInput value={offerAmt} onChangeText={setOfferAmt} keyboardType="numeric" placeholder="Your amount"
+            placeholderTextColor="#8E8E93"
+            style={{ marginTop: 12, borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.15)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 17, fontWeight: '700', color: '#0B1E3D' }} />
+          <TouchableOpacity onPress={submitOffer} disabled={offerBusy}
+            style={{ marginTop: 12, backgroundColor: '#0B1E3D', borderRadius: 14, paddingVertical: 14, alignItems: 'center', opacity: offerBusy ? 0.6 : 1 }}>
+            {offerBusy ? <ActivityIndicator color="#FFF" size={16} /> : <Text style={{ color: '#FFF', fontSize: 15.5, fontWeight: '800' }}>Send offer</Text>}
+          </TouchableOpacity>
+        </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }

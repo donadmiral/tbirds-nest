@@ -13,6 +13,9 @@ import { useUnreadStore } from '../../stores/unreadStore';
 import { storiesService } from '../../services/storiesService';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { useDraftStore } from '../../stores/draftStore';
+import { Ionicons } from '@expo/vector-icons';
+import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { ConversationsSkeleton } from '../../components/Skeleton';
 
@@ -63,6 +66,15 @@ export default function ConversationsScreen({ navigation }: any) {
   const userId = profile?.id ?? null;
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [typingConvIds, setTypingConvIds] = useState<Set<string>>(new Set());
+  const [showArchived, setShowArchived] = useState(false);
+  const [mentionTimes, setMentionTimes] = useState<Record<string, number>>({});
+  const openedTimes = useDraftStore(s => s.openedTimes);
+  useEffect(() => {
+    if (showArchived && !conversations.some(c => c.is_archived && ((c as any).context || 'personal') === 'personal')) {
+      setShowArchived(false);
+    }
+  }, [showArchived, conversations]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch]  = useState('');
   const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
@@ -88,6 +100,36 @@ export default function ConversationsScreen({ navigation }: any) {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
+
+useEffect(() => {
+    if (!userId) return;
+    let live = true;
+    const tick = async () => {
+      try {
+        const { data } = await supabase
+          .from('conversation_typing')
+          .select('conversation_id, user_id, updated_at')
+          .eq('is_typing', true)
+          .gt('updated_at', new Date(Date.now() - 8000).toISOString());
+        if (!live) return;
+        const mine = new Set(conversations.map(c => c.id));
+        const next = new Set<string>();
+        (data || []).forEach((r: any) => {
+          if (r.user_id !== userId && mine.has(r.conversation_id)) next.add(r.conversation_id);
+        });
+        setTypingConvIds(prev => {
+          if (prev.size === next.size && [...prev].every(x => next.has(x))) return prev;
+          return next;
+        });
+      } catch {}
+    };
+    tick();
+    const iv = setInterval(tick, 3500);
+    const ch = supabase.channel(`list_typing_${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_typing' }, () => tick())
+      .subscribe();
+    return () => { live = false; clearInterval(iv); supabase.removeChannel(ch); };
+  }, [userId, conversations]);
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -132,7 +174,7 @@ export default function ConversationsScreen({ navigation }: any) {
       try {
         const { data: settings } = await supabase
           .from('conversation_settings')
-          .select('conversation_id, is_pinned, is_muted, is_archived, is_deleted')
+          .select('conversation_id, is_pinned, is_muted, is_archived, is_deleted, manually_unread')
           .eq('user_id', userId)
           .in('conversation_id', convIds);
         (settings || []).forEach((s: any) => { settingsMap[s.conversation_id] = s; });
@@ -150,12 +192,10 @@ export default function ConversationsScreen({ navigation }: any) {
       }
 
       // Unread counts
-      const { data: unreadData } = await supabase
-        .from('messages').select('conversation_id')
-        .eq('receiver_id', userId).neq('sender_id', userId).is('read_at', null);
+      const { data: unreadData } = await supabase.rpc('get_unread_counts');
       const unreadMap: Record<string, number> = {};
       (unreadData || []).forEach((m: any) => {
-        unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
+        unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + (m.unread || 0);
       });
 
       const list: Conversation[] = allConvs
@@ -169,9 +209,9 @@ export default function ConversationsScreen({ navigation }: any) {
               other_username: null, other_avatar: c.group_avatar_url || null,
               last_message: c.last_message || '', last_message_time: c.last_message_time,
               unread_count: unreadMap[c.id] || 0,
-              is_group: true, group_emoji: c.group_emoji || '💬',
+              context: c.context || 'personal', is_group: true, group_emoji: c.group_emoji || '💬',
               group_avatar_url: c.group_avatar_url,
-              is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived,
+              is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived, manually_unread: !!(s as any).manually_unread,
             };
           }
           const otherId = c.user_1 === userId ? c.user_2 : c.user_1;
@@ -182,8 +222,8 @@ export default function ConversationsScreen({ navigation }: any) {
             other_username: p.username || null, other_avatar: p.avatar_url || null,
             last_message: c.last_message || '', last_message_time: c.last_message_time,
             unread_count: unreadMap[c.id] || 0,
-            is_group: false, group_emoji: null, group_avatar_url: null,
-            is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived,
+            context: c.context || 'personal', is_group: false, group_emoji: null, group_avatar_url: null,
+            is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived, manually_unread: !!(s as any).manually_unread,
           };
         });
 
@@ -239,7 +279,9 @@ export default function ConversationsScreen({ navigation }: any) {
               ...updated[idx],
               last_message: convRow.last_message || updated[idx].last_message,
               last_message_time: convRow.last_message_time || updated[idx].last_message_time,
-            };
+              last_sender_id: convRow.last_sender_id ?? (updated[idx] as any).last_sender_id,
+              last_sender_name: convRow.last_sender_name ?? (updated[idx] as any).last_sender_name,
+            } as any;
 
             return sortInbox(updated);
           });
@@ -251,10 +293,11 @@ export default function ConversationsScreen({ navigation }: any) {
       .channel(`inbox_msg_${userId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${userId}` },
+        { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
           const msg = payload.new as any;
           if (!msg.conversation_id || msg.sender_id === userId) return;
+          if (msg.receiver_id && msg.receiver_id !== userId) return; // someone else's DM
 
           setConversations(prev => {
             const idx = prev.findIndex(c => c.id === msg.conversation_id);
@@ -391,7 +434,22 @@ export default function ConversationsScreen({ navigation }: any) {
 
   // ── Open chat ─────────────────────────────────────────────────────────────
 
+const setConvSetting = useCallback(async (conv: Conversation, patch: Record<string, any>) => {
+    setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, ...patch } : c));
+    try {
+      await supabase.from('conversation_settings').upsert({
+        conversation_id: conv.id, user_id: userId, ...patch,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'conversation_id,user_id' });
+    } catch {
+      setConversations(prev => prev.map(c => c.id === conv.id
+        ? { ...c, ...Object.fromEntries(Object.keys(patch).map(k => [k, (conv as any)[k]])) } : c));
+    }
+  }, [userId]);
+
   const openChat = (conv: Conversation) => {
+    useDraftStore.getState().markOpened(conv.id);
+    if ((conv as any).manually_unread) setConvSetting(conv, { manually_unread: false } as any);
     setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c));
     navigation.navigate('Chat', {
       conversationId: conv.id,
@@ -416,7 +474,8 @@ export default function ConversationsScreen({ navigation }: any) {
     // Market and job conversations live in their own tabs now, never here.
     const ctxOf = (c as any).context || 'personal';
     if (ctxOf === 'market' || ctxOf === 'jobs') return false;
-    if (c.is_archived && tab !== 'all') return false; // archived only in All
+    if (showArchived) return !!c.is_archived && ((c as any).context || 'personal') === 'personal';
+    if (c.is_archived) return false; // archived chats live behind the Archived row
     const matchSearch = !search || c.other_name.toLowerCase().includes(search.toLowerCase());
     const ctx = (c as any).context || 'personal';
     const matchTab = tab === 'all'
@@ -429,8 +488,63 @@ export default function ConversationsScreen({ navigation }: any) {
 
   // ── Render conversation row ───────────────────────────────────────────────
 
+useEffect(() => {
+    if (!userId || conversations.length === 0) return;
+    let live = true;
+    (async () => {
+      try {
+        const { data: ment } = await supabase
+          .from('message_mentions')
+          .select('message_id, created_at')
+          .eq('mentioned_user_id', userId)
+          .gt('created_at', new Date(Date.now() - 7 * 86400000).toISOString());
+const timeByMsg: Record<string, number> = {};
+        (ment || []).forEach((r: any) => { timeByMsg[r.message_id] = new Date(r.created_at).getTime(); });
+        const msgIds = Object.keys(timeByMsg);
+        const times: Record<string, number> = {};
+        if (msgIds.length) {
+          const { data: msgs } = await supabase
+            .from('messages').select('id, conversation_id').in('id', msgIds);
+          (msgs || []).forEach((m: any) => {
+            if (!m.conversation_id) return;
+            times[m.conversation_id] = Math.max(times[m.conversation_id] || 0, timeByMsg[m.id] || 0);
+          });
+        }
+        if (!live) return;
+        // one-time amnesty: a fresh opened-clock forgives all existing mentions
+        const hydrated = (useDraftStore as any).persist?.hasHydrated?.() ?? true;
+        const ot = useDraftStore.getState().openedTimes;
+        if (hydrated && Object.keys(ot).length === 0) {
+          Object.keys(times).forEach(id => useDraftStore.getState().markOpened(id));
+        }
+        setMentionTimes(times);
+      } catch {}
+    })();
+    return () => { live = false; };
+  }, [userId, conversations]);
+
+const swipeActions = (item: Conversation) => (
+    <View style={{ flexDirection: 'row' }}>
+      <TouchableOpacity
+        onPress={() => setConvSetting(item, { manually_unread: !(item as any).manually_unread } as any)}
+        style={{ width: 78, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name={(item as any).manually_unread ? 'check-circle' : 'circle'} size={20} color="#FFF" />
+        <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700', marginTop: 4 }}>{(item as any).manually_unread ? 'Read' : 'Unread'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setConvSetting(item, { is_archived: !item.is_archived })}
+        style={{ width: 78, backgroundColor: '#059669', alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name="archive" size={20} color="#FFF" />
+        <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700', marginTop: 4 }}>{item.is_archived ? 'Unarchive' : 'Archive'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   const renderItem = ({ item }: { item: Conversation }) => {
-    const hasUnread = item.unread_count > 0;
+    const hasUnread = item.unread_count > 0 || !!(item as any).manually_unread;
+    const youPrefix = (item as any).last_sender_id === userId ? 'You: '
+      : (item.is_group && (item as any).last_sender_name) ? (item as any).last_sender_name + ': ' : '';
+    const draftText = useDraftStore.getState().drafts[item.id];
     const storyRing = !item.is_group && item.other_user_id ? storyRings[item.other_user_id] : undefined;
     const ringStyle = storyRing === undefined
       ? null
@@ -438,6 +552,7 @@ export default function ConversationsScreen({ navigation }: any) {
         ? { borderWidth: 3, borderColor: '#B08D3F' }
         : { borderWidth: 2, borderColor: 'rgba(11,30,61,0.20)' };
     return (
+      <Swipeable renderRightActions={() => swipeActions(item)} overshootRight={false} friction={2}>
       <TouchableOpacity
         style={[s.card, item.is_archived && s.cardArchived]}
         onPress={() => openChat(item)}
@@ -478,9 +593,24 @@ export default function ConversationsScreen({ navigation }: any) {
             <Text style={[s.cardTime, hasUnread && s.cardTimeBold]}>{relTime(item.last_message_time)}</Text>
           </View>
           <View style={s.cardRow}>
+            {!typingConvIds.has(item.id) && draftText ? (
+              <Text style={[s.cardPreview]} numberOfLines={1}><Text style={{ color: '#059669', fontWeight: '700' }}>Draft: </Text>{draftText}</Text>
+            ) : typingConvIds.has(item.id) ? (
+              <Text style={[s.cardPreview, { color: '#34C759', fontWeight: '600', fontStyle: 'italic' }]} numberOfLines={1}>typing...</Text>
+            ) : (
             <Text style={[s.cardPreview, hasUnread && s.cardPreviewBold]} numberOfLines={1}>
-              {item.last_message || 'No messages yet'}
+              {(() => {
+                const mentioned = (mentionTimes[item.id] || 0) > (openedTimes[item.id] || 0);
+                const raw = item.last_message ? youPrefix + item.last_message : 'No messages yet';
+                if (!mentioned) return raw;
+                return String(raw).split(/(@[A-Za-z0-9_\.]{2,30})/g).map((part, i) =>
+                  part.startsWith('@')
+                    ? <Text key={i} style={{ color: '#059669', fontWeight: '800' }}>{part}</Text>
+                    : <Text key={i}>{part}</Text>
+                );
+              })()}
             </Text>
+            )}
             {hasUnread && !item.is_muted && (
               <View style={s.badge}>
                 <Text style={s.badgeTxt}>{item.unread_count > 99 ? '99+' : item.unread_count}</Text>
@@ -490,6 +620,7 @@ export default function ConversationsScreen({ navigation }: any) {
           </View>
         </View>
       </TouchableOpacity>
+      </Swipeable>
     );
   };
 
@@ -507,8 +638,8 @@ export default function ConversationsScreen({ navigation }: any) {
           <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('SavedMessages')}>
             <Feather name="bookmark" size={18} color="#374151" />
           </TouchableOpacity>
-          <TouchableOpacity style={s.newBtn} onPress={() => navigation.navigate('Network')} activeOpacity={0.8}>
-            <Feather name="edit" size={14} color="#FFF" />
+          <TouchableOpacity style={s.newBtn} onPress={() => navigation.navigate('FindPeople')} activeOpacity={0.8}>
+            <Ionicons name="create" size={15} color="#FFF" />
             <Text style={s.newBtnTxt}>New</Text>
           </TouchableOpacity>
         </View>
@@ -545,7 +676,7 @@ export default function ConversationsScreen({ navigation }: any) {
           <Feather name="message-circle" size={44} color="#E5E5EA" />
           <Text style={s.emptyTitle}>{search ? 'No results' : tab === 'unread' ? 'All caught up' : 'No messages yet'}</Text>
           <Text style={s.emptySub}>{search ? 'Try a different search' : 'Connect with PlatinumCircles and start a conversation'}</Text>
-          {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('Network')}><Text style={s.emptyBtnTxt}>Find people</Text></TouchableOpacity>}
+          {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('FindPeople')}><Text style={s.emptyBtnTxt}>Find people</Text></TouchableOpacity>}
         </View>
       ) : (
         <FlatList
@@ -559,9 +690,31 @@ export default function ConversationsScreen({ navigation }: any) {
           initialNumToRender={12}
           maxToRenderPerBatch={10}
           windowSize={10}
-          ListHeaderComponent={pinned.length > 0 && unpinned.length > 0 ? (
+          ListHeaderComponent={(() => {
+            const archCount = conversations.filter(c => c.is_archived && ((c as any).context || 'personal') === 'personal').length;
+            return (
+            <View>
+              {!showArchived && archCount > 0 && (
+                <TouchableOpacity onPress={() => setShowArchived(true)} activeOpacity={0.7}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12 }}>
+                  <Feather name="archive" size={19} color="rgba(11,30,61,0.55)" />
+                  <Text style={{ flex: 1, fontSize: 15.5, fontWeight: '600', color: '#0B1E3D' }}>Archived</Text>
+                  <Text style={{ fontSize: 13.5, fontWeight: '600', color: 'rgba(11,30,61,0.45)' }}>{archCount}</Text>
+                </TouchableOpacity>
+              )}
+              {showArchived && (
+                <TouchableOpacity onPress={() => setShowArchived(false)} activeOpacity={0.7}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12 }}>
+                  <Feather name="chevron-left" size={20} color="#0B1E3D" />
+                  <Text style={{ fontSize: 15.5, fontWeight: '700', color: '#0B1E3D' }}>Archived chats</Text>
+                </TouchableOpacity>
+              )}
+              {pinned.length > 0 && unpinned.length > 0 ? (
             <Text style={s.sectionLabel}>PINNED</Text>
           ) : null}
+            </View>
+            );
+          })()}
           ListHeaderComponentStyle={{ paddingHorizontal: 4, paddingBottom: 4 }}
         />
       )}

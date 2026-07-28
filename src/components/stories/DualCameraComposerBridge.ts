@@ -29,14 +29,14 @@ export async function prepareDualAsset(media: CapturedMedia): Promise<DualCaptur
   const rearUri = media.rearPath.startsWith('file://') ? media.rearPath : `file://${media.rearPath}`;
 
   const [frontDim, rearDim] = await Promise.all([
-    media.mode === 'photo' ? getImageDimensions(frontUri) : Promise.resolve({ width: 1920, height: 1080 }),
+    getImageDimensions(frontUri),
     media.mode === 'photo' ? getImageDimensions(rearUri) : Promise.resolve({ width: 1920, height: 1080 }),
   ]);
 
   return {
     frontUri,
     rearUri,
-    frontType: media.mode === 'photo' ? 'image' : 'video',
+    frontType: 'image',
     rearType: media.mode === 'photo' ? 'image' : 'video',
     layout: media.layout || DEFAULT_LAYOUT,
     frontDimensions: frontDim,

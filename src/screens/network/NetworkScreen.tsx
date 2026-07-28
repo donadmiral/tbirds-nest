@@ -5,6 +5,7 @@ import {
   Image, ActivityIndicator, RefreshControl, StatusBar, ScrollView, Alert, Modal, Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -21,25 +22,10 @@ type Profile = {
   avatar_url?: string | null;
   email?: string | null;
   role?: string | null;
-  cohort?: string | null;
   workplace?: string | null;
   school?: string | null;
   headline?: string | null;
 };
-
-function generateCohorts(): string[] {
-  const cohorts: string[] = [];
-  const startYear = 1980;
-  const endYear = new Date().getFullYear() + 3;
-  for (let y = endYear; y >= startYear; y--) {
-    cohorts.push(`Spring ${y}`);
-    cohorts.push(`Fall ${y - 1}`);
-  }
-  return cohorts;
-}
-const ALL_COHORTS = generateCohorts();
-
-type ConnectionStatus = 'none' | 'pending_sent' | 'pending_received' | 'connected' | 'declined';
 
 type Group = {
   id: string;
@@ -49,15 +35,12 @@ type Group = {
   member_count: number;
 };
 
-type TabId = 'all' | 'cohort' | 'communities' | 'clubs' | 'faculty' | 'alumni';
+type TabId = 'all' | 'communities' | 'clubs';
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'all', label: 'All' },
-  { id: 'cohort', label: 'Cohort' },
   { id: 'communities', label: 'Communities' },
   { id: 'clubs', label: 'Clubs' },
-  { id: 'faculty', label: 'Faculty' },
-  { id: 'alumni', label: 'Alumni' },
 ];
 
 export default function NetworkScreen({ navigation }: any) {
@@ -71,7 +54,7 @@ export default function NetworkScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
 
   const [users, setUsers] = useState<Profile[]>([]);
-  const [connectionMap, setConnectionMap] = useState<Record<string, ConnectionStatus>>({});
+
   const [followMap, setFollowMap] = useState<Record<string, boolean>>({});
   const [requestedMap, setRequestedMap] = useState<Record<string, boolean>>({});
   const [busyMap, setBusyMap] = useState<Record<string, boolean>>({});
@@ -84,8 +67,6 @@ export default function NetworkScreen({ navigation }: any) {
   const [myCommIds, setMyCommIds] = useState<Set<string>>(new Set());
   const [myClubIds, setMyClubIds] = useState<Set<string>>(new Set());
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedCohort, setSelectedCohort]   = useState<string | null>(null);
-  const [showCohortModal, setShowCohortModal] = useState(false);
 
   const [createType, setCreateType] = useState<'communities' | 'clubs'>('communities');
   const [newGroupName, setNewGroupName] = useState('');
@@ -93,49 +74,7 @@ export default function NetworkScreen({ navigation }: any) {
   const [newGroupDesc, setNewGroupDesc] = useState('');
   const [creatingGroup, setCreatingGroup] = useState(false);
 
-  const [recommendations, setRecommendations] = useState<Profile[]>([]);
 
-  const [affiliationCount, setAffiliationCount] = useState<number | null>(null);
-
-  const loadRecommendations = useCallback(async () => {
-    if (!currentUserId) return;
-    try {
-      const { data: me } = await supabase.from('profiles')
-        .select('cohort, graduation_year').eq('id', currentUserId).single();
-
-      const { data: connData } = await supabase.from('connections')
-        .select('requester_id, recipient_id').or(`requester_id.eq.${currentUserId},recipient_id.eq.${currentUserId}`);
-      const connectedIds = new Set((connData || []).map((c: any) =>
-        c.requester_id === currentUserId ? c.recipient_id : c.requester_id
-      ));
-      connectedIds.add(currentUserId);
-
-      const { data: candidates } = await supabase.from('profiles')
-        .select('id, full_name, username, bio, avatar_url, role, cohort, graduation_year, workplace, school, headline, degree_program')
-        .not('id', 'in', `(${Array.from(connectedIds).join(',')})`)
-        .eq('cohort', me?.cohort || '')
-        .limit(10);
-
-      setRecommendations((candidates || []) as Profile[]);
-    } catch (e) {
-      console.log('RECS_LOAD', e);
-    }
-  }, [currentUserId]);
-
-  const loadAffiliationCount = useCallback(async () => {
-    if (!currentUserId) return;
-    try {
-      const { count } = await supabase
-        .from('profile_affiliations')
-        .select('id', { count: 'exact', head: true })
-        .eq('profile_id', currentUserId)
-        .is('left_at', null);
-      setAffiliationCount(count ?? 0);
-    } catch (e) {
-      console.log('[AFF_COUNT]', e);
-      setAffiliationCount(0);
-    }
-  }, [currentUserId]);
 
   const setBusy = (id: string, val: boolean) =>
     setBusyMap((p) => { const n = { ...p }; if (val) n[id] = true; else delete n[id]; return n; });
@@ -153,35 +92,20 @@ export default function NetworkScreen({ navigation }: any) {
 
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, username, bio, location, degree_program, graduation_year, avatar_url, email, role, cohort, workplace, school, headline')
+        .select('id, full_name, username, bio, location, degree_program, graduation_year, avatar_url, email, role, workplace, school, headline')
         .neq('id', currentUserId)
         .order('full_name', { ascending: true });
 
       if (profileError) {
         const { data: fallbackData } = await supabase
           .from('profiles')
-          .select('id, full_name, username, bio, location, degree_program, graduation_year, avatar_url, email, cohort, workplace, school')
+          .select('id, full_name, username, bio, location, degree_program, graduation_year, avatar_url, email, workplace, school')
           .neq('id', currentUserId)
           .order('full_name', { ascending: true });
         setUsers((fallbackData || []) as Profile[]);
       } else {
         setUsers((profileData || []) as Profile[]);
       }
-
-      const { data: connData } = await supabase
-        .from('connections')
-        .select('requester_id, recipient_id, status')
-        .or(`requester_id.eq.${currentUserId},recipient_id.eq.${currentUserId}`);
-
-      const cMap: Record<string, ConnectionStatus> = {};
-      (connData || []).forEach((c: any) => {
-        const otherId = c.requester_id === currentUserId ? c.recipient_id : c.requester_id;
-        if (c.status === 'accepted') cMap[otherId] = 'connected';
-        else if (c.status === 'pending') {
-          cMap[otherId] = c.requester_id === currentUserId ? 'pending_sent' : 'pending_received';
-        } else if (c.status === 'declined') cMap[otherId] = 'declined';
-      });
-      setConnectionMap(cMap);
 
       const { data: followData } = await supabase
         .from('follows')
@@ -220,9 +144,8 @@ export default function NetworkScreen({ navigation }: any) {
 
   useEffect(() => {
     loadAll(true);
-    loadRecommendations();
-    loadAffiliationCount();
-  }, [loadAll, loadRecommendations, loadAffiliationCount]);
+
+  }, [loadAll]);
 
   const openGroup = async (table: 'communities' | 'clubs', group: Group) => {
     setSelectedGroup({ table, group });
@@ -285,88 +208,6 @@ export default function NetworkScreen({ navigation }: any) {
       Alert.alert('Error', e?.message || 'Could not update membership');
     } finally {
       setBusy(`grp-${groupId}`, false);
-    }
-  };
-
-  const sendRequest = async (userId: string) => {
-    if (!currentUserId || busyMap[userId]) return;
-    setBusy(userId, true);
-    try {
-      const { data: existing } = await supabase
-        .from('connections')
-        .select('id, status')
-        .or(`and(requester_id.eq.${currentUserId},recipient_id.eq.${userId}),and(requester_id.eq.${userId},recipient_id.eq.${currentUserId})`)
-        .maybeSingle();
-
-      if (existing) {
-        if (existing.status === 'accepted') setConnectionMap((p) => ({ ...p, [userId]: 'connected' }));
-        else if (existing.status === 'pending') setConnectionMap((p) => ({ ...p, [userId]: 'pending_sent' }));
-        return;
-      }
-
-      const { error } = await supabase
-        .from('connections')
-        .insert({ requester_id: currentUserId, recipient_id: userId, status: 'pending' });
-
-      if (error) {
-        console.log('SEND_REQUEST_ERROR', error.message);
-        Alert.alert('Error', 'Could not send connection request: ' + error.message);
-        return;
-      }
-      setConnectionMap((p) => ({ ...p, [userId]: 'pending_sent' }));
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e: any) {
-      console.log('SEND_REQUEST_CATCH', e);
-    } finally {
-      setBusy(userId, false);
-    }
-  };
-
-  const acceptRequest = async (userId: string) => {
-    if (!currentUserId || busyMap[userId]) return;
-    setBusy(userId, true);
-    try {
-      await supabase.from('connections')
-        .update({ status: 'accepted', updated_at: new Date().toISOString() })
-        .eq('requester_id', userId)
-        .eq('recipient_id', currentUserId);
-      setConnectionMap((p) => ({ ...p, [userId]: 'connected' }));
-    } catch (e) {
-      console.log('ACCEPT_REQUEST_ERROR', e);
-    } finally {
-      setBusy(userId, false);
-    }
-  };
-
-  const declineRequest = async (userId: string) => {
-    if (!currentUserId || busyMap[userId]) return;
-    setBusy(userId, true);
-    try {
-      await supabase.from('connections')
-        .update({ status: 'declined', updated_at: new Date().toISOString() })
-        .eq('requester_id', userId)
-        .eq('recipient_id', currentUserId);
-      setConnectionMap((p) => ({ ...p, [userId]: 'declined' }));
-    } catch (e) {
-      console.log('DECLINE_REQUEST_ERROR', e);
-    } finally {
-      setBusy(userId, false);
-    }
-  };
-
-  const withdrawRequest = async (userId: string) => {
-    if (!currentUserId || busyMap[userId]) return;
-    setBusy(userId, true);
-    try {
-      await supabase.from('connections')
-        .delete()
-        .eq('requester_id', currentUserId)
-        .eq('recipient_id', userId);
-      setConnectionMap((p) => ({ ...p, [userId]: 'none' }));
-    } catch (e) {
-      console.log('WITHDRAW_REQUEST_ERROR', e);
-    } finally {
-      setBusy(userId, false);
     }
   };
 
@@ -434,21 +275,6 @@ export default function NetworkScreen({ navigation }: any) {
     let list = users;
     const term = search.trim().toLowerCase();
 
-    if (tab === 'cohort') {
-      const myGradYear = profile?.graduation_year;
-      list = list.filter((u) => {
-        if (selectedCohort) {
-          return (u as any).cohort === selectedCohort;
-        }
-        return u.graduation_year != null && u.graduation_year === myGradYear;
-      });
-    } else if (tab === 'faculty') {
-      list = list.filter((u) => u.role === 'faculty' || u.role === 'staff');
-    } else if (tab === 'alumni') {
-      const curYear = new Date().getFullYear();
-      list = list.filter((u) => u.role === 'alumni' || (u.graduation_year != null && u.graduation_year < curYear));
-    }
-
     if (term) {
       list = list.filter((u) =>
         (u.full_name || '').toLowerCase().includes(term) ||
@@ -459,7 +285,8 @@ export default function NetworkScreen({ navigation }: any) {
       );
     }
     return list;
-  }, [users, tab, search, profile, selectedCohort]);
+  }, [users, tab, search]);
+
 
   const AvatarView = ({ user, size = 52 }: { user: Profile; size?: number }) =>
     user.avatar_url
@@ -467,58 +294,6 @@ export default function NetworkScreen({ navigation }: any) {
       : <View style={[s.avatarFb, { width: size, height: size, borderRadius: size / 2 }]}>
           <Text style={[s.avatarFbTxt, { fontSize: size * 0.33 }]}>{initials(user.full_name || user.username)}</Text>
         </View>;
-
-  const ConnectButton = ({ user }: { user: Profile }) => {
-    const status = connectionMap[user.id] || 'none';
-    const busy = !!busyMap[user.id];
-
-    if (status === 'connected') return (
-      <View style={s.btnRow}>
-        <View style={s.btnConnected}>
-          <Text style={s.btnConnectedTxt}>✓ Connected</Text>
-        </View>
-        <TouchableOpacity style={s.btnMessage} onPress={() => navigation.navigate('Chat', {
-          userId: user.id,
-          userName: user.full_name || user.username || 'User',
-          otherUser: {
-            id: user.id,
-            full_name: user.full_name || 'Member',
-            username: user.username || null,
-            avatar_url: user.avatar_url || null,
-            bio: user.bio || null,
-            location: user.location || null,
-            degree_program: user.degree_program || null,
-            graduation_year: user.graduation_year || null,
-          },
-        })}>
-          <Text style={s.btnMessageTxt}>Message</Text>
-        </TouchableOpacity>
-      </View>
-    );
-
-    if (status === 'pending_sent') return (
-      <TouchableOpacity style={s.btnPending} onPress={() => withdrawRequest(user.id)} disabled={busy}>
-        <Text style={s.btnPendingTxt}>Requested ×</Text>
-      </TouchableOpacity>
-    );
-
-    if (status === 'pending_received') return (
-      <View style={s.btnRow}>
-        <TouchableOpacity style={s.btnAccept} onPress={() => acceptRequest(user.id)} disabled={busy}>
-          <Text style={s.btnAcceptTxt}>Accept</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={s.btnDecline} onPress={() => declineRequest(user.id)} disabled={busy}>
-          <Text style={s.btnDeclineTxt}>Decline</Text>
-        </TouchableOpacity>
-      </View>
-    );
-
-    return (
-      <TouchableOpacity style={s.btnConnect} onPress={() => sendRequest(user.id)} disabled={busy}>
-        {busy ? <ActivityIndicator color="#FFF" size={12} /> : <Text style={s.btnConnectTxt}>+ Connect</Text>}
-      </TouchableOpacity>
-    );
-  };
 
   const FollowButton = ({ userId }: { userId: string }) => {
     const isFollowing = !!followMap[userId];
@@ -536,44 +311,29 @@ export default function NetworkScreen({ navigation }: any) {
     );
   };
 
-  const renderUserCard = ({ item }: { item: Profile }) => (
-    <TouchableOpacity
-      style={s.card}
-      activeOpacity={0.88}
-      onPress={() => navigation.push('UserProfile', { userId: item.id, user: item })}
-    >
-      <View style={s.cardTop}>
-        <AvatarView user={item} />
-        <View style={s.cardInfo}>
-          <Text style={s.cardName} numberOfLines={1}>{item.full_name || 'Member'}</Text>
-          {item.username ? <Text style={s.cardHandle}>@{item.username}</Text> : null}
-          {(item as any).workplace
-            ? <Text style={s.cardWorkplace} numberOfLines={1}>💼 {(item as any).workplace}</Text>
-            : null}
-          {(item as any).school
-            ? <Text style={s.cardSchool} numberOfLines={1}>
-                🎓 {(item as any).school}
-              </Text>
-            : null}
-          {(item.degree_program || (item as any).cohort)
-            ? <Text style={s.cardMeta} numberOfLines={1}>
-                {[item.degree_program, (item as any).cohort].filter(Boolean).join(' · ')}
-              </Text>
-            : null}
-          {(item as any).headline
-            ? <Text style={s.cardHeadline} numberOfLines={2}>{(item as any).headline}</Text>
-            : (item.bio ? <Text style={s.cardHeadline} numberOfLines={2}>{item.bio}</Text> : null)}
-          {item.location ? <Text style={s.cardMeta} numberOfLines={1}>📍 {item.location}</Text> : null}
+  const renderUserCard = ({ item }: { item: Profile }) => {
+    const sub = (item as any).headline || item.bio || (item as any).workplace || item.location
+      || (item.username ? `@${item.username}` : '');
+    return (
+      <TouchableOpacity
+        activeOpacity={0.75}
+        onPress={() => navigation.push('UserProfile', { userId: item.id, user: item })}
+        style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 11,
+                 backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.10)' }}
+      >
+        <AvatarView user={item} size={46} />
+        <View style={{ flex: 1, marginLeft: 12, marginRight: 10 }}>
+          <Text style={{ fontSize: 15.5, fontWeight: '700', color: '#0B1E3D' }} numberOfLines={1}>
+            {item.full_name || 'Member'}
+          </Text>
+          {sub ? (
+            <Text style={{ fontSize: 13, color: '#5C6B82', marginTop: 2 }} numberOfLines={1}>{sub}</Text>
+          ) : null}
         </View>
         <FollowButton userId={item.id} />
-      </View>
-      {item.bio ? <Text style={s.cardBio} numberOfLines={2}>{item.bio}</Text> : null}
-      <View style={s.cardActions}>
-        <ConnectButton user={item} />
-      </View>
-    </TouchableOpacity>
-  );
-
+      </TouchableOpacity>
+    );
+  };
   const renderGroupCard = ({ item, table }: { item: Group; table: 'communities' | 'clubs' }) => {
     const isMember = table === 'communities' ? myCommIds.has(item.id) : myClubIds.has(item.id);
     return (
@@ -597,53 +357,37 @@ export default function NetworkScreen({ navigation }: any) {
 
   const showGroupList = (tab === 'communities' || tab === 'clubs') && !selectedGroup;
   const showGroupMembers = (tab === 'communities' || tab === 'clubs') && !!selectedGroup;
-  const pendingCount = Object.values(connectionMap).filter((v) => v === 'pending_received').length;
-  const connectedCount = Object.values(connectionMap).filter((v) => v === 'connected').length;
+  const followingCount = Object.values(followMap).filter(Boolean).length;
 
-  const AffiliationsEntryCard = () => (
-    <TouchableOpacity
-      style={s.affCard}
-      onPress={() => navigation.navigate('Affiliations')}
-      activeOpacity={0.9}
-    >
-      <View style={s.affIcon}>
-        <Text style={{ fontSize: 22 }}>🌐</Text>
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={s.affTitle}>Communities</Text>
-        <Text style={s.affSub}>
-          {affiliationCount !== null && affiliationCount > 0
-            ? `You're in ${affiliationCount} ${affiliationCount === 1 ? 'community' : 'communities'} · Browse all`
-            : 'Find clubs, cohorts and organizations to join'}
-        </Text>
-      </View>
-      <Text style={s.affChevron}>→</Text>
-    </TouchableOpacity>
-  );
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F6F9" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F7" />
       <View style={s.container}>
 
         <View style={s.header}>
           <View style={s.headerRow}>
-            <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              {navigation.canGoBack() && (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 10 }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Feather name="chevron-left" size={26} color="#0B1E3D" />
+                </TouchableOpacity>
+              )}
+              <View>
               <Text style={s.title}>Network</Text>
               <Text style={s.subtitle}>
-                {connectedCount} connections{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
+                {followingCount > 0 ? `Following ${followingCount}` : 'Find people to follow or message'}
               </Text>
+              </View>
             </View>
-            {pendingCount > 0 && (
-              <View style={s.badge}><Text style={s.badgeTxt}>{pendingCount}</Text></View>
-            )}
+
           </View>
 
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Search people, programs, locations..."
-            placeholderTextColor="#9CA3AF"
+            placeholder="Search people"
+            placeholderTextColor="rgba(11,30,61,0.35)"
             style={s.search}
             autoCapitalize="none"
             returnKeyType="search"
@@ -663,22 +407,9 @@ export default function NetworkScreen({ navigation }: any) {
           </ScrollView>
         </View>
 
-        {!loading && tab === 'cohort' && (
-          <TouchableOpacity
-            style={s.cohortDropdownBtn}
-            onPress={() => setShowCohortModal(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={s.cohortDropdownLabel}>
-              {selectedCohort || 'My cohort'}
-            </Text>
-            <Text style={s.cohortDropdownCaret}>▾</Text>
-          </TouchableOpacity>
-        )}
-
         {loading ? (
           <View style={s.loader}>
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color="#0B1E3D" />
             <Text style={s.loaderTxt}>Loading network...</Text>
           </View>
         ) : showGroupList ? (
@@ -699,17 +430,25 @@ export default function NetworkScreen({ navigation }: any) {
                 <Text style={s.sectionLabel}>
                   {tab === 'communities' ? `${communities.length} communities` : `${clubs.length} clubs`}
                 </Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity
-                  style={{ backgroundColor: '#2563EB', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 }}
+                  style={{ borderWidth: 1.5, borderColor: '#0B1E3D', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 }}
+                  onPress={() => (navigation as any).navigate('Messages', { screen: 'CreateGroup' })}
+                >
+                  <Text style={{ color: '#0B1E3D', fontSize: 13, fontWeight: '700' }}>Group chat</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ backgroundColor: '#0B1E3D', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 }}
                   onPress={() => { setCreateType(tab as 'communities' | 'clubs'); setShowCreateModal(true); }}
                 >
                   <Text style={{ color: '#FFF', fontSize: 18, lineHeight: 20 }}>+</Text>
                   <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>Create</Text>
                 </TouchableOpacity>
+                </View>
               </View>
             }
             ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No groups found.</Text></View>}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAll(false); }} tintColor="#2563EB" />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAll(false); }} tintColor="#0B1E3D" />}
           />
         ) : showGroupMembers && selectedGroup ? (
           <View style={s.flex}>
@@ -732,7 +471,7 @@ export default function NetworkScreen({ navigation }: any) {
               </TouchableOpacity>
             </View>
             {groupLoading ? (
-              <View style={s.loader}><ActivityIndicator color="#2563EB" /></View>
+              <View style={s.loader}><ActivityIndicator color="#0B1E3D" /></View>
             ) : (
               <FlatList
                 data={groupMembers}
@@ -774,41 +513,41 @@ export default function NetworkScreen({ navigation }: any) {
             ListEmptyComponent={
               <View style={s.empty}>
                 <Text style={s.emptyTitle}>
-                  {tab === 'cohort' ? 'No cohort members found' : tab === 'faculty' ? 'No faculty found' : tab === 'alumni' ? 'No alumni found' : 'No results'}
+                  
                 </Text>
                 <Text style={s.emptyTxt}>{search ? 'Try a different search term.' : 'Check back later.'}</Text>
               </View>
             }
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAll(false); loadAffiliationCount(); }} tintColor="#2563EB" />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAll(false); }} tintColor="#0B1E3D" />}
           />
         )}
       </View>
 
       <Modal visible={showCreateModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowCreateModal(false)}>
         <View style={{ flex: 1, backgroundColor: '#FFF' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E2E8F0' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.1)' }}>
             <TouchableOpacity onPress={() => setShowCreateModal(false)}>
-              <Text style={{ fontSize: 17, color: '#64748B' }}>Cancel</Text>
+              <Text style={{ fontSize: 17, color: 'rgba(11,30,61,0.5)' }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ fontSize: 17, fontWeight: '700', color: '#0F172A' }}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#0B1E3D' }}>
               Create {createType === 'communities' ? 'Community' : 'Club'}
             </Text>
             <TouchableOpacity onPress={createGroup} disabled={creatingGroup}>
               {creatingGroup
-                ? <ActivityIndicator color="#2563EB" size="small" />
-                : <Text style={{ fontSize: 17, fontWeight: '700', color: '#2563EB' }}>Create</Text>}
+                ? <ActivityIndicator color="#0B1E3D" size="small" />
+                : <Text style={{ fontSize: 17, fontWeight: '700', color: '#0B1E3D' }}>Create</Text>}
             </TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }} keyboardShouldPersistTaps="handled">
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Icon</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Icon</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   {['🌐','🎓','💼','🌍','🤝','💡','🚀','🎯','📚','🏆','🌱','❤️','⚡','🎉','🔬','🏛️','🌏','💰','🎨','🏅'].map(e => (
                     <TouchableOpacity
                       key={e}
                       onPress={() => setNewGroupEmoji(e)}
-                      style={{ width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: newGroupEmoji === e ? '#EFF6FF' : '#F8FAFC', borderWidth: 2, borderColor: newGroupEmoji === e ? '#2563EB' : 'transparent' }}
+                      style={{ width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: newGroupEmoji === e ? 'rgba(176,141,63,0.1)' : '#F5F5F7', borderWidth: 2, borderColor: newGroupEmoji === e ? '#0B1E3D' : 'transparent' }}
                     >
                       <Text style={{ fontSize: 24 }}>{e}</Text>
                     </TouchableOpacity>
@@ -817,25 +556,25 @@ export default function NetworkScreen({ navigation }: any) {
               </ScrollView>
             </View>
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Name *</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Name *</Text>
               <TextInput
                 value={newGroupName}
                 onChangeText={setNewGroupName}
-                placeholder={createType === 'communities' ? 'e.g. African Alumni Network' : 'e.g. Investment Club'}
-                placeholderTextColor="#94A3B8"
-                style={{ backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: '#0F172A' }}
+                placeholder={createType === 'communities' ? 'e.g. Harare Creatives' : 'e.g. Chess Club'}
+                placeholderTextColor="rgba(11,30,61,0.35)"
+                style={{ backgroundColor: '#F5F5F7', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)', paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: '#0B1E3D' }}
                 autoCapitalize="words"
                 maxLength={60}
               />
             </View>
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Description</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Description</Text>
               <TextInput
                 value={newGroupDesc}
                 onChangeText={setNewGroupDesc}
                 placeholder="What is this group about?"
-                placeholderTextColor="#94A3B8"
-                style={{ backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0F172A', minHeight: 100, textAlignVertical: 'top' }}
+                placeholderTextColor="rgba(11,30,61,0.35)"
+                style={{ backgroundColor: '#F5F5F7', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0B1E3D', minHeight: 100, textAlignVertical: 'top' }}
                 multiline
                 maxLength={300}
               />
@@ -844,186 +583,105 @@ export default function NetworkScreen({ navigation }: any) {
         </View>
       </Modal>
 
-      <Modal
-        visible={showCohortModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowCohortModal(false)}
-      >
-        <TouchableOpacity
-          style={s.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowCohortModal(false)}
-        />
-        <View style={s.cohortModalSheet}>
-          <View style={s.cohortModalHandle} />
-          <Text style={s.cohortModalTitle}>Select Cohort</Text>
-
-          <FlatList
-            data={[null, ...ALL_COHORTS]}
-            keyExtractor={(item, i) => item ?? `null-${i}`}
-            style={s.cohortModalList}
-            initialScrollIndex={0}
-            getItemLayout={(_, i) => ({ length: 52, offset: 52 * i, index: i })}
-            renderItem={({ item: c }) => {
-              const active = c === null ? !selectedCohort : selectedCohort === c;
-              return (
-                <TouchableOpacity
-                  style={[s.cohortModalItem, active && s.cohortModalItemActive]}
-                  onPress={() => { setSelectedCohort(c ?? null); setShowCohortModal(false); }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[s.cohortModalItemTxt, active && s.cohortModalItemTxtActive]}>
-                    {c || 'My cohort (default)'}
-                  </Text>
-                  {active && <Text style={s.cohortModalCheck}>✓</Text>}
-                </TouchableOpacity>
-              );
-            }}
-          />
-
-          <TouchableOpacity
-            style={s.cohortModalClose}
-            onPress={() => setShowCohortModal(false)}
-          >
-            <Text style={s.cohortModalCloseTxt}>Close</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F4F6F9' },
+  safe: { flex: 1, backgroundColor: '#F5F5F7' },
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: '#F4F6F9' },
-  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, backgroundColor: '#F4F6F9' },
+  container: { flex: 1, backgroundColor: '#F5F5F7' },
+  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, backgroundColor: '#F5F5F7' },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
-  subtitle: { marginTop: 3, fontSize: 13, color: '#64748B', fontWeight: '500' },
-  badge: { backgroundColor: '#EF4444', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: 4 },
+  title: { fontSize: 28, fontWeight: '800', color: '#0B1E3D', letterSpacing: -0.5 },
+  subtitle: { marginTop: 3, fontSize: 13, color: 'rgba(11,30,61,0.5)', fontWeight: '500' },
+  badge: { backgroundColor: '#FF3B30', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: 4 },
   badgeTxt: { fontSize: 13, fontWeight: '700', color: '#FFF' },
   search: {
-    backgroundColor: '#FFF', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0',
-    paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#0F172A', marginBottom: 10,
+    backgroundColor: '#FFF', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)',
+    paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#0B1E3D', marginBottom: 10,
   },
   tabScroll: { marginBottom: 8 },
   tabContent: { paddingRight: 8, gap: 6 },
-  tab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#E2E8F0' },
-  tabActive: { backgroundColor: '#0F172A' },
-  tabTxt: { fontSize: 13, fontWeight: '600', color: '#64748B' },
+  tab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(11,30,61,0.1)' },
+  tabActive: { backgroundColor: '#0B1E3D' },
+  tabTxt: { fontSize: 13, fontWeight: '600', color: 'rgba(11,30,61,0.5)' },
   tabTxtActive: { color: '#FFF' },
   list: { paddingHorizontal: 14 },
   listEmpty: { flexGrow: 1 },
-  sectionLabel: { fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 4 },
+  sectionLabel: { fontSize: 12, fontWeight: '700', color: 'rgba(11,30,61,0.35)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 4 },
   affCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: '#FFF', borderRadius: 18,
-    borderWidth: 1, borderColor: '#E2E8F0',
+    borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)',
     padding: 14, marginBottom: 10, marginTop: 4,
   },
   affIcon: {
     width: 46, height: 46, borderRadius: 14,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: 'rgba(176,141,63,0.1)',
     alignItems: 'center', justifyContent: 'center',
   },
-  affTitle: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
-  affSub: { fontSize: 12, color: '#64748B', marginTop: 2, lineHeight: 16 },
-  affChevron: { fontSize: 20, color: '#9CA3AF', fontWeight: '500' },
+  affTitle: { fontSize: 14, fontWeight: '700', color: '#0B1E3D' },
+  affSub: { fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 2, lineHeight: 16 },
+  affChevron: { fontSize: 20, color: 'rgba(11,30,61,0.35)', fontWeight: '500' },
   card: {
-    backgroundColor: '#FFF', borderRadius: 18, borderWidth: 1, borderColor: '#E2E8F0',
+    backgroundColor: '#FFF', borderRadius: 18, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)',
     padding: 14, marginBottom: 10,
   },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   avatarFb: { backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center' },
-  avatarFbTxt: { fontWeight: '700', color: '#1D4ED8' },
+  avatarFbTxt: { fontWeight: '700', color: '#0B1E3D' },
   cardInfo: { flex: 1 },
-  cardName: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
-  cardHandle: { fontSize: 12, color: '#2563EB', fontWeight: '600', marginTop: 1 },
-  cardMeta: { fontSize: 12, color: '#64748B', marginTop: 3 },
-  cardBio: { fontSize: 13, color: '#475569', lineHeight: 18, marginTop: 8 },
+  cardName: { fontSize: 15, fontWeight: '700', color: '#0B1E3D' },
+  cardHandle: { fontSize: 12, color: '#0B1E3D', fontWeight: '600', marginTop: 1 },
+  cardMeta: { fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 3 },
+  cardBio: { fontSize: 13, color: 'rgba(11,30,61,0.6)', lineHeight: 18, marginTop: 8 },
   cardActions: { marginTop: 10, flexDirection: 'row', gap: 8 },
   btnRow: { flexDirection: 'row', gap: 6 },
-  btnConnect:     { backgroundColor: '#2563EB', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 9, alignItems: 'center', justifyContent: 'center', minWidth: 96 },
+  btnConnect:     { backgroundColor: '#0B1E3D', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 9, alignItems: 'center', justifyContent: 'center', minWidth: 96 },
   btnConnectTxt:  { color: '#FFFFFF', fontSize: 13, fontWeight: '700', letterSpacing: 0.2 },
   btnConnected:   { backgroundColor: '#DCFCE7', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: '#86EFAC' },
   btnConnectedTxt:{ color: '#15803D', fontSize: 13, fontWeight: '700' },
-  btnPending:     { backgroundColor: '#FFF7ED', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: '#FED7AA' },
+  btnPending:     { backgroundColor: '#FAF6EC', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: '#E8DFC8' },
   btnPendingTxt:  { color: '#C2410C', fontSize: 13, fontWeight: '600' },
-  btnAccept:      { backgroundColor: '#2563EB', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9 },
+  btnAccept:      { backgroundColor: '#0B1E3D', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9 },
   btnAcceptTxt:   { color: '#FFF', fontSize: 13, fontWeight: '700' },
-  btnDecline:     { backgroundColor: '#F1F5F9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: '#CBD5E1' },
-  btnDeclineTxt:  { color: '#475569', fontSize: 13, fontWeight: '600' },
-  btnMessage:     { backgroundColor: '#EFF6FF', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: '#BFDBFE' },
-  btnMessageTxt:  { color: '#1D4ED8', fontSize: 13, fontWeight: '700' },
-  followBtn: { borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-  followBtnActive: { borderColor: '#7C3AED', backgroundColor: '#F5F3FF' },
-  followBtnTxt: { fontSize: 12, fontWeight: '600', color: '#64748B' },
-  followBtnTxtActive: { color: '#7C3AED' },
+  btnDecline:     { backgroundColor: '#F5F5F7', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)' },
+  btnDeclineTxt:  { color: 'rgba(11,30,61,0.6)', fontSize: 13, fontWeight: '600' },
+  btnMessage:     { backgroundColor: 'rgba(176,141,63,0.1)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: '#C9D3E2' },
+  btnMessageTxt:  { color: '#0B1E3D', fontSize: 13, fontWeight: '700' },
+  followBtn: { borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  followBtnActive: { borderColor: '#B08D3F', backgroundColor: '#F5F3FF' },
+  followBtnTxt: { fontSize: 12, fontWeight: '600', color: 'rgba(11,30,61,0.5)' },
+  followBtnTxtActive: { color: '#B08D3F' },
   groupCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFF', borderRadius: 18, borderWidth: 1, borderColor: '#E2E8F0',
+    backgroundColor: '#FFF', borderRadius: 18, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)',
     padding: 14, marginBottom: 10,
   },
-  groupEmoji: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
+  groupEmoji: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F5F5F7', alignItems: 'center', justifyContent: 'center' },
   groupEmojiTxt: { fontSize: 24 },
   groupInfo: { flex: 1 },
-  groupName: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
-  groupDesc: { fontSize: 12, color: '#64748B', lineHeight: 16, marginTop: 3 },
-  groupCount: { fontSize: 12, color: '#94A3B8', marginTop: 4, fontWeight: '500' },
-  joinBtn: { backgroundColor: '#EFF6FF', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: '#BFDBFE' },
-  joinBtnActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
-  joinBtnTxt: { fontSize: 12, fontWeight: '700', color: '#2563EB' },
+  groupName: { fontSize: 14, fontWeight: '700', color: '#0B1E3D' },
+  groupDesc: { fontSize: 12, color: 'rgba(11,30,61,0.5)', lineHeight: 16, marginTop: 3 },
+  groupCount: { fontSize: 12, color: 'rgba(11,30,61,0.35)', marginTop: 4, fontWeight: '500' },
+  joinBtn: { backgroundColor: 'rgba(176,141,63,0.1)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: '#C9D3E2' },
+  joinBtnActive: { backgroundColor: '#0B1E3D', borderColor: '#0B1E3D' },
+  joinBtnTxt: { fontSize: 12, fontWeight: '700', color: '#0B1E3D' },
   joinBtnTxtActive: { color: '#FFF' },
-  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', marginBottom: 8 },
+  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: 'rgba(11,30,61,0.1)', marginBottom: 8 },
   backBtn: { paddingVertical: 4, paddingRight: 6 },
-  backTxt: { fontSize: 14, color: '#2563EB', fontWeight: '600' },
+  backTxt: { fontSize: 14, color: '#0B1E3D', fontWeight: '600' },
   groupHeaderEmoji: { fontSize: 22 },
   groupHeaderInfo: { flex: 1 },
-  groupHeaderName: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
-  groupHeaderCount: { fontSize: 12, color: '#64748B' },
+  groupHeaderName: { fontSize: 14, fontWeight: '700', color: '#0B1E3D' },
+  groupHeaderCount: { fontSize: 12, color: 'rgba(11,30,61,0.5)' },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 40 },
-  cardWorkplace: { fontSize: 12, color: '#374151', fontWeight: '500', marginTop: 2 },
-  cardSchool: { fontSize: 12, color: '#6B7280', marginTop: 1 },
-  cardHeadline: { fontSize: 12, color: '#6B7280', marginTop: 3, lineHeight: 17 },
-  cohortDropdownBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginHorizontal: 16, marginVertical: 10,
-    backgroundColor: '#EFF6FF', borderRadius: 12, borderWidth: 1, borderColor: '#BFDBFE',
-    paddingHorizontal: 16, paddingVertical: 12,
-  },
-  cohortDropdownLabel: { fontSize: 14, fontWeight: '600', color: '#1D4ED8', flex: 1 },
-  cohortDropdownCaret: { fontSize: 16, color: '#1D4ED8', marginLeft: 8 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  cohortModalSheet: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    paddingBottom: 40, maxHeight: '75%',
-  },
-  cohortModalHandle: {
-    width: 36, height: 4, borderRadius: 2, backgroundColor: '#D1D5DB',
-    alignSelf: 'center', marginTop: 12, marginBottom: 8,
-  },
-  cohortModalTitle: { fontSize: 17, fontWeight: '700', color: '#111', textAlign: 'center', marginBottom: 8, paddingHorizontal: 16 },
-  cohortModalList: { flex: 1 },
-  cohortModalItem: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, height: 52,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0',
-  },
-  cohortModalItemActive: { backgroundColor: '#EFF6FF' },
-  cohortModalItemTxt: { fontSize: 15, color: '#1F2937', fontWeight: '500' },
-  cohortModalItemTxtActive: { color: '#1D4ED8', fontWeight: '700' },
-  cohortModalCheck: { fontSize: 16, color: '#1D4ED8', fontWeight: '700' },
-  cohortModalClose: {
-    marginHorizontal: 16, marginTop: 12, backgroundColor: '#F3F4F6',
-    borderRadius: 12, paddingVertical: 14, alignItems: 'center',
-  },
-  cohortModalCloseTxt: { fontSize: 15, fontWeight: '700', color: '#374151' },
-  loaderTxt: { marginTop: 12, fontSize: 14, color: '#64748B' },
+  cardWorkplace: { fontSize: 12, color: '#24344D', fontWeight: '500', marginTop: 2 },
+  cardSchool: { fontSize: 12, color: '#5C6B82', marginTop: 1 },
+  cardHeadline: { fontSize: 12, color: '#5C6B82', marginTop: 3, lineHeight: 17 },
+  loaderTxt: { marginTop: 12, fontSize: 14, color: 'rgba(11,30,61,0.5)' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 60 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#0F172A', textAlign: 'center' },
-  emptyTxt: { marginTop: 6, fontSize: 14, color: '#64748B', textAlign: 'center' },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#0B1E3D', textAlign: 'center' },
+  emptyTxt: { marginTop: 6, fontSize: 14, color: 'rgba(11,30,61,0.5)', textAlign: 'center' },
 });

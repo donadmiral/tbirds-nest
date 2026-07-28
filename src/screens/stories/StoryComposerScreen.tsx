@@ -45,9 +45,6 @@ import { useArrangementController } from '../../controllers/stories/useArrangeme
 import { useBloomOrchestrator } from '../../controllers/stories/useBloomOrchestrator';
 import { useKeyboardOrchestrator } from '../../controllers/stories/useKeyboardOrchestrator';
 import { usePublishOrchestrator } from '../../controllers/stories/usePublishOrchestrator';
-import { useEnhancementController } from '../../controllers/stories/useEnhancementController';
-import EnhancerModal from '../../components/stories/EnhancerModal';
-import IdentityTrainingWizard from './IdentityTrainingWizard';
 
 // ── Constants ──
 const SCREEN_W = Dimensions.get('window').width;
@@ -173,10 +170,8 @@ export default function StoryComposerScreen() {
   const seedStickers: any[] = route.params?.seedStickers ?? [];
   const seedCaption: string = route.params?.seedCaption ?? '';
   const seedText: string = route.params?.seedText ?? '';
-  const campusMomentPromptId: string | null = route.params?.campusMomentPromptId ?? null;
-  const campusMomentPromptText: string | null = route.params?.campusMomentPromptText ?? null;
   const isDual = mode === 'dual';
-  const openArrangementOnMount = route.params?.openArrangement === true && isDual;
+  const openArrangementOnMount = route.params?.openArrangement === true && isDual && initialAssets[0]?.rearType !== 'video';
 
   // ── Core draft state (stays in composer, shared across controllers) ──
   const [drafts, setDrafts] = useState<Draft[]>([]);
@@ -214,16 +209,15 @@ export default function StoryComposerScreen() {
   const toggleReach = useCallback(() => { setReachState(prev => { const next = prev === 'followers' ? 'wider' : 'followers'; setDrafts(ds => ds.map(d => ({ ...d, reach: next } as any))); return next; }); }, []);
   // cycleAudience removed: it only flipped everyone <-> close_friends and
   // could never reach only_with. The pill opens StoryAudienceSheet instead.
-  const bloomTools = useMemo(() => getBloomTools(isDual ? 'dual' : (mode as any)), [isDual, mode]);
+  const isDualVideo = isDual && initialAssets[0]?.rearType === 'video';
+  const bloomTools = useMemo(() => getBloomTools(isDual ? 'dual' : (mode as any)).filter((tl: any) => !(isDualVideo && tl.id === 'layout')), [isDual, mode, isDualVideo]);
 
   // ── CONTROLLER: Bloom (no deps on other controllers) ──
-  const enhanceRef = useRef<() => void>(() => {});
   const handleBloomToolAction = useCallback((toolId: string) => {
     if (toolId === 'text') openTextEditor();
     else if (toolId === 'sticker') openEmojiTray();
     else if (toolId === 'more') setOverflowOpen(true);
-    else if (toolId === 'layout') arrangement.openArrangement();
-    else if (toolId === 'enhance') enhanceRef.current();
+    else if (toolId === 'layout') { if (!isDualVideo) arrangement.openArrangement(); }
   }, []);
 
   // ── Publishing state ref (bridges declaration-order gap) ──
@@ -276,25 +270,12 @@ export default function StoryComposerScreen() {
     drafts, setDrafts, myId, navigation,
     closeBloom: bloom.closeBloom,
     mediaOpacity, mediaScale,
-    campusMomentPromptId,
   });
 
   // Sync publishing ref so bloom/bubble read current value
   useEffect(() => { publishingRef.current = publish.publishing; }, [publish.publishing]);
 
   // ── CONTROLLER: Enhancement (depends on active draft, updateActive, pushHistory, bloom.closeBloom) ──
-  const enhancement = useEnhancementController({
-    draftId: active?.id || '',
-    localUri: active?.localUri || null,
-    originalUri: (active as any)?.originalUri || null,
-    mediaType: active?.mediaType || 'image',
-    updateDraft: updateActive,
-    pushHistory,
-    closeBloom: bloom.closeBloom,
-  });
-
-  // Wire enhance ref so bloom tool tap opens the enhancer
-  useEffect(() => { enhanceRef.current = enhancement.openEnhancer; }, [enhancement.openEnhancer]);
 
   // ── Cleanup ──
   useEffect(() => { return () => { mountedRef.current = false; }; }, []);
@@ -322,6 +303,7 @@ export default function StoryComposerScreen() {
         mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
         category: null, textBgId: 'navy', textBackground: TEXT_BG_OPTIONS[0].bg,
       }]);
+      if (seedStickers.length > 0) return;
       const t = setTimeout(() => openTextEditor(), 400);
       return () => clearTimeout(t);
     }
@@ -335,15 +317,15 @@ export default function StoryComposerScreen() {
       }
       if (frontUri) Image.prefetch(frontUri).catch(() => {});
       setDrafts([{
-        id: newDraftId(), localUri: rearUri, thumbnailUri: null, mediaType: 'image', caption: '',
-        scope: 'global', audience, reach, uploadState: 'idle', durationSec: null, pollData: null, stickers: seedStickers,
+        id: newDraftId(), localUri: rearUri, thumbnailUri: null, mediaType: da.rearType === 'video' ? 'video' : 'image', caption: '',
+        scope: 'global', audience, reach, uploadState: 'idle', durationSec: da.rearType === 'video' ? (da.durationSec || 15) : null, pollData: null, stickers: seedStickers,
         imageW: da.rearDimensions?.width || 0, imageH: da.rearDimensions?.height || 0,
         mediaFit: 'cover' as MediaFit,
         mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
         category: null, textBgId: 'navy', textBackground: null,
         dualFrontUri: frontUri, dualLayout: layout,
       }]);
-      if (rearUri) Image.getSize(rearUri, (w, h) => { setDrafts(prev => prev.map((dd, di) => di === 0 ? { ...dd, imageW: w, imageH: h } : dd)); }, () => {});
+      if (rearUri && da.rearType !== 'video') Image.getSize(rearUri, (w, h) => { setDrafts(prev => prev.map((dd, di) => di === 0 ? { ...dd, imageW: w, imageH: h } : dd)); }, () => {});
       return;
     }
     if (initialAssets.length > 0) {
@@ -714,13 +696,6 @@ export default function StoryComposerScreen() {
 
 
 
-        {/* Campus moment banner */}
-        {campusMomentPromptText && (
-          <View style={[st.momentBanner, { top: insets.top + 52 }]}>
-            <Feather name="sun" size={11} color="#F59E0B" />
-            <Text style={st.momentBannerTxt} numberOfLines={1}>{campusMomentPromptText}</Text>
-          </View>
-        )}
       </Animated.View>
 
       {/* Caption */}
@@ -991,41 +966,6 @@ export default function StoryComposerScreen() {
       </Modal>
 
       {/* Enhancement Modal */}
-      <EnhancerModal
-        visible={enhancement.enhancerOpen}
-        state={enhancement.state}
-        variations={enhancement.variations}
-        selectedIndex={enhancement.selectedIndex}
-        failureMessage={enhancement.failureMessage}
-        faceDetected={enhancement.faceDetected}
-        originalUri={(active as any)?.originalUri || active?.localUri || null}
-        localUri={active?.localUri || null}
-        isDual={isDual}
-        enhancingFront={arrangement.primaryCamera === 'front'}
-        onGenerate={enhancement.generateEnhancements}
-        onCancel={enhancement.cancelGeneration}
-        onSelect={enhancement.selectVariation}
-        onApply={enhancement.applyVariation}
-        onDiscard={enhancement.discardVariations}
-        onRetry={enhancement.retryGeneration}
-        onClose={enhancement.closeEnhancer}
-        userId={myId || ''}
-        selectedReferenceUrl={enhancement.selectedReferenceUrl}
-        onSelectReference={enhancement.setSelectedReferenceUrl}
-        stableOriginalUri={enhancement.stableOriginalUri}
-        intensity={enhancement.enhancementIntensity}
-        onIntensityChange={enhancement.setEnhancementIntensity}
-      />
-
-      {/* Identity Training Wizard */}
-      <IdentityTrainingWizard
-        visible={enhancement.trainingWizardOpen}
-        userId={myId || ''}
-        onComplete={enhancement.onTrainingComplete}
-        onSkip={enhancement.onTrainingSkip}
-        onClose={enhancement.closeTrainingWizard}
-      />
-
     </TouchableOpacity>
   );
 }

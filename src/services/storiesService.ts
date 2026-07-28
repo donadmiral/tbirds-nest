@@ -16,7 +16,7 @@ export type StoryTextSticker = {
   scale: number;
   rotation: number;
   bgEnabled?: boolean;
-  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag';
+  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post';
   fontSizeOverride?: number;
   opacity?: number;
   textAlign?: 'left' | 'center' | 'right';
@@ -28,6 +28,12 @@ export type StoryTextSticker = {
   locationPlaceId?: string;
   mentionUserId?: string;
   hashtag?: string;
+  postId?: string;
+  postAuthorName?: string;
+  postAuthorAvatar?: string | null;
+  postText?: string;
+  postMediaUrl?: string | null;
+  postMediaType?: string | null;
   mentionUsername?: string;
   questionPrompt?: string;
   sliderEmoji?: string;

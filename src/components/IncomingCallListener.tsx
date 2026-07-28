@@ -8,11 +8,14 @@
  * Syncs with shared call navigation guard to prevent duplicate
  * navigation when push tap handler also fires.
  */
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../stores/authStore';
 import { callService, CallRecord } from '../services/callService';
 import { supabase } from '../services/supabase';
+import { View, Text, TouchableOpacity, Image, Vibration, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { audioService } from '../services/audioService';
 import { setActiveCallNavId, clearCallNavGuard, isCallNavActive } from '../services/notificationBootstrap';
 
 export default function IncomingCallListener() {
@@ -20,6 +23,14 @@ export default function IncomingCallListener() {
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
   const activeCallIdRef = useRef<string | null>(null);
+  const [banner, setBanner] = useState<{ call: any; name: string; avatar: string | null; isGroup: boolean } | null>(null);
+  const bannerRef = useRef<any>(null);
+  useEffect(() => { bannerRef.current = banner; }, [banner]);
+  const clearBanner = useCallback(() => {
+    setBanner(null);
+    try { audioService.stopAll(); } catch {}
+    try { Vibration.cancel(); } catch {}
+  }, []);
   const handledCallIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -105,7 +116,7 @@ export default function IncomingCallListener() {
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'call_sessions', filter: `id=eq.${call.id}` },
           (payload) => {
             const st = (payload.new as any).status;
-            if (st === 'ended' || st === 'declined' || st === 'missed' || st === 'active') {
+            if (st === 'ended' || st === 'declined' || st === 'missed' || (st === 'active' && !call.is_group_call)) {
               activeCallIdRef.current = null;
               clearCallNavGuard();
               statusSub.unsubscribe();
@@ -115,11 +126,37 @@ export default function IncomingCallListener() {
     };
 
     // Single subscription handles both 1-on-1 and group calls
+    const invitePoll = setInterval(async () => {
+      try {
+        const { data: invites } = await supabase.from('call_participants')
+          .select('call_session_id, status, created_at')
+          .eq('user_id', userId).eq('status', 'invited')
+          .gt('created_at', new Date(Date.now() - 60000).toISOString());
+        for (const inv of (invites || [])) {
+          if (handledCallIdsRef.current.has(inv.call_session_id)) continue;
+          const call = await callService.getCall(inv.call_session_id);
+          if (call && (call.status === 'ringing' || call.status === 'active')) {
+            handleIncoming({ ...call, status: 'ringing' } as any);
+          }
+        }
+      } catch {}
+    }, 8000);
     const directSub = callService.subscribeToIncomingCalls(userId, handleIncoming);
+
+    const inviteSub = supabase.channel(`gcall_invites_${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'call_participants', filter: `user_id=eq.${userId}` }, async (p) => {
+        const row = p.new as any;
+        if (row?.status !== 'invited') return;
+        const call = await callService.getCall(row.call_session_id);
+        if (call && (call.status === 'ringing' || call.status === 'active')) handleIncoming({ ...call, status: 'ringing' } as any);
+      })
+      .subscribe();
 
     return () => {
       console.log('[CALL_LISTENER] Cleaning up subscription');
+      clearInterval(invitePoll);
       directSub.unsubscribe();
+      supabase.removeChannel(inviteSub);
       activeCallIdRef.current = null;
       clearCallNavGuard();
     };

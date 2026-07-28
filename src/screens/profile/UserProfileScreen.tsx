@@ -36,7 +36,7 @@ type UserProfile = {
   account_type?: string; is_verified?: boolean; created_at?: string;
   business?: any; can_view_content?: boolean;
 };
-type Stats = { posts: number; connections: number; followers: number; following?: number };
+type Stats = { posts: number; followers: number; following?: number };
 type Post = {
   id: string;
   content: string;
@@ -46,7 +46,6 @@ type Post = {
   media_url: string | null;
   media: PostMedia[];
 };
-type ConnectionStatus = 'none' | 'pending_sent' | 'pending_received' | 'connected';
 
 function initials(n?: string | null) {
   if (!n) return 'U';
@@ -72,10 +71,8 @@ export default function UserProfileScreen() {
   const targetId: string = route.params?.userId ?? route.params?.user?.id;
 
   const [profile, setProfile] = useState<UserProfile | null>(route.params?.user ?? null);
-  const [stats, setStats] = useState<Stats>({ posts: 0, connections: 0, followers: 0 });
+  const [stats, setStats] = useState<Stats>({ posts: 0, followers: 0 });
   const [posts, setPosts] = useState<Post[]>([]);
-  const [connStatus, setConnStatus] = useState<ConnectionStatus>('none');
-  const [connRequestId, setConnRequestId] = useState<string | null>(null);
   const [following, setFollowing] = useState(false);
   const [followRequested, setFollowRequested] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -104,7 +101,7 @@ export default function UserProfileScreen() {
         business: pd.business || null, can_view_content: !!pd.can_view_content,
       });
       const c = pd.counts || {};
-      setStats({ posts: c.posts ?? 0, connections: 0, followers: c.followers ?? 0, following: c.following ?? 0 });
+      setStats({ posts: c.posts ?? 0, followers: c.followers ?? 0, following: c.following ?? 0 });
       setFollowing(!!pd.viewer_follows);
       setFollowRequested(!!pd.viewer_requested);
 
@@ -143,15 +140,6 @@ export default function UserProfileScreen() {
       setPosts(shaped);
 
       if (myId && myId !== targetId) {
-        const { data: conn } = await supabase.from('connections')
-          .select('id, requester_id, recipient_id, status')
-          .or(`and(requester_id.eq.${myId},recipient_id.eq.${targetId}),and(requester_id.eq.${targetId},recipient_id.eq.${myId})`)
-          .maybeSingle();
-        if (!conn) { setConnStatus('none'); setConnRequestId(null); }
-        else if (conn.status === 'accepted') { setConnStatus('connected'); setConnRequestId(conn.id); }
-        else if (conn.requester_id === myId) { setConnStatus('pending_sent'); setConnRequestId(conn.id); }
-        else { setConnStatus('pending_received'); setConnRequestId(conn.id); }
-
         const { data: orb } = await supabase.from('follows').select('id')
           .eq('follower_id', myId).eq('following_id', targetId).maybeSingle();
         setFollowing(!!orb);
@@ -169,36 +157,6 @@ export default function UserProfileScreen() {
   }, [targetId, myId]);
 
   useEffect(() => { load(); }, [load]);
-
-  const handleConnect = async () => {
-    if (!myId || actionBusy) return;
-    setActionBusy(true);
-    try {
-      if (connStatus === 'none') {
-        const { data, error } = await supabase.from('connections')
-          .insert({ requester_id: myId, recipient_id: targetId, status: 'pending' })
-          .select('id').single();
-        if (error) throw error;
-        setConnStatus('pending_sent');
-        setConnRequestId(data?.id ?? null);
-      } else if (connStatus === 'pending_sent' && connRequestId) {
-        const { error } = await supabase.from('connections').delete().eq('id', connRequestId);
-        if (error) throw error;
-        setConnStatus('none');
-        setConnRequestId(null);
-      } else if (connStatus === 'pending_received' && connRequestId) {
-        const { error } = await supabase.from('connections')
-          .update({ status: 'accepted', updated_at: new Date().toISOString() })
-          .eq('id', connRequestId);
-        if (error) throw error;
-        setConnStatus('connected');
-      }
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Could not update connection.');
-    } finally {
-      setActionBusy(false);
-    }
-  };
 
   const confirmBlock = () => {
     if (!myId || isOwnProfile) return;
@@ -254,7 +212,7 @@ export default function UserProfileScreen() {
 
   const isOwnProfile = myId === targetId;
   const isPrivate = profile?.profile_visibility === 'private';
-  const canViewContent = isOwnProfile || !isPrivate || following || connStatus === 'connected';
+  const canViewContent = isOwnProfile || !isPrivate || following;
 
   if (loading) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>

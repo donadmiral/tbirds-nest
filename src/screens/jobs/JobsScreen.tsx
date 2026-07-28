@@ -10,6 +10,8 @@ import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUnreadStore } from '../../stores/unreadStore';
 import { supabase } from '../../services/supabase';
+import { Ionicons } from '@expo/vector-icons';
+import { authorId as currentAuthorId } from '../../stores/actorStore';
 import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope } from '../../services/jobsService';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -122,8 +124,8 @@ export default function JobsScreen({ navigation }: any) {
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'salary' | 'urgent'>('recent');
   const [scopeMode, setScopeMode] = useState<JobScope>('all');
   const [search, setSearch] = useState('');
-  const [showApplications, setShowApplications] = useState(false);
-  const [showSaved, setShowSaved] = useState(false);
+  
+  
 
   const [showPost, setShowPost] = useState(false);
   const [posting, setPosting] = useState(false);
@@ -137,9 +139,6 @@ export default function JobsScreen({ navigation }: any) {
     urgent: false,
   });
 
-  const [applyTarget, setApplyTarget] = useState<Job | null>(null);
-  const [coverNote, setCoverNote] = useState('');
-  const [applying, setApplying] = useState(false);
 
   const [referTarget,  setReferTarget]  = useState<Job | null>(null);
   const [referSearch,  setReferSearch]  = useState('');
@@ -153,9 +152,9 @@ export default function JobsScreen({ navigation }: any) {
   const [recMessage,     setRecMessage]     = useState('');
   const [recommending,   setRecommending]   = useState(false);
 
-  const [viewAppsJob,    setViewAppsJob]    = useState<Job | null>(null);
-  const [jobApplicants,  setJobApplicants]  = useState<JobApplication[]>([]);
-  const [loadingApps,    setLoadingApps]    = useState(false);
+  
+  
+  
 
   const [viewRecsJob,    setViewRecsJob]    = useState<Job | null>(null);
   const [jobRecs,        setJobRecs]        = useState<JobRecommendation[]>([]);
@@ -219,33 +218,6 @@ export default function JobsScreen({ navigation }: any) {
     } catch (e) {
       setSavedIds(p => { const n = new Set(p); if (was) n.add(jobId); else n.delete(jobId); return n; });
     } finally { setBusy(`save-${jobId}`, false); }
-  };
-
-  const submitApply = async () => {
-    if (!userId || !applyTarget || applying) return;
-    setApplying(true);
-    try {
-      await jobsService.applyToJob(userId, applyTarget.id, coverNote);
-      setAppliedMap(p => ({ ...p, [applyTarget.id]: 'applied' }));
-      setApplyTarget(null);
-      setCoverNote('');
-      Alert.alert('Applied!', `Your application to ${applyTarget.title} at ${applyTarget.company} has been sent.`);
-    } catch (e) {
-      Alert.alert('Error', 'Could not submit application. You may have already applied.');
-    } finally { setApplying(false); }
-  };
-
-  const loadApplicants = async (job: Job) => {
-    setViewAppsJob(job);
-    setLoadingApps(true);
-    try {
-      const apps = await jobsService.getApplicationsForJob(job.id);
-      setJobApplicants(apps);
-    } catch (e) {
-      console.log('LOAD_APPS_ERR', e);
-    } finally {
-      setLoadingApps(false);
-    }
   };
 
   const loadRecommendations = async (job: Job) => {
@@ -344,7 +316,7 @@ export default function JobsScreen({ navigation }: any) {
     }
     setPosting(true);
     try {
-      await jobsService.createJob(userId, {
+      await jobsService.createJob(currentAuthorId(userId) ?? userId, {
         title: postForm.title.trim(),
         company: postForm.company.trim(),
         location: postForm.location.trim() || undefined,
@@ -381,7 +353,7 @@ export default function JobsScreen({ navigation }: any) {
       : (item.location || '');
 
     return (
-      <View style={s.hsCardRoot}>
+      <TouchableOpacity style={s.hsCardRoot} activeOpacity={0.94} onPress={() => (navigation as any).navigate('JobDetail', { job: item })}>
         <View style={s.hsCard}>
           <View style={s.hsLogo}><Text style={s.hsLogoTxt}>{logo}</Text></View>
 
@@ -389,7 +361,7 @@ export default function JobsScreen({ navigation }: any) {
             <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
               <Text style={[s.hsTitle, { flex: 1 }]} numberOfLines={2}>{item.title}</Text>
               <TouchableOpacity style={s.hsSave} onPress={() => toggleSave(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Text style={{ fontSize: 17, color: isSaved ? '#2B6FED' : '#C7C7CC' }}>{isSaved ? 'B' : 'b'}</Text>
+                <Ionicons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={19} color={isSaved ? '#2563EB' : '#9CA3AF'} />
               </TouchableOpacity>
             </View>
 
@@ -424,7 +396,7 @@ export default function JobsScreen({ navigation }: any) {
 
             <View style={s.hsFooter}>
               <Text style={s.hsPosted}>
-                {formatTime(item.created_at)}{item.application_count > 0 ? '  -  ' + item.application_count + ' applied' : ''}
+                {formatTime(item.created_at)}{item.applications_count > 0 ? '  -  ' + item.applications_count + ' applied' : ''}
               </Text>
               {!isOwn && (
                 appStatus ? (
@@ -432,7 +404,7 @@ export default function JobsScreen({ navigation }: any) {
                     <Text style={[s.hsApplyTxt, s.hsAppliedTxt]}>Applied</Text>
                   </View>
                 ) : (
-                  <TouchableOpacity style={s.hsApply} onPress={() => setApplyTarget(item)} activeOpacity={0.85}>
+                  <TouchableOpacity style={s.hsApply} onPress={() => (navigation as any).navigate('JobDetail', { job: item })} activeOpacity={0.85}>
                     <Text style={s.hsApplyTxt}>Apply</Text>
                   </TouchableOpacity>
                 )
@@ -454,8 +426,8 @@ export default function JobsScreen({ navigation }: any) {
 
         {isOwn && (
           <View style={s.hsSecondary}>
-            <TouchableOpacity style={s.hsLink} onPress={() => loadApplicants(item)}>
-              <Text style={s.hsLinkTxt}>{item.application_count > 0 ? item.application_count + ' applicants' : 'Applicants'}</Text>
+            <TouchableOpacity style={s.hsLink} onPress={() => (navigation as any).navigate('Applicants', { job: item })}>
+              <Text style={s.hsLinkTxt}>{item.applications_count > 0 ? item.applications_count + ' applicants' : 'Applicants'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.hsLink} onPress={() => loadRecommendations(item)}>
               <Text style={s.hsLinkTxt}>Referrals</Text>
@@ -471,79 +443,9 @@ export default function JobsScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </TouchableOpacity>
     );
   };
-  const renderSavedJob = ({ item }: { item: Job }) => {
-    const appStatus = appliedMap[item.id];
-    const catColor = CATEGORY_COLORS[item.category as string] || '#374151';
-
-    return (
-      <View style={s.card}>
-        <View style={s.cardBadgeRow}>
-          <View style={[s.catBadge, { backgroundColor: catColor + '18', borderColor: catColor + '40' }]}>
-            <Text style={[s.catBadgeTxt, { color: catColor }]}>
-              {CATEGORY_TABS.find(t => t.id === item.category)?.emoji} {categoryLabel(item.category as string)}
-            </Text>
-          </View>
-          {item.urgent && <View style={s.urgentBadge}><Text style={s.urgentTxt}>⚡ Urgent</Text></View>}
-        </View>
-
-        <View style={s.cardMain}>
-          <View style={s.cardLeft}>
-            <Text style={s.jobTitle} numberOfLines={2}>{item.title}</Text>
-            <Text style={s.jobCompany}>{item.company}</Text>
-            <View style={s.jobMetaRow}>
-              {item.location && <Text style={s.jobMeta}>📍 {item.location}</Text>}
-              {item.remote_type !== 'on_site' && (
-                <Text style={s.jobMeta}>{item.remote_type === 'remote' ? '🌐 Remote' : '🔀 Hybrid'}</Text>
-              )}
-            </View>
-            {item.salary_range && <Text style={s.salary}>💰 {item.salary_range}</Text>}
-            <View style={s.jobFooter}>
-              <Text style={s.jobTime}>{formatTime(item.created_at)}</Text>
-              {item.application_count > 0 && <Text style={s.jobApps}>{item.application_count} applied</Text>}
-            </View>
-          </View>
-          <TouchableOpacity
-            onPress={() => item.posted_by && navigation.navigate('UserProfile', { userId: item.posted_by })}
-            style={s.cardPoster}
-          >
-            {item.profile?.avatar_url
-              ? <Image source={{ uri: item.profile.avatar_url }} style={s.posterAvatar} fadeDuration={200} />
-              : <View style={s.posterAvatarFb}><Text style={s.posterAvatarTxt}>{initials(item.profile?.full_name || item.profile?.username)}</Text></View>}
-            <Text style={s.posterName} numberOfLines={1}>{item.profile?.full_name || 'Poster'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={s.cardActions}>
-          <TouchableOpacity style={[s.actionSave, s.actionSaveActive]} onPress={() => toggleSave(item.id)}>
-            <Text style={[s.actionSaveTxt, s.actionSaveTxtActive]}>🔖 Unsave</Text>
-          </TouchableOpacity>
-
-          {item.posted_by !== userId && (
-            <>
-              {appStatus ? (
-                <View style={[s.actionApplied, { backgroundColor: STATUS_META[appStatus].bg }]}>
-                  <Text style={[s.actionAppliedTxt, { color: STATUS_META[appStatus].color }]}>
-                    {STATUS_META[appStatus].label}
-                  </Text>
-                </View>
-              ) : (
-                <TouchableOpacity style={s.actionApply} onPress={() => { setShowSaved(false); setApplyTarget(item); }}>
-                  <Text style={s.actionApplyTxt}>Apply</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity style={s.actionMsg} onPress={() => { setShowSaved(false); messageJobPoster(item); }}>
-                <Text style={s.actionMsgTxt}>💬 Message</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F4F6F9" />
@@ -553,14 +455,17 @@ export default function JobsScreen({ navigation }: any) {
           <View style={s.hsTopRow}>
             <Text style={s.hsPageTitle}>Jobs</Text>
             <View style={s.hsTopActions}>
-              <TouchableOpacity onPress={() => navigation.navigate('JobsInbox')} style={s.hsTopBtn}>
-                <Text style={s.hsTopBtnTxt}>Messages{jobsUnread > 0 ? ' ' + (jobsUnread > 99 ? '99+' : jobsUnread) : ''}</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('JobsInbox')} style={s.hsIconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="chatbubble-outline" size={22} color="#0B1E3D" />
+                {jobsUnread > 0 && <View style={s.hsDot}><Text style={s.hsDotTxt}>{jobsUnread > 99 ? '99+' : jobsUnread}</Text></View>}
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowSaved(true)} style={s.hsTopBtn}>
-                <Text style={s.hsTopBtnTxt}>Saved{savedIds.size > 0 ? ' ' + savedIds.size : ''}</Text>
+              <TouchableOpacity onPress={() => (navigation as any).navigate('SavedJobs')} style={s.hsIconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="bookmark-outline" size={22} color="#0B1E3D" />
+                {savedIds.size > 0 && <View style={s.hsDot}><Text style={s.hsDotTxt}>{savedIds.size}</Text></View>}
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowApplications(true)} style={s.hsTopBtn}>
-                <Text style={s.hsTopBtnTxt}>Applications{myApplications.length > 0 ? ' ' + myApplications.length : ''}</Text>
+              <TouchableOpacity onPress={() => (navigation as any).navigate('MyApplications')} style={s.hsIconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="document-text-outline" size={22} color="#0B1E3D" />
+                {myApplications.length > 0 && <View style={s.hsDot}><Text style={s.hsDotTxt}>{myApplications.length}</Text></View>}
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setShowPost(true)} style={s.hsPostBtn}>
                 <Text style={s.hsPostBtnTxt}>Post</Text>
@@ -653,100 +558,6 @@ export default function JobsScreen({ navigation }: any) {
         )}
       </View>
 
-      {/* Saved Jobs Modal */}
-      <Modal visible={showSaved} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowSaved(false)}>
-        <SafeAreaView style={s.modalSafe}>
-          <View style={s.modalHeader}>
-            <Text style={s.modalTitle}>Saved Jobs</Text>
-            <TouchableOpacity onPress={() => setShowSaved(false)} style={s.modalClose}><Text style={s.modalCloseTxt}>✕</Text></TouchableOpacity>
-          </View>
-          <FlatList
-            data={savedJobs}
-            keyExtractor={j => j.id}
-            renderItem={renderSavedJob}
-            onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, !savedJobs.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
-            ListEmptyComponent={
-              <View style={s.empty}>
-                <Text style={s.emptyEmoji}>🔖</Text>
-                <Text style={s.emptyTitle}>No saved jobs</Text>
-                <Text style={s.emptyTxt}>Tap the Save button on any job to bookmark it here for later.</Text>
-              </View>
-            }
-          />
-        </SafeAreaView>
-      </Modal>
-
-      <Modal visible={showApplications} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowApplications(false)}>
-        <SafeAreaView style={s.modalSafe}>
-          <View style={s.modalHeader}>
-            <Text style={s.modalTitle}>My Applications</Text>
-            <TouchableOpacity onPress={() => setShowApplications(false)} style={s.modalClose}><Text style={s.modalCloseTxt}>✕</Text></TouchableOpacity>
-          </View>
-          <FlatList
-            data={myApplications}
-            keyExtractor={a => a.id}
-            onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
-            ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No applications yet.</Text></View>}
-            renderItem={({ item }) => {
-              const sm = STATUS_META[item.status];
-              const j = item.job as Job | undefined;
-              return (
-                <View style={s.appCard}>
-                  <View style={s.appCardTop}>
-                    <View style={s.appCardInfo}>
-                      <Text style={s.appJobTitle}>{j?.title || 'Job'}</Text>
-                      <Text style={s.appCompany}>{j?.company || ''}</Text>
-                      <Text style={s.appDate}>Applied {formatTime(item.applied_at)}</Text>
-                    </View>
-                    <View style={[s.appStatusBadge, { backgroundColor: sm.bg }]}>
-                      <Text style={[s.appStatusTxt, { color: sm.color }]}>{sm.label}</Text>
-                    </View>
-                  </View>
-                  {item.cover_note && <Text style={s.appNote} numberOfLines={2}>{item.cover_note}</Text>}
-                </View>
-              );
-            }}
-          />
-        </SafeAreaView>
-      </Modal>
-
-      <Modal visible={!!applyTarget} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setApplyTarget(null)}>
-        <SafeAreaView style={s.modalSafe}>
-          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>Apply</Text>
-              <TouchableOpacity onPress={() => { setApplyTarget(null); setCoverNote(''); }} style={s.modalClose}><Text style={s.modalCloseTxt}>✕</Text></TouchableOpacity>
-            </View>
-            <ScrollView contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
-              {applyTarget && (
-                <>
-                  <View style={s.applyJobBanner}>
-                    <Text style={s.applyJobTitle}>{applyTarget.title}</Text>
-                    <Text style={s.applyJobCompany}>{applyTarget.company}{applyTarget.location ? ` · ${applyTarget.location}` : ''}</Text>
-                  </View>
-                  <Text style={s.fieldLabel}>Your profile will be sent as your CV.</Text>
-                  <Text style={s.fieldLabel2}>Add a cover note (optional)</Text>
-                  <TextInput
-                    value={coverNote} onChangeText={setCoverNote}
-                    placeholder="Briefly explain why you're a great fit..."
-                    placeholderTextColor="#9CA3AF"
-                    style={s.coverInput}
-                    multiline numberOfLines={5}
-                    maxLength={500}
-                  />
-                  <TouchableOpacity
-                    style={[s.submitBtn, applying && { opacity: 0.5 }]}
-                    onPress={submitApply} disabled={applying}
-                  >
-                    {applying ? <ActivityIndicator color="#FFF" /> : <Text style={s.submitBtnTxt}>Submit Application</Text>}
-                  </TouchableOpacity>
-                </>
-              )}
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </Modal>
-
       <Modal visible={!!recTarget} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setRecTarget(null); setRecName(''); setRecContact(''); setRecMessage(''); }}>
         <SafeAreaView style={s.modalSafe}>
           <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -805,68 +616,7 @@ export default function JobsScreen({ navigation }: any) {
         </SafeAreaView>
       </Modal>
 
-      <Modal visible={!!viewAppsJob} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setViewAppsJob(null); setJobApplicants([]); }}>
-        <SafeAreaView style={s.modalSafe}>
-          <View style={s.modalHeader}>
-            <Text style={s.modalTitle}>Applicants {viewAppsJob?.title ? `— ${viewAppsJob.title}` : ''}</Text>
-            <TouchableOpacity onPress={() => { setViewAppsJob(null); setJobApplicants([]); }} style={s.modalClose}>
-              <Text style={s.modalCloseTxt}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          {loadingApps
-            ? <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color="#2563EB" size="large" /></View>
-            : (
-              <FlatList
-                data={jobApplicants}
-                keyExtractor={a => a.id}
-                onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
-                ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No applicants yet.</Text></View>}
-                renderItem={({ item }) => {
-                  const sm = STATUS_META[item.status];
-                  const ap = (item as any).applicant;
-                  return (
-                    <View style={s.appCard}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                        {ap?.avatar_url
-                          ? <Image source={{ uri: ap.avatar_url }} style={s.referUserAvatar} fadeDuration={200} />
-                          : <View style={s.referUserAvatarFb}><Text style={s.referUserAvatarTxt}>{initials(ap?.full_name)}</Text></View>}
-                        <View style={{ flex: 1 }}>
-                          <Text style={s.appJobTitle}>{ap?.full_name || 'Applicant'}</Text>
-                          {ap?.degree_program && <Text style={s.appCompany}>{ap.degree_program}</Text>}
-                          {ap?.cohort && <Text style={s.appDate}>Cohort: {ap.cohort}</Text>}
-                        </View>
-                        <View style={[s.appStatusBadge, { backgroundColor: sm.bg }]}>
-                          <Text style={[s.appStatusTxt, { color: sm.color }]}>{sm.label}</Text>
-                        </View>
-                      </View>
-                      {item.cover_note && <Text style={s.appNote}>{item.cover_note}</Text>}
-                      <Text style={s.appDate}>Applied {formatTime(item.applied_at)}</Text>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }} contentContainerStyle={{ gap: 6 }}>
-                        {(['viewed','shortlisted','interview','rejected','accepted'] as ApplicationStatus[]).map(st => (
-                          <TouchableOpacity
-                            key={st}
-                            style={[s.statusChip, item.status === st && { backgroundColor: STATUS_META[st].bg, borderColor: STATUS_META[st].color }]}
-                            onPress={async () => {
-                              try {
-                                await jobsService.updateApplicationStatus(item.id, st);
-                                setJobApplicants(prev => prev.map(a => a.id === item.id ? { ...a, status: st } : a));
-                              } catch (e) { Alert.alert('Error', 'Could not update status'); }
-                            }}
-                          >
-                            <Text style={[s.statusChipTxt, item.status === st && { color: STATUS_META[st].color }]}>
-                              {STATUS_META[st].label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  );
-                }}
-              />
-            )
-          }
-        </SafeAreaView>
-      </Modal>
+      
 
       <Modal visible={!!viewRecsJob} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setViewRecsJob(null); setJobRecs([]); }}>
         <SafeAreaView style={s.modalSafe}>
@@ -915,23 +665,7 @@ export default function JobsScreen({ navigation }: any) {
             </View>
             <ScrollView contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
 
-              <Text style={s.fieldLabel2}>Visibility</Text>
-              <View style={s.toggleRow}>
-                {([
-                  { id: 'institution', label: 'Invite only', desc: 'Shared with people you send it to' },
-                  { id: 'global', label: '🌐 Global', desc: 'Visible everywhere' },
-                ] as const).map(sc => (
-                  <TouchableOpacity
-                    key={sc.id}
-                    style={[s.toggleChip, postForm.scope === sc.id && s.toggleChipActive]}
-                    onPress={() => setPostForm(p => ({ ...p, scope: sc.id }))}
-                  >
-                    <Text style={[s.toggleChipTxt, postForm.scope === sc.id && s.toggleChipTxtActive]}>
-                      {sc.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              
 
               <Text style={s.fieldLabel2}>Job Type</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 14 }}>
@@ -1046,31 +780,34 @@ const s = StyleSheet.create({
   hsTopActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   hsTopBtn: { paddingVertical: 4 },
   hsTopBtnTxt: { fontSize: 13.5, fontWeight: '600', color: '#4B5563' },
-  hsPostBtn: { backgroundColor: '#2B6FED', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7 },
+  hsPostBtn: { backgroundColor: '#0B1E3D', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7 },
   hsPostBtnTxt: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
-  hsSearch: { marginHorizontal: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#111827' },
+  hsSearch: { marginHorizontal: 16, marginTop: 10, backgroundColor: '#FAFAF9', borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0B1E3D' },
   hsTabRow: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E0E0E0' },
   hsTab: { marginRight: 22, paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  hsTabActive: { borderBottomColor: '#2B6FED' },
+  hsTabActive: { borderBottomColor: '#0B1E3D' },
   hsTabTxt: { fontSize: 14.5, fontWeight: '600', color: '#6B7280' },
-  hsTabTxtActive: { color: '#2B6FED', fontWeight: '700' },
+  hsTabTxtActive: { color: '#0B1E3D', fontWeight: '700' },
   hsChipRow: { paddingHorizontal: 16, gap: 8, paddingVertical: 12 },
   hsChip: { paddingHorizontal: 13, height: 32, borderRadius: 16, borderWidth: 1, borderColor: '#D1D5DB', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
-  hsChipActive: { backgroundColor: '#EFF3FA', borderColor: '#2B6FED' },
+  hsChipActive: { backgroundColor: 'rgba(11,30,61,0.06)', borderColor: '#0B1E3D' },
   hsChipTxt: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  hsChipTxtActive: { color: '#2B6FED' },
+  hsChipTxtActive: { color: '#0B1E3D' },
   hsResultRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12, gap: 16 },
   hsResultCount: { fontSize: 14, fontWeight: '700', color: '#111827' },
   hsSortTxt: { fontSize: 13.5, fontWeight: '600', color: '#9CA3AF' },
-  hsSortTxtActive: { color: '#2B6FED' },
+  hsSortTxtActive: { color: '#0B1E3D' },
+  hsIconBtn: { padding: 6, position: 'relative' },
+  hsDot: { position: 'absolute', top: 0, right: -2, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#FF3040', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  hsDotTxt: { color: '#FFFFFF', fontSize: 9.5, fontWeight: '800' },
   hsCardRoot: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E0E0E0', marginBottom: 10, overflow: 'hidden' },
   hsSecondary: { flexDirection: 'row', gap: 18, paddingHorizontal: 14, paddingBottom: 12, paddingTop: 2 },
   hsLink: { paddingVertical: 4 },
-  hsLinkTxt: { fontSize: 13, fontWeight: '600', color: '#2B6FED' },
+  hsLinkTxt: { fontSize: 13, fontWeight: '600', color: '#0B1E3D' },
   hsCard: { flexDirection: 'row', gap: 12, padding: 14 },
-  hsLogo: { width: 48, height: 48, borderRadius: 10, backgroundColor: '#EFF3FA', alignItems: 'center', justifyContent: 'center' },
-  hsLogoTxt: { fontSize: 18, fontWeight: '800', color: '#2B6FED' },
-  hsTitle: { fontSize: 16, fontWeight: '700', color: '#2B6FED', letterSpacing: -0.3 },
+  hsLogo: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(201,191,176,0.7)' },
+  hsLogoTxt: { fontSize: 18, fontWeight: '800', color: '#C9BFB0' },
+  hsTitle: { fontSize: 16, fontWeight: '700', color: '#0B1E3D', letterSpacing: -0.3 },
   hsCompany: { fontSize: 14, color: '#4B5563', marginTop: 2 },
   hsMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
   hsMeta: { fontSize: 13, color: '#6B7280' },
@@ -1085,7 +822,7 @@ const s = StyleSheet.create({
   hsSave: { padding: 4 },
   hsFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
   hsPosted: { fontSize: 12, color: '#9CA3AF' },
-  hsApply: { backgroundColor: '#2B6FED', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
+  hsApply: { backgroundColor: '#0B1E3D', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9 },
   hsApplyTxt: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '700' },
   hsApplied: { backgroundColor: '#F3F4F6' },
   hsAppliedTxt: { color: '#6B7280' },
@@ -1211,9 +948,9 @@ const s = StyleSheet.create({
   catChipTxtActive: { color: '#FFF' },
   toggleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 },
   toggleChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D1D5DB' },
-  toggleChipActive: { backgroundColor: '#EFF3FA', borderColor: '#2B6FED' },
+  toggleChipActive: { backgroundColor: '#EFF3FA', borderColor: '#0B1E3D' },
   toggleChipTxt: { fontSize: 12, fontWeight: '600', color: '#475569' },
-  toggleChipTxtActive: { color: '#2B6FED' },
+  toggleChipTxtActive: { color: '#0B1E3D' },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
   switchInfo: { flex: 1 },
   switchLabel: { fontSize: 14, fontWeight: '700', color: '#0F172A' },

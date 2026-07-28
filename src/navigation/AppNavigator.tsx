@@ -33,6 +33,12 @@ import NotificationsScreen  from '../screens/notifications/NotificationsScreen';
 
 import NetworkScreen                  from '../screens/network/NetworkScreen';
 
+import JobDetailScreen           from '../screens/jobs/JobDetailScreen';
+import ApplicantsScreen          from '../screens/jobs/ApplicantsScreen';
+import SavedJobsScreen           from '../screens/jobs/SavedJobsScreen';
+import MyApplicationsScreen      from '../screens/jobs/MyApplicationsScreen';
+import BusinessInboxScreen       from '../screens/profile/BusinessInboxScreen';
+import CampaignsScreen           from '../screens/profile/CampaignsScreen';
 import JobsScreen           from '../screens/jobs/JobsScreen';
 
 import MarketScreen         from '../screens/market/MarketScreen';
@@ -131,6 +137,7 @@ function MessagesStackNav() {
     <MsgStack.Navigator screenOptions={{ headerShown: false }}>
       <MsgStack.Screen name="Conversations"    component={ConversationsScreen} />
       <MsgStack.Screen name="CreateGroup"      component={CreateGroupScreen} />
+      <MsgStack.Screen name="FindPeople"       component={NetworkScreen} />
       <MsgStack.Screen name="GroupManagement"  component={GroupManagementScreen} />
       <MsgStack.Screen name="MessageRequests"  component={MessageRequestsScreen} />
       <MsgStack.Screen name="SavedMessages"    component={SavedMessagesScreen} />
@@ -454,6 +461,12 @@ export default function AppNavigator() {
                 <RootStack.Screen name="TrendFeed"            component={TrendFeedScreen} />
                 <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
                 <RootStack.Screen name="Chat"                 component={ChatScreen} />
+                <RootStack.Screen name="JobDetail"            component={JobDetailScreen} />
+                <RootStack.Screen name="Applicants"           component={ApplicantsScreen} />
+                <RootStack.Screen name="SavedJobs"            component={SavedJobsScreen} />
+                <RootStack.Screen name="MyApplications"       component={MyApplicationsScreen} />
+                <RootStack.Screen name="BusinessInbox"        component={BusinessInboxScreen} />
+                <RootStack.Screen name="Campaigns"            component={CampaignsScreen} />
               </RootStack.Group>
 
               {/* Phase 8: Story creation cinematic realm — dark atmospheric fade entry */}

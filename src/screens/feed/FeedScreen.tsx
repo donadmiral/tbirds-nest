@@ -1,8 +1,10 @@
 import TrendingList from '../../components/TrendingList';
 import * as FileSystem from 'expo-file-system/legacy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { storiesService } from '../../services/storiesService';
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator,
+  View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Linking,
   StatusBar, RefreshControl, Share, Alert, TextInput, Image,
   KeyboardAvoidingView, Platform, Keyboard, ScrollView, Dimensions, Modal,
   Animated,
@@ -11,7 +13,7 @@ import {
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -28,7 +30,8 @@ import ProductPickerSheet from '../../components/ProductPickerSheet';
 import ActorSwitcher from '../../components/ActorSwitcher';
 import { useActorStore, authorId as currentAuthorId } from '../../stores/actorStore';
 import ImageView from 'react-native-image-viewing';
-import { Video as AVVideo, ResizeMode as AVResizeMode } from 'expo-av';
+import FullscreenVideo from '../../components/FullscreenVideo';
+import VideoFeedModal from '../../components/VideoFeedModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedSkeleton } from '../../components/Skeleton';
 import { light } from '../../constants/tokens';
@@ -45,7 +48,7 @@ type Post = {
   channel?: string | null;
   quoted_post_id?: string | null;
   thread_parent_id?: string | null;
-  media: MediaItem[]; score: number; is_trending?: boolean; products?: PostProduct[];
+  media: MediaItem[]; score: number; is_trending?: boolean; products?: PostProduct[]; _promo?: { id: string; label: string };
 };
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
 type ProfileMap = Record<string, ProfileLite>;
@@ -60,7 +63,7 @@ function scorePost(p: Omit<Post, 'score'>): number {
 const PAGE_SIZE = 20;
 
 function feedModeToServer(m: string): string {
-  return m === 'forYou' ? 'for_you' : m === 'innovation' ? 'innovation' : 'latest';
+  return m === 'forYou' ? 'for_you' : m === 'innovation' ? 'innovation' : m === 'trending' ? 'trending' : 'latest';
 }
 
 /** Map one get_feed row into the Post shape the render code already expects. */
@@ -70,6 +73,7 @@ function mapFeedRow(r: any): Post {
     likes_count: r.likes_count ?? 0, comments_count: r.comments_count ?? 0, views_count: r.views_count ?? 0,
     is_trending: !!r.is_trending,
     products: Array.isArray(r.products) ? r.products : [],
+    link: r.link ?? null,
     reposts_count: r.reposts_count ?? 0, bookmarks_count: r.bookmarks_count ?? 0,
     created_at: r.created_at, media_url: r.media_url ?? null,
     location: null,
@@ -142,6 +146,17 @@ export default function FeedScreen({ navigation }: any) {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [profilesMap, setProfilesMap] = useState<ProfileMap>({});
+  const [postRings, setPostRings] = useState<Record<string, boolean>>({});
+  useFocusEffect(useCallback(() => {
+    let alive = true;
+    storiesService.getCatchupFeed('all', 100).then(users => {
+      if (!alive) return;
+      const map: Record<string, boolean> = {};
+      (users || []).forEach((u: any) => { if (u?.user_id) map[u.user_id] = !!u.has_unseen; });
+      setPostRings(map);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []));
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
   const [likerNames, setLikerNames] = useState<Record<string, string[]>>({});
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
@@ -185,6 +200,7 @@ export default function FeedScreen({ navigation }: any) {
   const [posting, setPosting] = useState(false);
   const [exclusivePost, setExclusivePost] = useState(false);
   const [innovationPost, setInnovationPost] = useState(false);
+  const [postAudience, setPostAudience] = useState<'everyone' | 'followers' | 'mentioned' | 'verified'>('everyone');
   const [articleTitle, setArticleTitle] = useState('');
   const [composerProducts, setComposerProducts] = useState<PostProduct[]>([]);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
@@ -194,7 +210,7 @@ export default function FeedScreen({ navigation }: any) {
   const [menuPost, setMenuPost] = useState<Post | null>(null);
   const [insightsPostId, setInsightsPostId] = useState<string | null>(null);
   const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
-  const [fsVideo, setFsVideo] = useState<{ url: string } | null>(null);
+  const [fsVideo, setFsVideo] = useState<{ id?: string; url: string } | null>(null);
   useEffect(() => {
     AsyncStorage.getItem('pc_draft').then(v => {
       if (!v) return;
@@ -727,6 +743,61 @@ export default function FeedScreen({ navigation }: any) {
     }
   }, [userId]);
 
+  const AUD_META: Record<string, { label: string; icon: any }> = {
+    everyone:  { label: 'Everyone',       icon: 'globe' },
+    followers: { label: 'Followers',      icon: 'users' },
+    mentioned: { label: 'Mentioned only', icon: 'at-sign' },
+    verified:  { label: 'Verified only',  icon: 'check-circle' },
+  };
+  const pickAudience = useCallback(() => {
+    Alert.alert('Who can see this post?', 'This is enforced by the server, not just hidden.', [
+      { text: 'Everyone',       onPress: () => setPostAudience('everyone') },
+      { text: 'Followers',      onPress: () => setPostAudience('followers') },
+      { text: 'Mentioned only', onPress: () => setPostAudience('mentioned') },
+      { text: 'Verified only',  onPress: () => setPostAudience('verified') },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }, []);
+
+  const [promos, setPromos] = useState<Post[]>([]);
+  const promoSeenRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.rpc('get_active_promos', { p_limit: 3 });
+        const seenIds = new Set<string>(); const rows = ((data ?? []) as any[]).filter(r => { if (seenIds.has(r.post_id)) return false; seenIds.add(r.post_id); return true; });
+        if (rows.length === 0) return;
+        const pm: Record<string, any> = {};
+        rows.forEach(r => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified }; });
+        setProfilesMap(prev => ({ ...pm, ...prev }));
+        setPromos(rows.map(r => ({ ...mapFeedRow(r), _promo: { id: r.promo_id, label: r.promo_label || 'Sponsored' } } as any)));
+      } catch {}
+    })();
+  }, []);
+  useEffect(() => {
+    if (!activePostId) return;
+    const p: any = promos.find(x => x.id === activePostId);
+    if (!p || !p._promo || promoSeenRef.current.has(p._promo.id)) return;
+    promoSeenRef.current.add(p._promo.id);
+    supabase.rpc('record_ad_event', { p_promo_id: p._promo.id, p_kind: 'impression' }).then(() => {}, () => {});
+  }, [activePostId, promos]);
+
+  const [composerPreview, setComposerPreview] = useState<any>(null);
+  const lpDebounceRef = useRef<any>(null);
+  useEffect(() => {
+    if (lpDebounceRef.current) clearTimeout(lpDebounceRef.current);
+    const m = composerText.match(/https?:\/\/[^\s<>"]+/);
+    if (!m) { setComposerPreview(null); return; }
+    const url = m[0];
+    lpDebounceRef.current = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('link-preview', { body: { url } });
+        if (!error && data && !data.error) setComposerPreview(data);
+      } catch {}
+    }, 800);
+    return () => { if (lpDebounceRef.current) clearTimeout(lpDebounceRef.current); };
+  }, [composerText]);
+
   const hidePost = useCallback(async (postId: string) => {
     hiddenIdsRef.current.add(postId);
     setPosts(prev => prev.filter(p => p.id !== postId));
@@ -734,6 +805,27 @@ export default function FeedScreen({ navigation }: any) {
     const { error } = await supabase.from('hidden_posts').insert({ user_id: userId, post_id: postId });
     if (error && error.code !== '23505') console.log('[HIDE_ERR]', error.message);
   }, [userId]);
+
+  const blockAuthor = useCallback(() => {
+    const captured = menuPost;
+    setMenuPost(null);
+    if (!captured || captured.user_id === userId) return;
+    const name = profilesMap[captured.user_id]?.full_name || 'this user';
+    setTimeout(() => {
+      Alert.alert(
+        `Block ${name}?`,
+        'They will no longer see your posts or message you, and their posts and comments will be hidden from you.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Block', style: 'destructive', onPress: async () => {
+            const { error } = await supabase.from('blocked_users').upsert({ blocker_id: userId, blocked_id: captured.user_id });
+            if (error) { Alert.alert('Could not block', error.message); return; }
+            setPosts(prev => prev.filter(p => p.user_id !== captured.user_id));
+          } },
+        ]
+      );
+    }, 350);
+  }, [menuPost, userId, profilesMap]);
 
   const reportPost = useCallback(async (postId: string, reason: string) => {
     if (!userId) return;
@@ -824,6 +916,25 @@ export default function FeedScreen({ navigation }: any) {
       setSendBusy(false);
     }
   }, [userId, sendPost, sendBusy]);
+
+  const addPostToStory = useCallback((post: Post) => {
+    const author = profilesMap[post.user_id];
+    const media: any[] = (post as any).media || [];
+    const first = media.length > 0 ? media[0] : (post.media_url ? { url: post.media_url, media_type: 'image' } : null);
+    const sticker: any = {
+      id: 'post-' + post.id,
+      text: '', style: 'classic', color: '#FFFFFF',
+      nx: 0.5, ny: 0.42, scale: 1, rotation: 0,
+      kind: 'post',
+      postId: post.id,
+      postAuthorName: author?.full_name || author?.username || 'Platinum Circles',
+      postAuthorAvatar: author?.avatar_url || null,
+      postText: post.content || '',
+      postMediaUrl: first?.url || null,
+      postMediaType: first?.media_type || null,
+    };
+    (navigation as any).navigate('StoryComposer', { mode: 'text', seedStickers: [sticker] });
+  }, [profilesMap, navigation]);
 
   const sharePost = useCallback(async (post: Post) => {
     if (sharingPostRef.current[post.id]) return;
@@ -1019,6 +1130,7 @@ export default function FeedScreen({ navigation }: any) {
         content: composerText.trim() || null,
         is_exclusive: exclusivePost,
         channel: innovationPost ? 'innovation' : null,
+        audience: postAudience,
         ...(innovationPost && articleTitle.trim() ? { article_title: articleTitle.trim(), read_minutes: Math.max(1, Math.round((composerText.trim().split(/\s+/).length || 0) / 200)) } : {}),
         ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
         ...(threadingPost ? { thread_parent_id: threadingPost.id } : {}),
@@ -1059,6 +1171,7 @@ export default function FeedScreen({ navigation }: any) {
       setExclusivePost(false);
       setComposerProducts([]);
       setInnovationPost(false);
+      setPostAudience('everyone');
       setQuotingPost(null);
       setThreadingPost(null);
       Keyboard.dismiss();
@@ -1137,18 +1250,47 @@ export default function FeedScreen({ navigation }: any) {
     if (feedMode === 'innovation') list = list.filter(p => p.channel === 'innovation');
     const term = search.trim().toLowerCase();
     if (term) list = list.filter(p => (p.content || '').toLowerCase().includes(term));
-    if (feedMode === 'forYou') {
-      const boost = (p: Post) => p.score + (followingIds.has(p.user_id) ? 500 : 0);
-      list.sort((a, b) => boost(b) - boost(a));
-    } else {
+    // No client-side re-sort. get_feed already returns rows in sort_key order,
+    // which carries gravity decay, follow weighting, affinity, the seen penalty,
+    // author diversity and trending velocity. Re-sorting here by the old
+    // scorePost formula threw all of that away on the one tab where it matters,
+    // and the churn it caused in list identity stopped onViewableItemsChanged
+    // from firing, which is why videos never autoplayed on For You.
+    if (feedMode !== 'forYou' && feedMode !== 'innovation' && feedMode !== 'trending') {
       list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     }
     const wtfVisible = wtfSuggestions.filter((p: any) => !followingIds.has(p.id));
     if (!search && wtfVisible.length >= 3 && list.length > 8) {
       list = [...list.slice(0, 8), { id: '__wtf', __suggestions: true } as any, ...list.slice(8)];
     }
+if (!search && promos.length > 0) {
+      const promoIds = new Set(promos.map(p => p.id)); list = list.filter(p => !promoIds.has(p.id));
+      const eligible = promos;
+      if (eligible.length > 0) {
+        const out: any[] = [];
+        let pi = 0;
+        list.forEach((p, i) => {
+          out.push(p);
+          if ((i + 1) % 6 === 0 && pi < eligible.length) out.push(eligible[pi++]);
+        });
+        if (pi < eligible.length && out.length > 0 && out.length < 6) out.push(eligible[pi++]);
+        list = out;
+      }
+    }
     return list;
-  }, [posts, feedMode, search, followingIds, wtfSuggestions]);
+  }, [posts, feedMode, search, followingIds, wtfSuggestions, promos]);
+
+  const videoPosts = useMemo(() => displayPosts
+    .filter((p: any) => Array.isArray(p.media) && p.media.some((m: any) => m.media_type === 'video'))
+    .map((p: any) => ({
+      id: p.id,
+      url: (p.media.find((m: any) => m.media_type === 'video') as any).url,
+      authorName: profilesMap[p.user_id]?.full_name || profilesMap[p.user_id]?.username || 'Member',
+      authorAvatar: profilesMap[p.user_id]?.avatar_url || null,
+      caption: p.content || '',
+      likes: p.likes_count || 0,
+      comments: p.comments_count || 0,
+    })), [displayPosts, profilesMap]);
 
   const renderMedia = useCallback((post: any, isActive: boolean, onMediaPress?: () => void) => {
     const mediaItems: CarouselMedia[] = Array.isArray(post.media) && post.media.length > 0
@@ -1217,10 +1359,31 @@ export default function FeedScreen({ navigation }: any) {
       <View style={s.postCard}>
         <View style={s.postTopRow}>
           <TouchableOpacity style={s.postMeta} onPress={() => navigation.navigate('UserProfile', { userId: post.user_id, user: author })} activeOpacity={0.8}>
-            {author?.avatar_url ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /> : <View style={s.avatarFb}><Text style={s.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>}
+            {(() => {
+              const ring = postRings[post.user_id];
+              const ringStyle = ring === undefined ? null
+                : ring ? { borderWidth: 2.5, borderColor: '#B08D3F', borderRadius: 999, padding: 2 }
+                : { borderWidth: 2, borderColor: 'rgba(11,30,61,0.18)', borderRadius: 999, padding: 2 };
+              const av = author?.avatar_url
+                ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />
+                : <View style={s.avatarFb}><Text style={s.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>;
+              if (ring === undefined) return av;
+              return (
+                <TouchableOpacity activeOpacity={0.8} style={ringStyle}
+                  onPress={() => (navigation as any).navigate('StoryViewer', { userId: post.user_id })}>
+                  {av}
+                </TouchableOpacity>
+              );
+            })()}
             <View style={s.postMetaTxt}>
               <Text style={s.postAuthor} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: light.status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
+              {(post as any)._promo && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: '#EEF1F6' }}>
+                  <Feather name="briefcase" size={10} color="#64748B" />
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#64748B', letterSpacing: 0.3 }}>{String((post as any)._promo.label || 'Sponsored').toUpperCase()}</Text>
+                </View>
+              )}
               {post.is_trending && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: light.status.innovationBg }}>
                   <Feather name="trending-up" size={10} color={light.status.innovation} />
@@ -1257,6 +1420,21 @@ export default function FeedScreen({ navigation }: any) {
         </View>
 
         <TouchableOpacity activeOpacity={0.95} onPress={() => handleDoubleTap(post.id, openPost)}>
+          {(post as any).link && (!post.media || post.media.length === 0) && !(post as any).article_title ? (
+            <TouchableOpacity style={s.articleCard} activeOpacity={0.85}
+              onPress={() => Linking.openURL((post as any).link.url).catch(() => {})}>
+              {(post as any).link.image_url ? (
+                <Image source={{ uri: (post as any).link.image_url }} style={s.articleCover} />
+              ) : null}
+              <View style={s.articleBody}>
+                <Text style={s.articleKicker}>{String((post as any).link.domain || 'LINK').toUpperCase()}</Text>
+                <Text style={s.articleTitle} numberOfLines={2}>{(post as any).link.title || (post as any).link.url}</Text>
+                {(post as any).link.description ? (
+                  <Text style={s.articleExcerpt} numberOfLines={2}>{(post as any).link.description}</Text>
+                ) : null}
+              </View>
+            </TouchableOpacity>
+          ) : null}
           {(post as any).article_title ? (
             <TouchableOpacity
               style={s.articleCard}
@@ -1313,14 +1491,14 @@ export default function FeedScreen({ navigation }: any) {
           const openViewer = (idx?: number) => {
             const items: any[] = (post.media && post.media.length > 0) ? post.media : (post.media_url ? [{ url: post.media_url, media_type: 'image' }] : []);
             const tappedItem = items[idx ?? 0];
-            if (tappedItem && tappedItem.media_type === 'video') { setFsVideo({ url: tappedItem.url }); return; }
+            if (tappedItem && tappedItem.media_type === 'video') { setFsVideo({ id: post.id, url: tappedItem.url }); return; }
             const imgs = items.filter((m: any) => m.media_type === 'image').map((m: any) => ({ uri: m.url }));
             if (imgs.length === 0) { openPost(); return; }
             const tapped = items[idx ?? 0];
             const vIdx = tapped ? imgs.findIndex(i => i.uri === tapped.url) : 0;
             setViewer({ images: imgs, index: vIdx >= 0 ? vIdx : 0 });
           };
-          const media = renderMedia(post, screenFocused && post.id === activePostId, (idx?: number) => handleDoubleTap(post.id, () => openViewer(idx)));
+          const media = renderMedia(post, screenFocused && !fsVideo && post.id === activePostId, (idx?: number) => handleDoubleTap(post.id, () => openViewer(idx)));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
@@ -1335,7 +1513,7 @@ export default function FeedScreen({ navigation }: any) {
 
               {heartPost === post.id && (
                 <Animated.View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', opacity: heartAnim, transform: [{ scale: heartAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1.3] }) }] }}>
-                  <Text style={{ fontSize: 80 }}>❤️</Text>
+                  <Ionicons name="heart" size={88} color="#FF3040" style={{ textShadowColor: 'rgba(255,255,255,0.55)', textShadowRadius: 14 }} />
                 </Animated.View>
               )}
               {isVidPost && (post.views_count ?? 0) > 0 && (
@@ -1353,36 +1531,28 @@ export default function FeedScreen({ navigation }: any) {
             <Text style={{ fontSize: 13, fontWeight: '600', color: NAVY }}>Show this thread</Text>
           </TouchableOpacity>
         )}
-        {(post.likes_count > 0 || post.comments_count > 0) && (
-          <View style={s.metricsRow}>
-            {post.likes_count > 0 && <Text style={s.metric}>{fmtCount(post.likes_count)} {post.likes_count === 1 ? 'like' : 'likes'}</Text>}
-            {post.likes_count > 0 && post.comments_count > 0 && <Text style={s.metricDot}>·</Text>}
-            {post.comments_count > 0 && <Text style={s.metric}>{fmtCount(post.comments_count)} {post.comments_count === 1 ? 'comment' : 'comments'}</Text>}
-          </View>
-        )}
-
         <View style={s.actions}>
-          <TouchableOpacity style={[s.pill, isLiked && s.pillLiked]} onPress={() => toggleLike(post.id)} activeOpacity={0.75} disabled={isBusy(`like-${post.id}`)}>
-            <Feather name="heart" size={14} color={isLiked ? '#E53935' : '#6B7280'} />
-            <Text style={[s.pillTxt, isLiked && s.pillTxtLiked]}>{post.likes_count > 0 ? fmtCount(post.likes_count) : 'Like'}</Text>
+          <TouchableOpacity style={s.pill} onPress={() => toggleLike(post.id)} activeOpacity={0.75} disabled={isBusy(`like-${post.id}`)}>
+            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={22} color={isLiked ? '#FF3040' : light.ink.muted} />
+            <Text style={[s.pillTxt, isLiked && s.pillTxtLiked]}>{post.likes_count > 0 ? fmtCount(post.likes_count) : ''}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={s.pill} onPress={() => navigation.navigate('Post', { postId: post.id, focusComment: true })} activeOpacity={0.75} disabled={isSharing}>
-            <Feather name="message-circle" size={14} color={light.ink.muted} />
-            <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : 'Comment'}</Text>
+            <Feather name="message-circle" size={20} color={light.ink.muted} />
+            <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : ''}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, isReposted && s.pillReposted]} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
-            <Feather name="repeat" size={14} color={isReposted ? '#059669' : '#6B7280'} />
-            <Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{post.reposts_count > 0 ? fmtCount(post.reposts_count) : 'Repost'}</Text>
+          <TouchableOpacity style={s.pill} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
+            <Feather name="repeat" size={20} color={isReposted ? light.status.success : light.ink.muted} />
+            <Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{post.reposts_count > 0 ? fmtCount(post.reposts_count) : ''}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon, isBookmarked && s.pillSaved]} onPress={() => toggleBookmark(post.id)} activeOpacity={0.75} disabled={isBusy(`bk-${post.id}`)}>
-            <Feather name="bookmark" size={14} color={isBookmarked ? '#2563EB' : '#6B7280'} />
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => toggleBookmark(post.id)} activeOpacity={0.75} disabled={isBusy(`bk-${post.id}`)}>
+            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
-            <Feather name="share-2" size={14} color={light.ink.muted} />
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => addPostToStory(post) }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
+            <Feather name="share-2" size={20} color={light.ink.muted} />
           </TouchableOpacity>
         </View>
         {post.products && post.products.length > 0 && (
@@ -1419,6 +1589,9 @@ export default function FeedScreen({ navigation }: any) {
       </View>
     );
   }, [
+    activePostId,
+    screenFocused,
+    fsVideo,
     profilesMap,
     likerNames,
     quotedMap,
@@ -1434,7 +1607,7 @@ export default function FeedScreen({ navigation }: any) {
     sharePost,
   ]);
 
-  const flatListExtra = heartPost;
+  const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused) + '|' + String(!!fsVideo);
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
@@ -1604,6 +1777,11 @@ export default function FeedScreen({ navigation }: any) {
                 <View style={s.cAuthorRow}>
                   {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.cAvatar} fadeDuration={200} /> : <View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
                   <Text style={s.cName}>{profile?.full_name || 'You'}</Text>
+                  <TouchableOpacity style={s.audChip} onPress={pickAudience} activeOpacity={0.75}>
+                    <Feather name={AUD_META[postAudience].icon} size={12} color={NAVY} />
+                    <Text style={s.audChipTxt}>{AUD_META[postAudience].label}</Text>
+                    <Feather name="chevron-down" size={12} color={NAVY} />
+                  </TouchableOpacity>
                 </View>
                 <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={light.ink.faint} multiline autoFocus maxLength={2000} />
                 {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
@@ -1629,6 +1807,15 @@ export default function FeedScreen({ navigation }: any) {
                     <Text style={[s.exclusiveBannerTxt, { color: '#B45309' }]}>Posting to Innovation — showcasing what Zimbabwe is building</Text>
                   </View>
                 )}
+                {composerPreview && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, padding: 10, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, backgroundColor: light.surface.raised }}>
+                    {composerPreview.image_url ? <Image source={{ uri: composerPreview.image_url }} style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#EFEFF4' }} /> : null}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, color: light.ink.muted }}>{String(composerPreview.domain || '').toUpperCase()}</Text>
+                      <Text style={{ fontSize: 13.5, fontWeight: '600', color: light.ink.primary }} numberOfLines={2}>{composerPreview.title || composerPreview.url}</Text>
+                    </View>
+                  </View>
+                )}
                 {composerMedia.length > 0 && (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.cMediaScroll} keyboardShouldPersistTaps="handled">
                     {composerMedia.map((m, i) => (
@@ -1648,11 +1835,7 @@ export default function FeedScreen({ navigation }: any) {
                     <TouchableOpacity style={s.toolBtn} onPress={pickMedia}><Feather name="image" size={20} color={light.ink.muted} /></TouchableOpacity>
                     <TouchableOpacity style={s.toolBtn} onPress={openCamera}><Feather name="camera" size={20} color={light.ink.muted} /></TouchableOpacity>
                     <TouchableOpacity style={[s.toolBtn, innovationPost && s.toolBtnActive]} onPress={() => setInnovationPost(p => !p)}><Feather name="zap" size={20} color={innovationPost ? '#D97706' : '#6B7280'} /></TouchableOpacity>
-                    {isVerifiedSchoolUser && (
-                      <TouchableOpacity style={[s.toolBtn, exclusivePost && s.toolBtnActive]} onPress={() => setExclusivePost(p => !p)}>
-                        <Feather name="shield" size={20} color={exclusivePost ? '#2563EB' : '#6B7280'} />
-                      </TouchableOpacity>
-                    )}
+                    
                     <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)}><Feather name="tag" size={20} color={composerProducts.length > 0 ? light.brand.base : light.ink.muted} /></TouchableOpacity>{composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
@@ -1668,8 +1851,10 @@ export default function FeedScreen({ navigation }: any) {
           )}
 
           {!composerOpen && (
-            <TouchableOpacity activeOpacity={0.9} onPress={() => setComposerOpen(true)} style={[s.fab, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
-              <Text style={s.fabTxt}>+</Text>
+            <TouchableOpacity activeOpacity={0.85} onPress={() => setComposerOpen(true)} style={[s.fabRing, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
+              <View style={s.fabDisc}>
+                <Feather name="edit-3" size={22} color="#FFFFFF" />
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -1731,20 +1916,20 @@ export default function FeedScreen({ navigation }: any) {
       />
 
       <Modal visible={!!fsVideo} animationType="fade" onRequestClose={() => setFsVideo(null)}>
-        <View style={{ flex: 1, backgroundColor: light.ink.primary }}>
-          {fsVideo && (
-            <AVVideo
-              source={{ uri: fsVideo.url }}
-              style={{ flex: 1 }}
-              resizeMode={AVResizeMode.CONTAIN}
-              shouldPlay
-              isLooping
-              useNativeControls
+        <View style={{ flex: 1, backgroundColor: '#000' }}>
+          {fsVideo && videoPosts.some(v => v.id === fsVideo.id) ? (
+            <VideoFeedModal
+              items={videoPosts}
+              startId={fsVideo.id as string}
+              likedMap={likedPosts}
+              onClose={() => setFsVideo(null)}
+              onToggleLike={(id: string) => toggleLike(id)}
+              onOpenComments={(id: string) => { setFsVideo(null); navigation.navigate('Post', { postId: id, focusComment: true }); }}
+              onViewed={(id: string) => { if (userId) supabase.rpc('record_video_view', { p_post_id: id, p_viewer_id: userId, p_session: viewSessionRef.current, p_duration: 5 }).then(() => {}, () => {}); }}
             />
-          )}
-          <TouchableOpacity onPress={() => setFsVideo(null)} style={{ position: 'absolute', top: 54, left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', zIndex: 10 }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Feather name="x" size={20} color={light.ink.inverse} />
-          </TouchableOpacity>
+          ) : fsVideo ? (
+            <FullscreenVideo uri={fsVideo.url} onClose={() => setFsVideo(null)} />
+          ) : null}
         </View>
       </Modal>
 
@@ -1918,57 +2103,12 @@ export default function FeedScreen({ navigation }: any) {
             )}
 
 
-            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
-              const id = menuPost?.id;
-              setMenuPost(null);
-              if (id) setPosts(prev => prev.filter(p => p.id !== id));
-            }}>
-              <Feather name="eye-off" size={18} color={light.ink.muted} />
-              <Text style={s.menuOptionTxt}>Not interested</Text>
-            </TouchableOpacity>
-
             {menuPost?.user_id !== userId && (
-              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
-                const authorId = menuPost?.user_id;
-                const authorName = menuPost ? profilesMap[menuPost.user_id]?.full_name || 'this person' : 'this person';
-                setMenuPost(null);
-                Alert.alert(
-                  `Mute ${authorName}?`,
-                  'Their posts will be hidden from your feed during this session.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Mute', style: 'destructive', onPress: () => {
-                      if (authorId) setPosts(prev => prev.filter(p => p.user_id !== authorId));
-                    }},
-                  ]
-                );
-              }}>
-                <Feather name="volume-x" size={18} color={light.ink.muted} />
-                <Text style={s.menuOptionTxt}>
-                  Mute {menuPost ? profilesMap[menuPost.user_id]?.full_name || 'user' : 'user'}
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={blockAuthor}>
+                <Feather name="slash" size={18} color={light.status.danger} />
+                <Text style={[s.menuOptionTxt, { color: light.status.danger }]}>
+                  Block {menuPost ? profilesMap[menuPost.user_id]?.full_name || 'user' : 'user'}
                 </Text>
-              </TouchableOpacity>
-            )}
-
-            {menuPost?.user_id !== userId && (
-              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
-                setMenuPost(null);
-                setTimeout(() => {
-                  Alert.alert(
-                    'Report post',
-                    'What is the issue with this post?',
-                    [
-                      { text: 'Spam',             onPress: () => Alert.alert('Reported', 'This post has been flagged as spam. We will review it within 24 hours.') },
-                      { text: 'Misinformation',   onPress: () => Alert.alert('Reported', 'Thank you. Our trust and safety team will fact-check this content.') },
-                      { text: 'Harassment',        onPress: () => Alert.alert('Reported', 'We take harassment seriously. This has been escalated for immediate review.') },
-                      { text: 'Inappropriate',     onPress: () => Alert.alert('Reported', 'This content has been reported. We will review it and take appropriate action.') },
-                      { text: 'Cancel', style: 'cancel' },
-                    ]
-                  );
-                }, 400);
-              }}>
-                <Feather name="flag" size={18} color={light.status.warning} />
-                <Text style={[s.menuOptionTxt, { color: light.status.warning }]}>Report post</Text>
               </TouchableOpacity>
             )}
 
@@ -2019,18 +2159,18 @@ const s = StyleSheet.create({
   content: { fontSize: 15, lineHeight: 21, color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 12 },
   hashTag: { color: light.brand.base, fontWeight: '600' },
   mention: { color: light.brand.base, fontWeight: '600' },
-  metricsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 2, gap: 4 },
-  metric: { fontSize: 13, color: light.ink.muted },
-  metricDot: { fontSize: 12, color: light.ink.faint },
-  actions: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 6, gap: 18 },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 0, paddingVertical: 8, borderRadius: 18, borderWidth: 0, borderColor: 'transparent', backgroundColor: 'transparent' },
-  pillLiked: { backgroundColor: light.status.dangerBg, paddingHorizontal: 12 },
-  pillReposted: { backgroundColor: '#F0FDF4', paddingHorizontal: 12 },
-  pillSaved: { backgroundColor: light.status.linkBg, paddingHorizontal: 12 },
+  
+  
+  
+  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 2 },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 4 },
+  
+  
+  
   pillIcon: { paddingHorizontal: 10 },
-  pillTxt: { fontSize: 13, fontWeight: '500', color: light.ink.muted },
-  pillTxtLiked: { color: light.status.danger, fontWeight: '600' },
-  pillTxtReposted: { color: light.status.success, fontWeight: '600' },
+  pillTxt: { fontSize: 13, fontWeight: '600', color: light.ink.muted, fontVariant: ['tabular-nums'] },
+  
+  
   cpWrap: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 4 },
   cpAuthor: { fontWeight: '700', color: light.ink.primary, fontSize: 13 },
   cpTxt: { fontSize: 13, lineHeight: 18, color: light.ink.secondary },
@@ -2064,6 +2204,8 @@ const s = StyleSheet.create({
   cAddMoreTxt: { fontSize: 28, color: light.ink.faint, fontWeight: '300' },
   cToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: '#D7DEE9', backgroundColor: '#F4F6FA' },
+  audChipTxt: { fontSize: 12, fontWeight: '700', color: NAVY },
   cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   toolBtnActive: { backgroundColor: light.status.linkBg, borderColor: '#BFDBFE' },
@@ -2073,8 +2215,9 @@ const s = StyleSheet.create({
   postBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 9, minWidth: 64, alignItems: 'center' },
   postBtnOff: { opacity: 0.3 },
   postBtnTxt: { color: light.ink.inverse, fontSize: 14, fontWeight: '700' },
-  fab: { position: 'absolute', right: 18, width: 54, height: 54, borderRadius: 27, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: light.ink.primary, shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
-  fabTxt: { color: light.ink.inverse, fontSize: 26, fontWeight: '300', lineHeight: 30 },
+  fabRing: { position: 'absolute', right: 18, width: 62, height: 62, borderRadius: 31, borderWidth: 1.5, borderColor: 'rgba(201,191,176,0.9)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' },
+  fabDisc: { width: 52, height: 52, borderRadius: 26, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: light.ink.primary, shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 9 },
+  
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 60 },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: light.ink.primary, textAlign: 'center' },

@@ -11,7 +11,6 @@ type AuthState = {
   profile: Profile | null;
   loading: boolean;
   initialized: boolean;
-  pendingInstitutionId: string | null;
   isVerifiedSchoolUser: boolean;
   isPasswordRecovery: boolean;
   suppressRecoveryRedirect: boolean;
@@ -20,7 +19,6 @@ type AuthState = {
   initialize: () => Promise<void>;
   setSession: (session: Session | null) => void;
   setProfile: (profile: Profile | null) => void;
-  setPendingInstitutionId: (id: string | null) => void;
   setPasswordRecovery: (v: boolean) => void;
   setSuppressRecoveryRedirect: (v: boolean) => void;
   setRecoveryUrl: (url: string | null) => void;
@@ -43,21 +41,6 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     return null;
   }
   return (data ?? null) as Profile | null;
-}
-
-async function claimPendingInstitution(institutionId: string): Promise<void> {
-  try {
-    const { error } = await supabase.rpc('claim_institution', {
-      p_institution_id: institutionId,
-      p_relationship_type: 'current',
-      p_start_year: null,
-      p_end_year: null,
-      p_make_primary: true,
-    });
-    if (error) console.log('[authStore.claimPendingInstitution]', error.message);
-  } catch (e) {
-    console.log('[authStore.claimPendingInstitution]', e);
-  }
 }
 
 function getVerifiedStatus(profile: Profile | null): boolean {
@@ -88,7 +71,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profile: null,
   loading: true,
   initialized: false,
-  pendingInstitutionId: null,
   isVerifiedSchoolUser: false,
   isPasswordRecovery: false,
   suppressRecoveryRedirect: false,
@@ -147,7 +129,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             set({
               session: null,
               profile: null,
-              pendingInstitutionId: null,
               isVerifiedSchoolUser: false,
               isPasswordRecovery: false,
               suppressRecoveryRedirect: false,
@@ -170,7 +151,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({
             session: null,
             profile: null,
-            pendingInstitutionId: null,
             isVerifiedSchoolUser: false,
             isPasswordRecovery: false,
             suppressRecoveryRedirect: false,
@@ -205,11 +185,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             });
           }
 
-          const pending = get().pendingInstitutionId;
-          if (event === 'SIGNED_IN' && pending && newSession.user?.id) {
-            await claimPendingInstitution(pending);
-            set({ pendingInstitutionId: null });
-          }
 
           // Load profile BEFORE updating state
           const p = await loadProfile(newSession.user.id);
@@ -262,7 +237,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setSession: (session) => set({ session }),
   setProfile: (profile) => set({ profile, isVerifiedSchoolUser: getVerifiedStatus(profile) }),
-  setPendingInstitutionId: (id) => set({ pendingInstitutionId: id }),
   setPasswordRecovery: (v) => set({ isPasswordRecovery: v }),
   setSuppressRecoveryRedirect: (v) => set({ suppressRecoveryRedirect: v }),
   setRecoveryUrl: (url) => set({ recoveryUrl: url }),
@@ -286,7 +260,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         session: null,
         profile: null,
-        pendingInstitutionId: null,
         isVerifiedSchoolUser: false,
         isPasswordRecovery: false,
         suppressRecoveryRedirect: false,

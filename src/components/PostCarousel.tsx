@@ -23,6 +23,8 @@ import {
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { useIsFocused } from '@react-navigation/native';
+import { useSettingsStore } from '../stores/settingsStore';
 import { Feather } from '@expo/vector-icons';
 
 export type CarouselMedia = {
@@ -73,10 +75,12 @@ function CarouselImage({ uri, width, height }: { uri: string; width: number; hei
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride,
+  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand,
 }: {
   uri: string; width: number; height: number;
-  isVisible: boolean; isScreenActive: boolean; onTapOverride?: () => void;
+  isVisible: boolean; isScreenActive: boolean;
+  onTapOverride?: () => void;
+  onExpand?: () => void;
 }) {
 // expo-video hands you a player object rather than a component ref, so
   // seeking and muting are property writes instead of async calls.
@@ -85,14 +89,21 @@ function CarouselVideo({
     p.muted = sessionMuted;
     p.timeUpdateEventInterval = 0.25;
   });
+  // Data saver: with autoplay off, videos hold at their poster until tapped.
   const [paused, setPaused] = useState(false);
+  // Data saver: reactive — flipping the setting applies to every card at once.
+  const autoplayOn = useSettingsStore(st => st.autoplayVideos);
+  const [userPlayed, setUserPlayed] = useState(false);
+  useEffect(() => { setUserPlayed(false); }, [uri]); // recycled cards forget the old tap
+  // Navigation focus: leaving the tab MUST silence the video.
+  const screenFocused = useIsFocused();
   const [muted, setMuted] = useState(sessionMuted);
   const [progress, setProgress] = useState(0);
   const [showControls, setShowControls] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsOpacity = useRef(new Animated.Value(0)).current;
 
-  const shouldPlay = isVisible && isScreenActive && !paused;
+  const shouldPlay = isVisible && isScreenActive && screenFocused && !paused && (autoplayOn || userPlayed);
 
   // shouldPlay was a prop on expo-av's Video. On a player object it is an effect.
   useEffect(() => { if (shouldPlay) player.play(); else player.pause(); }, [shouldPlay, player]);
@@ -136,6 +147,7 @@ function CarouselVideo({
   };
 
   const togglePause = () => {
+    setUserPlayed(true); // a tap is consent to spend data
     setPaused(prev => !prev);
     scheduleHide();
   };
@@ -216,6 +228,19 @@ function CarouselVideo({
               <Text style={st.controlLabel}>10</Text>
             </TouchableOpacity>
           </View>
+
+          {onExpand ? (
+            <TouchableOpacity
+              style={st.expandBtn}
+              onPress={() => { scheduleHide(); onExpand(); }}
+              activeOpacity={0.8}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Play fullscreen"
+            >
+              <Feather name="maximize" size={14} color="#FFF" />
+            </TouchableOpacity>
+          ) : null}
         </Animated.View>
       )}
     </TouchableOpacity>
@@ -277,7 +302,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
               height={slideHeight}
               isVisible={true}
               isScreenActive={isActive}
-              onTapOverride={onMediaPress ? () => onMediaPress(0) : undefined}
+              onExpand={onMediaPress ? () => onMediaPress(0) : undefined}
             />
           ) : (
             <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(0)} disabled={!onMediaPress}>
@@ -375,6 +400,12 @@ const st = StyleSheet.create({
   controlLabel: {
     fontSize: 9, fontWeight: '700', color: '#FFF',
     marginTop: -2,
+  },
+  expandBtn: {
+    position: 'absolute', bottom: 46, left: 12,
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center', justifyContent: 'center',
   },
   muteBtn: {
     position: 'absolute', bottom: 12, right: 12,

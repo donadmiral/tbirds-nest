@@ -9,12 +9,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 
-type Tab = 'people' | 'posts' | 'jobs';
+type Tab = 'people' | 'posts' | 'jobs' | 'market';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'people', label: 'People' },
   { id: 'posts',  label: 'Posts' },
   { id: 'jobs',   label: 'Jobs' },
+  { id: 'market', label: 'Market' },
 ];
 
 const RECENT_KEY = 'tbn_recent_searches_v1';
@@ -49,6 +50,8 @@ export default function SearchScreen({ navigation }: any) {
   const [people, setPeople] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [listings, setListings] = useState<any[]>([]);
+  const [trendingTags, setTrendingTags] = useState<any[]>([]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -56,6 +59,15 @@ export default function SearchScreen({ navigation }: any) {
     AsyncStorage.getItem(RECENT_KEY).then(v => {
       if (v) try { setRecent(JSON.parse(v)); } catch {}
     });
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.rpc('get_trending_topics', { p_limit: 8 });
+        setTrendingTags((data ?? []) as any[]);
+      } catch {}
+    })();
   }, []);
 
   const saveRecent = useCallback(async (term: string) => {
@@ -83,23 +95,28 @@ export default function SearchScreen({ navigation }: any) {
     try {
       const like = `%${q}%`;
 
-      const [pplRes, postRes, jobRes] = await Promise.all([
+      const { data: blk } = await supabase.from('blocked_users').select('blocker_id, blocked_id').or('blocker_id.eq.' + (myId ?? '') + ',blocked_id.eq.' + (myId ?? ''));
+      const blockedSet = new Set<string>((blk ?? []).map((b: any) => (b.blocker_id === myId ? b.blocked_id : b.blocker_id)));
+
+      const [pplRes, postRes, jobRes, mktRes] = await Promise.all([
         supabase
           .from('profiles')
-          .select('id, full_name, username, avatar_url, degree_program, cohort, location, bio')
-          .or(`full_name.ilike.${like},username.ilike.${like},degree_program.ilike.${like}`)
+          .select('id, full_name, username, avatar_url, headline, location, bio')
+          .or(`full_name.ilike.${like},username.ilike.${like},headline.ilike.${like}`)
           .neq('id', myId ?? '')
           .limit(25),
-        supabase
-          .from('posts')
-          .select('id, user_id, content, body, media_url, likes_count, comments_count, created_at')
-          .or(`content.ilike.${like},body.ilike.${like}`)
-          .order('created_at', { ascending: false })
-          .limit(20),
+        supabase.rpc('search_posts', { p_q: q, p_limit: 20 }),
         supabase
           .from('jobs')
           .select('id, title, company, location, category, salary_range, posted_by, created_at')
           .or(`title.ilike.${like},company.ilike.${like},location.ilike.${like},industry.ilike.${like}`)
+          .order('created_at', { ascending: false })
+          .limit(20),
+        supabase
+          .from('marketplace_listings')
+          .select('id, title, price, currency, category, condition, location_city, images, seller_id')
+          .eq('status', 'available')
+          .or(`title.ilike.${like},description.ilike.${like},category.ilike.${like}`)
           .order('created_at', { ascending: false })
           .limit(20),
       ]);
@@ -116,9 +133,10 @@ export default function SearchScreen({ navigation }: any) {
         postList.forEach((p: any) => { p.profile = authorMap[p.user_id]; });
       }
 
-      setPeople(pplRes.data || []);
+      setPeople((pplRes.data || []).filter((p: any) => !blockedSet.has(p.id)));
       setPosts(postList);
       setJobs(jobRes.data || []);
+      setListings(((mktRes.data || []) as any[]).filter((l: any) => !blockedSet.has(l.seller_id)));
     } catch (e) {
       console.log('SEARCH_ERR', e);
     } finally {
@@ -206,14 +224,34 @@ export default function SearchScreen({ navigation }: any) {
     </TouchableOpacity>
   );
 
+  const renderListing = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={s.jobRow}
+      onPress={() => { saveRecent(query); (navigation as any).navigate('Market', { screen: 'ListingDetail', params: { listingId: item.id } }); }}
+      activeOpacity={0.8}
+    >
+      {Array.isArray(item.images) && item.images.length > 0
+        ? <Image source={{ uri: item.images[0] }} style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: '#EFEFF4' }} />
+        : <View style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: '#EFEFF4', alignItems: 'center', justifyContent: 'center' }}><Feather name="shopping-bag" size={20} color="#8E8E93" /></View>}
+      <View style={{ flex: 1, marginLeft: 10 }}>
+        <Text style={s.jobTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={s.jobCompany} numberOfLines={1}>{item.currency === 'ZWG' ? 'ZWG' : '$'}{item.price}</Text>
+        <Text style={s.jobMeta} numberOfLines={1}>{[item.condition, item.location_city].filter(Boolean).join(' · ')}</Text>
+      </View>
+      <Feather name="chevron-right" size={18} color="#C7C7CC" />
+    </TouchableOpacity>
+  );
+
   const currentData =
     activeTab === 'people' ? people :
     activeTab === 'posts'  ? posts  :
+    activeTab === 'market' ? listings :
     jobs;
 
   const currentRenderer =
     activeTab === 'people' ? renderPerson :
     activeTab === 'posts'  ? renderPost :
+    activeTab === 'market' ? renderListing :
     renderJob;
 
   const showResults = query.trim().length > 0;
@@ -281,12 +319,27 @@ export default function SearchScreen({ navigation }: any) {
           data={recent}
           keyExtractor={(item, i) => `${item}-${i}`}
           ListHeaderComponent={
-            recent.length > 0 ? (
+            <View>
+              {trendingTags.length > 0 && (
+                <View style={{ marginBottom: 18, paddingHorizontal: 14, paddingTop: 8 }}>
+                  <Text style={[s.recentTitle, { marginBottom: 10 }]}>Trending</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {trendingTags.map((t: any) => (
+                      <TouchableOpacity key={t.tag} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.05)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.10)' }} onPress={() => (navigation as any).navigate('TrendFeed', { tag: t.tag })} activeOpacity={0.75}>
+                        <Feather name="trending-up" size={12} color="#0B1E3D" />
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: '#0B1E3D' }}>#{t.tag}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+              {recent.length > 0 ? (
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Recent</Text>
                 <TouchableOpacity onPress={clearRecent}><Text style={s.recentClear}>Clear</Text></TouchableOpacity>
               </View>
-            ) : null
+            ) : null}
+            </View>
           }
           contentContainerStyle={[{ paddingBottom: insets.bottom + 40 }, !recent.length && { flexGrow: 1 }]}
           keyboardShouldPersistTaps="handled"
@@ -295,7 +348,7 @@ export default function SearchScreen({ navigation }: any) {
             <View style={s.emptyIntro}>
               <Feather name="search" size={44} color="#E5E5EA" />
               <Text style={s.emptyIntroTitle}>Discover the community</Text>
-              <Text style={s.emptyIntroSub}>Find people, posts, and jobs.</Text>
+              <Text style={s.emptyIntroSub}>Find people, posts, jobs, and the Market.</Text>
             </View>
           }
           renderItem={({ item }) => (

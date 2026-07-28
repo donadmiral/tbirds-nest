@@ -32,6 +32,7 @@ import * as Haptics from 'expo-haptics';
 import { StoryTextSticker, StoryStickerStyle } from '../../services/storiesService';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
+import PostStoryCard from './PostStoryCard';
 import { motion, feedback } from '../../constants/tokens';
 
 // ── Constants ──
@@ -725,7 +726,9 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       >
         <View style={{ flex: 1, alignItems: containerAlign, justifyContent: 'center' }}>
           <View style={wrapperStyle}>
-            {isPill ? (
+            {sticker.kind === 'post' ? (
+              <PostStoryCard sticker={sticker} />
+            ) : isPill ? (
               <StickerPill label={sticker.text} kind={sticker.kind as 'link' | 'location' | 'mention'} />
             ) : (
               <Text style={[textStyle, textMaxWidth ? { maxWidth: textMaxWidth } : undefined]}>

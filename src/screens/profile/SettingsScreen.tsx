@@ -7,6 +7,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../stores/authStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
 
@@ -88,6 +89,7 @@ export default function SettingsScreen() {
       if (data) {
         setLocalProfile({ ...profile, ...data });
         setNotifMessages(data.notif_messages ?? true);
+        setNotifPrefs((data as any).notif_prefs || {});
         setNotifConnections(data.notif_connections ?? true);
         setNotifJobs(data.notif_jobs ?? true);
         setVisibility(data.profile_visibility ?? 'public');
@@ -101,6 +103,84 @@ export default function SettingsScreen() {
         setFollowRequestCount(count ?? 0);
       });
   }, [profile?.id]));
+
+const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
+  const [settingsQuery, setSettingsQuery] = useState('');
+  const appSet = useSettingsStore();
+  const NOTIF_TYPES: { key: string; label: string; sub: string }[] = [
+    { key: 'message', label: 'Messages', sub: 'New messages' },
+    { key: 'message_reaction', label: 'Message reactions', sub: 'Reactions to your messages' },
+    { key: 'mention', label: 'Mentions', sub: 'When someone @mentions you' },
+    { key: 'incoming_call', label: 'Calls', sub: 'Voice and video calls' },
+    { key: 'like', label: 'Likes', sub: 'Likes on your posts' },
+    { key: 'comment', label: 'Comments', sub: 'Comments on your posts' },
+    { key: 'reply', label: 'Replies', sub: 'Replies to your comments' },
+    { key: 'comment_like', label: 'Comment likes', sub: 'Likes on your comments' },
+    { key: 'repost', label: 'Reposts', sub: 'When your post is reshared' },
+    { key: 'story_reaction', label: 'Story reactions', sub: 'Reactions to your stories' },
+    { key: 'follow', label: 'Follows', sub: 'New followers' },
+    { key: 'connection_request', label: 'Follow requests', sub: 'Requests on a private account' },
+    { key: 'job_application', label: 'Job applications', sub: 'Applicants to your job posts' },
+  ];
+  const setTypePref = async (key: string, enabled: boolean) => {
+    if (!profile?.id) return;
+    const prev = notifPrefs;
+    const next = { ...notifPrefs };
+    if (enabled) delete next[key]; else next[key] = false;
+    setNotifPrefs(next);
+    const { error } = await supabase.from('profiles').update({ notif_prefs: next }).eq('id', profile.id);
+    if (error) {
+      setNotifPrefs(prev); // the write was rejected — the switch tells the truth
+      Alert.alert('Not saved', 'That change could not be saved. Try again.');
+    }
+  };
+
+type SetRow = { icon: string; color?: string; label: string; sub?: string; onPress?: () => void; right?: React.ReactNode; danger?: boolean; chevron?: boolean; visible?: boolean };
+  const sw = (value: boolean, onChange: (v: boolean) => void, disabled = false) => (
+    <Switch value={value} onValueChange={onChange} trackColor={{ false: '#E5E5EA', true: '#34C759' }} thumbColor="#FFF" disabled={disabled} />
+  );
+  const buildSections = (): { title: string; rows: SetRow[] }[] => [
+    { title: 'Account', rows: [
+      { icon: 'user', color: '#007AFF', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
+      { icon: 'lock', color: '#FF9500', label: 'Change Password', sub: 'Update your account password', onPress: () => setPwModal(true) },
+      { icon: 'eye', color: '#5856D6', label: 'Privacy', sub: 'Private account and visibility', onPress: () => navigation.navigate('FollowRequests') },
+      { icon: 'user-check', color: '#34C759', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
+      { icon: 'volume-x', color: '#8E8E93', label: 'Muted stories', sub: 'People whose stories you hide', onPress: () => navigation.navigate('MutedStories') },
+      { icon: 'bookmark', color: '#0B1E3D', label: 'Saved posts', sub: 'Posts you bookmarked', onPress: () => navigation.navigate('SavedPosts') },
+      { icon: 'slash', color: '#FF3B30', label: 'Blocked accounts', sub: 'See and undo who you blocked', onPress: () => navigation.navigate('BlockedAccounts') },
+      { icon: 'briefcase', color: '#B08D3F', label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages
+      { icon: 'mail', color: '#5856D6', label: 'Message requests', sub: 'Messages from people you do not follow', onPress: () => (navigation as any).navigate('Messages', { screen: 'MessageRequests' }) },
+    ]},
+    { title: 'Notifications', rows: [
+      { icon: 'bell', color: '#FF3B30', label: 'Push Notifications', sub: 'Master toggle for all alerts', chevron: false, right: sw(pushEnabled, togglePush) },
+      ...NOTIF_TYPES.map(t => ({ icon: 'bell' as const, color: '#5856D6', label: t.label, sub: t.sub, chevron: false,
+        right: sw(notifPrefs[t.key] !== false && pushEnabled, (v: boolean) => setTypePref(t.key, v), !pushEnabled) })),
+    ]},
+    { title: 'Data & appearance', rows: [
+      { icon: 'play-circle', color: '#34C759', label: 'Autoplay videos', sub: 'Turn off to save mobile data', chevron: false,
+        right: sw(appSet.autoplayVideos, v => appSet.set({ autoplayVideos: v })) },
+      { icon: 'upload-cloud', color: '#007AFF', label: 'Upload quality', sub: appSet.uploadQuality === 'high' ? 'High — best quality' : 'Data saver — smaller uploads', chevron: false,
+        right: sw(appSet.uploadQuality === 'high', v => appSet.set({ uploadQuality: v ? 'high' : 'data-saver' })) },
+      { icon: 'moon', color: '#8E8E93', label: 'Dark mode', sub: 'Coming soon', chevron: false,
+        right: sw(appSet.darkMode, v => appSet.set({ darkMode: v })) },
+    ]},
+    { title: 'Support', rows: [
+      { icon: 'help-circle', color: '#34C759', label: 'Help & Support', sub: 'FAQs, submit a ticket', onPress: () => navigation.navigate('HelpSupport') },
+      { icon: 'mail', color: '#007AFF', label: 'Contact Us', sub: 'support@platinumcircles.app', onPress: () => Linking.openURL('mailto:support@platinumcircles.app?subject=PlatinumCircles%20Inquiry').catch(() => Alert.alert('No mail app', 'Email us at support@platinumcircles.app')) },
+      { icon: 'star', color: '#FFD60A', label: 'Rate the App', sub: 'Share your feedback', onPress: () => Alert.alert('Thank you!', 'App Store rating coming soon.') },
+    ]},
+    { title: 'Legal', rows: [
+      { icon: 'file-text', color: '#8E8E93', label: 'Terms of Service', onPress: () => navigation.navigate('Terms') },
+      { icon: 'shield', color: '#8E8E93', label: 'Privacy Policy', onPress: () => navigation.navigate('PrivacyPolicy') },
+      { icon: 'info', color: '#8E8E93', label: 'About PlatinumCircles', onPress: () => navigation.navigate('About') },
+    ]},
+    { title: 'Account Actions', rows: [
+      { icon: 'refresh-cw', color: '#007AFF', label: 'Switch Account', sub: 'Sign out and use a different account', onPress: handleSwitchAccount },
+      { icon: 'log-out', color: '#FF9500', label: 'Sign Out', onPress: handleSignOut },
+      { icon: 'moon', color: '#8E8E93', label: 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: handleDeactivate },
+      { icon: 'trash-2', color: '#FF3B30', label: 'Delete Account', sub: 'Permanently remove all your data', danger: true, onPress: () => { setDeleteConfirmTxt(''); setDeleteModal(true); } },
+    ]},
+  ];
 
   const saveNotifPref = async (field: string, value: boolean) => {
     if (!profile?.id || savingNotifs) return;
@@ -270,79 +350,30 @@ export default function SettingsScreen() {
           <Feather name="chevron-right" size={20} color="#C7C7CC" />
         </TouchableOpacity>
 
-        <Section title="Account">
-          <Row icon="user" iconColor="#007AFF" label="Edit Profile" sublabel="Name, bio, degree, photo" onPress={goToEditProfile} />
-          <View style={s.divider} />
-          <Row icon="lock" iconColor="#FF9500" label="Change Password" sublabel="Update your account password" onPress={() => setPwModal(true)} />
-          <View style={s.divider} />
-          <Row
-            icon={visibility === 'private' ? 'eye-off' : 'globe'} iconColor="#34C759"
-            label="Privacy"
-            sublabel={visibility === 'private' ? 'Profile is private' : 'Profile is public'}
-            onPress={() => setPrivacyModal(true)}
-          />
-          <View style={s.divider} />
-          <Row
-            icon="user-check" iconColor="#5856D6"
-            label="Follow Requests"
-            sublabel={followRequestCount > 0 ? `${followRequestCount} pending` : 'Manage who can follow you'}
-            onPress={() => navigation.navigate('FollowRequests')}
-            right={
-              followRequestCount > 0 ? (
-                <View style={s.badgeRow}>
-                  <View style={s.badge}><Text style={s.badgeTxt}>{followRequestCount}</Text></View>
-                  <Feather name="chevron-right" size={16} color="#C7C7CC" />
-                </View>
-              ) : undefined
-            }
-          />
-          <Row icon="volume-x" iconColor="#8E8E93" label="Muted stories" sublabel="People whose stories you hide" onPress={() => navigation.navigate('MutedStories')} />
-          <Row icon="bookmark" iconColor="#0B1E3D" label="Saved posts" sublabel="Posts you bookmarked" onPress={() => navigation.navigate("SavedPosts")} />
-          <Row icon="slash" iconColor="#FF3B30" label="Blocked accounts" sublabel="See and undo who you blocked" onPress={() => navigation.navigate("BlockedAccounts")} />
-          <Row icon="briefcase" label="Businesses" sublabel="Pages you run, and your team" onPress={() => navigation.navigate("Businesses")} />
-          <Row icon="mail" iconColor="#5856D6" label="Message requests" sublabel="Messages from people you do not follow" onPress={() => navigation.navigate("Messages", { screen: "MessageRequests" })} />
-        </Section>
-
-        <Section title="Notifications">
-          <Row icon="bell" iconColor="#FF3B30" label="Push Notifications" sublabel="Master toggle for all alerts" chevron={false}
-            right={<Switch value={pushEnabled} onValueChange={togglePush} trackColor={{ false: '#E5E5EA', true: '#34C759' }} thumbColor="#FFF" />} />
-          <View style={s.divider} />
-          <Row icon="message-circle" iconColor="#5856D6" label="Messages" sublabel="New messages and replies" chevron={false}
-            right={<Switch value={notifMessages && pushEnabled} onValueChange={v => { setNotifMessages(v); saveNotifPref('notif_messages', v); }} trackColor={{ false: '#E5E5EA', true: '#34C759' }} thumbColor="#FFF" disabled={!pushEnabled} />} />
-          <View style={s.divider} />
-          <Row icon="users" iconColor="#FF9500" label="Connections" sublabel="Connection requests and accepts" chevron={false}
-            right={<Switch value={notifConnections && pushEnabled} onValueChange={v => { setNotifConnections(v); saveNotifPref('notif_connections', v); }} trackColor={{ false: '#E5E5EA', true: '#34C759' }} thumbColor="#FFF" disabled={!pushEnabled} />} />
-          <View style={s.divider} />
-          <Row icon="briefcase" iconColor="#007AFF" label="Jobs & Referrals" sublabel="New job alerts and referral requests" chevron={false}
-            right={<Switch value={notifJobs && pushEnabled} onValueChange={v => { setNotifJobs(v); saveNotifPref('notif_jobs', v); }} trackColor={{ false: '#E5E5EA', true: '#34C759' }} thumbColor="#FFF" disabled={!pushEnabled} />} />
-        </Section>
-
-        <Section title="Support">
-          <Row icon="help-circle" iconColor="#34C759" label="Help & Support" sublabel="FAQs, submit a ticket" onPress={() => navigation.navigate('HelpSupport')} />
-          <View style={s.divider} />
-          <Row icon="mail" iconColor="#007AFF" label="Contact Us" sublabel="support@platinumcircles.app" onPress={() => Linking.openURL('mailto:support@platinumcircles.app?subject=PlatinumCircles%20Inquiry').catch(() => Alert.alert('No mail app', 'Set up an email app on your device or email us directly at support@platinumcircles.app'))} />
-          <View style={s.divider} />
-          <Row icon="star" iconColor="#FFD60A" label="Rate the App" sublabel="Share your feedback" onPress={() => Alert.alert('Thank you!', 'App Store rating coming soon. In the meantime, send us feedback via Help & Support.')} />
-        </Section>
-
-        <Section title="Legal">
-          <Row icon="file-text" iconColor="#8E8E93" label="Terms of Service" onPress={() => navigation.navigate('Terms')} />
-          <View style={s.divider} />
-          <Row icon="shield" iconColor="#8E8E93" label="Privacy Policy" onPress={() => navigation.navigate('PrivacyPolicy')} />
-          <View style={s.divider} />
-          <Row icon="info" iconColor="#8E8E93" label="About PlatinumCircles" onPress={() => navigation.navigate('About')} chevron={false}
-            right={<Text style={s.versionChip}>v1.0</Text>} />
-        </Section>
-
-        <Section title="Account Actions">
-          <Row icon="refresh-cw" iconColor="#007AFF" label="Switch Account" sublabel="Sign out and use a different account" onPress={handleSwitchAccount} />
-          <View style={s.divider} />
-          <Row icon="log-out" iconColor="#FF9500" label="Sign Out" onPress={handleSignOut} />
-          <View style={s.divider} />
-          <Row icon="moon" iconColor="#8E8E93" label="Deactivate Account" sublabel="Hide your profile temporarily" onPress={handleDeactivate} />
-          <View style={s.divider} />
-          <Row icon="trash-2" iconColor="#FF3B30" label="Delete Account" sublabel="Permanently remove all your data" danger onPress={() => { setDeleteConfirmTxt(''); setDeleteModal(true); }} />
-        </Section>
+        <View style={{ paddingHorizontal: 16, paddingBottom: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(11,30,61,0.05)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 }}>
+            <Feather name="search" size={15} color="#8E8E93" />
+            <TextInput value={settingsQuery} onChangeText={setSettingsQuery} placeholder="Search settings"
+              placeholderTextColor="#8E8E93" style={{ flex: 1, fontSize: 15, color: '#0B1E3D', padding: 0 }} />
+            {settingsQuery ? <TouchableOpacity onPress={() => setSettingsQuery('')}><Feather name="x" size={15} color="#8E8E93" /></TouchableOpacity> : null}
+          </View>
+        </View>
+        {buildSections().map(sec => {
+          const q = settingsQuery.trim().toLowerCase();
+          const rows = sec.rows.filter(r => r.visible !== false && (!q || (r.label + ' ' + (r.sub || '')).toLowerCase().includes(q)));
+          if (!rows.length) return null;
+          return (
+            <Section key={sec.title} title={sec.title}>
+              {rows.map((r, i) => (
+                <React.Fragment key={r.label}>
+                  {i > 0 && <View style={s.divider} />}
+                  <Row icon={r.icon as any} iconColor={r.color} label={r.label} sublabel={r.sub}
+                    danger={r.danger} chevron={r.chevron !== false && !r.right} onPress={r.onPress} right={r.right} />
+                </React.Fragment>
+              ))}
+            </Section>
+          );
+        })}
 
         <Text style={s.footerTxt}>PlatinumCircles</Text>
       </ScrollView>

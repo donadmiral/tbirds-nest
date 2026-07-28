@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
+import PostStoryCard from './PostStoryCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
@@ -17,6 +18,7 @@ type StickerOverlayProps = {
   containerH: number;
   onMentionTap?: (userId: string) => void;
   onHashtagTap?: (tag: string) => void;
+  onPostTap?: (postId: string) => void;
   interactive?: boolean;
   // Engagement sticker interaction callbacks (viewer only)
   engagementProps?: {
@@ -34,6 +36,7 @@ type StickerOverlayProps = {
 };
 
 function getWidthForKind(kind?: string): number {
+  if (kind === 'post') return 300;
   if (kind === 'question') return 240;
   if (kind === 'slider') return 240;
   if (kind === 'quiz') return 260;
@@ -51,6 +54,7 @@ export function renderStickerContent(
   interactive: boolean = true,
   engagementProps?: StickerOverlayProps['engagementProps'],
   onHashtagTap?: (tag: string) => void,
+  onPostTap?: (postId: string) => void,
 ): React.ReactNode {
   const isEmoji = sticker.kind === 'emoji';
   const isLink = sticker.kind === 'link';
@@ -60,6 +64,15 @@ export function renderStickerContent(
   const isQuestion = sticker.kind === 'question';
   const isSlider = sticker.kind === 'slider';
   const isQuiz = sticker.kind === 'quiz';
+
+  if (sticker.kind === 'post') {
+    return (
+      <PostStoryCard
+        sticker={sticker}
+        onPress={interactive && onPostTap && sticker.postId ? () => onPostTap(sticker.postId!) : undefined}
+      />
+    );
+  }
 
   if (isQuestion) {
     const ep = engagementProps;
@@ -173,6 +186,7 @@ export default function StickerOverlay({
   containerH,
   onMentionTap,
   onHashtagTap,
+  onPostTap,
   interactive = true,
   engagementProps,
 }: StickerOverlayProps) {
@@ -182,7 +196,7 @@ export default function StickerOverlay({
     <View style={[StyleSheet.absoluteFill, { zIndex: 20, elevation: 20 }]} pointerEvents="box-none">
       {stickers.map(st => {
         const isEmoji = st.kind === 'emoji';
-        const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag';
+        const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag' || st.kind === 'post';
         const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz';
         const containerAlign = isEmoji || isPill ? 'center' as const
           : st.textAlign === 'left' ? 'flex-start' as const
@@ -213,7 +227,7 @@ export default function StickerOverlay({
               elevation: interactive && (isPill || isEngagement) ? 30 : 20,
             }}
           >
-            {renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap)}
+            {renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap)}
           </View>
         );
       })}

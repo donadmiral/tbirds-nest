@@ -1,185 +1,102 @@
-// supabase/functions/send-push-notification/index.ts
-// @ts-ignore
-import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-// @ts-ignore
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+// daily-get-token: create-or-get the Daily room for a call session and mint
+// a meeting token. Room name IS the call session id, so every participant
+// of a session lands in the same room — 1:1 and group alike.
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+const json = (s: number, b: unknown) =>
+  new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: cors });
-  }
-
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   try {
-    // @ts-ignore
-    const SB_URL = Deno.env.get("SUPABASE_URL");
-    // @ts-ignore
-    const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const DAILY_KEY = Deno.env.get('DAILY_API_KEY');
+    if (!DAILY_KEY) return json(500, { error: 'DAILY_API_KEY not configured' });
 
-    if (!SB_URL || !SB_SERVICE) {
-      console.error("Missing env vars");
-      return json(500, { error: "Server not configured" });
-    }
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const anon = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: authErr } = await anon.auth.getUser();
+    if (authErr || !userData?.user) return json(401, { error: 'unauthorized' });
+    const uid = userData.user.id;
 
     const body = await req.json();
-    console.log("=== send-push-notification invoked ===");
+    const sessionId: string | null = body.callSessionId || null;
+    const roomName: string = String(sessionId || body.roomName || '').replace(/[^a-zA-Z0-9-_]/g, '');
+    if (!roomName) return json(400, { error: 'no room' });
+    const isOwner: boolean = body.isOwner === true;
 
-    // Database Webhook sends: { type: "INSERT", table: "notifications", record: {...}, ... }
-    const record = body.record || body;
-    const recipientId: string | null = record.recipient_id || null;
-    const actorId: string | null = record.actor_id || null;
-    const type: string = record.type || "notification";
-    const message: string = record.message || "";
-    const bodyPreview: string = record.body_preview || "";
-    const data: any = record.data || {};
-
-    if (!recipientId) {
-      console.log("No recipient_id, skipping");
-      return json(200, { skipped: true, reason: "no recipient" });
-    }
-
-    const admin = createClient(SB_URL, SB_SERVICE);
-
-    // Get recipient's push tokens
-    const { data: tokens, error: tokenErr } = await admin
-      .from("user_push_tokens")
-      .select("expo_push_token")
-      .eq("user_id", recipientId);
-
-    if (tokenErr) {
-      console.error("Token lookup error:", tokenErr.message);
-      return json(500, { error: "Token lookup failed" });
-    }
-
-    if (!tokens || tokens.length === 0) {
-      console.log("No push tokens for user:", recipientId);
-      return json(200, { skipped: true, reason: "no tokens" });
-    }
-
-    // Check user's notification preferences
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("notif_messages, notif_connections, notif_jobs, full_name")
-      .eq("id", recipientId)
-      .single();
-
-    // Respect user preferences
-    if (profile) {
-      const msgTypes = ["message"];
-      const connTypes = [
-        "connection_request",
-        "connection_accepted",
-        "follow",
-      ];
-      const jobTypes = ["job", "job_application"];
-
-      if (msgTypes.includes(type) && profile.notif_messages === false) {
-        console.log("User disabled message notifications");
-        return json(200, { skipped: true, reason: "user_pref_messages" });
+    // The caller must belong to the session: initiator, receiver, or a
+    // participant row (groups). Rooms are private; this is the gate.
+    if (sessionId) {
+      const svc = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const { data: sess } = await svc.from('call_sessions')
+        .select('id, initiator_id, receiver_id').eq('id', sessionId).maybeSingle();
+      if (!sess) return json(404, { error: 'call not found' });
+      let allowed = sess.initiator_id === uid || sess.receiver_id === uid;
+      if (!allowed) {
+        const { data: part } = await svc.from('call_participants')
+          .select('user_id').eq('call_session_id', sessionId).eq('user_id', uid).maybeSingle();
+        allowed = !!part;
       }
-      if (connTypes.includes(type) && profile.notif_connections === false) {
-        console.log("User disabled connection notifications");
-        return json(200, { skipped: true, reason: "user_pref_connections" });
-      }
-      if (jobTypes.includes(type) && profile.notif_jobs === false) {
-        console.log("User disabled job notifications");
-        return json(200, { skipped: true, reason: "user_pref_jobs" });
-      }
+      if (!allowed) return json(403, { error: 'not a participant' });
     }
 
-    // Get actor name for the notification title
-    let actorName = "PlatinumCircles";
-    if (actorId) {
-      const { data: actor } = await admin
-        .from("profiles")
-        .select("full_name")
-        .eq("id", actorId)
-        .single();
-      if (actor?.full_name) actorName = actor.full_name;
+    let displayName = '';
+    try {
+      const svc2 = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const { data: prof } = await svc2.from('profiles').select('full_name').eq('id', uid).maybeSingle();
+      displayName = String(prof?.full_name || '');
+    } catch { /* name is a nicety, never a blocker */ }
+
+    const dailyHeaders = { Authorization: `Bearer ${DAILY_KEY}`, 'Content-Type': 'application/json' };
+
+    // create-or-get the room
+    let room: any = null;
+    const getRes = await fetch(`https://api.daily.co/v1/rooms/${roomName}`, { headers: dailyHeaders });
+    if (getRes.ok) {
+      room = await getRes.json();
+    } else if (getRes.status === 404) {
+      const createRes = await fetch('https://api.daily.co/v1/rooms', {
+        method: 'POST', headers: dailyHeaders,
+        body: JSON.stringify({
+          name: roomName,
+          privacy: 'private',
+          properties: {
+            exp: Math.floor(Date.now() / 1000) + 6 * 3600,
+            eject_at_room_exp: true,
+            enable_screenshare: false,
+            start_video_off: false,
+          },
+        }),
+      });
+      if (!createRes.ok) return json(502, { error: 'room create failed: ' + await createRes.text() });
+      room = await createRes.json();
+    } else {
+      return json(502, { error: 'room lookup failed: ' + await getRes.text() });
     }
 
-    // Build notification title based on type
-    const title = buildTitle(type, actorName, data);
-    const notifBody = bodyPreview || message || "";
-
-    // Build push messages for all tokens
-    const pushMessages = tokens.map((t: any) => ({
-      to: t.expo_push_token,
-      title,
-      body: notifBody,
-      sound: "default",
-      badge: 1,
-      data: {
-        type,
-        notificationId: record.id || null,
-        ...data,
-      },
-    }));
-
-    console.log(`Sending ${pushMessages.length} push(es) for type: ${type}`);
-
-    // Send to Expo Push API
-    const pushRes = await fetch(EXPO_PUSH_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pushMessages),
+    const tokenRes = await fetch('https://api.daily.co/v1/meeting-tokens', {
+      method: 'POST', headers: dailyHeaders,
+      body: JSON.stringify({
+        properties: {
+          room_name: roomName,
+          is_owner: isOwner,
+          user_name: displayName || undefined,
+          exp: Math.floor(Date.now() / 1000) + 6 * 3600,
+        },
+      }),
     });
+    if (!tokenRes.ok) return json(502, { error: 'token failed: ' + await tokenRes.text() });
+    const tokenData = await tokenRes.json();
 
-    const pushResult = await pushRes.json();
-    console.log("Expo push response:", JSON.stringify(pushResult));
-
-    return json(200, { sent: pushMessages.length, result: pushResult });
+    return json(200, { roomUrl: room.url, token: tokenData.token });
   } catch (e) {
-    console.error("send-push-notification error:", e);
-    return json(500, { error: String((e as Error)?.message || e) });
+    return json(500, { error: String((e as any)?.message || e) });
   }
 });
-
-function buildTitle(type: string, actorName: string, data: any): string {
-  switch (type) {
-    case "message":
-      if (data?.is_group && data?.group_name) {
-        return data.group_name;
-      }
-      return actorName;
-    case "like":
-      return `${actorName} liked your post`;
-    case "comment":
-      return `${actorName} commented`;
-    case "reply":
-      return `${actorName} replied`;
-    case "repost":
-      return `${actorName} reposted your post`;
-    case "mention":
-      return `${actorName} mentioned you`;
-    case "follow":
-      return "New follower";
-    case "connection_request":
-      return "Connection request";
-    case "connection_accepted":
-      return "Connection accepted";
-    case "missed_call":
-      return "Missed call";
-    case "mentorship_request":
-      return "Mentorship request";
-    case "mentorship_accepted":
-      return "Mentorship accepted";
-    default:
-      return "PlatinumCircles";
-  }
-}
-
-function json(status: number, body: any) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...cors, "Content-Type": "application/json" },
-  });
-}

@@ -76,7 +76,7 @@ const COMMUNITY = [
   { label: 'Support',     sub: 'FAQs & tickets',      ring: '#34C759', bg: '#EDFBF0', emoji: null, featherIcon: 'help-circle', featherColor: '#34C759', route: 'HelpSupport' },
 ] as const;
 
-type StatsModalKey = 'connections' | 'followers' | 'following' | null;
+type StatsModalKey = 'followers' | 'following' | null;
 
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
@@ -94,21 +94,14 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
   const [loadError, setLoadError] = useState<string | null>(null);
   const [tabPosts, setTabPosts] = useState<Post[]>([]);
+  const [postsHasMore, setPostsHasMore] = useState(false);
+  const [loadingMorePosts, setLoadingMorePosts] = useState(false);
   const [tabReposts, setTabReposts] = useState<Post[]>([]);
   const [tabSaved, setTabSaved] = useState<Post[]>([]);
   const [tabTagged, setTabTagged] = useState<Post[]>([]);
   const [tabCounts, setTabCounts] = useState({ posts: 0, reposts: 0, saved: 0, tagged: 0 });
   const [tabLoading, setTabLoading] = useState(false);
 
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editUsername, setEditUsername] = useState('');
-  const [editBio, setEditBio] = useState('');
-  const [editLocation, setEditLocation] = useState('');
-  const [editDegree, setEditDegree] = useState('');
-  const [editRole, setEditRole] = useState('student');
-  const [editVisibility, setEditVisibility] = useState<'public'|'private'>('public');
 
   const [statsModal, setStatsModal] = useState<StatsModalKey>(null);
   const [statsPeople, setStatsPeople] = useState<Person[]>([]);
@@ -173,6 +166,7 @@ export default function ProfileScreen() {
           postsData = data || [];
         }
         setTabPosts(postsData.map(normalizePost));
+        setPostsHasMore(postsData.length >= 50);
         setTabCounts(prev => ({ ...prev, posts: postsData.length }));
       }
       if (tab === 'reposts') {
@@ -269,15 +263,11 @@ export default function ProfileScreen() {
     finally { setUploadingPhoto(false); }
   };
 
-  const openStats = async (type: 'connections'|'followers'|'following') => {
+  const openStats = async (type: 'followers'|'following') => {
     setStatsModal(type); setStatsLoading(true); setStatsPeople([]);
     try {
       let ids:string[]=[];
-      if (type==='connections') {
-        const { data: r1 } = await supabase.from('connections').select('recipient_id').eq('requester_id',userId).eq('status','accepted');
-        const { data: r2 } = await supabase.from('connections').select('requester_id').eq('recipient_id',userId).eq('status','accepted');
-        ids=[...(r1||[]).map((r:any)=>r.recipient_id),...(r2||[]).map((r:any)=>r.requester_id)];
-      } else if (type==='followers') {
+      if (type==='followers') {
         const { data } = await supabase.from('follows').select('follower_id').eq('following_id',userId);
         ids=(data||[]).map((r:any)=>r.follower_id);
       } else {
@@ -291,26 +281,7 @@ export default function ProfileScreen() {
 
   const openEdit = () => {
     if (!profile) return;
-    setEditName(profile.full_name); setEditUsername(profile.username); setEditBio(profile.bio);
-    setEditLocation(profile.location); setEditDegree(profile.degree_program);
-    setEditRole(profile.role||'student'); setEditVisibility(profile.profile_visibility||'public');
     navigation.navigate('EditProfile');
-  };
-
-  const saveProfile = async () => {
-    if (!userId||saving) return;
-    if (!editName.trim()){ Alert.alert('Required','Full name cannot be empty.'); return; }
-    setSaving(true);
-    try {
-      const { error } = await supabase.from('profiles').update({
-        full_name:editName.trim(), username:editUsername.trim().toLowerCase().replace(/\s+/g,'_'),
-        bio:editBio.trim(), location:editLocation.trim(), degree_program:editDegree,
-        role:editRole, profile_visibility:editVisibility, updated_at:new Date().toISOString(),
-      }).eq('id',userId);
-      if (error){ Alert.alert('Error',error.message); return; }
-      setEditing(false); await load();
-    } catch(e:any){ Alert.alert('Error',e?.message||'Could not save.'); }
-    finally { setSaving(false); }
   };
 
   const handleHighlightTap = useCallback((h: StoryHighlight) => {
@@ -403,6 +374,28 @@ export default function ProfileScreen() {
     return (<View style={st.tabEmpty}><View style={st.tabEmptyIcon}><Feather name={c.icon as any} size={28} color="#C7C7CC" /></View><Text style={st.tabEmptyTitle}>{c.title}</Text><Text style={st.tabEmptySub}>{c.sub}</Text></View>);
   };
 
+const loadMorePosts = useCallback(async () => {
+    if (!userId || loadingMorePosts || tabPosts.length === 0) return;
+    setLoadingMorePosts(true);
+    try {
+      const before = (tabPosts[tabPosts.length - 1] as any)?.created_at;
+      let rows: any[] = [];
+      try {
+        const { data } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)')
+          .eq('user_id', userId).lt('created_at', before)
+          .order('created_at', { ascending: false }).limit(50);
+        rows = data || [];
+      } catch {
+        const { data } = await supabase.from('posts').select('*')
+          .eq('user_id', userId).lt('created_at', before)
+          .order('created_at', { ascending: false }).limit(50);
+        rows = data || [];
+      }
+      setTabPosts(prev => [...prev, ...rows.map(normalizePost)]);
+      setPostsHasMore(rows.length >= 50);
+    } catch {} finally { setLoadingMorePosts(false); }
+  }, [userId, loadingMorePosts, tabPosts]);
+
   const getTabData = () => {
     switch (activeTab) {
       case 'posts': return tabPosts;
@@ -412,52 +405,14 @@ export default function ProfileScreen() {
     }
   };
 
-  if (editing) {
-    return (
-      <SafeAreaView style={st.safe} edges={['top','left','right']}>
-        <StatusBar barStyle="dark-content" />
-        <View style={st.editHeader}>
-          <TouchableOpacity onPress={()=>setEditing(false)}><Text style={st.editCancel}>Cancel</Text></TouchableOpacity>
-          <Text style={st.editTitle}>Edit Profile</Text>
-          <TouchableOpacity onPress={saveProfile} disabled={saving}>{saving?<ActivityIndicator color={NAVY} size="small"/>:<Text style={st.editSave}>Save</Text>}</TouchableOpacity>
-        </View>
-        <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
-          <ScrollView contentContainerStyle={[st.editScroll,{paddingBottom:insets.bottom+40}]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} automaticallyAdjustKeyboardInsets>
-            <View style={st.editPhotoRow}>
-              <TouchableOpacity onPress={changePhoto} disabled={uploadingPhoto} activeOpacity={0.8} style={{position:'relative'}}>
-                {profile?.avatar_url?<ExpoImage source={{uri:profile.avatar_url}} style={st.editAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<View style={[st.editAvatar,st.editAvatarFb]}><Text style={st.editAvatarTxt}>{initials(profile?.full_name)}</Text></View>}
-                <View style={st.editCameraBadge}><Feather name="camera" size={14} color="#FFF"/></View>
-              </TouchableOpacity>
-              <View style={{flex:1,gap:4}}>
-                <Text style={{fontSize:16,fontWeight:'600',color:TEXT_PRIMARY}}>Profile Photo</Text>
-                <TouchableOpacity onPress={changePhoto} disabled={uploadingPhoto} activeOpacity={0.7}><Text style={{fontSize:14,color:NAVY,fontWeight:'500'}}>{uploadingPhoto?'Uploading...':'Tap to change photo'}</Text></TouchableOpacity>
-                <Text style={{fontSize:12,color:TEXT_SECONDARY}}>Square images work best</Text>
-              </View>
-            </View>
-            <Field label="Profile Visibility">
-              <View style={st.visRow}>
-                {(['public','private'] as const).map(v=>(<TouchableOpacity key={v} style={[st.visChip,editVisibility===v&&st.visChipOn]} onPress={()=>setEditVisibility(v)} activeOpacity={0.8}><Feather name={v==='public'?'globe':'lock'} size={14} color={editVisibility===v?'#FFF':TEXT_SECONDARY}/><Text style={[st.visChipTxt,editVisibility===v&&st.visChipTxtOn]}>{v==='public'?'Public':'Private'}</Text></TouchableOpacity>))}
-              </View>
-            </Field>
-            <Field label="Full Name *"><TextInput value={editName} onChangeText={setEditName} style={st.input} placeholder="Your full name" placeholderTextColor="#C7C7CC" autoCapitalize="words"/></Field>
-            <Field label="Username"><TextInput value={editUsername} onChangeText={setEditUsername} style={st.input} placeholder="username" placeholderTextColor="#C7C7CC" autoCapitalize="none"/></Field>
-            <Field label="Bio"><TextInput value={editBio} onChangeText={setEditBio} style={[st.input,st.inputMulti]} placeholder="Tell your story..." placeholderTextColor="#C7C7CC" multiline textAlignVertical="top"/></Field>
-            <Field label="Location"><TextInput value={editLocation} onChangeText={setEditLocation} style={st.input} placeholder="City, Country" placeholderTextColor="#C7C7CC" autoCapitalize="words"/></Field>
-            <Field label="Profession"><TextInput value={editDegree} onChangeText={setEditDegree} style={st.input} placeholder="e.g. Software Developer, Nurse, Trader" placeholderTextColor="#C7C7CC" autoCapitalize="words"/></Field>
-            <Field label="Role">
-              <View style={st.roleRow}>{ROLES.map(r=>(<TouchableOpacity key={r} style={[st.roleChip,editRole===r&&st.roleChipOn]} onPress={()=>setEditRole(r)} activeOpacity={0.8}><Text style={[st.roleChipTxt,editRole===r&&st.roleChipTxtOn]}>{r.charAt(0).toUpperCase()+r.slice(1)}</Text></TouchableOpacity>))}</View>
-            </Field>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
-  }
+  // Inline editor deleted — EditProfileScreen is the editor.
+
 
   if (loading) return <SafeAreaView style={st.safe}><ProfileSkeleton /></SafeAreaView>;
   if (!profile) return <SafeAreaView style={st.safe}><View style={st.center}><Text style={{color:TEXT_SECONDARY}}>Profile not found.</Text></View></SafeAreaView>;
 
-  const statsModalTitle = statsModal === 'connections' ? 'Connections' : statsModal === 'followers' ? 'Followers' : statsModal === 'following' ? 'Following' : '';
-  const statsEmptyMsg = statsModal === 'connections' ? 'Connect with other PlatinumCircles.' : statsModal === 'followers' ? 'When someone follows you they appear here.' : 'Follow people to see their updates.';
+  const statsModalTitle = statsModal === 'followers' ? 'Followers' : statsModal === 'following' ? 'Following' : '';
+  const statsEmptyMsg = statsModal === 'followers' ? 'When someone follows you they appear here.' : 'Follow people to see their updates.';
   const tabData = getTabData();
 
   return (
@@ -479,6 +434,12 @@ export default function ProfileScreen() {
         />
 
         {tabLoading?(<View style={{paddingVertical:40,alignItems:'center'}}><ActivityIndicator color={NAVY}/></View>):tabData.length===0?emptyState(activeTab):tabData.map(post=>renderPostCard(post))}
+        {activeTab === 'posts' && postsHasMore && !tabLoading && (
+          <TouchableOpacity onPress={loadMorePosts} disabled={loadingMorePosts} activeOpacity={0.8}
+            style={{ alignSelf: 'center', marginVertical: 16, paddingHorizontal: 22, paddingVertical: 10, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}>
+            {loadingMorePosts ? <ActivityIndicator size="small" color={NAVY} /> : <Text style={{ fontSize: 13.5, fontWeight: '700', color: NAVY }}>Show more posts</Text>}
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       <Modal visible={!!statsModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={()=>setStatsModal(null)}>
@@ -504,7 +465,6 @@ const st = StyleSheet.create({
   twAvatarRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -42 },
   twAvatarWrap: { borderRadius: 44, borderWidth: 4, borderColor: '#FFFFFF', backgroundColor: '#FFFFFF' },
   twAvatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E5E5EA' },
-  avatarFb: { alignItems: 'center', justifyContent: 'center' },
   twAvatarTxt: { fontSize: 28, fontWeight: '800', color: '#8E8E93' },
   twEditBtn: { borderWidth: 1, borderColor: '#CFD9DE', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 8, marginBottom: 6 },
   twEditTxt: { fontSize: 14.5, fontWeight: '700', color: '#0F1419' },
@@ -535,10 +495,7 @@ const st = StyleSheet.create({
   roleBadge:{marginTop:8,backgroundColor:'rgba(11,30,61,0.06)',borderRadius:8,paddingHorizontal:12,paddingVertical:5},
   roleBadgeTxt:{fontSize:12,fontWeight:'600',color:'#3C3C43'},
   identityBio:{fontSize:15,color:'#3C3C43',lineHeight:22,textAlign:'center',marginTop:12,paddingHorizontal:8},
-  bioEmpty:{fontSize:15,color:'#C7C7CC',marginTop:12},
   identityMeta:{gap:5,marginTop:10,alignItems:'center'},
-  metaRow:{flexDirection:'row',alignItems:'center',gap:6},
-  metaTxt:{fontSize:14,color:'#6B6B6B',flexShrink:1},
   statsBar:{flexDirection:'row',alignItems:'center',marginHorizontal:16,marginTop:20,backgroundColor:'#FFFFFF',borderRadius:14,overflow:'hidden'},
   statCell:{flex:1,alignItems:'center',paddingVertical:14},
   statNum:{fontSize:20,fontWeight:'700',color:TEXT_PRIMARY},

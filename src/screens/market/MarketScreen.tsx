@@ -57,11 +57,18 @@ export default function MarketScreen({ navigation }: any) {
       const mine = meProfile?.id ? await marketService.myListings(meProfile.id) : [];
       setListings(mine); setLoading(false); setRefreshing(false); return;
     }
-    const rows = await marketService.listListings({ search, category,
-      minPrice: filters.minPrice ? Number(filters.minPrice) : null,
-      maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
-      condition: filters.condition, city: filters.city || null, sort: filters.sort });
+    const noExplicitFilters = !filters.minPrice && !filters.maxPrice && !filters.condition && !filters.city && (!filters.sort || filters.sort === 'recent');
+    const rows = noExplicitFilters
+      ? await marketService.getMarketFeed({
+          search, category: category === 'All' ? null : category,
+          city: (meProfile as any)?.location || null,
+        })
+      : await marketService.listListings({ search, category,
+          minPrice: filters.minPrice ? Number(filters.minPrice) : null,
+          maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
+          condition: filters.condition, city: filters.city || null, sort: filters.sort });
     setListings(rows);
+    try { const ids = await marketService.getSavedIds(); setSavedIds(new Set(ids)); } catch {}
     setLoading(false);
     setRefreshing(false);
   }, [search, category, filters, marketTab, meProfile?.id]);
@@ -77,6 +84,13 @@ export default function MarketScreen({ navigation }: any) {
   const onRefresh = () => { setRefreshing(true); load({ silent: true }); };
 
   const categories = useMemo(() => ['All', ...MARKET_CATEGORIES], []);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const toggleSave = useCallback(async (id: string) => {
+    setSavedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    try { await marketService.toggleSaved(id); } catch {
+      setSavedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    }
+  }, []);
 
   const renderItem = ({ item }: { item: Listing }) => (
     <TouchableOpacity
@@ -97,6 +111,28 @@ export default function MarketScreen({ navigation }: any) {
           <Feather name="image" size={26} color={GRAY_400} />
         </View>
       )}
+      <TouchableOpacity
+        onPress={() => toggleSave(item.id)} activeOpacity={0.8} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 }}>
+        <Ionicons name={savedIds.has(item.id) ? 'heart' : 'heart-outline'} size={17} color={savedIds.has(item.id) ? '#FF3040' : '#0B1E3D'} />
+      </TouchableOpacity>
+      {item.condition ? (
+        <View style={{ position: 'absolute', top: 8, left: 8, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.78)' }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#FFF' }}>{item.condition}</Text>
+        </View>
+      ) : null}
+      {(item as any).delivery_available ? (
+        <View style={{ position: 'absolute', bottom: 74, left: 8, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: 'rgba(5,150,105,0.92)' }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#FFF' }}>🚚 Delivery</Text>
+        </View>
+      ) : null}
+      {item.status === 'sold' ? (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(11,30,61,0.45)', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, backgroundColor: '#0B1E3D' }}>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFF', letterSpacing: 1 }}>SOLD</Text>
+          </View>
+        </View>
+      ) : null}
       <View style={s.cardBody}>
         <Text style={s.cardPrice}>{priceLabel(item)}</Text>
         <Text style={s.cardTitle} numberOfLines={1}>{item.title}</Text>

@@ -34,6 +34,15 @@ export type PosterLite = {
   avatar_url: string | null;
 };
 
+export const STATUS_META: Record<ApplicationStatus, { label: string; color: string; bg: string }> = {
+  applied:     { label: 'Applied',     color: '#2563EB', bg: '#EFF6FF' },
+  viewed:      { label: 'Viewed',      color: '#7C3AED', bg: '#F5F3FF' },
+  shortlisted: { label: 'Shortlisted', color: '#059669', bg: '#ECFDF5' },
+  interview:   { label: 'Interview',   color: '#D97706', bg: '#FFFBEB' },
+  rejected:    { label: 'Rejected',    color: '#DC2626', bg: '#FEF2F2' },
+  accepted:    { label: 'Accepted',    color: '#059669', bg: '#ECFDF5' },
+};
+
 export type Job = {
   id: string;
   posted_by: string;
@@ -52,7 +61,7 @@ export type Job = {
   visa_sponsorship: boolean;
   urgent: boolean;
   verified: boolean;
-  application_count: number;
+  applications_count: number;
   apply_url: string | null;
   deadline: string | null;
   institution_id: string | null;
@@ -132,22 +141,6 @@ async function attachPosterProfiles(rows: any[]): Promise<Job[]> {
   return rows.map(j => ({ ...j, profile: map[j.posted_by] || null })) as Job[];
 }
 
-async function attachInstitutionNames(rows: any[]): Promise<any[]> {
-  if (!rows || rows.length === 0) return rows;
-  const instIds = Array.from(new Set(rows.map(j => j.institution_id).filter(Boolean)));
-  if (instIds.length === 0) return rows;
-  const { data: insts } = await supabase
-    .from('institutions')
-    .select('id, name, short_name')
-    .in('id', instIds);
-  const im: Record<string, any> = {};
-  (insts || []).forEach((i: any) => { im[i.id] = i; });
-  return rows.map(j => ({
-    ...j,
-    institution_name: j.institution_id ? (im[j.institution_id]?.short_name || im[j.institution_id]?.name || null) : null,
-  }));
-}
-
 export const jobsService = {
   /**
    * Fetch jobs, optionally scoped to a user's institution set.
@@ -160,36 +153,28 @@ export const jobsService = {
   async getJobs(opts: GetJobsOpts = {}): Promise<Job[]> {
     const { sortBy = 'recent', scope, userId, limit = 100 } = opts;
 
-    let rows: any[] = [];
-
-    if (scope && userId) {
-      const { data, error } = await supabase.rpc('get_scoped_jobs', {
-        p_user_id: userId,
-        p_mode: scope,
-        p_limit: limit,
-        p_before: null,
-      });
-      if (error) {
-        console.log('[jobsService.getJobs rpc]', error.message);
-        return [];
-      }
-      rows = data || [];
-    } else {
-      let query = supabase.from('jobs').select('*').limit(limit);
-      const { data, error } = await query.order('created_at', { ascending: false });
-      if (error) {
-        console.log('[jobsService.getJobs]', error.message);
-        return [];
-      }
-      rows = data || [];
+    let query = supabase.from('jobs').select('*').limit(limit);
+    if (scope === 'global') {
+      // Remote tab: remote roles only
+      query = query.eq('remote_type', 'remote');
+    } else if (scope === 'primary' && userId) {
+      // Near me: match the job's location against the user's profile city
+      const { data: prof } = await supabase.from('profiles').select('location').eq('id', userId).maybeSingle();
+      const city = String(prof?.location || '').trim().split(',')[0].trim();
+      if (city.length >= 3) query = query.ilike('location', '%' + city + '%');
     }
-
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) {
+      console.log('[jobsService.getJobs]', error.message);
+      return [];
+    }
+    let rows: any[] = data || [];
     // Client-side sort (RPC returns ordered by created_at desc).
     switch (sortBy) {
       case 'popular':
         rows = rows.slice().sort((a, b) => {
-          const aCount = a.application_count ?? 0;
-          const bCount = b.application_count ?? 0;
+          const aCount = a.applications_count ?? 0;
+          const bCount = b.applications_count ?? 0;
           if (bCount !== aCount) return bCount - aCount;
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
@@ -201,6 +186,13 @@ export const jobsService = {
         });
         break;
       case 'salary':
+        rows = rows.slice().sort((a, b) => {
+          const num = (x: any) => { const m = String(x?.salary_range || '').replace(/,/g, '').match(/\d+/); return m ? parseInt(m[0], 10) : -1; };
+          const d = num(b) - num(a);
+          if (d !== 0) return d;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        break;
       case 'recent':
       default:
         rows = rows.slice().sort((a, b) =>
@@ -210,8 +202,8 @@ export const jobsService = {
     }
 
     const withProfiles = await attachPosterProfiles(rows);
-    const withInstitutions = await attachInstitutionNames(withProfiles);
-    return withInstitutions as Job[];
+    
+    return withProfiles as Job[];
   },
 
   async createJob(userId: string, input: CreateJobInput): Promise<Job> {
@@ -232,7 +224,7 @@ export const jobsService = {
         visa_sponsorship: !!input.visa_sponsorship,
         urgent: !!input.urgent,
         verified: false,
-        application_count: 0,
+        applications_count: 0,
         apply_url: input.apply_url || null,
         deadline: input.deadline || null,
         scope: input.scope || 'institution',
@@ -276,6 +268,15 @@ export const jobsService = {
     }
   },
 
+  async getSavedJobs(userId: string): Promise<Job[]> {
+    const ids = await this.getSavedJobIds(userId);
+    if (ids.length === 0) return [];
+    const { data, error } = await supabase.from('jobs').select('*').in('id', ids)
+      .order('created_at', { ascending: false });
+    if (error) { console.log('[jobsService.getSavedJobs]', error.message); return []; }
+    return attachPosterProfiles(data || []);
+  },
+
   async getSavedJobIds(userId: string): Promise<string[]> {
     const { data, error } = await supabase
       .from('job_saves')
@@ -291,8 +292,12 @@ export const jobsService = {
   async applyToJob(
     userId: string,
     jobId: string,
-    coverNote: string
-  ): Promise<JobApplication> {
+    coverNote: string,
+    cvUrl?: string | null,
+    cvName?: string | null,
+    phone?: string | null,
+    portfolioUrl?: string | null
+  ): Promise<{ app: JobApplication; updated: boolean }> {
     if (!userId || !jobId) throw new Error('Missing ids');
     const { data, error } = await supabase
       .from('job_applications')
@@ -301,29 +306,51 @@ export const jobsService = {
         applicant_id: userId,
         status: 'applied',
         cover_note: coverNote?.trim() || null,
+        cv_url: cvUrl || null,
+        cv_name: cvName || null,
+        applicant_phone: phone?.trim() || null,
+        portfolio_url: portfolioUrl?.trim() || null,
       })
       .select()
       .single();
     if (error || !data) {
+      if ((error as any)?.code === '23505') {
+        // Already applied: update the application content, preserve the status
+        // the recruiter may have set.
+        const { data: upd, error: updErr } = await supabase
+          .from('job_applications')
+          .update({
+            cover_note: coverNote?.trim() || null,
+            cv_url: cvUrl || null,
+            cv_name: cvName || null,
+            applicant_phone: phone?.trim() || null,
+            portfolio_url: portfolioUrl?.trim() || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('job_id', jobId).eq('applicant_id', userId)
+          .select().single();
+        if (updErr || !upd) throw updErr || new Error('Could not update application');
+        return { app: upd as JobApplication, updated: true };
+      }
       console.log('[jobsService.applyToJob]', error?.message);
       throw error || new Error('Apply failed');
     }
     try {
       const { data: j } = await supabase
         .from('jobs')
-        .select('application_count')
+        .select('applications_count')
         .eq('id', jobId)
         .single();
       if (j) {
         await supabase
           .from('jobs')
-          .update({ application_count: (j.application_count || 0) + 1 })
+          .update({ applications_count: (j.applications_count || 0) + 1 })
           .eq('id', jobId);
       }
     } catch {
       // non-fatal, display field only
     }
-    return data as JobApplication;
+    return { app: data as JobApplication, updated: false };
   },
 
   async getAppliedJobIds(userId: string): Promise<Record<string, ApplicationStatus>> {
@@ -469,43 +496,4 @@ export const jobsService = {
     }
   },
 
-  /**
-   * Open or create a DM with a job poster. Uses the server start_dm RPC
-   * which handles same-school vs cross-school logic and respects RLS.
-   */
-  async getOrCreateConversationWithPoster(
-    userId: string,
-    posterId: string
-  ): Promise<string> {
-    if (!userId || !posterId) throw new Error('Missing user ids');
-    const { data, error } = await supabase.rpc('start_dm', {
-      p_receiver_id: posterId,
-    });
-    if (error || !data) {
-      console.log('[jobsService.getOrCreateConversationWithPoster]', error?.message);
-      throw error || new Error('Conversation create failed');
-    }
-    return data as string;
-  },
 };
-
-// Legacy wrapper kept for any other caller that still imports this name.
-export async function getOrCreateConversation(user1: string, user2: string) {
-  if (!user1 || !user2) return null;
-  try {
-    const { data, error } = await supabase.rpc('start_dm', { p_receiver_id: user2 });
-    if (error || !data) {
-      console.log('CREATE_CONVERSATION_ERROR', error?.message);
-      return null;
-    }
-    const { data: conv } = await supabase
-      .from('conversations')
-      .select('*')
-      .eq('id', data)
-      .single();
-    return conv || null;
-  } catch (e: any) {
-    console.log('CREATE_CONVERSATION_ERROR', e?.message);
-    return null;
-  }
-}

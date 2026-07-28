@@ -1,7 +1,7 @@
 import SendMoneySheet from '../../components/SendMoneySheet';
 /**
  * ChatScreen.tsx
- * Unified DM + group + affiliation-aware chat.
+ * Unified DM + group chat.
  * Design: Clean Premium — navy sent bubbles, soft tails, instant send.
  *
  * FIXES applied (no other logic changed):
@@ -19,7 +19,7 @@ import React, {
 } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet,
-  KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar,
+  KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, LayoutAnimation, UIManager,
   Animated, Easing, Pressable, Modal, ScrollView, Alert, Linking,
   Image, Dimensions, Share,
 } from 'react-native';
@@ -29,7 +29,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '../../services/supabase';
@@ -42,6 +42,10 @@ import VoiceNote from '../../components/VoiceNote';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
 import ChatInfoSections from '../../components/ChatInfoSections';
 import CallEventBubble from '../../components/CallEventBubble';
+import ChatImageEditor from '../../components/ChatImageEditor';
+import { useDraftStore } from '../../stores/draftStore';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) { UIManager.setLayoutAnimationEnabledExperimental(true); }
 
 const SCREEN_W = Dimensions.get('window').width;
 const MSG_IMG_MAX_W = Math.min(SCREEN_W * 0.72, 300);
@@ -116,17 +120,21 @@ type InfoStarredMsg = {
 type OutgoingStatus = { id: string; delivered_at: string | null; viewed_at: string | null; created_at: string | null } | null;
 type InfoTab = 'media' | 'files' | 'starred';
 
-type AffiliationInfo = {
-  id: string;
-  name: string;
-  post_mode: 'interactive' | 'informative';
-  my_role: 'member' | 'officer' | 'admin' | 'founder' | 'alumni' | null;
-};
 
 // GIF search removed: Google shut down the Tenor API on 30 June 2026 and stopped
 // issuing keys in January, so the old integration cannot be revived. Giphy is the
 // intended replacement, which needs an account and a key before it can be built.
 
+function MentionText({ text, style, meStyle }: { text: string; style: any; meStyle?: boolean }) {
+  const parts = String(text).split(/(@[A-Za-z0-9_\.]{2,30})/g);
+  return (
+    <Text style={style}>
+      {parts.map((p, i) => p.startsWith('@')
+        ? <Text key={i} style={{ fontWeight: '800', color: meStyle ? '#E8DCC8' : '#2563EB' }}>{p}</Text>
+        : <Text key={i}>{p}</Text>)}
+    </Text>
+  );
+}
 function fmtTime(d?: string | null) {
   if (!d) return '';
   return new Date(d).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -176,27 +184,94 @@ function computeImageDims(origW?: number | null, origH?: number | null) {
   return { w: boxW, h: boxH };
 }
 
-function GifPicker({ onBack }: { onSelect: (url: string) => void; onBack: () => void }) {
-  return (
-    <View style={{ paddingHorizontal: 20, paddingVertical: 28, alignItems: 'center', gap: 8 }}>
-      <View style={{
-        width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center',
-        backgroundColor: 'rgba(11,30,61,0.06)',
-      }}>
-        <Feather name="film" size={20} color={TEXT_SECONDARY} />
+function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: string) => void; onBack: () => void; gifMode?: string }) {
+  const GIPHY_KEY = process.env.EXPO_PUBLIC_GIPHY_KEY || '';
+  const [q, setQ] = useState('');
+  const [gifs, setGifs] = useState<any[]>([]);
+  const [busy, setBusy] = useState(false);
+  const gifDebounce = useRef<any>(null);
+
+  const fetchGifs = useCallback(async (query: string) => {
+    if (!GIPHY_KEY) return;
+    setBusy(true);
+    try {
+      const url = query.trim()
+        ? `https://api.giphy.com/v1/${gifMode}/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(query.trim())}&limit=24&rating=pg-13`
+        : `https://api.giphy.com/v1/${gifMode}/trending?api_key=${GIPHY_KEY}&limit=24&rating=pg-13`;
+      const res = await fetch(url);
+      const json = await res.json();
+      setGifs(Array.isArray(json?.data) ? json.data : []);
+    } catch { setGifs([]); }
+    finally { setBusy(false); }
+  }, [GIPHY_KEY]);
+
+  useEffect(() => { fetchGifs(''); }, [fetchGifs]);
+  useEffect(() => {
+    if (gifDebounce.current) clearTimeout(gifDebounce.current);
+    gifDebounce.current = setTimeout(() => fetchGifs(q), 450);
+    return () => { if (gifDebounce.current) clearTimeout(gifDebounce.current); };
+  }, [q, fetchGifs]);
+
+  if (!GIPHY_KEY) {
+    return (
+      <View style={{ paddingHorizontal: 20, paddingVertical: 28, alignItems: 'center', gap: 8 }}>
+        <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(11,30,61,0.06)' }}>
+          <Feather name="film" size={20} color={TEXT_SECONDARY} />
+        </View>
+        <Text style={{ fontSize: 15, fontWeight: '700', color: '#0B1E3D' }}>GIF key needed</Text>
+        <Text style={{ fontSize: 13, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 19 }}>
+          Add EXPO_PUBLIC_GIPHY_KEY to .env (free at developers.giphy.com) and restart the app.
+        </Text>
+        <TouchableOpacity onPress={onBack} style={{ marginTop: 6, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Back</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={{ fontSize: 15, fontWeight: '700', color: '#0B1E3D' }}>GIFs are coming soon</Text>
-      <Text style={{ fontSize: 13, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 19 }}>
-        Our GIF provider shut down its service. We are moving to a new one and this will
-        be back shortly.
-      </Text>
-      <TouchableOpacity onPress={onBack} style={{ marginTop: 6, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Back</Text>
-      </TouchableOpacity>
+    );
+  }
+
+  const half = Math.floor((SCREEN_W - 14 * 2 - 8) / 2);
+  return (
+    <View style={{ flex: 1, paddingTop: 4 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 8, backgroundColor: 'rgba(11,30,61,0.05)', borderRadius: 18, paddingHorizontal: 12 }}>
+        <Feather name="search" size={15} color={TEXT_SECONDARY} />
+        <TextInput
+          style={{ flex: 1, fontSize: 14.5, color: '#0B1E3D', paddingVertical: 9 }}
+          value={q} onChangeText={setQ}
+          placeholder="Search GIPHY"
+          placeholderTextColor="#9CA3AF"
+          autoCapitalize="none"
+        />
+        <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="x" size={17} color={TEXT_SECONDARY} />
+        </TouchableOpacity>
+      </View>
+      {busy && gifs.length === 0 ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color="#0B1E3D" /></View>
+      ) : (
+        <FlatList
+          data={gifs}
+          keyExtractor={(g: any) => g.id}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 8, paddingHorizontal: 14 }}
+          contentContainerStyle={{ gap: 8, paddingBottom: 14 }}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }: any) => {
+            const fw = item?.images?.fixed_width;
+            const full = item?.images?.original?.url || fw?.url;
+            const h = fw?.width && fw?.height ? Math.round(half * (Number(fw.height) / Number(fw.width))) : half;
+            if (!fw?.url || !full) return null;
+            return (
+              <TouchableOpacity activeOpacity={0.85} onPress={() => onSelect(full)}>
+                <ExpoImage source={{ uri: fw.url }} style={{ width: half, height: Math.min(h, 220), borderRadius: 10, backgroundColor: '#E5E5EA' }} contentFit="cover" />
+              </TouchableOpacity>
+            );
+          }}
+          ListEmptyComponent={<Text style={{ textAlign: 'center', color: TEXT_SECONDARY, fontSize: 13, marginTop: 30 }}>No GIFs found</Text>}
+        />
+      )}
     </View>
   );
 }
-
 function SmartImage({ uri, b64, width, height, radius, contentFit }: { uri: string; b64?: string | null; width: number; height: number; radius: number; contentFit?: any }) {
   const mime = (() => {
     const ext = uri.split('.').pop()?.toLowerCase().split('?')[0] ?? '';
@@ -291,7 +366,7 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
 
-  const currentUserId = profile?.id ?? null;
+  const actAsId: string | null = route.params?.actAsId ?? null;  const currentUserId = actAsId ?? profile?.id ?? null;
   const [conversationId, setConversationId] = useState<string | null>(route.params?.conversationId ?? null);
   const passedUser = route.params?.otherUser ?? null;
   const passedUserId: string | null = route.params?.userId ?? null;
@@ -299,9 +374,9 @@ export default function ChatScreen() {
   const groupName: string = route.params?.groupName ?? '';
   const groupEmoji: string = route.params?.groupEmoji ?? '💬';
   const groupAvatarUrl: string | null = route.params?.groupAvatarUrl ?? null;
-  const passedAffiliationId: string | null = route.params?.affiliationId ?? null;
+
   const [otherUser, setOtherUser] = useState<any>(passedUser);
-  const [affiliation, setAffiliation] = useState<AffiliationInfo | null>(null);
+
 
   useEffect(() => {
     if (otherUser) return;
@@ -323,71 +398,21 @@ export default function ChatScreen() {
       .then(({ data }) => { if (data?.id) setConversationId(data.id); });
   }, [conversationId, isGroup, currentUserId, passedUserId]);
 
-  useEffect(() => {
-    if (!currentUserId) return;
-    let cancelled = false;
-
-    const loadAffiliation = async () => {
-      let affId = passedAffiliationId;
-
-      if (!affId && conversationId) {
-        const { data: conv } = await supabase
-          .from('conversations')
-          .select('affiliation_id')
-          .eq('id', conversationId)
-          .maybeSingle();
-        affId = conv?.affiliation_id ?? null;
-      }
-
-      if (!affId) {
-        if (!cancelled) setAffiliation(null);
-        return;
-      }
-
-      const [{ data: aff }, { data: myMembership }] = await Promise.all([
-        supabase.from('affiliations')
-          .select('id, name, post_mode')
-          .eq('id', affId)
-          .maybeSingle(),
-        supabase.from('profile_affiliations')
-          .select('role, left_at')
-          .eq('affiliation_id', affId)
-          .eq('profile_id', currentUserId)
-          .is('left_at', null)
-          .maybeSingle(),
-      ]);
-
-      if (cancelled) return;
-      if (!aff) { setAffiliation(null); return; }
-
-      setAffiliation({
-        id: aff.id,
-        name: aff.name,
-        post_mode: (aff.post_mode as any) || 'interactive',
-        my_role: (myMembership?.role as any) || null,
-      });
-    };
-
-    loadAffiliation();
-    return () => { cancelled = true; };
-  }, [conversationId, passedAffiliationId, currentUserId]);
-
-  const isAffiliationConversation = !!affiliation;
-  const iAmAffiliationAdmin = useMemo(() => {
-    if (!affiliation?.my_role) return false;
-    return ['admin', 'officer', 'founder'].includes(affiliation.my_role);
-  }, [affiliation]);
-  const composerLocked = useMemo(() =>
-    isAffiliationConversation
-    && affiliation?.post_mode === 'informative'
-    && !iAmAffiliationAdmin,
-  [isAffiliationConversation, affiliation, iAmAffiliationAdmin]);
-
   const [message, setMessage] = useState('');
+  const draftSeededRef = useRef(false);
+  useEffect(() => {
+    if (draftSeededRef.current || !conversationId) return;
+    draftSeededRef.current = true;
+    const saved = useDraftStore.getState().drafts[conversationId];
+    if (saved) setMessage(saved);
+  }, [conversationId]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
+  const [typingUserId, setTypingUserId] = useState<string | null>(null);
+  const [seenByNames, setSeenByNames] = useState<string[]>([]);
+  const [seenSheet, setSeenSheet] = useState<{ msg: any; rows: { name: string; avatar: string | null; seenAt: string | null }[] } | null>(null);
   const [lastStatus, setLastStatus] = useState<OutgoingStatus>(null);
 
   const [showToolbar, setShowToolbar] = useState(false);
@@ -418,6 +443,16 @@ export default function ChatScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showTimestamp, setShowTimestamp] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [viewedOutIds, setViewedOutIds] = useState<Set<string>>(new Set());
+  const pendingViewLimitRef = useRef<number | null>(null);
+  const sendScale = useRef(new Animated.Value(1)).current;
+  const springSend = useCallback(() => {
+    sendScale.setValue(0.82);
+    Animated.spring(sendScale, { toValue: 1, friction: 4, tension: 220, useNativeDriver: true }).start();
+  }, [sendScale]);
+  const [editTarget, setEditTarget] = useState<{ uri: string; width: number; height: number } | null>(null);
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [liveGroupCall, setLiveGroupCall] = useState<{ id: string; is_video: boolean; joinedNames: string[] } | null>(null);
   const voice = useVoiceRecorder();
   const [sendingVoice, setSendingVoice] = useState(false);
   const [otherOnline, setOtherOnline] = useState(false);
@@ -467,9 +502,8 @@ export default function ChatScreen() {
   const toolbarH = useRef(new Animated.Value(0)).current;
 
   const chatTitle = useMemo(() => {
-    if (isAffiliationConversation && affiliation) return affiliation.name;
     return isGroup ? groupName || 'Group' : (otherUser?.full_name?.trim() || 'Chat');
-  }, [otherUser, isGroup, groupName, isAffiliationConversation, affiliation]);
+  }, [otherUser, isGroup, groupName]);
   const otherInits = useMemo(() => initials(otherUser?.full_name), [otherUser]);
 
   useEffect(() => {
@@ -500,6 +534,7 @@ export default function ChatScreen() {
     ), []);
 
   const mergeMsg = useCallback((incoming: MessageItem) => {
+    LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     setMessages(prev => {
       const ei = prev.findIndex(m => m.id === incoming.id);
       if (ei !== -1) {
@@ -541,6 +576,7 @@ export default function ChatScreen() {
   const markRead = useCallback(async () => {
     if (!conversationId || !currentUserId) return;
     try {
+      supabase.rpc('mark_conversation_read_v2', { p_conversation_id: conversationId }).then(() => {}, () => {});
       await supabase.rpc('mark_conversation_read', {
         p_conv_id: conversationId,
         p_user_id: currentUserId,
@@ -575,10 +611,14 @@ export default function ChatScreen() {
     if (!currentUserId || !passedUserId) return null;
     const a = [currentUserId, passedUserId].sort();
     const { data: existing } = await supabase.from('conversations').select('id').eq('type', 'direct')
-      .or(`and(user_1.eq.${a[0]},user_2.eq.${a[1]}),and(user_1.eq.${a[1]},user_2.eq.${a[0]})`).maybeSingle();
+      .or(`and(user_1.eq.${a[0]},user_2.eq.${a[1]}),and(user_1.eq.${a[1]},user_2.eq.${a[0]})`)
+      .or('context.is.null,context.eq.personal')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
     if (existing?.id) { setConversationId(existing.id); return existing.id; }
     const { data: created, error } = await supabase.from('conversations').insert({
-      user_1: currentUserId, user_2: passedUserId, type: 'direct', is_group: false,
+      user_1: currentUserId, user_2: passedUserId, type: 'direct', is_group: false, context: 'personal',
       last_message: '', last_message_time: new Date().toISOString(),
     }).select('id').single();
     if (error) { console.log('[CREATE_CONV_ERR]', error.message); return null; }
@@ -586,6 +626,7 @@ export default function ChatScreen() {
     return created.id;
   }, [conversationId, currentUserId, passedUserId]);
 
+  useEffect(() => { if (isGroup && conversationId) loadGroupMembers(); }, [isGroup, conversationId]);
   const loadGroupMembers = useCallback(async () => {
     if (!isGroup || !conversationId) return;
     try {
@@ -686,8 +727,9 @@ export default function ChatScreen() {
     if (!conversationId || !currentUserId) return;
     try {
       const { data } = await supabase.from('conversation_typing').select('*').eq('conversation_id', conversationId);
-      const other = (data || []).find((r: any) => r.user_id !== currentUserId);
-      setOtherTyping(!!(other?.is_typing && (Date.now() - new Date(other.updated_at).getTime() < 5000)));
+      const freshTypers = (data || []).filter((r: any) => r.user_id !== currentUserId && r.is_typing && (Date.now() - new Date(r.updated_at).getTime() < 7000));
+      setTypingUserId(freshTypers[0]?.user_id ?? null);
+      setOtherTyping(freshTypers.length > 0);
     } catch {}
   }, [conversationId, currentUserId]);
 
@@ -726,7 +768,7 @@ export default function ChatScreen() {
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
         async (p) => {
           mergeMsg(p.new as MessageItem);
-          if ((p.new as any).receiver_id === currentUserId) {
+          if ((p.new as any).receiver_id === currentUserId || (isGroup && (p.new as any).sender_id !== currentUserId)) {
             await markRead();
           }
           await refreshStatus();
@@ -751,6 +793,8 @@ export default function ChatScreen() {
       )
       .subscribe();
 
+    const typePoll = setInterval(fetchTyping, 3000);
+
     const reactCh = supabase
       .channel(`reactions_${conversationId}`)
       .on(
@@ -768,17 +812,132 @@ export default function ChatScreen() {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       setTyping(false);
       supabase.removeChannel(msgCh);
-      supabase.removeChannel(typeCh);
+      clearInterval(typePoll); supabase.removeChannel(typeCh);
       supabase.removeChannel(reactCh);
     };
   }, [conversationId, currentUserId, fetchMessages, fetchTyping, markRead, mergeMsg, refreshStatus, setTyping, loadReactions]);
 
   const handleTextChange = useCallback((text: string) => {
     setMessage(text);
+    if (conversationId) useDraftStore.getState().setDraft(conversationId, text);
+    if (isGroup) { const mm = text.match(/@([A-Za-z0-9_\.]*)$/); setMentionQuery(mm ? mm[1] : null); } else { if (mentionQuery !== null) setMentionQuery(null); }
     setTyping(text.trim().length > 0);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => setTyping(false), 1500);
   }, [setTyping]);
+
+useEffect(() => {
+    if (!isGroup || !conversationId) return;
+    let live = true;
+    const check = async () => {
+      try {
+        const { data } = await supabase.from('call_sessions')
+          .select('id, is_video, status, created_at')
+          .eq('is_group_call', true)
+          .eq('conversation_id', conversationId)
+          .in('status', ['ringing', 'active'])
+          .order('created_at', { ascending: false })
+          .limit(1).maybeSingle();
+        const stale = data?.status === 'ringing' && (Date.now() - new Date(data.created_at ?? 0).getTime() > 90000);
+        if (!data || stale) { if (live) setLiveGroupCall(null); return; }
+        let joinedNames: string[] = [];
+        try {
+          const { data: parts } = await supabase.from('call_participants')
+            .select('user_id').eq('call_session_id', data.id).eq('status', 'joined');
+          const ids = (parts || []).map((p: any) => p.user_id);
+          if (ids.length) {
+            const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+            joinedNames = (profs || []).map((p: any) => String(p.full_name || '').split(' ')[0]).filter(Boolean);
+          }
+        } catch {}
+        if (live) setLiveGroupCall({ id: data.id, is_video: !!data.is_video, joinedNames });
+      } catch {}
+    };
+    check();
+    const iv = setInterval(check, 20000);
+    const ch = supabase.channel(`gcall_watch_${conversationId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'call_sessions', filter: `conversation_id=eq.${conversationId}` }, () => check())
+      .subscribe();
+    return () => { live = false; clearInterval(iv); supabase.removeChannel(ch); };
+  }, [isGroup, conversationId]);
+
+  const joinLiveCall = useCallback(async () => {
+    if (!liveGroupCall || !conversationId) return;
+    try {
+      const { error } = await supabase.rpc('join_group_call', { p_session_id: liveGroupCall.id });
+      if (error) throw error;
+      (navigation as any).navigate('Call', {
+        callId: liveGroupCall.id, channelId: liveGroupCall.id,
+        callerName: chatTitle, callerAvatar: null,
+        otherUser: { id: '', full_name: chatTitle, avatar_url: null },
+        isIncoming: true, isVideo: liveGroupCall.is_video, isGroupCall: true,
+        groupName: chatTitle, conversationId,
+      });
+    } catch (e: any) { setLiveGroupCall(null); Alert.alert('Could not join', e?.message || 'The call may have ended.'); }
+  }, [liveGroupCall, conversationId, chatTitle]);
+
+  useEffect(() => {
+    if (!isGroup || !conversationId || !currentUserId) return;
+    let live = true;
+    const check = async () => {
+      try {
+        const newest = messagesRef.current?.[0];
+        if (!newest || newest.sender_id !== currentUserId || !newest.created_at) {
+          if (live) setSeenByNames(prev => prev.length ? [] : prev);
+          return;
+        }
+        const { data } = await supabase
+          .from('conversation_members')
+          .select('user_id, last_read_at')
+          .eq('conversation_id', conversationId)
+          .neq('user_id', currentUserId)
+          .gt('last_read_at', newest.created_at);
+        if (!live) return;
+        const names: string[] = (data || []).map((r: any) => String(r.user_id));
+        setSeenByNames(prev =>
+          prev.length === names.length && prev.every((n, i) => n === names[i]) ? prev : names);
+      } catch {}
+    };
+    check();
+    const iv = setInterval(check, 5000);
+    return () => { live = false; clearInterval(iv); };
+  }, [isGroup, conversationId, currentUserId, membersById]);
+
+const openSeenInfo = useCallback(async (msg: any) => {
+    if (!conversationId || !msg?.created_at) return;
+    setSeenSheet({ msg, rows: null } as any); // loading — the sheet can never be silently blank
+    try {
+      const { data, error } = await supabase
+        .from('conversation_members')
+        .select('user_id, last_read_at')
+        .eq('conversation_id', conversationId)
+        .neq('user_id', currentUserId);
+      if (error) throw error;
+      const ids = (data || []).map((r: any) => r.user_id);
+      const { data: profs } = ids.length
+        ? await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', ids)
+        : { data: [] as any[] };
+      const profById: Record<string, any> = {};
+      (profs || []).forEach((p: any) => { profById[p.id] = p; });
+      const rows = (data || []).map((r: any) => {
+        const p: any = profById[r.user_id] || {};
+        const seen = r.last_read_at && new Date(r.last_read_at) > new Date(msg.created_at);
+        return {
+          name: String(p.full_name || p.username || 'Member'),
+          avatar: p.avatar_url ?? null,
+          seenAt: seen ? r.last_read_at : null,
+        };
+      }).sort((x: any, y: any) => (y.seenAt ? 1 : 0) - (x.seenAt ? 1 : 0));
+      setSeenSheet({ msg, rows });
+    } catch (e: any) {
+      setSeenSheet({ msg, rows: [], error: e?.message || 'Could not load' } as any);
+    }
+  }, [conversationId, currentUserId]);
+
+const insertMention = useCallback((username: string) => {
+    setMessage(prev => prev.replace(/@([A-Za-z0-9_\.]*)$/, '@' + username + ' '));
+    setMentionQuery(null);
+  }, []);
 
   const toggleSaveMessage = async (msgId: string) => {
     if (!currentUserId) return;
@@ -855,10 +1014,7 @@ export default function ChatScreen() {
 
   const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null, mediaWidth?: number, mediaHeight?: number): Promise<boolean> => {
     if (!currentUserId) return false;
-    if (composerLocked) {
-      Alert.alert('Announcements only', 'Only admins can post in this community.');
-      return false;
-    }
+
     const convId = await getOrCreateConversation();
     if (!convId) return false;
     const receiverId = isGroup ? null : (otherUser?.id ?? passedUserId);
@@ -873,7 +1029,7 @@ export default function ChatScreen() {
     setMessages(prev => [optimistic, ...prev]);
     try {
       const { data, error } = await supabase.from('messages').insert([{
-        conversation_id: convId, text: text || null, sender_id: currentUserId, receiver_id: receiverId,
+        conversation_id: convId, text: text || null, sender_id: currentUserId, receiver_id: receiverId, view_limit: pendingViewLimitRef.current,
         media_url: mediaUrl || null, media_type: mediaType || null, reply_to_id: replyId || null,
       }]).select().single();
       if (error) {
@@ -885,21 +1041,27 @@ export default function ChatScreen() {
       }
       mergeMsg({ ...data, media_width: mediaWidth || null, media_height: mediaHeight || null, media_b64: mediaB64 || null });
       await refreshStatus();
-      const preview = mediaUrl
-        ? (mediaType === 'image' ? '📷 Photo' : mediaType === 'video' ? '🎬 Video' : mediaType === 'document' ? '📄 File' : '📎 Media')
+      const body = mediaUrl
+        ? (mediaType === 'image' ? ((pendingViewLimitRef.current ?? (data as any)?.view_limit) ? '🕐 Photo' : '📷 Photo')
+          : mediaType === 'video' ? '🎬 Video'
+          : mediaType === 'gif' ? 'GIF'
+          : mediaType === 'audio' ? '🎤 Voice message'
+          : mediaType === 'document' ? '📄 File' : '📎 Media')
         : (text || '');
-      supabase.from('conversations').update({ last_message: preview, last_message_time: data.created_at }).eq('id', convId).then(() => {});
+      const preview = body;
+      // preview is written server-side by trg_sync_conversation_preview (0065)
       return true;
     } catch {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       return false;
     }
-  }, [getOrCreateConversation, currentUserId, isGroup, otherUser, passedUserId, mergeMsg, refreshStatus, composerLocked]);
+  }, [getOrCreateConversation, currentUserId, isGroup, otherUser, passedUserId, mergeMsg, refreshStatus]);
 
   const sendMessage = useCallback(async () => {
     const clean = message.trim();
     if (!clean || sending) return;
     setMessage('');
+    if (conversationId) useDraftStore.getState().clearDraft(conversationId);
     setSending(true);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     setTyping(false);
@@ -910,6 +1072,42 @@ export default function ChatScreen() {
     setSending(false);
   }, [message, sending, setTyping, replyTo, doSend]);
 
+const chooseAndSendImage = useCallback(async (img: { uri: string; width: number; height: number; base64: string | null }) => {
+    pendingViewLimitRef.current = null;
+    const choice: number | null = await new Promise(res => {
+      Alert.alert('Send photo', 'Choose how it can be viewed', [
+        { text: 'Normal', onPress: () => res(null) },
+        { text: 'View once', onPress: () => res(1) },
+        { text: 'View twice', onPress: () => res(2) },
+        { text: 'Cancel', style: 'cancel', onPress: () => res(-1) },
+      ]);
+    });
+    if (choice === -1) return;
+    pendingViewLimitRef.current = choice;
+    setUploadingMedia(true);
+    try {
+      const { url } = await uploadMedia('chat-media', currentUserId!, {
+        uri: img.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg',
+        width: img.width, height: img.height, base64: img.base64,
+      }, { filename: `edited_${Date.now()}.jpg` });
+      await doSend('', url, 'image', img.base64, null, img.width, img.height);
+    } catch { Alert.alert('Upload failed'); }
+    finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
+  }, [currentUserId, doSend]);
+
+  const openSealedMedia = useCallback(async (msg: any) => {
+    try {
+      const { data, error } = await supabase.rpc('consume_media_view', { p_message_id: msg.id });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (error || !row?.url) {
+        setViewedOutIds(prev => new Set(prev).add(msg.id));
+        Alert.alert('Opened', 'This photo has already been viewed.');
+        return;
+      }
+      if ((row.remaining ?? 0) <= 0) setViewedOutIds(prev => new Set(prev).add(msg.id));
+      setFullscreenImg(row.url);
+    } catch {}
+  }, []);
   const pickAndSendMedia = useCallback(async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required'); return; }
@@ -918,6 +1116,13 @@ export default function ChatScreen() {
       allowsMultipleSelection: true, selectionLimit: 10, base64: true,
     });
     if (result.canceled || !result.assets?.length) return;
+    pendingViewLimitRef.current = null;
+    if (result.assets.length === 1 && result.assets[0].type !== 'video') {
+      const a = result.assets[0];
+      setShowToolbar(false);
+      setEditTarget({ uri: a.uri, width: a.width ?? 1000, height: a.height ?? 1000 });
+      return;
+    }
     setShowToolbar(false); setUploadingMedia(true);
     try {
       for (const asset of result.assets) {
@@ -933,10 +1138,10 @@ export default function ChatScreen() {
           await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height);
         } catch (upErr: any) { console.log('[CHAT_UPLOAD_ERR]', upErr?.message); continue; }
       }
-    } catch (e: any) { Alert.alert('Upload failed', e?.message); } finally { setUploadingMedia(false); }
+    } catch (e: any) { Alert.alert('Upload failed', e?.message); } finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
   }, [currentUserId, doSend]);
 
-  const pickAndSendDocument = useCallback(async () => {
+const pickAndSendDocument = useCallback(async () => {
     setShowToolbar(false);
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true, multiple: false });
@@ -958,22 +1163,21 @@ export default function ChatScreen() {
     await doSend('', url, 'gif', null);
   }, [doSend]);
 
+  const [stickerMode, setStickerMode] = useState(false);
+  const sendSticker = useCallback(async (url: string) => {
+    setShowGifs(false); setShowToolbar(false);
+    await doSend('', url, 'sticker', null);
+  }, [doSend]);
+
   const openCamera = useCallback(async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required'); return; }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.92, base64: true });
+    const result = await ImagePicker.launchCameraAsync({ quality: 1, base64: false });
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
-    setShowToolbar(false); setUploadingMedia(true);
-    try {
-      const camBase64 = asset.base64 ?? null;
-      const { url } = await uploadMedia('chat-media', currentUserId!, {
-        uri: asset.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg',
-        width: asset.width, height: asset.height, base64: camBase64,
-      }, { filename: `camera_${Date.now()}.jpg` });
-      await doSend('', url, 'image', camBase64, null, asset.width, asset.height);
-    } catch { Alert.alert('Upload failed'); } finally { setUploadingMedia(false); }
-  }, [currentUserId, doSend]);
+    setShowToolbar(false);
+    setEditTarget({ uri: asset.uri, width: asset.width ?? 1000, height: asset.height ?? 1000 });
+  }, []);
 
   const toggleReaction = useCallback(async (msgId: string, emoji: string) => {
     if (!currentUserId) return;
@@ -1011,9 +1215,11 @@ export default function ChatScreen() {
 
     if (isGroup) {
       if (!conversationId) { Alert.alert('Cannot call', 'No conversation found.'); return; }
-      const chanId = `group_${conversationId}_${Date.now()}`;
+      const { data: sessId, error: gcErr } = await supabase.rpc('start_group_call', { p_conversation_id: conversationId, p_is_video: isVideo });
+      if (gcErr || !sessId) { Alert.alert('Could not start call', gcErr?.message || 'Someone may already be calling.'); return; }
+      const chanId = String(sessId);
       navigation.navigate('Call', {
-        callId: null, channelId: chanId,
+        callId: String(sessId), channelId: chanId,
         callerName: chatTitle, callerAvatar: null,
         otherUser: { id: '', full_name: chatTitle, avatar_url: null },
         isIncoming: false, isVideo, isGroupCall: true,
@@ -1030,9 +1236,8 @@ export default function ChatScreen() {
         otherUser: otherUser ?? { id: recipientId, full_name: chatTitle, avatar_url: null },
         isIncoming: false, isVideo, isGroupCall: false,
       });
-      try {
-        await callService.initiateCall({ callerId: currentUserId, receiverId: recipientId, channelId: chanId, isVideo });
-      } catch {}
+      // session creation belongs to CallContext alone — a second create here
+      // split every call into two rooms (receiver answered the wrong one).
     }
   }, [currentUserId, otherUser, passedUserId, conversationId, isGroup, chatTitle, navigation]);
 
@@ -1066,6 +1271,28 @@ export default function ChatScreen() {
   }, [messages, searchQuery]);
 
   const [paymentsMap, setPaymentsMap] = useState<Record<string, ChatPayment>>({});
+  const [offersMap, setOffersMap] = useState<Record<string, any>>({});
+  useEffect(() => {
+    const ids: string[] = [];
+    messages.forEach(m => {
+      if (m.media_type === 'offer' && m.media_url) {
+        try { const j = JSON.parse(m.media_url); if (j?.offer_id && !offersMap[j.offer_id]) ids.push(j.offer_id); } catch {}
+      }
+    });
+    if (!ids.length) return;
+    supabase.from('listing_offers').select('id, status, proposer_id, amount, currency').in('id', ids)
+      .then(({ data }) => {
+        if (!data?.length) return;
+        setOffersMap(prev => { const n = { ...prev }; data.forEach((r: any) => { n[r.id] = r; }); return n; });
+      });
+  }, [messages]);
+  const respondOffer = useCallback(async (offerId: string, action: string, counterAmount?: number) => {
+    try {
+      const { error } = await supabase.rpc('respond_offer', { p_offer_id: offerId, p_action: action, p_counter_amount: counterAmount ?? null });
+      if (error) throw error;
+      setOffersMap(prev => ({ ...prev, [offerId]: { ...(prev[offerId] || {}), status: action } }));
+    } catch (e: any) { Alert.alert('Offer', e?.message || 'Could not respond.'); }
+  }, []);
   useEffect(() => {
     const ids = Array.from(new Set(messages.map(m => m.payment_id).filter(Boolean))) as string[];
     const missing = ids.filter(id => !paymentsMap[id]);
@@ -1097,6 +1324,30 @@ export default function ChatScreen() {
     }
     return map;
   }, [messages]);
+  const membersById = useMemo(() => {
+    const m: Record<string, any> = {};
+    groupMembers.forEach((gm: any) => { if (gm.profile?.id) m[gm.profile.id] = gm.profile; });
+    return m;
+  }, [groupMembers]);
+  const groupStarts = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    for (let i = 0; i < messages.length; i++) {
+      const mm = messages[i];
+      const above = messages[i + 1];
+      const continues = !!above
+        && above.sender_id === mm.sender_id
+        && Math.abs(new Date(mm.created_at ?? 0).getTime() - new Date(above.created_at ?? 0).getTime()) < 120000;
+      map[mm.id] = !continues;
+    }
+    return map;
+  }, [messages]);
+  const SENDER_COLORS = ['#B45309', '#0F766E', '#7C3AED', '#BE185D', '#2563EB', '#059669', '#C2410C', '#4F46E5'];
+  const senderColor = useCallback((id?: string | null) => {
+    if (!id) return SENDER_COLORS[0];
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+    return SENDER_COLORS[h % SENDER_COLORS.length];
+  }, []);
   const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string } | null }>>({});
   useEffect(() => {
     const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
@@ -1137,6 +1388,8 @@ export default function ChatScreen() {
     const msg: MessageItem = item.data;
     const isMe = msg.sender_id === currentUserId;
     const endsGroup = groupEnds[msg.id] !== false;
+    const startsGroup = groupStarts[msg.id] !== false;
+    const sender = isGroup ? membersById[msg.sender_id] : otherUser;
     const status = getStatus(msg, isMe, item.index);
     const showTs = showTimestamp === msg.id;
     const reactions = msg._reactions || [];
@@ -1144,7 +1397,8 @@ export default function ChatScreen() {
     const isStarred = starredIds.has(msg.id);
     const replySourceMsg = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
     const replyPreview = replySourceMsg ? (replySourceMsg.text || (replySourceMsg.media_type === 'image' ? '📷 Photo' : '🎬 Video')) : null;
-    const isMediaOnly = (msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url && !msg.text;
+    const isSticker = msg.media_type === 'sticker' && msg.media_url;
+    const isMediaOnly = (msg.media_type === 'image' || msg.media_type === 'gif' || isSticker) && msg.media_url && !msg.text && !(msg as any).view_limit;
     const sharedPost = msg.shared_post_id ? sharedPostsMap[msg.shared_post_id] : null;
     // A deleted message leaves a mark rather than vanishing, so the other
     // person sees that something was removed instead of the conversation
@@ -1171,14 +1425,19 @@ export default function ChatScreen() {
       <View style={[s.row, isMe ? s.rowMe : s.rowOther]}>
         {!isMe && (
           <View style={[s.sideAvatarSlot, !endsGroup && { opacity: 0 }]}>
-            {otherUser?.avatar_url
-              ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.sideAvatar} contentFit="cover" />
-              : <View style={s.sideAvatarFb}><Text style={s.sideAvatarTxt}>{otherInits}</Text></View>}
+            {sender?.avatar_url
+              ? <ExpoImage source={{ uri: sender.avatar_url }} style={s.sideAvatar} contentFit="cover" />
+              : <View style={s.sideAvatarFb}><Text style={s.sideAvatarTxt}>{isGroup ? initials(sender?.full_name) : otherInits}</Text></View>}
           </View>
         )}
-        <Pressable style={[s.bubbleCol, isMe ? s.bubbleColMe : s.bubbleColOther]}
+        <Pressable style={({ pressed }) => [s.bubbleCol, isMe ? s.bubbleColMe : s.bubbleColOther, pressed && { transform: [{ scale: 0.975 }], opacity: 0.92 }]}
           onPress={() => setShowTimestamp(prev => prev === msg.id ? null : msg.id)}
           onLongPress={() => setSelectedMsg(msg)} delayLongPress={380}>
+          {isGroup && !isMe && startsGroup && (
+            <Text style={{ fontSize: 12, fontWeight: '700', color: senderColor(msg.sender_id), marginBottom: 3, marginLeft: 4 }} numberOfLines={1}>
+              {sender?.full_name || msg.sender_name || 'Member'}
+            </Text>
+          )}
           {msg.shared_post_id && (
             <TouchableOpacity style={{ width: 232, backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 14, overflow: 'hidden', marginBottom: 4 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onLongPress={() => setSelectedMsg(msg)} delayLongPress={380}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 8 }}>
@@ -1230,9 +1489,33 @@ export default function ChatScreen() {
             <View style={[
               s.bubble,
               isMe ? (replyPreview ? s.bubbleMeFlat : s.bubbleMe) : (replyPreview ? s.bubbleOtherFlat : s.bubbleOther),
+              isSticker && { backgroundColor: 'transparent', borderWidth: 0, shadowOpacity: 0, elevation: 0, padding: 0 },
                 !endsGroup && s.bubbleInRun,
             ]}>
-              {(msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url ? (
+{(msg as any).view_limit && msg.media_type === 'image' ? (
+                <TouchableOpacity
+                  disabled={isMe || viewedOutIds.has(msg.id)}
+                  onPress={() => openSealedMedia(msg)}
+                  activeOpacity={0.8}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4, paddingVertical: 2 }}>
+                  <View style={{
+                    width: 34, height: 34, borderRadius: 17, borderWidth: 1.5,
+                    borderColor: isMe ? 'rgba(255,255,255,0.55)' : 'rgba(11,30,61,0.35)',
+                    alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: isMe ? 'rgba(255,255,255,0.85)' : 'rgba(11,30,61,0.7)' }}>{(msg as any).view_limit}</Text>
+                  </View>
+                  <Text style={{ fontSize: 14.5, fontWeight: '600', fontStyle: viewedOutIds.has(msg.id) ? 'italic' : 'normal', color: isMe ? 'rgba(255,255,255,0.9)' : 'rgba(11,30,61,0.8)' }}>
+                    {isMe ? ((msg as any).view_limit === 1 ? 'View once photo' : 'View twice photo')
+                      : viewedOutIds.has(msg.id) ? 'Opened'
+                      : 'Photo · tap to view'}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+              {isSticker ? (
+                <ExpoImage source={{ uri: msg.media_url! }} style={{ width: 150, height: 150 }} contentFit="contain" />
+              ) : null}
+              {(msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url && !(msg as any).view_limit ? (
                 <View style={{ marginBottom: msg.text ? 8 : 0 }}>
                   <AutoSizeImage
                     uri={msg.media_url!}
@@ -1250,6 +1533,38 @@ export default function ChatScreen() {
                   otherName={otherUser?.full_name}
                 />
               ) : null}
+              {msg.media_type === 'offer' && msg.media_url ? (() => {
+                let j: any = null; try { j = JSON.parse(msg.media_url); } catch {}
+                if (!j?.offer_id) return null;
+                const live = offersMap[j.offer_id];
+                const status = live?.status || j.status || 'pending';
+                const myTurn = status === 'pending' && (live?.proposer_id ?? msg.sender_id) !== currentUserId;
+                const statusColor = status === 'accepted' ? '#059669' : status === 'pending' ? '#B08D3F' : 'rgba(11,30,61,0.45)';
+                return (
+                  <View style={{ minWidth: 200, borderRadius: 14, overflow: 'hidden', backgroundColor: isMe ? 'rgba(255,255,255,0.12)' : 'rgba(11,30,61,0.045)', borderWidth: 1, borderColor: isMe ? 'rgba(255,255,255,0.25)' : 'rgba(11,30,61,0.1)' }}>
+                    <View style={{ padding: 12 }}>
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: isMe ? 'rgba(255,255,255,0.7)' : 'rgba(11,30,61,0.5)' }}>{j.counter_of ? 'COUNTER-OFFER' : 'OFFER'} · {String(j.listing_title || '').slice(0, 28)}</Text>
+                      <Text style={{ fontSize: 21, fontWeight: '800', marginTop: 3, color: isMe ? '#FFFFFF' : '#0B1E3D' }}>{j.currency} {j.amount}</Text>
+                      <Text style={{ fontSize: 12, fontWeight: '700', marginTop: 3, color: statusColor }}>{status.toUpperCase()}</Text>
+                    </View>
+                    {myTurn && (
+                      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: isMe ? 'rgba(255,255,255,0.2)' : 'rgba(11,30,61,0.08)' }}>
+                        <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center' }} onPress={() => respondOffer(j.offer_id, 'accepted')}>
+                          <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#059669' }}>Accept</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderLeftWidth: 1, borderLeftColor: 'rgba(11,30,61,0.08)' }} onPress={() => {
+                          Alert.prompt ? Alert.prompt('Counter-offer', 'Your amount', (t) => { const n = Number(String(t).replace(/,/g, '')); if (Number.isFinite(n) && n > 0) respondOffer(j.offer_id, 'countered', n); }, 'plain-text', '', 'numeric') : respondOffer(j.offer_id, 'declined');
+                        }}>
+                          <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0B1E3D' }}>Counter</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderLeftWidth: 1, borderLeftColor: 'rgba(11,30,61,0.08)' }} onPress={() => respondOffer(j.offer_id, 'declined')}>
+                          <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#DC2626' }}>Decline</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                );
+              })() : null}
               {msg.media_type === 'audio' && msg.media_url ? (
                 <VoiceNote
                   uri={msg.media_url}
@@ -1296,7 +1611,7 @@ export default function ChatScreen() {
                         <TouchableOpacity onPress={() => Linking.openURL(displayText!)}>
                           <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther, s.linkTxt]}>{displayText}</Text>
                         </TouchableOpacity>
-                      ) : <Text style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther]}>{displayText}</Text>
+                      ) : <MentionText text={displayText!} meStyle={isMe} style={[s.bubbleTxt, isMe ? s.bubbleTxtMe : s.bubbleTxtOther]} />
                     ) : null}
                   </>
                 );
@@ -1318,14 +1633,22 @@ export default function ChatScreen() {
             </View>
           )}
           {(msg as any).edited_at && !status && <Text style={[s.status, isMe ? s.statusMe : s.statusOther]}>edited</Text>}
-          {status && <Text style={[s.status, isMe ? s.statusMe : s.statusOther]}>{status}{(msg as any).edited_at ? ' · edited' : ''}</Text>}
+          {status && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, alignSelf: isMe ? 'flex-end' : 'flex-start' }}>
+              {status === 'Sending' ? <Ionicons name="time-outline" size={12} color="rgba(11,30,61,0.4)" />
+                : status === 'Sent' ? <Ionicons name="checkmark" size={13} color="rgba(11,30,61,0.45)" />
+                : status === 'Delivered' ? <Ionicons name="checkmark-done" size={13} color="rgba(11,30,61,0.45)" />
+                : <Ionicons name="checkmark-done" size={13} color="#3B82F6" />}
+              <Text style={[s.status, isMe ? s.statusMe : s.statusOther]}>{String(status).startsWith('Seen') ? status : ''}{(msg as any).edited_at ? ' · edited' : ''}</Text>
+            </View>
+          )}
           {showTs && <Text style={[s.tsLabel, isMe ? s.tsLabelMe : s.tsLabelOther]}>{fmtTime(msg.created_at)}</Text>}
         </Pressable>
       </View>
     );
   };
 
-  const canSend = message.trim().length > 0 && !composerLocked;
+  const canSend = message.trim().length > 0;
   // Stop, upload, then send. The recording is only discarded once the message
   // exists, so a failed upload does not lose what was said.
   const sendVoiceNote = useCallback(async () => {
@@ -1440,13 +1763,11 @@ export default function ChatScreen() {
 
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="chevron-left" size={26} color={NAVY} />
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="chevron-back" size={22} color={NAVY} /></View>
         </TouchableOpacity>
         <TouchableOpacity style={s.headerCenter} activeOpacity={0.7}
           onPress={() => setShowInfoModal(true)}>
-          {isAffiliationConversation
-            ? <View style={s.hAvatarFb}><Feather name="users" size={18} color="#3C3C43" /></View>
-            : isGroup
+          {isGroup
               ? (groupAvatarUrl
                 ? <ExpoImage source={{ uri: groupAvatarUrl }} style={s.hAvatar} contentFit="cover" />
                 : <View style={s.hAvatarFb}><Text style={{ fontSize: 20 }}>{groupEmoji}</Text></View>)
@@ -1455,8 +1776,7 @@ export default function ChatScreen() {
                 : <View style={s.hAvatarFb}><Text style={s.hAvatarTxt}>{otherInits}</Text></View>}
           <View style={s.hInfo}>
             <Text style={s.hName} numberOfLines={1}>{chatTitle}</Text>
-            {isAffiliationConversation
-              ? <Text style={s.hSub}>{affiliation?.post_mode === 'informative' ? 'Announcements only' : 'Community chat'}</Text>
+            {isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]} numberOfLines={1}>{String(membersById[typingUserId ?? '']?.full_name || 'Someone').split(' ')[0]} is typing...</Text>
               : !isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]}>typing...</Text>
               : !isGroup && otherOnline ? <Text style={[s.hSub, { color: '#34C759' }]}>online</Text>
               : !isGroup && otherUser?.username ? <Text style={s.hSub}>@{otherUser.username}</Text>
@@ -1464,20 +1784,16 @@ export default function ChatScreen() {
           </View>
         </TouchableOpacity>
         <View style={s.headerActions}>
-          {!isAffiliationConversation && (
-            <TouchableOpacity onPress={() => startCall(false)} style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-              <Feather name="phone" size={18} color={NAVY} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity onPress={() => startCall(false)} style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="call" size={18} color={NAVY} /></View>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => setSearchActive(p => !p)}
             style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-            <Feather name="search" size={18} color={searchActive ? NAVY : '#3C3C43'} />
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: searchActive ? 'rgba(11,30,61,0.12)' : 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="search" size={18} color={NAVY} /></View>
           </TouchableOpacity>
-          {!isAffiliationConversation && (
-            <TouchableOpacity onPress={() => startCall(true)} style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-              <Feather name="video" size={18} color={NAVY} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity onPress={() => startCall(true)} style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="videocam" size={19} color={NAVY} /></View>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -1555,6 +1871,15 @@ export default function ChatScreen() {
           <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
         ) : (
           <FlatList ref={flatListRef} data={listData} inverted
+            ListHeaderComponent={isGroup && seenByNames.length > 0 ? (
+              <TouchableOpacity onPress={() => { const m = messagesRef.current?.[0]; if (m) openSeenInfo(m); }} activeOpacity={0.7}
+                style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 16, paddingTop: 2, paddingBottom: 6 }}>
+                <Feather name="eye" size={11} color="rgba(11,30,61,0.45)" />
+                <Text style={{ fontSize: 11.5, fontWeight: '600', color: 'rgba(11,30,61,0.5)' }}>
+                  Seen by {seenByNames.length}{groupMembers.length > 1 && seenByNames.length >= groupMembers.length - 1 ? ' · everyone' : ''}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
             keyExtractor={(item: any) => item.type === 'sep' ? item.id : item.data.id}
             renderItem={renderMsg} contentContainerStyle={s.list}
             keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive"
@@ -1565,19 +1890,13 @@ export default function ChatScreen() {
             initialNumToRender={15}
             ListEmptyComponent={
               <View style={s.empty}>
-                {isAffiliationConversation
-                  ? <View style={s.emptyAvatarFb}><Feather name="users" size={32} color="#3C3C43" /></View>
-                  : otherUser?.avatar_url
+                {otherUser?.avatar_url
                     ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.emptyAvatar} contentFit="cover" />
                     : <View style={s.emptyAvatarFb}><Text style={s.emptyAvatarTxt}>{otherInits}</Text></View>}
                 <Text style={s.emptyName}>{chatTitle}</Text>
-                {!isAffiliationConversation && otherUser?.username && <Text style={s.emptyHandle}>@{otherUser.username}</Text>}
+                {otherUser?.username && <Text style={s.emptyHandle}>@{otherUser.username}</Text>}
                 <Text style={s.emptyHint}>
-                  {isAffiliationConversation
-                    ? (affiliation?.post_mode === 'informative'
-                        ? (iAmAffiliationAdmin ? 'Post an announcement for the community.' : 'Admins will post announcements here.')
-                        : 'Be the first to say hi to the community.')
-                    : 'Send a message to start the conversation.'}
+                  Send a message to start the conversation.
                 </Text>
               </View>
             } />
@@ -1585,9 +1904,13 @@ export default function ChatScreen() {
 
         <Animated.View style={[s.typingWrap, { opacity: typingOpacity }]} pointerEvents="none">
           <View style={s.sideAvatarSlot}>
-            {otherUser?.avatar_url
-              ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.sideAvatar} contentFit="cover" />
-              : <View style={s.sideAvatarFb}><Text style={s.sideAvatarTxt}>{otherInits}</Text></View>}
+            {(() => {
+              const tp: any = isGroup ? (typingUserId ? membersById[typingUserId] : null) : otherUser;
+              if (!tp) return null;
+              return tp.avatar_url
+                ? <ExpoImage source={{ uri: tp.avatar_url }} style={s.sideAvatar} contentFit="cover" />
+                : <View style={s.sideAvatarFb}><Text style={s.sideAvatarTxt}>{initials(tp.full_name)}</Text></View>;
+            })()}
           </View>
           <View style={[s.bubble, s.bubbleOther, s.typingBubble]}>
             <Animated.View style={[s.typingDot, { transform: [{ translateY: dot1 }] }]} />
@@ -1596,6 +1919,42 @@ export default function ChatScreen() {
           </View>
         </Animated.View>
 
+{isGroup && liveGroupCall && (
+          <TouchableOpacity onPress={joinLiveCall} activeOpacity={0.88}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginHorizontal: 12, marginBottom: 6, paddingHorizontal: 14, paddingVertical: 11, borderRadius: 999, backgroundColor: '#059669' }}>
+            <Feather name={liveGroupCall.is_video ? 'video' : 'phone'} size={16} color="#FFFFFF" />
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' }}>Ongoing {liveGroupCall.is_video ? 'video ' : ''}call · {liveGroupCall.joinedNames.length} in call</Text>
+              {liveGroupCall.joinedNames.length > 0 && (
+                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 1 }} numberOfLines={1}>
+                  {liveGroupCall.joinedNames.slice(0, 3).join(', ')}{liveGroupCall.joinedNames.length > 3 ? ' +' + (liveGroupCall.joinedNames.length - 3) : ''}
+                </Text>
+              )}
+            </View>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: '800' }}>Tap to join</Text>
+          </TouchableOpacity>
+        )}
+        {isGroup && mentionQuery !== null && (
+          <View style={{ maxHeight: 190, backgroundColor: '#FFFFFF', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)' }}>
+            {groupMembers
+              .filter((gm: any) => gm.profile?.id !== currentUserId && gm.profile?.username
+                && gm.profile.username.toLowerCase().startsWith(mentionQuery.toLowerCase()))
+              .slice(0, 5)
+              .map((gm: any) => (
+                <TouchableOpacity key={gm.profile.id}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 9 }}
+                  onPress={() => insertMention(gm.profile.username)} activeOpacity={0.8}>
+                  {gm.profile.avatar_url
+                    ? <ExpoImage source={{ uri: gm.profile.avatar_url }} style={{ width: 30, height: 30, borderRadius: 15 }} contentFit="cover" />
+                    : <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>{initials(gm.profile.full_name)}</Text></View>}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' }} numberOfLines={1}>{gm.profile.full_name}</Text>
+                    <Text style={{ fontSize: 11.5, color: 'rgba(11,30,61,0.5)' }} numberOfLines={1}>@{gm.profile.username}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+          </View>
+        )}
         {replyTo && (
           <View style={s.replyBanner}>
             <View style={s.replyBannerAccent} />
@@ -1609,14 +1968,13 @@ export default function ChatScreen() {
           </View>
         )}
 
-        {!composerLocked && (
-          <Animated.View style={[s.toolbar, { maxHeight: toolbarMaxH, overflow: 'hidden' }]}>
-            {showGifs ? <GifPicker onSelect={sendGif} onBack={() => setShowGifs(false)} /> : (
+        <Animated.View style={[s.toolbar, { maxHeight: toolbarMaxH, overflow: 'hidden' }]}>
+            {(
               <View style={s.toolbarGrid}>
                 {[
                   { iconName: 'camera', label: 'Camera', action: openCamera },
                   { iconName: 'image', label: 'Gallery', action: pickAndSendMedia },
-                  { iconName: 'film', label: 'GIFs', action: () => setShowGifs(true) },
+                  { iconName: 'film', label: 'GIFs', action: () => { setShowToolbar(false); setShowGifs(true); } },
                   { iconName: 'file-text', label: 'Files', action: pickAndSendDocument },
                   { iconName: 'info', label: 'Info', action: () => { setShowToolbar(false); setShowInfoModal(true); } },
                 ].map(btn => (
@@ -1629,21 +1987,9 @@ export default function ChatScreen() {
                 ))}
               </View>
             )}
-          </Animated.View>
-        )}
+        </Animated.View>
 
-        {composerLocked ? (
-          <View style={[s.lockedBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-            <View style={s.lockedIcon}>
-              <Feather name="lock" size={14} color="#7C3AED" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={s.lockedTitle}>Announcements only</Text>
-              <Text style={s.lockedSub}>Only admins can post in this community.</Text>
-            </View>
-          </View>
-        ) : (
-          voice.recording ? (
+        {voice.recording ? (
             <View style={[s.voiceBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
               <TouchableOpacity
                 onPress={() => voice.cancel()}
@@ -1677,9 +2023,7 @@ export default function ChatScreen() {
           <View style={[s.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
             <View style={s.inputWrap}>
               <TextInput ref={inputRef} value={message} onChangeText={handleTextChange}
-                placeholder={isAffiliationConversation && iAmAffiliationAdmin && affiliation?.post_mode === 'informative'
-                  ? 'Post an announcement...'
-                  : 'Message'}
+                placeholder="Message"
                 placeholderTextColor={TEXT_SECONDARY}
                 style={s.input} multiline maxLength={2000} returnKeyType="default" blurOnSubmit={false} />
 
@@ -1689,13 +2033,13 @@ export default function ChatScreen() {
               <TouchableOpacity style={s.inlineBtn}
                 onPress={() => { setShowToolbar(p => { if (p) setShowGifs(false); return !p; }); }}
                 activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-                <Feather name={showToolbar ? 'x' : 'plus'} size={21} color={showToolbar ? NAVY : TEXT_SECONDARY} />
+                <Ionicons name={showToolbar ? 'close' : 'add'} size={24} color={showToolbar ? NAVY : TEXT_SECONDARY} />
               </TouchableOpacity>
 
               {!isGroup && !!passedUserId && (
                 <TouchableOpacity style={s.inlineBtn} onPress={() => setPayOpen(true)}
                   activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-                  <Feather name="credit-card" size={20} color={TEXT_SECONDARY} />
+                  <Ionicons name="card" size={21} color={TEXT_SECONDARY} />
                 </TouchableOpacity>
               )}
             </View>
@@ -1703,13 +2047,15 @@ export default function ChatScreen() {
             {uploadingMedia ? (
               <View style={s.sendBtn}><ActivityIndicator color="#FFF" size={14} /></View>
             ) : canSend ? (
-              <TouchableOpacity onPress={sendMessage} style={s.sendBtn} activeOpacity={0.7}>
-                <Feather name="arrow-up" size={19} color="#FFF" />
+              <Animated.View style={{ transform: [{ scale: sendScale }] }}>
+              <TouchableOpacity onPress={() => { springSend(); sendMessage(); }} style={s.sendBtn} activeOpacity={0.85}>
+                <Ionicons name="send" size={17} color="#FFF" style={{ marginLeft: 2 }} />
               </TouchableOpacity>
+              </Animated.View>
             ) : (
               <TouchableOpacity
-                onPress={() => { if (!composerLocked) voice.start(); }}
-                disabled={composerLocked || sendingVoice}
+                onPress={() => { voice.start(); }}
+                disabled={sendingVoice}
                 style={[s.sendBtn, voice.recording && { backgroundColor: '#FF3B30' }]}
                 activeOpacity={0.8}
                 accessibilityRole='button'
@@ -1717,12 +2063,55 @@ export default function ChatScreen() {
               >
                 {sendingVoice
                   ? <ActivityIndicator color='#FFF' size={14} />
-                  : <Feather name='mic' size={19} color='#FFF' />}
+                  : <Ionicons name='mic' size={20} color='#FFF' />}
               </TouchableOpacity>
             )}
           </View>
-          )
         )}
+      <Modal visible={!!seenSheet} transparent animationType="slide" onRequestClose={() => setSeenSheet(null)}>
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(11,30,61,0.45)' }} activeOpacity={1} onPress={() => setSeenSheet(null)} />
+        <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 8, paddingBottom: 34, maxHeight: '70%' }}>
+          <View style={{ alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.16)', marginBottom: 10 }} />
+          <Text style={{ fontSize: 16.5, fontWeight: '800', color: '#0B1E3D', paddingHorizontal: 18, marginBottom: 10 }}>Message info</Text>
+          {(seenSheet as any)?.rows === null && <ActivityIndicator style={{ marginVertical: 24 }} color="#0B1E3D" />}
+          {(seenSheet as any)?.error ? <Text style={{ textAlign: 'center', color: 'rgba(11,30,61,0.5)', paddingVertical: 20 }}>{(seenSheet as any).error}</Text> : null}
+          {Array.isArray(seenSheet?.rows) && seenSheet!.rows.length === 0 && !(seenSheet as any)?.error ? <Text style={{ textAlign: 'center', color: 'rgba(11,30,61,0.5)', paddingVertical: 20 }}>No other members</Text> : null}
+          <ScrollView>
+            {(seenSheet?.rows || []).map((r, i) => (
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingVertical: 10 }}>
+                {r.avatar ? <ExpoImage source={{ uri: r.avatar }} style={{ width: 38, height: 38, borderRadius: 19 }} contentFit="cover" /> : <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFF', fontWeight: '700' }}>{initials(r.name)}</Text></View>}
+                <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#0B1E3D' }} numberOfLines={1}>{r.name}</Text>
+                {r.seenAt
+                  ? <View style={{ alignItems: 'flex-end' }}><Text style={{ fontSize: 12.5, fontWeight: '700', color: '#059669' }}>Seen</Text><Text style={{ fontSize: 11, color: 'rgba(11,30,61,0.45)' }}>{new Date(r.seenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text></View>
+                  : <Text style={{ fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.4)' }}>Pending</Text>}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
+      <Modal visible={showGifs} transparent animationType="slide" onRequestClose={() => setShowGifs(false)}>
+        <KeyboardAvoidingView style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(11,30,61,0.45)' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowGifs(false)} />
+          <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, height: '78%', paddingTop: 8 }}>
+            <View style={{ alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.16)', marginBottom: 6 }} />
+            <View style={{ flexDirection: 'row', alignSelf: 'center', backgroundColor: 'rgba(11,30,61,0.06)', borderRadius: 999, padding: 3, marginBottom: 6 }}>
+              {[{ k: false, l: 'GIFs' }, { k: true, l: 'Stickers' }].map(t => (
+                <TouchableOpacity key={t.l} onPress={() => setStickerMode(t.k)}
+                  style={{ paddingHorizontal: 18, paddingVertical: 7, borderRadius: 999, backgroundColor: stickerMode === t.k ? '#0B1E3D' : 'transparent' }}>
+                  <Text style={{ fontSize: 12.5, fontWeight: '700', color: stickerMode === t.k ? '#FFF' : '#0B1E3D' }}>{t.l}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <GifPicker key={stickerMode ? 'st' : 'gf'} gifMode={stickerMode ? 'stickers' : 'gifs'} onSelect={stickerMode ? sendSticker : sendGif} onBack={() => setShowGifs(false)} />
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+      <ChatImageEditor
+        visible={!!editTarget}
+        image={editTarget}
+        onCancel={() => setEditTarget(null)}
+        onDone={(out) => { setEditTarget(null); chooseAndSendImage(out); }}
+      />
       </KeyboardAvoidingView>
 
       <Modal visible={showInfoModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowInfoModal(false)}>
@@ -1734,11 +2123,7 @@ export default function ChatScreen() {
           </View>
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={s.infoContact}>
-              {isAffiliationConversation
-                ? <View style={[s.infoAvatarFb, { width: 90, height: 90, borderRadius: 45 }]}>
-                    <Feather name="users" size={38} color="#3C3C43" />
-                  </View>
-                : isGroup
+              {isGroup
                   ? (groupAvatarUrl
                     ? <ExpoImage source={{ uri: groupAvatarUrl }} style={s.infoAvatar} contentFit="cover" />
                     : <View style={[s.infoAvatarFb, { width: 90, height: 90, borderRadius: 45 }]}>
@@ -1747,46 +2132,31 @@ export default function ChatScreen() {
                   : otherUser?.avatar_url
                     ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.infoAvatar} contentFit="cover" />
                     : <View style={s.infoAvatarFb}><Text style={s.infoAvatarTxt}>{otherInits}</Text></View>}
-              <Text style={s.infoName}>{chatTitle}</Text>
-              {!isAffiliationConversation && !isGroup && otherUser?.username && <Text style={s.infoHandle}>@{otherUser.username}</Text>}
-              {!isAffiliationConversation && !isGroup && otherUser?.degree_program && (
+              <Text style={[s.infoName, { fontSize: 23, fontWeight: '800' }]}>{chatTitle}</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 14 }}>
+                {[
+                  { icon: 'call', label: 'Audio', act: () => { setShowInfo(false); startCall(false); } },
+                  { icon: 'videocam', label: 'Video', act: () => { setShowInfo(false); startCall(true); } },
+                  { icon: 'search', label: 'Search', act: () => { setShowInfo(false); setSearchActive(true); } },
+                ].map(chip => (
+                  <TouchableOpacity key={chip.label} onPress={chip.act} activeOpacity={0.75}
+                    style={{ width: 86, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(11,30,61,0.05)', alignItems: 'center', gap: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.1)' }}>
+                    <Ionicons name={chip.icon as any} size={20} color={NAVY} />
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: NAVY }}>{chip.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {!isGroup && otherUser?.username && <Text style={s.infoHandle}>@{otherUser.username}</Text>}
+              {!isGroup && otherUser?.degree_program && (
                 <Text style={s.infoProg}>{otherUser.degree_program}{otherUser?.graduation_year ? ` · ${otherUser.graduation_year}` : ''}</Text>
               )}
-              {!isAffiliationConversation && !isGroup && otherUser?.location && <Text style={s.infoLoc}>📍 {otherUser.location}</Text>}
-              {isGroup && !isAffiliationConversation && <Text style={s.infoLoc}>{groupMembers.length} members</Text>}
-              {isAffiliationConversation && (
-                <Text style={s.infoLoc}>
-                  {affiliation?.post_mode === 'informative' ? 'Announcements only' : 'Community chat'}
-                </Text>
-              )}
+              {!isGroup && otherUser?.location && <Text style={s.infoLoc}>📍 {otherUser.location}</Text>}
+              {isGroup && <Text style={s.infoLoc}>{groupMembers.length} members</Text>}
+
             </View>
 
             <View style={s.infoQuickRow}>
-              {false && isAffiliationConversation && affiliation ? [
-                { icon: 'users', label: 'View community',
-                  action: () => {
-                    setShowInfoModal(false);
-                    navigation.getParent()?.navigate('Main', {
-                      screen: 'Network',
-                      params: { screen: 'AffiliationDetail', params: { affiliationId: affiliation?.id } },
-                    });
-                  }},
-                { icon: infoMuted ? 'bell-off' : 'bell', label: infoMuted ? 'Unmute' : 'Mute',
-                  action: async () => {
-                    if (!currentUserId || !conversationId) return;
-                    const next = !infoMuted; setInfoMuted(next);
-                    await supabase.from('conversation_settings').upsert(
-                      { conversation_id: conversationId, user_id: currentUserId, is_muted: next, updated_at: new Date().toISOString() },
-                      { onConflict: 'conversation_id,user_id' }
-                    )// @ts-ignore
-.then(() => {}).catch(() => {});
-                  }},
-              ].map((q: any) => (
-                <TouchableOpacity key={q.label} style={s.infoQuickBtn} onPress={q.action} activeOpacity={0.7}>
-                  <View style={s.infoQuickInner}><Feather name={q.icon} size={20} color={NAVY} /></View>
-                  <Text style={s.infoQuickLbl}>{q.label}</Text>
-                </TouchableOpacity>
-              )) : (!isGroup ? [
+              {(!isGroup ? [
                 { iconName: 'message-circle', label: 'Message', action: () => setShowInfoModal(false) },
                 { iconName: 'user', label: 'Profile', action: () => { setShowInfoModal(false); if (otherUser?.id) navigation.navigate('UserProfile', { userId: otherUser.id }); } },
                 { iconName: 'phone', label: 'Call', action: () => { setShowInfoModal(false); startCall(false); } },
@@ -1799,7 +2169,7 @@ export default function ChatScreen() {
                       { conversation_id: conversationId, user_id: currentUserId, is_muted: next, updated_at: new Date().toISOString() },
                       { onConflict: 'conversation_id,user_id' }
                     )// @ts-ignore
-.then(() => {}).catch(() => {});
+.then((r: any) => { if (r?.error) { setMuted(!next); Alert.alert('Not saved', 'Mute could not be changed. Try again.'); } }).catch(() => { setMuted(!next); });
                   }},
               ] : [
                 { iconName: 'users', label: 'Manage', action: () => { setShowInfoModal(false); navigation.navigate('GroupManagement', { conversationId, groupName: chatTitle, groupEmoji }); } },
@@ -1850,14 +2220,14 @@ export default function ChatScreen() {
               </View>
             </View>
 
-            {!isAffiliationConversation && !isGroup && otherUser?.bio && (
+            {!isGroup && otherUser?.bio && (
               <View style={s.infoSection}>
                 <Text style={s.infoSectionTitle}>About</Text>
                 <Text style={s.infoBio}>{otherUser.bio}</Text>
               </View>
             )}
 
-            {isGroup && !isAffiliationConversation && groupMembers.length > 0 && (
+            {isGroup && groupMembers.length > 0 && (
               <View style={s.infoSection}>
                 <Text style={s.infoSectionTitle}>Members</Text>
                 {groupMembers.slice(0, 8).map((m: any) => (
@@ -1900,7 +2270,7 @@ export default function ChatScreen() {
                 navigation={navigation}
               />
 
-            {!isAffiliationConversation && !isGroup && (
+            {!isGroup && (
               <View style={s.infoSection}>
                   <TouchableOpacity style={[s.infoDanger, { backgroundColor: '#F4F5F7', marginBottom: 10 }]} onPress={() => {
                     Alert.alert('Clear this chat?', 'Messages disappear for you only. The other person keeps their copy.', [
@@ -1974,6 +2344,7 @@ export default function ChatScreen() {
             </View>
             <View style={s.reactionActions}>
               {[
+                ...(isGroup && selectedMsg?.sender_id === currentUserId ? [{ iconName: 'eye', label: 'Info', action: () => { const m = selectedMsg; setSelectedMsg(null); if (m) openSeenInfo(m); } }] : []),
                 { iconName: 'corner-up-left', label: 'Reply', action: () => { setReplyTo(selectedMsg); setSelectedMsg(null); inputRef.current?.focus(); } },
                 { iconName: 'copy', label: 'Copy', action: async () => {
                   if (selectedMsg?.text) { await Clipboard.setStringAsync(selectedMsg.text); setSelectedMsg(null); Alert.alert('Copied'); }
@@ -2141,7 +2512,7 @@ const s = StyleSheet.create({
   ctxTitle: { fontSize: 14.5, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.2, marginTop: 2 },
   ctxSub: { fontSize: 12.5, fontWeight: '500', color: '#6B7280', marginTop: 1 },
   safe: { flex: 1, backgroundColor: '#F6F5F2' },
-  flex: { flex: 1, backgroundColor: '#FFFFFF' },
+  flex: { flex: 1, backgroundColor: '#F6F5F2' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 10, backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE, minHeight: 58, gap: 8 },
   backBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', marginHorizontal: 12, marginBottom: 4, marginTop: 2, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 },
@@ -2172,9 +2543,9 @@ const s = StyleSheet.create({
   bubbleColOther: { alignItems: 'flex-start' },
   bubble: { paddingHorizontal: 13, paddingVertical: 9, position: 'relative', shadowColor: '#000', shadowOpacity: 0, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   bubbleMe: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
-  bubbleOther: { backgroundColor: '#FFFFFF', borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.07)' },
+  bubbleOther: { backgroundColor: '#FFFFFF', borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.16)', shadowColor: '#0B1E3D', shadowOpacity: 0.06, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   bubbleMeFlat: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
-  bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.07)' },
+  bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.16)', shadowColor: '#0B1E3D', shadowOpacity: 0.06, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   bubbleTxt: { fontSize: 15.5, lineHeight: 20, letterSpacing: -0.1 },
   bubbleTxtMe: { color: '#FFFFFF' },
   bubbleTxtOther: { color: TEXT_PRIMARY },
@@ -2273,7 +2644,7 @@ const s = StyleSheet.create({
   infoDoneBtn: { paddingVertical: 4, paddingHorizontal: 4 },
   infoDoneTxt: { fontSize: 16, color: NAVY, fontWeight: '600' },
   infoContact: { backgroundColor: '#FFFFFF', alignItems: 'center', paddingVertical: 32, paddingHorizontal: 20, marginBottom: 8 },
-  infoAvatar: { width: 90, height: 90, borderRadius: 45, marginBottom: 14 },
+  infoAvatar: { width: 110, height: 110, borderRadius: 55, marginBottom: 14 },
   infoAvatarFb: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   infoAvatarTxt: { fontSize: 34, fontWeight: '600', color: '#3C3C43' },
   infoName: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 4, letterSpacing: -0.3 },

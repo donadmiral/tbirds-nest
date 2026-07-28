@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { prepareDualAsset } from '../../components/stories/DualCameraComposerBridge';
 import { DEFAULT_LAYOUT } from '../../components/stories/dual/dualCaptureTypes';
@@ -41,7 +41,6 @@ type Phase =
   | 'processing';    // preparing asset for composer
 
 export default function StoryDualCaptureScreen() {
-  console.log('[DUALSCREEN] FUNCTION_START');
   try {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -49,16 +48,23 @@ export default function StoryDualCaptureScreen() {
   const extraParams = route.params || {};
 
   const [permission, requestPermission] = useCameraPermissions();
+  const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [phase, setPhase] = useState<Phase>('idle');
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [countdown, setCountdown] = useState(3);
   const [rearPhotoUri, setRearPhotoUri] = useState<string | null>(null);
   const [frontPhotoUri, setFrontPhotoUri] = useState<string | null>(null);
+  const [mediaMode, setMediaMode] = useState<'photo' | 'video'>('photo');
+  const [recording, setRecording] = useState(false);
+  const [recSeconds, setRecSeconds] = useState(0);
 
   const cameraRef = useRef<CameraView>(null);
   const mountedRef = useRef(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rearPhotoUriRef = useRef<string | null>(null);
+  const rearDurationRef = useRef(0);
+  const recStartRef = useRef(0);
+  const recTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── ANIMATION VALUES ───────────────────────────────────────
   const uiOpacity = useRef(new Animated.Value(0)).current;
@@ -86,9 +92,15 @@ export default function StoryDualCaptureScreen() {
     if (permission && !permission.granted) requestPermission();
   }, [permission]);
 
+  useEffect(() => {
+    if (mediaMode === 'video' && micPermission && !micPermission.granted) requestMicPermission();
+  }, [mediaMode, micPermission]);
+
   // ── CANCEL (works in ALL phases) ───────────────────────────
   const handleCancel = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    if (recTickRef.current) clearInterval(recTickRef.current);
+    try { cameraRef.current?.stopRecording(); } catch {}
     mountedRef.current = false;
     navigation.goBack();
   }, [navigation]);
@@ -101,8 +113,37 @@ export default function StoryDualCaptureScreen() {
 
   // ── REAR CAPTURE ───────────────────────────────────────────
   const captureRear = useCallback(async () => {
-    console.log('[DUALSCREEN] captureRear called', { phase, hasCamera: !!cameraRef.current });
     if (!cameraRef.current || phase !== 'idle') return;
+
+    if (mediaMode === 'video') {
+      if (recording) { try { cameraRef.current.stopRecording(); } catch {} return; }
+      setRecording(true); setRecSeconds(0);
+      recStartRef.current = Date.now();
+      if (recTickRef.current) clearInterval(recTickRef.current);
+      recTickRef.current = setInterval(() => { if (mountedRef.current) setRecSeconds(Math.floor((Date.now() - recStartRef.current) / 1000)); }, 250);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      try {
+        const video = await cameraRef.current.recordAsync({ maxDuration: 15 });
+        if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
+        setRecording(false);
+        if (!video?.uri || !mountedRef.current) return;
+        rearDurationRef.current = Math.max(1, Math.min(15, Math.round((Date.now() - recStartRef.current) / 1000)));
+        setRearPhotoUri(video.uri);
+        rearPhotoUriRef.current = video.uri;
+        setPhase('rear_freeze');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        timerRef.current = setTimeout(() => {
+          if (!mountedRef.current) return;
+          setCountdown(3);
+          setPhase('countdown');
+        }, 450);
+      } catch (err: any) {
+        if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
+        setRecording(false);
+        if (mountedRef.current) Alert.alert('Recording failed', err?.message || 'Could not record video.');
+      }
+      return;
+    }
 
     // Shutter press animation
     Animated.sequence([
@@ -148,7 +189,7 @@ export default function StoryDualCaptureScreen() {
         Alert.alert('Capture failed', err?.message || 'Could not take photo.');
       }
     }
-  }, [phase]);
+  }, [phase, mediaMode, recording]);
 
   // ── COUNTDOWN ──────────────────────────────────────────────
   useEffect(() => {
@@ -222,7 +263,6 @@ export default function StoryDualCaptureScreen() {
 
               // Process after memory imprint moment (1200ms to let it breathe)
               timerRef.current = setTimeout(() => {
-                console.log('[DUALSCREEN] timeout fired, about to processCapture', { mounted: mountedRef.current, frontUri: photo.uri?.slice(-30) });
                 if (mountedRef.current) {
                   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   processCapture(photo.uri);
@@ -249,35 +289,23 @@ export default function StoryDualCaptureScreen() {
   // ── PROCESS AND NAVIGATE TO ARRANGEMENT ────────────────────
   const processCapture = useCallback(async (frontUri: string) => {
     const rearUri = rearPhotoUriRef.current;
-    console.log('[DUALSCREEN] processCapture called', { frontUri: frontUri?.slice(-30), rearUri: rearUri?.slice(-30), mounted: mountedRef.current });
-    if (!rearUri || !mountedRef.current) {
-      console.log('[DUALSCREEN] processCapture ABORTED', { hasRear: !!rearUri, mounted: mountedRef.current });
-      return;
-    }
+    if (!rearUri || !mountedRef.current) return;
     setPhase('processing');
 
     try {
       const asset = await prepareDualAsset({
         frontPath: frontUri,
         rearPath: rearUri,
-        mode: 'photo',
+        mode: mediaMode,
         layout: DEFAULT_LAYOUT,
+        durationSec: mediaMode === 'video' ? rearDurationRef.current : undefined,
       });
-      console.log('[DualCapture] prepareDualAsset complete', { hasAsset: !!asset, hasFront: !!asset?.frontUri, hasRear: !!asset?.rearUri, layoutMode: asset?.layout?.mode });
       if (mountedRef.current) {
-        console.log('[RUNTIME] BEFORE_REPLACE', { hasAsset: !!asset, hasFront: !!asset?.frontUri, hasRear: !!asset?.rearUri });
-        try {
-          navigation.navigate('StoryComposer', {
-            mode: 'dual',
-            assets: [asset],
-            ...extraParams,
-          });
-          console.log('[RUNTIME] AFTER_REPLACE');
-        } catch (navErr: any) {
-          console.log('[RUNTIME] REPLACE_CRASHED', navErr?.message, navErr?.stack);
+        if (mediaMode === 'video') {
+          navigation.navigate('StoryComposer', { mode: 'dual', assets: [asset], ...extraParams });
+        } else {
+          navigation.navigate('MemoryArrangement', { asset, extraParams });
         }
-      } else {
-        console.log('[DualCapture] ABORTED: mountedRef is false');
       }
     } catch (err: any) {
       if (mountedRef.current) {
@@ -285,12 +313,17 @@ export default function StoryDualCaptureScreen() {
         resetToIdle();
       }
     }
-  }, [extraParams]);
+  }, [extraParams, mediaMode]);
 
   // ── RESET ──────────────────────────────────────────────────
   const resetToIdle = useCallback(() => {
     setPhase('idle');
     setFacing('back');
+    setRecording(false);
+    setRecSeconds(0);
+    rearDurationRef.current = 0;
+    if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
+    try { cameraRef.current?.stopRecording(); } catch {}
     setRearPhotoUri(null);
     rearPhotoUriRef.current = null;
     setFrontPhotoUri(null);
@@ -335,7 +368,7 @@ export default function StoryDualCaptureScreen() {
   return (
     <View style={s.root}>
       {/* Live camera preview */}
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode="picture" />
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} />
 
       {/* Atmospheric top gradient (always visible, gives depth) */}
       <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0)']} style={s.topGradient} pointerEvents="none" />
@@ -344,7 +377,7 @@ export default function StoryDualCaptureScreen() {
       <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.5)']} style={s.bottomGradient} pointerEvents="none" />
 
       {/* Freeze-frame overlay (shows captured rear photo briefly) */}
-      {rearPhotoUri && (
+      {rearPhotoUri && mediaMode === 'photo' && (
         <Animated.View style={[StyleSheet.absoluteFill, { opacity: freezeOpacity, zIndex: 25 }]} pointerEvents="none">
           <Image source={{ uri: rearPhotoUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         </Animated.View>
@@ -357,7 +390,7 @@ export default function StoryDualCaptureScreen() {
       <Animated.View style={[s.flipOverlay, { opacity: overlayOpacity }]} pointerEvents="none" />
 
       {/* MEMORY REVEAL: rear scene fullscreen + front reaction as bubble */}
-      {frontPhotoUri && (phase === 'front_freeze' || phase === 'processing') && (
+      {frontPhotoUri && mediaMode === 'photo' && (phase === 'front_freeze' || phase === 'processing') && (
         <Animated.View style={[StyleSheet.absoluteFill, { opacity: resultOpacity, transform: [{ scale: resultScale }], zIndex: 26 }]} pointerEvents="none">
           {/* Rear scene stays dominant (the world) */}
           {rearPhotoUri && <Image source={{ uri: rearPhotoUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />}
@@ -376,7 +409,7 @@ export default function StoryDualCaptureScreen() {
       )}
 
       {/* Rear photo bubble (visible during countdown and after) */}
-      {rearPhotoUri && (phase === 'countdown' || phase === 'flipping' || phase === 'awaiting_front') && (
+      {rearPhotoUri && mediaMode === 'photo' && (phase === 'countdown' || phase === 'flipping' || phase === 'awaiting_front') && (
         <Animated.View style={[s.bubble, { top: insets.top + 60, opacity: bubbleOpacity, transform: [{ scale: bubbleScale }] }]}>
           <Image source={{ uri: rearPhotoUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
           <View style={s.bubbleIcon}>
@@ -403,6 +436,13 @@ export default function StoryDualCaptureScreen() {
         </View>
       )}
 
+      {recording && (
+        <View style={[s.recPill, { top: insets.top + 64 }]} pointerEvents="none">
+          <View style={s.recDot} />
+          <Text style={s.recTxt}>{recSeconds}s / 15s</Text>
+        </View>
+      )}
+
       {/* ── TOP BAR (always visible, cancel always works) ──── */}
       <Animated.View style={[s.topBar, { opacity: uiOpacity, paddingTop: insets.top + 8 }]}>
         <TouchableOpacity style={s.cancelBtn} onPress={handleCancel} activeOpacity={0.7}
@@ -413,7 +453,7 @@ export default function StoryDualCaptureScreen() {
         </TouchableOpacity>
 
         <Text style={s.titleTxt}>
-          {isIdle ? 'Capture the scene' : showCountdown ? '' : isBusy ? '' : ''}
+          {isIdle ? (mediaMode === 'video' ? (recording ? '' : 'Record the scene') : 'Capture the scene') : showCountdown ? '' : isBusy ? '' : ''}
         </Text>
 
         <View style={{ width: 44 }} />
@@ -422,12 +462,23 @@ export default function StoryDualCaptureScreen() {
       {/* ── BOTTOM BAR ──────────────────────────────────────── */}
       {isIdle && (
         <Animated.View style={[s.bottomBar, { opacity: uiOpacity, paddingBottom: Math.max(insets.bottom, 20) + 8 }]}>
-          <Text style={s.instructionTxt}>Tap to capture the world around you</Text>
+          <Text style={s.instructionTxt}>{mediaMode === 'video' ? (recording ? 'Tap to stop' : 'Tap to record the world (max 15s)') : 'Tap to capture the world around you'}</Text>
+
+          {!recording && (
+            <View style={s.modeRow}>
+              <TouchableOpacity style={[s.modePill, mediaMode === 'photo' && s.modePillActive]} onPress={() => setMediaMode('photo')} activeOpacity={0.8}>
+                <Text style={[s.modePillTxt, mediaMode === 'photo' && s.modePillTxtActive]}>Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.modePill, mediaMode === 'video' && s.modePillActive]} onPress={() => setMediaMode('video')} activeOpacity={0.8}>
+                <Text style={[s.modePillTxt, mediaMode === 'video' && s.modePillTxtActive]}>Video</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <Animated.View style={{ transform: [{ scale: shutterScale }] }}>
             <TouchableOpacity style={s.shutter} onPress={captureRear} activeOpacity={0.9}>
               <View style={s.shutterRing}>
-                <View style={s.shutterInner} />
+                <View style={[s.shutterInner, recording && s.shutterInnerRec]} />
               </View>
             </TouchableOpacity>
           </Animated.View>
@@ -545,6 +596,15 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   shutterInner: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF' },
+  shutterInnerRec: { width: 34, height: 34, borderRadius: 8, backgroundColor: '#EF4444' },
+  modeRow: { flexDirection: 'row', gap: 8, marginTop: 10, marginBottom: 2 },
+  modePill: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.12)' },
+  modePillActive: { backgroundColor: 'rgba(255,255,255,0.92)' },
+  modePillTxt: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '600', letterSpacing: 0.2 },
+  modePillTxtActive: { color: '#0B0B0F' },
+  recPill: { position: 'absolute', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, zIndex: 40 },
+  recDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' },
+  recTxt: { color: '#FFF', fontSize: 12, fontWeight: '700', letterSpacing: 0.3 },
 
   labelTxt: { color: 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: '500', letterSpacing: 0.3 },
 });

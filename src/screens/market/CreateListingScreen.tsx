@@ -10,7 +10,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { authorId as currentAuthorId } from '../../stores/actorStore';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 
 import { marketService, MARKET_CATEGORIES, MARKET_CONDITIONS, ListingCurrency } from '../../services/marketService';
@@ -40,6 +40,9 @@ export default function CreateListingScreen({ navigation }: any) {
   const [currency, setCurrency] = useState<ListingCurrency>('USD');
   const [category, setCategory] = useState<string>('Other');
   const [condition, setCondition] = useState<string | null>(null);
+  const [deliveryOn, setDeliveryOn] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState('');
+  const [deliveryNote, setDeliveryNote] = useState('');
   const [city, setCity] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
@@ -101,6 +104,9 @@ export default function CreateListingScreen({ navigation }: any) {
         condition,
         location_city: city.trim(),
         images: uploaded.map((u: any) => u.url),
+        delivery_available: deliveryOn,
+        delivery_fee: deliveryOn && deliveryFee.trim() ? Number(deliveryFee.replace(/,/g, '')) : null,
+        delivery_note: deliveryOn && deliveryNote.trim() ? deliveryNote.trim() : null,
       });
       navigation.goBack();
     } catch (e: any) {
@@ -213,6 +219,25 @@ export default function CreateListingScreen({ navigation }: any) {
                 placeholder="e.g. Avondale, Harare" placeholderTextColor={GRAY_400}
               />
               <Err show={touched && !cityOk} text="Enter a meetup area." />
+
+              <TouchableOpacity onPress={() => setDeliveryOn(v => !v)} activeOpacity={0.8}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 18, padding: 14, borderRadius: 14, backgroundColor: deliveryOn ? 'rgba(5,150,105,0.08)' : 'rgba(11,30,61,0.04)', borderWidth: 1, borderColor: deliveryOn ? 'rgba(5,150,105,0.35)' : 'rgba(11,30,61,0.08)' }}>
+                <Ionicons name={deliveryOn ? 'checkbox' : 'square-outline'} size={21} color={deliveryOn ? '#059669' : '#8E8E93'} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Offer delivery</Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>Buyers collect by default. Turn this on if you can deliver.</Text>
+                </View>
+              </TouchableOpacity>
+              {deliveryOn && (
+                <View style={{ marginTop: 10, gap: 8 }}>
+                  <TextInput value={deliveryFee} onChangeText={setDeliveryFee} keyboardType="numeric"
+                    placeholder="Delivery fee (0 for free)" placeholderTextColor={GRAY_400}
+                    style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#0B1E3D', backgroundColor: '#FFF' }} />
+                  <TextInput value={deliveryNote} onChangeText={setDeliveryNote}
+                    placeholder="Delivery note, e.g. Harare CBD only" placeholderTextColor={GRAY_400}
+                    style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#0B1E3D', backgroundColor: '#FFF' }} />
+                </View>
+              )}
 
               <View style={s.safety}>
                 <Text style={s.safetyTitle}>Stay safe</Text>

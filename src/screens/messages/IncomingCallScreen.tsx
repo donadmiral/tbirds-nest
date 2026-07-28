@@ -29,7 +29,7 @@ export default function IncomingCallScreen() {
   const myId = profile?.id ?? null;
 
   const callId: string = route.params?.callId || '';
-  const channelId: string = route.params?.channelId || '';
+  const channelId: string = route.params?.channelId || route.params?.callId || '';
   const callerName: string = route.params?.callerName || 'Unknown';
   const callerAvatar: string | null = route.params?.callerAvatar ?? null;
   const callerUsername: string | null = route.params?.callerUsername ?? null;
@@ -61,7 +61,8 @@ export default function IncomingCallScreen() {
     stoppingRef.current = true;
     Vibration.cancel();
     if (vibRef.current) { clearInterval(vibRef.current); vibRef.current = null; }
-    audioService.stopAll();
+    try { require('react-native').Vibration.cancel(); } catch {}
+      audioService.stopAll();
   };
 
   const dismiss = () => {
@@ -78,6 +79,7 @@ export default function IncomingCallScreen() {
       if (ringtoneStartedRef.current) return;
       ringtoneStartedRef.current = true;
       await audioService.playRingtone();
+      try { const { Vibration } = require('react-native'); Vibration.vibrate([0, 800, 1200], true); } catch {}
     };
     startRingtone();
 
@@ -116,8 +118,8 @@ export default function IncomingCallScreen() {
     a1.start(); a2.start(); a3.start();
     const timeout = setTimeout(async () => {
       if (callId) {
-        if (isGroupCall && myId) {
-          await callService.declineGroupCall(callId, myId);
+        if (isGroupCall) {
+          await supabase.rpc('decline_group_call', { p_session_id: callId }).then(() => {}, () => {});
         } else {
           await callService.markMissed(callId);
         }
@@ -168,8 +170,8 @@ export default function IncomingCallScreen() {
   const handleDecline = async () => {
     stopAlerts();
     if (callId) {
-      if (isGroupCall && myId) {
-        await callService.declineGroupCall(callId, myId);
+      if (isGroupCall) {
+        await supabase.rpc('decline_group_call', { p_session_id: callId }).then(() => {}, () => {});
       } else {
         await callService.declineCall(callId);
       }

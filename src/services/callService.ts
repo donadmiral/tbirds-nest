@@ -61,6 +61,9 @@ export const callService = {
   },
 
   /**
+   * DEPRECATED — legacy per-member-row group calls. The live system is
+   * start_group_call/join_group_call/leave_group_call/decline_group_call
+   * (one shared session + call_participants). Do not call this.
    * Initiate a group call.
    * Creates a call_session with is_group_call=true, receiver_id=null.
    * Inserts a call_participants row for each group member (except caller).

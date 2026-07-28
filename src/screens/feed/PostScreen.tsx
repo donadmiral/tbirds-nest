@@ -12,13 +12,15 @@ import {
   Alert, RefreshControl, StatusBar, Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { PostMedia } from '../../components/MediaRenderer';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import { useFocusEffect } from '@react-navigation/native';
 import { light } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
+import GifPickerLite from '../../components/GifPickerLite';
 import { useAuthStore } from '../../stores/authStore';
+import { authorId as currentAuthorId } from '../../stores/actorStore';
 import * as Haptics from 'expo-haptics';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -131,6 +133,8 @@ export default function PostScreen({ route, navigation }: any) {
   const [threadBelow, setThreadBelow] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [mentions, setMentions] = useState<any[]>([]);
   const [mentionOn, setMentionOn] = useState(false);
@@ -139,6 +143,10 @@ export default function PostScreen({ route, navigation }: any) {
   const listRef = useRef<FlatList<any>>(null);
 
   const load = useCallback(async () => {
+    try {
+      const { data: vis } = await supabase.rpc('can_view_post', { p_post_id: postId });
+      if (vis === false) { setNotFound(true); setLoading(false); return; }
+    } catch {}
     try {
       const { data: pd } = await supabase
         .from('posts')
@@ -189,13 +197,20 @@ export default function PostScreen({ route, navigation }: any) {
 
       const { data: rows, error: cErr } = await supabase
         .from('post_comments')
-        .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at')
+        .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, media_url, media_type')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
       if (cErr) console.log('COMMENTS_ERROR', JSON.stringify(cErr));
 
-      const allRows = (rows ?? []).map((r: any) => ({ ...r, body: r.body || r.content || '' }));
+      let allRows = (rows ?? []).map((r: any) => ({ ...r, body: r.body || r.content || '' }));
+      if (userId) {
+        try {
+          const { data: blk } = await supabase.from('blocked_users').select('blocker_id, blocked_id').or('blocker_id.eq.' + userId + ',blocked_id.eq.' + userId);
+          const blockedSet = new Set<string>((blk ?? []).map((b: any) => (b.blocker_id === userId ? b.blocked_id : b.blocker_id)));
+          if (blockedSet.size > 0) allRows = allRows.filter((r: any) => !blockedSet.has(r.user_id));
+        } catch {}
+      }
       const topLevel = allRows.filter((r: any) => !r.parent_comment_id);
       const replies = allRows.filter((r: any) => !!r.parent_comment_id);
 
@@ -337,7 +352,7 @@ export default function PostScreen({ route, navigation }: any) {
   };
 
   const submitComment = async () => {
-    if (!input.trim() || submitting || !userId) return;
+    if ((!input.trim() && !pendingGif) || submitting || !userId) return;
     setSubmitting(true);
     const body = input.trim();
     setInput('');
@@ -347,11 +362,14 @@ export default function PostScreen({ route, navigation }: any) {
     try {
       const { error } = await supabase.from('post_comments').insert({
         post_id: postId,
-        user_id: userId,
+        user_id: currentAuthorId(userId) ?? userId,
         body,
         content: body,
         parent_comment_id: replyTo?.id ?? null,
+        media_url: pendingGif,
+        media_type: pendingGif ? 'gif' : null,
       });
+      if (!error) setPendingGif(null);
       if (error) {
         setInput(body);
         Alert.alert('Error', 'Could not post comment.');
@@ -364,7 +382,7 @@ export default function PostScreen({ route, navigation }: any) {
     finally { setSubmitting(false); }
   };
 
-  const renderComment = (c: Comment, isReply = false): React.ReactElement => {
+  const renderComment = (c: Comment, isReply = false, parentId?: string): React.ReactElement => {
     const myReaction = commentData.reactions[c.id] ?? 0;
     const isLiked = myReaction === 1;
     const isDisliked = myReaction === -1;
@@ -396,6 +414,9 @@ export default function PostScreen({ route, navigation }: any) {
             onHashtag={handleHashtagTap}
             style={s.commentBody}
           />
+          {(c as any).media_url ? (
+            <Image source={{ uri: (c as any).media_url }} style={{ width: 180, height: 135, borderRadius: 10, marginTop: 6 }} resizeMode="cover" />
+          ) : null}
           <View style={s.commentActions}>
             <TouchableOpacity
               style={s.commentAction}
@@ -405,7 +426,7 @@ export default function PostScreen({ route, navigation }: any) {
               accessibilityRole="button"
               accessibilityLabel={isDisliked ? 'Remove dislike' : 'Dislike comment'}
             >
-              <Feather name="thumbs-down" size={13} color={isDisliked ? light.status.danger : light.ink.muted} />
+              <Ionicons name={isDisliked ? 'thumbs-down' : 'thumbs-down-outline'} size={14} color={isDisliked ? light.status.danger : light.ink.muted} />
               {(c.dislikes_count ?? 0) > 0 && (
                 <Text style={[s.commentActionTxt, isDisliked && { color: light.status.danger }]}>
                   {c.dislikes_count}
@@ -413,13 +434,18 @@ export default function PostScreen({ route, navigation }: any) {
               )}
             </TouchableOpacity>
             <TouchableOpacity style={s.commentAction} onPress={() => reactToComment(c.id, 1)} activeOpacity={0.75}>
-              <Feather name="heart" size={13} color={isLiked ? '#FF3B30' : TEXT_SECONDARY} />
+              <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={14} color={isLiked ? '#FF3040' : TEXT_SECONDARY} />
               {c.likes_count > 0 && <Text style={[s.commentActionTxt, isLiked && { color: '#FF3B30' }]}>{c.likes_count}</Text>}
             </TouchableOpacity>
-            {!isReply && (
+            {true && (
               <TouchableOpacity
                 style={s.commentAction}
-                onPress={() => { setReplyTo({ id: c.id, name: a?.full_name || a?.username || 'User' }); inputRef.current?.focus(); }}
+                onPress={() => {
+                  const targetId = isReply && parentId ? parentId : c.id;
+                  setReplyTo({ id: targetId, name: a?.full_name || a?.username || 'User' });
+                  if (isReply && a?.username) setInput(prev => (prev.trim().length === 0 ? '@' + a.username + ' ' : prev));
+                  inputRef.current?.focus();
+                }}
                 activeOpacity={0.75}
               >
                 <Feather name="corner-up-left" size={13} color={TEXT_SECONDARY} />
@@ -443,7 +469,20 @@ export default function PostScreen({ route, navigation }: any) {
             )}
           </View>
         </View>
-        {c.replies.map(r => renderComment(r, true))}
+        {c.replies.length > 0 && !isReply && !expandedReplies.has(c.id) ? (
+          <TouchableOpacity style={{ marginLeft: 44, marginTop: 6, flexDirection: 'row', alignItems: 'center', gap: 6 }} onPress={() => setExpandedReplies(prev => new Set(prev).add(c.id))} activeOpacity={0.7}>
+            <View style={{ width: 24, height: 1, backgroundColor: '#C7CDD6' }} />
+            <Text style={{ fontSize: 12.5, fontWeight: '600', color: TEXT_SECONDARY }}>View {c.replies.length} {c.replies.length === 1 ? 'reply' : 'replies'}</Text>
+          </TouchableOpacity>
+        ) : c.replies.length > 0 ? (
+          <>
+            {c.replies.map(r => renderComment(r, true, c.id))}
+            <TouchableOpacity style={{ marginLeft: 44, marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 6 }} onPress={() => setExpandedReplies(prev => { const n = new Set(prev); n.delete(c.id); return n; })} activeOpacity={0.7}>
+              <View style={{ width: 24, height: 1, backgroundColor: '#C7CDD6' }} />
+              <Text style={{ fontSize: 12.5, fontWeight: '600', color: TEXT_SECONDARY }}>Hide replies</Text>
+            </TouchableOpacity>
+          </>
+        ) : null}
       </View>
     );
   };
@@ -468,7 +507,9 @@ export default function PostScreen({ route, navigation }: any) {
     }
   }
 
-  const canSend = input.trim().length > 0;
+  const [pendingGif, setPendingGif] = useState<string | null>(null);
+  const [showGifs, setShowGifs] = useState(false);
+  const canSend = input.trim().length > 0 || !!pendingGif;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
@@ -484,6 +525,8 @@ export default function PostScreen({ route, navigation }: any) {
 
       {loading ? (
         <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
+      ) : notFound ? (
+        <View style={s.loader}><Feather name="eye-off" size={34} color="#9CA3AF" /><Text style={{ marginTop: 10, fontSize: 15, fontWeight: '600', color: '#6B7280' }}>This post isn't available</Text></View>
       ) : (
         <View style={s.body}>
           <FlatList
@@ -554,7 +597,7 @@ export default function PostScreen({ route, navigation }: any) {
                           {post.likes_count > 0 && (
                             <>
                               <View style={s.likeBubble}>
-                                <Feather name="heart" size={10} color="#FFF" />
+                                <Ionicons name="heart" size={10} color="#FFF" />
                               </View>
                               <Text style={s.postCount}>{post.likes_count}</Text>
                             </>
@@ -568,7 +611,7 @@ export default function PostScreen({ route, navigation }: any) {
                     <View style={s.postDivider} />
                     <View style={s.postActionsRow}>
                       <TouchableOpacity style={s.actionBtn} onPress={togglePostLike} activeOpacity={0.7}>
-                        <Feather name="heart" size={16} color={likedPost ? '#FF3B30' : TEXT_SECONDARY} />
+                        <Ionicons name={likedPost ? 'heart' : 'heart-outline'} size={18} color={likedPost ? '#FF3040' : TEXT_SECONDARY} />
                         <Text style={[s.actionTxt, likedPost && { color: '#FF3B30', fontWeight: '700' }]}>Like</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={s.actionBtn} onPress={() => inputRef.current?.focus()} activeOpacity={0.7}>
@@ -621,11 +664,21 @@ export default function PostScreen({ route, navigation }: any) {
             </View>
           )}
 
+          <GifPickerLite visible={showGifs} onClose={() => setShowGifs(false)} onSelect={(u) => { setPendingGif(u); setShowGifs(false); }} />
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={insets.top + 52}>
+            {pendingGif && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingTop: 8 }}>
+                <Image source={{ uri: pendingGif }} style={{ width: 74, height: 56, borderRadius: 8 }} />
+                <TouchableOpacity onPress={() => setPendingGif(null)}><Feather name="x-circle" size={20} color="#8E8E93" /></TouchableOpacity>
+              </View>
+            )}
             <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
               {profile?.avatar_url
                 ? <Image source={{ uri: profile.avatar_url }} style={s.inputAvatar} fadeDuration={200} />
                 : <View style={s.inputAvatarFb}><Text style={s.inputAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
+              <TouchableOpacity onPress={() => setShowGifs(true)} activeOpacity={0.7} style={{ paddingHorizontal: 4, paddingVertical: 6 }}>
+                <Text style={{ fontSize: 11, fontWeight: '800', color: '#0B1E3D', borderWidth: 1.5, borderColor: '#0B1E3D', borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 }}>GIF</Text>
+              </TouchableOpacity>
               <TextInput
                 ref={inputRef}
                 style={s.input}

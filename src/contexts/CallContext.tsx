@@ -555,7 +555,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         } catch {}
         refreshParticipants(call);
 
-        if (params.isIncoming || params.isGroupCall) {
+        if (params.isIncoming) {
           onCallConnected(call);
         }
       });
