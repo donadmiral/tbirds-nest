@@ -157,6 +157,15 @@ export default function UserProfileScreen() {
   }, [targetId, myId]);
 
   useEffect(() => { load(); }, [load]);
+  const [hasStory, setHasStory] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    if (!targetId) return;
+    supabase.from('stories').select('id').eq('user_id', targetId)
+      .gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(1)
+      .then(({ data }) => { if (alive) setHasStory((data || []).length > 0); });
+    return () => { alive = false; };
+  }, [targetId]);
 
   const confirmBlock = () => {
     if (!myId || isOwnProfile) return;
@@ -252,6 +261,8 @@ export default function UserProfileScreen() {
           profile={profile}
           stats={{ posts: stats.posts, followers: stats.followers, following: stats.following ?? 0 }}
           isSelf={isOwnProfile}
+          hasStory={hasStory}
+          onOpenStory={() => (navigation as any).navigate('StoryViewer', { userId: targetId })}
           tabs={[
             { key: 'posts', label: 'Posts' },
             ...(listingCount > 0 ? [{ key: 'listings', label: 'Listings' }] : []),
