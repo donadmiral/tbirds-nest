@@ -10,6 +10,7 @@
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { nativeCallService } from '../services/nativeCallService';
 import { useAuthStore } from '../stores/authStore';
 import { callService, CallRecord } from '../services/callService';
 import { supabase } from '../services/supabase';
@@ -28,6 +29,51 @@ export default function IncomingCallListener() {
   const { callState, startCall } = useCallContext();
   const callStateRef = useRef(callState);
   useEffect(() => { callStateRef.current = callState; }, [callState]);
+
+  // Dormant until the CallKit build: the OS lock-screen answer/decline route.
+  // BUILD DAY: polish caller display names here; today this never runs.
+  useEffect(() => {
+    if (!userId) return;
+    nativeCallService.setup({
+      onAnswer: async (uuid) => {
+        try {
+          const call: any = await callService.getCall(uuid);
+          if (!call) return;
+          handledCallIdsRef.current.add(uuid);
+          clearCallNavGuard();
+          startCall({
+            callId: uuid,
+            channelId: call.channel_id || call.agora_channel || '',
+            otherUserId: call.caller_id || '',
+            otherUserName: call.is_group_call ? 'Group call' : 'Call',
+            otherUserAvatar: null,
+            isVideo: !!call.is_video,
+            isIncoming: true,
+            isGroupCall: !!call.is_group_call,
+            conversationId: call.conversation_id ?? null,
+          });
+          nav.navigate('Call', {
+            callId: uuid,
+            channelId: call.channel_id || call.agora_channel || '',
+            callerName: call.is_group_call ? 'Group call' : 'Call',
+            callerAvatar: null,
+            otherUser: { id: call.caller_id, full_name: 'Call', avatar_url: null },
+            isIncoming: true,
+            isVideo: !!call.is_video,
+            fromContext: true,
+            isGroupCall: !!call.is_group_call,
+            conversationId: call.conversation_id,
+          });
+        } catch (e: any) { console.log('[NativeCalls] answer route failed:', e?.message); }
+      },
+      onEnd: (uuid) => {
+        try {
+          supabase.rpc('decline_group_call', { p_session_id: uuid }).then(() => {}, () => {});
+          callService.declineCall(uuid).catch(() => {});
+        } catch {}
+      },
+    });
+  }, [userId, nav, startCall]);
   const activeCallIdRef = useRef<string | null>(null);
   const [banner, setBanner] = useState<{ callId: string; navParams: any; name: string; avatar: string | null; isGroup: boolean; isVideo: boolean } | null>(null);
   const bannerRef = useRef<any>(null);

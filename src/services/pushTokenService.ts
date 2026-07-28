@@ -18,6 +18,15 @@ export const pushTokenService = {
     }
   },
 
+  /** Attach the iOS PushKit VoIP token to this device's existing row. */
+  async saveVoipToken(expoPushToken: string, voipToken: string) {
+    const { error } = await supabase.rpc('save_voip_token', {
+      p_expo_token: expoPushToken,
+      p_voip_token: voipToken,
+    });
+    if (error) console.log('SAVE_VOIP_TOKEN_ERROR', error);
+  },
+
   async removeToken(userId: string, expoPushToken: string) {
     const { error } = await supabase
       .from('user_push_tokens')

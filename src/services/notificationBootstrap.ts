@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { AppState } from 'react-native';
 import { pushTokenService } from './pushTokenService';
+import { nativeCallService } from './nativeCallService';
 
 // Last token this device registered, so logout can remove exactly it.
 export let lastPushToken: string | null = null;
@@ -103,6 +104,12 @@ export async function registerForPushNotifications(userId: string) {
   } catch (error) {
     console.log('TOKEN_SAVE_ERROR', error);
   }
+
+  // Dormant until the CallKit build: registers the iOS VoIP token and files
+  // it beside the Expo token so the APNs sender can ring locked phones.
+  nativeCallService.registerVoipToken((voip) => {
+    if (lastPushToken) pushTokenService.saveVoipToken(lastPushToken, voip).catch(() => {});
+  });
 
   // Re-save on token rotation, or pushes silently die until the next login.
   rotationUserId = userId;
