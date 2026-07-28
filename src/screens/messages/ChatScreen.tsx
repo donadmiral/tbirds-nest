@@ -1390,6 +1390,10 @@ const pickAndSendDocument = useCallback(async () => {
       const m = item.data as MessageItem;
       return <CallEventBubble content={m.text || ''} mediaUrl={m.media_url || null} createdAt={m.created_at} />;
     }
+    if (item.type === 'msg' && (item.data as any).is_system_message && !(item.data as any).payment_id) {
+      const m = item.data as MessageItem;
+      return <View style={s.sep}><Text style={s.sepTxt}>{m.text || ''}</Text></View>;
+    }
     const msg: MessageItem = item.data;
     const isMe = msg.sender_id === currentUserId;
     const endsGroup = groupEnds[msg.id] !== false;

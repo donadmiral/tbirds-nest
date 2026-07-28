@@ -414,7 +414,8 @@ export default function GroupManagementScreen({ route, navigation }: any) {
     Alert.alert('Remove member?', `Remove ${member.profile?.full_name || 'this user'}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Remove', style: 'destructive', onPress: async () => {
-        await supabase.from('conversation_members').delete().eq('conversation_id', conversationId).eq('user_id', member.user_id);
+        const { error } = await supabase.from('conversation_members').delete().eq('conversation_id', conversationId).eq('user_id', member.user_id);
+        if (error) { Alert.alert('Could not remove', error.message); return; }
         setMembers(prev => prev.filter(m => m.user_id !== member.user_id));
       }},
     ]);

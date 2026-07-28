@@ -3,7 +3,7 @@ import * as Linking from 'expo-linking';
 import type { Session } from '@supabase/supabase-js';
 import { showMessage } from 'react-native-flash-message';
 import { supabase, setCachedUserId } from '../services/supabase';
-import { registerForPushNotifications } from '../services/notificationBootstrap';
+import { registerForPushNotifications, lastPushToken } from '../services/notificationBootstrap';
 import type { Profile } from '../types';
 
 type AuthState = {
@@ -243,6 +243,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     const uid = get().session?.user?.id;
+    try {
+      if (uid && lastPushToken) {
+        const { pushTokenService } = await import('../services/pushTokenService');
+        await pushTokenService.removeToken(uid, lastPushToken);
+      }
+    } catch (e) { console.log('[signOut] token removal:', e); }
     try {
       if (uid) {
         await supabase.from('user_presence').upsert({
