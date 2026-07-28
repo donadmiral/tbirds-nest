@@ -82,7 +82,7 @@ const SPLIT_GAP = 4;
 type DualLayoutMode = 'pip_front_small' | 'pip_rear_small' | 'split_vertical' | 'split_horizontal' | 'floating_bubble';
 type ParsedDualLayout = { nx: number; ny: number; scale: number; primaryCamera: 'rear' | 'front'; mode: DualLayoutMode };
 
-type RouteParams = { userIds: string[]; startUserId: string; highlightId?: string; highlightTitle?: string };
+type RouteParams = { userIds?: string[]; startUserId?: string; userId?: string; highlightId?: string; highlightTitle?: string };
 type HoldoverMedia = { url: string; type: 'image' | 'video'; transform: { scale: number; translateNX: number; translateNY: number; fit: 'cover' | 'contain' } | null } | null;
 
 type EngagementState = { responses: Record<string, any>; counts: Record<string, number>; averages: Record<string, number>; quizCounts: Record<string, Record<string, number>> };
@@ -145,8 +145,13 @@ export default function StoryViewerScreen() {
   const myId = profile?.id ?? null;
 
   const params = route.params as RouteParams;
-  const userIds = params?.userIds || [];
-  const startUserId = params?.startUserId;
+  // Accept both shapes: the strip sends { userIds, startUserId }; profile and
+  // feed rings send a single { userId }.
+  const userIds = useMemo(() => {
+    if (params?.userIds && params.userIds.length > 0) return params.userIds;
+    return params?.userId ? [params.userId] : [];
+  }, [params?.userIds, params?.userId]);
+  const startUserId = params?.startUserId || params?.userId;
   const sessionKey = useMemo(() => userIds.join('|'), [userIds]);
 
   const resumePosition = useMemo(() => {

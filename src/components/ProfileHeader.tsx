@@ -18,9 +18,11 @@ import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
 import { openNow, hoursSummary, hasHours, DAY_ORDER, dayLabel } from '../utils/businessHours';
+import PlatinumRing from './stories/PlatinumRing';
 
-const BANNER_H = 150;
-const AVATAR = 78;
+const BANNER_H = 164;
+const AVATAR = 92;
+const RING = AVATAR + 14;
 
 type Tab = { key: string; label: string };
 
@@ -36,6 +38,8 @@ type Props = {
   onEdit?: () => void;
   onChangePhoto?: () => void;
   onOpenStats?: (kind: 'followers' | 'following') => void;
+  hasStory?: boolean;
+  onOpenStory?: () => void;
   onOpenInsights?: () => void;
   actions?: React.ReactNode;
 };
@@ -100,6 +104,7 @@ function BusinessHours({ hours }: { hours: any }) {
 export default function ProfileHeader({
   profile, stats, uploadingPhoto, isSelf = true, tabs, activeTab, onTabChange,
   onSettings, onEdit, onChangePhoto, onOpenStats, onOpenInsights, actions,
+  hasStory, onOpenStory,
 }: Props) {
   const business = profile?.account_type === 'business' ? (profile.business || null) : null;
   const joined = joinedLabel(profile?.created_at || profile?.joined_at);
@@ -128,25 +133,34 @@ export default function ProfileHeader({
       </View>
 
       <View style={s.body}>
-        <View style={s.avatarRow}>
-          <TouchableOpacity onPress={onChangePhoto} disabled={!onChangePhoto || uploadingPhoto} activeOpacity={0.85}>
-            {uploadingPhoto ? (
-              <View style={[s.avatar, s.avatarLoading]}><ActivityIndicator color={light.brand.base} /></View>
-            ) : profile?.avatar_url ? (
-              <ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />
-            ) : (
-              <View style={[s.avatar, s.avatarFallback]}>
-                <Text style={s.avatarTxt}>{initials(profile?.full_name)}</Text>
+        <View style={s.medallionWrap}>
+          <TouchableOpacity
+            onPress={hasStory && onOpenStory ? onOpenStory : onChangePhoto}
+            disabled={uploadingPhoto || (!onChangePhoto && !(hasStory && onOpenStory))}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={hasStory ? 'View story' : 'Change profile photo'}
+          >
+            <View style={s.ringHolder}>
+              <View style={s.ringSvg} pointerEvents="none">
+                <PlatinumRing userId={profile?.id || 'me'} size={RING} active={!!hasStory} />
               </View>
-            )}
+              {uploadingPhoto ? (
+                <View style={[s.avatar, s.avatarLoading]}><ActivityIndicator color={light.brand.base} /></View>
+              ) : profile?.avatar_url ? (
+                <ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />
+              ) : (
+                <View style={[s.avatar, s.avatarFallback]}>
+                  <Text style={s.avatarTxt}>{initials(profile?.full_name)}</Text>
+                </View>
+              )}
+              {onChangePhoto && hasStory ? (
+                <TouchableOpacity style={s.cameraChip} onPress={onChangePhoto} activeOpacity={0.85} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                  <Feather name="camera" size={11} color={light.ink.inverse} />
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </TouchableOpacity>
-
-          {actions ? actions : onEdit ? (
-            <TouchableOpacity style={s.editBtn} onPress={onEdit} activeOpacity={0.8} accessibilityRole="button">
-              <Feather name="edit-2" size={12} color={light.ink.primary} />
-              <Text style={s.editTxt}>Edit profile</Text>
-            </TouchableOpacity>
-          ) : null}
         </View>
 
         <View style={s.nameRow}>
@@ -154,6 +168,17 @@ export default function ProfileHeader({
           {profile?.is_verified ? <Feather name="check-circle" size={15} color={light.brand.warm} /> : null}
         </View>
         {profile?.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
+
+        {actions ? (
+          <View style={s.actionsCenter}>{actions}</View>
+        ) : onEdit ? (
+          <View style={s.actionsCenter}>
+            <TouchableOpacity style={s.editBtn} onPress={onEdit} activeOpacity={0.8} accessibilityRole="button">
+              <Feather name="edit-2" size={12} color={light.ink.primary} />
+              <Text style={s.editTxt}>Edit profile</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
 
         {business?.category ? <Text style={s.category}>{business.category}</Text> : null}
         {profile?.headline ? <Text style={s.headline}>{profile.headline}</Text> : null}
@@ -202,32 +227,34 @@ export default function ProfileHeader({
         {business ? <BusinessHours hours={business.hours} /> : null}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.rail}>
-          <TouchableOpacity style={s.pill} activeOpacity={0.75} onPress={() => onOpenStats?.('followers')}>
-            <Text style={s.pillNum}>{fmt(stats?.followers)}</Text>
-            <Text style={s.pillLbl}>Followers</Text>
-          </TouchableOpacity>
-          {!business ? (
-            <TouchableOpacity style={s.pill} activeOpacity={0.75} onPress={() => onOpenStats?.('following')}>
-              <Text style={s.pillNum}>{fmt(stats?.following)}</Text>
-              <Text style={s.pillLbl}>Following</Text>
+          <View style={s.capsule}>
+            <TouchableOpacity style={s.seg} activeOpacity={0.75} onPress={() => onOpenStats?.('followers')}>
+              <Text style={s.pillNum}>{fmt(stats?.followers)}</Text>
+              <Text style={s.pillLbl}>Followers</Text>
             </TouchableOpacity>
-          ) : null}
-          <View style={s.pill}>
-            <Text style={s.pillNum}>{fmt(stats?.posts)}</Text>
-            <Text style={s.pillLbl}>Posts</Text>
-          </View>
-          {business && business.review_count > 0 ? (
-            <View style={[s.pill, s.pillAccent]}>
-              <Text style={s.pillNum}>{Number(business.avg_rating ?? 0).toFixed(1)}</Text>
-              <Text style={s.pillLbl}>Rating</Text>
+            {!business ? (
+              <TouchableOpacity style={s.seg} activeOpacity={0.75} onPress={() => onOpenStats?.('following')}>
+                <Text style={s.pillNum}>{fmt(stats?.following)}</Text>
+                <Text style={s.pillLbl}>Following</Text>
+              </TouchableOpacity>
+            ) : null}
+            <View style={s.seg}>
+              <Text style={s.pillNum}>{fmt(stats?.posts)}</Text>
+              <Text style={s.pillLbl}>Posts</Text>
             </View>
-          ) : null}
-          {isSelf && stats?.reach != null ? (
-            <TouchableOpacity style={[s.pill, s.pillAccent]} activeOpacity={0.75} onPress={onOpenInsights}>
-              <Text style={s.pillNum}>{fmt(stats.reach)}</Text>
-              <Text style={s.pillLbl}>Reached</Text>
-            </TouchableOpacity>
-          ) : null}
+            {business && business.review_count > 0 ? (
+              <View style={[s.seg, s.segAccent]}>
+                <Text style={s.pillNum}>{Number(business.avg_rating ?? 0).toFixed(1)}</Text>
+                <Text style={s.pillLbl}>Rating</Text>
+              </View>
+            ) : null}
+            {isSelf && stats?.reach != null ? (
+              <TouchableOpacity style={[s.seg, s.segAccent]} activeOpacity={0.75} onPress={onOpenInsights}>
+                <Text style={s.pillNum}>{fmt(stats.reach)}</Text>
+                <Text style={s.pillLbl}>Reached</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
         </ScrollView>
       </View>
 
@@ -256,7 +283,7 @@ export default function ProfileHeader({
 const HAIR = StyleSheet.hairlineWidth;
 
 const s = StyleSheet.create({
-  banner: { height: BANNER_H, backgroundColor: light.brand.base },
+  banner: { height: BANNER_H, backgroundColor: light.brand.base, borderBottomWidth: 2, borderBottomColor: light.brand.warm },
   bannerImg: { width: '100%', height: '100%' },
   bannerFallback: { backgroundColor: light.brand.base },
   settingsBtn: {
@@ -267,9 +294,13 @@ const s = StyleSheet.create({
   },
 
   body: { paddingHorizontal: 14 },
-  avatarRow: {
-    flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
-    marginTop: -(AVATAR / 2), marginBottom: space.xs,
+  medallionWrap: { alignItems: 'center', marginTop: -(RING / 2) - 2, marginBottom: space.xs },
+  ringHolder: { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
+  ringSvg: { position: 'absolute', top: 0, left: 0 },
+  cameraChip: {
+    position: 'absolute', bottom: 3, right: 3, width: 24, height: 24, borderRadius: 12,
+    backgroundColor: light.brand.base, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: light.surface.canvas,
   },
   avatar: {
     width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2,
@@ -278,22 +309,23 @@ const s = StyleSheet.create({
   avatarLoading: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.surface.canvas },
   avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.warm },
   avatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: light.brand.base },
+  actionsCenter: { alignItems: 'center', marginTop: space.sm },
   editBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: space.sm, paddingVertical: 7, marginBottom: 4,
+    paddingHorizontal: space.md, paddingVertical: 7,
     borderRadius: radius.full, borderWidth: HAIR, borderColor: light.surface.hairline,
   },
   editTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary },
 
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  name: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.5 },
-  handle: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 1 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  name: { fontSize: 22, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.6, textAlign: 'center' },
+  handle: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 1, textAlign: 'center' },
 
   category: {
     fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1,
-    textTransform: 'uppercase', color: light.brand.warm, marginTop: 5,
+    textTransform: 'uppercase', color: light.brand.warm, marginTop: 5, textAlign: 'center',
   },
-  headline: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary, marginTop: 5 },
+  headline: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary, marginTop: 5, textAlign: 'center' },
   bio: { fontSize: typeSize.body, color: light.ink.secondary, lineHeight: 20, marginTop: 5 },
   bioEmpty: { fontSize: typeSize.body, color: light.status.link, fontWeight: fontWeight.semibold, marginTop: 5 },
 
@@ -311,13 +343,17 @@ const s = StyleSheet.create({
   hoursDayLbl: { fontSize: typeSize.micro, color: light.ink.muted },
   hoursDayVal: { fontSize: typeSize.micro, color: light.ink.secondary, fontWeight: fontWeight.medium },
 
-  rail: { gap: space.xs, paddingTop: space.sm, paddingBottom: space.sm },
-  pill: {
-    alignItems: 'center', minWidth: 78,
-    paddingHorizontal: space.sm, paddingVertical: space.xs,
-    borderRadius: radius.md, backgroundColor: light.brand.tintBg,
+  rail: { flexGrow: 1, justifyContent: 'center', paddingTop: space.sm, paddingBottom: space.sm },
+  capsule: {
+    flexDirection: 'row', borderRadius: radius.full, overflow: 'hidden',
+    borderWidth: HAIR, borderColor: light.surface.hairline, backgroundColor: light.brand.tintBg,
   },
-  pillAccent: { backgroundColor: 'rgba(201,191,176,0.30)' },
+  seg: {
+    alignItems: 'center', minWidth: 84,
+    paddingHorizontal: space.sm, paddingVertical: space.xs,
+    borderLeftWidth: HAIR, borderLeftColor: light.surface.hairline,
+  },
+  segAccent: { backgroundColor: 'rgba(201,191,176,0.30)' },
   pillNum: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
   pillLbl: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1 },
 

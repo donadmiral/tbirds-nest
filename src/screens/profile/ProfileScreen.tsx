@@ -234,6 +234,15 @@ export default function ProfileScreen() {
   const loadTabCounts = useCallback(async () => {}, []);
 
   useFocusEffect(useCallback(() => { load(); loadHighlights(); }, [load, loadHighlights]));
+  const [hasStory, setHasStory] = useState(false);
+  useFocusEffect(useCallback(() => {
+    let alive = true;
+    if (!userId) return;
+    supabase.from('stories').select('id').eq('user_id', userId)
+      .gte('created_at', new Date(Date.now() - 86400000).toISOString()).limit(1)
+      .then(({ data }) => { if (alive) setHasStory((data || []).length > 0); });
+    return () => { alive = false; };
+  }, [userId]));
 
   useEffect(() => {
     if (profile) { loadTabContent(activeTab); loadTabCounts(); }
@@ -431,6 +440,8 @@ const loadMorePosts = useCallback(async () => {
           onEdit={openEdit}
           onChangePhoto={changePhoto}
           onOpenStats={openStats}
+          hasStory={hasStory}
+          onOpenStory={() => (navigation as any).navigate('StoryViewer', { userId })}
         />
 
         {tabLoading?(<View style={{paddingVertical:40,alignItems:'center'}}><ActivityIndicator color={NAVY}/></View>):tabData.length===0?emptyState(activeTab):tabData.map(post=>renderPostCard(post))}
