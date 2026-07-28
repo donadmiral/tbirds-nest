@@ -1,3 +1,4 @@
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 /**
  * ArticleReaderScreen - Twitter long-form reading view.
  */
@@ -17,7 +18,7 @@ export default function ArticleReaderScreen({ route, navigation }: any) {
           <Feather name="chevron-left" size={26} color="#0A0A0A" />
         </TouchableOpacity>
       </View>
-      <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: TAB_BAR_CLEARANCE + 74 }}>
         {!!a.cover && <Image source={{ uri: a.cover }} style={s.cover} />}
         <View style={s.body}>
           <Text style={s.title}>{a.title}</Text>

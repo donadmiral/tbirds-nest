@@ -13,6 +13,7 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
@@ -114,7 +115,7 @@ export default function CreateBusinessScreen({ navigation }: any) {
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 14, paddingBottom: insets.bottom + 48 }}
+          contentContainerStyle={{ padding: 14, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
         >
           <Text style={s.lede}>
             A business gets its own profile, followers, posts and chats. You stay signed in as

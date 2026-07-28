@@ -4,6 +4,7 @@ import {
   ActivityIndicator, StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
@@ -121,7 +122,7 @@ export default function SavedMessagesScreen({ navigation }: any) {
             data={saved}
             keyExtractor={i => i.id}
             renderItem={renderItem}
-            contentContainerStyle={{ padding: 14, gap: 10, paddingBottom: insets.bottom + 40 }}
+            contentContainerStyle={{ padding: 14, gap: 10, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={s.empty}>

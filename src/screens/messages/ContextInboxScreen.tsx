@@ -15,6 +15,7 @@ import {
   Image, RefreshControl, StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
@@ -120,7 +121,7 @@ export default function ContextInboxScreen({ route, navigation }: any) {
           data={rows}
           keyExtractor={r => r.conversation_id}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={light.ink.faint} />}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 90 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item }) => {
             const mine = item.last_message_sender_id === myId;

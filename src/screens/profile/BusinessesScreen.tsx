@@ -9,6 +9,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
@@ -84,7 +85,7 @@ export default function BusinessesScreen({ navigation }: any) {
         <FlatList
           data={rows}
           keyExtractor={r => r.business_id}
-          contentContainerStyle={{ paddingHorizontal: 14, paddingTop: space.sm, paddingBottom: insets.bottom + 40 }}
+          contentContainerStyle={{ paddingHorizontal: 14, paddingTop: space.sm, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={s.row}

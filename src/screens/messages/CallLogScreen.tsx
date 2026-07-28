@@ -4,6 +4,7 @@ import {
   Image, ActivityIndicator, StatusBar, RefreshControl,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
@@ -210,7 +211,7 @@ export default function CallLogScreen() {
           data={calls}
           keyExtractor={c => c.id}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           refreshControl={

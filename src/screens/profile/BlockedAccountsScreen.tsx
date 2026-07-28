@@ -11,6 +11,7 @@ import {
   Image, Alert, StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -140,7 +141,7 @@ export default function BlockedAccountsScreen({ navigation }: any) {
         <FlatList
           data={rows}
           keyExtractor={r => r.blocked_id}
-          contentContainerStyle={{ paddingHorizontal: 14, paddingTop: space.sm, paddingBottom: insets.bottom + 40 }}
+          contentContainerStyle={{ paddingHorizontal: 14, paddingTop: space.sm, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
           renderItem={({ item }) => (
             <View style={s.row}>
               {item.avatar_url ? (

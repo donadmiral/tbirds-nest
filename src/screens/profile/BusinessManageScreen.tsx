@@ -16,6 +16,7 @@ import {
   ActivityIndicator, Alert, Switch, KeyboardAvoidingView, Platform, StatusBar, Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -256,7 +257,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 14, paddingBottom: insets.bottom + 48 }}
+          contentContainerStyle={{ padding: 14, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
         >
           <View style={s.topRow}>
             <TouchableOpacity

@@ -14,6 +14,7 @@ import {
   ActivityIndicator, Alert, Switch, KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -172,7 +173,7 @@ export default function EditProfileScreen({ navigation }: any) {
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
         >
           <TouchableOpacity style={s.bannerPick} activeOpacity={0.85} onPress={() => pickImage('banner')}>
             {draft.banner_url ? (

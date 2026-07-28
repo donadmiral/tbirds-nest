@@ -4,6 +4,7 @@ import {
   StatusBar, Linking, Modal, TextInput, ActivityIndicator, Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../stores/authStore';
@@ -312,7 +313,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
         <View style={{ width: 60 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: Math.max(insets.bottom + 40, 60) }]}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: Math.max(insets.bottom + TAB_BAR_CLEARANCE + 24, TAB_BAR_CLEARANCE + 40) }]}>
 
         {/* Profile card with account type */}
         <TouchableOpacity style={s.profileCard} onPress={goToEditProfile} activeOpacity={0.8}>

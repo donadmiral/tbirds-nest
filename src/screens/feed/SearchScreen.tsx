@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Image, StatusBar, Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../services/supabase';
@@ -341,7 +342,7 @@ export default function SearchScreen({ navigation }: any) {
             ) : null}
             </View>
           }
-          contentContainerStyle={[{ paddingBottom: insets.bottom + 40 }, !recent.length && { flexGrow: 1 }]}
+          contentContainerStyle={[{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }, !recent.length && { flexGrow: 1 }]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           ListEmptyComponent={
@@ -381,7 +382,7 @@ export default function SearchScreen({ navigation }: any) {
           keyExtractor={(item: any) => item.id}
           renderItem={currentRenderer as any}
           contentContainerStyle={[
-            { paddingHorizontal: 14, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 40, 60) },
+            { paddingHorizontal: 14, paddingTop: 8, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 },
             !currentData.length && { flexGrow: 1 },
           ]}
           showsVerticalScrollIndicator={false}

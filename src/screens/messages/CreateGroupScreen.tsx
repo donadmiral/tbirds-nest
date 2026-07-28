@@ -4,6 +4,7 @@ import {
   FlatList, ActivityIndicator, StatusBar, Alert, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -309,7 +310,7 @@ export default function CreateGroupScreen({ navigation }: any) {
             keyExtractor={(c) => c.id}
             renderItem={renderCandidate}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+            contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
             ListHeaderComponent={
               query.trim().length < 2 && initialList.length > 0 ? (
                 <Text style={s.sectionLabel}>YOUR CONNECTIONS</Text>

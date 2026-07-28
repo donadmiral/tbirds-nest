@@ -10,6 +10,7 @@ import {
   Modal, Linking, Share, Platform, ActionSheetIOS, FlatList,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -469,7 +470,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={s.hero}>
