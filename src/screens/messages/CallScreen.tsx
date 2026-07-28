@@ -67,6 +67,20 @@ export default function CallScreen() {
   const isGroupCall = activeCall?.isGroupCall ?? params?.isGroupCall ?? false;
   const groupCallName = params?.groupName || params?.callerName || 'Group Call';
   const fromContext = params?.fromContext === true || params?.fromMiniBar === true;
+  const confirmEnd = () => {
+    if (isGroupCall && !isIncoming && params?.callId) {
+      Alert.alert('End call', 'You started this call.', [
+        { text: 'Leave call', onPress: () => endCall() },
+        { text: 'End for everyone', style: 'destructive', onPress: () => {
+          supabase.rpc('end_group_call_for_all', { p_session_id: params.callId }).then(() => {}, () => {});
+          endCall();
+        } },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+      return;
+    }
+    endCall();
+  };
 
   const [showKeypad, setShowKeypad] = useState(false);
   const [dtmfDigits, setDtmfDigits] = useState('');
@@ -221,7 +235,7 @@ export default function CallScreen() {
           <TouchableOpacity style={[s.videoCtrl, videoOff && s.videoCtrlActive]} onPress={toggleVideo} hitSlop={HIT} activeOpacity={0.7}>
             <Ionicons name={videoOff ? 'videocam-off' : 'videocam'} size={24} color="#FFF" />
           </TouchableOpacity>
-          <TouchableOpacity style={[s.videoEndCircle, ending && { opacity: 0.5 }]} onPress={endCall} disabled={ending} hitSlop={HIT} activeOpacity={0.7}>
+          <TouchableOpacity style={[s.videoEndCircle, ending && { opacity: 0.5 }]} onPress={confirmEnd} disabled={ending} hitSlop={HIT} activeOpacity={0.7}>
             <Ionicons name="call" size={27} color="#FFF" style={{ transform: [{ rotate: '135deg' }] }} />
           </TouchableOpacity>
           <TouchableOpacity style={s.videoCtrl} onPress={flipCamera} disabled={videoOff} hitSlop={HIT} activeOpacity={0.7}>
@@ -321,7 +335,7 @@ export default function CallScreen() {
       <View style={[s.pinnedBottom, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <TouchableOpacity style={s.sideCircle} activeOpacity={0.8} onPress={() => navigation.navigate('CallLog')} hitSlop={HIT}>
           <Feather name="clock" size={22} color="#1A1A1A" /></TouchableOpacity>
-        <TouchableOpacity style={[s.endCircle, ending && { opacity: 0.5 }]} onPress={endCall} activeOpacity={0.85} disabled={ending} hitSlop={HIT}>
+        <TouchableOpacity style={[s.endCircle, ending && { opacity: 0.5 }]} onPress={confirmEnd} activeOpacity={0.85} disabled={ending} hitSlop={HIT}>
           <Ionicons name="call" size={27} color="#FFF" style={{ transform: [{ rotate: '135deg' }] }} /></TouchableOpacity>
         <TouchableOpacity style={s.sideCircle} activeOpacity={0.8} onPress={onMinimise} hitSlop={HIT}>
           <Feather name="minimize-2" size={22} color="#1A1A1A" /></TouchableOpacity>

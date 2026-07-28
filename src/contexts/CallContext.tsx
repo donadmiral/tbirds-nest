@@ -849,6 +849,20 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
   // ── Context Value ─────────────────────────────────────────────────────
 
+  useEffect(() => {
+    const id = activeCall?.callId;
+    if (!activeCall?.isGroupCall || !id) return;
+    const ch = supabase.channel(`gcall_end_${id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'call_sessions', filter: `id=eq.${id}` }, (p: any) => {
+        const st = (p.new as any)?.status;
+        if ((st === 'ended' || st === 'missed') && stateRef.current !== 'idle' && stateRef.current !== 'ending') {
+          endCall();
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [activeCall?.callId, activeCall?.isGroupCall, endCall]);
+
   return (
     <CallContext.Provider value={{
       callState, activeCall, elapsed, muted, videoOff, held, speakerOn,
