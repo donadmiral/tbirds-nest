@@ -200,6 +200,9 @@ export default function NotificationsScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [done, setDone] = useState(false);
+  const cursorRef = useRef<string | null>(null);
   const mounted = useRef(true);
 
   useEffect(() => () => { mounted.current = false; }, []);
@@ -211,10 +214,27 @@ export default function NotificationsScreen({ navigation }: any) {
     });
     if (!mounted.current) return;
     if (err) { setError(err.message); setLoading(false); setRefreshing(false); return; }
-    setRows((data ?? []) as Notif[]);
+    const batch = (data ?? []) as Notif[];
+    setRows(batch);
+    cursorRef.current = batch.length ? (batch[batch.length - 1] as any).created_at : null;
+    setDone(batch.length < 60);
     setLoading(false);
     setRefreshing(false);
   }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || done || !cursorRef.current) return;
+    setLoadingMore(true);
+    const { data } = await supabase.rpc('get_notifications', { p_limit: 60, p_cursor: cursorRef.current });
+    if (!mounted.current) return;
+    const batch = (data ?? []) as Notif[];
+    if (batch.length) {
+      cursorRef.current = (batch[batch.length - 1] as any).created_at;
+      setRows(prev => { const seen = new Set(prev.map(r => r.notification_id)); return [...prev, ...batch.filter(r => !seen.has(r.notification_id))]; });
+    }
+    if (batch.length < 60) setDone(true);
+    setLoadingMore(false);
+  }, [loadingMore, done]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
@@ -415,6 +435,9 @@ export default function NotificationsScreen({ navigation }: any) {
           keyExtractor={r => r.notification_id}
           renderItem={renderRow}
           stickySectionHeadersEnabled={false}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={light.ink.faint} style={{ paddingVertical: 16 }} /> : null}
           contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={light.ink.faint} />
