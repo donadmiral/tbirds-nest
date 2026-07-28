@@ -112,13 +112,25 @@ serve(async (req) => {
     const title = buildTitle(type, actorName, data);
     const notifBody = bodyPreview || message || "";
 
+    // The icon badge must tell the truth: this recipient's real unread count.
+    // The webhook fires after the insert, so the count includes this one.
+    let unreadCount = 1;
+    try {
+      const { count } = await admin
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient_id", recipientId)
+        .is("read_at", null);
+      if (typeof count === "number" && count > 0) unreadCount = count;
+    } catch (_) { /* fall back to 1 */ }
+
     // Build push messages for all tokens
     const pushMessages = tokens.map((t) => ({
       to: t.expo_push_token,
       title,
       body: notifBody,
       sound: "default",
-      badge: 1,
+      badge: unreadCount,
       data: {
         type,
         notificationId: record.id || null,
