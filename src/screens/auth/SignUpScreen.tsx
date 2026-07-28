@@ -16,7 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import { showMessage } from 'react-native-flash-message';
 import { authService } from '../../services/authService';
 import { isAsuEmail } from '../../utils/isAsuEmail';
-import PlatinumCirclesLogo from '../../components/PlatinumCirclesLogo';
+import PearlMark from '../../components/brand/PearlMark';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
@@ -105,11 +105,13 @@ export default function SignUpScreen({ navigation }: any) {
         >
           {/* Logo */}
           <View style={s.logoWrap}>
-            <PlatinumCirclesLogo size={64} />
+            <PearlMark size={96} />
           </View>
 
           {/* Title */}
-          <Text style={s.title}>PlatinumCircles</Text>
+          <Text style={s.title}>PLATINUM CIRCLES</Text>
+
+          <View style={s.sheet}>
           <Text style={s.subtitle}>Create your account</Text>
 
           {/* Form fields */}
@@ -263,6 +265,7 @@ export default function SignUpScreen({ navigation }: any) {
           <Text style={s.termsTxt}>
             By signing up you agree to our Terms and Privacy Policy
           </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -270,7 +273,7 @@ export default function SignUpScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: WHITE },
+  root: { flex: 1, backgroundColor: NAVY },
   flex: { flex: 1 },
   container: {
     flexGrow: 1,
@@ -280,26 +283,32 @@ const s = StyleSheet.create({
   },
   logoWrap: { alignItems: 'center', marginBottom: 12 },
   title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: GRAY_900,
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#EDE7DB',
     textAlign: 'center',
-    marginBottom: 4,
-    letterSpacing: -0.3,
+    marginBottom: 22,
+    letterSpacing: 7,
+  },
+  sheet: {
+    backgroundColor: WHITE, borderRadius: 28, padding: 22, paddingTop: 24,
+    shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 12,
   },
   subtitle: {
-    fontSize: 14,
-    color: GRAY_500,
+    fontSize: 22,
+    fontWeight: '800',
+    color: NAVY,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 18,
+    letterSpacing: -0.4,
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: GRAY_100,
-    borderWidth: 0.5,
-    borderColor: GRAY_200,
-    borderRadius: 12,
+    backgroundColor: '#FBFBFA',
+    borderWidth: 1,
+    borderColor: 'rgba(11,30,61,0.12)',
+    borderRadius: 14,
     marginBottom: 10,
     position: 'relative',
   },
@@ -396,7 +405,7 @@ const s = StyleSheet.create({
   },
   primaryBtn: {
     backgroundColor: NAVY,
-    borderRadius: 12,
+    borderRadius: 99,
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
@@ -406,7 +415,7 @@ const s = StyleSheet.create({
     backgroundColor: GOLD,
   },
   primaryBtnDisabled: { opacity: 0.5 },
-  primaryBtnTxt: { fontSize: 16, fontWeight: '700', color: WHITE },
+  primaryBtnTxt: { fontSize: 16, fontWeight: '700', color: '#F5F0E8', letterSpacing: 0.4 },
   primaryBtnTxtASU: { color: MAROON },
   dividerRow: {
     flexDirection: 'row',
