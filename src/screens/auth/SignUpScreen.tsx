@@ -15,7 +15,6 @@ import * as Linking from 'expo-linking';
 import { Feather } from '@expo/vector-icons';
 import { showMessage } from 'react-native-flash-message';
 import { authService } from '../../services/authService';
-import { isAsuEmail } from '../../utils/isAsuEmail';
 import PearlMark from '../../components/brand/PearlMark';
 
 const { height: SCREEN_H } = Dimensions.get('window');
@@ -30,8 +29,6 @@ const GRAY_900 = '#111827';
 const INDIGO_50 = '#EEF2FF';
 const INDIGO_100 = '#E0E7FF';
 const INDIGO_700 = '#4338CA';
-const MAROON = '#8C1D40';
-const GOLD = '#FFC627';
 
 export default function SignUpScreen({ navigation }: any) {
   const [fullName, setFullName] = useState('');
@@ -45,8 +42,6 @@ export default function SignUpScreen({ navigation }: any) {
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
-
-  const isASU = isAsuEmail(email);
 
   async function handleSignUp() {
     const cleanName = fullName.trim();
@@ -130,8 +125,8 @@ export default function SignUpScreen({ navigation }: any) {
             />
           </View>
 
-          <View style={[s.inputWrap, isASU && s.inputWrapASU]}>
-            <Feather name="mail" size={16} color={isASU ? MAROON : GRAY_400} style={s.inputIcon} />
+          <View style={s.inputWrap}>
+            <Feather name="mail" size={16} color={GRAY_400} style={s.inputIcon} />
             <TextInput
               ref={emailRef}
               style={s.input}
@@ -146,33 +141,16 @@ export default function SignUpScreen({ navigation }: any) {
               returnKeyType="next"
               onSubmitEditing={() => passwordRef.current?.focus()}
             />
-            {isASU && (
-              <View style={s.asuDetectedBadge}>
-                <Text style={s.asuDetectedTxt}>ASU</Text>
-              </View>
-            )}
+
           </View>
 
-          {/* ASU detected card */}
-          {isASU ? (
-            <View style={s.asuCard}>
-              <View style={s.asuIconWrap}>
-                <Feather name="shield" size={16} color={MAROON} />
-              </View>
-              <View style={s.asuTextWrap}>
-                <Text style={s.asuTitle}>ASU exclusive account</Text>
-                <Text style={s.asuSub}>
-                  You'll get access to the private ASU network. Only ASU students, faculty, and staff can see your content.
-                </Text>
-              </View>
-            </View>
-          ) : email.length > 3 ? (
+          {email.length > 3 ? (
             <View style={s.publicCard}>
               <View style={s.publicIconWrap}>
                 <Feather name="globe" size={16} color={NAVY} />
               </View>
               <View style={s.asuTextWrap}>
-                <Text style={s.publicTitle}>Public account</Text>
+                <Text style={s.publicTitle}>Platinum Circles account</Text>
                 <Text style={s.asuSub}>
                   You'll join Platinum Circles and connect with professionals, employers, and sellers across Zimbabwe and beyond.
                 </Text>
@@ -232,7 +210,6 @@ export default function SignUpScreen({ navigation }: any) {
           <TouchableOpacity
             style={[
               s.primaryBtn,
-              isASU && s.primaryBtnASU,
               (!formValid || loading) && s.primaryBtnDisabled,
             ]}
             onPress={handleSignUp}
@@ -240,11 +217,9 @@ export default function SignUpScreen({ navigation }: any) {
             activeOpacity={0.85}
           >
             {loading ? (
-              <ActivityIndicator color={isASU ? MAROON : WHITE} size={16} />
+              <ActivityIndicator color={WHITE} size={16} />
             ) : (
-              <Text style={[s.primaryBtnTxt, isASU && s.primaryBtnTxtASU]}>
-                {isASU ? 'Join ASU Network' : 'Sign Up'}
-              </Text>
+              <Text style={s.primaryBtnTxt}>Sign Up</Text>
             )}
           </TouchableOpacity>
 
@@ -312,11 +287,7 @@ const s = StyleSheet.create({
     marginBottom: 10,
     position: 'relative',
   },
-  inputWrapASU: {
-    borderColor: MAROON,
-    borderWidth: 1.5,
-    backgroundColor: '#FFF8F0',
-  },
+
   inputIcon: { marginLeft: 14 },
   input: {
     flex: 1,
@@ -332,46 +303,9 @@ const s = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
   },
-  asuDetectedBadge: {
-    backgroundColor: MAROON,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginRight: 10,
-  },
-  asuDetectedTxt: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: GOLD,
-    letterSpacing: 0.5,
-  },
-  asuCard: {
-    backgroundColor: '#FFF5F0',
-    borderWidth: 1,
-    borderColor: '#FECDD3',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    marginTop: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  asuIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   asuTextWrap: { flex: 1 },
-  asuTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: MAROON,
-    marginBottom: 2,
-  },
+
   publicCard: {
     backgroundColor: INDIGO_50,
     borderWidth: 0.5,
@@ -411,12 +345,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 50,
   },
-  primaryBtnASU: {
-    backgroundColor: GOLD,
-  },
+
   primaryBtnDisabled: { opacity: 0.5 },
   primaryBtnTxt: { fontSize: 16, fontWeight: '700', color: '#F5F0E8', letterSpacing: 0.4 },
-  primaryBtnTxtASU: { color: MAROON },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
