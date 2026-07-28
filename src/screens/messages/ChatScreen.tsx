@@ -833,13 +833,13 @@ useEffect(() => {
     const check = async () => {
       try {
         const { data } = await supabase.from('call_sessions')
-          .select('id, is_video, status, created_at')
+          .select('id, is_video, status, created_at, expires_at')
           .eq('is_group_call', true)
           .eq('conversation_id', conversationId)
           .in('status', ['ringing', 'active'])
           .order('created_at', { ascending: false })
           .limit(1).maybeSingle();
-        const stale = data?.status === 'ringing' && (Date.now() - new Date(data.created_at ?? 0).getTime() > 90000);
+        const stale = data?.status === 'ringing' && ((data as any).expires_at ? Date.now() > new Date((data as any).expires_at).getTime() : (Date.now() - new Date(data.created_at ?? 0).getTime() > 90000));
         if (!data || stale) { if (live) setLiveGroupCall(null); return; }
         let joinedNames: string[] = [];
         try {

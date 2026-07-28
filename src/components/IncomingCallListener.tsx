@@ -64,6 +64,10 @@ export default function IncomingCallListener() {
         handledCallIdsRef.current.add(call.id);
         return;
       }
+      if ((fresh as any).expires_at && Date.now() > new Date((fresh as any).expires_at).getTime()) {
+        handledCallIdsRef.current.add(call.id);
+        return;
+      }
 
       // Check again after fetch (push tap could have claimed it)
       if (isCallNavActive(call.id)) {
