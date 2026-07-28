@@ -47,7 +47,7 @@ export default function TermsScreen() {
 
         <Section title="2. Description of Service">
           <Para>{APP_NAME} is a private social networking platform built exclusively for students, alumni, faculty, and staff of the Thunderbird School of Global Management at Arizona State University. The platform provides tools for professional networking, community building, mentorship, career development, and social connection within the Thunderbird community.</Para>
-          <Para>Features include but are not limited to: social feed and posts, direct messaging, job board and referrals, mentorship matching, Mingle events, Startup Hub, Bird's Business marketplace, and Network connections.</Para>
+          <Para>Features include but are not limited to: social feed and posts, direct messaging, job board and referrals, mentorship matching, Mingle events, Startup Hub, the Market, and Network connections.</Para>
         </Section>
 
         <Section title="3. Eligibility">

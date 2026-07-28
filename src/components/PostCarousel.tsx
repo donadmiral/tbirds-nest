@@ -189,7 +189,7 @@ function CarouselVideo({
         player={player}
         contentFit="cover"
         nativeControls={false}
-        allowsFullscreen={false}
+        fullscreenOptions={{ enable: false }}
       />
 
       {/* Playback progress bar */}

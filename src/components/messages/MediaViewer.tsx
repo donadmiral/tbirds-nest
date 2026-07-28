@@ -43,7 +43,7 @@ function VideoSlide({ url, active }: { url: string; active: boolean }) {
       player={player}
       contentFit="contain"
       nativeControls
-      allowsFullscreen
+      fullscreenOptions={{ enable: true }}
     />
   );
 }

@@ -57,7 +57,7 @@ export type MediaTransform = {
 
 export const STORY_CATEGORIES = [
   'Hiring', 'Looking for Work', 'Building in Public', 'Business',
-  'Marketplace', 'Achievement', 'Event', 'Question',
+  'Market', 'Achievement', 'Event', 'Question',
   'Announcement', 'Innovation', 'Community', 'Travel',
 ] as const;
 

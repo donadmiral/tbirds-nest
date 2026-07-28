@@ -1867,7 +1867,7 @@ const pickAndSendDocument = useCallback(async () => {
             ? <Image source={{ uri: ctxCard.image }} style={s.ctxThumb} />
             : <View style={[s.ctxThumb, s.ctxThumbFallback]}><Feather name={ctxCard.kind === 'jobs' ? 'briefcase' : 'tag'} size={18} color="#8E8E93" /></View>}
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={s.ctxLabel}>{ctxCard.kind === 'jobs' ? 'JOB ENQUIRY' : 'MARKETPLACE'}</Text>
+            <Text style={s.ctxLabel}>{ctxCard.kind === 'jobs' ? 'JOB ENQUIRY' : 'MARKET'}</Text>
             <Text style={s.ctxTitle} numberOfLines={1}>{ctxCard.title}</Text>
             {!!ctxCard.sub && <Text style={s.ctxSub} numberOfLines={1}>{ctxCard.sub}</Text>}
           </View>

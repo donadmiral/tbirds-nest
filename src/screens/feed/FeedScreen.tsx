@@ -238,6 +238,7 @@ export default function FeedScreen({ navigation }: any) {
   const [sendPost, setSendPost] = useState<Post | null>(null);
   const [sendConvs, setSendConvs] = useState<any[]>([]);
   const [sendBusy, setSendBusy] = useState(false);
+  const [sendLoading, setSendLoading] = useState(false);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
   const [threadingPost, setThreadingPost] = useState<Post | null>(null);
   const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; media?: { url: string; media_type: string } | null }>>({});
@@ -882,9 +883,11 @@ export default function FeedScreen({ navigation }: any) {
     if (!userId) return;
     setSendPost(post);
     setSendConvs([]);
+    setSendLoading(true);
     const { data: convs } = await supabase.from('conversations')
       .select('id, user_1, user_2, last_message_time')
       .eq('type', 'direct')
+      .or('context.is.null,context.eq.personal')
       .or(`user_1.eq.${userId},user_2.eq.${userId}`)
       .order('last_message_time', { ascending: false })
       .limit(12);
@@ -896,6 +899,7 @@ export default function FeedScreen({ navigation }: any) {
       (profs ?? []).forEach((p: any) => { pm[p.id] = p; });
     }
     setSendConvs(rows.map((c: any) => { const oid = c.user_1 === userId ? c.user_2 : c.user_1; return { ...c, other: pm[oid] ?? null, otherId: oid }; }));
+    setSendLoading(false);
   }, [userId]);
 
   const sendPostTo = useCallback(async (conv: any) => {
@@ -1893,7 +1897,8 @@ if (!search && promos.length > 0) {
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
             <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
-            {sendConvs.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
+            {sendLoading && <ActivityIndicator size="small" color={light.brand.base} style={{ paddingVertical: 18 }} />}
+            {!sendLoading && sendConvs.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
             <ScrollView style={{ maxHeight: 320 }}>
               {sendConvs.map((c: any) => (
                 <TouchableOpacity key={c.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(c)} disabled={sendBusy}>
