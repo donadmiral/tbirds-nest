@@ -54,7 +54,7 @@ export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier
   const key = eff as string;
   const m = METALS[key] || METALS.business;
   // Rendered a quarter larger than requested so the seal reads clearly at a glance.
-  const px = Math.round(size * 1.25);
+  const px = Math.max(Math.round(size * 1.4), 20);
   return (
     <Svg width={px} height={px} viewBox="0 0 24 24" style={{ marginLeft: 2 }}>
       <Defs>
