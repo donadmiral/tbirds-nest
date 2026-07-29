@@ -112,17 +112,34 @@ serve(async (req) => {
     const title = buildTitle(type, actorName, data);
     const notifBody = bodyPreview || message || "";
 
-    // The icon badge must tell the truth: this recipient's real unread count.
-    // The webhook fires after the insert, so the count includes this one.
-    let unreadCount = 1;
+    // Icon badge policy (2026-07-28): the number means unread MESSAGES only.
+    // Non-message pushes still deliver, carrying the same message count; zero clears it.
+    let unreadCount = 0;
     try {
-      const { count } = await admin
-        .from("notifications")
+      const { count: dm } = await admin
+        .from("messages")
         .select("id", { count: "exact", head: true })
-        .eq("recipient_id", recipientId)
-        .is("read_at", null);
-      if (typeof count === "number" && count > 0) unreadCount = count;
-    } catch (_) { /* fall back to 1 */ }
+        .eq("receiver_id", recipientId)
+        .neq("sender_id", recipientId)
+        .is("read_at", null)
+        .is("deleted_at", null);
+      let group = 0;
+      const { data: mems } = await admin
+        .from("conversation_members")
+        .select("conversation_id, last_read_at")
+        .eq("user_id", recipientId);
+      for (const m of (mems || [])) {
+        const { count: gc } = await admin
+          .from("messages")
+          .select("id", { count: "exact", head: true })
+          .eq("conversation_id", m.conversation_id)
+          .neq("sender_id", recipientId)
+          .is("deleted_at", null)
+          .gt("created_at", m.last_read_at || "1970-01-01");
+        group += gc || 0;
+      }
+      unreadCount = (dm || 0) + group;
+    } catch (_) { unreadCount = 0; }
 
     // Build push messages for all tokens
     const pushMessages = tokens.map((t) => ({

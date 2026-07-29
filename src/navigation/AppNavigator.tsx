@@ -230,7 +230,12 @@ function MainTabs() {
         .eq('recipient_id', userId).is('read_at', null);
       const c = count || 0;
       setUnreadNotifs(c);
-      Notifications.setBadgeCountAsync(c).catch(() => {});
+      // Icon badge policy: the number means unread MESSAGES only.
+      try {
+        const { data: um } = await supabase.rpc('get_unread_counts');
+        const msgCount = (um || []).reduce((s: number, r: any) => s + (r.unread || 0), 0);
+        Notifications.setBadgeCountAsync(msgCount).catch(() => {});
+      } catch { Notifications.setBadgeCountAsync(0).catch(() => {}); }
     };
     const debouncedLoad = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
@@ -264,9 +269,7 @@ function MainTabs() {
             return (
               <View style={{ width: size + 10, height: size, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name={iconName} size={size + 2} color={color} />
-                <View style={s.dot}>
-                  {unreadNotifs < 100 ? <Text style={s.dotTxt}>{unreadNotifs}</Text> : <Text style={s.dotTxt}>99+</Text>}
-                </View>
+                <View style={[s.dot, { minWidth: 10, width: 10, height: 10, borderRadius: 5, paddingHorizontal: 0 }]} />
               </View>
             );
           }
