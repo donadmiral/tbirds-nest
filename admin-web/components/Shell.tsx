@@ -12,6 +12,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
   { label: 'Platform', items: [
     { href: '/dashboard', label: 'Overview', icon: 'M4 5h7v7H4V5zm9 0h7v4h-7V5zm0 6h7v8h-7v-8zm-9 3h7v5H4v-5z' },
     { href: '/analytics', label: 'Analytics', icon: 'M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z' },
+    { href: '/calls', label: 'Calls', icon: 'M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z' },
   ]},
   { label: 'Trust and safety', items: [
     { href: '/queue', label: 'Verification', icon: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z' },
@@ -23,6 +24,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
     { href: '/market', label: 'Market', icon: 'M4 7l2-4h12l2 4v2a3 3 0 01-1 2.2V20H5v-8.8A3 3 0 014 9V7zm3 6h4v5H7v-5z' },
     { href: '/jobs', label: 'Jobs', icon: 'M9 4h6a2 2 0 012 2v1h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1h3V6a2 2 0 012-2zm1 3h4V6h-4v1z' },
     { href: '/businesses', label: 'Businesses', icon: 'M4 21V5a2 2 0 012-2h7a2 2 0 012 2v16h-4v-4H8v4H4zm13-9h3a1 1 0 011 1v8h-4v-9z' },
+    { href: '/payments', label: 'Payments', icon: 'M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6zm2 3h14V7H5v2zm0 3v5h14v-5H5z' },
   ]},
   { label: 'Content', items: [
     { href: '/content', label: 'Posts', icon: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z' },
@@ -34,7 +36,6 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
     { href: '/staff', label: 'Staff', icon: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z' },
   ]},
 ];
-const COMING = ['Calls'];
 
 export default async function Shell({ admin, active, title, sub, children }: {
   admin: { email: string; role: string }; active: string; title: string; sub?: string; children: React.ReactNode;
@@ -76,12 +77,6 @@ export default async function Shell({ admin, active, title, sub, children }: {
                 );
               })}
             </div>
-          ))}
-          <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/30">Coming</p>
-          {COMING.map(c => (
-            <p key={c} className="flex items-center gap-2.5 px-2.5 py-[6px] text-[13px] font-medium text-white/25">
-              <span className="inline-block h-[5px] w-[5px] rounded-full bg-white/15" />{c}
-            </p>
           ))}
         </nav>
         <div className="border-t border-white/8 px-4 py-3 text-[10px] text-white/30">Signed in as {admin.role.replace(/_/g, ' ')}</div>
