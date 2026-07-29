@@ -158,8 +158,8 @@ export async function removeReportedListing(formData: FormData) {
   const lid = String(formData.get('lid') || '');
   if (!rid || !lid) redirect('/reports');
   const svc = serviceClient();
-  const { data: before } = await svc.from('listings').select('id, seller_id, title, price').eq('id', lid).maybeSingle();
-  await svc.from('listings').delete().eq('id', lid);
+  const { data: before } = await svc.from('marketplace_listings').select('id, seller_id, title, price').eq('id', lid).maybeSingle();
+  await svc.from('marketplace_listings').delete().eq('id', lid);
   await svc.from('listing_reports').update({ status: 'actioned', resolved_by: admin.id, resolved_at: new Date().toISOString() }).eq('id', rid);
   await svc.from('admin_audit_log').insert({
     admin_id: admin.id, action: 'content.remove_listing', target_kind: 'listing', target_id: lid,
@@ -201,8 +201,8 @@ export async function adminRemoveListing(formData: FormData) {
   const lid = String(formData.get('lid') || '');
   if (!lid) redirect('/market');
   const svc = serviceClient();
-  const { data: before } = await svc.from('listings').select('id, seller_id, title, price').eq('id', lid).maybeSingle();
-  await svc.from('listings').delete().eq('id', lid);
+  const { data: before } = await svc.from('marketplace_listings').select('id, seller_id, title, price').eq('id', lid).maybeSingle();
+  await svc.from('marketplace_listings').delete().eq('id', lid);
   await svc.from('admin_audit_log').insert({
     admin_id: admin.id, action: 'market.remove_listing', target_kind: 'listing', target_id: lid,
     reason: 'Removed from the market desk', before: before ?? {}, after: { deleted: true },

@@ -30,7 +30,7 @@ export default async function MemberRecordPage({ params, searchParams }: {
   if (tab === 'overview') {
     const [pc, lc, jc, tk] = await Promise.all([
       svc.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', uid),
-      svc.from('listings').select('id', { count: 'exact', head: true }).eq('seller_id', uid),
+      svc.from('marketplace_listings').select('id', { count: 'exact', head: true }).eq('seller_id', uid),
       svc.from('jobs').select('id', { count: 'exact', head: true }).eq('posted_by', uid),
       svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('user_id', uid),
     ]);
@@ -134,7 +134,7 @@ export default async function MemberRecordPage({ params, searchParams }: {
       </div>
     );
   } else if (tab === 'listings') {
-    const { data: ls } = await svc.from('listings')
+    const { data: ls } = await svc.from('marketplace_listings')
       .select('id, title, price, status, created_at').eq('seller_id', uid)
       .order('created_at', { ascending: false }).limit(25);
     body = (

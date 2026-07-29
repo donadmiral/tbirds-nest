@@ -11,7 +11,7 @@ export default async function MarketPage() {
   const admin = await getAdmin();
   if (!admin) redirect('/');
   const svc = serviceClient();
-  const { data: listings } = await svc.from('listings')
+  const { data: listings } = await svc.from('marketplace_listings')
     .select('id, seller_id, title, price, status, created_at')
     .order('created_at', { ascending: false }).limit(25);
   const uids = Array.from(new Set((listings ?? []).map(l => l.seller_id)));
@@ -34,8 +34,8 @@ export default async function MarketPage() {
             <div key={l.id} className="grid grid-cols-[2fr_90px_110px_1fr_130px_90px] items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 text-[12.5px] last:border-0">
               <p className="truncate font-semibold">{l.title}</p>
               <p className="tabular-nums">${l.price}</p>
-              <p>{l.status === 'active'
-                ? <span className="rounded-full border border-[#DCEFE0] bg-[#F2F9F3] px-2 py-0.5 text-[10.5px] font-bold text-[#1D7A38]">Active</span>
+              <p>{l.status === 'available'
+                ? <span className="rounded-full border border-[#DCEFE0] bg-[#F2F9F3] px-2 py-0.5 text-[10.5px] font-bold text-[#1D7A38]">Available</span>
                 : <span className="rounded-full bg-[#F4F3F0] px-2 py-0.5 text-[10.5px] font-bold text-[#7A7D84]">{l.status}</span>}</p>
               <Link href={'/users?q=' + encodeURIComponent(s.username || '')} className="truncate text-[#0B1E3D] hover:underline">{s.full_name || '@' + (s.username || '?')}</Link>
               <p className="tabular-nums text-[#9A9DA4]">{new Date(l.created_at).toLocaleDateString()}</p>

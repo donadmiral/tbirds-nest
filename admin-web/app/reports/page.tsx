@@ -28,7 +28,7 @@ export default async function ReportsPage() {
   const lids = Array.from(new Set((listingReports ?? []).map(r => r.listing_id)));
   const listings: Record<string, any> = {};
   if (lids.length) {
-    const { data } = await svc.from('listings').select('id, seller_id, title, price, status').in('id', lids);
+    const { data } = await svc.from('marketplace_listings').select('id, seller_id, title, price, status').in('id', lids);
     (data ?? []).forEach(l => { listings[l.id] = l; });
   }
   const uidSet = new Set<string>();

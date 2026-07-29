@@ -28,7 +28,7 @@ create policy "restricted_cannot_post" on public.posts
   as restrictive for insert
   with check (coalesce((select restricted_until from public.profiles where id = auth.uid()) < now(), true));
 
-drop policy if exists "restricted_cannot_list" on public.listings;
-create policy "restricted_cannot_list" on public.listings
+drop policy if exists "restricted_cannot_list" on public.marketplace_listings;
+create policy "restricted_cannot_list" on public.marketplace_listings
   as restrictive for insert
   with check (coalesce((select restricted_until from public.profiles where id = auth.uid()) < now(), true));
