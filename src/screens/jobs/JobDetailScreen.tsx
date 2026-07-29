@@ -225,6 +225,18 @@ export default function JobDetailScreen() {
           <Text style={st.body}>{job.description || 'No description provided.'}</Text>
         </View>
 
+        {job.benefits ? (
+          <View style={st.section}>
+            <Text style={st.sectionTitle}>What this role offers</Text>
+            {String(job.benefits).split('\n').map((b: string) => b.trim()).filter(Boolean).map((b: string, i: number) => (
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <Feather name="check-circle" size={14} color="#059669" />
+                <Text style={{ fontSize: 13.5, color: '#0B1E3D', flex: 1 }}>{b}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <View style={st.section}>
           <Text style={st.sectionTitle}>Details</Text>
           <View style={st.grid}>

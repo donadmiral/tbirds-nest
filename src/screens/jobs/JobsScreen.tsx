@@ -23,6 +23,8 @@ const CATEGORY_TABS = [
   { id: 'volunteering', label: 'Volunteering', emoji: '🤝' },
   { id: 'startup', label: 'Startups', emoji: '🚀' },
   { id: 'freelance', label: 'Freelance', emoji: '💻' },
+  { id: 'contract', label: 'Contract', emoji: '📄' },
+  { id: 'temporary', label: 'Temporary', emoji: '🗓️' },
 ] as const;
 
 const SORT_OPTIONS = [
@@ -49,6 +51,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   full_time: '#2563EB',
   part_time: '#7C3AED',
   internship: '#059669',
+  contract: '#B45309',
+  temporary: '#0E7490',
   volunteering: '#EA580C',
   startup: '#DC2626',
   freelance: '#0891B2',
@@ -132,7 +136,7 @@ export default function JobsScreen({ navigation }: any) {
   const [postForm, setPostForm] = useState({
     scope: 'global' as 'institution' | 'global',
     title: '', company: '', location: '', description: '',
-    salary_range: '', apply_url: '', industry: '',
+    salary_range: '', apply_url: '', industry: '', benefits: '',
     category: 'full_time' as JobCategory,
     remote_type: 'on_site' as 'remote' | 'hybrid' | 'on_site',
     experience_level: 'mid' as 'entry' | 'mid' | 'senior' | 'executive',
@@ -326,11 +330,12 @@ export default function JobsScreen({ navigation }: any) {
         experience_level: postForm.experience_level,
         industry: postForm.industry || undefined,
         salary_range: postForm.salary_range.trim() || undefined,
+        benefits: postForm.benefits.trim() || undefined,
         urgent: postForm.urgent,
         apply_url: postForm.apply_url.trim() || undefined,
       });
       setShowPost(false);
-      setPostForm({ scope:'global', title:'', company:'', location:'', description:'', salary_range:'', apply_url:'', industry:'', category:'full_time', remote_type:'on_site', experience_level:'mid', urgent:false });
+      setPostForm({ scope:'global', title:'', company:'', location:'', description:'', salary_range:'', apply_url:'', industry:'', benefits:'', category:'full_time', remote_type:'on_site', experience_level:'mid', urgent:false });
       await loadAll(false);
       Alert.alert('Posted!', 'Your job listing is now live.');
     } catch (e) {
@@ -734,6 +739,9 @@ export default function JobsScreen({ navigation }: any) {
 
               <Text style={s.fieldLabel2}>Salary Range</Text>
               <TextInput value={postForm.salary_range} onChangeText={v => setPostForm(p => ({...p, salary_range: v}))} placeholder="e.g. $60,000 - $80,000 / year" placeholderTextColor="#9CA3AF" style={s.formInput} />
+
+              <Text style={s.fieldLabel2}>What this role offers (one per line)</Text>
+              <TextInput value={postForm.benefits} onChangeText={v => setPostForm(p => ({...p, benefits: v}))} placeholder={'Medical aid\nTransport allowance\nPerformance bonus'} placeholderTextColor="#9CA3AF" style={[s.formInput, { minHeight: 84, textAlignVertical: 'top' }]} multiline />
 
               <Text style={s.fieldLabel2}>Apply URL (optional)</Text>
               <TextInput value={postForm.apply_url} onChangeText={v => setPostForm(p => ({...p, apply_url: v}))} placeholder="https://..." placeholderTextColor="#9CA3AF" style={s.formInput} autoCapitalize="none" />

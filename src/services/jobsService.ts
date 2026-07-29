@@ -13,7 +13,9 @@ export type JobCategory =
   | 'internship'
   | 'volunteering'
   | 'startup'
-  | 'freelance';
+  | 'freelance'
+  | 'contract'
+  | 'temporary';
 
 export type ApplicationStatus =
   | 'applied'
@@ -114,6 +116,7 @@ export type CreateJobInput = {
   experience_level?: ExperienceLevel;
   industry?: string;
   salary_range?: string;
+  benefits?: string;
   visa_sponsorship?: boolean;
   urgent?: boolean;
   apply_url?: string;
@@ -217,6 +220,7 @@ export const jobsService = {
         location: input.location || null,
         description: input.description,
         category: input.category,
+        benefits: input.benefits || null,
         remote_type: input.remote_type || 'on_site',
         experience_level: input.experience_level || 'mid',
         industry: input.industry || null,
