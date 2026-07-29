@@ -200,6 +200,8 @@ export default function FeedScreen({ navigation }: any) {
   const [posting, setPosting] = useState(false);
   const [exclusivePost, setExclusivePost] = useState(false);
   const [innovationPost, setInnovationPost] = useState(false);
+  const [innoField, setInnoField] = useState<string | null>(null);
+  const [innoStage, setInnoStage] = useState<string | null>(null);
   const [postAudience, setPostAudience] = useState<'everyone' | 'followers' | 'mentioned' | 'verified'>('everyone');
   const [articleTitle, setArticleTitle] = useState('');
   const [composerProducts, setComposerProducts] = useState<PostProduct[]>([]);
@@ -1134,6 +1136,8 @@ export default function FeedScreen({ navigation }: any) {
         content: composerText.trim() || null,
         is_exclusive: exclusivePost,
         channel: innovationPost ? 'innovation' : null,
+        ...(innovationPost && innoField ? { innovation_field: innoField } : {}),
+        ...(innovationPost && innoStage ? { innovation_stage: innoStage } : {}),
         audience: postAudience,
         ...(innovationPost && articleTitle.trim() ? { article_title: articleTitle.trim(), read_minutes: Math.max(1, Math.round((composerText.trim().split(/\s+/).length || 0) / 200)) } : {}),
         ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
@@ -1438,6 +1442,20 @@ if (!search && promos.length > 0) {
                 ) : null}
               </View>
             </TouchableOpacity>
+          ) : null}
+          {(post as any).channel === 'innovation' && ((post as any).innovation_field || (post as any).innovation_stage) ? (
+            <View style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
+              {(post as any).innovation_field ? (
+                <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, backgroundColor: 'rgba(217,119,6,0.12)' }}>
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#B45309' }}>{(post as any).innovation_field}</Text>
+                </View>
+              ) : null}
+              {(post as any).innovation_stage ? (
+                <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, backgroundColor: 'rgba(11,30,61,0.08)' }}>
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#0B1E3D' }}>{(post as any).innovation_stage}</Text>
+                </View>
+              ) : null}
+            </View>
           ) : null}
           {(post as any).article_title ? (
             <TouchableOpacity
@@ -1826,6 +1844,28 @@ if (!search && promos.length > 0) {
                   <View style={[s.exclusiveBanner, { backgroundColor: light.status.innovationBg, borderColor: light.status.innovation }]}>
                     <Feather name="zap" size={13} color={light.status.innovation} />
                     <Text style={[s.exclusiveBannerTxt, { color: '#B45309' }]}>Posting to Innovation — showcasing what Zimbabwe is building</Text>
+                  </View>
+                )}
+                {innovationPost && (
+                  <View style={{ marginBottom: 8 }}>
+                    <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 1.4, color: 'rgba(11,30,61,0.45)', marginBottom: 6 }}>FIELD</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                      {['Agritech', 'Health', 'Energy', 'Fintech', 'Education', 'Other'].map((f) => (
+                        <TouchableOpacity key={f} onPress={() => setInnoField(innoField === f ? null : f)}
+                          style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: innoField === f ? '#D97706' : 'rgba(11,30,61,0.14)', backgroundColor: innoField === f ? 'rgba(217,119,6,0.10)' : 'transparent' }}>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: innoField === f ? '#B45309' : 'rgba(11,30,61,0.6)' }}>{f}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 1.4, color: 'rgba(11,30,61,0.45)', marginBottom: 6 }}>STAGE</Text>
+                    <View style={{ flexDirection: 'row', gap: 6 }}>
+                      {['Idea', 'Prototype', 'Launched'].map((g) => (
+                        <TouchableOpacity key={g} onPress={() => setInnoStage(innoStage === g ? null : g)}
+                          style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: innoStage === g ? '#0B1E3D' : 'rgba(11,30,61,0.14)', backgroundColor: innoStage === g ? 'rgba(11,30,61,0.08)' : 'transparent' }}>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: innoStage === g ? '#0B1E3D' : 'rgba(11,30,61,0.6)' }}>{g}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
                   </View>
                 )}
                 {composerPreview && (
