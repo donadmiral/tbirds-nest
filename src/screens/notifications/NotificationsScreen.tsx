@@ -302,13 +302,18 @@ export default function NotificationsScreen({ navigation }: any) {
   };
 
   const sections = useMemo(() => {
+    // Things that want an ACTION from you sit pinned on top, out of the stream.
+    const NEEDS = new Set(['follow_request', 'job_application', 'payment_received']);
+    const needs: Notif[] = [];
     const order = ['Today', 'This week', 'This month', 'Earlier'];
     const buckets: Record<string, Notif[]> = {};
     rows.forEach(r => {
+      if (NEEDS.has(r.type) && (r.type !== 'follow_request' || (r as any).data?.request_id)) { needs.push(r); return; }
       const k = sectionFor(r.created_at);
       (buckets[k] ||= []).push(r);
     });
-    return order.filter(k => buckets[k]?.length).map(k => ({ title: k, data: buckets[k] }));
+    const out = order.filter(k => buckets[k]?.length).map(k => ({ title: k, data: buckets[k] }));
+    return needs.length ? [{ title: 'Needs you', data: needs }, ...out] : out;
   }, [rows]);
 
   const unreadTotal = rows.reduce((sum, r) => sum + (r.unread_in_group > 0 ? 1 : 0), 0);
@@ -347,6 +352,13 @@ export default function NotificationsScreen({ navigation }: any) {
             <Text style={s.rest}>{rest}</Text>
           </Text>
           <View style={s.metaRow}>
+            {item.other_avatars?.length ? (
+              <View style={{ flexDirection: 'row', marginRight: 6 }}>
+                {item.other_avatars.slice(0, 3).map((u, i) => (
+                  <Image key={i} source={{ uri: u }} style={{ width: 16, height: 16, borderRadius: 8, marginLeft: i ? -5 : 0, borderWidth: 1, borderColor: '#FFFFFF' }} />
+                ))}
+              </View>
+            ) : null}
             <Text style={s.time}>{relTime(item.created_at)}</Text>
             {item.others_count > 0 && item.unread_in_group > 1 ? (
               <Text style={s.count}>{item.unread_in_group} new</Text>
