@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList,
@@ -172,7 +173,10 @@ export default function SearchScreen({ navigation }: any) {
         ? <Image source={{ uri: item.avatar_url }} style={s.avatar} />
         : <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarTxt}>{initials(item.full_name || item.username)}</Text></View>}
       <View style={{ flex: 1 }}>
-        <Text style={s.personName} numberOfLines={1}>{item.full_name || item.username || 'User'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={[s.personName, { flexShrink: 1 }]} numberOfLines={1}>{item.full_name || item.username || 'User'}</Text>
+          <VerifiedBadge userId={item.id} size={13} />
+        </View>
         {item.username ? <Text style={s.personHandle}>@{item.username}</Text> : null}
         {item.degree_program ? <Text style={s.personMeta} numberOfLines={1}>{item.degree_program}{item.cohort ? ` · ${item.cohort}` : ''}</Text> : null}
         {item.location ? <Text style={s.personMeta}>📍 {item.location}</Text> : null}
@@ -192,7 +196,10 @@ export default function SearchScreen({ navigation }: any) {
           ? <Image source={{ uri: item.profile.avatar_url }} style={s.postAvatar} />
           : <View style={[s.postAvatar, s.avatarFb]}><Text style={s.avatarTxtSm}>{initials(item.profile?.full_name)}</Text></View>}
         <View style={{ flex: 1 }}>
-          <Text style={s.postAuthor} numberOfLines={1}>{item.profile?.full_name || 'User'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[s.postAuthor, { flexShrink: 1 }]} numberOfLines={1}>{item.profile?.full_name || 'User'}</Text>
+            <VerifiedBadge userId={(item as any).profile?.id ?? (item as any).user_id} size={12} />
+          </View>
           <Text style={s.postTime}>{formatTime(item.created_at)}</Text>
         </View>
       </View>

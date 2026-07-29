@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * ApplicantsScreen — the poster's side of a job.
  * Handshake model: every applicant with profile, note and applied time,
@@ -136,7 +137,10 @@ export default function ApplicantsScreen() {
             ? <Image source={{ uri: a.avatar_url }} style={st.av} />
             : <View style={[st.av, st.avFb]}><Text style={st.avTxt}>{String(a.full_name || '?').slice(0, 1).toUpperCase()}</Text></View>}
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={st.name} numberOfLines={1}>{a.full_name || 'Applicant'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={[st.name, { flexShrink: 1 }]} numberOfLines={1}>{a.full_name || 'Applicant'}</Text>
+              <VerifiedBadge userId={(a as any).id} size={13} />
+            </View>
             <Text style={st.sub} numberOfLines={1}>{a.username ? '@' + a.username + ' · ' : ''}applied {relTime(item.applied_at)}</Text>
           </View>
           <TouchableOpacity style={[st.statusChip, { backgroundColor: meta.bg }]} onPress={() => setStatus(item)} activeOpacity={0.8}>

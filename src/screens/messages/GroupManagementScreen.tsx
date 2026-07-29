@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * GroupManagementScreen.tsx
  * Design C — Group Info Layout, Clean Premium.
@@ -609,7 +610,10 @@ export default function GroupManagementScreen({ route, navigation }: any) {
                         <Text style={s.memberAvatarTxt}>{initials(u.full_name)}</Text>
                       </View>}
                   <View style={s.memberInfo}>
-                    <Text style={s.memberName}>{u.full_name || u.username}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={[s.memberName, { flexShrink: 1 }]}>{u.full_name || u.username}</Text>
+                      <VerifiedBadge userId={u.id} size={12} />
+                    </View>
                     {u.username && <Text style={s.memberHandle}>@{u.username}</Text>}
                   </View>
                   <View style={s.addBtnSmall}>

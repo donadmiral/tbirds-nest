@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * PostScreen.tsx
  * Matches Feed's Clean Premium (navy) language. Clickable mentions/hashtags.
@@ -402,7 +403,10 @@ export default function PostScreen({ route, navigation }: any) {
                 ? <Image source={{ uri: a.avatar_url }} style={s.commentAvatar} fadeDuration={200} />
                 : <View style={s.commentAvatarFb}><Text style={s.commentAvatarTxt}>{initials(a?.full_name || a?.username)}</Text></View>}
               <View>
-                <Text style={s.commentName}>{a?.full_name || 'Member'}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={[s.commentName, { flexShrink: 1 }]}>{a?.full_name || 'Member'}</Text>
+                  <VerifiedBadge userId={a?.id} size={12} />
+                </View>
                 {a?.username && <Text style={s.commentHandle}>@{a.username}</Text>}
               </View>
             </TouchableOpacity>
@@ -571,7 +575,10 @@ export default function PostScreen({ route, navigation }: any) {
                         ? <Image source={{ uri: a.avatar_url }} style={s.postAvatar} fadeDuration={200} />
                         : <View style={[s.postAvatar, s.postAvatarFb]}><Text style={s.postAvatarFbTxt}>{initials(a?.full_name || a?.username)}</Text></View>}
                       <View style={{ flex: 1 }}>
-                        <Text style={s.postAuthorName}>{a?.full_name || 'Member'}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Text style={[s.postAuthorName, { flexShrink: 1 }]}>{a?.full_name || 'Member'}</Text>
+                          <VerifiedBadge userId={a?.id} size={14} />
+                        </View>
                         {roleLine ? <Text style={s.postAuthorRole}>{roleLine}</Text> : a?.username ? <Text style={s.postAuthorRole}>@{a.username}</Text> : null}
                         <Text style={s.postAuthorSub}>{relTime(post.created_at)}</Text>
                       </View>

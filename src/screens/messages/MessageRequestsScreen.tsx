@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, Image,
@@ -151,7 +152,10 @@ export default function MessageRequestsScreen({ navigation }: any) {
             </View>
           )}
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={s.name} numberOfLines={1}>{item.sender_name || 'User'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={[s.name, { flexShrink: 1 }]} numberOfLines={1}>{item.sender_name || 'User'}</Text>
+              <VerifiedBadge userId={(item as any).sender_id} size={13} />
+            </View>
             <View style={s.metaRow}>
               {item.sender_username ? (
                 <Text style={s.handle} numberOfLines={1}>@{item.sender_username}</Text>

@@ -1344,7 +1344,10 @@ if (!search && promos.length > 0) {
               <View key={p.id} style={{ width: 148, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, borderRadius: 14, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, backgroundColor: light.surface.canvas }}>
                 <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPress={() => navigation.navigate('UserProfile', { userId: p.id, user: p })}>
                   {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: light.status.link }}>{initials(p.full_name || p.username)}</Text></View>}
-                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: light.ink.primary, marginTop: 8 }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: light.ink.primary, flexShrink: 1 }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                    <VerifiedBadge userId={p.id} size={12} />
+                  </View>
                   <Text style={{ fontSize: 11.5, color: light.ink.muted, marginTop: 2 }} numberOfLines={1}>{p.headline || (p.username ? '@' + p.username : '')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => toggleFollow(p.id)} activeOpacity={0.8} style={{ marginTop: 10, paddingHorizontal: 22, paddingVertical: 7, borderRadius: 16, backgroundColor: NAVY }}>
@@ -1950,7 +1953,10 @@ if (!search && promos.length > 0) {
                   <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }} activeOpacity={0.8} onPress={() => { setLikersPost(null); navigation.navigate('UserProfile', { userId: p.id, user: p }); }}>
                     {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.status.link }}>{initials(p.full_name || p.username)}</Text></View>}
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flexShrink: 1 }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                        <VerifiedBadge userId={p.id} size={12} />
+                      </View>
                       {p.username ? <Text style={{ fontSize: 12, color: light.ink.muted }} numberOfLines={1}>@{p.username}</Text> : null}
                     </View>
                   </TouchableOpacity>

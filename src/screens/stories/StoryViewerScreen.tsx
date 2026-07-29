@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated,
@@ -561,7 +562,7 @@ export default function StoryViewerScreen() {
               <FlatList data={viewers} keyExtractor={(v) => v.user_id} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} renderItem={({ item }) => { const userEmojis = viewerReactions.get(item.user_id); return (
                 <TouchableOpacity style={s.viewerRow} activeOpacity={0.7} onPress={() => openViewerProfile(item.user_id)}>
                   {item.avatar_url ? (<Image source={{ uri: item.avatar_url }} style={s.viewerAvatar} />) : (<View style={[s.viewerAvatar, s.viewerAvatarFb]}><Text style={s.viewerAvatarTxt}>{initials(item.full_name)}</Text></View>)}
-                  <View style={{ flex: 1, minWidth: 0 }}><Text style={s.viewerName} numberOfLines={1}>{item.full_name || 'User'}</Text>{item.username ? (<Text style={s.viewerUsername} numberOfLines={1}>@{item.username}</Text>) : null}</View>
+                  <View style={{ flex: 1, minWidth: 0 }}><View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[s.viewerName, { flexShrink: 1 }]} numberOfLines={1}>{item.full_name || 'User'}</Text><VerifiedBadge userId={(item as any).user_id ?? (item as any).id} size={12} /></View>{item.username ? (<Text style={s.viewerUsername} numberOfLines={1}>@{item.username}</Text>) : null}</View>
                   {userEmojis && userEmojis.length > 0 && (<Text style={s.viewerEmojis}>{userEmojis.join('')}</Text>)}<Text style={s.viewerTime}>{timeAgo(item.viewed_at)}</Text>
                 </TouchableOpacity>); }} />)}
           </TouchableOpacity>
@@ -577,7 +578,7 @@ export default function StoryViewerScreen() {
               <FlatList data={pollVoters} keyExtractor={v => v.user_id} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} renderItem={({ item }) => (
                 <TouchableOpacity style={s.viewerRow} activeOpacity={0.7} onPress={() => { closePollVoters(); setTimeout(() => navigation.navigate('UserProfile', { userId: item.user_id }), 300); }}>
                   {item.avatar_url ? (<Image source={{ uri: item.avatar_url }} style={s.viewerAvatar} />) : (<View style={[s.viewerAvatar, s.viewerAvatarFb]}><Text style={s.viewerAvatarTxt}>{initials(item.full_name)}</Text></View>)}
-                  <View style={{ flex: 1, minWidth: 0 }}><Text style={s.viewerName} numberOfLines={1}>{item.full_name || 'User'}</Text>{item.username ? (<Text style={s.viewerUsername} numberOfLines={1}>@{item.username}</Text>) : null}</View>
+                  <View style={{ flex: 1, minWidth: 0 }}><View style={{ flexDirection: 'row', alignItems: 'center' }}><Text style={[s.viewerName, { flexShrink: 1 }]} numberOfLines={1}>{item.full_name || 'User'}</Text><VerifiedBadge userId={(item as any).user_id ?? (item as any).id} size={12} /></View>{item.username ? (<Text style={s.viewerUsername} numberOfLines={1}>@{item.username}</Text>) : null}</View>
                   <Text style={s.viewerTime}>{timeAgo(item.voted_at)}</Text>
                 </TouchableOpacity>)} />)}
           </TouchableOpacity>
