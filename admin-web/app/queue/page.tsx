@@ -33,7 +33,7 @@ export default async function QueuePage() {
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
           <div>
             <h1 className="text-base font-extrabold text-[#0B1E3D]">Verification queue</h1>
-            <nav className="mt-0.5"><a href="/users" className="text-xs font-semibold text-[#0B1E3D]/60 hover:text-[#0B1E3D]">User desk</a></nav>
+            <nav className="mt-0.5"><a href="/reports" className="mr-3 text-xs font-semibold text-[#0B1E3D]/60 hover:text-[#0B1E3D]">Reports</a><a href="/users" className="text-xs font-semibold text-[#0B1E3D]/60 hover:text-[#0B1E3D]">User desk</a></nav>
             <p className="text-[11px] text-[#0B1E3D]/50">{admin.email} - {admin.role.replace(/_/g, ' ')}</p>
           </div>
           <form action={signOut}><button className="rounded-lg border border-[#0B1E3D]/15 px-3 py-1.5 text-xs font-semibold text-[#0B1E3D] hover:bg-[#0B1E3D]/5">Sign out</button></form>

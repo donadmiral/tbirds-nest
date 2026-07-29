@@ -121,3 +121,63 @@ export async function revokeVerification(formData: FormData) {
   });
   revalidatePath('/users');
 }
+
+export async function dismissReport(formData: FormData) {
+  const admin = await requireReviewer();
+  const rid = String(formData.get('rid') || '');
+  const table = String(formData.get('table') || '');
+  if (!rid || (table !== 'post_reports' && table !== 'listing_reports')) redirect('/reports');
+  const svc = serviceClient();
+  await svc.from(table).update({ status: 'dismissed', resolved_by: admin.id, resolved_at: new Date().toISOString() }).eq('id', rid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'report.dismiss', target_kind: table, target_id: rid,
+    reason: 'No violation', before: { status: 'open' }, after: { status: 'dismissed' },
+  });
+  revalidatePath('/reports');
+}
+
+export async function removeReportedPost(formData: FormData) {
+  const admin = await requireReviewer();
+  const rid = String(formData.get('rid') || '');
+  const pid = String(formData.get('pid') || '');
+  if (!rid || !pid) redirect('/reports');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('posts').select('id, user_id, content').eq('id', pid).maybeSingle();
+  await svc.from('posts').delete().eq('id', pid);
+  await svc.from('post_reports').update({ status: 'actioned', resolved_by: admin.id, resolved_at: new Date().toISOString() }).eq('id', rid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'content.remove_post', target_kind: 'post', target_id: pid,
+    reason: 'Removed on report ' + rid, before: before ?? {}, after: { deleted: true },
+  });
+  revalidatePath('/reports');
+}
+
+export async function removeReportedListing(formData: FormData) {
+  const admin = await requireReviewer();
+  const rid = String(formData.get('rid') || '');
+  const lid = String(formData.get('lid') || '');
+  if (!rid || !lid) redirect('/reports');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('listings').select('id, seller_id, title, price').eq('id', lid).maybeSingle();
+  await svc.from('listings').delete().eq('id', lid);
+  await svc.from('listing_reports').update({ status: 'actioned', resolved_by: admin.id, resolved_at: new Date().toISOString() }).eq('id', rid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'content.remove_listing', target_kind: 'listing', target_id: lid,
+    reason: 'Removed on report ' + rid, before: before ?? {}, after: { deleted: true },
+  });
+  revalidatePath('/reports');
+}
+
+export async function resolveUserReport(formData: FormData) {
+  const admin = await requireReviewer();
+  const rid = String(formData.get('rid') || '');
+  const outcome = String(formData.get('outcome') || '');
+  if (!rid || (outcome !== 'actioned' && outcome !== 'dismissed')) redirect('/reports');
+  const svc = serviceClient();
+  await svc.from('user_reports').update({ status: outcome, resolved_by: admin.id, resolved_at: new Date().toISOString() }).eq('id', rid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'report.user.' + outcome, target_kind: 'user_reports', target_id: rid,
+    reason: outcome === 'actioned' ? 'Actioned' : 'No violation', before: { status: 'open' }, after: { status: outcome },
+  });
+  revalidatePath('/reports');
+}

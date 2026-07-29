@@ -30,6 +30,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
             <nav className="flex gap-4 text-xs font-semibold text-[#0B1E3D]/60">
               <Link href="/queue" className="hover:text-[#0B1E3D]">Verification queue</Link>
               <span className="text-[#0B1E3D]">Users</span>
+              <Link href="/reports" className="hover:text-[#0B1E3D]">Reports</Link>
             </nav>
           </div>
           <form action={signOut}><button className="rounded-lg border border-[#0B1E3D]/15 px-3 py-1.5 text-xs font-semibold text-[#0B1E3D] hover:bg-[#0B1E3D]/5">Sign out</button></form>
