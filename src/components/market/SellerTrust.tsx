@@ -1,3 +1,4 @@
+import VerifiedBadge from '../VerifiedBadge';
 /**
  * SellerTrust - account age, completed deals, rating and verification.
  * The cheapest fraud deterrent: a new account with no history looks like one.
@@ -52,7 +53,12 @@ export default function SellerTrust({ sellerId }: { sellerId: string }) {
 
   return (
     <View style={s.wrap}>
-      {d.verified && <Pill icon="check-circle" text="Verified" />}
+      {d.verified && (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <VerifiedBadge userId={sellerId} size={13} />
+          <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0B1E3D', marginLeft: 2 }}>Verified</Text>
+        </View>
+      )}
       {!!age && <Pill icon="calendar" text={age} />}
       {d.sold > 0 && <Pill icon="package" text={d.sold + (d.sold === 1 ? ' sold' : ' sold')} />}
       {d.reviews > 0 && <Pill icon="star" text={d.avg.toFixed(1) + ' (' + d.reviews + ')'} />}

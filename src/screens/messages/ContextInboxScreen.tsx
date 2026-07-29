@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * ContextInboxScreen
  *
@@ -144,7 +145,10 @@ export default function ContextInboxScreen({ route, navigation }: any) {
 
                 <View style={s.rowBody}>
                   <View style={s.rowTop}>
-                    <Text style={s.name} numberOfLines={1}>{item.other_name || 'User'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={[s.name, { flexShrink: 1 }]} numberOfLines={1}>{item.other_name || 'User'}</Text>
+                      <VerifiedBadge userId={(item as any).other_user_id} size={13} />
+                    </View>
                     <Text style={s.time}>{relTime(item.last_message_time)}</Text>
                   </View>
 

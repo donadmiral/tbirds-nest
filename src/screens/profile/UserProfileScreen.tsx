@@ -97,7 +97,7 @@ export default function UserProfileScreen() {
         is_verified_school_user: false,
         banner_url: pd.banner_url || null, headline: pd.headline || null,
         workplace: pd.workplace || null, account_type: pd.account_type || 'personal',
-        is_verified: !!pd.is_verified, created_at: pd.created_at,
+        is_verified: !!pd.is_verified, verified_tier: pd.verified_tier ?? null, created_at: pd.created_at,
         business: pd.business || null, can_view_content: !!pd.can_view_content,
       });
       const c = pd.counts || {};

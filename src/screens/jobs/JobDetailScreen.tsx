@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * JobDetailScreen — Handshake-structure job page.
  * Receives the full job object via route params (no refetch for render);
@@ -209,7 +210,10 @@ export default function JobDetailScreen() {
             ? <Image source={{ uri: job.profile.avatar_url }} style={st.posterAv} />
             : <View style={[st.posterAv, st.posterAvFb]}><Text style={st.posterAvTxt}>{String(job.profile?.full_name || '?').slice(0, 1).toUpperCase()}</Text></View>}
           <View style={{ flex: 1 }}>
-            <Text style={st.posterName}>{job.profile?.full_name || 'Poster'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={[st.posterName, { flexShrink: 1 }]}>{job.profile?.full_name || 'Poster'}</Text>
+              <VerifiedBadge userId={job.posted_by} size={14} />
+            </View>
             <Text style={st.posterSub}>Posted this role · View profile</Text>
           </View>
           {!isOwn && (

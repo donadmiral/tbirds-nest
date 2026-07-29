@@ -134,7 +134,7 @@ export default function ProfileScreen() {
         profile_visibility: pd.profile_visibility || 'public',
         banner_url: pd.banner_url || null, headline: pd.headline || null,
         workplace: pd.workplace || null, account_type: pd.account_type || 'personal',
-        is_verified: !!pd.is_verified, created_at: pd.created_at, business: pd.business || null,
+        is_verified: !!pd.is_verified, verified_tier: pd.verified_tier ?? null, created_at: pd.created_at, business: pd.business || null,
       } as any);
       if (setAuthProfile) setAuthProfile({ ...(authProfile as any), ...pd });
       const c = pd.counts || {};

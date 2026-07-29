@@ -36,6 +36,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedSkeleton } from '../../components/Skeleton';
 import { light } from '../../constants/tokens';
 import PostInsightsSheet from '../../components/PostInsightsSheet';
+import VerifiedBadge from '../../components/VerifiedBadge';
 
 const SCREEN_W = Dimensions.get('window').width;
 const NAVY = light.brand.base;
@@ -417,7 +418,7 @@ export default function FeedScreen({ navigation }: any) {
       const pmFromFeed: ProfileMap = {};
       const lm0: Record<string, boolean> = {}, bm0: Record<string, boolean> = {}, rm0: Record<string, boolean> = {};
       rows.forEach((r: any) => {
-        pmFromFeed[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar };
+        pmFromFeed[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null };
         if (r.viewer_liked) lm0[r.post_id] = true;
         if (r.viewer_bookmarked) bm0[r.post_id] = true;
         if (r.viewer_reposted) rm0[r.post_id] = true;
@@ -435,7 +436,7 @@ export default function FeedScreen({ navigation }: any) {
         setQuotedMap(qm);
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
-      const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility').in('id', uids);
+      const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', uids);
       const pm: ProfileMap = { ...pmFromFeed };
       (pData || []).forEach((p: any) => { pm[p.id] = p; });
       setProfilesMap(pm);
@@ -771,7 +772,7 @@ export default function FeedScreen({ navigation }: any) {
         const seenIds = new Set<string>(); const rows = ((data ?? []) as any[]).filter(r => { if (seenIds.has(r.post_id)) return false; seenIds.add(r.post_id); return true; });
         if (rows.length === 0) return;
         const pm: Record<string, any> = {};
-        rows.forEach(r => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified }; });
+        rows.forEach(r => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; });
         setProfilesMap(prev => ({ ...pm, ...prev }));
         setPromos(rows.map(r => ({ ...mapFeedRow(r), _promo: { id: r.promo_id, label: r.promo_label || 'Sponsored' } } as any)));
       } catch {}
@@ -1211,7 +1212,7 @@ export default function FeedScreen({ navigation }: any) {
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
       const scored = rows.map(mapFeedRow);
       setPosts(prev => [...prev, ...scored.filter(p => !prev.some(x => x.id === p.id))]);
-      setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar }; }); return pm; });
+      setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });
       setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked) m[r.post_id] = true; }); return m; });
       setBookmarkedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_bookmarked) m[r.post_id] = true; }); return m; });
       setRepostedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_reposted) m[r.post_id] = true; }); return m; });
@@ -1228,7 +1229,7 @@ export default function FeedScreen({ navigation }: any) {
       const uids2 = Array.from(new Set([...scored.map(p => p.user_id), ...qRows2.map((qr: any) => qr.user_id)]));
       const missingU = uids2.filter(u => !profilesMap[u]);
       if (missingU.length > 0) {
-        const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility').in('id', missingU);
+        const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', missingU);
         if (pData) setProfilesMap(prev => { const pm = { ...prev }; pData.forEach((p: any) => { pm[p.id] = p; }); return pm; });
       }
       // viewer flags now arrive with the get_feed rows above
@@ -1384,7 +1385,10 @@ if (!search && promos.length > 0) {
               );
             })()}
             <View style={s.postMetaTxt}>
-              <Text style={s.postAuthor} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <Text style={s.postAuthor} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
+                {((author as any)?.verified_tier || (author as any)?.is_verified) ? <VerifiedBadge tier={(author as any)?.verified_tier} size={13} /> : null}
+              </View>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: light.status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
               {(post as any)._promo && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: '#EEF1F6' }}>

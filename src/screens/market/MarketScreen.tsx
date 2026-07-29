@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 import { useAuthStore } from '../../stores/authStore';
 import MarketFilterSheet, { MarketFilters, EMPTY_FILTERS } from '../../components/market/MarketFilterSheet';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -137,9 +138,7 @@ export default function MarketScreen({ navigation }: any) {
         <Text style={s.cardPrice}>{priceLabel(item)}</Text>
         <Text style={s.cardTitle} numberOfLines={1}>{item.title}</Text>
         <View style={s.cardMetaRow}>
-          {item.seller?.is_verified && (
-            <Ionicons name="checkmark-circle" size={13} color={PLATINUM} style={{ marginRight: 3 }} />
-          )}
+          <VerifiedBadge userId={(item as any).seller?.id ?? (item as any).seller_id} size={13} />
           <Text style={s.cardMeta} numberOfLines={1}>
             {item.location_city || 'Zimbabwe'}
           </Text>

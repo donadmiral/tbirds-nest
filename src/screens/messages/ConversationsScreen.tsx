@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -187,7 +188,7 @@ useEffect(() => {
       const profileMap: Record<string, any> = {};
       if (dmOtherIds.length > 0) {
         const { data: profs } = await supabase
-          .from('profiles').select('id, full_name, username, avatar_url').in('id', dmOtherIds);
+          .from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').in('id', dmOtherIds);
         (profs || []).forEach((p: any) => { profileMap[p.id] = p; });
       }
 
@@ -219,6 +220,7 @@ useEffect(() => {
           return {
             id: c.id, other_user_id: otherId,
             other_name: p.full_name || 'Member',
+            other_is_verified: !!(p as any).is_verified, other_verified_tier: (p as any).verified_tier ?? null,
             other_username: p.username || null, other_avatar: p.avatar_url || null,
             last_message: c.last_message || '', last_message_time: c.last_message_time,
             unread_count: unreadMap[c.id] || 0,
@@ -586,7 +588,10 @@ const swipeActions = (item: Conversation) => (
         <View style={s.cardBody}>
           <View style={s.cardRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
-              <Text style={[s.cardName, hasUnread && s.cardNameBold]} numberOfLines={1}>{item.other_name}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 1 }}>
+                <Text style={[s.cardName, hasUnread && s.cardNameBold, { flexShrink: 1, flex: 0 }]} numberOfLines={1}>{item.other_name}</Text>
+                {(((item as any).other_verified_tier || (item as any).other_is_verified) && (item as any).type !== 'group') ? <VerifiedBadge tier={(item as any).other_verified_tier} size={14} /> : null}
+              </View>
               {item.is_muted && <Text style={{ fontSize: 11 }}>🔕</Text>}
               {item.is_archived && <View style={s.archivedBadge}><Text style={s.archivedTxt}>Archived</Text></View>}
             </View>

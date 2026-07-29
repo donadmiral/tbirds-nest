@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * BusinessesScreen
  *
@@ -100,7 +101,7 @@ export default function BusinessesScreen({ navigation }: any) {
               <View style={s.rowText}>
                 <View style={s.nameRow}>
                   <Text style={s.name} numberOfLines={1}>{item.full_name || 'Business'}</Text>
-                  {item.is_verified ? <Feather name="check-circle" size={13} color={light.brand.warm} /> : null}
+                  <VerifiedBadge userId={item.id} size={13} />
                 </View>
                 <Text style={s.meta} numberOfLines={1}>
                   {item.category ? `${item.category}  ·  ` : ''}

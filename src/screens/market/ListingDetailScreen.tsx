@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 import SellerTrust from '../../components/market/SellerTrust';
 import ReportListingSheet from '../../components/market/ReportListingSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -247,9 +248,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             <View style={{ flex: 1, marginLeft: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={s.sellerName}>{listing.seller?.full_name || 'Seller'}</Text>
-                {listing.seller?.is_verified && (
-                  <Ionicons name="checkmark-circle" size={15} color={PLATINUM} style={{ marginLeft: 4 }} />
-                )}
+                <VerifiedBadge userId={(listing as any).seller?.id ?? (listing as any).seller_id} size={15} />
               </View>
               {listing.seller?.username ? <Text style={s.sellerHandle}>@{listing.seller.username}</Text> : null}
               <SellerTrust sellerId={listing.seller_id} />

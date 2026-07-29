@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 import SendMoneySheet from '../../components/SendMoneySheet';
 /**
  * ChatScreen.tsx
@@ -382,7 +383,7 @@ export default function ChatScreen() {
     if (otherUser) return;
     const uid = passedUserId;
     if (!uid) return;
-    supabase.from('profiles').select('id, full_name, username, avatar_url, bio, location, degree_program, graduation_year, email')
+    supabase.from('profiles').select('id, full_name, username, avatar_url, bio, location, degree_program, graduation_year, email, is_verified, verified_tier')
       .eq('id', uid).single()
       .then(({ data }) => { if (data) setOtherUser(data); });
   }, [passedUserId]);
@@ -1784,7 +1785,10 @@ const pickAndSendDocument = useCallback(async () => {
                 ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.hAvatar} contentFit="cover" />
                 : <View style={s.hAvatarFb}><Text style={s.hAvatarTxt}>{otherInits}</Text></View>}
           <View style={s.hInfo}>
-            <Text style={s.hName} numberOfLines={1}>{chatTitle}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 1 }}>
+              <Text style={s.hName} numberOfLines={1}>{chatTitle}</Text>
+              {(!isGroup && ((otherUser as any)?.verified_tier || otherUser?.is_verified)) ? <VerifiedBadge tier={(otherUser as any)?.verified_tier} size={14} /> : null}
+            </View>
             {isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]} numberOfLines={1}>{String(membersById[typingUserId ?? '']?.full_name || 'Someone').split(' ')[0]} is typing...</Text>
               : !isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]}>typing...</Text>
               : !isGroup && otherOnline ? <Text style={[s.hSub, { color: '#34C759' }]}>online</Text>
