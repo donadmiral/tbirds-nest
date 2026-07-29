@@ -1,3 +1,4 @@
+import AnnouncementBanner from '../../components/AnnouncementBanner';
 import TrendingStoriesRail from '../../components/TrendingStoriesRail';
 import * as FileSystem from 'expo-file-system/legacy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -1730,6 +1731,7 @@ if (!search && promos.length > 0) {
               }}
               ListHeaderComponent={
                 <>
+                  <AnnouncementBanner />
                   {feedMode === 'trending' && <TrendingStoriesRail />}
                   {feedMode === 'innovation' && (
                     <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 }}>
