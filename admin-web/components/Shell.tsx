@@ -24,6 +24,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
   ]},
   { label: 'Content', items: [
     { href: '/content', label: 'Posts', icon: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z' },
+    { href: '/stories', label: 'Stories', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a7 7 0 110 14 7 7 0 010-14zm0 2.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z' },
   ]},
   { label: 'System', items: [
     { href: '/audit', label: 'Audit log', icon: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z' },

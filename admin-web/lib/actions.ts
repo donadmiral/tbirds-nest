@@ -330,3 +330,18 @@ export async function liftRestriction(formData: FormData) {
   });
   revalidatePath('/users/' + uid);
 }
+
+export async function adminRemoveStory(formData: FormData) {
+  const admin = await requireReviewer();
+  const sid = String(formData.get('sid') || '');
+  if (!sid) redirect('/stories');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('stories').select('id, user_id, media_type, caption').eq('id', sid).maybeSingle();
+  await svc.from('stories').delete().eq('id', sid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'content.remove_story', target_kind: 'story', target_id: sid,
+    reason: 'Removed from the stories desk', before: before ?? {}, after: { deleted: true },
+  });
+  revalidatePath('/stories');
+  revalidatePath('/content');
+}
