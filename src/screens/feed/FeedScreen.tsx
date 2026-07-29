@@ -1706,6 +1706,12 @@ if (!search && promos.length > 0) {
               ListHeaderComponent={
                 <>
                   {feedMode === 'trending' && <TrendingStoriesRail />}
+                  {feedMode === 'innovation' && (
+                    <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 2.2, color: '#8A8172' }}>INNOVATION - ZIMBABWE STEM</Text>
+                      <Text style={{ fontSize: 12.5, color: 'rgba(11,30,61,0.55)', marginTop: 4, lineHeight: 18 }}>Science, engineering and creation - what Zimbabwe is building, and who is building it.</Text>
+                    </View>
+                  )}
                   {feedError ? (
                     <View style={{
                       flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -1737,7 +1743,13 @@ if (!search && promos.length > 0) {
               contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
               ListEmptyComponent={
-                feedMode === 'trending' ? (
+                feedMode === 'innovation' ? (
+                  <View style={s.emptyWrap}>
+                    <Text style={s.emptyTitle}>Nothing here yet</Text>
+                    <Text style={s.emptySub}>The Innovation channel is for Zimbabwe's builders - science, engineering, inventions and the people behind them. Share what you are working on.</Text>
+                    <TouchableOpacity style={s.emptyBtn} onPress={() => setComposerOpen(true)}><Text style={s.emptyBtnTxt}>Post your work</Text></TouchableOpacity>
+                  </View>
+                ) : feedMode === 'trending' ? (
                   <View style={s.emptyWrap}>
                     <Text style={s.emptyTitle}>Nothing is trending right now</Text>
                     <Text style={s.emptySub}>Trending is earned. When a post or story gets real engagement from real people, it appears here.</Text>
