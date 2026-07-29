@@ -68,6 +68,7 @@ import ContextInboxScreen from '../screens/messages/ContextInboxScreen';
 import BusinessManageScreen from '../screens/profile/BusinessManageScreen';
 import SavedPostsScreen from '../screens/feed/SavedPostsScreen';
 import SettingsScreen             from '../screens/profile/SettingsScreen';
+import ApplyVerificationScreen    from '../screens/profile/ApplyVerificationScreen';
 import HelpSupportScreen          from '../screens/profile/HelpSupportScreen';
 import TermsScreen                from '../screens/profile/TermsScreen';
 import PrivacyPolicyScreen        from '../screens/profile/PrivacyPolicyScreen';
@@ -151,6 +152,7 @@ function ProfileStackNav() {
     <ProfStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfStack.Screen name="ProfileMain"     component={ProfileScreen} />
       <ProfStack.Screen name="Settings"        component={SettingsScreen} />
+      <ProfStack.Screen name="ApplyVerification" component={ApplyVerificationScreen} />
       <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
       <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
       <ProfStack.Screen name="CreateBusiness"  component={CreateBusinessScreen} />
