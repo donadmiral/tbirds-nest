@@ -47,13 +47,30 @@ export default async function DashboardPage() {
         <p className="text-[13px] font-semibold">All systems operational</p>
         <p className="ml-auto text-[11.5px] tabular-nums text-[#9A9DA4]">live - {new Date().toLocaleTimeString()}</p>
       </div>
-      <div className="mt-4 grid grid-cols-2 divide-x divide-[#EEEDE9] rounded-[12px] border border-[#E8E6E1] bg-white lg:grid-cols-4">
-        {metrics.map(m => (
-          <Link key={m.label} href={m.href} className="group px-5 py-4 transition-colors duration-150 hover:bg-[#FAFAF9]">
-            <p className={'text-[22px] font-semibold tabular-nums tracking-tight ' + (m.hot ? 'text-[#B45309]' : 'text-[#17181C]')}>{m.value}</p>
-            <p className="mt-0.5 text-[12px] font-medium text-[#7A7D84] group-hover:text-[#43454B]">{m.label}</p>
-          </Link>
-        ))}
+      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {metrics.map((m, i) => {
+          const tiles = [
+            { bg: '#EEF2FB', fg: '#0B1E3D', icon: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z' },
+            { bg: '#EFF8F1', fg: '#1D7A38', icon: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z' },
+            { bg: '#FBF4E4', fg: '#B45309', icon: 'M12 8v5l3 2M12 21a9 9 0 100-18 9 9 0 000 18z' },
+            { bg: '#FBF0F0', fg: '#B03A3A', icon: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z' },
+          ];
+          const tl = tiles[i] || tiles[0];
+          return (
+            <div key={m.label} className="rounded-[12px] border border-[#E5E4E0] bg-white p-4">
+              <div className="flex items-start justify-between">
+                <span className="flex h-10 w-10 items-center justify-center rounded-[10px]" style={{ backgroundColor: tl.bg }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill={i === 2 ? 'none' : tl.fg} stroke={i === 2 ? tl.fg : 'none'} strokeWidth="2"><path d={tl.icon} /></svg>
+                </span>
+                <p className={'text-[24px] font-semibold tabular-nums tracking-tight ' + (m.hot ? 'text-[#B45309]' : 'text-[#17181C]')}>{m.value}</p>
+              </div>
+              <div className="mt-2.5 flex items-baseline justify-between">
+                <p className="text-[12px] font-medium text-[#7A7D84]">{m.label}</p>
+                <Link href={m.href} className="text-[11.5px] font-semibold text-[#0B1E3D] hover:underline">View</Link>
+              </div>
+            </div>
+          );
+        })}
       </div>
       <div className="mt-6 grid gap-4 lg:grid-cols-5">
         <div className="lg:col-span-3">
