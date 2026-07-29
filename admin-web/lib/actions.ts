@@ -345,3 +345,44 @@ export async function adminRemoveStory(formData: FormData) {
   revalidatePath('/stories');
   revalidatePath('/content');
 }
+
+export async function toggleFlag(formData: FormData) {
+  const admin = await requireReviewer();
+  const key = String(formData.get('key') || '');
+  const to = String(formData.get('to') || '') === 'on';
+  if (!key) redirect('/system');
+  const svc = serviceClient();
+  await svc.from('feature_flags').update({ enabled: to, updated_by: admin.id, updated_at: new Date().toISOString() }).eq('key', key);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'system.flag.' + (to ? 'on' : 'off'), target_kind: 'feature_flag', target_id: key,
+    reason: 'Flag ' + key + ' switched ' + (to ? 'on' : 'off'), before: { enabled: !to }, after: { enabled: to },
+  });
+  revalidatePath('/system');
+}
+
+export async function publishAnnouncement(formData: FormData) {
+  const admin = await requireReviewer();
+  const title = String(formData.get('title') || '').trim();
+  const body = String(formData.get('body') || '').trim();
+  if (!title || !body) redirect('/system');
+  const svc = serviceClient();
+  const { data: row } = await svc.from('announcements').insert({ title, body, created_by: admin.id }).select('id').maybeSingle();
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'system.announce', target_kind: 'announcement', target_id: row?.id ?? 'unknown',
+    reason: title, before: {}, after: { title, body },
+  });
+  revalidatePath('/system');
+}
+
+export async function retireAnnouncement(formData: FormData) {
+  const admin = await requireReviewer();
+  const id = String(formData.get('id') || '');
+  if (!id) redirect('/system');
+  const svc = serviceClient();
+  await svc.from('announcements').update({ active: false }).eq('id', id);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'system.announce.retire', target_kind: 'announcement', target_id: id,
+    reason: 'Announcement retired', before: { active: true }, after: { active: false },
+  });
+  revalidatePath('/system');
+}
