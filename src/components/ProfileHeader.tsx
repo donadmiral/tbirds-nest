@@ -1,3 +1,4 @@
+import VerifiedBadge from './VerifiedBadge';
 /**
  * ProfileHeader
  *
@@ -165,7 +166,7 @@ export default function ProfileHeader({
 
         <View style={s.nameRow}>
           <Text style={s.name} numberOfLines={1}>{profile?.full_name || 'Your Name'}</Text>
-          {profile?.is_verified ? <Feather name="check-circle" size={15} color={light.brand.warm} /> : null}
+          {(profile?.verified_tier || profile?.is_verified) ? <VerifiedBadge tier={profile?.verified_tier} size={17} /> : null}
         </View>
         {profile?.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
 
