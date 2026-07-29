@@ -53,8 +53,10 @@ export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier
   if (!eff) return null;
   const key = eff as string;
   const m = METALS[key] || METALS.business;
+  // Rendered a quarter larger than requested so the seal reads clearly at a glance.
+  const px = Math.round(size * 1.25);
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" style={{ marginLeft: 2 }}>
+    <Svg width={px} height={px} viewBox="0 0 24 24" style={{ marginLeft: 2 }}>
       <Defs>
         <SvgGradient id={'vb-' + key} x1="0%" y1="0%" x2="100%" y2="100%">
           <Stop offset="0" stopColor={m.grad[0]} />
