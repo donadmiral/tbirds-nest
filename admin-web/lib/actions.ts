@@ -291,3 +291,42 @@ export async function deactivateStaff(formData: FormData) {
   });
   revalidatePath('/staff');
 }
+
+export async function issueStrike(formData: FormData) {
+  const admin = await requireReviewer();
+  const uid = String(formData.get('uid') || '');
+  const level = String(formData.get('level') || '');
+  const reason = String(formData.get('reason') || '').trim();
+  const days = parseInt(String(formData.get('days') || '0'), 10) || 0;
+  if (!uid || !reason || !['warn', 'restrict', 'suspend', 'ban'].includes(level)) redirect('/users');
+  const svc = serviceClient();
+  const expires = level === 'restrict' && days > 0 ? new Date(Date.now() + days * 86400000).toISOString() : null;
+  await svc.from('member_strikes').insert({ user_id: uid, level, reason, issued_by: admin.id, expires_at: expires });
+  if (level === 'restrict' && expires) {
+    await svc.from('profiles').update({ restricted_until: expires }).eq('id', uid);
+  }
+  if (level === 'suspend' || level === 'ban') {
+    await svc.from('profiles').update({
+      deactivated_at: new Date().toISOString(), suspended_reason: reason, suspended_by: admin.id,
+    }).eq('id', uid);
+  }
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'enforcement.' + level, target_kind: 'profile', target_id: uid,
+    reason, before: {}, after: { level, expires_at: expires },
+  });
+  revalidatePath('/users/' + uid);
+  revalidatePath('/users');
+}
+
+export async function liftRestriction(formData: FormData) {
+  const admin = await requireReviewer();
+  const uid = String(formData.get('uid') || '');
+  if (!uid) redirect('/users');
+  const svc = serviceClient();
+  await svc.from('profiles').update({ restricted_until: null }).eq('id', uid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'enforcement.lift_restriction', target_kind: 'profile', target_id: uid,
+    reason: 'Restriction lifted early', before: {}, after: { restricted_until: null },
+  });
+  revalidatePath('/users/' + uid);
+}

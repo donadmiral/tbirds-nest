@@ -2,13 +2,13 @@ import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getAdmin } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
-import { suspendUser, restoreUser, revokeVerification, adminRemovePost, adminRemoveListing } from '@/lib/actions';
+import { suspendUser, restoreUser, revokeVerification, adminRemovePost, adminRemoveListing, issueStrike, liftRestriction } from '@/lib/actions';
 import Shell from '@/components/Shell';
 import Seal from '@/components/Seal';
 
 export const dynamic = 'force-dynamic';
 
-const TABS = ['overview', 'posts', 'listings', 'jobs', 'reports', 'support', 'audit'] as const;
+const TABS = ['overview', 'strikes', 'posts', 'listings', 'jobs', 'reports', 'support', 'audit'] as const;
 
 export default async function MemberRecordPage({ params, searchParams }: {
   params: Promise<{ uid: string }>; searchParams: Promise<{ tab?: string }>;
@@ -20,10 +20,11 @@ export default async function MemberRecordPage({ params, searchParams }: {
   const tab = (TABS as readonly string[]).includes(rawTab || '') ? (rawTab as string) : 'overview';
   const svc = serviceClient();
   const { data: u } = await svc.from('profiles')
-    .select('id, full_name, username, email, avatar_url, account_type, bio, location, is_verified, verified_tier, verified_category, created_at, deactivated_at, suspended_reason')
+    .select('id, full_name, username, email, avatar_url, account_type, bio, location, is_verified, verified_tier, verified_category, created_at, deactivated_at, suspended_reason, restricted_until')
     .eq('id', uid).maybeSingle();
   if (!u) notFound();
   const suspended = !!u.deactivated_at;
+  const restricted = !!(u.restricted_until && new Date(u.restricted_until) > new Date());
 
   let body: React.ReactNode = null;
   if (tab === 'overview') {
@@ -48,13 +49,29 @@ export default async function MemberRecordPage({ params, searchParams }: {
           {u.bio ? <p className="mt-4 rounded-[10px] bg-[#F8F8F7] p-3 text-[13px] text-[#43454B]">{u.bio}</p> : null}
         </div>
         <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
-          <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Actions</p>
+          <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Enforcement</p>
+          {restricted ? (
+            <div className="mb-3 rounded-[10px] border border-[#F3E3C5] bg-[#FBF4E4] p-2.5">
+              <p className="text-[11.5px] font-bold text-[#B45309]">Restricted until {new Date(u.restricted_until).toLocaleDateString()}</p>
+              <form action={liftRestriction} className="mt-1.5">
+                <input type="hidden" name="uid" value={u.id} />
+                <button className="text-[11px] font-semibold text-[#B45309] underline">Lift early</button>
+              </form>
+            </div>
+          ) : null}
           {!suspended ? (
-            <form action={suspendUser} className="space-y-2">
-              <input type="hidden" name="id" value={u.id} />
-              <input name="reason" required placeholder="Reason for suspension"
+            <form action={issueStrike} className="space-y-2">
+              <input type="hidden" name="uid" value={u.id} />
+              <select name="level" className="w-full rounded-[10px] border border-[#E5E4E0] bg-white px-3 py-2 text-[12.5px] outline-none">
+                <option value="warn">Warn - recorded strike only</option>
+                <option value="restrict">Restrict - no posting or listing</option>
+                <option value="suspend">Suspend - account hidden</option>
+                <option value="ban">Ban - permanent intent</option>
+              </select>
+              <input name="days" type="number" min={1} max={90} defaultValue={7} className="w-full rounded-[10px] border border-[#E5E4E0] px-3 py-2 text-[12.5px] outline-none focus:border-[#B9BCC2]" placeholder="Days if restricting" />
+              <input name="reason" required placeholder="Reason - the member may see this"
                 className="w-full rounded-[10px] border border-[#E5E4E0] px-3 py-2 text-[12.5px] outline-none focus:border-[#B9BCC2]" />
-              <button className="w-full rounded-[10px] border border-[#F0DEDE] bg-[#FBF2F2] py-2 text-[12px] font-bold text-[#B03A3A] hover:bg-[#F6E4E4]">Suspend</button>
+              <button className="w-full rounded-[10px] border border-[#F0DEDE] bg-[#FBF2F2] py-2 text-[12px] font-bold text-[#B03A3A] hover:bg-[#F6E4E4]">Issue</button>
             </form>
           ) : (
             <form action={restoreUser}>
@@ -69,6 +86,30 @@ export default async function MemberRecordPage({ params, searchParams }: {
             </form>
           ) : null}
         </div>
+      </div>
+    );
+  } else if (tab === 'strikes') {
+    const { data: strikes } = await svc.from('member_strikes')
+      .select('id, level, reason, expires_at, created_at').eq('user_id', uid)
+      .order('created_at', { ascending: false }).limit(30);
+    const pill = (lv: string) => lv === 'warn'
+      ? <span className="rounded-full bg-[#EEF2FB] px-2 py-0.5 text-[10.5px] font-bold text-[#0B1E3D]">Warn</span>
+      : lv === 'restrict'
+      ? <span className="rounded-full border border-[#F3E3C5] bg-[#FBF4E4] px-2 py-0.5 text-[10.5px] font-bold text-[#B45309]">Restrict</span>
+      : lv === 'suspend'
+      ? <span className="rounded-full border border-[#F0DEDE] bg-[#FBF2F2] px-2 py-0.5 text-[10.5px] font-bold text-[#B03A3A]">Suspend</span>
+      : <span className="rounded-full bg-[#191C22] px-2 py-0.5 text-[10.5px] font-bold text-white">Ban</span>;
+    body = (
+      <div className="rounded-[12px] border border-[#E5E4E0] bg-white">
+        {(strikes ?? []).length === 0 ? <p className="px-5 py-10 text-center text-[13px] text-[#9A9DA4]">Clean record. No strikes.</p>
+        : (strikes ?? []).map(s => (
+          <div key={s.id} className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 text-[12.5px] last:border-0">
+            {pill(s.level)}
+            <p className="min-w-0 flex-1 truncate">{s.reason}</p>
+            {s.expires_at ? <p className="text-[11px] tabular-nums text-[#9A9DA4]">until {new Date(s.expires_at).toLocaleDateString()}</p> : null}
+            <p className="tabular-nums text-[11px] text-[#9A9DA4]">{new Date(s.created_at).toLocaleDateString()}</p>
+          </div>
+        ))}
       </div>
     );
   } else if (tab === 'posts') {
