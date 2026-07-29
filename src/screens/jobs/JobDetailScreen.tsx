@@ -21,6 +21,40 @@ import * as DocumentPicker from 'expo-document-picker';
 const NAVY = '#0B1E3D';
 const PLATINUM = '#C9BFB0';
 
+function SimilarRoles({ job, onOpen }: { job: any; onOpen: (j: any) => void }) {
+  const [rows, setRows] = useState<any[]>([]);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      let q = supabase.from('jobs').select('*').neq('id', job.id)
+        .order('created_at', { ascending: false }).limit(5);
+      if (job.category) q = q.eq('category', job.category);
+      const { data } = await q;
+      if (alive) setRows(data || []);
+    })();
+    return () => { alive = false; };
+  }, [job.id]);
+  if (!rows.length) return null;
+  return (
+    <View style={{ paddingHorizontal: 16, paddingTop: 18 }}>
+      <Text style={{ fontSize: 15, fontWeight: '800', color: '#0B1E3D', marginBottom: 10 }}>Similar roles</Text>
+      {rows.map((r) => (
+        <TouchableOpacity key={r.id} activeOpacity={0.85} onPress={() => onOpen(r)}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.10)' }}>
+          <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#C9BFB0' }}>{String(r.company || '?').slice(0, 1).toUpperCase()}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: '700', color: '#0B1E3D' }}>{r.title}</Text>
+            <Text numberOfLines={1} style={{ fontSize: 12, color: 'rgba(11,30,61,0.55)', marginTop: 2 }}>{r.company}{r.location ? ' - ' + r.location : ''}</Text>
+          </View>
+          <Feather name="chevron-right" size={16} color="rgba(11,30,61,0.35)" />
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
 function daysLeft(deadline?: string | null) {
   if (!deadline) return null;
   const d = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
@@ -199,6 +233,7 @@ export default function JobDetailScreen() {
               ['Type', catLabel],
               ['Experience', expLabel],
               ['Workplace', place],
+              ['Apply by', job.deadline ? new Date(job.deadline).toLocaleDateString([], { month: 'short', day: 'numeric' }) : null],
               ['Applicants', String(job.applications_count ?? job.application_count ?? 0)],
               ['Posted', new Date(job.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })],
             ].filter(r => r[1]).map(([k, v]) => (
@@ -209,6 +244,14 @@ export default function JobDetailScreen() {
             ))}
           </View>
         </View>
+      <View style={{ paddingHorizontal: 16, paddingTop: 18 }}>
+          <Text style={{ fontSize: 15, fontWeight: '800', color: '#0B1E3D', marginBottom: 8 }}>Employer</Text>
+          <Text style={{ fontSize: 17, fontWeight: '800', color: '#0B1E3D' }}>{job.company}</Text>
+          {job.industry ? <Text style={{ fontSize: 12.5, color: 'rgba(11,30,61,0.55)', marginTop: 3 }}>{job.industry}</Text> : null}
+          <Text style={{ fontSize: 12.5, color: 'rgba(11,30,61,0.55)', marginTop: 3 }}>Posted by {job.profile?.full_name || 'a member'} - use Message above with any questions.</Text>
+        </View>
+
+        <SimilarRoles job={job} onOpen={(j: any) => (navigation as any).push('JobDetail', { job: j })} />
       </ScrollView>
 
       <View style={[st.applyBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
