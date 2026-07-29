@@ -48,11 +48,11 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                     ? <img src={u.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
                     : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B1E3D]/10 text-sm font-bold text-[#0B1E3D]">{String(u.full_name || '?').slice(0, 1)}</div>}
                   <div>
-                    <p className="flex items-center gap-1 text-sm font-extrabold text-[#0B1E3D]">
+                    <Link href={'/users/' + u.id} className="flex items-center gap-1 text-sm font-extrabold text-[#0B1E3D] hover:underline">
                       {u.full_name || 'Unnamed'}
                       {u.verified_tier || u.is_verified ? <Seal tier={u.verified_tier || 'business'} size={15} /> : null}
                       <span className="font-medium text-[#0B1E3D]/40">@{u.username || '-'}</span>
-                    </p>
+                    </Link>
                     <p className="text-[11px] text-[#0B1E3D]/50">
                       {u.email || 'no email'} - {u.account_type || 'personal'} - joined {new Date(u.created_at).toLocaleDateString()}
                       {u.verified_category ? ' - ' + u.verified_category : ''}
