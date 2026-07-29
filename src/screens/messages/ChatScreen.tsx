@@ -1787,7 +1787,7 @@ const pickAndSendDocument = useCallback(async () => {
           <View style={s.hInfo}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 1 }}>
               <Text style={s.hName} numberOfLines={1}>{chatTitle}</Text>
-              {(!isGroup && ((otherUser as any)?.verified_tier || otherUser?.is_verified)) ? <VerifiedBadge tier={(otherUser as any)?.verified_tier} size={14} /> : null}
+              {!isGroup ? <VerifiedBadge userId={otherUser?.id} size={14} /> : null}
             </View>
             {isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]} numberOfLines={1}>{String(membersById[typingUserId ?? '']?.full_name || 'Someone').split(' ')[0]} is typing...</Text>
               : !isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]}>typing...</Text>
