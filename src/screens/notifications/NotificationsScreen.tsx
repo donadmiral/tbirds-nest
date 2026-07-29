@@ -1,3 +1,4 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * NotificationsScreen
  *
@@ -348,7 +349,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
         <View style={s.body}>
           <Text style={s.line} numberOfLines={2}>
-            <Text style={s.lead}>{lead}</Text>
+            <Text style={s.lead}>{lead}</Text>{item.actor_id ? <VerifiedBadge userId={item.actor_id} size={11} /> : null}
             <Text style={s.rest}>{rest}</Text>
           </Text>
           <View style={s.metaRow}>
