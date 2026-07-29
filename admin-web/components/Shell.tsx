@@ -10,6 +10,7 @@ import { serviceClient } from '@/lib/supabaseAdmin';
 const GROUPS: { label: string; items: { href: string; label: string; icon: string }[] }[] = [
   { label: 'Platform', items: [
     { href: '/dashboard', label: 'Overview', icon: 'M4 5h7v7H4V5zm9 0h7v4h-7V5zm0 6h7v8h-7v-8zm-9 3h7v5H4v-5z' },
+    { href: '/analytics', label: 'Analytics', icon: 'M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z' },
   ]},
   { label: 'Trust and safety', items: [
     { href: '/queue', label: 'Verification', icon: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z' },
@@ -32,7 +33,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
     { href: '/staff', label: 'Staff', icon: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z' },
   ]},
 ];
-const COMING = ['Calls', 'Analytics'];
+const COMING = ['Calls'];
 
 export default async function Shell({ admin, active, title, sub, children }: {
   admin: { email: string; role: string }; active: string; title: string; sub?: string; children: React.ReactNode;
