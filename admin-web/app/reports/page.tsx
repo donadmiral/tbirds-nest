@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getAdmin } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
-import { dismissReport, removeReportedPost, removeReportedListing, resolveUserReport, signOut } from '@/lib/actions';
+import { dismissReport, removeReportedPost, removeReportedListing, resolveUserReport } from '@/lib/actions';
+import Shell from '@/components/Shell';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -45,21 +46,7 @@ export default async function ReportsPage() {
   const total = (postReports?.length || 0) + (listingReports?.length || 0) + (userReports?.length || 0);
 
   return (
-    <main className="min-h-screen bg-[#F5F6F8]">
-      <header className="sticky top-0 z-10 border-b border-[#0B1E3D]/10 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-6">
-            <h1 className="text-base font-extrabold text-[#0B1E3D]">Reports</h1>
-            <nav className="flex gap-4 text-xs font-semibold text-[#0B1E3D]/60">
-              <Link href="/queue" className="hover:text-[#0B1E3D]">Verification queue</Link>
-              <Link href="/users" className="hover:text-[#0B1E3D]">Users</Link>
-              <span className="text-[#0B1E3D]">Reports</span>
-            </nav>
-          </div>
-          <form action={signOut}><button className="rounded-lg border border-[#0B1E3D]/15 px-3 py-1.5 text-xs font-semibold text-[#0B1E3D] hover:bg-[#0B1E3D]/5">Sign out</button></form>
-        </div>
-      </header>
-      <div className="mx-auto max-w-4xl px-6 py-8">
+    <Shell admin={admin} active="/reports" title="Reports" sub="What members flagged - posts, listings, and accounts awaiting judgment">
         {total === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#0B1E3D]/15 bg-white p-12 text-center">
             <p className="text-sm font-bold text-[#0B1E3D]">Nothing reported.</p>
@@ -134,7 +121,6 @@ export default async function ReportsPage() {
             </div>
           </div>
         ))}
-      </div>
-    </main>
+    </Shell>
   );
 }

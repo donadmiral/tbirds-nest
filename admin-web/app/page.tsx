@@ -3,7 +3,7 @@ import { getAdmin } from '@/lib/adminAuth';
 import { signIn } from '@/lib/actions';
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  if (await getAdmin()) redirect('/queue');
+  if (await getAdmin()) redirect('/dashboard');
   const { error } = await searchParams;
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#0B1E3D]">

@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
 import { getAdmin, VERIFICATION_ROLES } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
-import { approveApplication, rejectApplication, signOut } from '@/lib/actions';
+import { approveApplication, rejectApplication } from '@/lib/actions';
 import Seal from '@/components/Seal';
+import Shell from '@/components/Shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,18 +29,7 @@ export default async function QueuePage() {
     .order('decided_at', { ascending: false }).limit(5);
 
   return (
-    <main className="min-h-screen bg-[#F5F6F8]">
-      <header className="sticky top-0 z-10 border-b border-[#0B1E3D]/10 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-base font-extrabold text-[#0B1E3D]">Verification queue</h1>
-            <nav className="mt-0.5"><a href="/reports" className="mr-3 text-xs font-semibold text-[#0B1E3D]/60 hover:text-[#0B1E3D]">Reports</a><a href="/users" className="text-xs font-semibold text-[#0B1E3D]/60 hover:text-[#0B1E3D]">User desk</a></nav>
-            <p className="text-[11px] text-[#0B1E3D]/50">{admin.email} - {admin.role.replace(/_/g, ' ')}</p>
-          </div>
-          <form action={signOut}><button className="rounded-lg border border-[#0B1E3D]/15 px-3 py-1.5 text-xs font-semibold text-[#0B1E3D] hover:bg-[#0B1E3D]/5">Sign out</button></form>
-        </div>
-      </header>
-      <div className="mx-auto max-w-4xl px-6 py-8">
+    <Shell admin={admin} active="/queue" title="Verification queue" sub="Badges are earned here, never bought - every case gets a human decision">
         {(apps ?? []).length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#0B1E3D]/15 bg-white p-12 text-center">
             <p className="text-sm font-bold text-[#0B1E3D]">The queue is empty.</p>
@@ -95,7 +85,6 @@ export default async function QueuePage() {
             Recent decisions: {(decided ?? []).map(d => (d.status === 'approved' ? 'granted' : 'declined') + ' ' + (TIER_LABEL[d.tier] || d.tier)).join(' - ')}
           </p>
         ) : null}
-      </div>
-    </main>
+    </Shell>
   );
 }

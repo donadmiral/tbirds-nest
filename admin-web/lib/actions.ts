@@ -21,7 +21,7 @@ export async function signIn(formData: FormData) {
   (await cookies()).set('pc_admin_token', data.session.access_token, {
     httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 8, path: '/',
   });
-  redirect('/queue');
+  redirect('/dashboard');
 }
 
 export async function signOut() {
