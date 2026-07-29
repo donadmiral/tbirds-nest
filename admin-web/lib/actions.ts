@@ -73,3 +73,51 @@ export async function rejectApplication(formData: FormData) {
   });
   revalidatePath('/queue');
 }
+export async function suspendUser(formData: FormData) {
+  const admin = await requireReviewer();
+  const id = String(formData.get('id') || '');
+  const reason = String(formData.get('reason') || '').trim();
+  if (!id || !reason) redirect('/users');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('profiles').select('deactivated_at, suspended_reason').eq('id', id).maybeSingle();
+  await svc.from('profiles').update({
+    deactivated_at: new Date().toISOString(), suspended_reason: reason, suspended_by: admin.id,
+  }).eq('id', id);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'user.suspend', target_kind: 'profile', target_id: id,
+    reason, before: before ?? {}, after: { deactivated: true, suspended_reason: reason },
+  });
+  revalidatePath('/users');
+}
+
+export async function restoreUser(formData: FormData) {
+  const admin = await requireReviewer();
+  const id = String(formData.get('id') || '');
+  if (!id) redirect('/users');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('profiles').select('deactivated_at, suspended_reason').eq('id', id).maybeSingle();
+  await svc.from('profiles').update({
+    deactivated_at: null, suspended_reason: null, suspended_by: null,
+  }).eq('id', id);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'user.restore', target_kind: 'profile', target_id: id,
+    reason: 'Account restored', before: before ?? {}, after: { deactivated: false },
+  });
+  revalidatePath('/users');
+}
+
+export async function revokeVerification(formData: FormData) {
+  const admin = await requireReviewer();
+  const id = String(formData.get('id') || '');
+  if (!id) redirect('/users');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('profiles').select('verified_tier, verified_category, is_verified').eq('id', id).maybeSingle();
+  await svc.from('profiles').update({
+    verified_tier: null, verified_category: null, is_verified: false,
+  }).eq('id', id);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'verification.revoke', target_kind: 'profile', target_id: id,
+    reason: 'Badge revoked', before: before ?? {}, after: { verified_tier: null, is_verified: false },
+  });
+  revalidatePath('/users');
+}
