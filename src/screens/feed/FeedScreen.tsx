@@ -1,4 +1,5 @@
 import TrendingList from '../../components/TrendingList';
+import TrendingStoriesRail from '../../components/TrendingStoriesRail';
 import * as FileSystem from 'expo-file-system/legacy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -1658,9 +1659,7 @@ if (!search && promos.length > 0) {
             </View>
           </View>
 
-          {feedMode === 'trending' ? (
-            <TrendingList onOpenTag={(tag) => { setFeedMode('latest'); setSearch('#' + tag); }} />
-          ) : feedError && posts.length === 0 ? (
+          {feedError && posts.length === 0 ? (
             <View style={[s.emptyWrap, { flex: 1, justifyContent: 'center' }]}>
               <Feather name="alert-circle" size={40} color={light.ink.faint} />
               <Text style={s.emptyTitle}>Could not load your feed</Text>
@@ -1707,6 +1706,12 @@ if (!search && promos.length > 0) {
               }}
               ListHeaderComponent={
                 <>
+                  {feedMode === 'trending' && (
+                    <>
+                      <TrendingList onOpenTag={(tag) => { setFeedMode('latest'); setSearch('#' + tag); }} />
+                      <TrendingStoriesRail />
+                    </>
+                  )}
                   {feedError ? (
                     <View style={{
                       flexDirection: 'row', alignItems: 'center', gap: 8,
