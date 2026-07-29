@@ -1736,7 +1736,7 @@ if (!search && promos.length > 0) {
                       </TouchableOpacity>
                     </View>
                   ) : null}
-                  <StoryBar />
+                  {feedMode !== 'trending' && <StoryBar />}
                   <TrendingTopicsStrip />
                 </>
               }
