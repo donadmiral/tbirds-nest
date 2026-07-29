@@ -1635,8 +1635,7 @@ if (!search && promos.length > 0) {
                 <View>
                   <Feather name="bell" size={20} color={light.ink.primary} />
                   {unreadNotifs > 0 && (
-                    <View style={s.bellBadge}>
-                      <Text style={s.bellBadgeTxt}>{unreadNotifs > 99 ? '99+' : unreadNotifs}</Text>
+                    <View style={[s.bellBadge, { minWidth: 10, width: 10, height: 10, borderRadius: 5, paddingHorizontal: 0 }]}>
                     </View>
                   )}
                 </View>
