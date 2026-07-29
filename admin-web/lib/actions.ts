@@ -209,3 +209,85 @@ export async function adminRemoveListing(formData: FormData) {
   });
   revalidatePath('/market');
 }
+
+export async function resolveTicket(formData: FormData) {
+  const admin = await requireReviewer();
+  const rid = String(formData.get('rid') || '');
+  const note = String(formData.get('note') || '').trim();
+  if (!rid || !note) redirect('/support');
+  const svc = serviceClient();
+  const { data: t } = await svc.from('support_tickets').select('id, user_id, kind, subject, status').eq('id', rid).maybeSingle();
+  if (!t || t.status !== 'open') redirect('/support');
+  await svc.from('support_tickets').update({
+    status: 'resolved', resolution_note: note, resolved_by: admin.id, resolved_at: new Date().toISOString(),
+  }).eq('id', rid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: t.kind === 'appeal' ? 'appeal.resolve' : 'support.resolve',
+    target_kind: 'support_ticket', target_id: rid, reason: note,
+    before: { status: 'open' }, after: { status: 'resolved' },
+  });
+  revalidatePath('/support');
+}
+
+const STAFF_ROLES = new Set(['super_admin', 'platform_admin', 'trust_safety', 'support_agent', 'ops_engineer', 'market_reviewer', 'jobs_reviewer', 'verification_reviewer', 'finance_admin', 'analyst', 'auditor_readonly']);
+
+async function requireSuper() {
+  const admin = await getAdmin();
+  if (!admin || admin.role !== 'super_admin') redirect('/dashboard');
+  return admin!;
+}
+
+export async function inviteStaff(formData: FormData) {
+  const admin = await requireSuper();
+  const email = String(formData.get('email') || '').trim().toLowerCase();
+  const password = String(formData.get('password') || '');
+  const role = String(formData.get('role') || '');
+  if (!email || password.length < 10 || !STAFF_ROLES.has(role)) redirect('/staff');
+  const svc = serviceClient();
+  let uid: string | null = null;
+  const { data: created, error } = await svc.auth.admin.createUser({ email, password, email_confirm: true });
+  if (error) {
+    const { data: list } = await svc.auth.admin.listUsers({ page: 1, perPage: 200 });
+    uid = ((list?.users ?? []).find((u: any) => u.email === email) as any)?.id ?? null;
+  } else { uid = created.user?.id ?? null; }
+  if (!uid) redirect('/staff');
+  const handle = 'ops_' + email.split('@')[0].replace(/[^a-z0-9]/g, '').slice(0, 12) + '_' + uid.slice(0, 4);
+  await svc.from('profiles').upsert({
+    id: uid, username: handle, full_name: 'Platinum Circles Staff', account_type: 'personal',
+    deactivated_at: new Date().toISOString(),
+  }, { onConflict: 'id', ignoreDuplicates: true });
+  await svc.from('admin_users').upsert({ user_id: uid, role, active: true }, { onConflict: 'user_id' });
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'staff.invite', target_kind: 'admin_user', target_id: uid,
+    reason: 'Invited as ' + role, before: {}, after: { role, active: true },
+  });
+  revalidatePath('/staff');
+}
+
+export async function setStaffRole(formData: FormData) {
+  const admin = await requireSuper();
+  const uid = String(formData.get('uid') || '');
+  const role = String(formData.get('role') || '');
+  if (!uid || !STAFF_ROLES.has(role)) redirect('/staff');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('admin_users').select('role').eq('user_id', uid).maybeSingle();
+  await svc.from('admin_users').update({ role }).eq('user_id', uid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'staff.set_role', target_kind: 'admin_user', target_id: uid,
+    reason: 'Role set to ' + role, before: before ?? {}, after: { role },
+  });
+  revalidatePath('/staff');
+}
+
+export async function deactivateStaff(formData: FormData) {
+  const admin = await requireSuper();
+  const uid = String(formData.get('uid') || '');
+  if (!uid || uid === admin.id) redirect('/staff');
+  const svc = serviceClient();
+  await svc.from('admin_users').update({ active: false }).eq('user_id', uid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'staff.deactivate', target_kind: 'admin_user', target_id: uid,
+    reason: 'Keys removed', before: { active: true }, after: { active: false },
+  });
+  revalidatePath('/staff');
+}

@@ -15,6 +15,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
     { href: '/queue', label: 'Verification', icon: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z' },
     { href: '/reports', label: 'Reports', icon: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z' },
     { href: '/users', label: 'Users', icon: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z' },
+    { href: '/support', label: 'Support', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 016 6h-3a3 3 0 00-6 0H6a6 6 0 016-6zm-3 8h6a3 3 0 01-6 0z' },
   ]},
   { label: 'Commerce', items: [
     { href: '/market', label: 'Market', icon: 'M4 7l2-4h12l2 4v2a3 3 0 01-1 2.2V20H5v-8.8A3 3 0 014 9V7zm3 6h4v5H7v-5z' },
@@ -26,6 +27,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
   ]},
   { label: 'System', items: [
     { href: '/audit', label: 'Audit log', icon: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z' },
+    { href: '/staff', label: 'Staff', icon: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z' },
   ]},
 ];
 const COMING = ['Calls', 'Analytics'];
@@ -34,13 +36,14 @@ export default async function Shell({ admin, active, title, sub, children }: {
   admin: { email: string; role: string }; active: string; title: string; sub?: string; children: React.ReactNode;
 }) {
   const svc = serviceClient();
-  const [apps, p1, p2, p3] = await Promise.all([
+  const [apps, p1, p2, p3, tk] = await Promise.all([
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['submitted', 'under_review']),
     svc.from('post_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     svc.from('listing_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     svc.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+    svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
   ]);
-  const alerts = (apps.count || 0) + (p1.count || 0) + (p2.count || 0) + (p3.count || 0);
+  const alerts = (apps.count || 0) + (p1.count || 0) + (p2.count || 0) + (p3.count || 0) + (tk.count || 0);
   const initial = (admin.email || '?').slice(0, 1).toUpperCase();
   return (
     <div className="flex min-h-screen bg-[#F4F5F7] text-[#17181C]">
