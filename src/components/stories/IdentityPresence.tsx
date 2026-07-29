@@ -1,3 +1,4 @@
+import VerifiedBadge from '../VerifiedBadge';
 /**
  * IdentityPresence.tsx
  *
@@ -72,9 +73,12 @@ const IdentityPresence = React.memo(function IdentityPresence({
             )}
           </View>
           <View style={s.nameContext}>
-            <Text style={s.name} numberOfLines={1}>
-              {isOwn ? 'Your moment' : (user?.full_name || 'Someone')}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={[s.name, { flexShrink: 1 }]} numberOfLines={1}>
+                {isOwn ? 'Your moment' : (user?.full_name || 'Someone')}
+              </Text>
+              <VerifiedBadge userId={(user as any)?.id} size={13} />
+            </View>
             <View style={s.contextRow}>
               <Text style={s.contextText}>{timeAgo}</Text>
               {isOwn && scope ? (
