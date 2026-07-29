@@ -1,4 +1,3 @@
-import TrendingList from '../../components/TrendingList';
 import TrendingStoriesRail from '../../components/TrendingStoriesRail';
 import * as FileSystem from 'expo-file-system/legacy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -1706,12 +1705,7 @@ if (!search && promos.length > 0) {
               }}
               ListHeaderComponent={
                 <>
-                  {feedMode === 'trending' && (
-                    <>
-                      <TrendingList onOpenTag={(tag) => { setFeedMode('latest'); setSearch('#' + tag); }} />
-                      <TrendingStoriesRail />
-                    </>
-                  )}
+                  {feedMode === 'trending' && <TrendingStoriesRail />}
                   {feedError ? (
                     <View style={{
                       flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -1743,11 +1737,18 @@ if (!search && promos.length > 0) {
               contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
               ListEmptyComponent={
-                <View style={s.emptyWrap}>
-                  <Text style={s.emptyTitle}>{search ? 'No posts found' : 'Welcome to PlatinumCircles'}</Text>
-                  <Text style={s.emptySub}>{search ? 'Try a different search.' : 'Be the first to share something.'}</Text>
-                  {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => setComposerOpen(true)}><Text style={s.emptyBtnTxt}>Create a post</Text></TouchableOpacity>}
-                </View>
+                feedMode === 'trending' ? (
+                  <View style={s.emptyWrap}>
+                    <Text style={s.emptyTitle}>Nothing is trending right now</Text>
+                    <Text style={s.emptySub}>Trending is earned. When a post or story gets real engagement from real people, it appears here.</Text>
+                  </View>
+                ) : (
+                  <View style={s.emptyWrap}>
+                    <Text style={s.emptyTitle}>{search ? 'No posts found' : 'Welcome to PlatinumCircles'}</Text>
+                    <Text style={s.emptySub}>{search ? 'Try a different search.' : 'Be the first to share something.'}</Text>
+                    {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => setComposerOpen(true)}><Text style={s.emptyBtnTxt}>Create a post</Text></TouchableOpacity>}
+                  </View>
+                )
               }
             />
             </View>
