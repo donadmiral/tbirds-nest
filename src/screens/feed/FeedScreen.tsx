@@ -1893,11 +1893,24 @@ if (!search && promos.length > 0) {
                 )}
                 <View style={s.cToolbar}>
                   <View style={s.cToolbarLeft}>
-                    <TouchableOpacity style={s.toolBtn} onPress={pickMedia}><Feather name="image" size={20} color={light.ink.muted} /></TouchableOpacity>
-                    <TouchableOpacity style={s.toolBtn} onPress={openCamera}><Feather name="camera" size={20} color={light.ink.muted} /></TouchableOpacity>
-                    <TouchableOpacity style={[s.toolBtn, innovationPost && s.toolBtnActive]} onPress={() => setInnovationPost(p => !p)}><Feather name="zap" size={20} color={innovationPost ? '#D97706' : '#6B7280'} /></TouchableOpacity>{innovationPost && <Text style={{ fontSize: 11, fontWeight: '700', color: '#D97706', alignSelf: 'center', marginRight: 6 }}>Innovation</Text>}
+                    <View style={{ alignItems: 'center' }}>
+                      <TouchableOpacity style={s.toolBtn} onPress={pickMedia} accessibilityLabel="Add photos or videos"><Feather name="image" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <Text style={s.toolCap}>Photo</Text>
+                    </View>
+                    <View style={{ alignItems: 'center' }}>
+                      <TouchableOpacity style={s.toolBtn} onPress={openCamera} accessibilityLabel="Open camera"><Feather name="camera" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <Text style={s.toolCap}>Camera</Text>
+                    </View>
+                    <View style={{ alignItems: 'center' }}>
+                      <TouchableOpacity style={[s.toolBtn, innovationPost && s.toolBtnActive]} onPress={() => setInnovationPost(p => !p)} accessibilityLabel="Post to the Innovation channel"><Feather name="zap" size={20} color={innovationPost ? '#D97706' : '#6B7280'} /></TouchableOpacity>
+                      <Text style={[s.toolCap, innovationPost && { color: '#D97706', fontWeight: '800' }]}>Innovation</Text>
+                    </View>
                     
-                    <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)}><Feather name="tag" size={20} color={composerProducts.length > 0 ? light.brand.base : light.ink.muted} /></TouchableOpacity>{composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
+                    <View style={{ alignItems: 'center' }}>
+                      <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)} accessibilityLabel="Attach products from your business"><Feather name="tag" size={20} color={composerProducts.length > 0 ? light.brand.base : light.ink.muted} /></TouchableOpacity>
+                      <Text style={[s.toolCap, composerProducts.length > 0 && { color: light.brand.base, fontWeight: '800' }]}>Products</Text>
+                    </View>
+                    {composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
                     <ActorSwitcher />
@@ -2270,6 +2283,7 @@ const s = StyleSheet.create({
   audChipTxt: { fontSize: 12, fontWeight: '700', color: NAVY },
   cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' },
+  toolCap: { fontSize: 9.5, fontWeight: '600', color: 'rgba(11,30,61,0.5)', marginTop: 3 },
   toolBtnActive: { backgroundColor: light.status.linkBg, borderColor: '#BFDBFE' },
   mediaCount: { fontSize: 12, color: light.ink.muted, fontWeight: '600' },
   cancelBtn: { backgroundColor: light.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
