@@ -44,6 +44,16 @@ export default async function ReportsPage() {
   }
   const name = (id?: string | null) => id && people[id] ? (people[id].full_name || '@' + people[id].username) : 'Unknown';
   const total = (postReports?.length || 0) + (listingReports?.length || 0) + (userReports?.length || 0);
+  const [rp, rl, ru] = await Promise.all([
+    svc.from('post_reports').select('id, reason, status, resolved_at').neq('status', 'open').order('resolved_at', { ascending: false }).limit(5),
+    svc.from('listing_reports').select('id, reason, status, resolved_at').neq('status', 'open').order('resolved_at', { ascending: false }).limit(5),
+    svc.from('user_reports').select('id, reason, status, resolved_at').neq('status', 'open').order('resolved_at', { ascending: false }).limit(5),
+  ]);
+  const resolved = [
+    ...(rp.data ?? []).map(r => ({ ...r, kind: 'Post' })),
+    ...(rl.data ?? []).map(r => ({ ...r, kind: 'Listing' })),
+    ...(ru.data ?? []).map(r => ({ ...r, kind: 'Account' })),
+  ].sort((a, b) => String(b.resolved_at || '').localeCompare(String(a.resolved_at || ''))).slice(0, 10);
 
   return (
     <Shell admin={admin} active="/reports" title="Reports" sub="What members flagged - posts, listings, and accounts awaiting judgment">
@@ -121,6 +131,23 @@ export default async function ReportsPage() {
             </div>
           </div>
         ))}
+        {resolved.length ? (
+          <div className="mt-8">
+            <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Recently resolved</p>
+            <div className="rounded-[12px] border border-[#E8E6E1] bg-white">
+              {resolved.map((r: any) => (
+                <div key={r.kind + r.id} className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-2.5 last:border-0">
+                  <span className="shrink-0 rounded-full bg-[#F4F3F0] px-2 py-0.5 text-[10.5px] font-bold text-[#7A7D84]">{r.kind}</span>
+                  <p className="min-w-0 flex-1 truncate text-[12.5px] text-[#5A5D64]">{r.reason}</p>
+                  {r.status === 'actioned'
+                    ? <span className="shrink-0 rounded-full border border-[#DCEFE0] bg-[#F2F9F3] px-2 py-0.5 text-[10.5px] font-bold text-[#1D7A38]">Actioned</span>
+                    : <span className="shrink-0 rounded-full bg-[#F4F3F0] px-2 py-0.5 text-[10.5px] font-bold text-[#7A7D84]">No violation</span>}
+                  <p className="shrink-0 text-[11px] tabular-nums text-[#9A9DA4]">{r.resolved_at ? new Date(r.resolved_at).toLocaleDateString() : ''}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
     </Shell>
   );
 }

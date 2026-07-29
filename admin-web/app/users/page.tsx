@@ -14,6 +14,12 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   const { q } = await searchParams;
   const svc = serviceClient();
   let rows: any[] = [];
+  if (!q || !q.trim()) {
+    const { data } = await svc.from('profiles')
+      .select('id, full_name, username, email, avatar_url, account_type, is_verified, verified_tier, verified_category, created_at, deactivated_at, suspended_reason')
+      .order('created_at', { ascending: false }).limit(25);
+    rows = data ?? [];
+  }
   if (q && q.trim()) {
     const term = '%' + q.trim() + '%';
     const { data } = await svc.from('profiles')
@@ -29,9 +35,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
             className="flex-1 rounded-xl border border-[#0B1E3D]/15 bg-white px-4 py-2.5 text-sm text-[#0B1E3D] outline-none focus:border-[#0B1E3D]" />
           <button className="rounded-xl bg-[#0B1E3D] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90">Search</button>
         </form>
-        {!q ? (
-          <p className="text-center text-xs text-[#0B1E3D]/40 py-12">Search for any account to see it whole and act on it. Every action writes the audit log.</p>
-        ) : rows.length === 0 ? (
+        {!q ? <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Newest members</p> : null}
+        {rows.length === 0 ? (
           <p className="text-center text-xs text-[#0B1E3D]/40 py-12">No accounts match.</p>
         ) : rows.map(u => {
           const suspended = !!u.deactivated_at;

@@ -25,8 +25,14 @@ export default async function QueuePage() {
     (profs ?? []).forEach(p => { profiles[p.id] = p; });
   }
   const { data: decided } = await svc.from('verification_applications')
-    .select('id, tier, status, decided_at').not('decided_at', 'is', null)
-    .order('decided_at', { ascending: false }).limit(5);
+    .select('id, applicant_id, tier, category, status, decided_at, decision_reason').not('decided_at', 'is', null)
+    .order('decided_at', { ascending: false }).limit(15);
+  const dids = Array.from(new Set((decided ?? []).map(d => d.applicant_id)));
+  const dnames: Record<string, any> = {};
+  if (dids.length) {
+    const { data: dp } = await svc.from('profiles').select('id, full_name, username').in('id', dids);
+    (dp ?? []).forEach(p => { dnames[p.id] = p; });
+  }
 
   return (
     <Shell admin={admin} active="/queue" title="Verification queue" sub="Badges are earned here, never bought - every case gets a human decision">
@@ -81,9 +87,24 @@ export default async function QueuePage() {
           );
         })}
         {(decided ?? []).length ? (
-          <p className="mt-8 text-center text-[11px] text-[#0B1E3D]/40">
-            Recent decisions: {(decided ?? []).map(d => (d.status === 'approved' ? 'granted' : 'declined') + ' ' + (TIER_LABEL[d.tier] || d.tier)).join(' - ')}
-          </p>
+          <div className="mt-8">
+            <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Decided</p>
+            <div className="rounded-[12px] border border-[#E8E6E1] bg-white">
+              {(decided ?? []).map(d => {
+                const p = dnames[d.applicant_id] || {};
+                return (
+                  <div key={d.id} className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 last:border-0">
+                    <Seal tier={d.tier} size={15} />
+                    <p className="min-w-0 flex-1 truncate text-[13px] font-semibold">{p.full_name || '@' + (p.username || '?')} <span className="font-normal text-[#7A7D84]">{TIER_LABEL[d.tier] || d.tier}{d.category ? ' - ' + d.category : ''}</span></p>
+                    {d.status === 'approved'
+                      ? <span className="shrink-0 rounded-full border border-[#DCEFE0] bg-[#F2F9F3] px-2 py-0.5 text-[10.5px] font-bold text-[#1D7A38]">Granted</span>
+                      : <span className="shrink-0 rounded-full border border-[#F0DEDE] bg-[#FBF2F2] px-2 py-0.5 text-[10.5px] font-bold text-[#B03A3A]">Declined</span>}
+                    <p className="shrink-0 text-[11.5px] tabular-nums text-[#9A9DA4]">{d.decided_at ? new Date(d.decided_at).toLocaleDateString() : ''}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         ) : null}
     </Shell>
   );

@@ -181,3 +181,31 @@ export async function resolveUserReport(formData: FormData) {
   });
   revalidatePath('/reports');
 }
+
+export async function adminRemovePost(formData: FormData) {
+  const admin = await requireReviewer();
+  const pid = String(formData.get('pid') || '');
+  if (!pid) redirect('/content');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('posts').select('id, user_id, content, body').eq('id', pid).maybeSingle();
+  await svc.from('posts').delete().eq('id', pid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'content.remove_post', target_kind: 'post', target_id: pid,
+    reason: 'Removed from the content desk', before: before ?? {}, after: { deleted: true },
+  });
+  revalidatePath('/content');
+}
+
+export async function adminRemoveListing(formData: FormData) {
+  const admin = await requireReviewer();
+  const lid = String(formData.get('lid') || '');
+  if (!lid) redirect('/market');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('listings').select('id, seller_id, title, price').eq('id', lid).maybeSingle();
+  await svc.from('listings').delete().eq('id', lid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'market.remove_listing', target_kind: 'listing', target_id: lid,
+    reason: 'Removed from the market desk', before: before ?? {}, after: { deleted: true },
+  });
+  revalidatePath('/market');
+}
