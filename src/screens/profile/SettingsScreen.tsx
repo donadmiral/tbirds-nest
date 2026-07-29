@@ -173,7 +173,6 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     { title: 'Legal', rows: [
       { icon: 'file-text', color: '#8E8E93', label: 'Terms of Service', onPress: () => navigation.navigate('Terms') },
       { icon: 'shield', color: '#8E8E93', label: 'Privacy Policy', onPress: () => navigation.navigate('PrivacyPolicy') },
-      { icon: 'info', color: '#8E8E93', label: 'About PlatinumCircles', onPress: () => navigation.navigate('About') },
     ]},
     { title: 'Account Actions', rows: [
       { icon: 'refresh-cw', color: '#007AFF', label: 'Switch Account', sub: 'Sign out and use a different account', onPress: handleSwitchAccount },

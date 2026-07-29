@@ -1,132 +1,67 @@
+/**
+ * HelpSupportScreen - how the real app works, briefly and clearly.
+ */
 import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput,
-  ActivityIndicator, Alert, StatusBar, Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useAuthStore } from '../../stores/authStore';
-import { supabase } from '../../services/supabase';
 
-const FAQ = [
-  { q: 'Account issues', a: 'Try signing out and back in. If the problem continues, submit a support ticket.' },
-  { q: 'Messaging not working', a: 'Make sure both users are signed in and on the latest app version. Check your internet connection.' },
-  { q: 'Profile not loading', a: 'Pull down to refresh. If the issue persists, sign out and back in.' },
-  { q: 'Feature requests', a: 'Use the support form below and describe the feature you want. We read every submission.' },
-  { q: 'Report a user', a: 'Open the three-dot menu on any post or profile and tap Report.' },
+const NAVY = '#0B1E3D';
+
+const TOPICS: { icon: any; q: string; a: string }[] = [
+  { icon: 'edit-3', q: 'Posting and who sees it', a: 'Tap the pen to compose. The audience chip beside your name controls who can see the post: everyone, followers, people you mention, or verified accounts. The lightning bolt sends a post to the Innovation channel, where you can add a field and a stage to what you are building.' },
+  { icon: 'zap', q: 'Stories', a: 'Stories live for 24 hours in the strip at the top of For You and Latest. You control who can view, reply, and react from the story audience settings. A platinum ring around an avatar means there is a story to watch.' },
+  { icon: 'trending-up', q: 'How Trending works', a: 'Trending is earned, never bought and never random. A post appears there only when several different real people engage it, and a story only when enough people outside the owner view and react. If the page is empty, nothing genuinely qualifies right now.' },
+  { icon: 'message-circle', q: 'Messages and calls', a: 'Chats support text, photos, documents, and voice notes, and you can make voice and video calls, including group calls. Message requests from people you do not follow wait in Settings until you accept them. Market and job conversations keep their own inboxes so deals never mix with personal chats.' },
+  { icon: 'shopping-bag', q: 'Buying and selling on Market', a: 'Listings are direct between you and the other person - message the seller from the listing, agree terms, and mark the item sold when it is done. Platinum Circles does not hold money or ship goods, so meet safely and confirm before you pay.' },
+  { icon: 'briefcase', q: 'Jobs and applying', a: 'Every job shows its full description, what it offers, the deadline, and the employer. Apply with a cover note, your phone number, your CV, and a portfolio link. Track everything under My Applications, and posters manage applicants from the job itself.' },
+  { icon: 'shield', q: 'Privacy and safety controls', a: 'From Settings you can make your profile private, control story and post audiences, review message requests, and block accounts. Blocking hides you from each other everywhere. You can report any post from its menu.' },
+  { icon: 'alert-circle', q: 'Something looks wrong', a: 'Most display issues clear with a pull-to-refresh or by closing and reopening the app. If a problem stays, report the post or tell us through your profile - include what you tapped and what you expected, and we will chase it.' },
 ];
 
 export default function HelpSupportScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { profile, session } = useAuthStore();
-  const myId = profile?.id ?? session?.user?.id ?? null;
-
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-
-  const openEmail = () => {
-    Linking.openURL('mailto:support@PlatinumCirclesnest.app?subject=PlatinumCircles%20Nest%20Support').catch(() =>
-      Alert.alert('No email app', 'Set up an email app on your device to contact us this way.')
-    );
-  };
-
-  const submitTicket = async () => {
-    if (!subject.trim() || !message.trim()) { Alert.alert('Required', 'Please enter a subject and message.'); return; }
-    if (!myId) { Alert.alert('Error', 'You must be signed in.'); return; }
-    setSending(true);
-    try {
-      const { error } = await supabase.from('support_tickets').insert([{ user_id: myId, subject: subject.trim(), message: message.trim(), status: 'open' }]);
-      if (error) { Alert.alert('Error', error.message); return; }
-      setSubject(''); setMessage('');
-      Alert.alert('Submitted!', 'We received your request and will follow up within 24 hours.');
-    } catch { Alert.alert('Error', 'Could not submit. Please try again.'); }
-    finally { setSending(false); }
-  };
-
+  const [open, setOpen] = useState<number | null>(null);
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
-          <Text style={s.backChev}>‹</Text><Text style={s.backLbl}>Back</Text>
+          <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Help & Support</Text>
+        <Text style={s.headerTitle}>Help &amp; Support</Text>
         <View style={{ width: 60 }} />
       </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: Math.max(insets.bottom + 40, 60) }]} keyboardShouldPersistTaps="handled">
-
-        {/* Quick contact */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Get Help Fast</Text>
-          <Text style={s.sectionDesc}>Submit a support request below or contact us directly by email. We respond within 24 hours.</Text>
-          <TouchableOpacity style={s.emailBtn} onPress={openEmail} activeOpacity={0.8}>
-            <Feather name="mail" size={16} color="#007AFF" />
-            <Text style={s.emailBtnTxt}>Email support@PlatinumCirclesnest.app</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }}>
+        <Text style={s.lede}>Short answers to how Platinum Circles works. Tap a topic.</Text>
+        {TOPICS.map((t, i) => (
+          <TouchableOpacity key={t.q} style={s.row} activeOpacity={0.85} onPress={() => setOpen(open === i ? null : i)}>
+            <View style={s.rowHead}>
+              <View style={s.iconWrap}><Feather name={t.icon} size={16} color={NAVY} /></View>
+              <Text style={s.q}>{t.q}</Text>
+              <Feather name={open === i ? 'chevron-up' : 'chevron-down'} size={17} color="rgba(11,30,61,0.4)" />
+            </View>
+            {open === i ? <Text style={s.a}>{t.a}</Text> : null}
           </TouchableOpacity>
-        </View>
-
-        {/* FAQ */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Quick Answers</Text>
-          {FAQ.map((item, i) => (
-            <TouchableOpacity key={i} style={[s.faqItem, i < FAQ.length - 1 && s.faqItemBorder]} onPress={() => setExpandedFaq(expandedFaq === i ? null : i)} activeOpacity={0.75}>
-              <View style={s.faqRow}>
-                <Text style={s.faqQ}>{item.q}</Text>
-                <Feather name={expandedFaq === i ? 'chevron-up' : 'chevron-down'} size={16} color="#8E8E93" />
-              </View>
-              {expandedFaq === i && <Text style={s.faqA}>{item.a}</Text>}
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Submit ticket */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Submit a Request</Text>
-          <View style={s.field}>
-            <Text style={s.fieldLabel}>Subject</Text>
-            <TextInput value={subject} onChangeText={setSubject} placeholder="Login issue, bug report, feature idea..." placeholderTextColor="#C7C7CC" style={s.input} />
-          </View>
-          <View style={s.field}>
-            <Text style={s.fieldLabel}>Message</Text>
-            <TextInput value={message} onChangeText={setMessage} placeholder="Describe the problem in detail. Include what you expected vs what happened." placeholderTextColor="#C7C7CC" style={[s.input, s.inputMulti]} multiline textAlignVertical="top" />
-          </View>
-          <TouchableOpacity style={[s.submitBtn, sending && s.submitBtnDisabled]} onPress={submitTicket} disabled={sending} activeOpacity={0.85}>
-            {sending ? <ActivityIndicator color="#FFF" /> : <Text style={s.submitBtnTxt}>Submit Request</Text>}
-          </TouchableOpacity>
-        </View>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F2F2F7' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#F2F2F7' },
-  backBtn: { flexDirection: 'row', alignItems: 'center', minWidth: 60 },
-  backChev: { fontSize: 30, color: '#007AFF', lineHeight: 34, marginRight: 1 },
-  backLbl: { fontSize: 17, color: '#007AFF' },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: '#000' },
-  scroll: { paddingHorizontal: 16, paddingTop: 8 },
-  section: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 20 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#000', marginBottom: 8 },
-  sectionDesc: { fontSize: 14, color: '#3C3C43', lineHeight: 20, marginBottom: 14 },
-  emailBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#EFF6FF', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 },
-  emailBtnTxt: { fontSize: 15, fontWeight: '600', color: '#007AFF' },
-  faqItem: { paddingVertical: 14 },
-  faqItemBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  faqRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  faqQ: { fontSize: 15, fontWeight: '600', color: '#000', flex: 1, paddingRight: 8 },
-  faqA: { fontSize: 14, color: '#3C3C43', lineHeight: 20, marginTop: 8 },
-  field: { marginBottom: 14 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 },
-  input: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#000' },
-  inputMulti: { minHeight: 120, paddingTop: 12 },
-  submitBtn: { backgroundColor: '#000', borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 4 },
-  submitBtnDisabled: { opacity: 0.4 },
-  submitBtnTxt: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
+  backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
+  backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
+  lede: { fontSize: 13, color: 'rgba(11,30,61,0.55)', marginBottom: 14, marginTop: 4 },
+  row: { backgroundColor: 'rgba(11,30,61,0.035)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, marginBottom: 10 },
+  rowHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  iconWrap: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(11,30,61,0.07)', alignItems: 'center', justifyContent: 'center' },
+  q: { flex: 1, fontSize: 14, fontWeight: '700', color: NAVY },
+  a: { fontSize: 13, lineHeight: 20, color: 'rgba(11,30,61,0.75)', marginTop: 10, marginLeft: 40 },
 });

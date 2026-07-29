@@ -71,7 +71,6 @@ import SettingsScreen             from '../screens/profile/SettingsScreen';
 import HelpSupportScreen          from '../screens/profile/HelpSupportScreen';
 import TermsScreen                from '../screens/profile/TermsScreen';
 import PrivacyPolicyScreen        from '../screens/profile/PrivacyPolicyScreen';
-import AboutScreen                from '../screens/profile/AboutScreen';
 import FollowRequestsScreen       from '../screens/profile/FollowRequestsScreen';
 
 
@@ -161,7 +160,6 @@ function ProfileStackNav() {
       <ProfStack.Screen name="MutedStories" component={MutedStoriesScreen} />
       <ProfStack.Screen name="Terms"           component={TermsScreen} />
       <ProfStack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <ProfStack.Screen name="About"           component={AboutScreen} />
       <ProfStack.Screen name="HelpSupport"     component={HelpSupportScreen} />
       <ProfStack.Screen name="FollowRequests"  component={FollowRequestsScreen} />
       <ProfStack.Screen name="MyNetwork"       component={NetworkScreen} />
