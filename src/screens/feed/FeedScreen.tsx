@@ -1855,7 +1855,7 @@ if (!search && promos.length > 0) {
                   <View style={s.cToolbarLeft}>
                     <TouchableOpacity style={s.toolBtn} onPress={pickMedia}><Feather name="image" size={20} color={light.ink.muted} /></TouchableOpacity>
                     <TouchableOpacity style={s.toolBtn} onPress={openCamera}><Feather name="camera" size={20} color={light.ink.muted} /></TouchableOpacity>
-                    <TouchableOpacity style={[s.toolBtn, innovationPost && s.toolBtnActive]} onPress={() => setInnovationPost(p => !p)}><Feather name="zap" size={20} color={innovationPost ? '#D97706' : '#6B7280'} /></TouchableOpacity>
+                    <TouchableOpacity style={[s.toolBtn, innovationPost && s.toolBtnActive]} onPress={() => setInnovationPost(p => !p)}><Feather name="zap" size={20} color={innovationPost ? '#D97706' : '#6B7280'} /></TouchableOpacity>{innovationPost && <Text style={{ fontSize: 11, fontWeight: '700', color: '#D97706', alignSelf: 'center', marginRight: 6 }}>Innovation</Text>}
                     
                     <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)}><Feather name="tag" size={20} color={composerProducts.length > 0 ? light.brand.base : light.ink.muted} /></TouchableOpacity>{composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
