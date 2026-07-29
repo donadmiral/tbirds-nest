@@ -21,3 +21,21 @@ export async function getAdmin(): Promise<Admin | null> {
 }
 
 export const VERIFICATION_ROLES = new Set(['super_admin', 'platform_admin', 'verification_reviewer']);
+const ALL_DESKS = ['/dashboard', '/analytics', '/queue', '/reports', '/users', '/support', '/market', '/jobs', '/businesses', '/content', '/stories', '/audit', '/staff', '/system'];
+const ROLE_DESKS: Record<string, string[]> = {
+  super_admin: ALL_DESKS,
+  platform_admin: ALL_DESKS.filter(d => d !== '/staff'),
+  trust_safety: ['/dashboard', '/queue', '/reports', '/users', '/support', '/content', '/stories', '/audit'],
+  support_agent: ['/dashboard', '/support', '/users', '/audit'],
+  ops_engineer: ['/dashboard', '/system', '/analytics', '/audit'],
+  market_reviewer: ['/dashboard', '/market', '/businesses', '/reports', '/audit'],
+  jobs_reviewer: ['/dashboard', '/jobs', '/audit'],
+  verification_reviewer: ['/dashboard', '/queue', '/users', '/audit'],
+  finance_admin: ['/dashboard', '/audit'],
+  analyst: ['/dashboard', '/analytics', '/audit'],
+  auditor_readonly: ['/dashboard', '/analytics', '/audit'],
+};
+
+export function allowedDesks(role: string): Set<string> {
+  return new Set(ROLE_DESKS[role] ?? ['/dashboard']);
+}

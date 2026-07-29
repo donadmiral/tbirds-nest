@@ -386,3 +386,29 @@ export async function retireAnnouncement(formData: FormData) {
   });
   revalidatePath('/system');
 }
+
+export async function addBlockedWord(formData: FormData) {
+  const admin = await requireReviewer();
+  const word = String(formData.get('word') || '').trim().toLowerCase();
+  if (!word || word.length < 2) redirect('/system');
+  const svc = serviceClient();
+  await svc.from('blocked_words').upsert({ word, added_by: admin.id }, { onConflict: 'word', ignoreDuplicates: true });
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'system.block_word', target_kind: 'blocked_word', target_id: word,
+    reason: 'Word added to the blocklist', before: {}, after: { word },
+  });
+  revalidatePath('/system');
+}
+
+export async function removeBlockedWord(formData: FormData) {
+  const admin = await requireReviewer();
+  const word = String(formData.get('word') || '');
+  if (!word) redirect('/system');
+  const svc = serviceClient();
+  await svc.from('blocked_words').delete().eq('word', word);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'system.unblock_word', target_kind: 'blocked_word', target_id: word,
+    reason: 'Word removed from the blocklist', before: { word }, after: {},
+  });
+  revalidatePath('/system');
+}

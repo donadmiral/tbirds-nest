@@ -14,9 +14,23 @@ export default async function QueuePage() {
   if (!admin) redirect('/');
   if (!VERIFICATION_ROLES.has(admin.role)) redirect('/');
   const svc = serviceClient();
-  const { data: apps } = await svc.from('verification_applications')
+  const { data: appsRaw } = await svc.from('verification_applications')
     .select('*').in('status', ['submitted', 'under_review'])
     .order('created_at', { ascending: true });
+  const refByApp: Record<string, any[]> = {};
+  const refNames: Record<string, any> = {};
+  if ((appsRaw ?? []).length) {
+    const { data: refs } = await svc.from('verification_referrals')
+      .select('application_id, referrer_id, note').in('application_id', (appsRaw ?? []).map(a => a.id));
+    (refs ?? []).forEach(r => { (refByApp[r.application_id] = refByApp[r.application_id] || []).push(r); });
+    const rids = Array.from(new Set((refs ?? []).map(r => r.referrer_id)));
+    if (rids.length) {
+      const { data: rp } = await svc.from('profiles').select('id, full_name, username').in('id', rids);
+      (rp ?? []).forEach(p => { refNames[p.id] = p; });
+    }
+  }
+  const apps = (appsRaw ?? []).slice().sort((a, b) =>
+    ((refByApp[b.id]?.length || 0) - (refByApp[a.id]?.length || 0)) || a.created_at.localeCompare(b.created_at));
   const ids = Array.from(new Set((apps ?? []).map(a => a.applicant_id)));
   const profiles: Record<string, any> = {};
   if (ids.length) {
@@ -72,6 +86,12 @@ export default async function QueuePage() {
                   </ul>
                 ) : null}
               </div>
+              {(refByApp[app.id] || []).length ? (
+                <div className="mt-3 rounded-xl border border-[#DCEFE0] bg-[#F2F9F3] p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-[#1D7A38]">Vouched by {(refByApp[app.id] || []).length} verified member{(refByApp[app.id] || []).length === 1 ? '' : 's'}</p>
+                  <p className="mt-1 text-xs text-[#1D7A38]">{(refByApp[app.id] || []).map((r: any) => (refNames[r.referrer_id]?.full_name || '@' + (refNames[r.referrer_id]?.username || '?'))).join(', ')}</p>
+                </div>
+              ) : null}
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <form action={approveApplication}>
                   <input type="hidden" name="id" value={app.id} />

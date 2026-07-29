@@ -6,6 +6,7 @@
 import Link from 'next/link';
 import { signOut } from '@/lib/actions';
 import { serviceClient } from '@/lib/supabaseAdmin';
+import { allowedDesks } from '@/lib/adminAuth';
 
 const GROUPS: { label: string; items: { href: string; label: string; icon: string }[] }[] = [
   { label: 'Platform', items: [
@@ -47,6 +48,8 @@ export default async function Shell({ admin, active, title, sub, children }: {
     svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
   ]);
   const alerts = (apps.count || 0) + (p1.count || 0) + (p2.count || 0) + (p3.count || 0) + (tk.count || 0);
+  const allow = allowedDesks(admin.role);
+  const groups = GROUPS.map(g => ({ ...g, items: g.items.filter(d => allow.has(d.href)) })).filter(g => g.items.length > 0);
   const initial = (admin.email || '?').slice(0, 1).toUpperCase();
   return (
     <div className="flex min-h-screen bg-[#F4F5F7] text-[#17181C]">
@@ -59,7 +62,7 @@ export default async function Shell({ admin, active, title, sub, children }: {
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-3">
-          {GROUPS.map(g => (
+          {groups.map(g => (
             <div key={g.label} className="mb-4">
               <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/30">{g.label}</p>
               {g.items.map(d => {
