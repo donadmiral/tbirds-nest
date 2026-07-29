@@ -1,3 +1,4 @@
+import { flagsService } from '../../services/flagsService';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import SendMoneySheet from '../../components/SendMoneySheet';
 /**
@@ -1214,6 +1215,10 @@ const pickAndSendDocument = useCallback(async () => {
   }, [editingMsg, editText, currentUserId, fetchMessages]);
 
   const startCall = useCallback(async (isVideo = false) => {
+    if (!(await flagsService.isEnabled('calls'))) {
+      Alert.alert('Calls unavailable', 'Calling is temporarily switched off by Platinum Circles operations.');
+      return;
+    }
     if (!currentUserId) return;
     if (startingCallRef.current) return; // double-tap made twin sessions 3ms apart
     startingCallRef.current = true;

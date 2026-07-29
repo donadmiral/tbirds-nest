@@ -16,6 +16,7 @@ import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { storiesService, CatchupUser } from '../../services/storiesService';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
+import { flagsService } from '../../services/flagsService';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -218,6 +219,9 @@ function SkeletonBubble({ index, showPlus }: { index: number; showPlus: boolean 
 }
 
 function StoryStrip({ mode = 'all' }: Props) {
+  const [flagOff, setFlagOff] = useState(false);
+  useEffect(() => { flagsService.isEnabled('stories').then(on => setFlagOff(!on)).catch(() => {}); }, []);
+  if (flagOff) return null;
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;

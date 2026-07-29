@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { flagsService } from './flagsService';
 
 export type ListingCurrency = 'USD' | 'ZWG';
 export type ListingStatus = 'available' | 'sold' | 'removed';
@@ -155,6 +156,9 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
     location_city: string;
     images: string[];
   }): Promise<Listing> {
+    if (!(await flagsService.isEnabled('market'))) {
+      throw new Error('The market is temporarily switched off by Platinum Circles operations.');
+    }
     const { data, error } = await supabase
       .from('marketplace_listings')
       .insert({
@@ -170,7 +174,12 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
       })
       .select('*')
       .single();
-    if (error) throw error;
+    if (error) {
+      if (String(error.message || '').toLowerCase().includes('row-level security')) {
+        throw new Error('Your account cannot create listings right now. Business accounts unlock selling with the space-grey verification badge; a recent restriction lifts automatically when it expires.');
+      }
+      throw error;
+    }
     return data as any;
   },
 

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { flagsService } from './flagsService';
 import { authorId as currentAuthorId } from '../stores/actorStore';
 
 /**
@@ -211,6 +212,9 @@ export const jobsService = {
 
   async createJob(userId: string, input: CreateJobInput): Promise<Job> {
     if (!userId) throw new Error('userId is required');
+    if (!(await flagsService.isEnabled('jobs'))) {
+      throw new Error('Job posting is temporarily switched off by Platinum Circles operations.');
+    }
     const { data, error } = await supabase
       .from('jobs')
       .insert({

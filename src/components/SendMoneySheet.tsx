@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { paymentsService } from '../services/paymentsService';
+import { flagsService } from '../services/flagsService';
 
 const NAVY = '#0B1E3D';
 const GREEN = '#2F9E63';
@@ -43,6 +44,12 @@ export default function SendMoneySheet({
 
   useEffect(() => {
     if (!visible) return;
+    flagsService.isEnabled('payments').then(on => {
+      if (!on) {
+        Alert.alert('Payments unavailable', 'In-chat payments are temporarily switched off by Platinum Circles operations.');
+        onClose();
+      }
+    }).catch(() => {});
     setChecking(true); setEmail(''); setOtp(''); setOtpSent(false);
     setRaw(initialAmount && initialAmount > 0 ? String(initialAmount) : '0');
     idemKeyRef.current =
