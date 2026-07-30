@@ -10,8 +10,8 @@ import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
-  Alert, ActivityIndicator, StatusBar, Linking, Modal, ScrollView,
-, TextInput } from 'react-native';
+  Alert, ActivityIndicator, StatusBar, Linking, Modal, ScrollView, TextInput,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
