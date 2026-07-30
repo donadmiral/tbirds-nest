@@ -20,6 +20,9 @@ export default async function BusinessesPage() {
     const { data } = await svc.from('profiles').select('id, full_name, username').in('id', aids);
     (data ?? []).forEach(p => { applicants[p.id] = p; });
   }
+  const { data: decidedApps } = await svc.from('business_applications')
+    .select('id, company_name, desired_username, status, decision_reason, decided_at')
+    .neq('status', 'submitted').order('decided_at', { ascending: false }).limit(5);
   const { data: bizs } = await svc.from('profiles')
     .select('id, full_name, username, avatar_url, is_verified, verified_tier, created_at, deactivated_at')
     .eq('account_type', 'business')
@@ -70,6 +73,21 @@ export default async function BusinessesPage() {
               </div>
             );
           })}
+        </div>
+      ) : null}
+      {(decidedApps ?? []).length ? (
+        <div className="mb-6">
+          <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Recent decisions</p>
+          {(decidedApps ?? []).map(a => (
+            <div key={a.id} className="mb-2 rounded-[12px] border border-[#E5E4E0] bg-white p-4">
+              <div className="flex items-center gap-2">
+                <p className="min-w-0 flex-1 truncate text-[13px] font-semibold">{a.company_name} <span className="font-normal text-[#9A9DA4]">@{a.desired_username}</span></p>
+                <span className={a.status === 'approved' ? 'rounded-full bg-[#EBF3EE] px-2 py-0.5 text-[10.5px] font-bold text-[#1D7A38]' : 'rounded-full bg-[#FBF2F2] px-2 py-0.5 text-[10.5px] font-bold text-[#B03A3A]'}>{a.status === 'approved' ? 'Approved' : 'Declined'}</span>
+                <p className="shrink-0 text-[11px] tabular-nums text-[#9A9DA4]">{a.decided_at ? new Date(a.decided_at).toLocaleString() : ''}</p>
+              </div>
+              {a.decision_reason ? <p className="mt-2 whitespace-pre-wrap rounded-[8px] bg-[#F8F8F7] p-2.5 text-[12px] text-[#43454B]">{a.decision_reason}</p> : null}
+            </div>
+          ))}
         </div>
       ) : null}
       <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Registered businesses</p>
