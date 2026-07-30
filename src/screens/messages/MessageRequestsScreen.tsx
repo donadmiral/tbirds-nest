@@ -1,3 +1,4 @@
+import TierName from '../../../../../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -153,7 +154,7 @@ export default function MessageRequestsScreen({ navigation }: any) {
           )}
           <View style={{ flex: 1, marginLeft: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[s.name, { flexShrink: 1 }]} numberOfLines={1}>{item.sender_name || 'User'}</Text>
+              <TierName userId={(item as any).sender_id} baseStyle={[s.name, { flexShrink: 1 }]} text={item.sender_name || 'User'} />
               <VerifiedBadge userId={(item as any).sender_id} size={13} />
             </View>
             <View style={s.metaRow}>

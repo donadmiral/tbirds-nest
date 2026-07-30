@@ -1,3 +1,4 @@
+import TierName from '../../../../../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * BusinessesScreen
@@ -100,7 +101,7 @@ export default function BusinessesScreen({ navigation }: any) {
               )}
               <View style={s.rowText}>
                 <View style={s.nameRow}>
-                  <Text style={s.name} numberOfLines={1}>{item.full_name || 'Business'}</Text>
+                  <TierName userId={item.id} baseStyle={s.name} text={item.full_name || 'Business'} />
                   <VerifiedBadge userId={item.id} size={13} />
                 </View>
                 <Text style={s.meta} numberOfLines={1}>

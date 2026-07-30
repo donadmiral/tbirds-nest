@@ -1,3 +1,4 @@
+import TierName from '../../../../../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * JobDetailScreen — Handshake-structure job page.
@@ -211,7 +212,7 @@ export default function JobDetailScreen() {
             : <View style={[st.posterAv, st.posterAvFb]}><Text style={st.posterAvTxt}>{String(job.profile?.full_name || '?').slice(0, 1).toUpperCase()}</Text></View>}
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[st.posterName, { flexShrink: 1 }]}>{job.profile?.full_name || 'Poster'}</Text>
+              <TierName userId={job.posted_by} baseStyle={[st.posterName, { flexShrink: 1 }]} text={job.profile?.full_name || 'Poster'} />
               <VerifiedBadge userId={job.posted_by} size={14} />
             </View>
             <Text style={st.posterSub}>Posted this role · View profile</Text>

@@ -1,3 +1,4 @@
+import TierName from '../../../../../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import SellerTrust from '../../components/market/SellerTrust';
 import ReportListingSheet from '../../components/market/ReportListingSheet';
@@ -247,7 +248,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             <Avatar name={listing.seller?.full_name || 'Seller'} url={listing.seller?.avatar_url} size={44} />
             <View style={{ flex: 1, marginLeft: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={s.sellerName}>{listing.seller?.full_name || 'Seller'}</Text>
+                <TierName userId={(listing as any).seller?.id ?? (listing as any).seller_id} baseStyle={s.sellerName} text={listing.seller?.full_name || 'Seller'} />
                 <VerifiedBadge userId={(listing as any).seller?.id ?? (listing as any).seller_id} size={15} />
               </View>
               {listing.seller?.username ? <Text style={s.sellerHandle}>@{listing.seller.username}</Text> : null}

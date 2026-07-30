@@ -1,3 +1,4 @@
+import TierName from '../../../../../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * GroupManagementScreen.tsx
@@ -611,7 +612,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
                       </View>}
                   <View style={s.memberInfo}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={[s.memberName, { flexShrink: 1 }]}>{u.full_name || u.username}</Text>
+                      <TierName userId={u.id} baseStyle={[s.memberName, { flexShrink: 1 }]} text={u.full_name || u.username} />
                       <VerifiedBadge userId={u.id} size={12} />
                     </View>
                     {u.username && <Text style={s.memberHandle}>@{u.username}</Text>}

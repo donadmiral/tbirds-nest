@@ -1,3 +1,4 @@
+import TierName from '../../../../../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * ApplicantsScreen — the poster's side of a job.
@@ -138,7 +139,7 @@ export default function ApplicantsScreen() {
             : <View style={[st.av, st.avFb]}><Text style={st.avTxt}>{String(a.full_name || '?').slice(0, 1).toUpperCase()}</Text></View>}
           <View style={{ flex: 1, minWidth: 0 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[st.name, { flexShrink: 1 }]} numberOfLines={1}>{a.full_name || 'Applicant'}</Text>
+              <TierName userId={(a as any).id} baseStyle={[st.name, { flexShrink: 1 }]} text={a.full_name || 'Applicant'} />
               <VerifiedBadge userId={(a as any).id} size={13} />
             </View>
             <Text style={st.sub} numberOfLines={1}>{a.username ? '@' + a.username + ' · ' : ''}applied {relTime(item.applied_at)}</Text>
