@@ -1,4 +1,4 @@
-import TierName from '../../../../../../components/TierName';
+import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * ApplicantsScreen — the poster's side of a job.

@@ -1,4 +1,4 @@
-import TierName from '../../../../../../components/TierName';
+import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * BusinessesScreen
