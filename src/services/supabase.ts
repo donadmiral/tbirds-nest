@@ -12,6 +12,25 @@ if (!url || !anonKey) {
   );
 }
 
+/**
+ * Dev error lens: every non-ok database response prints itself in the
+ * Metro terminal - table, verb, status and the database's own words -
+ * so no swallowed error stays invisible while testing. Production
+ * builds use plain fetch. 406 (maybeSingle finding no row) and 401
+ * (auth refresh churn) are normal and excluded.
+ */
+const devFetch: typeof fetch = async (input: any, init?: any) => {
+  const res = await fetch(input, init);
+  if (__DEV__ && !res.ok && res.status !== 406 && res.status !== 401) {
+    try {
+      const body = await res.clone().text();
+      const u = String(input?.url ?? input);
+      const path = u.split('/rest/v1/')[1]?.split('?')[0] ?? u.split('/functions/v1/')[1] ?? u;
+      console.warn('[db ' + res.status + '] ' + ((init?.method) || 'GET') + ' ' + path + ' -> ' + body.slice(0, 220));
+    } catch {}
+  }
+  return res;
+};
 export const supabase = createClient(url, anonKey, {
   auth: {
     storage: Platform.OS === 'web' ? undefined : AsyncStorage,
@@ -21,6 +40,7 @@ export const supabase = createClient(url, anonKey, {
     lock: processLock,
   },
   global: {
+    fetch: devFetch,
     headers: {
       'x-client-info': 'PlatinumCircles-nest-mobile',
     },
