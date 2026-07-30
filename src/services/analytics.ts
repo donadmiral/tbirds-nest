@@ -60,6 +60,7 @@ export function trackScreen(name: string, props: Props = {}) {
  * want non-fatal errors visible.
  */
 export function trackError(err: unknown, context: Props = {}) {
+  __shipError(err, context, false);
   const message = err instanceof Error ? err.message : String(err);
   const stack = err instanceof Error ? err.stack : undefined;
   safeLog('error', message, context, stack);
@@ -77,3 +78,37 @@ export function currentUser() {
 // analytics.track('foo')
 const analytics = { identify, track, trackScreen, trackError, currentUser };
 export default analytics;
+/**
+ * Durable crash shipping: every tracked or uncaught error writes itself
+ * to client_errors. Fire and forget, never throws, lazy-requires the
+ * client to avoid import cycles. The global handler nets crashes that
+ * never reach a boundary.
+ */
+function __shipError(err: unknown, context: Props, fatal: boolean) {
+  try {
+    const e = err instanceof Error ? err : new Error(String(err));
+    const { supabase } = require('./supabase');
+    const Platform = require('react-native').Platform;
+    let ver: string | null = null;
+    try { ver = require('expo-constants').default?.expoConfig?.version ?? null; } catch {}
+    supabase.from('client_errors').insert({
+      user_id: currentUser(),
+      message: String(e.message || 'unknown').slice(0, 500),
+      stack: String(e.stack || '').slice(0, 4000),
+      context: { ...context, fatal },
+      platform: Platform.OS,
+      app_version: ver,
+    }).then(() => {}, () => {});
+  } catch {}
+}
+
+try {
+  const EU: any = (global as any).ErrorUtils;
+  if (EU && EU.getGlobalHandler) {
+    const prev = EU.getGlobalHandler();
+    EU.setGlobalHandler((e: any, isFatal?: boolean) => {
+      __shipError(e, { source: 'global' }, !!isFatal);
+      if (prev) prev(e, isFatal);
+    });
+  }
+} catch {}
