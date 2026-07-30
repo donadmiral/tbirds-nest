@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FBFBFA"/><stop offset="1" stop-color="#EEF0EE"/>
+</linearGradient>
+<radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#0B1E3D" stop-opacity="0.16"/><stop offset="1" stop-color="#0B1E3D" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="654" rx="190" ry="24" fill="url(#sh)"/><path d="M258,300 L542,300 L562,632 L238,632 Z" fill="#2A2F39"/><path d="M258,300 L542,300 L536,352 L264,352 Z" fill="#1C2029"/><rect x="292" y="222" width="216" height="120" rx="12" fill="#101319" transform="rotate(-6 400 282)"/><rect x="304" y="234" width="192" height="96" rx="8" fill="#15A66A" opacity="0.92" transform="rotate(-6 400 282)"/><text x="400" y="290" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#FFFFFF" text-anchor="middle" transform="rotate(-6 400 282)">$ 0.00</text><rect x="318" y="392" width="46" height="38" rx="7" fill="#3A414E"/><rect x="380" y="392" width="46" height="38" rx="7" fill="#3A414E"/><rect x="442" y="392" width="46" height="38" rx="7" fill="#3A414E"/><rect x="318" y="446" width="46" height="38" rx="7" fill="#3A414E"/><rect x="380" y="446" width="46" height="38" rx="7" fill="#3A414E"/><rect x="442" y="446" width="46" height="38" rx="7" fill="#3A414E"/><rect x="318" y="500" width="46" height="38" rx="7" fill="#3A414E"/><rect x="380" y="500" width="46" height="38" rx="7" fill="#3A414E"/><rect x="442" y="500" width="46" height="38" rx="7" fill="#3A414E"/><rect x="318" y="554" width="46" height="38" rx="7" fill="#3A414E"/><rect x="380" y="554" width="46" height="38" rx="7" fill="#3A414E"/><rect x="442" y="554" width="46" height="38" rx="7" fill="#3A414E"/><rect x="238" y="596" width="324" height="14" rx="7" fill="#12151B"/><rect x="486" y="410" width="14" height="86" rx="6" fill="#0E7A4F"/><circle cx="301.6" cy="620" r="8.32" fill="none" stroke="#FFFFFF" stroke-width="2.56"/><path d="M288.48,620 L302.56,620" stroke="#FFFFFF" stroke-width="2.56" stroke-linecap="round"/><path d="M298.4,615.84 L303.2,620 L298.4,624.16" fill="none" stroke="#FFFFFF" stroke-width="2.56" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

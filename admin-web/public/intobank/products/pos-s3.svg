@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FBFBFA"/><stop offset="1" stop-color="#EEF0EE"/>
+</linearGradient>
+<radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#0B1E3D" stop-opacity="0.16"/><stop offset="1" stop-color="#0B1E3D" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="660" rx="176" ry="22" fill="url(#sh)"/><rect x="238" y="150" width="324" height="452" rx="26" fill="#1B1F27"/><rect x="258" y="172" width="284" height="368" rx="12" fill="#0B0E12"/><rect x="270" y="184" width="260" height="344" rx="8" fill="#FFFFFF"/><rect x="270" y="184" width="260" height="76" rx="8" fill="#0E7A4F"/><circle cx="311.8" cy="222" r="9.36" fill="none" stroke="#FFFFFF" stroke-width="2.88"/><path d="M297.04,222 L312.88,222" stroke="#FFFFFF" stroke-width="2.88" stroke-linecap="round"/><path d="M308.2,217.32 L313.6,222 L308.2,226.68" fill="none" stroke="#FFFFFF" stroke-width="2.88" stroke-linecap="round" stroke-linejoin="round"/><text x="404" y="230" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">IntoBank Pay</text><rect x="292" y="286" width="216" height="40" rx="8" fill="#EFF2EF"/><rect x="304" y="298" width="120" height="14" rx="7" fill="#15A66A" opacity="0.75"/><rect x="292" y="340" width="216" height="40" rx="8" fill="#EFF2EF"/><rect x="304" y="352" width="102" height="14" rx="7" fill="#15A66A" opacity="0.75"/><rect x="292" y="394" width="216" height="40" rx="8" fill="#EFF2EF"/><rect x="304" y="406" width="84" height="14" rx="7" fill="#15A66A" opacity="0.75"/><rect x="292" y="448" width="216" height="40" rx="8" fill="#EFF2EF"/><rect x="304" y="460" width="66" height="14" rx="7" fill="#15A66A" opacity="0.75"/><rect x="330" y="556" width="140" height="12" rx="6" fill="#2C323D"/><rect x="238" y="602" width="324" height="26" rx="10" fill="#141820"/>
+</svg>

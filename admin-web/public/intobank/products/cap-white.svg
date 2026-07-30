@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FBFBFA"/><stop offset="1" stop-color="#F5F6F4"/>
+</linearGradient>
+<radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#0B1E3D" stop-opacity="0.16"/><stop offset="1" stop-color="#0B1E3D" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="560" rx="190" ry="22" fill="url(#sh)"/><path d="M232,452 Q232,244 420,244 Q608,244 608,452 Z" fill="#FFFFFF" stroke="#D8DCD8" stroke-width="3"/><path d="M420,244 Q400,346 420,452" fill="none" stroke="#D8DCD8" stroke-width="2.5" opacity="0.55"/><path d="M420,244 Q520,346 520,452" fill="none" stroke="#D8DCD8" stroke-width="2.5" opacity="0.4"/><path d="M420,244 Q320,346 320,452" fill="none" stroke="#D8DCD8" stroke-width="2.5" opacity="0.4"/><circle cx="420" cy="248" r="12" fill="#D8DCD8"/><path d="M600,448 C700,442 762,466 764,492 C765,512 726,520 682,516 C634,512 606,486 598,462 Z" fill="#D8DCD8"/><rect x="232" y="440" width="376" height="24" rx="10" fill="#D8DCD8" opacity="0.9"/><circle cx="332.4" cy="372" r="12.48" fill="none" stroke="#0E7A4F" stroke-width="3.84"/><path d="M312.72,372 L333.84,372" stroke="#0E7A4F" stroke-width="3.84" stroke-linecap="round"/><path d="M327.6,365.76 L334.8,372 L327.6,378.24" fill="none" stroke="#0E7A4F" stroke-width="3.84" stroke-linecap="round" stroke-linejoin="round"/><text x="430" y="382" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#0B1E3D" text-anchor="middle">IntoBank</text>
+</svg>

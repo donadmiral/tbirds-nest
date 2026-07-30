@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FBFBFA"/><stop offset="1" stop-color="#EDEFED"/>
+</linearGradient>
+<radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#0B1E3D" stop-opacity="0.16"/><stop offset="1" stop-color="#0B1E3D" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="716" rx="180" ry="20" fill="url(#sh)"/><path d="M348,470 L452,470 L470,690 L330,690 Z" fill="#3A4152"/><rect x="300" y="686" width="200" height="22" rx="8" fill="#2B3140"/><g transform="rotate(-9 400 300)"><rect x="236" y="132" width="328" height="356" rx="20" fill="#2F3546"/><rect x="258" y="154" width="284" height="270" rx="10" fill="#FFFFFF"/><rect x="258" y="154" width="284" height="66" rx="10" fill="#0E7A4F"/><circle cx="301.7" cy="187" r="8.84" fill="none" stroke="#FFFFFF" stroke-width="2.72"/><path d="M287.76,187 L302.72,187" stroke="#FFFFFF" stroke-width="2.72" stroke-linecap="round"/><path d="M298.3,182.58 L303.4,187 L298.3,191.42" fill="none" stroke="#FFFFFF" stroke-width="2.72" stroke-linecap="round" stroke-linejoin="round"/><text x="412" y="194" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">Pay a bill</text><rect x="280" y="244" width="240" height="44" rx="8" fill="#F0F3F0" stroke="#E1E5E1" stroke-width="2"/><rect x="294" y="258" width="150" height="14" rx="7" fill="#15A66A" opacity="0.7"/><rect x="280" y="302" width="240" height="44" rx="8" fill="#F0F3F0" stroke="#E1E5E1" stroke-width="2"/><rect x="294" y="316" width="120" height="14" rx="7" fill="#15A66A" opacity="0.7"/><rect x="280" y="360" width="240" height="44" rx="8" fill="#F0F3F0" stroke="#E1E5E1" stroke-width="2"/><rect x="294" y="374" width="90" height="14" rx="7" fill="#15A66A" opacity="0.7"/><rect x="258" y="436" width="284" height="34" rx="8" fill="#20262F"/></g>
+</svg>

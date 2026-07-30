@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FBFBFA"/><stop offset="1" stop-color="#EDEFED"/>
+</linearGradient>
+<radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#0B1E3D" stop-opacity="0.16"/><stop offset="1" stop-color="#0B1E3D" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="700" rx="196" ry="22" fill="url(#sh)"/><rect x="248" y="140" width="304" height="548" rx="20" fill="#333A4C"/><rect x="248" y="140" width="304" height="80" rx="20" fill="#0A5C3B"/><circle cx="322.1" cy="180" r="10.92" fill="none" stroke="#FFFFFF" stroke-width="3.36"/><path d="M304.88,180 L323.36,180" stroke="#FFFFFF" stroke-width="3.36" stroke-linecap="round"/><path d="M317.9,174.54 L324.2,180 L317.9,185.46" fill="none" stroke="#FFFFFF" stroke-width="3.36" stroke-linecap="round" stroke-linejoin="round"/><text x="432" y="190" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">Deposit</text><rect x="274" y="244" width="252" height="150" rx="10" fill="#0D1015"/><text x="400" y="326" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">Insert notes</text><rect x="274" y="424" width="252" height="42" rx="8" fill="#12151B"/><rect x="286" y="436" width="228" height="18" rx="9" fill="#15A66A" opacity="0.85"/><rect x="302" y="500" width="52" height="28" rx="6" fill="#4A5266"/><rect x="368" y="500" width="52" height="28" rx="6" fill="#4A5266"/><rect x="434" y="500" width="52" height="28" rx="6" fill="#4A5266"/><rect x="302" y="540" width="52" height="28" rx="6" fill="#4A5266"/><rect x="368" y="540" width="52" height="28" rx="6" fill="#4A5266"/><rect x="434" y="540" width="52" height="28" rx="6" fill="#4A5266"/><rect x="302" y="580" width="52" height="28" rx="6" fill="#4A5266"/><rect x="368" y="580" width="52" height="28" rx="6" fill="#4A5266"/><rect x="434" y="580" width="52" height="28" rx="6" fill="#4A5266"/><rect x="274" y="632" width="180" height="16" rx="8" fill="#12151B"/>
+</svg>

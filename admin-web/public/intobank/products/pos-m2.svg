@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FBFBFA"/><stop offset="1" stop-color="#EEF0EE"/>
+</linearGradient>
+<radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#0B1E3D" stop-opacity="0.16"/><stop offset="1" stop-color="#0B1E3D" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="662" rx="130" ry="20" fill="url(#sh)"/><rect x="292" y="176" width="216" height="472" rx="30" fill="#232833"/><rect x="312" y="200" width="176" height="180" rx="10" fill="#0E1116"/><rect x="322" y="210" width="156" height="160" rx="6" fill="#0E7A4F" opacity="0.9"/><text x="400" y="300" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">TAP</text><rect x="322" y="400" width="42" height="36" rx="7" fill="#39404D"/><rect x="376" y="400" width="42" height="36" rx="7" fill="#39404D"/><rect x="430" y="400" width="42" height="36" rx="7" fill="#39404D"/><rect x="322" y="452" width="42" height="36" rx="7" fill="#39404D"/><rect x="376" y="452" width="42" height="36" rx="7" fill="#39404D"/><rect x="430" y="452" width="42" height="36" rx="7" fill="#39404D"/><rect x="322" y="504" width="42" height="36" rx="7" fill="#39404D"/><rect x="376" y="504" width="42" height="36" rx="7" fill="#39404D"/><rect x="430" y="504" width="42" height="36" rx="7" fill="#39404D"/><rect x="322" y="556" width="42" height="36" rx="7" fill="#39404D"/><rect x="376" y="556" width="42" height="36" rx="7" fill="#39404D"/><rect x="430" y="556" width="42" height="36" rx="7" fill="#39404D"/><rect x="356" y="620" width="88" height="10" rx="5" fill="#12151B"/><circle cx="401.4" cy="604" r="7.28" fill="none" stroke="#FFFFFF" stroke-width="2.24"/><path d="M389.92,604 L402.24,604" stroke="#FFFFFF" stroke-width="2.24" stroke-linecap="round"/><path d="M398.6,600.36 L402.8,604 L398.6,607.64" fill="none" stroke="#FFFFFF" stroke-width="2.24" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

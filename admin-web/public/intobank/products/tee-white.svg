@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FBFBFA"/><stop offset="1" stop-color="#F5F6F4"/>
+</linearGradient>
+<radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#0B1E3D" stop-opacity="0.16"/><stop offset="1" stop-color="#0B1E3D" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="640" rx="210" ry="26" fill="url(#sh)"/><path d="M332,208 L262,252 L226,352 L292,382 L292,596 Q400,620 508,596 L508,382 L574,352 L538,252 L468,208 Q400,254 332,208 Z" fill="#FFFFFF" stroke="#D8DCD8" stroke-width="3"/><path d="M348,212 Q400,272 452,212" fill="none" stroke="#D8DCD8" stroke-width="7"/><path d="M292,596 Q400,620 508,596" fill="none" stroke="#D8DCD8" stroke-width="3" opacity="0.6"/><circle cx="354.6" cy="400" r="13.52" fill="none" stroke="#0E7A4F" stroke-width="4.16"/><path d="M333.28,400 L356.16,400" stroke="#0E7A4F" stroke-width="4.16" stroke-linecap="round"/><path d="M349.4,393.24 L357.2,400 L349.4,406.76" fill="none" stroke="#0E7A4F" stroke-width="4.16" stroke-linecap="round" stroke-linejoin="round"/><text x="430" y="410" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#0E7A4F" text-anchor="middle">IntoBank</text>
+</svg>
