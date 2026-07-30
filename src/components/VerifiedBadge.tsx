@@ -71,3 +71,38 @@ export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier
     </Svg>
   );
 }
+/**
+ * Tier identity system - the seal's color extends to the name.
+ * TIER_COLORS is the single source; getTierColor maps any tier value;
+ * useVerifiedTier looks a user's tier up with its own tiny cache for
+ * surfaces that only hold a userId.
+ */
+export const TIER_COLORS: Record<string, string> = {
+  public_figure: '#1D7A38',
+  business: '#5B6470',
+  official: '#B08D3F',
+};
+
+export function getTierColor(tier?: string | null): string | null {
+  if (!tier) return null;
+  return TIER_COLORS[tier] ?? null;
+}
+
+const nameTierCache: Record<string, string | null> = {};
+
+export function useVerifiedTier(userId?: string | null): string | null {
+  const [tier, setTier] = React.useState<string | null>(userId ? (nameTierCache[userId] ?? null) : null);
+  React.useEffect(() => {
+    let alive = true;
+    if (!userId) { setTier(null); return; }
+    if (userId in nameTierCache) { setTier(nameTierCache[userId]); return; }
+    supabase.from('profiles').select('verified_tier, is_verified').eq('id', userId).maybeSingle()
+      .then(({ data }) => {
+        const t = data ? (data.verified_tier ?? (data.is_verified ? 'business' : null)) : null;
+        nameTierCache[userId] = t;
+        if (alive) setTier(t);
+      });
+    return () => { alive = false; };
+  }, [userId]);
+  return tier;
+}

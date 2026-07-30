@@ -1,3 +1,4 @@
+import { getTierColor } from './VerifiedBadge';
 import VerifiedBadge from './VerifiedBadge';
 /**
  * ProfileHeader
@@ -165,7 +166,7 @@ export default function ProfileHeader({
         </View>
 
         <View style={s.nameRow}>
-          <Text style={s.name} numberOfLines={1}>{profile?.full_name || 'Your Name'}</Text>
+          <Text style={[s.name, getTierColor((profile as any)?.verified_tier ?? ((profile as any)?.is_verified ? 'business' : null)) ? { color: getTierColor((profile as any)?.verified_tier ?? ((profile as any)?.is_verified ? 'business' : null)) as string } : null]} numberOfLines={1}>{profile?.full_name || 'Your Name'}</Text>
           {(profile?.verified_tier || profile?.is_verified) ? <VerifiedBadge tier={profile?.verified_tier} size={17} /> : null}
         </View>
         {profile?.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
