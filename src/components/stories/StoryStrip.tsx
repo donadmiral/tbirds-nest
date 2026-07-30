@@ -1,3 +1,4 @@
+import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -380,9 +381,7 @@ function StoryStrip({ mode = 'all' }: Props) {
           <AvatarContent avatarUrl={user.avatar_url} name={user.full_name} />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={[s.nameTxt, user.has_unseen && s.nameTxtUnseen, { flexShrink: 1 }]} numberOfLines={1}>
-            {user.full_name?.split(' ')[0] || 'User'}
-          </Text>
+          <TierName userId={(user as any).user_id ?? (user as any).id} baseStyle={[s.nameTxt, user.has_unseen && s.nameTxtUnseen, { flexShrink: 1 }]} text={user.full_name?.split(' ')[0] || 'User'} />
           <VerifiedBadge userId={(user as any).user_id ?? (user as any).id} size={11} />
         </View>
       </TouchableOpacity>

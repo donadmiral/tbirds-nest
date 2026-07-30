@@ -1,3 +1,4 @@
+import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
 /**
  * SellerTrust - account age, completed deals, rating and verification.
@@ -56,7 +57,7 @@ export default function SellerTrust({ sellerId }: { sellerId: string }) {
       {d.verified && (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <VerifiedBadge userId={sellerId} size={13} />
-          <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0B1E3D', marginLeft: 2 }}>Verified</Text>
+          <TierName userId={sellerId} baseStyle={{ fontSize: 11.5, fontWeight: '700', color: '#0B1E3D', marginLeft: 2 }} text={'Verified'} />
         </View>
       )}
       {!!age && <Pill icon="calendar" text={age} />}

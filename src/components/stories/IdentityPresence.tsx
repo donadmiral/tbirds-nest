@@ -1,3 +1,4 @@
+import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
 /**
  * IdentityPresence.tsx
@@ -74,9 +75,7 @@ const IdentityPresence = React.memo(function IdentityPresence({
           </View>
           <View style={s.nameContext}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[s.name, { flexShrink: 1 }]} numberOfLines={1}>
-                {isOwn ? 'Your moment' : (user?.full_name || 'Someone')}
-              </Text>
+              <TierName userId={(user as any)?.id} baseStyle={[s.name, { flexShrink: 1 }]} text={isOwn ? 'Your moment' : (user?.full_name || 'Someone')} />
               <VerifiedBadge userId={(user as any)?.id} size={13} />
             </View>
             <View style={s.contextRow}>
