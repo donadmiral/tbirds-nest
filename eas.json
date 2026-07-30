@@ -1,32 +1,49 @@
-{
-  "cli": {
-    "version": ">= 16.20.0",
-    "appVersionSource": "remote"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "ios": {
-        "simulator": false
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "channel": "preview",
-      "autoIncrement": true,
-      "android": {
-        "buildType": "apk"
-      },
-      "ios": {
-        "simulator": false
-      }
-    },
-    "production": {
-      "autoIncrement": true
-    }
-  },
-  "submit": {
-    "production": {}
-  }
+﻿{
+    "cli":  {
+                "version":  "\u003e= 16.20.0",
+                "appVersionSource":  "remote"
+            },
+    "build":  {
+                  "development":  {
+                                      "developmentClient":  true,
+                                      "distribution":  "internal",
+                                      "ios":  {
+                                                  "simulator":  false
+                                              },
+                                      "env":  {
+                                                  "EXPO_PUBLIC_SUPABASE_URL":  "https://prlkikhckbifseosbukl.supabase.co",
+                                                  "EXPO_PUBLIC_GIPHY_KEY":  "MAYNBbpB0b8EeHkS2oJlx964x3EqcE7u",
+                                                  "EXPO_PUBLIC_SUPABASE_ANON_KEY":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBybGtpa2hja2JpZnNlb3NidWtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3OTU1MDksImV4cCI6MjA5MTM3MTUwOX0.ovHAQTjR7REdbHZSBO3CpIhEdGrXmAIG1xbOCl_rWZ4"
+                                              }
+                                  },
+                  "preview":  {
+                                  "distribution":  "internal",
+                                  "channel":  "preview",
+                                  "autoIncrement":  true,
+                                  "android":  {
+                                                  "buildType":  "apk"
+                                              },
+                                  "ios":  {
+                                              "simulator":  false
+                                          },
+                                  "env":  {
+                                              "EXPO_PUBLIC_SUPABASE_URL":  "https://prlkikhckbifseosbukl.supabase.co",
+                                              "EXPO_PUBLIC_GIPHY_KEY":  "MAYNBbpB0b8EeHkS2oJlx964x3EqcE7u",
+                                              "EXPO_PUBLIC_SUPABASE_ANON_KEY":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBybGtpa2hja2JpZnNlb3NidWtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3OTU1MDksImV4cCI6MjA5MTM3MTUwOX0.ovHAQTjR7REdbHZSBO3CpIhEdGrXmAIG1xbOCl_rWZ4"
+                                          }
+                              },
+                  "production":  {
+                                     "autoIncrement":  true,
+                                     "env":  {
+                                                 "EXPO_PUBLIC_SUPABASE_URL":  "https://prlkikhckbifseosbukl.supabase.co",
+                                                 "EXPO_PUBLIC_GIPHY_KEY":  "MAYNBbpB0b8EeHkS2oJlx964x3EqcE7u",
+                                                 "EXPO_PUBLIC_SUPABASE_ANON_KEY":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBybGtpa2hja2JpZnNlb3NidWtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3OTU1MDksImV4cCI6MjA5MTM3MTUwOX0.ovHAQTjR7REdbHZSBO3CpIhEdGrXmAIG1xbOCl_rWZ4"
+                                             }
+                                 }
+              },
+    "submit":  {
+                   "production":  {
+
+                                  }
+               }
 }
