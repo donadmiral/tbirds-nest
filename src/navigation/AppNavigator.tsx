@@ -505,6 +505,7 @@ export default function AppNavigator() {
             <>
               <RootStack.Screen name="Login"        component={LoginScreen} />
               <RootStack.Screen name="BusinessSignIn" component={BusinessSignInScreen} />
+              <RootStack.Screen name="BusinessApply" component={BusinessApplyScreen} />
               <RootStack.Screen name="SignUp"       component={SignUpScreen} />
               <RootStack.Screen name="VerifyEmail"  component={VerifyEmailScreen} />
               <RootStack.Screen name="AuthCallback" component={AuthCallbackScreen} />

@@ -73,6 +73,9 @@ export default function BusinessSignInScreen() {
             {busy ? <ActivityIndicator color={NAVY} size={16} /> : <Text style={s.submitTxt}>Enter as the business</Text>}
           </TouchableOpacity>
           <Text style={s.foot}>Every sign-in is recorded with the member and device. Access is revocable by the company at any moment.</Text>
+          <TouchableOpacity onPress={() => (navigation as any).navigate('BusinessApply')} activeOpacity={0.7} style={{ marginTop: 18, alignItems: 'center' }}>
+            <Text style={{ color: '#E8E2D6', fontSize: 13.5, fontWeight: '700' }}>New business? Apply for an account</Text>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

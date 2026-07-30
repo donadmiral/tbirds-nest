@@ -431,7 +431,7 @@ export async function approveBusinessApplication(formData: FormData) {
       p_name: app.company_name,
       p_username: app.desired_username,
       p_category: app.category || '',
-      p_owner_id: app.applicant_id,
+      p_owner_id: app.applicant_id ?? bizId,
     });
     if (fErr) throw fErr;
     await svc.from('profiles').update({

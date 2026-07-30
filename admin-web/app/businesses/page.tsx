@@ -50,7 +50,11 @@ export default async function BusinessesPage() {
                   <p>Phone: <span className="font-medium">{a.contact_phone || '-'}</span></p>
                   <p>Website: <span className="font-medium">{a.website || '-'}</span></p>
                   <p className="col-span-2">Registration: <span className="font-medium">{a.registration_info || '-'}</span></p>
-                  <p className="col-span-2">Applied by <a href={'/users/' + a.applicant_id} className="font-semibold text-[#0B1E3D] hover:underline">{p.full_name || '@' + (p.username || '?')}</a> - becomes the first owner</p>
+                  {a.applicant_id ? (
+                    <p className="col-span-2">Applied by <a href={'/users/' + a.applicant_id} className="font-semibold text-[#0B1E3D] hover:underline">{p.full_name || '@' + (p.username || '?')}</a></p>
+                  ) : (
+                    <p className="col-span-2">Public application - no personal account attached; the business will own itself</p>
+                  )}
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <form action={approveBusinessApplication}>
