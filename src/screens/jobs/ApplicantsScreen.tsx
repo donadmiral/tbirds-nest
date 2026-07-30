@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
   Alert, ActivityIndicator, StatusBar, Linking, Modal, ScrollView,
-} from 'react-native';
+, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -52,6 +52,8 @@ export default function ApplicantsScreen() {
   const [filter, setFilter] = useState<'all' | ApplicationStatus>('all');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sheetApp, setSheetApp] = useState<JobApplication | null>(null);
+  const [ivAt, setIvAt] = useState('');
+  const [ivLoc, setIvLoc] = useState('');
   const [sheetProfile, setSheetProfile] = useState<any>(null);
 
   const load = useCallback(async () => {
@@ -301,6 +303,27 @@ export default function ApplicantsScreen() {
                         <Text style={sh.bigBtnTxt} numberOfLines={1}>{(sheetApp as any).portfolio_url}</Text>
                       </TouchableOpacity>
                     ) : null}
+                  </View>
+
+                  <View style={{ borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.1)', borderRadius: 14, padding: 12, marginBottom: 14 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: 'rgba(11,30,61,0.45)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Interview</Text>
+                    {(sheetApp as any)?.interview_at ? (
+                      <Text style={{ fontSize: 12.5, color: '#1D7A38', fontWeight: '700', marginBottom: 8 }}>Scheduled {new Date((sheetApp as any).interview_at).toLocaleString()}{(sheetApp as any).interview_location ? ' - ' + (sheetApp as any).interview_location : ''}</Text>
+                    ) : null}
+                    <TextInput value={ivAt} onChangeText={setIvAt} placeholder="Date and time, e.g. 2026-08-04 14:00" placeholderTextColor="#9CA3AF" style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, color: '#0B1E3D', marginBottom: 8 }} />
+                    <TextInput value={ivLoc} onChangeText={setIvLoc} placeholder="Location or call link (optional)" placeholderTextColor="#9CA3AF" style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, color: '#0B1E3D', marginBottom: 8 }} />
+                    <TouchableOpacity style={{ backgroundColor: '#0B1E3D', borderRadius: 10, paddingVertical: 10, alignItems: 'center' }} activeOpacity={0.85}
+                      onPress={async () => {
+                        const d = new Date(ivAt.trim().replace(' ', 'T'));
+                        if (!ivAt.trim() || isNaN(d.getTime())) { Alert.alert('Date needed', 'Use a format like 2026-08-04 14:00'); return; }
+                        try {
+                          await jobsService.scheduleInterview(sheetApp!.id, d.toISOString(), ivLoc.trim() || null);
+                          setSheetApp({ ...(sheetApp as any), interview_at: d.toISOString(), interview_location: ivLoc.trim() || null });
+                          setIvAt(''); setIvLoc('');
+                        } catch (e: any) { Alert.alert('Could not schedule', e?.message || ''); }
+                      }}>
+                      <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '800' }}>{(sheetApp as any)?.interview_at ? 'Reschedule' : 'Schedule interview'}</Text>
+                    </TouchableOpacity>
                   </View>
 
                   <View style={sh.footerRow}>

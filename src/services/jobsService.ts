@@ -436,6 +436,14 @@ export const jobsService = {
     }
   },
 
+  async scheduleInterview(applicationId: string, at: string | null, location: string | null): Promise<void> {
+    const { error } = await supabase
+      .from('job_applications')
+      .update({ interview_at: at, interview_location: location, updated_at: new Date().toISOString() })
+      .eq('id', applicationId);
+    if (error) throw error;
+  },
+
   async createRecommendation(input: {
     jobId: string;
     recommenderId: string;

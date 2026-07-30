@@ -22,6 +22,7 @@ import SplashLoader from '../components/SplashLoader';
 import LoginScreen          from '../screens/auth/LoginScreen';
 import BusinessSignInScreen from '../screens/auth/BusinessSignInScreen';
 import BusinessAccessScreen from '../screens/profile/BusinessAccessScreen';
+import AccountStandingScreen from '../screens/profile/AccountStandingScreen';
 import SignUpScreen         from '../screens/auth/SignUpScreen';
 import SetupProfileScreen   from '../screens/auth/SetupProfileScreen';
 import AuthCallbackScreen   from '../screens/auth/AuthCallbackScreen';
@@ -162,6 +163,7 @@ function ProfileStackNav() {
       <ProfStack.Screen name="BusinessApply" component={BusinessApplyScreen} />
       <ProfStack.Screen name="ChangeUsername" component={ChangeUsernameScreen} />
       <ProfStack.Screen name="BusinessAccess" component={BusinessAccessScreen} />
+      <ProfStack.Screen name="AccountStanding" component={AccountStandingScreen} />
       <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
       <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
       <ProfStack.Screen name="CreateBusiness"  component={CreateBusinessScreen} />
