@@ -324,7 +324,7 @@ export default function SearchScreen({ navigation }: any) {
       ) : null}
 
       {!showResults ? (
-        <FlatList
+        <FlatList automaticallyAdjustKeyboardInsets={true}
           data={recent}
           keyExtractor={(item, i) => `${item}-${i}`}
           ListHeaderComponent={
@@ -385,7 +385,7 @@ export default function SearchScreen({ navigation }: any) {
           <Text style={s.loaderTxt}>Searching...</Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList automaticallyAdjustKeyboardInsets={true}
           data={currentData}
           keyExtractor={(item: any) => item.id}
           renderItem={currentRenderer as any}

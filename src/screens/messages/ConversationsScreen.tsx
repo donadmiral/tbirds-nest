@@ -685,7 +685,7 @@ const swipeActions = (item: Conversation) => (
           {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('FindPeople')}><Text style={s.emptyBtnTxt}>Find people</Text></TouchableOpacity>}
         </View>
       ) : (
-        <FlatList
+        <FlatList automaticallyAdjustKeyboardInsets={true}
           data={[...pinned, ...unpinned]}
           keyExtractor={i => i.id}
           renderItem={renderItem}

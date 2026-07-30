@@ -57,14 +57,14 @@ export default function ChangeUsernameScreen() {
         <Text style={s.headerTitle}>Username</Text>
         <View style={{ width: 60 }} />
       </View>
-      <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+      <ScrollView automaticallyAdjustKeyboardInsets={true} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}>
         <Text style={s.lede}>Your handle is how people find and mention you. You are currently <Text style={{ fontWeight: '800', color: NAVY }}>@{profile?.username || '-'}</Text>. Changing it releases the old one.</Text>
         <TextInput value={handle} onChangeText={check} autoCapitalize="none" autoCorrect={false} placeholder="New username" placeholderTextColor="#9CA3AF" style={s.input} />
         {hint ? <Text style={[s.hint, state === 'free' ? { color: '#059669' } : state === 'checking' ? { color: 'rgba(11,30,61,0.5)' } : { color: '#DC2626' }]}>{hint}</Text> : null}
         <TouchableOpacity style={[s.submit, (busy || state !== 'free') && { opacity: 0.5 }]} onPress={save} disabled={busy || state !== 'free'} activeOpacity={0.85}>
           {busy ? <ActivityIndicator color="#FFFFFF" size={16} /> : <Text style={s.submitTxt}>Change username</Text>}
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -215,7 +215,7 @@ export default function MarketScreen({ navigation }: any) {
       </View>
 
       <View>
-        <FlatList
+        <FlatList automaticallyAdjustKeyboardInsets={true}
           horizontal
           showsHorizontalScrollIndicator={false}
           data={categories}
@@ -245,7 +245,7 @@ export default function MarketScreen({ navigation }: any) {
           <Text style={s.emptyTxt}>Be the first to list something for sale.</Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList automaticallyAdjustKeyboardInsets={true}
           data={listings}
           keyExtractor={(l) => l.id}
           numColumns={2}
