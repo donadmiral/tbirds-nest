@@ -64,7 +64,7 @@ export default function MyApplicationsScreen() {
             return (
               <JobListRow
                 job={item.job}
-                subtitle={'Applied ' + relTime(item.applied_at) + ((item as any).cv_name ? '  ·  ' + (item as any).cv_name : '')}
+                subtitle={'Applied ' + relTime(item.applied_at) + ((item as any).interview_at ? '  ·  Interview ' + new Date((item as any).interview_at).toLocaleString() : '') + ((item as any).cv_name ? '  ·  ' + (item as any).cv_name : '')}
                 onPress={() => item.job && navigation.navigate('JobDetail', { job: item.job })}
                 right={
                   <View style={[st.chip, { backgroundColor: meta.bg }]}>
