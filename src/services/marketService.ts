@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { authorId as currentAuthorId } from '../stores/actorStore';
 import { flagsService } from './flagsService';
 
 export type ListingCurrency = 'USD' | 'ZWG';
@@ -162,7 +163,7 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
     const { data, error } = await supabase
       .from('marketplace_listings')
       .insert({
-        seller_id: input.seller_id,
+        seller_id: currentAuthorId(input.seller_id) ?? input.seller_id,
         title: input.title,
         description: input.description || null,
         price: input.price,

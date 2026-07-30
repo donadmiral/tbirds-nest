@@ -1,3 +1,4 @@
+import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * PostScreen.tsx
@@ -404,7 +405,7 @@ export default function PostScreen({ route, navigation }: any) {
                 : <View style={s.commentAvatarFb}><Text style={s.commentAvatarTxt}>{initials(a?.full_name || a?.username)}</Text></View>}
               <View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={[s.commentName, { flexShrink: 1 }]}>{a?.full_name || 'Member'}</Text>
+                  <TierName userId={a?.id} baseStyle={[s.commentName, { flexShrink: 1 }]} text={a?.full_name || 'Member'} />
                   <VerifiedBadge userId={a?.id} size={12} />
                 </View>
                 {a?.username && <Text style={s.commentHandle}>@{a.username}</Text>}
@@ -576,7 +577,7 @@ export default function PostScreen({ route, navigation }: any) {
                         : <View style={[s.postAvatar, s.postAvatarFb]}><Text style={s.postAvatarFbTxt}>{initials(a?.full_name || a?.username)}</Text></View>}
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Text style={[s.postAuthorName, { flexShrink: 1 }]}>{a?.full_name || 'Member'}</Text>
+                          <TierName userId={a?.id} baseStyle={[s.postAuthorName, { flexShrink: 1 }]} text={a?.full_name || 'Member'} />
                           <VerifiedBadge userId={a?.id} size={14} />
                         </View>
                         {roleLine ? <Text style={s.postAuthorRole}>{roleLine}</Text> : a?.username ? <Text style={s.postAuthorRole}>@{a.username}</Text> : null}

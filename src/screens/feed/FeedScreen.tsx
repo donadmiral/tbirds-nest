@@ -1,3 +1,4 @@
+import TierName from '../../components/TierName';
 import AnnouncementBanner from '../../components/AnnouncementBanner';
 import TrendingStoriesRail from '../../components/TrendingStoriesRail';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -1346,7 +1347,7 @@ if (!search && promos.length > 0) {
                 <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPress={() => navigation.navigate('UserProfile', { userId: p.id, user: p })}>
                   {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: light.status.link }}>{initials(p.full_name || p.username)}</Text></View>}
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: light.ink.primary, flexShrink: 1 }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                    <TierName userId={p.id} baseStyle={{ fontSize: 13.5, fontWeight: '700', color: light.ink.primary, flexShrink: 1 }} text={p.full_name || p.username || 'Member'} />
                     <VerifiedBadge userId={p.id} size={12} />
                   </View>
                   <Text style={{ fontSize: 11.5, color: light.ink.muted, marginTop: 2 }} numberOfLines={1}>{p.headline || (p.username ? '@' + p.username : '')}</Text>
@@ -1390,7 +1391,7 @@ if (!search && promos.length > 0) {
             })()}
             <View style={s.postMetaTxt}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                <Text style={s.postAuthor} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
+                <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />
                 {((author as any)?.verified_tier || (author as any)?.is_verified) ? <VerifiedBadge tier={(author as any)?.verified_tier} size={13} /> : null}
               </View>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: light.status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
@@ -1956,7 +1957,7 @@ if (!search && promos.length > 0) {
                     {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.status.link }}>{initials(p.full_name || p.username)}</Text></View>}
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flexShrink: 1 }} numberOfLines={1}>{p.full_name || p.username || 'Member'}</Text>
+                        <TierName userId={p.id} baseStyle={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flexShrink: 1 }} text={p.full_name || p.username || 'Member'} />
                         <VerifiedBadge userId={p.id} size={12} />
                       </View>
                       {p.username ? <Text style={{ fontSize: 12, color: light.ink.muted }} numberOfLines={1}>@{p.username}</Text> : null}

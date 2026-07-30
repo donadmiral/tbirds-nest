@@ -1,3 +1,4 @@
+import TierName from '../../components/TierName';
 import { flagsService } from '../../services/flagsService';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import SendMoneySheet from '../../components/SendMoneySheet';
@@ -1791,7 +1792,7 @@ const pickAndSendDocument = useCallback(async () => {
                 : <View style={s.hAvatarFb}><Text style={s.hAvatarTxt}>{otherInits}</Text></View>}
           <View style={s.hInfo}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 1 }}>
-              <Text style={s.hName} numberOfLines={1}>{chatTitle}</Text>
+              <TierName userId={isGroup ? undefined : otherUser?.id} baseStyle={s.hName} text={chatTitle} />
               {!isGroup ? <VerifiedBadge userId={otherUser?.id} size={14} /> : null}
             </View>
             {isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]} numberOfLines={1}>{String(membersById[typingUserId ?? '']?.full_name || 'Someone').split(' ')[0]} is typing...</Text>

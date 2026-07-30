@@ -1,3 +1,4 @@
+import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -589,7 +590,7 @@ const swipeActions = (item: Conversation) => (
           <View style={s.cardRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 1 }}>
-                <Text style={[s.cardName, hasUnread && s.cardNameBold, { flexShrink: 1, flex: 0 }]} numberOfLines={1}>{item.other_name}</Text>
+                <TierName tier={(item as any).type !== 'group' ? ((item as any).other_verified_tier ?? (((item as any).other_is_verified) ? 'business' : null)) : null} baseStyle={[s.cardName, hasUnread && s.cardNameBold, { flexShrink: 1, flex: 0 }]} text={item.other_name} />
                 {(((item as any).other_verified_tier || (item as any).other_is_verified) && (item as any).type !== 'group') ? <VerifiedBadge tier={(item as any).other_verified_tier} size={14} /> : null}
               </View>
               {item.is_muted && <Text style={{ fontSize: 11 }}>🔕</Text>}

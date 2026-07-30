@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { authorId as currentAuthorId } from '../stores/actorStore';
 import type { Post, PostComment } from '../types';
 
 export const feedService = {
@@ -18,7 +19,7 @@ export const feedService = {
   async createPost(userId: string, body: string, imageUrl?: string): Promise<Post> {
     const { data, error } = await supabase
       .from('posts')
-      .insert({ user_id: userId, body, image_url: imageUrl ?? null })
+      .insert({ user_id: currentAuthorId(userId) ?? userId, body, image_url: imageUrl ?? null })
       .select(`*, profile:profiles!user_id(*)`)
       .single();
     if (error) throw error;
@@ -31,12 +32,12 @@ export const feedService = {
   },
 
   async likePost(postId: string, userId: string) {
-    const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });
+    const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: currentAuthorId(userId) ?? userId });
     if (error && error.code !== '23505') throw error;
   },
 
   async unlikePost(postId: string, userId: string) {
-    const { error } = await supabase.from('post_likes').delete().match({ post_id: postId, user_id: userId });
+    const { error } = await supabase.from('post_likes').delete().match({ post_id: postId, user_id: currentAuthorId(userId) ?? userId });
     if (error) throw error;
   },
 
@@ -53,7 +54,7 @@ export const feedService = {
   async addComment(postId: string, userId: string, body: string): Promise<PostComment> {
     const { data, error } = await supabase
       .from('post_comments')
-      .insert({ post_id: postId, user_id: userId, body })
+      .insert({ post_id: postId, user_id: currentAuthorId(userId) ?? userId, body })
       .select(`*, profile:profiles!user_id(*)`)
       .single();
     if (error) throw error;

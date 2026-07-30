@@ -1,3 +1,4 @@
+import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -174,7 +175,7 @@ export default function SearchScreen({ navigation }: any) {
         : <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarTxt}>{initials(item.full_name || item.username)}</Text></View>}
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={[s.personName, { flexShrink: 1 }]} numberOfLines={1}>{item.full_name || item.username || 'User'}</Text>
+          <TierName userId={item.id} baseStyle={[s.personName, { flexShrink: 1 }]} text={item.full_name || item.username || 'User'} />
           <VerifiedBadge userId={item.id} size={13} />
         </View>
         {item.username ? <Text style={s.personHandle}>@{item.username}</Text> : null}
@@ -197,7 +198,7 @@ export default function SearchScreen({ navigation }: any) {
           : <View style={[s.postAvatar, s.avatarFb]}><Text style={s.avatarTxtSm}>{initials(item.profile?.full_name)}</Text></View>}
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[s.postAuthor, { flexShrink: 1 }]} numberOfLines={1}>{item.profile?.full_name || 'User'}</Text>
+            <TierName userId={(item as any).profile?.id ?? (item as any).user_id} baseStyle={[s.postAuthor, { flexShrink: 1 }]} text={item.profile?.full_name || 'User'} />
             <VerifiedBadge userId={(item as any).profile?.id ?? (item as any).user_id} size={12} />
           </View>
           <Text style={s.postTime}>{formatTime(item.created_at)}</Text>
