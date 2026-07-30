@@ -1587,13 +1587,15 @@ if (!search && promos.length > 0) {
             <Feather name="share-2" size={20} color={light.ink.muted} />
           </TouchableOpacity>
         </View>
-        {post.products && post.products.length > 0 && (
-          <ProductCarousel
-            products={post.products}
-            onOpenListing={(listingId) =>
-              navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId } })
-            }
-          />
+        {post.products && post.products.length > 0 && (/* carousel holds the tab swipe */
+          <View onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { mediaTouchRef.current = false; }} onTouchCancel={() => { mediaTouchRef.current = false; }}>
+            <ProductCarousel
+              products={post.products}
+              onOpenListing={(listingId) =>
+                navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId } })
+              }
+            />
+          </View>
         )}
 
         {post.likes_count > 0 && (
