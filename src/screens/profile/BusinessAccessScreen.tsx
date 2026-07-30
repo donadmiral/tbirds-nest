@@ -93,7 +93,7 @@ export default function BusinessAccessScreen() {
         <Text style={s.headerTitle}>Access</Text>
         <View style={{ width: 60 }} />
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} showsVerticalScrollIndicator={false}>
+      <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} showsVerticalScrollIndicator={false}>
         <Text style={s.section}>People who can speak as {profile?.full_name}</Text>
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
           <TextInput value={newName} onChangeText={setNewName} placeholder="Representative's name" placeholderTextColor="#9CA3AF" style={[s.input, { flex: 1, marginBottom: 0 }]} />

@@ -105,7 +105,7 @@ export default function ApplyVerificationScreen() {
         <Text style={s.headerTitle}>Verification</Text>
         <View style={{ width: 60 }} />
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} keyboardShouldPersistTaps="handled">
+      <ScrollView automaticallyAdjustKeyboardInsets={true} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} keyboardShouldPersistTaps="handled">
         <Text style={s.lede}>The badge on Platinum Circles is earned, never bought. Applications are reviewed by a person against a high bar - most accounts will not qualify, and that is what makes it mean something.</Text>
 
         {existing === undefined ? <ActivityIndicator color={NAVY} style={{ marginTop: 24 }} /> : existing ? <Status /> : (

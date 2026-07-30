@@ -77,7 +77,7 @@ export default function ArticleComposeScreen() {
             {busy ? <ActivityIndicator color={NAVY} size={14} /> : <Text style={s.publish}>Publish</Text>}
           </TouchableOpacity>
         </View>
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: Math.max(insets.bottom + 120, 140) }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: Math.max(insets.bottom + 120, 140) }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <TextInput value={title} onChangeText={setTitle} placeholder="Title" placeholderTextColor="#9CA3AF" multiline style={s.title} />
           <TouchableOpacity onPress={pickCover} activeOpacity={0.85} style={s.coverBtn}>
             {cover ? <Image source={{ uri: cover }} style={s.cover} /> : <Text style={s.coverTxt}>Add a cover image (optional)</Text>}

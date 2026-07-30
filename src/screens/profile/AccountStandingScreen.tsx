@@ -46,7 +46,7 @@ export default function AccountStandingScreen() {
         <Text style={s.headerTitle}>Account standing</Text>
         <View style={{ width: 60 }} />
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} showsVerticalScrollIndicator={false}>
+      <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} showsVerticalScrollIndicator={false}>
         {rows === null ? (
           <View style={{ paddingTop: 60, alignItems: 'center' }}><ActivityIndicator color={NAVY} /></View>
         ) : (
