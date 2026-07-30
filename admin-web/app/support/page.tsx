@@ -1,5 +1,5 @@
 import Shell from '@/components/Shell';
-import { requireAdmin } from '@/lib/adminAuth';
+import { getAdmin } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -13,7 +13,7 @@ const PILL: Record<string, string> = {
 };
 
 export default async function SupportPage() {
-  const admin = await requireAdmin();
+  const admin = await getAdmin();
   if (!admin) redirect('/signin');
   const svc = serviceClient();
   const { data: tickets } = await svc.from('support_tickets')

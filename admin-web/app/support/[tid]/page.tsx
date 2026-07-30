@@ -1,5 +1,5 @@
 import Shell from '@/components/Shell';
-import { requireAdmin } from '@/lib/adminAuth';
+import { getAdmin } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { sendTicketReply, setTicketStatus } from '@/lib/actions';
 import { redirect } from 'next/navigation';
@@ -8,7 +8,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function TicketPage({ params }: { params: { tid: string } }) {
-  const admin = await requireAdmin();
+  const admin = await getAdmin();
   if (!admin) redirect('/signin');
   const svc = serviceClient();
   const { data: t } = await svc.from('support_tickets').select('*').eq('id', params.tid).maybeSingle();
