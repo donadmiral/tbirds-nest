@@ -415,7 +415,7 @@ export default function NetworkScreen({ navigation }: any) {
             <Text style={s.loaderTxt}>Loading network...</Text>
           </View>
         ) : showGroupList ? (
-          <FlatList
+          <FlatList automaticallyAdjustKeyboardInsets={true}
             data={tab === 'communities' ? communities : clubs}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => renderGroupCard({ item, table: tab as 'communities' | 'clubs' })}
@@ -475,7 +475,7 @@ export default function NetworkScreen({ navigation }: any) {
             {groupLoading ? (
               <View style={s.loader}><ActivityIndicator color="#0B1E3D" /></View>
             ) : (
-              <FlatList
+              <FlatList automaticallyAdjustKeyboardInsets={true}
                 data={groupMembers}
                 keyExtractor={(item) => item.id}
                 renderItem={renderUserCard}
@@ -492,7 +492,7 @@ export default function NetworkScreen({ navigation }: any) {
             )}
           </View>
         ) : (
-          <FlatList
+          <FlatList automaticallyAdjustKeyboardInsets={true}
             data={filteredUsers}
             keyExtractor={(item) => item.id}
             renderItem={renderUserCard}
