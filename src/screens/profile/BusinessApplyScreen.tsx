@@ -54,7 +54,7 @@ export default function BusinessApplyScreen() {
   };
 
   const submit = async () => {
-    if (!profile?.id || busy) return;
+    if (busy) return;
     if (!companyName.trim() || !description.trim() || !email.trim() || !handle) {
       Alert.alert('Missing details', 'Company name, what you do, a contact email and a desired @ are required.');
       return;
@@ -65,6 +65,20 @@ export default function BusinessApplyScreen() {
     }
     setBusy(true);
     try {
+      if (!profile?.id) {
+        const { data, error } = await supabase.functions.invoke('business-apply', {
+          body: {
+            company_name: companyName.trim(), category: category.trim(), description: description.trim(),
+            contact_email: email.trim(), contact_phone: phone.trim(), website: website.trim(),
+            registration_info: regInfo.trim(), desired_username: handle,
+          },
+        });
+        if (error) throw new Error((data as any)?.error || 'Could not send the application.');
+        if ((data as any)?.error) throw new Error((data as any).error);
+        setCompanyName(''); setCategory(''); setDescription(''); setEmail(''); setPhone(''); setWebsite(''); setRegInfo(''); setHandle(''); setHandleState('idle');
+        Alert.alert('Application sent', 'The Platinum Circles operations team reviews every business application. On approval your business account is created with its own @, the space-grey seal, and a setup code sent to your contact email.');
+        return;
+      }
       const { error } = await supabase.from('business_applications').insert({
         applicant_id: profile.id,
         company_name: companyName.trim(),
