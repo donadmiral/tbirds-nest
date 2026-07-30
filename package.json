@@ -15,6 +15,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@config-plugins/react-native-callkeep": "^14.0.1",
     "@daily-co/react-native-daily-js": "^0.84.1",
     "@daily-co/react-native-webrtc": "^124.0.6-daily.1",
     "@expo-google-fonts/archivo-black": "^0.4.1",

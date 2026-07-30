@@ -2,7 +2,7 @@
   "expo": {
     "name": "PlatinumCircles",
     "slug": "platinum-circles",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "scheme": "platinum-circles",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -57,6 +57,7 @@
     },
     "plugins": [
       "expo-notifications",
+      "@config-plugins/react-native-callkeep",
       "expo-secure-store",
       "expo-image-picker",
       "expo-video",
