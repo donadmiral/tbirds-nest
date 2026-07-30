@@ -67,7 +67,7 @@ export default function ArticleComposeScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <View style={s.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
             <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
@@ -85,7 +85,7 @@ export default function ArticleComposeScreen() {
           <Text style={s.meta}>{minutes} min read {'\u00b7'} publishing as {profile?.full_name || 'you'}</Text>
           <TextInput value={body} onChangeText={setBody} placeholder="Write the piece. Paragraphs are preserved exactly as you write them." placeholderTextColor="#9CA3AF" multiline style={s.body} textAlignVertical="top" />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }

@@ -1646,7 +1646,7 @@ if (!search && promos.length > 0) {
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor={light.surface.canvas} />
-      <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} enabled={!composerOpen}>
         <View style={s.container}>
           <View style={s.header}>
             <View style={s.headerRow}>
