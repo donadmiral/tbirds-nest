@@ -199,6 +199,12 @@ export default function FeedScreen({ navigation }: any) {
   const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [composerOpen, setComposerOpen] = useState(false);
+  const [kbH, setKbH] = useState(0);
+  useEffect(() => {
+    const sh = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e: any) => setKbH(e?.endCoordinates?.height ?? 0));
+    const hd = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKbH(0));
+    return () => { sh.remove(); hd.remove(); };
+  }, []);
   const [composerText, setComposerText] = useState('');
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
   const [posting, setPosting] = useState(false);
@@ -1799,7 +1805,7 @@ if (!search && promos.length > 0) {
           )}
 
           {composerOpen && (
-            <KeyboardAvoidingView style={[s.composerContainer, { bottom: insets.bottom + 16 }]} behavior={Platform.OS === 'ios' ? 'position' : undefined}>
+            <View style={[s.composerContainer, { bottom: insets.bottom + 16 + kbH, maxHeight: Dimensions.get('window').height - kbH - insets.top - 48 }]}>
               {threadingPost && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: light.surface.canvas, borderColor: light.surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: light.ink.secondary }}>Adding to your thread</Text>
@@ -1935,7 +1941,7 @@ if (!search && promos.length > 0) {
                   </View>
                 </View>
               </View>
-            </KeyboardAvoidingView>
+            </View>
           )}
 
           {!composerOpen && (
