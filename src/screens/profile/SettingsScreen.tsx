@@ -155,6 +155,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'life-buoy', color: '#0E7490', label: 'Contact support', sub: 'Write to the operations team', onPress: () => (navigation as any).navigate('ContactSupport') },
       { icon: 'briefcase', color: '#5B6470', label: 'Apply for a business account', sub: 'Companies get their own @ and the space-grey seal', onPress: () => (navigation as any).navigate('BusinessApply') },
       { icon: 'at-sign', color: '#0B1E3D', label: 'Change username', sub: 'Pick a new @ if it is available', onPress: () => (navigation as any).navigate('ChangeUsername') },
+      { icon: 'key', color: '#B08D3F', label: 'Business access', sub: 'For business accounts - the people and devices that may speak as it', onPress: () => (navigation as any).navigate('BusinessAccess') },
     ]},
     { title: 'Notifications', rows: [
       { icon: 'bell', color: '#FF3B30', label: 'Push Notifications', sub: 'Master toggle for all alerts', chevron: false, right: sw(pushEnabled, togglePush) },

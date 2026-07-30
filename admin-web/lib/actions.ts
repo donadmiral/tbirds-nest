@@ -437,9 +437,16 @@ export async function approveBusinessApplication(formData: FormData) {
     await svc.from('profiles').update({
       is_verified: true, verified_tier: 'business', verified_category: app.category || 'Business',
     }).eq('id', bizId);
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const rnd = new Uint8Array(8); crypto.getRandomValues(rnd);
+    let raw = ''; rnd.forEach(b => { raw += alphabet[b % alphabet.length]; });
+    const setupCode = raw.slice(0, 4) + '-' + raw.slice(4);
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(setupCode.toUpperCase()));
+    const codeHash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    await svc.from('business_access_members').insert({ business_id: bizId, display_name: 'Primary access', role: 'owner', code_hash: codeHash });
     await svc.from('business_applications').update({
       status: 'approved', decided_by: admin.id, decided_at: new Date().toISOString(),
-      decision_reason: 'Approved - the business account @' + app.desired_username + ' is live with the space-grey seal. Open Settings, Businesses to manage it and add your team.',
+      decision_reason: 'Approved - @' + app.desired_username + ' is live with the space-grey seal. Setup code: ' + setupCode + ' - sign in with Business sign-in on your company device. The first device is trusted automatically; manage people and devices from Settings, Business access inside the business account.',
     }).eq('id', id);
     await svc.from('admin_audit_log').insert({
       admin_id: admin.id, action: 'business.approve', target_kind: 'business_application', target_id: id,

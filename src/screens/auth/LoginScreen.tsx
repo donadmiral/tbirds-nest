@@ -413,6 +413,9 @@ export default function LoginScreen({ navigation }: any) {
               >
                 <Text style={s.outlineBtnTxt}>Create an account</Text>
               </TouchableOpacity>
+              <TouchableOpacity onPress={() => (navigation as any).navigate('BusinessSignIn')} activeOpacity={0.7} style={{ marginTop: 16, alignItems: 'center' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: '600' }}>Business or company? Business sign-in</Text>
+              </TouchableOpacity>
             </Animated.View>
 
             <View style={s.footer}>

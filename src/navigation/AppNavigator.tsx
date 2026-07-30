@@ -20,6 +20,8 @@ import { CallProvider } from '../contexts/CallContext';
 import SplashLoader from '../components/SplashLoader';
 
 import LoginScreen          from '../screens/auth/LoginScreen';
+import BusinessSignInScreen from '../screens/auth/BusinessSignInScreen';
+import BusinessAccessScreen from '../screens/profile/BusinessAccessScreen';
 import SignUpScreen         from '../screens/auth/SignUpScreen';
 import SetupProfileScreen   from '../screens/auth/SetupProfileScreen';
 import AuthCallbackScreen   from '../screens/auth/AuthCallbackScreen';
@@ -159,6 +161,7 @@ function ProfileStackNav() {
       <ProfStack.Screen name="ContactSupport" component={ContactSupportScreen} />
       <ProfStack.Screen name="BusinessApply" component={BusinessApplyScreen} />
       <ProfStack.Screen name="ChangeUsername" component={ChangeUsernameScreen} />
+      <ProfStack.Screen name="BusinessAccess" component={BusinessAccessScreen} />
       <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
       <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
       <ProfStack.Screen name="CreateBusiness"  component={CreateBusinessScreen} />
@@ -501,6 +504,7 @@ export default function AppNavigator() {
           ) : (
             <>
               <RootStack.Screen name="Login"        component={LoginScreen} />
+              <RootStack.Screen name="BusinessSignIn" component={BusinessSignInScreen} />
               <RootStack.Screen name="SignUp"       component={SignUpScreen} />
               <RootStack.Screen name="VerifyEmail"  component={VerifyEmailScreen} />
               <RootStack.Screen name="AuthCallback" component={AuthCallbackScreen} />
