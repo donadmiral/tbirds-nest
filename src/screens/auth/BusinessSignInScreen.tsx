@@ -47,7 +47,7 @@ export default function BusinessSignInScreen() {
       }
       if ((data as any)?.error) throw new Error((data as any).error);
       const { token_hash, email } = data as any;
-      const { error: vErr } = await supabase.auth.verifyOtp({ type: 'magiclink', token_hash, email });
+      const { error: vErr } = await supabase.auth.verifyOtp({ type: 'magiclink', token_hash });
       if (vErr) throw vErr;
       // Session is now the business - the app boots into its world.
     } catch (e: any) {
