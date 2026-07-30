@@ -143,7 +143,7 @@ export default function PostScreen({ route, navigation }: any) {
   const [mentionOn, setMentionOn] = useState(false);
 
   const inputRef = useRef<TextInput>(null);
-  const listRef = useRef<FlatList< ListEmptyComponent={<EmptyState icon="message-square" title="No comments yet" line="Be the first to reply." />}any>>(null);
+  const listRef = useRef<FlatList<any>>(null);
 
   const load = useCallback(async () => {
     try {
@@ -535,7 +535,7 @@ export default function PostScreen({ route, navigation }: any) {
         <View style={s.loader}><Feather name="eye-off" size={34} color="#9CA3AF" /><Text style={{ marginTop: 10, fontSize: 15, fontWeight: '600', color: '#6B7280' }}>This post isn't available</Text></View>
       ) : (
         <View style={s.body}>
-          <FlatList
+          <FlatList ListEmptyComponent={<EmptyState icon="message-square" title="No comments yet" line="Be the first to reply." />}
             ref={listRef}
             data={rows}
             keyExtractor={r => r.key}
