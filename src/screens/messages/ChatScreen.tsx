@@ -2049,7 +2049,7 @@ const pickAndSendDocument = useCallback(async () => {
                   : <Feather name='arrow-up' size={18} color='#FFF' />}
               </TouchableOpacity>
             </View>
-          ) : (
+          ) : (<>
           {isBizSession && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 6, gap: 8, alignItems: 'center' }}>
               {savedReplies.map(r => (
@@ -2113,6 +2113,7 @@ const pickAndSendDocument = useCallback(async () => {
               </TouchableOpacity>
             )}
           </View>
+          </>
         )}
       <Modal visible={!!seenSheet} transparent animationType="slide" onRequestClose={() => setSeenSheet(null)}>
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(11,30,61,0.45)' }} activeOpacity={1} onPress={() => setSeenSheet(null)} />
