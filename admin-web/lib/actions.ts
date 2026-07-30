@@ -412,3 +412,58 @@ export async function removeBlockedWord(formData: FormData) {
   });
   revalidatePath('/system');
 }
+
+export async function approveBusinessApplication(formData: FormData) {
+  const admin = await requireSuper();
+  const id = String(formData.get('id') || '');
+  if (!id) redirect('/businesses');
+  const svc = serviceClient();
+  const { data: app } = await svc.from('business_applications').select('*').eq('id', id).maybeSingle();
+  if (!app || app.status !== 'submitted') redirect('/businesses');
+  const email = 'biz-' + crypto.randomUUID() + '@biz.platinumcircles.app';
+  const password = crypto.randomUUID() + crypto.randomUUID();
+  const { data: created, error: cErr } = await svc.auth.admin.createUser({ email, password, email_confirm: true });
+  const bizId = created?.user?.id;
+  if (cErr || !bizId) redirect('/businesses');
+  try {
+    const { error: fErr } = await svc.rpc('finalise_business', {
+      p_business_id: bizId,
+      p_name: app.company_name,
+      p_username: app.desired_username,
+      p_category: app.category || '',
+      p_owner_id: app.applicant_id,
+    });
+    if (fErr) throw fErr;
+    await svc.from('profiles').update({
+      is_verified: true, verified_tier: 'business', verified_category: app.category || 'Business',
+    }).eq('id', bizId);
+    await svc.from('business_applications').update({
+      status: 'approved', decided_by: admin.id, decided_at: new Date().toISOString(),
+      decision_reason: 'Approved - the business account @' + app.desired_username + ' is live with the space-grey seal. Open Settings, Businesses to manage it and add your team.',
+    }).eq('id', id);
+    await svc.from('admin_audit_log').insert({
+      admin_id: admin.id, action: 'business.approve', target_kind: 'business_application', target_id: id,
+      reason: app.company_name + ' approved as @' + app.desired_username, before: { status: 'submitted' }, after: { status: 'approved', business_id: bizId },
+    });
+  } catch {
+    await svc.auth.admin.deleteUser(bizId).catch(() => {});
+    redirect('/businesses');
+  }
+  revalidatePath('/businesses');
+}
+
+export async function rejectBusinessApplication(formData: FormData) {
+  const admin = await requireSuper();
+  const id = String(formData.get('id') || '');
+  const reason = String(formData.get('reason') || '').trim();
+  if (!id || !reason) redirect('/businesses');
+  const svc = serviceClient();
+  await svc.from('business_applications').update({
+    status: 'rejected', decision_reason: reason, decided_by: admin.id, decided_at: new Date().toISOString(),
+  }).eq('id', id).eq('status', 'submitted');
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'business.reject', target_kind: 'business_application', target_id: id,
+    reason, before: { status: 'submitted' }, after: { status: 'rejected' },
+  });
+  revalidatePath('/businesses');
+}
