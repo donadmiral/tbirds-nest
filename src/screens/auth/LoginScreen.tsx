@@ -400,6 +400,9 @@ export default function LoginScreen({ navigation }: any) {
                 )}
               </TouchableOpacity>
 
+              <TouchableOpacity style={[s.outlineBtn, { marginTop: 12 }]} onPress={() => (navigation as any).navigate('BusinessSignIn')} activeOpacity={0.8}>
+                <Text style={s.outlineBtnTxt}>Business or company? Business sign-in</Text>
+              </TouchableOpacity>
               <View style={s.dividerRow}>
                 <View style={s.dividerLine} />
                 <Text style={s.dividerTxt}>or</Text>
@@ -412,9 +415,6 @@ export default function LoginScreen({ navigation }: any) {
                 activeOpacity={0.8}
               >
                 <Text style={s.outlineBtnTxt}>Create an account</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => (navigation as any).navigate('BusinessSignIn')} activeOpacity={0.7} style={{ marginTop: 16, alignItems: 'center' }}>
-                <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: '600' }}>Business or company? Business sign-in</Text>
               </TouchableOpacity>
             </Animated.View>
 
