@@ -497,6 +497,12 @@ export default function ChatScreen() {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingRef = useRef(false);
   const inputRef = useRef<TextInput>(null);
+  const [savedReplies, setSavedReplies] = useState<any[]>([]);
+  const isBizSession = (useAuthStore.getState().profile as any)?.account_type === 'business';
+  useEffect(() => {
+    if (!isBizSession || !currentUserId) return;
+    supabase.from('business_saved_replies').select('*').eq('user_id', currentUserId).order('created_at').then(({ data }) => setSavedReplies(data ?? []));
+  }, [isBizSession, currentUserId]);
   const messagesRef = useRef<MessageItem[]>([]);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
@@ -2044,6 +2050,22 @@ const pickAndSendDocument = useCallback(async () => {
               </TouchableOpacity>
             </View>
           ) : (
+          {isBizSession && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 6, gap: 8, alignItems: 'center' }}>
+              {savedReplies.map(r => (
+                <TouchableOpacity key={r.id} activeOpacity={0.8} onPress={() => setMessage(r.body)}
+                  onLongPress={() => Alert.alert('Remove saved reply?', r.body.slice(0, 60), [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: async () => { await supabase.from('business_saved_replies').delete().eq('id', r.id); setSavedReplies(p => p.filter(x => x.id !== r.id)); } }])}
+                  style={{ borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#FFFFFF' }}>
+                  <Text numberOfLines={1} style={{ fontSize: 12.5, color: '#0B1E3D', fontWeight: '600', maxWidth: 180 }}>{r.body}</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity activeOpacity={0.8} accessibilityLabel="Save current text as a reply"
+                onPress={async () => { const b = message.trim(); if (!b) { Alert.alert('Type it first', 'Write the reply in the box, then tap plus to save it.'); return; } const { data } = await supabase.from('business_saved_replies').insert({ user_id: currentUserId, body: b }).select().single(); if (data) setSavedReplies(p => [...p, data]); }}
+                style={{ borderWidth: 1.2, borderColor: 'rgba(29,122,56,0.4)', borderRadius: 999, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(29,122,56,0.06)' }}>
+                <Feather name="plus" size={15} color="#1D7A38" />
+              </TouchableOpacity>
+            </ScrollView>
+          )}
           <View style={[s.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
             <View style={s.inputWrap}>
               <TextInput ref={inputRef} value={message} onChangeText={handleTextChange}

@@ -291,6 +291,21 @@ export default function UserProfileScreen() {
               >
                 <Feather name="message-circle" size={16} color={NAVY} />
               </TouchableOpacity>
+              {(useAuthStore.getState().profile as any)?.is_verified && !userData?.is_verified && userId !== useAuthStore.getState().profile?.id && (
+                <TouchableOpacity activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Vouch for this member"
+                  style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, borderWidth: 1.2, borderColor: 'rgba(29,122,56,0.4)', backgroundColor: 'rgba(29,122,56,0.06)', marginRight: 8 }}
+                  onPress={async () => {
+                    try {
+                      const { data, error } = await supabase.rpc('vouch_for', { p_user_id: userId });
+                      if (error) throw error;
+                      if ((data as any)?.ok) Alert.alert('Vouched', 'Your word is on their application. It moves up the queue.');
+                      else if ((data as any)?.error === 'no_application') Alert.alert('Nothing open', 'They have no verification application waiting right now.');
+                      else Alert.alert('Could not vouch', String((data as any)?.error || ''));
+                    } catch (e: any) { Alert.alert('Could not vouch', e?.message || ''); }
+                  }}>
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#1D7A38' }}>Vouch</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 onPress={handleFollow}
                 disabled={actionBusy}
