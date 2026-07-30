@@ -320,7 +320,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
         <View style={{ width: 60 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: Math.max(insets.bottom + TAB_BAR_CLEARANCE + 24, TAB_BAR_CLEARANCE + 40) }]}>
+      <ScrollView automaticallyAdjustKeyboardInsets={true} showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: Math.max(insets.bottom + TAB_BAR_CLEARANCE + 24, TAB_BAR_CLEARANCE + 40) }]}>
 
         {/* Profile card with account type */}
         <TouchableOpacity style={s.profileCard} onPress={goToEditProfile} activeOpacity={0.8}>
@@ -396,7 +396,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               {savingPw ? <ActivityIndicator color="#007AFF" size={16} /> : <Text style={s.modalSave}>Update</Text>}
             </TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
+          <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
             <View style={s.pwInfo}>
               <Feather name="lock" size={18} color="#007AFF" />
               <Text style={s.pwInfoTxt}>Your new password must be at least 8 characters. You will remain signed in after changing it.</Text>
@@ -445,7 +445,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               {savingPriv ? <ActivityIndicator color="#007AFF" size={16} /> : <Text style={s.modalSave}>Save</Text>}
             </TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={s.modalBody}>
+          <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={s.modalBody}>
             <Text style={s.privLabel}>Profile Visibility</Text>
             <Text style={s.privDesc}>Control who can see your profile information on PlatinumCircles.</Text>
             {[
@@ -483,7 +483,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             <Text style={s.modalTitle}>Delete Account</Text>
             <View style={{ minWidth: 60 }} />
           </View>
-          <ScrollView contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
+          <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
             <View style={s.deleteWarning}>
               <Feather name="alert-triangle" size={24} color="#FF3B30" />
               <Text style={s.deleteWarningTitle}>This action is permanent</Text>

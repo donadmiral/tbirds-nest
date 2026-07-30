@@ -471,7 +471,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
+      <ScrollView automaticallyAdjustKeyboardInsets={true}
         contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
         showsVerticalScrollIndicator={false}
       >
@@ -859,7 +859,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
                 <Text style={s.galleryEmptyTxt}>No shared documents</Text>
               </View>
             ) : (
-              <ScrollView contentContainerStyle={{ paddingHorizontal: 16 }}>
+              <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16 }}>
                 {files.map(f => {
                   const name = f.text?.replace(/^📄\s*/, '') || fileNameFromUrl(f.media_url);
                   return (

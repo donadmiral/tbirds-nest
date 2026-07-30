@@ -245,7 +245,7 @@ export default function ApplicantsScreen() {
               const meta = STATUS_META[sheetApp.status] || STATUS_META.applied;
               const note = sheetApp.cover_note || sheetApp.cover_letter;
               return (
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 26 }}>
+                <ScrollView automaticallyAdjustKeyboardInsets={true} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 26 }}>
                   <View style={sh.grab} />
                   <View style={sh.head}>
                     {a.avatar_url

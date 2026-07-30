@@ -71,7 +71,7 @@ export default function TicketScreen() {
             <View style={[s.pill, { backgroundColor: meta.bg }]}><Text style={[s.pillTxt, { color: meta.color }]}>{meta.label}</Text></View>
           </View>
         </View>
-        <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }} showsVerticalScrollIndicator={false}>
           {msgs === null ? (
             <View style={{ paddingTop: 50, alignItems: 'center' }}><ActivityIndicator color={NAVY} /></View>
           ) : msgs.map(m => (

@@ -184,7 +184,7 @@ export default function CampaignsScreen() {
                 )}
               />
             ) : (
-              <ScrollView showsVerticalScrollIndicator={false}>
+              <ScrollView automaticallyAdjustKeyboardInsets={true} showsVerticalScrollIndicator={false}>
                 <Text style={st.pickedExcerpt} numberOfLines={2}>{target.article_title || target.content}</Text>
                 <Text style={st.fieldLbl}>Label</Text>
                 <TextInput style={st.input} value={label} onChangeText={setLabel} maxLength={24} placeholder="Sponsored" placeholderTextColor="#9CA3AF" />
