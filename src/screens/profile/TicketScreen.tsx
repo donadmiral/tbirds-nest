@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -20,6 +21,7 @@ export default function TicketScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
+  let tabH = 0; try { tabH = useBottomTabBarHeight(); } catch {}
   const { profile } = useAuthStore();
   const ticketId: string = route.params?.ticketId;
   const [ticket, setTicket] = useState<any>(route.params?.ticket ?? null);
@@ -81,7 +83,7 @@ export default function TicketScreen() {
             </View>
           ))}
         </ScrollView>
-        <View style={[s.composer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+        <View style={[s.composer, { paddingBottom: Math.max(insets.bottom, 10) + tabH + 8 }]}>
           <TextInput value={draft} onChangeText={setDraft} placeholder={ticket?.status === 'solved' ? 'Write to reopen this ticket' : 'Write a reply'} placeholderTextColor="#9CA3AF" multiline style={s.input} />
           <TouchableOpacity style={[s.send, (busy || !draft.trim()) && { opacity: 0.4 }]} onPress={send} disabled={busy || !draft.trim()} activeOpacity={0.85}>
             {busy ? <ActivityIndicator color="#FFFFFF" size={14} /> : <Text style={s.sendTxt}>Send</Text>}
