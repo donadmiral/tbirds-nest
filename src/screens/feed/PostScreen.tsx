@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
@@ -142,7 +143,7 @@ export default function PostScreen({ route, navigation }: any) {
   const [mentionOn, setMentionOn] = useState(false);
 
   const inputRef = useRef<TextInput>(null);
-  const listRef = useRef<FlatList<any>>(null);
+  const listRef = useRef<FlatList< ListEmptyComponent={<EmptyState icon="message-square" title="No comments yet" line="Be the first to reply." />}any>>(null);
 
   const load = useCallback(async () => {
     try {

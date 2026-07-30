@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
@@ -685,7 +686,7 @@ const swipeActions = (item: Conversation) => (
           {!search && <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('FindPeople')}><Text style={s.emptyBtnTxt}>Find people</Text></TouchableOpacity>}
         </View>
       ) : (
-        <FlatList automaticallyAdjustKeyboardInsets={true}
+        <FlatList  ListEmptyComponent={<EmptyState icon="message-circle" title="No conversations" line="Start one from anyone profile, or from a listing." />}automaticallyAdjustKeyboardInsets={true}
           data={[...pinned, ...unpinned]}
           keyExtractor={i => i.id}
           renderItem={renderItem}

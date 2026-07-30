@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 /**
  * MutedStoriesScreen - manage who you have muted.
  */
@@ -64,7 +65,7 @@ export default function MutedStoriesScreen({ navigation }: any) {
           <Text style={s.emptySub}>Press and hold a story to mute someone.</Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList ListEmptyComponent={<EmptyState icon="eye-off" title="Nobody muted" line="Muted people stay in your feed but their stories stay hidden." />}
           data={rows}
           keyExtractor={r => r.muted_id}
           contentContainerStyle={{ paddingVertical: 8 }}

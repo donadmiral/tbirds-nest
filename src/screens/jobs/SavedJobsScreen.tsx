@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -54,7 +55,7 @@ export default function SavedJobsScreen() {
         </View>
       ) : (
         <FlatList
-          data={jobs}
+ ListEmptyComponent={<EmptyState icon="bookmark" title="No saved jobs" line="Jobs you save appear here." />}          data={jobs}
           keyExtractor={i => i.id}
           ItemSeparatorComponent={() => <View style={st.sep} />}
           contentContainerStyle={{ paddingVertical: 4, paddingBottom: 40 }}

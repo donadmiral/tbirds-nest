@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
@@ -207,7 +208,7 @@ export default function CallLogScreen() {
           <Text style={s.emptySub}>Your call history will appear here.</Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList ListEmptyComponent={<EmptyState icon="phone" title="No calls yet" line="Your call history appears here." />}
           data={calls}
           keyExtractor={c => c.id}
           renderItem={renderItem}

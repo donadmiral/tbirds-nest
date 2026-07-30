@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
@@ -119,7 +120,7 @@ export default function ContextInboxScreen({ route, navigation }: any) {
           <Text style={s.emptySub}>{emptySub}</Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList ListEmptyComponent={<EmptyState icon="inbox" title="No conversations" line="Chats about your listings and jobs appear here." />}
           data={rows}
           keyExtractor={r => r.conversation_id}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={light.ink.faint} />}

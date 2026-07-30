@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
@@ -228,7 +229,7 @@ export default function ApplicantsScreen() {
           <Text style={st.emptySub}>{filter === 'all' ? 'Applications will appear here as they come in.' : 'Move applicants here from their status chip.'}</Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList ListEmptyComponent={<EmptyState icon="users" title="No applicants yet" line="People who apply appear here with their CV and note." />}
           data={shown}
           keyExtractor={i => i.id}
           renderItem={renderRow}

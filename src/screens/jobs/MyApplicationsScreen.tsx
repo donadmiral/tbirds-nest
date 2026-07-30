@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -54,7 +55,7 @@ export default function MyApplicationsScreen() {
         </View>
       ) : (
         <FlatList
-          data={apps}
+ ListEmptyComponent={<EmptyState icon="send" title="No applications yet" line="Roles you apply for show up here with their status." />}          data={apps}
           keyExtractor={i => i.id}
           ItemSeparatorComponent={() => <View style={st.sep} />}
           contentContainerStyle={{ paddingVertical: 4, paddingBottom: 40 }}

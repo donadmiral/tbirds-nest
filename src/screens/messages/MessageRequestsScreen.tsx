@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -231,7 +232,7 @@ export default function MessageRequestsScreen({ navigation }: any) {
           <Text style={s.emptySub}>New messages from outside your school will show up here.</Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList ListEmptyComponent={<EmptyState icon="user-plus" title="No message requests" line="Messages from people you do not follow wait here." />}
           data={requests}
           keyExtractor={(r) => r.conversation_id}
           renderItem={renderItem}

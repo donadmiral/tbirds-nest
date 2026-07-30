@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
@@ -118,7 +119,7 @@ export default function SavedMessagesScreen({ navigation }: any) {
       {loading
         ? <View style={s.center}><ActivityIndicator color="#000" /></View>
         : (
-          <FlatList
+          <FlatList ListEmptyComponent={<EmptyState icon="bookmark" title="Nothing saved" line="Save a message to find it here later." />}
             data={saved}
             keyExtractor={i => i.id}
             renderItem={renderItem}

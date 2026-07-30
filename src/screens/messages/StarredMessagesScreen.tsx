@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 /**
  * StarredMessagesScreen.tsx
  * All messages I personally starred, across DMs and groups.
@@ -226,7 +227,7 @@ export default function StarredMessagesScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList ListEmptyComponent={<EmptyState icon="star" title="No starred messages" line="Star a message to keep it within reach." />}
           data={rows}
           keyExtractor={r => r.id}
           renderItem={renderRow}
