@@ -12,6 +12,15 @@ export default async function SystemPage() {
   const svc = serviceClient();
   const { data: flags } = await svc.from('feature_flags').select('*').order('key');
   const { data: notes } = await svc.from('announcements').select('*').order('created_at', { ascending: false }).limit(10);
+  const { data: cerrs } = await svc.from('client_errors')
+    .select('id, user_id, message, stack, platform, app_version, context, created_at')
+    .order('created_at', { ascending: false }).limit(15);
+  const eids = Array.from(new Set((cerrs ?? []).map(e => e.user_id).filter(Boolean)));
+  const epeople: Record<string, any> = {};
+  if (eids.length) {
+    const { data } = await svc.from('profiles').select('id, username, full_name').in('id', eids as string[]);
+    (data ?? []).forEach(p => { epeople[p.id] = p; });
+  }
   const { data: words } = await svc.from('blocked_words').select('*').order('word');
   return (
     <Shell admin={admin} active="/system" title="Controls" sub="Kill switches and the platform's voice - use both sparingly">
@@ -79,6 +88,31 @@ export default async function SystemPage() {
             ))}
           </div>
         ) : <p className="mt-3 text-[12px] text-[#9A9DA4]">Nothing blocked yet. The database refuses matching posts and comments the moment a word lands here.</p>}
+      </div>
+      <div className="mt-6">
+        <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Client errors - the app reporting on itself</p>
+        <div className="overflow-hidden rounded-[12px] border border-[#E5E4E0] bg-white">
+          {(cerrs ?? []).length === 0 ? (
+            <p className="px-5 py-6 text-[12.5px] text-[#9A9DA4]">No errors reported. The phones write here the moment anything breaks.</p>
+          ) : (cerrs ?? []).map(e => {
+            const p = e.user_id ? epeople[e.user_id] : null;
+            const fatal = (e.context as any)?.fatal === true;
+            return (
+              <details key={e.id} className="border-b border-[#F0EFEC] last:border-0">
+                <summary className="flex cursor-pointer items-center gap-3 px-5 py-3 hover:bg-[#FAFAF9]">
+                  <span className={'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ' + (fatal ? 'bg-[#FBF2F2] text-[#B03A3A]' : 'bg-[#FDF6E9] text-[#B08D3F]')}>{fatal ? 'FATAL' : 'caught'}</span>
+                  <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-[#26282E]">{e.message}</span>
+                  <span className="shrink-0 text-[11px] text-[#9A9DA4]">{e.platform}{e.app_version ? ' ' + e.app_version : ''}</span>
+                  <span className="shrink-0 text-[11px] tabular-nums text-[#9A9DA4]">{new Date(e.created_at).toLocaleString()}</span>
+                </summary>
+                <div className="bg-[#FAFAF9] px-5 py-3">
+                  <p className="mb-1 text-[11px] text-[#5A5D64]">{p ? ('From ' + (p.full_name || '@' + p.username)) : 'Not signed in'}</p>
+                  <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-[8px] bg-[#26282E] p-3 text-[10.5px] leading-relaxed text-[#D7DBE0]">{e.stack || 'no stack'}</pre>
+                </div>
+              </details>
+            );
+          })}
+        </div>
       </div>
     </Shell>
   );
