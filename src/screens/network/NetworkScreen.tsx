@@ -1,3 +1,4 @@
+import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -324,9 +325,9 @@ export default function NetworkScreen({ navigation }: any) {
       >
         <AvatarView user={item} size={46} />
         <View style={{ flex: 1, marginLeft: 12, marginRight: 10 }}>
-          <Text style={{ fontSize: 15.5, fontWeight: '700', color: '#0B1E3D' }} numberOfLines={1}>
-            {item.full_name || 'Member'}<VerifiedBadge userId={item.id} size={13} />
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TierName userId={item.id} baseStyle={{ fontSize: 15.5, fontWeight: '700', color: '#0B1E3D', flexShrink: 1 }} text={item.full_name || 'Member'} /><VerifiedBadge userId={item.id} size={13} />
+          </View>
           {sub ? (
             <Text style={{ fontSize: 13, color: '#5C6B82', marginTop: 2 }} numberOfLines={1}>{sub}</Text>
           ) : null}
