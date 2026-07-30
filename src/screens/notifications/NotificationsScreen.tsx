@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
@@ -444,7 +445,7 @@ export default function NotificationsScreen({ navigation }: any) {
           </Text>
         </View>
       ) : (
-        <SectionList
+        <SectionList ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
           sections={sections}
           keyExtractor={r => r.notification_id}
           renderItem={renderRow}

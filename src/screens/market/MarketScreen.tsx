@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { useAuthStore } from '../../stores/authStore';
 import MarketFilterSheet, { MarketFilters, EMPTY_FILTERS } from '../../components/market/MarketFilterSheet';
@@ -245,7 +246,7 @@ export default function MarketScreen({ navigation }: any) {
           <Text style={s.emptyTxt}>Be the first to list something for sale.</Text>
         </View>
       ) : (
-        <FlatList automaticallyAdjustKeyboardInsets={true}
+        <FlatList ListEmptyComponent={<EmptyState icon="shopping-bag" title="Nothing listed yet" line="New listings appear here as people post them." />} automaticallyAdjustKeyboardInsets={true}
           data={listings}
           keyExtractor={(l) => l.id}
           numColumns={2}

@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
@@ -84,7 +85,7 @@ export default function BusinessesScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       ) : (
-        <FlatList
+        <FlatList ListEmptyComponent={<EmptyState icon="briefcase" title="No businesses here" line="Business accounts are separate now. They sign in through the business door on the login screen." />}
           data={rows}
           keyExtractor={r => r.business_id}
           contentContainerStyle={{ paddingHorizontal: 14, paddingTop: space.sm, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}

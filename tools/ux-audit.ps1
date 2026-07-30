@@ -8,7 +8,7 @@ Get-ChildItem -Path $R -Recurse -Include *.tsx | Sort-Object Name | ForEach-Obje
   $t = [IO.File]::ReadAllText($_.FullName)
   $issues = @()
   $lists = ([regex]::Matches($t, "<FlatList|<SectionList")).Count
-  $empties = ([regex]::Matches($t, "ListEmptyComponent")).Count
+  $empties = ([regex]::Matches($t, "ListEmptyComponent|EmptyState")).Count
   $scrollers = $lists + ([regex]::Matches($t, "<ScrollView")).Count
   if ($lists -gt 0 -and $empties -lt $lists) { $issues += "blank when empty (" + $lists + " lists, " + $empties + " empty states)" }
   if ($scrollers -gt 0 -and $t -notmatch "paddingBottom|TAB_BAR_CLEARANCE") { $issues += "no bottom clearance, content can hide under the tab bar" }

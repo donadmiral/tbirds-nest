@@ -65,7 +65,7 @@ export default function MutedStoriesScreen({ navigation }: any) {
           <Text style={s.emptySub}>Press and hold a story to mute someone.</Text>
         </View>
       ) : (
-        <FlatList ListEmptyComponent={<EmptyState icon="eye-off" title="Nobody muted" line="Muted people stay in your feed but their stories stay hidden." />}
+        <FlatList ListFooterComponent={<View style={{ height: 120 }} />} ListEmptyComponent={<EmptyState icon="eye-off" title="Nobody muted" line="Muted people stay in your feed but their stories stay hidden." />}
           data={rows}
           keyExtractor={r => r.muted_id}
           contentContainerStyle={{ paddingVertical: 8 }}

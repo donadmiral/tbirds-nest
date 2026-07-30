@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 /**
  * BlockedAccountsScreen
  *
@@ -138,7 +139,7 @@ export default function BlockedAccountsScreen({ navigation }: any) {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList ListEmptyComponent={<EmptyState icon="slash" title="Nobody blocked" line="Accounts you block appear here." />}
           data={rows}
           keyExtractor={r => r.blocked_id}
           contentContainerStyle={{ paddingHorizontal: 14, paddingTop: space.sm, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
