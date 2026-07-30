@@ -1842,6 +1842,7 @@ if (!search && promos.length > 0) {
                     <Feather name="chevron-down" size={12} color={NAVY} />
                   </TouchableOpacity>
                 </View>
+                <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
                 <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={light.ink.faint} multiline autoFocus maxLength={2000} />
                 {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
                 {exclusivePost && (
@@ -1911,6 +1912,7 @@ if (!search && promos.length > 0) {
                     {composerMedia.length < 10 && <TouchableOpacity style={s.cAddMore} onPress={pickMedia}><Text style={s.cAddMoreTxt}>+</Text></TouchableOpacity>}
                   </ScrollView>
                 )}
+                </ScrollView>
                 <View style={s.cToolbar}>
                   <View style={s.cToolbarLeft}>
                     <View style={{ alignItems: 'center' }}>
