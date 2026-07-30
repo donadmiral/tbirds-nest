@@ -26,7 +26,7 @@ export default function ContactSupportScreen() {
   const load = useCallback(async () => {
     if (!profile?.id) return;
     const { data } = await supabase.from('support_tickets')
-      .select('id, kind, subject, status, resolution_note, created_at, resolved_at')
+      .select('id, kind, subject, status, created_at, updated_at')
       .eq('user_id', profile.id).order('created_at', { ascending: false }).limit(10);
     setTickets(data ?? []);
   }, [profile?.id]);
@@ -72,16 +72,16 @@ export default function ContactSupportScreen() {
 
         {tickets.length ? <Text style={s.histLabel}>Your messages</Text> : null}
         {tickets.map(t => (
-          <View key={t.id} style={s.ticket}>
+          <TouchableOpacity key={t.id} style={s.ticket} activeOpacity={0.75} onPress={() => (navigation as any).navigate('Ticket', { ticketId: t.id, ticket: t })}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={s.ticketSubject} numberOfLines={1}>{t.subject}</Text>
-              <View style={[s.pill, t.status === 'resolved' ? s.pillDone : s.pillOpen]}>
-                <Text style={[s.pillTxt, t.status === 'resolved' ? s.pillTxtDone : s.pillTxtOpen]}>{t.status === 'resolved' ? 'Answered' : 'With the team'}</Text>
+              <View style={[s.pill, t.status === 'solved' ? s.pillDone : t.status === 'pending' ? s.pillPend : s.pillOpen]}>
+                <Text style={[s.pillTxt, t.status === 'solved' ? s.pillTxtDone : t.status === 'pending' ? s.pillTxtPend : s.pillTxtOpen]}>{t.status === 'solved' ? 'Solved' : t.status === 'pending' ? 'Replied - open it' : 'With the team'}</Text>
               </View>
+              <Text style={{ fontSize: 18, color: 'rgba(11,30,61,0.3)', marginLeft: 8 }}>{'\u203a'}</Text>
             </View>
-            {t.resolution_note ? <Text style={s.reply}>{t.resolution_note}</Text> : null}
-            <Text style={s.when}>{new Date(t.created_at).toLocaleDateString()}</Text>
-          </View>
+            <Text style={s.when}>{new Date(t.updated_at || t.created_at).toLocaleString()}</Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </SafeAreaView>
@@ -105,9 +105,11 @@ const s = StyleSheet.create({
   pill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
   pillOpen: { backgroundColor: 'rgba(180,83,9,0.1)' },
   pillDone: { backgroundColor: 'rgba(5,150,105,0.1)' },
+  pillPend: { backgroundColor: 'rgba(176,141,63,0.12)' },
   pillTxt: { fontSize: 10.5, fontWeight: '800' },
   pillTxtOpen: { color: '#B45309' },
   pillTxtDone: { color: '#059669' },
+  pillTxtPend: { color: '#B08D3F' },
   reply: { fontSize: 13, lineHeight: 18, color: 'rgba(11,30,61,0.75)', marginTop: 8, backgroundColor: 'rgba(11,30,61,0.04)', borderRadius: 10, padding: 10 },
   when: { fontSize: 11, color: 'rgba(11,30,61,0.4)', marginTop: 8 },
 });

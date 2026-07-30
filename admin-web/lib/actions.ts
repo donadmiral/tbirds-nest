@@ -474,3 +474,41 @@ export async function rejectBusinessApplication(formData: FormData) {
   });
   revalidatePath('/businesses');
 }
+export async function sendTicketReply(formData: FormData) {
+  const admin = await requireReviewer();
+  const tid = String(formData.get('tid') || '');
+  const body = String(formData.get('body') || '').trim();
+  if (!tid || !body) redirect('/support');
+  const svc = serviceClient();
+  const { data: t } = await svc.from('support_tickets').select('id, status, kind').eq('id', tid).maybeSingle();
+  if (!t) redirect('/support');
+  await svc.from('support_messages').insert({ ticket_id: tid, sender: 'ops', sender_id: admin.id, body });
+  await svc.from('support_tickets').update({ status: t.status === 'solved' ? 'solved' : 'pending', updated_at: new Date().toISOString() }).eq('id', tid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: t.kind === 'appeal' ? 'appeal.reply' : 'support.reply',
+    target_kind: 'support_ticket', target_id: tid, reason: body.slice(0, 200),
+    before: { status: t.status }, after: { status: t.status === 'solved' ? 'solved' : 'pending' },
+  });
+  revalidatePath('/support/' + tid); revalidatePath('/support');
+}
+
+export async function setTicketStatus(formData: FormData) {
+  const admin = await requireReviewer();
+  const tid = String(formData.get('tid') || '');
+  const status = String(formData.get('status') || '');
+  if (!tid || !['open', 'pending', 'solved'].includes(status)) redirect('/support');
+  const svc = serviceClient();
+  const { data: t } = await svc.from('support_tickets').select('id, status, kind').eq('id', tid).maybeSingle();
+  if (!t) redirect('/support');
+  await svc.from('support_tickets').update({
+    status, updated_at: new Date().toISOString(),
+    resolved_by: status === 'solved' ? admin.id : null,
+    resolved_at: status === 'solved' ? new Date().toISOString() : null,
+  }).eq('id', tid);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'support.status', target_kind: 'support_ticket', target_id: tid,
+    reason: status, before: { status: t.status }, after: { status },
+  });
+  revalidatePath('/support/' + tid); revalidatePath('/support');
+}
+
