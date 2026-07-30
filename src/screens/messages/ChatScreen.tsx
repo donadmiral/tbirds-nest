@@ -47,6 +47,7 @@ import ChatInfoSections from '../../components/ChatInfoSections';
 import CallEventBubble from '../../components/CallEventBubble';
 import ChatImageEditor from '../../components/ChatImageEditor';
 import { useDraftStore } from '../../stores/draftStore';
+import { useNetStore } from '../../stores/netStore';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) { UIManager.setLayoutAnimationEnabledExperimental(true); }
 
@@ -1057,6 +1058,10 @@ const insertMention = useCallback((username: string) => {
       // preview is written server-side by trg_sync_conversation_preview (0065)
       return true;
     } catch {
+      if (!mediaUrl && text) {
+        useNetStore.getState().enqueue({ conversation_id: convId, sender_id: currentUserId, receiver_id: receiverId ?? null, text, reply_to_id: replyId || null });
+        return true;
+      }
       setMessages(prev => prev.filter(m => m.id !== tempId));
       return false;
     }

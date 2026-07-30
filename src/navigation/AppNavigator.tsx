@@ -23,6 +23,7 @@ import LoginScreen          from '../screens/auth/LoginScreen';
 import BusinessSignInScreen from '../screens/auth/BusinessSignInScreen';
 import BusinessAccessScreen from '../screens/profile/BusinessAccessScreen';
 import AccountStandingScreen from '../screens/profile/AccountStandingScreen';
+import OfflineBanner from '../components/OfflineBanner';
 import ArticleComposeScreen from '../screens/feed/ArticleComposeScreen';
 import SignUpScreen         from '../screens/auth/SignUpScreen';
 import SetupProfileScreen   from '../screens/auth/SetupProfileScreen';
@@ -452,6 +453,7 @@ export default function AppNavigator() {
       <CallProvider>
         <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
           theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF', text: '#000000', border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30' } }}>
+          <OfflineBanner />
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
             <RootStack.Screen name="AuthCallback" component={AuthCallbackScreen} />
           </RootStack.Navigator>
@@ -469,6 +471,7 @@ export default function AppNavigator() {
     <CallProvider>
       <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
         theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF', text: '#000000', border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30' } }}>
+          <OfflineBanner />
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {isReady ? (
             <>
