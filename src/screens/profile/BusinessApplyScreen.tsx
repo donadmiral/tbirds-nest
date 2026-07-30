@@ -44,9 +44,11 @@ export default function BusinessApplyScreen() {
     setHandle(clean);
     if (!clean) { setHandleState('idle'); return; }
     if (!/^[a-z0-9_]{3,30}$/.test(clean)) { setHandleState('invalid'); return; }
+    if (!profile?.id) { setHandleState('idle'); return; } // availability checked at review when applying logged out
     setHandleState('checking');
     try {
-      const { data } = await supabase.rpc('is_username_available', { p_username: clean });
+      const { data, error } = await supabase.rpc('is_username_available', { p_username: clean });
+      if (error) { setHandleState('idle'); return; }
       setHandleState(data ? 'free' : 'taken');
     } catch { setHandleState('idle'); }
   };
