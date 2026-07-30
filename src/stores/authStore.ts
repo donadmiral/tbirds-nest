@@ -160,7 +160,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
 
         if (get().isPasswordRecovery) {
-          set({ session: newSession });
+          // Recovery jail must not starve the profile: load it here so the
+          // moment the flag clears the navigator has everything it needs.
+          const rp = get().profile ?? await loadProfile(newSession.user.id);
+          setCachedUserId(newSession.user.id);
+          set({ session: newSession, profile: rp, isVerifiedSchoolUser: getVerifiedStatus(rp) });
           return;
         }
 
@@ -237,7 +241,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setSession: (session) => set({ session }),
   setProfile: (profile) => set({ profile, isVerifiedSchoolUser: getVerifiedStatus(profile) }),
-  setPasswordRecovery: (v) => set({ isPasswordRecovery: v }),
+  setPasswordRecovery: (v) => { set({ isPasswordRecovery: v }); /* self-heal */ if (!v) { const s = get().session; if (s?.user?.id && !get().profile) { loadProfile(s.user.id).then((p) => set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) })).catch(() => {}); } } },
   setSuppressRecoveryRedirect: (v) => set({ suppressRecoveryRedirect: v }),
   setRecoveryUrl: (url) => set({ recoveryUrl: url }),
 
