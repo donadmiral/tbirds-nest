@@ -1,14 +1,14 @@
 /**
- * Connection truth and the message outbox. One listener knows whether
- * the network is alive; text messages that fail on a dead network wait
- * here (persisted, so they survive an app restart) and send themselves
- * the moment the connection returns. The chat's own reconciliation
- * absorbs the delivered copy, so nothing renders twice.
+ * Connection truth and the message outbox. expo-network (built into
+ * Expo Go) tells us whether the network is alive; text messages that
+ * fail on a dead network wait here (persisted, surviving restarts) and
+ * send themselves the moment the connection returns. The chat's own
+ * reconciliation absorbs the delivered copy, so nothing renders twice.
  */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from '@react-native-community/netinfo';
+import * as Network from 'expo-network';
 
 type QueuedMessage = {
   key: string;
@@ -66,11 +66,8 @@ async function flushOutbox() {
         receiver_id: item.receiver_id,
         reply_to_id: item.reply_to_id,
       }]);
-      if (error) {
-        useNetStore.getState().removeFromOutbox(item.key);
-        continue;
-      }
       useNetStore.getState().removeFromOutbox(item.key);
+      if (error) continue;
     }
   } catch {
   } finally {
@@ -78,13 +75,21 @@ async function flushOutbox() {
   }
 }
 
+function apply(s: any) {
+  const on = (s?.isConnected ?? true) !== false && s?.isInternetReachable !== false;
+  const was = useNetStore.getState().online;
+  useNetStore.getState().setOnline(on);
+  if (on && (!was || useNetStore.getState().outbox.length > 0)) flushOutbox();
+}
+
 export function initNet() {
   if (started) return;
   started = true;
-  NetInfo.addEventListener((state) => {
-    const on = !!state.isConnected && state.isInternetReachable !== false;
-    const was = useNetStore.getState().online;
-    useNetStore.getState().setOnline(on);
-    if (on && (!was || useNetStore.getState().outbox.length > 0)) flushOutbox();
-  });
+  try {
+    const sub = (Network as any).addNetworkStateListener?.((s: any) => apply(s));
+    if (!sub) throw new Error('no listener api');
+  } catch {
+    setInterval(async () => { try { apply(await Network.getNetworkStateAsync()); } catch {} }, 4000);
+  }
+  Network.getNetworkStateAsync().then(apply).catch(() => {});
 }
