@@ -158,6 +158,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'key', color: '#B08D3F', label: 'Business access', sub: 'For business accounts - the people and devices that may speak as it', onPress: () => (navigation as any).navigate('BusinessAccess') },
       { icon: 'shield', color: '#1D7A38', label: 'Account standing', sub: 'Your record and any active restriction', onPress: () => (navigation as any).navigate('AccountStanding') },
       { icon: 'trending-up', color: '#5B6470', label: 'Promotions and campaigns', sub: 'Promote your posts as sponsored placements', onPress: () => (navigation as any).navigate('Campaigns') },
+      { icon: 'edit-3', color: '#0E7490', label: 'Write an article', sub: 'Long-form publishing with a cover and read time', onPress: () => (navigation as any).navigate('ArticleCompose') },
     ]},
     { title: 'Notifications', rows: [
       { icon: 'bell', color: '#FF3B30', label: 'Push Notifications', sub: 'Master toggle for all alerts', chevron: false, right: sw(pushEnabled, togglePush) },

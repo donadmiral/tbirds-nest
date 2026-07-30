@@ -1,3 +1,4 @@
+import NewPostsPill from '../../components/NewPostsPill';
 import TierName from '../../components/TierName';
 import AnnouncementBanner from '../../components/AnnouncementBanner';
 import TrendingStoriesRail from '../../components/TrendingStoriesRail';
@@ -1703,6 +1704,7 @@ if (!search && promos.length > 0) {
             <FeedSkeleton />
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
+              <NewPostsPill topCreatedAt={posts[0]?.created_at} onPress={() => { setRefreshing(true); loadFeed(false); }} />
             <FlatList
               data={displayPosts}
               onScroll={handleTabBarScroll}
