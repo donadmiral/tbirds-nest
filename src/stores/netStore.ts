@@ -1,14 +1,18 @@
 /**
- * Connection truth and the message outbox. expo-network (built into
- * Expo Go) tells us whether the network is alive; text messages that
- * fail on a dead network wait here (persisted, surviving restarts) and
- * send themselves the moment the connection returns. The chat's own
- * reconciliation absorbs the delivered copy, so nothing renders twice.
+ * Connection truth and the message outbox - pure JavaScript, no native
+ * modules, Expo Go proof. Reachability = a tiny request to our own
+ * Supabase every few seconds (any HTTP response means the network is
+ * alive); the app foregrounding triggers an immediate check. Text
+ * messages that fail on a dead network wait here (persisted, surviving
+ * restarts) and send themselves the moment the connection returns. The
+ * chat's own reconciliation absorbs the delivered copy.
  */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Network from 'expo-network';
+import { AppState } from 'react-native';
+
+const PING_URL = (process.env.EXPO_PUBLIC_SUPABASE_URL || '') + '/auth/v1/health';
 
 type QueuedMessage = {
   key: string;
@@ -75,8 +79,20 @@ async function flushOutbox() {
   }
 }
 
-function apply(s: any) {
-  const on = (s?.isConnected ?? true) !== false && s?.isInternetReachable !== false;
+async function probe(): Promise<boolean> {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    await fetch(PING_URL, { method: 'GET', signal: ctrl.signal, cache: 'no-store' as any });
+    clearTimeout(timer);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function check() {
+  const on = await probe();
   const was = useNetStore.getState().online;
   useNetStore.getState().setOnline(on);
   if (on && (!was || useNetStore.getState().outbox.length > 0)) flushOutbox();
@@ -85,11 +101,10 @@ function apply(s: any) {
 export function initNet() {
   if (started) return;
   started = true;
-  try {
-    const sub = (Network as any).addNetworkStateListener?.((s: any) => apply(s));
-    if (!sub) throw new Error('no listener api');
-  } catch {
-    setInterval(async () => { try { apply(await Network.getNetworkStateAsync()); } catch {} }, 4000);
-  }
-  Network.getNetworkStateAsync().then(apply).catch(() => {});
+  check();
+  setInterval(check, 5000);
+  AppState.addEventListener('change', (s) => { if (s === 'active') check(); });
 }
+
+/** Called by senders on a failed request for an instant offline verdict. */
+export function reportSendFailure() { check(); }
