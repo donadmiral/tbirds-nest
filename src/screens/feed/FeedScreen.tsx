@@ -977,7 +977,7 @@ export default function FeedScreen({ navigation }: any) {
     setSharingPost(p => ({ ...p, [post.id]: true }));
     const author = profilesMap[post.user_id];
     try {
-      const res = await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${post.content}\n\nOpen in the app: platinum-circles://post/${post.id}` }); if ((res as any)?.action === Share.sharedAction) recordShare(post);
+      const res = await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${post.content}\n\nSee it: https://platinum-admin.vercel.app/p/${post.id}` }); if ((res as any)?.action === Share.sharedAction) recordShare(post);
     } catch {}
     setTimeout(() => setSharingPost(p => { const n = { ...p }; delete n[post.id]; return n; }), 600);
   }, [profilesMap]);

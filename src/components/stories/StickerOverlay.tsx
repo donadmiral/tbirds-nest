@@ -19,6 +19,7 @@ type StickerOverlayProps = {
   onMentionTap?: (userId: string) => void;
   onHashtagTap?: (tag: string) => void;
   onPostTap?: (postId: string) => void;
+  onStickerLayout?: (id: string, rect: { left: number; right: number; top: number; bottom: number }) => void;
   interactive?: boolean;
   // Engagement sticker interaction callbacks (viewer only)
   engagementProps?: {
@@ -210,6 +211,7 @@ export default function StickerOverlay({
           <View
             key={st.id}
             pointerEvents={interactive ? ((isPill || isEngagement) ? 'auto' : 'none') : 'none'}
+            onLayout={interactive && (isPill || isEngagement) && onStickerLayout ? (e: any) => { const t: any = e.currentTarget || e.target; t?.measureInWindow?.((x: number, y: number, w: number, h: number) => { if (w && h) onStickerLayout(st.id, { left: x, right: x + w, top: y, bottom: y + h }); }); } : undefined}
             style={{
               position: 'absolute',
               left: st.nx * containerW,
