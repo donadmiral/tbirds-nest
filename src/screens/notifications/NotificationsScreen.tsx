@@ -201,6 +201,7 @@ export default function NotificationsScreen({ navigation }: any) {
   const userId = (profile as any)?.id ?? null;
 
   const [rows, setRows] = useState<Notif[]>([]);
+  const reqCount = rows.filter(r => r.type === 'follow_request').length;
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -448,7 +449,7 @@ export default function NotificationsScreen({ navigation }: any) {
           </Text>
         </View>
       ) : (
-        <TapTopSectionList ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
+        <TapTopSectionList ListHeaderComponent={reqCount > 0 ? <TouchableOpacity activeOpacity={0.8} onPress={() => (navigation as any).navigate('FollowRequests')} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, marginBottom: 4, borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: 'rgba(11,30,61,0.03)' }}><View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}><Feather name="user-plus" size={16} color="#FFFFFF" /></View><View style={{ flex: 1 }}><Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Follow requests</Text><Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>{reqCount} waiting for your answer</Text></View><Text style={{ fontSize: 20, color: 'rgba(11,30,61,0.35)' }}>{'\u203a'}</Text></TouchableOpacity> : null} ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
           sections={sections}
           keyExtractor={r => r.notification_id}
           renderItem={renderRow}

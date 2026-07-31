@@ -1,3 +1,4 @@
+import VideoThumb from '../../components/VideoThumb';
 import { TapTopFlatList } from '../../components/TapTopList';
 import NewPostsPill from '../../components/NewPostsPill';
 import TierName from '../../components/TierName';
@@ -48,7 +49,7 @@ const NAVY = light.brand.base;
 type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number; width?: number | null; height?: number | null };
 type Post = {
   id: string; user_id: string; content: string;
-  likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number;
+  likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number; shares_count?: number;
   created_at?: string | null; media_url?: string | null; location?: string | null;
   channel?: string | null;
   quoted_post_id?: string | null;
@@ -79,7 +80,7 @@ function mapFeedRow(r: any): Post {
     is_trending: !!r.is_trending,
     products: Array.isArray(r.products) ? r.products : [],
     link: r.link ?? null,
-    reposts_count: r.reposts_count ?? 0, bookmarks_count: r.bookmarks_count ?? 0,
+    reposts_count: r.reposts_count ?? 0, bookmarks_count: r.bookmarks_count ?? 0, shares_count: r.shares_count ?? 0,
     created_at: r.created_at, media_url: r.media_url ?? null,
     location: null,
     channel: r.channel ?? null,
@@ -953,6 +954,11 @@ export default function FeedScreen({ navigation }: any) {
     (navigation as any).navigate('StoryComposer', { mode: 'text', seedStickers: [sticker] });
   }, [profilesMap, navigation]);
 
+  const recordShare = useCallback((p: Post) => {
+    supabase.rpc('increment_share_count', { p_post_id: p.id }).then(() => {}, () => {});
+    setPosts(prev => prev.map(x => x.id === p.id ? { ...x, shares_count: (x.shares_count ?? 0) + 1 } : x));
+  }, []);
+
   const sharePost = useCallback(async (post: Post) => {
     if (sharingPostRef.current[post.id]) return;
     setSharingPost(p => ({ ...p, [post.id]: true }));
@@ -1515,9 +1521,7 @@ if (!search && promos.length > 0) {
               </View>
               {(q as any)?.media?.url ? (
                 (q as any).media.media_type === 'video' ? (
-                  <View style={{ width: 64, height: 64, borderRadius: 8, backgroundColor: light.ink.primary, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 13, color: light.ink.inverse, marginLeft: 2 }}>{'\u25B6'}</Text>
-                  </View>
+                  <VideoThumb uri={(q as any).media.url} size={64} />
                 ) : (
                   <ExpoImage source={{ uri: (q as any).media.url }} style={{ width: 64, height: 64, borderRadius: 8 }} contentFit="cover" />
                 )
@@ -1590,8 +1594,8 @@ if (!search && promos.length > 0) {
             <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => addPostToStory(post) }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
-            <Feather name="share-2" size={20} color={light.ink.muted} />
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => { recordShare(post); addPostToStory(post); } }, { text: 'Send to...', onPress: () => { recordShare(post); openSendSheet(post); } }, { text: 'Share via...', onPress: () => { recordShare(post); sharePost(post); } }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
+            <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{post.shares_count}</Text> : null}
           </TouchableOpacity>
         </View>
         {post.products && post.products.length > 0 && (/* carousel holds the tab swipe */
