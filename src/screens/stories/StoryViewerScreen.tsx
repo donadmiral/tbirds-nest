@@ -305,6 +305,7 @@ export default function StoryViewerScreen() {
 
   const stopProgress = useCallback(() => { cancelAnimation(progressSV); }, [progressSV]);
   const resetProgress = useCallback(() => { cancelAnimation(progressSV); progressSV.value = 0; }, [progressSV]);
+  useEffect(() => { const un = (navigation as any).addListener('focus', () => { resumeFrom('deepnav'); }); return un; }, [navigation]);
   const saveAndGoBack = useCallback(() => { lastViewerPosition = { sessionKey, userIndex: userIndexRef.current, storyIndex: storyIndexRef.current, timestamp: Date.now() }; navigation.goBack(); }, [sessionKey, navigation]);
   const fireTapFeedback = useCallback(() => { cancelAnimation(tapScaleSV); tapScaleSV.value = withSequence(withTiming(TAP_SCALE_DOWN, { duration: TAP_SCALE_DURATION, easing: REasing.out(REasing.ease) }), withTiming(1, { duration: TAP_SCALE_DURATION, easing: REasing.in(REasing.ease) })); }, [tapScaleSV]);
 
@@ -500,7 +501,7 @@ export default function StoryViewerScreen() {
 
         {renderPipDual()}
         {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><Text style={{ color: 'rgba(245,240,235,0.15)', fontSize: 12, marginTop: 14, letterSpacing: 0.5, fontWeight: '500' }}>Unavailable</Text></View>)}
-        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { saveAndGoBack(); setTimeout(() => navigation.navigate('Search' as never, { query: '#' + tag } as never), 280); }} onMentionTap={(userId) => { saveAndGoBack(); setTimeout(() => navigation.navigate('UserProfile', { userId }), 280); }} onPostTap={(postId) => { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('Post', { postId }), 280); }} onStickerLayout={(id: string, r: any) => { measuredStickerRectsRef.current[id] = r; }} engagementProps={engagementProps} />
+        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { saveAndGoBack(); setTimeout(() => navigation.navigate('Search' as never, { query: '#' + tag } as never), 280); }} onMentionTap={(userId) => { pauseFor('deepnav'); (navigation as any).navigate('UserProfileTop', { userId }); }} onPostTap={(postId) => { pauseFor('deepnav'); (navigation as any).navigate('PostTop', { postId }); }} onStickerLayout={(id: string, r: any) => { measuredStickerRectsRef.current[id] = r; }} engagementProps={engagementProps} />
       </View>
       </Animated.View>
       </ReAnimated.View>
