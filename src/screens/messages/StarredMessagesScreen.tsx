@@ -1,3 +1,6 @@
+import TierName from '../../components/TierName';
+import VerifiedBadge from '../../components/VerifiedBadge';
+import { TextInput } from 'react-native';
 import EmptyState from '../../components/EmptyState';
 /**
  * StarredMessagesScreen.tsx
@@ -67,6 +70,7 @@ export default function StarredMessagesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [q, setQ] = useState('');
   const load = useCallback(async () => {
     if (!myId) { setLoading(false); return; }
     try {
@@ -161,6 +165,9 @@ export default function StarredMessagesScreen() {
     }
   };
 
+  const nq = q.trim().toLowerCase();
+  const filteredRows = !nq ? rows : rows.filter(r => (r.msg?.text || '').toLowerCase().includes(nq) || (r.other_party?.full_name || '').toLowerCase().includes(nq) || (r.conv?.group_name || '').toLowerCase().includes(nq) || (r.sender_name || '').toLowerCase().includes(nq));
+
   const renderRow = ({ item }: { item: Row }) => {
     const conv = item.conv;
     const isGroup = !!conv?.is_group;
@@ -186,7 +193,7 @@ export default function StarredMessagesScreen() {
               : <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarTxt}>{initials(contextName)}</Text></View>)}
         <View style={{ flex: 1 }}>
           <View style={s.rowTop}>
-            <Text style={s.contextName} numberOfLines={1}>{contextName}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 }}>{!isGroup && item.other_party?.id ? (<TierName userId={item.other_party.id} baseStyle={s.contextName} text={contextName} />) : (<Text style={s.contextName} numberOfLines={1}>{contextName}</Text>)}{!isGroup && item.other_party?.id ? <VerifiedBadge userId={item.other_party.id} size={12} /> : null}</View>
             <Text style={s.date}>{fmtShortDate(item.starred_at)}</Text>
           </View>
           <Text style={s.sender}>{senderLabel}</Text>
@@ -227,8 +234,8 @@ export default function StarredMessagesScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList ListEmptyComponent={<EmptyState icon="star" title="No starred messages" line="Star a message to keep it within reach." />}
-          data={rows}
+        <FlatList ListHeaderComponent={<View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6 }}><TextInput value={q} onChangeText={setQ} placeholder="Search saved messages" placeholderTextColor="#9A9DA4" autoCapitalize="none" style={{ backgroundColor: '#F2F2F7', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14.5, color: '#111' }} /></View>} ListEmptyComponent={<EmptyState icon="star" title="No starred messages" line="Star a message to keep it within reach." />}
+          data={filteredRows}
           keyExtractor={r => r.id}
           renderItem={renderRow}
           contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}

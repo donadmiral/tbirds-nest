@@ -40,7 +40,7 @@ export default function PostStoryCard({ sticker, onPress }: { sticker: any; onPr
     </View>
   );
   if (!onPress) return inner;
-  return <TouchableOpacity activeOpacity={0.85} onPress={() => { console.log('[postcard-press] fired, handler:', !!onPress); onPress && onPress(); }}>{inner}</TouchableOpacity>;
+  return <TouchableOpacity activeOpacity={0.85} onPress={onPress}>{inner}</TouchableOpacity>;
 }
 
 const st = StyleSheet.create({
