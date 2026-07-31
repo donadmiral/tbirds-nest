@@ -1,3 +1,4 @@
+import VideoThumb from '../../components/VideoThumb';
 /**
  * UserProfileScreen.tsx
  * Design A — Classic iOS Style contact info, Clean Premium language.
@@ -381,7 +382,7 @@ export default function UserProfileScreen() {
                 posts.map((post, idx) => (
                   <View
                     key={post.id}
-                    style={[s.postCard, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
+                    style={[s.postCard, { marginBottom: 10, borderBottomWidth: 6, borderBottomColor: '#F4F4F6' }, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <TouchableOpacity style={{ flex: 1 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
@@ -423,24 +424,21 @@ export default function UserProfileScreen() {
                     <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
                       {post.media.length > 0 ? (
                         <View style={{ marginBottom: 10 }}>
-                          {post.media.map((m, mIdx) => (
-                            <View key={m.id || mIdx} style={{ width: SCREEN_W - 64, aspectRatio: 4/5, borderRadius: 14, overflow: 'hidden', marginBottom: post.media.length > 1 ? 4 : 0 }}>
-                              {m.media_type === 'video' ? (
-                                <MediaRenderer media={[m]} containerWidth={SCREEN_W - 64} maxHeight={(SCREEN_W - 64) * 1.25} />
-                              ) : (
-                                <ExpoImage
-                                  source={{ uri: m.url }}
-                                  style={{ width: '100%', height: '100%' }}
-                                  contentFit="cover"
-                                  cachePolicy="memory-disk"
-                                  transition={200}
-                                />
-                              )}
-                            </View>
-                          ))}
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                            {post.media.map((m, mIdx) => (
+                              <View key={m.id || mIdx} style={{ width: post.media.length === 1 ? SCREEN_W - 64 : 192, height: post.media.length === 1 ? 150 : 128, borderRadius: 12, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
+                                {m.media_type === 'video' ? (
+                                  <VideoThumb uri={m.url} size={post.media.length === 1 ? 150 : 128} radius={0} />
+                                ) : (
+                                  <ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={200} />
+                                )}
+                              </View>
+                            ))}
+                          </ScrollView>
+                          {post.media.length > 1 ? (<View pointerEvents="none" style={{ position: 'absolute', right: 6, top: 51, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(11,30,61,0.55)', alignItems: 'center', justifyContent: 'center' }}><Feather name="chevron-right" size={15} color="#FFFFFF" /></View>) : null}
                         </View>
                       ) : null}
-                      {post.content ? <Text style={s.postContent} numberOfLines={4}>{post.content}</Text> : null}
+                      {post.content ? <Text style={s.postContent} numberOfLines={3}>{post.content}</Text> : null}
                       <View style={s.postFooter}>
                         <View style={s.postFooterItem}>
                           <Feather name="heart" size={13} color={TEXT_SECONDARY} />
