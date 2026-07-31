@@ -64,6 +64,13 @@ export const authService = {
   },
 
   async signIn(email: string, password: string) {
+    // Sign in with a username too: usernames are unique and profiles
+    // carries the email, so a handle quietly resolves to its address.
+    if (!email.includes('@')) {
+      const { data: byName } = await supabase.from('profiles')
+        .select('email').eq('username', email.toLowerCase().replace('@', '')).maybeSingle();
+      if (byName?.email) email = byName.email;
+    }
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
