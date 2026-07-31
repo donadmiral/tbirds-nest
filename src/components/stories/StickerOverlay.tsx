@@ -212,6 +212,7 @@ export default function StickerOverlay({
           <View
             key={st.id}
             pointerEvents={interactive ? ((isPill || isEngagement) ? 'auto' : 'none') : 'none'}
+            onTouchStart={() => console.log('[sticker-touch]', st.kind, 'reached wrapper')}
             onLayout={interactive && (isPill || isEngagement) && onStickerLayout ? (e: any) => { const t: any = e.currentTarget || e.target; t?.measureInWindow?.((x: number, y: number, w: number, h: number) => { if (w && h) onStickerLayout(st.id, { left: x, right: x + w, top: y, bottom: y + h }); }); } : undefined}
             style={{
               position: 'absolute',

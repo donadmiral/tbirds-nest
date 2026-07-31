@@ -58,7 +58,7 @@ export default function StickerPill({ label, kind, onPress }: StickerPillProps) 
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.85} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+      <TouchableOpacity onPress={() => { console.log('[pill-press] fired'); onPress && onPress(); }} activeOpacity={0.85} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
         {content}
       </TouchableOpacity>
     );

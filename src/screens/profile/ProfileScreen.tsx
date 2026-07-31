@@ -342,7 +342,7 @@ export default function ProfileScreen() {
     const displayAvatar = author?.avatar_url;
     const mediaWidth = SCREEN_W - 32;
     return (
-      <TouchableOpacity key={post.id} style={st.postCard} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
+      <TouchableOpacity key={post.id} style={[st.postCard, { marginBottom: 10, borderBottomWidth: 6, borderBottomColor: '#F4F4F6' }]} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
         {post._repostLabel && (<View style={st.repostBanner}><Feather name="repeat" size={12} color="#059669" /><Text style={st.repostBannerTxt}>{post._repostLabel}{post._repostedAt ? ' \u00b7 ' + relTime(post._repostedAt) : ''}</Text></View>)}
         {post._savedAt && !post._repostLabel && (<View style={st.repostBanner}><Feather name="bookmark" size={12} color={NAVY} /><Text style={[st.repostBannerTxt, { color: NAVY }]}>Saved {relTime(post._savedAt)}</Text></View>)}
         <View style={st.postHeader}>
@@ -361,8 +361,8 @@ export default function ProfileScreen() {
           <View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }} contentContainerStyle={{ gap: 6 }}>
               {post.media.map((m, idx) => (
-                <View key={m.id || idx} style={{ width: post.media.length === 1 ? mediaWidth : 210, height: post.media.length === 1 ? 180 : 150, borderRadius: 10, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
-                  {m.media_type === 'video' ? (<VideoThumb uri={m.url} size={post.media.length === 1 ? 180 : 150} radius={0} />) : (<ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={150} />)}
+                <View key={m.id || idx} style={{ width: post.media.length === 1 ? mediaWidth : 192, height: post.media.length === 1 ? 148 : 128, borderRadius: 10, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
+                  {m.media_type === 'video' ? (<VideoThumb uri={m.url} size={post.media.length === 1 ? 148 : 128} radius={0} />) : (<ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={150} />)}
                 </View>
               ))}
             </ScrollView>
