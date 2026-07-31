@@ -421,6 +421,7 @@ export default function FeedScreen({ navigation }: any) {
 
       const rows = (feedRows ?? []) as any[];
       const scored = rows.map(mapFeedRow);
+      hydrateShares(scored.map(pp => pp.id));
       setPosts(scored);
       cursorRef.current = rows.length
         ? { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id }
@@ -926,6 +927,7 @@ export default function FeedScreen({ navigation }: any) {
         text: null, shared_post_id: sendPost.id,
       });
       if (error) throw error;
+      recordShare(sendPost);
       await supabase.from('conversations').update({ last_message: 'Shared a post', last_message_time: new Date().toISOString(), last_message_sender_id: userId }).eq('id', conv.id);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setSendPost(null);
@@ -955,6 +957,16 @@ export default function FeedScreen({ navigation }: any) {
     (navigation as any).navigate('StoryComposer', { mode: 'text', seedStickers: [sticker] });
   }, [profilesMap, navigation]);
 
+  const hydrateShares = useCallback((ids: string[]) => {
+    if (!ids.length) return;
+    supabase.from('posts').select('id, shares_count').in('id', ids).then(({ data }) => {
+      if (!data || !data.length) return;
+      const m: Record<string, number> = {};
+      data.forEach((r: any) => { m[r.id] = r.shares_count ?? 0; });
+      setPosts(prev => prev.map(pp => m[pp.id] != null && (pp.shares_count ?? 0) < m[pp.id] ? { ...pp, shares_count: m[pp.id] } : pp));
+    }, () => {});
+  }, []);
+
   const recordShare = useCallback((p: Post) => {
     supabase.rpc('increment_share_count', { p_post_id: p.id }).then(() => {}, () => {});
     setPosts(prev => prev.map(x => x.id === p.id ? { ...x, shares_count: (x.shares_count ?? 0) + 1 } : x));
@@ -965,7 +977,7 @@ export default function FeedScreen({ navigation }: any) {
     setSharingPost(p => ({ ...p, [post.id]: true }));
     const author = profilesMap[post.user_id];
     try {
-      await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${post.content}\n\nOpen in the app: platinum-circles://post/${post.id}` });
+      const res = await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${post.content}\n\nOpen in the app: platinum-circles://post/${post.id}` }); if ((res as any)?.action === Share.sharedAction) recordShare(post);
     } catch {}
     setTimeout(() => setSharingPost(p => { const n = { ...p }; delete n[post.id]; return n; }), 600);
   }, [profilesMap]);
@@ -1229,6 +1241,7 @@ export default function FeedScreen({ navigation }: any) {
       if (rows.length === 0) return;
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
       const scored = rows.map(mapFeedRow);
+      hydrateShares(scored.map(pp => pp.id));
       setPosts(prev => [...prev, ...scored.filter(p => !prev.some(x => x.id === p.id))]);
       setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });
       setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked) m[r.post_id] = true; }); return m; });
@@ -1596,7 +1609,7 @@ if (!search && promos.length > 0) {
             <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => { recordShare(post); addPostToStory(post); } }, { text: 'Send to...', onPress: () => { recordShare(post); openSendSheet(post); } }, { text: 'Share via...', onPress: () => { recordShare(post); sharePost(post); } }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => { recordShare(post); addPostToStory(post); } }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
             <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{post.shares_count}</Text> : null}
           </TouchableOpacity>
         </View>
