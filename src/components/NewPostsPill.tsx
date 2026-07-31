@@ -18,7 +18,7 @@ export default function NewPostsPill(props: any) {
   const insets = useSafeAreaInsets();
   const [fresh, setFresh] = useState(0);
   const baselineRef = useRef<string>(new Date().toISOString());
-  const latest: string | null = props?.latestCreatedAt ?? props?.latest ?? null;
+  const latest: string | null = props?.latestCreatedAt ?? props?.latest ?? props?.topCreatedAt ?? null;
 
   useEffect(() => {
     if (latest && latest > baselineRef.current) {

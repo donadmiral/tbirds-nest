@@ -1732,7 +1732,7 @@ if (!search && promos.length > 0) {
             <FeedSkeleton />
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
-              <NewPostsPill topCreatedAt={posts[0]?.created_at} onPress={() => { setRefreshing(true); loadFeed(false); }} />
+              <NewPostsPill topCreatedAt={posts.length ? posts.reduce((m, p) => (p.created_at > m ? p.created_at : m), posts[0].created_at) : null} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
             <TapTopFlatList innerRef={feedListRef}
               data={displayPosts}
               onScroll={handleTabBarScroll}
