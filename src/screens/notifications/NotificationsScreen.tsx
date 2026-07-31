@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import { TapTopSectionList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
