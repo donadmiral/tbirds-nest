@@ -10,7 +10,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, Keyboard, Platform, Dimensions,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import ReAnimated, { SharedValue, useAnimatedStyle, interpolate } from 'react-native-reanimated';
 import { palette } from '../../constants/tokens';
 
@@ -101,7 +101,7 @@ const ImmersiveReplyField = React.memo(function ImmersiveReplyField({
         onLongPress={onLongPressHeart}
         delayLongPress={300}
       >
-        <Feather name="heart" size={19} color={heartActive ? '#FF3B30' : 'rgba(255,255,255,0.92)'} />
+        {heartActive ? <Ionicons name="heart" size={20} color="#FF3B30" /> : <Feather name="heart" size={19} color="rgba(255,255,255,0.92)" />}
       </TouchableOpacity>
 
       <TouchableOpacity style={s.sendDefault} activeOpacity={0.8} onPress={onOpenReply}>

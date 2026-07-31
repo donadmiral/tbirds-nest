@@ -64,12 +64,11 @@ export const authService = {
   },
 
   async signIn(email: string, password: string) {
-    // Sign in with a username too: usernames are unique and profiles
-    // carries the email, so a handle quietly resolves to its address.
+    // Sign in with a username too: the definer function resolves a
+    // handle to its address even before any session exists.
     if (!email.includes('@')) {
-      const { data: byName } = await supabase.from('profiles')
-        .select('email').eq('username', email.toLowerCase().replace('@', '')).maybeSingle();
-      if (byName?.email) email = byName.email;
+      const { data: resolved } = await supabase.rpc('email_for_username', { p_username: email });
+      if (resolved) email = resolved as string;
     }
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
