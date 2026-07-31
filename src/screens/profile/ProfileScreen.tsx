@@ -145,6 +145,7 @@ export default function ProfileScreen() {
       const c = pd.counts || {};
       setTabCounts({ posts: c.posts ?? 0, reposts: c.reposts ?? 0, saved: c.saved ?? 0, tagged: c.media ?? 0 });
       setStats({ posts: c.posts ?? 0, connections: 0, followers: c.followers ?? 0, following: c.following ?? 0, reach: c.reach ?? null } as any);
+      supabase.rpc('get_profile_reach_28d', { p_profile_id: pd.id }).then(({ data }) => { if (data != null) setStats(prev => ({ ...(prev as any), reach: data })); }, () => {});
     } catch(e){ console.log('PROFILE_LOAD',e); }
     finally { setLoading(false); setRefreshing(false); }
   }, [userId]);

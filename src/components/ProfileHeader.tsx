@@ -253,7 +253,7 @@ export default function ProfileHeader({
             {isSelf && stats?.reach != null ? (
               <TouchableOpacity style={[s.seg, s.segAccent]} activeOpacity={0.75} onPress={onOpenInsights}>
                 <Text style={s.pillNum}>{fmt(stats.reach)}</Text>
-                <Text style={s.pillLbl}>Reached</Text>
+                <Text style={s.pillLbl}>Reached {'\u00b7'} 28 days</Text>
               </TouchableOpacity>
             ) : null}
           </View>
