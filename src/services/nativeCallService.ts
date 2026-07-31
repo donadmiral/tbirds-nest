@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 /**
  * nativeCallService - the dormant CallKit / ConnectionService layer.
  *
@@ -21,7 +22,12 @@
 import { Platform } from 'react-native';
 
 // Master switch: stays false until the first build that compiles the natives.
-export const NATIVE_CALLS_ENABLED = true;
+export // The switch is BINARY-AWARE: native calls arm only on builds that
+// actually compiled the PushKit delegate (build 5 onward). Older
+// binaries and Expo Go read a lower or unparseable native build
+// number and stay safely dormant, so Metro can never crash them.
+const __nb = Number((Constants as any)?.nativeBuildVersion ?? 0) || 0;
+const NATIVE_CALLS_ENABLED = __nb >= 5;
 
 let RNCallKeep: any = null;
 let VoipPushNotification: any = null;
