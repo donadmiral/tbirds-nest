@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Pressable } from 'react-native';
 import VideoThumb from '../../components/VideoThumb';
 import VerifiedBadge from '../../components/VerifiedBadge';
