@@ -1,3 +1,4 @@
+import { TapTopSectionList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -332,6 +333,7 @@ export default function NotificationsScreen({ navigation }: any) {
       <TouchableOpacity
         style={[s.row, unread && s.rowUnread]}
         activeOpacity={0.72}
+        onLongPress={() => Alert.alert('Delete notification?', 'This removes it from your feed.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { await supabase.from('notifications').delete().eq('id', item.notification_id); setRows(prev => prev.filter(r => r.notification_id !== item.notification_id)); } }])}
         onPress={() => open(item)}
       >
         <View style={s.avatarWrap}>
@@ -445,7 +447,7 @@ export default function NotificationsScreen({ navigation }: any) {
           </Text>
         </View>
       ) : (
-        <SectionList ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
+        <TapTopSectionList ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
           sections={sections}
           keyExtractor={r => r.notification_id}
           renderItem={renderRow}

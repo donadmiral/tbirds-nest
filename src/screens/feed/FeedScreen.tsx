@@ -1,3 +1,4 @@
+import { TapTopFlatList } from '../../components/TapTopList';
 import NewPostsPill from '../../components/NewPostsPill';
 import TierName from '../../components/TierName';
 import AnnouncementBanner from '../../components/AnnouncementBanner';
@@ -1713,7 +1714,7 @@ if (!search && promos.length > 0) {
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
               <NewPostsPill topCreatedAt={posts[0]?.created_at} onPress={() => { setRefreshing(true); loadFeed(false); }} />
-            <FlatList
+            <TapTopFlatList
               data={displayPosts}
               onScroll={handleTabBarScroll}
               scrollEventThrottle={16}

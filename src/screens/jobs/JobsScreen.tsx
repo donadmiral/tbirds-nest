@@ -1,3 +1,4 @@
+import { TapTopFlatList } from '../../components/TapTopList';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -529,7 +530,7 @@ export default function JobsScreen({ navigation }: any) {
         {loading ? (
           <View style={s.loader}><ActivityIndicator size="large" color="#2563EB" /><Text style={s.loaderTxt}>Loading jobs...</Text></View>
         ) : (
-          <FlatList
+          <TapTopFlatList
             data={displayJobs}
             keyExtractor={j => j.id}
             renderItem={renderJob}
