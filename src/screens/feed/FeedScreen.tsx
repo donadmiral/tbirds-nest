@@ -1609,7 +1609,7 @@ if (!search && promos.length > 0) {
             <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => { recordShare(post); addPostToStory(post); } }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => addPostToStory(post) }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
             <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{post.shares_count}</Text> : null}
           </TouchableOpacity>
         </View>

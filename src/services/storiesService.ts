@@ -448,6 +448,11 @@ export async function uploadAndCreateStory(params: {
     throw error || new Error('Story insert failed');
   }
 
+  const postStickers = ((insertPayload.stickers_json || []) as any[]).filter((s: any) => s?.kind === 'post' && s?.postId);
+  Array.from(new Set(postStickers.map((s: any) => s.postId))).forEach((pid: any) => {
+    supabase.rpc('increment_share_count', { p_post_id: pid }).then(() => {}, () => {});
+  });
+
   if (audience === 'only_with' && sharedWith && sharedWith.length > 0) {
     const rows = sharedWith.map((uid: string) => ({ story_id: data.id, user_id: uid }));
     const { error: shareErr } = await supabase.from('story_shared_with').insert(rows);
