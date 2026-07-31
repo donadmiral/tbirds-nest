@@ -188,6 +188,7 @@ export default function StickerOverlay({
   onMentionTap,
   onHashtagTap,
   onPostTap,
+  onStickerLayout,
   interactive = true,
   engagementProps,
 }: StickerOverlayProps) {

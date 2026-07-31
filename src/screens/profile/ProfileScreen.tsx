@@ -1,3 +1,4 @@
+import VideoThumb from '../../components/VideoThumb';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import EmptyState from '../../components/EmptyState';
@@ -355,14 +356,17 @@ export default function ProfileScreen() {
             Alert.alert(undefined as any, undefined, buttons);
           }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ padding: 4 }}><Feather name="more-horizontal" size={18} color={TEXT_SECONDARY} /></TouchableOpacity>
         </View>
-        {post.content ? <Text style={st.postContent} numberOfLines={4}>{post.content}</Text> : null}
+        {post.content ? <Text style={st.postContent} numberOfLines={3}>{post.content}</Text> : null}
         {post.media.length > 0 && (
-          <View style={st.postMediaWrap}>
-            {post.media.map((m, idx) => (
-              <View key={m.id || idx} style={{ width: mediaWidth, aspectRatio: 4/5, borderRadius: 12, overflow: 'hidden', marginBottom: post.media.length > 1 ? 4 : 0 }}>
-                {m.media_type === 'video' ? (<MediaRenderer media={[m]} containerWidth={mediaWidth} maxHeight={mediaWidth * 1.25} />) : (<ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={150} />)}
-              </View>
-            ))}
+          <View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }} contentContainerStyle={{ gap: 6 }}>
+              {post.media.map((m, idx) => (
+                <View key={m.id || idx} style={{ width: post.media.length === 1 ? mediaWidth : 210, height: post.media.length === 1 ? 180 : 150, borderRadius: 10, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
+                  {m.media_type === 'video' ? (<VideoThumb uri={m.url} size={post.media.length === 1 ? 180 : 150} radius={0} />) : (<ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={150} />)}
+                </View>
+              ))}
+            </ScrollView>
+            {post.media.length > 1 ? (<Text style={{ fontSize: 11, color: '#9A9DA4', marginTop: 4, fontWeight: '600' }}>{post.media.length} items \u00b7 swipe</Text>) : null}
           </View>
         )}
         <View style={st.postMetrics}>
