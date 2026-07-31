@@ -21,7 +21,7 @@
 import { Platform } from 'react-native';
 
 // Master switch: stays false until the first build that compiles the natives.
-export const NATIVE_CALLS_ENABLED = false;
+export const NATIVE_CALLS_ENABLED = true;
 
 let RNCallKeep: any = null;
 let VoipPushNotification: any = null;

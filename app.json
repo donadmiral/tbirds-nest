@@ -58,6 +58,7 @@
     "plugins": [
       "expo-notifications",
       "@config-plugins/react-native-callkeep",
+      "./plugins/withVoipPushKit",
       "expo-secure-store",
       "expo-image-picker",
       "expo-video",
