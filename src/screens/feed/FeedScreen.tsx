@@ -1935,7 +1935,6 @@ if (!search && promos.length > 0) {
                     {composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
-                    <ActorSwitcher />
                     <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerMedia([]); setComposerProducts([]); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
