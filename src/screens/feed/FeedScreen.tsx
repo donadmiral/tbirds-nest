@@ -167,6 +167,7 @@ export default function FeedScreen({ navigation }: any) {
   const [likerNames, setLikerNames] = useState<Record<string, string[]>>({});
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
+  const feedListRef = useRef<any>(null);
   const [commentPreviews, setCommentPreviews] = useState<Record<string, CommentPreview>>({});
   const [loading, setLoading] = useState(true);
   const [feedError, setFeedError] = useState<string | null>(null);
@@ -1189,6 +1190,7 @@ export default function FeedScreen({ navigation }: any) {
       }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setTimeout(() => feedListRef.current?.scrollToOffset({ offset: 0, animated: true }), 150);
       setComposerOpen(false);
       setComposerText('');
       setComposerMedia([]);
@@ -1718,7 +1720,7 @@ if (!search && promos.length > 0) {
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
               <NewPostsPill topCreatedAt={posts[0]?.created_at} onPress={() => { setRefreshing(true); loadFeed(false); }} />
-            <TapTopFlatList
+            <TapTopFlatList innerRef={feedListRef}
               data={displayPosts}
               onScroll={handleTabBarScroll}
               scrollEventThrottle={16}

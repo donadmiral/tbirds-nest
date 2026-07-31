@@ -7,10 +7,11 @@ import React, { useRef } from 'react';
 import { FlatList, SectionList } from 'react-native';
 import { useScrollToTop } from '@react-navigation/native';
 
-export function TapTopFlatList(props: any) {
+export function TapTopFlatList({ innerRef, ...props }: any) {
   const r = useRef<FlatList>(null);
   useScrollToTop(r);
-  return <FlatList ref={r} {...props} />;
+  const bind = (node: any) => { (r as any).current = node; if (innerRef) innerRef.current = node; };
+  return <FlatList ref={bind} {...props} />;
 }
 
 export function TapTopSectionList(props: any) {

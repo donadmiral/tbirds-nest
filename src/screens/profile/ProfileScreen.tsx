@@ -280,10 +280,10 @@ export default function ProfileScreen() {
     try {
       let ids:string[]=[];
       if (type==='followers') {
-        const { data } = await supabase.from('follows').select('follower_id').eq('following_id',userId);
+        const { data } = await supabase.from('follows').select('follower_id').eq('following_id',userId).neq('follower_id',userId);
         ids=(data||[]).map((r:any)=>r.follower_id);
       } else {
-        const { data } = await supabase.from('follows').select('following_id').eq('follower_id',userId);
+        const { data } = await supabase.from('follows').select('following_id').eq('follower_id',userId).neq('following_id',userId);
         ids=(data||[]).map((r:any)=>r.following_id);
       }
       if (ids.length>0) { const { data: people } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id',ids); setStatsPeople((people||[]) as Person[]); }
