@@ -1,3 +1,5 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import EmptyState from '../../components/EmptyState';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useState } from 'react';
