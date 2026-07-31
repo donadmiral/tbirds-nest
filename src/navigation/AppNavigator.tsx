@@ -506,6 +506,8 @@ export default function AppNavigator() {
                 <RootStack.Screen name="Call"              component={CallScreen} />
                 <RootStack.Screen name="IncomingCall"      component={IncomingCallScreen} />
                 <RootStack.Screen name="StoryViewer"       component={StoryViewerScreen} />
+                <RootStack.Screen name="UserProfileTop"    component={UserProfileScreen} />
+                <RootStack.Screen name="PostTop"           component={PostScreen} />
               </RootStack.Group>
             </>
           ) : needsSetup ? (

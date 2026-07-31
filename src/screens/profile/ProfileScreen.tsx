@@ -106,6 +106,7 @@ export default function ProfileScreen() {
   const [tabTagged, setTabTagged] = useState<Post[]>([]);
   const [tabCounts, setTabCounts] = useState({ posts: 0, reposts: 0, saved: 0, tagged: 0 });
   const [tabLoading, setTabLoading] = useState(false);
+  const tabLoadedRef = useRef<Record<string, boolean>>({});
 
 
   const [statsModal, setStatsModal] = useState<StatsModalKey>(null);
@@ -160,7 +161,7 @@ export default function ProfileScreen() {
 
   const loadTabContent = useCallback(async (tab: ProfileTab) => {
     if (!userId) return;
-    setTabLoading(true);
+    if (!tabLoadedRef.current[tab]) setTabLoading(true);
     try {
       if (tab === 'posts') {
         let postsData: any[] = [];
@@ -231,7 +232,7 @@ export default function ProfileScreen() {
         setTabCounts(prev => ({ ...prev, tagged: withMedia.length }));
       }
     } catch (e) { console.log('[PROFILE_TAB]', e); }
-    finally { setTabLoading(false); }
+    finally { setTabLoading(false); tabLoadedRef.current[tab] = true; }
   }, [userId, profile?.username]);
 
   // Counts arrive with get_profile now. The old version derived the Media
