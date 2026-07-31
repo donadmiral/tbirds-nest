@@ -82,7 +82,7 @@ async function flushOutbox() {
 async function probe(): Promise<boolean> {
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4000);
+    const timer = setTimeout(() => ctrl.abort(), 6000);
     await fetch(PING_URL, { method: 'GET', signal: ctrl.signal, cache: 'no-store' as any });
     clearTimeout(timer);
     return true;
@@ -91,11 +91,21 @@ async function probe(): Promise<boolean> {
   }
 }
 
+let failStreak = 0;
+
 async function check() {
   const on = await probe();
   const was = useNetStore.getState().online;
-  useNetStore.getState().setOnline(on);
-  if (on && (!was || useNetStore.getState().outbox.length > 0)) flushOutbox();
+  if (on) {
+    failStreak = 0;
+    useNetStore.getState().setOnline(true);
+    if (!was || useNetStore.getState().outbox.length > 0) flushOutbox();
+  } else {
+    failStreak += 1;
+    // One slow packet is weather, not an outage. Two misses in a row
+    // (about ten seconds of true silence) earn the offline verdict.
+    if (failStreak >= 2) useNetStore.getState().setOnline(false);
+  }
 }
 
 export function initNet() {
