@@ -214,7 +214,7 @@ export default function LoginScreen({ navigation }: any) {
                         style={s.input}
                         value={forgotEmail}
                         onChangeText={(t) => { setForgotEmail(t); setForgotError(null); }}
-                        placeholder="Email or username"
+                        placeholder="Email address"
                         placeholderTextColor={WHITE_30}
                         keyboardType="email-address"
                         autoCapitalize="none"
@@ -352,7 +352,7 @@ export default function LoginScreen({ navigation }: any) {
                   style={s.input}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Email address"
+                  placeholder="Email or username"
                   placeholderTextColor={WHITE_30}
                   keyboardType="email-address"
                   autoCapitalize="none"
