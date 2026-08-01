@@ -103,6 +103,8 @@ export default function SendMoneySheet({
         if (r?.success) { setLinked(true); setEmail(''); setOtp(''); setOtpSent(false); }
         else Alert.alert('Could not connect', r?.error || 'Check the code and try again.');
       }
+    } catch (e: any) {
+      Alert.alert(otpSent ? 'Could not connect' : 'Could not send code', e?.message || 'Please try again.');
     } finally { setBusy(false); }
   }, [email, otp, otpSent]);
 
