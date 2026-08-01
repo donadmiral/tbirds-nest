@@ -18,6 +18,7 @@ type AuthState = {
   recoveryUrl: string | null;
 
   initialize: () => Promise<void>;
+  healProfile: () => Promise<void>;
   setSession: (session: Session | null) => void;
   setProfile: (profile: Profile | null) => void;
   setPasswordRecovery: (v: boolean) => void;
@@ -275,6 +276,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setPasswordRecovery: (v) => { set({ isPasswordRecovery: v }); /* self-heal */ if (!v) { const s = get().session; if (s?.user?.id && !get().profile) { loadProfile(s.user.id).then((p) => set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) })).catch(() => {}); } } },
   setSuppressRecoveryRedirect: (v) => set({ suppressRecoveryRedirect: v }),
   setRecoveryUrl: (url) => set({ recoveryUrl: url }),
+
+  healProfile: async () => {
+    const s = get().session;
+    if (!s?.user?.id) return;
+    try {
+      const p = await loadProfile(s.user.id);
+      if (p) set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) });
+    } catch {}
+  },
 
   signOut: async () => {
     const uid = get().session?.user?.id;

@@ -1,3 +1,5 @@
+import LaunchVeil from '../components/LaunchVeil';
+import ProfileRestore from '../components/ProfileRestore';
 import MutedStoriesScreen from '../screens/profile/MutedStoriesScreen';
 import ArticleReaderScreen from '../screens/feed/ArticleReaderScreen';
 import React, { useEffect, useRef, useState } from 'react';
@@ -436,17 +438,10 @@ export default function AppNavigator() {
   const profile = useAuthStore(s => s.profile);
   const loading = useAuthStore(s => s.loading);
   const isPasswordRecovery = useAuthStore(s => s.isPasswordRecovery);
-  const [splashDone, setSplashDone] = useState(false);
 
   useNotificationTapHandler();
   useBadgeClearOnForeground();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setSplashDone(true), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading || !splashDone) return <SplashLoader />;
 
   if (isPasswordRecovery) {
     return (
@@ -463,7 +458,7 @@ export default function AppNavigator() {
   }
 
   const isAuthed = !!session;
-  if (isAuthed && profile === null) return <SplashLoader />;
+  if (isAuthed && profile === null) return <ProfileRestore />;
   const needsSetup = isAuthed && !profile?.username;
   const isReady    = isAuthed && !!profile?.username;
 
