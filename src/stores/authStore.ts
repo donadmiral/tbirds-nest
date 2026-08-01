@@ -91,11 +91,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         openedViaVerificationLink = true;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await Promise.race([supabase.auth.getSession(), new Promise<any>((res) => setTimeout(() => { console.log('[authStore] getSession() hung - proceeding without'); res({ data: { session: null } }); }, 6000))]);
 
       let profile: Profile | null = null;
       if (session?.user?.id) {
-        profile = await loadProfile(session.user.id);
+        profile = await Promise.race([loadProfile(session.user.id), new Promise<any>((res) => setTimeout(() => { console.log('[authStore] profile load timed out - healing in background'); res(null); }, 8000))]);
+        if (!profile) { loadProfile(session.user.id).then((p) => { if (p) set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) }); }).catch(() => {}); }
         setCachedUserId(session.user.id);
         supabase.from('user_presence').upsert({
           user_id: session.user.id,
