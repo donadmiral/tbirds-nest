@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+let consumedRecoveryUrl: string | null = null;
 import { create } from 'zustand';
 import * as Linking from 'expo-linking';
 import type { Session } from '@supabase/supabase-js';
