@@ -108,6 +108,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         registerForPushNotifications(session.user.id).catch((e) =>
           console.log('[authStore] push token registration failed:', e)
         );
+        try {
+          const ncs: any = require('../services/nativeCallService');
+          const boot = ncs?.bootstrapNativeCalls ?? ncs?.bootstrap ?? ncs?.default?.bootstrapNativeCalls ?? ncs?.default?.bootstrap ?? ncs?.nativeCallService?.bootstrap ?? ncs?.initNativeCalls;
+          if (typeof boot === 'function') { console.log('[voip] bootstrap invoked'); Promise.resolve(boot()).catch((e: any) => console.log('[voip] bootstrap error', e?.message)); }
+          else { console.log('[voip] NO bootstrap export found - keys:', Object.keys(ncs ?? {}).join(','), 'default:', Object.keys(ncs?.default ?? {}).join(',')); }
+        } catch (e: any) { console.log('[voip] bootstrap require failed', e?.message); }
       }
 
       set({
