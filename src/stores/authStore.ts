@@ -119,10 +119,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           console.log('[authStore] push token registration failed:', e)
         );
         try {
-          const ncs: any = require('../services/nativeCallService');
-          const boot = ncs?.bootstrapNativeCalls ?? ncs?.bootstrap ?? ncs?.default?.bootstrapNativeCalls ?? ncs?.default?.bootstrap ?? ncs?.nativeCallService?.bootstrap ?? ncs?.initNativeCalls;
-          if (typeof boot === 'function') { console.log('[voip] bootstrap invoked'); Promise.resolve(boot()).catch((e: any) => console.log('[voip] bootstrap error', e?.message)); }
-          else { console.log('[voip] NO bootstrap export found - keys:', Object.keys(ncs ?? {}).join(','), 'default:', Object.keys(ncs?.default ?? {}).join(',')); }
+          // The REAL orchestrator: the toolkit exports setup() and
+          // registerVoipToken() - no bootstrap ever existed. Wire both:
+          // CallKit listeners armed, PushKit token saved via the upsert
+          // that accepts a null expo token by design.
+          const { nativeCallService } = require('../services/nativeCallService');
+          if (nativeCallService) {
+            console.log('[voip] bootstrap invoked');
+            Promise.resolve(nativeCallService.setup({
+              onAnswer: (uuid: string) => console.log('[voip] answerCall', uuid),
+              onEnd: (uuid: string) => console.log('[voip] endCall', uuid),
+              onAudioSessionActivated: () => console.log('[voip] audio session active'),
+            })).catch((e: any) => console.log('[voip] setup error', e?.message));
+            nativeCallService.registerVoipToken((tok: string) => {
+              console.log('[voip] token', String(tok).slice(0, 12));
+              supabase.rpc('save_voip_token', { p_expo_token: null, p_voip_token: tok })
+                .then(({ error }: any) => { if (error) console.log('[voip] save error', error.message); });
+            });
+          }
         } catch (e: any) { console.log('[voip] bootstrap require failed', e?.message); }
       }
 
