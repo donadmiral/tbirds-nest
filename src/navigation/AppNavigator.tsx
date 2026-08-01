@@ -448,6 +448,7 @@ export default function AppNavigator() {
       <CallProvider>
         <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
           theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF', text: '#000000', border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30' } }}>
+          <LaunchVeil busy={loading} />
           <OfflineBanner />
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
             <RootStack.Screen name="AuthCallback" component={AuthCallbackScreen} />
