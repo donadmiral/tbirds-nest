@@ -39,6 +39,20 @@ Deno.serve(async (req) => {
       return json(await r.json(), r.status);
     }
 
+    if (req.method === "GET" && action === "peer-status") {
+      const peer = url.searchParams.get("user") || "";
+      if (!peer) return json({ linked: false });
+      const r = await fetch(CRISP_URL + "?endpoint=link-status&external_user_id=" + peer, {
+        headers: { Authorization: "Bearer " + CRISP_KEY },
+      });
+      return json(await r.json(), r.status);
+    }
+
+    if (req.method === "POST" && action === "unlink") {
+      const r = await fetch(CRISP_URL + "?endpoint=link-unlink", { method: "POST", headers: { Authorization: "Bearer " + CRISP_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ external_user_id: user.id }) });
+      return json(await r.json(), r.status);
+    }
+
     if (req.method === "POST" && action === "otp-send") {
       const { email } = await req.json();
       if (!email) return json({ success: false, error: "Email required" }, 400);

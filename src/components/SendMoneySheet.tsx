@@ -32,6 +32,8 @@ export default function SendMoneySheet({
 }: Props) {
   const [checking, setChecking] = useState(true);
   const [linked, setLinked] = useState(false);
+  const [peerHasBank, setPeerHasBank] = useState(false);
+  useEffect(() => { if (visible && recipientId) { paymentsService.peerLinked(recipientId).then(setPeerHasBank, () => setPeerHasBank(false)); } else { setPeerHasBank(false); } }, [visible, recipientId]);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);

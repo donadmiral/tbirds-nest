@@ -44,6 +44,12 @@ export const supabase = createClient(url, anonKey, {
     headers: {
       'x-client-info': 'PlatinumCircles-nest-mobile',
     },
+    fetch: (input: any, init: any = {}) => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 60000);
+      const merged = { ...init, signal: init?.signal ?? ctrl.signal };
+      return fetch(input, merged).finally(() => clearTimeout(timer)); /* fetchWithDeadline */
+    },
   },
 });
 

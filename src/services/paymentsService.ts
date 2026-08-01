@@ -34,6 +34,14 @@ export const paymentsService = {
     return { linked: !!r?.linked, linked_at: r?.linked_at ?? null };
   },
 
+  async peerLinked(userId: string): Promise<boolean> {
+    try { const r = await call('?action=peer-status&user=' + userId); return !!r?.linked; } catch { return false; }
+  },
+
+  async unlink() {
+    return call('?action=unlink', { method: 'POST' });
+  },
+
   async linkWithSignIn(email: string, password: string) {
     return call('?action=link-signin', { method: 'POST', body: JSON.stringify({ email, password }) });
   },
