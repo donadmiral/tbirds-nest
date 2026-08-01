@@ -1,3 +1,4 @@
+import { paymentsService } from '../../services/paymentsService';
 import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
@@ -140,7 +141,20 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   const sw = (value: boolean, onChange: (v: boolean) => void, disabled = false) => (
     <Switch value={value} onValueChange={onChange} trackColor={{ false: '#E5E5EA', true: '#34C759' }} thumbColor="#FFF" disabled={disabled} />
   );
+  const [ibLinked, setIbLinked] = React.useState<boolean | null>(null);
+  React.useEffect(() => { paymentsService.getLinkStatus().then(r => setIbLinked(!!r.linked), () => setIbLinked(false)); }, []);
+  const confirmUnlink = () => {
+    Alert.alert('Deactivate IntoBank?', 'Payments in chats will stop working until you link an account again from any payment sheet.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Deactivate', style: 'destructive', onPress: async () => { try { await paymentsService.unlink(); setIbLinked(false); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch { Alert.alert('Error', 'Could not deactivate right now.'); } } },
+    ]);
+  };
+
   const buildSections = (): { title: string; rows: SetRow[] }[] => [
+    { title: 'IntoBank', rows: [
+      { icon: 'credit-card', color: '#0A3D2E', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked ? 'Chat payments ride your IntoBank wallet' : 'Link your account from any payment sheet', onPress: () => {} },
+      ...(ibLinked ? [{ icon: 'x-circle', color: '#A32D2D', label: 'Deactivate IntoBank', sub: 'Unlink this account, or unlink to add a different one', onPress: confirmUnlink }] : []),
+    ] },
     { title: 'Account', rows: [
       { icon: 'user', color: '#007AFF', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
       { icon: 'lock', color: '#FF9500', label: 'Change Password', sub: 'Update your account password', onPress: () => setPwModal(true) },

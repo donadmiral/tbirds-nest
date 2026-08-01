@@ -169,7 +169,7 @@ export default function SendMoneySheet({
             </View>
           ) : (
             <>
-              <Text style={s.to}>To {recipientName}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Text style={s.to}>To {recipientName}</Text>{peerHasBank ? <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E9F2EE', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2, gap: 3 }}><View style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: '#0A3D2E', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#C8963E', fontSize: 9, fontWeight: '900' }}>I</Text></View><Text style={{ fontSize: 10.5, fontWeight: '700', color: '#0A3D2E' }}>IntoBank</Text></View> : null}</View>
               {!!wallet && (
                 <View style={s.fundRow}>
                   <Feather name="credit-card" size={12} color="#8E8E93" />
