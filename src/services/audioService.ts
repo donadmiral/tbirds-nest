@@ -34,7 +34,6 @@ if (!ICM) console.log('[RING] native InCallManager absent on this binary - ring 
 
 type SoundType = 'ringtone' | 'ringback';
 let currentType: SoundType | null = null;
-let managerStarted = false;
 
 function ready(): boolean {
   return RING_SOUNDS_ENABLED && !!ICM;
@@ -46,7 +45,7 @@ export const audioService = {
     if (!ready()) return false;
     if (currentType === 'ringtone') return true;
     try {
-      ICM.startRingtone('_DEFAULT_');
+      ICM.startRingtone('_BUNDLE_');
       currentType = 'ringtone';
       console.log('[RING] ringtone started');
       return true;
@@ -61,8 +60,7 @@ export const audioService = {
     if (!ready()) return false;
     if (currentType === 'ringback') return true;
     try {
-      ICM.start({ media: 'audio', auto: false, ringback: '_DEFAULT_' });
-      managerStarted = true;
+      ICM.startRingback('_BUNDLE_');
       currentType = 'ringback';
       console.log('[RING] ringback started');
       return true;
@@ -86,10 +84,6 @@ export const audioService = {
     if (!ICM) return;
     try { ICM.stopRingtone(); } catch {}
     try { ICM.stopRingback(); } catch {}
-    if (managerStarted) {
-      try { ICM.stop({}); } catch {}
-      managerStarted = false;
-    }
     if (currentType) console.log('[RING] stopped ' + currentType + ' (call over)');
     currentType = null;
   },

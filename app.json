@@ -60,7 +60,8 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#0B1E3D"
+          "color": "#0B1E3D",
+          "sounds": ["./assets/callsounds/incallmanager_ringback.mp3", "./assets/callsounds/incallmanager_ringtone.mp3"]
         }
       ],
       "@config-plugins/react-native-callkeep",

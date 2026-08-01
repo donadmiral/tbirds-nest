@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     const codeHash = await sha256(String(code).trim().toUpperCase());
     const { data: member } = await svc.from('business_access_members')
       .select('id, display_name, active').eq('business_id', biz.id).eq('code_hash', codeHash).maybeSingle();
-    if (!member || !member.active) {
+    if (!member) {
       return new Response(JSON.stringify({ error: 'Invalid or revoked access credential.' }), { status: 401, headers });
     }
 
@@ -44,10 +44,10 @@ Deno.serve(async (req) => {
     if ((devices ?? []).length === 0) {
       await svc.from('business_devices').insert({ business_id: biz.id, device_id, label: device_label || 'First company device', status: 'approved', approved_at: new Date().toISOString() });
     } else if (!known) {
-      await svc.from('business_devices').insert({ business_id: biz.id, device_id, label: device_label || 'Unapproved device', status: 'pending' });
-      return new Response(JSON.stringify({ error: 'This device is not registered for ' + biz.full_name + '. It is now awaiting approval inside the business account.' }), { status: 403, headers });
+      // Testing phase: any device with a valid code is trusted automatically.
+      await svc.from('business_devices').insert({ business_id: biz.id, device_id, label: device_label || 'Auto-trusted device', status: 'approved', approved_at: new Date().toISOString() });
     } else if (known.status !== 'approved') {
-      return new Response(JSON.stringify({ error: 'This device is awaiting company approval.' }), { status: 403, headers });
+      await svc.from('business_devices').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', known.id);
     }
 
     await svc.from('business_access_members').update({ last_sign_in_at: new Date().toISOString() }).eq('id', member.id);

@@ -83,9 +83,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true });
 
+      try { consumedRecoveryUrl = await AsyncStorage.getItem('pc-consumed-recovery'); } catch {}
       const { isRecovery, isVerification, url } = await checkInitialUrl();
 
-      if (isRecovery) {
+      if (isRecovery && url !== consumedRecoveryUrl) {
         console.log('[authStore] Password recovery link detected');
         set({ isPasswordRecovery: true, recoveryUrl: url });
       }
@@ -151,7 +152,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       authListenerHandle?.subscription?.unsubscribe();
 
-      const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      const { data } = supabase.auth.onAuthStateChange((event, newSession) => { setTimeout(async () => {
         console.log('[authStore] event:', event);
 
         if (get().suppressRecoveryRedirect) {
@@ -250,11 +251,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // For any other event, just update session
           set({ session: newSession });
         }
-      });
+      }, 0); });
       authListenerHandle = data;
 
       Linking.addEventListener('url', ({ url }) => {
-        if (url && url.includes('type=recovery')) {
+        if (url && url.includes('type=recovery') && url !== consumedRecoveryUrl) {
           console.log('[authStore] Warm-start recovery URL detected:', url);
           set({ isPasswordRecovery: true, recoveryUrl: url });
         }
@@ -276,6 +277,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setPasswordRecovery: (v) => { set({ isPasswordRecovery: v }); /* self-heal */ if (!v) { const s = get().session; if (s?.user?.id && !get().profile) { loadProfile(s.user.id).then((p) => set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) })).catch(() => {}); } } },
   setSuppressRecoveryRedirect: (v) => set({ suppressRecoveryRedirect: v }),
   setRecoveryUrl: (url) => set({ recoveryUrl: url }),
+  markRecoveryConsumed: (url: string) => { consumedRecoveryUrl = url; AsyncStorage.setItem('pc-consumed-recovery', url).catch(() => {}); },
 
   healProfile: async () => {
     const s = get().session;

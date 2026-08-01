@@ -250,8 +250,8 @@ function MainTabs() {
       setUnreadNotifs(c);
       // Icon badge policy: the number means unread MESSAGES only.
       try {
-        const { data: um } = await supabase.rpc('get_unread_counts');
-        const msgCount = (um || []).reduce((s: number, r: any) => s + (r.unread || 0), 0);
+        const { data: cu } = await supabase.rpc('get_context_unread');
+        const msgCount = (((cu as any)?.personal ?? 0) + ((cu as any)?.groups ?? 0));
         Notifications.setBadgeCountAsync(msgCount).catch(() => {});
       } catch { Notifications.setBadgeCountAsync(0).catch(() => {}); }
     };

@@ -11,6 +11,7 @@
  */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
+import * as Notifications from 'expo-notifications';
 
 type Counts = { market: number; jobs: number; groups: number; personal: number };
 
@@ -45,6 +46,7 @@ export const useUnreadStore = create<State>((set) => ({
       },
       loading: false,
     });
+    Notifications.setBadgeCountAsync(((c.personal ?? 0) + (c.groups ?? 0))).catch(() => {});
   },
 
   clear: () => set({ counts: EMPTY, loading: false }),

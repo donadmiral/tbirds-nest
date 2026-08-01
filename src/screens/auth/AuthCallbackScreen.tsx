@@ -157,6 +157,7 @@ export default function AuthCallbackScreen({ navigation }: any) {
         if (recoveryUrl) {
           console.log('[AuthCallback] Using stored recovery URL');
           const success = await establishSessionFromUrl(recoveryUrl);
+          useAuthStore.getState().markRecoveryConsumed(recoveryUrl);
           setRecoveryUrl(null);
           if (!cancelled && success) {
             if (!isPasswordRecovery) {
