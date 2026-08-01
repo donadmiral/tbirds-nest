@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import * as Linking from 'expo-linking';
 import type { Session } from '@supabase/supabase-js';
@@ -40,6 +41,7 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     console.log('[authStore.loadProfile]', error.message);
     return null;
   }
+  if (data) { AsyncStorage.setItem('pc-profile-cache', JSON.stringify(data)).catch(() => {}); }
   return (data ?? null) as Profile | null;
 }
 
@@ -95,8 +97,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       let profile: Profile | null = null;
       if (session?.user?.id) {
-        profile = await Promise.race([loadProfile(session.user.id), new Promise<any>((res) => setTimeout(() => { console.log('[authStore] profile load timed out - healing in background'); res(null); }, 8000))]);
-        if (!profile) { loadProfile(session.user.id).then((p) => { if (p) set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) }); }).catch(() => {}); }
+        try {
+          const cachedRaw = await AsyncStorage.getItem('pc-profile-cache');
+          if (cachedRaw) { const cp = JSON.parse(cachedRaw); if (cp?.id === session.user.id) { profile = cp; console.log('[authStore] shell opens on cached profile'); } }
+        } catch {}
+        if (profile) {
+          loadProfile(session.user.id).then((p) => { if (p) set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) }); }).catch(() => {});
+        } else {
+          profile = await Promise.race([loadProfile(session.user.id), new Promise<any>((res) => setTimeout(() => { console.log('[authStore] profile load timed out - healing in background'); res(null); }, 8000))]);
+          if (!profile) { loadProfile(session.user.id).then((p) => { if (p) set({ profile: p, isVerifiedSchoolUser: getVerifiedStatus(p) }); }).catch(() => {}); }
+        }
         setCachedUserId(session.user.id);
         supabase.from('user_presence').upsert({
           user_id: session.user.id,
@@ -270,6 +280,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       setCachedUserId(null);
       set({ suppressRecoveryRedirect: false });
+      AsyncStorage.removeItem('pc-profile-cache').catch(() => {});
       await supabase.auth.signOut();
     } catch (error) {
       console.log('[authStore.signOut]', error);
