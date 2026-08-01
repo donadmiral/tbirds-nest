@@ -215,6 +215,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
   const load = useCallback(async () => {
     setError(null);
+    try {
     const { data, error: err } = await supabase.rpc('get_notifications', {
       p_limit: 60, p_cursor: null,
     });
@@ -224,8 +225,7 @@ export default function NotificationsScreen({ navigation }: any) {
     setRows(batch);
     cursorRef.current = batch.length ? (batch[batch.length - 1] as any).created_at : null;
     setDone(batch.length < 60);
-    setLoading(false);
-    setRefreshing(false);
+    } catch (e: any) { if (mounted.current) setError(e?.message || 'Network problem'); } finally { if (mounted.current) { setLoading(false); setRefreshing(false); } }
   }, []);
 
   const loadMore = useCallback(async () => {

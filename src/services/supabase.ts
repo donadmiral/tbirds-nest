@@ -40,15 +40,27 @@ export const supabase = createClient(url, anonKey, {
     lock: processLock,
   },
   global: {
-    fetch: devFetch,
     headers: {
       'x-client-info': 'PlatinumCircles-nest-mobile',
     },
     fetch: (input: any, init: any = {}) => {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 60000);
-      const merged = { ...init, signal: init?.signal ?? ctrl.signal };
-      return fetch(input, merged).finally(() => clearTimeout(timer)); /* fetchWithDeadline */
+      const u = String((input as any)?.url ?? input);
+      const ms = u.includes('/storage/v1/') ? 90000 : 15000;
+      const timer = setTimeout(() => ctrl.abort(), ms);
+      // Listen to BOTH abort sources: the caller's signal and our deadline.
+      if (init?.signal) { try { init.signal.addEventListener('abort', () => ctrl.abort(), { once: true }); } catch {} }
+      const merged = { ...init, signal: ctrl.signal };
+      return fetch(input, merged).then((res) => {
+        // error lens folded in - 401 now VISIBLE, only 406 (no-row) excluded
+        if (__DEV__ && !res.ok && res.status !== 406) {
+          res.clone().text().then((body) => {
+            const path = u.split('/rest/v1/')[1]?.split('?')[0] ?? u.split('/functions/v1/')[1] ?? u;
+            console.warn('[db ' + res.status + '] ' + ((merged as any)?.method || 'GET') + ' ' + path + ' -> ' + String(body).slice(0, 220));
+          }).catch(() => {});
+        }
+        return res;
+      }).finally(() => clearTimeout(timer)); /* fetchWithDeadline */
     },
   },
 });
@@ -61,10 +73,6 @@ if (Platform.OS !== 'web') {
   AppState.addEventListener('change', (state) => {
     if (state === 'active') {
       supabase.auth.startAutoRefresh();
-      // Waking up: force the refresh through NOW so no query ever queues
-      // behind a stale lock. With the deadline fetch above, even a dead
-      // socket resolves in seconds instead of never.
-      supabase.auth.refreshSession().catch(() => {});
       if (_cachedUserId) {
         supabase.from('user_presence').upsert({
           user_id: _cachedUserId,

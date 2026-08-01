@@ -39,6 +39,7 @@ function priceLabel(item: Listing): string {
 export default function MarketScreen({ navigation }: any) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
@@ -52,6 +53,8 @@ export default function MarketScreen({ navigation }: any) {
 
   const load = useCallback(async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
+    setLoadFailed(false);
+    try {
     if (marketTab === 'saved') {
       const saved = await marketService.getSavedListings();
       setListings(saved); setLoading(false); setRefreshing(false); return;
@@ -72,7 +75,7 @@ export default function MarketScreen({ navigation }: any) {
           condition: filters.condition, city: filters.city || null, sort: filters.sort });
     setListings(rows);
     try { const ids = await marketService.getSavedIds(); setSavedIds(new Set(ids)); } catch {}
-    setLoading(false);
+    } catch (e) { setLoadFailed(true); console.log('[market] load failed', (e as any)?.message); } finally { setLoading(false); setRefreshing(false); }
     setRefreshing(false);
   }, [search, category, filters, marketTab, meProfile?.id]);
 
