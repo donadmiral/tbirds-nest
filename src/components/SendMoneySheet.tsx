@@ -7,6 +7,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityInd
 import { Feather } from '@expo/vector-icons';
 import { paymentsService } from '../services/paymentsService';
 import { flagsService } from '../services/flagsService';
+import { useAuthStore } from '../stores/authStore';
 
 const NAVY = '#0B1E3D';
 const GREEN = '#2F9E63';
@@ -34,6 +35,7 @@ export default function SendMoneySheet({
   const [linked, setLinked] = useState(false);
   const [peerHasBank, setPeerHasBank] = useState(false);
   useEffect(() => { if (visible && recipientId) { paymentsService.peerLinked(recipientId).then(setPeerHasBank, () => setPeerHasBank(false)); } else { setPeerHasBank(false); } }, [visible, recipientId]);
+  const myEmail = useAuthStore(st => st.session?.user?.email || '');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
@@ -52,7 +54,7 @@ export default function SendMoneySheet({
         onClose();
       }
     }).catch(() => {});
-    setChecking(true); setEmail(''); setOtp(''); setOtpSent(false);
+    setChecking(true); setEmail(myEmail); setOtp(''); setOtpSent(false);
     setRaw(initialAmount && initialAmount > 0 ? String(initialAmount) : '0');
     idemKeyRef.current =
       Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
@@ -60,7 +62,7 @@ export default function SendMoneySheet({
       .then(r => { setLinked(!!r?.linked); setWallet(r?.linked ? r : null); })
       .catch(() => { setLinked(false); setWallet(null); })
       .finally(() => setChecking(false));
-  }, [visible]);
+  }, [visible, myEmail]);
 
   const amount = useMemo(() => Number(raw) || 0, [raw]);
   const fontSize = useMemo(() => {
@@ -110,6 +112,10 @@ export default function SendMoneySheet({
 
   const doPay = useCallback(async () => {
     if (amount <= 0) return;
+    if (!peerHasBank) {
+      Alert.alert("No IntoBank linked", recipientName + " hasn't connected IntoBank yet, so this transfer would be declined. Ask them to link it from any payment sheet.");
+      return;
+    }
     setBusy(true);
     try {
       const r = await paymentsService.sendMoney({
@@ -122,7 +128,7 @@ export default function SendMoneySheet({
     } catch (e: any) {
       Alert.alert('Not sent', e?.message || 'Please try again.');
     } finally { setBusy(false); }
-  }, [amount, recipientId, conversationId, onSent, onClose]);
+  }, [amount, recipientId, recipientName, conversationId, onSent, onClose, peerHasBank]);
 
   const doRequest = useCallback(() => {
     if (amount <= 0) return;
@@ -180,6 +186,14 @@ export default function SendMoneySheet({
                   </Text>
                 </View>
               )}
+
+              <View style={s.chipsRow}>
+                {[5, 10, 20, 50].map(v => (
+                  <TouchableOpacity key={v} style={[s.chip, raw === String(v) && s.chipOn]} onPress={() => setRaw(String(v))} activeOpacity={0.7}>
+                    <Text style={[s.chipTxt, raw === String(v) && s.chipTxtOn]}>{'$' + v}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
               <View style={s.amountRow}>
                 <TouchableOpacity style={s.step} onPress={() => adjust(-1)} activeOpacity={0.7}>

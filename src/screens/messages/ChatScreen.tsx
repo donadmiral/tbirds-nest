@@ -2182,9 +2182,9 @@ const pickAndSendDocument = useCallback(async () => {
               <Text style={[s.infoName, { fontSize: 23, fontWeight: '800' }]}>{chatTitle}</Text>
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 14 }}>
                 {[
-                  { icon: 'call', label: 'Audio', act: () => { setShowInfo(false); startCall(false); } },
-                  { icon: 'videocam', label: 'Video', act: () => { setShowInfo(false); startCall(true); } },
-                  { icon: 'search', label: 'Search', act: () => { setShowInfo(false); setSearchActive(true); } },
+                  { icon: 'call', label: 'Audio', act: () => { setShowInfoModal(false); startCall(false); } },
+                  { icon: 'videocam', label: 'Video', act: () => { setShowInfoModal(false); startCall(true); } },
+                  { icon: 'search', label: 'Search', act: () => { setShowInfoModal(false); setSearchActive(true); } },
                 ].map(chip => (
                   <TouchableOpacity key={chip.label} onPress={chip.act} activeOpacity={0.75}
                     style={{ width: 86, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(11,30,61,0.05)', alignItems: 'center', gap: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.1)' }}>

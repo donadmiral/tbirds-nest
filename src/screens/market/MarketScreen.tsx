@@ -92,11 +92,12 @@ export default function MarketScreen({ navigation }: any) {
   const categories = useMemo(() => ['All', ...MARKET_CATEGORIES], []);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const toggleSave = useCallback(async (id: string) => {
+    const next = !savedIds.has(id);
     setSavedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-    try { await marketService.toggleSaved(id); } catch {
+    try { await marketService.toggleSaved(id, next); } catch {
       setSavedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
     }
-  }, []);
+  }, [savedIds]);
 
   const renderItem = ({ item }: { item: Listing }) => (
     <TouchableOpacity
