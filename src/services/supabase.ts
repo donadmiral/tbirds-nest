@@ -55,6 +55,10 @@ if (Platform.OS !== 'web') {
   AppState.addEventListener('change', (state) => {
     if (state === 'active') {
       supabase.auth.startAutoRefresh();
+      // Waking up: force the refresh through NOW so no query ever queues
+      // behind a stale lock. With the deadline fetch above, even a dead
+      // socket resolves in seconds instead of never.
+      supabase.auth.refreshSession().catch(() => {});
       if (_cachedUserId) {
         supabase.from('user_presence').upsert({
           user_id: _cachedUserId,
