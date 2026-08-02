@@ -458,6 +458,7 @@ export default function AppNavigator() {
     );
   }
 
+  if (loading) return <SplashLoader />;
   const isAuthed = !!session;
   if (isAuthed && profile === null) return <ProfileRestore />;
   const needsSetup = isAuthed && !profile?.username;

@@ -97,16 +97,37 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
     return () => sub.remove();
   }, [verified]);
 
-  // Deep link listener
+  // Deep link listener - exchange the tokens the link carries, do not just poll
   useEffect(() => {
+    async function exchangeFromUrl(url: string): Promise<boolean> {
+      try {
+        const hash = url.split('#')[1];
+        if (hash) {
+          const p = new URLSearchParams(hash);
+          const at = p.get('access_token'); const rt = p.get('refresh_token');
+          if (at && rt) {
+            const { data, error } = await supabase.auth.setSession({ access_token: at, refresh_token: rt });
+            if (!error && data?.session) { handleVerificationSuccess(data.session); return true; }
+          }
+        }
+        const qm = url.indexOf('?');
+        if (qm !== -1) {
+          const q = new URLSearchParams(url.substring(qm + 1).split('#')[0]);
+          const th = q.get('token'); const ty = q.get('type');
+          if (th && ty) {
+            const { data, error } = await supabase.auth.verifyOtp({ token_hash: th, type: ty as any });
+            if (!error && data?.session) { handleVerificationSuccess(data.session); return true; }
+          }
+        }
+      } catch (e) { console.log('[VerifyEmail] exchange error:', e); }
+      return false;
+    }
+    Linking.getInitialURL().then((u) => { if (u && u.includes('auth/callback')) { setChecking(true); exchangeFromUrl(u).finally(() => setChecking(false)); } }).catch(() => {});
     const sub = Linking.addEventListener('url', async ({ url }) => {
       if (url && url.includes('auth/callback')) {
         setChecking(true);
-        await new Promise(r => setTimeout(r, 500));
-        const { data } = await supabase.auth.getSession();
-        if (data?.session) {
-          handleVerificationSuccess(data.session);
-        }
+        const ok = await exchangeFromUrl(url);
+        if (!ok) { const { data } = await supabase.auth.getSession(); if (data?.session) handleVerificationSuccess(data.session); }
         setChecking(false);
       }
     });
@@ -134,24 +155,6 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
 
     // Update auth store
     useAuthStore.getState().setSession(session);
-
-    // Finalize institution verification for ASU users
-    if (userId && asuUser) {
-      for (let attempt = 0; attempt < 3; attempt++) {
-        const { error: verifyErr } = await supabase.from('profiles').update({
-          is_verified_institution: true,
-        }).eq('id', userId);
-        if (verifyErr) {
-          console.log(`[VerifyEmail] institution verify attempt ${attempt + 1} error:`, verifyErr.message);
-          await new Promise(r => setTimeout(r, 500));
-          continue;
-        }
-        await useAuthStore.getState().refreshProfile();
-        const check = useAuthStore.getState().profile;
-        if ((check as any)?.is_verified_institution === true) break;
-        await new Promise(r => setTimeout(r, 500));
-      }
-    }
 
     await useAuthStore.getState().refreshProfile();
   }

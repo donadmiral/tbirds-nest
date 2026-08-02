@@ -290,6 +290,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    console.log('[signOut] tapped');
     const uid = get().session?.user?.id;
     try {
       if (uid && lastPushToken) {
