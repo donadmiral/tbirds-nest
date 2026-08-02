@@ -28,7 +28,7 @@ export const authService = {
         emailRedirectTo: redirectTo,
         data: {
           full_name: fullName,
-          account_type: isASU ? 'asu' : 'public',
+          account_type: 'personal',
         },
       },
     });
@@ -46,7 +46,7 @@ export const authService = {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          account_type: isASU ? 'asu' : 'public',
+          account_type: 'personal',
           institution: isASU ? 'ASU' : null,
           is_verified_institution: false,
           school: isASU ? 'Arizona State University' : null,
