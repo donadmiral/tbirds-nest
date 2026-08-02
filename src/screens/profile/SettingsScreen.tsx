@@ -1,4 +1,5 @@
 import { paymentsService } from '../../services/paymentsService';
+import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
 import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
@@ -142,6 +143,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     <Switch value={value} onValueChange={onChange} trackColor={{ false: '#E5E5EA', true: '#34C759' }} thumbColor="#FFF" disabled={disabled} />
   );
   const [ibLinked, setIbLinked] = React.useState<boolean | null>(null);
+  const [showLinkSheet, setShowLinkSheet] = React.useState(false);
   React.useEffect(() => { paymentsService.getLinkStatus().then(r => setIbLinked(!!r.linked), () => setIbLinked(false)); }, []);
   const confirmUnlink = () => {
     Alert.alert('Deactivate IntoBank?', 'Payments in chats will stop working until you link an account again from any payment sheet.', [
@@ -152,8 +154,9 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
 
   const buildSections = (): { title: string; rows: SetRow[] }[] => [
     { title: 'IntoBank', rows: [
-      { icon: 'credit-card', color: '#0A3D2E', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked ? 'Chat payments ride your IntoBank wallet' : 'Link your account from any payment sheet', onPress: () => {} },
+      { icon: 'credit-card', color: '#0A3D2E', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibLinked === false) setShowLinkSheet(true); } },
       ...(ibLinked ? [{ icon: 'x-circle', color: '#A32D2D', label: 'Deactivate IntoBank', sub: 'Unlink this account, or unlink to add a different one', onPress: confirmUnlink }] : []),
+      ...(ibLinked === false ? [{ icon: 'link', color: '#0A3D2E', label: 'Link IntoBank', sub: 'Email plus a 6-digit code, done in a minute', onPress: () => setShowLinkSheet(true) }] : []),
     ] },
     { title: 'Account', rows: [
       { icon: 'user', color: '#007AFF', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
@@ -516,6 +519,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           </ScrollView>
         </SafeAreaView>
       </Modal>
+      <LinkIntoBankSheet visible={showLinkSheet} onClose={() => setShowLinkSheet(false)} onLinked={() => setIbLinked(true)} />
     </SafeAreaView>
   );
 }

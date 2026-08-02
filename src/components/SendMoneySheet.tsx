@@ -187,16 +187,6 @@ export default function SendMoneySheet({
                 </View>
               )}
 
-              <View style={s.chipsWrap}>
-                <Text style={s.chipsLabel}>Quick amount</Text>
-                <View style={s.chipsRow}>
-                  {[5, 10, 20, 50].map(v => (
-                    <TouchableOpacity key={v} style={[s.chip, raw === String(v) && s.chipOn]} onPress={() => setRaw(String(v))} activeOpacity={0.7}>
-                      <Text style={[s.chipTxt, raw === String(v) && s.chipTxtOn]}>{'$' + v}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
 
               <View style={s.amountRow}>
                 <TouchableOpacity style={s.step} onPress={() => adjust(-1)} activeOpacity={0.7}>
