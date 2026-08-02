@@ -165,10 +165,10 @@ export default function SendMoneySheet({
                   style={s.field}
                   value={otp}
                   onChangeText={setOtp}
-                  placeholder="6-digit code"
+                  placeholder="8-digit code"
                   placeholderTextColor="#B0B0B5"
                   keyboardType="number-pad"
-                  maxLength={6}
+                  maxLength={8}
                 />
               )}
               <TouchableOpacity style={[s.cta, busy && s.off]} onPress={doLink} disabled={busy} activeOpacity={0.85}>
