@@ -230,6 +230,14 @@ export default function AuthCallbackScreen({ navigation }: any) {
     return () => clearTimeout(timer);
   }, [verified, isPasswordRecovery]);
 
+  // Signup verification: the email is now confirmed on the server. Drop the auto-session
+  // so the person signs in fresh with their credentials, and stay here to show the confirmation.
+  useEffect(() => {
+    if (verified && !isPasswordRecovery) {
+      supabase.auth.signOut().catch(() => {});
+    }
+  }, [verified, isPasswordRecovery]);
+
   function handleManualContinue() {
     supabase.auth.getSession().then(({ data }) => {
       if (data?.session) {
@@ -361,17 +369,14 @@ export default function AuthCallbackScreen({ navigation }: any) {
         <View style={s.verifiedIcon}>
           <Feather name="check" size={28} color={GREEN_500} />
         </View>
-        <Text style={s.successTitle}>Email verified</Text>
-        <Text style={s.successSub}>Setting up your account...</Text>
-        <ActivityIndicator size="small" color={NAVY} style={{ marginTop: 20 }} />
-        {showManualContinue && (
-          <TouchableOpacity
-            style={[s.primaryBtn, { marginTop: 24, paddingHorizontal: 32 }]}
-            onPress={handleManualContinue}
-          >
-            <Text style={s.primaryBtnTxt}>Continue</Text>
-          </TouchableOpacity>
-        )}
+        <Text style={s.successTitle}>Account created</Text>
+        <Text style={s.successSub}>Your email is verified. Sign in with your email and password to continue.</Text>
+        <TouchableOpacity
+          style={[s.primaryBtn, { marginTop: 24, paddingHorizontal: 32 }]}
+          onPress={() => { supabase.auth.signOut().catch(() => {}); navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); }}
+        >
+          <Text style={s.primaryBtnTxt}>Go to sign in</Text>
+        </TouchableOpacity>
       </View>
     );
   }
