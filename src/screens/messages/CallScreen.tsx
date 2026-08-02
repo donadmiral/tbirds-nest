@@ -50,7 +50,7 @@ export default function CallScreen() {
   const { profile } = useAuthStore();
   const ctx = useCallContext();
   const {
-    callState, activeCall, elapsed, muted, videoOff, held, speakerOn,
+    callState, activeCall, elapsed, muted, videoOff, held, remoteHeld, speakerOn,
     networkQuality, connected, dailyReady, errorMsg, localParticipant,
     remoteParticipant, remoteParticipants, wasEverActive,
     startCall, endCall, clearCallState,
@@ -145,7 +145,7 @@ export default function CallScreen() {
 
   // Derive status text from callState
   const statusText = errorMsg
-    || (callState === 'active' ? 'Connected'
+    || (callState === 'active' ? (remoteHeld ? 'On hold' : 'Connected')
     : callState === 'degraded' ? 'Poor connection'
     : callState === 'reconnecting' ? 'Reconnecting...'
     : callState === 'connecting' ? 'Connecting...'

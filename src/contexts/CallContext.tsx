@@ -98,6 +98,7 @@ type CallContextType = {
   endCall: () => void;
   toggleMute: () => void;
   toggleVideo: () => void;
+  remoteHeld: boolean;
   toggleHold: () => void;
   toggleSpeaker: () => void;
   flipCamera: () => Promise<void>;
@@ -106,7 +107,7 @@ type CallContextType = {
 
 const CallContext = createContext<CallContextType>({
   callState: 'idle', activeCall: null, elapsed: 0,
-  muted: false, videoOff: false, held: false, speakerOn: false,
+  muted: false, videoOff: false, held: false, remoteHeld: false, speakerOn: false,
   networkQuality: null,
   connected: false, dailyReady: false, errorMsg: null,
   localParticipant: null, remoteParticipant: null, remoteParticipants: [],
@@ -132,6 +133,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const [muted, setMuted] = useState(false);
   const [videoOff, setVideoOff] = useState(false);
   const [held, setHeld] = useState(false);
+  const [remoteHeld, setRemoteHeld] = useState(false);
   const [speakerOn, setSpeakerOn] = useState(false);
   const [networkQuality, setNetworkQuality] = useState<'excellent' | 'good' | 'low' | 'very-low' | null>(null);
   const [connected, setConnected] = useState(false);
@@ -273,6 +275,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     setMuted(false);
     setVideoOff(false);
     setHeld(false);
+    setRemoteHeld(false);
     setSpeakerOn(false);
     setNetworkQuality(null);
     setConnected(false);
@@ -404,6 +407,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     setVideoOff(!params.isVideo);
     setMuted(false);
     setHeld(false);
+    setRemoteHeld(false);
     setSpeakerOn(params.isVideo); // Video calls default to speaker, voice to earpiece
     setNetworkQuality(null);
     setConnected(false);
@@ -587,12 +591,24 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           const ps = call.participants();
           const remoteCount = Object.keys(ps).filter(k => k !== 'local').length;
           if (remoteCount === 0) {
-            console.log('[CallState] all group participants left');
-            endCall();
+            console.log('[CallState] group empty - grace check in 5s');
+            setTimeout(() => {
+              const c = callObjRef.current;
+              if (!c || c !== call) return;
+              const again = Object.keys(c.participants()).filter(k => k !== 'local').length;
+              if (again === 0) { console.log('[CallState] group still empty, ending'); endCall(); }
+            }, 5000);
           }
         } else {
           endCall();
         }
+      });
+
+      call.on('app-message' as DailyEvent, (ev: any) => {
+        if (callObjRef.current !== call) return;
+        const t = ev?.data?.t;
+        if (t === 'hold') setRemoteHeld(true);
+        if (t === 'unhold') setRemoteHeld(false);
       });
 
       call.on('track-started' as DailyEvent, () => {
@@ -712,6 +728,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         if (activeCallRef.current?.isGroupCall && callIdRef.current) {
           supabase.rpc('leave_group_call', { p_session_id: callIdRef.current }).then(() => {}, () => {});
         }
+        if (!activeCallRef.current?.isGroupCall && callIdRef.current) {
+          callService.markMissed(callIdRef.current).catch(() => {});
+        }
         if (callObjRef.current) {
           try { await callObjRef.current.leave(); } catch {}
           try { callObjRef.current.destroy(); } catch {}
@@ -817,6 +836,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         const nowHeld = !prev;
         call.setLocalAudio(!nowHeld);
         if (activeCallRef.current?.isVideo) call.setLocalVideo(!nowHeld);
+        try { (call as any).sendAppMessage({ t: nowHeld ? 'hold' : 'unhold' }, '*'); } catch {}
         return nowHeld;
       });
     });
@@ -865,7 +885,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CallContext.Provider value={{
-      callState, activeCall, elapsed, muted, videoOff, held, speakerOn,
+      callState, activeCall, elapsed, muted, videoOff, held, remoteHeld, speakerOn,
       networkQuality, connected, dailyReady, errorMsg, localParticipant,
       remoteParticipant, remoteParticipants, wasEverActive,
       startCall, endCall, clearCallState,

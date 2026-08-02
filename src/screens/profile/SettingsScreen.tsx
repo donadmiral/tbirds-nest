@@ -146,7 +146,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   const confirmUnlink = () => {
     Alert.alert('Deactivate IntoBank?', 'Payments in chats will stop working until you link an account again from any payment sheet.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Deactivate', style: 'destructive', onPress: async () => { try { await paymentsService.unlink(); setIbLinked(false); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch { Alert.alert('Error', 'Could not deactivate right now.'); } } },
+      { text: 'Deactivate', style: 'destructive', onPress: async () => { try { await paymentsService.unlink(); setIbLinked(false); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch (e: any) { Alert.alert('Could not deactivate', e?.message || 'Please try again.'); } } },
     ]);
   };
 
