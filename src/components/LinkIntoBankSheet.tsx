@@ -33,9 +33,9 @@ export default function LinkIntoBankSheet({ visible, onClose, onLinked }: Props)
       if (!otpSent) {
         await paymentsService.sendOtp(addr);
         setOtpSent(true);
-        Alert.alert('Code sent', 'Check your IntoBank email for the 6-digit code.');
+        Alert.alert('Code sent', 'Check your IntoBank email for the 8-digit code.');
       } else {
-        if (!otp.trim()) { Alert.alert('Code needed', 'Enter the 6-digit code.'); setBusy(false); return; }
+        if (!otp.trim()) { Alert.alert('Code needed', 'Enter the 8-digit code.'); setBusy(false); return; }
         await paymentsService.verifyOtp(addr, otp.trim());
         Alert.alert('Connected', 'Your IntoBank account is linked. Chat payments are ready.');
         onLinked?.();
@@ -58,7 +58,7 @@ export default function LinkIntoBankSheet({ visible, onClose, onLinked }: Props)
             </View>
             <Text style={s.sub}>
               {otpSent
-                ? 'Enter the 6-digit code we emailed you.'
+                ? 'Enter the 8-digit code we emailed you.'
                 : 'Connect your IntoBank account to send and receive money in chats.'}
             </Text>
             <TextInput
@@ -76,10 +76,10 @@ export default function LinkIntoBankSheet({ visible, onClose, onLinked }: Props)
                 style={s.input}
                 value={otp}
                 onChangeText={setOtp}
-                placeholder="6-digit code"
+                placeholder="8-digit code"
                 placeholderTextColor="#9A9AA0"
                 keyboardType="number-pad"
-                maxLength={6}
+                maxLength={8}
                 autoFocus
               />
             )}
