@@ -175,7 +175,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
 
   const buildSections = (): { title: string; rows: SetRow[] }[] => [
     { title: 'Security', rows: [
-      { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: lockEnabled === true ? 'On - required at launch and after a minute away' : 'Off - tap to require Face ID to open the app', onPress: toggleAppLock },
+      { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: 'Face ID at launch and after a minute away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
     ] },
     { title: 'IntoBank', rows: [
       { icon: 'credit-card', color: '#0A3D2E', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibLinked === false) setShowLinkSheet(true); } },

@@ -643,6 +643,9 @@ const swipeActions = (item: Conversation) => (
       <View style={s.head}>
         <Text style={s.title}>Messages</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('CallLog')}>
+            <Feather name="phone" size={18} color="#374151" />
+          </TouchableOpacity>
           <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('StarredMessages')}>
             <Feather name="bookmark" size={18} color="#374151" />
           </TouchableOpacity>
