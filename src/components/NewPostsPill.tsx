@@ -6,7 +6,7 @@
  * never nag about content you are already looking at.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
@@ -42,7 +42,8 @@ export default function NewPostsPill(props: any) {
     };
     const t = setInterval(probe, POLL_MS);
     const first = setTimeout(probe, 8000);
-    return () => { alive = false; clearInterval(t); clearTimeout(first); };
+    const sub = AppState.addEventListener('change', (st) => { if (st === 'active') probe(); });
+    return () => { alive = false; clearInterval(t); clearTimeout(first); sub.remove(); };
   }, []);
 
   if (fresh <= 0) return null;

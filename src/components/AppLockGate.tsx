@@ -36,7 +36,7 @@ export default function AppLockGate() {
     if (busyRef.current) return;
     busyRef.current = true;
     try {
-      const r = await LocalAuthentication.authenticateAsync({ promptMessage: 'Unlock Platinum Circles' });
+      const r = await LocalAuthentication.authenticateAsync({ promptMessage: 'Unlock Platinum Circles', fallbackLabel: 'Use passcode' });
       if (r.success) unlock();
     } catch {} finally { busyRef.current = false; }
   }, [unlock]);
