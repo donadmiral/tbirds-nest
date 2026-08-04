@@ -2288,6 +2288,8 @@ const s = StyleSheet.create({
   
   pillIcon: { paddingHorizontal: 10 },
   pillTxt: { fontSize: 13, fontWeight: '600', color: light.ink.muted, fontVariant: ['tabular-nums'] },
+  pillTxtLiked: { color: '#FF3040' },
+  pillTxtReposted: { color: '#00BA7C' },
   
   
   cpWrap: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 4 },

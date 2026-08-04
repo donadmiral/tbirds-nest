@@ -413,4 +413,5 @@ const st = StyleSheet.create({
   attachTxt: { flex: 1, fontSize: 13.5, fontWeight: '600', color: NAVY },
   cancelBtn: { paddingHorizontal: 16, paddingVertical: 13 },
   cancelTxt: { fontSize: 14.5, fontWeight: '600', color: 'rgba(11,30,61,0.6)' },
+  contactInput: { borderWidth: 1, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: '#0B1E3D', backgroundColor: '#FFFFFF', marginTop: 10 },
 });

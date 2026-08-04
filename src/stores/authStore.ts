@@ -25,6 +25,7 @@ type AuthState = {
   setPasswordRecovery: (v: boolean) => void;
   setSuppressRecoveryRedirect: (v: boolean) => void;
   setRecoveryUrl: (url: string | null) => void;
+  markRecoveryConsumed: (url: string) => void;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };

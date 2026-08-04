@@ -162,6 +162,7 @@ export default function SearchScreen({ navigation }: any) {
     people: people.length,
     posts:  posts.length,
     jobs:   jobs.length,
+    market: 0,
   }), [people, posts, jobs]);
 
   const renderPerson = ({ item }: { item: any }) => (
