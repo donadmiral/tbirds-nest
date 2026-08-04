@@ -25,3 +25,6 @@ _full-source.zip
 *.tokenbak
 
 *.bak[0-9]
+
+android/
+ios/

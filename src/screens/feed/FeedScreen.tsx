@@ -326,7 +326,7 @@ export default function FeedScreen({ navigation }: any) {
     // fast scroll does not fire one insert per post.
     viewableItems.forEach((v: any) => {
       const id = v?.item?.id;
-      if (id && !seenSentRef.current.has(id)) seenPendingRef.current.add(id);
+      if (id && !String(id).startsWith('__') && !seenSentRef.current.has(id)) seenPendingRef.current.add(id);
     });
   }, []);
 
