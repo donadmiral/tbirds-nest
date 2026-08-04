@@ -98,6 +98,7 @@ import MemoryArrangementScreen   from '../screens/stories/MemoryArrangementScree
 
 import IncomingCallListener         from '../components/IncomingCallListener';
 import MiniCallBar                  from '../components/MiniCallBar';
+import AppLockGate                  from '../components/AppLockGate';
 
 
 const RootStack    = createNativeStackNavigator();
@@ -522,6 +523,7 @@ export default function AppNavigator() {
         </RootStack.Navigator>
         {isReady && <IncomingCallListener />}
         {isReady && <MiniCallBar />}
+        {isReady && <AppLockGate />}
       </NavigationContainer>
     </CallProvider>
   );

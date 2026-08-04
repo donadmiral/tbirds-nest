@@ -1,5 +1,7 @@
 import { paymentsService } from '../../services/paymentsService';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { useLockStore } from '../../stores/lockStore';
 import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
@@ -144,6 +146,25 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   );
   const [ibLinked, setIbLinked] = React.useState<boolean | null>(null);
   const [showLinkSheet, setShowLinkSheet] = React.useState(false);
+  const lockEnabled = useLockStore(st => st.enabled);
+  const toggleAppLock = async () => {
+    const st = useLockStore.getState();
+    if (st.enabled === true) {
+      await st.setEnabled(false);
+      Alert.alert('Face ID lock off', 'Platinum Circles now opens without Face ID.');
+      return;
+    }
+    try {
+      const hw = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = hw && (await LocalAuthentication.isEnrolledAsync());
+      if (!enrolled) { Alert.alert('Face ID unavailable', 'Set up Face ID or a device passcode in iPhone Settings first.'); return; }
+      const r = await LocalAuthentication.authenticateAsync({ promptMessage: 'Confirm to require Face ID' });
+      if (r.success) {
+        await st.setEnabled(true);
+        Alert.alert('Face ID lock on', 'Platinum Circles asks for Face ID at launch and after a minute away.');
+      }
+    } catch { Alert.alert('Could not enable', 'Please try again.'); }
+  };
   React.useEffect(() => { paymentsService.getLinkStatus().then(r => setIbLinked(!!r.linked), () => setIbLinked(false)); }, []);
   const confirmUnlink = () => {
     Alert.alert('Deactivate IntoBank?', 'Payments in chats will stop working until you link an account again from any payment sheet.', [
@@ -153,6 +174,9 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   };
 
   const buildSections = (): { title: string; rows: SetRow[] }[] => [
+    { title: 'Security', rows: [
+      { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: lockEnabled === true ? 'On - required at launch and after a minute away' : 'Off - tap to require Face ID to open the app', onPress: toggleAppLock },
+    ] },
     { title: 'IntoBank', rows: [
       { icon: 'credit-card', color: '#0A3D2E', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibLinked === false) setShowLinkSheet(true); } },
       ...(ibLinked ? [{ icon: 'x-circle', color: '#A32D2D', label: 'Deactivate IntoBank', sub: 'Unlink this account, or unlink to add a different one', onPress: confirmUnlink }] : []),

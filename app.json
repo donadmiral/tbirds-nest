@@ -22,6 +22,7 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "PlatinumCircles needs microphone access to let you make voice and video calls with your community.",
         "NSCameraUsageDescription": "PlatinumCircles needs camera access for video calls, profile photos, and dual camera stories.",
+        "NSFaceIDUsageDescription": "PlatinumCircles uses Face ID to unlock the app and approve payments.",
         "NSPhotoLibraryUsageDescription": "PlatinumCircles needs photo access to share images in your conversations and stories.",
         "NSPhotoLibraryAddUsageDescription": "PlatinumCircles needs permission to save photos and videos you receive.",
         "UIBackgroundModes": [
