@@ -20,11 +20,7 @@ function Stat({
   activeClass?: string;
 }) {
   return (
-    <span
-      className={`flex items-center gap-1.5 text-[13px] ${
-        active ? activeClass : "text-white/50"
-      }`}
-    >
+    <span className={`flex items-center gap-1.5 text-[13px] ${active ? activeClass : "text-white/50"}`}>
       <Icon size={17} strokeWidth={1.8} fill={active ? "currentColor" : "none"} />
       {count(value)}
     </span>
@@ -41,8 +37,7 @@ export function PostCard({ post }: { post: FeedRow }) {
       <div className="flex gap-3">
         {post.author_avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={post.author_avatar}
+          <img src={post.author_avatar}
             alt=""
             className="h-11 w-11 shrink-0 rounded-full object-cover"
           />
@@ -81,15 +76,10 @@ export function PostCard({ post }: { post: FeedRow }) {
           ) : null}
 
           {media.length > 0 ? (
-            <div
-              className={`mt-3 grid gap-1 overflow-hidden rounded-lg ${
-                media.length === 1 ? "grid-cols-1" : "grid-cols-2"
-              }`}
-            >
+            <div className={`mt-3 grid gap-1 overflow-hidden rounded-lg ${media.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
               {media.slice(0, 4).map((m) =>
                 m.media_type === "video" ? (
-                  <video
-                    key={m.id}
+                  <video key={m.id}
                     src={m.url}
                     controls
                     preload="metadata"
@@ -97,8 +87,7 @@ export function PostCard({ post }: { post: FeedRow }) {
                   />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={m.id}
+                  <img key={m.id}
                     src={m.url}
                     alt=""
                     loading="lazy"
@@ -110,16 +99,14 @@ export function PostCard({ post }: { post: FeedRow }) {
           ) : null}
 
           {post.link && media.length === 0 ? (
-            
-              href={post.link.url}
+            <a href={post.link.url}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 block overflow-hidden rounded-lg border border-white/10 transition-colors hover:bg-surface"
             >
               {post.link.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={post.link.image_url}
+                <img src={post.link.image_url}
                   alt=""
                   loading="lazy"
                   className="max-h-60 w-full object-cover"
@@ -139,14 +126,10 @@ export function PostCard({ post }: { post: FeedRow }) {
           {products.length > 0 ? (
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
               {products.map((p) => (
-                <div
-                  key={p.id}
-                  className="w-52 shrink-0 overflow-hidden rounded-lg border border-white/10"
-                >
+                <div key={p.id} className="w-52 shrink-0 overflow-hidden rounded-lg border border-white/10">
                   {p.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={p.image_url}
+                    <img src={p.image_url}
                       alt=""
                       loading="lazy"
                       className="h-28 w-full bg-surface object-cover"
@@ -169,24 +152,9 @@ export function PostCard({ post }: { post: FeedRow }) {
 
           <div className="mt-3 flex items-center gap-7">
             <Stat icon={MessageCircle} value={post.comments_count} />
-            <Stat
-              icon={Repeat2}
-              value={post.reposts_count}
-              active={post.viewer_reposted}
-              activeClass="text-success"
-            />
-            <Stat
-              icon={Heart}
-              value={post.likes_count}
-              active={post.viewer_liked}
-              activeClass="text-danger"
-            />
-            <Stat
-              icon={Bookmark}
-              value={post.bookmarks_count}
-              active={post.viewer_bookmarked}
-              activeClass="text-pearl"
-            />
+            <Stat icon={Repeat2} value={post.reposts_count} active={post.viewer_reposted} activeClass="text-success" />
+            <Stat icon={Heart} value={post.likes_count} active={post.viewer_liked} activeClass="text-danger" />
+            <Stat icon={Bookmark} value={post.bookmarks_count} active={post.viewer_bookmarked} activeClass="text-pearl" />
           </div>
         </div>
       </div>
