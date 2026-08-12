@@ -23,10 +23,11 @@ const items = [
   { href: "/messages", label: "Messages", icon: MessageCircle },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/saved", label: "Saved", icon: Bookmark },
-  { href: "/profile", label: "Profile", icon: User },
+
 ];
 
 export function Nav({ name, username }: { name: string; username: string }) {
+  const profileHref = username ? / : /home;
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -49,7 +50,7 @@ export function Nav({ name, username }: { name: string; username: string }) {
         </span>
       </Link>
       <nav className="flex flex-1 flex-col gap-1">
-        {items.map(({ href, label, icon: Icon }) => {
+        {[...items, { href: profileHref, label: Profile, icon: User }].map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
