@@ -29,6 +29,7 @@ Deno.serve(async (req) => {
     const sessionId: string | null = body.callSessionId || null;
     const roomName: string = String(sessionId || body.roomName || '').replace(/[^a-zA-Z0-9-_]/g, '');
     if (!roomName) return json(400, { error: 'no room' });
+    if (!sessionId) return json(400, { error: 'callSessionId required' });
     let isOwner = false; // derived from call_sessions below, never from the client
 
     // The caller must belong to the session: initiator, receiver, or a
