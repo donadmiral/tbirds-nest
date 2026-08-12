@@ -40,6 +40,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { messageStatusService } from '../../services/messageStatusService';
 import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
+import { signChatMedia, signChatMediaMap, isChatMediaUrl } from '../../services/chatMediaService';
 import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
@@ -544,7 +545,8 @@ export default function ChatScreen() {
       (a.created_at ? new Date(a.created_at).getTime() : 0)
     ), []);
 
-  const mergeMsg = useCallback((incoming: MessageItem) => {
+  const mergeMsg = useCallback(async (incoming: MessageItem) => {
+    if (isChatMediaUrl(incoming.media_url)) incoming = (await signChatMedia([incoming]))[0];
     LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     setMessages(prev => {
       const ei = prev.findIndex(m => m.id === incoming.id);
@@ -677,10 +679,12 @@ export default function ChatScreen() {
           .limit(100),
       ]);
 
-      setInfoMedia((mediaRes.data || []) as InfoMediaMsg[]);
-      setInfoFiles((filesRes.data || []) as InfoFileMsg[]);
+      setInfoMedia(await signChatMedia((mediaRes.data || []) as InfoMediaMsg[]));
+      setInfoFiles(await signChatMedia((filesRes.data || []) as InfoFileMsg[]));
 
       const starredRows = (starredRes.data || []) as any[];
+      const infoSigned = await signChatMediaMap(starredRows.map((r: any) => r.msg).filter(Boolean));
+      starredRows.forEach((r: any) => { if (r.msg && infoSigned[r.msg.id]) r.msg.media_url = infoSigned[r.msg.id]; });
       const senderIds = Array.from(new Set(starredRows.map((r: any) => r.msg?.sender_id).filter(Boolean)));
       let nameMap: Record<string, string> = {};
       if (senderIds.length > 0) {
@@ -722,7 +726,7 @@ export default function ChatScreen() {
       if (mountedRef.current) setLoading(true);
       const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId).order('created_at', { ascending: false });
       if (!error && mountedRef.current) {
-        const msgs = sortDesc((data || []) as MessageItem[]);
+        const msgs = await signChatMedia(sortDesc((data || []) as MessageItem[]));
         setMessages(msgs);
         const ids = msgs.map(m => m.id);
         await loadReactions(ids);

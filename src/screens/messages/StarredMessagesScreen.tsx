@@ -16,6 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
+import { signChatMediaMap } from '../../services/chatMediaService';
 import { useAuthStore } from '../../stores/authStore';
 
 type Row = {
@@ -83,6 +84,8 @@ export default function StarredMessagesScreen() {
       if (error) { console.log('[STARRED_SCREEN_ERR]', error.message); setRows([]); return; }
       const starredRows = (starred || []) as any[];
       if (starredRows.length === 0) { setRows([]); return; }
+      const signedMap = await signChatMediaMap(starredRows.map((r: any) => r.msg).filter(Boolean));
+      starredRows.forEach((r: any) => { if (r.msg && signedMap[r.msg.id]) r.msg.media_url = signedMap[r.msg.id]; });
 
       const convIds = Array.from(new Set(starredRows.map(r => r.conversation_id)));
       const { data: convs } = await supabase
