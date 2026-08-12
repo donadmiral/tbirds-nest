@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     const sessionId: string | null = body.callSessionId || null;
     const roomName: string = String(sessionId || body.roomName || '').replace(/[^a-zA-Z0-9-_]/g, '');
     if (!roomName) return json(400, { error: 'no room' });
-    const isOwner: boolean = body.isOwner === true;
+    let isOwner = false; // derived from call_sessions below, never from the client
 
     // The caller must belong to the session: initiator, receiver, or a
     // participant row (groups). Rooms are private; this is the gate.
@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
       const { data: sess } = await svc.from('call_sessions')
         .select('id, initiator_id, receiver_id').eq('id', sessionId).maybeSingle();
       if (!sess) return json(404, { error: 'call not found' });
+      isOwner = sess.initiator_id === uid;
       let allowed = sess.initiator_id === uid || sess.receiver_id === uid;
       if (!allowed) {
         const { data: part } = await svc.from('call_participants')
