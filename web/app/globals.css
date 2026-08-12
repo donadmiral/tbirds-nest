@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* Platinum Circles design tokens - ported from src/constants/tokens.
+   Temperature: warm nocturnal calm. Navy atmosphere, softened whites,
+   intimate luminance. Semantic names, never raw hex in components. */
+@theme {
+  --color-ink: rgb(6 12 24);
+  --color-navy: #0b1e3d;
+  --color-pearl: #c9bfb0;
+  --color-pearl-muted: #a89f91;
+  --color-porcelain: #f5f0eb;
+  --color-surface: rgba(255, 255, 255, 0.08);
+  --color-surface-elevated: rgba(255, 255, 255, 0.12);
+  --color-surface-active: rgba(255, 255, 255, 0.15);
+  --color-danger: #ff3b30;
+  --color-success: #34c759;
+  --color-info: #007aff;
+  --color-warn: #ff9500;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --font-display: var(--font-marcellus);
+  --font-sans: var(--font-instrument);
+}
+
+body {
+  background: var(--color-ink);
+  color: #ffffff;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-pearl);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-pearl);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
