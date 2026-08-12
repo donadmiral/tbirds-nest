@@ -343,21 +343,7 @@ export const jobsService = {
       console.log('[jobsService.applyToJob]', error?.message);
       throw error || new Error('Apply failed');
     }
-    try {
-      const { data: j } = await supabase
-        .from('jobs')
-        .select('applications_count')
-        .eq('id', jobId)
-        .single();
-      if (j) {
-        await supabase
-          .from('jobs')
-          .update({ applications_count: (j.applications_count || 0) + 1 })
-          .eq('id', jobId);
-      }
-    } catch {
-      // non-fatal, display field only
-    }
+    // applications_count is owned by the sync_job_application_count trigger (0045); no client write.
     return { app: data as JobApplication, updated: false };
   },
 

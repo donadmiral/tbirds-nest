@@ -76,8 +76,12 @@ export const authService = {
     // Sign in with a username too: the definer function resolves a
     // handle to its address even before any session exists.
     if (!email.includes('@')) {
-      const { data: resolved } = await supabase.rpc('email_for_username', { p_username: email });
-      if (resolved) email = resolved as string;
+      const { data: viaFn, error: fnErr } = await supabase.functions.invoke('sign-in-with-username', { body: { username: email, password } });
+      if (fnErr || !viaFn?.session) throw new Error('Invalid username or password');
+      const { error: setErr } = await supabase.auth.setSession({ access_token: viaFn.session.access_token, refresh_token: viaFn.session.refresh_token });
+      if (setErr) throw setErr;
+      return viaFn;
+
     }
     const { data, error } = await supabase.auth.signInWithPassword({
       email,

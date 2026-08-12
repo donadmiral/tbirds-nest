@@ -92,7 +92,7 @@ function __shipError(err: unknown, context: Props, fatal: boolean) {
     let ver: string | null = null;
     try { ver = require('expo-constants').default?.expoConfig?.version ?? null; } catch {}
     supabase.from('client_errors').insert({
-      user_id: currentUser(),
+      user_id: currentUser().id ?? null,
       message: String(e.message || 'unknown').slice(0, 500),
       stack: String(e.stack || '').slice(0, 4000),
       context: { ...context, fatal },
