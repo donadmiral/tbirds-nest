@@ -16,6 +16,7 @@ import { Image as ExpoImage } from 'expo-image';
 import { marketService, MARKET_CATEGORIES, MARKET_CONDITIONS, ListingCurrency } from '../../services/marketService';
 import { pickFromLibrary, uploadBatch, PickedMedia } from '../../services/mediaService';
 import { useAuthStore } from '../../stores/authStore';
+import { supabase } from '../../services/supabase';
 
 const NAVY = '#0B1E3D';
 const BG = '#FFFFFF';
@@ -41,6 +42,7 @@ export default function CreateListingScreen({ navigation }: any) {
   const [category, setCategory] = useState<string>('Other');
   const [condition, setCondition] = useState<string | null>(null);
   const [deliveryOn, setDeliveryOn] = useState(false);
+  const [shareToFeed, setShareToFeed] = useState(true);
   const [deliveryFee, setDeliveryFee] = useState('');
   const [deliveryNote, setDeliveryNote] = useState('');
   const [city, setCity] = useState('');
@@ -94,7 +96,7 @@ export default function CreateListingScreen({ navigation }: any) {
       if (!uploaded.length) throw new Error('Image upload failed. Check your connection and try again.');
       if (failed.length) console.log('[CreateListing] some images failed:', failed.length);
 
-      await marketService.createListing({
+      const createdListing = await marketService.createListing({
         seller_id: currentAuthorId(userId) ?? userId,
         title: title.trim(),
         description: description.trim(),
@@ -108,6 +110,34 @@ export default function CreateListingScreen({ navigation }: any) {
         delivery_fee: deliveryOn && deliveryFee.trim() ? Number(deliveryFee.replace(/,/g, '')) : null,
         delivery_note: deliveryOn && deliveryNote.trim() ? deliveryNote.trim() : null,
       });
+      if (shareToFeed && createdListing?.id) {
+        try {
+          const { data: newPost } = await supabase
+            .from('posts')
+            .insert({ user_id: currentAuthorId(userId) ?? userId, body: title.trim() })
+            .select()
+            .single();
+          if (newPost?.id) {
+            await supabase.rpc('set_post_products', {
+              p_post_id: newPost.id,
+              p_products: [{
+                id: 'listing-' + createdListing.id,
+                title: title.trim(),
+                subtitle: null,
+                price: priceNumber,
+                currency,
+                image_url: (createdListing.images && createdListing.images[0]) || null,
+                listing_id: createdListing.id,
+                link_url: null,
+                cta_label: 'View listing',
+                sort_order: 0,
+              }],
+            });
+          }
+        } catch (shareErr: any) {
+          console.log('[CreateListing] share to feed failed:', shareErr?.message);
+        }
+      }
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Could not publish', e?.message || 'Something went wrong');
@@ -220,7 +250,14 @@ export default function CreateListingScreen({ navigation }: any) {
               />
               <Err show={touched && !cityOk} text="Enter a meetup area." />
 
-              <TouchableOpacity onPress={() => setDeliveryOn(v => !v)} activeOpacity={0.8}
+              <TouchableOpacity onPress={() => setShareToFeed(v => !v)} activeOpacity={0.8}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 18, padding: 14, borderRadius: 14, backgroundColor: shareToFeed ? 'rgba(5,150,105,0.08)' : 'rgba(11,30,61,0.04)', borderWidth: 1, borderColor: shareToFeed ? 'rgba(5,150,105,0.35)' : 'rgba(11,30,61,0.08)' }}>
+                <Ionicons name={shareToFeed ? 'checkbox' : 'square-outline'} size={21} color={shareToFeed ? '#059669' : '#8E8E93'} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Share to feed</Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>Post this listing so your followers see it in their feed.</Text>
+                </View>
+              </TouchableOpacity>              <TouchableOpacity onPress={() => setDeliveryOn(v => !v)} activeOpacity={0.8}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 18, padding: 14, borderRadius: 14, backgroundColor: deliveryOn ? 'rgba(5,150,105,0.08)' : 'rgba(11,30,61,0.04)', borderWidth: 1, borderColor: deliveryOn ? 'rgba(5,150,105,0.35)' : 'rgba(11,30,61,0.08)' }}>
                 <Ionicons name={deliveryOn ? 'checkbox' : 'square-outline'} size={21} color={deliveryOn ? '#059669' : '#8E8E93'} />
                 <View style={{ flex: 1 }}>
