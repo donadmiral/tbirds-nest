@@ -19,6 +19,7 @@ export type PostProduct = {
   currency?: string | null;
   image_url?: string | null;
   listing_id?: string | null;
+  listing_status?: string | null;
   link_url?: string | null;
   cta_label?: string | null;
   sort_order?: number | null;
@@ -76,6 +77,11 @@ export default function ProductCarousel({ products, onOpenListing }: Props) {
                 ) : (
                   <View style={[s.thumb, s.thumbEmpty]}>
                     <Feather name="package" size={22} color={light.ink.faint} />
+                  </View>
+                )}
+                {p.listing_status && p.listing_status !== 'available' && (
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFF', letterSpacing: 1 }}>{p.listing_status === 'sold' ? 'SOLD' : 'UNAVAILABLE'}</Text>
                   </View>
                 )}
                 {!internal && (

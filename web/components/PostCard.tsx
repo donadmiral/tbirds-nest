@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Heart, MessageCircle, Repeat2, Bookmark, BadgeCheck } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Bookmark } from "lucide-react";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
 import { toggleLike, toggleBookmark, toggleRepost } from "@/lib/interactions";
@@ -64,7 +65,7 @@ export function PostCard({ post }: { post: FeedRow }) {
           <div className="flex items-center gap-1.5">
             <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
               <span className="truncate text-[15px] font-semibold text-white">{post.author_name}</span>
-              {post.author_verified ? <BadgeCheck size={16} className="shrink-0 text-pearl" /> : null}
+              {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
               <span className="truncate text-[13px] text-white/50">@{post.author_username}</span>
             </Link>
             <span className="text-[13px] text-white/30">·</span>
@@ -116,7 +117,10 @@ export function PostCard({ post }: { post: FeedRow }) {
           {products.length > 0 ? (
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
               {products.map((p) => (
-                <div key={p.id} className="w-52 shrink-0 overflow-hidden rounded-lg border border-white/10">
+                <div key={p.id} className="relative w-52 shrink-0 overflow-hidden rounded-lg border border-white/10">
+                  {p.listing_status && p.listing_status !== "available" ? (
+                    <span className="absolute inset-0 z-10 flex items-center justify-center bg-ink/60 text-[12px] font-bold uppercase tracking-widest text-white">{p.listing_status === "sold" ? "Sold" : "Unavailable"}</span>
+                  ) : null}
                   {p.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.image_url} alt="" loading="lazy" className="h-28 w-full bg-surface object-cover" />

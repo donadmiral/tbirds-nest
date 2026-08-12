@@ -21,6 +21,7 @@ export type FeedRow = {
     currency: string | null;
     image_url: string | null;
     listing_id: string | null;
+    listing_status?: string | null;
     link_url: string | null;
     cta_label: string | null;
     sort_order: number | null;
