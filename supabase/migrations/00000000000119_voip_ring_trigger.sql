@@ -15,7 +15,7 @@ begin
       url := 'https://prlkikhckbifseosbukl.supabase.co/functions/v1/send-voip-push',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBybGtpa2hja2JpZnNlb3NidWtsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTc5NTUwOSwiZXhwIjoyMDkxMzcxNTA5fQ.JKlal56cQAPeWWOj3aubN0900XuW68df682kVBKevDE'
+        'Authorization', 'Bearer REDACTED_MOVED_TO_VAULT_SEE_0121'
       ),
       body := jsonb_build_object('session_id', new.call_session_id, 'user_id', new.user_id)
     );
