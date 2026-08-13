@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb } from "lucide-react";
+import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag } from "lucide-react";
+import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean };
@@ -33,6 +34,8 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   const [innoField, setInnoField] = useState<string | null>(null);
   const [innoStage, setInnoStage] = useState<string | null>(null);
   const [articleTitle, setArticleTitle] = useState("");
+  const [products, setProducts] = useState<ProductCard[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [mentions, setMentions] = useState<MentionHit[]>([]);
   const [pending, setPending] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -150,6 +153,14 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     const { data: newPost, error: insErr } = await supabase.from("posts").insert(insertData).select("id").single();
     if (insErr || !newPost) { setError(insErr?.message || "Could not post."); setPending(false); return; }
 
+    if (products.length > 0) {
+      const { error: prodErr } = await supabase.rpc("set_post_products", {
+        p_post_id: newPost.id,
+        p_products: products.map((c, i) => ({ ...c, sort_order: i })),
+      });
+      if (prodErr) setError("Posted, but the product cards did not save: " + prodErr.message);
+    }
+
     if (media.length > 0) {
       const rows = media.map((m) => ({ post_id: newPost.id, ...m }));
       const { error: mErr } = await supabase.from("post_media").insert(rows);
@@ -161,6 +172,8 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     setText("");
     setItems([]);
     setAudience("everyone");
+    setProducts([]);
+    setPickerOpen(false);
     setInno(false);
     setInnoField(null);
     setInnoStage(null);
@@ -259,12 +272,27 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
           ))}
         </div>
       ) : null}
+      {pickerOpen ? <ProductPicker selected={products} onChange={setProducts} onClose={() => setPickerOpen(false)} /> : null}
+      {!pickerOpen && products.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {products.map((c) => (
+            <span key={c.id} className="flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-white/80">
+              <Tag size={10} className="text-pearl" /> {c.title}
+              <button onClick={() => setProducts(products.filter((x) => x.id !== c.id))} className="text-white/40 hover:text-white"><X size={11} /></button>
+            </span>
+          ))}
+        </div>
+      ) : null}
       {error ? <p className="mt-2 text-[13px] text-danger">{error}</p> : null}
       <div className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3">
         <button onClick={() => fileRef.current?.click()} disabled={items.length >= MAX_MEDIA} title="Add photos or videos" className="rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-30">
           <ImagePlus size={19} />
         </button>
         <input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
+        <button onClick={() => setPickerOpen((v) => !v)} title="Attach products" className={"relative flex items-center rounded-md p-2 transition-colors " + (products.length > 0 ? "text-pearl" : "text-white/50 hover:bg-surface hover:text-pearl")}>
+          <Tag size={17} />
+          {products.length > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pearl px-1 text-[9px] font-bold text-ink">{products.length}</span> : null}
+        </button>
         <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] transition-colors " + (inno ? "bg-surface-elevated font-semibold text-pearl" : "text-white/50 hover:bg-surface hover:text-white")}>
           <Lightbulb size={15} /> Innovation
         </button>
