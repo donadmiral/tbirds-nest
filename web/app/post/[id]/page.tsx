@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { CommentComposer } from "@/components/CommentComposer";
 import { PostCard } from "@/components/PostCard";
 import { timeAgo, type FeedRow } from "@/lib/feed";
 
@@ -140,6 +141,7 @@ export default async function PostPage({ params }: Params) {
         <h2 className="px-1 py-3 text-[15px] font-semibold text-white">
           {comments.length > 0 ? `Comments` : `No comments yet`}
         </h2>
+        <CommentComposer postId={id} />
         {comments.map((c) => {
           const p = commenters.get(c.user_id);
           return (
