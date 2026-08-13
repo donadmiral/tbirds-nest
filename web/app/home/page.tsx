@@ -199,7 +199,7 @@ export default function HomeFeed() {
         ))}
       </div>
 
-      {mode === "trending" ? <div className="pt-3"><StoryRings mode="trending" /></div> : null}
+      {mode === "trending" ? <div className="pt-3"><StoryRings mode="global" /></div> : null}
       {pendingNew > 0 && !loading ? (
         <div className="sticky top-16 z-10 flex justify-center py-2">
           <button onClick={showNewPosts} className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-1.5 text-[13px] font-semibold text-ink shadow-lg transition-opacity hover:opacity-90">

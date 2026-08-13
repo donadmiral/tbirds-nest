@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check } from "lucide-react";
+import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3 } from "lucide-react";
+import { InsightsModal } from "@/components/InsightsModal";
 import { createClient } from "@/lib/supabase/client";
 
 const REASONS = [
@@ -22,6 +23,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
   const [open, setOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [insightsOpen, setInsightsOpen] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,6 +82,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
 
   return (
     <div ref={boxRef} className="relative ml-auto shrink-0">
+      {insightsOpen ? <InsightsModal postId={postId} onClose={() => setInsightsOpen(false)} /> : null}
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
         title="More"
         className="rounded-full p-1.5 text-white/40 transition-colors hover:bg-surface hover:text-white"
@@ -106,7 +109,10 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
                   <button onClick={blockAuthor} className={item + " text-danger"}><Ban size={15} /> Block author</button>
                 </>
               ) : (
+                <>
+                <button onClick={() => { setOpen(false); setInsightsOpen(true); }} className={item}><BarChart3 size={15} /> View insights</button>
                 <button onClick={deletePost} className={item + " text-danger"}><Trash2 size={15} /> Delete post</button>
+                </>
               )}
             </>
           )}
