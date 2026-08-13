@@ -9,6 +9,7 @@ import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { CallButtons } from "@/components/CallButtons";
 import { GroupCallBar } from "@/components/GroupCallBar";
+import { SharedPostCard } from "@/components/SharedPostCard";
 import { timeAgo } from "@/lib/feed";
 
 type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
@@ -325,6 +326,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           {m.media_type === "payment" || m.payment_id ? (
             <span className="flex items-center gap-1.5 text-[13px] text-white/70"><Wallet size={14} /> Payment · open the Platinum Circles app</span>
           ) : null}
+          {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
           {m.media_type === "offer" && m.media_url ? <OfferCard m={m} /> : null}
           {(m.media_type === "image" || m.media_type === "gif") && m.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element

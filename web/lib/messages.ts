@@ -25,7 +25,7 @@ export type Msg = {
   media_type: string | null;
   reply_to_id: string | null;
   payment_id?: string | null;
-  payment_id?: string | null;
+  shared_post_id?: string | null;
   created_at: string;
   deleted_at?: string | null;
 };

@@ -12,6 +12,7 @@ import { PostMenu } from "@/components/PostMenu";
 import { RichText } from "@/components/RichText";
 import { MediaGallery } from "@/components/MediaGallery";
 import { LikesModal } from "@/components/LikesModal";
+import { ShareMenu } from "@/components/ShareMenu";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
 import { toggleLike, toggleBookmark, toggleRepost } from "@/lib/interactions";
@@ -228,6 +229,7 @@ export function PostCard({ post }: { post: FeedRow }) {
               <Bookmark size={17} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
               {count(mark.n)}
             </button>
+            <ShareMenu postId={post.post_id} sharesCount={(post as unknown as { shares_count?: number }).shares_count ?? 0} />
           </div>
         </div>
       </div>

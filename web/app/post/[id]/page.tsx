@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { CommentComposer } from "@/components/CommentComposer";
+import { Comments } from "@/components/Comments";
 import { PostCard } from "@/components/PostCard";
 import { timeAgo, type FeedRow } from "@/lib/feed";
 
@@ -118,18 +118,7 @@ export default async function PostPage({ params }: Params) {
     innovation_stage: null,
   };
 
-  const { data: commentRows } = await supabase
-    .from("post_comments")
-    .select("id, post_id, user_id, body, content, parent_comment_id, likes_count, created_at")
-    .eq("post_id", id)
-    .order("created_at", { ascending: true })
-    .limit(100);
-  const comments = commentRows ?? [];
-  const commenterIds = Array.from(new Set(comments.map((c) => c.user_id)));
-  const { data: commenterRows } = commenterIds.length
-    ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", commenterIds)
-    : { data: [] };
-  const commenters = new Map((commenterRows ?? []).map((p) => [p.id, p]));
+  // Comments moved to the interactive <Comments /> component.
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[640px] px-4 py-6">
@@ -139,33 +128,8 @@ export default async function PostPage({ params }: Params) {
       <PostCard post={row} />
       <section className="mt-2">
         <h2 className="px-1 py-3 text-[15px] font-semibold text-white">
-          {comments.length > 0 ? `Comments` : `No comments yet`}
         </h2>
-        <CommentComposer postId={id} />
-        {comments.map((c) => {
-          const p = commenters.get(c.user_id);
-          return (
-            <div key={c.id} className="flex gap-3 border-t border-white/10 px-1 py-4">
-              {p?.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
-              ) : (
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-semibold text-porcelain">
-                  {(p?.full_name ?? "?").charAt(0).toUpperCase()}
-                </span>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 text-[13px]">
-                  <span className="font-semibold text-white">{p?.full_name ?? "Member"}</span>
-                  <span className="text-white/50">@{p?.username}</span>
-                  <span className="text-white/30">·</span>
-                  <span className="text-white/50">{timeAgo(c.created_at)}</span>
-                </div>
-                <p className="mt-0.5 whitespace-pre-wrap text-[14px] text-white/90">{c.body || c.content || ""}</p>
-              </div>
-            </div>
-          );
-        })}
+        <Comments postId={id} />
       </section>
     </main>
   );
