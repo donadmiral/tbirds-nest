@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Phone, PhoneOff, Video } from "lucide-react";
+import { Phone, PhoneOff, Video, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { startOneToOneCall, getDailyRoom, setCallStatus, endCall, type CallSession } from "@/lib/calls";
 
@@ -15,6 +15,7 @@ export function WebCallLayer() {
   const [activeCall, setActiveCall] = useState<CallSession | null>(null);
   const [incoming, setIncoming] = useState<Incoming | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [callError, setCallError] = useState<string | null>(null);
   const activeCallRef = useRef<CallSession | null>(null);
   activeCallRef.current = activeCall;
 
@@ -31,38 +32,52 @@ export function WebCallLayer() {
 
   const hangup = useCallback(async (record: boolean) => {
     const c = activeCallRef.current;
+    console.log("[CALL] hangup, record:", record, "session:", c?.id);
     await teardownFrame();
     setActiveCall(null);
     setConnecting(false);
+    setCallError(null);
     if (c && record) await endCall(c.id);
   }, [teardownFrame]);
 
   const joinRoom = useCallback(async (session: CallSession) => {
     setConnecting(true);
-    const room = await getDailyRoom(session.id);
-    if (!room || !containerRef.current) {
+    setCallError(null);
+    console.log("[CALL] fetching daily room for session", session.id);
+    try {
+      const room = await getDailyRoom(session.id);
+      console.log("[CALL] daily room result:", room ? { roomUrl: room.roomUrl, tokenLen: room.token?.length } : null);
+      if (!room) throw new Error("daily-get-token returned no room or token");
+      if (!containerRef.current) throw new Error("call container missing");
+      const DailyIframe = (await import("@daily-co/daily-js")).default;
+      console.log("[CALL] creating frame");
+      const frame = DailyIframe.createFrame(containerRef.current, {
+        showLeaveButton: true,
+        iframeStyle: { width: "100%", height: "100%", border: "0", borderRadius: "12px" },
+      });
+      frameRef.current = frame as unknown as { destroy: () => Promise<void> };
+      frame.on("left-meeting", () => { console.log("[CALL] left-meeting"); hangup(true); });
+      frame.on("error", (e: unknown) => { console.log("[CALL] frame error:", e); });
+      frame.on("loaded", () => { console.log("[CALL] frame loaded"); setConnecting(false); });
+      console.log("[CALL] joining", room.roomUrl);
+      await frame.join({ url: room.roomUrl, token: room.token, startVideoOff: !session.is_video });
+      console.log("[CALL] joined");
       setConnecting(false);
-      alert("Could not connect the call.");
-      await endCall(session.id);
-      setActiveCall(null);
-      return;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.log("[CALL] JOIN FAILED:", msg);
+      setCallError(msg);
+      setConnecting(false);
     }
-    const DailyIframe = (await import("@daily-co/daily-js")).default;
-    const frame = DailyIframe.createFrame(containerRef.current, {
-      showLeaveButton: true,
-      iframeStyle: { width: "100%", height: "100%", border: "0", borderRadius: "12px" },
-    });
-    frameRef.current = frame as unknown as { destroy: () => Promise<void> };
-    frame.on("left-meeting", () => { hangup(true); });
-    await frame.join({ url: room.roomUrl, token: room.token, startVideoOff: !session.is_video });
-    setConnecting(false);
   }, [hangup]);
 
   useEffect(() => {
     async function onStart(e: Event) {
       if (activeCallRef.current) return;
       const d = (e as CustomEvent).detail as { receiverId: string; conversationId: string | null; isVideo: boolean; name: string };
+      console.log("[CALL] starting", d.isVideo ? "video" : "voice", "call to", d.receiverId);
       const session = await startOneToOneCall(d.receiverId, d.conversationId, d.isVideo);
+      console.log("[CALL] session created:", session?.id ?? "FAILED");
       if (!session) { alert("Could not start the call."); return; }
       setActiveCall(session);
       await joinRoom(session);
@@ -77,6 +92,7 @@ export function WebCallLayer() {
       .channel("web_call_" + activeCall.id)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "call_sessions", filter: "id=eq." + activeCall.id }, (p) => {
         const s = (p.new as CallSession).status;
+        console.log("[CALL] session status changed:", s);
         if (s === "ended" || s === "declined" || s === "missed") hangup(false);
       })
       .subscribe();
@@ -89,6 +105,7 @@ export function WebCallLayer() {
       .channel("web_incoming_calls")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "call_sessions", filter: "receiver_id=eq." + uid }, async (p) => {
         const s = p.new as CallSession;
+        console.log("[CALL] incoming session:", s.id, "status:", s.status);
         if (s.status !== "ringing" || activeCallRef.current) return;
         if (s.expires_at && new Date(s.expires_at).getTime() < Date.now()) return;
         const { data: prof } = await supabase.from("profiles").select("full_name").eq("id", s.initiator_id).maybeSingle();
@@ -105,6 +122,7 @@ export function WebCallLayer() {
   async function answer() {
     if (!incoming) return;
     const s = incoming;
+    console.log("[CALL] answering", s.id);
     setIncoming(null);
     await setCallStatus(s.id, "active");
     setActiveCall(s);
@@ -113,6 +131,7 @@ export function WebCallLayer() {
 
   async function decline() {
     if (!incoming) return;
+    console.log("[CALL] declining", incoming.id);
     await setCallStatus(incoming.id, "declined");
     setIncoming(null);
   }
@@ -136,7 +155,13 @@ export function WebCallLayer() {
       <div className={(activeCall ? "fixed" : "hidden") + " inset-0 z-[55] flex items-center justify-center bg-black/80 p-4"}>
         <div className="relative h-[85vh] w-full max-w-4xl">
           {connecting ? (
-            <p className="absolute inset-0 flex items-center justify-center text-sm text-white/60">Connecting</p>
+            <p className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm text-white/60">Connecting</p>
+          ) : null}
+          {callError ? (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3">
+              <p className="max-w-md text-center text-[14px] text-danger">{callError}</p>
+              <button onClick={() => hangup(true)} className="flex items-center gap-1.5 rounded-md bg-surface px-4 py-2 text-[13px] text-white"><X size={15} /> Close</button>
+            </div>
           ) : null}
           <div ref={containerRef} className="h-full w-full" />
         </div>
