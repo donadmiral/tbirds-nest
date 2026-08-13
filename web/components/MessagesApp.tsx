@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, Send, FileText, Tag } from "lucide-react";
+import { Search, Send, FileText, Tag, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
 import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
@@ -205,6 +205,9 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     return (
       <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
         <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-white" : "bg-surface text-white")}>
+          {m.media_type === "payment" || m.payment_id ? (
+            <span className="flex items-center gap-1.5 text-[13px] text-white/70"><Wallet size={14} /> Payment · open the Platinum Circles app</span>
+          ) : null}
           {m.media_type === "offer" && m.media_url ? <OfferCard m={m} /> : null}
           {m.media_type === "image" && m.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
