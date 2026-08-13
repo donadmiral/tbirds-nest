@@ -18,7 +18,7 @@ function Avatar({ conv, size = 44 }: { conv: Conv; size?: number }) {
   );
 }
 
-export function MessagesApp() {
+export function MessagesApp({ context = "personal", heading = "Messages", compact = false }: { context?: string; heading?: string; compact?: boolean }) {
   const supabase = useRef(createClient()).current;
   const [uid, setUid] = useState<string | null>(null);
   const [convs, setConvs] = useState<Conv[]>([]);
@@ -31,21 +31,6 @@ export function MessagesApp() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<Conv | null>(null);
   activeRef.current = active;
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      const id = data.session?.user.id ?? null;
-      setUid(id);
-      if (!id) { setLoadingConvs(false); return; }
-      const list = await loadConversations(id);
-      setConvs(list);
-      const target = new URLSearchParams(window.location.search).get("c");
-      const t = target ? list.find((x) => x.id === target) : null;
-      if (t) openConv(t);
-      setLoadingConvs(false);
-    })();
-  }, [supabase]);
 
   const openConv = useCallback(async (c: Conv) => {
     setActive(c);
@@ -65,6 +50,21 @@ export function MessagesApp() {
     }, () => {});
     setTimeout(() => bottomRef.current?.scrollIntoView({ block: "end" }), 60);
   }, [supabase]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const id = data.session?.user.id ?? null;
+      setUid(id);
+      if (!id) { setLoadingConvs(false); return; }
+      const list = await loadConversations(id, context);
+      setConvs(list);
+      setLoadingConvs(false);
+      const target = new URLSearchParams(window.location.search).get("c");
+      const t = target ? list.find((x) => x.id === target) : null;
+      if (t) openConv(t);
+    })();
+  }, [supabase, context, openConv]);
 
   useEffect(() => {
     if (!active || !uid) return;
@@ -147,11 +147,77 @@ export function MessagesApp() {
     );
   }
 
+  const convButton = (c: Conv) => (
+    <button key={c.id}
+      onClick={() => openConv(c)}
+      className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
+    >
+      <Avatar conv={c} />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="truncate text-[14px] font-semibold text-white">{c.title}</span>
+          {c.last_message_time ? <span className="shrink-0 text-[11px] text-white/40">{timeAgo(c.last_message_time)}</span> : null}
+        </span>
+        <span className="flex items-center justify-between gap-2">
+          <span className="truncate text-[13px] text-white/50">{c.last_message || "Say hello"}</span>
+          {c.unread > 0 ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-ink">{c.unread}</span> : null}
+        </span>
+      </span>
+    </button>
+  );
+
+  const composer = (
+    <div className="flex items-end gap-2">
+      <textarea value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+        placeholder="Message"
+        rows={1}
+        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+      />
+      <button onClick={send} disabled={!draft.trim()} className="rounded-md bg-pearl p-2.5 text-ink transition-opacity hover:opacity-90 disabled:opacity-30" title="Send">
+        <Send size={18} />
+      </button>
+    </div>
+  );
+
+  if (compact) {
+    return (
+      <div className="flex min-h-[70vh] flex-col px-1">
+        {!active ? (
+          <>
+            <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>
+            {loadingConvs ? (
+              <p className="py-12 text-center text-sm text-white/40">Loading</p>
+            ) : shownConvs.length === 0 ? (
+              <p className="py-12 text-center text-sm text-white/40">No conversations here yet.</p>
+            ) : (
+              shownConvs.map(convButton)
+            )}
+          </>
+        ) : (
+          <>
+            <header className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-white/60 hover:bg-surface hover:text-white" title="Back">←</button>
+              <Avatar conv={active} size={36} />
+              <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
+            </header>
+            <div className="flex-1 space-y-2 overflow-y-auto py-4">
+              {loadingMsgs ? <p className="py-12 text-center text-sm text-white/40">Loading</p> : msgs.map((m) => <Bubble key={m.id} m={m} />)}
+              <div ref={bottomRef} />
+            </div>
+            <footer className="border-t border-white/10 pt-3">{composer}</footer>
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen">
       <section className="flex w-[340px] shrink-0 flex-col border-r border-white/10">
         <div className="px-4 pb-2 pt-6">
-          <h1 className="font-display text-xl text-porcelain">Messages</h1>
+          <h1 className="font-display text-xl text-porcelain">{heading}</h1>
           <div className="relative mt-3">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
             <input value={query}
@@ -167,24 +233,7 @@ export function MessagesApp() {
           ) : shownConvs.length === 0 ? (
             <p className="px-4 py-12 text-center text-sm text-white/40">No conversations yet.</p>
           ) : (
-            shownConvs.map((c) => (
-              <button key={c.id}
-                onClick={() => openConv(c)}
-                className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
-              >
-                <Avatar conv={c} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="truncate text-[14px] font-semibold text-white">{c.title}</span>
-                    {c.last_message_time ? <span className="shrink-0 text-[11px] text-white/40">{timeAgo(c.last_message_time)}</span> : null}
-                  </span>
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="truncate text-[13px] text-white/50">{c.last_message || "Say hello"}</span>
-                    {c.unread > 0 ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-ink">{c.unread}</span> : null}
-                  </span>
-                </span>
-              </button>
-            ))
+            shownConvs.map(convButton)
           )}
         </div>
       </section>
@@ -212,26 +261,7 @@ export function MessagesApp() {
               )}
               <div ref={bottomRef} />
             </div>
-            <footer className="border-t border-white/10 px-4 py-3">
-              <div className="flex items-end gap-2">
-                <textarea value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
-                  }}
-                  placeholder="Message"
-                  rows={1}
-                  className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
-                />
-                <button onClick={send}
-                  disabled={!draft.trim()}
-                  className="rounded-md bg-pearl p-2.5 text-ink transition-opacity hover:opacity-90 disabled:opacity-30"
-                  title="Send"
-                >
-                  <Send size={18} />
-                </button>
-              </div>
-            </footer>
+            <footer className="border-t border-white/10 px-4 py-3">{composer}</footer>
           </>
         )}
       </section>
