@@ -38,7 +38,11 @@ export function MessagesApp() {
       const id = data.session?.user.id ?? null;
       setUid(id);
       if (!id) { setLoadingConvs(false); return; }
-      setConvs(await loadConversations(id));
+      const list = await loadConversations(id);
+      setConvs(list);
+      const target = new URLSearchParams(window.location.search).get("c");
+      const t = target ? list.find((x) => x.id === target) : null;
+      if (t) openConv(t);
       setLoadingConvs(false);
     })();
   }, [supabase]);

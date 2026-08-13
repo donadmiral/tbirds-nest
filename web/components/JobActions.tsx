@@ -40,7 +40,7 @@ export function JobActions({ jobId, posterId, initiallySaved, viewerId }: {
     setMsgPending(true);
     const { data } = await supabase.rpc("start_dm_ctx", { p_receiver_id: posterId, p_context: "jobs", p_ref_id: jobId });
     setMsgPending(false);
-    router.push(data ? "/messages?started=1" : "/messages");
+    router.push(data ? "/jobs/messages?c=" + data : "/jobs/messages");
   }
 
   const btn = "flex items-center gap-1.5 rounded-md bg-surface px-3.5 py-2 text-[13px] text-white/80 transition-colors hover:bg-surface-elevated hover:text-white";

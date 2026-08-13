@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Bookmark, Send, Plus, Search } from "lucide-react";
+import { Bookmark, Send, Plus, Search, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { type JobRow, type PosterLite } from "@/lib/jobs";
 import { JobCard } from "@/components/JobCard";
@@ -98,6 +98,7 @@ export default function JobsPage() {
       <div className="flex items-center justify-between px-1 pb-3">
         <h1 className="font-display text-2xl text-porcelain">Jobs</h1>
         <div className="flex items-center gap-1">
+          <Link href="/jobs/messages" title="Job messages" className="rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-white"><MessageCircle size={19} /></Link>
           <Link href="/jobs/applications" title="My applications" className="rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-white"><Send size={19} /></Link>
           <Link href="/jobs/saved" title="Saved jobs" className="rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-white"><Bookmark size={19} /></Link>
           <Link href="/jobs/new" className="ml-1 flex items-center gap-1.5 rounded-md bg-pearl px-3 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90"><Plus size={16} /> Post a job</Link>

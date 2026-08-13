@@ -26,7 +26,7 @@ export type Msg = {
   deleted_at?: string | null;
 };
 
-export async function loadConversations(userId: string): Promise<Conv[]> {
+export async function loadConversations(userId: string, context: string = "personal"): Promise<Conv[]> {
   const supabase = createClient();
   const { data: dmConvs } = await supabase
     .from("conversations")
@@ -71,7 +71,8 @@ export async function loadConversations(userId: string): Promise<Conv[]> {
     });
   } catch { /* non-fatal */ }
 
-  const dms: Conv[] = ((dmConvs ?? []) as Record<string, unknown>[]).map((c) => {
+  const keep = (c: Record<string, unknown>) => ((c.context as string) || "personal") === context;
+  const dms: Conv[] = ((dmConvs ?? []) as Record<string, unknown>[]).filter(keep).map((c) => {
     const otherId = (c.user_1 === userId ? c.user_2 : c.user_1) as string | null;
     const p = otherId ? profileMap.get(otherId) : null;
     return {
@@ -86,7 +87,7 @@ export async function loadConversations(userId: string): Promise<Conv[]> {
       unread: unreadMap[c.id as string] ?? 0,
     };
   });
-  const groups: Conv[] = groupConvs.map((c) => ({
+  const groups: Conv[] = groupConvs.filter(keep).map((c) => ({
     id: c.id as string,
     is_group: true,
     other_id: null,

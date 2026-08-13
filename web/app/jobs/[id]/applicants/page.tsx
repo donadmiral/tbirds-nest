@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { FileText, Phone, Link2, CalendarClock } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { FileText, Phone, Link2, CalendarClock, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { timeAgo } from "@/lib/feed";
 
@@ -28,6 +28,7 @@ type AppRow = {
 
 export default function ApplicantsPage() {
   const { id: jobId } = useParams<{ id: string }>();
+  const router = useRouter();
   const supabase = useRef(createClient()).current;
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [jobTitle, setJobTitle] = useState("");
@@ -153,6 +154,9 @@ export default function ApplicantsPage() {
                 {a.cover_note ? <p className="mt-3 whitespace-pre-wrap text-[14px] text-white/80">{a.cover_note}</p> : null}
 
                 <div className="mt-3 flex flex-wrap gap-2">
+                  <button onClick={async () => { const { data } = await supabase.rpc("start_dm_ctx", { p_receiver_id: a.applicant_id, p_context: "jobs", p_ref_id: jobId }); if (data) router.push("/jobs/messages?c=" + data); }} className="flex items-center gap-1.5 rounded-md bg-pearl/15 px-3 py-1.5 text-[13px] font-semibold text-pearl hover:bg-pearl/25">
+                    <MessageCircle size={14} /> Message
+                  </button>
                   {a.cv_url ? (
                     <a href={a.cv_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[13px] text-white/80 hover:bg-surface-elevated">
                       <FileText size={14} /> {a.cv_name || "CV"}
