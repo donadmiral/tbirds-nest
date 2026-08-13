@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ThumbsUp, ThumbsDown, Reply } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Reply, Trash2, Copy, MoreHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { RichText } from "@/components/RichText";
@@ -23,9 +23,12 @@ type CommentRow = {
 
 export function Comments({ postId }: { postId: string }) {
   const supabase = useRef(createClient()).current;
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const [items, setItems] = useState<CommentRow[]>([]);
   const [reactions, setReactions] = useState<Record<string, number>>({});
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [menuFor, setMenuFor] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
@@ -68,17 +71,40 @@ export function Comments({ postId }: { postId: string }) {
   async function react(commentId: string, value: 1 | -1) {
     if (!uid) return;
     const prev = reactions[commentId] ?? 0;
-    const next = prev === value ? 0 : value;
-    setReactions((r) => ({ ...r, [commentId]: next }));
+    setReactions((r) => ({ ...r, [commentId]: prev === value ? 0 : value }));
     const { data, error } = await supabase.rpc("set_comment_reaction", { p_comment_id: commentId, p_value: value });
     if (error) { setReactions((r) => ({ ...r, [commentId]: prev })); return; }
     const counts = data as { likes?: number; dislikes?: number } | null;
     if (counts) {
-      const patch = (c: CommentRow): CommentRow => c.id === commentId
-        ? { ...c, likes_count: counts.likes ?? c.likes_count, dislikes_count: counts.dislikes ?? c.dislikes_count }
-        : c;
-      setItems((l) => l.map((c) => ({ ...patch(c), replies: c.replies.map(patch) })));
+      const patch = (c: CommentRow): CommentRow => {
+        const me = c.id === commentId
+          ? { ...c, likes_count: counts.likes ?? c.likes_count, dislikes_count: counts.dislikes ?? c.dislikes_count }
+          : c;
+        return { ...me, replies: me.replies.map(patch) };
+      };
+      setItems((l) => l.map(patch));
     }
+  }
+
+  async function remove(c: CommentRow) {
+    if (!uid || c.user_id !== uid) return;
+    if (!window.confirm("Delete this comment?")) return;
+    setMenuFor(null);
+    const strip = (list: CommentRow[]): CommentRow[] =>
+      list.filter((x) => x.id !== c.id).map((x) => ({ ...x, replies: strip(x.replies) }));
+    setItems((l) => strip(l));
+    const { error } = await supabase.from("post_comments").delete().eq("id", c.id);
+    if (error) { alert("Could not delete: " + error.message); load(); }
+  }
+
+  async function copyText(c: CommentRow) {
+    await navigator.clipboard.writeText(c.body);
+    setMenuFor(null);
+  }
+
+  function startReply(c: CommentRow) {
+    setReplyTo(c);
+    setTimeout(() => inputRef.current?.focus(), 50);
   }
 
   async function submit() {
@@ -91,17 +117,24 @@ export function Comments({ postId }: { postId: string }) {
     });
     setBusy(false);
     if (error) { alert("Could not comment: " + error.message); return; }
+    if (replyTo) setExpanded((s) => new Set(s).add(replyTo.parent_comment_id ?? replyTo.id));
     setDraft("");
     setReplyTo(null);
     load();
   }
 
+  function countAll(c: CommentRow): number {
+    return c.replies.reduce((n, r) => n + 1 + countAll(r), 0);
+  }
+
   function Row({ c, depth }: { c: CommentRow; depth: number }) {
     const mine = reactions[c.id] ?? 0;
     const vb = "flex items-center gap-1 text-[12px] transition-colors";
+    const total = countAll(c);
+    const open = expanded.has(c.id);
     return (
-      <div className={depth > 0 ? "ml-10 mt-3" : "mt-4"}>
-        <div className="flex gap-2.5">
+      <div className={depth > 0 ? "mt-3 " + (depth === 1 ? "ml-10" : "ml-6") : "mt-4"}>
+        <div className="group flex gap-2.5">
           <StoryAvatar userId={c.user_id} name={c.author?.full_name} avatarUrl={c.author?.avatar_url} size={depth > 0 ? 30 : 36} href={c.author?.username ? "/" + c.author.username : null} />
           <div className="min-w-0 flex-1">
             <p className="flex items-baseline gap-1.5 text-[13px]">
@@ -116,15 +149,34 @@ export function Comments({ postId }: { postId: string }) {
               <button onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-white/45 hover:text-danger")}>
                 <ThumbsDown size={13} fill={mine === -1 ? "currentColor" : "none"} /> {c.dislikes_count > 0 ? c.dislikes_count : ""}
               </button>
-              {depth === 0 ? (
-                <button onClick={() => setReplyTo(c)} className={vb + " text-white/45 hover:text-white"}>
-                  <Reply size={13} /> Reply
+              <button onClick={() => startReply(c)} className={vb + " text-white/45 hover:text-white"}>
+                <Reply size={13} /> Reply
+              </button>
+              <span className="relative">
+                <button onClick={() => setMenuFor(menuFor === c.id ? null : c.id)} className="rounded-full p-1 text-white/30 opacity-0 transition-opacity hover:bg-surface hover:text-white group-hover:opacity-100" title="More">
+                  <MoreHorizontal size={14} />
                 </button>
-              ) : null}
+                {menuFor === c.id ? (
+                  <span className="absolute left-0 top-7 z-20 w-40 overflow-hidden rounded-lg border border-white/10 bg-navy shadow-2xl">
+                    <button onClick={() => copyText(c)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/85 hover:bg-surface-elevated"><Copy size={13} /> Copy text</button>
+                    {uid === c.user_id ? (
+                      <button onClick={() => remove(c)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-danger hover:bg-surface-elevated"><Trash2 size={13} /> Delete</button>
+                    ) : null}
+                  </span>
+                ) : null}
+              </span>
             </div>
+            {depth === 0 && total > 0 ? (
+              <button onClick={() => setExpanded((s) => { const n = new Set(s); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })}
+                className="mt-2 flex items-center gap-1 text-[12px] font-semibold text-pearl hover:underline"
+              >
+                {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                {open ? "Hide replies" : "View " + total + (total === 1 ? " reply" : " replies")}
+              </button>
+            ) : null}
           </div>
         </div>
-        {c.replies.map((r) => <Row key={r.id} c={r} depth={depth + 1} />)}
+        {(depth > 0 || open) ? c.replies.map((r) => <Row key={r.id} c={r} depth={depth + 1} />) : null}
       </div>
     );
   }
@@ -141,7 +193,8 @@ export function Comments({ postId }: { postId: string }) {
           </p>
         ) : null}
         <div className="flex items-end gap-2">
-          <textarea value={draft}
+          <textarea ref={inputRef}
+            value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
             placeholder={replyTo ? "Write a reply" : "Add a comment"}
