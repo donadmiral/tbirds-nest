@@ -47,6 +47,7 @@ export default function HomeFeed() {
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingNew, setPendingNew] = useState(0);
+  const [quote, setQuote] = useState<{ id: string; author: string; text: string } | null>(null);
   const cursor = useRef<{ key: number; id: string } | null>(null);
   const uidRef = useRef<string | null>(null);
   const hiddenRef = useRef<Set<string>>(new Set());
@@ -163,6 +164,12 @@ export default function HomeFeed() {
     return () => { supabase.removeChannel(ch); };
   }, [supabase]);
 
+  useEffect(() => {
+    function onQuote(e: Event) { setQuote((e as CustomEvent).detail); }
+    window.addEventListener("pc-quote-post", onQuote);
+    return () => window.removeEventListener("pc-quote-post", onQuote);
+  }, []);
+
   function showNewPosts() {
     setPendingNew(0);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -172,7 +179,7 @@ export default function HomeFeed() {
   return (
     <div>
       <StoryRings />
-      <Composer onPosted={() => load(false)} />
+      <Composer onPosted={() => load(false)} quote={quote} onQuoteDone={() => setQuote(null)} />
       <div className="sticky top-0 z-10 -mx-1 flex border-b border-white/10 bg-ink/90 px-1 backdrop-blur">
         {MODES.map((m) => (
           <button key={m.key}

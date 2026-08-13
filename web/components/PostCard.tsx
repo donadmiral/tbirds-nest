@@ -86,6 +86,7 @@ export function PostCard({ post }: { post: FeedRow }) {
   const router = useRouter();
   const [hidden, setHidden] = useState(false);
   const [heart, setHeart] = useState(false);
+  const [repostMenu, setRepostMenu] = useState(false);
   const text = post.content ?? post.body ?? "";
   const media = post.media ?? [];
   const products = post.products ?? [];
@@ -198,10 +199,18 @@ export function PostCard({ post }: { post: FeedRow }) {
               <MessageCircle size={17} strokeWidth={1.8} />
               {count(post.comments_count)}
             </Link>
-            <button onClick={repost.flip} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (repost.on ? "text-success" : "text-white/50 hover:text-success")}>
-              <Repeat2 size={17} strokeWidth={1.8} />
-              {count(repost.n)}
-            </button>
+            <span className="relative">
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (repost.on) { repost.set(false); } else { setRepostMenu((v) => !v); } }} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (repost.on ? "text-success" : "text-white/50 hover:text-success")}>
+                <Repeat2 size={17} strokeWidth={1.8} />
+                {count(repost.n)}
+              </button>
+              {repostMenu ? (
+                <span className="absolute bottom-7 left-0 z-20 w-36 overflow-hidden rounded-lg border border-white/10 bg-navy shadow-2xl">
+                  <button onClick={(e) => { e.stopPropagation(); setRepostMenu(false); repost.set(true); }} className="block w-full px-3.5 py-2.5 text-left text-[13px] text-white/85 hover:bg-surface-elevated">Repost</button>
+                  <button onClick={(e) => { e.stopPropagation(); setRepostMenu(false); window.dispatchEvent(new CustomEvent("pc-quote-post", { detail: { id: post.post_id, author: post.author_name, text: text.slice(0, 140) } })); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="block w-full px-3.5 py-2.5 text-left text-[13px] text-white/85 hover:bg-surface-elevated">Quote</button>
+                </span>
+              ) : null}
+            </span>
             <button onClick={like.flip} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (like.on ? "text-danger" : "text-white/50 hover:text-danger")}>
               <Heart size={17} strokeWidth={1.8} fill={like.on ? "currentColor" : "none"} />
               {count(like.n)}

@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck } from "lucide-react";
+import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean };
+type MentionHit = { id: string; full_name: string | null; username: string | null; avatar_url: string | null };
+export type QuoteTarget = { id: string; author: string; text: string };
 
 const MAX_MEDIA = 10;
 const MAX_CHARS = 2000;
 const DRAFT_KEY = "pc_draft_web";
+const INNO_FIELDS = ["Agritech", "Health", "Energy", "Fintech", "Education", "Other"];
+const INNO_STAGES = ["Idea", "Prototype", "Launched"];
 
 const AUDIENCES = [
   { key: "everyone", label: "Everyone", icon: Globe },
@@ -17,18 +21,27 @@ const AUDIENCES = [
   { key: "verified", label: "Verified only", icon: BadgeCheck },
 ] as const;
 
-export function Composer({ onPosted }: { onPosted: () => void }) {
+export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => void; quote?: QuoteTarget | null; onQuoteDone?: () => void }) {
   const supabase = useRef(createClient()).current;
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [items, setItems] = useState<Media[]>([]);
   const [audience, setAudience] = useState<(typeof AUDIENCES)[number]["key"]>("everyone");
+  const [inno, setInno] = useState(false);
+  const [innoField, setInnoField] = useState<string | null>(null);
+  const [innoStage, setInnoStage] = useState<string | null>(null);
+  const [articleTitle, setArticleTitle] = useState("");
+  const [mentions, setMentions] = useState<MentionHit[]>([]);
   const [pending, setPending] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Draft restoration, the phone's pc_draft concept for the browser.
+  useEffect(() => {
+    if (quote) { setOpen(true); taRef.current?.focus(); }
+  }, [quote]);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
@@ -44,6 +57,24 @@ export function Composer({ onPosted }: { onPosted: () => void }) {
       else localStorage.removeItem(DRAFT_KEY);
     } catch { /* quota */ }
   }, [text]);
+
+  function onTextChange(v: string) {
+    const next = v.slice(0, MAX_CHARS);
+    setText(next);
+    const match = next.match(/@([\w.]*)$/);
+    if (match && match[1].length >= 1) {
+      supabase.from("profiles").select("id, full_name, username, avatar_url").ilike("username", match[1] + "%").limit(5)
+        .then(({ data }) => setMentions((data ?? []) as MentionHit[]));
+    } else {
+      setMentions([]);
+    }
+  }
+
+  function pickMention(u: MentionHit) {
+    setText((t) => t.replace(/@([\w.]*)$/, "@" + (u.username ?? "") + " "));
+    setMentions([]);
+    taRef.current?.focus();
+  }
 
   async function addFiles(list: FileList | File[] | null) {
     if (!list) return;
@@ -80,7 +111,6 @@ export function Composer({ onPosted }: { onPosted: () => void }) {
   async function post() {
     const content = text.trim();
     if (pending || (!content && items.length === 0)) return;
-    if (content.length > MAX_CHARS) { setError("Posts are limited to " + MAX_CHARS + " characters."); return; }
     setPending(true);
     setError(null);
     const { data: sess } = await supabase.auth.getSession();
@@ -94,7 +124,6 @@ export function Composer({ onPosted }: { onPosted: () => void }) {
       const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
       const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type });
       if (upErr) {
-        // One failed upload never becomes a silently incomplete post.
         setError("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message + ". Nothing was posted.");
         setPending(false);
         return;
@@ -103,11 +132,22 @@ export function Composer({ onPosted }: { onPosted: () => void }) {
       media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}) });
     }
 
-    const { data: newPost, error: insErr } = await supabase
-      .from("posts")
-      .insert({ user_id: uid, content: content || null, audience, is_exclusive: false, channel: null })
-      .select("id")
-      .single();
+    const insertData: Record<string, unknown> = {
+      user_id: uid,
+      content: content || null,
+      audience,
+      is_exclusive: false,
+      channel: inno ? "innovation" : null,
+    };
+    if (inno && innoField) insertData.innovation_field = innoField;
+    if (inno && innoStage) insertData.innovation_stage = innoStage;
+    if (inno && articleTitle.trim()) {
+      insertData.article_title = articleTitle.trim();
+      insertData.read_minutes = Math.max(1, Math.round((content.split(/\s+/).length || 0) / 200));
+    }
+    if (quote) insertData.quoted_post_id = quote.id;
+
+    const { data: newPost, error: insErr } = await supabase.from("posts").insert(insertData).select("id").single();
     if (insErr || !newPost) { setError(insErr?.message || "Could not post."); setPending(false); return; }
 
     if (media.length > 0) {
@@ -121,12 +161,18 @@ export function Composer({ onPosted }: { onPosted: () => void }) {
     setText("");
     setItems([]);
     setAudience("everyone");
+    setInno(false);
+    setInnoField(null);
+    setInnoStage(null);
+    setArticleTitle("");
     setOpen(false);
     setPending(false);
+    onQuoteDone?.();
     onPosted();
   }
 
   const remaining = MAX_CHARS - text.length;
+  const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors " + (on ? "bg-surface-elevated font-semibold text-white" : "bg-surface text-white/55 hover:text-white");
 
   if (!open) {
     return (
@@ -141,17 +187,60 @@ export function Composer({ onPosted }: { onPosted: () => void }) {
     <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
-      className={"mb-3 rounded-lg border p-4 transition-colors " + (dragOver ? "border-pearl bg-surface" : "border-white/10")}
+      className={"relative mb-3 rounded-lg border p-4 transition-colors " + (dragOver ? "border-pearl bg-surface" : "border-white/10")}
     >
-      <textarea value={text}
-        onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
+      {quote ? (
+        <div className="mb-2 rounded-lg border border-white/10 p-2.5">
+          <p className="text-[11px] uppercase tracking-wide text-white/40">Quoting {quote.author}</p>
+          <p className="mt-0.5 line-clamp-2 text-[13px] text-white/70">{quote.text}</p>
+        </div>
+      ) : null}
+      {inno ? (
+        <input value={articleTitle}
+          onChange={(e) => setArticleTitle(e.target.value)}
+          placeholder="Article title (optional)"
+          className="mb-2 w-full rounded-md bg-surface px-3 py-2 text-[15px] font-semibold text-white placeholder:text-white/30 outline-none"
+        />
+      ) : null}
+      <textarea ref={taRef}
+        value={text}
+        onChange={(e) => onTextChange(e.target.value)}
         onPaste={onPaste}
-        placeholder="What is happening?"
+        placeholder={inno ? "Share your innovation" : "What is happening?"}
         rows={3}
         autoFocus
         className="w-full resize-none bg-transparent text-[15px] text-white placeholder:text-white/30 outline-none"
       />
+      {mentions.length > 0 ? (
+        <div className="absolute z-20 w-64 overflow-hidden rounded-lg border border-white/10 bg-navy shadow-2xl">
+          {mentions.map((u) => (
+            <button key={u.id} onClick={() => pickMention(u)} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-surface-elevated">
+              {u.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-xs font-semibold text-porcelain">{(u.full_name ?? "?").charAt(0)}</span>
+              )}
+              <span className="min-w-0">
+                <span className="block truncate text-[13px] font-semibold text-white">{u.full_name}</span>
+                <span className="block truncate text-[12px] text-white/50">@{u.username}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
       {dragOver ? <p className="text-[12px] text-pearl">Drop photos or videos to attach</p> : null}
+      {inno ? (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {INNO_FIELDS.map((f) => (
+            <button key={f} onClick={() => setInnoField(innoField === f ? null : f)} className={chip(innoField === f)}>{f}</button>
+          ))}
+          <span className="mx-1 text-white/20">|</span>
+          {INNO_STAGES.map((g) => (
+            <button key={g} onClick={() => setInnoStage(innoStage === g ? null : g)} className={chip(innoStage === g)}>{g}</button>
+          ))}
+        </div>
+      ) : null}
       {items.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-2">
           {items.map((p, i) => (
@@ -176,6 +265,9 @@ export function Composer({ onPosted }: { onPosted: () => void }) {
           <ImagePlus size={19} />
         </button>
         <input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
+        <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] transition-colors " + (inno ? "bg-surface-elevated font-semibold text-pearl" : "text-white/50 hover:bg-surface hover:text-white")}>
+          <Lightbulb size={15} /> Innovation
+        </button>
         <select value={audience}
           onChange={(e) => setAudience(e.target.value as typeof audience)}
           className="rounded-md bg-surface px-2 py-1.5 text-[13px] text-white/80 outline-none"
@@ -189,7 +281,7 @@ export function Composer({ onPosted }: { onPosted: () => void }) {
           <span className={"text-[12px] font-semibold " + (remaining <= 20 ? "text-danger" : "text-white/50")}>{remaining} left</span>
         ) : null}
         <div className="ml-auto flex gap-2">
-          <button onClick={() => { setOpen(false); setError(null); }} className="rounded-md bg-surface px-4 py-2 text-[13px] text-white">Cancel</button>
+          <button onClick={() => { setOpen(false); setError(null); onQuoteDone?.(); }} className="rounded-md bg-surface px-4 py-2 text-[13px] text-white">Cancel</button>
           <button onClick={post} disabled={pending || (!text.trim() && items.length === 0)} className="rounded-md bg-pearl px-5 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
             {pending ? "Posting" : "Post"}
           </button>
