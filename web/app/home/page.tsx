@@ -4,11 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
+import { StoryRings } from "@/components/StoryRings";
 
 const PAGE_SIZE = 20;
 const MODES = [
   { key: "for_you", label: "For You" },
-  { key: "following", label: "Following" },
+  { key: "latest", label: "Latest" },
+  { key: "innovation", label: "Innovation" },
+  { key: "trending", label: "Trending" },
 ] as const;
 
 function Skeleton() {
@@ -73,22 +76,17 @@ export default function HomeFeed() {
 
   return (
     <div>
+      <StoryRings />
       <div className="sticky top-0 z-10 -mx-1 flex border-b border-white/10 bg-ink/90 px-1 backdrop-blur">
         {MODES.map((m) => (
-          <button
-            key={m.key}
+          <button key={m.key}
             onClick={() => setMode(m.key)}
-            className={`flex-1 py-4 text-[15px] transition-colors ${
-              mode === m.key
-                ? "font-semibold text-white"
-                : "text-white/50 hover:text-white/80"
-            }`}
+            className={
+              "flex-1 py-4 text-[15px] transition-colors " +
+              (mode === m.key ? "font-semibold text-white" : "text-white/50 hover:text-white/80")
+            }
           >
-            <span
-              className={`border-b-2 pb-3 ${
-                mode === m.key ? "border-pearl" : "border-transparent"
-              }`}
-            >
+            <span className={"border-b-2 pb-3 " + (mode === m.key ? "border-pearl" : "border-transparent")}>
               {m.label}
             </span>
           </button>
@@ -106,21 +104,14 @@ export default function HomeFeed() {
         <div className="flex flex-col items-center gap-3 pt-24 text-center">
           <p className="text-sm text-white/70">The feed could not load.</p>
           <p className="text-xs text-white/40">{error}</p>
-          <button
-            onClick={() => load(false)}
-            className="rounded-md bg-surface px-4 py-2 text-sm text-white hover:bg-surface-elevated"
-          >
+          <button onClick={() => load(false)} className="rounded-md bg-surface px-4 py-2 text-sm text-white hover:bg-surface-elevated">
             Try again
           </button>
         </div>
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center gap-2 pt-24 text-center">
           <p className="text-[15px] text-white/70">Nothing here yet.</p>
-          <p className="text-sm text-white/40">
-            {mode === "following"
-              ? "Posts from people you follow will appear here."
-              : "New posts will appear here."}
-          </p>
+          <p className="text-sm text-white/40">New posts will appear here.</p>
         </div>
       ) : (
         <div>
@@ -129,8 +120,7 @@ export default function HomeFeed() {
           ))}
           {hasMore ? (
             <div className="flex justify-center py-6">
-              <button
-                onClick={() => load(true)}
+              <button onClick={() => load(true)}
                 disabled={loadingMore}
                 className="rounded-md bg-surface px-5 py-2.5 text-sm text-white transition-colors hover:bg-surface-elevated disabled:opacity-40"
               >
@@ -138,9 +128,7 @@ export default function HomeFeed() {
               </button>
             </div>
           ) : (
-            <p className="py-8 text-center text-xs text-white/30">
-              You are all caught up.
-            </p>
+            <p className="py-8 text-center text-xs text-white/30">You are all caught up.</p>
           )}
         </div>
       )}
