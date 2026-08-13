@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
+import { Composer } from "@/components/Composer";
 
 const PAGE_SIZE = 20;
 const MODES = [
@@ -77,6 +78,7 @@ export default function HomeFeed() {
   return (
     <div>
       <StoryRings />
+      <Composer onPosted={() => load(false)} />
       <div className="sticky top-0 z-10 -mx-1 flex border-b border-white/10 bg-ink/90 px-1 backdrop-blur">
         {MODES.map((m) => (
           <button key={m.key}
