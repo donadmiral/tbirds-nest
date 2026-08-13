@@ -12,6 +12,7 @@ export function WebCallLayer() {
   const frameRef = useRef<{ destroy: () => Promise<void> } | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
+  const tokenRef = useRef<string | null>(null);
   const [activeCall, setActiveCall] = useState<CallSession | null>(null);
   const [incoming, setIncoming] = useState<Incoming | null>(null);
   const [connecting, setConnecting] = useState(false);
@@ -20,8 +21,30 @@ export function WebCallLayer() {
   activeCallRef.current = activeCall;
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
+    supabase.auth.getSession().then(({ data }) => {
+      setUid(data.session?.user.id ?? null);
+      tokenRef.current = data.session?.access_token ?? null;
+    });
   }, [supabase]);
+
+  // A closed tab must not leave a zombie joined row: keepalive leave on pagehide.
+  useEffect(() => {
+    function onHide() {
+      const c = activeCallRef.current;
+      const token = tokenRef.current;
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!c || !c.is_group_call || !token || !url || !key) return;
+      fetch(url + "/rest/v1/rpc/leave_group_call", {
+        method: "POST",
+        keepalive: true,
+        headers: { "Content-Type": "application/json", apikey: key, Authorization: "Bearer " + token },
+        body: JSON.stringify({ p_session_id: c.id }),
+      }).catch(() => {});
+    }
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, []);
 
   const teardownFrame = useCallback(async () => {
     if (frameRef.current) {
