@@ -11,6 +11,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { PostMenu } from "@/components/PostMenu";
 import { RichText } from "@/components/RichText";
 import { MediaGallery } from "@/components/MediaGallery";
+import { LikesModal } from "@/components/LikesModal";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
 import { toggleLike, toggleBookmark, toggleRepost } from "@/lib/interactions";
@@ -87,6 +88,7 @@ export function PostCard({ post }: { post: FeedRow }) {
   const [hidden, setHidden] = useState(false);
   const [heart, setHeart] = useState(false);
   const [repostMenu, setRepostMenu] = useState(false);
+  const [likesOpen, setLikesOpen] = useState(false);
   const text = post.content ?? post.body ?? "";
   const media = post.media ?? [];
   const products = post.products ?? [];
@@ -109,6 +111,7 @@ export function PostCard({ post }: { post: FeedRow }) {
 
   return (
     <article className="relative border-b border-white/10 px-1 py-5">
+      {likesOpen ? <LikesModal postId={post.post_id} onClose={() => setLikesOpen(false)} /> : null}
       {heart ? (
         <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
           <Heart size={84} className="animate-ping text-danger" fill="currentColor" />
@@ -211,10 +214,16 @@ export function PostCard({ post }: { post: FeedRow }) {
                 </span>
               ) : null}
             </span>
-            <button onClick={like.flip} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (like.on ? "text-danger" : "text-white/50 hover:text-danger")}>
-              <Heart size={17} strokeWidth={1.8} fill={like.on ? "currentColor" : "none"} />
-              {count(like.n)}
-            </button>
+            <span className="flex items-center gap-1">
+              <button onClick={like.flip} title={like.on ? "Unlike" : "Like"} className={"transition-colors " + (like.on ? "text-danger" : "text-white/50 hover:text-danger")}>
+                <Heart size={17} strokeWidth={1.8} fill={like.on ? "currentColor" : "none"} />
+              </button>
+              {like.n > 0 ? (
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLikesOpen(true); }} title="See who liked this" className={"text-[13px] transition-colors hover:underline " + (like.on ? "text-danger" : "text-white/50")}>
+                  {count(like.n)}
+                </button>
+              ) : null}
+            </span>
             <button onClick={mark.flip} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (mark.on ? "text-pearl" : "text-white/50 hover:text-pearl")}>
               <Bookmark size={17} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
               {count(mark.n)}

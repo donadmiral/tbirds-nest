@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { getCatchupFeed, type CatchupUser } from "@/lib/stories";
 import { StoryViewer } from "@/components/StoryViewer";
 
-export function StoryRings() {
+export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   const [users, setUsers] = useState<CatchupUser[]>([]);
   const [openAt, setOpenAt] = useState<number | null>(null);
 
   useEffect(() => {
-    getCatchupFeed(30).then(setUsers);
-  }, []);
+    getCatchupFeed(30, mode).then(setUsers);
+  }, [mode]);
 
   if (users.length === 0) return null;
 
@@ -38,7 +38,7 @@ export function StoryRings() {
         ))}
       </div>
       {openAt !== null ? (
-        <StoryViewer users={users} startIndex={openAt} onClose={() => { setOpenAt(null); getCatchupFeed(30).then(setUsers); }} />
+        <StoryViewer users={users} startIndex={openAt} onClose={() => { setOpenAt(null); getCatchupFeed(30, mode).then(setUsers); }} />
       ) : null}
     </>
   );

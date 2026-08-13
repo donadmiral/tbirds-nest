@@ -7,6 +7,8 @@ import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
+import { DiscoveryRail } from "@/components/DiscoveryRail";
 
 const PAGE_SIZE = 20;
 const MODES = [
@@ -177,7 +179,9 @@ export default function HomeFeed() {
   }
 
   return (
-    <div>
+    <div className="flex items-start gap-8">
+    <div className="min-w-0 flex-1">
+      <AnnouncementBanner />
       <StoryRings />
       <Composer onPosted={() => load(false)} quote={quote} onQuoteDone={() => setQuote(null)} />
       <div className="sticky top-0 z-10 -mx-1 flex border-b border-white/10 bg-ink/90 px-1 backdrop-blur">
@@ -196,6 +200,7 @@ export default function HomeFeed() {
         ))}
       </div>
 
+      {mode === "trending" ? <div className="pt-3"><StoryRings mode="trending" /></div> : null}
       {pendingNew > 0 && !loading ? (
         <div className="sticky top-16 z-10 flex justify-center py-2">
           <button onClick={showNewPosts} className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-1.5 text-[13px] font-semibold text-ink shadow-lg transition-opacity hover:opacity-90">
@@ -236,6 +241,10 @@ export default function HomeFeed() {
           {!hasMore ? <p className="py-8 text-center text-xs text-white/30">You are all caught up.</p> : null}
         </div>
       )}
+    </div>
+    <div className="hidden w-80 shrink-0 xl:block">
+      <DiscoveryRail />
+    </div>
     </div>
   );
 }

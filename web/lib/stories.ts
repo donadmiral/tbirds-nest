@@ -29,9 +29,9 @@ export type StoryRow = {
   dual_front_url?: string | null;
 };
 
-export async function getCatchupFeed(limit = 30): Promise<CatchupUser[]> {
+export async function getCatchupFeed(limit = 30, mode: string = "all"): Promise<CatchupUser[]> {
   const supabase = createClient();
-  const { data, error } = await supabase.rpc("get_catchup_feed", { p_mode: "all", p_limit: limit });
+  const { data, error } = await supabase.rpc("get_catchup_feed", { p_mode: mode, p_limit: limit });
   if (error) return [];
   return (data ?? []) as CatchupUser[];
 }
