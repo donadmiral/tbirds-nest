@@ -10,6 +10,7 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { PostMenu } from "@/components/PostMenu";
 import { RichText } from "@/components/RichText";
+import { MediaGallery } from "@/components/MediaGallery";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
 import { toggleLike, toggleBookmark, toggleRepost } from "@/lib/interactions";
@@ -148,16 +149,11 @@ export function PostCard({ post }: { post: FeedRow }) {
           ) : null}
 
           {media.length > 0 ? (
-            <div onDoubleClick={doubleLike} className={"mt-3 grid gap-1 overflow-hidden rounded-lg " + (media.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
-              {media.slice(0, 4).map((m) =>
-                m.media_type === "video" ? (
-                  <video key={m.id} src={m.url} controls preload="metadata" className="max-h-[480px] w-full bg-black object-contain" />
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={m.id} src={m.url} alt="" loading="lazy" className="max-h-[480px] w-full bg-surface object-cover" />
-                )
-              )}
-            </div>
+            <MediaGallery media={media}
+              postId={post.post_id}
+              viewsCount={(post as unknown as { views_count?: number | null }).views_count ?? null}
+              onDoubleClick={doubleLike}
+            />
           ) : null}
 
           {quotedId ? <QuoteCard quotedId={quotedId} /> : null}
