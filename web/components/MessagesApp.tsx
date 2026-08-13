@@ -6,6 +6,7 @@ import { Search, Send, FileText, Tag, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
 import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
+import { StoryAvatar } from "@/components/StoryAvatar";
 import { timeAgo } from "@/lib/feed";
 
 type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
@@ -252,7 +253,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       onClick={() => openConv(c)}
       className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
     >
-      <Avatar conv={c} />
+      <StoryAvatar userId={c.other_id} name={c.title} avatarUrl={c.avatar} size={44} />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="truncate text-[14px] font-semibold text-white">{c.title}</span>
@@ -300,7 +301,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             <header className="border-b border-white/10 pb-3">
               <div className="flex items-center gap-3">
                 <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-white/60 hover:bg-surface hover:text-white" title="Back">←</button>
-                <Avatar conv={active} size={36} />
+                <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={36} />
                 <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
               </div>
               {refCard}
@@ -351,7 +352,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           <>
             <header className="border-b border-white/10 px-5 py-3">
               <div className="flex items-center gap-3">
-                <Avatar conv={active} size={38} />
+                <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={38} />
                 <div className="min-w-0">
                   <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
                   {active.username ? <p className="text-[12px] text-white/40">@{active.username}</p> : null}

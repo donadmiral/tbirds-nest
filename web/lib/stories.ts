@@ -47,3 +47,16 @@ export async function markStoryViewed(storyId: string): Promise<void> {
   const supabase = createClient();
   await supabase.rpc("mark_story_viewed", { p_story_id: storyId });
 }
+// Shared ring source: one cached catchup call powers every ringed avatar.
+let ringCache: { users: CatchupUser[]; at: number } | null = null;
+
+export async function getRingUsers(force = false): Promise<CatchupUser[]> {
+  if (!force && ringCache && Date.now() - ringCache.at < 60000) return ringCache.users;
+  const users = await getCatchupFeed(50);
+  ringCache = { users, at: Date.now() };
+  return users;
+}
+
+export function invalidateRings(): void {
+  ringCache = null;
+}

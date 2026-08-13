@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BadgeCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProfilePosts } from "@/components/ProfilePosts";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { StoryAvatar } from "@/components/StoryAvatar";
 
 type Params = { params: Promise<{ username: string }> };
 
@@ -22,8 +23,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const p = await loadProfile(username);
   if (!p) return { title: "Platinum Circles" };
   return {
-    title: `${p.full_name ?? p.username} (@${p.username}) on Platinum Circles`,
-    description: p.bio ?? `See ${p.full_name ?? p.username} on Platinum Circles.`,
+    title: (p.full_name ?? p.username) + " (@" + p.username + ") on Platinum Circles",
+    description: p.bio ?? "See " + (p.full_name ?? p.username) + " on Platinum Circles.",
   };
 }
 
@@ -54,18 +55,11 @@ export default async function ProfilePage({ params }: Params) {
         ← Platinum Circles
       </Link>
       <header className="flex items-start gap-5 px-1 pb-6">
-        {p.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.avatar_url} alt="" className="h-20 w-20 rounded-full object-cover" />
-        ) : (
-          <span className="flex h-20 w-20 items-center justify-center rounded-full bg-navy text-2xl font-semibold text-porcelain">
-            {(p.full_name ?? "?").charAt(0).toUpperCase()}
-          </span>
-        )}
+        <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={80} />
         <div className="min-w-0 flex-1 pt-1">
           <div className="flex items-center gap-1.5">
             <h1 className="truncate text-xl font-semibold text-white">{p.full_name}</h1>
-            {p.is_verified ? <BadgeCheck size={18} className="shrink-0 text-pearl" /> : null}
+            {p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={17} /> : null}
           </div>
           <p className="text-sm text-white/50">@{p.username}</p>
           {p.bio ? <p className="mt-2 whitespace-pre-wrap text-[14px] text-white/80">{p.bio}</p> : null}

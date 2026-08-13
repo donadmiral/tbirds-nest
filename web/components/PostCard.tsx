@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Heart, MessageCircle, Repeat2, Bookmark } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { StoryAvatar } from "@/components/StoryAvatar";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
 import { toggleLike, toggleBookmark, toggleRepost } from "@/lib/interactions";
@@ -51,16 +52,12 @@ export function PostCard({ post }: { post: FeedRow }) {
   return (
     <article className="border-b border-white/10 px-1 py-5">
       <div className="flex gap-3">
-        <Link href={profileHref} className="shrink-0">
-          {post.author_avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={post.author_avatar} alt="" className="h-11 w-11 rounded-full object-cover" />
-          ) : (
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-porcelain">
-              {(post.author_name ?? "?").charAt(0).toUpperCase()}
-            </span>
-          )}
-        </Link>
+        <StoryAvatar userId={post.author_id}
+          name={post.author_name}
+          avatarUrl={post.author_avatar}
+          size={44}
+          href={profileHref}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
@@ -87,7 +84,7 @@ export function PostCard({ post }: { post: FeedRow }) {
           ) : null}
 
           {media.length > 0 ? (
-            <div className={`mt-3 grid gap-1 overflow-hidden rounded-lg ${media.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+            <div className={"mt-3 grid gap-1 overflow-hidden rounded-lg " + (media.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
               {media.slice(0, 4).map((m) =>
                 m.media_type === "video" ? (
                   <video key={m.id} src={m.url} controls preload="metadata" className="max-h-[480px] w-full bg-black object-contain" />
@@ -139,15 +136,15 @@ export function PostCard({ post }: { post: FeedRow }) {
               <MessageCircle size={17} strokeWidth={1.8} />
               {count(post.comments_count)}
             </Link>
-            <button onClick={repost.flip} className={`flex items-center gap-1.5 text-[13px] transition-colors ${repost.on ? "text-success" : "text-white/50 hover:text-success"}`}>
+            <button onClick={repost.flip} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (repost.on ? "text-success" : "text-white/50 hover:text-success")}>
               <Repeat2 size={17} strokeWidth={1.8} />
               {count(repost.n)}
             </button>
-            <button onClick={like.flip} className={`flex items-center gap-1.5 text-[13px] transition-colors ${like.on ? "text-danger" : "text-white/50 hover:text-danger"}`}>
+            <button onClick={like.flip} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (like.on ? "text-danger" : "text-white/50 hover:text-danger")}>
               <Heart size={17} strokeWidth={1.8} fill={like.on ? "currentColor" : "none"} />
               {count(like.n)}
             </button>
-            <button onClick={mark.flip} className={`flex items-center gap-1.5 text-[13px] transition-colors ${mark.on ? "text-pearl" : "text-white/50 hover:text-pearl"}`}>
+            <button onClick={mark.flip} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (mark.on ? "text-pearl" : "text-white/50 hover:text-pearl")}>
               <Bookmark size={17} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
               {count(mark.n)}
             </button>
