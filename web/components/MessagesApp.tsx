@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, Send, FileText, Tag, Wallet } from "lucide-react";
+import { Search, Send, FileText, Tag, Wallet, Paperclip } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
 import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
@@ -12,19 +12,9 @@ import { timeAgo } from "@/lib/feed";
 type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
 type MiniListing = { id: string; title: string; price: number; currency: string; images: string[]; status: string };
 
-function Avatar({ conv, size = 44 }: { conv: Conv; size?: number }) {
-  return conv.avatar ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={conv.avatar} alt="" style={{ width: size, height: size }} className="shrink-0 rounded-full object-cover" />
-  ) : (
-    <span style={{ width: size, height: size }} className="flex shrink-0 items-center justify-center rounded-full bg-navy text-sm font-semibold text-porcelain">
-      {conv.title.charAt(0).toUpperCase()}
-    </span>
-  );
-}
-
 export function MessagesApp({ context = "personal", heading = "Messages", compact = false }: { context?: string; heading?: string; compact?: boolean }) {
   const supabase = useRef(createClient()).current;
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const [convs, setConvs] = useState<Conv[]>([]);
   const [loadingConvs, setLoadingConvs] = useState(true);
@@ -37,8 +27,11 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [refListing, setRefListing] = useState<MiniListing | null>(null);
   const [countering, setCountering] = useState<string | null>(null);
   const [counterAmt, setCounterAmt] = useState("");
+  const [otherTyping, setOtherTyping] = useState(false);
+  const [sendingFile, setSendingFile] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<Conv | null>(null);
+  const typingSentAt = useRef(0);
   activeRef.current = active;
 
   const hydrateOffers = useCallback(async (rows: Msg[]) => {
@@ -62,6 +55,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     setLoadingMsgs(true);
     setMsgs([]);
     setRefListing(null);
+    setOtherTyping(false);
     const { data } = await supabase
       .from("messages")
       .select("*")
@@ -122,31 +116,96 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         setMsgs((l) => l.map((m) => (m.id === upd.id ? { ...m, ...upd, media_url: upd.media_url ?? m.media_url } : m)));
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+
+    const fetchTyping = async () => {
+      const { data } = await supabase.from("conversation_typing").select("*").eq("conversation_id", active.id);
+      const fresh = ((data ?? []) as { user_id: string; is_typing: boolean; updated_at: string }[])
+        .filter((r) => r.user_id !== uid && r.is_typing && Date.now() - new Date(r.updated_at).getTime() < 7000);
+      setOtherTyping(fresh.length > 0);
+    };
+    const typeCh = supabase
+      .channel("web_typing_" + active.id)
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversation_typing", filter: "conversation_id=eq." + active.id }, fetchTyping)
+      .subscribe();
+    const typePoll = setInterval(fetchTyping, 3000);
+
+    return () => {
+      supabase.removeChannel(ch);
+      supabase.removeChannel(typeCh);
+      clearInterval(typePoll);
+    };
   }, [supabase, active, uid, hydrateOffers]);
 
-  async function send() {
-    const text = draft.trim();
-    if (!text || !active || !uid) return;
-    setDraft("");
+  const setTyping = useCallback(async (isTyping: boolean) => {
+    if (!active || !uid) return;
+    try {
+      await supabase.from("conversation_typing").upsert(
+        { conversation_id: active.id, user_id: uid, is_typing: isTyping, updated_at: new Date().toISOString() },
+        { onConflict: "conversation_id,user_id" }
+      );
+    } catch { /* non-fatal */ }
+  }, [supabase, active, uid]);
+
+  function onDraftChange(v: string) {
+    setDraft(v);
+    const now = Date.now();
+    if (now - typingSentAt.current > 2000) {
+      typingSentAt.current = now;
+      setTyping(true);
+    }
+  }
+
+  async function insertMessage(text: string | null, mediaUrl: string | null, mediaType: string | null) {
+    if (!active || !uid) return false;
     const temp: Msg = {
       id: "temp-" + Date.now(), conversation_id: active.id, sender_id: uid,
-      receiver_id: active.other_id, text, media_url: null, media_type: null,
+      receiver_id: active.other_id, text, media_url: mediaUrl, media_type: mediaType,
       reply_to_id: null, created_at: new Date().toISOString(),
     };
     setMsgs((l) => [...l, temp]);
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 30);
     const { data, error } = await supabase.from("messages").insert([{
       conversation_id: active.id, text, sender_id: uid,
-      receiver_id: active.other_id, media_url: null, media_type: null, reply_to_id: null,
+      receiver_id: active.other_id, media_url: mediaUrl, media_type: mediaType, reply_to_id: null,
     }]).select().single();
     if (error) {
       setMsgs((l) => l.filter((m) => m.id !== temp.id));
-      setDraft(text);
-      return;
+      return false;
     }
-    setMsgs((l) => l.map((m) => (m.id === temp.id ? (data as Msg) : m)));
-    setConvs((l) => l.map((c) => (c.id === active.id ? { ...c, last_message: text, last_message_time: data.created_at } : c)));
+    let saved = data as Msg;
+    if (isChatMediaUrl(saved.media_url)) saved = { ...saved, media_url: mediaUrl };
+    setMsgs((l) => l.map((m) => (m.id === temp.id ? saved : m)));
+    setConvs((l) => l.map((c) => (c.id === active.id ? { ...c, last_message: text || "Attachment", last_message_time: data.created_at } : c)));
+    return true;
+  }
+
+  async function send() {
+    const text = draft.trim();
+    if (!text || !active || !uid) return;
+    setDraft("");
+    setTyping(false);
+    const ok = await insertMessage(text, null, null);
+    if (!ok) setDraft(text);
+  }
+
+  async function attach(list: FileList | null) {
+    if (!list || !active || !uid || sendingFile) return;
+    const f = list[0];
+    if (!f) return;
+    setSendingFile(true);
+    const isImage = f.type.startsWith("image/");
+    const isVideo = f.type.startsWith("video/");
+    const bucket = isImage || isVideo ? "chat-media" : "chat-files";
+    const safeName = f.name.replace(/[^a-zA-Z0-9/_.\-]/g, "_");
+    const path = uid + "/" + Date.now() + "_" + safeName;
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, f, { contentType: f.type || "application/octet-stream" });
+    if (upErr) { alert("Upload failed: " + upErr.message); setSendingFile(false); return; }
+    const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+    if (isImage) await insertMessage(null, pub.publicUrl, "image");
+    else if (isVideo) await insertMessage(null, pub.publicUrl, "video");
+    else await insertMessage("📄 " + f.name, pub.publicUrl, "document");
+    setSendingFile(false);
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   async function respondOffer(offerId: string, action: string, counterAmount?: number) {
@@ -210,7 +269,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             <span className="flex items-center gap-1.5 text-[13px] text-white/70"><Wallet size={14} /> Payment · open the Platinum Circles app</span>
           ) : null}
           {m.media_type === "offer" && m.media_url ? <OfferCard m={m} /> : null}
-          {m.media_type === "image" && m.media_url ? (
+          {(m.media_type === "image" || m.media_type === "gif") && m.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={m.media_url} alt="" className="mb-1 max-h-72 rounded-lg object-contain" />
           ) : null}
@@ -220,12 +279,12 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           {m.media_type === "audio" && m.media_url ? (
             <audio src={m.media_url} controls className="mb-1" />
           ) : null}
-          {m.media_type === "file" && m.media_url ? (
+          {m.media_type === "document" && m.media_url ? (
             <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="mb-1 flex items-center gap-1.5 text-[13px] underline">
-              <FileText size={14} /> Document
+              <FileText size={14} /> {m.text?.replace("📄 ", "") || "Document"}
             </a>
           ) : null}
-          {m.text ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
+          {m.text && m.media_type !== "document" ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
           <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/50" : "text-white/40")}>{timeAgo(m.created_at)}</p>
         </div>
       </div>
@@ -248,6 +307,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     </Link>
   ) : null;
 
+  const typingLine = otherTyping ? <p className="text-[12px] text-pearl">typing…</p> : null;
+
   const convButton = (c: Conv) => (
     <button key={c.id}
       onClick={() => openConv(c)}
@@ -269,10 +330,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   const composer = (
     <div className="flex items-end gap-2">
+      <button onClick={() => fileRef.current?.click()} disabled={sendingFile} title="Attach" className="rounded-md p-2.5 text-white/50 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-40">
+        <Paperclip size={18} />
+      </button>
+      <input ref={fileRef} type="file" hidden onChange={(e) => attach(e.target.files)} />
       <textarea value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => onDraftChange(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-        placeholder="Message"
+        onBlur={() => setTyping(false)}
+        placeholder={sendingFile ? "Sending attachment" : "Message"}
         rows={1}
         className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
       />
@@ -302,7 +368,10 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               <div className="flex items-center gap-3">
                 <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-white/60 hover:bg-surface hover:text-white" title="Back">←</button>
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={36} />
-                <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
+                  {typingLine}
+                </div>
               </div>
               {refCard}
             </header>
@@ -355,7 +424,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={38} />
                 <div className="min-w-0">
                   <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
-                  {active.username ? <p className="text-[12px] text-white/40">@{active.username}</p> : null}
+                  {typingLine ?? (active.username ? <p className="text-[12px] text-white/40">@{active.username}</p> : null)}
                 </div>
               </div>
               {refCard}
