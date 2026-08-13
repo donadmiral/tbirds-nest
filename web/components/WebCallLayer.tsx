@@ -111,6 +111,22 @@ export function WebCallLayer() {
     return () => window.removeEventListener("pc-start-call", onStart);
   }, [joinRoom]);
 
+  // Presence heartbeat: while in a group call, stamp our participant row
+  // so the sweeper knows we are really here; silence for 120s means gone.
+  useEffect(() => {
+    if (!activeCall || !activeCall.is_group_call || !uid) return;
+    const stamp = () => {
+      supabase.from("call_participants")
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq("call_session_id", activeCall.id)
+        .eq("user_id", uid)
+        .then(() => {}, () => {});
+    };
+    stamp();
+    const t = setInterval(stamp, 30000);
+    return () => clearInterval(t);
+  }, [supabase, activeCall, uid]);
+
   useEffect(() => {
     if (!activeCall) return;
     const ch = supabase
