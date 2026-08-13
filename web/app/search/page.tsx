@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, Briefcase, ShoppingBag } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Briefcase, ShoppingBag, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
@@ -17,6 +18,7 @@ type Topic = { topic: string; post_count: number };
 
 export default function SearchPage() {
   const supabase = useRef(createClient()).current;
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [people, setPeople] = useState<Person[]>([]);
   const [posts, setPosts] = useState<PostHit[]>([]);
@@ -68,7 +70,9 @@ export default function SearchPage() {
 
   return (
     <div className="px-1">
-      <div className="relative">
+      <div className="flex items-center gap-2">
+        <button onClick={() => router.back()} title="Back" className="shrink-0 rounded-full p-2 text-white/60 transition-colors hover:bg-surface hover:text-white"><ArrowLeft size={19} /></button>
+      <div className="relative flex-1">
         <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
         <input value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -76,6 +80,7 @@ export default function SearchPage() {
           autoFocus
           className="w-full rounded-lg bg-surface py-3 pl-11 pr-4 text-[15px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
         />
+      </div>
       </div>
 
       {q.trim().length < 2 ? (
