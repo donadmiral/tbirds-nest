@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ProfilePosts } from "@/components/ProfilePosts";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
+import { BusinessProfile } from "@/components/BusinessProfile";
 
 type Params = { params: Promise<{ username: string }> };
 
@@ -11,7 +12,7 @@ async function loadProfile(username: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, username, avatar_url, bio, is_verified, verified_tier")
+    .select("id, full_name, username, avatar_url, bio, is_verified, verified_tier, account_type")
     .ilike("username", username)
     .limit(1)
     .maybeSingle();
@@ -44,10 +45,20 @@ export default async function ProfilePage({ params }: Params) {
     );
   }
 
+  const isBusiness = p.account_type === "business";
   const [followers, following] = await Promise.all([
     supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", p.id),
     supabase.from("follows").select("following_id", { count: "exact", head: true }).eq("follower_id", p.id),
   ]);
+
+  const posts = (
+    <ProfilePosts profileId={p.id}
+      authorName={p.full_name}
+      authorUsername={p.username}
+      authorAvatar={p.avatar_url}
+      authorVerified={!!p.is_verified}
+    />
+  );
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[640px] px-4 py-6">
@@ -64,19 +75,18 @@ export default async function ProfilePage({ params }: Params) {
           <p className="text-sm text-white/50">@{p.username}</p>
           {p.bio ? <p className="mt-2 whitespace-pre-wrap text-[14px] text-white/80">{p.bio}</p> : null}
           <p className="mt-3 flex gap-4 text-[13px] text-white/50">
-            <span><span className="font-semibold text-white">{following.count ?? 0}</span> Following</span>
+            {!isBusiness ? (
+              <span><span className="font-semibold text-white">{following.count ?? 0}</span> Following</span>
+            ) : null}
             <span><span className="font-semibold text-white">{followers.count ?? 0}</span> Followers</span>
           </p>
         </div>
       </header>
-      <div className="border-t border-white/10">
-        <ProfilePosts profileId={p.id}
-          authorName={p.full_name}
-          authorUsername={p.username}
-          authorAvatar={p.avatar_url}
-          authorVerified={!!p.is_verified}
-        />
-      </div>
+      {isBusiness ? (
+        <BusinessProfile profileId={p.id} postsSlot={posts} />
+      ) : (
+        <div className="border-t border-white/10">{posts}</div>
+      )}
     </main>
   );
 }
