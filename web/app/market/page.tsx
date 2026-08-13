@@ -26,9 +26,14 @@ export default function MarketPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<MarketFilters>(EMPTY);
   const [draft, setDraft] = useState<MarketFilters>(EMPTY);
+  const [uid, setUid] = useState<string | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
+    const { data: s0 } = await supabase.auth.getSession();
+    setUid(s0.session?.user.id ?? null);
+    setSavedIds(await getSavedListingIds());
     if (tab === "selling") {
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user.id;
@@ -151,7 +156,7 @@ export default function MarketPage() {
       ) : (
         <div className="grid grid-cols-2 gap-3 px-1 pt-2 sm:grid-cols-3">
           {listings.map((l) => (
-            <ListingCard key={l.id} l={l} />
+            <ListingCard key={l.id} l={l} saved={savedIds.has(l.id)} viewerId={uid} />
           ))}
         </div>
       )}

@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { Bookmark, Share2, MessageCircle, Check, Tag } from "lucide-react";
+import { Bookmark, Share2, MessageCircle, Check, Tag, CircleCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getListing, getSavedListingIds, toggleSaved, priceLabel, type Listing } from "@/lib/market";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { SellerTrust } from "@/components/SellerTrust";
+import { SellerReviews } from "@/components/SellerReviews";
 import { timeAgo } from "@/lib/feed";
 
 export default function ListingPage() {
@@ -69,6 +71,16 @@ export default function ListingPage() {
     await messageSeller();
   }
 
+  async function markSold() {
+    if (!l || !uid || busy) return;
+    if (!window.confirm("Mark as sold? Buyers will no longer see this listing.")) return;
+    setBusy(true);
+    const { error } = await supabase.from("marketplace_listings").update({ status: "sold" }).eq("id", l.id).eq("seller_id", uid);
+    setBusy(false);
+    if (error) { alert("Could not update: " + error.message); return; }
+    setL({ ...l, status: "sold" });
+  }
+
   if (l === undefined) return <p className="py-16 text-center text-sm text-white/40">Loading</p>;
   if (l === null) {
     return (
@@ -119,7 +131,24 @@ export default function ListingPage() {
 
       <p className="mt-2 text-[13px] text-white/60">Collection · Meet the seller{l.delivery_available ? " · Delivery" + (l.delivery_fee != null && Number(l.delivery_fee) > 0 ? " " + priceLabel({ ...l, price: Number(l.delivery_fee) }) : " available") : ""}</p>
       {l.delivery_available && l.delivery_note ? <p className="mt-0.5 text-[12px] text-white/40">{l.delivery_note}</p> : null}
-      {!isOwner ? (
+
+      {isOwner ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {!sold ? (
+            <button onClick={markSold} disabled={busy} className="flex items-center gap-1.5 rounded-md bg-danger px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40">
+              <CircleCheck size={16} /> Mark as sold
+            </button>
+          ) : (
+            <span className="rounded-md bg-surface px-4 py-2 text-[13px] text-white/60">This listing is marked {l.status}.</span>
+          )}
+          <button onClick={onSave} className={btn + (saved ? " text-pearl" : "")}>
+            <Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}
+          </button>
+          <button onClick={onShare} className={btn}>
+            {copied ? <Check size={16} className="text-success" /> : <Share2 size={16} />} Share
+          </button>
+        </div>
+      ) : (
         <div className="mt-4 flex flex-wrap gap-2">
           {!sold ? (
             <>
@@ -138,8 +167,6 @@ export default function ListingPage() {
             {copied ? <Check size={16} className="text-success" /> : <Share2 size={16} />} Share
           </button>
         </div>
-      ) : (
-        <p className="mt-4 rounded-md bg-surface px-4 py-3 text-[13px] text-white/60">This is your listing. Manage it from the app for now.</p>
       )}
 
       {offerOpen && !sold && !isOwner ? (
@@ -177,10 +204,12 @@ export default function ListingPage() {
               {l.seller.full_name}
               {l.seller.is_verified ? <VerifiedBadge size={14} /> : null}
             </span>
-            <span className="block text-[13px] text-white/50">Seller · @{l.seller.username}</span>
+            <SellerTrust sellerId={l.seller_id} />
           </span>
         </Link>
       ) : null}
+
+      <SellerReviews sellerId={l.seller_id} listingId={l.id} viewerId={uid} />
     </div>
   );
 }
