@@ -81,6 +81,27 @@ export default function ListingPage() {
     setL({ ...l, status: "sold" });
   }
 
+  async function reportListing() {
+    if (!uid || !l) { router.push("/login"); return; }
+    const reasons = ["scam", "prohibited", "misleading", "inappropriate", "duplicate", "other"];
+    const pick = window.prompt("Report this listing. Type one reason: " + reasons.join(", "));
+    if (!pick) return;
+    const reason = reasons.includes(pick.trim().toLowerCase()) ? pick.trim().toLowerCase() : "other";
+    const detail = window.prompt("Anything to add? Optional.") || null;
+    const { error } = await supabase.from("listing_reports").upsert({
+      listing_id: l.id, reporter_id: uid, reason, detail: detail?.trim() || null,
+    });
+    alert(error ? "Could not send the report: " + error.message : "Report sent. Thank you.");
+  }
+
+  async function blockSeller() {
+    if (!uid || !l) { router.push("/login"); return; }
+    if (!window.confirm("Block this seller? You will not see each other on Platinum Circles.")) return;
+    const { error } = await supabase.from("blocked_users").upsert({ blocker_id: uid, blocked_id: l.seller_id });
+    if (error) { alert("Could not block: " + error.message); return; }
+    router.push("/market");
+  }
+
   if (l === undefined) return <p className="py-16 text-center text-sm text-white/40">Loading</p>;
   if (l === null) {
     return (
@@ -209,6 +230,12 @@ export default function ListingPage() {
         </Link>
       ) : null}
 
+      {!isOwner ? (
+        <p className="mt-4 flex gap-4 text-[12px] text-white/40">
+          <button onClick={reportListing} className="hover:text-white/70">Report listing</button>
+          <button onClick={blockSeller} className="hover:text-danger">Block seller</button>
+        </p>
+      ) : null}
       <SellerReviews sellerId={l.seller_id} listingId={l.id} viewerId={uid} />
     </div>
   );

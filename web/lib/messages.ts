@@ -11,6 +11,8 @@ export type Conv = {
   last_message: string;
   last_message_time: string | null;
   unread: number;
+  context: string;
+  context_ref_id: string | null;
 };
 
 export type Msg = {
@@ -51,7 +53,10 @@ export async function loadConversations(userId: string, context: string = "perso
     groupConvs = (gc ?? []) as Record<string, unknown>[];
   }
 
+  const keep = (c: Record<string, unknown>) => ((c.context as string) || "personal") === context;
+
   const dmOtherIds = ((dmConvs ?? []) as Record<string, unknown>[])
+    .filter(keep)
     .map((c) => (c.user_1 === userId ? c.user_2 : c.user_1))
     .filter(Boolean) as string[];
   const profileMap = new Map<string, { full_name: string | null; username: string | null; avatar_url: string | null }>();
@@ -71,7 +76,6 @@ export async function loadConversations(userId: string, context: string = "perso
     });
   } catch { /* non-fatal */ }
 
-  const keep = (c: Record<string, unknown>) => ((c.context as string) || "personal") === context;
   const dms: Conv[] = ((dmConvs ?? []) as Record<string, unknown>[]).filter(keep).map((c) => {
     const otherId = (c.user_1 === userId ? c.user_2 : c.user_1) as string | null;
     const p = otherId ? profileMap.get(otherId) : null;
@@ -85,6 +89,8 @@ export async function loadConversations(userId: string, context: string = "perso
       last_message: (c.last_message as string) || "",
       last_message_time: (c.last_message_time as string) ?? null,
       unread: unreadMap[c.id as string] ?? 0,
+      context: (c.context as string) || "personal",
+      context_ref_id: (c.context_ref_id as string) ?? null,
     };
   });
   const groups: Conv[] = groupConvs.filter(keep).map((c) => ({
@@ -97,6 +103,8 @@ export async function loadConversations(userId: string, context: string = "perso
     last_message: (c.last_message as string) || "",
     last_message_time: (c.last_message_time as string) ?? null,
     unread: unreadMap[c.id as string] ?? 0,
+    context: (c.context as string) || "personal",
+    context_ref_id: (c.context_ref_id as string) ?? null,
   }));
 
   return [...dms, ...groups].sort((a, b) =>

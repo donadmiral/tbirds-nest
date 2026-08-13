@@ -1,11 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, Send, FileText } from "lucide-react";
+import Link from "next/link";
+import { Search, Send, FileText, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
 import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
 import { timeAgo } from "@/lib/feed";
+
+type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
+type MiniListing = { id: string; title: string; price: number; currency: string; images: string[]; status: string };
 
 function Avatar({ conv, size = 44 }: { conv: Conv; size?: number }) {
   return conv.avatar ? (
@@ -28,14 +32,35 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [loadingMsgs, setLoadingMsgs] = useState(false);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
+  const [offers, setOffers] = useState<Record<string, OfferLive>>({});
+  const [refListing, setRefListing] = useState<MiniListing | null>(null);
+  const [countering, setCountering] = useState<string | null>(null);
+  const [counterAmt, setCounterAmt] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<Conv | null>(null);
   activeRef.current = active;
+
+  const hydrateOffers = useCallback(async (rows: Msg[]) => {
+    const ids: string[] = [];
+    rows.forEach((m) => {
+      if (m.media_type === "offer" && m.media_url) {
+        try { const j = JSON.parse(m.media_url); if (j?.offer_id) ids.push(j.offer_id); } catch { /* not json */ }
+      }
+    });
+    if (ids.length === 0) return;
+    const { data } = await supabase.from("listing_offers").select("id, status, proposer_id, amount, currency").in("id", ids);
+    setOffers((prev) => {
+      const next = { ...prev };
+      ((data ?? []) as OfferLive[]).forEach((o) => { next[o.id] = o; });
+      return next;
+    });
+  }, [supabase]);
 
   const openConv = useCallback(async (c: Conv) => {
     setActive(c);
     setLoadingMsgs(true);
     setMsgs([]);
+    setRefListing(null);
     const { data } = await supabase
       .from("messages")
       .select("*")
@@ -45,11 +70,20 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const rows = await signChatMedia(((data ?? []) as Msg[]));
     setMsgs(rows);
     setLoadingMsgs(false);
+    hydrateOffers(rows);
+    if (c.context === "market" && c.context_ref_id) {
+      const { data: lst } = await supabase
+        .from("marketplace_listings")
+        .select("id, title, price, currency, images, status")
+        .eq("id", c.context_ref_id)
+        .maybeSingle();
+      if (lst) setRefListing(lst as MiniListing);
+    }
     supabase.rpc("mark_conversation_read_v2", { p_conversation_id: c.id }).then(() => {
       setConvs((l) => l.map((x) => (x.id === c.id ? { ...x, unread: 0 } : x)));
     }, () => {});
     setTimeout(() => bottomRef.current?.scrollIntoView({ block: "end" }), 60);
-  }, [supabase]);
+  }, [supabase, hydrateOffers]);
 
   useEffect(() => {
     (async () => {
@@ -75,6 +109,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if (activeRef.current?.id !== incoming.conversation_id) return;
         if (isChatMediaUrl(incoming.media_url)) incoming = (await signChatMedia([incoming]))[0];
         setMsgs((l) => (l.some((m) => m.id === incoming.id) ? l.map((m) => (m.id === incoming.id ? incoming : m)) : [...l, incoming]));
+        hydrateOffers([incoming]);
         if (incoming.sender_id !== uid) {
           supabase.rpc("mark_conversation_read_v2", { p_conversation_id: incoming.conversation_id }).then(() => {}, () => {});
         }
@@ -87,7 +122,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [supabase, active, uid]);
+  }, [supabase, active, uid, hydrateOffers]);
 
   async function send() {
     const text = draft.trim();
@@ -113,11 +148,56 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     setConvs((l) => l.map((c) => (c.id === active.id ? { ...c, last_message: text, last_message_time: data.created_at } : c)));
   }
 
+  async function respondOffer(offerId: string, action: string, counterAmount?: number) {
+    const { error } = await supabase.rpc("respond_offer", { p_offer_id: offerId, p_action: action, p_counter_amount: counterAmount ?? null });
+    if (error) { alert("Could not respond: " + error.message); return; }
+    setOffers((prev) => ({ ...prev, [offerId]: { ...(prev[offerId] || ({} as OfferLive)), status: action } }));
+    setCountering(null);
+    setCounterAmt("");
+  }
+
   const shownConvs = useMemo(() => {
     const t = query.trim().toLowerCase();
     if (!t) return convs;
     return convs.filter((c) => (c.title + " " + (c.username ?? "")).toLowerCase().includes(t));
   }, [convs, query]);
+
+  function OfferCard({ m }: { m: Msg }) {
+    let j: { offer_id?: string; amount?: number; currency?: string; status?: string } = {};
+    try { j = JSON.parse(m.media_url || "{}"); } catch { return null; }
+    if (!j.offer_id) return null;
+    const live = offers[j.offer_id];
+    const status = live?.status || j.status || "pending";
+    const amount = live?.amount ?? j.amount ?? 0;
+    const currency = live?.currency ?? j.currency ?? "";
+    const proposer = live?.proposer_id ?? m.sender_id;
+    const canRespond = status === "pending" && uid !== null && uid !== proposer;
+    const color = status === "accepted" ? "text-success" : status === "pending" ? "text-pearl" : "text-white/40";
+    return (
+      <div className="min-w-48 rounded-lg border border-white/15 p-3">
+        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-white/40"><Tag size={12} /> Offer</p>
+        <p className="mt-0.5 text-[18px] font-semibold text-white">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
+        <p className={"text-[12px] font-semibold capitalize " + color}>{status}</p>
+        {canRespond ? (
+          countering === j.offer_id ? (
+            <div className="mt-2 flex flex-col gap-1.5">
+              <input value={counterAmt} onChange={(e) => setCounterAmt(e.target.value)} inputMode="numeric" placeholder="Counter amount" className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[13px] text-white placeholder:text-white/30 outline-none" />
+              <div className="flex gap-1.5">
+                <button onClick={() => { const n = Number(counterAmt.replace(/,/g, "")); if (n > 0) respondOffer(j.offer_id!, "countered", n); }} className="rounded-md bg-pearl px-2.5 py-1.5 text-[12px] font-semibold text-ink">Send counter</button>
+                <button onClick={() => setCountering(null)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-white">Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2 flex gap-1.5">
+              <button onClick={() => respondOffer(j.offer_id!, "accepted")} className="rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success">Accept</button>
+              <button onClick={() => setCountering(j.offer_id!)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-white">Counter</button>
+              <button onClick={() => respondOffer(j.offer_id!, "declined")} className="rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger">Decline</button>
+            </div>
+          )
+        ) : null}
+      </div>
+    );
+  }
 
   function Bubble({ m }: { m: Msg }) {
     const mine = m.sender_id === uid;
@@ -125,6 +205,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     return (
       <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
         <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-white" : "bg-surface text-white")}>
+          {m.media_type === "offer" && m.media_url ? <OfferCard m={m} /> : null}
           {m.media_type === "image" && m.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={m.media_url} alt="" className="mb-1 max-h-72 rounded-lg object-contain" />
@@ -146,6 +227,22 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       </div>
     );
   }
+
+  const refCard = refListing ? (
+    <Link href={"/market/" + refListing.id} className="mt-2 flex items-center gap-3 rounded-lg border border-white/10 p-2.5 transition-colors hover:bg-surface">
+      {refListing.images?.[0] ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={refListing.images[0]} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
+      ) : null}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13px] font-semibold text-white">{refListing.title}</span>
+        <span className="block text-[13px] text-pearl">{(refListing.currency === "USD" ? "$" : refListing.currency + " ") + Number(refListing.price).toLocaleString()}</span>
+      </span>
+      {refListing.status !== "available" ? (
+        <span className="shrink-0 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-white/60">{refListing.status}</span>
+      ) : null}
+    </Link>
+  ) : null;
 
   const convButton = (c: Conv) => (
     <button key={c.id}
@@ -197,10 +294,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           </>
         ) : (
           <>
-            <header className="flex items-center gap-3 border-b border-white/10 pb-3">
-              <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-white/60 hover:bg-surface hover:text-white" title="Back">←</button>
-              <Avatar conv={active} size={36} />
-              <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
+            <header className="border-b border-white/10 pb-3">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-white/60 hover:bg-surface hover:text-white" title="Back">←</button>
+                <Avatar conv={active} size={36} />
+                <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
+              </div>
+              {refCard}
             </header>
             <div className="flex-1 space-y-2 overflow-y-auto py-4">
               {loadingMsgs ? <p className="py-12 text-center text-sm text-white/40">Loading</p> : msgs.map((m) => <Bubble key={m.id} m={m} />)}
@@ -246,12 +346,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           </div>
         ) : (
           <>
-            <header className="flex items-center gap-3 border-b border-white/10 px-5 py-3">
-              <Avatar conv={active} size={38} />
-              <div className="min-w-0">
-                <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
-                {active.username ? <p className="text-[12px] text-white/40">@{active.username}</p> : null}
+            <header className="border-b border-white/10 px-5 py-3">
+              <div className="flex items-center gap-3">
+                <Avatar conv={active} size={38} />
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
+                  {active.username ? <p className="text-[12px] text-white/40">@{active.username}</p> : null}
+                </div>
               </div>
+              {refCard}
             </header>
             <div className="flex-1 space-y-2 overflow-y-auto px-5 py-4">
               {loadingMsgs ? (
