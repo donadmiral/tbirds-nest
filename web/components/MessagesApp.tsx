@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, Send, FileText, Tag, Wallet, Paperclip } from "lucide-react";
+import { Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
 import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
@@ -29,9 +29,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [counterAmt, setCounterAmt] = useState("");
   const [otherTyping, setOtherTyping] = useState(false);
   const [sendingFile, setSendingFile] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [recSecs, setRecSecs] = useState(0);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<Conv | null>(null);
   const typingSentAt = useRef(0);
+  const recRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   activeRef.current = active;
 
   const hydrateOffers = useCallback(async (rows: Msg[]) => {
@@ -208,6 +214,55 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     if (fileRef.current) fileRef.current.value = "";
   }
 
+  async function startRecording() {
+    if (recording || !active || !uid) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mime = MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "audio/webm";
+      const rec = new MediaRecorder(stream, { mimeType: mime });
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.start();
+      recRef.current = rec;
+      setRecSecs(0);
+      setRecording(true);
+      recTimerRef.current = setInterval(() => setRecSecs((s) => s + 1), 1000);
+    } catch {
+      alert("Microphone access is needed for voice messages.");
+    }
+  }
+
+  function teardownRecording() {
+    if (recTimerRef.current) { clearInterval(recTimerRef.current); recTimerRef.current = null; }
+    streamRef.current?.getTracks().forEach((tr) => tr.stop());
+    streamRef.current = null;
+    recRef.current = null;
+    setRecording(false);
+    setRecSecs(0);
+  }
+
+  async function stopRecording(sendIt: boolean) {
+    const rec = recRef.current;
+    if (!rec) { teardownRecording(); return; }
+    const mime = rec.mimeType || "audio/webm";
+    await new Promise<void>((resolve) => {
+      rec.onstop = () => resolve();
+      try { rec.stop(); } catch { resolve(); }
+    });
+    const blob = new Blob(chunksRef.current, { type: mime });
+    teardownRecording();
+    if (!sendIt || blob.size === 0 || !active || !uid) return;
+    setSendingFile(true);
+    const ext = mime.includes("mp4") ? "m4a" : "webm";
+    const path = uid + "/" + Date.now() + "_voice." + ext;
+    const { error: upErr } = await supabase.storage.from("chat-media").upload(path, blob, { contentType: mime });
+    if (upErr) { alert("Could not send the voice note: " + upErr.message); setSendingFile(false); return; }
+    const { data: pub } = supabase.storage.from("chat-media").getPublicUrl(path);
+    await insertMessage(null, pub.publicUrl, "audio");
+    setSendingFile(false);
+  }
+
   async function respondOffer(offerId: string, action: string, counterAmount?: number) {
     const { error } = await supabase.rpc("respond_offer", { p_offer_id: offerId, p_action: action, p_counter_amount: counterAmount ?? null });
     if (error) { alert("Could not respond: " + error.message); return; }
@@ -334,6 +389,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         <Paperclip size={18} />
       </button>
       <input ref={fileRef} type="file" hidden onChange={(e) => attach(e.target.files)} />
+      {recording ? (
+        <span className="flex items-center gap-2">
+          <span className="text-[13px] font-semibold text-danger">{Math.floor(recSecs / 60)}:{String(recSecs % 60).padStart(2, "0")}</span>
+          <button onClick={() => stopRecording(false)} title="Cancel" className="rounded-md bg-surface px-2.5 py-2 text-[12px] text-white">Cancel</button>
+          <button onClick={() => stopRecording(true)} title="Send voice note" className="rounded-md bg-danger p-2.5 text-white"><Square size={16} /></button>
+        </span>
+      ) : (
+        <button onClick={startRecording} disabled={sendingFile} title="Voice message" className="rounded-md p-2.5 text-white/50 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-40"><Mic size={18} /></button>
+      )}
       <textarea value={draft}
         onChange={(e) => onDraftChange(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
