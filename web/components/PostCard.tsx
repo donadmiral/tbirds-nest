@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle, Repeat2, Bookmark } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
+import { FollowButton } from "@/components/FollowButton";
+import { PostMenu } from "@/components/PostMenu";
+import { RichText } from "@/components/RichText";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
 import { toggleLike, toggleBookmark, toggleRepost } from "@/lib/interactions";
@@ -20,12 +24,9 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
   const [on, setOn] = useState(initialOn);
   const [n, setN] = useState(initialCount);
   const [busy, setBusy] = useState(false);
-  async function flip(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (busy) return;
+  async function set(next: boolean) {
+    if (busy || next === on) return;
     setBusy(true);
-    const next = !on;
     setOn(next);
     setN((v) => Math.max(0, v + (next ? 1 : -1)));
     const ok = await action(postId, next);
@@ -35,11 +36,55 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
     }
     setBusy(false);
   }
-  return { on, n, flip };
+  async function flip(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    set(!on);
+  }
+  return { on, n, flip, set };
+}
+
+function QuoteCard({ quotedId }: { quotedId: string }) {
+  const supabase = useRef(createClient()).current;
+  const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; thumb: string | null } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("posts")
+        .select("content, body, created_at, user_id, post_media(url, sort_order)")
+        .eq("id", quotedId)
+        .maybeSingle();
+      if (!data) return;
+      const { data: a } = await supabase.from("profiles").select("full_name, username").eq("id", data.user_id).maybeSingle();
+      const media = (data.post_media ?? []).slice().sort((x: { sort_order: number }, y: { sort_order: number }) => x.sort_order - y.sort_order);
+      setQ({ content: data.content, body: data.body, created_at: data.created_at, author: a ?? null, thumb: media[0]?.url ?? null });
+    })();
+  }, [supabase, quotedId]);
+
+  if (!q) return null;
+  return (
+    <Link href={"/post/" + quotedId} onClick={(e) => e.stopPropagation()} className="mt-3 flex gap-3 rounded-lg border border-white/10 p-3 transition-colors hover:bg-surface">
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5 text-[13px]">
+          <span className="truncate font-semibold text-white">{q.author?.full_name ?? "Member"}</span>
+          <span className="truncate text-white/50">@{q.author?.username}</span>
+          <span className="shrink-0 text-white/40">· {timeAgo(q.created_at)}</span>
+        </span>
+        <span className="mt-0.5 line-clamp-3 block text-[13px] text-white/75">{q.content ?? q.body ?? ""}</span>
+      </span>
+      {q.thumb ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={q.thumb} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
+      ) : null}
+    </Link>
+  );
 }
 
 export function PostCard({ post }: { post: FeedRow }) {
   const router = useRouter();
+  const [hidden, setHidden] = useState(false);
+  const [heart, setHeart] = useState(false);
   const text = post.content ?? post.body ?? "";
   const media = post.media ?? [];
   const products = post.products ?? [];
@@ -48,9 +93,25 @@ export function PostCard({ post }: { post: FeedRow }) {
   const mark = useToggle(post.viewer_bookmarked, post.bookmarks_count, toggleBookmark, post.post_id);
   const profileHref = post.author_username ? "/" + post.author_username : "#";
   const postHref = "/post/" + post.post_id;
+  const quotedId = (post as unknown as { quoted_post_id?: string | null }).quoted_post_id ?? null;
+
+  if (hidden) return null;
+
+  function doubleLike(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!like.on) like.set(true);
+    setHeart(true);
+    setTimeout(() => setHeart(false), 700);
+  }
 
   return (
-    <article className="border-b border-white/10 px-1 py-5">
+    <article className="relative border-b border-white/10 px-1 py-5">
+      {heart ? (
+        <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+          <Heart size={84} className="animate-ping text-danger" fill="currentColor" />
+        </span>
+      ) : null}
       <div className="flex gap-3">
         <StoryAvatar userId={post.author_id}
           name={post.author_name}
@@ -69,6 +130,8 @@ export function PostCard({ post }: { post: FeedRow }) {
             <Link href={postHref} className="shrink-0 text-[13px] text-white/50 hover:underline">
               {timeAgo(post.created_at)}
             </Link>
+            <FollowButton authorId={post.author_id} />
+            <PostMenu postId={post.post_id} authorId={post.author_id} text={text} onHidden={() => setHidden(true)} />
           </div>
 
           {post.article_title ? (
@@ -77,14 +140,15 @@ export function PostCard({ post }: { post: FeedRow }) {
 
           {text ? (
             <p onClick={() => router.push(postHref)}
+              onDoubleClick={doubleLike}
               className="mt-1 cursor-pointer whitespace-pre-wrap text-[15px] leading-relaxed text-white/90"
             >
-              {text}
+              <RichText text={text} />
             </p>
           ) : null}
 
           {media.length > 0 ? (
-            <div className={"mt-3 grid gap-1 overflow-hidden rounded-lg " + (media.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+            <div onDoubleClick={doubleLike} className={"mt-3 grid gap-1 overflow-hidden rounded-lg " + (media.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
               {media.slice(0, 4).map((m) =>
                 m.media_type === "video" ? (
                   <video key={m.id} src={m.url} controls preload="metadata" className="max-h-[480px] w-full bg-black object-contain" />
@@ -95,6 +159,8 @@ export function PostCard({ post }: { post: FeedRow }) {
               )}
             </div>
           ) : null}
+
+          {quotedId ? <QuoteCard quotedId={quotedId} /> : null}
 
           {post.link && media.length === 0 ? (
             <a href={post.link.url} target="_blank" rel="noopener noreferrer"
