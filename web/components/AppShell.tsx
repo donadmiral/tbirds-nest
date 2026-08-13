@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Nav } from "@/components/Nav";
 
-export async function AppShell({ children }: { children: React.ReactNode }) {
+export async function AppShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
 
@@ -34,9 +34,13 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} />
-      <main className="ml-[260px] flex justify-center px-6 py-8">
-        <div className="w-full max-w-[640px]">{children}</div>
-      </main>
+      {wide ? (
+        <main className="ml-[260px]">{children}</main>
+      ) : (
+        <main className="ml-[260px] flex justify-center px-6 py-8">
+          <div className="w-full max-w-[640px]">{children}</div>
+        </main>
+      )}
     </div>
   );
 }
