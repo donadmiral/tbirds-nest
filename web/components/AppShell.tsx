@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Nav } from "@/components/Nav";
+import { WebCallLayer } from "@/components/WebCallLayer";
 
 export async function AppShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   const supabase = await createClient();
@@ -34,6 +35,7 @@ export async function AppShell({ children, wide = false }: { children: React.Rea
   return (
     <div className="min-h-screen">
       <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} />
+      <WebCallLayer />
       {wide ? (
         <main className="ml-[260px]">{children}</main>
       ) : (

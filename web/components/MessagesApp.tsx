@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
 import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
 import { StoryAvatar } from "@/components/StoryAvatar";
+import { CallButtons } from "@/components/CallButtons";
 import { timeAgo } from "@/lib/feed";
 
 type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
@@ -437,6 +438,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
                   {typingLine}
                 </div>
               </div>
+              {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
               {refCard}
             </header>
             <div className="flex-1 space-y-2 overflow-y-auto py-4">
@@ -491,6 +493,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
                   {typingLine ?? (active.username ? <p className="text-[12px] text-white/40">@{active.username}</p> : null)}
                 </div>
               </div>
+              {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
               {refCard}
             </header>
             <div className="flex-1 space-y-2 overflow-y-auto px-5 py-4">
