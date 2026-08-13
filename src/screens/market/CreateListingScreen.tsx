@@ -200,7 +200,7 @@ export default function CreateListingScreen({ navigation }: any) {
 
               <Text style={s.label}>Price</Text>
               <View style={s.priceRow}>
-                <TouchableOpacity style={s.currBtn} onPress={() => setCurrency(currency === 'USD' ? ('ZWL' as any) : 'USD')}>
+                <TouchableOpacity style={s.currBtn} onPress={() => setCurrency(currency === 'USD' ? 'ZWG' : 'USD')}>
                   <Text style={s.currTxt}>{currency}</Text>
                 </TouchableOpacity>
                 <TextInput

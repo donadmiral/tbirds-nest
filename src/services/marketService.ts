@@ -156,6 +156,9 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
     condition: string | null;
     location_city: string;
     images: string[];
+    delivery_available?: boolean;
+    delivery_fee?: number | null;
+    delivery_note?: string | null;
   }): Promise<Listing> {
     if (!(await flagsService.isEnabled('market'))) {
       throw new Error('The market is temporarily switched off by Platinum Circles operations.');
@@ -172,6 +175,9 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
         condition: input.condition,
         location_city: input.location_city || null,
         images: input.images,
+        delivery_available: input.delivery_available ?? false,
+        delivery_fee: input.delivery_fee ?? null,
+        delivery_note: input.delivery_note || null,
       })
       .select('*')
       .single();
