@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Phone, PhoneOff, Video, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { startOneToOneCall, getDailyRoom, setCallStatus, endCall, type CallSession } from "@/lib/calls";
+import { startOneToOneCall, getDailyRoom, setCallStatus, endCall, joinGroupCall, leaveGroupCall, declineGroupCall, type CallSession } from "@/lib/calls";
 
 type Incoming = CallSession & { caller_name?: string };
 
@@ -37,7 +37,9 @@ export function WebCallLayer() {
     setActiveCall(null);
     setConnecting(false);
     setCallError(null);
-    if (c && record) await endCall(c.id);
+    if (!c) return;
+    if (c.is_group_call) await leaveGroupCall(c.id);
+    else if (record) await endCall(c.id);
   }, [teardownFrame]);
 
   const joinRoom = useCallback(async (session: CallSession) => {
@@ -119,12 +121,44 @@ export function WebCallLayer() {
     return () => { supabase.removeChannel(ch); };
   }, [supabase, uid]);
 
+  useEffect(() => {
+    async function onGroupJoin(e: Event) {
+      if (activeCallRef.current) return;
+      const d = (e as CustomEvent).detail as { sessionId: string; isVideo: boolean };
+      console.log("[CALL] joining group session", d.sessionId);
+      await joinGroupCall(d.sessionId);
+      const session = { id: d.sessionId, is_video: d.isVideo, is_group_call: true, status: "active" } as CallSession;
+      setActiveCall(session);
+      await joinRoom(session);
+    }
+    window.addEventListener("pc-join-group-call", onGroupJoin);
+    return () => window.removeEventListener("pc-join-group-call", onGroupJoin);
+  }, [joinRoom]);
+
+  useEffect(() => {
+    if (!uid) return;
+    const ch = supabase
+      .channel("web_incoming_group_calls")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "call_participants", filter: "user_id=eq." + uid }, async (p) => {
+        const row = p.new as { call_session_id: string; status: string };
+        if (row.status !== "invited" || activeCallRef.current) return;
+        const { data: s } = await supabase.from("call_sessions").select("*").eq("id", row.call_session_id).maybeSingle();
+        if (!s || s.status !== "ringing") return;
+        if (s.expires_at && new Date(s.expires_at).getTime() < Date.now()) return;
+        const { data: prof } = await supabase.from("profiles").select("full_name").eq("id", s.initiator_id).maybeSingle();
+        setIncoming({ ...(s as CallSession), caller_name: (prof?.full_name ?? "Someone") + " · group call" });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [supabase, uid]);
+
   async function answer() {
     if (!incoming) return;
     const s = incoming;
     console.log("[CALL] answering", s.id);
     setIncoming(null);
-    await setCallStatus(s.id, "active");
+    if (s.is_group_call) await joinGroupCall(s.id);
+    else await setCallStatus(s.id, "active");
     setActiveCall(s);
     await joinRoom(s);
   }
@@ -132,7 +166,8 @@ export function WebCallLayer() {
   async function decline() {
     if (!incoming) return;
     console.log("[CALL] declining", incoming.id);
-    await setCallStatus(incoming.id, "declined");
+    if (incoming.is_group_call) await declineGroupCall(incoming.id);
+    else await setCallStatus(incoming.id, "declined");
     setIncoming(null);
   }
 

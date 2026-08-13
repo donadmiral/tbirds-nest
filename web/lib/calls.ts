@@ -52,3 +52,65 @@ export async function endCall(id: string): Promise<void> {
 export function requestWebCall(detail: { receiverId: string; conversationId: string | null; isVideo: boolean; name: string }): void {
   window.dispatchEvent(new CustomEvent("pc-start-call", { detail }));
 }
+// Group calls: one shared session, participants fan out, room = session id.
+export async function startGroupCall(conversationId: string, isVideo: boolean): Promise<string | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("start_group_call", { p_conversation_id: conversationId, p_is_video: isVideo });
+  if (error || !data) return null;
+  return String(data);
+}
+
+export async function joinGroupCall(sessionId: string): Promise<void> {
+  const supabase = createClient();
+  await supabase.rpc("join_group_call", { p_session_id: sessionId });
+}
+
+export async function leaveGroupCall(sessionId: string): Promise<void> {
+  const supabase = createClient();
+  await supabase.rpc("leave_group_call", { p_session_id: sessionId });
+}
+
+export async function declineGroupCall(sessionId: string): Promise<void> {
+  const supabase = createClient();
+  await supabase.rpc("decline_group_call", { p_session_id: sessionId });
+}
+
+export type LiveGroupCall = { id: string; is_video: boolean; joinedNames: string[] };
+
+// ChatScreen's exact banner truth: sweep first, staleness by expires_at with the
+// 90s created_at fallback, and an active call with zero joined is a zombie.
+export async function checkLiveGroupCall(conversationId: string): Promise<LiveGroupCall | null> {
+  const supabase = createClient();
+  try { await supabase.rpc("sweep_dead_calls"); } catch { /* best effort */ }
+  const { data } = await supabase
+    .from("call_sessions")
+    .select("id, is_video, status, created_at, expires_at")
+    .eq("is_group_call", true)
+    .eq("conversation_id", conversationId)
+    .in("status", ["ringing", "active"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!data) return null;
+  const stale = data.status === "ringing" && (data.expires_at
+    ? Date.now() > new Date(data.expires_at).getTime()
+    : Date.now() - new Date(data.created_at ?? 0).getTime() > 90000);
+  if (stale) return null;
+  const { data: parts } = await supabase
+    .from("call_participants")
+    .select("user_id")
+    .eq("call_session_id", data.id)
+    .eq("status", "joined");
+  const ids = (parts ?? []).map((p) => p.user_id as string);
+  if (data.status === "active" && ids.length === 0) return null;
+  let joinedNames: string[] = [];
+  if (ids.length > 0) {
+    const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+    joinedNames = (profs ?? []).map((p) => String(p.full_name || "").split(" ")[0]).filter(Boolean);
+  }
+  return { id: data.id, is_video: !!data.is_video, joinedNames };
+}
+
+export function requestGroupJoin(detail: { sessionId: string; isVideo: boolean }): void {
+  window.dispatchEvent(new CustomEvent("pc-join-group-call", { detail }));
+}
