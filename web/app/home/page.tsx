@@ -8,7 +8,7 @@ import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
-import { DiscoveryRail } from "@/components/DiscoveryRail";
+
 
 const PAGE_SIZE = 20;
 const MODES = [
@@ -179,8 +179,7 @@ export default function HomeFeed() {
   }
 
   return (
-    <div className="flex items-start gap-8">
-    <div className="min-w-0 flex-1">
+    <div>
       <AnnouncementBanner />
       <StoryRings />
       <Composer onPosted={() => load(false)} quote={quote} onQuoteDone={() => setQuote(null)} />
@@ -241,10 +240,6 @@ export default function HomeFeed() {
           {!hasMore ? <p className="py-8 text-center text-xs text-white/30">You are all caught up.</p> : null}
         </div>
       )}
-    </div>
-    <div className="hidden w-80 shrink-0 xl:block">
-      <DiscoveryRail />
-    </div>
     </div>
   );
 }
