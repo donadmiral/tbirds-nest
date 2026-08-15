@@ -10,6 +10,7 @@ import {
   MessageCircle,
   Bell,
   Search,
+  Megaphone,
   Bookmark,
   User,
   LogOut,
@@ -25,6 +26,7 @@ const items = [
   { href: "/messages", label: "Messages", icon: MessageCircle },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/saved", label: "Saved", icon: Bookmark },
+  { href: "/ads", label: "Ads", icon: Megaphone },
 ];
 
 export function Nav({ name, username }: { name: string; username: string }) {

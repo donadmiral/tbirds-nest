@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Megaphone, Pause, Play, Square } from "lucide-react";
+import Link2 from "next/link";
+import { Megaphone, Pause, Play, Square, Plus } from "lucide-react";
 import { myPromos, setPromoStatus, type Promo } from "@/lib/ads";
 
 export default function AdsPage() {
@@ -22,7 +23,8 @@ export default function AdsPage() {
   return (
     <div className="px-1">
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Megaphone size={19} className="text-pearl" /> Ads</h1>
-      <p className="pb-4 text-[13px] text-white/50">Promotions place your posts as Sponsored in eligible feeds. Promote any of your posts from its three-dot menu.</p>
+      <p className="pb-3 text-[13px] text-white/50">Promotions place your content as Sponsored in eligible feeds.</p>
+      <Link2 href="/ads/new" className="mb-5 inline-flex items-center gap-1.5 rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90"><Plus size={15} /> Create a promotion</Link2>
 
       {promos === null ? (
         <p className="py-14 text-center text-sm text-white/40">Loading</p>
