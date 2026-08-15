@@ -8,6 +8,8 @@ import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
+import { SponsoredCard } from "@/components/SponsoredCard";
+import { getActivePromos, type PromoRow } from "@/lib/ads";
 
 
 const PAGE_SIZE = 20;
@@ -50,6 +52,7 @@ export default function HomeFeed() {
   const [error, setError] = useState<string | null>(null);
   const [pendingNew, setPendingNew] = useState(0);
   const [quote, setQuote] = useState<{ id: string; author: string; text: string } | null>(null);
+  const [promos, setPromos] = useState<PromoRow[]>([]);
   const cursor = useRef<{ key: number; id: string } | null>(null);
   const uidRef = useRef<string | null>(null);
   const hiddenRef = useRef<Set<string>>(new Set());
@@ -112,6 +115,11 @@ export default function HomeFeed() {
   useEffect(() => {
     load(false);
   }, [load]);
+
+  useEffect(() => {
+    if (mode === "for_you") getActivePromos(3).then(setPromos);
+    else setPromos([]);
+  }, [mode]);
 
   // Infinite scroll: the sentinel near the bottom triggers the next page.
   useEffect(() => {
@@ -230,11 +238,17 @@ export default function HomeFeed() {
         </div>
       ) : (
         <div>
-          {posts.map((p) => (
-            <div key={p.post_id} data-pid={p.post_id} ref={observeSeen}>
-              <PostCard post={p} />
-            </div>
-          ))}
+          {posts.map((p, i) => {
+            const slot = i > 0 && (i + 1) % 6 === 0 ? promos[Math.floor((i + 1) / 6) - 1] : null;
+            return (
+              <div key={p.post_id}>
+                <div data-pid={p.post_id} ref={observeSeen}>
+                  <PostCard post={p} />
+                </div>
+                {slot && slot.post_id !== p.post_id ? <SponsoredCard promo={slot} /> : null}
+              </div>
+            );
+          })}
           <div ref={sentinelRef} />
           {loadingMore ? <Skeleton /> : null}
           {!hasMore ? <p className="py-8 text-center text-xs text-white/30">You are all caught up.</p> : null}
