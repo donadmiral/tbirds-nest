@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MarketAlerts } from "@/components/MarketAlerts";
+import { BellPlus } from "lucide-react";
 import Link from "next/link";
 import { Search, MessageCircle, SlidersHorizontal, Plus } from "lucide-react";
 import { MarketUnreadDot } from "@/components/MarketUnreadDot";
@@ -25,6 +27,7 @@ export default function MarketPage() {
   const [search, setSearch] = useState("");
   const [applied, setApplied] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [alertsOpen, setAlertsOpen] = useState(false);
   const [filters, setFilters] = useState<MarketFilters>(EMPTY);
   const [draft, setDraft] = useState<MarketFilters>(EMPTY);
   const [uid, setUid] = useState<string | null>(null);
@@ -87,6 +90,7 @@ export default function MarketPage() {
 
       {tab === "browse" ? (
         <>
+          {alertsOpen ? <MarketAlerts initialQuery={applied || search} onClose={() => setAlertsOpen(false)} /> : null}
           <div className="flex gap-2 px-1">
             <div className="relative flex-1">
               <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
@@ -97,6 +101,9 @@ export default function MarketPage() {
                 className="w-full rounded-md bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
               />
             </div>
+            <button onClick={() => setAlertsOpen(true)} title="Market alerts" className="flex items-center rounded-md bg-surface px-3 text-ink/70 transition-colors hover:text-ink">
+              <BellPlus size={16} />
+            </button>
             <button onClick={() => { setDraft(filters); setFiltersOpen((v) => !v); }}
               className={"flex items-center gap-1.5 rounded-md px-3.5 text-[13px] transition-colors " + (filtersActive ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
             >

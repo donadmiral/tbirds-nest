@@ -52,6 +52,7 @@ function lineFor(n: Notif): { lead: string; rest: string } {
   const emoji = (n.body_preview || "").trim();
   switch (n.type) {
     case "like": return { lead, rest: " liked your post" };
+    case "market_alert": return { lead, rest: " listed a match for your alert" + (((n.data as { title?: string } | null)?.title) ? ": " + (n.data as { title?: string }).title : "") };
     case "comment_like": return { lead, rest: c ? " liked your comment " + c : " liked your comment" };
     case "comment": return { lead, rest: c ? " commented " + c : " commented on your post" };
     case "reply": return { lead, rest: c ? " replied " + c : " replied to you" };
@@ -90,6 +91,7 @@ function sectionOf(created: string): string {
 }
 
 function hrefFor(n: Notif): string {
+  if (n.type === "market_alert" && (n.data as { listing_id?: string } | null)?.listing_id) return "/market/" + (n.data as { listing_id?: string }).listing_id;
   if (n.post_id) return "/post/" + n.post_id;
   if (n.actor_username) return "/" + n.actor_username;
   return "/notifications";
