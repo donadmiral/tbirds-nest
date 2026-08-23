@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3, ShieldAlert } from "lucide-react";
 import { InsightsModal } from "@/components/InsightsModal";
 import { PromoteModal } from "@/components/PromoteModal";
+import { FactCheckModal } from "@/components/FactCheck";
+import { ShieldCheck } from "lucide-react";
 import { Megaphone, ListPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -27,6 +29,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
   const [copied, setCopied] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [promoteOpen, setPromoteOpen] = useState(false);
+  const [factOpen, setFactOpen] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
 
   useEffect(() => {
@@ -96,6 +99,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
     <div ref={boxRef} className="relative ml-auto shrink-0">
       {insightsOpen ? <InsightsModal postId={postId} onClose={() => setInsightsOpen(false)} /> : null}
       {promoteOpen ? <PromoteModal postId={postId} onClose={() => setPromoteOpen(false)} /> : null}
+      {factOpen ? <FactCheckModal postId={postId} onClose={() => setFactOpen(false)} /> : null}
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
         title="More"
         className="rounded-full p-1.5 text-white/40 transition-colors hover:bg-surface hover:text-white"
@@ -119,6 +123,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
                 <>
                   <button onClick={notInterested} className={item}><EyeOff size={15} /> Not interested</button>
                   <button onClick={() => setReporting(true)} className={item}><Flag size={15} /> Report post</button>
+                  <button onClick={() => { setOpen(false); setFactOpen(true); }} className={item}><ShieldCheck size={15} /> Add fact check</button>
                   <button onClick={blockAuthor} className={item + " text-danger"}><Ban size={15} /> Block author</button>
                 </>
               ) : (

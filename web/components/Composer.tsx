@@ -224,8 +224,9 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
-      className={"relative mb-3 rounded-lg border p-4 transition-colors " + (dragOver ? "border-pearl bg-surface" : "border-white/10")}
+      className={"relative mb-3 flex max-h-[82vh] flex-col rounded-lg border p-4 transition-colors " + (dragOver ? "border-pearl bg-surface" : "border-white/10")}
     >
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
       {quote ? (
         <div className="mb-2 rounded-lg border border-white/10 p-2.5">
           <p className="text-[11px] uppercase tracking-wide text-white/40">Quoting {quote.author}</p>
@@ -343,7 +344,8 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
         </div>
       ) : null}
       {error ? <p className="mt-2 text-[13px] text-danger">{error}</p> : null}
-      <div className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3">
+      </div>
+      <div className="mt-3 flex shrink-0 items-center gap-2 border-t border-white/10 pt-3">
         <button onClick={() => fileRef.current?.click()} disabled={items.length >= MAX_MEDIA} title="Add photos or videos" className="rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-30">
           <ImagePlus size={19} />
         </button>

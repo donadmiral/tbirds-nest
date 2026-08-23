@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Comments } from "@/components/Comments";
 import { PostCard } from "@/components/PostCard";
+import { FactCheckBanner } from "@/components/FactCheck";
 import { timeAgo, type FeedRow } from "@/lib/feed";
 
 type Params = { params: Promise<{ id: string }> };
@@ -126,6 +127,7 @@ export default async function PostPage({ params }: Params) {
         ← Platinum Circles
       </Link>
       <PostCard post={row} />
+      <FactCheckBanner postId={id} />
       <section className="mt-2">
         <h2 className="px-1 py-3 text-[15px] font-semibold text-white">
         </h2>
