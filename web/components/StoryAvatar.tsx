@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { getRingUsers, invalidateRings, type CatchupUser } from "@/lib/stories";
 import { StoryViewer } from "@/components/StoryViewer";
 
+import { displayImageUrl } from "@/lib/media";
+
 export function StoryAvatar({ userId, name, avatarUrl, size = 44, href }: {
   userId: string | null | undefined;
   name: string | null | undefined;
@@ -26,7 +28,7 @@ export function StoryAvatar({ userId, name, avatarUrl, size = 44, href }: {
 
   const face = avatarUrl ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={avatarUrl} alt="" style={{ width: size, height: size }} className="rounded-full object-cover" />
+    <img src={displayImageUrl(avatarUrl, 200)!} onError={(e) => { if (avatarUrl && e.currentTarget.src !== avatarUrl) e.currentTarget.src = avatarUrl; }} alt="" style={{ width: size, height: size }} className="rounded-full object-cover" />
   ) : (
     <span style={{ width: size, height: size, fontSize: Math.max(11, Math.round(size / 2.8)) }} className="flex items-center justify-center rounded-full bg-navy font-semibold text-porcelain">
       {(name ?? "?").charAt(0).toUpperCase()}
