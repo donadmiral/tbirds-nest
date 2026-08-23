@@ -9,7 +9,7 @@ export function displayImageUrl(url: string | null | undefined, width = 1200): s
   if (!url) return null;
   if (!url.includes(OBJ)) return url;
   const base = url.replace(OBJ, REN);
-  return base + (base.includes("?") ? "&" : "?") + "width=" + width + "&quality=80";
+  return base + (base.includes("?") ? "&" : "?") + "width=" + width + "&quality=80&resize=contain";
 }
 
 export function isLikelyUnplayableVideo(url: string | null | undefined): boolean {
