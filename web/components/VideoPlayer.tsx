@@ -9,7 +9,7 @@ let mutedPref = true;
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 const SPEEDS = [0.5, 1, 1.25, 1.5, 2];
 
-export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: string; viewsCount?: number | null }) {
+export function VideoPlayer({ src, postId, viewsCount, width, height }: { src: string; postId: string; viewsCount?: number | null; width?: number; height?: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const dwellStart = useRef<number | null>(null);
@@ -20,7 +20,7 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
   const [speed, setSpeed] = useState(1);
   const [speedMenu, setSpeedMenu] = useState(false);
   const [unplayable, setUnplayable] = useState(false);
-  const [portrait, setPortrait] = useState(false);
+  const [portrait, setPortrait] = useState(() => !!(width && height && height > width));
 
   const reportDwell = useCallback(async () => {
     const start = dwellStart.current;
@@ -149,7 +149,7 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
         onEnded={() => stop()}
         onError={() => setUnplayable(true)}
         onLoadedMetadata={() => { const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else setPortrait(v.videoHeight > v.videoWidth); }}
-        className={fs ? "h-full max-h-none w-full object-contain" : portrait ? "mx-auto block h-[560px] w-auto max-w-full object-contain" : "max-h-[480px] w-full object-contain"}
+        className={fs ? "h-full max-h-none w-full object-contain" : "h-full w-full object-contain"}
       />
       {unplayable ? (
         <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/80 px-6 text-center">
