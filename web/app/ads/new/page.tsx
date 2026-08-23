@@ -246,7 +246,7 @@ export default function AdWizardPage() {
               placeholder="e.g. 5000, the promotion stops itself there"
               className="w-full rounded-xl border border-white/10 bg-transparent p-4 text-[14px] text-white placeholder:text-white/30 outline-none focus:border-pearl"
             />
-            <p className="pt-2 text-[11px] leading-relaxed text-white/35">No charge during the testing phase. Budgets and billing arrive with Ads Manager.</p>
+            <p className="pt-2 text-[11px] leading-relaxed text-white/35">No charge during the testing phase. At launch, campaigns bill to your IntoBank wallet through Crisp. IntoBank and Crisp are the only payment rails on Platinum Circles.</p>
           </div>
         </div>
       ) : null}

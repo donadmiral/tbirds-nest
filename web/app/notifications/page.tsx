@@ -5,6 +5,17 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
+import { Heart, Repeat2, MessageCircle, UserPlus, AtSign, Bell, ShieldQuestion } from "lucide-react";
+
+function iconFor(type: string) {
+  if (type === "like") return <Heart size={15} className="text-danger" />;
+  if (type === "repost" || type === "quote") return <Repeat2 size={15} className="text-success" />;
+  if (type === "comment" || type === "reply") return <MessageCircle size={15} className="text-info" />;
+  if (type === "follow") return <UserPlus size={15} className="text-pearl" />;
+  if (type === "follow_request") return <ShieldQuestion size={15} className="text-pearl" />;
+  if (type === "mention") return <AtSign size={15} className="text-pearl" />;
+  return <Bell size={15} className="text-white/45" />;
+}
 import { timeAgo } from "@/lib/feed";
 
 type Notif = {
@@ -139,16 +150,18 @@ export default function NotificationsPage() {
       ) : (
         sections.map((s) => (
           <section key={s.title}>
-            <h2 className="pb-1 pt-4 text-[12px] font-semibold uppercase tracking-wide text-white/40">{s.title}</h2>
+            <h2 className="pb-1.5 pt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/30">{s.title}</h2>
             {s.items.map((n) => {
               const { lead, rest } = lineFor(n);
               const unread = !n.read_at || n.unread_in_group > 0;
               return (
                 <Link key={n.notification_id}
                   href={hrefFor(n)}
-                  className={"flex items-center gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-surface " + (unread ? "bg-pearl/5" : "")}
+                  className={"relative flex items-center gap-3 border-b border-white/5 py-3.5 pl-5 pr-2 transition-colors hover:bg-surface/60 " + (unread ? "" : "opacity-90")}
                 >
-                  <StoryAvatar userId={n.actor_id} name={n.actor_name} avatarUrl={n.actor_avatar} size={44} />
+                  {unread ? <span aria-hidden className="absolute left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-pearl" /> : null}
+                  <span className="w-5 shrink-0" aria-hidden>{iconFor(n.type)}</span>
+                  <StoryAvatar userId={n.actor_id} name={n.actor_name} avatarUrl={n.actor_avatar} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block text-[14px] leading-snug text-white/90">
                       <span className="font-semibold text-white">{lead}</span>
