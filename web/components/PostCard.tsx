@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Repeat2, Bookmark } from "lucide-react";
+import { $1, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
@@ -167,6 +167,11 @@ export function PostCard({ post }: { post: FeedRow }) {
 
           {(post as unknown as { thread_parent_id?: string | null }).thread_parent_id ? (
         <Link href={"/post/" + (post as unknown as { thread_parent_id?: string | null }).thread_parent_id} onClick={(e) => e.stopPropagation()} className="mb-1 inline-block text-[12px] text-pearl hover:underline">Part of a thread · view previous</Link>
+      ) : null}
+      {(post as unknown as { has_fact_check?: boolean }).has_fact_check ? (
+        <Link href={"/post/" + post.post_id} onClick={(e) => e.stopPropagation()} className="mb-1 flex w-fit items-center gap-1 rounded-md bg-pearl/10 px-2 py-0.5 text-[11px] font-semibold text-pearl hover:bg-pearl/15">
+          <ShieldCheck size={12} /> Fact check added
+        </Link>
       ) : null}
       {quotedId ? <QuoteCard quotedId={quotedId} /> : null}
 
