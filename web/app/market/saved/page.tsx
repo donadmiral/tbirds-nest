@@ -24,13 +24,13 @@ export default function SavedListingsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 px-1 pb-4">
-        <Link href="/market" className="text-sm text-white/50 hover:text-white">← Market</Link>
+        <Link href="/market" className="text-sm text-ink/50 hover:text-ink">← Market</Link>
         <h1 className="font-display text-xl text-porcelain">Saved listings</h1>
       </div>
       {loading ? (
-        <p className="py-16 text-center text-sm text-white/40">Loading</p>
+        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
       ) : listings.length === 0 ? (
-        <p className="py-16 text-center text-sm text-white/40">Listings you save will appear here.</p>
+        <p className="py-16 text-center text-sm text-ink/40">Listings you save will appear here.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 px-1 sm:grid-cols-3">
           {listings.map((l) => (

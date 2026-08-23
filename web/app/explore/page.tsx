@@ -52,9 +52,9 @@ export default function ExplorePage() {
     })();
   }, [supabase]);
 
-  const head = "flex items-center gap-1.5 pb-2 pt-7 text-[15px] font-semibold text-white";
+  const head = "flex items-center gap-1.5 pb-2 pt-7 text-[15px] font-semibold text-ink";
 
-  if (!loaded) return <p className="py-16 text-center text-sm text-white/40">Loading</p>;
+  if (!loaded) return <p className="py-16 text-center text-sm text-ink/40">Loading</p>;
 
   return (
     <div className="px-1">
@@ -67,8 +67,8 @@ export default function ExplorePage() {
             {topics.map((t) => {
               const tag = t.topic.startsWith("#") ? t.topic : "#" + t.topic;
               return (
-                <Link key={t.topic} href={"/topic/" + encodeURIComponent(tag.slice(1))} className="rounded-full bg-surface px-3.5 py-1.5 text-[13px] text-white/80 transition-colors hover:bg-surface-elevated hover:text-white">
-                  {tag} <span className="text-white/40">· {t.post_count}</span>
+                <Link key={t.topic} href={"/topic/" + encodeURIComponent(tag.slice(1))} className="rounded-full bg-surface px-3.5 py-1.5 text-[13px] text-ink/80 transition-colors hover:bg-surface-elevated hover:text-ink">
+                  {tag} <span className="text-ink/40">· {t.post_count}</span>
                 </Link>
               );
             })}
@@ -81,11 +81,11 @@ export default function ExplorePage() {
           <h2 className={head}>People to follow</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {people.map((p) => (
-              <div key={p.id} className="flex flex-col items-center gap-2 rounded-xl border border-white/10 p-4 text-center">
+              <div key={p.id} className="flex flex-col items-center gap-2 rounded-xl border border-ink/10 p-4 text-center">
                 <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={56} href={p.username ? "/" + p.username : null} />
                 <Link href={p.username ? "/" + p.username : "#"} className="min-w-0">
-                  <span className="block truncate text-[13px] font-semibold text-white">{p.full_name}</span>
-                  <span className="block truncate text-[12px] text-white/45">{p.headline || "@" + (p.username ?? "")}</span>
+                  <span className="block truncate text-[13px] font-semibold text-ink">{p.full_name}</span>
+                  <span className="block truncate text-[12px] text-ink/45">{p.headline || "@" + (p.username ?? "")}</span>
                 </Link>
                 <FollowButton authorId={p.id} size="md" />
               </div>
@@ -110,8 +110,8 @@ export default function ExplorePage() {
             <Link key={j.id} href={"/jobs/" + j.id} className="flex items-center gap-3 rounded-md px-1 py-2.5 transition-colors hover:bg-surface">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-pearl"><Briefcase size={16} /></span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[14px] font-semibold text-white">{j.title}</span>
-                <span className="block truncate text-[12px] text-white/45">{[j.company, j.location, j.salary_range].filter(Boolean).join(" · ")}</span>
+                <span className="block truncate text-[14px] font-semibold text-ink">{j.title}</span>
+                <span className="block truncate text-[12px] text-ink/45">{[j.company, j.location, j.salary_range].filter(Boolean).join(" · ")}</span>
               </span>
             </Link>
           ))}

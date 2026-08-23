@@ -48,23 +48,23 @@ export default function MyApplicationsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 px-1 pb-4">
-        <Link href="/jobs" className="text-sm text-white/50 hover:text-white">← Jobs</Link>
+        <Link href="/jobs" className="text-sm text-ink/50 hover:text-ink">← Jobs</Link>
         <h1 className="font-display text-xl text-porcelain">My applications</h1>
       </div>
       {loading ? (
-        <p className="py-16 text-center text-sm text-white/40">Loading</p>
+        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
       ) : apps.length === 0 ? (
-        <p className="py-16 text-center text-sm text-white/40">Roles you apply for show up here with their status.</p>
+        <p className="py-16 text-center text-sm text-ink/40">Roles you apply for show up here with their status.</p>
       ) : (
-        <div className="border-t border-white/10">
+        <div className="border-t border-ink/10">
           {apps.map((a) => {
             const meta = STATUS_META[a.status] || STATUS_META.applied;
             return (
-              <Link key={a.id} href={"/jobs/" + a.job_id} className="flex items-center gap-4 border-b border-white/10 px-1 py-4 transition-colors hover:bg-surface">
+              <Link key={a.id} href={"/jobs/" + a.job_id} className="flex items-center gap-4 border-b border-ink/10 px-1 py-4 transition-colors hover:bg-surface">
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px] font-semibold text-white">{a.job?.title ?? "Job"}</span>
-                  <span className="block truncate text-[13px] text-white/60">{a.job?.company}</span>
-                  <span className="block text-[12px] text-white/40">{timeAgo(a.applied_at || a.created_at || new Date().toISOString())}</span>
+                  <span className="block truncate text-[15px] font-semibold text-ink">{a.job?.title ?? "Job"}</span>
+                  <span className="block truncate text-[13px] text-ink/60">{a.job?.company}</span>
+                  <span className="block text-[12px] text-ink/40">{timeAgo(a.applied_at || a.created_at || new Date().toISOString())}</span>
                 </span>
                 <span className="shrink-0 rounded-full px-3 py-1 text-[12px] font-semibold" style={{ color: meta.color, backgroundColor: meta.bg }}>
                   {meta.label}

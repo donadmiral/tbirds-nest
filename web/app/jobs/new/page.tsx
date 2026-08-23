@@ -11,7 +11,7 @@ const CATEGORIES = [
   ["contract", "Contract"], ["temporary", "Temporary"],
 ] as const;
 
-const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated";
+const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated";
 
 export default function PostJobPage() {
   const supabase = createClient();
@@ -76,7 +76,7 @@ export default function PostJobPage() {
   return (
     <div>
       <div className="flex items-center gap-3 px-1 pb-4">
-        <Link href="/jobs" className="text-sm text-white/50 hover:text-white">← Jobs</Link>
+        <Link href="/jobs" className="text-sm text-ink/50 hover:text-ink">← Jobs</Link>
         <h1 className="font-display text-xl text-porcelain">Post a job</h1>
       </div>
       <div className="flex flex-col gap-3 px-1">
@@ -104,15 +104,15 @@ export default function PostJobPage() {
         <input className={inputCls} value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="Industry (optional)" />
         <input className={inputCls} value={benefits} onChange={(e) => setBenefits(e.target.value)} placeholder="Benefits (optional)" />
         <input className={inputCls} value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="External apply URL (optional)" />
-        <label className="flex items-center gap-2 text-[14px] text-white/70">
+        <label className="flex items-center gap-2 text-[14px] text-ink/70">
           Deadline
           <input type="date" className={inputCls} value={deadline} onChange={(e) => setDeadline(e.target.value)} />
         </label>
         <div className="flex gap-5">
-          <label className="flex items-center gap-2 text-[14px] text-white/70">
+          <label className="flex items-center gap-2 text-[14px] text-ink/70">
             <input type="checkbox" checked={visa} onChange={(e) => setVisa(e.target.checked)} className="accent-[#C9BFB0]" /> Visa sponsorship
           </label>
-          <label className="flex items-center gap-2 text-[14px] text-white/70">
+          <label className="flex items-center gap-2 text-[14px] text-ink/70">
             <input type="checkbox" checked={urgent} onChange={(e) => setUrgent(e.target.checked)} className="accent-[#C9BFB0]" /> Urgent hiring
           </label>
         </div>

@@ -35,7 +35,7 @@ export function SellerTrust({ sellerId }: { sellerId: string }) {
 
   if (!line) return null;
   return (
-    <span className="flex items-center gap-1 text-[12px] text-white/50">
+    <span className="flex items-center gap-1 text-[12px] text-ink/50">
       <Star size={12} className="text-pearl" /> {line}
     </span>
   );

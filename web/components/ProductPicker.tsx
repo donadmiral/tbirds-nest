@@ -91,32 +91,32 @@ export function ProductPicker({ selected, onChange, onClose }: {
     setExtOpen(false);
   }
 
-  const inputCls = "rounded-md bg-surface px-3 py-2 text-[13px] text-white placeholder:text-white/30 outline-none";
+  const inputCls = "rounded-md bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink/30 outline-none";
 
   return (
-    <div className="mt-2 rounded-lg border border-white/10 p-3">
+    <div className="mt-2 rounded-lg border border-ink/10 p-3">
       <div className="flex items-center justify-between pb-2">
-        <p className="text-[13px] font-semibold text-white">Attach products {selected.length > 0 ? "· " + selected.length : ""}</p>
-        <button onClick={onClose} title="Done" className="rounded-full p-1 text-white/50 hover:bg-surface hover:text-white"><X size={15} /></button>
+        <p className="text-[13px] font-semibold text-ink">Attach products {selected.length > 0 ? "· " + selected.length : ""}</p>
+        <button onClick={onClose} title="Done" className="rounded-full p-1 text-ink/50 hover:bg-surface hover:text-ink"><X size={15} /></button>
       </div>
 
       {mine === null ? (
-        <p className="py-6 text-center text-[12px] text-white/40">Loading your listings</p>
+        <p className="py-6 text-center text-[12px] text-ink/40">Loading your listings</p>
       ) : mine.length === 0 ? (
-        <p className="py-3 text-[12px] text-white/40">No available listings on your Market yet. You can still add an external product below.</p>
+        <p className="py-3 text-[12px] text-ink/40">No available listings on your Market yet. You can still add an external product below.</p>
       ) : (
         <div className="flex gap-2 overflow-x-auto pb-1">
           {mine.map((l) => {
             const on = selected.some((c) => c.id === "listing-" + l.id);
             return (
-              <button key={l.id} onClick={() => toggleListing(l)} className={"relative w-28 shrink-0 overflow-hidden rounded-lg border text-left transition-colors " + (on ? "border-pearl" : "border-white/10 hover:border-white/25")}>
+              <button key={l.id} onClick={() => toggleListing(l)} className={"relative w-28 shrink-0 overflow-hidden rounded-lg border text-left transition-colors " + (on ? "border-pearl" : "border-ink/10 hover:border-ink/25")}>
                 {on ? <span className="absolute right-1 top-1 z-10 rounded-full bg-pearl p-0.5 text-ink"><Check size={11} /></span> : null}
                 {l.images?.[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={l.images[0]} alt="" className="h-20 w-full bg-surface object-cover" />
                 ) : <span className="block h-20 w-full bg-surface" />}
                 <span className="block px-2 py-1.5">
-                  <span className="block truncate text-[11px] font-semibold text-white">{l.title}</span>
+                  <span className="block truncate text-[11px] font-semibold text-ink">{l.title}</span>
                   <span className="block text-[11px] text-pearl">{priceLabel(l)}</span>
                 </span>
               </button>
@@ -126,7 +126,7 @@ export function ProductPicker({ selected, onChange, onClose }: {
       )}
 
       {extOpen ? (
-        <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2">
+        <div className="mt-2 flex flex-col gap-2 border-t border-ink/10 pt-2">
           <input className={inputCls} value={extTitle} onChange={(e) => setExtTitle(e.target.value)} placeholder="Product name" />
           <div className="flex gap-2">
             <button onClick={() => setExtCurrency(extCurrency === "USD" ? "ZWG" : "USD")} className="rounded-md bg-surface px-3 py-2 text-[13px] font-semibold text-pearl">{extCurrency}</button>
@@ -136,7 +136,7 @@ export function ProductPicker({ selected, onChange, onClose }: {
           <input className={inputCls} value={extImage} onChange={(e) => setExtImage(e.target.value)} placeholder="Image link, optional" />
           <div className="flex gap-2">
             <button onClick={addExternal} disabled={!extTitle.trim() || !/^https?:\/\//.test(extUrl.trim())} className="rounded-md bg-pearl px-3.5 py-1.5 text-[12px] font-semibold text-ink disabled:opacity-40">Add product</button>
-            <button onClick={() => setExtOpen(false)} className="rounded-md bg-surface px-3.5 py-1.5 text-[12px] text-white">Cancel</button>
+            <button onClick={() => setExtOpen(false)} className="rounded-md bg-surface px-3.5 py-1.5 text-[12px] text-ink">Cancel</button>
           </div>
         </div>
       ) : (

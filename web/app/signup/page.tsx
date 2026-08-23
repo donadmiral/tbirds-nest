@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-const input = "rounded-md bg-surface px-4 py-3 text-[15px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated";
+const input = "rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated";
 
 export default function SignUpPage() {
   const supabase = useRef(createClient()).current;
@@ -49,8 +49,8 @@ export default function SignUpPage() {
         <div className="w-full max-w-sm text-center">
           <span className="mx-auto mb-4 block h-10 w-10 rounded-full border-2 border-pearl" aria-hidden />
           <h1 className="font-display text-xl text-porcelain">Check your email</h1>
-          <p className="mt-2 text-[14px] leading-relaxed text-white/60">
-            We sent a verification link to <span className="text-white">{email.trim().toLowerCase()}</span>. Open it, then sign in.
+          <p className="mt-2 text-[14px] leading-relaxed text-ink/60">
+            We sent a verification link to <span className="text-ink">{email.trim().toLowerCase()}</span>. Open it, then sign in.
           </p>
           <Link href="/login" className="mt-6 inline-block rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-ink">Go to sign in</Link>
         </div>
@@ -65,7 +65,7 @@ export default function SignUpPage() {
           <span className="h-9 w-9 rounded-full border-2 border-pearl" aria-hidden />
           <div>
             <h1 className="font-display text-xl text-porcelain">Create your account</h1>
-            <p className="text-[12px] text-white/50">Join Platinum Circles</p>
+            <p className="text-[12px] text-ink/50">Join Platinum Circles</p>
           </div>
         </div>
         <div className="flex flex-col gap-3">
@@ -80,10 +80,10 @@ export default function SignUpPage() {
             {pending ? "Creating" : "Create account"}
           </button>
         </div>
-        <p className="mt-6 text-[13px] text-white/50">
+        <p className="mt-6 text-[13px] text-ink/50">
           Already a member? <Link href="/login" className="text-pearl hover:underline">Sign in</Link>
         </p>
-        <p className="mt-2 text-[13px] text-white/50">
+        <p className="mt-2 text-[13px] text-ink/50">
           Company representative? <Link href="/business-login" className="text-pearl hover:underline">Business sign-in</Link>
         </p>
       </div>

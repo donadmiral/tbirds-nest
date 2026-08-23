@@ -44,15 +44,15 @@ export function DiscoveryRail() {
     })();
   }, [supabase]);
 
-  const card = "rounded-xl border border-white/10 bg-surface/40";
-  const header = "flex items-center gap-2 border-b border-white/10 px-4 py-3 text-[14px] font-semibold text-white";
+  const card = "rounded-xl border border-ink/10 bg-surface/40";
+  const header = "flex items-center gap-2 border-b border-ink/10 px-4 py-3 text-[14px] font-semibold text-ink";
 
   return (
     <div className="sticky top-6 flex w-full flex-col gap-4">
       {topics.length > 0 ? (
         <section className={card}>
           <h2 className={header}><TrendingUp size={15} className="text-pearl" /> Hot topics</h2>
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-ink/5">
             {topics.map((t) => {
               const tag = t.topic.startsWith("#") ? t.topic : "#" + t.topic;
               return (
@@ -60,8 +60,8 @@ export function DiscoveryRail() {
                   href={"/topic/" + encodeURIComponent(tag.slice(1))}
                   className="flex items-baseline justify-between px-4 py-2.5 transition-colors hover:bg-surface"
                 >
-                  <span className="truncate text-[14px] font-semibold text-white">{tag}</span>
-                  <span className="ml-3 shrink-0 text-[12px] text-white/40">{t.post_count} {t.post_count === 1 ? "post" : "posts"}</span>
+                  <span className="truncate text-[14px] font-semibold text-ink">{tag}</span>
+                  <span className="ml-3 shrink-0 text-[12px] text-ink/40">{t.post_count} {t.post_count === 1 ? "post" : "posts"}</span>
                 </Link>
               );
             })}
@@ -72,16 +72,16 @@ export function DiscoveryRail() {
       {people.length > 0 ? (
         <section className={card}>
           <h2 className={header}><UserPlus size={15} className="text-pearl" /> Who to follow</h2>
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-ink/5">
             {(showAll ? people : people.slice(0, 4)).map((p) => (
               <div key={p.id} className="flex items-center gap-3 px-4 py-3">
                 <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={40} href={p.username ? "/" + p.username : null} />
                 <Link href={p.username ? "/" + p.username : "#"} className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1 text-[14px] font-semibold leading-tight text-white">
+                  <span className="flex items-center gap-1 text-[14px] font-semibold leading-tight text-ink">
                     <span className="truncate">{p.full_name}</span>
                     {p.is_verified ? <VerifiedBadge size={13} /> : null}
                   </span>
-                  <span className="mt-0.5 block truncate text-[12px] leading-tight text-white/45">
+                  <span className="mt-0.5 block truncate text-[12px] leading-tight text-ink/45">
                     {p.headline || "@" + (p.username ?? "")}
                   </span>
                 </Link>
@@ -90,7 +90,7 @@ export function DiscoveryRail() {
             ))}
           </div>
           {people.length > 4 ? (
-            <button onClick={() => setShowAll((v) => !v)} className="w-full border-t border-white/10 px-4 py-2.5 text-left text-[13px] text-pearl transition-colors hover:bg-surface">
+            <button onClick={() => setShowAll((v) => !v)} className="w-full border-t border-ink/10 px-4 py-2.5 text-left text-[13px] text-pearl transition-colors hover:bg-surface">
               {showAll ? "Show less" : "Show more"}
             </button>
           ) : null}

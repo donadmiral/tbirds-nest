@@ -103,7 +103,7 @@ export default function ListingPage() {
     router.push("/market");
   }
 
-  if (l === undefined) return <p className="py-16 text-center text-sm text-white/40">Loading</p>;
+  if (l === undefined) return <p className="py-16 text-center text-sm text-ink/40">Loading</p>;
   if (l === null) {
     return (
       <div className="flex flex-col items-center gap-3 px-1 py-24 text-center">
@@ -115,21 +115,21 @@ export default function ListingPage() {
 
   const sold = l.status !== "available";
   const isOwner = uid === l.seller_id;
-  const btn = "flex items-center gap-1.5 rounded-md bg-surface px-3.5 py-2 text-[13px] text-white/80 transition-colors hover:bg-surface-elevated hover:text-white";
+  const btn = "flex items-center gap-1.5 rounded-md bg-surface px-3.5 py-2 text-[13px] text-ink/80 transition-colors hover:bg-surface-elevated hover:text-ink";
 
   return (
     <div className="px-1">
-      <Link href="/market" className="mb-4 inline-block text-sm text-white/50 hover:text-white">← Market</Link>
+      <Link href="/market" className="mb-4 inline-block text-sm text-ink/50 hover:text-ink">← Market</Link>
 
       <div className="relative overflow-hidden rounded-lg bg-surface">
         {l.images?.[img] ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={l.images[img]} alt="" className="max-h-[440px] w-full object-contain" />
         ) : (
-          <div className="flex h-64 items-center justify-center text-white/30">No photos</div>
+          <div className="flex h-64 items-center justify-center text-ink/30">No photos</div>
         )}
         {sold ? (
-          <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-[16px] font-extrabold tracking-widest text-white">
+          <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-[16px] font-extrabold tracking-widest text-ink">
             {l.status === "sold" ? "SOLD" : "UNAVAILABLE"}
           </span>
         ) : null}
@@ -145,23 +145,23 @@ export default function ListingPage() {
 
       <div className="mt-4">
         <p className="text-2xl font-semibold text-pearl">{priceLabel(l)}</p>
-        <h1 className="mt-0.5 text-xl font-semibold text-white">{l.title}</h1>
-        <p className="mt-1 text-[13px] text-white/40">
+        <h1 className="mt-0.5 text-xl font-semibold text-ink">{l.title}</h1>
+        <p className="mt-1 text-[13px] text-ink/40">
           {[l.category, l.condition, l.location_city, timeAgo(l.created_at)].filter(Boolean).join(" · ")}
         </p>
       </div>
 
-      <p className="mt-2 text-[13px] text-white/60">Collection · Meet the seller{l.delivery_available ? " · Delivery" + (l.delivery_fee != null && Number(l.delivery_fee) > 0 ? " " + priceLabel({ ...l, price: Number(l.delivery_fee) }) : " available") : ""}</p>
-      {l.delivery_available && l.delivery_note ? <p className="mt-0.5 text-[12px] text-white/40">{l.delivery_note}</p> : null}
+      <p className="mt-2 text-[13px] text-ink/60">Collection · Meet the seller{l.delivery_available ? " · Delivery" + (l.delivery_fee != null && Number(l.delivery_fee) > 0 ? " " + priceLabel({ ...l, price: Number(l.delivery_fee) }) : " available") : ""}</p>
+      {l.delivery_available && l.delivery_note ? <p className="mt-0.5 text-[12px] text-ink/40">{l.delivery_note}</p> : null}
 
       {isOwner ? (
         <div className="mt-4 flex flex-wrap gap-2">
           {!sold ? (
-            <button onClick={markSold} disabled={busy} className="flex items-center gap-1.5 rounded-md bg-danger px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40">
+            <button onClick={markSold} disabled={busy} className="flex items-center gap-1.5 rounded-md bg-danger px-4 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
               <CircleCheck size={16} /> Mark as sold
             </button>
           ) : (
-            <span className="rounded-md bg-surface px-4 py-2 text-[13px] text-white/60">This listing is marked {l.status}.</span>
+            <span className="rounded-md bg-surface px-4 py-2 text-[13px] text-ink/60">This listing is marked {l.status}.</span>
           )}
           <button onClick={onSave} className={btn + (saved ? " text-pearl" : "")}>
             <Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}
@@ -197,7 +197,7 @@ export default function ListingPage() {
             onChange={(e) => setOfferAmt(e.target.value)}
             placeholder={"Your offer in " + l.currency}
             inputMode="numeric"
-            className="w-44 rounded-md bg-surface px-4 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+            className="w-44 rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
           />
           <button onClick={sendOffer} disabled={busy} className="rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink disabled:opacity-40">
             {busy ? "Sending" : "Send offer"}
@@ -206,13 +206,13 @@ export default function ListingPage() {
       ) : null}
 
       {l.description ? (
-        <article className="mt-6 whitespace-pre-wrap border-t border-white/10 pt-5 text-[15px] leading-relaxed text-white/90">
+        <article className="mt-6 whitespace-pre-wrap border-t border-ink/10 pt-5 text-[15px] leading-relaxed text-ink/90">
           {l.description}
         </article>
       ) : null}
 
       {l.seller ? (
-        <Link href={l.seller.username ? "/" + l.seller.username : "#"} className="mt-6 flex items-center gap-3 rounded-lg border border-white/10 p-4 transition-colors hover:bg-surface">
+        <Link href={l.seller.username ? "/" + l.seller.username : "#"} className="mt-6 flex items-center gap-3 rounded-lg border border-ink/10 p-4 transition-colors hover:bg-surface">
           {l.seller.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <StoryAvatar userId={l.seller_id} name={l.seller.full_name} avatarUrl={l.seller.avatar_url} size={44} />
@@ -222,7 +222,7 @@ export default function ListingPage() {
             </span>
           )}
           <span className="min-w-0">
-            <span className="flex items-center gap-1 text-[14px] font-semibold text-white">
+            <span className="flex items-center gap-1 text-[14px] font-semibold text-ink">
               {l.seller.full_name}
               {l.seller.is_verified ? <VerifiedBadge size={14} /> : null}
             </span>
@@ -232,8 +232,8 @@ export default function ListingPage() {
       ) : null}
 
       {!isOwner ? (
-        <p className="mt-4 flex gap-4 text-[12px] text-white/40">
-          <button onClick={reportListing} className="hover:text-white/70">Report listing</button>
+        <p className="mt-4 flex gap-4 text-[12px] text-ink/40">
+          <button onClick={reportListing} className="hover:text-ink/70">Report listing</button>
           <button onClick={blockSeller} className="hover:text-danger">Block seller</button>
         </p>
       ) : null}

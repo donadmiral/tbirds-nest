@@ -138,27 +138,27 @@ export function Comments({ postId }: { postId: string }) {
           <StoryAvatar userId={c.user_id} name={c.author?.full_name} avatarUrl={c.author?.avatar_url} size={depth > 0 ? 30 : 36} href={c.author?.username ? "/" + c.author.username : null} />
           <div className="min-w-0 flex-1">
             <p className="flex items-baseline gap-1.5 text-[13px]">
-              <Link href={c.author?.username ? "/" + c.author.username : "#"} className="font-semibold text-white hover:underline">{c.author?.full_name ?? "Member"}</Link>
-              <span className="text-white/40">{timeAgo(c.created_at)}</span>
+              <Link href={c.author?.username ? "/" + c.author.username : "#"} className="font-semibold text-ink hover:underline">{c.author?.full_name ?? "Member"}</Link>
+              <span className="text-ink/40">{timeAgo(c.created_at)}</span>
             </p>
-            <p className="whitespace-pre-wrap text-[14px] text-white/90"><RichText text={c.body} /></p>
+            <p className="whitespace-pre-wrap text-[14px] text-ink/90"><RichText text={c.body} /></p>
             <div className="mt-1 flex items-center gap-4">
-              <button onClick={() => react(c.id, 1)} className={vb + " " + (mine === 1 ? "text-success" : "text-white/45 hover:text-success")}>
+              <button onClick={() => react(c.id, 1)} className={vb + " " + (mine === 1 ? "text-success" : "text-ink/45 hover:text-success")}>
                 <ThumbsUp size={13} fill={mine === 1 ? "currentColor" : "none"} /> {c.likes_count > 0 ? c.likes_count : ""}
               </button>
-              <button onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-white/45 hover:text-danger")}>
+              <button onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-ink/45 hover:text-danger")}>
                 <ThumbsDown size={13} fill={mine === -1 ? "currentColor" : "none"} /> {c.dislikes_count > 0 ? c.dislikes_count : ""}
               </button>
-              <button onClick={() => startReply(c)} className={vb + " text-white/45 hover:text-white"}>
+              <button onClick={() => startReply(c)} className={vb + " text-ink/45 hover:text-ink"}>
                 <Reply size={13} /> Reply
               </button>
               <span className="relative">
-                <button onClick={() => setMenuFor(menuFor === c.id ? null : c.id)} className="rounded-full p-1 text-white/30 opacity-0 transition-opacity hover:bg-surface hover:text-white group-hover:opacity-100" title="More">
+                <button onClick={() => setMenuFor(menuFor === c.id ? null : c.id)} className="rounded-full p-1 text-ink/30 opacity-0 transition-opacity hover:bg-surface hover:text-ink group-hover:opacity-100" title="More">
                   <MoreHorizontal size={14} />
                 </button>
                 {menuFor === c.id ? (
-                  <span className="absolute left-0 top-7 z-20 w-40 overflow-hidden rounded-lg border border-white/10 bg-navy shadow-2xl">
-                    <button onClick={() => copyText(c)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/85 hover:bg-surface-elevated"><Copy size={13} /> Copy text</button>
+                  <span className="absolute left-0 top-7 z-20 w-40 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
+                    <button onClick={() => copyText(c)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-ink/85 hover:bg-surface-elevated"><Copy size={13} /> Copy text</button>
                     {uid === c.user_id ? (
                       <button onClick={() => remove(c)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-danger hover:bg-surface-elevated"><Trash2 size={13} /> Delete</button>
                     ) : null}
@@ -182,13 +182,13 @@ export function Comments({ postId }: { postId: string }) {
   }
 
   return (
-    <section className="mt-6 border-t border-white/10 pt-4">
-      <h2 className="text-[15px] font-semibold text-white">{items.length > 0 ? "Comments" : "No comments yet"}</h2>
-      {!loaded ? <p className="py-6 text-center text-sm text-white/40">Loading</p> : items.map((c) => <Row key={c.id} c={c} depth={0} />)}
+    <section className="mt-6 border-t border-ink/10 pt-4">
+      <h2 className="text-[15px] font-semibold text-ink">{items.length > 0 ? "Comments" : "No comments yet"}</h2>
+      {!loaded ? <p className="py-6 text-center text-sm text-ink/40">Loading</p> : items.map((c) => <Row key={c.id} c={c} depth={0} />)}
       <div className="mt-5">
         {replyTo ? (
-          <p className="mb-1 flex items-center gap-2 text-[12px] text-white/50">
-            Replying to <span className="font-semibold text-white/80">{replyTo.author?.full_name}</span>
+          <p className="mb-1 flex items-center gap-2 text-[12px] text-ink/50">
+            Replying to <span className="font-semibold text-ink/80">{replyTo.author?.full_name}</span>
             <button onClick={() => setReplyTo(null)} className="text-pearl hover:underline">Cancel</button>
           </p>
         ) : null}
@@ -199,7 +199,7 @@ export function Comments({ postId }: { postId: string }) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
             placeholder={replyTo ? "Write a reply" : "Add a comment"}
             rows={1}
-            className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+            className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
           />
           <button onClick={submit} disabled={busy || !draft.trim()} className="rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink disabled:opacity-30">
             {busy ? "Sending" : "Send"}

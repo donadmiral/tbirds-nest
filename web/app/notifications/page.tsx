@@ -14,7 +14,7 @@ function iconFor(type: string) {
   if (type === "follow") return <UserPlus size={15} className="text-pearl" />;
   if (type === "follow_request") return <ShieldQuestion size={15} className="text-pearl" />;
   if (type === "mention") return <AtSign size={15} className="text-pearl" />;
-  return <Bell size={15} className="text-white/45" />;
+  return <Bell size={15} className="text-ink/45" />;
 }
 import { timeAgo } from "@/lib/feed";
 
@@ -144,30 +144,30 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <p className="py-16 text-center text-sm text-white/40">Loading</p>
+        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
       ) : rows.length === 0 ? (
-        <p className="py-16 text-center text-sm text-white/40">Nothing here yet. Engagement on your posts and profile lands here.</p>
+        <p className="py-16 text-center text-sm text-ink/40">Nothing here yet. Engagement on your posts and profile lands here.</p>
       ) : (
         sections.map((s) => (
           <section key={s.title}>
-            <h2 className="pb-1.5 pt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/30">{s.title}</h2>
+            <h2 className="pb-1.5 pt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/30">{s.title}</h2>
             {s.items.map((n) => {
               const { lead, rest } = lineFor(n);
               const unread = !n.read_at || n.unread_in_group > 0;
               return (
                 <Link key={n.notification_id}
                   href={hrefFor(n)}
-                  className={"relative flex items-center gap-3 border-b border-white/5 py-3.5 pl-5 pr-2 transition-colors hover:bg-surface/60 " + (unread ? "" : "opacity-90")}
+                  className={"relative flex items-center gap-3 border-b border-ink/5 py-3.5 pl-5 pr-2 transition-colors hover:bg-surface/60 " + (unread ? "" : "opacity-90")}
                 >
                   {unread ? <span aria-hidden className="absolute left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-pearl" /> : null}
                   <span className="w-5 shrink-0" aria-hidden>{iconFor(n.type)}</span>
                   <StoryAvatar userId={n.actor_id} name={n.actor_name} avatarUrl={n.actor_avatar} size={40} />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[14px] leading-snug text-white/90">
-                      <span className="font-semibold text-white">{lead}</span>
+                    <span className="block text-[14px] leading-snug text-ink/90">
+                      <span className="font-semibold text-ink">{lead}</span>
                       {rest}
                     </span>
-                    <span className="mt-0.5 flex items-center gap-2 text-[12px] text-white/40">
+                    <span className="mt-0.5 flex items-center gap-2 text-[12px] text-ink/40">
                       {timeAgo(n.created_at)}
                       {n.unread_in_group > 0 ? <span className="rounded-full bg-pearl px-1.5 py-px text-[10px] font-bold text-ink">{n.unread_in_group} new</span> : null}
                     </span>
@@ -183,7 +183,7 @@ export default function NotificationsPage() {
                         const reqId = (n.data as { request_id?: string }).request_id!;
                         const { error } = await supabase.rpc("respond_follow_request", { p_request_id: reqId, p_action: "reject" });
                         if (!error) setRows((prev) => prev.filter((r) => r.notification_id !== n.notification_id));
-                      }} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-white transition-colors hover:bg-surface-elevated">Delete</button>
+                      }} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink transition-colors hover:bg-surface-elevated">Delete</button>
                     </span>
                   ) : null}
                   {n.type === "follow" && n.actor_id && !n.viewer_follows ? (

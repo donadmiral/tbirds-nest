@@ -4,17 +4,17 @@
    Temperature: warm nocturnal calm. Navy atmosphere, softened whites,
    intimate luminance. Semantic names, never raw hex in components. */
 @theme {
-  --color-ink: rgb(6 12 24);
-  --color-navy: #0b1e3d;
+  --color-ink: #0b1e3d;
+  --color-navy: #ffffff;
   --color-pearl: #c9bfb0;
-  --color-pearl-muted: #a89f91;
-  --color-porcelain: #f5f0eb;
-  --color-surface: rgba(255, 255, 255, 0.08);
-  --color-surface-elevated: rgba(255, 255, 255, 0.12);
-  --color-surface-active: rgba(255, 255, 255, 0.15);
+  --color-pearl-muted: #8f8477;
+  --color-porcelain: #0b1e3d;
+  --color-surface: rgba(11, 30, 61, 0.06);
+  --color-surface-elevated: rgba(11, 30, 61, 0.10);
+  --color-surface-active: rgba(11, 30, 61, 0.14);
   --color-danger: #ff3b30;
-  --color-success: #34c759;
-  --color-info: #007aff;
+  --color-success: #059669;
+  --color-info: #2563eb;
   --color-warn: #ff9500;
 
   --radius-xs: 4px;
@@ -28,7 +28,8 @@
 }
 
 body {
-  background: var(--color-ink);
+  background: #ffffff;
+  color: var(--color-ink);
   color: #ffffff;
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;

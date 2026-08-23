@@ -62,7 +62,7 @@ export function FollowButton({ authorId, size = "sm" }: { authorId: string | nul
   return (
     <button onClick={toggle}
       className={"shrink-0 rounded-full font-semibold transition-colors " + cls + " " +
-        (state === "none" ? "bg-pearl text-ink hover:opacity-90" : "bg-surface text-white/70 hover:bg-surface-elevated")}
+        (state === "none" ? "bg-pearl text-ink hover:opacity-90" : "bg-surface text-ink/70 hover:bg-surface-elevated")}
     >
       {label}
     </button>

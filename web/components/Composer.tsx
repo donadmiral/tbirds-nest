@@ -209,13 +209,13 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   }
 
   const remaining = MAX_CHARS - text.length;
-  const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors " + (on ? "bg-surface-elevated font-semibold text-white" : "bg-surface text-white/55 hover:text-white");
+  const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/55 hover:text-ink");
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="mb-2 flex w-full items-center gap-3 rounded-lg border border-white/10 px-4 py-3 text-left transition-colors hover:bg-surface">
+      <button onClick={() => setOpen(true)} className="mb-2 flex w-full items-center gap-3 rounded-lg border border-ink/10 px-4 py-3 text-left transition-colors hover:bg-surface">
         <span className="h-2 w-2 rounded-full bg-pearl" aria-hidden />
-        <span className="text-[15px] text-white/40">Share something with your circles</span>
+        <span className="text-[15px] text-ink/40">Share something with your circles</span>
       </button>
     );
   }
@@ -224,20 +224,20 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
-      className={"relative mb-3 flex max-h-[82vh] flex-col rounded-lg border p-4 transition-colors " + (dragOver ? "border-pearl bg-surface" : "border-white/10")}
+      className={"relative mb-3 flex max-h-[82vh] flex-col rounded-lg border p-4 transition-colors " + (dragOver ? "border-pearl bg-surface" : "border-ink/10")}
     >
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
       {quote ? (
-        <div className="mb-2 rounded-lg border border-white/10 p-2.5">
-          <p className="text-[11px] uppercase tracking-wide text-white/40">Quoting {quote.author}</p>
-          <p className="mt-0.5 line-clamp-2 text-[13px] text-white/70">{quote.text}</p>
+        <div className="mb-2 rounded-lg border border-ink/10 p-2.5">
+          <p className="text-[11px] uppercase tracking-wide text-ink/40">Quoting {quote.author}</p>
+          <p className="mt-0.5 line-clamp-2 text-[13px] text-ink/70">{quote.text}</p>
         </div>
       ) : null}
       {inno ? (
         <input value={articleTitle}
           onChange={(e) => setArticleTitle(e.target.value)}
           placeholder="Article title (optional)"
-          className="mb-2 w-full rounded-md bg-surface px-3 py-2 text-[15px] font-semibold text-white placeholder:text-white/30 outline-none"
+          className="mb-2 w-full rounded-md bg-surface px-3 py-2 text-[15px] font-semibold text-ink placeholder:text-ink/30 outline-none"
         />
       ) : null}
       <textarea ref={taRef}
@@ -247,10 +247,10 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
         placeholder={inno ? "Share your innovation" : "What is happening?"}
         rows={3}
         autoFocus
-        className="w-full resize-none bg-transparent text-[15px] text-white placeholder:text-white/30 outline-none"
+        className="w-full resize-none bg-transparent text-[15px] text-ink placeholder:text-ink/30 outline-none"
       />
       {mentions.length > 0 ? (
-        <div className="absolute z-20 w-64 overflow-hidden rounded-lg border border-white/10 bg-navy shadow-2xl">
+        <div className="absolute z-20 w-64 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
           {mentions.map((u) => (
             <button key={u.id} onClick={() => pickMention(u)} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-surface-elevated">
               {u.avatar_url ? (
@@ -260,8 +260,8 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-xs font-semibold text-porcelain">{(u.full_name ?? "?").charAt(0)}</span>
               )}
               <span className="min-w-0">
-                <span className="block truncate text-[13px] font-semibold text-white">{u.full_name}</span>
-                <span className="block truncate text-[12px] text-white/50">@{u.username}</span>
+                <span className="block truncate text-[13px] font-semibold text-ink">{u.full_name}</span>
+                <span className="block truncate text-[12px] text-ink/50">@{u.username}</span>
               </span>
             </button>
           ))}
@@ -273,7 +273,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
           {INNO_FIELDS.map((f) => (
             <button key={f} onClick={() => setInnoField(innoField === f ? null : f)} className={chip(innoField === f)}>{f}</button>
           ))}
-          <span className="mx-1 text-white/20">|</span>
+          <span className="mx-1 text-ink/20">|</span>
           {INNO_STAGES.map((g) => (
             <button key={g} onClick={() => setInnoStage(innoStage === g ? null : g)} className={chip(innoStage === g)}>{g}</button>
           ))}
@@ -289,8 +289,8 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={p.preview} alt="" className="h-20 w-20 rounded-md object-cover" />
               )}
-              {p.isVideo ? <span className="absolute bottom-1 left-1 rounded-sm bg-ink/70 px-1 text-[9px] font-bold text-white">VIDEO</span> : null}
-              <button onClick={() => setItems(items.filter((_, x) => x !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-white/70 hover:text-white">
+              {p.isVideo ? <span className="absolute bottom-1 left-1 rounded-sm bg-ink/70 px-1 text-[9px] font-bold text-ink">VIDEO</span> : null}
+              <button onClick={() => setItems(items.filter((_, x) => x !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-ink/70 hover:text-ink">
                 <X size={13} />
               </button>
             </span>
@@ -307,70 +307,70 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
                 onChange={(e) => setItems((list) => list.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))}
                 placeholder="Describe this image, helps people using screen readers"
                 maxLength={500}
-                className="min-w-0 flex-1 rounded-md bg-surface px-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:bg-surface-elevated"
+                className="min-w-0 flex-1 rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink placeholder:text-ink/25 outline-none focus:bg-surface-elevated"
               />
             </span>
           ))}
         </div>
       ) : null}
       {threadTo ? (
-        <p className="mt-2 flex items-center gap-2 rounded-md bg-surface px-3 py-2 text-[12px] text-white/70">
+        <p className="mt-2 flex items-center gap-2 rounded-md bg-surface px-3 py-2 text-[12px] text-ink/70">
           Adding to your thread
           <button onClick={() => setThreadTo(null)} className="ml-auto text-pearl hover:underline">Cancel</button>
         </p>
       ) : null}
       {preview ? (
-        <span className="mt-2 flex items-center gap-3 overflow-hidden rounded-lg border border-white/10 p-2.5">
+        <span className="mt-2 flex items-center gap-3 overflow-hidden rounded-lg border border-ink/10 p-2.5">
           {preview.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={preview.image_url} alt="" className="h-12 w-12 shrink-0 rounded-md bg-surface object-cover" />
           ) : null}
           <span className="min-w-0 flex-1">
-            <span className="block text-[10px] font-bold uppercase tracking-wide text-white/40">{preview.domain ?? ""}</span>
-            <span className="line-clamp-2 block text-[13px] font-semibold text-white">{preview.title ?? preview.url}</span>
+            <span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{preview.domain ?? ""}</span>
+            <span className="line-clamp-2 block text-[13px] font-semibold text-ink">{preview.title ?? preview.url}</span>
           </span>
-          <button onClick={() => { previewOff.current = preview.url; setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-white/40 hover:bg-surface hover:text-white"><X size={14} /></button>
+          <button onClick={() => { previewOff.current = preview.url; setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-ink/40 hover:bg-surface hover:text-ink"><X size={14} /></button>
         </span>
       ) : null}
       {pickerOpen ? <ProductPicker selected={products} onChange={setProducts} onClose={() => setPickerOpen(false)} /> : null}
       {!pickerOpen && products.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {products.map((c) => (
-            <span key={c.id} className="flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-white/80">
+            <span key={c.id} className="flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-ink/80">
               <Tag size={10} className="text-pearl" /> {c.title}
-              <button onClick={() => setProducts(products.filter((x) => x.id !== c.id))} className="text-white/40 hover:text-white"><X size={11} /></button>
+              <button onClick={() => setProducts(products.filter((x) => x.id !== c.id))} className="text-ink/40 hover:text-ink"><X size={11} /></button>
             </span>
           ))}
         </div>
       ) : null}
       {error ? <p className="mt-2 text-[13px] text-danger">{error}</p> : null}
       </div>
-      <div className="mt-3 flex shrink-0 items-center gap-2 border-t border-white/10 pt-3">
-        <button onClick={() => fileRef.current?.click()} disabled={items.length >= MAX_MEDIA} title="Add photos or videos" className="rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-30">
+      <div className="mt-3 flex shrink-0 items-center gap-2 border-t border-ink/10 pt-3">
+        <button onClick={() => fileRef.current?.click()} disabled={items.length >= MAX_MEDIA} title="Add photos or videos" className="rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-30">
           <ImagePlus size={19} />
         </button>
         <input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
-        <button onClick={() => setPickerOpen((v) => !v)} title="Attach products" className={"relative flex items-center rounded-md p-2 transition-colors " + (products.length > 0 ? "text-pearl" : "text-white/50 hover:bg-surface hover:text-pearl")}>
+        <button onClick={() => setPickerOpen((v) => !v)} title="Attach products" className={"relative flex items-center rounded-md p-2 transition-colors " + (products.length > 0 ? "text-pearl" : "text-ink/50 hover:bg-surface hover:text-pearl")}>
           <Tag size={17} />
           {products.length > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pearl px-1 text-[9px] font-bold text-ink">{products.length}</span> : null}
         </button>
-        <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] transition-colors " + (inno ? "bg-surface-elevated font-semibold text-pearl" : "text-white/50 hover:bg-surface hover:text-white")}>
+        <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] transition-colors " + (inno ? "bg-surface-elevated font-semibold text-pearl" : "text-ink/50 hover:bg-surface hover:text-ink")}>
           <Lightbulb size={15} /> Innovation
         </button>
         <select value={audience}
           onChange={(e) => setAudience(e.target.value as typeof audience)}
-          className="rounded-md bg-surface px-2 py-1.5 text-[13px] text-white/80 outline-none"
+          className="rounded-md bg-surface px-2 py-1.5 text-[13px] text-ink/80 outline-none"
         >
           {AUDIENCES.map((a) => (
             <option key={a.key} value={a.key} className="bg-navy">{a.label}</option>
           ))}
         </select>
-        {items.length > 0 ? <span className="text-[12px] text-white/40">{items.length}/{MAX_MEDIA}</span> : null}
+        {items.length > 0 ? <span className="text-[12px] text-ink/40">{items.length}/{MAX_MEDIA}</span> : null}
         {remaining <= 200 ? (
-          <span className={"text-[12px] font-semibold " + (remaining <= 20 ? "text-danger" : "text-white/50")}>{remaining} left</span>
+          <span className={"text-[12px] font-semibold " + (remaining <= 20 ? "text-danger" : "text-ink/50")}>{remaining} left</span>
         ) : null}
         <div className="ml-auto flex gap-2">
-          <button onClick={() => { setOpen(false); setError(null); onQuoteDone?.(); }} className="rounded-md bg-surface px-4 py-2 text-[13px] text-white">Cancel</button>
+          <button onClick={() => { setOpen(false); setError(null); onQuoteDone?.(); }} className="rounded-md bg-surface px-4 py-2 text-[13px] text-ink">Cancel</button>
           <button onClick={post} disabled={pending || (!text.trim() && items.length === 0)} className="rounded-md bg-pearl px-5 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
             {pending ? "Posting" : "Post"}
           </button>

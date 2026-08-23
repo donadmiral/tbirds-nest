@@ -36,10 +36,10 @@ export function AnnouncementBanner() {
     <div className="mb-3 flex items-start gap-3 rounded-lg border border-pearl/30 bg-surface p-3.5">
       <Megaphone size={17} className="mt-0.5 shrink-0 text-pearl" />
       <div className="min-w-0 flex-1">
-        {a.title ? <p className="text-[14px] font-semibold text-white">{a.title}</p> : null}
-        {a.body ? <p className="mt-0.5 text-[13px] text-white/70">{a.body}</p> : null}
+        {a.title ? <p className="text-[14px] font-semibold text-ink">{a.title}</p> : null}
+        {a.body ? <p className="mt-0.5 text-[13px] text-ink/70">{a.body}</p> : null}
       </div>
-      <button onClick={dismiss} title="Dismiss" className="shrink-0 rounded-full p-1 text-white/40 hover:bg-surface-elevated hover:text-white">
+      <button onClick={dismiss} title="Dismiss" className="shrink-0 rounded-full p-1 text-ink/40 hover:bg-surface-elevated hover:text-ink">
         <X size={15} />
       </button>
     </div>

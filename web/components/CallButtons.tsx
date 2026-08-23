@@ -5,7 +5,7 @@ import { requestWebCall } from "@/lib/calls";
 
 export function CallButtons({ otherId, conversationId, name }: { otherId: string | null; conversationId: string | null; name: string }) {
   if (!otherId) return null;
-  const btn = "rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-pearl";
+  const btn = "rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-pearl";
   return (
     <span className="ml-auto flex items-center gap-1">
       <button onClick={() => requestWebCall({ receiverId: otherId, conversationId, isVideo: false, name })} title="Voice call" className={btn}>

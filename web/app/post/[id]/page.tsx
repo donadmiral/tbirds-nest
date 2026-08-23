@@ -65,7 +65,7 @@ export default async function PostPage({ params }: Params) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 px-6 text-center">
         <h1 className="font-display text-2xl text-porcelain">This post is not available</h1>
-        <p className="text-sm text-white/50">It may be private, deleted, or you may need to sign in.</p>
+        <p className="text-sm text-ink/50">It may be private, deleted, or you may need to sign in.</p>
         <Link href="/" className="mt-2 rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-ink">
           Open Platinum Circles
         </Link>
@@ -123,13 +123,13 @@ export default async function PostPage({ params }: Params) {
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[640px] px-4 py-6">
-      <Link href={viewerId ? "/home" : "/"} className="mb-4 inline-block text-sm text-white/50 hover:text-white">
+      <Link href={viewerId ? "/home" : "/"} className="mb-4 inline-block text-sm text-ink/50 hover:text-ink">
         ← Platinum Circles
       </Link>
       <PostCard post={row} />
       <FactCheckBanner postId={id} />
       <section className="mt-2">
-        <h2 className="px-1 py-3 text-[15px] font-semibold text-white">
+        <h2 className="px-1 py-3 text-[15px] font-semibold text-ink">
         </h2>
         <Comments postId={id} />
       </section>

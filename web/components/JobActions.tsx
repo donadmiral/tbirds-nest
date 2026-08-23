@@ -43,7 +43,7 @@ export function JobActions({ jobId, posterId, initiallySaved, viewerId }: {
     router.push(data ? "/jobs/messages?c=" + data : "/jobs/messages");
   }
 
-  const btn = "flex items-center gap-1.5 rounded-md bg-surface px-3.5 py-2 text-[13px] text-white/80 transition-colors hover:bg-surface-elevated hover:text-white";
+  const btn = "flex items-center gap-1.5 rounded-md bg-surface px-3.5 py-2 text-[13px] text-ink/80 transition-colors hover:bg-surface-elevated hover:text-ink";
 
   return (
     <div className="flex flex-wrap gap-2">

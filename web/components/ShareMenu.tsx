@@ -74,22 +74,22 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
     setTimeout(() => { setSent(null); setSendMode(false); setOpen(false); }, 700);
   }
 
-  const item = "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] text-white/85 transition-colors hover:bg-surface-elevated";
+  const item = "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] text-ink/85 transition-colors hover:bg-surface-elevated";
 
   return (
     <div ref={boxRef} className="relative">
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
         title="Share"
-        className="flex items-center gap-1.5 text-[13px] text-white/50 transition-colors hover:text-pearl"
+        className="flex items-center gap-1.5 text-[13px] text-ink/50 transition-colors hover:text-pearl"
       >
         <Share2 size={16} strokeWidth={1.8} />
         {n > 0 ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "K" : n) : ""}
       </button>
       {open ? (
-        <div className="absolute bottom-7 right-0 z-20 w-60 overflow-hidden rounded-lg border border-white/10 bg-navy shadow-2xl">
+        <div className="absolute bottom-7 right-0 z-20 w-60 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
           {sendMode ? (
             convs.length === 0 ? (
-              <p className="px-3.5 py-3 text-[12px] text-white/40">No conversations yet.</p>
+              <p className="px-3.5 py-3 text-[12px] text-ink/40">No conversations yet.</p>
             ) : (
               convs.map((c) => (
                 <button key={c.id} onClick={(e) => { e.stopPropagation(); sendTo(c); }} className={item}>

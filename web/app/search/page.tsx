@@ -65,20 +65,20 @@ export default function SearchPage() {
     return () => clearTimeout(t);
   }, [q, supabase]);
 
-  const head = "pb-1 pt-5 text-[12px] font-semibold uppercase tracking-wide text-white/40";
+  const head = "pb-1 pt-5 text-[12px] font-semibold uppercase tracking-wide text-ink/40";
   const nothing = searched && !searching && people.length === 0 && posts.length === 0 && jobs.length === 0 && listings.length === 0;
 
   return (
     <div className="px-1">
       <div className="flex items-center gap-2">
-        <button onClick={() => router.back()} title="Back" className="shrink-0 rounded-full p-2 text-white/60 transition-colors hover:bg-surface hover:text-white"><ArrowLeft size={19} /></button>
+        <button onClick={() => router.back()} title="Back" className="shrink-0 rounded-full p-2 text-ink/60 transition-colors hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></button>
       <div className="relative flex-1">
-        <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+        <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
         <input value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search Platinum Circles"
           autoFocus
-          className="w-full rounded-lg bg-surface py-3 pl-11 pr-4 text-[15px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+          className="w-full rounded-lg bg-surface py-3 pl-11 pr-4 text-[15px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
         />
       </div>
       </div>
@@ -91,8 +91,8 @@ export default function SearchPage() {
               {topics.map((t) => {
                 const tag = t.topic.startsWith("#") ? t.topic : "#" + t.topic;
                 return (
-                  <Link key={t.topic} href={"/topic/" + encodeURIComponent(tag.slice(1))} className="rounded-full bg-surface px-3.5 py-1.5 text-[13px] text-white/80 transition-colors hover:bg-surface-elevated hover:text-white">
-                    {tag} <span className="text-white/40">· {t.post_count}</span>
+                  <Link key={t.topic} href={"/topic/" + encodeURIComponent(tag.slice(1))} className="rounded-full bg-surface px-3.5 py-1.5 text-[13px] text-ink/80 transition-colors hover:bg-surface-elevated hover:text-ink">
+                    {tag} <span className="text-ink/40">· {t.post_count}</span>
                   </Link>
                 );
               })}
@@ -100,9 +100,9 @@ export default function SearchPage() {
           </div>
         ) : null
       ) : searching && !searched ? (
-        <p className="py-14 text-center text-sm text-white/40">Searching</p>
+        <p className="py-14 text-center text-sm text-ink/40">Searching</p>
       ) : nothing ? (
-        <p className="py-14 text-center text-sm text-white/40">Nothing found for &ldquo;{q.trim()}&rdquo;.</p>
+        <p className="py-14 text-center text-sm text-ink/40">Nothing found for &ldquo;{q.trim()}&rdquo;.</p>
       ) : (
         <>
           {people.length > 0 ? (
@@ -112,8 +112,8 @@ export default function SearchPage() {
                 <div key={p.id} className="flex items-center gap-3 rounded-md px-1 py-2 transition-colors hover:bg-surface">
                   <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={42} href={p.username ? "/" + p.username : null} />
                   <Link href={p.username ? "/" + p.username : "#"} className="min-w-0 flex-1">
-                    <span className="block truncate text-[14px] font-semibold text-white">{p.full_name}</span>
-                    <span className="block truncate text-[12px] text-white/45">{p.headline || "@" + (p.username ?? "")}</span>
+                    <span className="block truncate text-[14px] font-semibold text-ink">{p.full_name}</span>
+                    <span className="block truncate text-[12px] text-ink/45">{p.headline || "@" + (p.username ?? "")}</span>
                   </Link>
                   <FollowButton authorId={p.id} />
                 </div>
@@ -129,10 +129,10 @@ export default function SearchPage() {
                   <StoryAvatar userId={p.user_id} name={p.author?.full_name} avatarUrl={p.author?.avatar_url} size={36} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline gap-1.5 text-[13px]">
-                      <span className="truncate font-semibold text-white">{p.author?.full_name ?? "Member"}</span>
-                      <span className="shrink-0 text-white/40">{timeAgo(p.created_at)}</span>
+                      <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"}</span>
+                      <span className="shrink-0 text-ink/40">{timeAgo(p.created_at)}</span>
                     </span>
-                    <span className="line-clamp-2 block text-[13px] text-white/80"><RichText text={p.content ?? ""} /></span>
+                    <span className="line-clamp-2 block text-[13px] text-ink/80"><RichText text={p.content ?? ""} /></span>
                   </span>
                 </Link>
               ))}
@@ -146,8 +146,8 @@ export default function SearchPage() {
                 <Link key={j.id} href={"/jobs/" + j.id} className="flex items-center gap-3 rounded-md px-1 py-2.5 transition-colors hover:bg-surface">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-pearl"><Briefcase size={16} /></span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[14px] font-semibold text-white">{j.title}</span>
-                    <span className="block truncate text-[12px] text-white/45">{[j.company, j.location, j.salary_range].filter(Boolean).join(" · ")}</span>
+                    <span className="block truncate text-[14px] font-semibold text-ink">{j.title}</span>
+                    <span className="block truncate text-[12px] text-ink/45">{[j.company, j.location, j.salary_range].filter(Boolean).join(" · ")}</span>
                   </span>
                 </Link>
               ))}
@@ -166,7 +166,7 @@ export default function SearchPage() {
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-surface text-pearl"><ShoppingBag size={16} /></span>
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[14px] font-semibold text-white">{l.title}</span>
+                    <span className="block truncate text-[14px] font-semibold text-ink">{l.title}</span>
                     <span className="block text-[13px] text-pearl">{(l.currency === "USD" ? "$" : l.currency + " ") + Number(l.price).toLocaleString()}</span>
                   </span>
                 </Link>

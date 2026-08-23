@@ -103,10 +103,10 @@ export function ProfilePosts({ profileId, authorName, authorUsername, authorAvat
   }, [load]);
 
   if (loading) {
-    return <p className="py-12 text-center text-sm text-white/40">Loading posts</p>;
+    return <p className="py-12 text-center text-sm text-ink/40">Loading posts</p>;
   }
   if (posts.length === 0) {
-    return <p className="py-12 text-center text-sm text-white/40">No posts yet.</p>;
+    return <p className="py-12 text-center text-sm text-ink/40">No posts yet.</p>;
   }
   return (
     <div>
@@ -115,7 +115,7 @@ export function ProfilePosts({ profileId, authorName, authorUsername, authorAvat
       ))}
       {hasMore ? (
         <div className="flex justify-center py-6">
-          <button onClick={() => load(true)} className="rounded-md bg-surface px-5 py-2.5 text-sm text-white hover:bg-surface-elevated">
+          <button onClick={() => load(true)} className="rounded-md bg-surface px-5 py-2.5 text-sm text-ink hover:bg-surface-elevated">
             Load more
           </button>
         </div>

@@ -19,7 +19,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
       <div className="flex gap-4 overflow-x-auto px-1 pb-3 pt-1">
         {users.map((u, i) => (
           <button key={u.user_id} onClick={() => setOpenAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
-            <span className={"rounded-full p-[2.5px] " + (u.has_unseen ? "bg-gradient-to-br from-pearl via-porcelain to-pearl" : "bg-white/20")}>
+            <span className={"rounded-full p-[2.5px] " + (u.has_unseen ? "bg-gradient-to-br from-pearl via-porcelain to-pearl" : "bg-ink/20")}>
               <span className="block rounded-full bg-ink p-[2px]">
                 {u.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -31,7 +31,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
                 )}
               </span>
             </span>
-            <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-white" : "text-white/50")}>
+            <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-ink/50")}>
               {u.full_name?.split(" ")[0] ?? u.username}
             </span>
           </button>

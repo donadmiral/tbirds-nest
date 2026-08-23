@@ -7,7 +7,7 @@ import { ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { MARKET_CATEGORIES, MARKET_CONDITIONS } from "@/lib/market";
 
-const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated";
+const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated";
 
 type Photo = { file: File; preview: string };
 
@@ -129,7 +129,7 @@ export default function CreateListingPage() {
   if (!marketOn) {
     return (
       <div className="flex flex-col items-center gap-3 px-1 py-24 text-center">
-        <p className="text-[15px] text-white/70">The market is temporarily switched off by Platinum Circles operations.</p>
+        <p className="text-[15px] text-ink/70">The market is temporarily switched off by Platinum Circles operations.</p>
         <Link href="/market" className="mt-2 rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-ink">Back to Market</Link>
       </div>
     );
@@ -138,7 +138,7 @@ export default function CreateListingPage() {
   return (
     <div className="px-1">
       <div className="flex items-center gap-3 pb-4">
-        <Link href="/market" className="text-sm text-white/50 hover:text-white">← Market</Link>
+        <Link href="/market" className="text-sm text-ink/50 hover:text-ink">← Market</Link>
         <h1 className="font-display text-xl text-porcelain">New listing</h1>
       </div>
 
@@ -147,13 +147,13 @@ export default function CreateListingPage() {
           <span key={i} className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.preview} alt="" className="h-24 w-24 rounded-md object-cover" />
-            <button onClick={() => setPhotos(photos.filter((_, x) => x !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-white/70 hover:text-white">
+            <button onClick={() => setPhotos(photos.filter((_, x) => x !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-ink/70 hover:text-ink">
               <X size={14} />
             </button>
           </span>
         ))}
         {photos.length < 8 ? (
-          <button onClick={() => fileRef.current?.click()} className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-white/20 text-white/40 hover:border-pearl hover:text-pearl">
+          <button onClick={() => fileRef.current?.click()} className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-ink/20 text-ink/40 hover:border-pearl hover:text-pearl">
             <ImagePlus size={20} />
             <span className="text-[11px]">Add photos</span>
           </button>
@@ -180,14 +180,14 @@ export default function CreateListingPage() {
           {MARKET_CONDITIONS.map((c) => (
             <button key={c}
               onClick={() => setCondition(condition === c ? null : c)}
-              className={"rounded-md px-3 py-1.5 text-[13px] " + (condition === c ? "bg-surface-elevated font-semibold text-white" : "bg-surface text-white/60 hover:text-white")}
+              className={"rounded-md px-3 py-1.5 text-[13px] " + (condition === c ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
             >
               {c}
             </button>
           ))}
         </div>
 
-        <label className="flex items-center gap-2 text-[14px] text-white/80">
+        <label className="flex items-center gap-2 text-[14px] text-ink/80">
           <input type="checkbox" checked={deliveryOn} onChange={(e) => setDeliveryOn(e.target.checked)} className="accent-[#C9BFB0]" /> Offer delivery
         </label>
         {deliveryOn ? (
@@ -197,7 +197,7 @@ export default function CreateListingPage() {
           </div>
         ) : null}
 
-        <label className="flex items-center gap-2 text-[14px] text-white/80">
+        <label className="flex items-center gap-2 text-[14px] text-ink/80">
           <input type="checkbox" checked={shareToFeed} onChange={(e) => setShareToFeed(e.target.checked)} className="accent-[#C9BFB0]" /> Share to feed
         </label>
 

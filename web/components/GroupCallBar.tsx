@@ -41,20 +41,20 @@ export function GroupCallBar({ conversationId }: { conversationId: string }) {
           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[13px] font-semibold text-white">
+          <span className="block text-[13px] font-semibold text-ink">
             Ongoing {live.is_video ? "video" : "voice"} call · {live.joinedNames.length} in call
           </span>
           {live.joinedNames.length > 0 ? (
-            <span className="block truncate text-[12px] text-white/55">{live.joinedNames.join(", ")}</span>
+            <span className="block truncate text-[12px] text-ink/55">{live.joinedNames.join(", ")}</span>
           ) : null}
         </span>
-        <button onClick={() => requestGroupJoin({ sessionId: live.id, isVideo: live.is_video })} className="shrink-0 rounded-md bg-success px-3 py-1.5 text-[12px] font-semibold text-white transition-opacity hover:opacity-90">Join</button>
-        <button onClick={reject} title="Reject" className="shrink-0 rounded-md bg-surface p-1.5 text-white/60 transition-colors hover:bg-surface-elevated hover:text-danger"><X size={15} /></button>
+        <button onClick={() => requestGroupJoin({ sessionId: live.id, isVideo: live.is_video })} className="shrink-0 rounded-md bg-success px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity hover:opacity-90">Join</button>
+        <button onClick={reject} title="Reject" className="shrink-0 rounded-md bg-surface p-1.5 text-ink/60 transition-colors hover:bg-surface-elevated hover:text-danger"><X size={15} /></button>
       </div>
     );
   }
 
-  const btn = "rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-pearl";
+  const btn = "rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-pearl";
   return (
     <span className="ml-auto flex items-center gap-1">
       <button onClick={() => start(false)} title="Start group voice call" className={btn}><Phone size={17} /></button>

@@ -22,7 +22,7 @@ export function SponsoredCard({ promo }: { promo: PromoRow }) {
 
   return (
     <div ref={ref} onClickCapture={() => recordAdEvent(promo.promo_id, "click")} className="relative">
-      <span className="absolute right-1 top-2 z-10 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white/50">
+      <span className="absolute right-1 top-2 z-10 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink/50">
         {promo.promo_label || "Sponsored"}
       </span>
       <PostCard post={promo} />

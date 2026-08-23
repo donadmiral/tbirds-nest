@@ -65,7 +65,7 @@ export default function LoginPage() {
             placeholder="Username or email"
             autoComplete="username"
             autoCapitalize="none"
-            className="rounded-md bg-surface px-4 py-3 text-[15px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+            className="rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
           />
           <input
             type="password"
@@ -73,7 +73,7 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             autoComplete="current-password"
-            className="rounded-md bg-surface px-4 py-3 text-[15px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+            className="rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
           />
           {error ? (
             <p className="text-sm text-danger">{error}</p>
@@ -85,10 +85,10 @@ export default function LoginPage() {
           >
             {pending ? "Signing in" : "Sign in"}
           </button>
-        <p className="mt-6 text-[13px] text-white/50">New here? <a href="/signup" className="text-pearl hover:underline">Create an account</a></p>
-        <p className="mt-2 text-[13px] text-white/50">Company representative? <a href="/business-login" className="text-pearl hover:underline">Business sign-in</a></p>
+        <p className="mt-6 text-[13px] text-ink/50">New here? <a href="/signup" className="text-pearl hover:underline">Create an account</a></p>
+        <p className="mt-2 text-[13px] text-ink/50">Company representative? <a href="/business-login" className="text-pearl hover:underline">Business sign-in</a></p>
         </form>
-        <p className="mt-8 text-center text-sm text-white/40">
+        <p className="mt-8 text-center text-sm text-ink/40">
           New here? Create your account in the Platinum Circles app.
         </p>
       </div>

@@ -93,39 +93,39 @@ export function ApplyPanel({ jobId, applyUrl }: { jobId: string; applyUrl: strin
         <button onClick={() => setOpen(true)} className="rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-ink transition-opacity hover:opacity-90">
           Apply
         </button>
-        {signedIn === false ? <p className="mt-2 text-[13px] text-white/50">You will need to sign in to send the application.</p> : null}
+        {signedIn === false ? <p className="mt-2 text-[13px] text-ink/50">You will need to sign in to send the application.</p> : null}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-white/10 p-4">
+    <div className="flex flex-col gap-3 rounded-lg border border-ink/10 p-4">
       <textarea value={coverNote}
         onChange={(e) => setCoverNote(e.target.value)}
         placeholder="Cover note (optional)"
         rows={4}
-        className="rounded-md bg-surface px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+        className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
       />
       <input value={phone}
         onChange={(e) => setPhone(e.target.value)}
         placeholder="Phone (optional)"
-        className="rounded-md bg-surface px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+        className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
       />
       <input value={portfolio}
         onChange={(e) => setPortfolio(e.target.value)}
         placeholder="Portfolio URL (optional)"
-        className="rounded-md bg-surface px-4 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+        className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
       />
       {error ? <p className="text-[13px] text-danger">{error}</p> : null}
       <div className="flex gap-2">
         <button onClick={submit} disabled={pending} className="rounded-md bg-pearl px-6 py-2.5 text-[14px] font-semibold text-ink disabled:opacity-40">
           {pending ? "Sending" : "Send application"}
         </button>
-        <button onClick={() => setOpen(false)} className="rounded-md bg-surface px-4 py-2.5 text-[14px] text-white">
+        <button onClick={() => setOpen(false)} className="rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink">
           Cancel
         </button>
       </div>
-      <p className="text-[12px] text-white/40">CV attachment is coming to web soon. Recruiters see your Platinum profile with the application.</p>
+      <p className="text-[12px] text-ink/40">CV attachment is coming to web soon. Recruiters see your Platinum profile with the application.</p>
     </div>
   );
 }

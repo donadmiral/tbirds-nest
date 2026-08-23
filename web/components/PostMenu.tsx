@@ -46,7 +46,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
   }, [open]);
 
   const mine = uid !== null && uid === authorId;
-  const item = "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] text-white/85 transition-colors hover:bg-surface-elevated";
+  const item = "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] text-ink/85 transition-colors hover:bg-surface-elevated";
 
   async function copyText() {
     await navigator.clipboard.writeText(text);
@@ -102,12 +102,12 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
       {factOpen ? <FactCheckModal postId={postId} onClose={() => setFactOpen(false)} /> : null}
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
         title="More"
-        className="rounded-full p-1.5 text-white/40 transition-colors hover:bg-surface hover:text-white"
+        className="rounded-full p-1.5 text-ink/40 transition-colors hover:bg-surface hover:text-ink"
       >
         <MoreHorizontal size={17} />
       </button>
       {open ? (
-        <div className="absolute right-0 top-8 z-20 w-56 overflow-hidden rounded-lg border border-white/10 bg-navy shadow-2xl">
+        <div className="absolute right-0 top-8 z-20 w-56 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
           {reporting ? (
             REASONS.map((r) => (
               <button key={r.key} onClick={() => report(r.key)} className={item}>

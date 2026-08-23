@@ -11,7 +11,7 @@ export async function AppShell({ children, wide = false, rail = false }: { child
   if (!data.user) {
     return (
       <div className="min-h-screen">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-ink/90 px-6 py-3 backdrop-blur">
+        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink/10 bg-ink/90 px-6 py-3 backdrop-blur">
           <Link href="/" className="flex items-center gap-3">
             <span className="h-7 w-7 rounded-full border-2 border-pearl" aria-hidden />
             <span className="font-display text-lg tracking-wide text-porcelain">Platinum Circles</span>

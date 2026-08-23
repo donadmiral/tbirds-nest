@@ -38,7 +38,7 @@ export function StoryAvatar({ userId, name, avatarUrl, size = 44, href }: {
   const wrapped = ring === "none" ? (
     <span className="block shrink-0">{face}</span>
   ) : (
-    <span className={"block shrink-0 rounded-full p-[2px] " + (ring === "unseen" ? "bg-gradient-to-br from-pearl via-porcelain to-pearl" : "bg-white/25")}>
+    <span className={"block shrink-0 rounded-full p-[2px] " + (ring === "unseen" ? "bg-gradient-to-br from-pearl via-porcelain to-pearl" : "bg-ink/25")}>
       <span className="block rounded-full bg-ink p-[1.5px]">{face}</span>
     </span>
   );

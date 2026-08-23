@@ -29,7 +29,7 @@ const EMPTY_COPY: Record<string, { title: string; sub: string }> = {
 
 function Skeleton() {
   return (
-    <div className="animate-pulse border-b border-white/10 px-1 py-5">
+    <div className="animate-pulse border-b border-ink/10 px-1 py-5">
       <div className="flex gap-3">
         <div className="h-11 w-11 rounded-full bg-surface" />
         <div className="flex-1 space-y-2 pt-1">
@@ -191,13 +191,13 @@ export default function HomeFeed() {
       <AnnouncementBanner />
       <StoryRings />
       <Composer onPosted={() => load(false)} quote={quote} onQuoteDone={() => setQuote(null)} />
-      <div className="sticky top-0 z-10 -mx-1 flex border-b border-white/10 bg-ink/90 px-1 backdrop-blur">
+      <div className="sticky top-0 z-10 -mx-1 flex border-b border-ink/10 bg-ink/90 px-1 backdrop-blur">
         {MODES.map((m) => (
           <button key={m.key}
             onClick={() => setMode(m.key)}
             className={
               "flex-1 py-4 text-[15px] transition-colors " +
-              (mode === m.key ? "font-semibold text-white" : "text-white/50 hover:text-white/80")
+              (mode === m.key ? "font-semibold text-ink" : "text-ink/50 hover:text-ink/80")
             }
           >
             <span className={"border-b-2 pb-3 " + (mode === m.key ? "border-pearl" : "border-transparent")}>
@@ -225,16 +225,16 @@ export default function HomeFeed() {
         </div>
       ) : error ? (
         <div className="flex flex-col items-center gap-3 pt-24 text-center">
-          <p className="text-sm text-white/70">The feed could not load.</p>
-          <p className="text-xs text-white/40">{error}</p>
-          <button onClick={() => load(false)} className="rounded-md bg-surface px-4 py-2 text-sm text-white hover:bg-surface-elevated">
+          <p className="text-sm text-ink/70">The feed could not load.</p>
+          <p className="text-xs text-ink/40">{error}</p>
+          <button onClick={() => load(false)} className="rounded-md bg-surface px-4 py-2 text-sm text-ink hover:bg-surface-elevated">
             Try again
           </button>
         </div>
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center gap-2 pt-24 text-center">
-          <p className="text-[15px] text-white/70">{EMPTY_COPY[mode].title}</p>
-          <p className="text-sm text-white/40">{EMPTY_COPY[mode].sub}</p>
+          <p className="text-[15px] text-ink/70">{EMPTY_COPY[mode].title}</p>
+          <p className="text-sm text-ink/40">{EMPTY_COPY[mode].sub}</p>
         </div>
       ) : (
         <div>
@@ -251,7 +251,7 @@ export default function HomeFeed() {
           })}
           <div ref={sentinelRef} />
           {loadingMore ? <Skeleton /> : null}
-          {!hasMore ? <p className="py-8 text-center text-xs text-white/30">You are all caught up.</p> : null}
+          {!hasMore ? <p className="py-8 text-center text-xs text-ink/30">You are all caught up.</p> : null}
         </div>
       )}
     </div>

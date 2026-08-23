@@ -40,29 +40,29 @@ export function InsightsModal({ postId, onClose }: { postId: string; onClose: ()
 
   const stat = (value: string, label: string) => (
     <div className="rounded-lg bg-surface px-3 py-2.5 text-center">
-      <p className="text-[17px] font-semibold text-white">{value}</p>
-      <p className="text-[11px] text-white/45">{label}</p>
+      <p className="text-[17px] font-semibold text-ink">{value}</p>
+      <p className="text-[11px] text-ink/45">{label}</p>
     </div>
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-xl border border-white/10 bg-navy p-5">
+      <div onClick={(e) => e.stopPropagation()} className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-xl border border-ink/10 bg-navy p-5">
         <div className="flex items-center justify-between pb-3">
-          <h2 className="flex items-center gap-1.5 text-[15px] font-semibold text-white"><BarChart3 size={16} className="text-pearl" /> Post insights</h2>
-          <button onClick={onClose} title="Close" className="rounded-full p-1 text-white/50 hover:bg-surface hover:text-white"><X size={16} /></button>
+          <h2 className="flex items-center gap-1.5 text-[15px] font-semibold text-ink"><BarChart3 size={16} className="text-pearl" /> Post insights</h2>
+          <button onClick={onClose} title="Close" className="rounded-full p-1 text-ink/50 hover:bg-surface hover:text-ink"><X size={16} /></button>
         </div>
 
         {error ? (
           <p className="py-10 text-center text-[13px] text-danger">{error}</p>
         ) : !data ? (
-          <p className="py-10 text-center text-sm text-white/40">Loading</p>
+          <p className="py-10 text-center text-sm text-ink/40">Loading</p>
         ) : (
           <>
-            <div className="rounded-xl border border-white/10 p-4 text-center">
+            <div className="rounded-xl border border-ink/10 p-4 text-center">
               <p className="text-3xl font-semibold text-pearl">{fmt(data.reach)}</p>
-              <p className="text-[13px] text-white/50">{data.reach === 1 ? "person saw this" : "people saw this"}</p>
-              <p className="mt-2 text-[13px] text-white/70">
+              <p className="text-[13px] text-ink/50">{data.reach === 1 ? "person saw this" : "people saw this"}</p>
+              <p className="mt-2 text-[13px] text-ink/70">
                 {data.engagement_rate == null
                   ? "Not enough data for an engagement rate yet"
                   : Math.round(data.engagement_rate * 100) + "% of the people reached engaged"}
@@ -86,13 +86,13 @@ export function InsightsModal({ postId, onClose }: { postId: string; onClose: ()
 
             {data.recent_likers.length > 0 ? (
               <div className="mt-4">
-                <p className="pb-1 text-[12px] font-semibold uppercase tracking-wide text-white/40">Recently liked by</p>
+                <p className="pb-1 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Recently liked by</p>
                 {data.recent_likers.map((p) => (
                   <Link key={p.id} href={p.username ? "/" + p.username : "#"} className="flex items-center gap-2.5 rounded-md px-1 py-1.5 transition-colors hover:bg-surface">
                     <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={32} />
                     <span className="min-w-0">
-                      <span className="block truncate text-[13px] font-semibold text-white">{p.full_name}</span>
-                      <span className="block truncate text-[12px] text-white/45">@{p.username}</span>
+                      <span className="block truncate text-[13px] font-semibold text-ink">{p.full_name}</span>
+                      <span className="block truncate text-[12px] text-ink/45">@{p.username}</span>
                     </span>
                   </Link>
                 ))}

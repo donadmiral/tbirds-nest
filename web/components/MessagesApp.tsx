@@ -290,25 +290,25 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const currency = live?.currency ?? j.currency ?? "";
     const proposer = live?.proposer_id ?? m.sender_id;
     const canRespond = status === "pending" && uid !== null && uid !== proposer;
-    const color = status === "accepted" ? "text-success" : status === "pending" ? "text-pearl" : "text-white/40";
+    const color = status === "accepted" ? "text-success" : status === "pending" ? "text-pearl" : "text-ink/40";
     return (
-      <div className="min-w-48 rounded-lg border border-white/15 p-3">
-        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-white/40"><Tag size={12} /> Offer</p>
-        <p className="mt-0.5 text-[18px] font-semibold text-white">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
+      <div className="min-w-48 rounded-lg border border-ink/15 p-3">
+        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40"><Tag size={12} /> Offer</p>
+        <p className="mt-0.5 text-[18px] font-semibold text-ink">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
         <p className={"text-[12px] font-semibold capitalize " + color}>{status}</p>
         {canRespond ? (
           countering === j.offer_id ? (
             <div className="mt-2 flex flex-col gap-1.5">
-              <input value={counterAmt} onChange={(e) => setCounterAmt(e.target.value)} inputMode="numeric" placeholder="Counter amount" className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[13px] text-white placeholder:text-white/30 outline-none" />
+              <input value={counterAmt} onChange={(e) => setCounterAmt(e.target.value)} inputMode="numeric" placeholder="Counter amount" className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink/30 outline-none" />
               <div className="flex gap-1.5">
                 <button onClick={() => { const n = Number(counterAmt.replace(/,/g, "")); if (n > 0) respondOffer(j.offer_id!, "countered", n); }} className="rounded-md bg-pearl px-2.5 py-1.5 text-[12px] font-semibold text-ink">Send counter</button>
-                <button onClick={() => setCountering(null)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-white">Cancel</button>
+                <button onClick={() => setCountering(null)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink">Cancel</button>
               </div>
             </div>
           ) : (
             <div className="mt-2 flex gap-1.5">
               <button onClick={() => respondOffer(j.offer_id!, "accepted")} className="rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success">Accept</button>
-              <button onClick={() => setCountering(j.offer_id!)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-white">Counter</button>
+              <button onClick={() => setCountering(j.offer_id!)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink">Counter</button>
               <button onClick={() => respondOffer(j.offer_id!, "declined")} className="rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger">Decline</button>
             </div>
           )
@@ -322,9 +322,9 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     if (m.deleted_at) return null;
     return (
       <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
-        <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-white" : "bg-surface text-white")}>
+        <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-ink" : "bg-surface text-ink")}>
           {m.media_type === "payment" || m.payment_id ? (
-            <span className="flex items-center gap-1.5 text-[13px] text-white/70"><Wallet size={14} /> Payment · open the Platinum Circles app</span>
+            <span className="flex items-center gap-1.5 text-[13px] text-ink/70"><Wallet size={14} /> Payment · open the Platinum Circles app</span>
           ) : null}
           {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
           {m.media_type === "offer" && m.media_url ? <OfferCard m={m} /> : null}
@@ -344,24 +344,24 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             </a>
           ) : null}
           {m.text && m.media_type !== "document" ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
-          <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/50" : "text-white/40")}>{timeAgo(m.created_at)}</p>
+          <p className={"mt-0.5 text-[10px] " + (mine ? "text-ink/50" : "text-ink/40")}>{timeAgo(m.created_at)}</p>
         </div>
       </div>
     );
   }
 
   const refCard = refListing ? (
-    <Link href={"/market/" + refListing.id} className="mt-2 flex items-center gap-3 rounded-lg border border-white/10 p-2.5 transition-colors hover:bg-surface">
+    <Link href={"/market/" + refListing.id} className="mt-2 flex items-center gap-3 rounded-lg border border-ink/10 p-2.5 transition-colors hover:bg-surface">
       {refListing.images?.[0] ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={refListing.images[0]} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
       ) : null}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-semibold text-white">{refListing.title}</span>
+        <span className="block truncate text-[13px] font-semibold text-ink">{refListing.title}</span>
         <span className="block text-[13px] text-pearl">{(refListing.currency === "USD" ? "$" : refListing.currency + " ") + Number(refListing.price).toLocaleString()}</span>
       </span>
       {refListing.status !== "available" ? (
-        <span className="shrink-0 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-white/60">{refListing.status}</span>
+        <span className="shrink-0 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/60">{refListing.status}</span>
       ) : null}
     </Link>
   ) : null;
@@ -376,11 +376,11 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       <StoryAvatar userId={c.other_id} name={c.title} avatarUrl={c.avatar} size={44} />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
-          <span className="truncate text-[14px] font-semibold text-white">{c.title}</span>
-          {c.last_message_time ? <span className="shrink-0 text-[11px] text-white/40">{timeAgo(c.last_message_time)}</span> : null}
+          <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>
+          {c.last_message_time ? <span className="shrink-0 text-[11px] text-ink/40">{timeAgo(c.last_message_time)}</span> : null}
         </span>
         <span className="flex items-center justify-between gap-2">
-          <span className="truncate text-[13px] text-white/50">{c.last_message || "Say hello"}</span>
+          <span className="truncate text-[13px] text-ink/50">{c.last_message || "Say hello"}</span>
           {c.unread > 0 ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-ink">{c.unread}</span> : null}
         </span>
       </span>
@@ -389,18 +389,18 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   const composer = (
     <div className="flex items-end gap-2">
-      <button onClick={() => fileRef.current?.click()} disabled={sendingFile} title="Attach" className="rounded-md p-2.5 text-white/50 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-40">
+      <button onClick={() => fileRef.current?.click()} disabled={sendingFile} title="Attach" className="rounded-md p-2.5 text-ink/50 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-40">
         <Paperclip size={18} />
       </button>
       <input ref={fileRef} type="file" hidden onChange={(e) => attach(e.target.files)} />
       {recording ? (
         <span className="flex items-center gap-2">
           <span className="text-[13px] font-semibold text-danger">{Math.floor(recSecs / 60)}:{String(recSecs % 60).padStart(2, "0")}</span>
-          <button onClick={() => stopRecording(false)} title="Cancel" className="rounded-md bg-surface px-2.5 py-2 text-[12px] text-white">Cancel</button>
-          <button onClick={() => stopRecording(true)} title="Send voice note" className="rounded-md bg-danger p-2.5 text-white"><Square size={16} /></button>
+          <button onClick={() => stopRecording(false)} title="Cancel" className="rounded-md bg-surface px-2.5 py-2 text-[12px] text-ink">Cancel</button>
+          <button onClick={() => stopRecording(true)} title="Send voice note" className="rounded-md bg-danger p-2.5 text-ink"><Square size={16} /></button>
         </span>
       ) : (
-        <button onClick={startRecording} disabled={sendingFile} title="Voice message" className="rounded-md p-2.5 text-white/50 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-40"><Mic size={18} /></button>
+        <button onClick={startRecording} disabled={sendingFile} title="Voice message" className="rounded-md p-2.5 text-ink/50 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-40"><Mic size={18} /></button>
       )}
       <textarea value={draft}
         onChange={(e) => onDraftChange(e.target.value)}
@@ -408,7 +408,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         onBlur={() => setTyping(false)}
         placeholder={sendingFile ? "Sending attachment" : "Message"}
         rows={1}
-        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
       />
       <button onClick={send} disabled={!draft.trim()} className="rounded-md bg-pearl p-2.5 text-ink transition-opacity hover:opacity-90 disabled:opacity-30" title="Send">
         <Send size={18} />
@@ -423,21 +423,21 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           <>
             <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>
             {loadingConvs ? (
-              <p className="py-12 text-center text-sm text-white/40">Loading</p>
+              <p className="py-12 text-center text-sm text-ink/40">Loading</p>
             ) : shownConvs.length === 0 ? (
-              <p className="py-12 text-center text-sm text-white/40">No conversations here yet.</p>
+              <p className="py-12 text-center text-sm text-ink/40">No conversations here yet.</p>
             ) : (
               shownConvs.map(convButton)
             )}
           </>
         ) : (
           <>
-            <header className="border-b border-white/10 pb-3">
+            <header className="border-b border-ink/10 pb-3">
               <div className="flex items-center gap-3">
-                <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-white/60 hover:bg-surface hover:text-white" title="Back">←</button>
+                <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-ink/60 hover:bg-surface hover:text-ink" title="Back">←</button>
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={36} />
                 <div className="min-w-0">
-                  <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
+                  <p className="truncate text-[15px] font-semibold text-ink">{active.title}</p>
                   {typingLine}
                 </div>
               </div>
@@ -446,10 +446,10 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               {refCard}
             </header>
             <div className="flex-1 space-y-2 overflow-y-auto py-4">
-              {loadingMsgs ? <p className="py-12 text-center text-sm text-white/40">Loading</p> : msgs.map((m) => <Bubble key={m.id} m={m} />)}
+              {loadingMsgs ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : msgs.map((m) => <Bubble key={m.id} m={m} />)}
               <div ref={bottomRef} />
             </div>
-            <footer className="border-t border-white/10 pt-3">{composer}</footer>
+            <footer className="border-t border-ink/10 pt-3">{composer}</footer>
           </>
         )}
       </div>
@@ -458,23 +458,23 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   return (
     <div className="flex h-screen">
-      <section className="flex w-[340px] shrink-0 flex-col border-r border-white/10">
+      <section className="flex w-[340px] shrink-0 flex-col border-r border-ink/10">
         <div className="px-4 pb-2 pt-6">
           <h1 className="font-display text-xl text-porcelain">{heading}</h1>
           <div className="relative mt-3">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" />
             <input value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search"
-              className="w-full rounded-md bg-surface py-2 pl-9 pr-3 text-[13px] text-white placeholder:text-white/30 outline-none focus:bg-surface-elevated"
+              className="w-full rounded-md bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
             />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {loadingConvs ? (
-            <p className="py-12 text-center text-sm text-white/40">Loading</p>
+            <p className="py-12 text-center text-sm text-ink/40">Loading</p>
           ) : shownConvs.length === 0 ? (
-            <p className="px-4 py-12 text-center text-sm text-white/40">No conversations yet.</p>
+            <p className="px-4 py-12 text-center text-sm text-ink/40">No conversations yet.</p>
           ) : (
             shownConvs.map(convButton)
           )}
@@ -485,16 +485,16 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         {!active ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2">
             <span className="h-14 w-14 rounded-full border-2 border-pearl opacity-40" aria-hidden />
-            <p className="text-sm text-white/40">Pick a conversation</p>
+            <p className="text-sm text-ink/40">Pick a conversation</p>
           </div>
         ) : (
           <>
-            <header className="border-b border-white/10 px-5 py-3">
+            <header className="border-b border-ink/10 px-5 py-3">
               <div className="flex items-center gap-3">
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={38} />
                 <div className="min-w-0">
-                  <p className="truncate text-[15px] font-semibold text-white">{active.title}</p>
-                  {typingLine ?? (active.username ? <p className="text-[12px] text-white/40">@{active.username}</p> : null)}
+                  <p className="truncate text-[15px] font-semibold text-ink">{active.title}</p>
+                  {typingLine ?? (active.username ? <p className="text-[12px] text-ink/40">@{active.username}</p> : null)}
                 </div>
               </div>
               {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
@@ -503,13 +503,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             </header>
             <div className="flex-1 space-y-2 overflow-y-auto px-5 py-4">
               {loadingMsgs ? (
-                <p className="py-12 text-center text-sm text-white/40">Loading</p>
+                <p className="py-12 text-center text-sm text-ink/40">Loading</p>
               ) : (
                 msgs.map((m) => <Bubble key={m.id} m={m} />)
               )}
               <div ref={bottomRef} />
             </div>
-            <footer className="border-t border-white/10 px-4 py-3">{composer}</footer>
+            <footer className="border-t border-ink/10 px-4 py-3">{composer}</footer>
           </>
         )}
       </section>
