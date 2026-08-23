@@ -162,7 +162,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             <MediaGallery media={media}
               postId={post.post_id}
               viewsCount={(post as unknown as { views_count?: number | null }).views_count ?? null}
-              onDoubleClick={doubleLike} post={{ post_id: post.post_id, author_name: post.author_name, author_username: post.author_username, author_avatar: post.author_avatar, content: post.content ?? post.body, likes_count: post.likes_count, comments_count: post.comments_count, reposts_count: post.reposts_count }} />
+              onDoubleClick={doubleLike} post={{ post_id: post.post_id, author_name: post.author_name, author_username: post.author_username, author_avatar: post.author_avatar, content: post.content ?? post.body, likes_count: post.likes_count, comments_count: post.comments_count, reposts_count: post.reposts_count, viewer_liked: post.viewer_liked, viewer_bookmarked: post.viewer_bookmarked }} />
           ) : null}
 
           {(post as unknown as { thread_parent_id?: string | null }).thread_parent_id ? (

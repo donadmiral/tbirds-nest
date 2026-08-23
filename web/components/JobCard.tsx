@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { StoryAvatar } from "@/components/StoryAvatar";
 import { useState } from "react";
 import { Briefcase, Bookmark, Share2, Check } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -51,7 +52,7 @@ export function JobCard({ job, initiallySaved, viewerId }: {
           {job.urgent ? <span className="rounded-sm bg-danger/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-danger">Urgent</span> : null}
           {job.visa_sponsorship ? <span className="rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/60">Visa</span> : null}
         </span>
-        <span className="flex items-center gap-1 truncate text-[14px] text-white/70">{job.company}{job.verified ? <VerifiedBadge tier="business" size={13} /> : null}</span>
+        <span className="flex items-center gap-1.5 truncate text-[14px] text-white/70">{job.profile?.id ? <StoryAvatar userId={job.profile.id} name={job.profile.full_name} avatarUrl={job.profile.avatar_url} size={20} /> : null}{job.company}{job.verified ? <VerifiedBadge tier="business" size={13} /> : null}</span>
         {jobMeta(job) ? <span className="block truncate text-[13px] text-white/50">{jobMeta(job)}</span> : null}
         <span className="mt-1 block text-[12px] text-white/40">
           {timeAgo(job.created_at)}{job.applications_count > 0 ? " · " + job.applications_count + " applicants" : ""}
