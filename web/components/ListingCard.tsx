@@ -1,5 +1,7 @@
 "use client";
 
+import { displayImageUrl } from "@/lib/media";
+
 import Link from "next/link";
 import { useState } from "react";
 import { Heart } from "lucide-react";
@@ -24,7 +26,7 @@ export function ListingCard({ l, saved: initiallySaved = false, viewerId = null 
       <span className="relative block aspect-square bg-surface">
         {l.images?.[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={l.images[0]} alt="" loading="lazy" className="h-full w-full object-cover" />
+          <img src={displayImageUrl(l.images[0])!} onError={(e) => { if (e.currentTarget.src !== l.images[0]) e.currentTarget.src = l.images[0]; }} alt="" loading="lazy" className="h-full w-full object-cover" />
         ) : null}
         {l.condition ? (
           <span className="absolute left-2 top-2 rounded-sm bg-ink/70 px-1.5 py-0.5 text-[10px] font-bold text-white">{l.condition}</span>

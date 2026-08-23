@@ -19,6 +19,7 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
   const [fs, setFs] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [speedMenu, setSpeedMenu] = useState(false);
+  const [unplayable, setUnplayable] = useState(false);
 
   const reportDwell = useCallback(async () => {
     const start = dwellStart.current;
@@ -136,8 +137,16 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
         onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
         onTimeUpdate={() => { const v = ref.current; if (v?.duration) setProgress(v.currentTime / v.duration); }}
         onEnded={() => stop()}
+        onError={() => setUnplayable(true)}
+        onLoadedMetadata={() => { const v = ref.current; if (v && v.videoWidth === 0) setUnplayable(true); }}
         className={fs ? "h-full max-h-none w-full object-contain" : "max-h-[480px] w-full object-contain"}
       />
+      {unplayable ? (
+        <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/80 px-6 text-center">
+          <span className="text-[13px] font-semibold text-white">This video plays in the Platinum Circles app</span>
+          <span className="text-[11px] text-white/50">It was recorded in a format browsers cannot decode. Web playback for these is coming.</span>
+        </span>
+      ) : null}
       {typeof viewsCount === "number" && viewsCount > 0 ? (
         <span className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-ink/60 px-1.5 py-0.5 text-[11px] text-white">
           <Eye size={12} /> {viewsCount >= 1000 ? (viewsCount / 1000).toFixed(1).replace(/\.0$/, "") + "K" : viewsCount}

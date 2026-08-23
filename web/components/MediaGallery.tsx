@@ -1,5 +1,7 @@
 "use client";
 
+import { displayImageUrl } from "@/lib/media";
+
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { VideoPlayer } from "@/components/VideoPlayer";
@@ -40,7 +42,7 @@ export function MediaGallery({ media, postId, viewsCount, onDoubleClick }: {
           <VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount} />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.url}
+          <img src={displayImageUrl(item.url)!} onError={(e) => { if (e.currentTarget.src !== item.url) e.currentTarget.src = item.url; }}
             alt=""
             loading="lazy"
             onClick={(e) => { e.stopPropagation(); setLightbox(idx); }}
@@ -79,7 +81,7 @@ export function MediaGallery({ media, postId, viewsCount, onDoubleClick }: {
             <video src={media[lightbox].url} controls autoPlay playsInline className="max-h-[92vh] max-w-[94vw]" onClick={(e) => e.stopPropagation()} />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={media[lightbox].url}
+            <img src={displayImageUrl(media[lightbox].url)!} onError={(e) => { if (e.currentTarget.src !== media[lightbox].url) e.currentTarget.src = media[lightbox].url; }}
               alt=""
               onClick={(e) => { e.stopPropagation(); setZoom((z) => !z); }}
               className={"max-h-[92vh] max-w-[94vw] transition-transform " + (zoom ? "scale-150 cursor-zoom-out" : "cursor-zoom-in")}

@@ -13,6 +13,7 @@ import { RichText } from "@/components/RichText";
 import { MediaGallery } from "@/components/MediaGallery";
 import { LikesModal } from "@/components/LikesModal";
 import { ShareMenu } from "@/components/ShareMenu";
+import { displayImageUrl } from "@/lib/media";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
 import { toggleLike, toggleBookmark, toggleRepost } from "@/lib/interactions";
@@ -78,7 +79,7 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
       </span>
       {q.thumb ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={q.thumb} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
+        <img src={displayImageUrl(q.thumb)!} onError={(e) => { if (q.thumb && e.currentTarget.src !== q.thumb) e.currentTarget.src = q.thumb; }} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
       ) : null}
     </Link>
   );
@@ -169,7 +170,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             >
               {post.link.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={post.link.image_url} alt="" loading="lazy" className="max-h-60 w-full object-cover" />
+                <img src={displayImageUrl(post.link.image_url)!} onError={(e) => { if (post.link?.image_url && e.currentTarget.src !== post.link.image_url) e.currentTarget.src = post.link.image_url; }} alt="" loading="lazy" className="max-h-60 w-full object-cover" />
               ) : null}
               <span className="block px-3 py-2">
                 <span className="block text-[11px] uppercase tracking-wide text-white/40">{post.link.domain}</span>
@@ -187,7 +188,7 @@ export function PostCard({ post }: { post: FeedRow }) {
                   ) : null}
                   {p.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.image_url} alt="" loading="lazy" className="h-28 w-full bg-surface object-cover" />
+                    <img src={displayImageUrl(p.image_url)!} onError={(e) => { if (p.image_url && e.currentTarget.src !== p.image_url) e.currentTarget.src = p.image_url; }} alt="" loading="lazy" className="h-28 w-full bg-surface object-cover" />
                   ) : null}
                   <div className="px-3 py-2">
                     <p className="truncate text-[13px] font-medium text-white">{p.title}</p>
