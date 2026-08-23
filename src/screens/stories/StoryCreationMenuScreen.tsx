@@ -157,7 +157,7 @@ export default function StoryCreationMenuScreen() {
     }
     try {
       const res = await ImagePicker.launchImageLibraryAsync({
-        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
         mediaTypes: ['images'] as ImagePicker.MediaType[],
         allowsMultipleSelection: true,
         selectionLimit: 10,
@@ -187,7 +187,7 @@ export default function StoryCreationMenuScreen() {
     }
     try {
       const res = await ImagePicker.launchImageLibraryAsync({
-        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
         mediaTypes: ['videos'] as ImagePicker.MediaType[],
         allowsMultipleSelection: false,
         quality: 0.8,

@@ -1132,7 +1132,7 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
-        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
       mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[], quality: 0.92,
       allowsMultipleSelection: true, selectionLimit: 10, base64: true,
     });

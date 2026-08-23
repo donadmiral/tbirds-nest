@@ -313,7 +313,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required', 'Allow photo access.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
-        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
       mediaTypes: ['images'] as ImagePicker.MediaType[],
       quality: 0.9,
       allowsEditing: true,

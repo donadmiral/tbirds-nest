@@ -990,7 +990,7 @@ export default function FeedScreen({ navigation }: any) {
         mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
         allowsMultipleSelection: true,
         selectionLimit: 10,
-        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
         quality: 1,
         allowsEditing: false,
         exif: false,

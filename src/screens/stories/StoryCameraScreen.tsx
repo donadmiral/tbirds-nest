@@ -314,7 +314,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
     }
     try {
       const res = await ImagePicker.launchImageLibraryAsync({
-        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
         mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
         allowsMultipleSelection: true,
         selectionLimit: 10,
