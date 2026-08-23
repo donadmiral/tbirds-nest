@@ -34,6 +34,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
   const openerRef = useRef<HTMLElement | null>(null);
   const touchX = useRef<number | null>(null);
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
   const [availW, setAvailW] = useState(608);
   const [maxH, setMaxH] = useState(720);
   const [trueDims, setTrueDims] = useState<Record<string, Dims>>({});
@@ -116,7 +117,22 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
     if (dx < -40 && idx < media.length - 1) setIdx(idx + 1);
     else if (dx > 40 && idx > 0) setIdx(idx - 1);
   }
+  function onModalTouchMove(e: React.TouchEvent) {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      if (!pinchRef.current) { pinchRef.current = { dist, zoom }; return; }
+      setZoomClamped(pinchRef.current.zoom * (dist / pinchRef.current.dist));
+    } else if (e.touches.length === 1 && zoom > 1) {
+      const t0 = e.touches[0];
+      if (!dragRef.current) { dragRef.current = { x: t0.clientX, y: t0.clientY, px: pan.x, py: pan.y }; return; }
+      setPan(clampPan({ x: dragRef.current.px + (t0.clientX - dragRef.current.x), y: dragRef.current.py + (t0.clientY - dragRef.current.y) }, zoom));
+    }
+  }
   function onModalTouchEnd(e: React.TouchEvent) {
+    if (e.touches.length < 2) pinchRef.current = null;
+    if (e.touches.length === 0) dragRef.current = null;
     const start = touchX.current;
     touchX.current = null;
     if (start === null || lightbox === null || zoom > 1) return;
@@ -226,7 +242,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
         <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Media viewer"
           className="fixed inset-0 z-50 flex bg-black/95"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox(null); }}
-          onTouchStart={onTouchStart} onTouchEnd={onModalTouchEnd}
+          onTouchStart={onTouchStart} onTouchMove={onModalTouchMove} onTouchEnd={onModalTouchEnd}
           onMouseMove={onDragMove} onMouseUp={onDragEnd} onMouseLeave={onDragEnd}
         >
           <div data-media-pane className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden">
