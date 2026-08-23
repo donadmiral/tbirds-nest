@@ -140,7 +140,7 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
           const v = ref.current;
           if (!v) return;
           if (v.duration) setProgress(v.currentTime / v.duration);
-          if (!unplayable && v.currentTime > 0.6) {
+          if (!unplayable && !v.paused && v.currentTime > 1.2) {
             const q = (v as HTMLVideoElement & { getVideoPlaybackQuality?: () => { totalVideoFrames: number } }).getVideoPlaybackQuality?.();
             const decoded = q ? q.totalVideoFrames : (v as HTMLVideoElement & { webkitDecodedFrameCount?: number }).webkitDecodedFrameCount;
             if (typeof decoded === "number" && decoded === 0) setUnplayable(true);

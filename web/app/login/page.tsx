@@ -85,6 +85,8 @@ export default function LoginPage() {
           >
             {pending ? "Signing in" : "Sign in"}
           </button>
+        <p className="mt-6 text-[13px] text-white/50">New here? <a href="/signup" className="text-pearl hover:underline">Create an account</a></p>
+        <p className="mt-2 text-[13px] text-white/50">Company representative? <a href="/business-login" className="text-pearl hover:underline">Business sign-in</a></p>
         </form>
         <p className="mt-8 text-center text-sm text-white/40">
           New here? Create your account in the Platinum Circles app.
