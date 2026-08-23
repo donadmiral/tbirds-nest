@@ -12,7 +12,7 @@ export function GlobalBack() {
   if (ROOTS.includes(pathname)) return null;
   return (
     <button onClick={() => router.back()} aria-label="Go back"
-      className="mb-2 flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-semibold text-ink/55 transition-colors hover:bg-surface hover:text-ink"
+      className="fixed left-[276px] top-4 z-40 flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/90 px-3 py-1.5 text-[13px] font-semibold text-ink/60 shadow-sm backdrop-blur transition-colors hover:bg-surface hover:text-ink max-lg:left-3"
     >
       <ArrowLeft size={16} /> Back
     </button>

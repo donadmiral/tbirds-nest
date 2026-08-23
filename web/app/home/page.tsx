@@ -238,6 +238,10 @@ export default function HomeFeed() {
             Try again
           </button>
         </div>
+      ) : mode === "local" ? (
+        <LocalFeed />
+      ) : mode === "discover" ? (
+        <DiscoverFeed />
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center gap-2 pt-24 text-center">
           <p className="text-[15px] text-ink/70">{EMPTY_COPY[mode].title}</p>
@@ -245,8 +249,6 @@ export default function HomeFeed() {
         </div>
       ) : (
         <div>
-          {mode === "local" ? <LocalFeed /> : null}
-          {mode === "discover" ? <DiscoverFeed /> : null}
           {posts.map((p, i) => {
             const slot = i > 0 && (i + 1) % 6 === 0 ? promos[Math.floor((i + 1) / 6) - 1] : null;
             return (
