@@ -41,6 +41,7 @@ export function ProfilePosts({ profileId, authorName, authorUsername, authorAvat
 
   const toRow = useCallback(
     (r: ProfilePostRow): FeedRow => ({
+      ...(r as unknown as Record<string, unknown>),
       post_id: r.post_id,
       author_id: profileId,
       content: r.content,

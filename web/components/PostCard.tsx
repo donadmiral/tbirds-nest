@@ -97,6 +97,10 @@ export function PostCard({ post }: { post: FeedRow }) {
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
   const text = post.content ?? post.body ?? "";
+  const whyReason = rb.reposted_by_name ? rb.reposted_by_name + " reposted this"
+    : post.viewer_follows ? "You follow " + post.author_name
+    : post.is_trending ? "Trending on Platinum Circles"
+    : "Suggested for you";
   const rb = post as unknown as { reposted_by_id?: string | null; reposted_by_name?: string | null; reposted_by_username?: string | null; has_poll?: boolean; edited_at?: string | null };
   const media = post.media ?? [];
   const products = post.products ?? [];
@@ -153,7 +157,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             </Link>
             {rb.edited_at ? <span className="shrink-0 text-[12px] text-ink/35">· Edited</span> : null}
             <FollowButton authorId={post.author_id} />
-            <PostMenu postId={post.post_id} authorId={post.author_id} text={text} onHidden={() => setHidden(true)} />
+            <PostMenu postId={post.post_id} authorId={post.author_id} text={text} reason={whyReason} onHidden={() => setHidden(true)} />
           </div>
 
           {post.article_title ? (
