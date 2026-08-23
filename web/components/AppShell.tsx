@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Nav } from "@/components/Nav";
 import { WebCallLayer } from "@/components/WebCallLayer";
+import { GlobalMediaLightbox } from "@/components/GlobalMediaLightbox";
 import { DiscoveryRail } from "@/components/DiscoveryRail";
 
 export async function AppShell({ children, wide = false, rail = false }: { children: React.ReactNode; wide?: boolean; rail?: boolean }) {
@@ -34,6 +35,7 @@ export async function AppShell({ children, wide = false, rail = false }: { child
     <div className="min-h-screen">
       <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} />
       <WebCallLayer />
+      <GlobalMediaLightbox />
       {wide ? (
         <main className="ml-[260px]">{children}</main>
       ) : rail ? (

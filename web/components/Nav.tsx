@@ -11,6 +11,7 @@ import {
   Bell,
   Search,
   Megaphone,
+  Settings,
   Bookmark,
   User,
   LogOut,
@@ -27,6 +28,7 @@ const items = [
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/saved", label: "Saved", icon: Bookmark },
   { href: "/ads", label: "Ads", icon: Megaphone },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Nav({ name, username }: { name: string; username: string }) {

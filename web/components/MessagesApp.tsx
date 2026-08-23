@@ -330,7 +330,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           {m.media_type === "offer" && m.media_url ? <OfferCard m={m} /> : null}
           {(m.media_type === "image" || m.media_type === "gif") && m.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={m.media_url} alt="" className="mb-1 max-h-72 rounded-lg object-contain" />
+            <img src={m.media_url} alt="Shared image" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } }))} onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } })); }} className="mb-1 max-h-72 cursor-zoom-in rounded-lg object-contain" />
           ) : null}
           {m.media_type === "video" && m.media_url ? (
             <video src={m.media_url} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />

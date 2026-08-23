@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Play, Pause, Volume2, VolumeX, RotateCcw, RotateCw, Maximize, Minimize, Eye, Gauge } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { autoplayEnabled, dataSaverEnabled } from "@/lib/mediaPrefs";
 
 let activeStop: (() => void) | null = null;
 let mutedPref = true;
@@ -29,6 +30,8 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
   const [speedMenu, setSpeedMenu] = useState(false);
   const [unplayable, setUnplayable] = useState(false);
   const [portrait, setPortrait] = useState(() => !!(width && height && height > width));
+  const [posterBg, setPosterBg] = useState<string | null>(null);
+  const posterTried = useRef(false);
 
   const reportDwell = useCallback(async () => {
     const start = dwellStart.current;
@@ -78,7 +81,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
       if (!e) return;
       if (document.fullscreenElement === el) return;
       if (e.intersectionRatio >= 0.6) {
-        if (ref.current?.paused) playNow();
+        if (ref.current?.paused && autoplayEnabled() && !dataSaverEnabled()) playNow();
       } else if (!ref.current?.paused) {
         stop();
       }
@@ -150,8 +153,9 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
       style={!fs && !immersive && width && height ? { aspectRatio: width + " / " + height } : undefined}
       className={"group relative overflow-hidden bg-black outline-none " + (fs || immersive ? "flex h-full w-full items-center justify-center" : "h-full w-full rounded-lg")}
     >
-      {portrait && !fs && !immersive ? (
-        <video src={src} muted playsInline preload="metadata" aria-hidden
+      {portrait && !fs && posterBg ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={posterBg} alt="" aria-hidden
           className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl"
         />
       ) : null}
@@ -159,12 +163,23 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
         src={src}
         playsInline
         preload="metadata"
+        crossOrigin="anonymous"
         onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
         onTimeUpdate={() => {
           const v = ref.current;
           if (!v) return;
           if (v.duration) setProgress(v.currentTime / v.duration);
           positions[src] = v.currentTime;
+          if (!posterTried.current && v.currentTime > 0.1 && v.videoWidth > 0) {
+            posterTried.current = true;
+            try {
+              const c = document.createElement("canvas");
+              c.width = 96;
+              c.height = Math.round((96 * v.videoHeight) / v.videoWidth);
+              c.getContext("2d")?.drawImage(v, 0, 0, c.width, c.height);
+              setPosterBg(c.toDataURL("image/jpeg", 0.6));
+            } catch { posterTried.current = true; }
+          }
           if (!unplayable && !v.paused && v.currentTime > 1.2) {
             const q = (v as HTMLVideoElement & { getVideoPlaybackQuality?: () => { totalVideoFrames: number } }).getVideoPlaybackQuality?.();
             const decoded = q ? q.totalVideoFrames : (v as HTMLVideoElement & { webkitDecodedFrameCount?: number }).webkitDecodedFrameCount;
@@ -173,9 +188,30 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
         }}
         onEnded={() => { positions[src] = 0; stop(); }}
         onError={() => setUnplayable(true)}
-        onLoadedMetadata={() => { const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else { setPortrait(v.videoHeight > v.videoWidth); onDims?.(v.videoWidth, v.videoHeight); } }}
+        onLoadedMetadata={() => { const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else { setPortrait(v.videoHeight > v.videoWidth); onDims?.(v.videoWidth, v.videoHeight); if (v.paused && !positions[src] && !posterTried.current) { try { v.currentTime = 0.15; } catch { /* fine */ } } } }}
+        onSeeked={() => {
+          const v = ref.current;
+          if (!v || posterTried.current || v.videoWidth === 0 || !v.paused) return;
+          posterTried.current = true;
+          try {
+            const c = document.createElement("canvas");
+            c.width = 320;
+            c.height = Math.round((320 * v.videoHeight) / v.videoWidth);
+            c.getContext("2d")?.drawImage(v, 0, 0, c.width, c.height);
+            setPosterBg(c.toDataURL("image/jpeg", 0.7));
+          } catch { /* tainted or unavailable, fine */ }
+        }}
         className={(fs || immersive) ? "relative h-full max-h-none w-full object-contain" : "relative h-full w-full object-contain"}
       />
+      {!playing && posterBg && !unplayable ? (
+        <button onClick={(e) => { e.stopPropagation(); playNow(); }} aria-label="Play video" className="absolute inset-0 z-[5] flex items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={posterBg} alt="" aria-hidden className="absolute inset-0 h-full w-full object-contain" />
+          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-ink/70 pl-1 text-white">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
+          </span>
+        </button>
+      ) : null}
       {unplayable ? (
         <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/80 px-6 text-center">
           <span className="text-[13px] font-semibold text-white">This video plays in the Platinum Circles app</span>

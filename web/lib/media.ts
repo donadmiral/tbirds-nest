@@ -17,3 +17,11 @@ export function isLikelyUnplayableVideo(url: string | null | undefined): boolean
   const clean = url.split("?")[0].toLowerCase();
   return clean.endsWith(".mov") || clean.endsWith(".hevc");
 }
+// Rendition ladder for images through the render endpoint, doctrine 13, 14, 36.
+export function srcSetFor(url: string): { srcSet: string; sizes: string } {
+  const widths = [480, 960, 1440];
+  return {
+    srcSet: widths.map((w) => displayImageUrl(url, w) + " " + w + "w").join(", "),
+    sizes: "(max-width: 700px) 92vw, 640px",
+  };
+}

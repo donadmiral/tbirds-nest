@@ -5,7 +5,8 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircle, Repeat2 } from "lucide-react";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { RichText } from "@/components/RichText";
-import { displayImageUrl } from "@/lib/media";
+import { displayImageUrl, srcSetFor } from "@/lib/media";
+import { dataSaverEnabled } from "@/lib/mediaPrefs";
 
 type MediaItem = { id: string; url: string; media_type: string; width?: number | null; height?: number | null; alt_text?: string | null };
 type Dims = { w: number; h: number };
@@ -22,7 +23,7 @@ export type ViewerPost = {
 
 function fitted(w: number | null | undefined, h: number | null | undefined, availW: number, maxH: number): Dims | null {
   if (!w || !h || !availW) return null;
-  const scale = Math.min(availW / w, maxH / h);
+  const scale = Math.min(availW / w, maxH / h, 1.25);
   return { w: Math.round(w * scale), h: Math.round(h * scale) };
 }
 
@@ -53,7 +54,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
       if (e && e.contentRect.width > 0) setAvailW(Math.round(e.contentRect.width));
     });
     ro.observe(el);
-    const onResize = () => setMaxH(Math.max(520, Math.min(Math.round(window.innerHeight * 0.8), 880)));
+    const onResize = () => setMaxH(Math.min(Math.max(280, window.innerHeight - 200), 880));
     onResize();
     window.addEventListener("resize", onResize);
     return () => { ro.disconnect(); window.removeEventListener("resize", onResize); };
@@ -123,14 +124,27 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
     if (dx < -40 && lightbox < media.length - 1) goTo(lightbox + 1);
     else if (dx > 40 && lightbox > 0) goTo(lightbox - 1);
   }
+  function setZoomClamped(next: number) {
+    const z = Math.min(4, Math.max(1, next));
+    setZoom(z);
+    if (z <= 1.01) setPan({ x: 0, y: 0 });
+    else setPan((p) => clampPan(p, z));
+  }
+  function clampPan(p: { x: number; y: number }, z: number) {
+    const pane = modalRef.current?.querySelector("[data-media-pane]") as HTMLElement | null;
+    const limX = pane ? (pane.clientWidth * (z - 1)) / 2 : 400;
+    const limY = pane ? (pane.clientHeight * (z - 1)) / 2 : 400;
+    return { x: Math.max(-limX, Math.min(limX, p.x)), y: Math.max(-limY, Math.min(limY, p.y)) };
+  }
   function onWheelZoom(e: React.WheelEvent) {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
     e.stopPropagation();
-    setZoom((z) => Math.min(4, Math.max(1, z + (e.deltaY < 0 ? 0.25 : -0.25))));
-    if (zoom <= 1.25 && pan.x !== 0) setPan({ x: 0, y: 0 });
+    setZoomClamped(zoom + (e.deltaY < 0 ? 0.35 : -0.35));
   }
   function onDoubleClick(e: React.MouseEvent) {
     e.stopPropagation();
-    if (zoom > 1) resetZoom(); else setZoom(2.2);
+    if (zoom > 1) resetZoom(); else setZoomClamped(2.2);
   }
   function onDragStart(e: React.MouseEvent) {
     if (zoom <= 1) return;
@@ -140,7 +154,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
   function onDragMove(e: React.MouseEvent) {
     const d = dragRef.current;
     if (!d) return;
-    setPan({ x: d.px + (e.clientX - d.x), y: d.py + (e.clientY - d.y) });
+    setPan(clampPan({ x: d.px + (e.clientX - d.x), y: d.py + (e.clientY - d.y) }, zoom));
   }
   function onDragEnd() { dragRef.current = null; }
 
@@ -151,6 +165,9 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
   return (
     <div ref={wrapRef} className="mt-3">
       <div className="relative overflow-hidden rounded-xl bg-black" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd}>
+        {lightbox !== null ? (
+          <div style={dims ? { height: dims.h + "px" } : undefined} className="w-full bg-black" />
+        ) : (
         <div className={"flex items-center justify-center" + heightTransition}
           style={dims ? { height: dims.h + "px" } : undefined}
         >
@@ -163,10 +180,15 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
             </div>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(item.url)!}
-              onError={(e) => { if (e.currentTarget.src !== item.url) e.currentTarget.src = item.url; }}
+            <img src={displayImageUrl(item.url, dataSaverEnabled() ? 480 : 1200)!}
+              {...(dataSaverEnabled() ? {} : srcSetFor(item.url))}
+              onError={(e) => { if (e.currentTarget.src !== item.url) { e.currentTarget.removeAttribute("srcset"); e.currentTarget.src = item.url; } }}
               onLoad={(e) => measure(item.id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox(idx); }}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setLightbox(idx); } }}
+              role="button"
+              tabIndex={0}
+              aria-label={"Open " + altOf(item, idx)}
               alt={altOf(item, idx)}
               loading="lazy"
               style={dims ? { width: dims.w + "px", height: dims.h + "px" } : undefined}
@@ -174,6 +196,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
             />
           )}
         </div>
+        )}
 
         {media.length > 1 ? (
           <>
@@ -206,7 +229,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
           onTouchStart={onTouchStart} onTouchEnd={onModalTouchEnd}
           onMouseMove={onDragMove} onMouseUp={onDragEnd} onMouseLeave={onDragEnd}
         >
-          <div className="relative flex min-w-0 flex-1 items-center justify-center">
+          <div data-media-pane className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden">
             <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="absolute left-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><X size={18} /></button>
             <span className="absolute left-16 top-5 z-10 text-[12px] font-semibold text-white/70">{lightbox + 1} / {media.length}</span>
             {post ? (
@@ -238,10 +261,26 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
                 onMouseDown={onDragStart}
                 draggable={false}
                 style={{ transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ")", transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
-                className="max-h-[94vh] max-w-[96vw] select-none object-contain"
+                className="max-h-[94vh] max-w-full select-none object-contain"
               />
             )}
+            {media[lightbox].media_type === "image" ? (
+              <span className="absolute bottom-4 right-4 z-10 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
+                <button onClick={() => setZoomClamped(zoom - 0.5)} aria-label="Zoom out" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white hover:bg-white/20">-</button>
+                <button onClick={() => resetZoom()} aria-label="Reset zoom" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-white/20">{Math.round(zoom * 100)}%</button>
+                <button onClick={() => setZoomClamped(zoom + 0.5)} aria-label="Zoom in" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white hover:bg-white/20">+</button>
+              </span>
+            ) : null}
           </div>
+
+          {media[lightbox + 1]?.media_type === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={displayImageUrl(media[lightbox + 1].url, 1600)!} alt="" aria-hidden className="hidden" />
+          ) : null}
+          {media[lightbox - 1]?.media_type === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={displayImageUrl(media[lightbox - 1].url, 1600)!} alt="" aria-hidden className="hidden" />
+          ) : null}
 
           {showPanel ? (
             <aside onClick={(e) => e.stopPropagation()} className="hidden w-[340px] shrink-0 flex-col overflow-y-auto border-l border-white/10 bg-navy p-5 lg:flex">
