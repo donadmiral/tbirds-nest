@@ -1,22 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircle, Repeat2 } from "lucide-react";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { RichText } from "@/components/RichText";
 import { displayImageUrl } from "@/lib/media";
 
 type MediaItem = { id: string; url: string; media_type: string; width?: number | null; height?: number | null; alt_text?: string | null };
 type Dims = { w: number; h: number };
+export type ViewerPost = {
+  post_id: string;
+  author_name?: string | null;
+  author_username?: string | null;
+  author_avatar?: string | null;
+  content?: string | null;
+  likes_count?: number;
+  comments_count?: number;
+  reposts_count?: number;
+};
 
-// One rule, X-style: scale by the limiting dimension, whole frame visible.
-// The loaded file's own measurements always overrule stored metadata.
 function fitted(w: number | null | undefined, h: number | null | undefined, availW: number, maxH: number): Dims | null {
   if (!w || !h || !availW) return null;
   const scale = Math.min(availW / w, maxH / h);
   return { w: Math.round(w * scale), h: Math.round(h * scale) };
 }
 
-export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]; postId: string; viewsCount?: number | null }) {
+export function MediaGallery({ media, postId, viewsCount, post }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -28,6 +38,7 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
   const [trueDims, setTrueDims] = useState<Record<string, Dims>>({});
   const [idx, setIdx] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [immersive, setImmersive] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [reduced, setReduced] = useState(false);
@@ -64,7 +75,7 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
       else if (e.key === "ArrowRight") { resetZoom(); setLightbox((v) => (v === null ? v : Math.min(v + 1, media.length - 1))); }
       else if (e.key === "ArrowLeft") { resetZoom(); setLightbox((v) => (v === null ? v : Math.max(v - 1, 0))); }
       else if (e.key === "Tab") {
-        const focusables = modalRef.current?.querySelectorAll<HTMLElement>("button, video, [tabindex]");
+        const focusables = modalRef.current?.querySelectorAll<HTMLElement>("button, a, video, [tabindex]");
         if (!focusables || focusables.length === 0) return;
         const list = Array.from(focusables);
         const first = list[0], last = list[list.length - 1];
@@ -78,6 +89,7 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
       document.body.style.paddingRight = prevPad;
       window.removeEventListener("keydown", onKey);
       resetZoom();
+      setImmersive(false);
       openerRef.current?.focus();
     };
   }, [lightbox, media.length, resetZoom]);
@@ -91,6 +103,7 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
   const known = trueDims[item.id] ?? (item.width && item.height ? { w: item.width, h: item.height } : null);
   const dims = fitted(known?.w, known?.h, availW, maxH);
   const altOf = (m: MediaItem, i: number) => m.alt_text || "Post media " + (i + 1);
+  const showPanel = !!post && !immersive;
 
   function goTo(next: number) { resetZoom(); setLightbox(next); }
   function onTouchStart(e: React.TouchEvent) { touchX.current = e.touches[0]?.clientX ?? null; }
@@ -133,6 +146,7 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
 
   const arrow = "absolute top-1/2 -translate-y-1/2 rounded-full bg-ink/70 p-1.5 text-white hover:bg-ink/90";
   const heightTransition = reduced ? "" : " transition-[height] duration-200";
+  const count = (n?: number) => (n ?? 0) >= 1000 ? ((n ?? 0) / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(n ?? 0);
 
   return (
     <div ref={wrapRef} className="mt-3">
@@ -187,40 +201,75 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
 
       {lightbox !== null ? (
         <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Media viewer"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
+          className="fixed inset-0 z-50 flex bg-black/95"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox(null); }}
           onTouchStart={onTouchStart} onTouchEnd={onModalTouchEnd}
           onMouseMove={onDragMove} onMouseUp={onDragEnd} onMouseLeave={onDragEnd}
         >
-          <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><X size={18} /></button>
-          <span className="absolute left-4 top-5 z-10 text-[12px] font-semibold text-white/70">{lightbox + 1} / {media.length}</span>
-          {lightbox > 0 ? (
-            <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><ChevronLeft size={20} /></button>
-          ) : null}
-          {lightbox < media.length - 1 ? (
-            <button onClick={(e) => { e.stopPropagation(); goTo(lightbox + 1); }} aria-label="Next media" className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><ChevronRight size={20} /></button>
-          ) : null}
-          {media[lightbox].media_type === "video" ? (
-            <div className="h-[94vh] w-[96vw]" onClick={(e) => e.stopPropagation()}>
-              <VideoPlayer src={media[lightbox].url} postId={postId} viewsCount={viewsCount} immersive
-                width={trueDims[media[lightbox].id]?.w ?? media[lightbox].width ?? undefined}
-                height={trueDims[media[lightbox].id]?.h ?? media[lightbox].height ?? undefined}
+          <div className="relative flex min-w-0 flex-1 items-center justify-center">
+            <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="absolute left-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><X size={18} /></button>
+            <span className="absolute left-16 top-5 z-10 text-[12px] font-semibold text-white/70">{lightbox + 1} / {media.length}</span>
+            {post ? (
+              <button onClick={(e) => { e.stopPropagation(); setImmersive((v) => !v); }} aria-label={immersive ? "Show details" : "Immersive view"} className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20">
+                {immersive ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+              </button>
+            ) : null}
+            {lightbox > 0 ? (
+              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><ChevronLeft size={20} /></button>
+            ) : null}
+            {lightbox < media.length - 1 ? (
+              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox + 1); }} aria-label="Next media" className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><ChevronRight size={20} /></button>
+            ) : null}
+            {media[lightbox].media_type === "video" ? (
+              <div className="h-[94vh] w-full px-2" onClick={(e) => e.stopPropagation()}>
+                <VideoPlayer src={media[lightbox].url} postId={postId} viewsCount={viewsCount} immersive
+                  width={trueDims[media[lightbox].id]?.w ?? media[lightbox].width ?? undefined}
+                  height={trueDims[media[lightbox].id]?.h ?? media[lightbox].height ?? undefined}
+                />
+              </div>
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={displayImageUrl(media[lightbox].url)!}
+                onError={(e) => { if (e.currentTarget.src !== media[lightbox].url) e.currentTarget.src = media[lightbox].url; }}
+                alt={altOf(media[lightbox], lightbox)}
+                onClick={(e) => e.stopPropagation()}
+                onWheel={onWheelZoom}
+                onDoubleClick={onDoubleClick}
+                onMouseDown={onDragStart}
+                draggable={false}
+                style={{ transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ")", transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
+                className="max-h-[94vh] max-w-[96vw] select-none object-contain"
               />
-            </div>
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(media[lightbox].url)!}
-              onError={(e) => { if (e.currentTarget.src !== media[lightbox].url) e.currentTarget.src = media[lightbox].url; }}
-              alt={altOf(media[lightbox], lightbox)}
-              onClick={(e) => e.stopPropagation()}
-              onWheel={onWheelZoom}
-              onDoubleClick={onDoubleClick}
-              onMouseDown={onDragStart}
-              draggable={false}
-              style={{ transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ")", transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
-              className="max-h-[94vh] max-w-[96vw] select-none object-contain"
-            />
-          )}
+            )}
+          </div>
+
+          {showPanel ? (
+            <aside onClick={(e) => e.stopPropagation()} className="hidden w-[340px] shrink-0 flex-col overflow-y-auto border-l border-white/10 bg-navy p-5 lg:flex">
+              <div className="flex items-center gap-2.5">
+                {post!.author_avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={displayImageUrl(post!.author_avatar, 100)!} alt="" className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-sm font-semibold text-porcelain">{(post!.author_name ?? "?").charAt(0)}</span>
+                )}
+                <span className="min-w-0">
+                  <span className="block truncate text-[14px] font-semibold text-white">{post!.author_name}</span>
+                  <span className="block truncate text-[12px] text-white/45">@{post!.author_username}</span>
+                </span>
+              </div>
+              {post!.content ? (
+                <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed text-white/85"><RichText text={post!.content} /></p>
+              ) : null}
+              <div className="mt-4 flex items-center gap-5 text-[13px] text-white/55">
+                <span className="flex items-center gap-1.5"><Heart size={15} /> {count(post!.likes_count)}</span>
+                <span className="flex items-center gap-1.5"><MessageCircle size={15} /> {count(post!.comments_count)}</span>
+                <span className="flex items-center gap-1.5"><Repeat2 size={15} /> {count(post!.reposts_count)}</span>
+              </div>
+              <Link href={"/post/" + post!.post_id} className="mt-5 rounded-md bg-pearl px-4 py-2.5 text-center text-[13px] font-semibold text-ink transition-opacity hover:opacity-90">
+                Open post and comments
+              </Link>
+            </aside>
+          ) : null}
         </div>
       ) : null}
     </div>
