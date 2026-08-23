@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { ListingCard } from "@/components/ListingCard";
 import { JobCard } from "@/components/JobCard";
 import { getMarketFeed, type Listing } from "@/lib/market";
+import { PostCard } from "@/components/PostCard";
+import type { FeedRow } from "@/lib/feed";
 import type { JobRow } from "@/lib/jobs";
 
 const CITIES = ["All Zimbabwe", "Harare", "Bulawayo", "Mutare", "Gweru", "Masvingo"];
@@ -18,6 +20,7 @@ export function LocalFeed() {
   const [city, setCity] = useState("All Zimbabwe");
   const [listings, setListings] = useState<Listing[]>([]);
   const [jobs, setJobs] = useState<JobRow[]>([]);
+  const [bizPosts, setBizPosts] = useState<FeedRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,12 +29,14 @@ export function LocalFeed() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [ls, jb] = await Promise.all([
+    const [ls, jb, fp] = await Promise.all([
       getMarketFeed({ limit: 30 }),
       supabase.from("jobs").select("*").order("created_at", { ascending: false }).limit(30),
+      supabase.rpc("get_feed", { p_mode: "latest", p_limit: 40 }),
     ]);
     setListings(ls);
     setJobs(((jb.data ?? []) as unknown) as JobRow[]);
+    setBizPosts((((fp.data ?? []) as FeedRow[]).filter((r) => r.author_kind === "business" && !(r as unknown as { reposted_by_id?: string | null }).reposted_by_id)).slice(0, 4));
     setLoading(false);
   }, [supabase]);
 
@@ -90,8 +95,18 @@ export function LocalFeed() {
               {shownJobs.map((j) => <JobCard key={(j as unknown as { id: string }).id} job={j as JobRow & { profile?: null }} />)}
             </div>
           )}
+          {bizPosts.length > 0 ? (
+            <>
+              <div className={head}>
+                <h2 className={h2}>From Zimbabwe businesses</h2>
+              </div>
+              <div>
+                {bizPosts.map((r) => <PostCard key={r.post_id} post={r} />)}
+              </div>
+            </>
+          ) : null}
           <p className="flex items-center gap-1.5 pb-8 pt-2 text-[12px] text-ink/35">
-            <MapPin size={13} /> Local shows Zimbabwe listings and jobs by city. Events and local business posts join next.
+            <MapPin size={13} /> Local shows Zimbabwe listings, jobs and business posts. City filters apply to listings and jobs.
           </p>
         </>
       )}

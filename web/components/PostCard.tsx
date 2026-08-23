@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, Heart, MessageCircle, Repeat2, ShieldCheck } from "lucide-react";
+import { Bookmark, Heart, MessageCircle, Pin, Repeat2, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
@@ -119,6 +119,9 @@ export function PostCard({ post }: { post: FeedRow }) {
 
   return (
     <article className="relative border-b border-ink/10 px-1 py-5">
+      {(post as unknown as { is_pinned?: boolean }).is_pinned ? (
+        <span className="mb-1.5 flex items-center gap-1.5 pl-10 text-[12px] font-semibold text-ink/45"><Pin size={13} /> Pinned</span>
+      ) : null}
       {rb.reposted_by_id ? (
         <Link href={"/" + rb.reposted_by_username} onClick={(e) => e.stopPropagation()} className="mb-1.5 flex items-center gap-1.5 pl-10 text-[12px] font-semibold text-ink/45 hover:underline">
           <Repeat2 size={13} /> {rb.reposted_by_name} reposted

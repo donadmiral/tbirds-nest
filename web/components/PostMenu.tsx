@@ -6,7 +6,7 @@ import { InsightsModal } from "@/components/InsightsModal";
 import { PromoteModal } from "@/components/PromoteModal";
 import { FactCheckModal } from "@/components/FactCheck";
 import { EditPostModal } from "@/components/EditPost";
-import { Pencil } from "lucide-react";
+import { Pencil, Pin } from "lucide-react";
 import { ShieldCheck } from "lucide-react";
 import { Megaphone, ListPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -80,6 +80,14 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
     await supabase.from("blocked_users").upsert({ blocker_id: uid, blocked_id: authorId });
   }
 
+  async function togglePin() {
+    if (!uid || !mine) return;
+    setOpen(false);
+    const { data: me } = await supabase.from("profiles").select("pinned_post_id").eq("id", uid).single();
+    const next = me?.pinned_post_id === postId ? null : postId;
+    const { error } = await supabase.from("profiles").update({ pinned_post_id: next }).eq("id", uid);
+    alert(error ? "Could not update: " + error.message : next ? "Pinned to your profile." : "Unpinned.");
+  }
   async function toggleSensitive() {
     if (!uid || !mine) return;
     setOpen(false);
@@ -137,6 +145,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
                 <button onClick={() => { setOpen(false); setPromoteOpen(true); }} className={item}><Megaphone size={15} /> Promote post</button>
                 <button onClick={() => { setOpen(false); window.dispatchEvent(new CustomEvent("pc-thread-post", { detail: { id: postId } })); window.scrollTo({ top: 0, behavior: "smooth" }); }} className={item}><ListPlus size={15} /> Add to thread</button>
                 <button onClick={toggleSensitive} className={item}><ShieldAlert size={15} /> Toggle sensitive media</button>
+                <button onClick={togglePin} className={item}><Pin size={15} /> Pin or unpin on profile</button>
                 <button onClick={deletePost} className={item + " text-danger"}><Trash2 size={15} /> Delete post</button>
                 </>
               )}
