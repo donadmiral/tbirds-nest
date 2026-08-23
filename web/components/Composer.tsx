@@ -5,7 +5,7 @@ import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag } from "
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
 
-type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean };
+type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string };
 type MentionHit = { id: string; full_name: string | null; username: string | null; avatar_url: string | null };
 export type QuoteTarget = { id: string; author: string; text: string };
 
@@ -117,7 +117,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
           bmp.close();
         } catch { /* dims optional */ }
       }
-      next.push({ file: f, preview: URL.createObjectURL(f), width, height, isVideo });
+      next.push({ file: f, preview: URL.createObjectURL(f), width, height, isVideo, alt: "" });
     }
     setItems(next);
     setOpen(true);
@@ -155,7 +155,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
         return;
       }
       const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
-      media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}) });
+      media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
     }
 
     const insertData: Record<string, unknown> = {
@@ -292,6 +292,22 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
               <button onClick={() => setItems(items.filter((_, x) => x !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-white/70 hover:text-white">
                 <X size={13} />
               </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {items.filter((m) => !m.isVideo).length > 0 ? (
+        <div className="mt-2 flex flex-col gap-1.5">
+          {items.map((m, i) => m.isVideo ? null : (
+            <span key={m.preview} className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={m.preview} alt="" className="h-9 w-9 shrink-0 rounded-md object-cover" />
+              <input value={m.alt}
+                onChange={(e) => setItems((list) => list.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))}
+                placeholder="Describe this image, helps people using screen readers"
+                maxLength={500}
+                className="min-w-0 flex-1 rounded-md bg-surface px-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:bg-surface-elevated"
+              />
             </span>
           ))}
         </div>
