@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Nav } from "@/components/Nav";
 import { WebCallLayer } from "@/components/WebCallLayer";
 import { GlobalMediaLightbox } from "@/components/GlobalMediaLightbox";
+import { GlobalBack } from "@/components/GlobalBack";
 import { DiscoveryRail } from "@/components/DiscoveryRail";
 
 export async function AppShell({ children, wide = false, rail = false }: { children: React.ReactNode; wide?: boolean; rail?: boolean }) {
@@ -36,6 +37,7 @@ export async function AppShell({ children, wide = false, rail = false }: { child
       <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} />
       <WebCallLayer />
       <GlobalMediaLightbox />
+      <GlobalBack />
       {wide ? (
         <main className="ml-[260px]">{children}</main>
       ) : rail ? (

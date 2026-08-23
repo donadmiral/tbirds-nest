@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BarChart3 } from "lucide-react";
+import { CATEGORIES } from "@/lib/categories";
 import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
@@ -41,6 +42,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   const [pollOn, setPollOn] = useState(false);
   const [pollOpts, setPollOpts] = useState<string[]>(["", ""]);
   const [pollDays, setPollDays] = useState(1);
+  const [postCategory, setPostCategory] = useState("");
   const [preview, setPreview] = useState<{ url: string; domain?: string; title?: string; description?: string; image_url?: string } | null>(null);
   const previewOff = useRef<string | null>(null);
 
@@ -178,6 +180,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     }
     if (quote) insertData.quoted_post_id = quote.id;
     if (threadTo) insertData.thread_parent_id = threadTo;
+    if (postCategory) insertData.category = postCategory;
 
     const { data: newPost, error: insErr } = await supabase.from("posts").insert(insertData).select("id").single();
     if (insErr || !newPost) { setError(insErr?.message || "Could not post."); setPending(false); return; }
@@ -224,6 +227,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     setPollOn(false);
     setPollOpts(["", ""]);
     setPollDays(1);
+    setPostCategory("");
     onQuoteDone?.();
     onPosted();
   }
@@ -403,6 +407,12 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
         <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] transition-colors " + (inno ? "bg-surface-elevated font-semibold text-pearl" : "text-ink/50 hover:bg-surface hover:text-ink")}>
           <Lightbulb size={15} /> Innovation
         </button>
+        <select value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[110px] rounded-md bg-surface px-2 py-1.5 text-[12px] text-ink/80 outline-none">
+          <option value="" className="bg-navy">Category</option>
+          {CATEGORIES.filter((c) => c.key !== "innovation").map((c) => (
+            <option key={c.key} value={c.key} className="bg-navy">{c.label}</option>
+          ))}
+        </select>
         <select value={audience}
           onChange={(e) => setAudience(e.target.value as typeof audience)}
           className="rounded-md bg-surface px-2 py-1.5 text-[13px] text-ink/80 outline-none"

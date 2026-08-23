@@ -8,6 +8,7 @@ import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
 import { LocalFeed } from "@/components/LocalFeed";
+import { DiscoverFeed } from "@/components/DiscoverFeed";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { SponsoredCard } from "@/components/SponsoredCard";
 import { getActivePromos, type PromoRow } from "@/lib/ads";
@@ -17,7 +18,7 @@ const PAGE_SIZE = 20;
 const MODES = [
   { key: "for_you", label: "For You" },
   { key: "latest", label: "Latest" },
-  { key: "innovation", label: "Innovation" },
+  { key: "discover", label: "Discover" },
   { key: "trending", label: "Trending" },
   { key: "local", label: "Local" },
 ] as const;
@@ -68,7 +69,7 @@ export default function HomeFeed() {
 
   const load = useCallback(
     async (more: boolean) => {
-      if (mode === "local") { setPosts([]); setLoading(false); setLoadingMore(false); return; }
+      if (mode === "local" || mode === "discover") { setPosts([]); setLoading(false); setLoadingMore(false); return; }
       if (more) { setLoadingMore(true); loadingMoreRef.current = true; }
       else {
         setLoading(true);
@@ -245,6 +246,7 @@ export default function HomeFeed() {
       ) : (
         <div>
           {mode === "local" ? <LocalFeed /> : null}
+          {mode === "discover" ? <DiscoverFeed /> : null}
           {posts.map((p, i) => {
             const slot = i > 0 && (i + 1) % 6 === 0 ? promos[Math.floor((i + 1) / 6) - 1] : null;
             return (
