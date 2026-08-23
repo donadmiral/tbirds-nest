@@ -6,10 +6,18 @@ import { createClient } from "@/lib/supabase/client";
 
 let activeStop: (() => void) | null = null;
 let mutedPref = true;
+// One playback identity per src: feed and fullscreen resume each other
+// and share the view session, so expanding never double-counts or restarts.
+const positions: Record<string, number> = {};
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 const SPEEDS = [0.5, 1, 1.25, 1.5, 2];
 
-export function VideoPlayer({ src, postId, viewsCount, width, height, onDims }: { src: string; postId: string; viewsCount?: number | null; width?: number; height?: number; onDims?: (w: number, h: number) => void }) {
+export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, immersive = false }: {
+  src: string; postId: string; viewsCount?: number | null;
+  width?: number; height?: number;
+  onDims?: (w: number, h: number) => void;
+  immersive?: boolean;
+}) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const dwellStart = useRef<number | null>(null);
@@ -36,10 +44,12 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims }: 
   }, [postId]);
 
   const stop = useCallback(() => {
-    ref.current?.pause();
+    const v = ref.current;
+    if (v) positions[src] = v.currentTime;
+    v?.pause();
     setPlaying(false);
     reportDwell();
-  }, [reportDwell]);
+  }, [reportDwell, src]);
 
   const playNow = useCallback(() => {
     if (activeStop && activeStop !== stop) activeStop();
@@ -47,15 +57,22 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims }: 
     const v = ref.current;
     if (!v) return;
     v.muted = muted;
+    if (positions[src] && Math.abs(v.currentTime - positions[src]) > 1 && positions[src] < (v.duration || Infinity) - 1) {
+      v.currentTime = positions[src];
+    }
     v.play().then(() => {
       setPlaying(true);
       if (!dwellStart.current) dwellStart.current = Date.now();
     }, () => {});
-  }, [muted, stop]);
+  }, [muted, stop, src]);
 
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+    if (immersive) {
+      playNow();
+      return () => stop();
+    }
     const io = new IntersectionObserver((entries) => {
       const e = entries[0];
       if (!e) return;
@@ -91,7 +108,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims }: 
 
   function seekBy(delta: number) {
     const v = ref.current;
-    if (v) v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + delta));
+    if (v) { v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + delta)); positions[src] = v.currentTime; }
   }
 
   function scrub(e: React.MouseEvent<HTMLDivElement>) {
@@ -100,6 +117,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims }: 
     if (!v || !v.duration) return;
     const r = e.currentTarget.getBoundingClientRect();
     v.currentTime = ((e.clientX - r.left) / r.width) * v.duration;
+    positions[src] = v.currentTime;
   }
 
   function toggleFullscreen() {
@@ -129,9 +147,14 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims }: 
       tabIndex={0}
       onKeyDown={onKey}
       onClick={() => wrapRef.current?.focus()}
-      style={!fs && width && height ? { aspectRatio: width + " / " + height } : undefined}
-      className={"group relative overflow-hidden bg-black outline-none " + (fs ? "flex h-full w-full items-center justify-center" : "h-full w-full rounded-lg")}
+      style={!fs && !immersive && width && height ? { aspectRatio: width + " / " + height } : undefined}
+      className={"group relative overflow-hidden bg-black outline-none " + (fs || immersive ? "flex h-full w-full items-center justify-center" : "h-full w-full rounded-lg")}
     >
+      {portrait && !fs ? (
+        <video src={src} muted playsInline preload="metadata" aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl"
+        />
+      ) : null}
       <video ref={ref}
         src={src}
         playsInline
@@ -141,16 +164,17 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims }: 
           const v = ref.current;
           if (!v) return;
           if (v.duration) setProgress(v.currentTime / v.duration);
+          positions[src] = v.currentTime;
           if (!unplayable && !v.paused && v.currentTime > 1.2) {
             const q = (v as HTMLVideoElement & { getVideoPlaybackQuality?: () => { totalVideoFrames: number } }).getVideoPlaybackQuality?.();
             const decoded = q ? q.totalVideoFrames : (v as HTMLVideoElement & { webkitDecodedFrameCount?: number }).webkitDecodedFrameCount;
             if (typeof decoded === "number" && decoded === 0) setUnplayable(true);
           }
         }}
-        onEnded={() => stop()}
+        onEnded={() => { positions[src] = 0; stop(); }}
         onError={() => setUnplayable(true)}
         onLoadedMetadata={() => { const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else { setPortrait(v.videoHeight > v.videoWidth); onDims?.(v.videoWidth, v.videoHeight); } }}
-        className={fs ? "h-full max-h-none w-full object-contain" : "h-full w-full object-contain"}
+        className={(fs || immersive) ? "relative h-full max-h-none w-full object-contain" : "relative h-full w-full object-contain"}
       />
       {unplayable ? (
         <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/80 px-6 text-center">
