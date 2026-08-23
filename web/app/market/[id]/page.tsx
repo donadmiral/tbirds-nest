@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getListing, getSavedListingIds, toggleSaved, priceLabel, type Listing } from "@/lib/market";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SellerTrust } from "@/components/SellerTrust";
+import { StoryAvatar } from "@/components/StoryAvatar";
 import { SellerReviews } from "@/components/SellerReviews";
 import { timeAgo } from "@/lib/feed";
 
@@ -214,7 +215,7 @@ export default function ListingPage() {
         <Link href={l.seller.username ? "/" + l.seller.username : "#"} className="mt-6 flex items-center gap-3 rounded-lg border border-white/10 p-4 transition-colors hover:bg-surface">
           {l.seller.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={l.seller.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+            <StoryAvatar userId={l.seller_id} name={l.seller.full_name} avatarUrl={l.seller.avatar_url} size={44} />
           ) : (
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-porcelain">
               {(l.seller.full_name ?? "?").charAt(0).toUpperCase()}
