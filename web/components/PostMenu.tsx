@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3 } from "lucide-react";
+import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3, ShieldAlert } from "lucide-react";
 import { InsightsModal } from "@/components/InsightsModal";
 import { PromoteModal } from "@/components/PromoteModal";
 import { Megaphone, ListPlus } from "lucide-react";
@@ -74,6 +74,15 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
     await supabase.from("blocked_users").upsert({ blocker_id: uid, blocked_id: authorId });
   }
 
+  async function toggleSensitive() {
+    if (!uid || !mine) return;
+    setOpen(false);
+    const { data: rows } = await supabase.from("post_media").select("id, is_sensitive").eq("post_id", postId);
+    if (!rows || rows.length === 0) { alert("This post has no media to mark."); return; }
+    const next = !rows.some((r) => r.is_sensitive);
+    const { error } = await supabase.from("post_media").update({ is_sensitive: next }).eq("post_id", postId);
+    alert(error ? "Could not update: " + error.message : next ? "Media marked sensitive. Viewers see a shield first." : "Sensitive mark removed.");
+  }
   async function deletePost() {
     if (!uid || !mine) return;
     if (!window.confirm("Delete this post permanently?")) return;
@@ -117,6 +126,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
                 <button onClick={() => { setOpen(false); setInsightsOpen(true); }} className={item}><BarChart3 size={15} /> View insights</button>
                 <button onClick={() => { setOpen(false); setPromoteOpen(true); }} className={item}><Megaphone size={15} /> Promote post</button>
                 <button onClick={() => { setOpen(false); window.dispatchEvent(new CustomEvent("pc-thread-post", { detail: { id: postId } })); window.scrollTo({ top: 0, behavior: "smooth" }); }} className={item}><ListPlus size={15} /> Add to thread</button>
+                <button onClick={toggleSensitive} className={item}><ShieldAlert size={15} /> Toggle sensitive media</button>
                 <button onClick={deletePost} className={item + " text-danger"}><Trash2 size={15} /> Delete post</button>
                 </>
               )}
