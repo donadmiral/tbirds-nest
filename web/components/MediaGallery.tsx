@@ -8,18 +8,12 @@ import { displayImageUrl } from "@/lib/media";
 type MediaItem = { id: string; url: string; media_type: string; width?: number | null; height?: number | null; alt_text?: string | null };
 type Dims = { w: number; h: number };
 
+// One rule, X-style: scale by the limiting dimension, whole frame visible.
+// The loaded file's own measurements always overrule stored metadata.
 function fitted(w: number | null | undefined, h: number | null | undefined, availW: number, maxH: number): Dims | null {
   if (!w || !h || !availW) return null;
   const scale = Math.min(availW / w, maxH / h);
   return { w: Math.round(w * scale), h: Math.round(h * scale) };
-}
-
-function srcSetFor(url: string): { srcSet: string; sizes: string } {
-  const widths = [480, 960, 1440];
-  return {
-    srcSet: widths.map((w) => displayImageUrl(url, w) + " " + w + "w").join(", "),
-    sizes: "(max-width: 700px) 92vw, 640px",
-  };
 }
 
 export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]; postId: string; viewsCount?: number | null }) {
@@ -31,7 +25,7 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const [availW, setAvailW] = useState(608);
   const [maxH, setMaxH] = useState(720);
-  const [recovered, setRecovered] = useState<Record<string, Dims>>({});
+  const [trueDims, setTrueDims] = useState<Record<string, Dims>>({});
   const [idx, setIdx] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -88,15 +82,14 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
     };
   }, [lightbox, media.length, resetZoom]);
 
-  const recover = useCallback((id: string, w: number, h: number) => {
-    if (w > 0 && h > 0) setRecovered((r) => (r[id] ? r : { ...r, [id]: { w, h } }));
+  const measure = useCallback((id: string, w: number, h: number) => {
+    if (w > 0 && h > 0) setTrueDims((r) => (r[id] && r[id].w === w && r[id].h === h ? r : { ...r, [id]: { w, h } }));
   }, []);
 
   if (media.length === 0) return null;
   const item = media[Math.min(idx, media.length - 1)];
-  const known = item.width && item.height ? { w: item.width, h: item.height } : recovered[item.id] ?? null;
+  const known = trueDims[item.id] ?? (item.width && item.height ? { w: item.width, h: item.height } : null);
   const dims = fitted(known?.w, known?.h, availW, maxH);
-  const portrait = !!(known && known.h > known.w);
   const altOf = (m: MediaItem, i: number) => m.alt_text || "Post media " + (i + 1);
 
   function goTo(next: number) { resetZoom(); setLightbox(next); }
@@ -143,32 +136,27 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
 
   return (
     <div ref={wrapRef} className="mt-3">
-      <div className="relative overflow-hidden rounded-lg bg-black/40" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd}>
-        {portrait && item.media_type === "image" ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={displayImageUrl(item.url, 60)!} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-2xl" />
-        ) : null}
-        <div className={"relative flex items-center justify-center" + heightTransition}
-          style={dims ? { height: dims.h + "px" } : known ? { aspectRatio: known.w + " / " + known.h } : undefined}
+      <div className="relative overflow-hidden rounded-xl bg-black" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd}>
+        <div className={"flex items-center justify-center" + heightTransition}
+          style={dims ? { height: dims.h + "px" } : undefined}
         >
           {item.media_type === "video" ? (
             <div style={dims ? { width: dims.w + "px", height: dims.h + "px" } : { width: "100%" }}>
               <VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount}
                 width={known?.w} height={known?.h}
-                onDims={(w, h) => recover(item.id, w, h)}
+                onDims={(w, h) => measure(item.id, w, h)}
               />
             </div>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={displayImageUrl(item.url)!}
-              {...srcSetFor(item.url)}
-              onError={(e) => { if (e.currentTarget.src !== item.url) { e.currentTarget.removeAttribute("srcset"); e.currentTarget.src = item.url; } }}
-              onLoad={(e) => { if (!known) recover(item.id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight); }}
+              onError={(e) => { if (e.currentTarget.src !== item.url) e.currentTarget.src = item.url; }}
+              onLoad={(e) => measure(item.id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox(idx); }}
               alt={altOf(item, idx)}
               loading="lazy"
               style={dims ? { width: dims.w + "px", height: dims.h + "px" } : undefined}
-              className={"relative cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
+              className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
           )}
         </div>
@@ -215,13 +203,13 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
           {media[lightbox].media_type === "video" ? (
             <div className="h-[94vh] w-[96vw]" onClick={(e) => e.stopPropagation()}>
               <VideoPlayer src={media[lightbox].url} postId={postId} viewsCount={viewsCount} immersive
-                width={media[lightbox].width ?? recovered[media[lightbox].id]?.w}
-                height={media[lightbox].height ?? recovered[media[lightbox].id]?.h}
+                width={trueDims[media[lightbox].id]?.w ?? media[lightbox].width ?? undefined}
+                height={trueDims[media[lightbox].id]?.h ?? media[lightbox].height ?? undefined}
               />
             </div>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(media[lightbox].url, 2000)!}
+            <img src={displayImageUrl(media[lightbox].url)!}
               onError={(e) => { if (e.currentTarget.src !== media[lightbox].url) e.currentTarget.src = media[lightbox].url; }}
               alt={altOf(media[lightbox], lightbox)}
               onClick={(e) => e.stopPropagation()}
@@ -233,14 +221,6 @@ export function MediaGallery({ media, postId, viewsCount }: { media: MediaItem[]
               className="max-h-[94vh] max-w-[96vw] select-none object-contain"
             />
           )}
-          {media[lightbox].media_type === "image" && media[lightbox + 1] ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(media[lightbox + 1].url, 2000)!} alt="" aria-hidden className="hidden" />
-          ) : null}
-          {media[lightbox].media_type === "image" && media[lightbox - 1] ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(media[lightbox - 1].url, 2000)!} alt="" aria-hidden className="hidden" />
-          ) : null}
         </div>
       ) : null}
     </div>

@@ -150,11 +150,6 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
       style={!fs && !immersive && width && height ? { aspectRatio: width + " / " + height } : undefined}
       className={"group relative overflow-hidden bg-black outline-none " + (fs || immersive ? "flex h-full w-full items-center justify-center" : "h-full w-full rounded-lg")}
     >
-      {portrait && !fs ? (
-        <video src={src} muted playsInline preload="metadata" aria-hidden
-          className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl"
-        />
-      ) : null}
       <video ref={ref}
         src={src}
         playsInline
