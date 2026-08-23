@@ -97,7 +97,8 @@ export function PostCard({ post }: { post: FeedRow }) {
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
   const text = post.content ?? post.body ?? "";
-  const whyReason = rb.reposted_by_name ? rb.reposted_by_name + " reposted this"
+  const rbw = post as unknown as { reposted_by_name?: string | null };
+  const whyReason = rbw.reposted_by_name ? rbw.reposted_by_name + " reposted this"
     : post.viewer_follows ? "You follow " + post.author_name
     : post.is_trending ? "Trending on Platinum Circles"
     : "Suggested for you";
