@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, MessageCircle, SlidersHorizontal, Plus } from "lucide-react";
+import { MarketUnreadDot } from "@/components/MarketUnreadDot";
 import { createClient } from "@/lib/supabase/client";
 import { getMarketFeed, getListings, myListings, getSavedListingIds, MARKET_CATEGORIES, MARKET_CONDITIONS, type Listing, type MarketFilters } from "@/lib/market";
 import { ListingCard } from "@/components/ListingCard";
@@ -69,7 +70,7 @@ export default function MarketPage() {
     <div>
       <div className="flex items-center justify-between px-1 pb-3">
         <h1 className="font-display text-2xl text-porcelain">Market</h1>
-        <Link href="/market/messages" title="Market messages" className="rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-white"><MessageCircle size={19} /></Link>
+        <Link href="/market/messages" title="Market messages" className="relative rounded-md p-2 text-white/60 transition-colors hover:bg-surface hover:text-white"><MessageCircle size={19} /><MarketUnreadDot /></Link>
           <Link href="/market/new" className="ml-1 flex items-center gap-1.5 rounded-md bg-pearl px-3 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90"><Plus size={16} /> Sell</Link>
       </div>
 
