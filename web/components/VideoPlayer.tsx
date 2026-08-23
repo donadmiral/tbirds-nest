@@ -9,7 +9,7 @@ let mutedPref = true;
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 const SPEEDS = [0.5, 1, 1.25, 1.5, 2];
 
-export function VideoPlayer({ src, postId, viewsCount, width, height }: { src: string; postId: string; viewsCount?: number | null; width?: number; height?: number }) {
+export function VideoPlayer({ src, postId, viewsCount, width, height, onDims }: { src: string; postId: string; viewsCount?: number | null; width?: number; height?: number; onDims?: (w: number, h: number) => void }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const dwellStart = useRef<number | null>(null);
@@ -129,7 +129,8 @@ export function VideoPlayer({ src, postId, viewsCount, width, height }: { src: s
       tabIndex={0}
       onKeyDown={onKey}
       onClick={() => wrapRef.current?.focus()}
-      className={"group relative overflow-hidden bg-black outline-none " + (fs ? "flex h-full w-full items-center justify-center" : "rounded-lg")}
+      style={!fs && width && height ? { aspectRatio: width + " / " + height } : undefined}
+      className={"group relative overflow-hidden bg-black outline-none " + (fs ? "flex h-full w-full items-center justify-center" : "h-full w-full rounded-lg")}
     >
       <video ref={ref}
         src={src}
@@ -148,7 +149,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height }: { src: s
         }}
         onEnded={() => stop()}
         onError={() => setUnplayable(true)}
-        onLoadedMetadata={() => { const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else setPortrait(v.videoHeight > v.videoWidth); }}
+        onLoadedMetadata={() => { const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else { setPortrait(v.videoHeight > v.videoWidth); onDims?.(v.videoWidth, v.videoHeight); } }}
         className={fs ? "h-full max-h-none w-full object-contain" : "h-full w-full object-contain"}
       />
       {unplayable ? (
