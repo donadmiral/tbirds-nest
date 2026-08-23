@@ -36,6 +36,29 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   const [articleTitle, setArticleTitle] = useState("");
   const [products, setProducts] = useState<ProductCard[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [threadTo, setThreadTo] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ url: string; domain?: string; title?: string; description?: string; image_url?: string } | null>(null);
+  const previewOff = useRef<string | null>(null);
+
+  useEffect(() => {
+    function onThread(e: Event) { setThreadTo((e as CustomEvent).detail?.id ?? null); }
+    window.addEventListener("pc-thread-post", onThread);
+    return () => window.removeEventListener("pc-thread-post", onThread);
+  }, []);
+
+  useEffect(() => {
+    const url = (text.match(/https?:\/\/\S+/) || [])[0] ?? null;
+    if (!url) { setPreview(null); return; }
+    if (previewOff.current === url || preview?.url === url) return;
+    const t = setTimeout(async () => {
+      try {
+        const { data, error: e } = await supabase.functions.invoke("link-preview", { body: { url } });
+        if (!e && data && !data.error) setPreview({ url, ...data });
+      } catch { /* no preview, fine */ }
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text]);
   const [mentions, setMentions] = useState<MentionHit[]>([]);
   const [pending, setPending] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -149,6 +172,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
       insertData.read_minutes = Math.max(1, Math.round((content.split(/\s+/).length || 0) / 200));
     }
     if (quote) insertData.quoted_post_id = quote.id;
+    if (threadTo) insertData.thread_parent_id = threadTo;
 
     const { data: newPost, error: insErr } = await supabase.from("posts").insert(insertData).select("id").single();
     if (insErr || !newPost) { setError(insErr?.message || "Could not post."); setPending(false); return; }
@@ -271,6 +295,25 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
             </span>
           ))}
         </div>
+      ) : null}
+      {threadTo ? (
+        <p className="mt-2 flex items-center gap-2 rounded-md bg-surface px-3 py-2 text-[12px] text-white/70">
+          Adding to your thread
+          <button onClick={() => setThreadTo(null)} className="ml-auto text-pearl hover:underline">Cancel</button>
+        </p>
+      ) : null}
+      {preview ? (
+        <span className="mt-2 flex items-center gap-3 overflow-hidden rounded-lg border border-white/10 p-2.5">
+          {preview.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={preview.image_url} alt="" className="h-12 w-12 shrink-0 rounded-md bg-surface object-cover" />
+          ) : null}
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-bold uppercase tracking-wide text-white/40">{preview.domain ?? ""}</span>
+            <span className="line-clamp-2 block text-[13px] font-semibold text-white">{preview.title ?? preview.url}</span>
+          </span>
+          <button onClick={() => { previewOff.current = preview.url; setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-white/40 hover:bg-surface hover:text-white"><X size={14} /></button>
+        </span>
       ) : null}
       {pickerOpen ? <ProductPicker selected={products} onChange={setProducts} onClose={() => setPickerOpen(false)} /> : null}
       {!pickerOpen && products.length > 0 ? (

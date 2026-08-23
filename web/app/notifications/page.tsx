@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { StoryAvatar } from "@/components/StoryAvatar";
+import { FollowButton } from "@/components/FollowButton";
 import { timeAgo } from "@/lib/feed";
 
 type Notif = {
@@ -158,6 +159,25 @@ export default function NotificationsPage() {
                       {n.unread_in_group > 0 ? <span className="rounded-full bg-pearl px-1.5 py-px text-[10px] font-bold text-ink">{n.unread_in_group} new</span> : null}
                     </span>
                   </span>
+                  {n.type === "follow_request" && (n.data as { request_id?: string } | null)?.request_id ? (
+                    <span className="flex shrink-0 gap-1.5" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                      <button onClick={async () => {
+                        const reqId = (n.data as { request_id?: string }).request_id!;
+                        const { error } = await supabase.rpc("respond_follow_request", { p_request_id: reqId, p_action: "accept" });
+                        if (!error) setRows((prev) => prev.filter((r) => r.notification_id !== n.notification_id));
+                      }} className="rounded-md bg-pearl px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity hover:opacity-90">Confirm</button>
+                      <button onClick={async () => {
+                        const reqId = (n.data as { request_id?: string }).request_id!;
+                        const { error } = await supabase.rpc("respond_follow_request", { p_request_id: reqId, p_action: "reject" });
+                        if (!error) setRows((prev) => prev.filter((r) => r.notification_id !== n.notification_id));
+                      }} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-white transition-colors hover:bg-surface-elevated">Delete</button>
+                    </span>
+                  ) : null}
+                  {n.type === "follow" && n.actor_id && !n.viewer_follows ? (
+                    <span className="shrink-0" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                      <FollowButton authorId={n.actor_id} />
+                    </span>
+                  ) : null}
                   {n.post_thumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={n.post_thumb} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
