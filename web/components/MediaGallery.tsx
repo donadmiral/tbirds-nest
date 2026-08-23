@@ -8,7 +8,7 @@ import { RichText } from "@/components/RichText";
 import { displayImageUrl, srcSetFor } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
 
-type MediaItem = { id: string; url: string; media_type: string; width?: number | null; height?: number | null; alt_text?: string | null };
+type MediaItem = { id: string; url: string; media_type: string; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null };
 type Dims = { w: number; h: number };
 export type ViewerPost = {
   post_id: string;
@@ -46,6 +46,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [reduced, setReduced] = useState(false);
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [liked, setLiked] = useState(!!post?.viewer_liked);
   const [likeN, setLikeN] = useState(post?.likes_count ?? 0);
   const [marked, setMarked] = useState(!!post?.viewer_bookmarked);
@@ -241,6 +242,15 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
         </div>
         )}
 
+        {item.is_sensitive && !revealed[item.id] ? (
+          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRevealed((r) => ({ ...r, [item.id]: true })); }}
+            className="absolute inset-0 z-[6] flex flex-col items-center justify-center gap-2 bg-ink/95"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/70" aria-hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+            <span className="text-[13px] font-semibold text-white">Sensitive content</span>
+            <span className="text-[12px] text-white/50">The author flagged this media. Tap to show.</span>
+          </button>
+        ) : null}
         {media.length > 1 ? (
           <>
             {idx > 0 ? (
