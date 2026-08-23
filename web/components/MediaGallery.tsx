@@ -19,6 +19,8 @@ export type ViewerPost = {
   likes_count?: number;
   comments_count?: number;
   reposts_count?: number;
+  viewer_liked?: boolean;
+  viewer_bookmarked?: boolean;
 };
 
 function fitted(w: number | null | undefined, h: number | null | undefined, availW: number, maxH: number): Dims | null {
@@ -44,6 +46,31 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [reduced, setReduced] = useState(false);
+  const [liked, setLiked] = useState(!!post?.viewer_liked);
+  const [likeN, setLikeN] = useState(post?.likes_count ?? 0);
+  const [marked, setMarked] = useState(!!post?.viewer_bookmarked);
+
+  async function toggleLike() {
+    const supabase = createClient();
+    const { data: s } = await supabase.auth.getSession();
+    const uid = s.session?.user.id;
+    if (!uid || !post) return;
+    const on = !liked;
+    setLiked(on);
+    setLikeN((n) => Math.max(0, n + (on ? 1 : -1)));
+    if (on) await supabase.from("post_likes").upsert({ post_id: post.post_id, user_id: uid }, { onConflict: "post_id,user_id" });
+    else await supabase.from("post_likes").delete().eq("post_id", post.post_id).eq("user_id", uid);
+  }
+  async function toggleMark() {
+    const supabase = createClient();
+    const { data: s } = await supabase.auth.getSession();
+    const uid = s.session?.user.id;
+    if (!uid || !post) return;
+    const on = !marked;
+    setMarked(on);
+    if (on) await supabase.from("post_bookmarks").upsert({ post_id: post.post_id, user_id: uid }, { onConflict: "post_id,user_id" });
+    else await supabase.from("post_bookmarks").delete().eq("post_id", post.post_id).eq("user_id", uid);
+  }
 
   useEffect(() => {
     setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -315,10 +342,17 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
               {post!.content ? (
                 <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed text-white/85"><RichText text={post!.content} /></p>
               ) : null}
-              <div className="mt-4 flex items-center gap-5 text-[13px] text-white/55">
-                <span className="flex items-center gap-1.5"><Heart size={15} /> {count(post!.likes_count)}</span>
-                <span className="flex items-center gap-1.5"><MessageCircle size={15} /> {count(post!.comments_count)}</span>
-                <span className="flex items-center gap-1.5"><Repeat2 size={15} /> {count(post!.reposts_count)}</span>
+              <div className="mt-4 flex items-center gap-5 text-[13px]">
+                <button onClick={toggleLike} className={"flex items-center gap-1.5 transition-colors " + (liked ? "text-danger" : "text-white/55 hover:text-danger")}>
+                  <Heart size={15} fill={liked ? "currentColor" : "none"} /> {count(likeN)}
+                </button>
+                <Link href={"/post/" + post!.post_id} className="flex items-center gap-1.5 text-white/55 transition-colors hover:text-white">
+                  <MessageCircle size={15} /> {count(post!.comments_count)}
+                </Link>
+                <span className="flex items-center gap-1.5 text-white/55"><Repeat2 size={15} /> {count(post!.reposts_count)}</span>
+                <button onClick={toggleMark} title={marked ? "Saved" : "Save"} className={"ml-auto transition-colors " + (marked ? "text-pearl" : "text-white/55 hover:text-pearl")}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill={marked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" aria-hidden><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
+                </button>
               </div>
               <Link href={"/post/" + post!.post_id} className="mt-5 rounded-md bg-pearl px-4 py-2.5 text-center text-[13px] font-semibold text-ink transition-opacity hover:opacity-90">
                 Open post and comments
