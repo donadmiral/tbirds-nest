@@ -79,6 +79,7 @@ export async function pickFromLibrary(opts?: {
     : ['images']) as ImagePicker.MediaType[];
 
   const result = await ImagePicker.launchImageLibraryAsync({
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
     mediaTypes,
     allowsMultipleSelection: !!opts?.multiple,
     selectionLimit: opts?.selectionLimit ?? 10,

@@ -86,6 +86,7 @@ export default function EditProfileScreen({ navigation }: any) {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       mediaTypes: ['images'] as ImagePicker.MediaType[],
       allowsEditing: true,
       aspect: kind === 'avatar' ? [1, 1] : [3, 1],
