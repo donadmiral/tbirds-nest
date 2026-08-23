@@ -191,7 +191,7 @@ export default function HomeFeed() {
       <AnnouncementBanner />
       <StoryRings />
       <Composer onPosted={() => load(false)} quote={quote} onQuoteDone={() => setQuote(null)} />
-      <div className="sticky top-0 z-10 -mx-1 flex border-b border-ink/10 bg-ink/90 px-1 backdrop-blur">
+      <div className="sticky top-0 z-10 -mx-1 flex border-b border-ink/10 bg-white/90 px-1 backdrop-blur">
         {MODES.map((m) => (
           <button key={m.key}
             onClick={() => setMode(m.key)}
