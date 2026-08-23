@@ -114,6 +114,9 @@ export default function HomeFeed() {
 
   useEffect(() => {
     load(false);
+    const onRefresh = () => load(false);
+    window.addEventListener("pc-refresh-feed", onRefresh);
+    return () => window.removeEventListener("pc-refresh-feed", onRefresh);
   }, [load]);
 
   useEffect(() => {
@@ -241,7 +244,7 @@ export default function HomeFeed() {
           {posts.map((p, i) => {
             const slot = i > 0 && (i + 1) % 6 === 0 ? promos[Math.floor((i + 1) / 6) - 1] : null;
             return (
-              <div key={p.post_id}>
+              <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")}>
                 <div data-pid={p.post_id} ref={observeSeen}>
                   <PostCard post={p} />
                 </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BarChart3 } from "lucide-react";
 import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
@@ -37,6 +38,9 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   const [products, setProducts] = useState<ProductCard[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [threadTo, setThreadTo] = useState<string | null>(null);
+  const [pollOn, setPollOn] = useState(false);
+  const [pollOpts, setPollOpts] = useState<string[]>(["", ""]);
+  const [pollDays, setPollDays] = useState(1);
   const [preview, setPreview] = useState<{ url: string; domain?: string; title?: string; description?: string; image_url?: string } | null>(null);
   const previewOff = useRef<string | null>(null);
 
@@ -103,6 +107,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   }
 
   async function addFiles(list: FileList | File[] | null) {
+    if (pollOn) return;
     if (!list) return;
     const next = [...items];
     for (const f of Array.from(list).slice(0, MAX_MEDIA - next.length)) {
@@ -185,6 +190,15 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
       if (prodErr) setError("Posted, but the product cards did not save: " + prodErr.message);
     }
 
+    if (pollOn) {
+      const labels = pollOpts.map((x) => x.trim()).filter(Boolean);
+      if (labels.length >= 2) {
+        const ends = new Date(Date.now() + pollDays * 86400000).toISOString();
+        const { error: plErr } = await supabase.from("post_polls").insert({ post_id: newPost.id, ends_at: ends });
+        if (!plErr) await supabase.from("post_poll_options").insert(labels.map((label, i) => ({ post_id: newPost.id, label, sort_order: i })));
+        else setError("Posted, but the poll did not save: " + plErr.message);
+      }
+    }
     if (media.length > 0) {
       const rows = media.map((m) => ({ post_id: newPost.id, ...m }));
       const { error: mErr } = await supabase.from("post_media").insert(rows);
@@ -204,6 +218,12 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     setArticleTitle("");
     setOpen(false);
     setPending(false);
+    setThreadTo(null);
+    setPreview(null);
+    previewOff.current = null;
+    setPollOn(false);
+    setPollOpts(["", ""]);
+    setPollDays(1);
     onQuoteDone?.();
     onPosted();
   }
@@ -313,6 +333,29 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
           ))}
         </div>
       ) : null}
+      {pollOn ? (
+        <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-ink/10 p-3">
+          {pollOpts.map((o, i) => (
+            <input key={i} value={o}
+              onChange={(e) => setPollOpts((l) => l.map((x, j) => (j === i ? e.target.value : x)))}
+              placeholder={"Option " + (i + 1) + (i > 1 ? ", optional" : "")}
+              maxLength={60}
+              className="w-full rounded-md bg-surface px-3 py-2 text-[13.5px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+            />
+          ))}
+          <span className="flex items-center gap-2 pt-1">
+            {pollOpts.length < 4 ? (
+              <button onClick={() => setPollOpts((l) => [...l, ""])} className="text-[12px] font-semibold text-pearl-muted hover:underline">Add option</button>
+            ) : null}
+            <select value={pollDays} onChange={(e) => setPollDays(Number(e.target.value))} className="ml-auto rounded-md bg-surface px-2 py-1 text-[12px] text-ink outline-none">
+              <option value={1} className="bg-navy">1 day</option>
+              <option value={3} className="bg-navy">3 days</option>
+              <option value={7} className="bg-navy">7 days</option>
+            </select>
+            <button onClick={() => { setPollOn(false); setPollOpts(["", ""]); }} className="text-[12px] text-ink/45 hover:underline">Remove poll</button>
+          </span>
+        </div>
+      ) : null}
       {threadTo ? (
         <p className="mt-2 flex items-center gap-2 rounded-md bg-surface px-3 py-2 text-[12px] text-ink/70">
           Adding to your thread
@@ -353,6 +396,9 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
         <button onClick={() => setPickerOpen((v) => !v)} title="Attach products" className={"relative flex items-center rounded-md p-2 transition-colors " + (products.length > 0 ? "text-pearl" : "text-ink/50 hover:bg-surface hover:text-pearl")}>
           <Tag size={17} />
           {products.length > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pearl px-1 text-[9px] font-bold text-ink">{products.length}</span> : null}
+        </button>
+        <button onClick={() => { if (items.length === 0) setPollOn((v) => !v); }} disabled={items.length > 0} title="Add a poll" className={"rounded-md p-2 transition-colors disabled:opacity-30 " + (pollOn ? "text-pearl" : "text-ink/50 hover:bg-surface hover:text-pearl")}>
+          <BarChart3 size={17} />
         </button>
         <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-md px-2 py-1.5 text-[12px] transition-colors " + (inno ? "bg-surface-elevated font-semibold text-pearl" : "text-ink/50 hover:bg-surface hover:text-ink")}>
           <Lightbulb size={15} /> Innovation

@@ -11,6 +11,7 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { PostMenu } from "@/components/PostMenu";
 import { RichText } from "@/components/RichText";
+import { PollCard } from "@/components/PollCard";
 import { MediaGallery } from "@/components/MediaGallery";
 import { LikesModal } from "@/components/LikesModal";
 import { ShareMenu } from "@/components/ShareMenu";
@@ -96,6 +97,7 @@ export function PostCard({ post }: { post: FeedRow }) {
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
   const text = post.content ?? post.body ?? "";
+  const rb = post as unknown as { reposted_by_id?: string | null; reposted_by_name?: string | null; reposted_by_username?: string | null; has_poll?: boolean; edited_at?: string | null };
   const media = post.media ?? [];
   const products = post.products ?? [];
   const like = useToggle(post.viewer_liked, post.likes_count, toggleLike, post.post_id);
@@ -117,6 +119,11 @@ export function PostCard({ post }: { post: FeedRow }) {
 
   return (
     <article className="relative border-b border-ink/10 px-1 py-5">
+      {rb.reposted_by_id ? (
+        <Link href={"/" + rb.reposted_by_username} onClick={(e) => e.stopPropagation()} className="mb-1.5 flex items-center gap-1.5 pl-10 text-[12px] font-semibold text-ink/45 hover:underline">
+          <Repeat2 size={13} /> {rb.reposted_by_name} reposted
+        </Link>
+      ) : null}
       {likesOpen ? <LikesModal postId={post.post_id} onClose={() => setLikesOpen(false)} /> : null}
       {heart ? (
         <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
@@ -141,6 +148,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             <Link href={postHref} className="shrink-0 text-[13px] text-ink/50 hover:underline">
               {timeAgo(post.created_at)}
             </Link>
+            {rb.edited_at ? <span className="shrink-0 text-[12px] text-ink/35">· Edited</span> : null}
             <FollowButton authorId={post.author_id} />
             <PostMenu postId={post.post_id} authorId={post.author_id} text={text} onHidden={() => setHidden(true)} />
           </div>
@@ -173,6 +181,7 @@ export function PostCard({ post }: { post: FeedRow }) {
           <ShieldCheck size={12} /> Fact check added
         </Link>
       ) : null}
+      {rb.has_poll ? <PollCard postId={post.post_id} /> : null}
       {quotedId ? <QuoteCard quotedId={quotedId} /> : null}
 
           {post.link && media.length === 0 ? (

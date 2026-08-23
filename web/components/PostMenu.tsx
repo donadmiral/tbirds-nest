@@ -5,6 +5,8 @@ import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3, Shie
 import { InsightsModal } from "@/components/InsightsModal";
 import { PromoteModal } from "@/components/PromoteModal";
 import { FactCheckModal } from "@/components/FactCheck";
+import { EditPostModal } from "@/components/EditPost";
+import { Pencil } from "lucide-react";
 import { ShieldCheck } from "lucide-react";
 import { Megaphone, ListPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -30,6 +32,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [factOpen, setFactOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
 
   useEffect(() => {
@@ -100,6 +103,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
       {insightsOpen ? <InsightsModal postId={postId} onClose={() => setInsightsOpen(false)} /> : null}
       {promoteOpen ? <PromoteModal postId={postId} onClose={() => setPromoteOpen(false)} /> : null}
       {factOpen ? <FactCheckModal postId={postId} onClose={() => setFactOpen(false)} /> : null}
+      {editOpen ? <EditPostModal postId={postId} initialText={text} onClose={() => setEditOpen(false)} /> : null}
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
         title="More"
         className="rounded-full p-1.5 text-ink/40 transition-colors hover:bg-surface hover:text-ink"
@@ -128,6 +132,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
                 </>
               ) : (
                 <>
+                <button onClick={() => { setOpen(false); setEditOpen(true); }} className={item}><Pencil size={15} /> Edit post</button>
                 <button onClick={() => { setOpen(false); setInsightsOpen(true); }} className={item}><BarChart3 size={15} /> View insights</button>
                 <button onClick={() => { setOpen(false); setPromoteOpen(true); }} className={item}><Megaphone size={15} /> Promote post</button>
                 <button onClick={() => { setOpen(false); window.dispatchEvent(new CustomEvent("pc-thread-post", { detail: { id: postId } })); window.scrollTo({ top: 0, behavior: "smooth" }); }} className={item}><ListPlus size={15} /> Add to thread</button>
