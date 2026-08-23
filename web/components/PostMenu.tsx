@@ -58,6 +58,12 @@ export function PostMenu({ postId, authorId, text, onHidden, reason }: {
     setTimeout(() => { setCopied(false); setOpen(false); }, 900);
   }
 
+  async function showLessAuthor() {
+    if (!uid) return;
+    setOpen(false);
+    onHidden();
+    await supabase.from("muted_authors").upsert({ user_id: uid, author_id: authorId });
+  }
   async function notInterested() {
     if (!uid) return;
     setOpen(false);
@@ -136,6 +142,7 @@ export function PostMenu({ postId, authorId, text, onHidden, reason }: {
               {!mine ? (
                 <>
                   <button onClick={notInterested} className={item}><EyeOff size={15} /> Not interested</button>
+                  <button onClick={showLessAuthor} className={item}><EyeOff size={15} /> Show less from this author</button>
                   <button onClick={() => setReporting(true)} className={item}><Flag size={15} /> Report post</button>
                   <button onClick={() => { setOpen(false); setFactOpen(true); }} className={item}><ShieldCheck size={15} /> Add fact check</button>
                   <button onClick={blockAuthor} className={item + " text-danger"}><Ban size={15} /> Block author</button>
