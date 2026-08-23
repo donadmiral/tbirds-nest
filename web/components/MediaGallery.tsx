@@ -164,9 +164,9 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
 
   return (
     <div ref={wrapRef} className="mt-3">
-      <div className="relative overflow-hidden rounded-xl bg-black" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd}>
+      <div style={dims ? { width: dims.w + "px" } : undefined} className="relative mx-auto max-w-full overflow-hidden rounded-xl bg-black" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd}>
         {lightbox !== null ? (
-          <div style={dims ? { height: dims.h + "px" } : undefined} className="w-full bg-black" />
+          <div style={dims ? { height: dims.h + "px" } : undefined} className="w-full" />
         ) : (
         <div className={"flex items-center justify-center" + heightTransition}
           style={dims ? { height: dims.h + "px" } : undefined}
