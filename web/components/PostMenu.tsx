@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3 } from "lucide-react";
 import { InsightsModal } from "@/components/InsightsModal";
 import { PromoteModal } from "@/components/PromoteModal";
-import { Megaphone } from "lucide-react";
+import { Megaphone, ListPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const REASONS = [
@@ -116,6 +116,7 @@ export function PostMenu({ postId, authorId, text, onHidden }: {
                 <>
                 <button onClick={() => { setOpen(false); setInsightsOpen(true); }} className={item}><BarChart3 size={15} /> View insights</button>
                 <button onClick={() => { setOpen(false); setPromoteOpen(true); }} className={item}><Megaphone size={15} /> Promote post</button>
+                <button onClick={() => { setOpen(false); window.dispatchEvent(new CustomEvent("pc-thread-post", { detail: { id: postId } })); window.scrollTo({ top: 0, behavior: "smooth" }); }} className={item}><ListPlus size={15} /> Add to thread</button>
                 <button onClick={deletePost} className={item + " text-danger"}><Trash2 size={15} /> Delete post</button>
                 </>
               )}

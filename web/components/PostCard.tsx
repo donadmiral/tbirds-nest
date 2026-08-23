@@ -165,7 +165,10 @@ export function PostCard({ post }: { post: FeedRow }) {
               onDoubleClick={doubleLike} post={{ post_id: post.post_id, author_name: post.author_name, author_username: post.author_username, author_avatar: post.author_avatar, content: post.content ?? post.body, likes_count: post.likes_count, comments_count: post.comments_count, reposts_count: post.reposts_count }} />
           ) : null}
 
-          {quotedId ? <QuoteCard quotedId={quotedId} /> : null}
+          {(post as unknown as { thread_parent_id?: string | null }).thread_parent_id ? (
+        <Link href={"/post/" + (post as unknown as { thread_parent_id?: string | null }).thread_parent_id} onClick={(e) => e.stopPropagation()} className="mb-1 inline-block text-[12px] text-pearl hover:underline">Part of a thread · view previous</Link>
+      ) : null}
+      {quotedId ? <QuoteCard quotedId={quotedId} /> : null}
 
           {post.link && media.length === 0 ? (
             <a href={post.link.url} target="_blank" rel="noopener noreferrer"
