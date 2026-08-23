@@ -20,6 +20,7 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
   const [speed, setSpeed] = useState(1);
   const [speedMenu, setSpeedMenu] = useState(false);
   const [unplayable, setUnplayable] = useState(false);
+  const [portrait, setPortrait] = useState(false);
 
   const reportDwell = useCallback(async () => {
     const start = dwellStart.current;
@@ -147,8 +148,8 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
         }}
         onEnded={() => stop()}
         onError={() => setUnplayable(true)}
-        onLoadedMetadata={() => { const v = ref.current; if (v && v.videoWidth === 0) setUnplayable(true); }}
-        className={fs ? "h-full max-h-none w-full object-contain" : "max-h-[480px] w-full object-contain"}
+        onLoadedMetadata={() => { const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else setPortrait(v.videoHeight > v.videoWidth); }}
+        className={fs ? "h-full max-h-none w-full object-contain" : portrait ? "mx-auto block h-[560px] w-auto max-w-full object-contain" : "max-h-[480px] w-full object-contain"}
       />
       {unplayable ? (
         <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/80 px-6 text-center">
