@@ -50,19 +50,19 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
 
 function QuoteCard({ quotedId }: { quotedId: string }) {
   const supabase = useRef(createClient()).current;
-  const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; thumb: string | null } | null>(null);
+  const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; first: { url: string; media_type: string } | null } | null>(null);
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase
         .from("posts")
-        .select("content, body, created_at, user_id, post_media(url, sort_order)")
+        .select("content, body, created_at, user_id, post_media(url, media_type, sort_order)")
         .eq("id", quotedId)
         .maybeSingle();
       if (!data) return;
       const { data: a } = await supabase.from("profiles").select("full_name, username").eq("id", data.user_id).maybeSingle();
       const media = (data.post_media ?? []).slice().sort((x: { sort_order: number }, y: { sort_order: number }) => x.sort_order - y.sort_order);
-      setQ({ content: data.content, body: data.body, created_at: data.created_at, author: a ?? null, thumb: media[0]?.url ?? null });
+      setQ({ content: data.content, body: data.body, created_at: data.created_at, author: a ?? null, first: media[0] ?? null });
     })();
   }, [supabase, quotedId]);
 
@@ -77,9 +77,12 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
         </span>
         <span className="mt-0.5 line-clamp-3 block text-[13px] text-white/75">{q.content ?? q.body ?? ""}</span>
       </span>
-      {q.thumb ? (
+      {q.first && q.first.media_type === "image" ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={displayImageUrl(q.thumb)!} onError={(e) => { if (q.thumb && e.currentTarget.src !== q.thumb) e.currentTarget.src = q.thumb; }} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
+        <img src={displayImageUrl(q.first.url)!} onError={(e) => { if (q.first && e.currentTarget.src !== q.first.url) e.currentTarget.src = q.first.url; }} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
+      ) : null}
+      {q.first && q.first.media_type === "video" ? (
+        <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-black"><video src={q.first.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span></span>
       ) : null}
     </Link>
   );

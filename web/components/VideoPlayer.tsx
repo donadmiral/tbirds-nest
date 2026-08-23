@@ -135,7 +135,16 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
         playsInline
         preload="metadata"
         onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
-        onTimeUpdate={() => { const v = ref.current; if (v?.duration) setProgress(v.currentTime / v.duration); }}
+        onTimeUpdate={() => {
+          const v = ref.current;
+          if (!v) return;
+          if (v.duration) setProgress(v.currentTime / v.duration);
+          if (!unplayable && v.currentTime > 0.6) {
+            const q = (v as HTMLVideoElement & { getVideoPlaybackQuality?: () => { totalVideoFrames: number } }).getVideoPlaybackQuality?.();
+            const decoded = q ? q.totalVideoFrames : (v as HTMLVideoElement & { webkitDecodedFrameCount?: number }).webkitDecodedFrameCount;
+            if (typeof decoded === "number" && decoded === 0) setUnplayable(true);
+          }
+        }}
         onEnded={() => stop()}
         onError={() => setUnplayable(true)}
         onLoadedMetadata={() => { const v = ref.current; if (v && v.videoWidth === 0) setUnplayable(true); }}
