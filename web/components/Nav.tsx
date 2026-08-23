@@ -20,7 +20,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const items = [
   { href: "/home", label: "Home", icon: Home },
-  { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/discover", label: "Discover", icon: Compass },
   { href: "/search", label: "Search", icon: Search },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/market", label: "Market", icon: Store },
