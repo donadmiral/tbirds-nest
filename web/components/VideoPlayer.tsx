@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Play, Pause, Volume2, VolumeX, RotateCcw, RotateCw, Maximize, Minimize, Eye, Gauge } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { isLikelyUnplayableVideo } from "@/lib/media";
 
 let activeStop: (() => void) | null = null;
 let mutedPref = true;
@@ -20,7 +19,7 @@ export function VideoPlayer({ src, postId, viewsCount }: { src: string; postId: 
   const [fs, setFs] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [speedMenu, setSpeedMenu] = useState(false);
-  const [unplayable, setUnplayable] = useState(() => isLikelyUnplayableVideo(src));
+  const [unplayable, setUnplayable] = useState(false);
 
   const reportDwell = useCallback(async () => {
     const start = dwellStart.current;
