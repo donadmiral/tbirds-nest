@@ -7,6 +7,7 @@ import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
+import { LocalFeed } from "@/components/LocalFeed";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { SponsoredCard } from "@/components/SponsoredCard";
 import { getActivePromos, type PromoRow } from "@/lib/ads";
@@ -18,6 +19,7 @@ const MODES = [
   { key: "latest", label: "Latest" },
   { key: "innovation", label: "Innovation" },
   { key: "trending", label: "Trending" },
+  { key: "local", label: "Local" },
 ] as const;
 
 const EMPTY_COPY: Record<string, { title: string; sub: string }> = {
@@ -66,6 +68,7 @@ export default function HomeFeed() {
 
   const load = useCallback(
     async (more: boolean) => {
+      if (mode === "local") { setPosts([]); setLoading(false); setLoadingMore(false); return; }
       if (more) { setLoadingMore(true); loadingMoreRef.current = true; }
       else {
         setLoading(true);
@@ -241,6 +244,7 @@ export default function HomeFeed() {
         </div>
       ) : (
         <div>
+          {mode === "local" ? <LocalFeed /> : null}
           {posts.map((p, i) => {
             const slot = i > 0 && (i + 1) % 6 === 0 ? promos[Math.floor((i + 1) / 6) - 1] : null;
             return (
