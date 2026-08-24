@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { getUserStories, markStoryViewed, type CatchupUser, type StoryRow } from "@/lib/stories";
 import { timeAgo } from "@/lib/feed";
+import { SaveToMemory } from "@/components/SaveToMemory";
 
 const IMAGE_DURATION_MS = 5000;
 
@@ -145,6 +146,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
           <p className="flex h-full items-center justify-center text-sm text-white/50">Loading</p>
         )}
 
+        {story ? <SaveToMemory story={story} /> : null}
         <button onClick={back} className="absolute inset-y-0 left-0 w-1/3" aria-label="Previous" />
         <button onClick={advance} className="absolute inset-y-0 right-0 w-1/3" aria-label="Next" />
       </div>

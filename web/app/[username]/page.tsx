@@ -5,6 +5,7 @@ import { ProfilePosts } from "@/components/ProfilePosts";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { BusinessProfile } from "@/components/BusinessProfile";
+import { MemoryAlbumBook } from "@/components/MemoryAlbumBook";
 
 type Params = { params: Promise<{ username: string }> };
 
@@ -82,6 +83,7 @@ export default async function ProfilePage({ params }: Params) {
           </p>
         </div>
       </header>
+      <MemoryAlbumBook profileId={p.id} />
       {isBusiness ? (
         <BusinessProfile profileId={p.id} postsSlot={posts} />
       ) : (
