@@ -421,7 +421,7 @@ export default function NotificationsScreen({ navigation }: any) {
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
-        <Text style={s.title}>Activity</Text>
+        <TouchableOpacity onPress={() => { if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Feed'); }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginRight: 10 }} accessibilityRole="button" accessibilityLabel="Go back"><Feather name="chevron-left" size={26} color="#0B1E3D" /></TouchableOpacity><Text style={s.title}>Activity</Text>
         {unreadTotal > 0 ? (
           <TouchableOpacity onPress={markAllRead} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Text style={s.markAll}>Mark all read</Text>
