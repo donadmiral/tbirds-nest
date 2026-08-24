@@ -398,6 +398,7 @@ export default function ChatScreen() {
     supabase.from('conversations')
       .select('id')
       .eq('type', 'direct')
+      .or('context.is.null,context.eq.personal')
       .or(`and(user_1.eq.${a[0]},user_2.eq.${a[1]}),and(user_1.eq.${a[1]},user_2.eq.${a[0]})`)
       .maybeSingle()
       .then(({ data }) => { if (data?.id) setConversationId(data.id); });
