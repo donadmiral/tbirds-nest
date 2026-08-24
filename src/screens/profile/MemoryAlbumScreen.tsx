@@ -1,23 +1,28 @@
 /**
- * MemoryAlbumScreen — the phone album, mirroring web's MemoryAlbumView.
- * View: cover-tinted header, two-column polaroid grid of memory_pages.
- * Owner: add memories from own stories (clean multi-select picker via
- * add_memory_page), edit caption / remove per page, settings sheet
- * (title, cover color, audience) via upsert_memory_album.
+ * MemoryAlbumScreen — the memory book.
+ * Closed: a real album cover (stitched border, corner flowers, gold clasp
+ * with a pearl heart) in the album's palette. Tap to open.
+ * Open: a flip book — one taped polaroid memory per page, page-turn
+ * animation on arrows, edge taps and swipes, with an n / total pager.
+ * Owner: add from own stories, edit captions, remove pages, settings.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, FlatList, Modal, TextInput,
-  ActivityIndicator, Alert, Dimensions, StatusBar, ScrollView,
+  View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, FlatList,
+  ActivityIndicator, Alert, Dimensions, StatusBar, ScrollView, Animated,
+  Easing, PanResponder,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
+import Svg, { Ellipse, Circle } from 'react-native-svg';
 import { supabase } from '../../services/supabase';
 import { COVER_COLORS } from '../../components/MemoryAlbumCard';
 
 const SW = Dimensions.get('window').width;
-const TILE_W = (SW - 16 * 2 - 14) / 2;
+const SH = Dimensions.get('window').height;
+const PAGE_CREAM = '#FBF6EC';
+const TAPE = 'rgba(230,214,178,0.78)';
 
 const AUDIENCES = [
   { key: 'profile', label: 'Everyone who can view my profile' },
@@ -26,11 +31,35 @@ const AUDIENCES = [
   { key: 'only_me', label: 'Only me' },
 ];
 
+function Flower({ size, petal, heart }: { size: number; petal: string; heart: string }) {
+  const cx = size / 2, cy = size / 2, r = size * 0.19;
+  const petals = [0, 72, 144, 216, 288];
+  return (
+    <Svg width={size} height={size}>
+      {petals.map(a => {
+        const rad = (a * Math.PI) / 180;
+        return (
+          <Ellipse key={a}
+            cx={cx + Math.cos(rad) * size * 0.21}
+            cy={cy + Math.sin(rad) * size * 0.21}
+            rx={size * 0.17} ry={size * 0.11}
+            rotation={a} origin={`${cx + Math.cos(rad) * size * 0.21}, ${cy + Math.sin(rad) * size * 0.21}`}
+            fill={petal} opacity={0.9}
+          />
+        );
+      })}
+      <Circle cx={cx} cy={cy} r={r * 0.55} fill={heart} opacity={0.95} />
+    </Svg>
+  );
+}
+
 export default function MemoryAlbumScreen({ route, navigation }: any) {
   const ownerId: string = route.params?.ownerId;
   const insets = useSafeAreaInsets();
   const [album, setAlbum] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [opened, setOpened] = useState(false);
+  const [idx, setIdx] = useState(0);
   const [picker, setPicker] = useState(false);
   const [myStories, setMyStories] = useState<any[]>([]);
   const [chosen, setChosen] = useState<Set<string>>(new Set());
@@ -41,6 +70,12 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [aud, setAud] = useState('profile');
   const [captionFor, setCaptionFor] = useState<any | null>(null);
   const [captionText, setCaptionText] = useState('');
+
+  const coverAnim = useRef(new Animated.Value(0)).current;
+  const flipAnim = useRef(new Animated.Value(0)).current;
+  const flipping = useRef(false);
+  const idxRef = useRef(0);
+  useEffect(() => { idxRef.current = idx; }, [idx]);
 
   const load = useCallback(async () => {
     if (!ownerId) return;
@@ -60,6 +95,38 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     () => [...(album?.pages ?? [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
     [album],
   );
+
+  useEffect(() => { if (idx > 0 && idx >= pages.length) setIdx(Math.max(0, pages.length - 1)); }, [pages.length, idx]);
+
+  const openBook = useCallback(() => {
+    Animated.timing(coverAnim, { toValue: 1, duration: 520, easing: Easing.inOut(Easing.cubic), useNativeDriver: true }).start(() => setOpened(true));
+  }, [coverAnim]);
+
+  const closeBook = useCallback(() => {
+    setOpened(false);
+    Animated.timing(coverAnim, { toValue: 0, duration: 420, easing: Easing.inOut(Easing.cubic), useNativeDriver: true }).start();
+  }, [coverAnim]);
+
+  const flipTo = useCallback((dir: 1 | -1) => {
+    const cur = idxRef.current;
+    const next = cur + dir;
+    if (flipping.current || next < 0 || next >= Math.max(pages.length, 1)) return;
+    flipping.current = true;
+    Animated.timing(flipAnim, { toValue: dir, duration: 190, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => {
+      setIdx(next);
+      flipAnim.setValue(-dir as any);
+      Animated.timing(flipAnim, { toValue: 0, duration: 210, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(() => { flipping.current = false; });
+    });
+  }, [pages.length, flipAnim]);
+
+  const swipe = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => false,
+    onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 18 && Math.abs(g.dx) > Math.abs(g.dy) * 1.4,
+    onPanResponderRelease: (_e, g) => {
+      if (g.dx <= -30) flipTo(1);
+      else if (g.dx >= 30) flipTo(-1);
+    },
+  }), [flipTo]);
 
   const openPicker = useCallback(async () => {
     setChosen(new Set());
@@ -88,17 +155,19 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     } finally { setAdding(false); }
   }, [chosen, adding, load]);
 
-  const pageLongPress = useCallback((p: any) => {
-    if (!album?.is_owner) return;
-    Alert.alert('Memory', p.caption || 'This memory', [
+  const pageMenu = useCallback(() => {
+    const p = pages[idxRef.current];
+    if (!album?.is_owner || !p) { return; }
+    Alert.alert('This memory', p.caption || '', [
       { text: 'Edit caption', onPress: () => { setCaptionFor(p); setCaptionText(p.caption || ''); } },
       { text: 'Remove from album', style: 'destructive', onPress: async () => {
         await supabase.from('memory_pages').delete().eq('id', p.id);
         load();
       } },
+      { text: 'Album settings', onPress: () => setSettings(true) },
       { text: 'Cancel', style: 'cancel' },
     ]);
-  }, [album, load]);
+  }, [album, pages, load]);
 
   const saveCaption = useCallback(async () => {
     if (!captionFor) return;
@@ -115,24 +184,10 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     load();
   }, [title, color, aud, load]);
 
-  const renderPage = useCallback(({ item }: any) => (
-    <TouchableOpacity activeOpacity={0.9} onLongPress={() => pageLongPress(item)} delayLongPress={350}
-      style={[st.polaroid, { width: TILE_W }]}>
-      <View style={{ width: '100%', height: TILE_W - 16, borderRadius: 4, overflow: 'hidden', backgroundColor: '#0B1E3D' }}>
-        {(item.thumbnail_url || item.media_type !== 'video') && (item.thumbnail_url || item.media_url) ? (
-          <ExpoImage source={{ uri: item.thumbnail_url || item.media_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={120} />
-        ) : (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Feather name="play" size={22} color="rgba(255,255,255,0.85)" />
-          </View>
-        )}
-        {item.media_type === 'video' ? (
-          <View style={st.vidBadge}><Feather name="video" size={10} color="#FFF" /></View>
-        ) : null}
-      </View>
-      <Text numberOfLines={2} style={st.polCaption}>{item.caption || ' '}</Text>
-    </TouchableOpacity>
-  ), [pageLongPress]);
+  const fmtDate = (d?: string | null) => {
+    if (!d) return '';
+    try { return new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return ''; }
+  };
 
   if (loading) {
     return (
@@ -160,45 +215,115 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     );
   }
 
+  const bookW = Math.min(SW - 72, 330);
+  const bookH = Math.min(bookW * 1.28, SH * 0.56);
+  const page = pages[Math.min(idx, Math.max(pages.length - 1, 0))];
+  const rotY = flipAnim.interpolate({ inputRange: [-1, 0, 1], outputRange: ['70deg', '0deg', '-70deg'] });
+  const flipOpacity = flipAnim.interpolate({ inputRange: [-1, -0.5, 0, 0.5, 1], outputRange: [0, 0.65, 1, 0.65, 0] });
+  const coverRot = coverAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-96deg'] });
+  const coverFade = coverAnim.interpolate({ inputRange: [0, 0.75, 1], outputRange: [1, 1, 0] });
+
   return (
-    <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
+    <View style={[st.safe, { paddingTop: Math.max(insets.top, 12), backgroundColor: '#F5EFE4' }]}>
       <StatusBar barStyle="dark-content" />
-      <View style={[st.cover, { backgroundColor: c.cover }]}>
-        <View style={st.topRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Feather name="chevron-left" size={26} color={c.text} />
+      <View style={st.topBar}>
+        <TouchableOpacity onPress={() => (opened ? closeBook() : navigation.goBack())} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Feather name="chevron-left" size={26} color="#0B1E3D" />
+        </TouchableOpacity>
+        <Text style={st.topTitle}>{opened ? album.title : 'Memory album'}</Text>
+        {opened && album.is_owner ? (
+          <TouchableOpacity onPress={pageMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Feather name="more-horizontal" size={22} color="#0B1E3D" />
           </TouchableOpacity>
-          {album.is_owner ? (
-            <TouchableOpacity onPress={() => setSettings(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Feather name="settings" size={19} color={c.text} />
-            </TouchableOpacity>
-          ) : <View style={{ width: 19 }} />}
-        </View>
-        <Feather name="heart" size={16} color={c.text} />
-        <Text style={[st.coverTitle, { color: c.text }]}>{album.title}</Text>
-        <Text style={[st.coverCount, { color: c.text }]}>{album.count} {album.count === 1 ? 'memory' : 'memories'}</Text>
+        ) : !opened && album.is_owner ? (
+          <TouchableOpacity onPress={() => setSettings(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Feather name="settings" size={19} color="#0B1E3D" />
+          </TouchableOpacity>
+        ) : <View style={{ width: 22 }} />}
       </View>
 
-      <FlatList
-        data={pages}
-        keyExtractor={(p: any) => p.id}
-        numColumns={2}
-        columnWrapperStyle={{ gap: 14, paddingHorizontal: 16 }}
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 100, gap: 14 }}
-        renderItem={renderPage}
-        ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingTop: 60 }}>
-            <Text style={{ fontSize: 13, color: '#5B6B84' }}>{album.is_owner ? 'Your book is empty. Add your first memory.' : 'No memories yet.'}</Text>
+      {!opened ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Animated.View style={{ transform: [{ perspective: 1200 }, { rotateY: coverRot }], opacity: coverFade }}>
+            <TouchableOpacity activeOpacity={0.92} onPress={openBook}>
+              <View style={[st.book, { width: bookW, height: bookH, backgroundColor: c.spine }]}>
+                <View style={[st.bookInner, { backgroundColor: c.cover, borderColor: c.text + '44' }]}>
+                  <View style={{ position: 'absolute', top: 10, left: 10 }}><Flower size={44} petal={c.spine} heart={c.text} /></View>
+                  <View style={{ position: 'absolute', top: 10, right: 10, transform: [{ scaleX: -1 }] }}><Flower size={36} petal={c.spine} heart={c.text} /></View>
+                  <View style={{ position: 'absolute', bottom: 12, left: 12 }}><Flower size={40} petal={c.spine} heart={c.text} /></View>
+                  <View style={{ position: 'absolute', bottom: 12, right: 12, transform: [{ scaleX: -1 }] }}><Flower size={46} petal={c.spine} heart={c.text} /></View>
+                  <Text style={[st.coverTitle, { color: c.text }]}>{album.title}</Text>
+                  <Feather name="heart" size={15} color={c.text} style={{ marginTop: 10, opacity: 0.9 }} />
+                  <Text style={[st.coverCount, { color: c.text }]}>{album.count} {album.count === 1 ? 'memory' : 'memories'}</Text>
+                </View>
+                <View style={st.claspBase}>
+                  <View style={st.claspHeart}><Feather name="heart" size={11} color="#F3EDE2" /></View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+          <Text style={st.tapHint}>Tap the book to open it</Text>
+          {album.is_owner ? (
+            <TouchableOpacity onPress={openPicker} activeOpacity={0.9} style={[st.fab, { position: 'relative', bottom: 0, marginTop: 22 }]}>
+              <Feather name="plus" size={18} color="#FFFFFF" />
+              <Text style={st.fabTxt}>Add memories</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      ) : (
+        <View style={{ flex: 1, alignItems: 'center' }} {...swipe.panHandlers}>
+          <View style={[st.openBook, { borderColor: c.spine }]}>
+            <View style={st.pagePaper}>
+              <View style={st.rings}>
+                {[0, 1, 2, 3].map(i => <View key={i} style={st.ring} />)}
+              </View>
+              {pages.length === 0 ? (
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 }}>
+                  <Text style={st.emptyTxt}>{album.is_owner ? 'This book is empty.\nAdd your first memory.' : 'No memories yet.'}</Text>
+                  {album.is_owner ? (
+                    <TouchableOpacity onPress={openPicker} style={[st.fab, { position: 'relative', bottom: 0, marginTop: 18 }]}>
+                      <Feather name="plus" size={16} color="#FFF" /><Text style={st.fabTxt}>Add memories</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ) : (
+                <Animated.View style={{ flex: 1, opacity: flipOpacity, transform: [{ perspective: 1200 }, { rotateY: rotY }] }}>
+                  <View style={[st.polaroid, { transform: [{ rotate: idx % 2 === 0 ? '-1.6deg' : '1.4deg' }] }]}>
+                    <View style={st.tapeTop} />
+                    <View style={st.polImgWrap}>
+                      {(page?.thumbnail_url || page?.media_url) ? (
+                        <ExpoImage source={{ uri: page.thumbnail_url || page.media_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={140} />
+                      ) : null}
+                      {page?.media_type === 'video' ? (
+                        <View style={st.playChip}><Feather name="play" size={16} color="#FFFFFF" /></View>
+                      ) : null}
+                    </View>
+                    <Text numberOfLines={2} style={st.handCaption}>{page?.caption || ' '}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+                      <Text style={st.handDate}>{fmtDate(page?.taken_at)}</Text>
+                      <Feather name="heart" size={12} color="#D4537E" />
+                    </View>
+                  </View>
+                </Animated.View>
+              )}
+              <TouchableOpacity style={st.edgeL} onPress={() => flipTo(-1)} />
+              <TouchableOpacity style={st.edgeR} onPress={() => flipTo(1)} />
+            </View>
           </View>
-        }
-      />
 
-      {album.is_owner ? (
-        <TouchableOpacity onPress={openPicker} activeOpacity={0.9} style={st.fab}>
-          <Feather name="plus" size={18} color="#FFFFFF" />
-          <Text style={st.fabTxt}>Add memories</Text>
-        </TouchableOpacity>
-      ) : null}
+          {pages.length > 0 ? (
+            <View style={st.pagerRow}>
+              <TouchableOpacity onPress={() => flipTo(-1)} disabled={idx === 0} style={[st.pagerBtn, idx === 0 && { opacity: 0.35 }]}>
+                <Feather name="chevron-left" size={17} color="#0B1E3D" />
+              </TouchableOpacity>
+              <View style={st.pagerPill}><Text style={st.pagerTxt}>{idx + 1} / {pages.length}</Text></View>
+              <TouchableOpacity onPress={() => flipTo(1)} disabled={idx >= pages.length - 1} style={[st.pagerBtn, idx >= pages.length - 1 && { opacity: 0.35 }]}>
+                <Feather name="chevron-right" size={17} color="#0B1E3D" />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+        </View>
+      )}
 
       <Modal visible={picker} animationType="slide" onRequestClose={() => setPicker(false)}>
         <View style={[st.safe, { paddingTop: Math.max(insets.top, 12) }]}>
@@ -217,7 +342,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
             data={myStories}
             keyExtractor={(s: any) => s.id}
             numColumns={3}
-            contentContainerStyle={{ padding: 10, gap: 6 }}
+            contentContainerStyle={{ padding: 10, gap: 6, paddingBottom: 40 }}
             columnWrapperStyle={{ gap: 6 }}
             renderItem={({ item }: any) => {
               const on = chosen.has(item.id);
@@ -252,22 +377,22 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Album settings</Text>
             <ScrollView style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            <TextInput value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor="#9AA6B8" style={st.input} maxLength={40} />
-            <Text style={st.lbl}>Cover</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-              {Object.keys(COVER_COLORS).map(k => (
-                <TouchableOpacity key={k} onPress={() => setColor(k)}
-                  style={{ width: 30, height: 38, borderRadius: 5, backgroundColor: COVER_COLORS[k].cover, borderWidth: color === k ? 2.5 : 1, borderColor: color === k ? '#0B1E3D' : 'rgba(11,30,61,0.15)' }} />
+              <TextInput value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor="#9AA6B8" style={st.input} maxLength={40} />
+              <Text style={st.lbl}>Cover</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                {Object.keys(COVER_COLORS).map(k => (
+                  <TouchableOpacity key={k} onPress={() => setColor(k)}
+                    style={{ width: 30, height: 38, borderRadius: 5, backgroundColor: COVER_COLORS[k].cover, borderWidth: color === k ? 2.5 : 1, borderColor: color === k ? '#0B1E3D' : 'rgba(11,30,61,0.15)' }} />
+                ))}
+              </View>
+              <Text style={st.lbl}>Who can open it</Text>
+              {AUDIENCES.map(a => (
+                <TouchableOpacity key={a.key} onPress={() => setAud(a.key)} style={[st.audRow, aud === a.key && st.audRowOn]}>
+                  <Text style={[st.audTxt, aud === a.key && { fontWeight: '800' }]}>{a.label}</Text>
+                  {aud === a.key ? <Feather name="check" size={15} color="#0B1E3D" /> : null}
+                </TouchableOpacity>
               ))}
-            </View>
-            <Text style={st.lbl}>Who can open it</Text>
-            {AUDIENCES.map(a => (
-              <TouchableOpacity key={a.key} onPress={() => setAud(a.key)} style={[st.audRow, aud === a.key && st.audRowOn]}>
-                <Text style={[st.audTxt, aud === a.key && { fontWeight: '800' }]}>{a.label}</Text>
-                {aud === a.key ? <Feather name="check" size={15} color="#0B1E3D" /> : null}
-              </TouchableOpacity>
-            ))}
-            {aud === 'custom' ? <Text style={st.hint}>Choose the people on the web album page for now.</Text> : null}
+              {aud === 'custom' ? <Text style={st.hint}>Choose the people on the web album page for now.</Text> : null}
             </ScrollView>
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginTop: 14 }}>
               <TouchableOpacity onPress={() => setSettings(false)}><Text style={{ color: '#5B6B84', fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
@@ -289,7 +414,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -297,15 +422,33 @@ const st = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   topTitle: { fontSize: 15.5, fontWeight: '800', color: '#0B1E3D' },
-  cover: { alignItems: 'center', paddingBottom: 18, borderBottomLeftRadius: 22, borderBottomRightRadius: 22 },
-  topRow: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
-  coverTitle: { fontSize: 20, fontWeight: '800', marginTop: 6 },
-  coverCount: { fontSize: 12, fontWeight: '600', marginTop: 3, opacity: 0.8 },
-  polaroid: { backgroundColor: '#FFFFFF', borderRadius: 6, padding: 8, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)' },
-  polCaption: { fontSize: 11.5, color: '#4a4438', marginTop: 7, minHeight: 15 },
-  vidBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 2.5 },
+  book: { borderRadius: 16, padding: 9, paddingLeft: 15, shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
+  bookInner: { flex: 1, borderRadius: 10, borderWidth: 1.4, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  coverTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center', letterSpacing: 0.4, lineHeight: 31 },
+  coverCount: { fontSize: 11.5, fontWeight: '700', marginTop: 12, opacity: 0.75 },
+  claspBase: { position: 'absolute', right: -13, top: '44%', width: 42, height: 46, borderTopLeftRadius: 10, borderBottomLeftRadius: 10, borderTopRightRadius: 14, borderBottomRightRadius: 14, backgroundColor: '#E4D2A6', borderWidth: 1, borderColor: '#CBB27C', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 5, shadowOffset: { width: 2, height: 2 }, elevation: 5 },
+  claspHeart: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#D9C084', borderWidth: 1, borderColor: '#C4A96B', alignItems: 'center', justifyContent: 'center' },
+  tapHint: { marginTop: 16, fontSize: 12, color: '#8b7f68', fontWeight: '600' },
+  openBook: { marginTop: 8, width: SW - 28, height: SH * 0.66, borderRadius: 18, borderWidth: 8, backgroundColor: PAGE_CREAM, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 7 },
+  pagePaper: { flex: 1, backgroundColor: PAGE_CREAM, paddingLeft: 34, paddingRight: 18, paddingVertical: 18 },
+  rings: { position: 'absolute', left: 8, top: 0, bottom: 0, width: 20, alignItems: 'center', justifyContent: 'space-evenly' },
+  ring: { width: 14, height: 14, borderRadius: 7, borderWidth: 2.5, borderColor: '#AAB0BA', backgroundColor: 'transparent' },
+  polaroid: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 6, padding: 12, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 7, shadowOffset: { width: 0, height: 3 }, elevation: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)' },
+  tapeTop: { position: 'absolute', top: -9, alignSelf: 'center', width: 84, height: 20, backgroundColor: TAPE, transform: [{ rotate: '-3deg' }], borderRadius: 2, zIndex: 3 },
+  polImgWrap: { flex: 1, borderRadius: 4, overflow: 'hidden', backgroundColor: '#0B1E3D' },
+  playChip: { position: 'absolute', alignSelf: 'center', top: '44%', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
+  handCaption: { fontSize: 15, fontStyle: 'italic', fontWeight: '600', color: '#5a5140', marginTop: 12, minHeight: 20 },
+  handDate: { fontSize: 11.5, fontStyle: 'italic', color: '#8b7f68' },
+  edgeL: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 46 },
+  edgeR: { position: 'absolute', right: 0, top: 0, bottom: 0, width: 46 },
+  pagerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
+  pagerBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  pagerPill: { backgroundColor: '#FFFFFF', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  pagerTxt: { fontSize: 13, fontWeight: '800', color: '#0B1E3D' },
+  emptyTxt: { fontSize: 13.5, color: '#8b7f68', textAlign: 'center', lineHeight: 20 },
   fab: { position: 'absolute', bottom: 26, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#0B1E3D', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 6 },
   fabTxt: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800' },
+  vidBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 2.5 },
   checkWrap: { position: 'absolute', top: 6, left: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: '#1D7A38', alignItems: 'center', justifyContent: 'center' },
   inChip: { position: 'absolute', bottom: 6, left: 6, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 },
   inChipTxt: { color: '#FFF', fontSize: 9.5, fontWeight: '700' },
