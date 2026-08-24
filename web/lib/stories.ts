@@ -13,6 +13,35 @@ export type CatchupUser = {
   has_unseen: boolean;
 };
 
+export type StoryTextSticker = {
+  id: string;
+  text: string;
+  style: string;
+  color: string;
+  nx: number;
+  ny: number;
+  scale: number;
+  rotation: number;
+  bgEnabled?: boolean;
+  kind?: string;
+  fontSizeOverride?: number;
+  opacity?: number;
+  textAlign?: "left" | "center" | "right";
+  url?: string;
+  locationName?: string;
+  locationDisplayName?: string;
+  mentionUserId?: string;
+  mentionUsername?: string;
+  hashtag?: string;
+  postId?: string;
+  postAuthorName?: string;
+  postText?: string;
+  questionPrompt?: string;
+  sliderEmoji?: string;
+  sliderLabel?: string;
+  quizQuestion?: string;
+};
+
 export type StoryMediaTransform = {
   scale: number;
   translateNX: number;
@@ -33,6 +62,9 @@ export type StoryRow = {
   created_at: string;
   is_viewed?: boolean;
   text_background?: { colors?: string[] } | string | null;
+  stickers_json?: StoryTextSticker[] | null;
+  allow_replies?: boolean;
+  allow_reactions?: boolean;
   media_transform?: StoryMediaTransform | null;
   dual_front_url?: string | null;
   audio_url?: string | null;
@@ -84,4 +116,20 @@ export async function getRingUsers(force = false): Promise<CatchupUser[]> {
 
 export function invalidateRings(): void {
   ringCache = null;
+}
+
+export const REACTION_EMOJIS = ["\u2764\uFE0F", "\uD83D\uDD25", "\uD83D\uDE02", "\uD83D\uDE2E", "\uD83D\uDE22", "\uD83D\uDC4F"];
+
+export async function toggleStoryReaction(storyId: string, emoji: string): Promise<{ reacted: boolean; emoji: string } | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("toggle_story_reaction", { p_story_id: storyId, p_emoji: emoji });
+  if (error) return null;
+  return data as { reacted: boolean; emoji: string };
+}
+
+export async function getMyStoryReactions(storyId: string): Promise<string[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_my_story_reactions", { p_story_id: storyId });
+  if (error) return [];
+  return (data ?? []) as string[];
 }
