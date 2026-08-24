@@ -250,6 +250,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         <View style={st.sheetWrap}>
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Album settings</Text>
+            <ScrollView style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <TextInput value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor="#9AA6B8" style={st.input} maxLength={40} />
             <Text style={st.lbl}>Cover</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -266,6 +267,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               </TouchableOpacity>
             ))}
             {aud === 'custom' ? <Text style={st.hint}>Choose the people on the web album page for now.</Text> : null}
+            </ScrollView>
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginTop: 14 }}>
               <TouchableOpacity onPress={() => setSettings(false)}><Text style={{ color: '#5B6B84', fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
               <TouchableOpacity onPress={saveSettings}><Text style={{ color: '#0B1E3D', fontWeight: '800' }}>Save</Text></TouchableOpacity>
@@ -307,7 +309,7 @@ const st = StyleSheet.create({
   inChip: { position: 'absolute', bottom: 6, left: 6, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 },
   inChipTxt: { color: '#FFF', fontSize: 9.5, fontWeight: '700' },
   sheetWrap: { flex: 1, backgroundColor: 'rgba(11,30,61,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 },
-  sheet: { alignSelf: 'stretch', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16 },
+  sheet: { alignSelf: 'stretch', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, maxHeight: '82%' },
   sheetTitle: { fontSize: 15.5, fontWeight: '800', color: '#0B1E3D', marginBottom: 10 },
   input: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: '#0B1E3D', marginBottom: 12 },
   lbl: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: '#5B6B84', marginBottom: 8, marginTop: 2 },
