@@ -1134,7 +1134,7 @@ const insertMention = useCallback((username: string) => {
     setSending(false);
   }, [message, sending, setTyping, replyTo, doSend]);
 
-const chooseAndSendImage = useCallback(async (img: { uri: string; width: number; height: number; base64: string | null }) => {
+const chooseAndSendImage = useCallback(async (img: { uri: string; width: number; height: number; base64: string | null; caption?: string }) => {
     pendingViewLimitRef.current = null;
     const choice: number | null = await new Promise(res => {
       Alert.alert('Send photo', 'Choose how it can be viewed', [
@@ -1152,7 +1152,7 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
         uri: img.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg',
         width: img.width, height: img.height, base64: img.base64,
       }, { filename: `edited_${Date.now()}.jpg` });
-      await doSend('', url, 'image', img.base64, null, img.width, img.height);
+      await doSend(img.caption || '', url, 'image', img.base64, null, img.width, img.height);
     } catch { Alert.alert('Upload failed'); }
     finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
   }, [currentUserId, doSend]);
