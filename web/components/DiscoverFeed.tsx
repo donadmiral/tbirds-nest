@@ -35,7 +35,11 @@ export function DiscoverFeed() {
   useEffect(() => { load(); }, [load]);
 
   const active = CATEGORIES.find((x) => x.key === cat) ?? CATEGORIES[0];
-  const shown = cat === "innovation"
+  const density = (r: FeedRow) => {
+    const hours = Math.max(1, (Date.now() - new Date(r.created_at).getTime()) / 3600000);
+    return ((r.likes_count ?? 0) + (r.comments_count ?? 0) * 2.5 + (r.reposts_count ?? 0) * 2) / Math.pow(hours + 2, 1.2);
+  };
+  const shownRaw = cat === "innovation"
     ? inno
     : pool.filter((r) => {
         const rc = (r as unknown as { category?: string | null }).category;
@@ -43,6 +47,7 @@ export function DiscoverFeed() {
         const hay = ((r.content ?? "") + " " + (r.article_title ?? "")).toLowerCase();
         return active.words.some((w) => hay.includes(w));
       });
+  const shown = shownRaw.slice().sort((a, b) => density(b) - density(a));
 
   return (
     <div>
