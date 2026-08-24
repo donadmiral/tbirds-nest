@@ -56,6 +56,8 @@ function Flower({ size, petal, heart }: { size: number; petal: string; heart: st
 
 export default function MemoryAlbumScreen({ route, navigation }: any) {
   const ownerId: string = route.params?.ownerId;
+  const albumIdParam: string | null = route.params?.albumId ?? null;
+  const [bookId, setBookId] = useState<string | null>(albumIdParam);
   const insets = useSafeAreaInsets();
   const [album, setAlbum] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,10 +84,15 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const load = useCallback(async () => {
     if (!ownerId) return;
     try {
-      const { data, error } = await supabase.rpc('get_memory_album', { p_owner: ownerId });
+      const { data, error } = albumIdParam
+        ? await supabase.rpc('get_memory_book', { p_album: albumIdParam })
+        : await supabase.rpc('get_memory_album', { p_owner: ownerId });
       if (!error) {
         setAlbum(data ?? null);
-        if (data) { setTitle(data.title || 'Memories'); setColor(data.cover_color || 'blush'); setAud(data.audience || 'profile'); }
+        if (data) {
+          setTitle(data.title || 'Memories'); setColor(data.cover_color || 'blush'); setAud(data.audience || 'profile');
+          if (data.id) setBookId(data.id);
+        }
       }
     } finally { setLoading(false); }
   }, [ownerId]);
@@ -101,12 +108,12 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   useEffect(() => { if (idx > 0 && idx >= pages.length) setIdx(Math.max(0, pages.length - 1)); }, [pages.length, idx]);
 
   const openBook = useCallback(() => {
-    Animated.timing(coverAnim, { toValue: 1, duration: 520, easing: Easing.inOut(Easing.cubic), useNativeDriver: true }).start(() => setOpened(true));
+    Animated.timing(coverAnim, { toValue: 1, duration: 240, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(() => setOpened(true));
   }, [coverAnim]);
 
   const closeBook = useCallback(() => {
     setOpened(false);
-    Animated.timing(coverAnim, { toValue: 0, duration: 420, easing: Easing.inOut(Easing.cubic), useNativeDriver: true }).start();
+    Animated.timing(coverAnim, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
   }, [coverAnim]);
 
   const flipTo = useCallback((dir: 1 | -1) => {
@@ -150,7 +157,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     setAdding(true);
     try {
       for (const id of chosen) {
-        try { await supabase.rpc('add_memory_page', { p_story_id: id }); } catch {}
+        try { await supabase.rpc('add_memory_page', { p_story_id: id, p_album_id: bookId }); } catch {}
       }
       setPicker(false);
       await load();
@@ -167,6 +174,15 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         load();
       } },
       { text: 'Album settings', onPress: () => setSettings(true) },
+      ...(album?.is_default === false ? [{ text: 'Delete this book', style: 'destructive' as const, onPress: () => {
+        Alert.alert('Delete this book?', 'Its memories leave the book too. Stories are not deleted.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: async () => {
+            try { await supabase.rpc('delete_memory_book', { p_album: bookId }); } catch {}
+            navigation.goBack();
+          } },
+        ]);
+      } }] : []),
       { text: 'Cancel', style: 'cancel' },
     ]);
   }, [album, pages, load]);
@@ -179,9 +195,15 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   }, [captionFor, captionText, load]);
 
   const saveSettings = useCallback(async () => {
-    await supabase.rpc('upsert_memory_album', {
-      p_title: title.trim() || 'Memories', p_cover_color: color, p_audience: aud,
-    });
+    if (bookId) {
+      await supabase.rpc('update_memory_book', {
+        p_album: bookId, p_title: title.trim() || 'Memories', p_cover_color: color, p_audience: aud,
+      });
+    } else {
+      await supabase.rpc('upsert_memory_album', {
+        p_title: title.trim() || 'Memories', p_cover_color: color, p_audience: aud,
+      });
+    }
     setSettings(false);
     load();
   }, [title, color, aud, load]);
@@ -222,8 +244,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const page = pages[Math.min(idx, Math.max(pages.length - 1, 0))];
   const rotY = flipAnim.interpolate({ inputRange: [-1, 0, 1], outputRange: ['70deg', '0deg', '-70deg'] });
   const flipOpacity = flipAnim.interpolate({ inputRange: [-1, -0.5, 0, 0.5, 1], outputRange: [0, 0.65, 1, 0.65, 0] });
-  const coverRot = coverAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-96deg'] });
-  const coverFade = coverAnim.interpolate({ inputRange: [0, 0.42, 1], outputRange: [1, 0, 0] });
+  const coverScale = coverAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
+  const coverFade = coverAnim.interpolate({ inputRange: [0, 0.55, 1], outputRange: [1, 0, 0] });
 
   return (
     <View style={[st.safe, { paddingTop: Math.max(insets.top, 12), backgroundColor: '#F5EFE4' }]}>
@@ -246,7 +268,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 
       {!opened ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Animated.View style={{ transform: [{ perspective: 1200 }, { rotateY: coverRot }], opacity: coverFade, backfaceVisibility: 'hidden' }}>
+          <Animated.View style={{ transform: [{ scale: coverScale }], opacity: coverFade }}>
             <TouchableOpacity activeOpacity={0.92} onPress={openBook}>
               <View style={[st.book, { width: bookW, height: bookH, backgroundColor: c.spine }]}>
                 <View style={[st.bookInner, { backgroundColor: c.cover, borderColor: c.text + '44' }]}>
