@@ -1060,6 +1060,7 @@ const insertMention = useCallback((username: string) => {
       media_width: mediaWidth || null, media_height: mediaHeight || null,
       reply_to_id: replyId || null, _optimistic: true,
     };
+    LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     setMessages(prev => [optimistic, ...prev]);
     try {
       const { data, error } = await supabase.from('messages').insert([{
