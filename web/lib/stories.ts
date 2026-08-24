@@ -13,6 +13,13 @@ export type CatchupUser = {
   has_unseen: boolean;
 };
 
+export type StoryMediaTransform = {
+  scale: number;
+  translateNX: number;
+  translateNY: number;
+  fit?: "cover" | "contain";
+};
+
 export type StoryRow = {
   id: string;
   user_id: string;
@@ -26,8 +33,25 @@ export type StoryRow = {
   created_at: string;
   is_viewed?: boolean;
   text_background?: { colors?: string[] } | string | null;
+  media_transform?: StoryMediaTransform | null;
   dual_front_url?: string | null;
+  audio_url?: string | null;
+  audio_title?: string | null;
+  audio_source?: string | null;
+  audio_duration_sec?: number | null;
+  filter_id?: string | null;
 };
+
+// Same overlay definitions as the phone's StoryFilters.tsx - keep in sync.
+export type StoryFilterDef = { id: string; label: string; layers: { color: string; opacity: number }[] };
+export const STORY_FILTERS: StoryFilterDef[] = [
+  { id: "warm", label: "Warm", layers: [{ color: "#FF9A3C", opacity: 0.14 }, { color: "#3B2000", opacity: 0.08 }] },
+  { id: "golden", label: "Golden", layers: [{ color: "#FFC94D", opacity: 0.18 }] },
+  { id: "cool", label: "Cool", layers: [{ color: "#3C7DFF", opacity: 0.12 }, { color: "#001A3B", opacity: 0.08 }] },
+  { id: "rose", label: "Rose", layers: [{ color: "#FF5E8A", opacity: 0.12 }] },
+  { id: "fade", label: "Fade", layers: [{ color: "#FFFFFF", opacity: 0.16 }, { color: "#000000", opacity: 0.05 }] },
+  { id: "dusk", label: "Dusk", layers: [{ color: "#5B3B8F", opacity: 0.14 }, { color: "#000000", opacity: 0.1 }] },
+];
 
 export async function getCatchupFeed(limit = 30, mode: string = "all"): Promise<CatchupUser[]> {
   const supabase = createClient();

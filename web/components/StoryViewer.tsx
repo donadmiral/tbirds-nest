@@ -1,13 +1,37 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2 } from "lucide-react";
-import { getUserStories, markStoryViewed, type CatchupUser, type StoryRow } from "@/lib/stories";
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music } from "lucide-react";
+import { getUserStories, markStoryViewed, STORY_FILTERS, type CatchupUser, type StoryRow, type StoryMediaTransform } from "@/lib/stories";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
 
 const IMAGE_DURATION_MS = 5000;
+const MAX_AUDIO_MS = 30000;
+
+function FilterOverlay({ filterId }: { filterId: string | null | undefined }) {
+  if (!filterId) return null;
+  const f = STORY_FILTERS.find((x) => x.id === filterId);
+  if (!f) return null;
+  return (
+    <div className="pointer-events-none absolute inset-0 z-[1]">
+      {f.layers.map((l, i) => (
+        <div key={i} className="pointer-events-none absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />
+      ))}
+    </div>
+  );
+}
+
+function mediaStyle(mt: StoryMediaTransform | null | undefined): React.CSSProperties {
+  if (!mt || typeof mt !== "object") return { objectFit: "contain" };
+  const hasMove = (mt.scale && mt.scale !== 1) || mt.translateNX !== 0 || mt.translateNY !== 0;
+  const style: React.CSSProperties = { objectFit: mt.fit === "contain" ? "contain" : "cover" };
+  if (hasMove) {
+    style.transform = "translate(" + ((mt.translateNX || 0) * 100) + "%, " + ((mt.translateNY || 0) * 100) + "%) scale(" + (mt.scale || 1) + ")";
+  }
+  return style;
+}
 
 export function StoryViewer({ users, startIndex, onClose }: {
   users: CatchupUser[];
@@ -22,6 +46,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const startedAt = useRef(0);
   const durRef = useRef(IMAGE_DURATION_MS);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const [viewersOpen, setViewersOpen] = useState(false);
@@ -30,32 +55,11 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const pausedAtRef = useRef(0);
   const user = users[userIdx];
   const story = stories[itemIdx];
+  const storyAudioUrl = story && story.media_type !== "video" ? (story.audio_url ?? null) : null;
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   }, []);
-
-  const holdStart = useCallback(() => {
-    holdRef.current = setTimeout(() => {
-      heldRef.current = true;
-      pausedAtRef.current = (Date.now() - startedAt.current) / durRef.current;
-      stopTimer();
-      videoRef.current?.pause();
-    }, 200);
-  }, [stopTimer]);
-
-  const holdEnd = useCallback(() => {
-    if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; }
-    if (!heldRef.current) return;
-    startedAt.current = Date.now() - pausedAtRef.current * durRef.current;
-    timerRef.current = setInterval(() => {
-      const p = (Date.now() - startedAt.current) / durRef.current;
-      if (p >= 1) advance();
-      else setProgress(p);
-    }, 50);
-    videoRef.current?.play().catch(() => {});
-    setTimeout(() => { heldRef.current = false; }, 60);
-  }, [advance]);
 
   const nextUser = useCallback(() => {
     if (userIdx + 1 < users.length) { setUserIdx(userIdx + 1); setItemIdx(0); }
@@ -73,6 +77,30 @@ export function StoryViewer({ users, startIndex, onClose }: {
     if (itemIdx > 0) setItemIdx(itemIdx - 1);
     else if (userIdx > 0) { setUserIdx(userIdx - 1); setItemIdx(0); }
   }, [itemIdx, userIdx, stopTimer]);
+
+  const holdStart = useCallback(() => {
+    holdRef.current = setTimeout(() => {
+      heldRef.current = true;
+      pausedAtRef.current = (Date.now() - startedAt.current) / durRef.current;
+      stopTimer();
+      videoRef.current?.pause();
+      audioRef.current?.pause();
+    }, 200);
+  }, [stopTimer]);
+
+  const holdEnd = useCallback(() => {
+    if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; }
+    if (!heldRef.current) return;
+    startedAt.current = Date.now() - pausedAtRef.current * durRef.current;
+    timerRef.current = setInterval(() => {
+      const p = (Date.now() - startedAt.current) / durRef.current;
+      if (p >= 1) advance();
+      else setProgress(p);
+    }, 50);
+    videoRef.current?.play().catch(() => {});
+    audioRef.current?.play().catch(() => {});
+    setTimeout(() => { heldRef.current = false; }, 60);
+  }, [advance]);
 
   useEffect(() => {
     createClient().auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
@@ -95,15 +123,20 @@ export function StoryViewer({ users, startIndex, onClose }: {
     setProgress(0);
     stopTimer();
     const isVideo = story.media_type === "video";
-    durRef.current = isVideo
+    let dur = isVideo
       ? Math.max(1000, (story.duration_sec ?? 10) * 1000)
       : IMAGE_DURATION_MS;
+    if (!isVideo && story.audio_url && story.audio_duration_sec && story.audio_duration_sec > 0) {
+      dur = Math.min(Math.max(dur, story.audio_duration_sec * 1000), MAX_AUDIO_MS);
+    }
+    durRef.current = dur;
     startedAt.current = Date.now();
     timerRef.current = setInterval(() => {
       const p = (Date.now() - startedAt.current) / durRef.current;
       if (p >= 1) advance();
       else setProgress(p);
     }, 50);
+    audioRef.current?.play().catch(() => {});
     return stopTimer;
   }, [story, advance, stopTimer]);
 
@@ -165,14 +198,23 @@ export function StoryViewer({ users, startIndex, onClose }: {
               <video ref={videoRef} key={story.id} src={story.media_url} autoPlay playsInline muted={muted} className="h-full w-full object-contain" />
             ) : story.media_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={story.id} src={story.media_url} alt="" className="h-full w-full object-contain" />
+              <img key={story.id} src={story.media_url} alt="" className="h-full w-full" style={mediaStyle(story.media_transform)} />
+            ) : null}
+            <FilterOverlay filterId={story.filter_id} />
+            {storyAudioUrl ? (
+              <audio ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} autoPlay muted={muted} />
+            ) : null}
+            {storyAudioUrl && story.audio_title ? (
+              <span className="absolute left-3 top-14 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white">
+                <Music size={11} /> {story.audio_title}
+              </span>
             ) : null}
             {story.dual_front_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={story.dual_front_url} alt="" className="absolute bottom-20 left-3 h-32 w-24 rounded-xl border-2 border-white/70 object-cover shadow-lg" />
+              <img src={story.dual_front_url} alt="" className="absolute bottom-20 left-3 z-[2] h-32 w-24 rounded-xl border-2 border-white/70 object-cover shadow-lg" />
             ) : null}
             {story.caption ? (
-              <p className="absolute inset-x-0 bottom-6 px-4 text-center text-[15px] font-medium text-white drop-shadow">{story.caption}</p>
+              <p className="absolute inset-x-0 bottom-6 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow">{story.caption}</p>
             ) : null}
           </>
         ) : (
@@ -180,10 +222,10 @@ export function StoryViewer({ users, startIndex, onClose }: {
         )}
 
         {story ? <SaveToMemory story={story} /> : null}
-        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onClick={() => { if (!heldRef.current) back(); }} className="absolute inset-y-0 left-0 w-1/3" aria-label="Previous" />
-        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onClick={() => { if (!heldRef.current) advance(); }} className="absolute inset-y-0 right-0 w-1/3" aria-label="Next" />
+        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onClick={() => { if (!heldRef.current) back(); }} className="absolute inset-y-0 left-0 z-[3] w-1/3" aria-label="Previous" />
+        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onClick={() => { if (!heldRef.current) advance(); }} className="absolute inset-y-0 right-0 z-[3] w-1/3" aria-label="Next" />
         <div className="absolute right-2 top-12 z-20 flex flex-col gap-2">
-          {story?.media_type === "video" ? (
+          {story?.media_type === "video" || storyAudioUrl ? (
             <button onClick={() => setMuted(!muted)} className="rounded-full bg-black/40 p-2 text-white" aria-label="Mute">
               {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
             </button>
