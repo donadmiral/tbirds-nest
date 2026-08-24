@@ -43,11 +43,17 @@ export default function MemoryAlbumCard({ ownerId, navigation }: { ownerId?: str
       onPress={() => navigation.navigate('MemoryAlbum', { ownerId })}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 }}
     >
-      <View style={{ width: 52, height: 64, borderRadius: 6, backgroundColor: c.cover, flexDirection: 'row', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 }}>
-        <View style={{ width: 7, backgroundColor: c.spine }} />
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
-          <Feather name="heart" size={12} color={c.text} />
-          <Text numberOfLines={2} style={{ textAlign: 'center', fontSize: 8.5, lineHeight: 10, fontWeight: '700', color: c.text, marginTop: 3 }}>{album.title}</Text>
+      <View style={{ width: 56, height: 70 }}>
+        <View style={{ flex: 1, borderRadius: 7, backgroundColor: c.spine, padding: 3, paddingLeft: 6, shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 }}>
+          <View style={{ flex: 1, borderRadius: 5, backgroundColor: c.cover, borderWidth: 1, borderStyle: 'dashed', borderColor: c.text + '55', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+            <View style={{ position: 'absolute', top: 3, left: 3, width: 5, height: 5, borderRadius: 2.5, backgroundColor: c.spine }} />
+            <View style={{ position: 'absolute', bottom: 3, right: 3, width: 5, height: 5, borderRadius: 2.5, backgroundColor: c.spine }} />
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} style={{ textAlign: 'center', fontSize: 9, fontWeight: '800', color: c.text }}>{album.title}</Text>
+            <Feather name="heart" size={9} color={c.text} style={{ marginTop: 3, opacity: 0.9 }} />
+          </View>
+        </View>
+        <View style={{ position: 'absolute', right: -5, top: 24, width: 13, height: 18, borderRadius: 4, backgroundColor: '#E4D2A6', borderWidth: 1, borderColor: '#CBB27C', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#F3EDE2' }} />
         </View>
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>

@@ -16,6 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import Svg, { Ellipse, Circle } from 'react-native-svg';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { supabase } from '../../services/supabase';
 import { COVER_COLORS } from '../../components/MemoryAlbumCard';
 
@@ -70,6 +71,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [aud, setAud] = useState('profile');
   const [captionFor, setCaptionFor] = useState<any | null>(null);
   const [captionText, setCaptionText] = useState('');
+  const [playingUrl, setPlayingUrl] = useState<string | null>(null);
 
   const coverAnim = useRef(new Animated.Value(0)).current;
   const flipAnim = useRef(new Animated.Value(0)).current;
@@ -221,7 +223,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const rotY = flipAnim.interpolate({ inputRange: [-1, 0, 1], outputRange: ['70deg', '0deg', '-70deg'] });
   const flipOpacity = flipAnim.interpolate({ inputRange: [-1, -0.5, 0, 0.5, 1], outputRange: [0, 0.65, 1, 0.65, 0] });
   const coverRot = coverAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-96deg'] });
-  const coverFade = coverAnim.interpolate({ inputRange: [0, 0.75, 1], outputRange: [1, 1, 0] });
+  const coverFade = coverAnim.interpolate({ inputRange: [0, 0.42, 1], outputRange: [1, 0, 0] });
 
   return (
     <View style={[st.safe, { paddingTop: Math.max(insets.top, 12), backgroundColor: '#F5EFE4' }]}>
@@ -244,7 +246,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 
       {!opened ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Animated.View style={{ transform: [{ perspective: 1200 }, { rotateY: coverRot }], opacity: coverFade }}>
+          <Animated.View style={{ transform: [{ perspective: 1200 }, { rotateY: coverRot }], opacity: coverFade, backfaceVisibility: 'hidden' }}>
             <TouchableOpacity activeOpacity={0.92} onPress={openBook}>
               <View style={[st.book, { width: bookW, height: bookH, backgroundColor: c.spine }]}>
                 <View style={[st.bookInner, { backgroundColor: c.cover, borderColor: c.text + '44' }]}>
@@ -295,7 +297,9 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                         <ExpoImage source={{ uri: page.thumbnail_url || page.media_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={140} />
                       ) : null}
                       {page?.media_type === 'video' ? (
-                        <View style={st.playChip}><Feather name="play" size={16} color="#FFFFFF" /></View>
+                        <TouchableOpacity style={st.playChip} onPress={() => setPlayingUrl(page.media_url)}>
+                          <Feather name="play" size={16} color="#FFFFFF" />
+                        </TouchableOpacity>
                       ) : null}
                     </View>
                     <Text numberOfLines={2} style={st.handCaption}>{page?.caption || ' '}</Text>
@@ -402,6 +406,10 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         </View>
       </Modal>
 
+      {playingUrl ? (
+        <MemoryVideo url={playingUrl} topInset={Math.max(insets.top, 12)} onClose={() => setPlayingUrl(null)} />
+      ) : null}
+
       <Modal visible={!!captionFor} transparent animationType="fade" onRequestClose={() => setCaptionFor(null)}>
         <View style={st.sheetWrap}>
           <View style={st.sheet}>
@@ -415,6 +423,20 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         </View>
       </Modal>
     </View>
+  );
+}
+
+function MemoryVideo({ url, topInset, onClose }: { url: string; topInset: number; onClose: () => void }) {
+  const player = useVideoPlayer(url, p => { p.loop = true; p.play(); });
+  return (
+    <Modal visible transparent={false} animationType="fade" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls />
+        <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: topInset + 6, left: 14, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+          <Feather name="x" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+    </Modal>
   );
 }
 
