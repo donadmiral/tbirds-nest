@@ -56,6 +56,7 @@ import AdaptiveTabBar from '../components/AdaptiveTabBar';
 
 import ConversationsScreen     from '../screens/messages/ConversationsScreen';
 import ChatScreen              from '../screens/messages/ChatScreen';
+import MemoryAlbumScreen       from '../screens/profile/MemoryAlbumScreen';
 import GroupManagementScreen   from '../screens/messages/GroupManagementScreen';
 import CreateGroupScreen       from '../screens/messages/CreateGroupScreen';
 import MessageRequestsScreen   from '../screens/messages/MessageRequestsScreen';
@@ -480,6 +481,7 @@ export default function AppNavigator() {
                 <RootStack.Screen name="TrendFeed"            component={TrendFeedScreen} />
                 <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
                 <RootStack.Screen name="Chat"                 component={ChatScreen} />
+                <RootStack.Screen name="MemoryAlbum"          component={MemoryAlbumScreen} />
                 <RootStack.Screen name="MessageRequests"      component={MessageRequestsScreen} />
                 <RootStack.Screen name="GroupManagement"      component={GroupManagementScreen} />
                 <RootStack.Screen name="JobDetail"            component={JobDetailScreen} />

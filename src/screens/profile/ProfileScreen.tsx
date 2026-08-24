@@ -19,6 +19,7 @@ import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 import { supabase } from '../../services/supabase';
+import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
 import { uploadMedia } from '../../services/mediaService';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
@@ -454,6 +455,7 @@ const loadMorePosts = useCallback(async () => {
           onOpenStory={() => (navigation as any).navigate('StoryViewer', { userId })}
         />
 
+        <MemoryAlbumCard ownerId={profile?.id} navigation={navigation} />
         {tabLoading?(<View style={{paddingVertical:40,alignItems:'center'}}><ActivityIndicator color={NAVY}/></View>):tabData.length===0?emptyState(activeTab):tabData.map(post=>renderPostCard(post))}
         {activeTab === 'posts' && postsHasMore && !tabLoading && (
           <TouchableOpacity onPress={loadMorePosts} disabled={loadingMorePosts} activeOpacity={0.8}

@@ -14,6 +14,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import ProfileHeader from '../../components/ProfileHeader';
 import { BusinessProducts, BusinessReviews, SellerListings } from '../../components/BusinessTabs';
 import { supabase } from '../../services/supabase';
+import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
 import { Image as ExpoImage } from 'expo-image';
@@ -322,6 +323,7 @@ export default function UserProfileScreen() {
           )}
         />
 
+        {canViewContent ? <MemoryAlbumCard ownerId={targetId} navigation={navigation} /> : null}
         {canViewContent && bizTab === 'listings' ? (
           <SellerListings sellerId={targetId} navigation={navigation} isSelf={isOwnProfile} />
         ) : canViewContent && profile.account_type === 'business' && bizTab === 'products' ? (
