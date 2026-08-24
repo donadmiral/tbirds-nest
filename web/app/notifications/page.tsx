@@ -47,7 +47,7 @@ function quote(t: string): string {
 function lineFor(n: Notif): { lead: string; rest: string } {
   const name = n.actor_name || "Someone";
   const others = n.others_count || 0;
-  const lead = others > 0 ? name + " and " + others + (others === 1 ? " other" : " others") : name;
+  const lead = !n.actor_name && others > 0 ? String(others + 1) + " people" : others > 0 ? name + " and " + others + (others === 1 ? " other" : " others") : name;
   const c = n.body_preview ? quote(n.body_preview) : "";
   const emoji = (n.body_preview || "").trim();
   switch (n.type) {
@@ -101,10 +101,22 @@ export default function NotificationsPage() {
   const supabase = useRef(createClient()).current;
   const [rows, setRows] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filt, setFilt] = useState("all");
+  const [sThumbs, setSThumbs] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     const { data } = await supabase.rpc("get_notifications", { p_limit: 60, p_cursor: null });
     setRows(((data ?? []) as Notif[]));
+    const storyIds = Array.from(new Set(((data ?? []) as Notif[]).map((r) => (r.data as { story_id?: string } | null)?.story_id).filter(Boolean))) as string[];
+    if (storyIds.length) {
+      const { data: ss } = await supabase.from("stories").select("id, thumbnail_url, media_url, media_type").in("id", storyIds);
+      const add: Record<string, string> = {};
+      ((ss ?? []) as { id: string; thumbnail_url: string | null; media_url: string | null; media_type: string }[]).forEach((st) => {
+        const u = st.thumbnail_url || (st.media_type !== "video" ? st.media_url : null);
+        if (u) add[st.id] = u;
+      });
+      setSThumbs((prev) => ({ ...prev, ...add }));
+    }
     setLoading(false);
   }, [supabase]);
 
@@ -115,7 +127,7 @@ export default function NotificationsPage() {
       const uid = data.session?.user.id;
       if (!uid) return;
       ch = supabase
-        .channel("web_notifications")
+        .channel("web_notifications_" + Date.now())
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: "recipient_id=eq." + uid }, () => load())
         .subscribe();
     });
@@ -129,7 +141,14 @@ export default function NotificationsPage() {
 
   const hasUnread = rows.some((r) => !r.read_at || r.unread_in_group > 0);
   const sections: { title: string; items: Notif[] }[] = [];
-  for (const r of rows) {
+  const FILTS: Record<string, string[]> = {
+    likes: ["like", "comment_like", "story_reaction", "message_reaction"],
+    comments: ["comment", "reply"],
+    follows: ["follow", "follow_request", "follow_accepted"],
+    mentions: ["mention", "story_mention"],
+  };
+  const visibleRows = filt === "all" ? rows : rows.filter((r) => (FILTS[filt] || []).includes(r.type));
+  for (const r of visibleRows) {
     const t = sectionOf(r.created_at);
     const last = sections[sections.length - 1];
     if (last && last.title === t) last.items.push(r);
@@ -145,9 +164,18 @@ export default function NotificationsPage() {
         ) : null}
       </div>
 
+      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-3">
+        {([["all", "All"], ["likes", "Likes"], ["comments", "Comments"], ["follows", "Follows"], ["mentions", "Mentions"]] as const).map(([k, lbl]) => (
+          <button key={k} onClick={() => setFilt(k)}
+            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors " + (filt === k ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>
+            {lbl}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading</p>
-      ) : rows.length === 0 ? (
+      ) : visibleRows.length === 0 ? (
         <p className="py-16 text-center text-sm text-ink/40">Nothing here yet. Engagement on your posts and profile lands here.</p>
       ) : (
         sections.map((s) => (
@@ -193,9 +221,9 @@ export default function NotificationsPage() {
                       <FollowButton authorId={n.actor_id} />
                     </span>
                   ) : null}
-                  {n.post_thumb ? (
+                  {(n.post_thumb || sThumbs[String((n.data as { story_id?: string } | null)?.story_id ?? "")]) ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={n.post_thumb} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
+                    <img src={n.post_thumb || sThumbs[String((n.data as { story_id?: string } | null)?.story_id ?? "")]} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
                   ) : null}
                 </Link>
               );

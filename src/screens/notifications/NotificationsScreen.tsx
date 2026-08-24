@@ -106,7 +106,7 @@ function quote(s?: string | null): string {
 function lineFor(n: Notif): { lead: string; rest: string } {
   const name = n.actor_name || 'Someone';
   const others = n.others_count;
-  const lead = others > 0
+  const lead = !n.actor_name && others > 0 ? String(others + 1) + ' people' : others > 0
     ? `${name} and ${others} other${others === 1 ? '' : 's'}`
     : name;
 
