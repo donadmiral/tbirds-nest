@@ -64,7 +64,7 @@ export async function deleteMemoryPage(id: string): Promise<boolean> {
   return !error;
 }
 
-export async function getMyStories(): Promise<{ id: string; media_url: string | null; media_type: string; thumbnail_url: string | null; caption: string | null; created_at: string }[]> {
+export async function getMyStories(limit = 120): Promise<{ id: string; media_url: string | null; media_type: string; thumbnail_url: string | null; caption: string | null; created_at: string }[]> {
   const supabase = createClient();
   const { data: sess } = await supabase.auth.getSession();
   const uid = sess.session?.user.id;
@@ -73,7 +73,7 @@ export async function getMyStories(): Promise<{ id: string; media_url: string | 
     .select("id, media_url, media_type, thumbnail_url, caption, created_at")
     .eq("user_id", uid)
     .order("created_at", { ascending: false })
-    .limit(120);
+    .limit(limit);
   return data ?? [];
 }
 

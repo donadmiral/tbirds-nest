@@ -17,6 +17,10 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   return (
     <>
       <div className="flex gap-4 overflow-x-auto px-1 pb-3 pt-1">
+        <a href="/story/new" className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+          <span className="flex h-[60px] w-[60px] items-center justify-center rounded-full border-2 border-dashed border-pearl text-ink/50">+</span>
+          <span className="w-full truncate text-center text-[11px] text-ink/60">Your story</span>
+        </a>
         {users.map((u, i) => (
           <button key={u.user_id} onClick={() => setOpenAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
             <span className={"rounded-full p-[2.5px] " + (u.has_unseen ? "bg-gradient-to-br from-pearl via-porcelain to-pearl" : "bg-ink/20")}>

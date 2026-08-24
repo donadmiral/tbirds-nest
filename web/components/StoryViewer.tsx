@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2 } from "lucide-react";
 import { getUserStories, markStoryViewed, type CatchupUser, type StoryRow } from "@/lib/stories";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
+import { createClient } from "@/lib/supabase/client";
 
 const IMAGE_DURATION_MS = 5000;
 
@@ -21,12 +22,40 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const startedAt = useRef(0);
   const durRef = useRef(IMAGE_DURATION_MS);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [uid, setUid] = useState<string | null>(null);
+  const [muted, setMuted] = useState(false);
+  const [viewersOpen, setViewersOpen] = useState(false);
+  const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heldRef = useRef(false);
+  const pausedAtRef = useRef(0);
   const user = users[userIdx];
   const story = stories[itemIdx];
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   }, []);
+
+  const holdStart = useCallback(() => {
+    holdRef.current = setTimeout(() => {
+      heldRef.current = true;
+      pausedAtRef.current = (Date.now() - startedAt.current) / durRef.current;
+      stopTimer();
+      videoRef.current?.pause();
+    }, 200);
+  }, [stopTimer]);
+
+  const holdEnd = useCallback(() => {
+    if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; }
+    if (!heldRef.current) return;
+    startedAt.current = Date.now() - pausedAtRef.current * durRef.current;
+    timerRef.current = setInterval(() => {
+      const p = (Date.now() - startedAt.current) / durRef.current;
+      if (p >= 1) advance();
+      else setProgress(p);
+    }, 50);
+    videoRef.current?.play().catch(() => {});
+    setTimeout(() => { heldRef.current = false; }, 60);
+  }, [advance]);
 
   const nextUser = useCallback(() => {
     if (userIdx + 1 < users.length) { setUserIdx(userIdx + 1); setItemIdx(0); }
@@ -44,6 +73,10 @@ export function StoryViewer({ users, startIndex, onClose }: {
     if (itemIdx > 0) setItemIdx(itemIdx - 1);
     else if (userIdx > 0) { setUserIdx(userIdx - 1); setItemIdx(0); }
   }, [itemIdx, userIdx, stopTimer]);
+
+  useEffect(() => {
+    createClient().auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -129,7 +162,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
         {story ? (
           <>
             {story.media_type === "video" && story.media_url ? (
-              <video ref={videoRef} key={story.id} src={story.media_url} autoPlay playsInline className="h-full w-full object-contain" />
+              <video ref={videoRef} key={story.id} src={story.media_url} autoPlay playsInline muted={muted} className="h-full w-full object-contain" />
             ) : story.media_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img key={story.id} src={story.media_url} alt="" className="h-full w-full object-contain" />
@@ -147,9 +180,59 @@ export function StoryViewer({ users, startIndex, onClose }: {
         )}
 
         {story ? <SaveToMemory story={story} /> : null}
-        <button onClick={back} className="absolute inset-y-0 left-0 w-1/3" aria-label="Previous" />
-        <button onClick={advance} className="absolute inset-y-0 right-0 w-1/3" aria-label="Next" />
+        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onClick={() => { if (!heldRef.current) back(); }} className="absolute inset-y-0 left-0 w-1/3" aria-label="Previous" />
+        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onClick={() => { if (!heldRef.current) advance(); }} className="absolute inset-y-0 right-0 w-1/3" aria-label="Next" />
+        <div className="absolute right-2 top-12 z-20 flex flex-col gap-2">
+          {story?.media_type === "video" ? (
+            <button onClick={() => setMuted(!muted)} className="rounded-full bg-black/40 p-2 text-white" aria-label="Mute">
+              {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            </button>
+          ) : null}
+          {uid && story && uid === story.user_id ? (
+            <>
+              <button onClick={() => { setViewersOpen(true); }} className="rounded-full bg-black/40 p-2 text-white" title="Viewers"><Eye size={15} /></button>
+              <button onClick={async () => {
+                if (!confirm("Delete this story everywhere?")) return;
+                await createClient().from("stories").delete().eq("id", story.id);
+                const rest = stories.filter((s) => s.id !== story.id);
+                setStories(rest);
+                if (rest.length === 0) nextUser(); else setItemIdx(Math.min(itemIdx, rest.length - 1));
+              }} className="rounded-full bg-black/40 p-2 text-white" title="Delete story"><Trash2 size={15} /></button>
+            </>
+          ) : null}
+        </div>
+        {viewersOpen && story ? <ViewersSheet storyId={story.id} onClose={() => setViewersOpen(false)} /> : null}
       </div>
+    </div>
+  );
+}
+
+function ViewersSheet({ storyId, onClose }: { storyId: string; onClose: () => void }) {
+  const [people, setPeople] = useState<{ id: string; full_name: string | null; username: string | null; avatar_url: string | null }[]>([]);
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.from("story_views").select("user_id").eq("story_id", storyId).then(async ({ data }) => {
+      const ids = (data ?? []).map((r) => r.user_id);
+      if (ids.length === 0) { setPeople([]); return; }
+      const { data: profs } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
+      setPeople(profs ?? []);
+    });
+  }, [storyId]);
+  return (
+    <div className="absolute inset-x-0 bottom-0 z-30 max-h-[55%] overflow-y-auto rounded-t-2xl bg-white p-4" onClick={(e) => e.stopPropagation()}>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-[14px] font-semibold text-ink">Viewers · {people.length}</p>
+        <button onClick={onClose} className="rounded-full p-1.5 text-ink/50" aria-label="Close"><X size={16} /></button>
+      </div>
+      {people.length === 0 ? <p className="py-6 text-center text-[13px] text-ink/40">No views yet.</p> : people.map((p) => (
+        <div key={p.id} className="flex items-center gap-2.5 py-1.5">
+          {p.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+          ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-pearl text-[12px] font-semibold text-ink">{(p.full_name ?? "?").charAt(0)}</span>}
+          <span className="text-[13px] text-ink">{p.full_name} <span className="text-ink/40">@{p.username}</span></span>
+        </div>
+      ))}
     </div>
   );
 }
