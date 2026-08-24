@@ -7,7 +7,6 @@ import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
-import { LocalFeed } from "@/components/LocalFeed";
 import { DiscoverFeed } from "@/components/DiscoverFeed";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { SponsoredCard } from "@/components/SponsoredCard";
@@ -20,7 +19,6 @@ const MODES = [
   { key: "latest", label: "Latest" },
   { key: "discover", label: "Discover" },
   { key: "trending", label: "Trending" },
-  { key: "local", label: "Local" },
 ] as const;
 
 const EMPTY_COPY: Record<string, { title: string; sub: string }> = {
@@ -69,7 +67,7 @@ export default function HomeFeed() {
 
   const load = useCallback(
     async (more: boolean) => {
-      if (mode === "local" || mode === "discover") { setPosts([]); setLoading(false); setLoadingMore(false); return; }
+      if (mode === "discover") { setPosts([]); setLoading(false); setLoadingMore(false); return; }
       if (more) { setLoadingMore(true); loadingMoreRef.current = true; }
       else {
         setLoading(true);
@@ -238,8 +236,6 @@ export default function HomeFeed() {
             Try again
           </button>
         </div>
-      ) : mode === "local" ? (
-        <LocalFeed />
       ) : mode === "discover" ? (
         <DiscoverFeed />
       ) : posts.length === 0 ? (

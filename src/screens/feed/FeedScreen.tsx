@@ -39,7 +39,6 @@ import FullscreenVideo from '../../components/FullscreenVideo';
 import VideoFeedModal from '../../components/VideoFeedModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CATEGORIES } from '../../constants/categories';
-import LocalFeed from '../../components/feed/LocalFeed';
 import { FeedSkeleton } from '../../components/Skeleton';
 import { light } from '../../constants/tokens';
 import PostInsightsSheet from '../../components/PostInsightsSheet';
@@ -180,7 +179,7 @@ export default function FeedScreen({ navigation }: any) {
   const modeFirstRun = useRef(true);
   const loadingMoreRef = useRef(false);
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
-  const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'discover' | 'trending' | 'local'>('forYou');
+  const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'discover' | 'trending'>('forYou');
   const [discoverCat, setDiscoverCat] = useState('innovation');
   const discoverInnoIdsRef = useRef<Set<string>>(new Set());
   const discoverMetaRef = useRef<Map<string, string | null>>(new Map());
@@ -197,7 +196,7 @@ export default function FeedScreen({ navigation }: any) {
   const tabSwipe = useRef(PanResponder.create({
     onMoveShouldSetPanResponder: (_e, g) => !mediaTouchRef.current && Math.abs(g.dx) > 40 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
     onPanResponderRelease: (_e, g) => {
-      const order = ['forYou', 'latest', 'discover', 'trending', 'local'] as const;
+      const order = ['forYou', 'latest', 'discover', 'trending'] as const;
       const i = order.indexOf(feedModeRef.current);
       if (g.dx < -40 && i < order.length - 1) { setFeedMode(order[i + 1]); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
       else if (g.dx > 40 && i > 0) { setFeedMode(order[i - 1]); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
@@ -416,7 +415,6 @@ export default function FeedScreen({ navigation }: any) {
         hiddenIdsRef.current = new Set((hid ?? []).map((h: any) => h.post_id));
       }
 
-      if (feedModeRef.current === 'local') { setPosts([]); setFeedError(null); setLoading(false); return; }
       let feedRows: any[] | null = null; let feedErr: any = null;
       if (feedModeRef.current === 'discover') {
         const [dA, dB, dC] = await Promise.all([
@@ -1252,7 +1250,7 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const loadMore = useCallback(async () => {
-    if (feedModeRef.current === 'discover' || feedModeRef.current === 'local') return;
+    if (feedModeRef.current === 'discover') return;
     if (loadingMoreRef.current || !hasMoreRef.current || posts.length === 0) return;
     loadingMoreRef.current = true;
     setLoadingMore(true);
@@ -1747,12 +1745,12 @@ if (!search && promos.length > 0) {
             </View>
 
             <View style={s.tabRow}>
-              {(['forYou', 'latest', 'discover', 'trending', 'local'] as const).map(m => {
+              {(['forYou', 'latest', 'discover', 'trending'] as const).map(m => {
                 const on = feedMode === m;
-                const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : m === 'discover' ? 'Discover' : m === 'trending' ? 'Trending' : 'Local';
+                const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : m === 'discover' ? 'Discover' : 'Trending';
                 const accent = m === 'discover' ? '#D97706' : '#0B1E3D';
                 return (
-                  <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 4, marginRight: 12 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
+                  <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 4, marginRight: 14 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
                     <Text style={{ fontSize: 15, fontWeight: on ? '800' : '500', color: on ? '#0A0A0A' : '#A3A3A3', letterSpacing: -0.2 }}>{label}</Text>
                     <View style={{ height: 3, width: 20, borderRadius: 2, marginTop: 5, backgroundColor: on ? accent : 'transparent' }} />
                   </TouchableOpacity>
@@ -1777,8 +1775,6 @@ if (!search && promos.length > 0) {
             </View>
           ) : loading ? (
             <FeedSkeleton />
-          ) : feedMode === 'local' ? (
-            <LocalFeed navigation={navigation} />
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
               <NewPostsPill topCreatedAt={posts.length ? posts.reduce((m, p) => (p.created_at > m ? p.created_at : m), posts[0].created_at) : null} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
