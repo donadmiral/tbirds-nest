@@ -516,7 +516,7 @@ export default function ChatScreen() {
   const lastTypingRef = useRef(false);
   const inputRef = useRef<TextInput>(null);
   const [savedReplies, setSavedReplies] = useState<any[]>([]);
-  const isBizSession = (useAuthStore.getState().profile as any)?.account_type === 'business';
+  const isBizSession = (useAuthStore.getState().profile as any)?.account_type === 'business' || !!actAsId;
   useEffect(() => {
     if (!isBizSession || !currentUserId) return;
     supabase.from('business_saved_replies').select('*').eq('user_id', currentUserId).order('created_at').then(({ data }) => setSavedReplies(data ?? []));

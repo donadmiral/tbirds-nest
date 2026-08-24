@@ -68,6 +68,25 @@ function isValidTime(t: string): boolean {
 export default function BusinessManageScreen({ route, navigation }: any) {
   const businessId: string = route?.params?.businessId;
   const [inboxUnread, setInboxUnread] = useState(0);
+  const [awayOn, setAwayOn] = useState(false);
+  const [awayMsg, setAwayMsg] = useState('');
+  useEffect(() => {
+    if (!businessId) return;
+    let live = true;
+    (async () => {
+      try {
+        const { data } = await supabase.from('business_dm_settings')
+          .select('away_enabled, away_message').eq('business_id', businessId).maybeSingle();
+        if (live && data) { setAwayOn(!!data.away_enabled); setAwayMsg(data.away_message || ''); }
+      } catch {}
+    })();
+    return () => { live = false; };
+  }, [businessId]);
+  const saveAway = useCallback(async (on: boolean, msg: string) => {
+    try {
+      await supabase.from('business_dm_settings').upsert({ business_id: businessId, away_enabled: on, away_message: msg, updated_at: new Date().toISOString() });
+    } catch {}
+  }, [businessId]);
   useEffect(() => {
     if (!businessId) return;
     let live = true;
@@ -298,6 +317,18 @@ export default function BusinessManageScreen({ route, navigation }: any) {
             {myRole ? <View style={s.roleChip}><Text style={s.roleTxt}>{myRole}</Text></View> : null}
           </View>
 
+          <Text style={s.sectionLbl}>Messaging</Text>
+          <Text style={s.sectionHint}>Answer even when you are away.</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#0B1E3D' }}>Away message</Text>
+            <Switch value={awayOn} onValueChange={v => { setAwayOn(v); saveAway(v, awayMsg); }} />
+          </View>
+          {awayOn ? (
+            <TextInput value={awayMsg} onChangeText={setAwayMsg} onBlur={() => saveAway(awayOn, awayMsg)}
+              placeholder="Thanks for reaching out. We reply during business hours."
+              placeholderTextColor="#9AA6B8" multiline
+              style={{ borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 13.5, color: '#0B1E3D', minHeight: 64, textAlignVertical: 'top', marginBottom: 14 }} />
+          ) : <View style={{ height: 6 }} />}
           <Text style={s.sectionLbl}>Category</Text>
           <View style={s.chips}>
             {CATEGORIES.map(c => {

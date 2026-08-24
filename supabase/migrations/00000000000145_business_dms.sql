@@ -1,0 +1,1 @@
+-- Applied via SQL editor 2026-08-24: business_dm_settings, saved replies member RLS, away reply trigger, get_business_conversations v2 with is_request

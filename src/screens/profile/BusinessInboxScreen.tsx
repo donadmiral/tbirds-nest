@@ -32,6 +32,7 @@ export default function BusinessInboxScreen() {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [tab, setTab] = useState<'primary' | 'requests'>('primary');
 
   useFocusEffect(useCallback(() => {
     let live = true;
@@ -84,7 +85,20 @@ export default function BusinessInboxScreen() {
         </View>
       ) : (
         <FlatList
-          data={rows}
+          data={rows.filter((r: any) => tab === 'requests' ? r.is_request : !r.is_request)}
+          ListHeaderComponent={
+            <View style={{ flexDirection: 'row', paddingHorizontal: 2, paddingBottom: 8, gap: 8 }}>
+              {(['primary', 'requests'] as const).map(t => {
+                const n = rows.filter((r: any) => t === 'requests' ? r.is_request : !r.is_request).length;
+                const on = tab === t;
+                return (
+                  <TouchableOpacity key={t} onPress={() => setTab(t)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 16, backgroundColor: on ? '#0B1E3D' : '#F0F2F5' }}>
+                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: on ? '#FFFFFF' : '#5B6B84' }}>{t === 'primary' ? 'Primary' : 'Requests'}{n > 0 ? ' ' + n : ''}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          }
           keyExtractor={r => r.conversation_id}
           ItemSeparatorComponent={() => <View style={st.sep} />}
           contentContainerStyle={{ paddingVertical: 4, paddingBottom: 40 }}
