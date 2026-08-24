@@ -447,7 +447,8 @@ export default function FeedScreen({ navigation }: any) {
       const rows = (feedRows ?? []) as any[];
       const scored = rows.map(mapFeedRow);
       hydrateShares(scored.map(pp => pp.id));
-      setPosts(scored);
+      const seenOnce = new Set<string>();
+      setPosts(scored.filter(p => seenOnce.has(p.id) ? false : (seenOnce.add(p.id), true)));
       cursorRef.current = rows.length
         ? { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id }
         : null;
@@ -1270,7 +1271,7 @@ export default function FeedScreen({ navigation }: any) {
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
       const scored = rows.map(mapFeedRow);
       hydrateShares(scored.map(pp => pp.id));
-      setPosts(prev => [...prev, ...scored.filter(p => !prev.some(x => x.id === p.id))]);
+      setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: any[] = []; for (const p of scored) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } return [...prev, ...add]; });
       setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });
       setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked) m[r.post_id] = true; }); return m; });
       setBookmarkedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_bookmarked) m[r.post_id] = true; }); return m; });
