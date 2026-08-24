@@ -516,6 +516,28 @@ export default function ChatScreen() {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingRef = useRef(false);
   const inputRef = useRef<TextInput>(null);
+  const [pinnedMsg, setPinnedMsg] = useState<any | null>(null);
+  useEffect(() => {
+    if (!conversationId) { setPinnedMsg(null); return; }
+    let live = true;
+    (async () => {
+      try {
+        const { data: c } = await supabase.from('conversations').select('pinned_message_id').eq('id', conversationId).maybeSingle();
+        if (!c?.pinned_message_id) { if (live) setPinnedMsg(null); return; }
+        const { data: m } = await supabase.from('messages').select('id, text, media_url, sender_id').eq('id', c.pinned_message_id).maybeSingle();
+        if (live) setPinnedMsg(m ?? null);
+      } catch {}
+    })();
+    return () => { live = false; };
+  }, [conversationId]);
+  const togglePin = useCallback(async (msg: any) => {
+    if (!conversationId) return;
+    const unpin = pinnedMsg?.id === msg.id;
+    try {
+      const { error } = await supabase.rpc('set_pinned_message', { p_conversation_id: conversationId, p_message_id: unpin ? null : msg.id });
+      if (!error) setPinnedMsg(unpin ? null : { id: msg.id, text: msg.text, media_url: msg.media_url, sender_id: msg.sender_id });
+    } catch {}
+  }, [conversationId, pinnedMsg]);
   const [savedReplies, setSavedReplies] = useState<any[]>([]);
   const isBizSession = (useAuthStore.getState().profile as any)?.account_type === 'business' || !!actAsId;
   useEffect(() => {
@@ -1924,6 +1946,15 @@ const pickAndSendDocument = useCallback(async () => {
         </TouchableOpacity>
       )}
 
+      {pinnedMsg ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F4F7FB', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E1E6EE', paddingHorizontal: 14, paddingVertical: 8, gap: 8 }}>
+          <Feather name="paperclip" size={13} color="#1D7A38" />
+          <Text numberOfLines={1} style={{ flex: 1, fontSize: 12.5, color: '#0B1E3D' }}>{pinnedMsg.text || 'Media message'}</Text>
+          <TouchableOpacity onPress={() => togglePin(pinnedMsg)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Feather name="x" size={14} color="#5B6B84" />
+          </TouchableOpacity>
+        </View>
+      ) : null}
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}>
         {loading ? (
           <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
@@ -2436,6 +2467,9 @@ const pickAndSendDocument = useCallback(async () => {
                   label: savedIds.has(selectedMsg?.id || '') ? 'Unsave' : 'Save',
                   action: () => { if (selectedMsg) { toggleSaveMessage(selectedMsg.id); setSelectedMsg(null); } }},
                 { iconName: 'corner-up-right', label: 'Forward', action: () => { if (selectedMsg) { openForward(selectedMsg); setSelectedMsg(null); } }},
+                { iconName: 'paperclip',
+                  label: pinnedMsg?.id === selectedMsg?.id ? 'Unpin' : 'Pin',
+                  action: () => { if (selectedMsg) { togglePin(selectedMsg); setSelectedMsg(null); } }},
                 ...(selectedMsg?.sender_id === currentUserId && selectedMsg?.text ? [{
                   iconName: 'edit-2', label: 'Edit', action: () => {
                     setEditingMsg(selectedMsg); setEditText(selectedMsg?.text || ''); setSelectedMsg(null);

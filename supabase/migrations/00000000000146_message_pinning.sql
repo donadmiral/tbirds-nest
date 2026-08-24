@@ -1,0 +1,1 @@
+-- Applied via SQL editor 2026-08-24: conversations.pinned_message_id + set_pinned_message RPC

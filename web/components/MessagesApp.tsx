@@ -369,7 +369,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const typingLine = otherTyping ? <p className="text-[12px] text-pearl">typing…</p> : null;
 
   const convButton = (c: Conv) => (
-    <button key={c.id}
+    <div key={c.id} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") openConv(c); }}
       onClick={() => openConv(c)}
       className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
     >
@@ -384,7 +384,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           {c.unread > 0 ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-ink">{c.unread}</span> : null}
         </span>
       </span>
-    </button>
+    </div>
   );
 
   const composer = (
