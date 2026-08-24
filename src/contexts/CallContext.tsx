@@ -744,7 +744,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         clearReconnectTimeout();
         clearDegradedTimeout();
 
-+
+        if (activeCallRef.current?.isGroupCall && callIdRef.current) {
           supabase.rpc('leave_group_call', { p_session_id: callIdRef.current }).then(() => {}, () => {});
         }
         if (!activeCallRef.current?.isGroupCall && callIdRef.current) {
