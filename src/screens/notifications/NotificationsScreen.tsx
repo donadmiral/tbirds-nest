@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 import { TapTopSectionList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
@@ -201,6 +201,8 @@ export default function NotificationsScreen({ navigation }: any) {
   const userId = (profile as any)?.id ?? null;
 
   const [rows, setRows] = useState<Notif[]>([]);
+  const [filt, setFilt] = useState('all');
+  const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const reqCount = rows.filter(r => r.type === 'follow_request').length;
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -223,6 +225,7 @@ export default function NotificationsScreen({ navigation }: any) {
     if (err) { setError(err.message); setLoading(false); setRefreshing(false); return; }
     const batch = (data ?? []) as Notif[];
     setRows(batch);
+    hydrateThumbs(batch);
     cursorRef.current = batch.length ? (batch[batch.length - 1] as any).created_at : null;
     setDone(batch.length < 60);
     } catch (e: any) { if (mounted.current) setError(e?.message || 'Network problem'); } finally { if (mounted.current) { setLoading(false); setRefreshing(false); } }
@@ -232,6 +235,7 @@ export default function NotificationsScreen({ navigation }: any) {
     if (loadingMore || done || !cursorRef.current) return;
     setLoadingMore(true);
     const { data } = await supabase.rpc('get_notifications', { p_limit: 60, p_cursor: cursorRef.current });
+    hydrateThumbs(((data ?? []) as Notif[]));
     if (!mounted.current) return;
     const batch = (data ?? []) as Notif[];
     if (batch.length) {
@@ -307,20 +311,50 @@ export default function NotificationsScreen({ navigation }: any) {
     setRows(prev => prev.filter(r => r.notification_id !== n.notification_id));
   };
 
+  const hydrateThumbs = useCallback(async (batch: Notif[]) => {
+    const postIds = Array.from(new Set(batch.map(r => (r as any).post_id || (r as any).data?.post_id).filter(Boolean)));
+    const storyIds = Array.from(new Set(batch.map(r => (r as any).data?.story_id).filter(Boolean)));
+    const add: Record<string, string> = {};
+    if (postIds.length) {
+      const { data: ps } = await supabase.from('posts').select('id, media_url, post_media(url, media_type, sort_order)').in('id', postIds);
+      (ps ?? []).forEach((p: any) => {
+        const pm = Array.isArray(p.post_media) ? [...p.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : [];
+        const img = pm.find((m: any) => m.media_type === 'image');
+        const u = img?.url || (p.media_url && !/\.(mp4|mov|m4v)($|\?)/i.test(p.media_url) ? p.media_url : null);
+        if (u) add['p:' + p.id] = u;
+      });
+    }
+    if (storyIds.length) {
+      const { data: ss } = await supabase.from('stories').select('id, thumbnail_url, media_url, media_type').in('id', storyIds);
+      (ss ?? []).forEach((st: any) => {
+        const u = st.thumbnail_url || (st.media_type !== 'video' ? st.media_url : null);
+        if (u) add['s:' + st.id] = u;
+      });
+    }
+    if (Object.keys(add).length && mounted.current) setThumbs(prev => ({ ...prev, ...add }));
+  }, []);
+
   const sections = useMemo(() => {
     // Things that want an ACTION from you sit pinned on top, out of the stream.
     const NEEDS = new Set(['follow_request', 'job_application', 'payment_received']);
     const needs: Notif[] = [];
     const order = ['Today', 'This week', 'This month', 'Earlier'];
     const buckets: Record<string, Notif[]> = {};
-    rows.forEach(r => {
+    const FILTS: Record<string, string[]> = {
+      likes: ['like', 'comment_like', 'story_reaction', 'message_reaction'],
+      comments: ['comment', 'reply'],
+      follows: ['follow', 'follow_request', 'follow_accepted'],
+      mentions: ['mention', 'story_mention'],
+    };
+    const visible = filt === 'all' ? rows : rows.filter(r => (FILTS[filt] || []).includes(r.type));
+    visible.forEach(r => {
       if (NEEDS.has(r.type) && (r.type !== 'follow_request' || (r as any).data?.request_id)) { needs.push(r); return; }
       const k = sectionFor(r.created_at);
       (buckets[k] ||= []).push(r);
     });
     const out = order.filter(k => buckets[k]?.length).map(k => ({ title: k, data: buckets[k] }));
     return needs.length ? [{ title: 'Needs you', data: needs }, ...out] : out;
-  }, [rows]);
+  }, [rows, filt]);
 
   const unreadTotal = rows.reduce((sum, r) => sum + (r.unread_in_group > 0 ? 1 : 0), 0);
 
@@ -371,6 +405,9 @@ export default function NotificationsScreen({ navigation }: any) {
               <Text style={s.count}>{item.unread_in_group} new</Text>
             ) : null}
           </View>
+
+          {(() => { const pid = (item as any).post_id || (item as any).data?.post_id; const sid = (item as any).data?.story_id; const u = (sid && thumbs['s:' + sid]) || (pid && thumbs['p:' + pid]) || null; return u ? <Image source={{ uri: u }} style={s.thumb} /> : null; })()}
+          {unread ? <View style={s.unreadDot} /> : null}
 
           {showRequest ? (
             <View style={s.requestRow}>
@@ -449,7 +486,15 @@ export default function NotificationsScreen({ navigation }: any) {
           </Text>
         </View>
       ) : (
-        <TapTopSectionList ListHeaderComponent={reqCount > 0 ? <TouchableOpacity activeOpacity={0.8} onPress={() => (navigation as any).navigate('FollowRequests')} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, marginBottom: 4, borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: 'rgba(11,30,61,0.03)' }}><View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}><Feather name="user-plus" size={16} color="#FFFFFF" /></View><View style={{ flex: 1 }}><Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Follow requests</Text><Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>{reqCount} waiting for your answer</Text></View><Text style={{ fontSize: 20, color: 'rgba(11,30,61,0.35)' }}>{'\u203a'}</Text></TouchableOpacity> : null} ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
+        <TapTopSectionList ListHeaderComponent={<>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 2, gap: 6 }}>
+              {([['all', 'All'], ['likes', 'Likes'], ['comments', 'Comments'], ['follows', 'Follows'], ['mentions', 'Mentions']] as const).map(([k, lbl]) => (
+                <TouchableOpacity key={k} onPress={() => setFilt(k)} style={[s.chip, filt === k && s.chipOn]}>
+                  <Text style={[s.chipTxt, filt === k && s.chipTxtOn]}>{lbl}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          {reqCount > 0 ? <TouchableOpacity activeOpacity={0.8} onPress={() => (navigation as any).navigate('FollowRequests')} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, marginBottom: 4, borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: 'rgba(11,30,61,0.03)' }}><View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}><Feather name="user-plus" size={16} color="#FFFFFF" /></View><View style={{ flex: 1 }}><Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Follow requests</Text><Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>{reqCount} waiting for your answer</Text></View><Text style={{ fontSize: 20, color: 'rgba(11,30,61,0.35)' }}>{'\u203a'}</Text></TouchableOpacity> : null}</>} ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
           sections={sections}
           keyExtractor={r => r.notification_id}
           renderItem={renderRow}
@@ -492,6 +537,12 @@ const s = StyleSheet.create({
   },
 
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: 16, paddingVertical: 11 },
+  thumb: { width: 42, height: 42, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.05)' },
+  unreadDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#F04A5C' },
+  chip: { paddingHorizontal: 13, paddingVertical: 6, borderRadius: 99, backgroundColor: 'rgba(0,0,0,0.05)' },
+  chipOn: { backgroundColor: '#E8E0D0' },
+  chipTxt: { fontSize: 12.5, fontWeight: '700', color: 'rgba(11,30,61,0.55)' },
+  chipTxtOn: { color: '#0A0A0A' },
   rowUnread: { backgroundColor: light.brand.tintBg },
 
   avatarWrap: { position: 'relative' },
