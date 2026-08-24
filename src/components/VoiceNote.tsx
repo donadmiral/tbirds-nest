@@ -10,7 +10,7 @@
  * something nobody looks at closely. They animate with progress, which is the
  * part people actually read.
  */
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
@@ -34,6 +34,10 @@ function formatTime(total: number) {
 export default function VoiceNote({ uri, durationSec, tint, dim, onTint }: Props) {
   const player = useAudioPlayer({ uri });
   const status = useAudioPlayerStatus(player);
+  const [rate, setRate] = useState(1);
+  useEffect(() => {
+    try { (player as any).setPlaybackRate(rate, 'high'); } catch {}
+  }, [rate, player]);
 
   const playing = !!status?.playing;
   const loaded = !!status?.isLoaded;
@@ -111,6 +115,11 @@ export default function VoiceNote({ uri, durationSec, tint, dim, onTint }: Props
             );
           })}
         </View>
+        {(playing || elapsed > 0) ? (
+          <TouchableOpacity onPress={() => setRate(r => (r === 1 ? 1.5 : r === 1.5 ? 2 : 1))} style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.12)', marginRight: 5 }}>
+            <Text style={{ fontSize: 10.5, fontWeight: '800', color: tint }}>{rate}x</Text>
+          </TouchableOpacity>
+        ) : null}
         <Text style={[s.time, { color: dim }]}>
           {formatTime(playing || elapsed > 0 ? elapsed : total)}
         </Text>

@@ -140,7 +140,10 @@ export default function ChatInfoSections({
 
       {!isGroup && conversationId ? (
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Disappearing messages</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={s.sectionTitle}>Disappearing messages</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: seconds ? '#2F9E63' : 'rgba(11,30,61,0.4)' }}>{seconds === 86400 ? '24 hours' : seconds === 604800 ? '7 days' : seconds === 7776000 ? '90 days' : 'Off'}</Text>
+          </View>
           <Text style={s.sectionHint}>
             New messages vanish for both of you after the chosen time. Anything already sent stays.
           </Text>

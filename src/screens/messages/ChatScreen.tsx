@@ -417,6 +417,23 @@ export default function ChatScreen() {
   const [otherTyping, setOtherTyping] = useState(false);
   const [typingUserId, setTypingUserId] = useState<string | null>(null);
   const [seenByNames, setSeenByNames] = useState<string[]>([]);
+  const [memberReads, setMemberReads] = useState<any[]>([]);
+  useEffect(() => {
+    if (!isGroup || !conversationId || !currentUserId) { setMemberReads([]); return; }
+    let live = true;
+    const pull = async () => {
+      try {
+        const { data } = await supabase.from('conversation_members')
+          .select('user_id, last_read_at')
+          .eq('conversation_id', conversationId)
+          .neq('user_id', currentUserId);
+        if (live && data) setMemberReads(data);
+      } catch {}
+    };
+    pull();
+    const iv = setInterval(pull, 6000);
+    return () => { live = false; clearInterval(iv); };
+  }, [isGroup, conversationId, currentUserId]);
   const [seenSheet, setSeenSheet] = useState<{ msg: any; rows: { name: string; avatar: string | null; seenAt: string | null }[] } | null>(null);
   const [lastStatus, setLastStatus] = useState<OutgoingStatus>(null);
 
@@ -763,6 +780,7 @@ export default function ChatScreen() {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence', filter: `user_id=eq.${otherUser.id}` },
           (payload) => {
             const p = payload.new as any;
+            if (isGroup && p?.is_system_message && !p?.payment_id) loadGroupMembers();
             setOtherOnline(!!p?.is_online && isRecent(p?.last_seen));
           })
         .subscribe();
@@ -1422,7 +1440,10 @@ const pickAndSendDocument = useCallback(async () => {
     const endsGroup = groupEnds[msg.id] !== false;
     const startsGroup = groupStarts[msg.id] !== false;
     const sender = isGroup ? membersById[msg.sender_id] : otherUser;
-    const status = getStatus(msg, isMe, item.index);
+    const dmStatus = getStatus(msg, isMe, item.index);
+    const status = (isGroup && isMe && !(msg as any).is_system_message && memberReads.length > 0)
+      ? (memberReads.every((m: any) => m.last_read_at && msg.created_at && new Date(m.last_read_at) > new Date(msg.created_at)) ? 'Seen' : dmStatus === 'Sending' ? 'Sending' : 'Sent')
+      : dmStatus;
     const showTs = showTimestamp === msg.id;
     const reactions = msg._reactions || [];
     const myReaction = reactions.find(r => r.user_id === currentUserId)?.emoji;
