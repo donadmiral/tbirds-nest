@@ -8,7 +8,7 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 export type StickerIconName =
   | 'poll' | 'question' | 'quiz' | 'slider'
-  | 'mention' | 'location' | 'link' | 'emoji';
+  | 'mention' | 'location' | 'link' | 'emoji' | 'hashtag' | 'music' | 'filter';
 
 type Props = { name: StickerIconName; size?: number; color?: string; bg?: string };
 
@@ -67,6 +67,28 @@ export default function StickerIcon({ name, size = 22, color = '#FFFFFF', bg = '
         <Svg {...p}>
           <Path d="M10.2 13.8a4.6 4.6 0 0 0 6.5 0l2.6-2.6a4.6 4.6 0 0 0-6.5-6.5l-1.5 1.5" stroke={color} strokeWidth="2.2" strokeLinecap="round" fill="none" />
           <Path d="M13.8 10.2a4.6 4.6 0 0 0-6.5 0l-2.6 2.6a4.6 4.6 0 0 0 6.5 6.5l1.5-1.5" stroke={color} strokeWidth="2.2" strokeLinecap="round" fill="none" />
+        </Svg>
+      );
+    case 'music':
+      return (
+        <Svg {...p}>
+          <Path d="M9.3 6.2l10-2.1V14" stroke={color} strokeWidth="2.4" strokeLinecap="round" fill="none" />
+          <Circle cx="6.9" cy="17" r="3.1" fill={color} />
+          <Circle cx="16.9" cy="14.4" r="3.1" fill={color} />
+        </Svg>
+      );
+    case 'filter':
+      return (
+        <Svg {...p}>
+          <Path d="M12 2.6s6.6 7.2 6.6 11.6a6.6 6.6 0 0 1-13.2 0C5.4 9.8 12 2.6 12 2.6z" fill={color} />
+          <Path d="M9.1 14.6a3.2 3.2 0 0 0 2.6 3" stroke={bg} strokeWidth="1.9" strokeLinecap="round" fill="none" />
+        </Svg>
+      );
+    case 'hashtag':
+      return (
+        <Svg {...p}>
+          <Rect x="3" y="3" width="18" height="18" rx="5.4" fill={color} />
+          <Path d="M9.4 7.6l-1.5 8.8M16.1 7.6l-1.5 8.8M7.3 10.5h9.8M6.9 13.9h9.8" stroke={bg} strokeWidth="1.9" strokeLinecap="round" fill="none" />
         </Svg>
       );
     case 'emoji':

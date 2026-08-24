@@ -38,6 +38,8 @@ interface Draft {
   textBackground?: any;
   dualFrontUri?: string | null;
   dualLayout?: any;
+  audio?: any;
+  filterId?: string | null;
 }
 
 export interface PublishOrchestratorInput {
@@ -119,6 +121,8 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           textBackground: d.textBackground || null,
           dualFrontLocalUri: d.dualFrontUri || null,
           dualLayout: d.dualLayout || null,
+          audio: (d as any).audio || null,
+          filterId: (d as any).filterId || null,
         });
 
         // Create poll if present

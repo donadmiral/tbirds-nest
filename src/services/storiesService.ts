@@ -55,6 +55,29 @@ export type MediaTransform = {
   fit: MediaFit;
 };
 
+export type StoryAudioDraft = {
+  kind: 'voiceover' | 'sound';
+  localUri?: string | null;
+  url?: string | null;
+  soundId?: string | null;
+  title?: string | null;
+  durationSec?: number | null;
+  source?: 'voiceover' | 'library' | 'original';
+  addToSounds?: boolean;
+};
+
+export type StorySound = {
+  id: string;
+  owner_id: string;
+  title: string;
+  artist: string | null;
+  url: string;
+  duration_sec: number | null;
+  source: 'original' | 'library';
+  use_count: number;
+  created_at: string;
+};
+
 export const STORY_CATEGORIES = [
   'Hiring', 'Looking for Work', 'Building in Public', 'Business',
   'Market', 'Achievement', 'Event', 'Question',
@@ -94,6 +117,11 @@ export type StoryRow = {
   category?: StoryCategory | string | null;
   dual_front_url?: string | null;
   dual_layout?: any | null;
+  audio_url?: string | null;
+  audio_title?: string | null;
+  audio_source?: string | null;
+  audio_duration_sec?: number | null;
+  filter_id?: string | null;
 };
 
 export type CatchupUser = {
@@ -230,6 +258,8 @@ export async function uploadAndCreateStory(params: {
   category?: StoryCategory | string | null;
   dualFrontLocalUri?: string | null;
   dualLayout?: any | null;
+  audio?: StoryAudioDraft | null;
+  filterId?: string | null;
 }): Promise<StoryRow> {
   const {
     userId,
@@ -251,6 +281,8 @@ export async function uploadAndCreateStory(params: {
     category,
     dualFrontLocalUri,
     dualLayout,
+    audio,
+    filterId,
   } = params;
 
   if (!userId) throw new Error('userId required');
@@ -403,6 +435,36 @@ export async function uploadAndCreateStory(params: {
     }
   }
 
+  let audioFinalUrl: string | null = null;
+  let audioMeta: { title: string | null; source: string; durationSec: number | null } | null = null;
+  if (audio) {
+    if (audio.kind === 'voiceover' && audio.localUri) {
+      try {
+        const aRand = Math.random().toString(36).slice(2, 8);
+        const aExt = audio.localUri.toLowerCase().endsWith('.caf') ? 'caf' : 'm4a';
+        const aName = `${userId}/${Date.now()}_${aRand}_audio.${aExt}`;
+        const aForm = new FormData();
+        aForm.append('file', { uri: audio.localUri, type: 'audio/mp4', name: `story_audio.${aExt}` } as any);
+        const aRes = await fetch(`${supabaseUrl}/storage/v1/object/story-media/${aName}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, apikey: supabaseKey, 'x-upsert': 'true' },
+          body: aForm,
+        });
+        if (aRes.ok) {
+          audioFinalUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${aName}`;
+        } else {
+          console.log('[storiesService] Audio upload failed:', aRes.status);
+        }
+      } catch (e: any) {
+        console.log('[storiesService] Audio upload error:', e?.message);
+      }
+      if (audioFinalUrl) audioMeta = { title: audio.title || 'Voiceover', source: 'voiceover', durationSec: audio.durationSec ?? null };
+    } else if (audio.kind === 'sound' && audio.url) {
+      audioFinalUrl = audio.url;
+      audioMeta = { title: audio.title || null, source: audio.source || 'original', durationSec: audio.durationSec ?? null };
+    }
+  }
+
   const insertPayload: any = {
     user_id: currentAuthorId(userId) ?? userId,
     media_url: mediaPublicUrl,
@@ -435,6 +497,16 @@ export async function uploadAndCreateStory(params: {
     insertPayload.dual_layout = dualLayout;
   }
 
+  if (audioFinalUrl) {
+    insertPayload.audio_url = audioFinalUrl;
+    insertPayload.audio_title = audioMeta?.title ?? null;
+    insertPayload.audio_source = audioMeta?.source ?? null;
+    insertPayload.audio_duration_sec = audioMeta?.durationSec != null ? Math.round(audioMeta.durationSec) : null;
+  }
+  if (filterId) {
+    insertPayload.filter_id = filterId;
+  }
+
   console.log('[storiesService] Inserting story row:', JSON.stringify(insertPayload).slice(0, 300));
 
   const { data, error } = await supabase
@@ -453,6 +525,13 @@ export async function uploadAndCreateStory(params: {
     supabase.rpc('increment_share_count', { p_post_id: pid }).then(() => {}, () => {});
   });
 
+  if (audio && audio.kind === 'voiceover' && audio.addToSounds && audioFinalUrl) {
+    supabase.from('story_sounds').insert({ owner_id: userId, title: audio.title || 'Original sound', url: audioFinalUrl, duration_sec: audio.durationSec != null ? Math.round(audio.durationSec) : null, source: 'original' }).then(() => {}, () => {});
+  }
+  if (audio && audio.kind === 'sound' && audio.soundId) {
+    supabase.rpc('increment_sound_use', { p_sound_id: audio.soundId }).then(() => {}, () => {});
+  }
+
   if (audience === 'only_with' && sharedWith && sharedWith.length > 0) {
     const rows = sharedWith.map((uid: string) => ({ story_id: data.id, user_id: uid }));
     const { error: shareErr } = await supabase.from('story_shared_with').insert(rows);
@@ -463,6 +542,17 @@ export async function uploadAndCreateStory(params: {
 
 export const storiesService = {
   uploadAndCreateStory,
+
+  async listStorySounds(source: 'original' | 'library', limit = 50): Promise<StorySound[]> {
+    const { data, error } = await supabase
+      .from('story_sounds')
+      .select('*')
+      .eq('source', source)
+      .order(source === 'original' ? 'use_count' : 'created_at', { ascending: false })
+      .limit(limit);
+    if (error) { console.log('[storiesService] listStorySounds:', error.message); return []; }
+    return (data || []) as StorySound[];
+  },
 
   async getCatchupFeed(mode: CatchupMode = 'all', limit = 30): Promise<CatchupUser[]> {
     const { data, error } = await supabase.rpc('get_catchup_feed', {

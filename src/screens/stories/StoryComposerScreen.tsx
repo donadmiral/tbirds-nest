@@ -22,6 +22,9 @@ import DraggableSticker from '../../components/stories/DraggableSticker';
 import type { SmartGuideEntry } from '../../components/stories/DraggableSticker';
 import MediaCanvas from '../../components/stories/MediaCanvas';
 import CategoryPicker from '../../components/stories/CategoryPicker';
+import MusicSheet from '../../components/stories/MusicSheet';
+import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
+import type { StoryAudioDraft } from '../../services/storiesService';
 import StickerIcon from '../../components/stories/StickerIcons';
 import {
   getBloomTools, BLOOM_RADIUS, INVOKE_SIZE, BLOOM_TOOL_SIZE,
@@ -89,6 +92,7 @@ type Draft = {
   imageW?: number; imageH?: number; mediaFit: MediaFit; mediaTransform: MediaTransform;
   category: StoryCategory | null; textBgId: string; textBackground: StoryTextBackground | null;
   dualFrontUri?: string | null; dualLayout?: any | null;
+  audio?: StoryAudioDraft | null; filterId?: string | null;
 };
 
 function newDraftId() { return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
@@ -427,6 +431,10 @@ export default function StoryComposerScreen() {
 
   // Overflow
   const [overflowOpen, setOverflowOpen] = useState(false);
+  const [musicOpen, setMusicOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const openMusicSheet = useCallback(() => setMusicOpen(true), []);
+  const openFilterSheet = useCallback(() => setFilterOpen(true), []);
 
   // Debounce cleanup
   useEffect(() => { return () => { if (locationDebounceRef.current) clearTimeout(locationDebounceRef.current); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }; }, []);
@@ -607,6 +615,7 @@ export default function StoryComposerScreen() {
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
           >
+            <FilterLayer filterId={active?.filterId || null} />
             {!arrangement.arrangementOpen && active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
               <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onSnapChange={handleSnapChange} snapGuides={snapGuides} onDragStart={handleDragStart} onDeleteZoneChange={handleDeleteZoneChange} onDeleteDrop={handleDeleteDrop} dragZone={dragZone} onSmartGuideChange={handleSmartGuideChange} smartGuides={smartGuides} />
             )}
@@ -801,6 +810,9 @@ export default function StoryComposerScreen() {
       </Modal>
 
       {/* Sticker Tray - Instagram construction */}
+      <MusicSheet visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
+      <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={active?.filterId || null} onSelect={(fid: string | null) => { updateActive({ filterId: fid }); }} previewUri={active?.localUri || null} />
+
       <Modal visible={overflowOpen} transparent animationType="slide" onRequestClose={() => setOverflowOpen(false)}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setOverflowOpen(false)}>
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>
@@ -818,6 +830,8 @@ export default function StoryComposerScreen() {
                   { id: 'location', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
                   { id: 'link', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
                   { id: 'emoji', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
+                  { id: 'music', icon: 'music', label: 'Sound', on: !!active?.audio, run: openMusicSheet },
+                  { id: 'filter', icon: 'droplet', label: 'Filter', on: !!active?.filterId, run: openFilterSheet },
                 ].map(t => (
                   <TouchableOpacity
                     key={t.id}
