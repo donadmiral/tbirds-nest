@@ -303,6 +303,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+      <style>{"@keyframes heartpop { 0% { transform: scale(0.3); opacity: 0; } 30% { transform: scale(1.18); opacity: 1; } 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.05); opacity: 0; } }"}</style>
       <button onClick={onClose} className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" title="Close">
         <X size={20} />
       </button>
@@ -365,8 +366,10 @@ export function StoryViewer({ users, startIndex, onClose }: {
               <p className="absolute inset-x-0 bottom-20 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow">{story.caption}</p>
             ) : null}
             {heartBurst ? (
-              <span key={heartBurst} className="pointer-events-none absolute inset-0 z-[6] flex animate-ping items-center justify-center">
-                <Heart size={72} className="fill-white text-white drop-shadow-lg" />
+              <span key={heartBurst} className="pointer-events-none absolute inset-0 z-[6] flex items-center justify-center">
+                <span style={{ animation: "heartpop 700ms ease-out forwards" }}>
+                  <Heart size={72} className="fill-red-500 text-red-500 drop-shadow-lg" />
+                </span>
               </span>
             ) : null}
           </>
@@ -400,7 +403,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
             {canReact && !replyText.trim() ? (
               <>
                 <button onClick={() => react(REACTION_EMOJIS[0])} className="rounded-full bg-black/30 p-2.5" aria-label="Love">
-                  <Heart size={18} className={myReactions.has(REACTION_EMOJIS[0]) ? "fill-white text-white" : "text-white"} />
+                  <Heart size={18} className={myReactions.has(REACTION_EMOJIS[0]) ? "fill-red-500 text-red-500" : "text-white"} />
                 </button>
                 <button onClick={() => { setEmojiOpen(!emojiOpen); if (!emojiOpen) pauseNow(); else resumeNow(); }} className="rounded-full bg-black/30 p-2.5 text-white" aria-label="React">
                   <Smile size={18} />
