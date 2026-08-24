@@ -76,7 +76,7 @@ function feedModeToServer(m: string): string {
 /** Map one get_feed row into the Post shape the render code already expects. */
 function mapFeedRow(r: any): Post {
   const base: Omit<Post, 'score'> = {
-    id: r.post_id, user_id: r.author_id, content: r.content ?? r.body ?? '',
+    id: r.post_id, _rk: r.reposted_by_id ? r.post_id + ':' + r.reposted_by_id : r.post_id, user_id: r.author_id, content: r.content ?? r.body ?? '',
     likes_count: r.likes_count ?? 0, comments_count: r.comments_count ?? 0, views_count: r.views_count ?? 0,
     is_trending: !!r.is_trending,
     products: Array.isArray(r.products) ? r.products : [],
@@ -1782,7 +1782,7 @@ if (!search && promos.length > 0) {
               data={displayPosts}
               onScroll={handleTabBarScroll}
               scrollEventThrottle={16}
-              keyExtractor={p => p.id}
+              keyExtractor={p => (p as any)._rk ?? p.id}
               renderItem={renderPost}
               onEndReached={loadMore}
               onEndReachedThreshold={0.6}
