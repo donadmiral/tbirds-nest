@@ -53,6 +53,7 @@ export function stickerTextStyle(
   bgEnabled?: boolean,
   fontSizeOverride?: number,
 ) {
+  if (!style || (BASE_FONT_SIZES as any)[style] === undefined) style = 'classic';
   const wantsPill = !!bgEnabled && style !== 'highlight';
 
   const pillWrapper = wantsPill ? {

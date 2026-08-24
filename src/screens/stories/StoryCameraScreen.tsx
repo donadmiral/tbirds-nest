@@ -392,7 +392,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         <View style={{ flex: 1 }}>
           <PinchGestureHandler onGestureEvent={onPinch} onHandlerStateChange={onPinchState}>
             <View style={{ flex: 1 }}>
-              <CameraView key={camMode} ref={cameraRef} style={s.camera} facing={facing} flash={flash} zoom={zoom} mode={camMode} onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') { doRecord(0); } }} />
+              <CameraView key={camMode} ref={cameraRef} style={s.camera} facing={facing} flash={flash} zoom={zoom} mode={camMode} videoQuality="720p" onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') { doRecord(0); } }} />
             </View>
           </PinchGestureHandler>
         </View>

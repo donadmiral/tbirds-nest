@@ -243,7 +243,8 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   const isLink = sticker.kind === 'link';
   const isLocation = sticker.kind === 'location';
   const isMention = sticker.kind === 'mention';
-  const isPill = isLink || isLocation || isMention;
+  const isHashtag = sticker.kind === 'hashtag';
+  const isPill = isLink || isLocation || isMention || isHashtag;
   const isTextSticker = !isEmoji && !isPill;
 
   // ── Physics profile ──
@@ -729,7 +730,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
             {sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />
             ) : isPill ? (
-              <StickerPill label={sticker.text} kind={sticker.kind as 'link' | 'location' | 'mention'} />
+              <StickerPill label={sticker.text} kind={sticker.kind as any} />
             ) : (
               <Text style={[textStyle, textMaxWidth ? { maxWidth: textMaxWidth } : undefined]}>
                 {sticker.text}

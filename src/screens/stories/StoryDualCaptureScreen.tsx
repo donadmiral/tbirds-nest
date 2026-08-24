@@ -368,7 +368,7 @@ export default function StoryDualCaptureScreen() {
   return (
     <View style={s.root}>
       {/* Live camera preview */}
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} />
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} videoQuality="720p" />
 
       {/* Atmospheric top gradient (always visible, gives depth) */}
       <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0)']} style={s.topGradient} pointerEvents="none" />

@@ -30,7 +30,7 @@ import { supabase } from '../../services/supabase';
 import StickerOverlay from '../../components/stories/StickerOverlay';
 import ZoomableMedia from '../../components/stories/ZoomableMedia';
 import PollCard from '../../components/stories/PollCard';
-import SaveToHighlightSheet from '../../components/stories/SaveToHighlightSheet';
+import SaveToMemorySheet from '../../components/stories/SaveToMemorySheet';
 import StickerResponsesSheet from '../../components/stories/StickerResponsesSheet';
 import EnvironmentLayer from '../../components/stories/EnvironmentLayer';
 import IdentityPresence from '../../components/stories/IdentityPresence';
@@ -606,7 +606,7 @@ export default function StoryViewerScreen() {
         </TouchableOpacity>
       </ReAnimated.View>)}
 
-      {isOwn && myId && currentStory && (<SaveToHighlightSheet visible={highlightSheetOpen} onClose={() => { setHighlightSheetOpen(false); resumeFrom('highlight'); }} storyId={currentStory.id} userId={myId} />)}
+      {isOwn && myId && currentStory && (<SaveToMemorySheet visible={highlightSheetOpen} onClose={() => { setHighlightSheetOpen(false); resumeFrom('highlight'); }} storyId={currentStory.id} userId={myId} />)}
       {responsesSheet.open && (<StickerResponsesSheet visible={responsesSheet.open} onClose={() => { dispatchResponsesSheet({ type: 'CLOSE' }); resumeFrom('responsesSheet'); }} storyId={currentStory.id} stickerId={responsesSheet.stickerId} responseType={responsesSheet.type} title={responsesSheet.title} quizOptions={responsesSheet.quizOptions} />)}
     </Animated.View>
   );
