@@ -216,7 +216,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
     try {
       recordStartRef.current = Date.now();
       console.log('[Camera] recordAsync starting, attempt', attempt);
-      const video = await cameraRef.current.recordAsync({ maxDuration: MAX_VIDEO_SEC });
+      const video = await cameraRef.current.recordAsync({ maxDuration: MAX_VIDEO_SEC, codec: 'avc1' });
       pendingRecordRef.current = false;
       recordingRef.current = false;
       setRecording(false);

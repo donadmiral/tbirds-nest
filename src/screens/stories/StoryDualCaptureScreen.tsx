@@ -123,7 +123,7 @@ export default function StoryDualCaptureScreen() {
       recTickRef.current = setInterval(() => { if (mountedRef.current) setRecSeconds(Math.floor((Date.now() - recStartRef.current) / 1000)); }, 250);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       try {
-        const video = await cameraRef.current.recordAsync({ maxDuration: 15 });
+        const video = await cameraRef.current.recordAsync({ maxDuration: 15, codec: 'avc1' });
         if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
         setRecording(false);
         if (!video?.uri || !mountedRef.current) return;

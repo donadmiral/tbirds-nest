@@ -40,6 +40,20 @@ export type StoryTextSticker = {
   sliderEmoji?: string;
   sliderLabel?: string;
   quizQuestion?: string;
+  quizOptions?: { id: string; label: string; isCorrect: boolean }[];
+};
+
+export type StoryPollOption = { id: string; label: string; position: number; vote_count: number };
+export type StoryPoll = {
+  poll_id: string;
+  story_id: string;
+  question: string;
+  nx: number;
+  ny: number;
+  scale: number;
+  options: StoryPollOption[];
+  my_vote: string | null;
+  total_votes: number;
 };
 
 export type StoryMediaTransform = {
@@ -132,4 +146,40 @@ export async function getMyStoryReactions(storyId: string): Promise<string[]> {
   const { data, error } = await supabase.rpc("get_my_story_reactions", { p_story_id: storyId });
   if (error) return [];
   return (data ?? []) as string[];
+}
+
+export async function getStoryPoll(storyId: string): Promise<StoryPoll | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_story_poll", { p_story_id: storyId });
+  if (error || !data) return null;
+  return data as StoryPoll;
+}
+
+export async function voteStoryPoll(pollId: string, optionId: string): Promise<StoryPoll | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("vote_story_poll", { p_poll_id: pollId, p_option_id: optionId });
+  if (error || !data) return null;
+  return data as StoryPoll;
+}
+
+export type StickerResponseValue = { text_value?: string | null; number_value?: number | null; option_id?: string | null };
+
+export async function submitStickerResponse(storyId: string, stickerId: string, responseType: "question" | "slider" | "quiz", value: StickerResponseValue): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("submit_sticker_response", {
+    p_story_id: storyId,
+    p_sticker_id: stickerId,
+    p_response_type: responseType,
+    p_text_value: value.text_value ?? null,
+    p_number_value: value.number_value ?? null,
+    p_option_id: value.option_id ?? null,
+  });
+  return !error;
+}
+
+export async function getMyStickerResponse(storyId: string, stickerId: string): Promise<StickerResponseValue | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_my_sticker_response", { p_story_id: storyId, p_sticker_id: stickerId });
+  if (error || !data) return null;
+  return data as StickerResponseValue;
 }
