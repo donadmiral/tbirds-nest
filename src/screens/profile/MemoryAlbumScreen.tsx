@@ -10,7 +10,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet, FlatList, Modal, TextInput,
   ActivityIndicator, Alert, Dimensions, StatusBar, ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { supabase } from '../../services/supabase';
@@ -28,6 +28,7 @@ const AUDIENCES = [
 
 export default function MemoryAlbumScreen({ route, navigation }: any) {
   const ownerId: string = route.params?.ownerId;
+  const insets = useSafeAreaInsets();
   const [album, setAlbum] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [picker, setPicker] = useState(false);
@@ -200,7 +201,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
       ) : null}
 
       <Modal visible={picker} animationType="slide" onRequestClose={() => setPicker(false)}>
-        <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
+        <View style={[st.safe, { paddingTop: Math.max(insets.top, 12) }]}>
           <View style={st.topBar}>
             <TouchableOpacity onPress={() => setPicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Feather name="x" size={22} color="#0B1E3D" />
@@ -243,7 +244,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
             }}
             ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 50, fontSize: 13, color: '#5B6B84' }}>No stories yet. Post a story first.</Text>}
           />
-        </SafeAreaView>
+        </View>
       </Modal>
 
       <Modal visible={settings} transparent animationType="fade" onRequestClose={() => setSettings(false)}>
