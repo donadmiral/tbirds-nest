@@ -373,11 +373,11 @@ export default function NotificationsScreen({ navigation }: any) {
         onPress={() => open(item)}
       >
         <View style={s.avatarWrap}>
-          {item.actor_avatar ? (
-            <Image source={{ uri: item.actor_avatar }} style={s.avatar} />
+          {(item.actor_avatar || item.other_avatars?.[0]) ? (
+            <Image source={{ uri: (item.actor_avatar || item.other_avatars?.[0]) as string }} style={s.avatar} />
           ) : (
             <View style={[s.avatar, s.avatarFb]}>
-              <Text style={s.avatarTxt}>{initials(item.actor_name)}</Text>
+              <Text style={s.avatarTxt}>{item.actor_name ? initials(item.actor_name) : item.others_count > 0 ? String(item.others_count + 1) : 'U'}</Text>
             </View>
           )}
           {badge ? (

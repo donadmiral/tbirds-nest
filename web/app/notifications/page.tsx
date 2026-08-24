@@ -191,7 +191,7 @@ export default function NotificationsPage() {
                 >
                   {unread ? <span aria-hidden className="absolute left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-pearl" /> : null}
                   <span className="w-5 shrink-0" aria-hidden>{iconFor(n.type)}</span>
-                  <StoryAvatar userId={n.actor_id} name={n.actor_name} avatarUrl={n.actor_avatar} size={40} />
+                  <StoryAvatar userId={n.actor_id} name={n.actor_name || ((n.others_count || 0) > 0 ? String((n.others_count || 0) + 1) : " ")} avatarUrl={n.actor_avatar || n.other_avatars?.[0] || null} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block text-[14px] leading-snug text-ink/90">
                       <span className="font-semibold text-ink">{lead}</span>
