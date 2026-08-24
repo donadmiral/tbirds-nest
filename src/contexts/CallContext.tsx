@@ -154,6 +154,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const activeCallRef = useRef<ActiveCallInfo | null>(null);
   const myIdRef = useRef<string | null>(null);
   const callIdRef = useRef<string | null>(null);
+  const hbRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const statusSubRef = useRef<any>(null);
   const ringingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -554,6 +555,24 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           (call as any).setNativeInCallAudioMode(params.isVideo ? 'video' : 'voice');
           console.log('[Audio] inCallAudioMode engaged:', params.isVideo ? 'video' : 'voice');
         } catch (e: any) { console.log('[Audio] inCallAudioMode error:', e?.message); }
+        if (params.isGroupCall && callIdRef.current) {
+          const stamp = async () => {
+            if (!callIdRef.current || !activeCallRef.current) { if (hbRef.current) { clearInterval(hbRef.current); hbRef.current = null; } return; }
+            try {
+              const { data: s } = await supabase.auth.getSession();
+              const uid = s.session?.user?.id;
+              if (!uid) return;
+              const { error } = await supabase.from('call_participants')
+                .update({ last_seen_at: new Date().toISOString() })
+                .eq('call_session_id', callIdRef.current)
+                .eq('user_id', uid);
+              console.log('[HB]', error?.message ?? 'ok');
+            } catch (e: any) { console.log('[HB] threw', e?.message); }
+          };
+          stamp();
+          if (hbRef.current) clearInterval(hbRef.current);
+          hbRef.current = setInterval(stamp, 30000);
+        }
 
         try {
           (call as any).setBandwidth?.({
@@ -725,7 +744,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         clearReconnectTimeout();
         clearDegradedTimeout();
 
-        if (activeCallRef.current?.isGroupCall && callIdRef.current) {
++
           supabase.rpc('leave_group_call', { p_session_id: callIdRef.current }).then(() => {}, () => {});
         }
         if (!activeCallRef.current?.isGroupCall && callIdRef.current) {
