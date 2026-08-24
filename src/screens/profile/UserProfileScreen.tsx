@@ -428,7 +428,7 @@ export default function UserProfileScreen() {
                             {post.media.map((m, mIdx) => (
                               <View key={m.id || mIdx} style={{ width: post.media.length === 1 ? SCREEN_W - 64 : 192, height: post.media.length === 1 ? 150 : 128, borderRadius: 12, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
                                 {m.media_type === 'video' ? (
-                                  <VideoThumb uri={m.url} size={post.media.length === 1 ? SCREEN_W - 64 : 128} radius={0} />
+                                  <VideoThumb uri={m.url} size={post.media.length === 1 ? SCREEN_W - 64 : 128} height={post.media.length === 1 ? 150 : 128} radius={0} />
                                 ) : (
                                   <ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={200} />
                                 )}

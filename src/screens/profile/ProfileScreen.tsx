@@ -366,7 +366,7 @@ export default function ProfileScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }} contentContainerStyle={{ gap: 6 }}>
               {post.media.map((m, idx) => (
                 <View key={m.id || idx} style={{ width: post.media.length === 1 ? mediaWidth : 192, height: post.media.length === 1 ? 148 : 128, borderRadius: 10, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
-                  <Pressable onPress={() => navigation.navigate('Post', { postId: post.id })} style={{ width: '100%', height: '100%' }}>{m.media_type === 'video' ? (<VideoThumb uri={m.url} size={post.media.length === 1 ? mediaWidth : 128} radius={0} />) : (<ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={150} />)}</Pressable>
+                  <Pressable onPress={() => navigation.navigate('Post', { postId: post.id })} style={{ width: '100%', height: '100%' }}>{m.media_type === 'video' ? (<VideoThumb uri={m.url} size={post.media.length === 1 ? mediaWidth : 128} height={post.media.length === 1 ? 148 : 128} radius={0} />) : (<ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={150} />)}</Pressable>
                 </View>
               ))}
             </ScrollView>
