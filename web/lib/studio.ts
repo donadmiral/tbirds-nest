@@ -29,7 +29,7 @@ export const ROOMS = [
   { key: "inbox", href: "/studio/inbox", label: "Inbox", ready: true },
   { key: "planner", href: "/studio/planner", label: "Planner", ready: true },
   { key: "commerce", href: "/studio/commerce", label: "Commerce", ready: true },
-  { key: "recruiter", href: "/studio/recruiter", label: "Recruiter", ready: false },
+  { key: "recruiter", href: "/studio/recruiter", label: "Recruiter", ready: true },
   { key: "ads", href: "/ads", label: "Ads", ready: true },
   { key: "insights", href: "/studio/insights", label: "Insights", ready: false },
   { key: "audience", href: "/studio/audience", label: "Audience", ready: false },
