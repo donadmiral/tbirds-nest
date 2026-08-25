@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
-import PostStoryCard, { POST_CARD_W } from './PostStoryCard';
+import PostStoryCard, { POST_CARD_W, POST_CARD_EST_H } from './PostStoryCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
@@ -229,10 +229,10 @@ export default function StickerOverlay({
             style={{
               position: 'absolute',
               left: st.nx * containerW,
-              top: st.ny * containerH,
+              top: st.kind === 'post' ? Math.min(Math.max(st.ny * containerH, POST_CARD_EST_H / 2 + 30), containerH - POST_CARD_EST_H / 2 - 84) : st.ny * containerH,
               transform: [
                 { translateX: -halfW },
-                { translateY: -25 },
+                { translateY: st.kind === 'post' ? -(POST_CARD_EST_H / 2) : -25 },
                 { scale: st.scale },
                 { rotate: `${st.rotation}rad` },
               ],

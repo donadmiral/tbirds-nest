@@ -983,7 +983,6 @@ export default function FeedScreen({ navigation }: any) {
       postVerified: !!(author as any)?.is_verified,
       postVerifiedTier: (author as any)?.verified_tier ?? null,
       postAuthorId: post.user_id,
-      postAuthorId: post.user_id,
       postCreatedAt: (post as any).created_at || null,
       postLikes: post.likes_count ?? 0,
       postComments: post.comments_count ?? 0,

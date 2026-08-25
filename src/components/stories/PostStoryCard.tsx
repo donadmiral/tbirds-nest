@@ -15,7 +15,7 @@ import { supabase } from '../../services/supabase';
 
 const NAVY = '#0B1E3D';
 export const POST_CARD_W = Math.min(Math.round(Dimensions.get('window').width * 0.88), 360);
-export const POST_CARD_EST_H = 500;
+export const POST_CARD_EST_H = 540;
 
 function bodyFont(t: string, hasMedia: boolean) {
   const n = (t || '').length;
@@ -173,7 +173,7 @@ const st = StyleSheet.create({
   name: { fontSize: 15, fontWeight: '800', color: '#111827', flexShrink: 1 },
   handle: { fontSize: 12.5, color: '#7A8699', marginTop: 1 },
   body: { color: '#111827', paddingHorizontal: 14, paddingTop: 8, paddingBottom: 4, fontWeight: '500' },
-  mediaWrap: { width: '100%', aspectRatio: 4 / 5, maxHeight: 320, backgroundColor: '#0B1E3D', marginTop: 0 },
+  mediaWrap: { width: '100%', height: Math.min(Math.round(POST_CARD_W * 1.05), 330), backgroundColor: '#0B1E3D', marginTop: 0 },
   media: { width: '100%', height: '100%' },
   soundChip: { position: 'absolute', right: 10, bottom: 10, width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
   engage: { flexDirection: 'row', alignItems: 'center', gap: 20, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 3 },
