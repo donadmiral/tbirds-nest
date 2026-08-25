@@ -53,7 +53,7 @@ export default function InboxPage() {
     if (error) { alert(error.message); void load(); }
   };
 
-  const respondOffer = async (it: Item, action: "accept" | "decline") => {
+  const respondOffer = async (it: Item, action: "accepted" | "declined") => {
     const { error } = await supabase.rpc("respond_offer", { p_offer_id: it.id, p_action: action, p_counter_amount: null });
     if (error) { alert(error.message); return; }
     setItems(prev => prev.filter(x => x.id !== it.id));
@@ -130,8 +130,8 @@ export default function InboxPage() {
                       <Link href={href} className="rounded-md bg-ink px-2.5 py-1 text-[12px] font-semibold text-porcelain">Open</Link>
                       {it.kind === "offer" && it.waiting && canInbox ? (
                         <>
-                          <button onClick={() => respondOffer(it, "accept")} className="inline-flex items-center gap-1 rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success"><Check size={12} /> Accept</button>
-                          <button onClick={() => respondOffer(it, "decline")} className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2.5 py-1 text-[12px] font-semibold text-red-400"><X size={12} /> Decline</button>
+                          <button onClick={() => respondOffer(it, "accepted")} className="inline-flex items-center gap-1 rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success"><Check size={12} /> Accept</button>
+                          <button onClick={() => respondOffer(it, "declined")} className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2.5 py-1 text-[12px] font-semibold text-red-400"><X size={12} /> Decline</button>
                         </>
                       ) : null}
                       <select value={it.label || ""} onChange={e => setState(it, { label: e.target.value || null })} className="rounded-md bg-surface px-2 py-1 text-[12px] text-ink/70 outline-none" aria-label="Label">
