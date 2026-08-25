@@ -39,6 +39,7 @@ export default function SearchPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
   const [searching, setSearching] = useState(false);
+  const [postMode, setPostMode] = useState<"top" | "latest">("top");
   const [searched, setSearched] = useState(false);
 
   useEffect(() => {
@@ -83,16 +84,16 @@ export default function SearchPage() {
       const { data: blk } = await supabase.from("blocked_users").select("blocker_id, blocked_id").or("blocker_id.eq." + (myId ?? "") + ",blocked_id.eq." + (myId ?? ""));
       const blocked = new Set<string>((blk ?? []).map((b) => (b.blocker_id === myId ? b.blocked_id : b.blocker_id)));
       const [pplRes, postRes, jobRes, mktRes, mediaRes, artRes, placeRes] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, username, avatar_url, headline").or("full_name.ilike." + like + ",username.ilike." + like + ",headline.ilike." + like + ",location.ilike." + like).neq("id", myId ?? "").limit(25),
-        supabase.rpc("search_posts", { p_q: query, p_limit: 20 }),
-        supabase.from("jobs").select("id, title, company, location, salary_range").or("title.ilike." + like + ",company.ilike." + like + ",location.ilike." + like + ",industry.ilike." + like).order("created_at", { ascending: false }).limit(10),
-        supabase.from("marketplace_listings").select("id, title, price, currency, images, seller_id").eq("status", "available").or("title.ilike." + like + ",description.ilike." + like + ",category.ilike." + like + ",location_city.ilike." + like).order("created_at", { ascending: false }).limit(10),
+        supabase.rpc("search_people", { p_q: query, p_limit: 25 }),
+        supabase.rpc("search_posts", { p_q: query, p_mode: postMode, p_limit: 20 }),
+        supabase.rpc("search_jobs_fts", { p_q: query, p_limit: 10 }),
+        supabase.rpc("search_listings_fts", { p_q: query, p_limit: 10 }),
         supabase.rpc("search_media", { p_q: query, p_limit: 18 }),
         supabase.rpc("search_articles", { p_q: query, p_limit: 6 }),
         supabase.rpc("search_places", { p_q: query }),
       ]);
       setPeople(((pplRes.data ?? []) as Person[]).filter((p) => !blocked.has(p.id)).slice(0, 10));
-      const postList = ((postRes.data ?? []) as PostHit[]).filter((p) => !blocked.has(p.user_id)).slice(0, 10);
+      const postRaw = ((postRes.data ?? []) as any[]); postRaw.forEach((p: any) => { if (p.post_id && !p.id) { p.id = p.post_id; p.user_id = p.author_id; p.author = { id: p.author_id, full_name: p.author_name, username: p.author_username, avatar_url: p.author_avatar, headline: null }; } }); const postList = (postRaw as PostHit[]).filter((p) => !blocked.has(p.user_id)).slice(0, 10);
       const authorIds = Array.from(new Set(postList.map((p) => p.user_id)));
       if (authorIds.length > 0) {
         const { data: authors } = await supabase.from("profiles").select("id, full_name, username, avatar_url, headline").in("id", authorIds);
@@ -100,6 +101,7 @@ export default function SearchPage() {
         postList.forEach((p) => { p.author = map.get(p.user_id) ?? null; });
       }
       setPosts(postList);
+      void supabase.rpc("log_search_event", { p_query: query, p_vertical: "all" });
       setJobs((jobRes.data ?? []) as JobHit[]);
       setListings(((mktRes.data ?? []) as ListingHit[]).filter((l) => !blocked.has(l.seller_id)));
       setMedia((mediaRes.data ?? []) as MediaHit[]);
@@ -109,7 +111,7 @@ export default function SearchPage() {
       setSearched(true);
     }, 350);
     return () => clearTimeout(t);
-  }, [q, supabase]);
+  }, [q, supabase, postMode]);
 
   const show = (k: string) => filter === "all" || filter === k;
   const openPlace = (p: PlaceHit) => {
@@ -213,6 +215,7 @@ export default function SearchPage() {
           {show("posts") && posts.length > 0 ? (
             <section>
               <p className={head}>Posts</p>
+              <div className="mb-2 flex gap-2">{(["top", "latest"] as const).map((mo) => (<button key={mo} onClick={() => setPostMode(mo)} className={"rounded-full px-3 py-1 text-[12px] font-semibold " + (postMode === mo ? "bg-[#0B1E3D] text-white" : "bg-[#0B1E3D]/5 text-[#0B1E3D]")}>{mo === "top" ? "Top" : "Latest"}</button>))}</div>
               {posts.map((p) => (
                 <Link key={p.id} href={"/post/" + p.id} onClick={() => saveRecent(q)} className="flex gap-3 rounded-md px-1 py-2.5 transition-colors hover:bg-surface">
                   <StoryAvatar userId={p.user_id} name={p.author?.full_name} avatarUrl={p.author?.avatar_url} size={36} />
