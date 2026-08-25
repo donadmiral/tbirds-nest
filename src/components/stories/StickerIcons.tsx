@@ -8,7 +8,7 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 export type StickerIconName =
   | 'poll' | 'question' | 'quiz' | 'slider'
-  | 'mention' | 'location' | 'link' | 'emoji' | 'hashtag' | 'music' | 'filter';
+  | 'mention' | 'location' | 'link' | 'emoji' | 'hashtag' | 'music' | 'filter' | 'countdown';
 
 type Props = { name: StickerIconName; size?: number; color?: string; bg?: string };
 

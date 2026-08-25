@@ -77,6 +77,21 @@ export function renderStickerContent(
   const isSlider = sticker.kind === 'slider';
   const isQuiz = sticker.kind === 'quiz';
 
+  if (sticker.kind === 'countdown') {
+    const ep = engagementProps;
+    return (
+      <CountdownStickerCard
+        title={sticker.countdownTitle || sticker.text}
+        target={sticker.countdownTarget || null}
+        interactive={interactive && !!ep}
+        isOwn={ep?.isOwn ?? false}
+        reminded={!!ep?.myResponses[sticker.id]}
+        reminderCount={ep?.responseCounts[sticker.id] ?? 0}
+        onRemind={() => ep?.onCountdownRemind?.(sticker)}
+      />
+    );
+  }
+
   if (sticker.kind === 'post') {
     return (
       <PostStoryCard
@@ -219,7 +234,7 @@ export default function StickerOverlay({
       {stickers.map(st => {
         const isEmoji = st.kind === 'emoji';
         const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag' || st.kind === 'post';
-        const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz';
+        const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown';
         const containerAlign = isEmoji || isPill ? 'center' as const
           : st.textAlign === 'left' ? 'flex-start' as const
           : st.textAlign === 'right' ? 'flex-end' as const

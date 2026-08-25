@@ -728,7 +728,9 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       >
         <View style={{ flex: 1, alignItems: containerAlign, justifyContent: 'center' }}>
           <View style={wrapperStyle}>
-            {sticker.kind === 'post' ? (
+            {sticker.kind === 'countdown' ? (
+              <CountdownStickerCard title={sticker.countdownTitle || sticker.text} target={sticker.countdownTarget || null} />
+            ) : sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />
             ) : isPill ? (
               <StickerPill label={sticker.text} kind={sticker.kind as any} />
