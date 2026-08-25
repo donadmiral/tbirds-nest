@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Radio, Search, X } from "lucide-react";
+import { Plus, Radio, Search, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Ch = { id: string; name: string; description: string | null; icon_url: string | null; member_count: number; is_member: boolean; my_role: string | null; owner_username: string | null };
@@ -66,6 +66,10 @@ export default function ChannelsPage() {
         {me ? (
           <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-white"><Plus size={14} /> New channel</button>
         ) : null}
+      </div>
+      <div className="mb-3 flex gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white"><Radio size={13} /> Channels</span>
+        <Link href="/communities" className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/60 hover:text-ink"><Users size={13} /> Communities</Link>
       </div>
       <div className="mb-4 flex items-center gap-2 rounded-xl bg-ink/5 px-3 py-2">
         <Search size={15} className="text-ink/40" />
