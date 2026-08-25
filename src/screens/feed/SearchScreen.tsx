@@ -47,6 +47,7 @@ export default function SearchScreen({ navigation }: any) {
 
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('people');
+  const [postMode, setPostMode] = useState<'top' | 'latest'>('top');
   const [loading, setLoading] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
 
@@ -102,29 +103,14 @@ export default function SearchScreen({ navigation }: any) {
       const blockedSet = new Set<string>((blk ?? []).map((b: any) => (b.blocker_id === myId ? b.blocked_id : b.blocker_id)));
 
       const [pplRes, postRes, jobRes, mktRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url, headline, location, bio')
-          .or(`full_name.ilike.${like},username.ilike.${like},headline.ilike.${like}`)
-          .neq('id', myId ?? '')
-          .limit(25),
-        supabase.rpc('search_posts', { p_q: q, p_limit: 20 }),
-        supabase
-          .from('jobs')
-          .select('id, title, company, location, category, salary_range, posted_by, created_at')
-          .or(`title.ilike.${like},company.ilike.${like},location.ilike.${like},industry.ilike.${like}`)
-          .order('created_at', { ascending: false })
-          .limit(20),
-        supabase
-          .from('marketplace_listings')
-          .select('id, title, price, currency, category, condition, location_city, images, seller_id')
-          .eq('status', 'available')
-          .or(`title.ilike.${like},description.ilike.${like},category.ilike.${like}`)
-          .order('created_at', { ascending: false })
-          .limit(20),
+        supabase.rpc('search_people', { p_q: q, p_limit: 25 }),
+        supabase.rpc('search_posts', { p_q: q, p_mode: postMode, p_limit: 20 }),
+        supabase.rpc('search_jobs_fts', { p_q: q, p_limit: 20 }),
+        supabase.rpc('search_listings_fts', { p_q: q, p_limit: 20 }),
       ]);
 
       const postList = postRes.data || [];
+      postList.forEach((p: any) => { if (p.post_id && !p.id) { p.id = p.post_id; p.user_id = p.author_id; p.profile = { id: p.author_id, full_name: p.author_name, username: p.author_username, avatar_url: p.author_avatar }; } });
       if (postList.length) {
         const authorIds = Array.from(new Set(postList.map((p: any) => p.user_id)));
         const { data: authors } = await supabase
@@ -140,12 +126,13 @@ export default function SearchScreen({ navigation }: any) {
       setPosts(postList);
       setJobs(jobRes.data || []);
       setListings(((mktRes.data || []) as any[]).filter((l: any) => !blockedSet.has(l.seller_id)));
+      void supabase.rpc('log_search_event', { p_query: q, p_vertical: 'all' });
     } catch (e) {
       console.log('SEARCH_ERR', e);
     } finally {
       setLoading(false);
     }
-  }, [myId]);
+  }, [myId, postMode]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -265,6 +252,7 @@ export default function SearchScreen({ navigation }: any) {
     renderJob;
 
   const showResults = query.trim().length > 0;
+  const postModeBar = activeTab === 'posts' && showResults ? (<View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 6 }}>{(['top', 'latest'] as const).map(m => (<TouchableOpacity key={m} onPress={() => setPostMode(m)} style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, backgroundColor: postMode === m ? '#0B1E3D' : 'rgba(11,30,61,0.06)' }}><Text style={{ fontSize: 12.5, fontWeight: '700', color: postMode === m ? '#FFF' : '#0B1E3D' }}>{m === 'top' ? 'Top' : 'Latest'}</Text></TouchableOpacity>))}</View>) : null;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
@@ -387,7 +375,7 @@ export default function SearchScreen({ navigation }: any) {
         </View>
       ) : (
         <FlatList automaticallyAdjustKeyboardInsets={true}
-          data={currentData}
+          data={currentData} ListHeaderComponent={postModeBar}
           keyExtractor={(item: any) => item.id}
           renderItem={currentRenderer as any}
           contentContainerStyle={[
