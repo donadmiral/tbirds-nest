@@ -1,3 +1,4 @@
+import { Image as ExpoImage } from 'expo-image';
 import { TapTopFlatList } from '../../components/TapTopList';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -117,6 +118,7 @@ export default function JobsScreen({ navigation }: any) {
   const userId = profile?.id ?? null;
 
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [posterLogos, setPosterLogos] = useState<Record<string, string>>({});
   const [myApplications, setMyApplications] = useState<JobApplication[]>([]);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [appliedMap, setAppliedMap] = useState<Record<string, ApplicationStatus>>({});
@@ -179,6 +181,7 @@ export default function JobsScreen({ navigation }: any) {
         jobsService.getMyApplications(userId),
       ]);
       setJobs(fetchedJobs);
+      (async () => { try { const pids = Array.from(new Set((fetchedJobs || []).map((j: any) => j.posted_by).filter(Boolean))); if (pids.length === 0) return; const { data: pl } = await supabase.from('profiles').select('id, avatar_url').in('id', pids); const mp: Record<string, string> = {}; (pl || []).forEach((p: any) => { if (p.avatar_url) mp[p.id] = p.avatar_url; }); setPosterLogos(mp); } catch {} })();
       setSavedIds(new Set(savedJobIds));
       setAppliedMap(appMap);
       setMyApplications(apps);
@@ -360,7 +363,7 @@ export default function JobsScreen({ navigation }: any) {
     return (
       <TouchableOpacity style={s.hsCardRoot} activeOpacity={0.94} onPress={() => (navigation as any).navigate('JobDetail', { job: item })}>
         <View style={s.hsCard}>
-          <View style={s.hsLogo}><Text style={s.hsLogoTxt}>{logo}</Text></View>
+          {posterLogos[item.posted_by] ? (<ExpoImage source={{ uri: posterLogos[item.posted_by] }} style={[s.hsLogo, { overflow: 'hidden' }]} contentFit="cover" />) : (<View style={s.hsLogo}><Text style={s.hsLogoTxt}>{logo}</Text></View>)}
 
           <View style={{ flex: 1, minWidth: 0 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>

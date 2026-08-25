@@ -91,8 +91,8 @@ export default function ChannelsScreen() {
   );
 
   return (
-    <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <View style={s.header}>
+    <SafeAreaView style={s.safe} edges={['left', 'right']}>
+      <View style={[s.header, { paddingTop: insets.top + 4 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={NAVY} />
         </TouchableOpacity>
