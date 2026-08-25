@@ -450,7 +450,7 @@ const loadMorePosts = useCallback(async () => {
           onSettings={() => navigation.navigate('Settings')}
           onEdit={openEdit}
           onChangePhoto={changePhoto}
-          onOpenStats={openStats}
+          onOpenStats={(k) => (navigation as any).navigate('FollowList', { userId, initial: k, isSelf: true, username: profile?.username })}
           hasStory={hasStory}
           onOpenStory={() => (navigation as any).navigate('StoryViewer', { userId })}
         />

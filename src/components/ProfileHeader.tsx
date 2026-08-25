@@ -14,11 +14,12 @@ import VerifiedBadge from './VerifiedBadge';
  * a platinum underline on the active tab, a reach pill on your own profile, and
  * live opening hours on a business.
  */
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Share } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
+import { supabase } from '../services/supabase';
 import { openNow, hoursSummary, hasHours, DAY_ORDER, dayLabel } from '../utils/businessHours';
 import PlatinumRing from './stories/PlatinumRing';
 
@@ -110,6 +111,33 @@ export default function ProfileHeader({
 }: Props) {
   const business = profile?.account_type === 'business' ? (profile.business || null) : null;
   const joined = joinedLabel(profile?.created_at || profile?.joined_at);
+  const [ctxMutual, setCtxMutual] = useState<string | null>(null);
+  const [ctxInsights, setCtxInsights] = useState<string | null>(null);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const pid = profile?.id;
+    if (!pid) return;
+    (async () => {
+      try {
+        if (isSelf) {
+          const { data } = await supabase.rpc('get_profile_insights', { p_profile: pid });
+          if (alive && data && typeof (data as any).views_30d === 'number') setCtxInsights(String((data as any).views_30d) + ' profile views in the last 30 days');
+        } else {
+          const { data } = await supabase.rpc('get_profile_context', { p_profile: pid });
+          if (alive && data) {
+            const names: string[] = Array.isArray((data as any).mutual_names) ? (data as any).mutual_names : [];
+            const extra = Math.max(0, ((data as any).mutual_count || 0) - names.length);
+            if (names.length > 0) setCtxMutual('Followed by ' + names.join(', ') + (extra > 0 ? ' and ' + extra + ' more' : ''));
+          }
+        }
+      } catch {}
+    })();
+    return () => { alive = false; };
+  }, [profile?.id, isSelf]);
+  const shareProfile = async () => {
+    try { await Share.share({ message: 'Follow ' + (profile?.username ? '@' + profile.username : (profile?.full_name || 'this member')) + ' on Platinum Circles' }); } catch {}
+  };
 
   return (
     <View>
@@ -150,7 +178,7 @@ export default function ProfileHeader({
               {uploadingPhoto ? (
                 <View style={[s.avatar, s.avatarLoading]}><ActivityIndicator color={light.brand.base} /></View>
               ) : profile?.avatar_url ? (
-                <ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />
+                ((!isSelf) ? (<TouchableOpacity activeOpacity={0.9} onPress={() => setAvatarOpen(true)}><ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /></TouchableOpacity>) : (<ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />))
               ) : (
                 <View style={[s.avatar, s.avatarFallback]}>
                   <Text style={s.avatarTxt}>{initials(profile?.full_name)}</Text>
@@ -170,6 +198,14 @@ export default function ProfileHeader({
           {(profile?.verified_tier || profile?.is_verified) ? <VerifiedBadge tier={profile?.verified_tier} size={17} /> : null}
         </View>
         {profile?.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
+        {ctxMutual ? <Text style={{ fontSize: 13, color: '#8E8E93', marginTop: 5, textAlign: 'center', paddingHorizontal: 24 }}>{ctxMutual}</Text> : null}
+        {isSelf && ctxInsights ? <Text style={{ fontSize: 12.5, color: '#8E8E93', marginTop: 5, textAlign: 'center' }}>{ctxInsights}</Text> : null}
+        {profile?.username ? <TouchableOpacity onPress={shareProfile} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'center', marginTop: 8, paddingHorizontal: 13, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}><Feather name="share" size={12} color="#0B1E3D" /><Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0B1E3D' }}>Share profile</Text></TouchableOpacity> : null}
+        <Modal visible={avatarOpen} transparent animationType="fade" onRequestClose={() => setAvatarOpen(false)}>
+          <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center' }} activeOpacity={1} onPress={() => setAvatarOpen(false)}>
+            {profile?.avatar_url ? <ExpoImage source={{ uri: profile.avatar_url }} style={{ width: '92%', height: '70%' }} contentFit="contain" /> : null}
+          </TouchableOpacity>
+        </Modal>
 
         {actions ? (
           <View style={s.actionsCenter}>{actions}</View>

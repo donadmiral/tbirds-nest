@@ -262,6 +262,7 @@ export default function UserProfileScreen() {
         <ProfileHeader
           profile={profile}
           stats={{ posts: stats.posts, followers: stats.followers, following: stats.following ?? 0 }}
+          onOpenStats={(k) => (navigation as any).navigate('FollowList', { userId: targetId, initial: k, isSelf: isOwnProfile, username: profile?.username })}
           isSelf={isOwnProfile}
           hasStory={hasStory}
           onOpenStory={() => (navigation as any).navigate('StoryViewer', { userId: targetId })}

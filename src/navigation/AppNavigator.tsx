@@ -68,6 +68,7 @@ import CallLogScreen           from '../screens/messages/CallLogScreen';
 
 import ProfileScreen              from '../screens/profile/ProfileScreen';
 import UserProfileScreen          from '../screens/profile/UserProfileScreen';
+import FollowListScreen           from '../screens/profile/FollowListScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import BlockedAccountsScreen from '../screens/profile/BlockedAccountsScreen';
 import CreateBusinessScreen from '../screens/profile/CreateBusinessScreen';
@@ -506,6 +507,7 @@ export default function AppNavigator() {
                 <RootStack.Screen name="Call"              component={CallScreen} />
                 <RootStack.Screen name="IncomingCall"      component={IncomingCallScreen} />
                 <RootStack.Screen name="StoryViewer"       component={StoryViewerScreen} />
+                <RootStack.Screen name="FollowList"        component={FollowListScreen} />
                 <RootStack.Screen name="UserProfileTop"    component={UserProfileScreen} />
                 <RootStack.Screen name="PostTop"           component={PostScreen} />
               </RootStack.Group>
