@@ -31,7 +31,7 @@ export const ROOMS = [
   { key: "commerce", href: "/studio/commerce", label: "Commerce", ready: true },
   { key: "recruiter", href: "/studio/recruiter", label: "Recruiter", ready: true },
   { key: "ads", href: "/studio/ads", label: "Ads", ready: true },
-  { key: "insights", href: "/studio/insights", label: "Insights", ready: false },
+  { key: "insights", href: "/studio/insights", label: "Insights", ready: true },
   { key: "audience", href: "/studio/audience", label: "Audience", ready: false },
   { key: "reviews", href: "/studio/reviews", label: "Reviews", ready: false },
   { key: "settings", href: "/studio/settings", label: "Settings", ready: false },
