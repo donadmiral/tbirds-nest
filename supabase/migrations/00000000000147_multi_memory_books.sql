@@ -1,0 +1,1 @@
+-- Applied via SQL editor 2026-08-24: memory_albums get ids + is_default, memory_pages.album_id, multi-book RPCs (get_memory_albums/get_memory_book/create/update/delete), add_memory_page gains p_album_id, back-compat kept for web

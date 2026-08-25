@@ -246,7 +246,7 @@ export default function HomeFeed() {
       ) : (
         <div>
           {posts.map((p, i) => {
-            const slot = i > 0 && (i + 1) % 6 === 0 ? promos[Math.floor((i + 1) / 6) - 1] : null;
+            const slot = i === 1 ? promos[0] : (i > 1 && (i - 1) % 6 === 0 ? promos[Math.floor((i - 1) / 6)] : null);
             return (
               <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")}>
                 <div data-pid={p.post_id} ref={observeSeen}>

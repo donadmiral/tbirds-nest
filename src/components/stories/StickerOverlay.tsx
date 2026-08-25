@@ -19,6 +19,9 @@ type StickerOverlayProps = {
   onMentionTap?: (userId: string) => void;
   onHashtagTap?: (tag: string) => void;
   onPostTap?: (postId: string) => void;
+  onPostProfileTap?: (userId: string) => void;
+  onPostHoldStart?: () => void;
+  onPostHoldEnd?: () => void;
   onStickerLayout?: (id: string, rect: { left: number; right: number; top: number; bottom: number }) => void;
   interactive?: boolean;
   // Engagement sticker interaction callbacks (viewer only)
@@ -56,6 +59,9 @@ export function renderStickerContent(
   engagementProps?: StickerOverlayProps['engagementProps'],
   onHashtagTap?: (tag: string) => void,
   onPostTap?: (postId: string) => void,
+  onPostProfileTap?: (userId: string) => void,
+  onPostHoldStart?: () => void,
+  onPostHoldEnd?: () => void,
 ): React.ReactNode {
   const isEmoji = sticker.kind === 'emoji';
   const isLink = sticker.kind === 'link';
@@ -70,7 +76,11 @@ export function renderStickerContent(
     return (
       <PostStoryCard
         sticker={sticker}
-        onPress={interactive && onPostTap && sticker.postId ? () => onPostTap(sticker.postId!) : undefined}
+        interactive={interactive}
+        onOpenPost={interactive && onPostTap && sticker.postId ? () => onPostTap(sticker.postId!) : undefined}
+        onOpenProfile={interactive && onPostProfileTap && sticker.postAuthorId ? () => onPostProfileTap(sticker.postAuthorId!) : undefined}
+        onHoldStart={onPostHoldStart}
+        onHoldEnd={onPostHoldEnd}
       />
     );
   }
@@ -188,6 +198,9 @@ export default function StickerOverlay({
   onMentionTap,
   onHashtagTap,
   onPostTap,
+  onPostProfileTap,
+  onPostHoldStart,
+  onPostHoldEnd,
   onStickerLayout,
   interactive = true,
   engagementProps,
@@ -230,7 +243,7 @@ export default function StickerOverlay({
               elevation: interactive && (isPill || isEngagement) ? 30 : 20,
             }}
           >
-            {renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap)}
+            {renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd)}
           </View>
         );
       })}
