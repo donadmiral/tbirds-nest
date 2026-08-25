@@ -10,7 +10,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 
 const cache: Record<string, string> = {};
 
-export default function VideoThumb({ uri, size = 64, radius = 8, height }: { uri: string; size?: number; radius?: number; height?: number }) {
+export default function VideoThumb({ uri, size = 64, radius = 8, height, fill, chip = true }: { uri: string; size?: number; radius?: number; height?: number; fill?: boolean; chip?: boolean }) {
   const h = height ?? size;
   const [thumb, setThumb] = useState<string | null>(cache[uri] ?? null);
   useEffect(() => {
@@ -23,11 +23,9 @@ export default function VideoThumb({ uri, size = 64, radius = 8, height }: { uri
     return () => { ok = false; };
   }, [uri]);
   return (
-    <View style={{ width: size, height: h, borderRadius: radius, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-      {thumb ? <ExpoImage source={{ uri: thumb }} style={{ width: size, height: h }} contentFit="cover" /> : null}
-      <View style={{ position: 'absolute', width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 11, marginLeft: 2 }}>{'\u25B6'}</Text>
-      </View>
+    <View style={fill ? { width: '100%', height: '100%', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' } : { width: size, height: h, borderRadius: radius, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+      {thumb ? <ExpoImage source={{ uri: thumb }} style={fill ? { width: '100%', height: '100%' } : { width: size, height: h }} contentFit="cover" /> : null}
+      {chip ? <View style={{ position: 'absolute', width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFFFFF', fontSize: 12, marginLeft: 2 }}>{'\u25B6'}</Text></View> : null}
     </View>
   );
 }

@@ -194,7 +194,7 @@ export default function SearchScreen({ navigation }: any) {
         </View>
       </View>
       <Text style={s.postBody} numberOfLines={3}>{item.content || item.body || ''}</Text>
-      {(() => { const mm = Array.isArray(item.media) && item.media[0] ? item.media[0] : (item.media_url ? { url: item.media_url, media_type: 'image' } : null); if (!mm) return null; if (mm.media_type === 'video') return (<View style={[s.postMedia, { backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}><VideoThumb uri={mm.url} size={160} radius={0} /><View style={{ position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={18} color="#FFFFFF" /></View></View>); return <Image source={{ uri: mm.url }} style={s.postMedia} />; })()}
+      {(() => { const mm = Array.isArray(item.media) && item.media[0] ? item.media[0] : (item.media_url ? { url: item.media_url, media_type: 'image' } : null); if (!mm) return null; if (mm.media_type === 'video') return (<View style={[s.postMedia, { backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}><VideoThumb uri={mm.url} fill chip={false} /><View style={{ position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={18} color="#FFFFFF" /></View></View>); return <Image source={{ uri: mm.url }} style={s.postMedia} />; })()}
       <View style={s.postStats}>
         <Text style={s.postStat}>♥ {item.likes_count || 0}</Text>
         <Text style={s.postStat}>💬 {item.comments_count || 0}</Text>

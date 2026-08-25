@@ -1,3 +1,4 @@
+import VideoThumb from '../../components/VideoThumb';
 /**
  * MemoryAlbumScreen — the memory book.
  * Closed: a real album cover (stitched border, corner flowers, gold clasp
@@ -317,13 +318,13 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                     <View style={st.tapeTop} />
                     <View style={st.polImgWrap}>
                       {(() => { const stks = Array.isArray(page?.stickers) ? page.stickers : []; const pk = stks.find((k: any) => k && k.kind === 'post'); if (pk) return (
-                        <View style={{ flex: 1, backgroundColor: '#0E1B33', borderRadius: 6, padding: 12, justifyContent: 'center' }}>
+                        <View style={{ flex: 1, backgroundColor: '#0E1B33', borderRadius: 6, padding: 12 }}>
                           <Text style={{ color: '#C9BFB0', fontSize: 11.5, fontWeight: '700', marginBottom: 6 }} numberOfLines={1}>{pk.postAuthorName || 'Shared post'}</Text>
                           {pk.postText ? <Text style={{ color: '#F5F0EB', fontSize: 13.5, lineHeight: 19 }} numberOfLines={4}>{pk.postText}</Text> : null}
                           {pk.postMediaUrl ? (pk.postMediaType === 'video' ? (
-                            <TouchableOpacity onPress={() => setPlayingUrl(pk.postMediaUrl)} style={{ marginTop: 8, height: 86, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={22} color="#FFFFFF" /></TouchableOpacity>
+                            <TouchableOpacity activeOpacity={0.9} onPress={() => setPlayingUrl(pk.postMediaUrl)} style={{ marginTop: 8, flex: 1, minHeight: 150, borderRadius: 8, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}><VideoThumb uri={pk.postMediaUrl} fill chip={false} /><View style={{ position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={19} color="#FFFFFF" /></View></TouchableOpacity>
                           ) : (
-                            <ExpoImage source={{ uri: pk.postMediaUrl }} style={{ marginTop: 8, height: 86, borderRadius: 8 }} contentFit="cover" />
+                            <ExpoImage source={{ uri: pk.postMediaUrl }} style={{ marginTop: 8, flex: 1, minHeight: 150, borderRadius: 8 }} contentFit="cover" />
                           )) : null}
                           <Text style={{ color: '#8FA0B8', fontSize: 10.5, marginTop: 8 }}>Shared post</Text>
                         </View>
