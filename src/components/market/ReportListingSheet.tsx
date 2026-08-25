@@ -1,3 +1,4 @@
+import { KeyboardAvoidingView, Platform } from 'react-native';
 /**
  * ReportListingSheet - Facebook-style report reasons for a marketplace listing.
  */
@@ -38,6 +39,7 @@ export default function ReportListingSheet({ visible, onClose, listingId, report
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={s.sheet}>
             <View style={s.handle} />
             <Text style={s.title}>Report listing</Text>
@@ -61,6 +63,7 @@ export default function ReportListingSheet({ visible, onClose, listingId, report
               {busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.ctaTxt}>Submit report</Text>}
             </TouchableOpacity>
           </View>
+          </KeyboardAvoidingView>
         </TouchableOpacity>
       </TouchableOpacity>
     </Modal>

@@ -1,3 +1,4 @@
+import { KeyboardAvoidingView, Platform } from 'react-native';
 /**
  * CampaignsScreen — a business's sponsored placements.
  * Lists promoted_posts with live counters; pause/resume/end; New campaign
@@ -167,6 +168,7 @@ export default function CampaignsScreen() {
 
       <Modal visible={pickOpen} animationType="slide" transparent onRequestClose={() => setPickOpen(false)}>
         <View style={st.scrim}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={st.sheet}>
             <View style={st.grab} />
             <Text style={st.sheetTitle}>{target ? 'Campaign details' : 'Choose a post to promote'}</Text>
@@ -210,6 +212,7 @@ export default function CampaignsScreen() {
               <Feather name="x" size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </SafeAreaView>

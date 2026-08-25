@@ -1,3 +1,4 @@
+import { KeyboardAvoidingView, Platform } from 'react-native';
 import { paymentsService } from '../../services/paymentsService';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -430,6 +431,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       {/* Change Password Modal */}
       <Modal visible={pwModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setPwModal(false); setNewPw(''); setConfirmPw(''); }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }} edges={['top', 'left', 'right']}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => { setPwModal(false); setNewPw(''); setConfirmPw(''); }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Change Password</Text>
@@ -473,12 +475,14 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               {savingPw ? <ActivityIndicator color="#FFF" /> : <Text style={s.pwSubmitBtnTxt}>Update Password</Text>}
             </TouchableOpacity>
           </ScrollView>
+        </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
 
       {/* Privacy Modal */}
       <Modal visible={privacyModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPrivacyModal(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }} edges={['top', 'left', 'right']}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => setPrivacyModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Privacy</Text>
@@ -513,12 +517,14 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               </Text>
             </View>
           </ScrollView>
+        </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
 
       {/* Delete Account Modal */}
       <Modal visible={deleteModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setDeleteModal(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }} edges={['top', 'left', 'right']}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => setDeleteModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Delete Account</Text>
@@ -541,6 +547,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               {deleting ? <ActivityIndicator color="#FFF" /> : <Text style={s.deleteBtnTxt}>Delete My Account</Text>}
             </TouchableOpacity>
           </ScrollView>
+        </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
       <LinkIntoBankSheet visible={showLinkSheet} onClose={() => setShowLinkSheet(false)} onLinked={() => setIbLinked(true)} />
