@@ -217,7 +217,7 @@ export default function SearchPage() {
               <p className={head}>Posts</p>
               <div className="mb-2 flex gap-2">{(["top", "latest"] as const).map((mo) => (<button key={mo} onClick={() => setPostMode(mo)} className={"rounded-full px-3 py-1 text-[12px] font-semibold " + (postMode === mo ? "bg-[#0B1E3D] text-white" : "bg-[#0B1E3D]/5 text-[#0B1E3D]")}>{mo === "top" ? "Top" : "Latest"}</button>))}</div>
               {posts.map((p) => (
-                <Link key={p.id} href={"/post/" + p.id} onClick={() => saveRecent(q)} className="flex gap-3 rounded-md px-1 py-2.5 transition-colors hover:bg-surface">
+                <div key={p.id} role="link" tabIndex={0} onClick={() => { saveRecent(q); router.push("/post/" + p.id); }} className="flex cursor-pointer gap-3 rounded-md px-1 py-2.5 transition-colors hover:bg-surface">
                   <StoryAvatar userId={p.user_id} name={p.author?.full_name} avatarUrl={p.author?.avatar_url} size={36} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline gap-1.5 text-[13px]">
@@ -226,7 +226,7 @@ export default function SearchPage() {
                     </span>
                     <span className="line-clamp-2 block text-[13px] text-ink/80"><RichText text={p.content ?? ""} /></span>
                   </span>
-                </Link>
+                </div>
               ))}
             </section>
           ) : null}
@@ -238,7 +238,7 @@ export default function SearchPage() {
                 {media.map((m) => (
                   <Link key={m.post_id + m.url} href={"/post/" + m.post_id} onClick={() => saveRecent(q)} className="relative block aspect-square overflow-hidden rounded-md bg-surface">
                     {m.media_type === "video" ? (
-                      <span className="flex h-full w-full items-center justify-center bg-ink text-white/80"><Play size={22} /></span>
+                      <span className="relative block h-full w-full"><video src={m.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center bg-black/25 text-white"><Play size={20} /></span></span>
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={displayImageUrl(m.url, 400)!} onError={(e) => { if (e.currentTarget.src !== m.url) e.currentTarget.src = m.url; }} alt="" loading="lazy" className="h-full w-full object-cover" />

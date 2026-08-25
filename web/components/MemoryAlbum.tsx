@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
-  getMemoryAlbum, saveAlbumSettings, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
+  getMemoryAlbum, getMemoryBook, saveAlbumSettings, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
   getMyStories, addMemoryPage, getAccessList, setAccess, searchPeople,
   COVER_COLORS, type MemoryAlbum, type MemoryPage, type AccessPerson,
 } from "@/lib/memoryAlbum";
@@ -17,14 +17,20 @@ const AUDIENCES = [
   { key: "only_me", label: "Only me" },
 ];
 
+function postSticker(pg: any) {
+  try { const arr = Array.isArray(pg?.stickers) ? pg.stickers : []; return arr.find((s: any) => s && s.kind === "post") || null; } catch { return null; }
+}
+
 function fmtDate(s: string | null) {
   if (!s) return "";
   return new Date(s).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function MemoryAlbumView({ ownerId }: { ownerId: string }) {
+export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
+  const ownerId = albumRef;
   const supabase = useRef(createClient()).current;
   const [album, setAlbum] = useState<MemoryAlbum | null>(null);
+  const [likedPages, setLikedPages] = useState<Set<string>>(new Set());
   const [idx, setIdx] = useState(0);
   const [view, setView] = useState<"book" | "grid">("book");
   const [flip, setFlip] = useState(0);
@@ -33,7 +39,7 @@ export function MemoryAlbumView({ ownerId }: { ownerId: string }) {
   const [uid, setUid] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    getMemoryAlbum(ownerId).then(setAlbum);
+    getMemoryBook(ownerId).then(setAlbum);
   }, [ownerId]);
 
   useEffect(() => { load(); }, [load]);
@@ -111,7 +117,11 @@ export function MemoryAlbumView({ ownerId }: { ownerId: string }) {
                 ) : pg.media_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={pg.media_url} alt="" className="h-full w-full object-cover" />
-                ) : null}
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center bg-[#0B1E3D] p-2">
+                    <span className="line-clamp-4 text-center font-display text-[11px] leading-tight text-white">{pg.story_caption || (postSticker(pg) ? "Shared post" : "Memory")}</span>
+                  </span>
+                )}
               </span>
               <span className="mt-2 block truncate text-center font-display text-[12px] text-ink/70">{pg.caption || fmtDate(pg.taken_at)}</span>
             </button>
@@ -133,6 +143,20 @@ export function MemoryAlbumView({ ownerId }: { ownerId: string }) {
                       ) : page.media_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img key={page.id} src={page.media_url} alt="" className="h-full w-full object-cover" />
+                      ) : postSticker(page) ? ((): any => { const ps: any = postSticker(page); return (
+                        <div className="flex h-full w-full flex-col justify-center gap-2 bg-[#101826] p-5">
+                          <p className="text-[11px] font-bold uppercase tracking-wide text-white/50">Shared post</p>
+                          <p className="text-[15px] font-bold text-white">{ps.postAuthorName || "Post"}</p>
+                          {ps.postText ? <p className="text-[13.5px] leading-snug text-white/85">{String(ps.postText).slice(0, 180)}</p> : null}
+                          {ps.postMediaUrl && ps.postMediaType !== "video" ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={ps.postMediaUrl} alt="" className="mt-1 max-h-[45%] w-full rounded-lg object-cover" />
+                          ) : null}
+                        </div>
+                      ); })() : page.story_caption ? (
+                        <div className="flex h-full w-full items-center justify-center bg-[#0B1E3D] p-6">
+                          <p className="text-center font-display text-[19px] leading-relaxed text-white">{page.story_caption}</p>
+                        </div>
                       ) : null}
                       {page.style === "polaroid" ? (
                         <span className="absolute -top-1 left-1/2 h-4 w-12 -translate-x-1/2 rotate-3" style={{ background: cover.spine, opacity: 0.85 }} />
@@ -147,6 +171,7 @@ export function MemoryAlbumView({ ownerId }: { ownerId: string }) {
           <div className="mt-4 flex items-center justify-center gap-3">
             <button onClick={() => go(-1)} disabled={idx === 0} className="rounded-full border border-ink/10 bg-white/80 p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
             <span className="rounded-full border border-ink/10 bg-white/80 px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {pages.length}</span>
+            <button onClick={() => { const sid = page && (page as any).story_id ? String((page as any).story_id) : null; if (!sid) return; setLikedPages(prev => { const n = new Set(prev); if (n.has(sid)) n.delete(sid); else n.add(sid); return n; }); void supabase.rpc("toggle_story_reaction", { p_story_id: sid, p_emoji: "\u2764\uFE0F" }); }} className={"rounded-full border border-ink/10 bg-white/80 p-2.5 backdrop-blur " + (page && likedPages.has(String((page as any).story_id)) ? "text-red-500" : "text-ink/40")} aria-label="Love this memory">{"\u2764"}</button>
             <button onClick={() => go(1)} disabled={idx >= pages.length - 1} className="rounded-full border border-ink/10 bg-white/80 p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
           </div>
           {album.is_owner && page ? (
@@ -160,7 +185,7 @@ export function MemoryAlbumView({ ownerId }: { ownerId: string }) {
         </div>
       )}
 
-      {adding && album.is_owner ? <AddMemories onClose={() => { setAdding(false); load(); }} existing={pages} /> : null}
+      {adding && album.is_owner ? <AddMemories albumId={ownerId} onClose={() => { setAdding(false); load(); }} existing={pages} /> : null}
       {manage && album.is_owner ? <ManageAlbum album={album} onClose={() => { setManage(false); load(); }} /> : null}
       <style jsx global>{"@keyframes pcflip { from { transform: rotateY(-62deg); opacity: 0.4; } to { transform: rotateY(0deg); opacity: 1; } }"}</style>
     </div>
@@ -189,7 +214,7 @@ function PageCaption({ page, isOwner, onSaved }: { page: MemoryPage; isOwner: bo
   );
 }
 
-function AddMemories({ onClose, existing }: { onClose: () => void; existing: MemoryPage[] }) {
+function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose: () => void; existing: MemoryPage[] }) {
   const [rows, setRows] = useState<Awaited<ReturnType<typeof getMyStories>>>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
@@ -225,7 +250,7 @@ function AddMemories({ onClose, existing }: { onClose: () => void; existing: Mem
           </div>
         )}
         <button disabled={picked.size === 0 || busy}
-          onClick={async () => { setBusy(true); for (const id of picked) { await addMemoryPage(id); } setBusy(false); onClose(); }}
+          onClick={async () => { setBusy(true); for (const id of picked) { await addMemoryPage(id, albumId); } setBusy(false); onClose(); }}
           className="mt-4 w-full rounded-md bg-pearl py-2.5 text-sm font-semibold text-ink disabled:opacity-40">
           {busy ? "Adding" : picked.size === 0 ? "Pick stories to add" : "Add " + picked.size + (picked.size === 1 ? " memory" : " memories")}
         </button>

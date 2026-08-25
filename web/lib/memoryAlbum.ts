@@ -5,7 +5,9 @@ import { createClient } from "@/lib/supabase/client";
 export type MemoryPage = {
   id: string; media_url: string | null; media_type: string;
   thumbnail_url: string | null; caption: string | null;
-  style: "polaroid" | "full"; taken_at: string | null; sort_order: number;
+  style?: "polaroid" | "full"; taken_at: string | null; sort_order: number;
+  story_id?: string; kind?: string; story_caption?: string | null; text_background?: string | null; stickers?: any;
+  duration_sec?: number | null; dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null;
 };
 export type MemoryAlbum = {
   is_owner: boolean; can_view: boolean; title: string;
@@ -31,9 +33,29 @@ export async function getMemoryAlbum(ownerId: string): Promise<MemoryAlbum | nul
   return data as MemoryAlbum;
 }
 
-export async function addMemoryPage(storyId: string): Promise<boolean> {
+export type MemoryBookInfo = { id: string; title: string; cover_color: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
+
+export type MemoryShelf = { is_owner: boolean; books: MemoryBookInfo[] };
+
+export async function getMemoryBooks(ownerId: string): Promise<MemoryShelf> {
   const supabase = createClient();
-  const { error } = await supabase.rpc("add_memory_page", { p_story_id: storyId });
+  const { data, error } = await supabase.rpc("get_memory_albums", { p_owner: ownerId });
+  if (error || !data) return { is_owner: false, books: [] };
+  const env = data as any;
+  if (Array.isArray(env)) return { is_owner: false, books: env as MemoryBookInfo[] };
+  return { is_owner: !!env.is_owner, books: (env.books ?? []) as MemoryBookInfo[] };
+}
+
+export async function getMemoryBook(albumId: string): Promise<MemoryAlbum | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_memory_book", { p_album: albumId });
+  if (error || !data) return null;
+  return data as MemoryAlbum;
+}
+
+export async function addMemoryPage(storyId: string, albumId?: string): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("add_memory_page", { p_story_id: storyId, p_album_id: albumId ?? null });
   return !error;
 }
 
