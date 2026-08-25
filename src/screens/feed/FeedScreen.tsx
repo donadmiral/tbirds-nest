@@ -971,7 +971,7 @@ export default function FeedScreen({ navigation }: any) {
     const sticker: any = {
       id: 'post-' + post.id,
       text: '', style: 'classic', color: '#FFFFFF',
-      nx: 0.5, ny: 0.42, scale: 1, rotation: 0,
+      nx: 0.5, ny: 0.5, scale: 1, rotation: 0,
       kind: 'post',
       postId: post.id,
       postAuthorName: author?.full_name || author?.username || 'Platinum Circles',
@@ -979,6 +979,12 @@ export default function FeedScreen({ navigation }: any) {
       postText: post.content || '',
       postMediaUrl: first?.url || null,
       postMediaType: first?.media_type || null,
+      postUsername: author?.username || null,
+      postVerified: !!(author as any)?.is_verified,
+      postCreatedAt: (post as any).created_at || null,
+      postLikes: post.likes_count ?? 0,
+      postComments: post.comments_count ?? 0,
+      postReposts: post.reposts_count ?? 0,
     };
     (navigation as any).navigate('StoryComposer', { mode: 'text', seedStickers: [sticker] });
   }, [profilesMap, navigation]);
@@ -2181,41 +2187,7 @@ if (!search && promos.length > 0) {
               const captured = menuPost;
               const author = captured ? profilesMap[captured.user_id] : null;
               setMenuPost(null);
-              setTimeout(async () => {
-                if (!captured) return;
-                const media = (captured as any).media_url || (captured as any).image_url || null;
-                const label = author?.username ? '@' + author.username : (author?.full_name || 'Post');
-                const sticker = {
-                  id: 'shared_' + captured.id,
-                  kind: 'link',
-                  text: label,
-                  url: 'platinum-circles://post/' + captured.id,
-                  nx: 0.5, ny: 0.82, scale: 1, rotation: 0,
-                };
-                try {
-                  if (media) {
-                    const name = 'shared_' + captured.id + (media.includes('.mp4') ? '.mp4' : '.jpg');
-                    const target = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + name;
-                    const res = await FileSystem.downloadAsync(media, target);
-                    navigation.navigate('StoryComposer', {
-                      mode: media.includes('.mp4') ? 'video' : 'image',
-                      assets: [{ localUri: res.uri || target, mediaType: media.includes('.mp4') ? 'video' : 'image' }],
-                      seedStickers: [sticker],
-                      seedCaption: (captured.content || '').slice(0, 180),
-                    });
-                  } else {
-                    navigation.navigate('StoryComposer', {
-                      mode: 'text',
-                      assets: [],
-                      seedStickers: [sticker],
-                      seedText: (captured.content || '').slice(0, 240),
-                    });
-                  }
-                } catch (e) {
-                  console.log('[ShareToStory]', e);
-                  Alert.alert('Could not open story', 'Please try again.');
-                }
-              }, 350);
+              setTimeout(() => { if (captured) addPostToStory(captured); }, 350);
             }}>
               <Feather name="plus-square" size={18} color={light.ink.primary} />
               <Text style={s.menuOptionTxt}>Add to your story</Text>

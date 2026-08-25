@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
-import PostStoryCard from './PostStoryCard';
+import PostStoryCard, { POST_CARD_W } from './PostStoryCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
@@ -37,7 +37,7 @@ type StickerOverlayProps = {
 };
 
 function getWidthForKind(kind?: string): number {
-  if (kind === 'post') return 300;
+  if (kind === 'post') return POST_CARD_W;
   if (kind === 'question') return 240;
   if (kind === 'slider') return 240;
   if (kind === 'quiz') return 260;

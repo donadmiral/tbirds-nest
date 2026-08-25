@@ -49,7 +49,7 @@ export const supabase = createClient(url, anonKey, {
       // Auth grants are sacred: aborting a token refresh mid-flight loses
       // the rotated refresh token and the server then rejects the old one -
       // the random-logout machine. Sixty seconds keeps them bounded but safe.
-      const ms = u.includes('/storage/v1/') ? 90000 : u.includes('/auth/v1/') ? 60000 : 15000;
+      const ms = u.includes('/storage/v1/') ? 90000 : u.includes('/auth/v1/') ? 60000 : u.includes('/rest/v1/stories') ? 45000 : 15000;
       const timer = setTimeout(() => ctrl.abort(), ms);
       // Listen to BOTH abort sources: the caller's signal and our deadline.
       if (init?.signal) { try { init.signal.addEventListener('abort', () => ctrl.abort(), { once: true }); } catch {} }

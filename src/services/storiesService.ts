@@ -509,11 +509,17 @@ export async function uploadAndCreateStory(params: {
 
   console.log('[storiesService] Inserting story row:', JSON.stringify(insertPayload).slice(0, 300));
 
-  const { data, error } = await supabase
-    .from('stories')
-    .insert(insertPayload)
-    .select()
-    .single();
+  let data: any = null; let error: any = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await supabase.from('stories').insert(insertPayload).select().single();
+    data = res.data; error = res.error;
+    if (data && !error) break;
+    const msg = String(error?.message || error || '');
+    const retryable = msg.includes('Abort') || msg.includes('abort') || msg.includes('Network') || msg.includes('Failed to fetch');
+    if (!retryable) break;
+    console.log('[storiesService] Insert retry', attempt + 1, msg);
+    await new Promise(r => setTimeout(r, 900 * (attempt + 1)));
+  }
 
   if (error || !data) {
     console.log('[storiesService] Insert error:', error?.message);
