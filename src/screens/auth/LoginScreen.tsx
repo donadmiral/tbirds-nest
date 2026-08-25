@@ -35,8 +35,8 @@ const WHITE_60 = 'rgba(255,255,255,0.60)';
 
 type ForgotStep = 'email' | 'reset';
 
-export default function LoginScreen({
-  const insets = useSafeAreaInsets(); navigation }: any) {
+export default function LoginScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

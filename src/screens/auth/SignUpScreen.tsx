@@ -31,8 +31,8 @@ const INDIGO_50 = '#EEF2FF';
 const INDIGO_100 = '#E0E7FF';
 const INDIGO_700 = '#4338CA';
 
-export default function SignUpScreen({
-  const insets = useSafeAreaInsets(); navigation }: any) {
+export default function SignUpScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
