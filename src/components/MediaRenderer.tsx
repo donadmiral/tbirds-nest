@@ -244,6 +244,7 @@ function VideoItem({
   }, []);
 
   const player = useVideoPlayer(item.url, p => {
+    p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any;
     p.loop = true;
     p.muted = false;
     p.volume = 1.0;
@@ -314,6 +315,7 @@ function CarouselVideoItem({
   }, []);
 
   const player = useVideoPlayer(item.url, p => {
+    p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any;
     p.loop = true;
     p.muted = false;
     p.volume = 1.0;

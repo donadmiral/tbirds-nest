@@ -85,6 +85,7 @@ function CarouselVideo({
 // expo-video hands you a player object rather than a component ref, so
   // seeking and muting are property writes instead of async calls.
   const player = useVideoPlayer(uri, p => {
+    p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any;
     p.loop = true;
     p.muted = sessionMuted;
     p.timeUpdateEventInterval = 0.25;

@@ -465,7 +465,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 }
 
 function MemoryVideo({ url, topInset, onClose }: { url: string; topInset: number; onClose: () => void }) {
-  const player = useVideoPlayer(url, p => { p.loop = true; p.play(); });
+  const player = useVideoPlayer(url, p => { p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any; p.loop = true; p.play(); });
   return (
     <Modal visible transparent={false} animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: '#000' }}>

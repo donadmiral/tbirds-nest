@@ -292,7 +292,7 @@ export default function StoryViewerScreen() {
   const currentStory = stories[storyIndex];
   const isVideo = currentStory?.media_type === 'video';
   const isText = currentStory?.media_type === 'text';
-  const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; } });
+  const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any; player.loop = false; player.muted = false; } });
   useEffect(() => { const u = isVideo && !isText ? currentStory?.media_url : null; if (!u) return; const p: any = videoPlayer; let sub: any = null; try { console.log('[storyVideo] source ->', String(u).slice(-60)); if (p?.replaceAsync) p.replaceAsync(u); else p?.replace?.(u); sub = p?.addListener?.('statusChange', (s2: any) => { const stt = s2?.status ?? s2; if (stt === 'error' || s2?.error) console.log('[storyVideo] status error:', s2?.error?.message || JSON.stringify(s2).slice(0, 160)); if (stt === 'readyToPlay') { try { p?.play?.(); } catch {} } }); setTimeout(() => { try { p?.play?.(); } catch {} }, 60); } catch (e: any) { console.log('[storyVideo] replace failed:', e?.message); } return () => { try { sub?.remove?.(); } catch {} }; }, [isVideo, isText, currentStory?.media_url, videoPlayer]);
   // Dual viewer swap state (viewer-only, does not persist)
   const [dualSwapped, setDualSwapped] = useState(false);
