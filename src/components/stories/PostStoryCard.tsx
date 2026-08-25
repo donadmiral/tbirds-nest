@@ -6,7 +6,7 @@
  * author's profile; caption/footer open the original post; long-press
  * pauses the story via the handlers the viewer provides.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Pressable, StyleSheet, Dimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -39,7 +39,7 @@ function nCount(v: any) {
   return String(n);
 }
 
-export default function PostStoryCard({ sticker, onPress, interactive, onOpenPost, onOpenProfile, onHoldStart, onHoldEnd }: {
+export default function PostStoryCard({ sticker, onPress, interactive, onOpenPost, onOpenProfile, onHoldStart, onHoldEnd, paused }: {
   sticker: any;
   onPress?: () => void;
   interactive?: boolean;
@@ -47,6 +47,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   onOpenProfile?: () => void;
   onHoldStart?: () => void;
   onHoldEnd?: () => void;
+  paused?: boolean;
 }) {
   const isVideo = sticker.postMediaType === 'video' && !!sticker.postMediaUrl;
   const [muted, setMuted] = useState(true);
@@ -58,6 +59,12 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   });
 
   const openPost = onOpenPost || onPress;
+  const go = (fn?: () => void) => fn ? () => { try { (player as any)?.pause?.(); } catch {} fn(); } : undefined;
+
+  useEffect(() => {
+    if (!isVideo) return;
+    try { const p: any = player; if (paused) p?.pause?.(); else { p?.play?.(); } } catch {}
+  }, [paused, isVideo, player]);
 
   const toggleMute = () => {
     setMuted(m => {
@@ -107,7 +114,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   ) : null;
 
   const header = (
-    <TouchableOpacity activeOpacity={0.8} disabled={!interactive || !onOpenProfile} onPress={onOpenProfile} style={st.head}>
+    <TouchableOpacity activeOpacity={0.8} disabled={!interactive || !onOpenProfile} onPress={go(onOpenProfile)} style={st.head}>
       {sticker.postAuthorAvatar
         ? <Image source={{ uri: sticker.postAuthorAvatar }} style={st.avatar} />
         : <View style={[st.avatar, st.avatarFb]}><Text style={st.avatarTxt}>{(sticker.postAuthorName || '?').slice(0, 1).toUpperCase()}</Text></View>}
@@ -125,8 +132,14 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
     </TouchableOpacity>
   );
 
+  const articleTitle = sticker.postArticleTitle ? (
+    <Pressable disabled={!interactive || !openPost} onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={220}>
+      <Text style={st.articleTitle} numberOfLines={2}>{sticker.postArticleTitle}</Text>
+    </Pressable>
+  ) : null;
+
   const caption = sticker.postText ? (
-    <Pressable disabled={!interactive || !openPost} onPress={openPost} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={220}>
+    <Pressable disabled={!interactive || !openPost} onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={220}>
       <Text style={[st.body, { fontSize: f.fontSize, lineHeight: f.lineHeight }]} numberOfLines={f.max}>{sticker.postText}</Text>
     </Pressable>
   ) : null;
@@ -135,25 +148,26 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
     <View style={st.card}>
       {isVideo ? mediaBlock : header}
       {isVideo ? header : caption}
+      {articleTitle}
       {isVideo ? caption : mediaBlock}
       <View style={st.engage}>
         <TouchableOpacity style={st.engItem} disabled={!interactive} onPress={toggleLike} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="heart" size={16} color={liked ? '#E0245E' : '#E0245E'} style={liked ? { opacity: 1 } : { opacity: 0.75 }} />
           {likeC ? <Text style={[st.engTxt, liked && { color: '#E0245E' }]}>{likeC}</Text> : null}
         </TouchableOpacity>
-        <TouchableOpacity style={st.engItem} disabled={!interactive || !openPost} onPress={openPost} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+        <TouchableOpacity style={st.engItem} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="message-circle" size={15} color="#5B6B84" />{comC ? <Text style={st.engTxt}>{comC}</Text> : null}
         </TouchableOpacity>
-        <TouchableOpacity style={st.engItem} disabled={!interactive || !openPost} onPress={openPost} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+        <TouchableOpacity style={st.engItem} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="repeat" size={15} color="#1D7A38" />{repC ? <Text style={st.engTxt}>{repC}</Text> : null}
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity disabled={!interactive || !openPost} onPress={openPost} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+        <TouchableOpacity disabled={!interactive || !openPost} onPress={go(openPost)} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="bookmark" size={15} color="#5B6B84" />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={st.foot} disabled={!interactive || !openPost} onPress={openPost} activeOpacity={0.75}>
-        <Text style={st.footTxt}>View original post</Text>
+      <TouchableOpacity style={st.foot} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.75}>
+        <Text style={st.footTxt}>{sticker.postArticleTitle ? 'Read the full article' : 'View original post'}</Text>
         <Feather name="chevron-right" size={14} color={NAVY} />
       </TouchableOpacity>
     </View>
@@ -172,6 +186,7 @@ const st = StyleSheet.create({
   avatarTxt: { color: '#FFF', fontSize: 16, fontWeight: '800' },
   name: { fontSize: 15, fontWeight: '800', color: '#111827', flexShrink: 1 },
   handle: { fontSize: 12.5, color: '#7A8699', marginTop: 1 },
+  articleTitle: { fontSize: 17, lineHeight: 23, fontWeight: '800', color: '#111827', paddingHorizontal: 14, paddingTop: 8 },
   body: { color: '#111827', paddingHorizontal: 14, paddingTop: 8, paddingBottom: 4, fontWeight: '500' },
   mediaWrap: { width: '100%', height: Math.min(Math.round(POST_CARD_W * 1.05), 330), backgroundColor: '#0B1E3D', marginTop: 0 },
   media: { width: '100%', height: '100%' },

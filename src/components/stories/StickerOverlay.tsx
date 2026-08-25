@@ -22,6 +22,7 @@ type StickerOverlayProps = {
   onPostProfileTap?: (userId: string) => void;
   onPostHoldStart?: () => void;
   onPostHoldEnd?: () => void;
+  storyPaused?: boolean;
   onStickerLayout?: (id: string, rect: { left: number; right: number; top: number; bottom: number }) => void;
   interactive?: boolean;
   // Engagement sticker interaction callbacks (viewer only)
@@ -62,6 +63,7 @@ export function renderStickerContent(
   onPostProfileTap?: (userId: string) => void,
   onPostHoldStart?: () => void,
   onPostHoldEnd?: () => void,
+  storyPaused?: boolean,
 ): React.ReactNode {
   const isEmoji = sticker.kind === 'emoji';
   const isLink = sticker.kind === 'link';
@@ -81,6 +83,7 @@ export function renderStickerContent(
         onOpenProfile={interactive && onPostProfileTap && sticker.postAuthorId ? () => onPostProfileTap(sticker.postAuthorId!) : undefined}
         onHoldStart={onPostHoldStart}
         onHoldEnd={onPostHoldEnd}
+        paused={storyPaused}
       />
     );
   }
@@ -201,6 +204,7 @@ export default function StickerOverlay({
   onPostProfileTap,
   onPostHoldStart,
   onPostHoldEnd,
+  storyPaused,
   onStickerLayout,
   interactive = true,
   engagementProps,
@@ -243,7 +247,7 @@ export default function StickerOverlay({
               elevation: interactive && (isPill || isEngagement) ? 30 : 20,
             }}
           >
-            {renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd)}
+            {renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd, storyPaused)}
           </View>
         );
       })}
