@@ -7,6 +7,7 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { BusinessProfile } from "@/components/BusinessProfile";
 import { MemoryAlbumBook } from "@/components/MemoryAlbumBook";
 import { MessageButton } from "@/components/MessageButton";
+import { ProfileContext } from "@/components/ProfileContext";
 
 type Params = { params: Promise<{ username: string }> };
 
@@ -78,14 +79,15 @@ export default async function ProfilePage({ params }: Params) {
           {p.bio ? <p className="mt-2 whitespace-pre-wrap text-[14px] text-ink/80">{p.bio}</p> : null}
           <p className="mt-3 flex gap-4 text-[13px] text-ink/50">
             {!isBusiness ? (
-              <span><span className="font-semibold text-ink">{following.count ?? 0}</span> Following</span>
+              <Link href={"/" + p.username + "/follows?tab=following"} className="hover:text-ink"><span className="font-semibold text-ink">{following.count ?? 0}</span> Following</Link>
             ) : null}
-            <span><span className="font-semibold text-ink">{followers.count ?? 0}</span> Followers</span>
+            <Link href={"/" + p.username + "/follows?tab=followers"} className="hover:text-ink"><span className="font-semibold text-ink">{followers.count ?? 0}</span> Followers</Link>
           </p>
         </div>
       </header>
       <div className="mb-5 px-1">
         <MessageButton profileId={p.id} />
+        <ProfileContext profileId={p.id} username={p.username ?? ""} />
       </div>
       <MemoryAlbumBook profileId={p.id} />
       {isBusiness ? (
