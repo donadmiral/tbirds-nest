@@ -254,7 +254,7 @@ export default function UserProfileScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
+      <ScrollView automaticallyAdjustKeyboardInsets={true}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={NAVY} />}
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 40, 60) }}
@@ -426,7 +426,7 @@ export default function UserProfileScreen() {
                     <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
                       {post.media.length > 0 ? (
                         <View style={{ marginBottom: 10 }}>
-                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                          <ScrollView automaticallyAdjustKeyboardInsets={true} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                             {post.media.map((m, mIdx) => (
                               <View key={m.id || mIdx} style={{ width: post.media.length === 1 ? SCREEN_W - 64 : 192, height: post.media.length === 1 ? 150 : 128, borderRadius: 12, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
                                 {m.media_type === 'video' ? (
