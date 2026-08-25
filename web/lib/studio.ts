@@ -28,7 +28,7 @@ export const ROOMS = [
   { key: "home", href: "/studio", label: "Home", ready: true },
   { key: "inbox", href: "/studio/inbox", label: "Inbox", ready: true },
   { key: "planner", href: "/studio/planner", label: "Planner", ready: true },
-  { key: "commerce", href: "/studio/commerce", label: "Commerce", ready: false },
+  { key: "commerce", href: "/studio/commerce", label: "Commerce", ready: true },
   { key: "recruiter", href: "/studio/recruiter", label: "Recruiter", ready: false },
   { key: "ads", href: "/ads", label: "Ads", ready: true },
   { key: "insights", href: "/studio/insights", label: "Insights", ready: false },
