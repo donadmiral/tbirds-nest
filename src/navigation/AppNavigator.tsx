@@ -71,6 +71,7 @@ import UserProfileScreen          from '../screens/profile/UserProfileScreen';
 import FollowListScreen           from '../screens/profile/FollowListScreen';
 import ChannelsScreen             from '../screens/channels/ChannelsScreen';
 import ChannelScreen              from '../screens/channels/ChannelScreen';
+import CommunityScreen           from '../screens/channels/CommunityScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import BlockedAccountsScreen from '../screens/profile/BlockedAccountsScreen';
 import CreateBusinessScreen from '../screens/profile/CreateBusinessScreen';
@@ -511,6 +512,7 @@ export default function AppNavigator() {
                 <RootStack.Screen name="StoryViewer"       component={StoryViewerScreen} />
                 <RootStack.Screen name="Channels"          component={ChannelsScreen} />
                 <RootStack.Screen name="Channel"           component={ChannelScreen} />
+                <RootStack.Screen name="Community"         component={CommunityScreen} />
                 <RootStack.Screen name="FollowList"        component={FollowListScreen} />
                 <RootStack.Screen name="UserProfileTop"    component={UserProfileScreen} />
                 <RootStack.Screen name="PostTop"           component={PostScreen} />
