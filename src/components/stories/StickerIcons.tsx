@@ -16,6 +16,14 @@ export default function StickerIcon({ name, size = 22, color = '#FFFFFF', bg = '
   const p = { width: size, height: size, viewBox: '0 0 24 24' };
 
   switch (name) {
+    case 'countdown':
+      return (
+        <Svg {...p}>
+          <Circle cx="12" cy="13" r="8.5" fill={color} />
+          <Path d="M12 9v4.2l2.8 1.8" stroke={bg} strokeWidth="2" strokeLinecap="round" fill="none" />
+          <Path d="M9.5 3h5" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
+        </Svg>
+      );
     case 'poll':
       return (
         <Svg {...p}>

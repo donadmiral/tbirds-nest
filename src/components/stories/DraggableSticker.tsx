@@ -33,6 +33,7 @@ import { StoryTextSticker, StoryStickerStyle } from '../../services/storiesServi
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard from './PostStoryCard';
+import CountdownStickerCard from './CountdownStickerCard';
 import { motion, feedback } from '../../constants/tokens';
 
 // ── Constants ──
@@ -155,7 +156,7 @@ function getProfile(kind?: string): PhysicsProfile {
   if (kind === 'emoji') return PROFILES.emoji;
   if (kind === 'poll' || kind === 'quiz') return PROFILES.poll;
   if (kind === 'question') return PROFILES.question;
-  if (kind === 'location' || kind === 'mention' || kind === 'hashtag' || kind === 'link' || kind === 'post') return PROFILES.location;
+  if (kind === 'location' || kind === 'mention' || kind === 'hashtag' || kind === 'link' || kind === 'post' || kind === 'countdown') return PROFILES.location;
   if (kind === 'slider') return PROFILES.slider;
   return DEFAULT_PROFILE;
 }

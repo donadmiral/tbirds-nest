@@ -433,6 +433,9 @@ export default function StoryComposerScreen() {
   const [overflowOpen, setOverflowOpen] = useState(false);
   const [traySearch, setTraySearch] = useState('');
   const [trayCat, setTrayCat] = useState<'interactive' | 'sharing' | 'media' | 'fun'>('interactive');
+  const [countdownModalOpen, setCountdownModalOpen] = useState(false);
+  const [cdTitle, setCdTitle] = useState('');
+  const [cdTarget, setCdTarget] = useState<Date>(new Date(Date.now() + 24 * 3600 * 1000));
   const [musicOpen, setMusicOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const openMusicSheet = useCallback(() => setMusicOpen(true), []);
@@ -541,6 +544,36 @@ export default function StoryComposerScreen() {
     }]);
     closeHashtagModal();
   }, [hashtagText, active, updateStickers, closeHashtagModal]);
+  // -- Countdown --
+  const openCountdownModal = useCallback(() => {
+    if ((active?.stickers?.length ?? 0) >= MAX_STICKERS) return;
+    setCdTitle('');
+    setCdTarget(new Date(Date.now() + 24 * 3600 * 1000));
+    setCountdownModalOpen(true);
+  }, [active]);
+  const cdShift = useCallback((ms: number) => { setCdTarget(prev => { const next = new Date(Math.max(Date.now() + 5 * 60000, prev.getTime() + ms)); return next; }); }, []);
+  const cdPreset = useCallback((kind: string) => {
+    const now = new Date();
+    let next = new Date(now.getTime() + 3600 * 1000);
+    if (kind === '3h') next = new Date(now.getTime() + 3 * 3600 * 1000);
+    if (kind === 'tonight') { next = new Date(now); next.setHours(20, 0, 0, 0); if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1); }
+    if (kind === 'tomorrow') { next = new Date(now); next.setDate(next.getDate() + 1); next.setHours(9, 0, 0, 0); }
+    if (kind === '3d') next = new Date(now.getTime() + 3 * 86400 * 1000);
+    if (kind === '1w') next = new Date(now.getTime() + 7 * 86400 * 1000);
+    setCdTarget(next);
+  }, []);
+  const addCountdownSticker = useCallback(() => {
+    const t = cdTitle.trim();
+    if (!t) { Alert.alert('Required', 'Give your countdown a title.'); return; }
+    if (t.length > 60) { Alert.alert('Too long', 'Keep it under 60 characters.'); return; }
+    if (cdTarget.getTime() <= Date.now() + 60000) { Alert.alert('Too soon', 'Pick a time at least a minute away.'); return; }
+    updateStickers([...(active?.stickers || []), {
+      id: newStickerId(), text: t, style: 'classic' as StoryStickerStyle,
+      color: '#FFFFFF', nx: 0.5, ny: 0.4, scale: 1, rotation: 0,
+      kind: 'countdown', countdownTitle: t, countdownTarget: cdTarget.toISOString(),
+    }]);
+    setCountdownModalOpen(false);
+  }, [cdTitle, cdTarget, active, updateStickers]);
   // ── Question ──
   const openQuestionModal = useCallback((existingId?: string) => { if (existingId && active?.stickers) { const ex = active.stickers.find(s => s.id === existingId && s.kind === 'question'); if (ex) { setEditingQuestionId(existingId); setQuestionPrompt(ex.questionPrompt || ex.text || ''); setQuestionModalOpen(true); return; } } if ((active?.stickers?.length ?? 0) >= MAX_STICKERS) return; setEditingQuestionId(null); setQuestionPrompt(''); setQuestionModalOpen(true); }, [active]);
   const saveQuestion = useCallback(() => { const t = questionPrompt.trim(); if (!t || t.length > 120) { Alert.alert(t ? 'Too long' : 'Required', t ? 'Keep under 120.' : 'Enter a prompt.'); return; } if (editingQuestionId) { updateStickers((active?.stickers || []).map(s => s.id === editingQuestionId ? { ...s, text: t, questionPrompt: t } : s)); } else { updateStickers([...(active?.stickers || []), { id: newStickerId(), text: t, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.4, scale: 1, rotation: 0, kind: 'question', questionPrompt: t }]); } setQuestionModalOpen(false); setQuestionPrompt(''); setEditingQuestionId(null); }, [questionPrompt, editingQuestionId, active, updateStickers]);
@@ -559,7 +592,7 @@ export default function StoryComposerScreen() {
   const canPublish = drafts.length > 0 && !publish.publishing;
   const hasPoll = !!active?.pollData;
   const isTextStory = active?.mediaType === 'text';
-  const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, hashtag: st.filter(s => s.kind === 'hashtag').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length }; }, [active?.stickers]);
+  const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, hashtag: st.filter(s => s.kind === 'hashtag').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length, countdown: st.filter(s => s.kind === 'countdown').length }; }, [active?.stickers]);
 
   // ── Empty state ──
   if (drafts.length === 0) {
@@ -842,6 +875,7 @@ export default function StoryComposerScreen() {
                   { id: 'question', cat: 'interactive', tint: '#38BDF8', icon: 'help-circle', label: 'Question', on: stickerCounts.question > 0, run: () => openQuestionModal() },
                   { id: 'quiz', cat: 'interactive', tint: '#34D399', icon: 'check-square', label: 'Quiz', on: stickerCounts.quiz > 0, run: () => openQuizModal() },
                   { id: 'slider', cat: 'interactive', tint: '#FB923C', icon: 'sliders', label: 'Slider', on: stickerCounts.slider > 0, run: () => openSliderModal() },
+                  { id: 'countdown', cat: 'interactive', tint: '#F59E0B', icon: 'countdown', label: 'Countdown', on: stickerCounts.countdown > 0, run: openCountdownModal },
                   { id: 'mention', cat: 'sharing', tint: '#60A5FA', icon: 'at-sign', label: 'Mention', on: stickerCounts.mention > 0, run: openMentionModal },
                   { id: 'hashtag', cat: 'sharing', tint: '#A78BFA', icon: 'hash', label: 'Hashtag', on: stickerCounts.hashtag > 0, run: openHashtagModal },
                   { id: 'location', cat: 'sharing', tint: '#F472B6', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
@@ -959,6 +993,34 @@ export default function StoryComposerScreen() {
       </Modal>
 
       {/* Hashtag Modal */}
+      <Modal visible={countdownModalOpen} transparent animationType="fade" onRequestClose={() => setCountdownModalOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', paddingHorizontal: 24 }}>
+          <View style={{ backgroundColor: 'rgba(13,20,38,0.98)', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)' }}>
+            <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '800', marginBottom: 12 }}>Countdown</Text>
+            <TextInput value={cdTitle} onChangeText={setCdTitle} placeholder="What are you counting down to?" placeholderTextColor="rgba(255,255,255,0.35)" style={{ backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, color: '#FFF', fontSize: 14.5, marginBottom: 14 }} maxLength={60} keyboardAppearance="dark" autoFocus />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+              {([['1h', 'In 1 hour'], ['3h', 'In 3 hours'], ['tonight', 'Tonight 8 PM'], ['tomorrow', 'Tomorrow 9 AM'], ['3d', 'In 3 days'], ['1w', 'In 1 week']] as const).map(([k, lb]) => (
+                <TouchableOpacity key={k} onPress={() => cdPreset(k)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(245,158,11,0.12)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.4)' }} activeOpacity={0.8}>
+                  <Text style={{ color: '#F59E0B', fontSize: 12, fontWeight: '700' }}>{lb}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
+              {([[-86400000, '-1d'], [86400000, '+1d'], [-3600000, '-1h'], [3600000, '+1h'], [-900000, '-15m'], [900000, '+15m']] as const).map(([ms, lb]) => (
+                <TouchableOpacity key={lb} onPress={() => cdShift(ms)} style={{ paddingHorizontal: 9, paddingVertical: 6, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.08)' }} activeOpacity={0.8}>
+                  <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11.5, fontWeight: '700' }}>{lb}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={{ color: '#F59E0B', fontSize: 13.5, fontWeight: '800', textAlign: 'center', marginBottom: 16 }}>{cdTarget.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity onPress={() => setCountdownModalOpen(false)} style={{ flex: 1, paddingVertical: 12, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center' }} activeOpacity={0.8}><Text style={{ color: 'rgba(255,255,255,0.75)', fontWeight: '800', fontSize: 14 }}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity onPress={addCountdownSticker} style={{ flex: 1, paddingVertical: 12, borderRadius: 14, backgroundColor: '#F59E0B', alignItems: 'center' }} activeOpacity={0.85}><Text style={{ color: '#0B1E3D', fontWeight: '800', fontSize: 14 }}>Add</Text></TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={hashtagModalOpen} transparent animationType="slide" onRequestClose={closeHashtagModal}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeHashtagModal}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>

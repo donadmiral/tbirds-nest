@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard, { POST_CARD_W, POST_CARD_EST_H } from './PostStoryCard';
+import CountdownStickerCard from './CountdownStickerCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
@@ -37,11 +38,13 @@ type StickerOverlayProps = {
     onSubmitSlider?: (stickerId: string, value: number) => void;
     onSelectQuizOption?: (stickerId: string, optionId: string) => void;
     onViewResponses?: (stickerId: string, responseType: 'question' | 'slider' | 'quiz') => void;
+    onCountdownRemind?: (sticker: StoryTextSticker) => void;
   };
 };
 
 function getWidthForKind(kind?: string): number {
   if (kind === 'post') return POST_CARD_W;
+  if (kind === 'countdown') return 236;
   if (kind === 'question') return 240;
   if (kind === 'slider') return 240;
   if (kind === 'quiz') return 260;

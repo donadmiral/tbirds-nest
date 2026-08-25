@@ -16,7 +16,7 @@ export type StoryTextSticker = {
   scale: number;
   rotation: number;
   bgEnabled?: boolean;
-  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post';
+  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post' | 'countdown';
   fontSizeOverride?: number;
   opacity?: number;
   textAlign?: 'left' | 'center' | 'right';
@@ -38,6 +38,8 @@ export type StoryTextSticker = {
   questionPrompt?: string;
   sliderEmoji?: string;
   sliderLabel?: string;
+  countdownTitle?: string;
+  countdownTarget?: string;
   quizQuestion?: string;
   quizOptions?: { id: string; label: string; isCorrect: boolean }[];
 };
@@ -845,7 +847,7 @@ export const storiesService = {
   async submitStickerResponse(params: {
     storyId: string;
     stickerId: string;
-    responseType: 'question' | 'slider' | 'quiz';
+    responseType: 'question' | 'slider' | 'quiz' | 'countdown';
     textValue?: string | null;
     numberValue?: number | null;
     optionId?: string | null;
