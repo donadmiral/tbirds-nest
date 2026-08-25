@@ -981,6 +981,7 @@ export default function FeedScreen({ navigation }: any) {
       postMediaType: first?.media_type || null,
       postUsername: author?.username || null,
       postVerified: !!(author as any)?.is_verified,
+      postVerifiedTier: (author as any)?.verified_tier ?? null,
       postCreatedAt: (post as any).created_at || null,
       postLikes: post.likes_count ?? 0,
       postComments: post.comments_count ?? 0,

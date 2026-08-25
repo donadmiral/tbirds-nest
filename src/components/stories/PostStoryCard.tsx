@@ -6,7 +6,8 @@
  */
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
+import VerifiedBadge from '../VerifiedBadge';
 
 const NAVY = '#0B1E3D';
 export const POST_CARD_W = Math.min(Math.round(Dimensions.get('window').width * 0.88), 360);
@@ -48,7 +49,7 @@ export default function PostStoryCard({ sticker, onPress }: { sticker: any; onPr
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Text style={st.name} numberOfLines={1}>{sticker.postAuthorName}</Text>
-            {sticker.postVerified ? <MaterialCommunityIcons name="check-decagram" size={14} color="#1D9BF0" /> : null}
+            {(sticker.postVerifiedTier || sticker.postVerified) ? <VerifiedBadge tier={sticker.postVerifiedTier ?? 'business'} size={12} /> : null}
           </View>
           {(sticker.postUsername || sticker.postCreatedAt) ? (
             <Text style={st.handle} numberOfLines={1}>
