@@ -327,12 +327,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                           )) : null}
                           <Text style={{ color: '#8FA0B8', fontSize: 10.5, marginTop: 8 }}>Shared post</Text>
                         </View>
-                      ); if (page?.media_type === 'video') return (
-                        <TouchableOpacity activeOpacity={0.9} onPress={() => setPlayingUrl(page.media_url)} style={{ flex: 1 }}>
-                          {page?.thumbnail_url ? <ExpoImage source={{ uri: page.thumbnail_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={140} /> : <View style={{ flex: 1, backgroundColor: '#0B1E3D' }} />}
-                          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}><View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={20} color="#FFFFFF" /></View></View>
-                        </TouchableOpacity>
-                      ); if (page?.media_url || page?.thumbnail_url) return (
+                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo url={page.media_url} /><TouchableOpacity onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_url || page?.thumbnail_url) return (
                         <ExpoImage source={{ uri: page.thumbnail_url || page.media_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={140} />
                       ); return (
                         <View style={{ flex: 1, backgroundColor: '#0B1E3D', borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 14 }}>
@@ -465,7 +460,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 }
 
 function MemoryVideo({ url, topInset, onClose }: { url: string; topInset: number; onClose: () => void }) {
-  const player = useVideoPlayer(url, p => { p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any; p.loop = true; p.play(); });
+  const player = useVideoPlayer(url, p => { p.loop = true; p.play(); });
   return (
     <Modal visible transparent={false} animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: '#000' }}>
@@ -522,3 +517,8 @@ const st = StyleSheet.create({
   audTxt: { fontSize: 13, color: '#0B1E3D', flex: 1, marginRight: 8 },
   hint: { fontSize: 11.5, color: '#5B6B84', marginBottom: 4 },
 });
+
+function PageVideo({ url }: { url: string }) {
+  const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; try { pp.play(); } catch {} });
+  return <VideoView player={pv} style={{ width: '100%', height: '100%' }} contentFit="cover" nativeControls={false} />;
+}

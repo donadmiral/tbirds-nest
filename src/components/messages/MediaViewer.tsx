@@ -30,7 +30,7 @@ type Props = {
 };
 
 function VideoSlide({ url, active }: { url: string; active: boolean }) {
-  const player = useVideoPlayer(url, (p) => { p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any; p.loop = false; });
+  const player = useVideoPlayer(url, (p) => { p.loop = false; });
   useEffect(() => {
     try {
       if (active) player.play();

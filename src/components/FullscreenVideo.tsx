@@ -28,7 +28,6 @@ export default function FullscreenVideo({
   uri, onClose, startMuted = false,
 }: { uri: string; onClose: () => void; startMuted?: boolean }) {
   const player = useVideoPlayer(uri, p => {
-    p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any;
     p.loop = true;
     p.muted = startMuted;
     p.timeUpdateEventInterval = 0.25;

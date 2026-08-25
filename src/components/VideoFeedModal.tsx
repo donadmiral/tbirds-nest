@@ -18,7 +18,6 @@ const { height: H, width: W } = Dimensions.get('window');
 
 function VideoCell({ item, active, liked, onToggleLike, onOpenComments, onViewed }: any) {
   const player = useVideoPlayer(item.url, (p: any) => {
-    p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any;
     p.loop = true;
     p.muted = false;
     p.timeUpdateEventInterval = 0.25;

@@ -55,7 +55,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   const [liked, setLiked] = useState(false);
   const [likeBusy, setLikeBusy] = useState(false);
   const player = useVideoPlayer(isVideo ? sticker.postMediaUrl : null, (p) => {
-    if (p) { p.bufferOptions = { preferredForwardBufferDuration: 2, waitsToMinimizeStalling: false } as any; p.loop = true; p.muted = true; try { p.play(); } catch {} }
+    if (p) { p.loop = true; p.muted = true; try { p.play(); } catch {} }
   });
 
   const openPost = onOpenPost || onPress;
