@@ -74,6 +74,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [captionFor, setCaptionFor] = useState<any | null>(null);
   const [captionText, setCaptionText] = useState('');
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
+  const [likedPages, setLikedPages] = useState<Set<string>>(new Set());
 
   const coverAnim = useRef(new Animated.Value(0)).current;
   const flipAnim = useRef(new Animated.Value(0)).current;
@@ -315,19 +316,34 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                   <View style={[st.polaroid, { transform: [{ rotate: idx % 2 === 0 ? '-1.6deg' : '1.4deg' }] }]}>
                     <View style={st.tapeTop} />
                     <View style={st.polImgWrap}>
-                      {(page?.thumbnail_url || page?.media_url) ? (
-                        <ExpoImage source={{ uri: page.thumbnail_url || page.media_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={140} />
-                      ) : null}
-                      {page?.media_type === 'video' ? (
-                        <TouchableOpacity style={st.playChip} onPress={() => setPlayingUrl(page.media_url)}>
-                          <Feather name="play" size={16} color="#FFFFFF" />
+                      {(() => { const stks = Array.isArray(page?.stickers) ? page.stickers : []; const pk = stks.find((k: any) => k && k.kind === 'post'); if (pk) return (
+                        <View style={{ flex: 1, backgroundColor: '#0E1B33', borderRadius: 6, padding: 12, justifyContent: 'center' }}>
+                          <Text style={{ color: '#C9BFB0', fontSize: 11.5, fontWeight: '700', marginBottom: 6 }} numberOfLines={1}>{pk.postAuthorName || 'Shared post'}</Text>
+                          {pk.postText ? <Text style={{ color: '#F5F0EB', fontSize: 13.5, lineHeight: 19 }} numberOfLines={4}>{pk.postText}</Text> : null}
+                          {pk.postMediaUrl ? (pk.postMediaType === 'video' ? (
+                            <TouchableOpacity onPress={() => setPlayingUrl(pk.postMediaUrl)} style={{ marginTop: 8, height: 86, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={22} color="#FFFFFF" /></TouchableOpacity>
+                          ) : (
+                            <ExpoImage source={{ uri: pk.postMediaUrl }} style={{ marginTop: 8, height: 86, borderRadius: 8 }} contentFit="cover" />
+                          )) : null}
+                          <Text style={{ color: '#8FA0B8', fontSize: 10.5, marginTop: 8 }}>Shared post</Text>
+                        </View>
+                      ); if (page?.media_type === 'video') return (
+                        <TouchableOpacity activeOpacity={0.9} onPress={() => setPlayingUrl(page.media_url)} style={{ flex: 1 }}>
+                          {page?.thumbnail_url ? <ExpoImage source={{ uri: page.thumbnail_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={140} /> : <View style={{ flex: 1, backgroundColor: '#0B1E3D' }} />}
+                          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}><View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={20} color="#FFFFFF" /></View></View>
                         </TouchableOpacity>
-                      ) : null}
+                      ); if (page?.media_url || page?.thumbnail_url) return (
+                        <ExpoImage source={{ uri: page.thumbnail_url || page.media_url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={140} />
+                      ); return (
+                        <View style={{ flex: 1, backgroundColor: '#0B1E3D', borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+                          <Text style={{ color: '#F5F0EB', fontSize: 15, fontWeight: '600', textAlign: 'center', lineHeight: 22 }} numberOfLines={6}>{page?.story_caption || page?.caption || 'A moment'}</Text>
+                        </View>
+                      ); })()}
                     </View>
                     <Text numberOfLines={2} style={st.handCaption}>{page?.caption || ' '}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
                       <Text style={st.handDate}>{fmtDate(page?.taken_at)}</Text>
-                      <Feather name="heart" size={12} color="#D4537E" />
+                      <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => { if (!page?.story_id) return; setLikedPages(prev => { const n = new Set(prev); if (n.has(page.story_id)) { n.delete(page.story_id); } else { n.add(page.story_id); } return n; }); void supabase.rpc('toggle_story_reaction', { p_story_id: page.story_id, p_emoji: '\u2764\uFE0F' }); }}><Feather name="heart" size={13} color={likedPages.has(page?.story_id) ? '#E0245E' : '#D4537E'} /></TouchableOpacity>
                     </View>
                   </View>
                 </Animated.View>

@@ -193,7 +193,7 @@ export default function SearchScreen({ navigation }: any) {
         </View>
       </View>
       <Text style={s.postBody} numberOfLines={3}>{item.content || item.body || ''}</Text>
-      {item.media_url ? <Image source={{ uri: item.media_url }} style={s.postMedia} /> : null}
+      {(() => { const mm = Array.isArray(item.media) && item.media[0] ? item.media[0] : (item.media_url ? { url: item.media_url, media_type: 'image' } : null); if (!mm) return null; if (mm.media_type === 'video') return (<View style={[s.postMedia, { backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }]}><Feather name="play" size={26} color="#FFFFFF" /></View>); return <Image source={{ uri: mm.url }} style={s.postMedia} />; })()}
       <View style={s.postStats}>
         <Text style={s.postStat}>♥ {item.likes_count || 0}</Text>
         <Text style={s.postStat}>💬 {item.comments_count || 0}</Text>
