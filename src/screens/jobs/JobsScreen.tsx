@@ -135,7 +135,6 @@ export default function JobsScreen({ navigation }: any) {
   const [showPost, setShowPost] = useState(false);
   const [posting, setPosting] = useState(false);
   const [postForm, setPostForm] = useState({
-    scope: 'global' as 'institution' | 'global',
     title: '', company: '', location: '', description: '',
     salary_range: '', apply_url: '', industry: '', benefits: '',
     category: 'full_time' as JobCategory,
@@ -336,12 +335,12 @@ export default function JobsScreen({ navigation }: any) {
         apply_url: postForm.apply_url.trim() || undefined,
       });
       setShowPost(false);
-      setPostForm({ scope:'global', title:'', company:'', location:'', description:'', salary_range:'', apply_url:'', industry:'', benefits:'', category:'full_time', remote_type:'on_site', experience_level:'mid', urgent:false });
+      setPostForm({ title:'', company:'', location:'', description:'', salary_range:'', apply_url:'', industry:'', benefits:'', category:'full_time', remote_type:'on_site', experience_level:'mid', urgent:false });
       await loadAll(false);
       Alert.alert('Posted!', 'Your job listing is now live.');
     } catch (e) {
       console.log('POST_JOB_ERROR', e);
-      Alert.alert('Error', 'Could not post job. Please try again.');
+      Alert.alert('Could not post job', (e as any)?.message ? String((e as any).message) : 'Please try again.');
     } finally { setPosting(false); }
   };
 

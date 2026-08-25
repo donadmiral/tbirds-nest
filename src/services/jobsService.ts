@@ -122,7 +122,6 @@ export type CreateJobInput = {
   urgent?: boolean;
   apply_url?: string;
   deadline?: string;
-  scope?: 'institution' | 'global';
 };
 
 type GetJobsOpts = {
@@ -235,7 +234,6 @@ export const jobsService = {
         applications_count: 0,
         apply_url: input.apply_url || null,
         deadline: input.deadline || null,
-        scope: input.scope || 'institution',
       })
       .select()
       .single();
