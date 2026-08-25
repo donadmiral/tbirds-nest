@@ -2221,7 +2221,7 @@ const pickAndSendDocument = useCallback(async () => {
       </KeyboardAvoidingView>
 
       <Modal visible={showInfoModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowInfoModal(false)}>
-        <SafeAreaView style={s.infoSafe}>
+        <SafeAreaView style={[s.infoSafe, { paddingTop: insets.top }]} edges={['left', 'right', 'bottom']}>
           <View style={s.infoHeader}>
             <TouchableOpacity onPress={() => setShowInfoModal(false)} style={s.infoDoneBtn}>
               <Text style={s.infoDoneTxt}>Done</Text>
@@ -2559,7 +2559,7 @@ const pickAndSendDocument = useCallback(async () => {
       </Modal>
 
       <Modal visible={showForwardPicker} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowForwardPicker(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF', paddingTop: insets.top }} edges={['left', 'right', 'bottom']}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE }}>
             <Text style={{ fontSize: 17, fontWeight: '700' }}>Forward to...</Text>
             <TouchableOpacity onPress={() => { setShowForwardPicker(false); setForwardMsg(null); }}>

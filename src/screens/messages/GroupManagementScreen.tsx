@@ -790,7 +790,7 @@ export default function GroupManagementScreen({ route, navigation }: any) {
       </Modal>
 
       <Modal visible={galleryOpen} animationType="slide" onRequestClose={() => setGalleryOpen(false)}>
-        <SafeAreaView style={s.gallerySafe} edges={['top']}>
+        <SafeAreaView style={[s.gallerySafe, { paddingTop: insets.top }]} edges={[]}>
           <View style={s.galleryHeader}>
             <TouchableOpacity onPress={() => setGalleryOpen(false)} style={s.backBtn} activeOpacity={0.7}>
               <Feather name="chevron-left" size={26} color={NAVY} />

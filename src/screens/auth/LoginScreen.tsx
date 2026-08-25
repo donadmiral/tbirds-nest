@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -34,7 +35,8 @@ const WHITE_60 = 'rgba(255,255,255,0.60)';
 
 type ForgotStep = 'email' | 'reset';
 
-export default function LoginScreen({ navigation }: any) {
+export default function LoginScreen({
+  const insets = useSafeAreaInsets(); navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -181,7 +183,7 @@ export default function LoginScreen({ navigation }: any) {
       <View style={s.root}>
         <LinearGradient colors={[NAVY_DEEP, NAVY_MID, NAVY]} style={s.gradient}>
           <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <ScrollView contentContainerStyle={s.forgotContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={[s.forgotContainer, { paddingTop: insets.top }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <TouchableOpacity
                 style={s.backBtn}
                 onPress={() => {
@@ -333,7 +335,7 @@ export default function LoginScreen({ navigation }: any) {
     <View style={s.root}>
       <LinearGradient colors={[NAVY_DEEP, NAVY_MID, NAVY]} style={s.gradient}>
         <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={[s.container, { paddingTop: insets.top }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
             <Animated.View style={[s.logoWrap, { opacity: fadeAnim, transform: [{ scale: logoScale }] }]}>
               <PearlMark size={116} />

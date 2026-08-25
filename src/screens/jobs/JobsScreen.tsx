@@ -565,7 +565,7 @@ export default function JobsScreen({ navigation }: any) {
       </View>
 
       <Modal visible={!!recTarget} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setRecTarget(null); setRecName(''); setRecContact(''); setRecMessage(''); }}>
-        <SafeAreaView style={s.modalSafe}>
+        <SafeAreaView style={[s.modalSafe, { paddingTop: insets.top }]} edges={['left', 'right', 'bottom']}>
           <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <View style={s.modalHeader}>
               <Text style={s.modalTitle}>Recommend Someone</Text>
@@ -625,7 +625,7 @@ export default function JobsScreen({ navigation }: any) {
       
 
       <Modal visible={!!viewRecsJob} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setViewRecsJob(null); setJobRecs([]); }}>
-        <SafeAreaView style={s.modalSafe}>
+        <SafeAreaView style={[s.modalSafe, { paddingTop: insets.top }]} edges={['left', 'right', 'bottom']}>
           <View style={s.modalHeader}>
             <Text style={s.modalTitle}>Recommendations {viewRecsJob?.title ? `— ${viewRecsJob.title}` : ''}</Text>
             <TouchableOpacity onPress={() => { setViewRecsJob(null); setJobRecs([]); }} style={s.modalClose}>
@@ -663,7 +663,7 @@ export default function JobsScreen({ navigation }: any) {
       </Modal>
 
       <Modal visible={showPost} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowPost(false)}>
-        <SafeAreaView style={s.modalSafe}>
+        <SafeAreaView style={[s.modalSafe, { paddingTop: insets.top }]} edges={['left', 'right', 'bottom']}>
           <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <View style={s.modalHeader}>
               <Text style={s.modalTitle}>Post a Job</Text>

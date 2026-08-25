@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -36,6 +37,7 @@ const MAROON = '#8C1D40';
 const GOLD = '#FFC627';
 
 export default function SetupProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { session, refreshProfile } = useAuthStore();
   const userEmail = session?.user?.email ?? '';
   const userFullName = session?.user?.user_metadata?.full_name ?? '';
@@ -183,7 +185,7 @@ export default function SetupProfileScreen() {
     return (
       <View style={s.root}>
         <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={s.stepContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={[s.stepContainer, { paddingTop: insets.top }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
             {/* Account type badge */}
             <View style={[s.typeBadge, isASU ? s.typeBadgeASU : s.typeBadgePublic]}>
@@ -265,7 +267,7 @@ export default function SetupProfileScreen() {
   return (
     <View style={s.root}>
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={s.stepContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[s.stepContainer, { paddingTop: insets.top }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
           {/* Header */}
           <View style={[s.typeBadge, isASU ? s.typeBadgeASU : s.typeBadgePublic, { marginBottom: 12 }]}>

@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useRef, useState } from 'react';
 import {
   View,
@@ -30,7 +31,8 @@ const INDIGO_50 = '#EEF2FF';
 const INDIGO_100 = '#E0E7FF';
 const INDIGO_700 = '#4338CA';
 
-export default function SignUpScreen({ navigation }: any) {
+export default function SignUpScreen({
+  const insets = useSafeAreaInsets(); navigation }: any) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -94,7 +96,7 @@ export default function SignUpScreen({ navigation }: any) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={s.container}
+          contentContainerStyle={[s.container, { paddingTop: insets.top }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
