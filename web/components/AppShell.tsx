@@ -29,12 +29,12 @@ export async function AppShell({ children, wide = false, rail = false }: { child
   }
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, username")
+    .select("full_name, username, account_type")
     .eq("id", data.user.id)
     .maybeSingle();
   return (
     <div className="min-h-screen">
-      <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} />
+      <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} business={profile?.account_type === "business"} />
       <WebCallLayer />
       <GlobalMediaLightbox />
       <GlobalBack />

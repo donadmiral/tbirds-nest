@@ -13,6 +13,7 @@ import {
   Megaphone,
   Radio,
   Users,
+  LayoutDashboard,
   Settings,
   Bookmark,
   User,
@@ -35,12 +36,12 @@ const items = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Nav({ name, username }: { name: string; username: string }) {
+export function Nav({ name, username, business = false }: { name: string; username: string; business?: boolean }) {
   const profileHref = username ? "/" + username : "/home";
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
-  const allItems = [...items, { href: profileHref, label: "Profile", icon: User }];
+  const allItems = [...items, ...(business ? [{ href: "/studio", label: "Studio", icon: LayoutDashboard }] : []), { href: profileHref, label: "Profile", icon: User }];
 
   async function signOut() {
     await supabase.auth.signOut();
