@@ -431,6 +431,8 @@ export default function StoryComposerScreen() {
 
   // Overflow
   const [overflowOpen, setOverflowOpen] = useState(false);
+  const [traySearch, setTraySearch] = useState('');
+  const [trayCat, setTrayCat] = useState<'interactive' | 'sharing' | 'media' | 'fun'>('interactive');
   const [musicOpen, setMusicOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const openMusicSheet = useCallback(() => setMusicOpen(true), []);
@@ -818,29 +820,48 @@ export default function StoryComposerScreen() {
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>
             <View style={[st.overflowSheet, { paddingBottom: Math.max(insets.bottom, 18) }]}>
               <View style={st.overflowHandle} />
-              <Text style={st.trayTitle}>Stickers</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4, paddingBottom: 10 }}>
+                <Text style={st.trayTitle2}>Stickers</Text>
+                <Text style={{ color: '#A78BFA', fontSize: 15 }}>{'\u2726'}</Text>
+              </View>
+              <View style={st.traySearchWrap}>
+                <Feather name="search" size={15} color="rgba(255,255,255,0.45)" />
+                <TextInput value={traySearch} onChangeText={setTraySearch} placeholder="Search stickers" placeholderTextColor="rgba(255,255,255,0.35)" style={st.traySearchInput} keyboardAppearance="dark" />
+              </View>
+              <View style={st.trayCatRow}>
+                {([['interactive', 'zap', 'Interactive'], ['sharing', 'send', 'Sharing'], ['media', 'image', 'Media'], ['fun', 'smile', 'Fun']] as const).map(([k, ic, lb]) => (
+                  <TouchableOpacity key={k} onPress={() => setTrayCat(k)} style={[st.trayCatPill, trayCat === k && !traySearch.trim() && st.trayCatPillOn]} activeOpacity={0.8}>
+                    <Feather name={ic as any} size={13} color={trayCat === k && !traySearch.trim() ? '#C4B5FD' : 'rgba(255,255,255,0.65)'} />
+                    <Text style={[st.trayCatTxt, trayCat === k && !traySearch.trim() && st.trayCatTxtOn]}>{lb}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
               <View style={st.trayGrid}>
                 {[
-                  { id: 'poll', icon: 'bar-chart-2', label: hasPoll ? 'Edit poll' : 'Poll', on: hasPoll, run: openPollEditor },
-                  { id: 'question', icon: 'help-circle', label: 'Question', on: stickerCounts.question > 0, run: () => openQuestionModal() },
-                  { id: 'quiz', icon: 'check-square', label: 'Quiz', on: stickerCounts.quiz > 0, run: () => openQuizModal() },
-                  { id: 'slider', icon: 'sliders', label: 'Slider', on: stickerCounts.slider > 0, run: () => openSliderModal() },
-                  { id: 'mention', icon: 'at-sign', label: 'Mention', on: stickerCounts.mention > 0, run: openMentionModal },
-                  { id: 'hashtag', icon: 'hash', label: 'Hashtag', on: stickerCounts.hashtag > 0, run: openHashtagModal },
-                  { id: 'location', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
-                  { id: 'link', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
-                  { id: 'emoji', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
-                  { id: 'music', icon: 'music', label: 'Sound', on: !!active?.audio, run: openMusicSheet },
-                  { id: 'filter', icon: 'droplet', label: 'Filter', on: !!active?.filterId, run: openFilterSheet },
-                ].map(t => (
+                  { id: 'poll', cat: 'interactive', tint: '#8B5CF6', icon: 'bar-chart-2', label: hasPoll ? 'Edit poll' : 'Poll', on: hasPoll, run: openPollEditor },
+                  { id: 'question', cat: 'interactive', tint: '#38BDF8', icon: 'help-circle', label: 'Question', on: stickerCounts.question > 0, run: () => openQuestionModal() },
+                  { id: 'quiz', cat: 'interactive', tint: '#34D399', icon: 'check-square', label: 'Quiz', on: stickerCounts.quiz > 0, run: () => openQuizModal() },
+                  { id: 'slider', cat: 'interactive', tint: '#FB923C', icon: 'sliders', label: 'Slider', on: stickerCounts.slider > 0, run: () => openSliderModal() },
+                  { id: 'mention', cat: 'sharing', tint: '#60A5FA', icon: 'at-sign', label: 'Mention', on: stickerCounts.mention > 0, run: openMentionModal },
+                  { id: 'hashtag', cat: 'sharing', tint: '#A78BFA', icon: 'hash', label: 'Hashtag', on: stickerCounts.hashtag > 0, run: openHashtagModal },
+                  { id: 'location', cat: 'sharing', tint: '#F472B6', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
+                  { id: 'link', cat: 'sharing', tint: '#7DD3FC', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
+                  { id: 'emoji', cat: 'fun', tint: '#FBBF24', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
+                  { id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet },
+                  { id: 'filter', cat: 'media', tint: '#818CF8', icon: 'droplet', label: 'Filter', on: !!active?.filterId, run: openFilterSheet },
+                ].filter(t => {
+                  const q = traySearch.trim().toLowerCase();
+                  if (q) return t.label.toLowerCase().includes(q) || t.id.includes(q);
+                  return t.cat === trayCat;
+                }).map(t => (
                   <TouchableOpacity
                     key={t.id}
-                    style={st.trayTile}
-                    activeOpacity={0.7}
+                    style={st.trayTile2}
+                    activeOpacity={0.75}
                     onPress={() => { setOverflowOpen(false); setTimeout(() => t.run(), 220); }}
                   >
-                    <View style={[st.trayIcon, t.on && st.trayIconOn]}>
-                      <StickerIcon name={t.id as any} size={22} color={t.on ? '#020408' : '#FFFFFF'} bg={t.on ? '#FFFFFF' : '#141414'} />
+                    <View style={[st.trayChip, { backgroundColor: t.tint + '26' }, t.on && { borderWidth: 1.5, borderColor: t.tint }]}>
+                      <StickerIcon name={t.id as any} size={21} color={t.tint} bg={'transparent'} />
                     </View>
                     <Text style={st.trayLabel} numberOfLines={1}>{t.label}</Text>
                   </TouchableOpacity>
@@ -1101,13 +1122,23 @@ const st = StyleSheet.create({
   pollRemoveBtn: { padding: 4 },
   pollAddBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10 },
   pollAddTxt: { color: 'rgba(255,255,255,0.6)', fontSize: typeSize.caption, fontWeight: fontWeight.medium },
-  overflowSheet: { backgroundColor: surface.primary, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 8, paddingHorizontal: 16 },
+  overflowSheet: { backgroundColor: 'rgba(13,20,38,0.97)', borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingTop: 8, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
   overflowHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.15)', alignSelf: 'center', marginBottom: 12 },
   overflowRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14 },
   overflowLabel: { color: textColor.primary, fontSize: 15.5, fontWeight: '500', letterSpacing: -0.2 },
   overflowDivider: { height: StyleSheet.hairlineWidth, backgroundColor: borderColor.soft, marginVertical: 4 },
   trayTitle: { color: '#FFF', fontSize: 17, fontWeight: '800', letterSpacing: -0.4, paddingHorizontal: 4, paddingBottom: 14 },
   trayGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  trayTitle2: { color: '#FFF', fontSize: 19, fontWeight: '800', letterSpacing: -0.4 },
+  traySearchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)' },
+  traySearchInput: { flex: 1, color: '#FFF', fontSize: 14, padding: 0 },
+  trayCatRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  trayCatPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  trayCatPillOn: { backgroundColor: 'rgba(139,92,246,0.16)', borderColor: '#8B5CF6' },
+  trayCatTxt: { color: 'rgba(255,255,255,0.65)', fontSize: 12.5, fontWeight: '700' },
+  trayCatTxtOn: { color: '#C4B5FD' },
+  trayTile2: { width: '25%', alignItems: 'center', paddingVertical: 11 },
+  trayChip: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   trayTile: { width: '25%', alignItems: 'center', paddingVertical: 10 },
   trayIcon: { width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
   trayIconOn: { backgroundColor: '#FFFFFF' },
