@@ -1,3 +1,4 @@
+import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * ContactSupportScreen - the member's line to operations. A normal
  * account sends a support ticket; a suspended account sends an appeal.
@@ -60,6 +61,7 @@ export default function ContactSupportScreen() {
         <Text style={s.headerTitle}>{isAppeal ? 'Appeal' : 'Support'}</Text>
         <View style={{ width: 60 }} />
       </View>
+      <KeyboardSafe>
       <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Text style={s.lede}>{isAppeal
           ? 'Your account is suspended. Tell the operations team why it should be restored - a person reads every appeal.'
@@ -84,6 +86,7 @@ export default function ContactSupportScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      </KeyboardSafe>
     </SafeAreaView>
   );
 }

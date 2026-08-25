@@ -995,6 +995,7 @@ export default function StoryComposerScreen() {
       {/* Hashtag Modal */}
       <Modal visible={countdownModalOpen} transparent animationType="fade" onRequestClose={() => setCountdownModalOpen(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', paddingHorizontal: 24 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ backgroundColor: 'rgba(13,20,38,0.98)', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)' }}>
             <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '800', marginBottom: 12 }}>Countdown</Text>
             <TextInput value={cdTitle} onChangeText={setCdTitle} placeholder="What are you counting down to?" placeholderTextColor="rgba(255,255,255,0.35)" style={{ backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, color: '#FFF', fontSize: 14.5, marginBottom: 14 }} maxLength={60} keyboardAppearance="dark" autoFocus />
@@ -1018,6 +1019,7 @@ export default function StoryComposerScreen() {
               <TouchableOpacity onPress={addCountdownSticker} style={{ flex: 1, paddingVertical: 12, borderRadius: 14, backgroundColor: '#F59E0B', alignItems: 'center' }} activeOpacity={0.85}><Text style={{ color: '#0B1E3D', fontWeight: '800', fontSize: 14 }}>Add</Text></TouchableOpacity>
             </View>
           </View>
+        </KeyboardAvoidingView>
         </View>
       </Modal>
 

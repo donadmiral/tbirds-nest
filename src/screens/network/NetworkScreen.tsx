@@ -1,3 +1,4 @@
+import { KeyboardAvoidingView } from 'react-native';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
@@ -527,6 +528,7 @@ export default function NetworkScreen({ navigation }: any) {
 
       <Modal visible={showCreateModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowCreateModal(false)}>
         <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.1)' }}>
             <TouchableOpacity onPress={() => setShowCreateModal(false)}>
               <Text style={{ fontSize: 17, color: 'rgba(11,30,61,0.5)' }}>Cancel</Text>
@@ -582,6 +584,7 @@ export default function NetworkScreen({ navigation }: any) {
               />
             </View>
           </ScrollView>
+        </KeyboardAvoidingView>
         </View>
       </Modal>
 

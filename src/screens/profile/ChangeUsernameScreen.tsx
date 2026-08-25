@@ -1,3 +1,4 @@
+import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * ChangeUsernameScreen - the @ is the one permanent handle; changing it
  * checks availability live against the case-insensitive unique index.
@@ -57,6 +58,7 @@ export default function ChangeUsernameScreen() {
         <Text style={s.headerTitle}>Username</Text>
         <View style={{ width: 60 }} />
       </View>
+      <KeyboardSafe>
       <ScrollView automaticallyAdjustKeyboardInsets={true} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 140 }}>
         <Text style={s.lede}>Your handle is how people find and mention you. You are currently <Text style={{ fontWeight: '800', color: NAVY }}>@{profile?.username || '-'}</Text>. Changing it releases the old one.</Text>
         <TextInput value={handle} onChangeText={check} autoCapitalize="none" autoCorrect={false} placeholder="New username" placeholderTextColor="#9CA3AF" style={s.input} />
@@ -65,6 +67,7 @@ export default function ChangeUsernameScreen() {
           {busy ? <ActivityIndicator color="#FFFFFF" size={16} /> : <Text style={s.submitTxt}>Change username</Text>}
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardSafe>
     </SafeAreaView>
   );
 }

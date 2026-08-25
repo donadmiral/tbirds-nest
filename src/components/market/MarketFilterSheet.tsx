@@ -1,3 +1,4 @@
+import { KeyboardAvoidingView, Platform } from 'react-native';
 /**
  * MarketFilterSheet - Facebook Marketplace filter panel.
  */
@@ -33,6 +34,7 @@ export default function MarketFilterSheet({ visible, onClose, value, onApply }: 
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={s.sheet}>
             <View style={s.handle} />
             <View style={s.head}>
@@ -70,6 +72,7 @@ export default function MarketFilterSheet({ visible, onClose, value, onApply }: 
               ))}
             </ScrollView>
           </View>
+          </KeyboardAvoidingView>
         </TouchableOpacity>
       </TouchableOpacity>
     </Modal>

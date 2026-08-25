@@ -1,3 +1,4 @@
+import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * BusinessApplyScreen - a company applies to exist on Platinum Circles.
  * The application lands on the operations desk; approval creates the
@@ -111,6 +112,7 @@ export default function BusinessApplyScreen() {
         <Text style={s.headerTitle}>Business account</Text>
         <View style={{ width: 60 }} />
       </View>
+      <KeyboardSafe>
       <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Text style={s.lede}>A business gets its own separate account with its own @ and the space-grey seal. Tell us who you are - a person on the operations team reviews every application. You will be the first owner and can add your team after approval.</Text>
         <TextInput value={companyName} onChangeText={setCompanyName} placeholder="Company or business name" placeholderTextColor="#9CA3AF" style={s.input} />
@@ -140,6 +142,7 @@ export default function BusinessApplyScreen() {
           </View>
         ))}
       </ScrollView>
+      </KeyboardSafe>
     </SafeAreaView>
   );
 }
