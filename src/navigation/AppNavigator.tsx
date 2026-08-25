@@ -72,6 +72,7 @@ import FollowListScreen           from '../screens/profile/FollowListScreen';
 import ChannelsScreen             from '../screens/channels/ChannelsScreen';
 import ChannelScreen              from '../screens/channels/ChannelScreen';
 import CommunityScreen           from '../screens/channels/CommunityScreen';
+import StudioScreen              from '../screens/studio/StudioScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import BlockedAccountsScreen from '../screens/profile/BlockedAccountsScreen';
 import CreateBusinessScreen from '../screens/profile/CreateBusinessScreen';
@@ -199,6 +200,7 @@ function getTabIcon(name: string, focused: boolean): IoniconName {
     case 'Market':   return focused ? 'storefront'  : 'storefront-outline';
     case 'Jobs':     return focused ? 'briefcase'   : 'briefcase-outline';
     case 'Messages': return focused ? 'chatbubbles' : 'chatbubbles-outline';
+    case 'Studio':   return focused ? 'grid'        : 'grid-outline';
     default:         return focused ? 'person'      : 'person-outline';
   }
 }
@@ -243,6 +245,7 @@ function MainTabs() {
   const profile = useAuthStore(s => s.profile);
   const userId = profile?.id ?? null;
   const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const isBusiness = profile?.account_type === 'business';
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -328,7 +331,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Feed"     component={FeedStackNav} />
       <Tab.Screen name="Market"   component={NetworkStackNav} />
-      <Tab.Screen name="Jobs"     component={JobsStackNav} />
+      {isBusiness ? <Tab.Screen name="Studio" component={StudioScreen} /> : <Tab.Screen name="Jobs" component={JobsStackNav} />}
       <Tab.Screen name="Messages" component={MessagesStackNav} />
       <Tab.Screen name="Profile"  component={ProfileStackNav} />
     </Tab.Navigator>
