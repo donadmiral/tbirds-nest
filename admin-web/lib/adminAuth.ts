@@ -21,7 +21,8 @@ export async function getAdmin(): Promise<Admin | null> {
 }
 
 export const VERIFICATION_ROLES = new Set(['super_admin', 'platform_admin', 'verification_reviewer']);
-const ALL_DESKS = ['/dashboard', '/analytics', '/calls', '/queue', '/reports', '/users', '/support', '/market', '/jobs', '/businesses', '/content', '/stories', '/payments', '/audit', '/staff', '/system'];
+export const ADS_ROLES = new Set(['super_admin', 'platform_admin', 'market_reviewer', 'finance_admin']);
+const ALL_DESKS = ['/dashboard', '/analytics', '/calls', '/queue', '/reports', '/users', '/support', '/market', '/jobs', '/businesses', '/ads', '/content', '/stories', '/payments', '/audit', '/staff', '/system'];
 const ROLE_DESKS: Record<string, string[]> = {
   super_admin: ALL_DESKS,
   platform_admin: ALL_DESKS.filter(d => d !== '/staff'),
@@ -31,7 +32,7 @@ const ROLE_DESKS: Record<string, string[]> = {
   market_reviewer: ['/dashboard', '/market', '/businesses', '/payments', '/reports', '/audit'],
   jobs_reviewer: ['/dashboard', '/jobs', '/audit'],
   verification_reviewer: ['/dashboard', '/queue', '/users', '/audit'],
-  finance_admin: ['/dashboard', '/payments', '/audit'],
+  finance_admin: ['/dashboard', '/payments', '/ads', '/audit'],
   analyst: ['/dashboard', '/analytics', '/audit'],
   auditor_readonly: ['/dashboard', '/analytics', '/audit'],
 };

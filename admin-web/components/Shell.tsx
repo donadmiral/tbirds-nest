@@ -25,6 +25,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
     { href: '/jobs', label: 'Jobs', icon: 'M9 4h6a2 2 0 012 2v1h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1h3V6a2 2 0 012-2zm1 3h4V6h-4v1z' },
     { href: '/businesses', label: 'Businesses', icon: 'M4 21V5a2 2 0 012-2h7a2 2 0 012 2v16h-4v-4H8v4H4zm13-9h3a1 1 0 011 1v8h-4v-9z' },
     { href: '/payments', label: 'Payments', icon: 'M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6zm2 3h14V7H5v2zm0 3v5h14v-5H5z' },
+    { href: '/ads', label: 'Ads', icon: 'M3 10a2 2 0 012-2h2l7-4v16l-7-4H5a2 2 0 01-2-2v-4zm14-4.8a7 7 0 010 9.6V5.2z' },
   ]},
   { label: 'Content', items: [
     { href: '/content', label: 'Posts', icon: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z' },
@@ -41,14 +42,15 @@ export default async function Shell({ admin, active, title, sub, children }: {
   admin: { email: string; role: string }; active: string; title: string; sub?: string; children: React.ReactNode;
 }) {
   const svc = serviceClient();
-  const [apps, p1, p2, p3, tk] = await Promise.all([
+  const [apps, p1, p2, p3, tk, ads] = await Promise.all([
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['submitted', 'under_review']),
     svc.from('post_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     svc.from('listing_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     svc.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+    svc.from('studio_campaigns').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
   ]);
-  const alerts = (apps.count || 0) + (p1.count || 0) + (p2.count || 0) + (p3.count || 0) + (tk.count || 0);
+  const alerts = (apps.count || 0) + (p1.count || 0) + (p2.count || 0) + (p3.count || 0) + (tk.count || 0) + (ads.count || 0);
   const allow = allowedDesks(admin.role);
   const groups = GROUPS.map(g => ({ ...g, items: g.items.filter(d => allow.has(d.href)) })).filter(g => g.items.length > 0);
   const initial = (admin.email || '?').slice(0, 1).toUpperCase();

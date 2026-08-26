@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { anonClient, serviceClient } from '@/lib/supabaseAdmin';
-import { getAdmin, VERIFICATION_ROLES } from '@/lib/adminAuth';
+import { getAdmin, VERIFICATION_ROLES, ADS_ROLES } from '@/lib/adminAuth';
 
 export async function signIn(formData: FormData) {
   const email = String(formData.get('email') || '').trim();
@@ -227,6 +227,64 @@ export async function resolveTicket(formData: FormData) {
     before: { status: 'open' }, after: { status: 'resolved' },
   });
   revalidatePath('/support');
+}
+
+async function requireAdsReviewer() {
+  const admin = await getAdmin();
+  if (!admin || !ADS_ROLES.has(admin.role)) redirect('/');
+  return admin!;
+}
+
+export async function approveCampaign(formData: FormData) {
+  const admin = await requireAdsReviewer();
+  const id = String(formData.get('id') || '');
+  const paidRaw = String(formData.get('paid_amount') || '').trim();
+  const paymentRef = String(formData.get('payment_ref') || '').trim();
+  const svc = serviceClient();
+  const { data: c } = await svc.from('studio_campaigns').select('*').eq('id', id).maybeSingle();
+  if (!c || c.status !== 'submitted') redirect('/ads');
+  const { error } = await svc.rpc('admin_review_campaign', {
+    p_id: id, p_approve: true, p_note: null,
+    p_paid_amount: paidRaw ? Number(paidRaw) : null, p_payment_ref: paymentRef || null,
+  });
+  if (error) redirect('/ads');
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'campaign.approve', target_kind: 'studio_campaign', target_id: id,
+    reason: 'Campaign ' + id + ' approved' + (paymentRef ? ' - ref ' + paymentRef : ''),
+    before: { status: c.status }, after: { status: 'approved', paid_amount: paidRaw || c.paid_amount, payment_ref: paymentRef || c.payment_ref },
+  });
+  revalidatePath('/ads');
+}
+
+export async function rejectCampaign(formData: FormData) {
+  const admin = await requireAdsReviewer();
+  const id = String(formData.get('id') || '');
+  const reason = String(formData.get('reason') || '').trim() || 'Did not meet the advertising guidelines.';
+  const svc = serviceClient();
+  const { data: c } = await svc.from('studio_campaigns').select('status').eq('id', id).maybeSingle();
+  if (!c || c.status !== 'submitted') redirect('/ads');
+  const { error } = await svc.rpc('admin_review_campaign', { p_id: id, p_approve: false, p_note: reason, p_paid_amount: null, p_payment_ref: null });
+  if (error) redirect('/ads');
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'campaign.reject', target_kind: 'studio_campaign', target_id: id,
+    reason, before: { status: c.status }, after: { status: 'rejected' },
+  });
+  revalidatePath('/ads');
+}
+
+export async function adminEndCampaign(formData: FormData) {
+  const admin = await requireAdsReviewer();
+  const id = String(formData.get('id') || '');
+  const svc = serviceClient();
+  const { data: c } = await svc.from('studio_campaigns').select('status').eq('id', id).maybeSingle();
+  if (!c || !['live', 'paused', 'approved'].includes(c.status)) redirect('/ads');
+  await svc.from('studio_campaigns').update({ status: 'ended', updated_at: new Date().toISOString() }).eq('id', id);
+  await svc.from('promoted_posts').update({ status: 'ended' }).eq('campaign_id', id).in('status', ['active', 'paused']);
+  await svc.from('admin_audit_log').insert({
+    admin_id: admin.id, action: 'campaign.end', target_kind: 'studio_campaign', target_id: id,
+    reason: 'Ended from the desk', before: { status: c.status }, after: { status: 'ended' },
+  });
+  revalidatePath('/ads');
 }
 
 const STAFF_ROLES = new Set(['super_admin', 'platform_admin', 'trust_safety', 'support_agent', 'ops_engineer', 'market_reviewer', 'jobs_reviewer', 'verification_reviewer', 'finance_admin', 'analyst', 'auditor_readonly']);
