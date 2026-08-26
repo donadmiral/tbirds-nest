@@ -12,7 +12,7 @@ import { CATEGORIES } from '../../constants/categories';
 
 const NAVY = '#0B1E3D';
 const TAB_CLEAR = 110;
-type Seg = 'home' | 'inbox' | 'planner';
+type Seg = 'home' | 'inbox' | 'planner' | 'insights' | 'settings';
 type Me = { is_business: boolean; needs_code: boolean; role: string | null; display_name: string | null; business_name: string | null; username: string | null; avatar_url: string | null };
 const PUBLISH_ROLES = ['owner', 'admin', 'editor'];
 
@@ -101,15 +101,15 @@ export default function StudioScreen() {
             <Text style={s.bandMeta} numberOfLines={1}>{me.display_name || 'Member'} · {me.role}</Text>
           </View>
         </View>
-        <View style={s.segRow}>
-          {(['home', 'inbox', 'planner'] as Seg[]).map(k => (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14 }} contentContainerStyle={{ gap: 8 }}>
+          {(['home', 'inbox', 'planner', 'insights', 'settings'] as Seg[]).map(k => (
             <TouchableOpacity key={k} style={[s.segChip, seg === k && s.segChipOn]} onPress={() => setSeg(k)} activeOpacity={0.85}>
-              <Text style={[s.segTxt, seg === k && s.segTxtOn]}>{k === 'home' ? 'Home' : k === 'inbox' ? 'Inbox' : 'Planner'}</Text>
+              <Text style={[s.segTxt, seg === k && s.segTxtOn]}>{k === 'home' ? 'Home' : k === 'inbox' ? 'Inbox' : k === 'planner' ? 'Planner' : k === 'insights' ? 'Insights' : 'Settings'}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       </View>
-      {seg === 'home' ? <HomeSeg me={me} navigation={navigation} /> : seg === 'inbox' ? <InboxSeg me={me} navigation={navigation} /> : <PlannerSeg canPublish={canPublish} meId={profile?.id} />}
+      {seg === 'home' ? <HomeSeg me={me} navigation={navigation} /> : seg === 'inbox' ? <InboxSeg me={me} navigation={navigation} /> : seg === 'planner' ? <PlannerSeg canPublish={canPublish} meId={profile?.id} /> : seg === 'insights' ? <InsightsSeg navigation={navigation} /> : <SettingsSeg me={me} reload={loadMe} />}
     </SafeAreaView>
   );
 }
@@ -444,6 +444,168 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
   );
 }
 
+function pctLabel(n: number, p: number) { const d = pct(n, p); return d === 0 ? 'no change' : (d > 0 ? '+' : '') + d + '% vs prior period'; }
+
+function InsightsSeg({ navigation }: { navigation: any }) {
+  const [days, setDays] = useState(30);
+  const [ins, setIns] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { (async () => { setLoading(true); const { data } = await supabase.rpc('studio_insights', { p_days: days }); setIns(data || null); setLoading(false); })(); }, [days]);
+  if (loading || !ins) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>;
+  const cur = ins.current || {}, prev = ins.previous || {};
+  const tiles: [string, number, number][] = [
+    ['Impressions', cur.impressions, prev.impressions], ['Reach', cur.reach, prev.reach], ['Engagements', cur.engagements, prev.engagements],
+    ['Messages', cur.messages, prev.messages], ['Market chats', cur.market_chats, prev.market_chats], ['Payments', cur.payments, prev.payments],
+    ['Applications', cur.applications, prev.applications], ['Ad clicks', cur.ad_clicks, prev.ad_clicks],
+  ];
+  const bar = (n: number, base: number) => Math.max(2, Math.min(100, (Number(n) / (Number(base) || 1)) * 100));
+  const fun = ins.funnel || { commerce: {}, recruiting: {} };
+  return (
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}>
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+        {[7, 30, 90].map(d => <TouchableOpacity key={d} style={[s.filterChip, days === d && s.filterChipOn]} onPress={() => setDays(d)}><Text style={[s.filterTxt, days === d && s.filterTxtOn]}>{d} days</Text></TouchableOpacity>)}
+      </View>
+      <Text style={s.sub}>Rolled up nightly. Followers now: {Number(cur.followers_end || 0).toLocaleString()} ({Number((cur.followers_end || 0) - (cur.followers_start || 0)) >= 0 ? '+' : ''}{Number((cur.followers_end || 0) - (cur.followers_start || 0))} in period).</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+        {tiles.map(([label, n, p]) => (
+          <View key={label} style={[s.card, { width: '48%', marginBottom: 0 }]}>
+            <Text style={s.statLabel}>{label}</Text>
+            <Text style={s.statNum}>{Number(n || 0).toLocaleString()}</Text>
+            <Text style={[s.statDelta, { color: pct(n || 0, p || 0) === 0 ? '#8E8E93' : pct(n || 0, p || 0) > 0 ? '#1C8C4E' : '#D64545' }]}>{pctLabel(n || 0, p || 0)}</Text>
+          </View>
+        ))}
+      </View>
+      {(cur.paid_usd || cur.paid_zwg) ? <Text style={[s.sub, { marginTop: 10 }]}>Received: {cur.paid_usd ? 'USD ' + Number(cur.paid_usd).toLocaleString() : ''}{cur.paid_usd && cur.paid_zwg ? ' · ' : ''}{cur.paid_zwg ? 'ZWG ' + Number(cur.paid_zwg).toLocaleString() : ''}</Text> : null}
+      <Text style={s.section}>Funnels</Text>
+      <View style={s.card}>
+        <Text style={[s.cardTxt, { fontWeight: '700' }]}>Commerce</Text>
+        {[['Market conversations', fun.commerce.chats], ['Offers received', fun.commerce.offers], ['Payments', fun.commerce.payments]].map(([l, n]) => (
+          <View key={String(l)} style={{ marginTop: 8 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={s.cardMeta}>{l}</Text><Text style={s.cardMeta}>{Number(n || 0)}</Text></View>
+            <View style={s.barTrack}><View style={[s.barFill, { width: bar(n || 0, fun.commerce.chats) + '%' }]} /></View>
+          </View>
+        ))}
+      </View>
+      <View style={s.card}>
+        <Text style={[s.cardTxt, { fontWeight: '700' }]}>Recruiting</Text>
+        {[['Applications', fun.recruiting.applications], ['Reached interview', fun.recruiting.interviews], ['Hired', fun.recruiting.hired]].map(([l, n]) => (
+          <View key={String(l)} style={{ marginTop: 8 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={s.cardMeta}>{l}</Text><Text style={s.cardMeta}>{Number(n || 0)}</Text></View>
+            <View style={s.barTrack}><View style={[s.barFill, { width: bar(n || 0, fun.recruiting.applications) + '%' }]} /></View>
+          </View>
+        ))}
+      </View>
+      <Text style={s.section}>Top content</Text>
+      {(ins.top_posts || []).length === 0 ? <View style={s.card}><Text style={s.cardMuted}>No posts in this period.</Text></View>
+        : ins.top_posts.map((p: any, i: number) => (
+          <TouchableOpacity key={p.post_id} style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} onPress={() => navigation.navigate('Post', { postId: p.post_id })} activeOpacity={0.85}>
+            <Text style={[s.statNum, { fontSize: 16, color: '#8E8E93', width: 20 }]}>{i + 1}</Text>
+            {p.thumb ? <ExpoImage source={{ uri: p.thumb }} style={s.thumb} contentFit="cover" /> : <View style={[s.thumb, { backgroundColor: '#F2F2F7' }]} />}
+            <View style={{ flex: 1 }}>
+              <Text style={s.cardTxt} numberOfLines={1}>{p.content || 'Media post'}</Text>
+              <Text style={s.cardMeta}>{p.views} views · {p.likes} likes · {p.comments} comments · {p.reposts} reposts</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+    </ScrollView>
+  );
+}
+
+function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
+  const [info, setInfo] = useState<any>(null);
+  const [b, setB] = useState<any>({});
+  const [bio, setBio] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [issued, setIssued] = useState<{ name: string; code: string } | null>(null);
+  const load = useCallback(async () => {
+    const { data, error } = await supabase.rpc('studio_get_business');
+    if (error) { Alert.alert('Could not load', error.message); return; }
+    setInfo(data);
+    setB({ category: data?.business?.category || '', location: data?.business?.location || '', address: data?.business?.address || '', phone: data?.business?.phone || '', email: data?.business?.email || '', website: data?.business?.website || '' });
+    setBio(data?.profile?.bio || '');
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+  const isOwner = info?.role === 'owner';
+  const isAdmin = isOwner || info?.role === 'admin';
+  const act = async (fn: () => Promise<{ error: any }>) => {
+    if (busy) return;
+    setBusy(true);
+    try { const { error } = await fn(); if (error) throw error; await load(); await reload(); }
+    catch (e: any) { Alert.alert('Failed', e?.message || 'Please try again.'); }
+    finally { setBusy(false); }
+  };
+  const save = () => act(() => supabase.rpc('studio_set_business', { p_bio: bio, p_category: b.category || null, p_location: b.location || null, p_address: b.address || null, p_phone: b.phone || null, p_email: b.email || null, p_website: b.website || null, p_social: info?.business?.social_links || {}, p_hours: null }));
+  const roleMenu = (m: any) => {
+    const roles = ['owner', 'admin', 'editor', 'recruiter', 'support'];
+    Alert.alert(m.display_name, 'Role: ' + m.role, [
+      ...roles.filter(r => r !== m.role).map(r => ({ text: 'Make ' + r, onPress: () => act(() => supabase.rpc('studio_set_member_role', { p_member: m.id, p_role: r })) })),
+      { text: m.active ? 'Deactivate' : 'Reactivate', style: 'destructive', onPress: () => act(() => supabase.rpc('studio_set_member_active', { p_member: m.id, p_active: !m.active })) },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+  const addMember = async () => {
+    if (!newName.trim() || busy) return;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc('studio_create_member', { p_name: newName.trim(), p_role: 'admin' });
+      if (error) throw error;
+      setIssued({ name: newName.trim(), code: String(data) }); setNewName(''); await load();
+    } catch (e: any) { Alert.alert('Could not create', e?.message || 'Please try again.'); } finally { setBusy(false); }
+  };
+  if (!info) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>;
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }} keyboardShouldPersistTaps="handled">
+        <Text style={s.section}>Business details</Text>
+        <TextInput style={[s.textArea, { minHeight: 70 }]} placeholder="What you do, in two lines" placeholderTextColor="#C7C7CC" value={bio} onChangeText={setBio} multiline maxLength={300} />
+        {[['category', 'Category'], ['location', 'City'], ['address', 'Street address'], ['phone', 'Phone'], ['email', 'Email'], ['website', 'Website']].map(([k, l]) => (
+          <TextInput key={k} style={[s.input, { marginTop: 8 }]} placeholder={l} placeholderTextColor="#C7C7CC" value={b[k]} onChangeText={v => setB((x: any) => ({ ...x, [k]: v }))} autoCapitalize={k === 'email' || k === 'website' ? 'none' : 'sentences'} />
+        ))}
+        <Text style={[s.cardMeta, { marginTop: 8 }]}>Opening hours are set on the web Studio and drive the away message.</Text>
+        {isAdmin ? <TouchableOpacity style={[s.primaryBtn, busy && { opacity: 0.4 }]} onPress={save} disabled={busy}><Text style={s.primaryTxt}>Save details</Text></TouchableOpacity> : null}
+
+        <Text style={s.section}>Team</Text>
+        {(info.members || []).map((m: any) => (
+          <TouchableOpacity key={m.id} style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} onPress={() => isOwner && roleMenu(m)} activeOpacity={isOwner ? 0.8 : 1}>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.cardTxt, { fontWeight: '700' }]}>{m.display_name}{!m.active ? '  · inactive' : ''}</Text>
+              <Text style={s.cardMeta}>{m.last_sign_in_at ? 'last sign in ' + new Date(m.last_sign_in_at).toLocaleDateString() : 'never signed in'}</Text>
+            </View>
+            <Text style={s.labelPill}>{m.role}</Text>
+          </TouchableOpacity>
+        ))}
+        {isOwner ? (
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+            <TextInput style={[s.input, { flex: 1 }]} placeholder="Person's name" placeholderTextColor="#C7C7CC" value={newName} onChangeText={setNewName} />
+            <TouchableOpacity style={[s.primaryBtn, { marginTop: 0, paddingHorizontal: 14 }, (!newName.trim() || busy) && { opacity: 0.4 }]} onPress={addMember} disabled={!newName.trim() || busy}><Text style={s.primaryTxt}>Issue code</Text></TouchableOpacity>
+          </View>
+        ) : null}
+        {issued ? (
+          <View style={[s.card, { borderWidth: 1, borderColor: NAVY }]}>
+            <Text style={s.cardTxt}>Access code for {issued.name}. Shown once, write it down.</Text>
+            <Text selectable style={{ fontSize: 22, fontWeight: '800', letterSpacing: 4, color: NAVY, marginTop: 6 }}>{issued.code}</Text>
+            <TouchableOpacity onPress={() => setIssued(null)}><Text style={[s.cardMeta, { marginTop: 8 }]}>Dismiss</Text></TouchableOpacity>
+          </View>
+        ) : null}
+
+        <Text style={s.section}>Devices</Text>
+        {(info.devices || []).length === 0 ? <View style={s.card}><Text style={s.cardMuted}>No devices yet.</Text></View>
+          : info.devices.map((d: any) => (
+            <View key={d.id} style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.cardTxt}>{d.label || 'Device'} <Text style={{ color: d.status === 'approved' ? '#1C8C4E' : '#8E8E93', fontSize: 11, fontWeight: '800' }}>{String(d.status).toUpperCase()}</Text></Text>
+                <Text style={s.cardMeta}>{String(d.device_id).slice(0, 12)} · {new Date(d.created_at).toLocaleDateString()}</Text>
+              </View>
+              {isAdmin && d.status !== 'approved' ? <TouchableOpacity style={s.approveBtn} onPress={() => act(() => supabase.rpc('studio_set_device', { p_device: d.id, p_status: 'approved' }))}><Feather name="check" size={15} color="#FFF" /></TouchableOpacity> : null}
+              {isAdmin ? <TouchableOpacity style={s.denyBtn} onPress={() => Alert.alert('Remove device?', 'It will need approval again.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: () => act(() => supabase.rpc('studio_set_device', { p_device: d.id, p_status: 'removed' })) }])}><Feather name="x" size={15} color="#5B6B84" /></TouchableOpacity> : null}
+            </View>
+          ))}
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFF' },
   center: { alignItems: 'center', justifyContent: 'center', gap: 8 },
@@ -451,8 +613,7 @@ const s = StyleSheet.create({
   bandIcon: { width: 44, height: 44, borderRadius: 13 },
   bandTitle: { fontSize: 17, fontWeight: '800', color: '#FFF' },
   bandMeta: { fontSize: 12, color: '#FFFFFFAA', marginTop: 1 },
-  segRow: { flexDirection: 'row', gap: 8, marginTop: 14 },
-  segChip: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFF1A' },
+  segChip: { alignItems: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, backgroundColor: '#FFFFFF1A' },
   segChipOn: { backgroundColor: '#FFF' },
   segTxt: { fontSize: 13, fontWeight: '700', color: '#FFFFFFCC' },
   segTxtOn: { color: NAVY },
@@ -500,4 +661,8 @@ const s = StyleSheet.create({
   catChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   catTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
   catTxtOn: { color: '#FFF' },
+  barTrack: { height: 6, borderRadius: 3, backgroundColor: '#E5E5EA', marginTop: 4 },
+  barFill: { height: 6, borderRadius: 3, backgroundColor: NAVY },
+  approveBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
+  denyBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
 });
