@@ -74,7 +74,7 @@ export default function AudiencePage() {
           <p className="mt-1 text-[13px] text-ink/50">Who follows you, who pays you, and the leads you are working.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
-          {(["followers", "leads"] as const).map(v => <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (view === v ? "bg-ink text-porcelain" : "text-ink/60")}>{v === "followers" ? "Followers" : "Leads"}</button>)}
+          {(["followers", "leads"] as const).map(v => <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (view === v ? "bg-ink text-white" : "text-ink/60")}>{v === "followers" ? "Followers" : "Leads"}</button>)}
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export default function AudiencePage() {
             {p.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={p.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
-            ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-porcelain">{p.name.charAt(0)}</span>}
+            ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{p.name.charAt(0)}</span>}
             <div className="min-w-0 flex-1">
               <Link href={p.username ? "/" + p.username : "#"} className="text-[14px] font-semibold text-ink hover:underline">{p.name}</Link>
               <p className="text-[12px] text-ink/45">{p.username ? "@" + p.username + " · " : ""}{p.location ? p.location + " · " : ""}followed {new Date(p.followed_at).toLocaleDateString()}{p.paid ? " · " + p.paid + " payment" + (p.paid > 1 ? "s" : "") : ""}{p.messages ? " · " + p.messages + " messages" : ""}</p>
@@ -118,7 +118,7 @@ export default function AudiencePage() {
             {l.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={l.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
-            ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-porcelain"><Users size={15} /></span>}
+            ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-white"><Users size={15} /></span>}
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-semibold text-ink">{l.name} <span className={"ml-1 rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + chip(l.status)}>{l.status}</span></p>
               <p className="text-[12px] text-ink/45">{[l.phone, l.email, l.source ? "via " + l.source : null, l.username ? "@" + l.username : null].filter(Boolean).join(" · ")}{l.note ? " · " + l.note : ""}</p>

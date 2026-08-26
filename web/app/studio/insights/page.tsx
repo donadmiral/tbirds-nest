@@ -66,7 +66,7 @@ export default function InsightsPage() {
           <p className="mt-1 text-[13px] text-ink/50">Rolled up nightly. Today is not included until tomorrow morning.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
-          {[7, 30, 90].map(d => <button key={d} onClick={() => setDays(d)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (days === d ? "bg-ink text-porcelain" : "text-ink/60")}>{d} days</button>)}
+          {[7, 30, 90].map(d => <button key={d} onClick={() => setDays(d)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (days === d ? "bg-ink text-white" : "text-ink/60")}>{d} days</button>)}
         </div>
       </div>
 

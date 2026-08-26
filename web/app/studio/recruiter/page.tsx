@@ -140,7 +140,7 @@ export default function RecruiterPage() {
                           {a.avatar_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={a.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
-                          ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy text-[11px] font-semibold text-porcelain">{a.name.charAt(0)}</span>}
+                          ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy text-[11px] font-semibold text-white">{a.name.charAt(0)}</span>}
                           <span className="min-w-0"><span className="block truncate text-[12.5px] font-semibold text-ink">{a.name}</span><span className="block text-[10.5px] text-ink/40">{new Date(a.applied_at).toLocaleDateString()}</span></span>
                         </span>
                         {a.tags.length ? <span className="mt-1 block truncate text-[10.5px] text-pearl">{a.tags.join(" · ")}</span> : null}
@@ -159,7 +159,7 @@ export default function RecruiterPage() {
                     {sel.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={sel.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
-                    ) : <span className="flex h-12 w-12 items-center justify-center rounded-full bg-navy text-[15px] font-semibold text-porcelain">{sel.name.charAt(0)}</span>}
+                    ) : <span className="flex h-12 w-12 items-center justify-center rounded-full bg-navy text-[15px] font-semibold text-white">{sel.name.charAt(0)}</span>}
                     <div className="min-w-0 flex-1">
                       <p className="text-[15px] font-semibold text-ink">{sel.name}</p>
                       <p className="text-[12px] text-ink/45">{sel.username ? "@" + sel.username : ""}{sel.location ? " · " + sel.location : ""}</p>
@@ -185,7 +185,7 @@ export default function RecruiterPage() {
                   <div className="flex flex-wrap gap-1.5">
                     {STAGES.map(st => (
                       <button key={st} disabled={busy || sel.status === st} onClick={() => setStage(sel, st)}
-                        className={"rounded-full px-2.5 py-1 text-[12px] font-semibold disabled:opacity-100 " + (sel.status === st ? "bg-ink text-porcelain" : st === "rejected" ? "bg-red-500/10 text-red-400" : st === "hired" ? "bg-success/15 text-success" : "bg-surface text-ink/60 hover:text-ink")}>{STAGE_LABEL[st]}</button>
+                        className={"rounded-full px-2.5 py-1 text-[12px] font-semibold disabled:opacity-100 " + (sel.status === st ? "bg-ink text-white" : st === "rejected" ? "bg-red-500/10 text-red-400" : st === "hired" ? "bg-success/15 text-success" : "bg-surface text-ink/60 hover:text-ink")}>{STAGE_LABEL[st]}</button>
                     ))}
                   </div>
 
@@ -208,7 +208,7 @@ export default function RecruiterPage() {
                   ))}
                   <div className="flex gap-1.5">
                     <input value={note} onChange={e => setNote(e.target.value)} onKeyDown={e => { if (e.key === "Enter") addNote(sel); }} placeholder="Add a note, only your team sees it" className="w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
-                    <button onClick={() => addNote(sel)} disabled={busy || !note.trim()} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-porcelain disabled:opacity-40">Add</button>
+                    <button onClick={() => addNote(sel)} disabled={busy || !note.trim()} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Add</button>
                   </div>
                 </>
               )}

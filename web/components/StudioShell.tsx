@@ -66,7 +66,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
             {me.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={me.avatar_url} alt="" className="h-10 w-10 rounded-xl object-cover" />
-            ) : <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy text-porcelain"><LayoutDashboard size={18} /></span>}
+            ) : <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy text-white"><LayoutDashboard size={18} /></span>}
             <span className="min-w-0">
               <span className="block truncate text-[14px] font-semibold text-ink">{me.business_name || "Business"}</span>
               <span className="block truncate text-[11.5px] text-ink/45">{me.display_name || "Member"} · {me.role}</span>

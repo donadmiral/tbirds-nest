@@ -110,7 +110,7 @@ export default function CommercePage() {
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
           {(["catalog", "orders", "storefront"] as const).map(v => (
-            <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (view === v ? "bg-ink text-porcelain" : "text-ink/60")}>
+            <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (view === v ? "bg-ink text-white" : "text-ink/60")}>
               {v === "catalog" ? "Catalog" : v === "orders" ? "Orders" : "Storefront"}
             </button>
           ))}
@@ -121,7 +121,7 @@ export default function CommercePage() {
         <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {(["all", "available", "sold"] as const).map(f => (
-              <button key={f} onClick={() => setStatusFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (statusFilter === f ? "bg-ink text-porcelain" : "bg-surface text-ink/60")}>{f === "all" ? "All" : f === "available" ? "Available" : "Sold"}</button>
+              <button key={f} onClick={() => setStatusFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (statusFilter === f ? "bg-ink text-white" : "bg-surface text-ink/60")}>{f === "all" ? "All" : f === "available" ? "Available" : "Sold"}</button>
             ))}
             {editor ? <Link href="/market/new" className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-pearl px-3.5 py-2 text-[13px] font-semibold text-ink"><Plus size={14} /> New listing</Link> : null}
           </div>
@@ -142,7 +142,7 @@ export default function CommercePage() {
                   {priceFor === l.id ? (
                     <span className="inline-flex items-center gap-1.5">
                       <input value={priceText} onChange={e => setPriceText(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void savePrice(l); }} className="w-24 rounded-md border border-ink/15 bg-transparent px-2 py-0.5 text-[13px] text-ink outline-none" autoFocus />
-                      <button onClick={() => savePrice(l)} className="rounded-md bg-ink px-2 py-0.5 text-[12px] text-porcelain"><Check size={12} /></button>
+                      <button onClick={() => savePrice(l)} className="rounded-md bg-ink px-2 py-0.5 text-[12px] text-white"><Check size={12} /></button>
                     </span>
                   ) : <button onClick={() => { if (editor) { setPriceFor(l.id); setPriceText(String(l.price)); } }} className="font-semibold text-ink hover:underline">{l.currency} {Number(l.price).toLocaleString()}</button>}
                   {" · "}{l.category}{l.condition ? " · " + l.condition : ""}{" · "}{l.sold_count} sold{" · "}in {l.in_posts} post{l.in_posts === 1 ? "" : "s"}
@@ -201,7 +201,7 @@ export default function CommercePage() {
             <div className="mt-2 flex flex-wrap gap-2">
               {listings.filter(l => l.status === "available").map(l => {
                 const on = sf.featured_listing_ids.includes(l.id);
-                return <button key={l.id} onClick={() => toggleFeatured(l.id)} className={"rounded-full border px-3 py-1 text-[12.5px] font-semibold " + (on ? "border-ink bg-ink text-porcelain" : "border-ink/10 text-ink/60")}>{l.title}</button>;
+                return <button key={l.id} onClick={() => toggleFeatured(l.id)} className={"rounded-full border px-3 py-1 text-[12.5px] font-semibold " + (on ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{l.title}</button>;
               })}
               {listings.filter(l => l.status === "available").length === 0 ? <p className="text-[12.5px] text-ink/45">No available listings to feature.</p> : null}
             </div>

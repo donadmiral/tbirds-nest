@@ -147,7 +147,7 @@ export default function PlannerPage() {
 
       <div className="mt-6 flex gap-2">
         {(["upcoming", "drafts", "published"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={"rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold " + (tab === t ? "bg-ink text-porcelain" : "bg-surface text-ink/60")}>
+          <button key={t} onClick={() => setTab(t)} className={"rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold " + (tab === t ? "bg-ink text-white" : "bg-surface text-ink/60")}>
             {t === "upcoming" ? "Upcoming" : t === "drafts" ? "Drafts" : "Published"}
           </button>
         ))}

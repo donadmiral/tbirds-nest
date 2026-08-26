@@ -55,7 +55,7 @@ export default function ReviewsPage() {
           </div>
 
           <div className="mt-5 flex gap-2">
-            {(["all", "unanswered", "low"] as const).map(f => <button key={f} onClick={() => setFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (filter === f ? "bg-ink text-porcelain" : "bg-surface text-ink/60")}>{f === "all" ? "All" : f === "unanswered" ? "Unanswered" : "3 stars and below"}</button>)}
+            {(["all", "unanswered", "low"] as const).map(f => <button key={f} onClick={() => setFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (filter === f ? "bg-ink text-white" : "bg-surface text-ink/60")}>{f === "all" ? "All" : f === "unanswered" ? "Unanswered" : "3 stars and below"}</button>)}
           </div>
 
           {shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">{d.count === 0 ? "No reviews yet. Customers leave them on your profile." : "Nothing in this filter."}</p> : shown.map(r => (
@@ -64,7 +64,7 @@ export default function ReviewsPage() {
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={r.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
-                ) : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-[12px] font-semibold text-porcelain">{r.name.charAt(0)}</span>}
+                ) : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-[12px] font-semibold text-white">{r.name.charAt(0)}</span>}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <Link href={r.username ? "/" + r.username : "#"} className="text-[13.5px] font-semibold text-ink hover:underline">{r.name}</Link>
@@ -82,7 +82,7 @@ export default function ReviewsPage() {
                     <div className="mt-2">
                       <textarea value={text} onChange={e => setText(e.target.value)} maxLength={600} placeholder="Thank them, address the point, say what happens next." className="h-20 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" autoFocus />
                       <div className="mt-1.5 flex gap-2">
-                        <button onClick={() => save(r)} disabled={busy} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-porcelain disabled:opacity-40">{r.reply ? "Update reply" : "Post reply"}</button>
+                        <button onClick={() => save(r)} disabled={busy} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">{r.reply ? "Update reply" : "Post reply"}</button>
                         {r.reply ? <button onClick={() => { setText(""); void save(r); }} disabled={busy} className="rounded-md bg-red-500/10 px-3 py-1.5 text-[12px] text-red-400">Remove reply</button> : null}
                         <button onClick={() => setReplyFor(null)} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink/60">Cancel</button>
                       </div>

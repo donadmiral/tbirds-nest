@@ -125,7 +125,7 @@ export default function SettingsPage() {
           <div className="mt-3 flex flex-wrap gap-2">
             <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Person's name" className="flex-1 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
             <select value={newRole} onChange={e => setNewRole(e.target.value)} className="rounded-md border border-ink/15 bg-white px-2 py-1.5 text-[13px] text-ink outline-none">{ROLES.map(r => <option key={r}>{r}</option>)}</select>
-            <button onClick={addMember} disabled={busy || !newName.trim()} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3 py-1.5 text-[12.5px] font-semibold text-porcelain disabled:opacity-40"><KeyRound size={13} /> Issue access code</button>
+            <button onClick={addMember} disabled={busy || !newName.trim()} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-40"><KeyRound size={13} /> Issue access code</button>
           </div>
         ) : null}
         {issued ? (

@@ -85,7 +85,7 @@ export default function InboxPage() {
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
           {(["queue", "replies", "automations"] as const).map(v => (
-            <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (view === v ? "bg-ink text-porcelain" : "text-ink/60")}>
+            <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (view === v ? "bg-ink text-white" : "text-ink/60")}>
               {v === "queue" ? "Queue" : v === "replies" ? "Saved replies" : "Automations"}
             </button>
           ))}
@@ -96,7 +96,7 @@ export default function InboxPage() {
         <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {(["all", "dm", "offer", "applicant", "review"] as const).map(f => (
-              <button key={f} onClick={() => setFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (filter === f ? "bg-ink text-porcelain" : "bg-surface text-ink/60")}>
+              <button key={f} onClick={() => setFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (filter === f ? "bg-ink text-white" : "bg-surface text-ink/60")}>
                 {f === "all" ? "All" : f === "dm" ? "Messages" : f === "offer" ? "Offers" : f === "applicant" ? "Applicants" : "Reviews"}
               </button>
             ))}
@@ -113,7 +113,7 @@ export default function InboxPage() {
                   {it.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={it.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
-                  ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-porcelain">{it.title.charAt(0)}</span>}
+                  ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{it.title.charAt(0)}</span>}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[14px] font-semibold text-ink">{it.title}</span>
@@ -127,7 +127,7 @@ export default function InboxPage() {
                     <p className="mt-1 line-clamp-2 text-[13.5px] text-ink/80">{it.preview || ""}</p>
                     {it.note ? <p className="mt-1 text-[12px] italic text-ink/50">Note: {it.note}</p> : null}
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                      <Link href={href} className="rounded-md bg-ink px-2.5 py-1 text-[12px] font-semibold text-porcelain">Open</Link>
+                      <Link href={href} className="rounded-md bg-ink px-2.5 py-1 text-[12px] font-semibold text-white">Open</Link>
                       {it.kind === "offer" && it.waiting && canInbox ? (
                         <>
                           <button onClick={() => respondOffer(it, "accepted")} className="inline-flex items-center gap-1 rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success"><Check size={12} /> Accept</button>
@@ -150,7 +150,7 @@ export default function InboxPage() {
                     {noteFor === it.id ? (
                       <div className="mt-2 flex gap-2">
                         <input value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Internal note, only your team sees it" className="w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
-                        <button onClick={() => { void setState(it, { note: noteText }); setNoteFor(null); }} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-porcelain">Save</button>
+                        <button onClick={() => { void setState(it, { note: noteText }); setNoteFor(null); }} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-white">Save</button>
                       </div>
                     ) : null}
                   </div>
