@@ -32,9 +32,9 @@ export const ROOMS = [
   { key: "recruiter", href: "/studio/recruiter", label: "Recruiter", ready: true },
   { key: "ads", href: "/studio/ads", label: "Ads", ready: true },
   { key: "insights", href: "/studio/insights", label: "Insights", ready: true },
-  { key: "audience", href: "/studio/audience", label: "Audience", ready: false },
-  { key: "reviews", href: "/studio/reviews", label: "Reviews", ready: false },
-  { key: "settings", href: "/studio/settings", label: "Settings", ready: false },
+  { key: "audience", href: "/studio/audience", label: "Audience", ready: true },
+  { key: "reviews", href: "/studio/reviews", label: "Reviews", ready: true },
+  { key: "settings", href: "/studio/settings", label: "Settings", ready: true },
 ] as const;
 
 export const ROLE_CAN: Record<string, StudioRole[]> = {
