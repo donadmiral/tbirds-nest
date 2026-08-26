@@ -42,7 +42,7 @@ export default function StudioHomePage() {
 
   return (
     <div className="max-w-[920px]">
-      <h1 className="font-display text-2xl text-porcelain">Good day, {me?.display_name || me?.business_name || "team"}</h1>
+      <h1 className="font-display text-2xl text-porcelain">Good day, {me?.business_name || me?.display_name || "team"}</h1>
       <p className="mt-1 text-[13px] text-ink/50">Last 7 days against the 7 before.</p>
 
       <section className="mt-6">
