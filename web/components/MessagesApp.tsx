@@ -292,7 +292,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const canRespond = status === "pending" && uid !== null && uid !== proposer;
     const color = status === "accepted" ? "text-success" : status === "pending" ? "text-pearl" : "text-ink/40";
     return (
-      <div className="min-w-48 rounded-lg border border-ink/15 p-3">
+      <div className="min-w-48 rounded-lg border border-ink/15 bg-white p-3">
         <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40"><Tag size={12} /> Offer</p>
         <p className="mt-0.5 text-[18px] font-semibold text-ink">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
         <p className={"text-[12px] font-semibold capitalize " + color}>{status}</p>
@@ -301,15 +301,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             <div className="mt-2 flex flex-col gap-1.5">
               <input value={counterAmt} onChange={(e) => setCounterAmt(e.target.value)} inputMode="numeric" placeholder="Counter amount" className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink/30 outline-none" />
               <div className="flex gap-1.5">
-                <button onClick={() => { const n = Number(counterAmt.replace(/,/g, "")); if (n > 0) respondOffer(j.offer_id!, "countered", n); }} className="rounded-md bg-pearl px-2.5 py-1.5 text-[12px] font-semibold text-ink">Send counter</button>
-                <button onClick={() => setCountering(null)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink">Cancel</button>
+                <button onClick={() => { const n = Number(counterAmt.replace(/,/g, "")); if (n > 0) respondOffer(j.offer_id!, "countered", n); }} className="rounded-md bg-pearl px-2.5 py-1.5 text-[12px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">Send counter</button>
+                <button onClick={() => setCountering(null)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface">Cancel</button>
               </div>
             </div>
           ) : (
             <div className="mt-2 flex gap-1.5">
-              <button onClick={() => respondOffer(j.offer_id!, "accepted")} className="rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success">Accept</button>
-              <button onClick={() => setCountering(j.offer_id!)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink">Counter</button>
-              <button onClick={() => respondOffer(j.offer_id!, "declined")} className="rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger">Decline</button>
+              <button onClick={() => respondOffer(j.offer_id!, "accepted")} className="rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success transition-opacity duration-[140ms] hover:opacity-80">Accept</button>
+              <button onClick={() => setCountering(j.offer_id!)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface">Counter</button>
+              <button onClick={() => respondOffer(j.offer_id!, "declined")} className="rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger transition-opacity duration-[140ms] hover:opacity-80">Decline</button>
             </div>
           )
         ) : null}
@@ -322,9 +322,9 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     if (m.deleted_at) return null;
     return (
       <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
-        <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-ink" : "bg-surface text-ink")}>
+        <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-white shadow-sm" : "bg-surface text-ink")}>
           {m.media_type === "payment" || m.payment_id ? (
-            <span className="flex items-center gap-1.5 text-[13px] text-ink/70"><Wallet size={14} /> Payment · open the Platinum Circles app</span>
+            <span className={"flex items-center gap-1.5 text-[13px] " + (mine ? "text-white/75" : "text-ink/70")}><Wallet size={14} /> Payment · open the Platinum Circles app</span>
           ) : null}
           {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
           {m.media_type === "offer" && m.media_url ? <OfferCard m={m} /> : null}
@@ -344,14 +344,14 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             </a>
           ) : null}
           {m.text && m.media_type !== "document" ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
-          <p className={"mt-0.5 text-[10px] " + (mine ? "text-ink/50" : "text-ink/40")}>{timeAgo(m.created_at)}</p>
+          <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/55" : "text-ink/40")}>{timeAgo(m.created_at)}</p>
         </div>
       </div>
     );
   }
 
   const refCard = refListing ? (
-    <Link href={"/market/" + refListing.id} className="mt-2 flex items-center gap-3 rounded-lg border border-ink/10 p-2.5 transition-colors hover:bg-surface">
+    <Link href={"/market/" + refListing.id} className="mt-2 flex items-center gap-3 rounded-lg border border-ink/10 p-2.5 transition-colors duration-[140ms] hover:bg-surface">
       {refListing.images?.[0] ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={refListing.images[0]} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
@@ -361,7 +361,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         <span className="block text-[13px] text-pearl">{(refListing.currency === "USD" ? "$" : refListing.currency + " ") + Number(refListing.price).toLocaleString()}</span>
       </span>
       {refListing.status !== "available" ? (
-        <span className="shrink-0 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/60">{refListing.status}</span>
+        <span className="shrink-0 rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/60">{refListing.status}</span>
       ) : null}
     </Link>
   ) : null;
@@ -371,16 +371,19 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const convButton = (c: Conv) => (
     <div key={c.id} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") openConv(c); }}
       onClick={() => openConv(c)}
-      className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
+      className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-[140ms] " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
     >
       <StoryAvatar userId={c.other_id} name={c.title} avatarUrl={c.avatar} size={44} />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
-          <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>
+          <span className="flex min-w-0 items-baseline gap-1.5">
+            <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>
+            {c.unread > 0 ? <span className="h-[6px] w-[6px] shrink-0 rounded-full bg-pearl" aria-hidden /> : null}
+          </span>
           {c.last_message_time ? <span className="shrink-0 text-[11px] text-ink/40">{timeAgo(c.last_message_time)}</span> : null}
         </span>
         <span className="flex items-center justify-between gap-2">
-          <span className="truncate text-[13px] text-ink/50">{c.last_message || "Say hello"}</span>
+          <span className={"truncate text-[13px] " + (c.unread > 0 ? "font-medium text-ink/75" : "text-ink/50")}>{c.last_message || "Say hello"}</span>
           {c.unread > 0 ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-ink">{c.unread}</span> : null}
         </span>
       </span>
@@ -389,18 +392,18 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   const composer = (
     <div className="flex items-end gap-2">
-      <button onClick={() => fileRef.current?.click()} disabled={sendingFile} title="Attach" className="rounded-md p-2.5 text-ink/50 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-40">
+      <button onClick={() => fileRef.current?.click()} disabled={sendingFile} title="Attach" className="rounded-md p-2.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-pearl disabled:opacity-40">
         <Paperclip size={18} />
       </button>
       <input ref={fileRef} type="file" hidden onChange={(e) => attach(e.target.files)} />
       {recording ? (
         <span className="flex items-center gap-2">
           <span className="text-[13px] font-semibold text-danger">{Math.floor(recSecs / 60)}:{String(recSecs % 60).padStart(2, "0")}</span>
-          <button onClick={() => stopRecording(false)} title="Cancel" className="rounded-md bg-surface px-2.5 py-2 text-[12px] text-ink">Cancel</button>
-          <button onClick={() => stopRecording(true)} title="Send voice note" className="rounded-md bg-danger p-2.5 text-ink"><Square size={16} /></button>
+          <button onClick={() => stopRecording(false)} title="Cancel" className="rounded-md bg-surface px-2.5 py-2 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Cancel</button>
+          <button onClick={() => stopRecording(true)} title="Send voice note" className="rounded-md bg-danger p-2.5 text-white transition-opacity duration-[140ms] hover:opacity-90"><Square size={16} /></button>
         </span>
       ) : (
-        <button onClick={startRecording} disabled={sendingFile} title="Voice message" className="rounded-md p-2.5 text-ink/50 transition-colors hover:bg-surface hover:text-pearl disabled:opacity-40"><Mic size={18} /></button>
+        <button onClick={startRecording} disabled={sendingFile} title="Voice message" className="rounded-md p-2.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-pearl disabled:opacity-40"><Mic size={18} /></button>
       )}
       <textarea value={draft}
         onChange={(e) => onDraftChange(e.target.value)}
@@ -408,9 +411,9 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         onBlur={() => setTyping(false)}
         placeholder={sendingFile ? "Sending attachment" : "Message"}
         rows={1}
-        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
       />
-      <button onClick={send} disabled={!draft.trim()} className="rounded-md bg-pearl p-2.5 text-ink transition-opacity hover:opacity-90 disabled:opacity-30" title="Send">
+      <button onClick={send} disabled={!draft.trim()} className="rounded-md bg-pearl p-2.5 text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30" title="Send">
         <Send size={18} />
       </button>
     </div>
@@ -434,7 +437,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           <>
             <header className="border-b border-ink/10 pb-3">
               <div className="flex items-center gap-3">
-                <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-ink/60 hover:bg-surface hover:text-ink" title="Back">←</button>
+                <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back">←</button>
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={36} />
                 <div className="min-w-0">
                   <p className="truncate text-[15px] font-semibold text-ink">{active.title}</p>
@@ -473,7 +476,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             <input value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search"
-              className="w-full rounded-md bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+              className="w-full rounded-md bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
             />
           </div>
         </div>
@@ -490,9 +493,11 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
       <section className="flex min-w-0 flex-1 flex-col">
         {!active ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2">
-            <span className="h-14 w-14 rounded-full border-2 border-pearl opacity-40" aria-hidden />
-            <p className="text-sm text-ink/40">Pick a conversation</p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-3">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full border border-pearl/50" aria-hidden>
+              <span className="h-2.5 w-2.5 rounded-full bg-pearl" />
+            </span>
+            <p className="text-[14px] text-ink/45">Pick a conversation</p>
           </div>
         ) : (
           <>
