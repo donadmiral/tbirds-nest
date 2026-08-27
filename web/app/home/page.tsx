@@ -34,9 +34,9 @@ function Skeleton() {
       <div className="flex gap-3">
         <div className="h-11 w-11 rounded-full bg-surface" />
         <div className="flex-1 space-y-2 pt-1">
-          <div className="h-3 w-40 rounded bg-surface" />
-          <div className="h-3 w-full rounded bg-surface" />
-          <div className="h-3 w-2/3 rounded bg-surface" />
+          <div className="h-3 w-40 rounded-xs bg-surface" />
+          <div className="h-3 w-full rounded-xs bg-surface" />
+          <div className="h-3 w-2/3 rounded-xs bg-surface" />
         </div>
       </div>
     </div>
@@ -137,7 +137,7 @@ export default function HomeFeed() {
     return () => io.disconnect();
   }, [load, posts.length]);
 
-  // Seen reporting: the phone's exact batch semantics — 6s flush, retry on failure.
+  // Seen reporting: the phone's exact batch semantics - 6s flush, retry on failure.
   useEffect(() => {
     seenObserverRef.current = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
@@ -196,26 +196,32 @@ export default function HomeFeed() {
       <AnnouncementBanner />
       <StoryRings />
       <Composer onPosted={() => load(false)} quote={quote} onQuoteDone={() => setQuote(null)} />
+
+      {/* Mode tabs: the active indicator is a pearl set in a ring, echoing the
+          mark itself, instead of a plain underline. */}
       <div className="sticky top-0 z-10 -mx-1 flex border-b border-ink/10 bg-white/90 px-1 backdrop-blur">
-        {MODES.map((m) => (
-          <button key={m.key}
-            onClick={() => setMode(m.key)}
-            className={
-              "flex-1 py-4 text-[15px] transition-colors " +
-              (mode === m.key ? "font-semibold text-ink" : "text-ink/50 hover:text-ink/80")
-            }
-          >
-            <span className={"border-b-2 pb-3 " + (mode === m.key ? "border-pearl" : "border-transparent")}>
-              {m.label}
-            </span>
-          </button>
-        ))}
+        {MODES.map((m) => {
+          const active = mode === m.key;
+          return (
+            <button key={m.key}
+              onClick={() => setMode(m.key)}
+              className="flex flex-1 flex-col items-center gap-2 py-3.5"
+            >
+              <span className={"text-[15px] transition-colors duration-[180ms] " + (active ? "font-semibold text-ink" : "text-ink/50 hover:text-ink/75")}>
+                {m.label}
+              </span>
+              <span className={"flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-all duration-[180ms] " + (active ? "border-pearl/60 opacity-100" : "border-transparent opacity-0")}>
+                <span className={"h-[6px] w-[6px] rounded-full bg-pearl transition-transform duration-[180ms] " + (active ? "scale-100" : "scale-0")} />
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {mode === "trending" ? <div className="pt-3"><StoryRings mode="global" /></div> : null}
       {pendingNew > 0 && !loading ? (
         <div className="sticky top-16 z-10 flex justify-center py-2">
-          <button onClick={showNewPosts} className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-1.5 text-[13px] font-semibold text-ink shadow-lg transition-opacity hover:opacity-90">
+          <button onClick={showNewPosts} className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-1.5 text-[13px] font-semibold text-ink shadow-lg transition-opacity duration-[140ms] hover:opacity-90">
             <ArrowUp size={14} /> {pendingNew === 1 ? "New post" : pendingNew + " new posts"}
           </button>
         </div>
@@ -229,19 +235,19 @@ export default function HomeFeed() {
           <Skeleton />
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center gap-3 pt-24 text-center">
-          <p className="text-sm text-ink/70">The feed could not load.</p>
-          <p className="text-xs text-ink/40">{error}</p>
-          <button onClick={() => load(false)} className="rounded-md bg-surface px-4 py-2 text-sm text-ink hover:bg-surface-elevated">
+        <div className="flex flex-col items-center gap-3 px-6 py-20 text-center">
+          <p className="text-[17px] font-semibold text-ink">The feed could not load.</p>
+          <p className="text-[13.5px] text-ink/50">{error}</p>
+          <button onClick={() => load(false)} className="mt-1 rounded-md bg-surface px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">
             Try again
           </button>
         </div>
       ) : mode === "discover" ? (
         <DiscoverFeed />
       ) : posts.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 pt-24 text-center">
-          <p className="text-[15px] text-ink/70">{EMPTY_COPY[mode].title}</p>
-          <p className="text-sm text-ink/40">{EMPTY_COPY[mode].sub}</p>
+        <div className="flex flex-col items-center gap-2 px-6 py-20 text-center">
+          <p className="text-[17px] font-semibold text-ink">{EMPTY_COPY[mode].title}</p>
+          <p className="text-[13.5px] text-ink/50">{EMPTY_COPY[mode].sub}</p>
         </div>
       ) : (
         <div>
