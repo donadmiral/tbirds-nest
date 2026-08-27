@@ -110,7 +110,7 @@ export default function CommercePage() {
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
           {(["catalog", "orders", "storefront"] as const).map(v => (
-            <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (view === v ? "bg-ink text-white" : "text-ink/60")}>
+            <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (view === v ? "bg-ink text-white" : "text-ink/60")}>
               {v === "catalog" ? "Catalog" : v === "orders" ? "Orders" : "Storefront"}
             </button>
           ))}
@@ -121,13 +121,13 @@ export default function CommercePage() {
         <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {(["all", "available", "sold"] as const).map(f => (
-              <button key={f} onClick={() => setStatusFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (statusFilter === f ? "bg-ink text-white" : "bg-surface text-ink/60")}>{f === "all" ? "All" : f === "available" ? "Available" : "Sold"}</button>
+              <button key={f} onClick={() => setStatusFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (statusFilter === f ? "bg-ink text-white" : "bg-surface text-ink/60")}>{f === "all" ? "All" : f === "available" ? "Available" : "Sold"}</button>
             ))}
-            {editor ? <Link href="/market/new" className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-pearl px-3.5 py-2 text-[13px] font-semibold text-ink"><Plus size={14} /> New listing</Link> : null}
+            {editor ? <Link href="/market/new" className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-ink px-3.5 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> New listing</Link> : null}
           </div>
           {shownListings.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">No listings here yet. Everything you list in Market appears in this catalog.</p>
           : shownListings.map(l => (
-            <div key={l.id} className="mt-2 flex items-start gap-3 rounded-xl border border-ink/10 p-3">
+            <div key={l.id} className="mt-2 flex items-start gap-3 rounded-lg border border-ink/10 p-3">
               {l.images?.[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={l.images[0]} alt="" className="h-16 w-16 rounded-lg object-cover" />
@@ -141,8 +141,8 @@ export default function CommercePage() {
                 <p className="mt-1 text-[12.5px] text-ink/50">
                   {priceFor === l.id ? (
                     <span className="inline-flex items-center gap-1.5">
-                      <input value={priceText} onChange={e => setPriceText(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void savePrice(l); }} className="w-24 rounded-md border border-ink/15 bg-transparent px-2 py-0.5 text-[13px] text-ink outline-none" autoFocus />
-                      <button onClick={() => savePrice(l)} className="rounded-md bg-ink px-2 py-0.5 text-[12px] text-white"><Check size={12} /></button>
+                      <input value={priceText} onChange={e => setPriceText(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void savePrice(l); }} className="w-24 rounded-md border border-ink/15 bg-transparent px-2 py-0.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" autoFocus />
+                      <button onClick={() => savePrice(l)} className="rounded-md bg-ink px-2 py-0.5 text-[12px] text-white transition-opacity duration-[140ms] hover:opacity-90"><Check size={12} /></button>
                     </span>
                   ) : <button onClick={() => { if (editor) { setPriceFor(l.id); setPriceText(String(l.price)); } }} className="font-semibold text-ink hover:underline">{l.currency} {Number(l.price).toLocaleString()}</button>}
                   {" · "}{l.category}{l.condition ? " · " + l.condition : ""}{" · "}{l.sold_count} sold{" · "}in {l.in_posts} post{l.in_posts === 1 ? "" : "s"}
@@ -150,11 +150,11 @@ export default function CommercePage() {
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {editor ? (
                     <>
-                      {l.status === "available" ? <button disabled={busyId === l.id} onClick={() => confirm("Mark as sold?") && setListing(l, { status: "sold" })} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink">Mark sold</button>
-                        : l.status === "sold" ? <button disabled={busyId === l.id} onClick={() => setListing(l, { status: "available" })} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink">Relist</button> : null}
-                      <button disabled={busyId === l.id} onClick={() => setListing(l, { delivery_available: !l.delivery_available })} className={"inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[12px] " + (l.delivery_available ? "bg-success/15 text-success" : "bg-surface text-ink/70")}><Truck size={12} /> {l.delivery_available ? "Delivers" + (l.delivery_fee ? " · " + l.currency + " " + l.delivery_fee : "") : "Collection only"}</button>
-                      {l.status === "available" ? <button disabled={busyId === l.id} onClick={() => shareToFeed(l)} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink"><Tag size={12} /> Share to feed</button> : null}
-                      <button onClick={() => toggleFeatured(l.id)} className={"inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[12px] " + (sf?.featured_listing_ids.includes(l.id) ? "bg-pearl/15 text-pearl" : "bg-surface text-ink/70")}><Star size={12} /> {sf?.featured_listing_ids.includes(l.id) ? "Featured" : "Feature"}</button>
+                      {l.status === "available" ? <button disabled={busyId === l.id} onClick={() => confirm("Mark as sold?") && setListing(l, { status: "sold" })} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Mark sold</button>
+                        : l.status === "sold" ? <button disabled={busyId === l.id} onClick={() => setListing(l, { status: "available" })} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Relist</button> : null}
+                      <button disabled={busyId === l.id} onClick={() => setListing(l, { delivery_available: !l.delivery_available })} className={"inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (l.delivery_available ? "bg-success/15 text-success" : "bg-surface text-ink/70")}><Truck size={12} /> {l.delivery_available ? "Delivers" + (l.delivery_fee ? " · " + l.currency + " " + l.delivery_fee : "") : "Collection only"}</button>
+                      {l.status === "available" ? <button disabled={busyId === l.id} onClick={() => shareToFeed(l)} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Tag size={12} /> Share to feed</button> : null}
+                      <button onClick={() => toggleFeatured(l.id)} className={"inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (sf?.featured_listing_ids.includes(l.id) ? "bg-pearl/15 text-pearl" : "bg-surface text-ink/70")}><Star size={12} /> {sf?.featured_listing_ids.includes(l.id) ? "Featured" : "Feature"}</button>
                     </>
                   ) : null}
                 </div>
@@ -167,12 +167,12 @@ export default function CommercePage() {
         <>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             {totals.length === 0 ? <p className="text-[13px] text-ink/50">No completed payments yet.</p>
-              : totals.map(([cur, t]) => <span key={cur} className="rounded-xl border border-ink/10 px-3.5 py-2 text-[13px] text-ink"><span className="font-display text-[18px] text-porcelain">{cur} {t.total.toLocaleString()}</span> <span className="text-ink/45">across {t.n} payment{t.n === 1 ? "" : "s"}</span></span>)}
-            {orders.length ? <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 hover:text-ink"><Download size={13} /> Export CSV</button> : null}
+              : totals.map(([cur, t]) => <span key={cur} className="rounded-lg border border-ink/10 px-3.5 py-2 text-[13px] text-ink"><span className="font-display text-[18px] text-porcelain">{cur} {t.total.toLocaleString()}</span> <span className="text-ink/45">across {t.n} payment{t.n === 1 ? "" : "s"}</span></span>)}
+            {orders.length ? <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Download size={13} /> Export CSV</button> : null}
           </div>
           {orders.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">Payments customers send you in chat appear here with what they bought.</p>
           : orders.map(o => (
-            <div key={o.id} className="mt-2 flex items-center gap-3 rounded-xl border border-ink/10 p-3">
+            <div key={o.id} className="mt-2 flex items-center gap-3 rounded-lg border border-ink/10 p-3">
               {o.listing_image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={o.listing_image} alt="" className="h-12 w-12 rounded-lg object-cover" />
@@ -190,30 +190,30 @@ export default function CommercePage() {
         </>
       ) : sf ? (
         <div className="mt-5 max-w-[640px]">
-          <div className="rounded-xl border border-ink/10 p-4">
+          <div className="rounded-lg border border-ink/10 p-4">
             <p className="text-[14px] font-semibold text-ink">Tagline</p>
             <p className="mt-1 text-[12.5px] text-ink/50">One line under your name on the storefront.</p>
-            <input value={sf.tagline || ""} onChange={e => setSf({ ...sf, tagline: e.target.value })} maxLength={90} placeholder="Quality hardware, fair prices, same-day collection in Harare" className="mt-2 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none" />
+            <input value={sf.tagline || ""} onChange={e => setSf({ ...sf, tagline: e.target.value })} maxLength={90} placeholder="Quality hardware, fair prices, same-day collection in Harare" className="mt-2 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
           </div>
-          <div className="mt-3 rounded-xl border border-ink/10 p-4">
+          <div className="mt-3 rounded-lg border border-ink/10 p-4">
             <p className="text-[14px] font-semibold text-ink">Featured products</p>
             <p className="mt-1 text-[12.5px] text-ink/50">Up to six, shown first on your profile. Pick from the catalog.</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {listings.filter(l => l.status === "available").map(l => {
                 const on = sf.featured_listing_ids.includes(l.id);
-                return <button key={l.id} onClick={() => toggleFeatured(l.id)} className={"rounded-full border px-3 py-1 text-[12.5px] font-semibold " + (on ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{l.title}</button>;
+                return <button key={l.id} onClick={() => toggleFeatured(l.id)} className={"rounded-full border px-3 py-1 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (on ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{l.title}</button>;
               })}
               {listings.filter(l => l.status === "available").length === 0 ? <p className="text-[12.5px] text-ink/45">No available listings to feature.</p> : null}
             </div>
           </div>
-          <div className="mt-3 rounded-xl border border-ink/10 p-4">
+          <div className="mt-3 rounded-lg border border-ink/10 p-4">
             <label className="flex items-center gap-2 text-[14px] font-semibold text-ink"><input type="checkbox" checked={sf.delivery_default} onChange={e => setSf({ ...sf, delivery_default: e.target.checked })} /> Offer delivery by default on new listings</label>
             <div className="mt-2 flex gap-2">
-              <input value={sf.delivery_fee_default ?? ""} onChange={e => setSf({ ...sf, delivery_fee_default: e.target.value === "" ? null : Number(e.target.value) })} placeholder="Fee" inputMode="decimal" className="w-28 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none" />
-              <input value={sf.delivery_note_default || ""} onChange={e => setSf({ ...sf, delivery_note_default: e.target.value })} placeholder="Delivery note, for example Harare CBD only" className="flex-1 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none" />
+              <input value={sf.delivery_fee_default ?? ""} onChange={e => setSf({ ...sf, delivery_fee_default: e.target.value === "" ? null : Number(e.target.value) })} placeholder="Fee" inputMode="decimal" className="w-28 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+              <input value={sf.delivery_note_default || ""} onChange={e => setSf({ ...sf, delivery_note_default: e.target.value })} placeholder="Delivery note, for example Harare CBD only" className="flex-1 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             </div>
           </div>
-          {editor ? <button onClick={saveStorefront} disabled={saving} className="mt-4 rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink disabled:opacity-40">{saving ? "Saving" : "Save storefront"}</button> : null}
+          {editor ? <button onClick={saveStorefront} disabled={saving} className="mt-4 rounded-md bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{saving ? "Saving" : "Save storefront"}</button> : null}
         </div>
       ) : null}
     </div>
