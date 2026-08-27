@@ -35,7 +35,7 @@ export default async function JobsPage() {
               <p className="truncate text-[#5A5D64]">{j.company}</p>
               <p className="truncate text-[#5A5D64]">{j.location || '-'}</p>
               <p className="text-[#5A5D64]">{(j.job_type || '-').replace(/_/g, ' ')}</p>
-              <Link href={'/users?q=' + encodeURIComponent(p.username || '')} className="truncate text-[#0B1E3D] hover:underline">{p.full_name || '@' + (p.username || '?')}</Link>
+              <Link href={'/users?q=' + encodeURIComponent(p.username || '')} className="truncate text-[#17181C] hover:underline">{p.full_name || '@' + (p.username || '?')}</Link>
               <p className="tabular-nums text-[#9A9DA4]">{new Date(j.created_at).toLocaleDateString()}</p>
             </div>
           );

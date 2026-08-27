@@ -27,7 +27,7 @@ export default async function StaffPage() {
           <select name="role" className="rounded-[10px] border border-[#E5E4E0] bg-white px-3 py-2 text-[13px] outline-none">
             {ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
           </select>
-          <button className="rounded-[10px] bg-[#0B1E3D] px-4 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Invite</button>
+          <button className="rounded-[10px] bg-[#17181C] px-4 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Invite</button>
         </form>
         <p className="mt-2 text-[11px] text-[#9A9DA4]">A deactivated shell profile is created automatically - staff identities are never social.</p>
       </div>

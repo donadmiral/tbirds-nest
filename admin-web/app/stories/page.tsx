@@ -36,8 +36,8 @@ export default async function StoriesPage() {
           const p = people[s.user_id] || {};
           return (
             <div key={s.id} className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 text-[12.5px] last:border-0">
-              <span className="shrink-0 rounded-full bg-[#EEF2FB] px-2 py-0.5 text-[10.5px] font-bold text-[#0B1E3D]">{s.media_type}</span>
-              <Link href={'/users/' + s.user_id} className="shrink-0 font-semibold text-[#0B1E3D] hover:underline">{p.full_name || '@' + (p.username || '?')}</Link>
+              <span className="shrink-0 rounded-full bg-[#EEF2FB] px-2 py-0.5 text-[10.5px] font-bold text-[#17181C]">{s.media_type}</span>
+              <Link href={'/users/' + s.user_id} className="shrink-0 font-semibold text-[#17181C] hover:underline">{p.full_name || '@' + (p.username || '?')}</Link>
               <p className="min-w-0 flex-1 truncate text-[#5A5D64]">{s.caption || '(no caption)'}</p>
               <p className="shrink-0 tabular-nums text-[#9A9DA4]">{s.views_count} views</p>
               <p className="shrink-0 tabular-nums text-[#9A9DA4]">{hoursLeft(s.expires_at)}h left</p>

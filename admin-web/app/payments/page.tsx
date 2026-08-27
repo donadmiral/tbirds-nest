@@ -59,8 +59,8 @@ export default async function PaymentsPage() {
         ) : (rows ?? []).map(r => (
           <div key={r.id} className="grid grid-cols-[90px_1fr_1fr_110px_1fr_130px] items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 text-[12.5px] last:border-0">
             <p className="font-semibold tabular-nums">${Number(r.amount).toFixed(2)}</p>
-            <Link href={'/users/' + r.sender_id} className="truncate text-[#0B1E3D] hover:underline">{name(r.sender_id)}</Link>
-            <Link href={'/users/' + r.recipient_id} className="truncate text-[#0B1E3D] hover:underline">{name(r.recipient_id)}</Link>
+            <Link href={'/users/' + r.sender_id} className="truncate text-[#17181C] hover:underline">{name(r.sender_id)}</Link>
+            <Link href={'/users/' + r.recipient_id} className="truncate text-[#17181C] hover:underline">{name(r.recipient_id)}</Link>
             <p>{pill(r.status)}</p>
             <p className="truncate text-[11px] tabular-nums text-[#9A9DA4]" title={r.error || ''}>{r.error ? 'ERR: ' + r.error : (r.tx_id ? r.tx_id.slice(0, 13) : '-')}{r.listing_id ? ' - listing' : ''}</p>
             <p className="tabular-nums text-[11.5px] text-[#9A9DA4]">{new Date(r.created_at).toLocaleString()}</p>

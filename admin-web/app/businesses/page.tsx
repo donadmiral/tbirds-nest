@@ -54,7 +54,7 @@ export default async function BusinessesPage() {
                   <p>Website: <span className="font-medium">{a.website || '-'}</span></p>
                   <p className="col-span-2">Registration: <span className="font-medium">{a.registration_info || '-'}</span></p>
                   {a.applicant_id ? (
-                    <p className="col-span-2">Applied by <a href={'/users/' + a.applicant_id} className="font-semibold text-[#0B1E3D] hover:underline">{p.full_name || '@' + (p.username || '?')}</a></p>
+                    <p className="col-span-2">Applied by <a href={'/users/' + a.applicant_id} className="font-semibold text-[#17181C] hover:underline">{p.full_name || '@' + (p.username || '?')}</a></p>
                   ) : (
                     <p className="col-span-2">Public application - no personal account attached; the business will own itself</p>
                   )}
@@ -62,7 +62,7 @@ export default async function BusinessesPage() {
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <form action={approveBusinessApplication}>
                     <input type="hidden" name="id" value={a.id} />
-                    <button className="rounded-[10px] bg-[#0B1E3D] px-4 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Approve - create @{a.desired_username} with space grey</button>
+                    <button className="rounded-[10px] bg-[#17181C] px-4 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Approve - create @{a.desired_username} with space grey</button>
                   </form>
                   <form action={rejectBusinessApplication} className="flex flex-1 min-w-[260px] items-center gap-2">
                     <input type="hidden" name="id" value={a.id} />

@@ -48,7 +48,7 @@ export default async function AnalyticsPage() {
           <div key={r.day} className="grid grid-cols-[110px_1fr_70px_70px_70px_70px_70px_70px_70px_70px] items-center gap-2 border-b border-[#F0EFEC] px-5 py-2 text-[12px] tabular-nums last:border-0">
             <p className="text-[#5A5D64]">{r.day}</p>
             <div className="flex items-center gap-2">
-              <div className="h-[8px] rounded-full bg-[#0B1E3D]" style={{ width: Math.max(2, Math.round((r.dau / maxDau) * 100)) + '%', opacity: 0.85 }} />
+              <div className="h-[8px] rounded-full bg-[#17181C]" style={{ width: Math.max(2, Math.round((r.dau / maxDau) * 100)) + '%', opacity: 0.85 }} />
               <p className="w-8 shrink-0 font-semibold">{r.dau}</p>
             </div>
             <p className="text-right">{r.new_signups}</p>

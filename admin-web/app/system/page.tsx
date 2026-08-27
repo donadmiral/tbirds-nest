@@ -36,7 +36,7 @@ export default async function SystemPage() {
             <form action={toggleFlag}>
               <input type="hidden" name="key" value={f.key} />
               <input type="hidden" name="to" value={f.enabled ? 'off' : 'on'} />
-              <button className={'rounded-[8px] px-3 py-1 text-[11px] font-bold ' + (f.enabled ? 'border border-[#F0DEDE] bg-[#FBF2F2] text-[#B03A3A] hover:bg-[#F6E4E4]' : 'bg-[#0B1E3D] text-white hover:opacity-90')}>{f.enabled ? 'Switch off' : 'Switch on'}</button>
+              <button className={'rounded-[8px] px-3 py-1 text-[11px] font-bold ' + (f.enabled ? 'border border-[#F0DEDE] bg-[#FBF2F2] text-[#B03A3A] hover:bg-[#F6E4E4]' : 'bg-[#17181C] text-white hover:opacity-90')}>{f.enabled ? 'Switch off' : 'Switch on'}</button>
             </form>
           </div>
         ))}
@@ -48,7 +48,7 @@ export default async function SystemPage() {
         <form action={publishAnnouncement} className="space-y-2">
           <input name="title" required placeholder="Title" className="w-full rounded-[10px] border border-[#E5E4E0] px-3 py-2 text-[13px] outline-none focus:border-[#B9BCC2]" />
           <textarea name="body" required rows={2} placeholder="The message every member sees at the top of their feed" className="w-full rounded-[10px] border border-[#E5E4E0] px-3 py-2 text-[13px] outline-none focus:border-[#B9BCC2]" />
-          <button className="rounded-[10px] bg-[#0B1E3D] px-4 py-2 text-[12px] font-bold text-white hover:opacity-90">Publish to the platform</button>
+          <button className="rounded-[10px] bg-[#17181C] px-4 py-2 text-[12px] font-bold text-white hover:opacity-90">Publish to the platform</button>
         </form>
       </div>
       {(notes ?? []).length ? (
@@ -75,7 +75,7 @@ export default async function SystemPage() {
       <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
         <form action={addBlockedWord} className="flex items-center gap-2">
           <input name="word" required minLength={2} placeholder="Word or phrase to refuse in posts and comments" className="flex-1 rounded-[10px] border border-[#E5E4E0] px-3 py-2 text-[13px] outline-none focus:border-[#B9BCC2]" />
-          <button className="rounded-[10px] bg-[#0B1E3D] px-4 py-2 text-[12px] font-bold text-white hover:opacity-90">Block</button>
+          <button className="rounded-[10px] bg-[#17181C] px-4 py-2 text-[12px] font-bold text-white hover:opacity-90">Block</button>
         </form>
         {(words ?? []).length ? (
           <div className="mt-3 flex flex-wrap gap-2">

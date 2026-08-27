@@ -37,7 +37,7 @@ export default async function MarketPage() {
               <p>{l.status === 'available'
                 ? <span className="rounded-full border border-[#DCEFE0] bg-[#F2F9F3] px-2 py-0.5 text-[10.5px] font-bold text-[#1D7A38]">Available</span>
                 : <span className="rounded-full bg-[#F4F3F0] px-2 py-0.5 text-[10.5px] font-bold text-[#7A7D84]">{l.status}</span>}</p>
-              <Link href={'/users?q=' + encodeURIComponent(s.username || '')} className="truncate text-[#0B1E3D] hover:underline">{s.full_name || '@' + (s.username || '?')}</Link>
+              <Link href={'/users?q=' + encodeURIComponent(s.username || '')} className="truncate text-[#17181C] hover:underline">{s.full_name || '@' + (s.username || '?')}</Link>
               <p className="tabular-nums text-[#9A9DA4]">{new Date(l.created_at).toLocaleDateString()}</p>
               <form action={adminRemoveListing} className="justify-self-end">
                 <input type="hidden" name="lid" value={l.id} />

@@ -64,8 +64,8 @@ export default async function CallsPage() {
         ) : (rows ?? []).map(r => (
           <div key={r.id} className="grid grid-cols-[70px_1fr_1fr_100px_90px_130px] items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 text-[12.5px] last:border-0">
             <p className="font-semibold capitalize">{kind(r)}</p>
-            <Link href={'/users/' + r.initiator_id} className="truncate text-[#0B1E3D] hover:underline">{name(r.initiator_id)}</Link>
-            <p className="truncate">{r.is_group_call ? 'group members' : <Link href={'/users/' + r.receiver_id} className="text-[#0B1E3D] hover:underline">{name(r.receiver_id)}</Link>}</p>
+            <Link href={'/users/' + r.initiator_id} className="truncate text-[#17181C] hover:underline">{name(r.initiator_id)}</Link>
+            <p className="truncate">{r.is_group_call ? 'group members' : <Link href={'/users/' + r.receiver_id} className="text-[#17181C] hover:underline">{name(r.receiver_id)}</Link>}</p>
             <p>{pill(r.status)}</p>
             <p className="tabular-nums text-[#5A5D64]">{fmtDur(r.duration_sec)}</p>
             <p className="tabular-nums text-[11.5px] text-[#9A9DA4]">{new Date(r.created_at).toLocaleString()}</p>
