@@ -46,6 +46,7 @@ export default function SettingsPage() {
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Business</p>
       <div className="mb-6">
         <NavRow href="/businesses" icon={<Briefcase size={16} />} label="Businesses" sub="Pages you run, and your team" />
+        <NavRow href="/businesses/apply" icon={<Briefcase size={16} />} label="Apply for a business account" sub="Companies get their own @ and the space-grey seal" />
       </div>
 
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Account</p>
