@@ -32,28 +32,28 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     <Shell admin={admin} active="/users" title="User desk" sub="Search any account, see it whole, act with the audit log watching">
         <form method="get" className="mb-6 flex gap-2">
           <input name="q" defaultValue={q || ''} placeholder="Search name, username, or email"
-            className="flex-1 rounded-xl border border-[#0B1E3D]/15 bg-white px-4 py-2.5 text-sm text-[#0B1E3D] outline-none focus:border-[#0B1E3D]" />
-          <button className="rounded-xl bg-[#0B1E3D] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90">Search</button>
+            className="flex-1 rounded-[12px] border border-[#17181C]/15 bg-white px-4 py-2.5 text-sm text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+          <button className="rounded-[12px] bg-[#17181C] px-5 py-2.5 text-sm font-bold text-white transition-opacity duration-150 hover:opacity-90">Search</button>
         </form>
         {!q ? <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Newest members</p> : null}
         {rows.length === 0 ? (
-          <p className="text-center text-xs text-[#0B1E3D]/40 py-12">No accounts match.</p>
+          <p className="text-center text-xs text-[#17181C]/40 py-12">No accounts match.</p>
         ) : rows.map(u => {
           const suspended = !!u.deactivated_at;
           return (
-            <div key={u.id} className="mb-4 rounded-2xl border border-[#0B1E3D]/10 bg-white p-5 shadow-sm">
+            <div key={u.id} className="mb-4 rounded-[12px] border border-[#17181C]/10 bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {u.avatar_url
                     ? <img src={u.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
-                    : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B1E3D]/10 text-sm font-bold text-[#0B1E3D]">{String(u.full_name || '?').slice(0, 1)}</div>}
+                    : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#17181C]/10 text-sm font-bold text-[#17181C]">{String(u.full_name || '?').slice(0, 1)}</div>}
                   <div>
-                    <Link href={'/users/' + u.id} className="flex items-center gap-1 text-sm font-extrabold text-[#0B1E3D] hover:underline">
+                    <Link href={'/users/' + u.id} className="flex items-center gap-1 text-sm font-extrabold text-[#17181C] hover:underline">
                       {u.full_name || 'Unnamed'}
                       {u.verified_tier || u.is_verified ? <Seal tier={u.verified_tier || 'business'} size={15} /> : null}
-                      <span className="font-medium text-[#0B1E3D]/40">@{u.username || '-'}</span>
+                      <span className="font-medium text-[#17181C]/40">@{u.username || '-'}</span>
                     </Link>
-                    <p className="text-[11px] text-[#0B1E3D]/50">
+                    <p className="text-[11px] text-[#17181C]/50">
                       {u.email || 'no email'} - {u.account_type || 'personal'} - joined {new Date(u.created_at).toLocaleDateString()}
                       {u.verified_category ? ' - ' + u.verified_category : ''}
                     </p>
@@ -66,19 +66,19 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                   <form action={suspendUser} className="flex flex-1 min-w-[280px] items-center gap-2">
                     <input type="hidden" name="id" value={u.id} />
                     <input name="reason" required placeholder="Reason for suspension (required)"
-                      className="flex-1 rounded-xl border border-[#0B1E3D]/15 px-3 py-2 text-xs text-[#0B1E3D] outline-none focus:border-[#0B1E3D]" />
-                    <button className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-100">Suspend</button>
+                      className="flex-1 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+                    <button className="rounded-[12px] border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">Suspend</button>
                   </form>
                 ) : (
                   <form action={restoreUser}>
                     <input type="hidden" name="id" value={u.id} />
-                    <button className="rounded-xl bg-[#0B1E3D] px-5 py-2 text-xs font-extrabold text-white hover:opacity-90">Restore account</button>
+                    <button className="rounded-[12px] bg-[#17181C] px-5 py-2 text-xs font-extrabold text-white transition-opacity duration-150 hover:opacity-90">Restore account</button>
                   </form>
                 )}
                 {(u.verified_tier || u.is_verified) ? (
                   <form action={revokeVerification}>
                     <input type="hidden" name="id" value={u.id} />
-                    <button className="rounded-xl border border-[#0B1E3D]/15 px-4 py-2 text-xs font-bold text-[#0B1E3D]/70 hover:bg-[#0B1E3D]/5">Revoke badge</button>
+                    <button className="rounded-[12px] border border-[#17181C]/15 px-4 py-2 text-xs font-bold text-[#17181C]/70 transition-colors duration-150 hover:bg-[#17181C]/5">Revoke badge</button>
                   </form>
                 ) : null}
               </div>
