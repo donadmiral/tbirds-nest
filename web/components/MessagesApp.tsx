@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square } from "lucide-react";
+import { Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
 import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
@@ -461,7 +461,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       <section className="flex w-[340px] shrink-0 flex-col border-r border-ink/10">
         <div className="px-4 pb-2 pt-6">
           <h1 className="font-display text-xl text-porcelain">{heading}</h1>
-          {context === "personal" ? <Link href="/messages/requests" className="mt-1 inline-block text-[12px] font-semibold text-pearl hover:underline">Message requests</Link> : null}
+          {context === "personal" ? (
+            <p className="mt-1 flex items-center gap-1.5 text-[12px] font-semibold">
+              <Link href="/messages/requests" className="text-pearl hover:underline">Message requests</Link>
+              <span className="text-ink/25">·</span>
+              <Link href="/calls" className="flex items-center gap-1 text-pearl hover:underline"><Phone size={11} /> Calls</Link>
+            </p>
+          ) : null}
           <div className="relative mt-3">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" />
             <input value={query}
