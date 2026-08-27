@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AtSign, ChevronRight, Edit3, EyeOff, Settings as SettingsIcon, ShieldAlert, ShieldOff, UserCheck } from "lucide-react";
+import { AtSign, Briefcase, ChevronRight, Edit3, EyeOff, FileText, HelpCircle, Info, LifeBuoy, Settings as SettingsIcon, Shield, ShieldAlert, ShieldOff, UserCheck } from "lucide-react";
 import { autoplayEnabled, dataSaverEnabled, setAutoplay, setDataSaver } from "@/lib/mediaPrefs";
 
 export default function SettingsPage() {
@@ -43,6 +43,11 @@ export default function SettingsPage() {
         <NavRow href="/write" icon={<Edit3 size={16} />} label="Write an article" sub="Long-form publishing with a cover and read time" />
       </div>
 
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Business</p>
+      <div className="mb-6">
+        <NavRow href="/businesses" icon={<Briefcase size={16} />} label="Businesses" sub="Pages you run, and your team" />
+      </div>
+
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Account</p>
       <div className="mb-6 flex flex-col gap-2">
         <NavRow href="/settings/username" icon={<AtSign size={16} />} label="Username" sub="Change your @handle" />
@@ -68,6 +73,14 @@ export default function SettingsPage() {
           </span>
           <Toggle on={saver} onChange={(v) => { setSaver(v); setDataSaver(v); }} />
         </div>
+      </div>
+      <p className="mb-2 mt-6 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Help</p>
+      <div className="flex flex-col gap-2">
+        <NavRow href="/settings/help" icon={<HelpCircle size={16} />} label="Help & Support" sub="FAQs, submit a ticket" />
+        <NavRow href="/settings/support" icon={<LifeBuoy size={16} />} label="Contact support" sub="Write to the operations team" />
+        <NavRow href="/about" icon={<Info size={16} />} label="About Platinum Circles" sub="" />
+        <NavRow href="/terms" icon={<FileText size={16} />} label="Terms of Service" sub="" />
+        <NavRow href="/privacy" icon={<Shield size={16} />} label="Privacy Policy" sub="" />
       </div>
     </div>
   );
