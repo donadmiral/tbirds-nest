@@ -58,31 +58,31 @@ export default async function ReportsPage() {
   return (
     <Shell admin={admin} active="/reports" title="Reports" sub="What members flagged - posts, listings, and accounts awaiting judgment">
         {total === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#0B1E3D]/15 bg-white p-12 text-center">
-            <p className="text-sm font-bold text-[#0B1E3D]">Nothing reported.</p>
-            <p className="mt-1 text-xs text-[#0B1E3D]/50">When users flag posts, listings, or accounts, the cases land here.</p>
+          <div className="rounded-[12px] border border-dashed border-[#17181C]/15 bg-white p-12 text-center">
+            <p className="text-sm font-bold text-[#17181C]">Nothing reported.</p>
+            <p className="mt-1 text-xs text-[#17181C]/50">When users flag posts, listings, or accounts, the cases land here.</p>
           </div>
         ) : null}
 
         {(postReports ?? []).map(r => {
           const p = posts[r.post_id];
           return (
-            <div key={r.id} className="mb-4 rounded-2xl border border-[#0B1E3D]/10 bg-white p-5 shadow-sm">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B1E3D]/40">Reported post - {r.reason}</p>
-              <p className="mt-2 whitespace-pre-wrap rounded-xl bg-[#0B1E3D]/[0.03] p-3 text-sm text-[#0B1E3D]/85">{p ? (p.content || '(no text)') : '(post already deleted)'}</p>
-              <p className="mt-2 text-[11px] text-[#0B1E3D]/50">By {p ? name(p.user_id) : '-'} - reported by {name(r.reporter_id)} - {new Date(r.created_at).toLocaleString()}</p>
+            <div key={r.id} className="mb-4 rounded-[12px] border border-[#17181C]/10 bg-white p-5 shadow-sm">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#17181C]/40">Reported post - {r.reason}</p>
+              <p className="mt-2 whitespace-pre-wrap rounded-[12px] bg-[#17181C]/[0.03] p-3 text-sm text-[#17181C]/85">{p ? (p.content || '(no text)') : '(post already deleted)'}</p>
+              <p className="mt-2 text-[11px] text-[#17181C]/50">By {p ? name(p.user_id) : '-'} - reported by {name(r.reporter_id)} - {new Date(r.created_at).toLocaleString()}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {p ? (
                   <form action={removeReportedPost}>
                     <input type="hidden" name="rid" value={r.id} /><input type="hidden" name="pid" value={r.post_id} />
-                    <button className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-100">Remove post</button>
+                    <button className="rounded-[12px] border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">Remove post</button>
                   </form>
                 ) : null}
                 <form action={dismissReport}>
                   <input type="hidden" name="rid" value={r.id} /><input type="hidden" name="table" value="post_reports" />
-                  <button className="rounded-xl border border-[#0B1E3D]/15 px-4 py-2 text-xs font-bold text-[#0B1E3D]/70 hover:bg-[#0B1E3D]/5">No violation</button>
+                  <button className="rounded-[12px] border border-[#17181C]/15 px-4 py-2 text-xs font-bold text-[#17181C]/70 transition-colors duration-150 hover:bg-[#17181C]/5">No violation</button>
                 </form>
-                {p ? <Link href={'/users?q=' + encodeURIComponent(people[p.user_id]?.username || '')} className="rounded-xl border border-[#0B1E3D]/15 px-4 py-2 text-xs font-bold text-[#0B1E3D]/70 hover:bg-[#0B1E3D]/5">Open author</Link> : null}
+                {p ? <Link href={'/users?q=' + encodeURIComponent(people[p.user_id]?.username || '')} className="rounded-[12px] border border-[#17181C]/15 px-4 py-2 text-xs font-bold text-[#17181C]/70 transition-colors duration-150 hover:bg-[#17181C]/5">Open author</Link> : null}
               </div>
             </div>
           );
@@ -91,21 +91,21 @@ export default async function ReportsPage() {
         {(listingReports ?? []).map(r => {
           const l = listings[r.listing_id];
           return (
-            <div key={r.id} className="mb-4 rounded-2xl border border-[#0B1E3D]/10 bg-white p-5 shadow-sm">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B1E3D]/40">Reported listing - {r.reason}</p>
-              <p className="mt-2 rounded-xl bg-[#0B1E3D]/[0.03] p-3 text-sm font-semibold text-[#0B1E3D]/85">{l ? (l.title + ' - $' + l.price + ' - ' + l.status) : '(listing already removed)'}</p>
-              {r.detail ? <p className="mt-1 text-xs italic text-[#0B1E3D]/60">{r.detail}</p> : null}
-              <p className="mt-2 text-[11px] text-[#0B1E3D]/50">Seller {l ? name(l.seller_id) : '-'} - reported by {name(r.reporter_id)} - {new Date(r.created_at).toLocaleString()}</p>
+            <div key={r.id} className="mb-4 rounded-[12px] border border-[#17181C]/10 bg-white p-5 shadow-sm">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#17181C]/40">Reported listing - {r.reason}</p>
+              <p className="mt-2 rounded-[12px] bg-[#17181C]/[0.03] p-3 text-sm font-semibold text-[#17181C]/85">{l ? (l.title + ' - $' + l.price + ' - ' + l.status) : '(listing already removed)'}</p>
+              {r.detail ? <p className="mt-1 text-xs italic text-[#17181C]/60">{r.detail}</p> : null}
+              <p className="mt-2 text-[11px] text-[#17181C]/50">Seller {l ? name(l.seller_id) : '-'} - reported by {name(r.reporter_id)} - {new Date(r.created_at).toLocaleString()}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {l ? (
                   <form action={removeReportedListing}>
                     <input type="hidden" name="rid" value={r.id} /><input type="hidden" name="lid" value={r.listing_id} />
-                    <button className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-100">Remove listing</button>
+                    <button className="rounded-[12px] border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">Remove listing</button>
                   </form>
                 ) : null}
                 <form action={dismissReport}>
                   <input type="hidden" name="rid" value={r.id} /><input type="hidden" name="table" value="listing_reports" />
-                  <button className="rounded-xl border border-[#0B1E3D]/15 px-4 py-2 text-xs font-bold text-[#0B1E3D]/70 hover:bg-[#0B1E3D]/5">No violation</button>
+                  <button className="rounded-[12px] border border-[#17181C]/15 px-4 py-2 text-xs font-bold text-[#17181C]/70 transition-colors duration-150 hover:bg-[#17181C]/5">No violation</button>
                 </form>
               </div>
             </div>
@@ -113,20 +113,20 @@ export default async function ReportsPage() {
         })}
 
         {(userReports ?? []).map(r => (
-          <div key={r.id} className="mb-4 rounded-2xl border border-[#0B1E3D]/10 bg-white p-5 shadow-sm">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B1E3D]/40">Reported account - {r.reason}</p>
-            <p className="mt-2 rounded-xl bg-[#0B1E3D]/[0.03] p-3 text-sm font-semibold text-[#0B1E3D]/85">{name(r.reported_id)}</p>
-            {r.details ? <p className="mt-1 text-xs italic text-[#0B1E3D]/60">{r.details}</p> : null}
-            <p className="mt-2 text-[11px] text-[#0B1E3D]/50">Reported by {name(r.reporter_id)} - {new Date(r.created_at).toLocaleString()}</p>
+          <div key={r.id} className="mb-4 rounded-[12px] border border-[#17181C]/10 bg-white p-5 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-[#17181C]/40">Reported account - {r.reason}</p>
+            <p className="mt-2 rounded-[12px] bg-[#17181C]/[0.03] p-3 text-sm font-semibold text-[#17181C]/85">{name(r.reported_id)}</p>
+            {r.details ? <p className="mt-1 text-xs italic text-[#17181C]/60">{r.details}</p> : null}
+            <p className="mt-2 text-[11px] text-[#17181C]/50">Reported by {name(r.reporter_id)} - {new Date(r.created_at).toLocaleString()}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link href={'/users?q=' + encodeURIComponent(people[r.reported_id]?.username || '')} className="rounded-xl bg-[#0B1E3D] px-4 py-2 text-xs font-extrabold text-white hover:opacity-90">Open on the user desk</Link>
+              <Link href={'/users?q=' + encodeURIComponent(people[r.reported_id]?.username || '')} className="rounded-[12px] bg-[#17181C] px-4 py-2 text-xs font-extrabold text-white transition-opacity duration-150 hover:opacity-90">Open on the user desk</Link>
               <form action={resolveUserReport}>
                 <input type="hidden" name="rid" value={r.id} /><input type="hidden" name="outcome" value="actioned" />
-                <button className="rounded-xl border border-[#0B1E3D]/15 px-4 py-2 text-xs font-bold text-[#0B1E3D]/70 hover:bg-[#0B1E3D]/5">Mark actioned</button>
+                <button className="rounded-[12px] border border-[#17181C]/15 px-4 py-2 text-xs font-bold text-[#17181C]/70 transition-colors duration-150 hover:bg-[#17181C]/5">Mark actioned</button>
               </form>
               <form action={resolveUserReport}>
                 <input type="hidden" name="rid" value={r.id} /><input type="hidden" name="outcome" value="dismissed" />
-                <button className="rounded-xl border border-[#0B1E3D]/15 px-4 py-2 text-xs font-bold text-[#0B1E3D]/70 hover:bg-[#0B1E3D]/5">No violation</button>
+                <button className="rounded-[12px] border border-[#17181C]/15 px-4 py-2 text-xs font-bold text-[#17181C]/70 transition-colors duration-150 hover:bg-[#17181C]/5">No violation</button>
               </form>
             </div>
           </div>
