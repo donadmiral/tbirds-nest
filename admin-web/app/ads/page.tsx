@@ -89,13 +89,13 @@ export default async function AdsPage() {
       <div className="flex items-center gap-3">
         {p.avatar_url
           ? <img src={p.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
-          : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B1E3D]/10 text-sm font-bold text-[#0B1E3D]">{String(p.full_name || '?').slice(0, 1)}</div>}
+          : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#17181C]/10 text-sm font-bold text-[#17181C]">{String(p.full_name || '?').slice(0, 1)}</div>}
         <div>
-          <p className="flex items-center gap-1 text-sm font-extrabold text-[#0B1E3D]">
+          <p className="flex items-center gap-1 text-sm font-extrabold text-[#17181C]">
             {p.full_name || 'Unknown business'}
             {p.is_verified && p.verified_tier ? <Seal tier={p.verified_tier} size={13} /> : null}
           </p>
-          <p className="text-[11px] text-[#0B1E3D]/50">@{p.username || '-'}</p>
+          <p className="text-[11px] text-[#17181C]/50">@{p.username || '-'}</p>
         </div>
       </div>
     );
@@ -103,18 +103,18 @@ export default async function AdsPage() {
 
   const adsStrip = (id: string) => {
     const rows = promoByCampaign[id] || [];
-    if (!rows.length) return <p className="mt-2 text-xs text-[#0B1E3D]/40">No ads added to this campaign yet.</p>;
+    if (!rows.length) return <p className="mt-2 text-xs text-[#17181C]/40">No ads added to this campaign yet.</p>;
     return (
       <div className="mt-3 flex flex-wrap gap-2">
         {rows.map(r => (
-          <div key={r.id} className="flex w-64 items-center gap-2 rounded-xl border border-[#0B1E3D]/10 bg-white p-2">
+          <div key={r.id} className="flex w-64 items-center gap-2 rounded-[12px] border border-[#17181C]/10 bg-white p-2">
             {r.thumb
               ? <img src={r.thumb} alt="" className="h-9 w-9 rounded-lg object-cover" />
-              : <div className="h-9 w-9 rounded-lg bg-[#0B1E3D]/5" />}
+              : <div className="h-9 w-9 rounded-lg bg-[#17181C]/5" />}
             <div className="min-w-0">
-              <p className="truncate text-[11.5px] font-semibold text-[#0B1E3D]">{r.label || 'Sponsored'}</p>
-              <p className="truncate text-[10.5px] text-[#0B1E3D]/45">{r.content || 'Media post'}</p>
-              <p className="text-[10px] tabular-nums text-[#0B1E3D]/40">{Number(r.impressions_count || 0).toLocaleString()} / {r.total_cap ? Number(r.total_cap).toLocaleString() : '\u221e'} impr · {Number(r.clicks_count || 0).toLocaleString()} clicks</p>
+              <p className="truncate text-[11.5px] font-semibold text-[#17181C]">{r.label || 'Sponsored'}</p>
+              <p className="truncate text-[10.5px] text-[#17181C]/45">{r.content || 'Media post'}</p>
+              <p className="text-[10px] tabular-nums text-[#17181C]/40">{Number(r.impressions_count || 0).toLocaleString()} / {r.total_cap ? Number(r.total_cap).toLocaleString() : '\u221e'} impr · {Number(r.clicks_count || 0).toLocaleString()} clicks</p>
             </div>
           </div>
         ))}
@@ -145,21 +145,21 @@ export default async function AdsPage() {
 
       <p className="mb-2 mt-8 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Awaiting review</p>
       {submitted.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#0B1E3D]/15 bg-white p-12 text-center">
-          <p className="text-sm font-bold text-[#0B1E3D]">Nothing waiting.</p>
-          <p className="mt-1 text-xs text-[#0B1E3D]/50">Campaigns land here the moment a business submits them for review.</p>
+        <div className="rounded-[12px] border border-dashed border-[#17181C]/15 bg-white p-12 text-center">
+          <p className="text-sm font-bold text-[#17181C]">Nothing waiting.</p>
+          <p className="mt-1 text-xs text-[#17181C]/50">Campaigns land here the moment a business submits them for review.</p>
         </div>
       ) : submitted.map(c => (
-        <div key={c.id} className="mb-5 rounded-2xl border border-[#0B1E3D]/10 bg-white p-6 shadow-sm">
+        <div key={c.id} className="mb-5 rounded-[12px] border border-[#17181C]/10 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
             {ownerRow(c.owner_id)}
-            <span className="flex items-center gap-1.5 rounded-full bg-[#0B1E3D]/5 px-3 py-1.5 text-xs font-bold text-[#0B1E3D]">
+            <span className="flex items-center gap-1.5 rounded-full bg-[#17181C]/5 px-3 py-1.5 text-xs font-bold text-[#17181C]">
               {OBJ_LABEL[c.objective] || c.objective} · {c.currency} {Number(c.budget).toLocaleString()} · {PAY_LABEL[c.payment_method] || 'No payment method set'}
             </span>
           </div>
-          <div className="mt-4 rounded-xl bg-[#0B1E3D]/[0.03] p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B1E3D]/40">{c.name}</p>
-            <p className="mt-1 text-xs text-[#0B1E3D]/70">
+          <div className="mt-4 rounded-[12px] bg-[#17181C]/[0.03] p-4">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-[#17181C]/40">{c.name}</p>
+            <p className="mt-1 text-xs text-[#17181C]/70">
               Submitted {new Date(c.created_at).toLocaleString()}
               {c.starts_at ? ' \u00b7 starts ' + new Date(c.starts_at).toLocaleDateString() : ''}
               {c.ends_at ? ' \u00b7 ends ' + new Date(c.ends_at).toLocaleDateString() : ' \u00b7 no end date set'}
@@ -169,14 +169,14 @@ export default async function AdsPage() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <form action={approveCampaign} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="id" value={c.id} />
-              <input name="paid_amount" placeholder={'Amount received (' + c.currency + ')'} className="w-48 rounded-xl border border-[#0B1E3D]/15 px-3 py-2 text-xs text-[#0B1E3D] outline-none focus:border-[#0B1E3D]" />
-              <input name="payment_ref" placeholder="Payment reference" className="w-44 rounded-xl border border-[#0B1E3D]/15 px-3 py-2 text-xs text-[#0B1E3D] outline-none focus:border-[#0B1E3D]" />
-              <button className="rounded-xl bg-[#0B1E3D] px-5 py-2 text-xs font-extrabold text-white hover:opacity-90">Approve</button>
+              <input name="paid_amount" placeholder={'Amount received (' + c.currency + ')'} className="w-48 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+              <input name="payment_ref" placeholder="Payment reference" className="w-44 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+              <button className="rounded-[12px] bg-[#17181C] px-5 py-2 text-xs font-extrabold text-white transition-opacity duration-150 hover:opacity-90">Approve</button>
             </form>
             <form action={rejectCampaign} className="flex flex-1 min-w-[260px] items-center gap-2">
               <input type="hidden" name="id" value={c.id} />
-              <input name="reason" placeholder="Reason if rejecting" className="flex-1 rounded-xl border border-[#0B1E3D]/15 px-3 py-2 text-xs text-[#0B1E3D] outline-none focus:border-[#0B1E3D]" />
-              <button className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-100">Reject</button>
+              <input name="reason" placeholder="Reason if rejecting" className="flex-1 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+              <button className="rounded-[12px] border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">Reject</button>
             </form>
           </div>
         </div>
@@ -184,7 +184,7 @@ export default async function AdsPage() {
 
       <p className="mb-2 mt-8 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Running now</p>
       {live.length === 0 ? (
-        <p className="text-xs text-[#0B1E3D]/40">No approved, live or paused campaigns right now.</p>
+        <p className="text-xs text-[#17181C]/40">No approved, live or paused campaigns right now.</p>
       ) : (
         <div className="rounded-[12px] border border-[#E8E6E1] bg-white">
           {live.map(c => (
@@ -197,7 +197,7 @@ export default async function AdsPage() {
                 {c.status !== 'approved' || (promoByCampaign[c.id] || []).length ? (
                   <form action={adminEndCampaign}>
                     <input type="hidden" name="id" value={c.id} />
-                    <button className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-bold text-red-700 hover:bg-red-100">End</button>
+                    <button className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">End</button>
                   </form>
                 ) : null}
               </div>
