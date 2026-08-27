@@ -70,7 +70,7 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
 
   if (!q) return null;
   return (
-    <Link href={"/post/" + quotedId} onClick={(e) => e.stopPropagation()} className="mt-3 flex gap-3 rounded-lg border border-ink/10 p-3 transition-colors hover:bg-surface">
+    <Link href={"/post/" + quotedId} onClick={(e) => e.stopPropagation()} className="mt-3 flex gap-3 rounded-xl border border-ink/10 p-3 transition-colors duration-[140ms] hover:bg-surface">
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-[13px]">
           <span className="truncate font-semibold text-ink">{q.author?.full_name ?? "Member"}</span>
@@ -81,10 +81,10 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
       </span>
       {q.first && q.first.media_type === "image" ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={displayImageUrl(q.first.url)!} onError={(e) => { if (q.first && e.currentTarget.src !== q.first.url) e.currentTarget.src = q.first.url; }} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
+        <img src={displayImageUrl(q.first.url)!} onError={(e) => { if (q.first && e.currentTarget.src !== q.first.url) e.currentTarget.src = q.first.url; }} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
       ) : null}
       {q.first && q.first.media_type === "video" ? (
-        <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-black"><video src={q.first.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-ink"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span></span>
+        <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-black"><video src={q.first.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span></span>
       ) : null}
     </Link>
   );
@@ -123,7 +123,7 @@ export function PostCard({ post }: { post: FeedRow }) {
   }
 
   return (
-    <article className="relative border-b border-ink/10 px-1 py-5">
+    <article className="relative border-b border-ink/10 px-4 py-5 transition-colors duration-[140ms] hover:bg-surface/60">
       {(post as unknown as { is_pinned?: boolean }).is_pinned ? (
         <span className="mb-1.5 flex items-center gap-1.5 pl-10 text-[12px] font-semibold text-ink/45"><Pin size={13} /> Pinned</span>
       ) : null}
@@ -138,17 +138,17 @@ export function PostCard({ post }: { post: FeedRow }) {
           <Heart size={84} className="animate-ping text-danger" fill="currentColor" />
         </span>
       ) : null}
-      <div className="flex gap-3">
+      <div className="flex gap-3.5">
         <StoryAvatar userId={post.author_id}
           name={post.author_name}
           avatarUrl={post.author_avatar}
-          size={44}
+          size={46}
           href={profileHref}
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
-              <span className="truncate text-[15px] font-semibold text-ink">{post.author_name}</span>
+              <span className="truncate text-[15.5px] font-semibold text-ink">{post.author_name}</span>
               {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
               <span className="truncate text-[13px] text-ink/50">@{post.author_username}</span>
             </Link>
@@ -162,13 +162,13 @@ export function PostCard({ post }: { post: FeedRow }) {
           </div>
 
           {post.article_title ? (
-            <h3 className="mt-1 font-display text-lg text-porcelain">{post.article_title}</h3>
+            <h3 className="mt-1.5 font-display text-xl text-porcelain">{post.article_title}</h3>
           ) : null}
 
           {text ? (
             <p onClick={() => router.push(postHref)}
               onDoubleClick={doubleLike}
-              className="mt-1 cursor-pointer whitespace-pre-wrap text-[15px] leading-relaxed text-ink/90"
+              className="mt-1.5 cursor-pointer whitespace-pre-wrap text-[16px] leading-relaxed text-ink/90"
             >
               <RichText text={text} />
             </p>
@@ -185,7 +185,7 @@ export function PostCard({ post }: { post: FeedRow }) {
         <Link href={"/post/" + (post as unknown as { thread_parent_id?: string | null }).thread_parent_id} onClick={(e) => e.stopPropagation()} className="mb-1 inline-block text-[12px] text-pearl hover:underline">Part of a thread · view previous</Link>
       ) : null}
       {(post as unknown as { has_fact_check?: boolean }).has_fact_check ? (
-        <Link href={"/post/" + post.post_id} onClick={(e) => e.stopPropagation()} className="mb-1 flex w-fit items-center gap-1 rounded-md bg-pearl/10 px-2 py-0.5 text-[11px] font-semibold text-pearl hover:bg-pearl/15">
+        <Link href={"/post/" + post.post_id} onClick={(e) => e.stopPropagation()} className="mb-1 flex w-fit items-center gap-1 rounded-full bg-pearl/10 px-2.5 py-1 text-[11px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-pearl/15">
           <ShieldCheck size={12} /> Fact check added
         </Link>
       ) : null}
@@ -194,13 +194,13 @@ export function PostCard({ post }: { post: FeedRow }) {
 
           {post.link && media.length === 0 ? (
             <a href={post.link.url} target="_blank" rel="noopener noreferrer"
-              className="mt-3 block overflow-hidden rounded-lg border border-ink/10 transition-colors hover:bg-surface"
+              className="mt-3 block overflow-hidden rounded-xl border border-ink/10 transition-colors duration-[140ms] hover:bg-surface"
             >
               {post.link.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={displayImageUrl(post.link.image_url)!} onError={(e) => { if (post.link?.image_url && e.currentTarget.src !== post.link.image_url) e.currentTarget.src = post.link.image_url; }} alt="" loading="lazy" className="max-h-60 w-full object-cover" />
+                <img src={displayImageUrl(post.link.image_url)!} onError={(e) => { if (post.link?.image_url && e.currentTarget.src !== post.link.image_url) e.currentTarget.src = post.link.image_url; }} alt="" loading="lazy" className="max-h-72 w-full object-cover" />
               ) : null}
-              <span className="block px-3 py-2">
+              <span className="block px-3.5 py-2.5">
                 <span className="block text-[11px] uppercase tracking-wide text-ink/40">{post.link.domain}</span>
                 <span className="block truncate text-[14px] text-ink/90">{post.link.title ?? post.link.url}</span>
               </span>
@@ -208,57 +208,59 @@ export function PostCard({ post }: { post: FeedRow }) {
           ) : null}
 
           {products.length > 0 ? (
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1">
               {products.map((p) => (
-                <div key={p.id} className="relative w-52 shrink-0 overflow-hidden rounded-lg border border-ink/10">
+                <div key={p.id} className="relative w-52 shrink-0 overflow-hidden rounded-xl border border-ink/10">
                   {p.listing_status && p.listing_status !== "available" ? (
-                    <span className="absolute inset-0 z-10 flex items-center justify-center bg-ink/60 text-[12px] font-bold uppercase tracking-widest text-ink">{p.listing_status === "sold" ? "Sold" : "Unavailable"}</span>
+                    <span className="absolute inset-0 z-10 flex items-center justify-center bg-ink/60 text-[12px] font-bold uppercase tracking-widest text-white">{p.listing_status === "sold" ? "Sold" : "Unavailable"}</span>
                   ) : null}
                   {p.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={displayImageUrl(p.image_url)!} onError={(e) => { if (p.image_url && e.currentTarget.src !== p.image_url) e.currentTarget.src = p.image_url; }} alt="" loading="lazy" className="h-28 w-full bg-surface object-cover" />
                   ) : null}
-                  <div className="px-3 py-2">
+                  <div className="px-3 py-2.5">
                     <p className="truncate text-[13px] font-medium text-ink">{p.title}</p>
-                    {p.price != null ? <p className="text-[13px] text-pearl">{p.currency ?? ""} {p.price}</p> : null}
+                    {p.price != null ? <p className="text-[13px] font-semibold text-pearl">{p.currency ?? ""} {p.price}</p> : null}
                   </div>
                 </div>
               ))}
             </div>
           ) : null}
 
-          <div className="mt-3 flex items-center gap-7">
-            <Link href={postHref} className="flex items-center gap-1.5 text-[13px] text-ink/50 transition-colors hover:text-ink">
-              <MessageCircle size={17} strokeWidth={1.8} />
+          <div className="-ml-2.5 mt-3 flex items-center gap-1">
+            <Link href={postHref} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-ink/50 transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
+              <MessageCircle size={18} strokeWidth={1.8} />
               {count(post.comments_count)}
             </Link>
             <span className="relative">
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (repost.on) { repost.set(false); } else { setRepostMenu((v) => !v); } }} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (repost.on ? "text-success" : "text-ink/50 hover:text-success")}>
-                <Repeat2 size={17} strokeWidth={1.8} />
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (repost.on) { repost.set(false); } else { setRepostMenu((v) => !v); } }} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (repost.on ? "text-success" : "text-ink/50 hover:bg-success/10 hover:text-success")}>
+                <Repeat2 size={18} strokeWidth={1.8} />
                 {count(repost.n)}
               </button>
               {repostMenu ? (
-                <span className="absolute bottom-7 left-0 z-20 w-36 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
-                  <button onClick={(e) => { e.stopPropagation(); setRepostMenu(false); repost.set(true); }} className="block w-full px-3.5 py-2.5 text-left text-[13px] text-ink/85 hover:bg-surface-elevated">Repost</button>
-                  <button onClick={(e) => { e.stopPropagation(); setRepostMenu(false); window.dispatchEvent(new CustomEvent("pc-quote-post", { detail: { id: post.post_id, author: post.author_name, text: text.slice(0, 140) } })); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="block w-full px-3.5 py-2.5 text-left text-[13px] text-ink/85 hover:bg-surface-elevated">Quote</button>
+                <span className="absolute bottom-9 left-0 z-20 w-36 overflow-hidden rounded-xl border border-ink/10 bg-navy shadow-2xl">
+                  <button onClick={(e) => { e.stopPropagation(); setRepostMenu(false); repost.set(true); }} className="block w-full px-3.5 py-2.5 text-left text-[13px] text-white/90 transition-colors duration-[140ms] hover:bg-surface-elevated">Repost</button>
+                  <button onClick={(e) => { e.stopPropagation(); setRepostMenu(false); window.dispatchEvent(new CustomEvent("pc-quote-post", { detail: { id: post.post_id, author: post.author_name, text: text.slice(0, 140) } })); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="block w-full px-3.5 py-2.5 text-left text-[13px] text-white/90 transition-colors duration-[140ms] hover:bg-surface-elevated">Quote</button>
                 </span>
               ) : null}
             </span>
-            <span className="flex items-center gap-1">
-              <button onClick={like.flip} title={like.on ? "Unlike" : "Like"} className={"transition-colors " + (like.on ? "text-danger" : "text-ink/50 hover:text-danger")}>
-                <Heart size={17} strokeWidth={1.8} fill={like.on ? "currentColor" : "none"} />
+            <span className="flex items-center">
+              <button onClick={like.flip} title={like.on ? "Unlike" : "Like"} className={"rounded-full p-2 transition-colors duration-[140ms] " + (like.on ? "text-danger" : "text-ink/50 hover:bg-danger/10 hover:text-danger")}>
+                <Heart size={18} strokeWidth={1.8} fill={like.on ? "currentColor" : "none"} />
               </button>
               {like.n > 0 ? (
-                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLikesOpen(true); }} title="See who liked this" className={"text-[13px] transition-colors hover:underline " + (like.on ? "text-danger" : "text-ink/50")}>
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLikesOpen(true); }} title="See who liked this" className={"-ml-1 text-[13px] transition-colors duration-[140ms] hover:underline " + (like.on ? "text-danger" : "text-ink/50")}>
                   {count(like.n)}
                 </button>
               ) : null}
             </span>
-            <button onClick={mark.flip} className={"flex items-center gap-1.5 text-[13px] transition-colors " + (mark.on ? "text-pearl" : "text-ink/50 hover:text-pearl")}>
-              <Bookmark size={17} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
+            <button onClick={mark.flip} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (mark.on ? "text-pearl" : "text-ink/50 hover:bg-pearl/10 hover:text-pearl")}>
+              <Bookmark size={18} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
               {count(mark.n)}
             </button>
-            <ShareMenu postId={post.post_id} sharesCount={(post as unknown as { shares_count?: number }).shares_count ?? 0} />
+            <span className="ml-auto">
+              <ShareMenu postId={post.post_id} sharesCount={(post as unknown as { shares_count?: number }).shares_count ?? 0} />
+            </span>
           </div>
         </div>
       </div>
