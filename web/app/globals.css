@@ -5,7 +5,7 @@
    intimate luminance. Semantic names, never raw hex in components. */
 @theme {
   --color-ink: #16181c;
-  --color-navy: #ffffff;
+  --color-navy: #16181c;
   --color-pearl: #c9bfb0;
   --color-pearl-muted: #8f8477;
   --color-porcelain: #16181c;
