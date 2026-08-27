@@ -7,6 +7,7 @@ import { VideoPlayer } from "@/components/VideoPlayer";
 import { RichText } from "@/components/RichText";
 import { displayImageUrl, srcSetFor } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
+import { createClient } from "@/lib/supabase/client";
 
 type MediaItem = { id: string; url: string; media_type: string; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null };
 type Dims = { w: number; h: number };
@@ -202,7 +203,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
   }
   function onDragEnd() { dragRef.current = null; }
 
-  const arrow = "absolute top-1/2 -translate-y-1/2 rounded-full bg-ink/70 p-1.5 text-white hover:bg-ink/90";
+  const arrow = "absolute top-1/2 -translate-y-1/2 rounded-full bg-ink/70 p-1.5 text-white transition-colors duration-[140ms] hover:bg-ink/90";
   const heightTransition = reduced ? "" : " transition-[height] duration-200";
   const count = (n?: number) => (n ?? 0) >= 1000 ? ((n ?? 0) / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(n ?? 0);
 
@@ -267,7 +268,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
                   aria-label={"Go to media " + (i + 1)}
                   className="flex h-8 w-7 items-center justify-center"
                 >
-                  <span className={"h-1.5 w-1.5 rounded-full " + (i === idx ? "bg-pearl" : "bg-white/40")} />
+                  <span className={"h-1.5 w-1.5 rounded-full transition-colors duration-[140ms] " + (i === idx ? "bg-pearl" : "bg-white/40")} />
                 </button>
               ))}
             </span>
@@ -283,18 +284,18 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
           onMouseMove={onDragMove} onMouseUp={onDragEnd} onMouseLeave={onDragEnd}
         >
           <div data-media-pane className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden">
-            <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="absolute left-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><X size={18} /></button>
+            <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="absolute left-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><X size={18} /></button>
             <span className="absolute left-16 top-5 z-10 text-[12px] font-semibold text-white/70">{lightbox + 1} / {media.length}</span>
             {post ? (
-              <button onClick={(e) => { e.stopPropagation(); setImmersive((v) => !v); }} aria-label={immersive ? "Show details" : "Immersive view"} className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20">
+              <button onClick={(e) => { e.stopPropagation(); setImmersive((v) => !v); }} aria-label={immersive ? "Show details" : "Immersive view"} className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20">
                 {immersive ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
               </button>
             ) : null}
             {lightbox > 0 ? (
-              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><ChevronLeft size={20} /></button>
+              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><ChevronLeft size={20} /></button>
             ) : null}
             {lightbox < media.length - 1 ? (
-              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox + 1); }} aria-label="Next media" className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><ChevronRight size={20} /></button>
+              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox + 1); }} aria-label="Next media" className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><ChevronRight size={20} /></button>
             ) : null}
             {media[lightbox].media_type === "video" ? (
               <div className="h-[94vh] w-full px-2" onClick={(e) => e.stopPropagation()}>
@@ -319,9 +320,9 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
             )}
             {media[lightbox].media_type === "image" ? (
               <span className="absolute bottom-4 right-4 z-10 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => setZoomClamped(zoom - 0.5)} aria-label="Zoom out" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white hover:bg-white/20">-</button>
-                <button onClick={() => resetZoom()} aria-label="Reset zoom" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-white/20">{Math.round(zoom * 100)}%</button>
-                <button onClick={() => setZoomClamped(zoom + 0.5)} aria-label="Zoom in" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white hover:bg-white/20">+</button>
+                <button onClick={() => setZoomClamped(zoom - 0.5)} aria-label="Zoom out" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white transition-colors duration-[140ms] hover:bg-white/20">-</button>
+                <button onClick={() => resetZoom()} aria-label="Reset zoom" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-white transition-colors duration-[140ms] hover:bg-white/20">{Math.round(zoom * 100)}%</button>
+                <button onClick={() => setZoomClamped(zoom + 0.5)} aria-label="Zoom in" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white transition-colors duration-[140ms] hover:bg-white/20">+</button>
               </span>
             ) : null}
           </div>
@@ -352,19 +353,19 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
               {post!.content ? (
                 <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed text-white/85"><RichText text={post!.content} /></p>
               ) : null}
-              <div className="mt-4 flex items-center gap-5 text-[13px]">
-                <button onClick={toggleLike} className={"flex items-center gap-1.5 transition-colors " + (liked ? "text-danger" : "text-white/55 hover:text-danger")}>
-                  <Heart size={15} fill={liked ? "currentColor" : "none"} /> {count(likeN)}
+              <div className="-ml-2 mt-4 flex items-center gap-1 text-[13px]">
+                <button onClick={toggleLike} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 transition-colors duration-[140ms] " + (liked ? "text-danger" : "text-white/55 hover:bg-white/10 hover:text-danger")}>
+                  <Heart size={16} fill={liked ? "currentColor" : "none"} /> {count(likeN)}
                 </button>
-                <Link href={"/post/" + post!.post_id} className="flex items-center gap-1.5 text-white/55 transition-colors hover:text-white">
-                  <MessageCircle size={15} /> {count(post!.comments_count)}
+                <Link href={"/post/" + post!.post_id} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-white/55 transition-colors duration-[140ms] hover:bg-white/10 hover:text-white">
+                  <MessageCircle size={16} /> {count(post!.comments_count)}
                 </Link>
-                <span className="flex items-center gap-1.5 text-white/55"><Repeat2 size={15} /> {count(post!.reposts_count)}</span>
-                <button onClick={toggleMark} title={marked ? "Saved" : "Save"} className={"ml-auto transition-colors " + (marked ? "text-pearl" : "text-white/55 hover:text-pearl")}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill={marked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" aria-hidden><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
+                <span className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-white/55"><Repeat2 size={16} /> {count(post!.reposts_count)}</span>
+                <button onClick={toggleMark} title={marked ? "Saved" : "Save"} className={"ml-auto rounded-full p-2 transition-colors duration-[140ms] " + (marked ? "text-pearl" : "text-white/55 hover:bg-white/10 hover:text-pearl")}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={marked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" aria-hidden><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
                 </button>
               </div>
-              <Link href={"/post/" + post!.post_id} className="mt-5 rounded-md bg-pearl px-4 py-2.5 text-center text-[13px] font-semibold text-ink transition-opacity hover:opacity-90">
+              <Link href={"/post/" + post!.post_id} className="mt-5 rounded-full bg-pearl px-4 py-2.5 text-center text-[13.5px] font-bold text-ink shadow-sm transition-opacity duration-[140ms] hover:opacity-90">
                 Open post and comments
               </Link>
             </aside>
