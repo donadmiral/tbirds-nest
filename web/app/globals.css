@@ -30,7 +30,6 @@
 body {
   background: #ffffff;
   color: var(--color-ink);
-  color: #ffffff;
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
