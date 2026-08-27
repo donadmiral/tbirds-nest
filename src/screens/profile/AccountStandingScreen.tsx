@@ -64,7 +64,7 @@ export default function AccountStandingScreen() {
             )}
             {rows.length ? <Text style={s.section}>Record</Text> : null}
             {rows.map(r => {
-              const meta = KIND_META[r.kind] || KIND_META.warn;
+              const meta = KIND_META[r.level] || KIND_META.warn;
               return (
                 <View key={r.id} style={s.row}>
                   <View style={[s.pill, { backgroundColor: meta.bg }]}>

@@ -461,6 +461,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       <section className="flex w-[340px] shrink-0 flex-col border-r border-ink/10">
         <div className="px-4 pb-2 pt-6">
           <h1 className="font-display text-xl text-porcelain">{heading}</h1>
+          {context === "personal" ? <Link href="/messages/requests" className="mt-1 inline-block text-[12px] font-semibold text-pearl hover:underline">Message requests</Link> : null}
           <div className="relative mt-3">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" />
             <input value={query}
