@@ -118,20 +118,20 @@ export default function PlannerPage() {
           <h1 className="font-display text-2xl text-porcelain">Planner</h1>
           <p className="mt-1 text-[13px] text-ink/50">Drafts, schedule and publish. Scheduled posts go out on the minute, even with Studio closed.</p>
         </div>
-        {editor ? <button onClick={() => openNew()} className="inline-flex items-center gap-1.5 rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink"><Plus size={15} /> New post</button> : null}
+        {editor ? <button onClick={() => openNew()} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> New post</button> : null}
       </div>
 
-      <div className="mt-5 rounded-xl border border-ink/10 p-3">
+      <div className="mt-5 rounded-lg border border-ink/10 p-3">
         <div className="mb-2 flex items-center justify-between">
-          <button onClick={() => setWeekStart(w => { const x = new Date(w); x.setDate(x.getDate() - 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 hover:bg-surface">Previous</button>
+          <button onClick={() => setWeekStart(w => { const x = new Date(w); x.setDate(x.getDate() - 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface">Previous</button>
           <span className="text-[12.5px] font-semibold text-ink/70">{week[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} to {week[6].toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
-          <button onClick={() => setWeekStart(w => { const x = new Date(w); x.setDate(x.getDate() + 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 hover:bg-surface">Next</button>
+          <button onClick={() => setWeekStart(w => { const x = new Date(w); x.setDate(x.getDate() + 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface">Next</button>
         </div>
         <div className="grid grid-cols-7 gap-1.5">
           {week.map(day => {
             const k = dayKey(day); const items = byDay[k] || []; const today = k === dayKey(new Date());
             return (
-              <button key={k} onClick={() => editor && openNew(day)} className={"min-h-[92px] rounded-lg border p-2 text-left transition-colors hover:bg-surface " + (today ? "border-pearl/60" : "border-ink/10")}>
+              <button key={k} onClick={() => editor && openNew(day)} className={"min-h-[92px] rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (today ? "border-pearl/60" : "border-ink/10")}>
                 <span className={"text-[11px] font-semibold " + (today ? "text-pearl" : "text-ink/45")}>{day.toLocaleDateString(undefined, { weekday: "short" })} {day.getDate()}</span>
                 {items.slice(0, 3).map(r => (
                   <span key={r.id} className={"mt-1 block truncate rounded px-1.5 py-0.5 text-[10.5px] " + statusChip(r.status)}>
@@ -147,7 +147,7 @@ export default function PlannerPage() {
 
       <div className="mt-6 flex gap-2">
         {(["upcoming", "drafts", "published"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={"rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold " + (tab === t ? "bg-ink text-white" : "bg-surface text-ink/60")}>
+          <button key={t} onClick={() => setTab(t)} className={"rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (tab === t ? "bg-ink text-white" : "bg-surface text-ink/60")}>
             {t === "upcoming" ? "Upcoming" : t === "drafts" ? "Drafts" : "Published"}
           </button>
         ))}
@@ -156,7 +156,7 @@ export default function PlannerPage() {
       {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
       : shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">{tab === "upcoming" ? "Nothing scheduled. Tap a day above to plan one." : tab === "drafts" ? "No drafts." : "Nothing published from the Planner yet."}</p>
       : shown.map(r => (
-        <div key={r.id} className="mt-2 flex items-start gap-3 rounded-xl border border-ink/10 p-3">
+        <div key={r.id} className="mt-2 flex items-start gap-3 rounded-lg border border-ink/10 p-3">
           {r.media?.[0]?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={r.media[0].url} alt="" className="h-14 w-14 rounded-lg object-cover" />
@@ -174,9 +174,9 @@ export default function PlannerPage() {
           </div>
           {editor ? (
             <div className="flex shrink-0 flex-col gap-1">
-              {r.status !== "published" && r.status !== "publishing" ? <button onClick={() => openEdit(r)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink">Edit</button> : null}
-              {r.status === "scheduled" ? <button onClick={() => cancel(r)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink">Unschedule</button> : null}
-              <button onClick={() => remove(r)} className="rounded-md px-2.5 py-1 text-[12px] text-red-400 hover:bg-red-500/10"><Trash2 size={13} /></button>
+              {r.status !== "published" && r.status !== "publishing" ? <button onClick={() => openEdit(r)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Edit</button> : null}
+              {r.status === "scheduled" ? <button onClick={() => cancel(r)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Unschedule</button> : null}
+              <button onClick={() => remove(r)} className="rounded-md px-2.5 py-1 text-[12px] text-red-400 transition-colors duration-[140ms] hover:bg-red-500/10"><Trash2 size={13} /></button>
             </div>
           ) : null}
         </div>
@@ -187,13 +187,13 @@ export default function PlannerPage() {
           <div className="flex max-h-[90vh] w-full max-w-[600px] flex-col rounded-t-2xl bg-white sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
               <p className="text-[15px] font-semibold text-ink">{d.id ? "Edit post" : "New post"}</p>
-              <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
               <textarea value={d.content} onChange={e => setD(x => ({ ...x, content: e.target.value }))} maxLength={2000} placeholder="What do you want to say?"
-                className="h-28 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[14.5px] text-ink outline-none focus:border-ink/40" />
+                className="h-28 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[14.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
               <textarea value={d.body} onChange={e => setD(x => ({ ...x, body: e.target.value }))} maxLength={20000} placeholder="Longer text (optional)"
-                className="mt-2 h-20 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none focus:border-ink/40" />
+                className="mt-2 h-20 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
               {d.media.length ? (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {d.media.map((m, i) => (
@@ -207,9 +207,9 @@ export default function PlannerPage() {
                 </div>
               ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <button onClick={() => fileRef.current?.click()} disabled={d.media.length >= 4 || busy} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 disabled:opacity-40"><ImageIcon size={14} /> Media</button>
+                <button onClick={() => fileRef.current?.click()} disabled={d.media.length >= 4 || busy} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10 disabled:opacity-40"><ImageIcon size={14} /> Media</button>
                 <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={e => { void attach(e.target.files); e.target.value = ""; }} />
-                <button onClick={() => setPickOpen(o => !o)} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70"><Tag size={14} /> Products {d.products.length ? "(" + d.products.length + ")" : ""}</button>
+                <button onClick={() => setPickOpen(o => !o)} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10"><Tag size={14} /> Products {d.products.length ? "(" + d.products.length + ")" : ""}</button>
                 {communities.length ? (
                   <select value={d.community || ""} onChange={e => setD(x => ({ ...x, community: e.target.value || null }))} className="rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 outline-none">
                     <option value="">Main feed</option>
@@ -223,7 +223,7 @@ export default function PlannerPage() {
                   : listings.map(l => {
                     const on = d.products.some(p => p.listing_id === l.id);
                     return (
-                      <button key={l.id} onClick={() => toggleListing(l)} className={"flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] " + (on ? "bg-ink text-white" : "hover:bg-black/5")}>
+                      <button key={l.id} onClick={() => toggleListing(l)} className={"flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors duration-[140ms] " + (on ? "bg-ink text-white" : "hover:bg-black/5")}>
                         {l.images?.[0] ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={l.images[0]} alt="" className="h-8 w-8 rounded object-cover" />
@@ -239,17 +239,17 @@ export default function PlannerPage() {
               <div className="flex flex-wrap gap-1.5">
                 {CATEGORIES.map(c => (
                   <button key={c.key} onClick={() => setD(x => ({ ...x, category: x.category === c.key ? null : c.key }))}
-                    className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold " + (d.category === c.key ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{c.label}</button>
+                    className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (d.category === c.key ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{c.label}</button>
                 ))}
               </div>
               <p className="mb-1.5 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-ink/40">Schedule</p>
               <input type="datetime-local" value={d.publishAt} onChange={e => setD(x => ({ ...x, publishAt: e.target.value }))}
-                className="rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none focus:border-ink/40" />
+                className="rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             </div>
             <div className="flex items-center justify-end gap-2 border-t border-ink/10 px-4 py-3">
-              <button onClick={() => save("draft")} disabled={busy} className="rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink/70 disabled:opacity-40">Save draft</button>
-              <button onClick={() => save("schedule")} disabled={busy || !d.publishAt} className="inline-flex items-center gap-1.5 rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink disabled:opacity-40"><CalendarClock size={14} /> Schedule</button>
-              <button onClick={() => save("now")} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-40"><Send size={14} /> {busy ? "Working" : "Publish now"}</button>
+              <button onClick={() => save("draft")} disabled={busy} className="rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition-opacity duration-[140ms] hover:opacity-80 disabled:opacity-40">Save draft</button>
+              <button onClick={() => save("schedule")} disabled={busy || !d.publishAt} className="inline-flex items-center gap-1.5 rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-80 disabled:opacity-40"><CalendarClock size={14} /> Schedule</button>
+              <button onClick={() => save("now")} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40"><Send size={14} /> {busy ? "Working" : "Publish now"}</button>
             </div>
           </div>
         </div>
