@@ -101,7 +101,7 @@ export default function RecruiterPage() {
           <h1 className="font-display text-2xl text-porcelain">Recruiter</h1>
           <p className="mt-1 text-[13px] text-ink/50">Every application moves through one pipeline. Candidates hear from you on offer, hire, rejection and interviews.</p>
         </div>
-        <Link href="/jobs" className="inline-flex items-center gap-1.5 rounded-md bg-pearl px-3.5 py-2 text-[13px] font-semibold text-ink"><Plus size={14} /> Post a job</Link>
+        <Link href="/jobs" className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3.5 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> Post a job</Link>
       </div>
 
       {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : jobs.length === 0 ? (
@@ -110,7 +110,7 @@ export default function RecruiterPage() {
         <>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
             {jobs.map(j => (
-              <button key={j.id} onClick={() => { setJobId(j.id); setSel(null); }} className={"shrink-0 rounded-xl border px-3.5 py-2 text-left " + (jobId === j.id ? "border-pearl bg-surface" : "border-ink/10 hover:bg-surface")}>
+              <button key={j.id} onClick={() => { setJobId(j.id); setSel(null); }} className={"shrink-0 rounded-lg border px-3.5 py-2 text-left transition-colors duration-[140ms] " + (jobId === j.id ? "border-pearl bg-surface" : "border-ink/10 hover:bg-surface")}>
                 <span className="flex items-center gap-2 text-[13.5px] font-semibold text-ink"><Briefcase size={13} className={j.closed ? "text-ink/30" : "text-pearl"} /> {j.title}{j.closed ? <span className="text-[10px] uppercase text-ink/40">closed</span> : null}</span>
                 <span className="mt-0.5 block text-[11.5px] text-ink/45">{j.counts.total} applicants · {j.counts.interview} interviewing · {j.counts.hired} hired</span>
               </button>
@@ -123,7 +123,7 @@ export default function RecruiterPage() {
               <span>· posted {new Date(job.created_at).toLocaleDateString()}</span>
               {job.deadline ? <span>· {job.closed ? "closed" : "closes"} {new Date(job.deadline).toLocaleDateString()}</span> : null}
               <Link href={"/jobs?job=" + job.id} className="text-pearl">View listing</Link>
-              <button onClick={() => toggleClose(job)} className="ml-auto rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink">{job.closed ? "Reopen job" : "Close job"}</button>
+              <button onClick={() => toggleClose(job)} className="ml-auto rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">{job.closed ? "Reopen job" : "Close job"}</button>
             </div>
           ) : null}
 
@@ -132,10 +132,10 @@ export default function RecruiterPage() {
               {STAGES.map(st => {
                 const col = apps.filter(a => a.status === st);
                 return (
-                  <div key={st} className="rounded-xl border border-ink/10 p-2">
+                  <div key={st} className="rounded-lg border border-ink/10 p-2">
                     <p className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-ink/45"><span>{STAGE_LABEL[st]}</span><span>{col.length}</span></p>
                     {loadingApps ? <p className="px-1 text-[12px] text-ink/30">Loading</p> : col.map(a => (
-                      <button key={a.id} onClick={() => setSel(a)} className={"mb-1.5 w-full rounded-lg border p-2 text-left transition-colors hover:bg-surface " + (sel?.id === a.id ? "border-pearl" : "border-ink/10")}>
+                      <button key={a.id} onClick={() => setSel(a)} className={"mb-1.5 w-full rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (sel?.id === a.id ? "border-pearl" : "border-ink/10")}>
                         <span className="flex items-center gap-2">
                           {a.avatar_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -152,7 +152,7 @@ export default function RecruiterPage() {
               })}
             </div>
 
-            <aside className="rounded-xl border border-ink/10 p-4">
+            <aside className="rounded-lg border border-ink/10 p-4">
               {!sel ? <p className="text-[13px] text-ink/45">Select an applicant to see their application, move them, schedule an interview or leave notes.</p> : (
                 <>
                   <div className="flex items-start gap-3">
@@ -164,15 +164,15 @@ export default function RecruiterPage() {
                       <p className="text-[15px] font-semibold text-ink">{sel.name}</p>
                       <p className="text-[12px] text-ink/45">{sel.username ? "@" + sel.username : ""}{sel.location ? " · " + sel.location : ""}</p>
                     </div>
-                    <button onClick={() => setSel(null)} className="rounded-full p-1 text-ink/40 hover:bg-surface" aria-label="Close"><X size={15} /></button>
+                    <button onClick={() => setSel(null)} className="rounded-full p-1 text-ink/40 transition-colors duration-[140ms] hover:bg-surface" aria-label="Close"><X size={15} /></button>
                   </div>
                   {sel.bio ? <p className="mt-2 text-[12.5px] text-ink/60">{sel.bio}</p> : null}
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {sel.username ? <Link href={"/" + sel.username} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink"><ExternalLink size={12} /> Profile</Link> : null}
-                    <button onClick={() => message(sel)} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink"><MessageCircle size={12} /> Message</button>
-                    {sel.cv_url ? <a href={sel.cv_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink"><FileText size={12} /> {sel.cv_name || "CV"}</a> : null}
-                    {sel.portfolio_url ? <a href={sel.portfolio_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink"><ExternalLink size={12} /> Portfolio</a> : null}
-                    {sel.phone ? <a href={"tel:" + sel.phone} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink"><Phone size={12} /> {sel.phone}</a> : null}
+                    {sel.username ? <Link href={"/" + sel.username} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><ExternalLink size={12} /> Profile</Link> : null}
+                    <button onClick={() => message(sel)} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><MessageCircle size={12} /> Message</button>
+                    {sel.cv_url ? <a href={sel.cv_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><FileText size={12} /> {sel.cv_name || "CV"}</a> : null}
+                    {sel.portfolio_url ? <a href={sel.portfolio_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><ExternalLink size={12} /> Portfolio</a> : null}
+                    {sel.phone ? <a href={"tel:" + sel.phone} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Phone size={12} /> {sel.phone}</a> : null}
                   </div>
                   {sel.cover_letter || sel.cover_note ? (
                     <div className="mt-3 rounded-lg bg-surface p-3">
@@ -185,18 +185,18 @@ export default function RecruiterPage() {
                   <div className="flex flex-wrap gap-1.5">
                     {STAGES.map(st => (
                       <button key={st} disabled={busy || sel.status === st} onClick={() => setStage(sel, st)}
-                        className={"rounded-full px-2.5 py-1 text-[12px] font-semibold disabled:opacity-100 " + (sel.status === st ? "bg-ink text-white" : st === "rejected" ? "bg-red-500/10 text-red-400" : st === "hired" ? "bg-success/15 text-success" : "bg-surface text-ink/60 hover:text-ink")}>{STAGE_LABEL[st]}</button>
+                        className={"rounded-full px-2.5 py-1 text-[12px] font-semibold transition-colors duration-[140ms] disabled:opacity-100 " + (sel.status === st ? "bg-ink text-white" : st === "rejected" ? "bg-red-500/10 text-red-400" : st === "hired" ? "bg-success/15 text-success" : "bg-surface text-ink/60 hover:text-ink")}>{STAGE_LABEL[st]}</button>
                     ))}
                   </div>
 
                   <p className="mb-1.5 mt-4 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-ink/40"><Calendar size={11} /> Interview</p>
-                  <input type="datetime-local" value={ivAt} onChange={e => setIvAt(e.target.value)} className="w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
-                  <input value={ivLoc} onChange={e => setIvLoc(e.target.value)} placeholder="Location or video link" className="mt-1.5 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
-                  <button onClick={() => schedule(sel)} disabled={busy || !ivAt} className="mt-1.5 rounded-md bg-pearl px-3 py-1.5 text-[12.5px] font-semibold text-ink disabled:opacity-40">{sel.interview_at ? "Update and notify" : "Schedule and notify"}</button>
+                  <input type="datetime-local" value={ivAt} onChange={e => setIvAt(e.target.value)} className="w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+                  <input value={ivLoc} onChange={e => setIvLoc(e.target.value)} placeholder="Location or video link" className="mt-1.5 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+                  <button onClick={() => schedule(sel)} disabled={busy || !ivAt} className="mt-1.5 rounded-md bg-ink px-3 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{sel.interview_at ? "Update and notify" : "Schedule and notify"}</button>
 
                   <p className="mb-1.5 mt-4 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Tags</p>
                   <div className="flex gap-1.5">
-                    <input value={tagText} onChange={e => setTagText(e.target.value)} onBlur={() => saveTags(sel)} placeholder="strong, local, needs visa" className="w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
+                    <input value={tagText} onChange={e => setTagText(e.target.value)} onBlur={() => saveTags(sel)} placeholder="strong, local, needs visa" className="w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
                   </div>
 
                   <p className="mb-1.5 mt-4 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Team notes</p>
@@ -207,8 +207,8 @@ export default function RecruiterPage() {
                     </div>
                   ))}
                   <div className="flex gap-1.5">
-                    <input value={note} onChange={e => setNote(e.target.value)} onKeyDown={e => { if (e.key === "Enter") addNote(sel); }} placeholder="Add a note, only your team sees it" className="w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
-                    <button onClick={() => addNote(sel)} disabled={busy || !note.trim()} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Add</button>
+                    <input value={note} onChange={e => setNote(e.target.value)} onKeyDown={e => { if (e.key === "Enter") addNote(sel); }} placeholder="Add a note, only your team sees it" className="w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+                    <button onClick={() => addNote(sel)} disabled={busy || !note.trim()} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">Add</button>
                   </div>
                 </>
               )}
