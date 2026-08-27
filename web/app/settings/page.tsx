@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AtSign, ChevronRight, EyeOff, Settings as SettingsIcon, ShieldAlert, ShieldOff, UserCheck } from "lucide-react";
+import { AtSign, ChevronRight, Edit3, EyeOff, Settings as SettingsIcon, ShieldAlert, ShieldOff, UserCheck } from "lucide-react";
 import { autoplayEnabled, dataSaverEnabled, setAutoplay, setDataSaver } from "@/lib/mediaPrefs";
 
 export default function SettingsPage() {
@@ -37,6 +37,11 @@ export default function SettingsPage() {
     <div className="px-1">
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><SettingsIcon size={19} className="text-pearl" /> Settings</h1>
       <p className="pb-5 text-[13px] text-ink/50">Your account, privacy, and how this device behaves.</p>
+
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Create</p>
+      <div className="mb-6">
+        <NavRow href="/write" icon={<Edit3 size={16} />} label="Write an article" sub="Long-form publishing with a cover and read time" />
+      </div>
 
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Account</p>
       <div className="mb-6 flex flex-col gap-2">
