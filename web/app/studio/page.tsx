@@ -48,12 +48,15 @@ export default function StudioHomePage() {
       <section className="mt-6">
         <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Needs attention</h2>
         {todos.length === 0 ? (
-          <p className="rounded-xl border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">Nothing waiting on you. Inbox, offers, applicants and ads are all clear.</p>
+          <p className="rounded-lg border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">Nothing waiting on you. Inbox, offers, applicants and ads are all clear.</p>
         ) : (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {todos.map(t => (
-              <Link key={t.label} href={t.href} className="flex items-center gap-3 rounded-xl border border-ink/10 px-4 py-3 transition-colors hover:bg-surface">
-                <t.icon size={17} className="text-pearl" />
+              <Link key={t.label} href={t.href} className="flex items-center gap-3 rounded-lg border border-ink/10 px-4 py-3 transition-colors duration-[140ms] hover:bg-surface">
+                <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pearl/12">
+                  <t.icon size={15} className="text-pearl" />
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-pearl" aria-hidden />
+                </span>
                 <span className="text-[14px] text-ink"><span className="font-semibold">{t.n}</span> {t.label}</span>
               </Link>
             ))}
@@ -68,9 +71,9 @@ export default function StudioHomePage() {
             const p = pct(s.now, s.prev);
             const up = p > 0, flat = p === 0;
             return (
-              <div key={s.label} className="rounded-xl border border-ink/10 px-4 py-3">
+              <div key={s.label} className="rounded-lg border border-ink/10 px-4 py-3">
                 <p className="text-[11.5px] text-ink/45">{s.label}</p>
-                <p className="mt-0.5 font-display text-[22px] text-porcelain">{s.now.toLocaleString()}</p>
+                <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">{s.now.toLocaleString()}</p>
                 <p className={"mt-0.5 flex items-center gap-1 text-[11.5px] " + (flat ? "text-ink/35" : up ? "text-success" : "text-red-400")}>
                   {flat ? null : up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                   {flat ? "no change" : Math.abs(p) + "% vs prior week"}
@@ -90,9 +93,9 @@ export default function StudioHomePage() {
         <div>
           <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Recent posts</h2>
           {h.recent.length === 0 ? (
-            <p className="rounded-xl border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">No posts yet. <Link href="/studio/planner" className="text-pearl">Plan the first one.</Link></p>
+            <p className="rounded-lg border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">No posts yet. <Link href="/studio/planner" className="text-pearl">Plan the first one.</Link></p>
           ) : h.recent.map(p => (
-            <Link key={p.post_id} href={"/post/" + p.post_id} className="mb-2 block rounded-xl border border-ink/10 px-4 py-3 transition-colors hover:bg-surface">
+            <Link key={p.post_id} href={"/post/" + p.post_id} className="mb-2 block rounded-lg border border-ink/10 px-4 py-3 transition-colors duration-[140ms] hover:bg-surface">
               <p className="line-clamp-2 text-[13.5px] text-ink">{p.content || p.body || "Media post"}</p>
               <p className="mt-1.5 text-[11.5px] text-ink/45">{new Date(p.created_at).toLocaleDateString()} · {p.views_count} views · {p.likes_count} likes · {p.comments_count} comments · {p.reposts_count} reposts</p>
             </Link>
@@ -100,7 +103,7 @@ export default function StudioHomePage() {
         </div>
         <div>
           <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Best times to post</h2>
-          <div className="rounded-xl border border-ink/10 px-4 py-3">
+          <div className="rounded-lg border border-ink/10 px-4 py-3">
             {h.best_hours.length === 0 ? (
               <p className="text-[13px] text-ink/50">Appears after your posts collect engagement.</p>
             ) : h.best_hours.map(b => (
