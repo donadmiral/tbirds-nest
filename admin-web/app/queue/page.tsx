@@ -51,33 +51,33 @@ export default async function QueuePage() {
   return (
     <Shell admin={admin} active="/queue" title="Verification queue" sub="Badges are earned here, never bought - every case gets a human decision">
         {(apps ?? []).length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#0B1E3D]/15 bg-white p-12 text-center">
-            <p className="text-sm font-bold text-[#0B1E3D]">The queue is empty.</p>
-            <p className="mt-1 text-xs text-[#0B1E3D]/50">When someone applies in the app, their case appears here for a human decision.</p>
+          <div className="rounded-[12px] border border-dashed border-[#17181C]/15 bg-white p-12 text-center">
+            <p className="text-sm font-bold text-[#17181C]">The queue is empty.</p>
+            <p className="mt-1 text-xs text-[#17181C]/50">When someone applies in the app, their case appears here for a human decision.</p>
           </div>
         ) : (apps ?? []).map(app => {
           const p = profiles[app.applicant_id] || {};
           const ev = app.evidence || {};
           return (
-            <div key={app.id} className="mb-5 rounded-2xl border border-[#0B1E3D]/10 bg-white p-6 shadow-sm">
+            <div key={app.id} className="mb-5 rounded-[12px] border border-[#17181C]/10 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {p.avatar_url
                     ? <img src={p.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
-                    : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B1E3D]/10 text-sm font-bold text-[#0B1E3D]">{String(p.full_name || '?').slice(0, 1)}</div>}
+                    : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#17181C]/10 text-sm font-bold text-[#17181C]">{String(p.full_name || '?').slice(0, 1)}</div>}
                   <div>
-                    <p className="text-sm font-extrabold text-[#0B1E3D]">{p.full_name || 'Unknown'} <span className="font-medium text-[#0B1E3D]/40">@{p.username || '-'}</span></p>
-                    <p className="text-[11px] text-[#0B1E3D]/50">{p.account_type || 'personal'} account - applied {new Date(app.created_at).toLocaleString()}</p>
+                    <p className="text-sm font-extrabold text-[#17181C]">{p.full_name || 'Unknown'} <span className="font-medium text-[#17181C]/40">@{p.username || '-'}</span></p>
+                    <p className="text-[11px] text-[#17181C]/50">{p.account_type || 'personal'} account - applied {new Date(app.created_at).toLocaleString()}</p>
                   </div>
                 </div>
-                <span className="flex items-center gap-1.5 rounded-full bg-[#0B1E3D]/5 px-3 py-1.5 text-xs font-bold text-[#0B1E3D]">
+                <span className="flex items-center gap-1.5 rounded-full bg-[#17181C]/5 px-3 py-1.5 text-xs font-bold text-[#17181C]">
                   <Seal tier={app.tier} size={16} /> {TIER_LABEL[app.tier] || app.tier}{app.category ? ' - ' + app.category : ''}
                 </span>
               </div>
-              <div className="mt-4 rounded-xl bg-[#0B1E3D]/[0.03] p-4">
-                <p className="text-[11px] font-bold uppercase tracking-wide text-[#0B1E3D]/40">Their case</p>
-                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[#0B1E3D]/85">{ev.statement || '-'}</p>
-                {ev.office ? <p className="mt-2 text-xs font-semibold text-[#0B1E3D]/70">Office: {ev.office}</p> : null}
+              <div className="mt-4 rounded-[12px] bg-[#17181C]/[0.03] p-4">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-[#17181C]/40">Their case</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[#17181C]/85">{ev.statement || '-'}</p>
+                {ev.office ? <p className="mt-2 text-xs font-semibold text-[#17181C]/70">Office: {ev.office}</p> : null}
                 {Array.isArray(ev.links) && ev.links.length ? (
                   <ul className="mt-2 space-y-1">
                     {ev.links.map((l: string, i: number) => (
@@ -87,7 +87,7 @@ export default async function QueuePage() {
                 ) : null}
               </div>
               {(refByApp[app.id] || []).length ? (
-                <div className="mt-3 rounded-xl border border-[#DCEFE0] bg-[#F2F9F3] p-3">
+                <div className="mt-3 rounded-[12px] border border-[#DCEFE0] bg-[#F2F9F3] p-3">
                   <p className="text-[11px] font-bold uppercase tracking-wide text-[#1D7A38]">Vouched by {(refByApp[app.id] || []).length} verified member{(refByApp[app.id] || []).length === 1 ? '' : 's'}</p>
                   <p className="mt-1 text-xs text-[#1D7A38]">{(refByApp[app.id] || []).map((r: any) => (refNames[r.referrer_id]?.full_name || '@' + (refNames[r.referrer_id]?.username || '?'))).join(', ')}</p>
                 </div>
@@ -95,12 +95,12 @@ export default async function QueuePage() {
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <form action={approveApplication}>
                   <input type="hidden" name="id" value={app.id} />
-                  <button className="rounded-xl bg-[#0B1E3D] px-5 py-2 text-xs font-extrabold text-white hover:opacity-90">Approve - grant the {TIER_LABEL[app.tier]?.toLowerCase()} seal</button>
+                  <button className="rounded-[12px] bg-[#17181C] px-5 py-2 text-xs font-extrabold text-white transition-opacity duration-150 hover:opacity-90">Approve - grant the {TIER_LABEL[app.tier]?.toLowerCase()} seal</button>
                 </form>
                 <form action={rejectApplication} className="flex flex-1 min-w-[260px] items-center gap-2">
                   <input type="hidden" name="id" value={app.id} />
-                  <input name="reason" placeholder="Reason if rejecting" className="flex-1 rounded-xl border border-[#0B1E3D]/15 px-3 py-2 text-xs text-[#0B1E3D] outline-none focus:border-[#0B1E3D]" />
-                  <button className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-100">Reject</button>
+                  <input name="reason" placeholder="Reason if rejecting" className="flex-1 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+                  <button className="rounded-[12px] border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">Reject</button>
                 </form>
               </div>
             </div>
