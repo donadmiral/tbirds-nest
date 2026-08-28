@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Comments } from "@/components/Comments";
 import { PostCard } from "@/components/PostCard";
@@ -66,7 +67,7 @@ export default async function PostPage({ params }: Params) {
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 px-6 text-center">
         <h1 className="font-display text-2xl text-porcelain">This post is not available</h1>
         <p className="text-sm text-ink/50">It may be private, deleted, or you may need to sign in.</p>
-        <Link href="/" className="mt-2 rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-ink">
+        <Link href="/" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">
           Open Platinum Circles
         </Link>
       </main>
@@ -123,14 +124,12 @@ export default async function PostPage({ params }: Params) {
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[640px] px-4 py-6">
-      <Link href={viewerId ? "/home" : "/"} className="mb-4 inline-block text-sm text-ink/50 hover:text-ink">
-        ← Platinum Circles
+      <Link href={viewerId ? "/home" : "/"} aria-label="Back to Platinum Circles" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
+        <ArrowLeft size={19} />
       </Link>
       <PostCard post={row} />
       <FactCheckBanner postId={id} />
       <section className="mt-2">
-        <h2 className="px-1 py-3 text-[15px] font-semibold text-ink">
-        </h2>
         <Comments postId={id} />
       </section>
     </main>
