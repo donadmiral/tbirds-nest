@@ -93,11 +93,11 @@ export default function SavedPage() {
     <div className="px-1">
       <h1 className="pb-2 font-display text-xl text-porcelain">Saved</h1>
       <div className="flex gap-1.5 overflow-x-auto pb-3">
-        <button onClick={() => setColSel("all")} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold " + (colSel === "all" ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>All</button>
+        <button onClick={() => setColSel("all")} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === "all" ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>All</button>
         {cols.map((c) => (
-          <button key={c.id} onClick={() => setColSel(c.id)} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold " + (colSel === c.id ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>{c.name}</button>
+          <button key={c.id} onClick={() => setColSel(c.id)} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === c.id ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>{c.name}</button>
         ))}
-        <button onClick={newFolder} className="shrink-0 rounded-full bg-surface px-3 py-1.5 text-[12px] font-semibold text-pearl-muted hover:bg-surface-elevated">+ New folder</button>
+        <button onClick={newFolder} className="shrink-0 rounded-full bg-surface px-3 py-1.5 text-[12px] font-semibold text-pearl-muted transition-colors duration-[140ms] hover:bg-surface-elevated">+ New folder</button>
       </div>
       {posts === null ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading</p>
@@ -109,7 +109,7 @@ export default function SavedPage() {
           const media = (p.post_media ?? []).slice().sort((a, b) => a.sort_order - b.sort_order);
           const first = media[0]?.url ?? p.media_url;
           return (
-            <Link key={p.id} href={"/post/" + p.id} className="flex gap-3 border-b border-ink/10 px-1 py-4 transition-colors hover:bg-surface">
+            <Link key={p.id} href={"/post/" + p.id} className="flex gap-3 border-b border-ink/10 px-1 py-4 transition-colors duration-[140ms] hover:bg-surface">
               <StoryAvatar userId={p.user_id}
                 name={p.author?.full_name}
                 avatarUrl={p.author?.avatar_url}
@@ -133,7 +133,7 @@ export default function SavedPage() {
                   <option value="" className="bg-navy">No folder</option>
                   {cols.map((c) => <option key={c.id} value={c.id} className="bg-navy">{c.name}</option>)}
                 </select>
-                <button onClick={() => unsave(p.id)} className="text-[11px] text-ink/40 hover:text-danger">Unsave</button>
+                <button onClick={() => unsave(p.id)} className="text-[11px] text-ink/40 transition-colors duration-[140ms] hover:text-danger">Unsave</button>
               </span>
               {first ? (
                 // eslint-disable-next-line @next/next/no-img-element
