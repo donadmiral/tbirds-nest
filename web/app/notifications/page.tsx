@@ -160,14 +160,14 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-between pb-3">
         <h1 className="font-display text-xl text-porcelain">Notifications</h1>
         {hasUnread ? (
-          <button onClick={markAllRead} className="text-[13px] text-pearl hover:underline">Mark all read</button>
+          <button onClick={markAllRead} className="text-[13px] font-semibold text-pearl transition-opacity duration-[140ms] hover:opacity-80">Mark all read</button>
         ) : null}
       </div>
 
       <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-3">
         {([["all", "All"], ["likes", "Likes"], ["comments", "Comments"], ["follows", "Follows"], ["mentions", "Mentions"]] as const).map(([k, lbl]) => (
           <button key={k} onClick={() => setFilt(k)}
-            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors " + (filt === k ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>
+            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (filt === k ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>
             {lbl}
           </button>
         ))}
@@ -187,7 +187,7 @@ export default function NotificationsPage() {
               return (
                 <Link key={n.notification_id}
                   href={hrefFor(n)}
-                  className={"relative flex items-center gap-3 border-b border-ink/5 py-3.5 pl-5 pr-2 transition-colors hover:bg-surface/60 " + (unread ? "" : "opacity-90")}
+                  className={"relative flex items-center gap-3 border-b border-ink/5 py-3.5 pl-5 pr-2 transition-colors duration-[140ms] hover:bg-surface/60 " + (unread ? "" : "opacity-90")}
                 >
                   {unread ? <span aria-hidden className="absolute left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-pearl" /> : null}
                   <span className="w-5 shrink-0" aria-hidden>{iconFor(n.type)}</span>
@@ -208,12 +208,12 @@ export default function NotificationsPage() {
                         const reqId = (n.data as { request_id?: string }).request_id!;
                         const { error } = await supabase.rpc("respond_follow_request", { p_request_id: reqId, p_action: "accept" });
                         if (!error) setRows((prev) => prev.filter((r) => r.notification_id !== n.notification_id));
-                      }} className="rounded-md bg-pearl px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity hover:opacity-90">Confirm</button>
+                      }} className="rounded-md bg-pearl px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">Confirm</button>
                       <button onClick={async () => {
                         const reqId = (n.data as { request_id?: string }).request_id!;
                         const { error } = await supabase.rpc("respond_follow_request", { p_request_id: reqId, p_action: "reject" });
                         if (!error) setRows((prev) => prev.filter((r) => r.notification_id !== n.notification_id));
-                      }} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink transition-colors hover:bg-surface-elevated">Delete</button>
+                      }} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Delete</button>
                     </span>
                   ) : null}
                   {n.type === "follow" && n.actor_id && !n.viewer_follows ? (
