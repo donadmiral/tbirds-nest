@@ -112,7 +112,7 @@ export default function AdWizardPage() {
 
   const canNext = step === 1 ? !!goal : step === 2 ? (pick !== null && (pick.kind !== "new" || newText.trim().length > 0)) : true;
   const stepTitle = ["", "What do you want people to do?", "What are you promoting?", "Who sees it, and for how long?", "Preview and publish"][step];
-  const card = (on: boolean) => "flex items-center gap-3 rounded-xl border p-4 text-left transition-colors " + (on ? "border-pearl bg-surface" : "border-ink/10 hover:bg-surface");
+  const card = (on: boolean) => "flex items-center gap-3 rounded-lg border p-4 text-left transition-colors duration-[140ms] " + (on ? "border-pearl bg-surface" : "border-ink/10 hover:bg-surface");
 
   const contentSummary = pick?.kind === "post" ? (pick.post.content ?? "").slice(0, 120)
     : pick?.kind === "listing" ? pick.listing.title + " · " + priceLabel(pick.listing)
@@ -123,12 +123,12 @@ export default function AdWizardPage() {
   return (
     <div className="px-1">
       <div className="flex items-center gap-3 pb-1">
-        <Link href="/ads" className="rounded-full p-1.5 text-ink/50 hover:bg-surface hover:text-ink" title="Back to Ads"><ArrowLeft size={18} /></Link>
+        <Link href="/ads" className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back to Ads"><ArrowLeft size={18} /></Link>
         <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-pearl" /> New promotion</h1>
       </div>
       <div className="flex gap-1.5 py-3">
         {[1, 2, 3, 4].map((s) => (
-          <span key={s} className={"h-1 flex-1 rounded-full " + (s <= step ? "bg-pearl" : "bg-ink/15")} />
+          <span key={s} className={"h-1 flex-1 rounded-full transition-colors duration-[140ms] " + (s <= step ? "bg-pearl" : "bg-ink/15")} />
         ))}
       </div>
       <h2 className="pb-4 text-[16px] font-semibold text-ink">{stepTitle}</h2>
@@ -154,7 +154,7 @@ export default function AdWizardPage() {
               onFocus={() => { if (newText.trim()) setPick({ kind: "new", text: newText }); }}
               placeholder="Write the ad text"
               rows={2}
-              className={"w-full resize-none rounded-xl border p-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors " + (pick?.kind === "new" ? "border-pearl bg-surface" : "border-ink/10")}
+              className={"w-full resize-none rounded-lg border p-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] " + (pick?.kind === "new" ? "border-pearl bg-surface" : "border-ink/10")}
             />
           </div>
           {posts.length > 0 ? (
@@ -180,7 +180,7 @@ export default function AdWizardPage() {
                 {listings.map((l) => {
                   const on = pick?.kind === "listing" && pick.listing.id === l.id;
                   return (
-                    <button key={l.id} onClick={() => setPick({ kind: "listing", listing: l })} className={"relative w-28 shrink-0 overflow-hidden rounded-lg border text-left " + (on ? "border-pearl" : "border-ink/10")}>
+                    <button key={l.id} onClick={() => setPick({ kind: "listing", listing: l })} className={"relative w-28 shrink-0 overflow-hidden rounded-lg border text-left transition-colors duration-[140ms] " + (on ? "border-pearl" : "border-ink/10 hover:border-ink/25")}>
                       {on ? <span className="absolute right-1 top-1 z-10 rounded-full bg-pearl p-0.5 text-ink"><Check size={11} /></span> : null}
                       {l.images?.[0] ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -244,7 +244,7 @@ export default function AdWizardPage() {
               onChange={(e) => setCap(e.target.value)}
               inputMode="numeric"
               placeholder="e.g. 5000, the promotion stops itself there"
-              className="w-full rounded-xl border border-ink/10 bg-transparent p-4 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:border-pearl"
+              className="w-full rounded-lg border border-ink/10 bg-transparent p-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:border-pearl"
             />
             <p className="pt-2 text-[11px] leading-relaxed text-ink/35">No charge during the testing phase. At launch, campaigns bill to your IntoBank wallet through Crisp. IntoBank and Crisp are the only payment rails on Platinum Circles.</p>
           </div>
@@ -253,7 +253,7 @@ export default function AdWizardPage() {
 
       {step === 4 ? (
         <div className="flex flex-col gap-4">
-          <div className="relative rounded-xl border border-ink/10 p-4">
+          <div className="relative rounded-lg border border-ink/10 p-4">
             <span className="absolute right-3 top-3 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink/50">Sponsored</span>
             <div className="flex gap-3">
               {me?.avatar_url ? (
@@ -272,7 +272,7 @@ export default function AdWizardPage() {
               </div>
             </div>
           </div>
-          <div className="rounded-xl border border-ink/10 p-4 text-[13px] text-ink/70">
+          <div className="rounded-lg border border-ink/10 p-4 text-[13px] text-ink/70">
             <p>Goal: <span className="font-semibold text-ink">{GOALS.find((g) => g.key === goal)?.label}</span></p>
             <p className="mt-1">Audience: <span className="font-semibold text-ink">Automatic</span></p>
             <p className="mt-1">Duration: <span className="font-semibold text-ink">{days > 0 ? days + " days" : "Until stopped"}</span>{cap.trim() ? " · cap " + cap : ""}</p>
@@ -283,14 +283,14 @@ export default function AdWizardPage() {
 
       <div className="flex items-center gap-2 pt-6">
         {step > 1 ? (
-          <button onClick={() => setStep(step - 1)} className="flex items-center gap-1.5 rounded-md bg-surface px-4 py-2.5 text-[13px] text-ink"><ArrowLeft size={14} /> Back</button>
+          <button onClick={() => setStep(step - 1)} className="flex items-center gap-1.5 rounded-full bg-surface px-4 py-2.5 text-[13px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated"><ArrowLeft size={14} /> Back</button>
         ) : null}
         {step < 4 ? (
-          <button onClick={() => setStep(step + 1)} disabled={!canNext} className="ml-auto flex items-center gap-1.5 rounded-md bg-pearl px-5 py-2.5 text-[14px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
+          <button onClick={() => setStep(step + 1)} disabled={!canNext} className="ml-auto flex items-center gap-1.5 rounded-full bg-pearl px-5 py-2.5 text-[14px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
             Continue <ArrowRight size={14} />
           </button>
         ) : (
-          <button onClick={publish} disabled={pending} className="ml-auto rounded-md bg-pearl px-6 py-2.5 text-[14px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
+          <button onClick={publish} disabled={pending} className="ml-auto rounded-full bg-pearl px-6 py-2.5 text-[14px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
             {pending ? "Publishing" : "Publish promotion"}
           </button>
         )}
