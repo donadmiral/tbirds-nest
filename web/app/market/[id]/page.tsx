@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { Bookmark, Share2, MessageCircle, Check, Tag, CircleCheck } from "lucide-react";
+import { ArrowLeft, Bookmark, Share2, MessageCircle, Check, Tag, CircleCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getListing, getSavedListingIds, toggleSaved, priceLabel, type Listing } from "@/lib/market";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -108,18 +108,18 @@ export default function ListingPage() {
     return (
       <div className="flex flex-col items-center gap-3 px-1 py-24 text-center">
         <h1 className="font-display text-2xl text-porcelain">This listing is not available</h1>
-        <Link href="/market" className="mt-2 rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-ink">Back to Market</Link>
+        <Link href="/market" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Back to Market</Link>
       </div>
     );
   }
 
   const sold = l.status !== "available";
   const isOwner = uid === l.seller_id;
-  const btn = "flex items-center gap-1.5 rounded-md bg-surface px-3.5 py-2 text-[13px] text-ink/80 transition-colors hover:bg-surface-elevated hover:text-ink";
+  const btn = "flex items-center gap-1.5 rounded-md bg-surface px-3.5 py-2 text-[13px] text-ink/80 transition-colors duration-[140ms] hover:bg-surface-elevated hover:text-ink";
 
   return (
     <div className="px-1">
-      <Link href="/market" className="mb-4 inline-block text-sm text-ink/50 hover:text-ink">← Market</Link>
+      <Link href="/market" aria-label="Back to Market" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
 
       <div className="relative overflow-hidden rounded-lg bg-surface">
         {l.images?.[img] ? (
@@ -129,7 +129,7 @@ export default function ListingPage() {
           <div className="flex h-64 items-center justify-center text-ink/30">No photos</div>
         )}
         {sold ? (
-          <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-[16px] font-extrabold tracking-widest text-ink">
+          <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-[16px] font-extrabold tracking-widest text-white">
             {l.status === "sold" ? "SOLD" : "UNAVAILABLE"}
           </span>
         ) : null}
@@ -138,7 +138,7 @@ export default function ListingPage() {
         <div className="mt-2 flex gap-2 overflow-x-auto">
           {l.images.map((u, i) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={i} src={u} alt="" onClick={() => setImg(i)} className={"h-16 w-16 shrink-0 cursor-pointer rounded-md object-cover " + (i === img ? "ring-2 ring-pearl" : "opacity-60 hover:opacity-100")} />
+            <img key={i} src={u} alt="" onClick={() => setImg(i)} className={"h-16 w-16 shrink-0 cursor-pointer rounded-md object-cover transition-opacity duration-[140ms] " + (i === img ? "ring-2 ring-pearl" : "opacity-60 hover:opacity-100")} />
           ))}
         </div>
       ) : null}
@@ -157,7 +157,7 @@ export default function ListingPage() {
       {isOwner ? (
         <div className="mt-4 flex flex-wrap gap-2">
           {!sold ? (
-            <button onClick={markSold} disabled={busy} className="flex items-center gap-1.5 rounded-md bg-danger px-4 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
+            <button onClick={markSold} disabled={busy} className="flex items-center gap-1.5 rounded-md bg-danger px-4 py-2 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
               <CircleCheck size={16} /> Mark as sold
             </button>
           ) : (
@@ -174,7 +174,7 @@ export default function ListingPage() {
         <div className="mt-4 flex flex-wrap gap-2">
           {!sold ? (
             <>
-              <button onClick={messageSeller} className="flex items-center gap-1.5 rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90">
+              <button onClick={messageSeller} className="flex items-center gap-1.5 rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">
                 <MessageCircle size={16} /> Message seller
               </button>
               <button onClick={() => setOfferOpen((v) => !v)} className={btn}>
@@ -197,9 +197,9 @@ export default function ListingPage() {
             onChange={(e) => setOfferAmt(e.target.value)}
             placeholder={"Your offer in " + l.currency}
             inputMode="numeric"
-            className="w-44 rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+            className="w-44 rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
           />
-          <button onClick={sendOffer} disabled={busy} className="rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink disabled:opacity-40">
+          <button onClick={sendOffer} disabled={busy} className="rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
             {busy ? "Sending" : "Send offer"}
           </button>
         </div>
@@ -212,17 +212,17 @@ export default function ListingPage() {
       ) : null}
 
       {l.seller ? (
-        <Link href={l.seller.username ? "/" + l.seller.username : "#"} className="mt-6 flex items-center gap-3 rounded-lg border border-ink/10 p-4 transition-colors hover:bg-surface">
+        <Link href={l.seller.username ? "/" + l.seller.username : "#"} className="mt-6 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
           {l.seller.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <StoryAvatar userId={l.seller_id} name={l.seller.full_name} avatarUrl={l.seller.avatar_url} size={44} />
+            <StoryAvatar userId={l.seller_id} name={l.seller.full_name} avatarUrl={l.seller.avatar_url} size={56} />
           ) : (
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">
               {(l.seller.full_name ?? "?").charAt(0).toUpperCase()}
             </span>
           )}
           <span className="min-w-0">
-            <span className="flex items-center gap-1 text-[14px] font-semibold text-ink">
+            <span className="flex items-center gap-1 text-[15px] font-semibold text-ink">
               {l.seller.full_name}
               {l.seller.is_verified ? <VerifiedBadge size={14} /> : null}
             </span>
@@ -233,8 +233,8 @@ export default function ListingPage() {
 
       {!isOwner ? (
         <p className="mt-4 flex gap-4 text-[12px] text-ink/40">
-          <button onClick={reportListing} className="hover:text-ink/70">Report listing</button>
-          <button onClick={blockSeller} className="hover:text-danger">Block seller</button>
+          <button onClick={reportListing} className="transition-colors duration-[140ms] hover:text-ink/70">Report listing</button>
+          <button onClick={blockSeller} className="transition-colors duration-[140ms] hover:text-danger">Block seller</button>
         </p>
       ) : null}
       <SellerReviews sellerId={l.seller_id} listingId={l.id} viewerId={uid} />
