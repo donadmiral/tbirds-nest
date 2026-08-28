@@ -107,13 +107,13 @@ export default function AdsManagerPage() {
           </div>
 
           {c.ads.length === 0 ? <p className="mt-3 text-[12.5px] text-ink/40">No ads in this campaign yet.</p> : c.ads.map(a => (
-            <div key={a.id} className="mt-2 flex items-center gap-3 rounded-lg bg-surface p-2.5">
+            <div key={a.id} className="mt-2 flex items-center gap-3.5 rounded-lg bg-surface p-3">
               {a.thumb ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={a.thumb} alt="" className="h-11 w-11 rounded-md object-cover" />
-              ) : <span className="h-11 w-11 rounded-md bg-ink/10" />}
+                <img src={a.thumb} alt="" className="h-14 w-14 rounded-md object-cover" />
+              ) : <span className="h-14 w-14 rounded-md bg-ink/10" />}
               <div className="min-w-0 flex-1">
-                <Link href={"/post/" + a.post_id} className="line-clamp-1 text-[13px] text-ink hover:underline">{a.content || "Media post"}</Link>
+                <Link href={"/post/" + a.post_id} className="line-clamp-1 text-[13.5px] text-ink hover:underline">{a.content || "Media post"}</Link>
                 <p className="text-[11.5px] text-ink/45">{a.label} · {a.status} · {a.impressions.toLocaleString()} / {a.total_cap ? a.total_cap.toLocaleString() : "∞"} impressions · {a.clicks} clicks · CTR {ctr(a.impressions, a.clicks)}{a.products ? " · " + a.products + " product cards" : ""}</p>
               </div>
               {editor && c.status !== "ended" ? <button disabled={busy} onClick={() => confirm("Remove this ad from the campaign?") && act(() => supabase.rpc("studio_remove_ad", { p_promo: a.id }))} className="rounded-md p-1.5 text-red-400 transition-colors duration-[140ms] hover:bg-red-500/10" aria-label="Remove"><Trash2 size={13} /></button> : null}
