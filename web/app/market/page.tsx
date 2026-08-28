@@ -67,21 +67,21 @@ export default function MarketPage() {
   const cats = useMemo(() => ["All", ...MARKET_CATEGORIES], []);
   const filtersActive = filters.minPrice != null || filters.maxPrice != null || !!filters.condition || !!filters.city || (filters.sort && filters.sort !== "recent");
   const num = (v: string) => (v.trim() === "" ? null : Number(v.replace(/,/g, "")) || null);
-  const inputCls = "rounded-md bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated";
+  const inputCls = "rounded-lg bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated";
 
   return (
     <div>
       <div className="flex items-center justify-between px-1 pb-3">
         <h1 className="font-display text-2xl text-porcelain">Market</h1>
-        <Link href="/market/messages" title="Market messages" className="relative rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-ink"><MessageCircle size={19} /><MarketUnreadDot /></Link>
-          <Link href="/market/new" className="ml-1 flex items-center gap-1.5 rounded-md bg-pearl px-3 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90"><Plus size={16} /> Sell</Link>
+        <Link href="/market/messages" title="Market messages" className="relative rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><MessageCircle size={19} /><MarketUnreadDot /></Link>
+          <Link href="/market/new" className="ml-1 flex items-center gap-1.5 rounded-full bg-pearl px-3.5 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"><Plus size={16} /> Sell</Link>
       </div>
 
       <div className="flex gap-2 px-1 pb-3">
         {TABS.map((t) => (
           <button key={t.id}
             onClick={() => setTab(t.id)}
-            className={"rounded-md px-3.5 py-1.5 text-[13px] transition-colors " + (tab === t.id ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
+            className={"rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (tab === t.id ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
           >
             {t.label}
           </button>
@@ -98,14 +98,14 @@ export default function MarketPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") setApplied(search.trim()); }}
                 placeholder="Search the market"
-                className="w-full rounded-md bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+                className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
               />
             </div>
-            <button onClick={() => setAlertsOpen(true)} title="Market alerts" className="flex items-center rounded-md bg-surface px-3 text-ink/70 transition-colors hover:text-ink">
+            <button onClick={() => setAlertsOpen(true)} title="Market alerts" className="flex items-center rounded-full bg-surface px-3 text-ink/70 transition-colors duration-[140ms] hover:text-ink">
               <BellPlus size={16} />
             </button>
             <button onClick={() => { setDraft(filters); setFiltersOpen((v) => !v); }}
-              className={"flex items-center gap-1.5 rounded-md px-3.5 text-[13px] transition-colors " + (filtersActive ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
+              className={"flex items-center gap-1.5 rounded-full px-3.5 text-[13px] transition-colors duration-[140ms] " + (filtersActive ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
             >
               <SlidersHorizontal size={15} /> Filters
             </button>
@@ -122,14 +122,14 @@ export default function MarketPage() {
                 {MARKET_CONDITIONS.map((c) => (
                   <button key={c}
                     onClick={() => setDraft((d) => ({ ...d, condition: d.condition === c ? null : c }))}
-                    className={"rounded-md px-3 py-1.5 text-[13px] " + (draft.condition === c ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
+                    className={"rounded-full px-3 py-1.5 text-[13px] transition-colors duration-[140ms] " + (draft.condition === c ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
                   >
                     {c}
                   </button>
                 ))}
                 <select value={draft.sort ?? "recent"}
                   onChange={(e) => setDraft((d) => ({ ...d, sort: e.target.value as MarketFilters["sort"] }))}
-                  className="ml-auto rounded-md bg-surface px-2 py-1.5 text-[13px] text-ink/80 outline-none"
+                  className="ml-auto rounded-full bg-surface px-3 py-1.5 text-[13px] text-ink/80 outline-none"
                 >
                   <option value="recent" className="bg-navy">Newest first</option>
                   <option value="price_low" className="bg-navy">Price low to high</option>
@@ -137,8 +137,8 @@ export default function MarketPage() {
                 </select>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => { setFilters(draft); setFiltersOpen(false); }} className="rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-ink">Apply</button>
-                <button onClick={() => { setDraft(EMPTY); setFilters(EMPTY); setFiltersOpen(false); }} className="rounded-md bg-surface px-4 py-2 text-[13px] text-ink">Clear all</button>
+                <button onClick={() => { setFilters(draft); setFiltersOpen(false); }} className="rounded-full bg-pearl px-4 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Apply</button>
+                <button onClick={() => { setDraft(EMPTY); setFilters(EMPTY); setFiltersOpen(false); }} className="rounded-full bg-surface px-4 py-2 text-[13px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Clear all</button>
               </div>
             </div>
           ) : null}
@@ -147,7 +147,7 @@ export default function MarketPage() {
             {cats.map((c) => (
               <button key={c}
                 onClick={() => setCategory(c)}
-                className={"shrink-0 rounded-md px-3 py-1.5 text-[13px] transition-colors " + (category === c ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
+                className={"shrink-0 rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (category === c ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
               >
                 {c}
               </button>
