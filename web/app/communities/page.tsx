@@ -77,18 +77,18 @@ export default function CommunitiesPage() {
       <div className="mb-3 flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-lg font-semibold text-ink"><Users size={19} /> Communities</h1>
         {me ? (
-          <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-white"><Plus size={14} /> New community</button>
+          <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> New community</button>
         ) : null}
       </div>
       <div className="mb-3 flex gap-2">
-        <Link href="/channels" className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/60 hover:text-ink"><Radio size={13} /> Channels</Link>
+        <Link href="/channels" className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/60 transition-colors duration-[140ms] hover:text-ink"><Radio size={13} /> Channels</Link>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white"><Users size={13} /> Communities</span>
       </div>
-      <div className="mb-4 flex items-center gap-2 rounded-xl bg-ink/5 px-3 py-2">
+      <div className="mb-4 flex items-center gap-2 rounded-lg bg-ink/5 px-3 py-2 transition-colors duration-[140ms] focus-within:bg-ink/[0.07]">
         <Search size={15} className="text-ink/40" />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search communities"
           className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-ink/40" />
-        {q ? <button onClick={() => setQ("")}><X size={15} className="text-ink/40" /></button> : null}
+        {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-ink/40" /></button> : null}
       </div>
       {loading ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading&hellip;</p>
@@ -121,7 +121,7 @@ export default function CommunitiesPage() {
               ) : c.join_mode === "invite" ? (
                 <span className="rounded-full bg-ink/5 px-3 py-1.5 text-[12px] font-semibold text-ink/40">Invite only</span>
               ) : me ? (
-                <button onClick={() => join(c)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white">{c.join_mode === "approval" ? "Request" : "Join"}</button>
+                <button onClick={() => join(c)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">{c.join_mode === "approval" ? "Request" : "Join"}</button>
               ) : null}
             </li>
           ))}
@@ -132,17 +132,17 @@ export default function CommunitiesPage() {
           <div className="max-h-[88vh] w-full max-w-[460px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">New community</p>
-              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <input value={gName} onChange={e => setGName(e.target.value)} maxLength={60} placeholder="Community name"
-              className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
+              className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             <input value={gDesc} onChange={e => setGDesc(e.target.value)} maxLength={200} placeholder="What is it about? (optional)"
-              className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
+              className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Who can join</p>
             <div className="mb-3 flex gap-2">
               {(["open", "approval", "invite"] as const).map(k => (
                 <button key={k} onClick={() => setGMode(k)}
-                  className={"flex-1 rounded-lg border px-2 py-2 text-[12.5px] font-semibold " + (gMode === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
+                  className={"flex-1 rounded-lg border px-2 py-2 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (gMode === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
                   {k === "open" ? "Open" : k === "approval" ? "Approval" : "Invite only"}
                 </button>
               ))}
@@ -151,7 +151,7 @@ export default function CommunitiesPage() {
             <div className="mb-3 flex flex-wrap gap-1.5">
               {CATEGORIES.map(c => (
                 <button key={c.key} onClick={() => setGCat(gCat === c.key ? null : c.key)}
-                  className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold " + (gCat === c.key ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>
+                  className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (gCat === c.key ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>
                   {c.label}
                 </button>
               ))}
@@ -160,13 +160,13 @@ export default function CommunitiesPage() {
             <div className="mb-3 flex flex-wrap gap-2">
               {Object.entries(COMM_COLORS).map(([k, v]) => (
                 <button key={k} onClick={() => setGColor(k)} aria-label={k}
-                  className={"h-8 w-8 rounded-full border-2 " + (gColor === k ? "border-ink" : "border-transparent")} style={{ background: v }} />
+                  className={"h-8 w-8 rounded-full border-2 transition-colors duration-[140ms] " + (gColor === k ? "border-ink" : "border-transparent")} style={{ background: v }} />
               ))}
             </div>
             <textarea value={gRules} onChange={e => setGRules(e.target.value)} maxLength={600} placeholder="Rules shown to people when they join (optional)"
-              className="mb-4 h-20 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none focus:border-ink/40" />
+              className="mb-4 h-20 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             <button onClick={create} disabled={!gName.trim() || busy}
-              className="w-full rounded-md bg-ink py-2.5 text-sm font-semibold text-white disabled:opacity-40">
+              className="w-full rounded-full bg-ink py-2.5 text-sm font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
               {busy ? "Creating\u2026" : "Create community"}
             </button>
           </div>
