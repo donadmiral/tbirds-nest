@@ -101,7 +101,7 @@ export function SellerReviews({ sellerId, listingId, viewerId }: { sellerId: str
               // eslint-disable-next-line @next/next/no-img-element
               <img src={r.reviewer.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
             ) : (
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-semibold text-porcelain">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-semibold text-white">
                 {(r.reviewer?.full_name ?? "?").charAt(0).toUpperCase()}
               </span>
             )}

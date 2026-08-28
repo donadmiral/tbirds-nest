@@ -58,16 +58,16 @@ export function Nav({ name, username, business = false }: { name: string; userna
           Platinum Circles
         </span>
       </Link>
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-0.5">
         {allItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link key={label}
               href={href}
               className={
-                "flex items-center gap-4 rounded-md px-3 py-2.5 text-[15px] transition-colors " +
+                "flex items-center gap-4 rounded-full px-4 py-2.5 text-[15px] transition-colors duration-[140ms] " +
                 (active
-                  ? "bg-surface-elevated text-ink"
+                  ? "bg-surface-elevated font-semibold text-ink"
                   : "text-ink/70 hover:bg-surface hover:text-ink")
               }
             >
@@ -78,7 +78,7 @@ export function Nav({ name, username, business = false }: { name: string; userna
         })}
       </nav>
       <div className="flex items-center gap-3 border-t border-ink/10 px-3 pt-4">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-sm font-semibold text-porcelain">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">
           {name ? name.charAt(0).toUpperCase() : "?"}
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
@@ -87,7 +87,7 @@ export function Nav({ name, username, business = false }: { name: string; userna
         </span>
         <button onClick={signOut}
           title="Sign out"
-          className="rounded-md p-2 text-ink/50 transition-colors hover:bg-surface hover:text-ink"
+          className="rounded-full p-2 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
         >
           <LogOut size={18} />
         </button>

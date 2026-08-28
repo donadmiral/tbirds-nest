@@ -217,7 +217,7 @@ export default function ListingPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <StoryAvatar userId={l.seller_id} name={l.seller.full_name} avatarUrl={l.seller.avatar_url} size={44} />
           ) : (
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-porcelain">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">
               {(l.seller.full_name ?? "?").charAt(0).toUpperCase()}
             </span>
           )}

@@ -126,7 +126,7 @@ export default function ApplicantsPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={a.profile.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
                     ) : (
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-porcelain">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">
                         {(a.profile?.full_name ?? "?").charAt(0).toUpperCase()}
                       </span>
                     )}

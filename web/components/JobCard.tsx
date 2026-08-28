@@ -43,7 +43,7 @@ export function JobCard({ job, initiallySaved, viewerId }: {
 
   return (
     <Link href={"/jobs/" + job.id} className="flex gap-4 border-b border-ink/10 px-1 py-5 transition-colors hover:bg-surface">
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-navy text-porcelain">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-navy text-white">
         <Briefcase size={20} strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">

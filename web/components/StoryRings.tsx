@@ -70,7 +70,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={u.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center rounded-full bg-navy text-lg font-semibold text-porcelain">
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-navy text-lg font-semibold text-white">
                     {(u.full_name ?? "?").charAt(0).toUpperCase()}
                   </span>
                 )}

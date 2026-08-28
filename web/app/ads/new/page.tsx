@@ -260,7 +260,7 @@ export default function AdWizardPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={me.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
               ) : (
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-porcelain">{(me?.full_name ?? "?").charAt(0)}</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">{(me?.full_name ?? "?").charAt(0)}</span>
               )}
               <div className="min-w-0 flex-1">
                 <p className="text-[14px] font-semibold text-ink">{me?.full_name}</p>

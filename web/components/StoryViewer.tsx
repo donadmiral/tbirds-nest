@@ -330,7 +330,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={user.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
           ) : (
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-xs font-semibold text-porcelain">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-xs font-semibold text-white">
               {(user.full_name ?? "?").charAt(0).toUpperCase()}
             </span>
           )}
