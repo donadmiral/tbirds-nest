@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Link2 from "next/link";
 import { Megaphone, Pause, Play, Square, Plus, ArrowLeft } from "lucide-react";
 import { myPromos, setPromoStatus, type Promo } from "@/lib/ads";
 
@@ -23,11 +22,11 @@ export default function AdsPage() {
   return (
     <div className="px-1">
       <div className="flex items-center gap-2 pb-1">
-        <Link href="/home" title="Back to the feed" className="rounded-full p-1.5 text-ink/50 transition-colors hover:bg-surface hover:text-ink"><ArrowLeft size={18} /></Link>
+        <Link href="/home" title="Back to the feed" className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={18} /></Link>
         <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-pearl" /> Ads</h1>
       </div>
       <p className="pb-3 text-[13px] text-ink/50">Promotions place your content as Sponsored in eligible feeds.</p>
-      <Link2 href="/ads/new" className="mb-5 inline-flex items-center gap-1.5 rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90"><Plus size={15} /> Create a promotion</Link2>
+      <Link href="/ads/new" className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-pearl px-4 py-2.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> Create a promotion</Link>
 
       {promos === null ? (
         <p className="py-14 text-center text-sm text-ink/40">Loading</p>
@@ -37,7 +36,7 @@ export default function AdsPage() {
         promos.map((p) => {
           const ctr = p.impressions_count > 0 ? ((p.clicks_count / p.impressions_count) * 100).toFixed(1) + "%" : "—";
           return (
-            <div key={p.id} className="mb-3 rounded-xl border border-ink/10 p-4">
+            <div key={p.id} className="mb-3 rounded-lg border border-ink/10 p-4">
               <div className="flex items-center gap-2">
                 <span className={"rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase " + chip(p.status)}>{p.status}</span>
                 <span className="text-[12px] text-ink/40">{p.label}</span>
@@ -63,12 +62,12 @@ export default function AdsPage() {
                 <Link href={"/post/" + p.post_id} className="text-[12px] text-pearl hover:underline">View the post</Link>
                 <span className="ml-auto flex gap-1.5">
                   {p.status === "active" ? (
-                    <button onClick={() => setStatus(p, "paused")} className="flex items-center gap-1 rounded-md bg-surface px-2.5 py-1.5 text-[12px] text-ink hover:bg-surface-elevated"><Pause size={12} /> Pause</button>
+                    <button onClick={() => setStatus(p, "paused")} className="flex items-center gap-1 rounded-md bg-surface px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated"><Pause size={12} /> Pause</button>
                   ) : p.status === "paused" ? (
-                    <button onClick={() => setStatus(p, "active")} className="flex items-center gap-1 rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success"><Play size={12} /> Resume</button>
+                    <button onClick={() => setStatus(p, "active")} className="flex items-center gap-1 rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success transition-opacity duration-[140ms] hover:opacity-80"><Play size={12} /> Resume</button>
                   ) : null}
                   {p.status !== "ended" ? (
-                    <button onClick={() => { if (window.confirm("End this promotion permanently?")) setStatus(p, "ended"); }} className="flex items-center gap-1 rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger"><Square size={12} /> End</button>
+                    <button onClick={() => { if (window.confirm("End this promotion permanently?")) setStatus(p, "ended"); }} className="flex items-center gap-1 rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger transition-opacity duration-[140ms] hover:opacity-80"><Square size={12} /> End</button>
                   ) : null}
                 </span>
               </div>
