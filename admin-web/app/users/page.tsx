@@ -45,8 +45,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {u.avatar_url
-                    ? <img src={u.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
-                    : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#17181C]/10 text-sm font-bold text-[#17181C]">{String(u.full_name || '?').slice(0, 1)}</div>}
+                    ? <img src={u.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
+                    : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#17181C]/10 text-base font-bold text-[#17181C]">{String(u.full_name || '?').slice(0, 1)}</div>}
                   <div>
                     <Link href={'/users/' + u.id} className="flex items-center gap-1 text-sm font-extrabold text-[#17181C] hover:underline">
                       {u.full_name || 'Unnamed'}

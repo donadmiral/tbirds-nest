@@ -63,8 +63,8 @@ export default async function QueuePage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {p.avatar_url
-                    ? <img src={p.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
-                    : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#17181C]/10 text-sm font-bold text-[#17181C]">{String(p.full_name || '?').slice(0, 1)}</div>}
+                    ? <img src={p.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
+                    : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#17181C]/10 text-base font-bold text-[#17181C]">{String(p.full_name || '?').slice(0, 1)}</div>}
                   <div>
                     <p className="text-sm font-extrabold text-[#17181C]">{p.full_name || 'Unknown'} <span className="font-medium text-[#17181C]/40">@{p.username || '-'}</span></p>
                     <p className="text-[11px] text-[#17181C]/50">{p.account_type || 'personal'} account - applied {new Date(app.created_at).toLocaleString()}</p>
