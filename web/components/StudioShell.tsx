@@ -40,7 +40,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
       <div className="mx-auto max-w-[520px] px-6 py-16">
         <h1 className="font-display text-2xl text-porcelain">Business Studio</h1>
         <p className="mt-3 text-[14px] leading-6 text-ink/60">Studio opens for business sessions. Sign in through the business door with your access code, or ask the business owner for one.</p>
-        <Link href="/business-login" className="mt-6 inline-flex items-center gap-2 rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink"><KeyRound size={15} /> Business sign in</Link>
+        <Link href="/business-login" className="mt-6 inline-flex items-center gap-2 rounded-full bg-pearl px-5 py-2.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"><KeyRound size={15} /> Business sign in</Link>
       </div>
     );
   }
@@ -51,9 +51,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         <h1 className="font-display text-2xl text-porcelain">Who is working?</h1>
         <p className="mt-3 text-[14px] leading-6 text-ink/60">Enter your personal access code once for this session. It sets what you can do in Studio for {me.business_name || "this business"}.</p>
         <input value={code} onChange={e => setCode(e.target.value.toUpperCase())} onKeyDown={e => { if (e.key === "Enter") void bind(); }} placeholder="ACCESS CODE" autoFocus
-          className="mt-5 w-full rounded-lg border border-ink/15 bg-transparent px-3 py-2.5 font-mono text-[15px] tracking-widest text-ink outline-none focus:border-pearl" />
+          className="mt-5 w-full rounded-lg border border-ink/15 bg-transparent px-3 py-2.5 font-mono text-[15px] tracking-widest text-ink outline-none transition-colors duration-[140ms] focus:border-pearl" />
         {err ? <p className="mt-2 text-[12.5px] text-red-400">{err}</p> : null}
-        <button onClick={bind} disabled={!code.trim() || busy} className="mt-4 w-full rounded-md bg-pearl py-2.5 text-[13px] font-semibold text-ink disabled:opacity-40">{busy ? "Checking" : "Continue"}</button>
+        <button onClick={bind} disabled={!code.trim() || busy} className="mt-4 w-full rounded-full bg-pearl py-2.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{busy ? "Checking" : "Continue"}</button>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
               const active = r.href === "/studio" ? pathname === "/studio" : pathname.startsWith(r.href);
               return (
                 <Link key={r.key} href={r.ready ? r.href : "#"} aria-disabled={!r.ready}
-                  className={"flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] transition-colors " + (active ? "bg-surface-elevated text-ink" : r.ready ? "text-ink/70 hover:bg-surface hover:text-ink" : "cursor-default text-ink/30")}>
+                  className={"flex items-center gap-3 rounded-full px-3.5 py-2 text-[13.5px] transition-colors duration-[140ms] " + (active ? "bg-surface-elevated font-semibold text-ink" : r.ready ? "text-ink/70 hover:bg-surface hover:text-ink" : "cursor-default text-ink/30")}>
                   <Icon size={17} strokeWidth={active ? 2.2 : 1.8} />
                   <span className="flex-1">{r.label}</span>
                   {!r.ready ? <span className="text-[10px] uppercase tracking-wide text-ink/30">soon</span> : null}
