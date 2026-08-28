@@ -155,13 +155,13 @@ export default function RecruiterPage() {
             <aside className="rounded-lg border border-ink/10 p-4">
               {!sel ? <p className="text-[13px] text-ink/45">Select an applicant to see their application, move them, schedule an interview or leave notes.</p> : (
                 <>
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3.5">
                     {sel.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sel.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
-                    ) : <span className="flex h-12 w-12 items-center justify-center rounded-full bg-navy text-[15px] font-semibold text-white">{sel.name.charAt(0)}</span>}
+                      <img src={sel.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
+                    ) : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">{sel.name.charAt(0)}</span>}
                     <div className="min-w-0 flex-1">
-                      <p className="text-[15px] font-semibold text-ink">{sel.name}</p>
+                      <p className="text-[16px] font-semibold text-ink">{sel.name}</p>
                       <p className="text-[12px] text-ink/45">{sel.username ? "@" + sel.username : ""}{sel.location ? " · " + sel.location : ""}</p>
                     </div>
                     <button onClick={() => setSel(null)} className="rounded-full p-1 text-ink/40 transition-colors duration-[140ms] hover:bg-surface" aria-label="Close"><X size={15} /></button>
