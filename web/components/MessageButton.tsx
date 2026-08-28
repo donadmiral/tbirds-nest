@@ -33,7 +33,7 @@ export function MessageButton({ profileId }: { profileId: string }) {
     <button
       onClick={open}
       disabled={busy}
-      className="inline-flex items-center gap-1.5 rounded-md border border-ink/15 bg-white px-4 py-1.5 text-[13px] font-semibold text-ink transition hover:bg-ink/5 disabled:opacity-60"
+      className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 py-2 text-[13px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-ink/5 disabled:opacity-60"
     >
       <Mail size={14} strokeWidth={2} />
       Message

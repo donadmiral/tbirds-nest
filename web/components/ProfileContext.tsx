@@ -51,7 +51,7 @@ export function ProfileContext({ profileId, username }: { profileId: string; use
     <div className="mt-2">
       {mutual ? <p className="text-[12.5px] text-ink/45">{mutual}</p> : null}
       {insights ? <p className="text-[12.5px] text-ink/45">{insights}</p> : null}
-      <button onClick={share} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-ink/10">
+      <button onClick={share} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-ink/10">
         {copied ? <Check size={13} /> : <Share2 size={13} />}
         {copied ? "Link copied" : "Share profile"}
       </button>
