@@ -60,23 +60,23 @@ export default function SupportPage() {
 
   return (
     <div className="mx-auto max-w-[600px] px-1">
-      <Link href="/settings" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
+      <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><LifeBuoy size={19} className="text-pearl" /> {isAppeal ? "Appeal" : "Support"}</h1>
       <p className="pb-5 text-[13px] leading-relaxed text-ink/50">{isAppeal
         ? "Your account is suspended. Tell the operations team why it should be restored — a person reads every appeal."
         : "Write to the Platinum Circles operations team. A person reads every message and the reply appears here."}</p>
 
       {!ready ? <p className="py-8 text-center text-sm text-ink/40">Loading</p> : !uid ? (
-        <p className="rounded-xl border border-dashed border-ink/15 px-4 py-8 text-center text-[13.5px] text-ink/50">Sign in to contact support.</p>
+        <p className="rounded-lg border border-dashed border-ink/15 px-4 py-8 text-center text-[13.5px] text-ink/50">Sign in to contact support.</p>
       ) : (
         <>
-          <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject" className="mb-2.5 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-ink/40" />
-          <textarea value={body} onChange={e => setBody(e.target.value)} placeholder={isAppeal ? "Your case for restoration..." : "What do you need help with?"} className="mb-3 h-32 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-ink/40" />
-          <button onClick={submit} disabled={busy} className="w-full rounded-xl bg-ink py-3 text-[14px] font-bold text-white disabled:opacity-40">{busy ? "Sending" : isAppeal ? "Send appeal" : "Send to operations"}</button>
+          <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject" className="mb-2.5 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+          <textarea value={body} onChange={e => setBody(e.target.value)} placeholder={isAppeal ? "Your case for restoration..." : "What do you need help with?"} className="mb-3 h-32 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+          <button onClick={submit} disabled={busy} className="w-full rounded-full bg-ink py-3 text-[14px] font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{busy ? "Sending" : isAppeal ? "Send appeal" : "Send to operations"}</button>
 
           {tickets.length ? <p className="mb-2 mt-7 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Your messages</p> : null}
           {tickets.map(t => (
-            <Link key={t.id} href={"/settings/support/" + t.id} className="mb-2 block rounded-xl border border-ink/10 p-3 hover:bg-ink/[0.02]">
+            <Link key={t.id} href={"/settings/support/" + t.id} className="mb-2 block rounded-lg border border-ink/10 p-3 transition-colors duration-[140ms] hover:bg-surface">
               <span className="flex items-center gap-2">
                 <span className="min-w-0 flex-1 truncate text-[13.5px] font-bold text-ink">{t.subject}</span>
                 {pill(t.status)}

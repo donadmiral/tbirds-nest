@@ -19,7 +19,7 @@ export default function HelpPage() {
   const [open, setOpen] = useState<number | null>(null);
   return (
     <div className="mx-auto max-w-[600px] px-1">
-      <Link href="/settings" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
+      <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <h1 className="pb-1 font-display text-xl text-porcelain">Help &amp; Support</h1>
       <p className="pb-5 text-[13px] text-ink/50">Short answers to how Platinum Circles works. Tap a topic.</p>
 
@@ -27,7 +27,7 @@ export default function HelpPage() {
         const Icon = t.icon;
         const isOpen = open === i;
         return (
-          <button key={t.q} onClick={() => setOpen(isOpen ? null : i)} className="mb-2.5 block w-full rounded-2xl bg-ink/[0.035] px-3.5 py-3 text-left">
+          <button key={t.q} onClick={() => setOpen(isOpen ? null : i)} className="mb-2.5 block w-full rounded-2xl bg-ink/[0.035] px-3.5 py-3 text-left transition-colors duration-[140ms] hover:bg-ink/[0.07]">
             <span className="flex items-center gap-2.5">
               <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-ink/[0.07] text-ink"><Icon size={15} /></span>
               <span className="flex-1 text-[14px] font-bold text-ink">{t.q}</span>
