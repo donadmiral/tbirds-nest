@@ -129,7 +129,7 @@ export function Comments({ postId }: { postId: string }) {
 
   function Row({ c, depth }: { c: CommentRow; depth: number }) {
     const mine = reactions[c.id] ?? 0;
-    const vb = "flex items-center gap-1 text-[12px] transition-colors";
+    const vb = "flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px] transition-colors duration-[140ms]";
     const total = countAll(c);
     const open = expanded.has(c.id);
     return (
@@ -142,25 +142,25 @@ export function Comments({ postId }: { postId: string }) {
               <span className="text-ink/40">{timeAgo(c.created_at)}</span>
             </p>
             <p className="whitespace-pre-wrap text-[14px] text-ink/90"><RichText text={c.body} /></p>
-            <div className="mt-1 flex items-center gap-4">
-              <button onClick={() => react(c.id, 1)} className={vb + " " + (mine === 1 ? "text-success" : "text-ink/45 hover:text-success")}>
+            <div className="-ml-2.5 mt-1 flex items-center gap-0.5">
+              <button onClick={() => react(c.id, 1)} className={vb + " " + (mine === 1 ? "text-success" : "text-ink/45 hover:bg-success/10 hover:text-success")}>
                 <ThumbsUp size={13} fill={mine === 1 ? "currentColor" : "none"} /> {c.likes_count > 0 ? c.likes_count : ""}
               </button>
-              <button onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-ink/45 hover:text-danger")}>
+              <button onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-ink/45 hover:bg-danger/10 hover:text-danger")}>
                 <ThumbsDown size={13} fill={mine === -1 ? "currentColor" : "none"} /> {c.dislikes_count > 0 ? c.dislikes_count : ""}
               </button>
-              <button onClick={() => startReply(c)} className={vb + " text-ink/45 hover:text-ink"}>
+              <button onClick={() => startReply(c)} className={vb + " text-ink/45 hover:bg-ink/[0.06] hover:text-ink"}>
                 <Reply size={13} /> Reply
               </button>
               <span className="relative">
-                <button onClick={() => setMenuFor(menuFor === c.id ? null : c.id)} className="rounded-full p-1 text-ink/30 opacity-0 transition-opacity hover:bg-surface hover:text-ink group-hover:opacity-100" title="More">
+                <button onClick={() => setMenuFor(menuFor === c.id ? null : c.id)} className="rounded-full p-2 text-ink/30 opacity-0 transition-colors duration-[140ms] hover:bg-surface hover:text-ink group-hover:opacity-100" title="More">
                   <MoreHorizontal size={14} />
                 </button>
                 {menuFor === c.id ? (
-                  <span className="absolute left-0 top-7 z-20 w-40 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
-                    <button onClick={() => copyText(c)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-ink/85 hover:bg-surface-elevated"><Copy size={13} /> Copy text</button>
+                  <span className="absolute left-0 top-9 z-20 w-40 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
+                    <button onClick={() => copyText(c)} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-white/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><Copy size={13} /> Copy text</button>
                     {uid === c.user_id ? (
-                      <button onClick={() => remove(c)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-danger hover:bg-surface-elevated"><Trash2 size={13} /> Delete</button>
+                      <button onClick={() => remove(c)} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-danger transition-colors duration-[140ms] hover:bg-surface-elevated"><Trash2 size={13} /> Delete</button>
                     ) : null}
                   </span>
                 ) : null}
@@ -168,7 +168,7 @@ export function Comments({ postId }: { postId: string }) {
             </div>
             {depth === 0 && total > 0 ? (
               <button onClick={() => setExpanded((s) => { const n = new Set(s); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })}
-                className="mt-2 flex items-center gap-1 text-[12px] font-semibold text-pearl hover:underline"
+                className="mt-1.5 flex items-center gap-1 text-[12px] font-semibold text-pearl hover:underline"
               >
                 {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                 {open ? "Hide replies" : "View " + total + (total === 1 ? " reply" : " replies")}
@@ -199,9 +199,9 @@ export function Comments({ postId }: { postId: string }) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
             placeholder={replyTo ? "Write a reply" : "Add a comment"}
             rows={1}
-            className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+            className="max-h-32 flex-1 resize-none rounded-full bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
           />
-          <button onClick={submit} disabled={busy || !draft.trim()} className="rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink disabled:opacity-30">
+          <button onClick={submit} disabled={busy || !draft.trim()} className="rounded-full bg-pearl px-5 py-2.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30">
             {busy ? "Sending" : "Send"}
           </button>
         </div>
