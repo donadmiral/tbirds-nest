@@ -64,18 +64,18 @@ export default function ChannelsPage() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-lg font-semibold text-ink"><Radio size={19} /> Channels</h1>
         {me ? (
-          <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-white"><Plus size={14} /> New channel</button>
+          <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> New channel</button>
         ) : null}
       </div>
       <div className="mb-3 flex gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white"><Radio size={13} /> Channels</span>
-        <Link href="/communities" className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/60 hover:text-ink"><Users size={13} /> Communities</Link>
+        <Link href="/communities" className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/60 transition-colors duration-[140ms] hover:text-ink"><Users size={13} /> Communities</Link>
       </div>
-      <div className="mb-4 flex items-center gap-2 rounded-xl bg-ink/5 px-3 py-2">
+      <div className="mb-4 flex items-center gap-2 rounded-lg bg-ink/5 px-3 py-2 transition-colors duration-[140ms] focus-within:bg-ink/[0.07]">
         <Search size={15} className="text-ink/40" />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search channels"
           className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-ink/40" />
-        {q ? <button onClick={() => setQ("")}><X size={15} className="text-ink/40" /></button> : null}
+        {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-ink/40" /></button> : null}
       </div>
       {loading ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading…</p>
@@ -90,7 +90,7 @@ export default function ChannelsPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={ch.icon_url} alt="" className="h-11 w-11 rounded-full object-cover" />
                 ) : (
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B1E3D] text-white"><Radio size={17} /></span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-white"><Radio size={17} /></span>
                 )}
                 <span className="min-w-0">
                   <span className="block truncate text-[14.5px] font-semibold text-ink">{ch.name}</span>
@@ -101,7 +101,7 @@ export default function ChannelsPage() {
                 </span>
               </Link>
               {me && !ch.is_member ? (
-                <button onClick={() => join(ch)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white">Join</button>
+                <button onClick={() => join(ch)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">Join</button>
               ) : ch.is_member ? (
                 <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/50">Joined</span>
               ) : null}
@@ -114,22 +114,22 @@ export default function ChannelsPage() {
           <div className="w-full max-w-[440px] rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">New channel</p>
-              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <input value={cName} onChange={e => setCName(e.target.value)} maxLength={60} placeholder="Channel name"
-              className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
+              className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             <input value={cDesc} onChange={e => setCDesc(e.target.value)} maxLength={160} placeholder="What is it about? (optional)"
-              className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
+              className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             <div className="mb-4 flex gap-2">
               {(["everyone", "followers"] as const).map(k => (
                 <button key={k} onClick={() => setCAud(k)}
-                  className={"flex-1 rounded-lg border px-3 py-2 text-[13px] font-semibold " + (cAud === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
+                  className={"flex-1 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors duration-[140ms] " + (cAud === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
                   {k === "everyone" ? "Everyone can join" : "My followers"}
                 </button>
               ))}
             </div>
             <button onClick={create} disabled={!cName.trim() || busy}
-              className="w-full rounded-md bg-ink py-2.5 text-sm font-semibold text-white disabled:opacity-40">
+              className="w-full rounded-full bg-ink py-2.5 text-sm font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
               {busy ? "Creating…" : "Create channel"}
             </button>
           </div>
