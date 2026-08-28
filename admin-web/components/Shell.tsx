@@ -84,14 +84,14 @@ export default async function Shell({ admin, active, title, sub, children }: {
         <div className="border-t border-white/8 px-4 py-3 text-[10px] text-white/30">Signed in as {admin.role.replace(/_/g, ' ')}</div>
       </aside>
       <div className="ml-60 flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-[#E5E4E0] bg-white px-6">
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-[#E5E4E0] bg-white px-6">
           <nav className="flex items-center gap-1.5 text-[12.5px]">
-            <Link href="/dashboard" className="font-medium text-[#7A7D84] hover:text-[#17181C]">Operations</Link>
+            <Link href="/dashboard" className="font-medium text-[#7A7D84] transition-colors duration-150 hover:text-[#17181C]">Operations</Link>
             <span className="text-[#C6C8CC]">/</span>
             <span className="font-semibold text-[#17181C]">{title}</span>
           </nav>
           <form method="get" action="/users" className="ml-4 hidden max-w-sm flex-1 md:block">
-            <div className="flex items-center gap-2 rounded-[9px] border border-[#E5E4E0] bg-[#F8F8F7] px-3 py-[6px] transition-colors duration-150 focus-within:border-[#B9BCC2] focus-within:bg-white">
+            <div className="flex items-center gap-2 rounded-[9px] border border-[#E5E4E0] bg-[#F8F8F7] px-3 py-2 transition-colors duration-150 focus-within:border-[#B9BCC2] focus-within:bg-white">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9A9DA4" strokeWidth="2.4"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
               <input name="q" placeholder="Search members" className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#A9ABB1]" />
             </div>
@@ -102,16 +102,16 @@ export default async function Shell({ admin, active, title, sub, children }: {
               {alerts > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C2410C] px-1 text-[9.5px] font-bold text-white">{alerts}</span> : null}
             </Link>
             <span className="hidden items-center gap-1.5 rounded-full border border-[#E1EFE4] bg-[#F2F9F3] px-2.5 py-1 text-[11px] font-semibold text-[#1D7A38] sm:flex"><span className="h-[6px] w-[6px] rounded-full bg-[#2BA84A]" />Production</span>
-            <div className="flex items-center gap-2 rounded-[9px] border border-[#E5E4E0] py-1 pl-1 pr-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-[#0B1E3D] text-[12px] font-bold text-white">{initial}</span>
+            <div className="flex items-center gap-2.5 rounded-[9px] border border-[#E5E4E0] py-1 pl-1 pr-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[#0B1E3D] text-[13px] font-bold text-white">{initial}</span>
               <span className="hidden text-[12px] font-semibold text-[#43454B] lg:block">{admin.email.split('@')[0]}</span>
               <form action={signOut}><button className="text-[11.5px] font-semibold text-[#9A9DA4] transition-colors duration-150 hover:text-[#B03A3A]" title="Sign out">Exit</button></form>
             </div>
           </div>
         </header>
         <div className="flex-1 px-7 pb-8 pt-6">
-          <h1 className="text-[20px] font-semibold tracking-[-0.01em]">{title}</h1>
-          {sub ? <p className="mt-0.5 text-[13px] text-[#7A7D84]">{sub}</p> : null}
+          <h1 className="text-[22px] font-semibold tracking-[-0.01em]">{title}</h1>
+          {sub ? <p className="mt-1 text-[13px] text-[#7A7D84]">{sub}</p> : null}
           <div className="mt-5">{children}</div>
         </div>
         <footer className="flex items-center justify-between border-t border-[#E5E4E0] bg-white px-7 py-3 text-[11.5px] text-[#9A9DA4]">
