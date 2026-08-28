@@ -41,26 +41,26 @@ export default function BlockedAccountsPage() {
 
   return (
     <div className="mx-auto max-w-[560px] px-1">
-      <Link href="/settings" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
+      <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><ShieldOff size={19} className="text-pearl" /> Blocked accounts</h1>
       <p className="pb-5 text-[13px] text-ink/50">When you block someone they cannot see your posts or message you. You can undo it here.</p>
       {err ? <p className="text-sm text-red-400">{err}</p> : rows === null ? <p className="py-10 text-center text-sm text-ink/40">Loading</p>
       : rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-ink/15 py-14 text-center">
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-14 text-center">
           <UserX size={28} className="text-ink/25" />
           <p className="text-[14px] font-semibold text-ink">Nobody is blocked</p>
         </div>
       ) : rows.map(r => (
-        <div key={r.blocked_id} className="mb-2 flex items-center gap-3 rounded-xl border border-ink/10 p-3">
+        <div key={r.blocked_id} className="mb-2 flex items-center gap-3.5 rounded-lg border border-ink/10 p-3.5">
           {r.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={r.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
-          ) : <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{(r.full_name || "U").charAt(0)}</span>}
+            <img src={r.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
+          ) : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">{(r.full_name || "U").charAt(0)}</span>}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] font-semibold text-ink">{r.full_name || "User"}</p>
+            <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name || "User"}</p>
             {r.username ? <p className="text-[12px] text-ink/45">@{r.username}</p> : null}
           </div>
-          <button onClick={() => unblock(r)} disabled={!!busy[r.blocked_id]} className="rounded-full border border-ink/15 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink disabled:opacity-40">{busy[r.blocked_id] ? "..." : "Unblock"}</button>
+          <button onClick={() => unblock(r)} disabled={!!busy[r.blocked_id]} className="rounded-full border border-ink/15 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface disabled:opacity-40">{busy[r.blocked_id] ? "..." : "Unblock"}</button>
         </div>
       ))}
     </div>
