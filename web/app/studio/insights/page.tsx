@@ -111,12 +111,12 @@ export default function InsightsPage() {
             <div>
               <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Top content, last {days} days</h2>
               {ins.top_posts.length === 0 ? <p className="rounded-lg border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">No posts in this period.</p> : ins.top_posts.map((p, i) => (
-                <Link key={p.post_id} href={"/post/" + p.post_id} className="mb-2 flex items-center gap-3 rounded-lg border border-ink/10 px-3 py-2.5 transition-colors duration-[140ms] hover:bg-surface">
+                <Link key={p.post_id} href={"/post/" + p.post_id} className="mb-2 flex items-center gap-3.5 rounded-lg border border-ink/10 px-3.5 py-3 transition-colors duration-[140ms] hover:bg-surface">
                   <span className="w-5 text-center font-display text-[15px] text-ink/40">{i + 1}</span>
                   {p.thumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.thumb} alt="" className="h-11 w-11 rounded-lg object-cover" />
-                  ) : <span className="h-11 w-11 rounded-lg bg-surface" />}
+                    <img src={p.thumb} alt="" className="h-14 w-14 rounded-lg object-cover" />
+                  ) : <span className="h-14 w-14 rounded-lg bg-surface" />}
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-1 text-[13.5px] text-ink">{p.content || "Media post"}</span>
                     <span className="block text-[11.5px] text-ink/45">{new Date(p.created_at).toLocaleDateString()} · {p.views} views · {p.likes} likes · {p.comments} comments · {p.reposts} reposts{p.products ? " · " + p.products + " products" : ""}</span>
