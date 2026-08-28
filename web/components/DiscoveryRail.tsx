@@ -44,7 +44,7 @@ export function DiscoveryRail() {
     })();
   }, [supabase]);
 
-  const card = "rounded-xl border border-ink/10 bg-surface/40";
+  const card = "rounded-lg border border-ink/10 bg-white";
   const header = "flex items-center gap-2 border-b border-ink/10 px-4 py-3 text-[14px] font-semibold text-ink";
 
   return (
@@ -58,7 +58,7 @@ export function DiscoveryRail() {
               return (
                 <Link key={t.topic}
                   href={"/topic/" + encodeURIComponent(tag.slice(1))}
-                  className="flex items-baseline justify-between px-4 py-2.5 transition-colors hover:bg-surface"
+                  className="flex items-baseline justify-between px-4 py-2.5 transition-colors duration-[140ms] hover:bg-surface"
                 >
                   <span className="truncate text-[14px] font-semibold text-ink">{tag}</span>
                   <span className="ml-3 shrink-0 text-[12px] text-ink/40">{t.post_count} {t.post_count === 1 ? "post" : "posts"}</span>
@@ -90,7 +90,7 @@ export function DiscoveryRail() {
             ))}
           </div>
           {people.length > 4 ? (
-            <button onClick={() => setShowAll((v) => !v)} className="w-full border-t border-ink/10 px-4 py-2.5 text-left text-[13px] text-pearl transition-colors hover:bg-surface">
+            <button onClick={() => setShowAll((v) => !v)} className="w-full border-t border-ink/10 px-4 py-2.5 text-left text-[13px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-surface">
               {showAll ? "Show less" : "Show more"}
             </button>
           ) : null}
