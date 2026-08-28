@@ -58,7 +58,7 @@ export default function TicketPage() {
 
   return (
     <div className="mx-auto max-w-[600px] px-1">
-      <Link href="/settings/support" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Support</Link>
+      <Link href="/settings/support" aria-label="Back to Support" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <div className="mb-4 flex items-center gap-2">
         <h1 className="min-w-0 flex-1 truncate font-display text-xl text-porcelain">{ticket.subject}</h1>
         <span className={"shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold " + meta.cls}>{meta.label}</span>
@@ -77,8 +77,8 @@ export default function TicketPage() {
       ))}
 
       <div className="mt-4 flex gap-2">
-        <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void send(); }} placeholder="Write a reply" className="w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-ink/40" />
-        <button onClick={send} disabled={busy || !draft.trim()} className="shrink-0 rounded-lg bg-ink px-4 py-2.5 text-[13.5px] font-bold text-white disabled:opacity-40">Send</button>
+        <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void send(); }} placeholder="Write a reply" className="w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+        <button onClick={send} disabled={busy || !draft.trim()} className="shrink-0 rounded-lg bg-ink px-4 py-2.5 text-[13.5px] font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">Send</button>
       </div>
     </div>
   );
