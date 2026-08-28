@@ -98,10 +98,10 @@ export default function JobsPage() {
       <div className="flex items-center justify-between px-1 pb-3">
         <h1 className="font-display text-2xl text-porcelain">Jobs</h1>
         <div className="flex items-center gap-1">
-          <Link href="/jobs/messages" title="Job messages" className="rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-ink"><MessageCircle size={19} /></Link>
-          <Link href="/jobs/applications" title="My applications" className="rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-ink"><Send size={19} /></Link>
-          <Link href="/jobs/saved" title="Saved jobs" className="rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-ink"><Bookmark size={19} /></Link>
-          <Link href="/jobs/new" className="ml-1 flex items-center gap-1.5 rounded-md bg-pearl px-3 py-2 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90"><Plus size={16} /> Post a job</Link>
+          <Link href="/jobs/messages" title="Job messages" className="rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><MessageCircle size={19} /></Link>
+          <Link href="/jobs/applications" title="My applications" className="rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><Send size={19} /></Link>
+          <Link href="/jobs/saved" title="Saved jobs" className="rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><Bookmark size={19} /></Link>
+          <Link href="/jobs/new" className="ml-1 flex items-center gap-1.5 rounded-full bg-pearl px-3.5 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"><Plus size={16} /> Post a job</Link>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ export default function JobsPage() {
         <input value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search jobs by title, keyword, or company"
-          className="w-full rounded-md bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+          className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
         />
       </div>
 
@@ -118,14 +118,14 @@ export default function JobsPage() {
         {SCOPE_TABS.map((t) => (
           <button key={t.id}
             onClick={() => setScope(t.id)}
-            className={"rounded-md px-3 py-1.5 text-[13px] transition-colors " + (scope === t.id ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
+            className={"rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (scope === t.id ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
           >
             {t.label}
           </button>
         ))}
         <select value={sort}
           onChange={(e) => setSort(e.target.value as typeof sort)}
-          className="ml-auto rounded-md bg-surface px-2 py-1.5 text-[13px] text-ink/80 outline-none"
+          className="ml-auto rounded-full bg-surface px-3 py-1.5 text-[13px] text-ink/80 outline-none"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.id} value={o.id} className="bg-navy">{o.label}</option>
@@ -137,7 +137,7 @@ export default function JobsPage() {
         {CATEGORY_TABS.map((t) => (
           <button key={t.id}
             onClick={() => setCategory(t.id)}
-            className={"shrink-0 rounded-md px-3 py-1.5 text-[13px] transition-colors " + (category === t.id ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
+            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (category === t.id ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
           >
             {t.emoji} {t.label}
           </button>
