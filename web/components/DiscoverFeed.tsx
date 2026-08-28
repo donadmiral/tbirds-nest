@@ -54,7 +54,7 @@ export function DiscoverFeed() {
       <div className="sticky top-0 z-10 -mx-1 flex gap-1.5 overflow-x-auto bg-white/90 px-1 py-2 backdrop-blur">
         {CATEGORIES.map((c) => (
           <button key={c.key} onClick={() => setCat(c.key)}
-            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors " + (c.key === cat ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}
+            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (c.key === cat ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}
           >
             {c.label}
           </button>
