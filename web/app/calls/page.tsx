@@ -72,13 +72,13 @@ export default function CallsPage() {
 
   return (
     <div className="mx-auto max-w-[560px] px-1">
-      <Link href="/messages" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Messages</Link>
+      <Link href="/messages" aria-label="Back to Messages" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Phone size={19} className="text-pearl" /> Calls</h1>
       <p className="pb-5 text-[13px] text-ink/50">Your call history.</p>
 
       {rows === null ? <p className="py-10 text-center text-sm text-ink/40">Loading</p>
       : rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-ink/15 py-16 text-center">
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-16 text-center">
           <Phone size={28} className="text-ink/25" />
           <p className="text-[14px] font-semibold text-ink">No calls yet</p>
           <p className="text-[12.5px] text-ink/45">Your call history will appear here.</p>
@@ -89,8 +89,8 @@ export default function CallsPage() {
           <div key={r.id} className="flex items-center gap-3 border-b border-ink/[0.06] py-3 last:border-0">
             {r.other?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.other.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
-            ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy text-[13px] font-semibold text-white">{(r.other?.full_name || "U").charAt(0)}</span>}
+              <img src={r.other.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
+            ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-navy text-[13px] font-semibold text-white">{(r.other?.full_name || "U").charAt(0)}</span>}
             <div className="min-w-0 flex-1">
               <p className={"truncate text-[14px] font-semibold " + (missed ? "text-red-500" : "text-ink")}>{r.other?.full_name || "Unknown"}</p>
               <p className={"flex items-center gap-1.5 text-[12.5px] " + (missed ? "text-red-500" : "text-ink/45")}>
@@ -99,8 +99,8 @@ export default function CallsPage() {
               <p className="text-[11px] text-ink/35">{fmtTime(r.created_at)}</p>
             </div>
             <div className="flex shrink-0 gap-1.5">
-              <button onClick={() => redial(r, false)} className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink/5 text-ink hover:bg-ink/10" aria-label="Voice call"><Phone size={15} /></button>
-              <button onClick={() => redial(r, true)} className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink/5 text-ink hover:bg-ink/10" aria-label="Video call"><Video size={15} /></button>
+              <button onClick={() => redial(r, false)} className="flex h-9 w-9 items-center justify-center rounded-full bg-ink/5 text-ink transition-colors duration-[140ms] hover:bg-ink/10" aria-label="Voice call"><Phone size={15} /></button>
+              <button onClick={() => redial(r, true)} className="flex h-9 w-9 items-center justify-center rounded-full bg-ink/5 text-ink transition-colors duration-[140ms] hover:bg-ink/10" aria-label="Video call"><Video size={15} /></button>
             </div>
           </div>
         );
