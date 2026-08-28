@@ -57,16 +57,16 @@ export default async function DashboardPage() {
           ];
           const tl = tiles[i] || tiles[0];
           return (
-            <div key={m.label} className="rounded-[12px] border border-[#E5E4E0] bg-white p-4">
+            <div key={m.label} className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
               <div className="flex items-start justify-between">
-                <span className="flex h-10 w-10 items-center justify-center rounded-[10px]" style={{ backgroundColor: tl.bg }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill={i === 2 ? 'none' : tl.fg} stroke={i === 2 ? tl.fg : 'none'} strokeWidth="2"><path d={tl.icon} /></svg>
+                <span className="flex h-11 w-11 items-center justify-center rounded-[10px]" style={{ backgroundColor: tl.bg }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill={i === 2 ? 'none' : tl.fg} stroke={i === 2 ? tl.fg : 'none'} strokeWidth="2"><path d={tl.icon} /></svg>
                 </span>
-                <p className={'text-[24px] font-semibold tabular-nums tracking-tight ' + (m.hot ? 'text-[#B45309]' : 'text-[#17181C]')}>{m.value}</p>
+                <p className={'text-[27px] font-semibold tabular-nums tracking-tight ' + (m.hot ? 'text-[#B45309]' : 'text-[#17181C]')}>{m.value}</p>
               </div>
-              <div className="mt-2.5 flex items-baseline justify-between">
+              <div className="mt-3 flex items-baseline justify-between">
                 <p className="text-[12px] font-medium text-[#7A7D84]">{m.label}</p>
-                <Link href={m.href} className="text-[11.5px] font-semibold text-[#0B1E3D] hover:underline">View</Link>
+                <Link href={m.href} className="text-[11.5px] font-semibold text-[#17181C] transition-colors duration-150 hover:opacity-70">View</Link>
               </div>
             </div>
           );
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
                 {appRows.map(a => {
                   const p = names[a.applicant_id] || {};
                   return (
-                    <Link key={a.id} href="/queue" className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 transition-colors duration-150 last:border-0 hover:bg-[#FAFAF9]">
+                    <Link key={a.id} href="/queue" className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-3.5 transition-colors duration-150 last:border-0 hover:bg-[#FAFAF9]">
                       <Seal tier={a.tier} size={16} />
                       <p className="min-w-0 flex-1 truncate text-[13px] font-semibold">{p.full_name || '@' + (p.username || '?')} <span className="font-normal text-[#7A7D84]">applied for {TIER_LABEL[a.tier] || a.tier}{a.category ? ' - ' + a.category : ''}</span></p>
                       <p className="shrink-0 text-[11.5px] tabular-nums text-[#9A9DA4]">{new Date(a.created_at).toLocaleDateString()}</p>
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
                   );
                 })}
                 {openReports.map((r: any) => (
-                  <Link key={r.kind + r.id} href="/reports" className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 transition-colors duration-150 last:border-0 hover:bg-[#FAFAF9]">
+                  <Link key={r.kind + r.id} href="/reports" className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-3.5 transition-colors duration-150 last:border-0 hover:bg-[#FAFAF9]">
                     <span className="shrink-0 rounded-full border border-[#F3E3C5] bg-[#FBF4E4] px-2 py-0.5 text-[10.5px] font-bold text-[#B45309]">{r.kind}</span>
                     <p className="min-w-0 flex-1 truncate text-[13px]"><span className="font-semibold">Reported</span> <span className="text-[#7A7D84]">- {r.reason}</span></p>
                     <p className="shrink-0 text-[11.5px] tabular-nums text-[#9A9DA4]">{new Date(r.created_at).toLocaleDateString()}</p>
@@ -107,13 +107,13 @@ export default async function DashboardPage() {
             {(audit.data ?? []).length === 0 ? (
               <p className="px-5 py-10 text-center text-[13px] text-[#9A9DA4]">Every action lands here, permanently.</p>
             ) : (audit.data ?? []).map((a, i) => (
-              <div key={i} className="border-b border-[#F0EFEC] px-4 py-2.5 last:border-0">
+              <div key={i} className="border-b border-[#F0EFEC] px-4 py-3 last:border-0">
                 <p className="text-[12.5px] font-semibold">{a.action.replace(/[._]/g, ' ')}</p>
                 <p className="truncate text-[11.5px] text-[#7A7D84]">{a.reason}</p>
                 <p className="mt-0.5 text-[10.5px] tabular-nums text-[#B4B6BB]">{new Date(a.created_at).toLocaleString()}</p>
               </div>
             ))}
-            <Link href="/audit" className="block border-t border-[#F0EFEC] px-4 py-2.5 text-[12px] font-semibold text-[#0B1E3D] transition-colors duration-150 hover:bg-[#FAFAF9]">Full audit log</Link>
+            <Link href="/audit" className="block border-t border-[#F0EFEC] px-4 py-3 text-[12px] font-semibold text-[#17181C] transition-colors duration-150 hover:bg-[#FAFAF9]">Full audit log</Link>
           </div>
         </div>
       </div>
