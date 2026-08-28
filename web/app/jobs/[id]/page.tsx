@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { type JobRow } from "@/lib/jobs";
 import { ApplyPanel } from "@/components/ApplyPanel";
@@ -55,7 +55,7 @@ export default async function JobPage({ params }: Params) {
       <main className="flex flex-col items-center justify-center gap-3 px-6 py-24 text-center">
         <h1 className="font-display text-2xl text-porcelain">This job is not available</h1>
         <p className="text-sm text-ink/50">It may have been closed or removed.</p>
-        <Link href="/jobs" className="mt-2 rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-ink">Browse jobs</Link>
+        <Link href="/jobs" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Browse jobs</Link>
       </main>
     );
   }
@@ -79,7 +79,7 @@ export default async function JobPage({ params }: Params) {
 
   return (
     <div className="px-1">
-      <Link href="/jobs" className="mb-5 inline-block text-sm text-ink/50 hover:text-ink">← Jobs</Link>
+      <Link href="/jobs" aria-label="Back to Jobs" className="mb-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <header>
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-semibold text-ink">{j.title}</h1>
@@ -110,7 +110,7 @@ export default async function JobPage({ params }: Params) {
       </div>
 
       {isOwn ? (
-        <Link href={"/jobs/" + j.id + "/applicants"} className="mt-4 flex items-center gap-2 rounded-md border border-pearl/40 bg-pearl/10 px-4 py-3 text-[14px] font-semibold text-pearl transition-colors hover:bg-pearl/20">
+        <Link href={"/jobs/" + j.id + "/applicants"} className="mt-4 flex items-center gap-2 rounded-md border border-pearl/40 bg-pearl/10 px-4 py-3 text-[14px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-pearl/20">
           <Users size={17} /> Manage applicants{applicantsRes.count ? " (" + applicantsRes.count + ")" : ""}
         </Link>
       ) : (
@@ -135,17 +135,17 @@ export default async function JobPage({ params }: Params) {
       ) : null}
 
       {poster ? (
-        <Link href={poster.username ? "/" + poster.username : "#"} className="mt-7 flex items-center gap-3 rounded-lg border border-ink/10 p-4 transition-colors hover:bg-surface">
+        <Link href={poster.username ? "/" + poster.username : "#"} className="mt-7 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
           {poster.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={poster.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+            <img src={poster.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
           ) : (
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">
               {(poster.full_name ?? "?").charAt(0).toUpperCase()}
             </span>
           )}
           <span className="min-w-0">
-            <span className="flex items-center gap-1 text-[14px] font-semibold text-ink">
+            <span className="flex items-center gap-1 text-[15px] font-semibold text-ink">
               {poster.full_name}
               {poster.is_verified ? <VerifiedBadge tier={poster.verified_tier} size={14} /> : null}
             </span>
@@ -159,7 +159,7 @@ export default async function JobPage({ params }: Params) {
           <h2 className="text-[15px] font-semibold text-ink">Similar roles</h2>
           <div className="mt-2 flex flex-col gap-2">
             {(relatedRes.data ?? []).map((r) => (
-              <Link key={r.id} href={"/jobs/" + r.id} className="rounded-md bg-surface px-4 py-3 transition-colors hover:bg-surface-elevated">
+              <Link key={r.id} href={"/jobs/" + r.id} className="rounded-md bg-surface px-4 py-3 transition-colors duration-[140ms] hover:bg-surface-elevated">
                 <span className="block text-[14px] font-medium text-ink">{r.title}</span>
                 <span className="block text-[13px] text-ink/50">{r.company}{r.location ? " · " + r.location : ""}</span>
               </Link>
