@@ -14,20 +14,20 @@ export default function SettingsPage() {
     setSaver(dataSaverEnabled());
   }, []);
 
-  const row = "flex items-center justify-between rounded-xl border border-ink/10 p-4";
+  const row = "flex items-center justify-between rounded-lg border border-ink/10 p-4";
   const Toggle = ({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) => (
     <button onClick={() => onChange(!on)} role="switch" aria-checked={on}
-      className={"relative h-6 w-11 rounded-full transition-colors " + (on ? "bg-pearl" : "bg-ink/20")}
+      className={"relative h-6 w-11 rounded-full transition-colors duration-[140ms] " + (on ? "bg-pearl" : "bg-ink/20")}
     >
-      <span className={"absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform " + (on ? "translate-x-[22px]" : "translate-x-0.5")} />
+      <span className={"absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-[140ms] " + (on ? "translate-x-[22px]" : "translate-x-0.5")} />
     </button>
   );
-  const NavRow = ({ href, icon, label, sub }: { href: string; icon: React.ReactNode; label: string; sub: string }) => (
-    <Link href={href} className="flex items-center gap-3 rounded-xl border border-ink/10 p-4 transition-colors hover:bg-ink/[0.02]">
+  const NavRow = ({ href, icon, label, sub }: { href: string; icon: React.ReactNode; label: string; sub?: string }) => (
+    <Link href={href} className="flex items-center gap-3 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-pearl">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block text-[14px] font-semibold text-ink">{label}</span>
-        <span className="block text-[12px] text-ink/50">{sub}</span>
+        {sub ? <span className="block text-[12px] text-ink/50">{sub}</span> : null}
       </span>
       <ChevronRight size={16} className="shrink-0 text-ink/30" />
     </Link>
@@ -79,9 +79,9 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-2">
         <NavRow href="/settings/help" icon={<HelpCircle size={16} />} label="Help & Support" sub="FAQs, submit a ticket" />
         <NavRow href="/settings/support" icon={<LifeBuoy size={16} />} label="Contact support" sub="Write to the operations team" />
-        <NavRow href="/about" icon={<Info size={16} />} label="About Platinum Circles" sub="" />
-        <NavRow href="/terms" icon={<FileText size={16} />} label="Terms of Service" sub="" />
-        <NavRow href="/privacy" icon={<Shield size={16} />} label="Privacy Policy" sub="" />
+        <NavRow href="/about" icon={<Info size={16} />} label="About Platinum Circles" />
+        <NavRow href="/terms" icon={<FileText size={16} />} label="Terms of Service" />
+        <NavRow href="/privacy" icon={<Shield size={16} />} label="Privacy Policy" />
       </div>
     </div>
   );
