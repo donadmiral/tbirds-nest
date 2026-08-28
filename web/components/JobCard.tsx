@@ -42,9 +42,9 @@ export function JobCard({ job, initiallySaved, viewerId }: {
   }
 
   return (
-    <Link href={"/jobs/" + job.id} className="flex gap-4 border-b border-ink/10 px-1 py-5 transition-colors hover:bg-surface">
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-navy text-white">
-        <Briefcase size={20} strokeWidth={1.8} />
+    <Link href={"/jobs/" + job.id} className="flex gap-4 border-b border-ink/10 px-1 py-5 transition-colors duration-[140ms] hover:bg-surface">
+      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-navy text-white">
+        <Briefcase size={22} strokeWidth={1.8} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
@@ -58,11 +58,11 @@ export function JobCard({ job, initiallySaved, viewerId }: {
           {timeAgo(job.created_at)}{job.applications_count > 0 ? " · " + job.applications_count + " applicants" : ""}
         </span>
       </span>
-      <span className="flex shrink-0 flex-col items-end gap-2">
-        <button onClick={toggleSave} title={saved ? "Unsave" : "Save"} className={"rounded-md p-1.5 transition-colors " + (saved ? "text-pearl" : "text-ink/40 hover:text-ink")}>
+      <span className="flex shrink-0 flex-col items-end gap-1">
+        <button onClick={toggleSave} title={saved ? "Unsave" : "Save"} className={"rounded-full p-2 transition-colors duration-[140ms] " + (saved ? "text-pearl hover:bg-pearl/10" : "text-ink/40 hover:bg-ink/[0.06] hover:text-ink")}>
           <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
         </button>
-        <button onClick={share} title="Share" className="rounded-md p-1.5 text-ink/40 transition-colors hover:text-ink">
+        <button onClick={share} title="Share" className="rounded-full p-2 text-ink/40 transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
           {copied ? <Check size={18} className="text-success" /> : <Share2 size={18} />}
         </button>
       </span>
