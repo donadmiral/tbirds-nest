@@ -156,11 +156,11 @@ export default function PlannerPage() {
       {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
       : shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">{tab === "upcoming" ? "Nothing scheduled. Tap a day above to plan one." : tab === "drafts" ? "No drafts." : "Nothing published from the Planner yet."}</p>
       : shown.map(r => (
-        <div key={r.id} className="mt-2 flex items-start gap-3 rounded-lg border border-ink/10 p-3">
+        <div key={r.id} className="mt-2.5 flex items-start gap-3.5 rounded-lg border border-ink/10 p-3.5">
           {r.media?.[0]?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={r.media[0].url} alt="" className="h-14 w-14 rounded-lg object-cover" />
-          ) : <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-surface text-ink/30"><FileText size={18} /></span>}
+            <img src={r.media[0].url} alt="" className="h-16 w-16 rounded-lg object-cover" />
+          ) : <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-surface text-ink/30"><FileText size={20} /></span>}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className={"rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + statusChip(r.status)}>{r.status}</span>
@@ -168,7 +168,7 @@ export default function PlannerPage() {
               {r.products?.length ? <span className="flex items-center gap-1 text-[12px] text-ink/50"><Tag size={12} /> {r.products.length} products</span> : null}
               {r.community_id ? <span className="flex items-center gap-1 text-[12px] text-ink/50"><Users size={12} /> community</span> : null}
             </div>
-            <p className="mt-1 line-clamp-2 text-[13.5px] text-ink">{r.content || r.body || "Media post"}</p>
+            <p className="mt-1 line-clamp-2 text-[14px] text-ink">{r.content || r.body || "Media post"}</p>
             {r.status === "failed" && r.error ? <p className="mt-1 flex items-center gap-1 text-[12px] text-red-400"><AlertTriangle size={12} /> {r.error}</p> : null}
             {r.status === "published" && r.published_post_id ? <Link href={"/post/" + r.published_post_id} className="mt-1 inline-flex items-center gap-1 text-[12px] text-success"><CheckCircle2 size={12} /> View the live post</Link> : null}
           </div>
