@@ -1,26 +1,220 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ══════════════════════════════════════════════════════════════════════════
+   Platinum Circles Operations - design tokens
+   Light is the default. [data-theme="dark"] on <html> flips the whole desk.
+   Every value below comes from the operations design, nothing invented.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme="light"] {
+  --on: 0, 0, 0;
+  --bg: #FAFAFA;
+  --rail: rgba(255, 255, 255, 0.82);
+  --panel: #FFFFFF;
+  --panel-2: #F5F5F5;
+  --topbar: rgba(250, 250, 250, 0.82);
+  --txt: #262626;
+  --txt-strong: #000000;
+  --accent: #000000;
+  --accent-rgb: 0, 0, 0;
+  --accent-2: #404040;
+  --accent-ink: #FFFFFF;
+  --ok: #1A7F4B;
+  --ok-rgb: 26, 127, 75;
+  --bad: #C4302B;
+  --bad-rgb: 196, 48, 43;
+  --warn: #8A6300;
+  --warn-rgb: 138, 99, 0;
+  --info: #3E6B99;
+  --info-rgb: 62, 107, 153;
+  --vio: #3E6B99;
+  --vio-rgb: 62, 107, 153;
+  --alert: #C4302B;
+  --chip-bg: #EFEFEF;
+  --chip-fg: #262626;
+  --pearl: #8A7A62;
+  --deep: #1A1A1A;
+  --line: rgba(0, 0, 0, 0.10);
+  --c1: #3B6FD4;
+  --c1-rgb: 59, 111, 212;
+  --c2: #17976A;
+  --c3: #D68A12;
+  --c4: #6E56CF;
+  --c5: #C4453C;
+  --c6: #0E8C9E;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-theme="dark"] {
+  --on: 255, 255, 255;
+  --bg: #000000;
+  --rail: rgba(0, 0, 0, 0.82);
+  --panel: #0B0B0B;
+  --panel-2: #161616;
+  --topbar: rgba(0, 0, 0, 0.82);
+  --txt: #F0F0F0;
+  --txt-strong: #FFFFFF;
+  --accent: #FFFFFF;
+  --accent-rgb: 255, 255, 255;
+  --accent-2: #D4D4D4;
+  --accent-ink: #000000;
+  --ok: #4CC38A;
+  --ok-rgb: 76, 195, 138;
+  --bad: #F1707B;
+  --bad-rgb: 241, 112, 123;
+  --warn: #E3B341;
+  --warn-rgb: 227, 179, 65;
+  --info: #7EA6D9;
+  --info-rgb: 126, 166, 217;
+  --vio: #7EA6D9;
+  --vio-rgb: 126, 166, 217;
+  --alert: #F1707B;
+  --chip-bg: #1F1F1F;
+  --chip-fg: #F0F0F0;
+  --pearl: #C9BFB0;
+  --deep: #262626;
+  --line: rgba(255, 255, 255, 0.10);
+  --c1: #6E9BEE;
+  --c1-rgb: 110, 155, 238;
+  --c2: #4FBE93;
+  --c3: #E8A93C;
+  --c4: #9B85E8;
+  --c5: #E8756C;
+  --c6: #46B4C4;
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ── base ───────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(var(--on), 0.11); border-radius: 9px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(var(--on), 0.2); }
+
+@keyframes pcPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* ── shell primitives ───────────────────────────────────────────────────── */
+
+.pc-pulse { animation: pcPulse 2.4s ease-in-out infinite; }
+
+.pc-num {
+  font-family: var(--font-jet), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.pc-nav { transition: background 140ms, color 140ms; }
+.pc-nav:hover { background: rgba(var(--on), 0.055) !important; color: var(--txt) !important; }
+
+.pc-icon-btn { transition: background 140ms; }
+.pc-icon-btn:hover { background: rgba(var(--on), 0.06); }
+
+.pc-search { transition: background 140ms, border-color 140ms; }
+.pc-search:focus-within { border-color: rgba(var(--accent-rgb), 0.3); background: rgba(var(--on), 0.06); }
+
+.pc-seg { transition: background 140ms, color 140ms; }
+.pc-seg:hover { color: var(--txt); }
+
+.pc-crumb { transition: color 140ms; }
+.pc-crumb:hover { color: var(--txt-strong); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PC-COMPAT-START
+   The desks still carry their original hard-coded hexes. These rules map every
+   one of them onto the tokens above, so the whole operations app follows the
+   theme today. Each desk drops out of this block as it is converted; when the
+   block is empty it gets deleted. Generated from the real class usage, nothing
+   guessed. Unlayered CSS, so it wins over Tailwind utilities by the cascade.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.bg-white { background-color: var(--panel); }
+.hover\:bg-white:hover { background-color: var(--panel); }
+
+.bg-\[\#0A1730\] { background-color: var(--deep); }
+.bg-\[\#0B1E3D\] { background-color: var(--deep); }
+.bg-\[\#17181C\] { background-color: var(--deep); }
+.bg-\[\#191C22\] { background-color: var(--deep); }
+.bg-\[\#26282E\] { background-color: var(--deep); }
+.bg-\[\#2BA84A\] { background-color: var(--ok); }
+.bg-\[\#5B4BD1\] { background-color: var(--info); }
+.bg-\[\#B03A3A\] { background-color: var(--bad); }
+.bg-\[\#C2410C\] { background-color: var(--alert); }
+.bg-\[\#C6C4BE\] { background-color: rgba(var(--on),0.18); }
+.bg-\[\#EBF3EE\] { background-color: rgba(var(--ok-rgb),0.10); }
+.bg-\[\#ECEBE7\] { background-color: rgba(var(--on),0.05); }
+.bg-\[\#EEF2FB\] { background-color: rgba(var(--info-rgb),0.10); }
+.bg-\[\#EFEFF4\] { background-color: var(--panel-2); }
+.bg-\[\#EFF8F1\] { background-color: rgba(var(--ok-rgb),0.10); }
+.bg-\[\#F0EFEC\] { background-color: rgba(var(--on),0.05); }
+.bg-\[\#F2F9F3\] { background-color: rgba(var(--ok-rgb),0.10); }
+.bg-\[\#F4F3F0\] { background-color: var(--panel-2); }
+.bg-\[\#F4F5F7\] { background-color: var(--bg); }
+.bg-\[\#F8F8F7\] { background-color: var(--panel-2); }
+.bg-\[\#FAFAF9\] { background-color: var(--panel-2); }
+.bg-\[\#FBF0F0\] { background-color: rgba(var(--bad-rgb),0.08); }
+.bg-\[\#FBF2F2\] { background-color: rgba(var(--bad-rgb),0.10); }
+.bg-\[\#FBF4E4\] { background-color: rgba(var(--warn-rgb),0.12); }
+.bg-\[\#FDF6E9\] { background-color: rgba(var(--warn-rgb),0.10); }
+.border-\[\#0B1E3D\] { border-color: var(--accent); }
+.border-\[\#17181C\] { border-color: var(--accent); }
+.border-\[\#DCEFE0\] { border-color: rgba(var(--ok-rgb),0.22); }
+.border-\[\#DFE8E2\] { border-color: rgba(var(--ok-rgb),0.22); }
+.border-\[\#E1EFE4\] { border-color: rgba(var(--ok-rgb),0.22); }
+.border-\[\#E5E4E0\] { border-color: var(--line); }
+.border-\[\#E8E6E1\] { border-color: var(--line); }
+.border-\[\#EFEDE8\] { border-color: var(--line); }
+.border-\[\#F0DEDE\] { border-color: rgba(var(--bad-rgb),0.22); }
+.border-\[\#F0EFEC\] { border-color: var(--line); }
+.border-\[\#F3C9C9\] { border-color: rgba(var(--bad-rgb),0.24); }
+.border-\[\#F3E3C5\] { border-color: rgba(var(--warn-rgb),0.24); }
+.text-\[\#0B1E3D\] { color: var(--txt-strong); }
+.text-\[\#17181C\] { color: var(--txt); }
+.text-\[\#1D7A38\] { color: var(--ok); }
+.text-\[\#26282E\] { color: var(--txt); }
+.text-\[\#43454B\] { color: var(--txt); }
+.text-\[\#5A5D64\] { color: rgba(var(--on),0.62); }
+.text-\[\#5B6470\] { color: rgba(var(--on),0.55); }
+.text-\[\#7A7D84\] { color: rgba(var(--on),0.55); }
+.text-\[\#9A9DA4\] { color: rgba(var(--on),0.42); }
+.text-\[\#B03A3A\] { color: var(--bad); }
+.text-\[\#B08D3F\] { color: var(--warn); }
+.text-\[\#B45309\] { color: var(--warn); }
+.text-\[\#B4B6BB\] { color: rgba(var(--on),0.36); }
+.text-\[\#C6C8CC\] { color: rgba(var(--on),0.28); }
+.text-\[\#C9CBD1\] { color: rgba(var(--on),0.30); }
+.text-\[\#D7DBE0\] { color: rgba(var(--on),0.26); }
+.text-\[\#E7C878\] { color: var(--accent); }
+.focus-within\:border-\[\#B9BCC2\]:focus-within { border-color: rgba(var(--accent-rgb),0.30); }
+.focus\:border-\[\#0B1E3D\]:focus { border-color: var(--accent); }
+.focus\:border-\[\#17181C\]:focus { border-color: var(--accent); }
+.focus\:border-\[\#B9BCC2\]:focus { border-color: rgba(var(--accent-rgb),0.30); }
+.hover\:bg-\[\#E0EDE5\]:hover { background-color: rgba(var(--ok-rgb),0.14); }
+.hover\:bg-\[\#F0DEDE\]:hover { background-color: rgba(var(--bad-rgb),0.14); }
+.hover\:bg-\[\#F0EFEC\]:hover { background-color: rgba(var(--on),0.05); }
+.hover\:bg-\[\#F6E4E4\]:hover { background-color: rgba(var(--bad-rgb),0.14); }
+.hover\:bg-\[\#F8E4E4\]:hover { background-color: rgba(var(--bad-rgb),0.14); }
+.hover\:bg-\[\#FAFAF9\]:hover { background-color: var(--panel-2); }
+.hover\:border-\[\#D6D4CE\]:hover { border-color: rgba(var(--on),0.18); }
+.hover\:text-\[\#17181C\]:hover { color: var(--txt); }
+.hover\:text-\[\#B03A3A\]:hover { color: var(--bad); }
+.placeholder\:text-\[\#A9ABB1\]::placeholder { color: rgba(var(--on),0.34); }
+
+[fill="#5A5D64"] { fill: rgba(var(--on),0.62); }
+[stroke="#9A9DA4"] { stroke: rgba(var(--on),0.42); }
+[stroke="#D6D4CE"] { stroke: rgba(var(--on),0.18); }
+[stroke="#EEEDE9"] { stroke: rgba(var(--on),0.10); }
+
+/* PC-COMPAT-END */

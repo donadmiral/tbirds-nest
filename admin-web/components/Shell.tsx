@@ -1,12 +1,15 @@
 /**
- * Operations shell v4 - the full admin anatomy: dark grouped rail,
- * top navbar with breadcrumb, live alert bell, identity chip, footer.
- * Counts in the bell are real head-count queries, never decoration.
+ * Operations shell v5 - the design system shell.
+ * 236px translucent rail with grouped desks and live count chips, 58px topbar
+ * with breadcrumb, search, appearance control, production pill, alert bell and
+ * identity chip. Every number here is a real head-count query, never decoration.
+ * Props are unchanged from v4, so every desk keeps working untouched.
  */
 import Link from 'next/link';
 import { signOut } from '@/lib/actions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { allowedDesks } from '@/lib/adminAuth';
+import ThemeControls from '@/components/ThemeControls';
 
 const GROUPS: { label: string; items: { href: string; label: string; icon: string }[] }[] = [
   { label: 'Platform', items: [
@@ -49,75 +52,124 @@ export default async function Shell({ admin, active, title, sub, children }: {
     svc.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
   ]);
-  const alerts = (apps.count || 0) + (p1.count || 0) + (p2.count || 0) + (p3.count || 0) + (tk.count || 0);
+  const queueCount = apps.count || 0;
+  const reportCount = (p1.count || 0) + (p2.count || 0) + (p3.count || 0);
+  const supportCount = tk.count || 0;
+  const alerts = queueCount + reportCount + supportCount;
+  const counts: Record<string, number> = { '/queue': queueCount, '/reports': reportCount, '/support': supportCount };
+
   const allow = allowedDesks(admin.role);
   const groups = GROUPS.map(g => ({ ...g, items: g.items.filter(d => allow.has(d.href)) })).filter(g => g.items.length > 0);
+  const local = (admin.email || '').split('@')[0] || 'desk';
   const initial = (admin.email || '?').slice(0, 1).toUpperCase();
+  const roleLabel = admin.role.replace(/_/g, ' ');
+  const roleShort = admin.role.split('_').map(w => w[0]).join('').toUpperCase();
+
   return (
-    <div className="flex min-h-screen bg-[#F4F5F7] text-[#17181C]">
-      <aside className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col bg-[#191C22]">
-        <div className="flex items-center gap-2.5 border-b border-white/8 px-4 py-4">
-          <img src="/pearl.png" alt="" className="h-8 w-8 rounded-[8px]" />
-          <div>
-            <p className="text-[13.5px] font-bold leading-tight text-white">Platinum Circles</p>
-            <p className="text-[10px] font-medium tracking-[0.08em] text-white/35">OPERATIONS</p>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', color: 'var(--txt)' }}>
+
+      <aside style={{ position: 'sticky', top: 0, alignSelf: 'flex-start', height: '100vh', width: 236, flex: '0 0 236px', display: 'flex', flexDirection: 'column', background: 'var(--rail)', backdropFilter: 'blur(26px) saturate(1.15)', WebkitBackdropFilter: 'blur(26px) saturate(1.15)', borderRight: '1px solid rgba(var(--on),0.10)', zIndex: 20 }}>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '17px 16px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
+          <img src="/pearl.png" alt="Platinum Circles" style={{ width: 32, height: 32, flex: '0 0 32px', display: 'block', objectFit: 'contain' }} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 14, letterSpacing: '0.01em', color: 'var(--txt-strong)', lineHeight: 1.15, whiteSpace: 'nowrap' }}>Platinum Circles</div>
+            <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.02em', color: 'rgba(var(--on),0.46)', marginTop: 2 }}>Operations</div>
           </div>
         </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-3">
+
+        <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 10px 8px' }}>
           {groups.map(g => (
-            <div key={g.label} className="mb-4">
-              <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/30">{g.label}</p>
+            <div key={g.label} style={{ marginBottom: 15 }}>
+              <div style={{ padding: '0 8px 6px', fontSize: 9.5, fontWeight: 700, color: 'rgba(var(--on),0.44)' }}>{g.label}</div>
               {g.items.map(d => {
                 const on = active === d.href;
+                const n = counts[d.href] || 0;
                 return (
-                  <Link key={d.href} href={d.href}
-                    className={'mb-0.5 flex items-center gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] transition-colors duration-150 ' + (on ? 'bg-white/12 font-semibold text-white' : 'font-medium text-white/55 hover:bg-white/6 hover:text-white')}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" className={on ? 'text-[#E7C878]' : 'text-white/35'}><path d={d.icon} /></svg>
-                    {d.label}
+                  <Link key={d.href} href={d.href} className="pc-nav"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10, padding: '7px 9px', marginBottom: 1,
+                      borderRadius: 8, fontSize: 12.8, fontWeight: on ? 600 : 500,
+                      color: on ? 'var(--txt-strong)' : 'rgba(var(--on),0.55)',
+                      background: on ? 'rgba(var(--on),0.075)' : 'transparent',
+                      boxShadow: on ? 'inset 0 0 0 1px rgba(var(--accent-rgb),0.16)' : 'none',
+                    }}>
+                    <svg width="14.5" height="14.5" viewBox="0 0 24 24" style={{ flex: '0 0 14.5px', fill: on ? 'var(--accent)' : 'rgba(var(--on),0.33)' }}><path d={d.icon} /></svg>
+                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.label}</span>
+                    {n > 0 ? (
+                      <span className="pc-num" style={{ fontSize: 10, fontWeight: 600, padding: '1.5px 5px', borderRadius: 5, background: on ? 'rgba(var(--accent-rgb),0.16)' : 'rgba(var(--on),0.07)', color: on ? 'var(--accent)' : 'rgba(var(--on),0.45)' }}>{n}</span>
+                    ) : null}
                   </Link>
                 );
               })}
             </div>
           ))}
         </nav>
-        <div className="border-t border-white/8 px-4 py-3 text-[10px] text-white/30">Signed in as {admin.role.replace(/_/g, ' ')}</div>
-      </aside>
-      <div className="ml-60 flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-[#E5E4E0] bg-white px-6">
-          <nav className="flex items-center gap-1.5 text-[12.5px]">
-            <Link href="/dashboard" className="font-medium text-[#7A7D84] transition-colors duration-150 hover:text-[#17181C]">Operations</Link>
-            <span className="text-[#C6C8CC]">/</span>
-            <span className="font-semibold text-[#17181C]">{title}</span>
-          </nav>
-          <form method="get" action="/users" className="ml-4 hidden max-w-sm flex-1 md:block">
-            <div className="flex items-center gap-2 rounded-[9px] border border-[#E5E4E0] bg-[#F8F8F7] px-3 py-2 transition-colors duration-150 focus-within:border-[#B9BCC2] focus-within:bg-white">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9A9DA4" strokeWidth="2.4"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-              <input name="q" placeholder="Search members" className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#A9ABB1]" />
+
+        <div style={{ borderTop: '1px solid rgba(var(--on),0.10)', padding: '11px 13px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <span style={{ width: 27, height: 27, flex: '0 0 27px', borderRadius: 7, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{initial}</span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 11.8, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{admin.email}</div>
+              <div style={{ fontSize: 9.5, color: 'rgba(var(--on),0.34)', textTransform: 'capitalize', marginTop: 1 }}>{roleLabel}</div>
             </div>
+          </div>
+        </div>
+      </aside>
+
+      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+
+        <header style={{ position: 'sticky', top: 0, zIndex: 30, display: 'flex', alignItems: 'center', gap: 14, height: 58, padding: '0 22px', background: 'var(--topbar)', backdropFilter: 'blur(26px) saturate(1.2)', WebkitBackdropFilter: 'blur(26px) saturate(1.2)', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
+            <Link href="/dashboard" className="pc-crumb" style={{ color: 'rgba(var(--on),0.4)', fontWeight: 500, textDecoration: 'none' }}>Operations</Link>
+            <span style={{ color: 'rgba(var(--on),0.2)' }}>/</span>
+            <span style={{ fontWeight: 600, color: 'var(--txt)' }}>{title}</span>
+          </div>
+
+          <form method="get" action="/users" className="pc-search" style={{ marginLeft: 8, flex: '1 1 240px', minWidth: 190, maxWidth: 340, display: 'flex', alignItems: 'center', gap: 9, padding: '7px 11px', borderRadius: 9, background: 'rgba(var(--on),0.04)', border: '1px solid rgba(var(--on),0.10)' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ stroke: 'rgba(var(--on),0.38)', flex: '0 0 13px' }} strokeWidth="2.3"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.6-3.6" /></svg>
+            <input name="q" placeholder="Search members, posts, tickets" style={{ flex: 1, minWidth: 0, fontSize: 12.3, color: 'var(--txt)', background: 'transparent', border: 'none', outline: 'none' }} />
+            <span className="pc-num" style={{ fontSize: 10, color: 'rgba(var(--on),0.3)', border: '1px solid rgba(var(--on),0.11)', borderRadius: 4, padding: '1px 4px' }}>K</span>
           </form>
-          <div className="ml-auto flex items-center gap-2.5">
-            <Link href="/queue" className="relative flex h-9 w-9 items-center justify-center rounded-[9px] transition-colors duration-150 hover:bg-[#F0EFEC]" title="Work waiting">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#5A5D64"><path d="M12 22a2.5 2.5 0 002.4-2h-4.8a2.5 2.5 0 002.4 2zm7-5v-1l-1.5-1.7V10a5.5 5.5 0 00-4-5.3V4a1.5 1.5 0 00-3 0v.7a5.5 5.5 0 00-4 5.3v4.3L5 16v1h14z" /></svg>
-              {alerts > 0 ? <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C2410C] px-1 text-[9.5px] font-bold text-white">{alerts}</span> : null}
+
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 9 }}>
+
+            <ThemeControls />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4.5px 9px', borderRadius: 999, background: 'rgba(var(--ok-rgb),0.09)', border: '1px solid rgba(var(--ok-rgb),0.22)' }}>
+              <span className="pc-pulse" style={{ width: 5.5, height: 5.5, borderRadius: '50%', background: 'var(--ok)' }} />
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ok)', letterSpacing: '0.02em' }}>Production</span>
+            </div>
+
+            <Link href="/queue" title="Work waiting" className="pc-icon-btn" style={{ position: 'relative', width: 33, height: 33, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(var(--on),0.10)' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.6)' }}><path d="M12 22a2.5 2.5 0 002.4-2h-4.8a2.5 2.5 0 002.4 2zm7-5v-1l-1.5-1.7V10a5.5 5.5 0 00-4-5.3V4a1.5 1.5 0 00-3 0v.7a5.5 5.5 0 00-4 5.3v4.3L5 16v1h14z" /></svg>
+              {alerts > 0 ? (
+                <span className="pc-num" style={{ position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16, padding: '0 3.5px', borderRadius: 999, background: 'var(--alert)', color: '#fff', fontSize: 9.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>{alerts}</span>
+              ) : null}
             </Link>
-            <span className="hidden items-center gap-1.5 rounded-full border border-[#E1EFE4] bg-[#F2F9F3] px-2.5 py-1 text-[11px] font-semibold text-[#1D7A38] sm:flex"><span className="h-[6px] w-[6px] rounded-full bg-[#2BA84A]" />Production</span>
-            <div className="flex items-center gap-2.5 rounded-[9px] border border-[#E5E4E0] py-1 pl-1 pr-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[#0B1E3D] text-[13px] font-bold text-white">{initial}</span>
-              <span className="hidden text-[12px] font-semibold text-[#43454B] lg:block">{admin.email.split('@')[0]}</span>
-              <form action={signOut}><button className="text-[11.5px] font-semibold text-[#9A9DA4] transition-colors duration-150 hover:text-[#B03A3A]" title="Sign out">Exit</button></form>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 10px 4px 4px', borderRadius: 9, border: '1px solid rgba(var(--on),0.10)' }}>
+              <span style={{ width: 25, height: 25, borderRadius: 6, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700 }}>{initial}</span>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap' }}>{local}</span>
+              <span style={{ fontSize: 9.5, fontWeight: 600, padding: '1.5px 5px', borderRadius: 4, background: 'rgba(var(--accent-rgb),0.13)', color: 'var(--accent)', letterSpacing: '0.02em' }}>{roleShort}</span>
+              <form action={signOut}>
+                <button className="pc-seg" title="Sign out" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 10.5, fontWeight: 600, color: 'rgba(var(--on),0.4)', padding: 0 }}>Exit</button>
+              </form>
             </div>
           </div>
         </header>
-        <div className="flex-1 px-7 pb-8 pt-6">
-          <h1 className="text-[22px] font-semibold tracking-[-0.01em]">{title}</h1>
-          {sub ? <p className="mt-1 text-[13px] text-[#7A7D84]">{sub}</p> : null}
-          <div className="mt-5">{children}</div>
+
+        <div style={{ flex: 1, minWidth: 0, padding: '22px 22px 30px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 19 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h1 style={{ margin: 0, fontSize: 25, fontWeight: 400, letterSpacing: '0.005em', color: 'var(--txt-strong)' }}>{title}</h1>
+              {sub ? <p style={{ margin: '5px 0 0', fontSize: 12.8, color: 'rgba(var(--on),0.44)', maxWidth: 640, textWrap: 'pretty' }}>{sub}</p> : null}
+            </div>
+          </div>
+          {children}
         </div>
-        <footer className="flex items-center justify-between border-t border-[#E5E4E0] bg-white px-7 py-3 text-[11.5px] text-[#9A9DA4]">
-          <p>Platinum Circles Operations - Pearl Group</p>
-          <p className="tabular-nums">2026</p>
-        </footer>
-      </div>
+      </main>
     </div>
   );
 }
