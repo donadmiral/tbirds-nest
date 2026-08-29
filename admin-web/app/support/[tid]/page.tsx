@@ -65,12 +65,16 @@ export default async function TicketPage({ params }: { params: Promise<{ tid: st
             className="mb-2.5 w-full resize-y rounded-[10px] border border-[#E5E4E0] px-3.5 py-2.5 text-[13px] outline-none transition-colors duration-100 focus:border-[#B9BCC2]" />
           <div className="flex flex-wrap items-center gap-2">
             <button className="rounded-[10px] bg-[#0B1E3D] px-4 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Send reply</button>
-            {t.status !== 'solved' ? (
-              <button formNoValidate formAction={setTicketStatus} name="status" value="solved" className="rounded-[10px] border border-[#DFE8E2] bg-[#EBF3EE] px-3.5 py-2 text-[11.5px] font-bold text-[#1D7A38] hover:bg-[#E0EDE5]">Mark solved</button>
-            ) : (
-              <button formNoValidate formAction={setTicketStatus} name="status" value="open" className="rounded-[10px] border border-[#E5E4E0] bg-white px-3.5 py-2 text-[11.5px] font-bold text-[#43454B] hover:bg-[#FAFAF9]">Reopen</button>
-            )}
           </div>
+        </form>
+        <form action={setTicketStatus} className="mt-2.5 flex flex-wrap items-center gap-2">
+          <input type="hidden" name="tid" value={t.id} />
+          <input type="hidden" name="status" value={t.status !== 'solved' ? 'solved' : 'open'} />
+          <button className={t.status !== 'solved'
+            ? 'rounded-[10px] border border-[#DFE8E2] bg-[#EBF3EE] px-3.5 py-2 text-[11.5px] font-bold text-[#1D7A38] hover:bg-[#E0EDE5]'
+            : 'rounded-[10px] border border-[#E5E4E0] bg-white px-3.5 py-2 text-[11.5px] font-bold text-[#43454B] hover:bg-[#FAFAF9]'}>
+            {t.status !== 'solved' ? 'Mark solved' : 'Reopen'}
+          </button>
         </form>
       </div>
     </Shell>

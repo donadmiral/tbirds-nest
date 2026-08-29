@@ -47,6 +47,22 @@ export type DeskRow = {
   facets?: Record<string, string>;
   cells: Cell[];
   detail: Detail;
+  /** keys of the desk actions this row may take */
+  actions?: string[];
+  /** value posted as the action's id field, defaults to the row id */
+  actionId?: string;
+};
+
+export type DeskInput = { name: string; placeholder?: string; required?: boolean; type?: string; options?: string[]; defaultValue?: string };
+
+export type DeskAction = {
+  key: string;
+  label: string;
+  tone?: Tone;
+  /** a real server action, passed straight through from the page */
+  action: (formData: FormData) => void | Promise<void>;
+  idName: string;
+  inputs?: DeskInput[];
 };
 
 export type StatCard = {
@@ -105,7 +121,7 @@ function CellView({ c }: { c: Cell }) {
 }
 
 export function Desk({
-  tabs, columns, grid, rows, searchHint, filters = [], pageSize = 10, minWidth = 720, detailTitle = 'Details',
+  tabs, columns, grid, rows, searchHint, filters = [], pageSize = 10, minWidth = 720, detailTitle = 'Details', actions = [],
 }: {
   tabs: { key: string; label: string; count: number }[];
   columns: { label: string; align?: 'left' | 'right' }[];
@@ -116,6 +132,7 @@ export function Desk({
   pageSize?: number;
   minWidth?: number;
   detailTitle?: string;
+  actions?: DeskAction[];
 }) {
   const [tab, setTab] = useState(tabs[0]?.key ?? 'all');
   const [q, setQ] = useState('');
@@ -263,6 +280,26 @@ export function Desk({
                 <div style={{ whiteSpace: 'pre-wrap', fontSize: 11.8, lineHeight: 1.5, color: 'rgba(var(--on),0.62)', padding: 11, borderRadius: 10, background: 'rgba(var(--on),0.035)' }}>{b.text}</div>
               </div>
             ))}
+
+            {actions.filter(a => (selected.actions || []).includes(a.key)).map(a => {
+              const tn = TONE[a.tone || 'neutral'];
+              return (
+                <form key={a.key} action={a.action} style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input type="hidden" name={a.idName} value={selected.actionId || selected.id} />
+                  {(a.inputs || []).map(inp => inp.options ? (
+                    <select key={inp.name} name={inp.name} defaultValue={inp.defaultValue}
+                      style={{ padding: '8px 10px', borderRadius: 9, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.12)', fontSize: 12, color: 'var(--txt)', outline: 'none' }}>
+                      {inp.options.map(o => <option key={o} value={o}>{o.replace(/_/g, ' ')}</option>)}
+                    </select>
+                  ) : (
+                    <input key={inp.name} name={inp.name} type={inp.type || 'text'} required={inp.required} placeholder={inp.placeholder} defaultValue={inp.defaultValue}
+                      style={{ padding: '8px 10px', borderRadius: 9, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.12)', fontSize: 12, color: 'var(--txt)', outline: 'none' }} />
+                  ))}
+                  <button type="submit"
+                    style={{ padding: '9px 13px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 600, background: tn.bg, color: tn.fg, border: '1px solid ' + tn.bd }}>{a.label}</button>
+                </form>
+              );
+            })}
 
             {selected.detail.links?.length ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(var(--on),0.10)' }}>
