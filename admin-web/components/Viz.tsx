@@ -5,7 +5,7 @@
  * so light and dark both work. Nothing here invents a number: each component
  * draws exactly the values it is handed.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fmt } from '@/lib/fmt';
 
 const MONO: React.CSSProperties = { fontVariantNumeric: 'tabular-nums' };
@@ -248,4 +248,13 @@ export function StackBars({ days, series, height = 160 }: { days: Row[]; series:
 
 export function Empty({ note }: { note: string }) {
   return <div style={{ padding: '34px 0', textAlign: 'center', fontSize: 12.4, color: 'rgba(var(--on),0.34)' }}>{note}</div>;
+}
+
+/* -- greeting ----------------------------------------------------------- */
+
+export function Greeting({ name }: { name: string }) {
+  const [hour, setHour] = useState<number | null>(null);
+  useEffect(() => { setHour(new Date().getHours()); }, []);
+  const word = hour === null ? 'Welcome back' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  return <span>{word}, {name}</span>;
 }

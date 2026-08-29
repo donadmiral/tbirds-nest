@@ -1,5 +1,5 @@
 /**
- * Operations shell v5 - the design system shell.
+ * Operations shell v6 - the design system shell.
  * 236px translucent rail with grouped desks and live count chips, 58px topbar
  * with breadcrumb, search, appearance control, production pill, alert bell and
  * identity chip. Every number here is a real head-count query, never decoration.
@@ -41,8 +41,8 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
   ]},
 ];
 
-export default async function Shell({ admin, active, title, sub, children }: {
-  admin: { email: string; role: string }; active: string; title: string; sub?: string; children: React.ReactNode;
+export default async function Shell({ admin, active, title, crumb, sub, children }: {
+  admin: { email: string; role: string }; active: string; title: React.ReactNode; crumb?: string; sub?: string; children: React.ReactNode;
 }) {
   const svc = serviceClient();
   const [apps, p1, p2, p3, tk] = await Promise.all([
@@ -124,7 +124,7 @@ export default async function Shell({ admin, active, title, sub, children }: {
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
             <Link href="/dashboard" className="pc-crumb" style={{ color: 'rgba(var(--on),0.4)', fontWeight: 500, textDecoration: 'none' }}>Operations</Link>
             <span style={{ color: 'rgba(var(--on),0.2)' }}>/</span>
-            <span style={{ fontWeight: 600, color: 'var(--txt)' }}>{title}</span>
+            <span style={{ fontWeight: 600, color: 'var(--txt)' }}>{crumb ?? title}</span>
           </div>
 
           <form method="get" action="/users" className="pc-search" style={{ marginLeft: 8, flex: '1 1 240px', minWidth: 190, maxWidth: 340, display: 'flex', alignItems: 'center', gap: 9, padding: '7px 11px', borderRadius: 9, background: 'rgba(var(--on),0.04)', border: '1px solid rgba(var(--on),0.10)' }}>
