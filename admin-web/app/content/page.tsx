@@ -6,6 +6,7 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
+import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,9 +23,7 @@ const IC = {
   media: 'M4 5h16v14H4V5zm2 10l3.5-4.5 2.5 3 3-4L18 17H6z',
 };
 
-const VIDEO_RX = /\.(mp4|mov|m4v|webm|hevc|avi|mkv)(\?|$)/i;
-
-function isVideo(url: string | null | undefined) { return !!url && VIDEO_RX.test(url); }
+const isVideo = isVideoUrl;
 
 export default async function ContentPage() {
   const admin = await getAdmin();
@@ -58,6 +57,16 @@ export default async function ContentPage() {
       (mediaByPost[m.post_id] = mediaByPost[m.post_id] || []).push(m.url);
     });
   }
+
+  // media lives in post_media, with media_url as a fallback, and every path is
+  // signed so a private bucket still renders
+  posts.forEach(p => {
+    if (!mediaByPost[p.id]?.length) {
+      const found = pickMedia(p as unknown as Record<string, unknown>);
+      if (found) mediaByPost[p.id] = [found];
+    }
+  });
+  const urlMap = await resolveMedia(Object.values(mediaByPost).flat());
 
   const uids = Array.from(new Set(posts.map(p => p.user_id)));
   const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }> = {};
@@ -115,7 +124,7 @@ export default async function ContentPage() {
 
   const rows: DeskRow[] = posts.map(p => {
     const a = people[p.user_id] || { full_name: null, username: null, avatar_url: null, is_verified: false };
-    const urls = mediaByPost[p.id] || (p.media_url ? [p.media_url] : []);
+    const urls = (mediaByPost[p.id] || []).map(u => urlMap[u] || u);
     const first = urls[0] || null;
     const video = isVideo(first);
     const rep = reportsByPost[p.id];
