@@ -6,6 +6,7 @@ import Shell from '@/components/Shell';
 import Seal from '@/components/Seal';
 import { SeriesChart, Spark, Greeting, Empty } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
+import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,7 +82,7 @@ export default async function DashboardPage() {
     svc.from('user_reports').select('created_at').gte('created_at', from30).limit(2000),
     svc.from('verification_applications').select('created_at').gte('created_at', from30).limit(2000),
     svc.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier, location, account_type, created_at').order('created_at', { ascending: false }).limit(6),
-    svc.from('posts').select('id, content, user_id, likes_count, comments_count, shares_count').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
+    svc.from('posts').select('*').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
     svc.from('profiles').select('location').not('location', 'is', null).limit(5000),
     svc.from('client_errors').select('id', { count: 'exact', head: true }).gte('created_at', from24h),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }),
@@ -141,12 +142,25 @@ export default async function DashboardPage() {
   ].filter(n => n.count > 0);
   const attention = needs.reduce((s, n) => s + n.count, 0);
 
-  const postRows = (topPostsRes.data ?? []) as { id: string; content: string | null; user_id: string; likes_count: number | null; comments_count: number | null; shares_count: number | null }[];
-  const postAuthors: Record<string, { username: string | null }> = {};
+  const postRaw = (topPostsRes.data ?? []) as Record<string, unknown>[];
+  const postRows = postRaw.map(p => ({
+    id: String(p.id), content: (p.content as string | null) ?? (p.body as string | null) ?? null, user_id: String(p.user_id),
+    likes_count: Number(p.likes_count) || 0, comments_count: Number(p.comments_count) || 0, shares_count: Number(p.shares_count) || 0,
+    raw: p,
+  }));
+  const postMedia: Record<string, string> = {};
+  if (postRows.length) {
+    const { data: pm } = await svc.from('post_media').select('post_id, url, sort_order').in('post_id', postRows.map(p => p.id)).order('sort_order', { ascending: true });
+    ((pm ?? []) as { post_id: string; url: string }[]).forEach(m => { if (!postMedia[m.post_id]) postMedia[m.post_id] = m.url; });
+  }
+  postRows.forEach(p => { if (!postMedia[p.id]) { const f = pickMedia(p.raw); if (f) postMedia[p.id] = f; } });
+  const postUrls = await resolveMedia(Object.values(postMedia));
+
+  const postAuthors: Record<string, { username: string | null; avatar_url: string | null }> = {};
   const pids = Array.from(new Set(postRows.map(p => p.user_id)));
   if (pids.length) {
-    const { data } = await svc.from('profiles').select('id, username').in('id', pids);
-    (data ?? []).forEach((p: { id: string; username: string | null }) => { postAuthors[p.id] = p; });
+    const { data } = await svc.from('profiles').select('id, username, avatar_url').in('id', pids);
+    (data ?? []).forEach((p: { id: string; username: string | null; avatar_url: string | null }) => { postAuthors[p.id] = p; });
   }
   const topContent = postRows
     .map(p => ({ ...p, score: (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0) }))
@@ -279,15 +293,34 @@ export default async function DashboardPage() {
             <div style={{ flex: 1 }}><div style={H_TITLE}>Top content</div></div>
             <Link href="/content" className="pc-crumb" style={LINK_SM}>All posts</Link>
           </div>
-          {topContent.length === 0 ? <Empty note="No post has drawn engagement yet." /> : topContent.map(p => (
+          {topContent.length === 0 ? <Empty note="No post has drawn engagement yet." /> : topContent.map(p => {
+            const rawUrl = postMedia[p.id];
+            const url = rawUrl ? postUrls[rawUrl] || rawUrl : null;
+            const video = isVideoUrl(rawUrl);
+            return (
             <Link key={p.id} href={'/p/' + p.id} className="pc-nav" style={ROW}>
+              <span style={{ width: 38, height: 38, flex: '0 0 38px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                {url
+                  ? (video
+                    ? <video src={url} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+                  : (postAuthors[p.user_id]?.avatar_url
+                    ? <img src={postAuthors[p.user_id]!.avatar_url as string} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <svg width="14" height="14" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>)}
+                {video && url ? (
+                  <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" style={{ fill: '#fff' }}><path d="M8 5v14l11-7z" /></svg>
+                  </span>
+                ) : null}
+              </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content || 'Media post'}</span>
                 <span style={{ display: 'block', fontSize: 10.8, color: 'rgba(var(--on),0.36)', marginTop: 2 }}>@{postAuthors[p.user_id]?.username || 'member'}</span>
               </span>
               <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{fmt(p.score)}</span>
             </Link>
-          ))}
+            );
+          })}
         </div>
 
         <div style={PANEL}>

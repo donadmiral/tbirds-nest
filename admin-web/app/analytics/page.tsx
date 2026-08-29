@@ -5,6 +5,7 @@ import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { SeriesChart, Donut, Bars, StackBars, Spark, Empty, type Slice } from '@/components/Viz';
 import { fmt } from '@/lib/fmt';
+import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +46,7 @@ export default async function AnalyticsPage() {
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('is_verified', true),
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('account_type', 'business').eq('is_verified', true),
     svc.from('profiles').select('verified_tier').eq('is_verified', true).limit(2000),
-    svc.from('posts').select('id, content, user_id, created_at, likes_count, comments_count, shares_count').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
+    svc.from('posts').select('*').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
     svc.from('profiles').select('created_at, last_seen').gte('created_at', cohortFrom).limit(5000),
     svc.from('profiles').select('location').not('location', 'is', null).limit(5000),
   ]);
@@ -117,12 +118,27 @@ export default async function AnalyticsPage() {
     weekdayTotals[idx] += totalOf(r);
   });
 
-  const posts = (postRes.data ?? []) as { id: string; content: string | null; user_id: string; created_at: string; likes_count: number | null; comments_count: number | null; shares_count: number | null }[];
+  const postsRaw = (postRes.data ?? []) as Record<string, unknown>[];
+  const posts = postsRaw.map(p => ({
+    id: String(p.id), content: (p.content as string | null) ?? (p.body as string | null) ?? null,
+    user_id: String(p.user_id), created_at: String(p.created_at),
+    likes_count: Number(p.likes_count) || 0, comments_count: Number(p.comments_count) || 0, shares_count: Number(p.shares_count) || 0,
+    raw: p,
+  }));
+  const postIds = posts.map(p => p.id);
+  const mediaByPost: Record<string, string> = {};
+  if (postIds.length) {
+    const { data: pm } = await svc.from('post_media').select('post_id, url, sort_order').in('post_id', postIds).order('sort_order', { ascending: true });
+    ((pm ?? []) as { post_id: string; url: string }[]).forEach(m => { if (!mediaByPost[m.post_id]) mediaByPost[m.post_id] = m.url; });
+  }
+  posts.forEach(p => { if (!mediaByPost[p.id]) { const f = pickMedia(p.raw); if (f) mediaByPost[p.id] = f; } });
+  const postUrlMap = await resolveMedia(Object.values(mediaByPost));
+
   const authorIds = Array.from(new Set(posts.map(p => p.user_id)));
-  const authors: Record<string, { full_name: string | null; username: string | null }> = {};
+  const authors: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null }> = {};
   if (authorIds.length) {
-    const { data } = await svc.from('profiles').select('id, full_name, username').in('id', authorIds);
-    (data ?? []).forEach((p: { id: string; full_name: string | null; username: string | null }) => { authors[p.id] = p; });
+    const { data } = await svc.from('profiles').select('id, full_name, username, avatar_url').in('id', authorIds);
+    (data ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null }) => { authors[p.id] = p; });
   }
   const topPosts = posts
     .map(p => ({ ...p, score: (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0) }))
@@ -319,8 +335,25 @@ export default async function AnalyticsPage() {
           </div>
           {topPosts.length === 0 ? <Empty note="No post has drawn engagement yet." /> : topPosts.map(p => {
             const a = authors[p.user_id];
+            const rawUrl = mediaByPost[p.id];
+            const url = rawUrl ? postUrlMap[rawUrl] || rawUrl : null;
+            const video = isVideoUrl(rawUrl);
             return (
               <Link key={p.id} href={'/p/' + p.id} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' }}>
+                <span style={{ width: 40, height: 40, flex: '0 0 40px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                  {url
+                    ? (video
+                      ? <video src={url} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+                    : (a?.avatar_url
+                      ? <img src={a.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>)}
+                  {video && url ? (
+                    <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" style={{ fill: '#fff' }}><path d="M8 5v14l11-7z" /></svg>
+                    </span>
+                  ) : null}
+                </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content || 'Media post'}</div>
                   <div style={{ fontSize: 10.6, color: 'rgba(var(--on),0.36)', marginTop: 3 }}>{a ? '@' + (a.username || 'member') : 'unknown author'}</div>
