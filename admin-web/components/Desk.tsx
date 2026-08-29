@@ -22,6 +22,7 @@ const TONE: Record<Tone, { bg: string; fg: string; bd: string }> = {
 };
 
 export type Cell =
+  | { t: 'media'; v: string; sub?: string; thumb?: string | null; video?: boolean }
   | { t: 'text'; v: string; strong?: boolean }
   | { t: 'dim'; v: string }
   | { t: 'mono'; v: string; tone?: Tone }
@@ -33,6 +34,8 @@ export type Detail = {
   title: string;
   subtitle?: string;
   img?: string | null;
+  /** full width media preview at the top of the panel */
+  media?: { url: string; video?: boolean } | null;
   pills?: { v: string; tone: Tone }[];
   stats?: { label: string; value: string }[];
   fields?: { label: string; value: string }[];
@@ -97,6 +100,28 @@ export function StatStrip({ cards }: { cards: StatCard[] }) {
 }
 
 function CellView({ c }: { c: Cell }) {
+  if (c.t === 'media') {
+    return (
+      <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+        <span style={{ width: 42, height: 42, flex: '0 0 42px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          {c.thumb
+            ? (c.video
+              ? <video src={c.thumb} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <img src={c.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+            : <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>}
+          {c.video && c.thumb ? (
+            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: '#fff' }}><path d="M8 5v14l11-7z" /></svg>
+            </span>
+          ) : null}
+        </span>
+        <span style={{ minWidth: 0 }}>
+          <span style={{ display: 'block', fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</span>
+          {c.sub ? <span style={{ display: 'block', fontSize: 10.6, color: 'rgba(var(--on),0.36)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.sub}</span> : null}
+        </span>
+      </span>
+    );
+  }
   if (c.t === 'pill') {
     const tn = TONE[c.tone];
     return <span style={{ fontSize: 10.5, fontWeight: 600, padding: '2.5px 8px', borderRadius: 999, background: tn.bg, color: tn.fg, border: '1px solid ' + tn.bd, whiteSpace: 'nowrap' }}>{c.v}</span>;
@@ -236,6 +261,13 @@ export function Desk({
           <div style={{ padding: '44px 16px', textAlign: 'center', fontSize: 12.4, color: 'rgba(var(--on),0.34)' }}>Pick a row to open it.</div>
         ) : (
           <div style={{ padding: 16 }}>
+            {selected.detail.media ? (
+              <div style={{ marginBottom: 14, borderRadius: 11, overflow: 'hidden', background: 'rgba(var(--on),0.05)', border: '1px solid rgba(var(--on),0.10)' }}>
+                {selected.detail.media.video
+                  ? <video key={selected.detail.media.url} src={selected.detail.media.url} controls playsInline preload="metadata" style={{ display: 'block', width: '100%', maxHeight: 320, objectFit: 'contain', background: '#000' }} />
+                  : <img key={selected.detail.media.url} src={selected.detail.media.url} alt="" style={{ display: 'block', width: '100%', maxHeight: 320, objectFit: 'contain' }} />}
+              </div>
+            ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
               {selected.detail.img
                 ? <img src={selected.detail.img} alt="" style={{ width: 42, height: 42, flex: '0 0 42px', borderRadius: 11, objectFit: 'cover' }} />
