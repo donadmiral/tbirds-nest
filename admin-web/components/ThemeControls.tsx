@@ -38,7 +38,7 @@ export default function ThemeControls() {
   function choose(next: 'light' | 'dark') {
     setTheme(next);
     document.documentElement.setAttribute('data-theme', next);
-    try { localStorage.setItem('pc-theme', next); } catch { /* private mode */ }
+    document.cookie = 'pc-theme=' + next + '; path=/; max-age=31536000; samesite=lax';
   }
 
   return (

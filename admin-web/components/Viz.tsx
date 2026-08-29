@@ -6,15 +6,9 @@
  * draws exactly the values it is handed.
  */
 import { useState } from 'react';
+import { fmt } from '@/lib/fmt';
 
 const MONO: React.CSSProperties = { fontVariantNumeric: 'tabular-nums' };
-
-export function fmt(n: number): string {
-  if (!isFinite(n)) return '0';
-  if (Math.abs(n) >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (Math.abs(n) >= 10000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  return n.toLocaleString();
-}
 
 function dayLabel(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });

@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { getAdmin } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
-import { SeriesChart, Donut, Bars, StackBars, Spark, Empty, fmt, type Slice } from '@/components/Viz';
+import { SeriesChart, Donut, Bars, StackBars, Spark, Empty, type Slice } from '@/components/Viz';
+import { fmt } from '@/lib/fmt';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,7 @@ export default async function AnalyticsPage() {
 
   const cohortFrom = new Date(Date.now() - 70 * 86400000).toISOString();
 
-  const [daysRes, membersRes, bizRes, verifiedRes, bizVerifiedRes, tierRes, postRes, cohortRes] = await Promise.all([
+  const [daysRes, membersRes, bizRes, verifiedRes, bizVerifiedRes, tierRes, postRes, cohortRes, locRes] = await Promise.all([
     svc.from('daily_stats').select('*').order('day', { ascending: false }).limit(90),
     svc.from('profiles').select('id', { count: 'exact', head: true }),
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('account_type', 'business'),
@@ -46,6 +47,7 @@ export default async function AnalyticsPage() {
     svc.from('profiles').select('verified_tier').eq('is_verified', true).limit(2000),
     svc.from('posts').select('id, content, user_id, created_at, likes_count, comments_count, shares_count').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
     svc.from('profiles').select('created_at, last_seen').gte('created_at', cohortFrom).limit(5000),
+    svc.from('profiles').select('location').not('location', 'is', null).limit(5000),
   ]);
 
   const desc = (daysRes.data ?? []) as Day[];
@@ -144,6 +146,19 @@ export default async function AnalyticsPage() {
     const ageDays = (Date.now() - new Date(w).getTime()) / 86400000;
     return { week: w, size: cohortMap[w].size, kept: cohortMap[w].kept, ageDays };
   });
+
+  const locBuckets: Record<string, { label: string; n: number }> = {};
+  (locRes.data ?? []).forEach((r: { location: string | null }) => {
+    const raw = (r.location || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return;
+    const key = raw.toLowerCase();
+    if (!locBuckets[key]) locBuckets[key] = { label: raw, n: 0 };
+    locBuckets[key].n += 1;
+  });
+  const located = Object.values(locBuckets).reduce((a, b) => a + b.n, 0);
+  const topLocations = Object.values(locBuckets).sort((a, b) => b.n - a.n).slice(0, 8);
+  const locMax = Math.max(1, ...topLocations.map(l => l.n));
+  const noLocation = Math.max(0, members - located);
 
   const maxDau = Math.max(1, ...desc.map(r => Number(r.dau) || 0));
 
@@ -268,6 +283,35 @@ export default async function AnalyticsPage() {
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <div style={PANEL}>
+          <div style={HEAD}>
+            <div style={H_TITLE}>Where members are</div>
+            <div style={H_SUB}>profiles.location, exactly as members typed it, grouped without case</div>
+          </div>
+          <div style={{ padding: 16 }}>
+            {topLocations.length === 0 ? <Empty note="No member has set a location yet." /> : (
+              <div>
+                {topLocations.map(l => (
+                  <div key={l.label} style={{ marginBottom: 11 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, marginBottom: 5 }}>
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.label}</span>
+                      <span className="pc-num" style={{ fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{l.n}</span>
+                      <span className="pc-num" style={{ fontSize: 10.5, color: 'rgba(var(--on),0.34)', width: 44, textAlign: 'right' }}>{located ? ((l.n / located) * 100).toFixed(1) + '%' : '-'}</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 4, background: 'rgba(var(--on),0.06)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: Math.max(2, (l.n / locMax) * 100) + '%', borderRadius: 4, background: 'var(--c1)' }} />
+                    </div>
+                  </div>
+                ))}
+                <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(var(--on),0.10)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ flex: 1, fontSize: 11.4, color: 'rgba(var(--on),0.42)' }}>Profiles with no location set</span>
+                  <span className="pc-num" style={{ fontSize: 11.6, fontWeight: 600, color: 'var(--txt)' }}>{fmt(noLocation)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div style={PANEL}>
           <div style={HEAD}>
             <div style={H_TITLE}>Top content by engagement</div>
