@@ -1,5 +1,7 @@
 "use client";
 
+import { AudienceBreakdown } from "@/components/AudienceBreakdown";
+
 import { Metric } from "@/components/Charts";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -87,7 +89,7 @@ export default function AudiencePage() {
           ))}
         </div>
       ) : null}
-      {sum && sum.top_cities.length ? <p className="mt-2 text-[12.5px] text-ink/50">Top cities: {sum.top_cities.map(c => c.city + " " + c.n).join(" · ")}</p> : null}
+      {sum ? <AudienceBreakdown sum={sum} people={people} /> : null}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         {view === "followers" ? (
