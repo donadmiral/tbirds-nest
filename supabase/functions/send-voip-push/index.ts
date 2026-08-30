@@ -12,7 +12,8 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const APNS_TOPIC = 'app.platinumcircles.mobile.voip';
-const APNS_HOST = 'https://api.push.apple.com'; // dev builds: api.sandbox.push.apple.com
+const APNS_HOST = 'https://api.push.apple.com';
+const APNS_HOST_SANDBOX = 'https://api.sandbox.push.apple.com';
 
 function b64url(data: Uint8Array | string): string {
   const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
@@ -43,10 +44,16 @@ Deno.serve(async (req) => {
     const { data: call } = await admin.from('call_sessions').select('*').eq('id', callId).maybeSingle();
     if (!call || call.status !== 'ringing') return new Response('not ringing', { status: 200 });
 
-    const { data: parts } = await admin.from('call_participants')
-      .select('user_id').eq('call_session_id', callId).eq('status', 'invited');
-    let receivers = (parts || []).map((p: any) => p.user_id);
-    if (!call.is_group_call && call.receiver_id) receivers = [call.receiver_id];
+    // A ringing session names the person whose phone should ring, whether the
+    // call is one to one or one row of a group call. call_participants is only
+    // consulted as a fallback for the older group RPCs, which write 'invited'
+    // rows there; the current client writes neither.
+    let receivers: string[] = call.receiver_id ? [call.receiver_id] : [];
+    if (receivers.length === 0) {
+      const { data: parts } = await admin.from('call_participants')
+        .select('user_id').eq('call_session_id', callId).eq('status', 'invited');
+      receivers = (parts || []).map((p: any) => p.user_id);
+    }
     if (receivers.length === 0) return new Response('no receivers', { status: 200 });
 
     const { data: toks } = await admin.from('user_push_tokens')
@@ -64,20 +71,44 @@ Deno.serve(async (req) => {
     if (voipTokens.length > 0) {
       try {
         const jwt = await apnsJwt();
-        const payload = JSON.stringify({ aps: {}, callId, callerName, isVideo });
-        apns = await Promise.all(voipTokens.map((t: any) =>
-          fetch(`${APNS_HOST}/3/device/${t.voip_token}`, {
-            method: 'POST',
-            headers: {
-              authorization: `bearer ${jwt}`,
-              'apns-topic': APNS_TOPIC,
-              'apns-push-type': 'voip',
-              'apns-priority': '10',
-              'content-type': 'application/json',
-            },
-            body: payload,
-          }).then((r) => r.status).catch((e) => String(e?.message ?? e))
-        ));
+        // These key names are not free choice. The AppDelegate extension in
+        // plugins/withVoipPushKit.js reads uuid, callerName, handle and
+        // hasVideo, and reports the call to CallKit before JavaScript exists.
+        // Send callId and isVideo instead and CallKit gets a random UUID, so
+        // the phone rings and then cannot connect when answered.
+        const payload = JSON.stringify({
+          aps: {},
+          uuid: String(callId).toLowerCase(),
+          callerName,
+          handle: 'PlatinumCircles',
+          hasVideo: isVideo,
+          callId,
+          isVideo,
+        });
+        const post = (host: string, token: string) => fetch(`${host}/3/device/${token}`, {
+          method: 'POST',
+          headers: {
+            authorization: `bearer ${jwt}`,
+            'apns-topic': APNS_TOPIC,
+            'apns-push-type': 'voip',
+            'apns-priority': '10',
+            'content-type': 'application/json',
+          },
+          body: payload,
+        });
+        // A token minted by a development build is only valid on the sandbox
+        // host, and production answers BadDeviceToken with 400. Trying both
+        // means one function serves dev builds and TestFlight alike.
+        apns = await Promise.all(voipTokens.map(async (t: any) => {
+          try {
+            const r = await post(APNS_HOST, t.voip_token);
+            if (r.status !== 400) return r.status;
+            const r2 = await post(APNS_HOST_SANDBOX, t.voip_token);
+            return `prod400/sandbox${r2.status}`;
+          } catch (e) {
+            return String((e as any)?.message ?? e);
+          }
+        }));
       } catch (e) {
         apns = [String((e as any)?.message ?? e)];
       }

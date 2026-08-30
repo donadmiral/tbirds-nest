@@ -107,27 +107,27 @@ export const nativeCallService = {
   },
 
   /**
-   * iOS: listen for arriving VoIP pushes and report each one to CallKit.
+   * iOS: observe arriving VoIP pushes so the app can catch up on state.
    *
-   * This is not optional. Since iOS 13 every PushKit push MUST result in an
-   * incoming call reported to CallKit, in the same run loop. Miss one and iOS
-   * terminates the app; miss several and Apple stops delivering VoIP pushes to
-   * the app altogether. So the report happens first, before any network call
-   * or state update, and the app catches up afterwards.
+   * The ringing itself is not done here. Since iOS 13 every PushKit push must
+   * result in a call reported to CallKit in the same run loop, long before
+   * JavaScript is awake, which is why that report lives in the AppDelegate
+   * extension this project installs through plugins/withVoipPushKit.js. This
+   * listener runs afterwards and exists only to tell the app which call is
+   * ringing.
    *
-   * didLoadWithEvents is what makes a killed app ring: pushes that arrived
-   * before the JavaScript engine existed are replayed here on boot.
+   * didLoadWithEvents replays pushes that arrived before the JavaScript engine
+   * existed, which is the killed-app case.
    */
   listenForVoipPushes(onReported?: (callId: string) => void): void {
     if (!loadNatives() || Platform.OS !== 'ios' || !VoipPushNotification) return;
     const report = (payload: any) => {
-      const callId = String(payload?.callId ?? payload?.callid ?? '').toLowerCase();
+      const callId = String(payload?.uuid ?? payload?.callId ?? '').toLowerCase();
       if (!callId) return;
-      this.displayIncomingCall(
-        callId,
-        String(payload?.callerName || 'Platinum Circles'),
-        !!payload?.isVideo,
-      );
+      // Deliberately no displayIncomingCall here. The AppDelegate extension
+      // installed by plugins/withVoipPushKit.js already reported this call to
+      // CallKit from PushKit, which is the only path Apple accepts. Reporting
+      // again from JavaScript would put a second call on screen.
       try { onReported?.(callId); } catch {}
     };
     try {
