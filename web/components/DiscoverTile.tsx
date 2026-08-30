@@ -67,7 +67,7 @@ export function DiscoverTile({ post }: { post: FeedRow }) {
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={displayImageUrl(first.url) ?? first.url}
+              src={displayImageUrl(first.url, 640) ?? first.url}
               onError={(e) => { if (e.currentTarget.src !== first.url) e.currentTarget.src = first.url; }}
               alt=""
               loading="lazy"
@@ -112,7 +112,7 @@ export function DiscoverTile({ post }: { post: FeedRow }) {
       <Link href={href} className="flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20">
         <span className="relative block aspect-[16/10] w-full overflow-hidden bg-surface">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={displayImageUrl(link.image_url) ?? link.image_url} alt="" loading="lazy" className="h-full w-full object-cover" />
+          <img src={displayImageUrl(link.image_url, 640) ?? link.image_url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
         </span>
         <span className="block px-3.5 pt-3">
           <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40">

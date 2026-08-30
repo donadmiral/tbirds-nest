@@ -81,6 +81,14 @@ export function Nav({ name, username, business = false }: { name: string; userna
           return (
             <Link key={label}
               href={href}
+              onClick={(e) => {
+                // Tapping the item you are already on scrolls to the top rather
+                // than re-navigating, which is what every app of this shape
+                // does and what people reach for after a long scroll.
+                if (!active) return;
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
               className={
                 "flex items-center gap-3.5 rounded-full px-4 py-2.5 text-[15px] transition-colors duration-[140ms] " +
                 (active

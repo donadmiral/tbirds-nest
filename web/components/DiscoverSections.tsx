@@ -43,7 +43,7 @@ export function FeaturedChannels() {
             >
               {c.icon_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={displayImageUrl(c.icon_url) ?? c.icon_url} alt="" className="h-10 w-10 rounded-xl object-cover" />
+                <img src={displayImageUrl(c.icon_url, 96) ?? c.icon_url} alt="" loading="lazy" decoding="async" className="h-10 w-10 rounded-xl object-cover" />
               ) : (
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-pearl/15 text-pearl">
                   <Radio size={17} />
@@ -131,7 +131,7 @@ export function TopArticles() {
               >
                 {cover ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayImageUrl(cover) ?? cover} alt="" loading="lazy" className="h-[76px] w-[76px] shrink-0 rounded-lg object-cover" />
+                  <img src={displayImageUrl(cover, 200) ?? cover} alt="" loading="lazy" decoding="async" className="h-[76px] w-[76px] shrink-0 rounded-lg object-cover" />
                 ) : (
                   <span className="h-[76px] w-[76px] shrink-0 rounded-lg bg-surface" />
                 )}
