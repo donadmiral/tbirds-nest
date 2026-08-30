@@ -10,6 +10,7 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { createClient } from "@/lib/supabase/client";
+import { ExploreTopics, FeaturedChannels, TopArticles } from "@/components/DiscoverSections";
 
 type Creator = {
   id: string;
@@ -99,7 +100,12 @@ export default function DiscoverPage() {
       </form>
 
       <TrendingCreators />
-      <DiscoverFeed />
+      <FeaturedChannels />
+      <ExploreTopics />
+      <TopArticles />
+      <div className="mt-4">
+        <DiscoverFeed />
+      </div>
     </div>
   );
 }
