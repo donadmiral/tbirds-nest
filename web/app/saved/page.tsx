@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { timeAgo } from "@/lib/feed";
+import { Bookmark } from "lucide-react";
+import { Card, EmptyState } from "@/components/ui";
 
 type SavedPost = {
   id: string;
@@ -36,6 +38,13 @@ export default function SavedPage() {
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user.id;
       if (!uid) { setPosts([]); return; }
+      // Identity and collections come first. They used to be set after an
+      // early return for "no bookmarks", so an empty page lost its collections
+      // row entirely and New folder had no user id to write against.
+      setUid(uid);
+      const { data: colRows } = await supabase.from("bookmark_collections").select("id, name").order("created_at");
+      setCols((colRows ?? []) as Collection[]);
+
       const { data: bookmarks } = await supabase
         .from("post_bookmarks")
         .select("post_id, created_at, collection_id")
@@ -44,9 +53,6 @@ export default function SavedPage() {
         .limit(100);
       if (!bookmarks || bookmarks.length === 0) { setPosts([]); return; }
       const postIds = bookmarks.map((b) => b.post_id);
-      setUid(uid);
-      const { data: colRows } = await supabase.from("bookmark_collections").select("id, name").order("created_at");
-      setCols((colRows ?? []) as Collection[]);
       const savedAt: Record<string, string> = {};
       const colOf: Record<string, string | null> = {};
       bookmarks.forEach((b) => { savedAt[b.post_id] = b.created_at; colOf[b.post_id] = (b as { collection_id?: string | null }).collection_id ?? null; });
@@ -90,26 +96,56 @@ export default function SavedPage() {
   }
 
   return (
-    <div className="px-1">
-      <h1 className="pb-2 font-display text-xl text-porcelain">Saved</h1>
-      <div className="flex gap-1.5 overflow-x-auto pb-3">
+    <div>
+      <Card className="mb-4 flex items-center gap-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-pearl">
+          <Bookmark size={20} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[12.5px] text-ink/45">Your saved hub</span>
+          <span className="block font-display text-[24px] leading-tight text-porcelain">
+            {posts === null ? "\u2014" : posts.length + (posts.length === 1 ? " item saved" : " items saved")}
+          </span>
+        </span>
+        <button onClick={newFolder} className="shrink-0 rounded-full border border-ink/15 px-4 py-2 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
+          New collection
+        </button>
+      </Card>
+      <div className="mb-4 flex gap-1.5 overflow-x-auto">
         <button onClick={() => setColSel("all")} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === "all" ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>All</button>
         {cols.map((c) => (
           <button key={c.id} onClick={() => setColSel(c.id)} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === c.id ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>{c.name}</button>
         ))}
-        <button onClick={newFolder} className="shrink-0 rounded-full bg-surface px-3 py-1.5 text-[12px] font-semibold text-pearl-muted transition-colors duration-[140ms] hover:bg-surface-elevated">+ New folder</button>
       </div>
       {posts === null ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading</p>
       ) : posts.length === 0 ? (
-        <p className="py-16 text-center text-sm text-ink/40">Bookmark posts and they collect here.</p>
+        <EmptyState
+          icon={<Bookmark size={19} />}
+          title="Nothing saved yet"
+          line="Tap the bookmark on any post and it collects here. Collections let you keep them apart."
+          action="Find something to read"
+          actionHref="/discover"
+        />
       ) : (
-        posts.filter((p) => colSel === "all" || p.collection_id === colSel).map((p) => {
+        (() => {
+          const inView = posts.filter((p) => colSel === "all" || p.collection_id === colSel);
+          if (inView.length === 0) {
+            return (
+              <EmptyState
+                title="This collection is empty"
+                line="File a saved item into it from the folder menu on any card below."
+                action="See everything saved"
+                actionHref="/saved"
+              />
+            );
+          }
+          return inView.map((p) => {
           const text = p.content ?? p.body ?? "";
           const media = (p.post_media ?? []).slice().sort((a, b) => a.sort_order - b.sort_order);
           const first = media[0]?.url ?? p.media_url;
           return (
-            <Link key={p.id} href={"/post/" + p.id} className="flex gap-3 border-b border-ink/10 px-1 py-4 transition-colors duration-[140ms] hover:bg-surface">
+            <Link key={p.id} href={"/post/" + p.id} className="mb-3 flex gap-3 rounded-2xl border border-ink/10 bg-white px-4 py-3.5 transition-colors duration-[140ms] hover:border-ink/20">
               <StoryAvatar userId={p.user_id}
                 name={p.author?.full_name}
                 avatarUrl={p.author?.avatar_url}
@@ -141,7 +177,8 @@ export default function SavedPage() {
               ) : null}
             </Link>
           );
-        })
+          });
+        })()
       )}
     </div>
   );
