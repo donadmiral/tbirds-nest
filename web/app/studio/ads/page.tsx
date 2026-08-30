@@ -73,7 +73,6 @@ export default function AdsManagerPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Ads Manager</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">Campaigns, spend and what they returned.</p>
           <p className="mt-1 text-[13px] text-ink/50">Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live.</p>
         </div>
         <div className="flex gap-2">

@@ -81,7 +81,6 @@ export default function InboxPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Inbox</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">Conversations with customers and leads.</p>
           <p className="mt-1 text-[13px] text-ink/50">Messages, offers, applicants and reviews in one queue. Label, assign, and mark done.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">

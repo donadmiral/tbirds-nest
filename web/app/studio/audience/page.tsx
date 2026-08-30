@@ -1,5 +1,7 @@
 "use client";
 
+import { Metric } from "@/components/Charts";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Download, Plus, Search, Trash2, Users, X } from "lucide-react";
@@ -71,7 +73,6 @@ export default function AudiencePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Audience</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">Who follows you, where they are, and what they respond to.</p>
           <p className="mt-1 text-[13px] text-ink/50">Who follows you, who pays you, and the leads you are working.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
@@ -82,7 +83,7 @@ export default function AudiencePage() {
       {sum ? (
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[["Followers", sum.followers], ["New in 30 days", sum.new_30d], ["Paying customers", sum.customers], ["Labelled", Object.values(sum.labels || {}).reduce((a, b) => a + Number(b), 0)]].map(([l, n]) => (
-            <div key={String(l)} className="rounded-xl border border-ink/10 px-4 py-3"><p className="text-[11.5px] text-ink/45">{l}</p><p className="mt-0.5 font-display text-[22px] text-porcelain">{Number(n).toLocaleString()}</p></div>
+            <div key={String(l)} className="rounded-xl border border-ink/10 px-4 py-3"><p className="text-[11.5px] text-ink/45">{l}</p><div className="mt-0.5"><Metric value={Number(n)} size={22} /></div></div>
           ))}
         </div>
       ) : null}

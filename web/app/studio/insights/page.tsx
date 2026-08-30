@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { pct } from "@/lib/studio";
-import { Sparkline, TrendChart } from "@/components/Charts";
+import { Sparkline, TrendChart, Metric } from "@/components/Charts";
 
 type Day = { day: string; reach: number; impressions: number; engagements: number; followers: number; messages: number; posts: number; market_chats: number; offers: number; payments: number; paid_usd: number; paid_zwg: number; applications: number; ad_impressions: number; ad_clicks: number };
 type Totals = Record<string, number>;
@@ -50,7 +50,6 @@ export default function InsightsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Insights</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">How your content performed, and what moved.</p>
           <p className="mt-1 text-[13px] text-ink/50">Rolled up nightly. Today is not included until tomorrow morning.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
@@ -66,7 +65,7 @@ export default function InsightsPage() {
               return (
                 <div key={label} className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
                   <p className="text-[11.5px] text-ink/45">{label}</p>
-                  <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">{Number(n || 0).toLocaleString()}</p>
+                  <div className="mt-0.5"><Metric value={Number(n || 0)} size={24} /></div>
                   {label !== "Followers gained" ? (
                     <p className={"mt-0.5 flex items-center gap-1 text-[11.5px] " + (d === 0 ? "text-ink/35" : d > 0 ? "text-success" : "text-red-400")}>
                       {d === 0 ? null : d > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{d === 0 ? "no change" : Math.abs(d) + "% vs prior " + days + " days"}

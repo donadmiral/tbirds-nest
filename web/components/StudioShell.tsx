@@ -7,6 +7,7 @@ import { BarChart3, Briefcase, Home, Inbox, KeyRound, LayoutDashboard, Megaphone
 import { ExternalLink } from "lucide-react";
 import { ROOMS, bindMember, studioMe, type StudioMe } from "@/lib/studio";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { StudioSideRail } from "@/components/StudioSideRail";
 import { createClient } from "@/lib/supabase/client";
 
 const StudioCtx = createContext<{ me: StudioMe | null; refresh: () => Promise<void> }>({ me: null, refresh: async () => {} });
@@ -126,7 +127,17 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="mt-6">{children}</div>
+        {/* Every desk is a centre column and a rail. The desks were rendering
+            full width, which left a third of the screen empty on anything but
+            the widest tables and made each one look unfinished. */}
+        <div className="mt-6 flex gap-6">
+          <div className="min-w-0 flex-1">{children}</div>
+          <aside className="hidden w-[300px] shrink-0 2xl:block">
+            <div className="sticky top-[88px] flex flex-col gap-4">
+              <StudioSideRail role={me.role} username={me.username} />
+            </div>
+          </aside>
+        </div>
       </div>
     </StudioCtx.Provider>
   );

@@ -67,7 +67,6 @@ export default function SettingsPage() {
   return (
     <div className="max-w-[860px]">
       <h1 className="font-display text-[21px] leading-tight text-porcelain">Settings</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">Your business profile, team and access.</p>
       <p className="mt-1 text-[13px] text-ink/50">Business details and hours, who can work in Studio, and which devices may sign in.</p>
 
       <section className="mt-5 rounded-xl border border-ink/10 p-4">

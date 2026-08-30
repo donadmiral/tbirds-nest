@@ -229,3 +229,25 @@ export function ContentThumb({ url, kind, label, size = 44 }: { url?: string | n
     </span>
   );
 }
+
+/**
+ * A metric number.
+ *
+ * The display face renders 0 as a near-perfect circle, so a zero metric read
+ * as a decorative ring rather than a number. Zero drops to the body face in a
+ * quieter grey: still legible, no longer shouting. Every desk uses this rather
+ * than styling numbers by hand, which is how the Overview fix failed to reach
+ * Insights and Audience.
+ */
+export function Metric({ value, size = 26 }: { value: number | string; size?: number }) {
+  const n = typeof value === "number" ? value : Number(String(value).replace(/[^0-9.-]/g, ""));
+  const zero = n === 0 || value === "0";
+  return (
+    <p
+      className={zero ? "font-semibold leading-tight text-ink/25" : "font-display leading-tight text-porcelain"}
+      style={{ fontSize: zero ? size - 2 : size }}
+    >
+      {typeof value === "number" ? value.toLocaleString() : value}
+    </p>
+  );
+}

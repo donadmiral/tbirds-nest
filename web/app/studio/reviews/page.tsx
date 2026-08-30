@@ -37,7 +37,6 @@ export default function ReviewsPage() {
   return (
     <div className="max-w-[860px]">
       <h1 className="font-display text-[21px] leading-tight text-porcelain">Reviews</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">What people said, and your replies.</p>
       <p className="mt-1 text-[13px] text-ink/50">Reply in public. A calm answer to a bad review is read by more people than the review itself.</p>
 
       {loading || !d ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : (

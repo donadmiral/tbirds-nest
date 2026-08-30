@@ -116,7 +116,6 @@ export default function PlannerPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Planner</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">What is scheduled, drafted and due.</p>
           <p className="mt-1 text-[13px] text-ink/50">Drafts, schedule and publish. Scheduled posts go out on the minute, even with Studio closed.</p>
         </div>
         {editor ? <button onClick={() => openNew()} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> New post</button> : null}

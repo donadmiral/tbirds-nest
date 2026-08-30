@@ -106,7 +106,6 @@ export default function CommercePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Commerce</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">Orders, products and what they earned.</p>
           <p className="mt-1 text-[13px] text-ink/50">Your catalog, the money that came in, and how your storefront presents itself.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">

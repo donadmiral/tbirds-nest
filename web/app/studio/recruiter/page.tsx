@@ -99,7 +99,6 @@ export default function RecruiterPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Recruiter</h1>
-          <p className="mt-0.5 text-[13px] text-ink/50">Open roles, applicants and where each one stands.</p>
           <p className="mt-1 text-[13px] text-ink/50">Every application moves through one pipeline. Candidates hear from you on offer, hire, rejection and interviews.</p>
         </div>
         <Link href="/jobs" className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3.5 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> Post a job</Link>
