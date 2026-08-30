@@ -28,6 +28,7 @@ export default function PlannerPage() {
   const [communities, setCommunities] = useState<{ id: string; name: string }[]>([]);
   const [pickOpen, setPickOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [span, setSpan] = useState<"week" | "month">("month");
   const [weekStart, setWeekStart] = useState(() => { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() - t.getDay()); return t; });
 
   const load = useCallback(async () => {
@@ -48,6 +49,22 @@ export default function PlannerPage() {
     : r.status === "published"), [rows, tab]);
 
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => { const x = new Date(weekStart); x.setDate(x.getDate() + i); return x; }), [weekStart]);
+
+  // The month grid always starts on a Sunday and always renders whole weeks, so
+  // the calendar keeps its shape instead of reflowing as months change length.
+  const month = useMemo(() => {
+    const first = new Date(weekStart.getFullYear(), weekStart.getMonth(), 1);
+    const start = new Date(first);
+    start.setDate(start.getDate() - start.getDay());
+    const cells: Date[] = [];
+    for (let i = 0; i < 42; i++) {
+      const x = new Date(start);
+      x.setDate(x.getDate() + i);
+      cells.push(x);
+      if (i >= 34 && x.getMonth() !== weekStart.getMonth() && x.getDay() === 6) break;
+    }
+    return cells;
+  }, [weekStart]);
   const byDay = useMemo(() => {
     const m: Record<string, ScheduledPost[]> = {};
     rows.filter(r => r.publish_at && r.status !== "cancelled").forEach(r => { const k = dayKey(new Date(r.publish_at!)); (m[k] ||= []).push(r); });
@@ -123,22 +140,50 @@ export default function PlannerPage() {
 
       <div className="mt-5 rounded-2xl border border-ink/10 bg-white p-3">
         <div className="mb-2 flex items-center justify-between">
-          <button onClick={() => setWeekStart(w => { const x = new Date(w); x.setDate(x.getDate() - 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface">Previous</button>
-          <span className="text-[12.5px] font-semibold text-ink/70">{week[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} to {week[6].toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
-          <button onClick={() => setWeekStart(w => { const x = new Date(w); x.setDate(x.getDate() + 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface">Next</button>
+          <button onClick={() => setWeekStart(w => { const x = new Date(w); if (span === "month") x.setMonth(x.getMonth() - 1, 1); else x.setDate(x.getDate() - 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface">Previous</button>
+          <span className="text-[13px] font-semibold text-ink">
+            {span === "month"
+              ? weekStart.toLocaleDateString(undefined, { month: "long", year: "numeric" })
+              : week[0].toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " to " + week[6].toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+          </span>
+          <div className="ml-2 flex gap-1 rounded-full bg-surface p-1">
+            {(["month", "week"] as const).map(v => (
+              <button key={v} onClick={() => setSpan(v)}
+                className={"rounded-full px-2.5 py-1 text-[12px] font-semibold capitalize transition-colors duration-[140ms] " + (span === v ? "bg-ink text-white" : "text-ink/60 hover:text-ink")}>
+                {v}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() - t.getDay()); setWeekStart(t); }}
+            className="rounded-full border border-ink/15 px-3 py-1 text-[12px] font-semibold text-ink/65 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
+          >
+            Today
+          </button>
+          <button onClick={() => setWeekStart(w => { const x = new Date(w); if (span === "month") x.setMonth(x.getMonth() + 1, 1); else x.setDate(x.getDate() + 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface">Next</button>
         </div>
+        {span === "month" ? (
+          <div className="mb-1.5 grid grid-cols-7 gap-1.5">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+              <span key={d} className="px-1 text-[11px] font-semibold uppercase tracking-wide text-ink/35">{d}</span>
+            ))}
+          </div>
+        ) : null}
         <div className="grid grid-cols-7 gap-1.5">
-          {week.map(day => {
+          {(span === "month" ? month : week).map(day => {
             const k = dayKey(day); const items = byDay[k] || []; const today = k === dayKey(new Date());
+            const outside = span === "month" && day.getMonth() !== weekStart.getMonth();
             return (
-              <button key={k} onClick={() => editor && openNew(day)} className={"min-h-[92px] rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (today ? "border-pearl/60" : "border-ink/10")}>
-                <span className={"text-[11px] font-semibold " + (today ? "text-pearl" : "text-ink/45")}>{day.toLocaleDateString(undefined, { weekday: "short" })} {day.getDate()}</span>
-                {items.slice(0, 3).map(r => (
+              <button key={k} onClick={() => editor && openNew(day)} className={"rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (span === "month" ? "min-h-[86px] " : "min-h-[110px] ") + (today ? "border-pearl/60 bg-pearl/6 " : "border-ink/10 ") + (outside ? "opacity-40" : "")}>
+                <span className={"text-[11px] font-semibold " + (today ? "text-pearl" : "text-ink/45")}>
+                  {span === "month" ? day.getDate() : day.toLocaleDateString(undefined, { weekday: "short" }) + " " + day.getDate()}
+                </span>
+                {items.slice(0, span === "month" ? 2 : 4).map(r => (
                   <span key={r.id} className={"mt-1 block truncate rounded px-1.5 py-0.5 text-[10.5px] " + statusChip(r.status)}>
                     {new Date(r.publish_at!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} {r.content || r.body || "Media"}
                   </span>
                 ))}
-                {items.length > 3 ? <span className="mt-1 block text-[10.5px] text-ink/40">+{items.length - 3} more</span> : null}
+                {items.length > (span === "month" ? 2 : 4) ? <span className="mt-1 block text-[10.5px] text-ink/40">+{items.length - (span === "month" ? 2 : 4)} more</span> : null}
               </button>
             );
           })}
