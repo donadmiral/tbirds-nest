@@ -124,11 +124,32 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const [myReactions, setMyReactions] = useState<Set<string>>(new Set());
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [heartBurst, setHeartBurst] = useState(0);
+  const [mediaReady, setMediaReady] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
   const [replyToast, setReplyToast] = useState(false);
   const user = users[userIdx];
   const story = stories[itemIdx];
+
+  // Reset on every advance, otherwise the previous story's ready flag hides the
+  // shimmer for the next one and it flashes black again.
+  useEffect(() => { setMediaReady(false); }, [story?.id]);
+
+  // Preload the next frame while this one is on screen. A story lasts several
+  // seconds; using that time is the difference between instant and a stall at
+  // every tap.
+  useEffect(() => {
+    const next = stories[itemIdx + 1];
+    if (!next?.media_url) return;
+    if (next.media_type === "video") {
+      const v = document.createElement("video");
+      v.preload = "auto";
+      v.src = next.media_url;
+    } else {
+      const img = new Image();
+      img.src = next.media_url;
+    }
+  }, [stories, itemIdx]);
   const storyAudioUrl = story && story.media_type !== "video" ? (story.audio_url ?? null) : null;
   const isOwn = !!(uid && story && uid === story.user_id);
   const canReact = !!(story && !isOwn && story.allow_reactions !== false);
@@ -340,11 +361,35 @@ export function StoryViewer({ users, startIndex, onClose }: {
 
         {story ? (
           <>
+            {/* Until the frame is actually decoded the viewer showed black,
+                which reads as a broken story rather than a loading one. A
+                shimmer holds the space and clears on the first frame. */}
+            {!mediaReady && story.media_url ? (
+              <span className="absolute inset-0 z-[1] animate-pulse bg-white/[0.06]" aria-hidden />
+            ) : null}
             {story.media_type === "video" && story.media_url ? (
-              <video ref={videoRef} key={story.id} src={story.media_url} autoPlay playsInline muted={muted} className="h-full w-full object-contain" />
+              <video
+                ref={videoRef}
+                key={story.id}
+                src={story.media_url}
+                autoPlay
+                playsInline
+                preload="auto"
+                muted={muted}
+                onLoadedData={() => setMediaReady(true)}
+                className="h-full w-full object-contain"
+              />
             ) : story.media_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={story.id} src={story.media_url} alt="" className="h-full w-full" style={mediaStyle(story.media_transform)} />
+              <img
+                key={story.id}
+                src={story.media_url}
+                alt=""
+                onLoad={() => setMediaReady(true)}
+                onError={() => setMediaReady(true)}
+                className="h-full w-full"
+                style={mediaStyle(story.media_transform)}
+              />
             ) : null}
             <FilterOverlay filterId={story.filter_id} />
             {storyAudioUrl ? (

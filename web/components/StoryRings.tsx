@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getCatchupFeed, type CatchupUser } from "@/lib/stories";
+import { createClient } from "@/lib/supabase/client";
 import { StoryViewer } from "@/components/StoryViewer";
 
 // Port of the phone's PlatinumRing: platinum gradient base circle plus a
@@ -46,19 +47,42 @@ function PlatinumRingWeb({ userId, size, active }: { userId: string; size: numbe
 export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   const [users, setUsers] = useState<CatchupUser[]>([]);
   const [openAt, setOpenAt] = useState<number | null>(null);
+  const [myAvatar, setMyAvatar] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    getCatchupFeed(30, mode).then(setUsers);
+    getCatchupFeed(30, mode).then((u) => { setUsers(u); setReady(true); });
   }, [mode]);
 
-  if (users.length === 0) return null;
+  useEffect(() => {
+    (async () => {
+      const supabase = createClient();
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user.id;
+      if (!uid) return;
+      const { data } = await supabase.from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
+      setMyAvatar(data?.avatar_url ?? null);
+    })();
+  }, []);
+
+  if (!ready) return null;
 
   return (
     <>
       <style>{"@keyframes platinumspin { to { transform: rotate(360deg); } }"}</style>
-      <div className="flex gap-4 overflow-x-auto px-1 pb-3 pt-1">
+      <div className="mb-4 flex gap-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-4 py-4">
         <a href="/story/new" className="flex w-16 shrink-0 flex-col items-center gap-1.5">
-          <span className="flex h-[60px] w-[60px] items-center justify-center rounded-full border-2 border-dashed border-pearl text-ink/50">+</span>
+          {/* Your own face with a plus on it, rather than an empty dashed
+              circle: it reads as "add to your story" instead of as a gap. */}
+          <span className="relative block h-[62px] w-[62px]">
+            {myAvatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={myAvatar} alt="" className="h-full w-full rounded-full border border-ink/10 object-cover" />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center rounded-full bg-surface text-ink/40">+</span>
+            )}
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-ink">+</span>
+          </span>
           <span className="w-full truncate text-center text-[11px] text-ink/60">Your story</span>
         </a>
         {users.map((u, i) => (
