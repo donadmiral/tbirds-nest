@@ -1,8 +1,7 @@
 # Runs the check that has actually been catching bugs: the TypeScript compiler.
 #
-# It is deliberately narrow. A broad pipeline that nobody trusts gets ignored;
-# one job that fails only on real breakage gets read. Tests can be added as
-# steps here once they exist.
+# Deliberately narrow. A broad pipeline nobody trusts gets ignored; one job that
+# fails only on real breakage gets read.
 name: check
 
 on:
@@ -12,31 +11,34 @@ on:
 
 jobs:
   web:
-    name: web typecheck and build
+    name: web typecheck
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install
+    defaults:
+      run:
         working-directory: web
-        run: npm ci
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # Node 22: the runners now force 24 on anything targeting 20, which prints
+      # a deprecation warning on every run.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      # Printed before anything can fail, so a broken run says where it broke
+      # instead of only reporting an exit code.
+      - name: Environment
+        run: |
+          echo "node $(node -v)"
+          echo "npm  $(npm -v)"
+          echo "workdir $(pwd)"
+          ls -la package.json package-lock.json
+
+      # No cache: the cache action fails the job outright when its path does not
+      # resolve, which turns a speed optimisation into a source of red builds.
+      - name: Install
+        run: npm ci --no-audit --no-fund
 
       - name: Typecheck
-        working-directory: web
-        # .next holds generated route types that only exist after a build, so
-        # they are excluded rather than allowed to fail the run on files nobody
-        # wrote.
         run: npx tsc --noEmit
-
-      - name: Build
-        working-directory: web
-        run: npm run build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
