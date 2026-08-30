@@ -355,7 +355,7 @@ const s = StyleSheet.create({
   },
   editTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary },
 
-  nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 },
   name: { fontSize: 22, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.6, textAlign: 'center' },
   handle: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 1, textAlign: 'center' },
 

@@ -148,8 +148,10 @@ export function PostCard({ post }: { post: FeedRow }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
-              <span className="truncate text-[15.5px] font-semibold text-ink">{post.author_name}</span>
-              {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
+              <span className="flex min-w-0 items-center gap-[3px]">
+                <span className="truncate text-[15.5px] font-semibold text-ink">{post.author_name}</span>
+                {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
+              </span>
               <span className="truncate text-[13px] text-ink/50">@{post.author_username}</span>
             </Link>
             <span className="text-[13px] text-ink/30">·</span>

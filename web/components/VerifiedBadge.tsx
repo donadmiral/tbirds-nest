@@ -35,7 +35,7 @@ export function VerifiedBadge({ tier, size = 14 }: { tier?: Tier; size?: number 
       width={px}
       height={px}
       viewBox="0 0 24 24"
-      className="ml-1 inline-block shrink-0 align-[-0.12em]"
+      className="inline-block shrink-0 align-[-0.1em]"
       role="img"
       aria-label="Verified"
     >

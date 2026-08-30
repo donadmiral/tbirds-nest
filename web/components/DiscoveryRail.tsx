@@ -77,7 +77,7 @@ export function DiscoveryRail() {
               <div key={p.id} className="flex items-center gap-3 px-4 py-3">
                 <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={40} href={p.username ? "/" + p.username : null} />
                 <Link href={p.username ? "/" + p.username : "#"} className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1 text-[14px] font-semibold leading-tight text-ink">
+                  <span className="flex items-center gap-[3px] text-[14px] font-semibold leading-tight text-ink">
                     <span className="truncate">{p.full_name}</span>
                     {p.is_verified ? <VerifiedBadge size={13} /> : null}
                   </span>

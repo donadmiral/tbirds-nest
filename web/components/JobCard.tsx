@@ -52,7 +52,7 @@ export function JobCard({ job, initiallySaved, viewerId }: {
           {job.urgent ? <span className="rounded-sm bg-danger/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-danger">Urgent</span> : null}
           {job.visa_sponsorship ? <span className="rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink/60">Visa</span> : null}
         </span>
-        <span className="flex items-center gap-1.5 truncate text-[14px] text-ink/70">{job.profile?.id ? <StoryAvatar userId={job.profile.id} name={job.profile.full_name} avatarUrl={job.profile.avatar_url} size={38} /> : null}{job.company}{job.verified ? <VerifiedBadge tier="business" size={13} /> : null}</span>
+        <span className="flex items-center gap-1.5 truncate text-[14px] text-ink/70">{job.profile?.id ? <StoryAvatar userId={job.profile.id} name={job.profile.full_name} avatarUrl={job.profile.avatar_url} size={38} /> : null}<span className="flex items-center gap-[3px] truncate">{job.company}{job.verified ? <VerifiedBadge tier="business" size={13} /> : null}</span></span>
         {jobMeta(job) ? <span className="block truncate text-[13px] text-ink/50">{jobMeta(job)}</span> : null}
         <span className="mt-1 block text-[12px] text-ink/40">
           {timeAgo(job.created_at)}{job.applications_count > 0 ? " · " + job.applications_count + " applicants" : ""}

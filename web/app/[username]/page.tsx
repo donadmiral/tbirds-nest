@@ -74,7 +74,7 @@ export default async function ProfilePage({ params }: Params) {
           <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={80} />
         </span>
         <div className="min-w-0 flex-1 pt-1.5">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <h1 className="truncate text-[22px] font-semibold text-ink">{p.full_name}</h1>
             {p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={17} /> : null}
           </div>

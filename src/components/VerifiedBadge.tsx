@@ -67,7 +67,7 @@ export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier
   const px = Math.round(size);
   const detailed = px >= 16;
   return (
-    <Svg width={px} height={px} viewBox="0 0 24 24" style={{ marginLeft: 3, marginTop: Math.round(px * 0.08) }}>
+    <Svg width={px} height={px} viewBox="0 0 24 24" style={{ marginLeft: 3, marginTop: Math.round(px * 0.06) }}>
       <Defs>
         <SvgGradient id={'vb-' + key} x1="0%" y1="0%" x2="100%" y2="100%">
           <Stop offset="0" stopColor={m.grad[0]} />

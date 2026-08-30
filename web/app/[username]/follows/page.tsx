@@ -115,7 +115,7 @@ export default function FollowsPage() {
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink/5 text-[14px] font-bold text-[#0B1E3D]">{initials(p.full_name)}</span>
                 )}
                 <span className="min-w-0">
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-[3px]">
                     <span className="truncate text-[14.5px] font-semibold text-ink">{p.full_name || "Member"}</span>
                     {p.is_verified ? <VerifiedBadge tier={p.verified_tier ?? undefined} size={13} /> : null}
                   </span>
