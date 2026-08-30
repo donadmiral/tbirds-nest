@@ -28,3 +28,9 @@ _full-source.zip
 
 android/
 ios/
+
+# local backups, tunnels and logs, never committed
+_export/
+admin-web/_backup-*/
+cloudflared.exe
+*.log
