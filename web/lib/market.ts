@@ -48,7 +48,7 @@ export async function getMarketFeed(opts: { search?: string | null; category?: s
     .from("marketplace_listings")
     .select("*, " + SELLER_SELECT)
     .in("id", ids);
-  const map = new Map(((rows ?? []) as Listing[]).map((l) => [l.id, l]));
+  const map = new Map(((rows ?? []) as unknown as Listing[]).map((l) => [l.id, l]));
   return ids.map((id) => map.get(id)).filter(Boolean) as Listing[];
 }
 
@@ -59,7 +59,7 @@ export async function getListing(id: string): Promise<Listing | null> {
     .select("*, " + SELLER_SELECT)
     .eq("id", id)
     .maybeSingle();
-  return (data as Listing) ?? null;
+  return (data as unknown as Listing) ?? null;
 }
 
 export async function getSavedListingIds(): Promise<Set<string>> {
@@ -108,7 +108,7 @@ export async function getListings(opts: MarketFilters & { search?: string | null
   if (opts.sort === "price_low") q = q.order("price", { ascending: true });
   else if (opts.sort === "price_high") q = q.order("price", { ascending: false });
   const { data } = await q;
-  return (data ?? []) as Listing[];
+  return (data ?? []) as unknown as Listing[];
 }
 
 export async function myListings(userId: string): Promise<Listing[]> {
@@ -118,5 +118,5 @@ export async function myListings(userId: string): Promise<Listing[]> {
     .select("*, " + SELLER_SELECT)
     .eq("seller_id", userId)
     .order("created_at", { ascending: false });
-  return (data ?? []) as Listing[];
+  return (data ?? []) as unknown as Listing[];
 }

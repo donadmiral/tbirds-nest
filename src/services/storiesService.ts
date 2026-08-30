@@ -27,6 +27,7 @@ export type StoryTextSticker = {
   locationLng?: number;
   locationPlaceId?: string;
   mentionUserId?: string;
+  postAuthorId?: string;
   hashtag?: string;
   postId?: string;
   postAuthorName?: string;

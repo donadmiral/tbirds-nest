@@ -253,7 +253,7 @@ export default function MarketScreen({ navigation }: any) {
       ) : (
         <TapTopFlatList ListEmptyComponent={<EmptyState icon="shopping-bag" title="Nothing listed yet" line="New listings appear here as people post them." />} automaticallyAdjustKeyboardInsets={true}
           data={listings}
-          keyExtractor={(l) => l.id}
+          keyExtractor={(l: { id: string }) => l.id}
           numColumns={2}
           columnWrapperStyle={{ gap: GUTTER, paddingHorizontal: GUTTER }}
           contentContainerStyle={{ gap: GUTTER, paddingTop: 4, paddingBottom: TAB_BAR_CLEARANCE + 24 }}

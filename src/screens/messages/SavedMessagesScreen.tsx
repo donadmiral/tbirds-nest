@@ -123,9 +123,9 @@ export default function SavedMessagesScreen({ navigation }: any) {
       {loading
         ? <View style={s.center}><ActivityIndicator color="#000" /></View>
         : (
-          <FlatList ListEmptyComponent={<EmptyState icon="bookmark" title="Nothing saved" line="Save a message to find it here later." />}
+          <FlatList
             data={saved}
-            keyExtractor={i => i.id}
+            keyExtractor={(i: { id: string }) => i.id}
             renderItem={renderItem}
             contentContainerStyle={{ padding: 14, gap: 10, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
             showsVerticalScrollIndicator={false}

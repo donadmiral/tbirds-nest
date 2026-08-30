@@ -102,8 +102,8 @@ export default function BusinessesScreen({ navigation }: any) {
               )}
               <View style={s.rowText}>
                 <View style={s.nameRow}>
-                  <TierName userId={item.id} baseStyle={s.name} text={item.full_name || 'Business'} />
-                  <VerifiedBadge userId={item.id} size={13} />
+                  <TierName userId={item.business_id} baseStyle={s.name} text={item.full_name || 'Business'} />
+                  <VerifiedBadge userId={item.business_id} size={13} />
                 </View>
                 <Text style={s.meta} numberOfLines={1}>
                   {item.category ? `${item.category}  ·  ` : ''}

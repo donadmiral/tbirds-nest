@@ -251,7 +251,7 @@ export default function ChannelScreen() {
               const on = poll.my_option === o.id;
               return (
                 <TouchableOpacity key={o.id} style={s.pollOpt} onPress={() => votePoll(item, o.id)} activeOpacity={pollClosed ? 1 : 0.8} disabled={pollClosed}>
-                  <View style={[s.pollFill, { width: String(Math.max(pct, 3)) + '%' }, on && s.pollFillOn]} />
+                  <View style={[s.pollFill, { width: `${Math.max(pct, 3)}%` as const }, on && s.pollFillOn]} />
                   <View style={s.pollOptRow}>
                     <Text style={[s.pollOptTxt, on && { fontWeight: '700', color: NAVY }]} numberOfLines={1}>{o.label}</Text>
                     <Text style={s.pollPct}>{(poll.total || 0) > 0 ? String(pct) + '%' : ''}</Text>

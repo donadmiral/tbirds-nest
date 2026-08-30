@@ -534,7 +534,7 @@ export default function JobsScreen({ navigation }: any) {
         ) : (
           <TapTopFlatList
             data={displayJobs}
-            keyExtractor={j => j.id}
+            keyExtractor={(j: { id: string }) => j.id}
             renderItem={renderJob}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"

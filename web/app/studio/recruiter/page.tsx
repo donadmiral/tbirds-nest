@@ -57,7 +57,7 @@ export default function RecruiterPage() {
 
   const job = jobs.find(j => j.id === jobId) || null;
 
-  const act = async (fn: () => Promise<{ error: any }>) => {
+  const act = async (fn: () => PromiseLike<{ error: any }>) => {
     if (busy) return;
     setBusy(true);
     try { const { error } = await fn(); if (error) throw error; if (jobId) await loadApps(jobId); await loadJobs(); }

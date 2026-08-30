@@ -695,7 +695,7 @@ const swipeActions = (item: Conversation) => (
       ) : (
         <TapTopFlatList  ListEmptyComponent={<EmptyState icon="message-circle" title="No conversations" line="Start one from anyone profile, or from a listing." />}automaticallyAdjustKeyboardInsets={true}
           data={[...pinned, ...unpinned]}
-          keyExtractor={i => i.id}
+          keyExtractor={(i: { id: string }) => i.id}
           renderItem={renderItem}
           onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{ padding: 12, gap: 8, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
           showsVerticalScrollIndicator={false}

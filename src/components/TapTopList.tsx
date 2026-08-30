@@ -9,13 +9,13 @@ import { useScrollToTop } from '@react-navigation/native';
 
 export function TapTopFlatList({ innerRef, ...props }: any) {
   const r = useRef<FlatList>(null);
-  useScrollToTop(r);
+  useScrollToTop(r as React.RefObject<any>);
   const bind = (node: any) => { (r as any).current = node; if (innerRef) innerRef.current = node; };
   return <FlatList ref={bind} {...props} />;
 }
 
 export function TapTopSectionList(props: any) {
   const r = useRef<SectionList>(null);
-  useScrollToTop(r);
+  useScrollToTop(r as React.RefObject<any>);
   return <SectionList ref={r} {...props} />;
 }

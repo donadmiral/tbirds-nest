@@ -119,7 +119,7 @@ export default function BloomSystem({
             <TouchableOpacity style={bs.toolTouch} onPress={() => handleToolPress(tool.id)}
               activeOpacity={0.7} accessibilityLabel={`Add ${tool.label.toLowerCase()}`}
               accessibilityRole="button" hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}>
-              <Feather name={tool.icon} size={18} color={textColor.secondary} />
+              <Feather name={tool.icon as React.ComponentProps<typeof Feather>['name']} size={18} color={textColor.secondary} />
             </TouchableOpacity>
             <Animated.Text style={[bs.toolLabel, { opacity: labelOpacity }]}>{tool.label}</Animated.Text>
           </Animated.View>

@@ -49,6 +49,9 @@ const NAVY = light.brand.base;
 
 type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number; width?: number | null; height?: number | null };
 type Post = {
+  link?: string | null;
+  /** feed row key: the post id, or post id plus reposter when the row is a repost */
+  _rk?: string;
   id: string; user_id: string; content: string;
   likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number; shares_count?: number;
   created_at?: string | null; media_url?: string | null; location?: string | null;
@@ -57,7 +60,7 @@ type Post = {
   thread_parent_id?: string | null;
   media: MediaItem[]; score: number; is_trending?: boolean; products?: PostProduct[]; _promo?: { id: string; label: string };
 };
-type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null };
+type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null; is_verified?: boolean | null; verified_tier?: string | null };
 type ProfileMap = Record<string, ProfileLite>;
 type CommentPreview = { body: string; authorName: string; likes?: number };
 type LocalMedia = { uri: string; type: 'image' | 'video'; ext: string; width?: number; height?: number; fileSize?: number; thumbnail?: string; };
@@ -1787,12 +1790,12 @@ if (!search && promos.length > 0) {
             <FeedSkeleton />
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
-              <NewPostsPill topCreatedAt={posts.length ? posts.reduce((m, p) => (p.created_at > m ? p.created_at : m), posts[0].created_at) : null} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
+              <NewPostsPill topCreatedAt={posts.length ? posts.reduce((m, p) => ((p.created_at ?? '') > m ? (p.created_at ?? '') : m), posts[0].created_at ?? '') : null} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
             <TapTopFlatList innerRef={feedListRef}
               data={displayPosts}
               onScroll={handleTabBarScroll}
               scrollEventThrottle={16}
-              keyExtractor={p => (p as any)._rk ?? p.id}
+              keyExtractor={(p: Post) => p._rk ?? p.id}
               renderItem={renderPost}
               onEndReached={loadMore}
               onEndReachedThreshold={0.6}

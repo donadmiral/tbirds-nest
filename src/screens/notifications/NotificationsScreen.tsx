@@ -496,7 +496,7 @@ export default function NotificationsScreen({ navigation }: any) {
             </ScrollView>
           {reqCount > 0 ? <TouchableOpacity activeOpacity={0.8} onPress={() => (navigation as any).navigate('FollowRequests')} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, marginBottom: 4, borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: 'rgba(11,30,61,0.03)' }}><View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}><Feather name="user-plus" size={16} color="#FFFFFF" /></View><View style={{ flex: 1 }}><Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Follow requests</Text><Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>{reqCount} waiting for your answer</Text></View><Text style={{ fontSize: 20, color: 'rgba(11,30,61,0.35)' }}>{'\u203a'}</Text></TouchableOpacity> : null}</>} ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
           sections={sections}
-          keyExtractor={r => r.notification_id}
+          keyExtractor={(r: { notification_id: string }) => r.notification_id}
           renderItem={renderRow}
           stickySectionHeadersEnabled={false}
           onEndReached={loadMore}
@@ -506,7 +506,7 @@ export default function NotificationsScreen({ navigation }: any) {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={light.ink.faint} />
           }
-          renderSectionHeader={({ section }) => (
+          renderSectionHeader={({ section }: { section: { title: string } }) => (
             <Text style={s.sectionTitle}>{section.title}</Text>
           )}
         />
@@ -537,7 +537,6 @@ const s = StyleSheet.create({
   },
 
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: 16, paddingVertical: 11 },
-  thumb: { width: 42, height: 42, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.05)' },
   unreadDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#F04A5C' },
   chip: { paddingHorizontal: 13, paddingVertical: 6, borderRadius: 99, backgroundColor: 'rgba(0,0,0,0.05)' },
   chipOn: { backgroundColor: '#E8E0D0' },

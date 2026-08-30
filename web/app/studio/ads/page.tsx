@@ -42,7 +42,7 @@ export default function AdsManagerPage() {
   }, [supabase]);
   useEffect(() => { void load(); }, [load]);
 
-  const act = async (fn: () => Promise<{ error: any }>, after?: () => void) => {
+  const act = async (fn: () => PromiseLike<{ error: any }>, after?: () => void) => {
     if (busy) return;
     setBusy(true);
     try { const { error } = await fn(); if (error) throw error; after?.(); await load(); }

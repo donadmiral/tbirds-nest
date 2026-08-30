@@ -18,12 +18,13 @@ import ReAnimated, {
   withSequence,
   Easing as REasing,
   cancelAnimation,
+  type SharedValue,
 } from 'react-native-reanimated';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 type EnvironmentLayerProps = {
-  chromeOpacity: ReAnimated.SharedValue<number>;
+  chromeOpacity: SharedValue<number>;
   isPaused: boolean;
   isOwn: boolean;
 };

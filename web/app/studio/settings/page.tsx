@@ -38,7 +38,7 @@ export default function SettingsPage() {
   const isOwner = info?.role === "owner";
   const isAdmin = isOwner || info?.role === "admin";
 
-  const act = async (fn: () => Promise<{ error: any }>) => {
+  const act = async (fn: () => PromiseLike<{ error: any }>) => {
     if (busy) return;
     setBusy(true);
     try { const { error } = await fn(); if (error) throw error; await load(); await refresh(); }

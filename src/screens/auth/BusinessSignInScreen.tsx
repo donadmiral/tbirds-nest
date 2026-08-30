@@ -22,7 +22,7 @@ async function getDeviceId(): Promise<string> {
       if (id) return 'android-' + id;
     }
   } catch {}
-  return 'app-' + (Application.getInstallationTimeAsync ? 'inst' : 'x');
+  return 'app-' + (typeof Application.getInstallationTimeAsync === 'function' ? 'inst' : 'x');
 }
 
 export default function BusinessSignInScreen() {

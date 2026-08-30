@@ -9,7 +9,7 @@ import { displayImageUrl, srcSetFor } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
 import { createClient } from "@/lib/supabase/client";
 
-type MediaItem = { id: string; url: string; media_type: string; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null };
+type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null };
 type Dims = { w: number; h: number };
 export type ViewerPost = {
   post_id: string;
@@ -30,7 +30,7 @@ function fitted(w: number | null | undefined, h: number | null | undefined, avai
   return { w: Math.round(w * scale), h: Math.round(h * scale) };
 }
 
-export function MediaGallery({ media, postId, viewsCount, post }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost }) {
+export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; onDoubleClick?: (e: React.MouseEvent) => void }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -208,7 +208,7 @@ export function MediaGallery({ media, postId, viewsCount, post }: { media: Media
   const count = (n?: number) => (n ?? 0) >= 1000 ? ((n ?? 0) / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(n ?? 0);
 
   return (
-    <div ref={wrapRef} className="mt-3">
+    <div ref={wrapRef} className="mt-3" onDoubleClick={onFeedDoubleClick}>
       <div style={dims ? { width: dims.w + "px" } : undefined} className="relative mx-auto max-w-full overflow-hidden rounded-xl bg-black" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd}>
         {lightbox !== null ? (
           <div style={dims ? { height: dims.h + "px" } : undefined} className="w-full" />

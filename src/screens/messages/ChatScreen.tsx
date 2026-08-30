@@ -69,6 +69,7 @@ const HAIRLINE = '#E5E5EA';
 type Reaction = { emoji: string; user_id: string };
 
 type MessageItem = {
+  sender_name?: string | null;
   id: string;
   text: string | null;
   sender_id: string | null;
@@ -958,7 +959,7 @@ useEffect(() => {
     check();
     const iv = setInterval(check, 5000);
     return () => { live = false; clearInterval(iv); };
-  }, [isGroup, conversationId, currentUserId, membersById]);
+  }, [isGroup, conversationId, currentUserId]);
 
 const openSeenInfo = useCallback(async (msg: any) => {
     if (!conversationId || !msg?.created_at) return;
@@ -1463,7 +1464,7 @@ const pickAndSendDocument = useCallback(async () => {
     const isMe = msg.sender_id === currentUserId;
     const endsGroup = groupEnds[msg.id] !== false;
     const startsGroup = groupStarts[msg.id] !== false;
-    const sender = isGroup ? membersById[msg.sender_id] : otherUser;
+    const sender = isGroup ? membersById[msg.sender_id ?? ''] : otherUser;
     const dmStatus = getStatus(msg, isMe, item.index);
     const status = (isGroup && isMe && !(msg as any).is_system_message && memberReads.length > 0)
       ? (memberReads.every((m: any) => m.last_read_at && msg.created_at && new Date(m.last_read_at) > new Date(msg.created_at)) ? 'Seen' : dmStatus === 'Sending' ? 'Sending' : 'Sent')

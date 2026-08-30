@@ -35,7 +35,7 @@ type UserProfile = {
   avatar_url: string | null; role: string; profile_visibility: string;
   is_verified_school_user: boolean;
   banner_url?: string | null; headline?: string | null; workplace?: string | null;
-  account_type?: string; is_verified?: boolean; created_at?: string;
+  account_type?: string; is_verified?: boolean; verified_tier?: string | null; created_at?: string;
   business?: any; can_view_content?: boolean;
 };
 type Stats = { posts: number; followers: number; following?: number };

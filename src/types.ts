@@ -23,6 +23,7 @@ export type Profile = {
   school?: string | null;
   headline?: string | null;
   is_verified?: boolean;
+  account_type?: 'personal' | 'business' | null;
   role?: 'student' | 'alumni' | 'faculty' | 'staff' | 'professional' | null;
   created_at?: string;
   updated_at?: string;
