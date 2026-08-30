@@ -1,5 +1,8 @@
 "use client";
 
+import { StudioRailPortal } from "@/components/StudioRailPortal";
+import { Panel } from "@/components/ui";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Briefcase, Check, CheckCircle2, MessageCircle, Plus, Star, Tag, Trash2, X, Zap } from "lucide-react";
@@ -78,6 +81,47 @@ export default function InboxPage() {
 
   return (
     <div className="max-w-[960px]">
+      <StudioRailPortal>
+        <>
+          {items.length > 0 ? (
+            <Panel title="Your queue">
+              <div className="flex flex-col gap-2">
+                {[
+                  { n: items.filter(i => !i.done && i.waiting).length, label: "waiting on you" },
+                  { n: items.filter(i => !i.done && i.unread > 0).length, label: "unread" },
+                  { n: items.filter(i => !i.done && !i.assignee).length, label: "unassigned" },
+                  { n: items.filter(i => i.done).length, label: "done" },
+                ].filter(r => r.n > 0).map(r => (
+                  <div key={r.label} className="flex items-baseline gap-2.5">
+                    <span className="font-display text-[17px] leading-none text-pearl-muted">{r.n}</span>
+                    <span className="flex-1 text-[13px] text-ink/70">{r.label}</span>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          ) : null}
+
+          {/* Who is carrying what, so work can be moved before it piles up on
+              one person. Only members with something assigned appear. */}
+          {team.length > 0 && items.some(i => i.assignee) ? (
+            <Panel title="Assigned">
+              <div className="flex flex-col gap-1.5">
+                {team
+                  .map(m => ({ m, n: items.filter(i => !i.done && i.assignee === m.id).length }))
+                  .filter(x => x.n > 0)
+                  .sort((a, b) => b.n - a.n)
+                  .map(({ m, n }) => (
+                    <div key={m.id} className="flex items-baseline justify-between text-[13px]">
+                      <span className="min-w-0 truncate text-ink/70">{m.display_name}</span>
+                      <span className="shrink-0 tabular-nums font-semibold text-ink">{n}</span>
+                    </div>
+                  ))}
+              </div>
+            </Panel>
+          ) : null}
+        </>
+      </StudioRailPortal>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Inbox</h1>

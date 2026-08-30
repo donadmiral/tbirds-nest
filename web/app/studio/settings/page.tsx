@@ -1,5 +1,8 @@
 "use client";
 
+import { StudioRailPortal } from "@/components/StudioRailPortal";
+import { Panel } from "@/components/ui";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BadgeCheck, Copy, KeyRound, Smartphone, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -65,7 +68,63 @@ export default function SettingsPage() {
   if (!info) return <p className="py-12 text-center text-sm text-ink/40">Loading</p>;
 
   return (
-    <div className="max-w-[860px]">
+    <div>
+      {info ? (
+        <StudioRailPortal>
+          <>
+            <Panel title="Workspace">
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-ink/55">Your role</span>
+                <span className="font-semibold capitalize text-ink">{info.role ?? "member"}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[13px]">
+                <span className="text-ink/55">Team</span>
+                <span className="font-semibold text-ink">{info.members.length} {info.members.length === 1 ? "member" : "members"}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[13px]">
+                <span className="text-ink/55">Verified</span>
+                <span className={"font-semibold " + (info.profile?.is_verified ? "text-success" : "text-ink/40")}>
+                  {info.profile?.is_verified ? "Yes" : "Not yet"}
+                </span>
+              </div>
+            </Panel>
+
+            {/* Devices are the only way into this workspace, so anything waiting
+                for approval is a security decision rather than a setting. */}
+            {info.devices.length > 0 ? (
+              <Panel title="Devices">
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="text-ink/55">Approved</span>
+                  <span className="font-semibold text-ink">{info.devices.filter(d => d.status === "approved").length}</span>
+                </div>
+                {info.devices.filter(d => d.status === "pending").length > 0 ? (
+                  <p className="mt-2 rounded-lg bg-pearl/12 px-2.5 py-2 text-[12.5px] text-ink">
+                    <span className="font-semibold">{info.devices.filter(d => d.status === "pending").length}</span> waiting for approval
+                  </p>
+                ) : (
+                  <p className="mt-2 text-[12.5px] text-ink/45">Nothing waiting for approval.</p>
+                )}
+              </Panel>
+            ) : null}
+
+            {info.signins.length > 0 ? (
+              <Panel title="Recent sign-ins">
+                <div className="flex flex-col gap-2">
+                  {info.signins.slice(0, 4).map((x, i) => (
+                    <div key={i}>
+                      <p className="truncate text-[13px] text-ink">{x.member_name ?? "Unknown member"}</p>
+                      <p className="text-[11.5px] text-ink/45">
+                        {new Date(x.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            ) : null}
+          </>
+        </StudioRailPortal>
+      ) : null}
+
       <h1 className="font-display text-[21px] leading-tight text-porcelain">Settings</h1>
       <p className="mt-1 text-[13px] text-ink/50">Business details and hours, who can work in Studio, and which devices may sign in.</p>
 
