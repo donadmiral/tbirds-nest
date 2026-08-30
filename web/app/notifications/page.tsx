@@ -5,7 +5,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
-import { Heart, Repeat2, MessageCircle, UserPlus, AtSign, Bell, ShieldQuestion } from "lucide-react";
+import { Heart, Repeat2, MessageCircle, UserPlus, AtSign, Bell, Check, ShieldQuestion } from "lucide-react";
+import { EmptyState, PageHeader } from "@/components/ui";
+import { UnreadSummary } from "@/components/NotificationsRail";
 
 function iconFor(type: string) {
   if (type === "like") return <Heart size={15} className="text-danger" />;
@@ -148,6 +150,12 @@ export default function NotificationsPage() {
     mentions: ["mention", "story_mention"],
   };
   const visibleRows = filt === "all" ? rows : rows.filter((r) => (FILTS[filt] || []).includes(r.type));
+  const isUnread = (r: Notif) => !r.read_at || r.unread_in_group > 0;
+  const unreadByType = (k: string) => rows.filter((r) => isUnread(r) && (FILTS[k] || []).includes(r.type)).length;
+  const unreadBy: Record<string, number> = {
+    all: rows.filter(isUnread).length,
+    ...Object.fromEntries(Object.entries(FILTS).map(([k, types]) => [k, rows.filter((r) => isUnread(r) && types.includes(r.type)).length])),
+  };
   for (const r of visibleRows) {
     const t = sectionOf(r.created_at);
     const last = sections[sections.length - 1];
@@ -155,32 +163,58 @@ export default function NotificationsPage() {
     else sections.push({ title: t, items: [r] });
   }
 
+  const summaryRows = [
+    { label: "Likes", n: unreadByType("likes") },
+    { label: "Comments", n: unreadByType("comments") },
+    { label: "Follows", n: unreadByType("follows") },
+    { label: "Mentions", n: unreadByType("mentions") },
+  ];
+
   return (
-    <div className="px-1">
-      <div className="flex items-center justify-between pb-3">
-        <h1 className="font-display text-xl text-porcelain">Notifications</h1>
+    <div>
+      <PageHeader title="Notifications" subtitle="Everything that happened while you were away.">
         {hasUnread ? (
-          <button onClick={markAllRead} className="text-[13px] font-semibold text-pearl transition-opacity duration-[140ms] hover:opacity-80">Mark all read</button>
+          <button onClick={markAllRead} className="flex items-center gap-1.5 rounded-full border border-ink/15 px-3.5 py-2 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
+            <Check size={14} /> Mark all read
+          </button>
         ) : null}
+      </PageHeader>
+
+      {/* Each pill carries its own unread count, so the filter row doubles as a
+          summary: you can see where the noise is before choosing. */}
+      <div className="mb-4 flex gap-1.5 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-3 py-2.5">
+        {([["all", "All"], ["likes", "Likes"], ["comments", "Comments"], ["follows", "Follows"], ["mentions", "Mentions"]] as const).map(([k, lbl]) => {
+          const n = unreadBy[k] ?? 0;
+          return (
+            <button key={k} onClick={() => setFilt(k)}
+              className={"flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (filt === k ? "bg-pearl text-ink" : "text-ink/55 hover:bg-surface hover:text-ink")}>
+              {lbl}
+              {n > 0 ? (
+                <span className={"rounded-full px-1.5 text-[10.5px] tabular-nums " + (filt === k ? "bg-ink/15 text-ink" : "bg-pearl/20 text-pearl-muted")}>{n}</span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-3">
-        {([["all", "All"], ["likes", "Likes"], ["comments", "Comments"], ["follows", "Follows"], ["mentions", "Mentions"]] as const).map(([k, lbl]) => (
-          <button key={k} onClick={() => setFilt(k)}
-            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (filt === k ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>
-            {lbl}
-          </button>
-        ))}
-      </div>
+      {!loading && rows.length > 0 ? (
+        <div className="mb-4">
+          <UnreadSummary total={unreadBy.all} rows={summaryRows} />
+        </div>
+      ) : null}
 
       {loading ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading</p>
       ) : visibleRows.length === 0 ? (
-        <p className="py-16 text-center text-sm text-ink/40">Nothing here yet. Engagement on your posts and profile lands here.</p>
+        <EmptyState
+          icon={<Bell size={19} />}
+          title={filt === "all" ? "Nothing here yet" : "Nothing in this filter"}
+          line={filt === "all" ? "Likes, comments, follows and mentions on your posts land here." : "Try All to see everything that has come in."}
+        />
       ) : (
         sections.map((s) => (
-          <section key={s.title}>
-            <h2 className="pb-1.5 pt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/30">{s.title}</h2>
+          <section key={s.title} className="mb-4 overflow-hidden rounded-2xl border border-ink/10 bg-white">
+            <h2 className="border-b border-ink/8 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/35">{s.title}</h2>
             {s.items.map((n) => {
               const { lead, rest } = lineFor(n);
               const unread = !n.read_at || n.unread_in_group > 0;
