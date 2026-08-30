@@ -33,6 +33,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   };
 }
 
+function fmtCount(n: number) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1).replace(/\.0$/, "") + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(n >= 10_000 ? 0 : 1).replace(/\.0$/, "") + "K";
+  return String(n);
+}
+
 export default async function ProfilePage({ params }: Params) {
   const { username } = await params;
   const supabase = await createClient();
@@ -50,9 +56,10 @@ export default async function ProfilePage({ params }: Params) {
   }
 
   const isBusiness = p.account_type === "business";
-  const [followers, following] = await Promise.all([
+  const [followers, following, postCount] = await Promise.all([
     supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", p.id),
     supabase.from("follows").select("following_id", { count: "exact", head: true }).eq("follower_id", p.id),
+    supabase.from("posts").select("id", { count: "exact", head: true }).eq("user_id", p.id),
   ]);
 
   const posts = (
@@ -100,12 +107,32 @@ export default async function ProfilePage({ params }: Params) {
             <p className="mx-auto mt-2.5 max-w-[420px] whitespace-pre-wrap text-center text-[14.5px] leading-relaxed text-ink/80">{p.bio}</p>
           ) : null}
 
-          <p className="mt-3.5 flex justify-center gap-6 text-[13px] text-ink/50">
-            {!isBusiness ? (
-              <Link href={"/" + p.username + "/follows?tab=following"} className="flex items-baseline gap-1.5 transition-colors duration-[140ms] hover:text-ink"><span className="font-display text-[17px] text-porcelain">{following.count ?? 0}</span> Following</Link>
-            ) : null}
-            <Link href={"/" + p.username + "/follows?tab=followers"} className="flex items-baseline gap-1.5 transition-colors duration-[140ms] hover:text-ink"><span className="font-display text-[17px] text-porcelain">{followers.count ?? 0}</span> Followers</Link>
-          </p>
+          {/* One segmented capsule, as on the phone: followers, following and
+              posts read as a single control rather than three loose links. */}
+          <div className="mt-4 flex justify-center">
+            <div className="flex overflow-hidden rounded-full border border-ink/10 bg-pearl/10">
+              <Link
+                href={"/" + p.username + "/follows?tab=followers"}
+                className="flex min-w-[92px] flex-col items-center px-4 py-2 transition-colors duration-[140ms] hover:bg-pearl/20"
+              >
+                <span className="text-[16px] font-bold text-ink">{fmtCount(followers.count ?? 0)}</span>
+                <span className="text-[11.5px] text-ink/50">Followers</span>
+              </Link>
+              {!isBusiness ? (
+                <Link
+                  href={"/" + p.username + "/follows?tab=following"}
+                  className="flex min-w-[92px] flex-col items-center border-l border-ink/10 px-4 py-2 transition-colors duration-[140ms] hover:bg-pearl/20"
+                >
+                  <span className="text-[16px] font-bold text-ink">{fmtCount(following.count ?? 0)}</span>
+                  <span className="text-[11.5px] text-ink/50">Following</span>
+                </Link>
+              ) : null}
+              <div className="flex min-w-[92px] flex-col items-center border-l border-ink/10 px-4 py-2">
+                <span className="text-[16px] font-bold text-ink">{fmtCount(postCount.count ?? 0)}</span>
+                <span className="text-[11.5px] text-ink/50">Posts</span>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
       <div className="mb-6 flex flex-col items-center gap-2 px-1">
