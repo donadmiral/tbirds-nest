@@ -26,31 +26,42 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
 
   useEffect(() => {
     let alive = true;
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
-      if (!uid) return;
+    // Held out here so the effect's own cleanup can remove it. Returning a
+    // cleanup from inside the async body does nothing: React never sees it,
+    // which is why StrictMode's second mount hit an already-subscribed
+    // channel. The name carries a per-mount suffix for the same reason, since
+    // supabase-js hands back the existing channel for a repeated topic.
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const readCount = async (uid: string) => {
       const { count } = await supabase
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("recipient_id", uid)
         .eq("is_read", false);
       if (alive) setUnread(count ?? 0);
+    };
 
-      const ch = supabase
-        .channel("topbar-notifications")
-        .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: "recipient_id=eq." + uid }, async () => {
-          const { count: c } = await supabase
-            .from("notifications")
-            .select("id", { count: "exact", head: true })
-            .eq("recipient_id", uid)
-            .eq("is_read", false);
-          if (alive) setUnread(c ?? 0);
-        })
+    (async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user.id;
+      if (!uid || !alive) return;
+      await readCount(uid);
+      if (!alive) return;
+      channel = supabase
+        .channel("topbar-notifications-" + uid + "-" + Math.random().toString(36).slice(2, 8))
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "notifications", filter: "recipient_id=eq." + uid },
+          () => { void readCount(uid); },
+        )
         .subscribe();
-      return () => { void supabase.removeChannel(ch); };
     })();
-    return () => { alive = false; };
+
+    return () => {
+      alive = false;
+      if (channel) void supabase.removeChannel(channel);
+    };
   }, [supabase]);
 
   // A menu that traps nothing and closes on any outside click, which is what
