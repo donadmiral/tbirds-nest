@@ -348,8 +348,20 @@ function useNotificationTapHandler() {
   useEffect(() => {
     responseListener.current = Notifications.addNotificationResponseReceivedListener(async (response) => {
       const data = response.notification.request.content.data;
-      if (!data || !navigationRef.current) return;
-      console.log('[PUSH_TAP] type:', data.type);
+      if (!data) return;
+      // Decline from the notification must work without the app coming forward,
+      // so it is handled before the navigation guard below.
+      if (response.actionIdentifier === 'decline') {
+        const declineId = (data.call_id || data.callId) as string | undefined;
+        if (declineId) {
+          console.log('[PUSH_ACTION] decline', declineId);
+          try { await callService.declineCall(declineId); } catch {}
+          try { await supabase.rpc('decline_group_call', { p_session_id: declineId }); } catch {}
+        }
+        return;
+      }
+      if (!navigationRef.current) return;
+      console.log('[PUSH_TAP] type:', data.type, 'action:', response.actionIdentifier);
       try { await handleNotificationTap(data); } catch (e) { console.log('[PUSH_TAP] error:', e); }
     });
 
@@ -397,7 +409,7 @@ async function handleNotificationTap(data: any) {
 }
 
 async function handleIncomingCallTap(data: any) {
-  const callId = data.call_id;
+  const callId = data.call_id || data.callId;
   if (!callId) return;
   if (isCallNavActive()) { console.log('[PUSH_TAP] call nav already active, ignoring'); return; }
   let call: any = null;

@@ -94,8 +94,18 @@ Deno.serve(async (req) => {
         to: t.expo_push_token,
         title: callerName,
         body: isVideo ? 'Incoming video call' : 'Incoming call',
-        data: { type: 'incoming_call', callId, callerName, isVideo },
+        // snake_case: every other push in this app uses it, and the tap
+        // handler reads call_id. callId is kept as a synonym for safety.
+        data: {
+          type: 'incoming_call',
+          call_id: callId,
+          callId,
+          caller_name: callerName,
+          channel_id: call.channel_id ?? null,
+          is_video: isVideo,
+        },
         channelId: 'calls',
+        categoryId: 'incoming_call',
         priority: 'high',
         ttl: 45,
         sound: 'default',

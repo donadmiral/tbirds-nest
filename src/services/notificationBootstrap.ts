@@ -43,6 +43,23 @@ let activeCallNavTimer: ReturnType<typeof setTimeout> | null = null;
 // the lock screen and ignores Do Not Disturb, which is what a call needs.
 // Channel settings are fixed once created, so changing them later needs a new
 // channel id, not an edit.
+// Answer and Decline sit on the notification itself, so a locked phone can be
+// dealt with without unlocking. Answer opens the app on the incoming call
+// screen; Decline is handled without bringing the app forward.
+let callCategoryReady = false;
+export async function ensureCallCategory(): Promise<void> {
+  if (callCategoryReady) return;
+  try {
+    await Notifications.setNotificationCategoryAsync('incoming_call', [
+      { identifier: 'answer', buttonTitle: 'Answer', options: { opensAppToForeground: true } },
+      { identifier: 'decline', buttonTitle: 'Decline', options: { opensAppToForeground: false, isDestructive: true } },
+    ]);
+    callCategoryReady = true;
+  } catch (e) {
+    console.log('CALL_CATEGORY_ERROR', (e as any)?.message);
+  }
+}
+
 let callChannelReady = false;
 export async function ensureCallChannel(): Promise<void> {
   if (Platform.OS !== 'android' || callChannelReady) return;
@@ -99,6 +116,7 @@ export async function registerForPushNotifications(userId: string) {
   }
 
   await ensureCallChannel();
+  await ensureCallCategory();
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
