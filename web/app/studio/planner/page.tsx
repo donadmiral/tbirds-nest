@@ -115,13 +115,14 @@ export default function PlannerPage() {
     <div className="max-w-[960px]">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl text-porcelain">Planner</h1>
+          <h1 className="font-display text-[21px] leading-tight text-porcelain">Planner</h1>
+          <p className="mt-0.5 text-[13px] text-ink/50">What is scheduled, drafted and due.</p>
           <p className="mt-1 text-[13px] text-ink/50">Drafts, schedule and publish. Scheduled posts go out on the minute, even with Studio closed.</p>
         </div>
         {editor ? <button onClick={() => openNew()} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> New post</button> : null}
       </div>
 
-      <div className="mt-5 rounded-lg border border-ink/10 p-3">
+      <div className="mt-5 rounded-2xl border border-ink/10 bg-white p-3">
         <div className="mb-2 flex items-center justify-between">
           <button onClick={() => setWeekStart(w => { const x = new Date(w); x.setDate(x.getDate() - 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface">Previous</button>
           <span className="text-[12.5px] font-semibold text-ink/70">{week[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} to {week[6].toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
@@ -156,7 +157,7 @@ export default function PlannerPage() {
       {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
       : shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">{tab === "upcoming" ? "Nothing scheduled. Tap a day above to plan one." : tab === "drafts" ? "No drafts." : "Nothing published from the Planner yet."}</p>
       : shown.map(r => (
-        <div key={r.id} className="mt-2.5 flex items-start gap-3.5 rounded-lg border border-ink/10 p-3.5">
+        <div key={r.id} className="mt-2.5 flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-white p-3.5">
           {r.media?.[0]?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={r.media[0].url} alt="" className="h-16 w-16 rounded-lg object-cover" />
@@ -218,7 +219,7 @@ export default function PlannerPage() {
                 ) : null}
               </div>
               {pickOpen ? (
-                <div className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-ink/10 p-2">
+                <div className="mt-2 max-h-40 overflow-y-auto rounded-2xl border border-ink/10 bg-white p-2">
                   {listings.length === 0 ? <p className="text-[12.5px] text-ink/50">No active listings. Create one in Market to attach product cards.</p>
                   : listings.map(l => {
                     const on = d.products.some(p => p.listing_id === l.id);

@@ -105,7 +105,8 @@ export default function CommercePage() {
     <div className="max-w-[960px]">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl text-porcelain">Commerce</h1>
+          <h1 className="font-display text-[21px] leading-tight text-porcelain">Commerce</h1>
+          <p className="mt-0.5 text-[13px] text-ink/50">Orders, products and what they earned.</p>
           <p className="mt-1 text-[13px] text-ink/50">Your catalog, the money that came in, and how your storefront presents itself.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
@@ -127,7 +128,7 @@ export default function CommercePage() {
           </div>
           {shownListings.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">No listings here yet. Everything you list in Market appears in this catalog.</p>
           : shownListings.map(l => (
-            <div key={l.id} className="mt-2 flex items-start gap-3 rounded-lg border border-ink/10 p-3">
+            <div key={l.id} className="mt-2 flex items-start gap-3 rounded-2xl border border-ink/10 bg-white p-3">
               {l.images?.[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={l.images[0]} alt="" className="h-16 w-16 rounded-lg object-cover" />
@@ -167,12 +168,12 @@ export default function CommercePage() {
         <>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             {totals.length === 0 ? <p className="text-[13px] text-ink/50">No completed payments yet.</p>
-              : totals.map(([cur, t]) => <span key={cur} className="rounded-lg border border-ink/10 px-3.5 py-2 text-[13px] text-ink"><span className="font-display text-[18px] text-porcelain">{cur} {t.total.toLocaleString()}</span> <span className="text-ink/45">across {t.n} payment{t.n === 1 ? "" : "s"}</span></span>)}
+              : totals.map(([cur, t]) => <span key={cur} className="rounded-2xl border border-ink/10 bg-white px-3.5 py-2 text-[13px] text-ink"><span className="font-display text-[18px] text-porcelain">{cur} {t.total.toLocaleString()}</span> <span className="text-ink/45">across {t.n} payment{t.n === 1 ? "" : "s"}</span></span>)}
             {orders.length ? <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Download size={13} /> Export CSV</button> : null}
           </div>
           {orders.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">Payments customers send you in chat appear here with what they bought.</p>
           : orders.map(o => (
-            <div key={o.id} className="mt-2 flex items-center gap-3 rounded-lg border border-ink/10 p-3">
+            <div key={o.id} className="mt-2 flex items-center gap-3 rounded-2xl border border-ink/10 bg-white p-3">
               {o.listing_image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={o.listing_image} alt="" className="h-12 w-12 rounded-lg object-cover" />
@@ -190,12 +191,12 @@ export default function CommercePage() {
         </>
       ) : sf ? (
         <div className="mt-5 max-w-[640px]">
-          <div className="rounded-lg border border-ink/10 p-4">
+          <div className="rounded-2xl border border-ink/10 bg-white p-4">
             <p className="text-[14px] font-semibold text-ink">Tagline</p>
             <p className="mt-1 text-[12.5px] text-ink/50">One line under your name on the storefront.</p>
             <input value={sf.tagline || ""} onChange={e => setSf({ ...sf, tagline: e.target.value })} maxLength={90} placeholder="Quality hardware, fair prices, same-day collection in Harare" className="mt-2 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
           </div>
-          <div className="mt-3 rounded-lg border border-ink/10 p-4">
+          <div className="mt-3 rounded-2xl border border-ink/10 bg-white p-4">
             <p className="text-[14px] font-semibold text-ink">Featured products</p>
             <p className="mt-1 text-[12.5px] text-ink/50">Up to six, shown first on your profile. Pick from the catalog.</p>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -206,7 +207,7 @@ export default function CommercePage() {
               {listings.filter(l => l.status === "available").length === 0 ? <p className="text-[12.5px] text-ink/45">No available listings to feature.</p> : null}
             </div>
           </div>
-          <div className="mt-3 rounded-lg border border-ink/10 p-4">
+          <div className="mt-3 rounded-2xl border border-ink/10 bg-white p-4">
             <label className="flex items-center gap-2 text-[14px] font-semibold text-ink"><input type="checkbox" checked={sf.delivery_default} onChange={e => setSf({ ...sf, delivery_default: e.target.checked })} /> Offer delivery by default on new listings</label>
             <div className="mt-2 flex gap-2">
               <input value={sf.delivery_fee_default ?? ""} onChange={e => setSf({ ...sf, delivery_fee_default: e.target.value === "" ? null : Number(e.target.value) })} placeholder="Fee" inputMode="decimal" className="w-28 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />

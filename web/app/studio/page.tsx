@@ -86,7 +86,7 @@ export default function StudioHomePage() {
       <section>
         <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Needs attention</h2>
         {todos.length === 0 ? (
-          <p className="rounded-lg border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">Nothing waiting on you. Inbox, offers, applicants and ads are all clear.</p>
+          <p className="rounded-2xl border border-ink/10 bg-white px-4 py-5 text-[13.5px] text-ink/50">Nothing waiting on you. Inbox, offers, applicants and ads are all clear.</p>
         ) : (
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             {todos.map(t => (
@@ -137,7 +137,7 @@ export default function StudioHomePage() {
         <div>
           <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Recent posts</h2>
           {h.recent.length === 0 ? (
-            <p className="rounded-lg border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">No posts yet. <Link href="/studio/planner" className="text-pearl">Plan the first one.</Link></p>
+            <p className="rounded-2xl border border-ink/10 bg-white px-4 py-5 text-[13.5px] text-ink/50">No posts yet. <Link href="/studio/planner" className="text-pearl">Plan the first one.</Link></p>
           ) : h.recent.map(p => (
             <Link key={p.post_id} href={"/post/" + p.post_id} className="mb-2 flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-white px-4 py-3.5 transition-colors duration-[140ms] hover:bg-surface">
               <ContentThumb url={thumbs[p.post_id]?.url} kind={thumbs[p.post_id]?.media_type} label={p.content || p.body} size={44} />

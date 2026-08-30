@@ -72,7 +72,8 @@ export default function AdsManagerPage() {
     <div className="max-w-[960px]">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl text-porcelain">Ads Manager</h1>
+          <h1 className="font-display text-[21px] leading-tight text-porcelain">Ads Manager</h1>
+          <p className="mt-0.5 text-[13px] text-ink/50">Campaigns, spend and what they returned.</p>
           <p className="mt-1 text-[13px] text-ink/50">Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live.</p>
         </div>
         <div className="flex gap-2">
@@ -84,7 +85,7 @@ export default function AdsManagerPage() {
       {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
       : rows.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">No campaigns yet. Create one, add ads from your posts, submit it for review, then set it live.</p>
       : rows.map(c => (
-        <div key={c.id} className="mt-3 rounded-lg border border-ink/10 p-4">
+        <div key={c.id} className="mt-3 rounded-2xl border border-ink/10 bg-white p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Megaphone size={16} className="text-pearl" />
             <span className="text-[15px] font-semibold text-ink">{c.name}</span>
@@ -167,7 +168,7 @@ export default function AdsManagerPage() {
             <p className="px-4 pt-2 text-[12px] text-ink/45">Pick one of your posts. Posts with product cards become carousel ads automatically.</p>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
               {posts.length === 0 ? <p className="py-8 text-center text-[13px] text-ink/45">No posts yet. Publish one from the Planner first.</p> : posts.map(p => (
-                <button key={p.id} disabled={busy} onClick={() => addAd(p.id)} className="mb-1.5 flex w-full items-center gap-3 rounded-lg border border-ink/10 p-2 text-left transition-colors duration-[140ms] hover:bg-black/[0.03]">
+                <button key={p.id} disabled={busy} onClick={() => addAd(p.id)} className="mb-1.5 flex w-full items-center gap-3 rounded-2xl border border-ink/10 bg-white p-2 text-left transition-colors duration-[140ms] hover:bg-black/[0.03]">
                   {p.thumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.thumb} alt="" className="h-10 w-10 rounded-md object-cover" />

@@ -70,7 +70,8 @@ export default function AudiencePage() {
     <div className="max-w-[960px]">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl text-porcelain">Audience</h1>
+          <h1 className="font-display text-[21px] leading-tight text-porcelain">Audience</h1>
+          <p className="mt-0.5 text-[13px] text-ink/50">Who follows you, where they are, and what they respond to.</p>
           <p className="mt-1 text-[13px] text-ink/50">Who follows you, who pays you, and the leads you are working.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">

@@ -98,7 +98,8 @@ export default function RecruiterPage() {
     <div className="max-w-[1100px]">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl text-porcelain">Recruiter</h1>
+          <h1 className="font-display text-[21px] leading-tight text-porcelain">Recruiter</h1>
+          <p className="mt-0.5 text-[13px] text-ink/50">Open roles, applicants and where each one stands.</p>
           <p className="mt-1 text-[13px] text-ink/50">Every application moves through one pipeline. Candidates hear from you on offer, hire, rejection and interviews.</p>
         </div>
         <Link href="/jobs" className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3.5 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> Post a job</Link>
@@ -132,7 +133,7 @@ export default function RecruiterPage() {
               {STAGES.map(st => {
                 const col = apps.filter(a => a.status === st);
                 return (
-                  <div key={st} className="rounded-lg border border-ink/10 p-2">
+                  <div key={st} className="rounded-2xl border border-ink/10 bg-white p-2">
                     <p className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-ink/45"><span>{STAGE_LABEL[st]}</span><span>{col.length}</span></p>
                     {loadingApps ? <p className="px-1 text-[12px] text-ink/30">Loading</p> : col.map(a => (
                       <button key={a.id} onClick={() => setSel(a)} className={"mb-1.5 w-full rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (sel?.id === a.id ? "border-pearl" : "border-ink/10")}>
@@ -152,7 +153,7 @@ export default function RecruiterPage() {
               })}
             </div>
 
-            <aside className="rounded-lg border border-ink/10 p-4">
+            <aside className="rounded-2xl border border-ink/10 bg-white p-4">
               {!sel ? <p className="text-[13px] text-ink/45">Select an applicant to see their application, move them, schedule an interview or leave notes.</p> : (
                 <>
                   <div className="flex items-start gap-3.5">
