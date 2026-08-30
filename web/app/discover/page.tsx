@@ -1,12 +1,12 @@
 "use client";
 
 import { DiscoverFeed } from "@/components/DiscoverFeed";
+import { PageHeader } from "@/components/ui";
 
 export default function DiscoverPage() {
   return (
-    <div className="px-1">
-      <h1 className="pb-1 font-display text-xl text-porcelain">Discover</h1>
-      <p className="pb-2 text-[13px] text-ink/50">What Zimbabwe is talking about, by interest.</p>
+    <div>
+      <PageHeader title="Discover" subtitle="Explore ideas, people and opportunities that move the world forward." />
       <DiscoverFeed />
     </div>
   );
