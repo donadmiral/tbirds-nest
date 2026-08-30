@@ -13,10 +13,22 @@
  * the same ringing notification the app would otherwise have received. So the
  * worst case is exactly today's behaviour rather than a silent phone.
  */
-import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { nativeCallService } from './nativeCallService';
+
+// expo-task-manager is a NATIVE module, so it only exists in a build that was
+// compiled with it. A dev client built before it was added does not have it,
+// and a plain import would throw at startup and take the whole app down. So it
+// is required lazily and every use is guarded: on an older build the app runs
+// exactly as it did, and the call still rings through the notification path.
+let TaskManager: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  TaskManager = require('expo-task-manager');
+} catch {
+  TaskManager = null;
+}
 
 export const INCOMING_CALL_TASK = 'INCOMING_CALL_TASK';
 
@@ -61,7 +73,7 @@ async function ringFallback(callId: string, callerName: string, isVideo: boolean
   }
 }
 
-TaskManager.defineTask(INCOMING_CALL_TASK, async ({ data, error }: any) => {
+if (TaskManager?.defineTask) TaskManager.defineTask(INCOMING_CALL_TASK, async ({ data, error }: any) => {
   if (error) {
     console.log('[CallTask] error:', error?.message);
     return;
@@ -91,6 +103,7 @@ TaskManager.defineTask(INCOMING_CALL_TASK, async ({ data, error }: any) => {
 /** Register the task. Android only: iOS rings through PushKit and CallKit. */
 export async function registerIncomingCallTask(): Promise<void> {
   if (Platform.OS !== 'android') return;
+  if (!TaskManager?.defineTask) return; // older build without the native module
   try {
     await Notifications.registerTaskAsync(INCOMING_CALL_TASK);
   } catch (e) {
