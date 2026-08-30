@@ -116,22 +116,39 @@ export default function StudioHomePage() {
 
       <section className="mt-7">
         <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Performance</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {stats.map(s => {
             const p = pct(s.now, s.prev);
             const up = p > 0, flat = p === 0;
             const line = lineFor(s.key);
             return (
-              <div key={s.label} className="flex flex-col rounded-2xl border border-ink/10 bg-white px-4 py-3.5">
+              <div key={s.label} className="flex flex-col rounded-2xl border border-ink/10 bg-white px-4 py-3">
                 <p className="text-[11.5px] text-ink/45">{s.label}</p>
-                <p className="mt-0.5 font-display text-[26px] leading-tight text-porcelain">{s.now.toLocaleString()}</p>
+                {/* Marcellus renders 0 as a near-perfect circle at this size, so a
+                    zero metric read as a decorative ring rather than a number.
+                    Zero drops to the body face and a quieter colour: it is
+                    still legible, and it stops shouting. */}
+                <p className={s.now === 0
+                  ? "mt-0.5 text-[24px] font-semibold leading-tight text-ink/25"
+                  : "mt-0.5 font-display text-[26px] leading-tight text-porcelain"}>
+                  {s.now.toLocaleString()}
+                </p>
                 <p className={"mt-0.5 flex items-center gap-1 text-[11.5px] " + (flat ? "text-ink/35" : up ? "text-success" : "text-red-400")}>
                   {flat ? null : up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                  {flat ? "no change" : Math.abs(p) + "% vs prior week"}
+                  {/* A move from 0 to 2 is "100%", which is arithmetically true
+                      and tells you nothing. Small bases get the actual change
+                      instead of a percentage. */}
+                  {flat
+                    ? "no change"
+                    : s.prev === 0
+                      ? "new this week"
+                      : s.prev < 10
+                        ? (s.now - s.prev > 0 ? "+" : "") + (s.now - s.prev) + " vs prior week"
+                        : Math.abs(p) + "% vs prior week"}
                 </p>
                 {line.length > 1 ? (
                   <div className="mt-2.5 -mb-1">
-                    <Sparkline points={line} tone={flat ? "pearl" : up ? "up" : "down"} />
+                    <Sparkline points={line} tone={flat || s.prev === 0 ? "pearl" : up ? "up" : "down"} height={28} />
                   </div>
                 ) : null}
               </div>
