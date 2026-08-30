@@ -81,7 +81,7 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
       </span>
       {q.first && q.first.media_type === "image" ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={displayImageUrl(q.first.url)!} onError={(e) => { if (q.first && e.currentTarget.src !== q.first.url) e.currentTarget.src = q.first.url; }} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+        <img src={displayImageUrl(q.first.url, 160)!} onError={(e) => { if (q.first && e.currentTarget.src !== q.first.url) e.currentTarget.src = q.first.url; }} alt="" loading="lazy" decoding="async" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
       ) : null}
       {q.first && q.first.media_type === "video" ? (
         <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-black"><video src={q.first.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span></span>
@@ -228,7 +228,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             >
               {post.link.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={displayImageUrl(post.link.image_url)!} onError={(e) => { if (post.link?.image_url && e.currentTarget.src !== post.link.image_url) e.currentTarget.src = post.link.image_url; }} alt="" loading="lazy" className="max-h-72 w-full object-cover" />
+                <img src={displayImageUrl(post.link.image_url, 720)!} onError={(e) => { if (post.link?.image_url && e.currentTarget.src !== post.link.image_url) e.currentTarget.src = post.link.image_url; }} alt="" loading="lazy" decoding="async" className="max-h-72 w-full object-cover" />
               ) : null}
               <span className="block px-3.5 py-2.5">
                 <span className="block text-[11px] uppercase tracking-wide text-ink/40">{post.link.domain}</span>
@@ -246,7 +246,7 @@ export function PostCard({ post }: { post: FeedRow }) {
                   ) : null}
                   {p.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={displayImageUrl(p.image_url)!} onError={(e) => { if (p.image_url && e.currentTarget.src !== p.image_url) e.currentTarget.src = p.image_url; }} alt="" loading="lazy" className="h-28 w-full bg-surface object-cover" />
+                    <img src={displayImageUrl(p.image_url, 320)!} onError={(e) => { if (p.image_url && e.currentTarget.src !== p.image_url) e.currentTarget.src = p.image_url; }} alt="" loading="lazy" decoding="async" className="h-28 w-full bg-surface object-cover" />
                   ) : null}
                   <div className="px-3 py-2.5">
                     <p className="truncate text-[13px] font-medium text-ink">{p.title}</p>

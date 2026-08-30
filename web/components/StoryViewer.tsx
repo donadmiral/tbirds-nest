@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, STORY_FILTERS, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker } from "@/lib/stories";
 import { timeAgo } from "@/lib/feed";
@@ -349,7 +350,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
         <div className="absolute inset-x-0 top-5 z-10 flex items-center gap-2 px-3">
           {user.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+            <img src={displayImageUrl(user.avatar_url, 100) ?? user.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
           ) : (
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-xs font-semibold text-white">
               {(user.full_name ?? "?").charAt(0).toUpperCase()}

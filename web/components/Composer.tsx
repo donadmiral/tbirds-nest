@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
@@ -381,7 +382,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
             <button key={u.id} onClick={() => pickMention(u)} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors duration-[140ms] hover:bg-surface-elevated">
               {u.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                <img src={displayImageUrl(u.avatar_url, 100) ?? u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
               ) : (
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-xs font-semibold text-porcelain">{(u.full_name ?? "?").charAt(0)}</span>
               )}

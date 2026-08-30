@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import { Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { timeAgo } from "@/lib/feed";
@@ -99,7 +100,7 @@ export function SellerReviews({ sellerId, listingId, viewerId }: { sellerId: str
           <div key={r.id} className="flex gap-3">
             {r.reviewer?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.reviewer.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+              <img src={displayImageUrl(r.reviewer.avatar_url, 100) ?? r.reviewer.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
             ) : (
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-semibold text-white">
                 {(r.reviewer?.full_name ?? "?").charAt(0).toUpperCase()}

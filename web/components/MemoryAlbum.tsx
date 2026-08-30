@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -327,7 +328,7 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
                 className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-black/5">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
+                  <img src={displayImageUrl(r.avatar_url, 100) ?? r.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
                 ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pearl text-[11px] font-semibold text-ink">{(r.full_name ?? "?").charAt(0)}</span>}
                 <span className="text-[13px] text-ink">{r.full_name} <span className="text-ink/40">@{r.username}</span></span>
                 <Plus size={14} className="ml-auto text-ink/40" />
@@ -339,7 +340,7 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
           <div key={r.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5">
             {r.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
+              <img src={displayImageUrl(r.avatar_url, 100) ?? r.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
             ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pearl text-[11px] font-semibold text-ink">{(r.full_name ?? "?").charAt(0)}</span>}
             <span className="text-[13px] text-ink">{r.full_name}</span>
             <button onClick={async () => { if (await setAccess(r.id, mode, false)) setList(list.filter((x) => x.id !== r.id)); }} className="ml-auto rounded-full p-1 text-ink/40 hover:text-red-600" aria-label="Remove"><X size={14} /></button>

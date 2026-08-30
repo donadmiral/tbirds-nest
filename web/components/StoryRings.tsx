@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import { getCatchupFeed, type CatchupUser } from "@/lib/stories";
 import { createClient } from "@/lib/supabase/client";
 import { StoryViewer } from "@/components/StoryViewer";
@@ -92,7 +93,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
               <span className="absolute inset-[4px] overflow-hidden rounded-full bg-ink">
                 {u.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={u.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+                  <img src={displayImageUrl(u.avatar_url, 160) ?? u.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
                 ) : (
                   <span className="flex h-full w-full items-center justify-center rounded-full bg-navy text-lg font-semibold text-white">
                     {(u.full_name ?? "?").charAt(0).toUpperCase()}
