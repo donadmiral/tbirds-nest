@@ -103,7 +103,7 @@ function __shipError(err: unknown, context: Props, fatal: boolean) {
 }
 
 try {
-  const EU: any = (global as any).ErrorUtils;
+  const EU: any = (globalThis as any).ErrorUtils;
   if (EU && EU.getGlobalHandler) {
     const prev = EU.getGlobalHandler();
     EU.setGlobalHandler((e: any, isFatal?: boolean) => {

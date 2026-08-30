@@ -119,7 +119,7 @@ function getResponseMessage(body: any, fallback: string): string {
 }
 
 async function call(path: string, init: RequestInit = {}) {
-  const callerSignal = init.signal;
+  const callerSignal = init.signal ?? undefined;
 
   // Session retrieval has its own short UI deadline.
   const sessionResult = await getSessionWithTimeout(

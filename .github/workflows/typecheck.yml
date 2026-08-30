@@ -3,9 +3,8 @@
 #
 # Three apps live in this repository and each has its own dependencies, so each
 # gets its own job. The two Next.js apps block the build because Vercel already
-# compiles them and they are known to be clean. The phone app runs advisory
-# until its backlog is cleared, so a red mark never stops work that used to ship
-# fine; flip continue-on-error to false the day it comes back green.
+# compiles them and they are known to be clean. The phone app joined them on 30 Aug 2026,
+# the day its backlog reached zero.
 
 name: Type check
 
@@ -47,9 +46,8 @@ jobs:
         working-directory: web
 
   phone:
-    name: Phone app (advisory)
+    name: Phone app
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -38,7 +38,7 @@ interface Draft {
   stickers?: any[];
   mediaTransform: any;
   category: any;
-  textBackground?: any;
+  textBackground: any;
   dualFrontUri?: string | null;
   dualLayout?: any;
   audio?: any;

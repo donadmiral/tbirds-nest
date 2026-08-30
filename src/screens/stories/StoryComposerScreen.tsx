@@ -641,7 +641,7 @@ export default function StoryComposerScreen() {
         ) : (
           <MediaCanvas
             localUri={arrangement.primaryCamera === 'rear' ? (active?.localUri || null) : (active?.dualFrontUri || null)}
-            mediaType={active?.mediaType || 'image'} uploadState={active?.uploadState || 'idle'} errorMsg={active?.errorMsg}
+            mediaType={active?.mediaType === 'video' ? 'video' : 'image'} uploadState={active?.uploadState || 'idle'} errorMsg={active?.errorMsg}
             onRetry={() => setDrafts(prev => prev.map((d, i) => i === activeIndex ? { ...d, uploadState: 'idle', errorMsg: null } : d))}
             onLayout={e => setPreviewSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
@@ -703,7 +703,7 @@ export default function StoryComposerScreen() {
           </>}
           {bloomTools.map((tool: BloomToolDef) => (
             <TouchableOpacity key={tool.id} style={st.topToolBtn} onPress={() => { handleBloomToolAction(tool.id); }} activeOpacity={0.7} disabled={publish.publishing} accessibilityLabel={tool.accessibilityLabel}>
-              <Feather name={tool.icon} size={19} color="#FFF" />
+              <Feather name={tool.icon as React.ComponentProps<typeof Feather>['name']} size={19} color="#FFF" />
             </TouchableOpacity>
           ))}
         </View>
@@ -920,7 +920,7 @@ export default function StoryComposerScreen() {
                       <TouchableOpacity key={o.id} style={[st.bgSwatch, active?.textBgId === o.id && st.bgSwatchActive]} onPress={() => updateActive({ textBgId: o.id, textBackground: o.bg })} activeOpacity={0.7} disabled={publish.publishing}>
                         {o.previewColors.length === 1
                           ? <View style={[st.bgSwatchInner, { backgroundColor: o.previewColors[0] }, o.id === 'white' && st.bgSwatchWhite]} />
-                          : <LinearGradient colors={o.previewColors} style={st.bgSwatchInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />}
+                          : <LinearGradient colors={o.previewColors as [string, string, ...string[]]} style={st.bgSwatchInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />}
                       </TouchableOpacity>
                     ))}
                   </ScrollView>

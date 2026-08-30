@@ -482,7 +482,7 @@ function InsightsSeg({ navigation }: { navigation: any }) {
         {[['Market conversations', fun.commerce.chats], ['Offers received', fun.commerce.offers], ['Payments', fun.commerce.payments]].map(([l, n]) => (
           <View key={String(l)} style={{ marginTop: 8 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={s.cardMeta}>{l}</Text><Text style={s.cardMeta}>{Number(n || 0)}</Text></View>
-            <View style={s.barTrack}><View style={[s.barFill, { width: bar(n || 0, fun.commerce.chats) + '%' }]} /></View>
+            <View style={s.barTrack}><View style={[s.barFill, { width: `${bar(n || 0, fun.commerce.chats)}%` as const }]} /></View>
           </View>
         ))}
       </View>
@@ -491,7 +491,7 @@ function InsightsSeg({ navigation }: { navigation: any }) {
         {[['Applications', fun.recruiting.applications], ['Reached interview', fun.recruiting.interviews], ['Hired', fun.recruiting.hired]].map(([l, n]) => (
           <View key={String(l)} style={{ marginTop: 8 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={s.cardMeta}>{l}</Text><Text style={s.cardMeta}>{Number(n || 0)}</Text></View>
-            <View style={s.barTrack}><View style={[s.barFill, { width: bar(n || 0, fun.recruiting.applications) + '%' }]} /></View>
+            <View style={s.barTrack}><View style={[s.barFill, { width: `${bar(n || 0, fun.recruiting.applications)}%` as const }]} /></View>
           </View>
         ))}
       </View>
@@ -528,7 +528,7 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
   useEffect(() => { void load(); }, [load]);
   const isOwner = info?.role === 'owner';
   const isAdmin = isOwner || info?.role === 'admin';
-  const act = async (fn: () => Promise<{ error: any }>) => {
+  const act = async (fn: () => PromiseLike<{ error: any }>) => {
     if (busy) return;
     setBusy(true);
     try { const { error } = await fn(); if (error) throw error; await load(); await reload(); }
