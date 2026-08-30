@@ -1,6 +1,7 @@
 "use client";
 
-import { CommerceOverview } from "@/components/CommerceOverview";
+import { CommerceOverview, CommerceRail } from "@/components/CommerceOverview";
+import { StudioRailPortal } from "@/components/StudioRailPortal";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -119,6 +120,7 @@ export default function CommercePage() {
         </div>
       </div>
 
+      {!loading ? <StudioRailPortal><CommerceRail orders={orders} listings={listings} /></StudioRailPortal> : null}
       {!loading ? <CommerceOverview orders={orders} listings={listings} /> : null}
 
       {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : view === "catalog" ? (

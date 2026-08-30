@@ -8,6 +8,7 @@ import { ExternalLink } from "lucide-react";
 import { ROOMS, bindMember, studioMe, type StudioMe } from "@/lib/studio";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StudioSideRail } from "@/components/StudioSideRail";
+import { STUDIO_RAIL_SLOT } from "@/components/StudioRailPortal";
 import { createClient } from "@/lib/supabase/client";
 
 const StudioCtx = createContext<{ me: StudioMe | null; refresh: () => Promise<void> }>({ me: null, refresh: async () => {} });
@@ -134,6 +135,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           <div className="min-w-0 flex-1">{children}</div>
           <aside className="hidden w-[300px] shrink-0 2xl:block">
             <div className="sticky top-[88px] flex flex-col gap-4">
+              {/* Desk-specific panels land here, above the shared ones. */}
+              <div id={STUDIO_RAIL_SLOT} className="flex flex-col gap-4" />
               <StudioSideRail role={me.role} username={me.username} />
             </div>
           </aside>

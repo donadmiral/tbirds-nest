@@ -1,6 +1,7 @@
 "use client";
 
-import { RecruiterFunnel } from "@/components/RecruiterFunnel";
+import { RecruiterFunnel, RecruiterRail } from "@/components/RecruiterFunnel";
+import { StudioRailPortal } from "@/components/StudioRailPortal";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -139,6 +140,7 @@ export default function RecruiterPage() {
             </div>
           ) : null}
 
+          <StudioRailPortal><RecruiterRail apps={apps} jobs={jobs} /></StudioRailPortal>
           <RecruiterFunnel apps={apps} jobs={jobs} />
 
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">

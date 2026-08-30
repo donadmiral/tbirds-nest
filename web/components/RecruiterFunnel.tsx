@@ -11,6 +11,7 @@
 import { useMemo } from "react";
 import { ChevronRight, Clock, Users } from "lucide-react";
 import { Metric } from "@/components/Charts";
+import { Panel } from "@/components/ui";
 
 type Applicant = { id: string; status: string; applied_at: string; updated_at: string };
 type Job = { id: string; title: string; closed: boolean; counts: Record<string, number> };
@@ -114,5 +115,84 @@ export function RecruiterFunnel({ apps, jobs }: { apps: Applicant[]; jobs: Job[]
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * The Recruiter rail: what needs a person today.
+ *
+ * Each line is a count of real applications in a real state. Nothing is a
+ * suggested action or a score; if the number is zero the line does not appear,
+ * so an empty rail means there is genuinely nothing waiting.
+ */
+export function RecruiterRail({
+  apps,
+  jobs,
+}: {
+  apps: (Applicant & { interview_at?: string | null; name?: string })[];
+  jobs: Job[];
+}) {
+  const items = useMemo(() => {
+    const now = Date.now();
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const interviewsToday = apps.filter(
+      (a) => a.interview_at && new Date(a.interview_at).getTime() >= now && new Date(a.interview_at).getTime() <= endOfDay.getTime(),
+    );
+    const upcoming = apps
+      .filter((a) => a.interview_at && new Date(a.interview_at).getTime() >= now)
+      .sort((a, b) => new Date(a.interview_at!).getTime() - new Date(b.interview_at!).getTime())
+      .slice(0, 3);
+
+    return {
+      upcoming,
+      rows: [
+        { n: interviewsToday.length, label: "interviews today" },
+        { n: apps.filter((a) => a.status === "applied").length, label: "waiting on a first look" },
+        { n: apps.filter((a) => a.status === "offer").length, label: "offers out" },
+        { n: jobs.filter((j) => !j.closed && !(j.counts?.applied > 0)).length, label: "roles with no applicants" },
+      ].filter((r) => r.n > 0),
+    };
+  }, [apps, jobs]);
+
+  if (items.rows.length === 0 && items.upcoming.length === 0) return null;
+
+  return (
+    <>
+      {items.rows.length > 0 ? (
+        <Panel title="Needs a person">
+          <div className="flex flex-col gap-2">
+            {items.rows.map((r) => (
+              <div key={r.label} className="flex items-baseline gap-2.5">
+                <span className="font-display text-[17px] leading-none text-pearl-muted">{r.n}</span>
+                <span className="min-w-0 flex-1 text-[13px] text-ink/70">{r.label}</span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      ) : null}
+
+      {items.upcoming.length > 0 ? (
+        <Panel title="Next interviews">
+          <div className="flex flex-col gap-2.5">
+            {items.upcoming.map((a) => (
+              <div key={a.id}>
+                <p className="truncate text-[13px] font-medium text-ink">{a.name ?? "Applicant"}</p>
+                <p className="text-[11.5px] text-ink/45">
+                  {new Date(a.interview_at!).toLocaleString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      ) : null}
+    </>
   );
 }

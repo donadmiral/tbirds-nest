@@ -1,5 +1,8 @@
 "use client";
 
+import { StudioRailPortal } from "@/components/StudioRailPortal";
+import { Panel } from "@/components/ui";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarClock, Image as ImageIcon, Plus, Send, Tag, Trash2, X, AlertTriangle, CheckCircle2, FileText, Users } from "lucide-react";
@@ -128,8 +131,65 @@ export default function PlannerPage() {
   const statusChip = (s: ScheduledPost["status"]) =>
     s === "scheduled" ? "bg-pearl/15 text-pearl" : s === "published" ? "bg-success/15 text-success" : s === "failed" ? "bg-red-500/15 text-red-400" : "bg-surface text-ink/50";
 
+  const railRows = useMemo(() => {
+    const now = Date.now();
+    const soon = now + 7 * 86400000;
+    const upcoming = rows
+      .filter((r) => r.status === "scheduled" && r.publish_at && new Date(r.publish_at).getTime() >= now)
+      .sort((a, b) => new Date(a.publish_at!).getTime() - new Date(b.publish_at!).getTime());
+    return {
+      next: upcoming.slice(0, 3),
+      thisWeek: upcoming.filter((r) => new Date(r.publish_at!).getTime() <= soon).length,
+      drafts: rows.filter((r) => r.status === "draft").length,
+      failed: rows.filter((r) => r.status === "failed").length,
+    };
+  }, [rows]);
+
   return (
     <div className="max-w-[960px]">
+      <StudioRailPortal>
+        <>
+          {railRows.failed > 0 || railRows.drafts > 0 || railRows.thisWeek > 0 ? (
+            <Panel title="Your queue">
+              <div className="flex flex-col gap-2">
+                {railRows.thisWeek > 0 ? (
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="font-display text-[17px] leading-none text-pearl-muted">{railRows.thisWeek}</span>
+                    <span className="flex-1 text-[13px] text-ink/70">going out this week</span>
+                  </div>
+                ) : null}
+                {railRows.drafts > 0 ? (
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="font-display text-[17px] leading-none text-pearl-muted">{railRows.drafts}</span>
+                    <span className="flex-1 text-[13px] text-ink/70">{railRows.drafts === 1 ? "draft waiting" : "drafts waiting"}</span>
+                  </div>
+                ) : null}
+                {railRows.failed > 0 ? (
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="font-display text-[17px] leading-none text-red-400">{railRows.failed}</span>
+                    <span className="flex-1 text-[13px] text-ink/70">failed to publish</span>
+                  </div>
+                ) : null}
+              </div>
+            </Panel>
+          ) : null}
+          {railRows.next.length > 0 ? (
+            <Panel title="Next out">
+              <div className="flex flex-col gap-2.5">
+                {railRows.next.map(r => (
+                  <div key={r.id}>
+                    <p className="line-clamp-1 text-[13px] text-ink">{r.content || r.body || "Media post"}</p>
+                    <p className="text-[11.5px] text-ink/45">
+                      {new Date(r.publish_at!).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          ) : null}
+        </>
+      </StudioRailPortal>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Planner</h1>

@@ -179,3 +179,77 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
     </div>
   );
 }
+
+/**
+ * The Commerce rail: money you are owed, and orders that need a human.
+ *
+ * "Available" here means orders marked completed. Anything still pending is
+ * shown separately rather than folded into the balance, because money that has
+ * not cleared is not money you can spend.
+ */
+export function CommerceRail({ orders, listings }: { orders: Order[]; listings: Listing[] }) {
+  const m = useMemo(() => {
+    const cleared = new Map<string, number>();
+    let pendingTotal = 0;
+    let pendingCount = 0;
+    for (const o of orders) {
+      if (o.status === "completed") {
+        cleared.set(o.currency, (cleared.get(o.currency) ?? 0) + Number(o.amount || 0));
+      } else if (o.status === "pending") {
+        pendingTotal += Number(o.amount || 0);
+        pendingCount += 1;
+      }
+    }
+    return {
+      cleared: [...cleared.entries()].sort((a, b) => b[1] - a[1]),
+      pendingCount,
+      pendingTotal,
+      offers: listings.filter((l) => (l.pending_offers || 0) > 0),
+    };
+  }, [orders, listings]);
+
+  const money = (n: number, cur: string) =>
+    cur + " " + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  return (
+    <>
+      <Panel title="Balance">
+        {m.cleared.length === 0 ? (
+          <p className="text-[13px] text-ink/45">Nothing cleared yet. Completed orders add up here.</p>
+        ) : (
+          m.cleared.map(([cur, total]) => (
+            <div key={cur} className="mb-1 last:mb-0">
+              <p className="text-[11.5px] text-ink/45">Cleared, {cur}</p>
+              <p className="font-display text-[24px] leading-tight text-porcelain">{money(total, cur)}</p>
+            </div>
+          ))
+        )}
+        {m.pendingCount > 0 ? (
+          <p className="mt-2 border-t border-ink/8 pt-2 text-[12.5px] text-ink/55">
+            <span className="font-semibold text-ink">{m.pendingCount}</span>{" "}
+            {m.pendingCount === 1 ? "order" : "orders"} still pending
+          </p>
+        ) : null}
+      </Panel>
+
+      {m.offers.length > 0 ? (
+        <Panel title="Offers waiting">
+          <div className="flex flex-col gap-2">
+            {m.offers.slice(0, 4).map((l) => (
+              <div key={l.id} className="flex items-center gap-2.5">
+                {l.images?.[0] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={l.images[0]} alt="" className="h-8 w-8 shrink-0 rounded-lg object-cover" />
+                ) : (
+                  <span className="h-8 w-8 shrink-0 rounded-lg bg-surface" />
+                )}
+                <span className="min-w-0 flex-1 truncate text-[13px] text-ink">{l.title}</span>
+                <span className="shrink-0 text-[12px] font-semibold text-pearl-muted">{l.pending_offers}</span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      ) : null}
+    </>
+  );
+}
