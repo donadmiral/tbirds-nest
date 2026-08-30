@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, Heart, MessageCircle, Pin, Repeat2, ShieldCheck } from "lucide-react";
+import { Bookmark, FileText, Heart, MessageCircle, Pin, Repeat2, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
@@ -96,6 +96,7 @@ export function PostCard({ post }: { post: FeedRow }) {
   const [heart, setHeart] = useState(false);
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const text = post.content ?? post.body ?? "";
   const rbw = post as unknown as { reposted_by_name?: string | null };
   const whyReason = rbw.reposted_by_name ? rbw.reposted_by_name + " reposted this"
@@ -105,6 +106,9 @@ export function PostCard({ post }: { post: FeedRow }) {
   const rb = post as unknown as { reposted_by_id?: string | null; reposted_by_name?: string | null; reposted_by_username?: string | null; has_poll?: boolean; edited_at?: string | null };
   const media = post.media ?? [];
   const products = post.products ?? [];
+  const readMinutes = (post as unknown as { read_minutes?: number | null }).read_minutes ?? null;
+  // Long enough that it would crowd out the next post in the feed.
+  const isLong = text.length > 600 || text.split("\n").length > 12;
   const like = useToggle(post.viewer_liked, post.likes_count, toggleLike, post.post_id);
   const repost = useToggle(post.viewer_reposted, post.reposts_count, toggleRepost, post.post_id);
   const mark = useToggle(post.viewer_bookmarked, post.bookmarks_count, toggleBookmark, post.post_id);
@@ -123,7 +127,7 @@ export function PostCard({ post }: { post: FeedRow }) {
   }
 
   return (
-    <article className="relative border-b border-ink/10 px-4 py-5 transition-colors duration-[140ms] hover:bg-surface/60">
+    <article className="relative mb-4 rounded-2xl border border-ink/10 bg-white px-5 py-4 transition-colors duration-[140ms] hover:border-ink/20">
       {(post as unknown as { is_pinned?: boolean }).is_pinned ? (
         <span className="mb-1.5 flex items-center gap-1.5 pl-10 text-[12px] font-semibold text-ink/45"><Pin size={13} /> Pinned</span>
       ) : null}
@@ -169,16 +173,35 @@ export function PostCard({ post }: { post: FeedRow }) {
           </div>
 
           {post.article_title ? (
-            <h3 className="mt-1.5 font-display text-xl text-porcelain">{post.article_title}</h3>
+            <Link href={postHref} className="mt-2 block">
+              <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-pearl-muted">
+                <FileText size={12} /> Article
+                {readMinutes ? <span className="text-ink/35">· {readMinutes} min read</span> : null}
+              </span>
+              <h3 className="mt-1 font-display text-[22px] leading-snug text-porcelain hover:underline">{post.article_title}</h3>
+            </Link>
           ) : null}
 
           {text ? (
-            <p onClick={() => router.push(postHref)}
-              onDoubleClick={doubleLike}
-              className="mt-1.5 cursor-pointer whitespace-pre-wrap text-[16px] leading-relaxed text-ink/90"
-            >
-              <RichText text={text} />
-            </p>
+            <>
+              <p onClick={() => router.push(postHref)}
+                onDoubleClick={doubleLike}
+                className={
+                  "mt-1.5 cursor-pointer whitespace-pre-wrap text-[16px] leading-relaxed text-ink/90 " +
+                  (isLong && !expanded ? "line-clamp-[10]" : "")
+                }
+              >
+                <RichText text={text} />
+              </p>
+              {isLong ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+                  className="mt-1 text-[13.5px] font-semibold text-pearl transition-opacity duration-[140ms] hover:opacity-70"
+                >
+                  {expanded ? "Show less" : "Read more"}
+                </button>
+              ) : null}
+            </>
           ) : null}
 
           {media.length > 0 ? (
