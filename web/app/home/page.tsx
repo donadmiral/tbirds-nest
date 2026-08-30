@@ -199,23 +199,33 @@ export default function HomeFeed() {
 
       {/* Mode tabs: the active indicator is a pearl set in a ring, echoing the
           mark itself, instead of a plain underline. */}
-      <div className="sticky top-0 z-10 -mx-1 flex border-b border-ink/10 bg-white/90 px-1 backdrop-blur">
-        {MODES.map((m) => {
-          const active = mode === m.key;
-          return (
-            <button key={m.key}
-              onClick={() => setMode(m.key)}
-              className="flex flex-1 flex-col items-center gap-2 py-3.5"
-            >
-              <span className={"text-[15px] transition-colors duration-[180ms] " + (active ? "font-semibold text-ink" : "text-ink/50 hover:text-ink/75")}>
+      {/* The tab row is its own card and sticks under the top bar, so switching
+          feeds never scrolls out of reach. The gold underline marks the active
+          feed; the dot-in-a-ring read as decoration at this size. */}
+      <div className="sticky top-[72px] z-10 mb-4 rounded-2xl border border-ink/10 bg-white/95 px-2 backdrop-blur">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {MODES.map((m) => {
+            const active = mode === m.key;
+            return (
+              <button key={m.key}
+                onClick={() => setMode(m.key)}
+                className={
+                  "relative shrink-0 px-3.5 py-3 text-[14.5px] transition-colors duration-[180ms] " +
+                  (active ? "font-semibold text-ink" : "text-ink/50 hover:text-ink/80")
+                }
+              >
                 {m.label}
-              </span>
-              <span className={"flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-all duration-[180ms] " + (active ? "border-pearl/60 opacity-100" : "border-transparent opacity-0")}>
-                <span className={"h-[6px] w-[6px] rounded-full bg-pearl transition-transform duration-[180ms] " + (active ? "scale-100" : "scale-0")} />
-              </span>
-            </button>
-          );
-        })}
+                <span
+                  className={
+                    "absolute inset-x-3 -bottom-px h-[2px] rounded-full bg-pearl transition-opacity duration-[180ms] " +
+                    (active ? "opacity-100" : "opacity-0")
+                  }
+                  aria-hidden
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {mode === "trending" ? <div className="pt-3"><StoryRings mode="global" /></div> : null}

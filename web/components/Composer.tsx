@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { BarChart3 } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
-import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag } from "lucide-react";
+import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
 
@@ -252,14 +252,31 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/55 hover:text-ink");
 
   if (!open) {
+    // The collapsed state is a card, not a text field: the prompt line opens
+    // the composer, and the row under it opens it already set to a kind of
+    // post, so choosing "Poll" is one click rather than two.
+    const start = (kind?: "media" | "article" | "poll" | "event") => () => {
+      setOpen(true);
+      if (kind === "article") setArticleTitle(" ");
+      if (kind === "poll") setPollOn(true);
+    };
+    const action = "flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink";
     return (
-      <button onClick={() => setOpen(true)} className="mb-3 flex w-full items-center gap-3 rounded-2xl border border-ink/10 px-5 py-4 text-left shadow-sm transition-colors duration-[140ms] hover:bg-surface">
-        {myAvatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={myAvatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
-        ) : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
-        <span className="text-[16px] text-ink/40">Share something with your circles</span>
-      </button>
+      <div className="mb-4 rounded-2xl border border-ink/10 bg-white px-5 pb-3 pt-4">
+        <button onClick={start()} className="flex w-full items-center gap-3 text-left">
+          {myAvatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={myAvatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+          ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
+          <span className="text-[16px] text-ink/40">What&apos;s on your mind?</span>
+        </button>
+        <div className="mt-3 flex items-center gap-1 border-t border-ink/8 pt-2.5">
+          <button onClick={start("media")} className={action}><ImageIcon size={16} className="text-pearl-muted" /> Photo</button>
+          <button onClick={start("article")} className={action}><FileText size={16} className="text-pearl-muted" /> Article</button>
+          <button onClick={start("poll")} className={action}><BarChart3 size={16} className="text-pearl-muted" /> Poll</button>
+          <button onClick={start()} className="ml-auto rounded-full bg-pearl px-5 py-1.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Post</button>
+        </div>
+      </div>
     );
   }
 
