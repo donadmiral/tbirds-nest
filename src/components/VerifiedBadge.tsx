@@ -21,7 +21,9 @@ const METALS: Record<string, { grad: string[]; check: string }> = {
 };
 
 const SEAL = 'M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z';
-const CHECK = 'M10.54 16.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z';
+// Centred on the 24 box and drawn as a stroke, so it stays crisp at 13px
+// instead of collapsing into a blob the way a filled check does.
+const CHECK = 'M8.2 12.3l2.6 2.6 5-5.4';
 
 const tierCache = new Map<string, Tier | false>();
 const inFlight = new Map<string, Promise<Tier | false>>();
@@ -54,7 +56,12 @@ export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier
   const key = eff as string;
   const m = METALS[key] || METALS.business;
   // Rendered a quarter larger than requested so the seal reads clearly at a glance.
-  const px = Math.max(Math.round(size * 1.4), 20);
+  // Render at the size asked for. The old rule multiplied by 1.4 with a 20px
+  // floor, so a badge beside 13px text came out at 21px and sat like a sticker
+  // rather than punctuation. Instagram and X keep theirs near the cap height of
+  // the text; so do we.
+  const px = Math.round(size);
+  const detailed = px >= 16;
   return (
     <Svg width={px} height={px} viewBox="0 0 24 24" style={{ marginLeft: 2 }}>
       <Defs>
@@ -65,9 +72,23 @@ export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier
           <Stop offset="1" stopColor={m.grad[3]} />
         </SvgGradient>
       </Defs>
-      <Path d={SEAL} fill={'url(#vb-' + key + ')'} stroke="rgba(255,255,255,0.5)" strokeWidth={0.4} />
-      <Ellipse cx="9" cy="7" rx="3.4" ry="1.7" fill="rgba(255,255,255,0.38)" transform="rotate(-20 9 7)" />
-      <Path d={CHECK} fill={m.check} />
+      <Path
+        d={SEAL}
+        fill={'url(#vb-' + key + ')'}
+        stroke={detailed ? 'rgba(255,255,255,0.5)' : undefined}
+        strokeWidth={detailed ? 0.4 : undefined}
+      />
+      {detailed ? (
+        <Ellipse cx="9" cy="7" rx="3.4" ry="1.7" fill="rgba(255,255,255,0.38)" transform="rotate(-20 9 7)" />
+      ) : null}
+      <Path
+        d={CHECK}
+        fill="none"
+        stroke={m.check}
+        strokeWidth={px >= 24 ? 2 : 2.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }
