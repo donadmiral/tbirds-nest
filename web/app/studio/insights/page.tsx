@@ -1,5 +1,8 @@
 "use client";
 
+import { StudioRailPortal } from "@/components/StudioRailPortal";
+import { Panel } from "@/components/ui";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight, BarChart3 } from "lucide-react";
@@ -47,6 +50,72 @@ export default function InsightsPage() {
 
   return (
     <div className="max-w-[960px]">
+      {ins ? (
+        <StudioRailPortal>
+          <>
+            {/* studio_insights already returns these funnels and the page never
+                showed them. They answer "did any of this turn into money or a
+                hire", which is the question the numbers above only hint at. */}
+            {ins.funnel.commerce.chats + ins.funnel.commerce.offers + ins.funnel.commerce.payments > 0 ? (
+              <Panel title="Selling" action="Commerce" actionHref="/studio/commerce">
+                <div className="flex flex-col gap-1.5">
+                  {[
+                    ["Market chats", ins.funnel.commerce.chats],
+                    ["Offers made", ins.funnel.commerce.offers],
+                    ["Payments", ins.funnel.commerce.payments],
+                  ].map(([label, n]) => (
+                    <div key={String(label)} className="flex items-baseline justify-between text-[13px]">
+                      <span className="text-ink/65">{label}</span>
+                      <span className="tabular-nums font-semibold text-ink">{Number(n).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            ) : null}
+
+            {ins.funnel.recruiting.applications + ins.funnel.recruiting.interviews + ins.funnel.recruiting.hired > 0 ? (
+              <Panel title="Hiring" action="Recruiter" actionHref="/studio/recruiter">
+                <div className="flex flex-col gap-1.5">
+                  {[
+                    ["Applications", ins.funnel.recruiting.applications],
+                    ["Interviews", ins.funnel.recruiting.interviews],
+                    ["Hired", ins.funnel.recruiting.hired],
+                  ].map(([label, n]) => (
+                    <div key={String(label)} className="flex items-baseline justify-between text-[13px]">
+                      <span className="text-ink/65">{label}</span>
+                      <span className="tabular-nums font-semibold text-ink">{Number(n).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            ) : null}
+
+            {ins.top_posts.length > 0 ? (
+              <Panel title="Best performing" action="Content" actionHref="/studio/content">
+                <div className="flex flex-col gap-2.5">
+                  {ins.top_posts.slice(0, 3).map((t, i) => (
+                    <div key={t.post_id} className="flex gap-2.5">
+                      <span className="w-3 shrink-0 text-center font-display text-[13px] text-ink/30">{i + 1}</span>
+                      {t.thumb ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.thumb} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                      ) : null}
+                      <span className="min-w-0 flex-1">
+                        <span className="line-clamp-2 block text-[12.5px] leading-snug text-ink">{t.content || "Media post"}</span>
+                        <span className="mt-0.5 block text-[11px] text-ink/40">
+                          {(Number(t.likes || 0) + Number(t.comments || 0) + Number(t.reposts || 0)).toLocaleString()} engagements
+                          {t.views ? " \u00b7 " + Number(t.views).toLocaleString() + " views" : ""}
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            ) : null}
+          </>
+        </StudioRailPortal>
+      ) : null}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Insights</h1>

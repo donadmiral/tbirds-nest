@@ -1,5 +1,8 @@
 "use client";
 
+import { StudioRailPortal } from "@/components/StudioRailPortal";
+import { Panel } from "@/components/ui";
+
 import { AudienceBreakdown } from "@/components/AudienceBreakdown";
 
 import { Metric } from "@/components/Charts";
@@ -89,6 +92,48 @@ export default function AudiencePage() {
           ))}
         </div>
       ) : null}
+      <StudioRailPortal>
+        <>
+          {leads.length > 0 ? (
+            <Panel title="Leads" action="Open" actionHref="/studio/audience">
+              <div className="flex flex-col gap-2">
+                {Object.entries(
+                  leads.reduce<Record<string, number>>((m, l) => { m[l.status || "new"] = (m[l.status || "new"] ?? 0) + 1; return m; }, {}),
+                ).map(([status, n]) => (
+                  <div key={status} className="flex items-baseline justify-between text-[13px]">
+                    <span className="capitalize text-ink/65">{status}</span>
+                    <span className="tabular-nums font-semibold text-ink">{n}</span>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          ) : null}
+
+          {/* Followers who have paid are the ones worth a message, so they get
+              named rather than counted. */}
+          {people.some(p => p.paid > 0) ? (
+            <Panel title="Your customers">
+              <div className="flex flex-col gap-2.5">
+                {people.filter(p => p.paid > 0).slice(0, 4).map(p => (
+                  <div key={p.id} className="flex items-center gap-2.5">
+                    {p.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.avatar_url} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                    ) : (
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy text-[11px] font-semibold text-white">{p.name.charAt(0)}</span>
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] text-ink">{p.name}</span>
+                      <span className="block text-[11px] text-ink/45">{p.paid} {p.paid === 1 ? "payment" : "payments"}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          ) : null}
+        </>
+      </StudioRailPortal>
+
       {sum ? <AudienceBreakdown sum={sum} people={people} /> : null}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
