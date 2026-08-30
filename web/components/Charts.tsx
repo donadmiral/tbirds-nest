@@ -66,13 +66,23 @@ export function TrendChart({
   series,
   labels,
   height = 180,
+  emptyLabel = "No data for this period yet",
 }: {
   series: { name: string; points: number[]; tone?: "pearl" | "ink" }[];
   labels?: string[];
   height?: number;
+  emptyLabel?: string;
 }) {
   const W = 640;
   const H = height;
+  const hasData = series.some((s) => s.points.length > 1 && s.points.some((p) => p !== 0));
+  if (!hasData) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-xl bg-surface/60" style={{ height: H }}>
+        <p className="text-[13px] text-ink/40">{emptyLabel}</p>
+      </div>
+    );
+  }
   const gridY = [0, 0.25, 0.5, 0.75, 1];
   return (
     <div>

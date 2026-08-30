@@ -83,6 +83,18 @@ export default function StudioHomePage() {
     <div>
       {/* The greeting lives in the Studio header now, so the page opens on the
           work rather than repeating the name. */}
+      {!loading && series.length < 2 ? (
+        <div className="mb-5 rounded-2xl border border-pearl/40 bg-pearl/8 px-4 py-3.5">
+          <p className="text-[13.5px] font-semibold text-ink">Charts need the nightly rollup</p>
+          <p className="mt-1 text-[13px] leading-6 text-ink/60">
+            Totals below are live, but the trend lines read from a nightly job that has not recorded a day for this
+            business yet. It runs at 22:20 and needs two days before a line can be drawn. To fill history from posts
+            that already exist, run <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[12px]">select studio_rollup(95);</code> once
+            in the SQL editor while signed in as this business.
+          </p>
+        </div>
+      ) : null}
+
       <section>
         <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Needs attention</h2>
         {todos.length === 0 ? (
