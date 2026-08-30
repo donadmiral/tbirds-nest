@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Crown,
   Home,
   Compass,
   Briefcase,
@@ -105,23 +104,6 @@ export function Nav({ name, username, business = false }: { name: string; userna
         })}
       </nav>
 
-      {/* The membership card is the one piece of colour in the rail, so it
-          carries the upgrade path without another accent competing with it. */}
-      <Link
-        href="/settings"
-        className="mt-5 block rounded-2xl bg-porcelain px-4 py-4 transition-opacity duration-[140ms] hover:opacity-95"
-      >
-        <span className="flex items-center gap-2">
-          <Crown size={15} className="text-pearl" />
-          <span className="text-[14px] font-semibold text-white">Platinum Membership</span>
-        </span>
-        <span className="mt-1.5 block text-[12.5px] leading-5 text-white/60">
-          Unlock exclusive tools, insights and opportunities.
-        </span>
-        <span className="mt-3 block rounded-full bg-pearl px-4 py-2 text-center text-[12.5px] font-bold text-ink">
-          Upgrade now
-        </span>
-      </Link>
       <div className="mt-4 flex items-center gap-3 border-t border-ink/10 px-3 pt-4">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">
           {name ? name.charAt(0).toUpperCase() : "?"}
