@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "154228381113",
+    "project_id": "tbirds-nest",
+    "storage_bucket": "tbirds-nest.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:154228381113:android:dbf0add866e01ebb321268",
+        "android_client_info": {
+          "package_name": "app.platinumcircles.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQqRjC4bmiC8qmX6vtoVzRintWsGnha5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
