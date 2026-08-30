@@ -29,6 +29,7 @@ export type AutoReplies = { welcome_enabled: boolean; welcome_text: string | nul
 // listed that would land on a blank page.
 export const ROOMS = [
   { key: "home", href: "/studio", label: "Overview", ready: true },
+  { key: "content", href: "/studio/content", label: "Content", ready: true },
   { key: "insights", href: "/studio/insights", label: "Insights", ready: true },
   { key: "planner", href: "/studio/planner", label: "Planner", ready: true },
   { key: "inbox", href: "/studio/inbox", label: "Inbox", ready: true },

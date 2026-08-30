@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Briefcase, Home, Inbox, KeyRound, LayoutDashboard, Megaphone, Settings, ShoppingBag, Star, Users, CalendarClock } from "lucide-react";
+import { BarChart3, Briefcase, FileText, Home, Inbox, KeyRound, LayoutDashboard, Megaphone, Settings, ShoppingBag, Star, Users, CalendarClock } from "lucide-react";
 import { ExternalLink } from "lucide-react";
 import { ROOMS, bindMember, studioMe, type StudioMe } from "@/lib/studio";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -14,7 +14,7 @@ const StudioCtx = createContext<{ me: StudioMe | null; refresh: () => Promise<vo
 export const useStudio = () => useContext(StudioCtx);
 
 const ICONS: Record<string, any> = {
-  home: Home, inbox: Inbox, planner: CalendarClock, commerce: ShoppingBag, recruiter: Briefcase,
+  home: Home, content: FileText, inbox: Inbox, planner: CalendarClock, commerce: ShoppingBag, recruiter: Briefcase,
   ads: Megaphone, insights: BarChart3, audience: Users, reviews: Star, settings: Settings,
 };
 
