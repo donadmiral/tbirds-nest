@@ -1,0 +1,61 @@
+# The gate that would have caught the payments error which broke every Vercel
+# build of the operations app while nobody knew.
+#
+# Three apps live in this repository and each has its own dependencies, so each
+# gets its own job. The two Next.js apps block the build because Vercel already
+# compiles them and they are known to be clean. The phone app runs advisory
+# until its backlog is cleared, so a red mark never stops work that used to ship
+# fine; flip continue-on-error to false the day it comes back green.
+
+name: Type check
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  admin-web:
+    name: Operations app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: admin-web/package-lock.json
+      - run: npm ci || npm install
+        working-directory: admin-web
+      - run: npx tsc --noEmit
+        working-directory: admin-web
+
+  web:
+    name: Web app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci || npm install
+        working-directory: web
+      - run: npx tsc --noEmit
+        working-directory: web
+
+  phone:
+    name: Phone app (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci || npm install
+      - run: npx tsc --noEmit
