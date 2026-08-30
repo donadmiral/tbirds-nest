@@ -242,3 +242,14 @@ body {
   .pc-work { animation: none; }
   .pc-mark:hover { transform: none; }
 }
+
+
+/* Share and Present: the browser's PDF is the report. One slide per page. */
+.pc-collect-btn { opacity: 0; transition: opacity 140ms; }
+.pc-collect:hover .pc-collect-btn, .pc-collect-btn:focus { opacity: 1; }
+@media print {
+  .pc-no-print, aside, header { display: none !important; }
+  body { background: #fff !important; }
+  .pc-slide { page-break-after: always; break-after: page; border: none !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; }
+  .pc-deck { display: block !important; }
+}

@@ -9,6 +9,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { fmt } from '@/lib/fmt';
 import { Spark } from '@/components/Viz';
+import { csv, downloadText, slug, stamp, trayAdd } from '@/lib/share';
 
 export type Tone = 'ok' | 'bad' | 'warn' | 'info' | 'neutral' | 'accent';
 
@@ -74,11 +75,16 @@ export type StatCard = {
 
 const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 
-export function StatStrip({ cards }: { cards: StatCard[] }) {
+export function StatStrip({ cards, page }: { cards: StatCard[]; page?: string }) {
+  const label = page || deskName();
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-5">
       {cards.map(c => (
-        <div key={c.label} style={{ ...PANEL, padding: '14px 15px 12px' }}>
+        <div key={c.label} className="pc-collect" style={{ ...PANEL, padding: '14px 15px 12px', position: 'relative' }}>
+          <CollectButton title={c.label} onAdd={() => trayAdd({
+            kind: 'stat', title: c.label, page: label, path: here(),
+            stat: { value: c.value, delta: c.delta, note: c.note },
+          })} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ flex: 1, minWidth: 0, fontSize: 11.3, fontWeight: 600, color: 'rgba(var(--on),0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.label}</span>
             {c.icon ? (
@@ -96,6 +102,36 @@ export function StatStrip({ cards }: { cards: StatCard[] }) {
         </div>
       ))}
     </div>
+  );
+}
+
+/** The route the admin is on, used to cite the source of a collected item. */
+function here(): string {
+  return typeof window === 'undefined' ? '' : window.location.pathname;
+}
+
+/** Desk label derived from the route when a page does not pass its own. */
+function deskName(): string {
+  const p = here().split('/')[1] || 'operations';
+  return p.charAt(0).toUpperCase() + p.slice(1);
+}
+
+/** The small plus that drops a number or a table into the presentation tray. */
+function CollectButton({ title, onAdd }: { title: string; onAdd: () => void }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button type="button" title={'Add ' + title + ' to the presentation'} className="pc-collect-btn"
+      onClick={() => { onAdd(); setDone(true); setTimeout(() => setDone(false), 1300); }}
+      style={{
+        position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: 7,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+        border: '1px solid rgba(var(--on),0.12)', background: 'var(--panel)',
+        color: done ? 'var(--ok)' : 'rgba(var(--on),0.42)', zIndex: 2,
+      }}>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" strokeWidth="2.6" strokeLinecap="round" style={{ stroke: 'currentColor' }}>
+        <path d={done ? 'M5 13l4 4L19 7' : 'M12 5v14M5 12h14'} />
+      </svg>
+    </button>
   );
 }
 
@@ -146,7 +182,7 @@ function CellView({ c }: { c: Cell }) {
 }
 
 export function Desk({
-  tabs, columns, grid, rows, searchHint, filters = [], pageSize = 10, minWidth = 720, detailTitle = 'Details', actions = [],
+  tabs, columns, grid, rows, searchHint, filters = [], pageSize = 10, minWidth = 720, detailTitle = 'Details', actions = [], pageLabel,
 }: {
   tabs: { key: string; label: string; count: number }[];
   columns: { label: string; align?: 'left' | 'right' }[];
@@ -158,6 +194,8 @@ export function Desk({
   minWidth?: number;
   detailTitle?: string;
   actions?: DeskAction[];
+  /** desk label carried onto anything shared from this table */
+  pageLabel?: string;
 }) {
   const [tab, setTab] = useState(tabs[0]?.key ?? 'all');
   const [q, setQ] = useState('');
@@ -214,6 +252,9 @@ export function Desk({
             </select>
           ))}
           <span className="pc-num" style={{ marginLeft: 'auto', fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{filtered.length} of {rows.length}</span>
+          <TableShare page={pageLabel || deskName()} columns={columns.map(c => c.label)} filtered={filtered} all={rows}
+            state={[tab !== 'all' ? 'Tab: ' + (tabs.find(t => t.key === tab)?.label || tab) : '', q.trim() ? 'Search: ' + q.trim() : '',
+              ...filters.map(f => (facet[f.key] && facet[f.key] !== 'All' ? f.label + ': ' + facet[f.key] : ''))].filter(Boolean)} />
         </div>
 
         <div style={{ overflowX: 'auto' }}>
@@ -349,3 +390,89 @@ export function Desk({
 }
 
 export { fmt };
+
+/**
+ * Table sharing. Whatever the admin is looking at right now - this tab, this
+ * search, these facets - is exactly what leaves the building, and the filter
+ * state travels with it so the file can be trusted later.
+ */
+function TableShare({ page, columns, filtered, all, state }: {
+  page: string;
+  columns: string[];
+  filtered: DeskRow[];
+  all: DeskRow[];
+  state: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [flash, setFlash] = useState('');
+
+  const body = (rs: DeskRow[]) => rs.map(r => r.cells.map(c => {
+    const v = String((c as { v?: string }).v ?? '');
+    const sub = (c as { sub?: string }).sub;
+    return sub ? v + ' (' + sub + ')' : v;
+  }));
+
+  function note(msg: string) {
+    setFlash(msg);
+    setOpen(false);
+    setTimeout(() => setFlash(''), 1500);
+  }
+
+  function exportRows(rs: DeskRow[], which: string) {
+    downloadText(slug(page + '-' + which) + '-' + stamp() + '.csv', 'text/csv', csv(columns, body(rs)));
+    note(rs.length + ' rows exported');
+  }
+
+  function exportJson(rs: DeskRow[]) {
+    downloadText(slug(page) + '-' + stamp() + '.json', 'application/json', JSON.stringify({
+      page, filters: state, exportedAt: new Date().toISOString(),
+      columns, rows: body(rs),
+    }, null, 2));
+    note('JSON exported');
+  }
+
+  function collect() {
+    trayAdd({
+      kind: 'table', title: page + ' table', subtitle: state.join(' \u00b7 '), page, path: here(),
+      table: { columns, rows: body(filtered).slice(0, 60), total: filtered.length, filters: state.length ? state : ['No filters, the full desk'] },
+    });
+    note('Added to presentation');
+  }
+
+  const row: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
+    padding: '7.5px 10px', borderRadius: 7, border: 'none', background: 'transparent',
+    cursor: 'pointer', fontSize: 12, fontWeight: 500, color: 'var(--txt)',
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button type="button" onClick={() => setOpen(o => !o)} title="Share or export this table" className="pc-icon-btn"
+        style={{ width: 27, height: 27, borderRadius: 7, border: '1px solid rgba(var(--on),0.10)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.45)' }}>
+          <circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" />
+        </svg>
+      </button>
+
+      {flash ? (
+        <span style={{ position: 'absolute', top: 33, right: 0, whiteSpace: 'nowrap', padding: '5px 9px', borderRadius: 7, fontSize: 11, fontWeight: 600, color: 'var(--txt)', background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', boxShadow: '0 10px 24px rgba(0,0,0,0.16)', zIndex: 40 }}>{flash}</span>
+      ) : null}
+
+      {open ? (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 30 }} />
+          <div style={{ position: 'absolute', top: 33, right: 0, zIndex: 40, width: 246, padding: 5, borderRadius: 11, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.11)', boxShadow: '0 16px 42px rgba(0,0,0,0.22)' }}>
+            <div style={{ padding: '6px 10px 7px', fontSize: 9.6, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(var(--on),0.36)' }}>
+              {state.length ? state.join(' \u00b7 ').toUpperCase() : 'NO FILTERS APPLIED'}
+            </div>
+            <button type="button" className="pc-nav" style={row} onClick={() => exportRows(filtered, 'filtered')}>Export these {filtered.length} rows (CSV)</button>
+            <button type="button" className="pc-nav" style={row} onClick={() => exportRows(all, 'all')}>Export all {all.length} rows (CSV)</button>
+            <button type="button" className="pc-nav" style={row} onClick={() => exportJson(filtered)}>Export these rows (JSON)</button>
+            <div style={{ height: 1, margin: '5px 8px', background: 'rgba(var(--on),0.08)' }} />
+            <button type="button" className="pc-nav" style={row} onClick={collect}>Add this table to the presentation</button>
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}

@@ -1,5 +1,5 @@
 /**
- * Operations shell v7 - the design system shell.
+ * Operations shell v8 - the design system shell.
  * 236px translucent rail with grouped desks and live count chips, 58px topbar
  * with breadcrumb, search, appearance control, production pill, alert bell and
  * identity chip. Every number here is a real head-count query, never decoration.
@@ -13,6 +13,8 @@ import ThemeControls from '@/components/ThemeControls';
 import SideRail from '@/components/SideRail';
 import CommandPalette from '@/components/CommandPalette';
 import Workspace from '@/components/Workspace';
+import ShareMenu from '@/components/ShareMenu';
+import PresentTray from '@/components/PresentTray';
 
 const GROUPS: { label: string; items: { href: string; label: string; icon: string; key: string }[] }[] = [
   { label: 'Overview', items: [
@@ -101,6 +103,8 @@ export default async function Shell({ admin, active, title, crumb, sub, children
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 9 }}>
 
+            <ShareMenu path={active} label={crumb ?? (typeof title === 'string' ? title : '')} />
+
             <ThemeControls />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4.5px 9px', borderRadius: 999, background: 'rgba(var(--ok-rgb),0.09)', border: '1px solid rgba(var(--ok-rgb),0.22)' }}>
@@ -135,6 +139,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
           </div>
           {children}
         </Workspace>
+        <PresentTray />
       </main>
     </div>
   );
