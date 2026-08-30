@@ -170,3 +170,25 @@ export function PillTabs({
     </div>
   );
 }
+
+/**
+ * A skeleton row, for lists that are loading.
+ *
+ * Takes the shape of the thing it stands in for, so the layout does not shift
+ * when real content arrives.
+ */
+export function SkeletonList({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="animate-pulse" aria-busy="true" aria-label="Loading">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="mb-3 flex items-center gap-3 rounded-2xl border border-ink/10 bg-white px-4 py-3.5">
+          <div className="h-10 w-10 shrink-0 rounded-full bg-surface" />
+          <div className="min-w-0 flex-1">
+            <div className="h-[13px] w-[45%] rounded bg-surface" />
+            <div className="mt-1.5 h-[11px] w-[70%] rounded bg-surface/70" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
