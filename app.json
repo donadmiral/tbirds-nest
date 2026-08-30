@@ -53,7 +53,10 @@
         "android.permission.FOREGROUND_SERVICE_PHONE_CALL",
         "android.permission.MANAGE_OWN_CALLS",
         "android.permission.READ_PHONE_NUMBERS",
-        "android.permission.FOREGROUND_SERVICE_MICROPHONE"
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.USE_FULL_SCREEN_INTENT",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.READ_PHONE_STATE"
       ]
     },
     "plugins": [
@@ -62,7 +65,10 @@
         {
           "icon": "./assets/notification-icon.png",
           "color": "#0B1E3D",
-          "sounds": ["./assets/callsounds/incallmanager_ringback.mp3", "./assets/callsounds/incallmanager_ringtone.mp3"]
+          "sounds": [
+            "./assets/callsounds/incallmanager_ringback.mp3",
+            "./assets/callsounds/incallmanager_ringtone.mp3"
+          ]
         }
       ],
       "@config-plugins/react-native-callkeep",
@@ -91,7 +97,6 @@
       ],
       "expo-font",
       "expo-asset"
-      
     ],
     "extra": {
       "eas": {

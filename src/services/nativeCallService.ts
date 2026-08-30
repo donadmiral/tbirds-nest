@@ -106,6 +106,42 @@ export const nativeCallService = {
     }
   },
 
+  /**
+   * iOS: listen for arriving VoIP pushes and report each one to CallKit.
+   *
+   * This is not optional. Since iOS 13 every PushKit push MUST result in an
+   * incoming call reported to CallKit, in the same run loop. Miss one and iOS
+   * terminates the app; miss several and Apple stops delivering VoIP pushes to
+   * the app altogether. So the report happens first, before any network call
+   * or state update, and the app catches up afterwards.
+   *
+   * didLoadWithEvents is what makes a killed app ring: pushes that arrived
+   * before the JavaScript engine existed are replayed here on boot.
+   */
+  listenForVoipPushes(onReported?: (callId: string) => void): void {
+    if (!loadNatives() || Platform.OS !== 'ios' || !VoipPushNotification) return;
+    const report = (payload: any) => {
+      const callId = String(payload?.callId ?? payload?.callid ?? '').toLowerCase();
+      if (!callId) return;
+      this.displayIncomingCall(
+        callId,
+        String(payload?.callerName || 'Platinum Circles'),
+        !!payload?.isVideo,
+      );
+      try { onReported?.(callId); } catch {}
+    };
+    try {
+      VoipPushNotification.addEventListener('notification', (payload: any) => report(payload));
+      VoipPushNotification.addEventListener('didLoadWithEvents', (events: any[]) => {
+        (events || []).forEach((e: any) => {
+          if (e?.name === VoipPushNotification.RNVoipPushRemoteNotificationReceivedEvent) report(e?.data);
+        });
+      });
+    } catch (e) {
+      console.log('[NativeCalls] voip push listen failed:', (e as any)?.message);
+    }
+  },
+
   /** Show the OS incoming-call screen (rings natively, works locked). */
   displayIncomingCall(callUuid: string, callerName: string, hasVideo: boolean): void {
     if (!loadNatives()) return;

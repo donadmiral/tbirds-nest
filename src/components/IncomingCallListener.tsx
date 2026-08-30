@@ -73,6 +73,12 @@ export default function IncomingCallListener() {
         } catch {}
       },
     });
+
+    // A VoIP push arriving is what rings a locked or killed iPhone. Reporting
+    // it to CallKit is mandatory, so this is registered right beside setup.
+    nativeCallService.listenForVoipPushes((callId) => {
+      handledCallIdsRef.current.add(callId);
+    });
   }, [userId, nav, startCall]);
   const activeCallIdRef = useRef<string | null>(null);
   const [banner, setBanner] = useState<{ callId: string; navParams: any; name: string; avatar: string | null; isGroup: boolean; isVideo: boolean } | null>(null);
