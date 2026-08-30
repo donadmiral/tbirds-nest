@@ -4,12 +4,52 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Megaphone, Pause, Play, Square, Plus, ArrowLeft } from "lucide-react";
 import { myPromos, setPromoStatus, type Promo } from "@/lib/ads";
+import { createClient } from "@/lib/supabase/client";
+import { TrendChart } from "@/components/Charts";
+import { EmptyState, Panel } from "@/components/ui";
+
+type Day = { day: string; impressions: number; clicks: number };
 
 export default function AdsPage() {
   const [promos, setPromos] = useState<Promo[] | null>(null);
+  const [series, setSeries] = useState<Day[]>([]);
 
   const load = useCallback(() => { myPromos().then(setPromos); }, []);
   useEffect(() => { load(); }, [load]);
+
+  // The promo rows carry lifetime totals only, so the shape over time comes
+  // from the raw events. RLS already limits these to promos you advertise, so
+  // no extra filtering is needed here.
+  useEffect(() => {
+    (async () => {
+      const supabase = createClient();
+      const since = new Date(Date.now() - 30 * 86400000);
+      const { data } = await supabase
+        .from("ad_events")
+        .select("kind, created_at")
+        .gte("created_at", since.toISOString())
+        .order("created_at");
+      const byDay = new Map<string, Day>();
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+        byDay.set(d, { day: d, impressions: 0, clicks: 0 });
+      }
+      for (const e of ((data ?? []) as { kind: string; created_at: string }[])) {
+        const key = e.created_at.slice(0, 10);
+        const row = byDay.get(key);
+        if (!row) continue;
+        if (e.kind === "click") row.clicks++;
+        else row.impressions++;
+      }
+      setSeries(Array.from(byDay.values()));
+    })();
+  }, []);
+
+  const totals = (promos ?? []).reduce(
+    (acc, p) => ({ impressions: acc.impressions + p.impressions_count, clicks: acc.clicks + p.clicks_count, active: acc.active + (p.status === "active" ? 1 : 0) }),
+    { impressions: 0, clicks: 0, active: 0 },
+  );
+  const ctr = totals.impressions > 0 ? ((totals.clicks / totals.impressions) * 100).toFixed(2) + "%" : "\u2014";
 
   async function setStatus(p: Promo, status: Promo["status"]) {
     setPromos((l) => (l ?? []).map((x) => (x.id === p.id ? { ...x, status } : x)));
@@ -20,7 +60,37 @@ export default function AdsPage() {
   const chip = (s: string) => s === "active" ? "bg-success/15 text-success" : s === "paused" ? "bg-pearl/15 text-pearl" : "bg-surface text-ink/40";
 
   return (
-    <div className="px-1">
+    <div>
+      {promos && promos.length > 0 ? (
+        <>
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: "Impressions", v: totals.impressions.toLocaleString() },
+              { label: "Clicks", v: totals.clicks.toLocaleString() },
+              { label: "Click rate", v: ctr },
+              { label: "Active campaigns", v: String(totals.active) },
+            ].map((c) => (
+              <div key={c.label} className="rounded-2xl border border-ink/10 bg-white px-4 py-3.5">
+                <p className="text-[11.5px] text-ink/45">{c.label}</p>
+                <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">{c.v}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mb-4">
+            <Panel title="Performance, last 30 days">
+              <TrendChart
+                series={[
+                  { name: "Impressions", points: series.map((d) => d.impressions) },
+                  { name: "Clicks", points: series.map((d) => d.clicks), tone: "ink" },
+                ]}
+                labels={series.map((d) => new Date(d.day).toLocaleDateString(undefined, { month: "short", day: "numeric" }))}
+              />
+            </Panel>
+          </div>
+        </>
+      ) : null}
+
       <div className="flex items-center gap-2 pb-1">
         <Link href="/home" title="Back to the feed" className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={18} /></Link>
         <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-pearl" /> Ads</h1>
@@ -31,12 +101,18 @@ export default function AdsPage() {
       {promos === null ? (
         <p className="py-14 text-center text-sm text-ink/40">Loading</p>
       ) : promos.length === 0 ? (
-        <p className="py-14 text-center text-sm text-ink/40">No promotions yet. Open one of your posts and choose Promote from its menu.</p>
+        <EmptyState
+          icon={<Megaphone size={19} />}
+          title="No campaigns yet"
+          line="Promote a post and it appears here with its impressions, clicks and click rate."
+          action="Go to your posts"
+          actionHref="/home"
+        />
       ) : (
         promos.map((p) => {
           const ctr = p.impressions_count > 0 ? ((p.clicks_count / p.impressions_count) * 100).toFixed(1) + "%" : "—";
           return (
-            <div key={p.id} className="mb-3 rounded-lg border border-ink/10 p-4">
+            <div key={p.id} className="mb-3 rounded-2xl border border-ink/10 bg-white p-4">
               <div className="flex items-center gap-2">
                 <span className={"rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase " + chip(p.status)}>{p.status}</span>
                 <span className="text-[12px] text-ink/40">{p.label}</span>
