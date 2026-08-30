@@ -1,5 +1,7 @@
 "use client";
 
+import { CommerceOverview } from "@/components/CommerceOverview";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, Download, Package, Plus, ShoppingBag, Star, Tag, Truck } from "lucide-react";
@@ -102,7 +104,7 @@ export default function CommercePage() {
   const chip = (s: string) => s === "available" ? "bg-success/15 text-success" : s === "sold" ? "bg-pearl/15 text-pearl" : "bg-surface text-ink/50";
 
   return (
-    <div className="max-w-[960px]">
+    <div>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Commerce</h1>
@@ -116,6 +118,8 @@ export default function CommercePage() {
           ))}
         </div>
       </div>
+
+      {!loading ? <CommerceOverview orders={orders} listings={listings} /> : null}
 
       {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : view === "catalog" ? (
         <>
