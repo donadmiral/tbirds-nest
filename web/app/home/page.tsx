@@ -1,5 +1,7 @@
 "use client";
 
+import { withTimeout } from "@/lib/withTimeout";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -83,12 +85,22 @@ export default function HomeFeed() {
         const { data: hid } = await supabase.from("hidden_posts").select("post_id").eq("user_id", uidRef.current);
         hiddenRef.current = new Set((hid ?? []).map((h) => h.post_id as string));
       }
-      const { data, error } = await supabase.rpc("get_feed", {
-        p_mode: mode,
-        p_cursor_key: more ? cursor.current?.key ?? null : null,
-        p_cursor_id: more ? cursor.current?.id ?? null : null,
-        p_limit: PAGE_SIZE,
-      });
+      // Bounded, so a stalled connection reaches the retry below instead of
+      // leaving the feed spinning with nothing on screen.
+      let data: unknown = null;
+      let error: { message: string } | null = null;
+      try {
+        const res = await withTimeout(supabase.rpc("get_feed", {
+          p_mode: mode,
+          p_cursor_key: more ? cursor.current?.key ?? null : null,
+          p_cursor_id: more ? cursor.current?.id ?? null : null,
+          p_limit: PAGE_SIZE,
+        }));
+        data = res.data;
+        error = res.error;
+      } catch {
+        error = { message: "This is taking longer than usual. Check your connection." };
+      }
       if (error) {
         setError(error.message);
       } else {

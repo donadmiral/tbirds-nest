@@ -7,6 +7,8 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { Heart, Repeat2, MessageCircle, UserPlus, AtSign, Bell, Check, ShieldQuestion } from "lucide-react";
 import { EmptyState, PageHeader } from "@/components/ui";
+import { ErrorState } from "@/components/ErrorState";
+import { withTimeout } from "@/lib/withTimeout";
 import { UnreadSummary } from "@/components/NotificationsRail";
 
 function iconFor(type: string) {
@@ -104,10 +106,22 @@ export default function NotificationsPage() {
   const [rows, setRows] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
   const [filt, setFilt] = useState("all");
+  const [failed, setFailed] = useState(false);
   const [sThumbs, setSThumbs] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
-    const { data } = await supabase.rpc("get_notifications", { p_limit: 60, p_cursor: null });
+    setFailed(false);
+    let data: unknown = null;
+    try {
+      const res = await withTimeout(supabase.rpc("get_notifications", { p_limit: 60, p_cursor: null }));
+      if (res.error) throw res.error;
+      data = res.data;
+    } catch {
+      // An empty inbox and an unreachable server looked identical before this.
+      setFailed(true);
+      setLoading(false);
+      return;
+    }
     setRows(((data ?? []) as Notif[]));
     const storyIds = Array.from(new Set(((data ?? []) as Notif[]).map((r) => (r.data as { story_id?: string } | null)?.story_id).filter(Boolean))) as string[];
     if (storyIds.length) {
@@ -203,7 +217,9 @@ export default function NotificationsPage() {
         </div>
       ) : null}
 
-      {loading ? (
+      {failed ? (
+        <ErrorState title="Could not load notifications" onRetry={() => void load()} />
+      ) : loading ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading</p>
       ) : visibleRows.length === 0 ? (
         <EmptyState

@@ -7,6 +7,7 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { timeAgo } from "@/lib/feed";
 import { Bookmark } from "lucide-react";
 import { Card, EmptyState } from "@/components/ui";
+import { ErrorState } from "@/components/ErrorState";
 
 type SavedPost = {
   id: string;
@@ -32,9 +33,11 @@ export default function SavedPage() {
   const [colSel, setColSel] = useState<string>("all");
   const [uid, setUid] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     (async () => {
+      try {
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user.id;
       if (!uid) { setPosts([]); return; }
@@ -74,6 +77,12 @@ export default function SavedPage() {
         .map((p) => ({ ...p, author: authorMap.get(p.user_id) ?? null, saved_at: savedAt[p.id], collection_id: colOf[p.id] }))
         .sort((a, b) => new Date(b.saved_at ?? 0).getTime() - new Date(a.saved_at ?? 0).getTime());
       setPosts(rows);
+      } catch {
+        // Distinguishes "nothing saved" from "could not reach the server",
+        // which previously rendered the same empty hub.
+        setFailed(true);
+        setPosts([]);
+      }
     })();
   }, [supabase, tick]);
 
@@ -117,7 +126,9 @@ export default function SavedPage() {
           <button key={c.id} onClick={() => setColSel(c.id)} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === c.id ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>{c.name}</button>
         ))}
       </div>
-      {posts === null ? (
+      {failed ? (
+        <ErrorState title="Could not load your saved items" onRetry={() => { setFailed(false); setTick(t => t + 1); }} />
+      ) : posts === null ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading</p>
       ) : posts.length === 0 ? (
         <EmptyState
