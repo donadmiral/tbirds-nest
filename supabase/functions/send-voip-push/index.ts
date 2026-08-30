@@ -121,10 +121,20 @@ Deno.serve(async (req) => {
       t.platform === 'android' && t.expo_push_token && !t.voip_token);
     let expo: unknown = null;
     if (androidTokens.length > 0) {
+      // Two shapes, one switch.
+      //
+      // 'notification' is the safe default: Android draws it itself, so a
+      // killed phone still rings, but it rings as a notification.
+      // 'data' sends no title or body, which is what makes Android hand the
+      // message to the app's background task, which then draws the real
+      // full-screen call UI through CallKeep. Set ANDROID_CALL_MODE=data once
+      // a real device has confirmed the task runs; flip it back in one line if
+      // a device restricts background work.
+      const dataOnly = (Deno.env.get('ANDROID_CALL_MODE') ?? 'notification') === 'data';
       const messages = androidTokens.map((t: any) => ({
         to: t.expo_push_token,
-        title: callerName,
-        body: isVideo ? 'Incoming video call' : 'Incoming call',
+        title: dataOnly ? undefined : callerName,
+        body: dataOnly ? undefined : (isVideo ? 'Incoming video call' : 'Incoming call'),
         // snake_case: every other push in this app uses it, and the tap
         // handler reads call_id. callId is kept as a synonym for safety.
         data: {
@@ -139,7 +149,7 @@ Deno.serve(async (req) => {
         categoryId: 'incoming_call',
         priority: 'high',
         ttl: 45,
-        sound: 'default',
+        sound: dataOnly ? undefined : 'default',
       }));
       try {
         const r = await fetch('https://exp.host/--/api/v2/push/send', {

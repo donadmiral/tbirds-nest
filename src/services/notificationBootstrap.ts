@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { AppState, Platform } from 'react-native';
 import { pushTokenService } from './pushTokenService';
 import { nativeCallService } from './nativeCallService';
+import { registerIncomingCallTask } from './callBackgroundTask';
 
 // Last token this device registered, so logout can remove exactly it.
 export let lastPushToken: string | null = null;
@@ -117,6 +118,7 @@ export async function registerForPushNotifications(userId: string) {
 
   await ensureCallChannel();
   await ensureCallCategory();
+  await registerIncomingCallTask();
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;

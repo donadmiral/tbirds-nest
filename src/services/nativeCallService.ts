@@ -142,6 +142,41 @@ export const nativeCallService = {
     }
   },
 
+  /**
+   * Android: bring CallKeep up from a context that has no React tree.
+   *
+   * When a data message wakes a killed app there is no navigator, no auth
+   * store and no mounted component, so the ordinary setup path has not run.
+   * This registers just enough for displayIncomingCall to draw the OS call
+   * screen. Answer and end events are picked up by IncomingCallListener once
+   * the app is actually opened, which is exactly when they can be acted on.
+   */
+  async prepareForIncomingCall(): Promise<boolean> {
+    if (!loadNatives() || Platform.OS !== 'android') return false;
+    try {
+      await RNCallKeep.setup({
+        ios: { appName: 'Platinum Circles' },
+        android: {
+          alertTitle: 'Calls permission',
+          alertDescription: 'Platinum Circles needs to manage calls so you can answer from the lock screen.',
+          cancelButton: 'Cancel',
+          okButton: 'Allow',
+          additionalPermissions: [],
+          foregroundService: {
+            channelId: 'app.platinumcircles.calls',
+            channelName: 'Ongoing calls',
+            notificationTitle: 'Call in progress',
+          },
+        },
+      });
+      RNCallKeep.setAvailable(true);
+      return true;
+    } catch (e) {
+      console.log('[NativeCalls] background prepare failed:', (e as any)?.message);
+      return false;
+    }
+  },
+
   /** Show the OS incoming-call screen (rings natively, works locked). */
   displayIncomingCall(callUuid: string, callerName: string, hasVideo: boolean): void {
     if (!loadNatives()) return;
