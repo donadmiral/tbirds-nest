@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Bookmark, Heart, MessageCircle, Pin, Repeat2, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { PostMenu } from "@/components/PostMenu";
@@ -149,7 +149,12 @@ export function PostCard({ post }: { post: FeedRow }) {
           <div className="flex items-center gap-1.5">
             <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
               <span className="flex min-w-0 items-center gap-[3px]">
-                <span className="truncate text-[15.5px] font-semibold text-ink">{post.author_name}</span>
+                <span
+                  className="truncate text-[15.5px] font-semibold text-ink"
+                  style={post.author_verified ? { color: getTierColor(post.author_verified_tier) ?? undefined } : undefined}
+                >
+                  {post.author_name}
+                </span>
                 {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
               </span>
               <span className="truncate text-[13px] text-ink/50">@{post.author_username}</span>

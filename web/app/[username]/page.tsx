@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProfilePosts } from "@/components/ProfilePosts";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { BusinessProfile } from "@/components/BusinessProfile";
 import { MemoryAlbumBook } from "@/components/MemoryAlbumBook";
@@ -75,7 +75,7 @@ export default async function ProfilePage({ params }: Params) {
         </span>
         <div className="min-w-0 flex-1 pt-1.5">
           <div className="flex items-center gap-1">
-            <h1 className="truncate text-[22px] font-semibold text-ink">{p.full_name}</h1>
+            <h1 className="truncate text-[22px] font-semibold text-ink" style={p.is_verified ? { color: getTierColor(p.verified_tier) ?? undefined } : undefined}>{p.full_name}</h1>
             {p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={17} /> : null}
           </div>
           <p className="text-[13.5px] text-ink/50">@{p.username}</p>

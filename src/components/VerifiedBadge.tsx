@@ -14,10 +14,54 @@ import { supabase } from '../services/supabase';
 
 type Tier = 'public_figure' | 'business' | 'official' | null | undefined;
 
+export const TIER_COLORS: Record<string, string> = {
+  public_figure: '#1D7A38',
+  business: '#5B6470',
+  official: '#B08D3F',
+};
+
+/**
+ * One source of truth for tier colour.
+ *
+ * The seal used to carry its own hand-picked metals, which drifted from the
+ * name colours: a gold name wore a champagne seal, a deep green name wore a
+ * mint one. Now the metal is derived from the name colour, so a platinum name
+ * always gets a platinum seal and a gold name always gets a gold one, and the
+ * two cannot come apart again.
+ *
+ * The gradient is the name colour lightened for the two highlight stops and
+ * darkened for the shadow stop, which is what gives it the metallic roll.
+ */
+function shade(hex: string, amount: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const mix = (c: number) => amount >= 0
+    ? Math.round(c + (255 - c) * amount)
+    : Math.round(c * (1 + amount));
+  return '#' + [mix(r), mix(g), mix(b)].map((c) => c.toString(16).padStart(2, '0')).join('');
+}
+
+/** Relative luminance, so the check picks the readable colour by itself. */
+function isLight(hex: string): boolean {
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.42;
+}
+
+function metalFor(base: string) {
+  return {
+    grad: [shade(base, 0.72), shade(base, 0.3), base, shade(base, -0.42)],
+    check: isLight(base) ? '#12203A' : '#FFFFFF',
+  };
+}
+
 const METALS: Record<string, { grad: string[]; check: string }> = {
-  public_figure: { grad: ['#D9FBEC', '#4ADE9C', '#059669', '#064E3B'], check: '#FFFFFF' },
-  business: { grad: ['#EDEFF3', '#C3C8CF', '#6E7278', '#3F4348'], check: '#FFFFFF' },
-  official: { grad: ['#FBF8F0', '#F4EFE4', '#C9BFB0', '#A2977F'], check: '#0B1E3D' },
+  public_figure: metalFor(TIER_COLORS.public_figure),
+  business: metalFor(TIER_COLORS.business),
+  official: metalFor(TIER_COLORS.official),
 };
 
 // A twelve-lobe rosette, generated rather than traced so every scallop is even.
@@ -67,7 +111,7 @@ export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier
   const px = Math.round(size);
   const detailed = px >= 16;
   return (
-    <Svg width={px} height={px} viewBox="0 0 24 24" style={{ marginLeft: 3, marginTop: Math.round(px * 0.06) }}>
+    <Svg width={px} height={px} viewBox="0 0 24 24" style={{ marginLeft: 3, alignSelf: 'center' }}>
       <Defs>
         <SvgGradient id={'vb-' + key} x1="0%" y1="0%" x2="100%" y2="100%">
           <Stop offset="0" stopColor={m.grad[0]} />
@@ -102,12 +146,6 @@ export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier
  * useVerifiedTier looks a user's tier up with its own tiny cache for
  * surfaces that only hold a userId.
  */
-export const TIER_COLORS: Record<string, string> = {
-  public_figure: '#1D7A38',
-  business: '#5B6470',
-  official: '#B08D3F',
-};
-
 export function getTierColor(tier?: string | null): string | null {
   if (!tier) return null;
   return TIER_COLORS[tier] ?? null;
