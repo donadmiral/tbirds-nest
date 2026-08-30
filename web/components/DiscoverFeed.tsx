@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { DiscoverTile } from "@/components/DiscoverTile";
 import { EmptyState } from "@/components/ui";
+import { ErrorState } from "@/components/ErrorState";
+import { withTimeout } from "@/lib/withTimeout";
 import { CATEGORIES } from "@/lib/categories";
 import type { FeedRow } from "@/lib/feed";
 
@@ -15,22 +17,32 @@ export function DiscoverFeed() {
   const [pool, setPool] = useState<FeedRow[]>([]);
   const [inno, setInno] = useState<FeedRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [a, b, c] = await Promise.all([
-      supabase.rpc("get_feed", { p_mode: "latest", p_limit: 50 }),
-      supabase.rpc("get_feed", { p_mode: "trending", p_limit: 20 }),
-      supabase.rpc("get_feed", { p_mode: "innovation", p_limit: 30 }),
-    ]);
-    const seen = new Set<string>();
-    const merged: FeedRow[] = [];
-    for (const r of ([...(b.data ?? []), ...(a.data ?? [])] as FeedRow[])) {
-      if (!seen.has(r.post_id) && !(r as unknown as { reposted_by_id?: string | null }).reposted_by_id) { seen.add(r.post_id); merged.push(r); }
+    setFailed(false);
+    try {
+      // Bounded, so a stalled connection surfaces a retry instead of spinning
+      // forever with nothing on screen.
+      const [a, b, c] = await withTimeout(Promise.all([
+        supabase.rpc("get_feed", { p_mode: "latest", p_limit: 50 }),
+        supabase.rpc("get_feed", { p_mode: "trending", p_limit: 20 }),
+        supabase.rpc("get_feed", { p_mode: "innovation", p_limit: 30 }),
+      ]));
+      if (a.error && b.error && c.error) throw a.error;
+      const seen = new Set<string>();
+      const merged: FeedRow[] = [];
+      for (const r of ([...(b.data ?? []), ...(a.data ?? [])] as FeedRow[])) {
+        if (!seen.has(r.post_id) && !(r as unknown as { reposted_by_id?: string | null }).reposted_by_id) { seen.add(r.post_id); merged.push(r); }
+      }
+      setPool(merged);
+      setInno(((c.data ?? []) as FeedRow[]).filter((r) => !(r as unknown as { reposted_by_id?: string | null }).reposted_by_id));
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
     }
-    setPool(merged);
-    setInno(((c.data ?? []) as FeedRow[]).filter((r) => !(r as unknown as { reposted_by_id?: string | null }).reposted_by_id));
-    setLoading(false);
   }, [supabase]);
 
   useEffect(() => { load(); }, [load]);
@@ -65,7 +77,11 @@ export function DiscoverFeed() {
           </button>
         ))}
       </div>
-      {loading ? (
+      {failed ? (
+        <div className="mt-4">
+          <ErrorState title="Could not load Discover" onRetry={() => void load()} />
+        </div>
+      ) : loading ? (
         <p className="py-16 text-center text-sm text-ink/40">Loading</p>
       ) : shown.length === 0 ? (
         <div className="mt-4">

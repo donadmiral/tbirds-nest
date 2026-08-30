@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { Marcellus, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -23,7 +24,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${marcellus.variable} ${instrument.variable}`}>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        {/* Global, so a dropped connection is reported on every route. */}
+        <ConnectionBanner />
+      </body>
     </html>
   );
 }
