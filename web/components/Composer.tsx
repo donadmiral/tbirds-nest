@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
-import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText } from "lucide-react";
+import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string };
+type PostKind = "post" | "media" | "article" | "poll" | "innovation";
+
+const KINDS: { key: PostKind; label: string; icon: typeof ImagePlus }[] = [
+  { key: "post", label: "Post", icon: Feather },
+  { key: "media", label: "Photo or video", icon: ImageIcon },
+  { key: "article", label: "Article", icon: FileText },
+  { key: "poll", label: "Poll", icon: BarChart3 },
+  { key: "innovation", label: "Innovation", icon: Lightbulb },
+];
+
 type MentionHit = { id: string; full_name: string | null; username: string | null; avatar_url: string | null };
 export type QuoteTarget = { id: string; author: string; text: string };
 
@@ -41,6 +52,19 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   const [pickerOpen, setPickerOpen] = useState(false);
   const [threadTo, setThreadTo] = useState<string | null>(null);
   const [pollOn, setPollOn] = useState(false);
+  // "kind" is a view over the flags that already existed, not a new source of
+  // truth: picking one sets the flags, so every downstream check still works.
+  const [kind, setKindState] = useState<PostKind>("post");
+  const setKind = (k: PostKind) => {
+    setKindState(k);
+    setPollOn(k === "poll");
+    setInno(k === "innovation");
+    // Picking media should do the obvious thing and ask for the files. The
+    // timeout lets the dialog mount first, otherwise the click lands on
+    // nothing on the first open.
+    if (k === "media" && items.length === 0) setTimeout(() => fileRef.current?.click(), 60);
+    if (k !== "article") setArticleTitle("");
+  };
   const [pollOpts, setPollOpts] = useState<string[]>(["", ""]);
   const [pollDays, setPollDays] = useState(1);
   const [postCategory, setPostCategory] = useState("");
@@ -190,7 +214,10 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     };
     if (inno && innoField) insertData.innovation_field = innoField;
     if (inno && innoStage) insertData.innovation_stage = innoStage;
-    if (inno && articleTitle.trim()) {
+    // A title makes it an article, whether or not it is also an innovation
+    // post. This used to be gated on inno, so an article written without that
+    // toggle silently lost its title on save.
+    if (articleTitle.trim()) {
       insertData.article_title = articleTitle.trim();
       insertData.read_minutes = Math.max(1, Math.round((content.split(/\s+/).length || 0) / 200));
     }
@@ -255,10 +282,9 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     // The collapsed state is a card, not a text field: the prompt line opens
     // the composer, and the row under it opens it already set to a kind of
     // post, so choosing "Poll" is one click rather than two.
-    const start = (kind?: "media" | "article" | "poll" | "event") => () => {
+    const start = (k?: PostKind) => () => {
       setOpen(true);
-      if (kind === "article") setArticleTitle(" ");
-      if (kind === "poll") setPollOn(true);
+      if (k) setKind(k);
     };
     const action = "flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink";
     return (
@@ -287,6 +313,37 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
         onDrop={onDrop}
         className={"relative flex max-h-[86vh] w-full max-w-[560px] flex-col rounded-2xl border bg-white p-5 shadow-2xl transition-colors duration-[140ms] " + (dragOver ? "border-pearl bg-surface" : "border-ink/10")}
       >
+      {/* What am I making? The kinds used to be icon-only toggles in the footer,
+          so nothing named them and nothing showed which one was active. Naming
+          them here means the answer is visible before you start typing, and
+          switching kind is one click rather than hunting a tooltip. */}
+      {!quote && !threadTo ? (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-ink/8 pb-3">
+          {KINDS.map((k) => {
+            const on = k.key === kind;
+            return (
+              <button
+                key={k.key}
+                onClick={() => setKind(k.key)}
+                className={
+                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " +
+                  (on ? "bg-pearl text-ink" : "text-ink/55 hover:bg-surface hover:text-ink")
+                }
+              >
+                <k.icon size={14} />
+                {k.label}
+              </button>
+            );
+          })}
+          <Link
+            href="/market/new"
+            className="ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-ink/55 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
+          >
+            <Tag size={14} /> Sell an item
+          </Link>
+        </div>
+      ) : null}
+
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
       {quote ? (
         <div className="mb-3 rounded-lg border border-ink/10 p-3">
@@ -300,10 +357,10 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
           <img src={myAvatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
         ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
         <div className="min-w-0 flex-1">
-          {inno ? (
+          {kind === "article" || inno ? (
             <input value={articleTitle}
               onChange={(e) => setArticleTitle(e.target.value)}
-              placeholder="Article title (optional)"
+              placeholder={kind === "article" ? "Article title" : "Article title (optional)"}
               className="mb-2 w-full rounded-md bg-surface px-3 py-2 text-[16px] font-semibold text-ink placeholder:text-ink/30 outline-none"
             />
           ) : null}
