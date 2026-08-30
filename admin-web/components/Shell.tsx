@@ -1,5 +1,5 @@
 /**
- * Operations shell v6 - the design system shell.
+ * Operations shell v7 - the design system shell.
  * 236px translucent rail with grouped desks and live count chips, 58px topbar
  * with breadcrumb, search, appearance control, production pill, alert bell and
  * identity chip. Every number here is a real head-count query, never decoration.
@@ -10,35 +10,50 @@ import { signOut } from '@/lib/actions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { allowedDesks } from '@/lib/adminAuth';
 import ThemeControls from '@/components/ThemeControls';
+import SideRail from '@/components/SideRail';
+import CommandPalette from '@/components/CommandPalette';
+import Workspace from '@/components/Workspace';
 
-const GROUPS: { label: string; items: { href: string; label: string; icon: string }[] }[] = [
-  { label: 'Platform', items: [
-    { href: '/dashboard', label: 'Overview', icon: 'M4 5h7v7H4V5zm9 0h7v4h-7V5zm0 6h7v8h-7v-8zm-9 3h7v5H4v-5z' },
-    { href: '/analytics', label: 'Analytics', icon: 'M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z' },
-    { href: '/calls', label: 'Calls', icon: 'M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z' },
+const GROUPS: { label: string; items: { href: string; label: string; icon: string; key: string }[] }[] = [
+  { label: 'Overview', items: [
+    { href: '/dashboard', label: 'Dashboard', key: 'D', icon: 'M4 5h7v7H4V5zm9 0h7v4h-7V5zm0 6h7v8h-7v-8zm-9 3h7v5H4v-5z' },
+    { href: '/analytics', label: 'Analytics', key: 'A', icon: 'M4 20V10h3v10H4zm6.5 0V4h3v16h-3zM17 20v-7h3v7h-3z' },
+    { href: '/calls', label: 'Calls', key: 'C', icon: 'M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z' },
   ]},
-  { label: 'Trust and safety', items: [
-    { href: '/queue', label: 'Verification', icon: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z' },
-    { href: '/reports', label: 'Reports', icon: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z' },
-    { href: '/users', label: 'Users', icon: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z' },
-    { href: '/support', label: 'Support', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 016 6h-3a3 3 0 00-6 0H6a6 6 0 016-6zm-3 8h6a3 3 0 01-6 0z' },
+  { label: 'Community', items: [
+    { href: '/users', label: 'Users', key: 'U', icon: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z' },
+    { href: '/businesses', label: 'Businesses', key: 'B', icon: 'M4 21V5a2 2 0 012-2h7a2 2 0 012 2v16h-4v-4H8v4H4zm13-9h3a1 1 0 011 1v8h-4v-9z' },
   ]},
   { label: 'Commerce', items: [
-    { href: '/market', label: 'Market', icon: 'M4 7l2-4h12l2 4v2a3 3 0 01-1 2.2V20H5v-8.8A3 3 0 014 9V7zm3 6h4v5H7v-5z' },
-    { href: '/jobs', label: 'Jobs', icon: 'M9 4h6a2 2 0 012 2v1h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1h3V6a2 2 0 012-2zm1 3h4V6h-4v1z' },
-    { href: '/businesses', label: 'Businesses', icon: 'M4 21V5a2 2 0 012-2h7a2 2 0 012 2v16h-4v-4H8v4H4zm13-9h3a1 1 0 011 1v8h-4v-9z' },
-    { href: '/payments', label: 'Payments', icon: 'M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6zm2 3h14V7H5v2zm0 3v5h14v-5H5z' },
-    { href: '/ads', label: 'Ads', icon: 'M3 10a2 2 0 012-2h2l7-4v16l-7-4H5a2 2 0 01-2-2v-4zm14-4.8a7 7 0 010 9.6V5.2z' },
+    { href: '/market', label: 'Market', key: 'M', icon: 'M4 7l2-4h12l2 4v2a3 3 0 01-1 2.2V20H5v-8.8A3 3 0 014 9V7zm3 6h4v5H7v-5z' },
+    { href: '/jobs', label: 'Jobs', key: 'J', icon: 'M9 4h6a2 2 0 012 2v1h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1h3V6a2 2 0 012-2zm1 3h4V6h-4v1z' },
+    { href: '/payments', label: 'Payments', key: 'Y', icon: 'M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6zm2 3h14V7H5v2zm0 3v5h14v-5H5z' },
+    { href: '/ads', label: 'Ads Manager', key: 'V', icon: 'M3 10a2 2 0 012-2h2l7-4v16l-7-4H5a2 2 0 01-2-2v-4zm14-4.8a7 7 0 010 9.6V5.2z' },
   ]},
   { label: 'Content', items: [
-    { href: '/content', label: 'Posts', icon: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z' },
-    { href: '/stories', label: 'Stories', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a7 7 0 110 14 7 7 0 010-14zm0 2.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z' },
+    { href: '/content', label: 'Posts', key: 'P', icon: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z' },
+    { href: '/stories', label: 'Stories', key: 'O', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a7 7 0 110 14 7 7 0 010-14zm0 2.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z' },
+  ]},
+  { label: 'Moderation', items: [
+    { href: '/reports', label: 'Reports', key: 'R', icon: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z' },
+    { href: '/queue', label: 'Verification', key: 'Q', icon: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z' },
+    { href: '/support', label: 'Support', key: 'S', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 016 6h-3a3 3 0 00-6 0H6a6 6 0 016-6zm-3 8h6a3 3 0 01-6 0z' },
+    { href: '/audit', label: 'Audit log', key: 'L', icon: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z' },
   ]},
   { label: 'System', items: [
-    { href: '/audit', label: 'Audit log', icon: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z' },
-    { href: '/system', label: 'Controls', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 4a6.6 6.6 0 00-.1-1.1l2-1.6-2-3.4-2.4 1a6.9 6.9 0 00-1.9-1.1L15.8 3h-4l-.4 2.8a6.9 6.9 0 00-1.9 1.1l-2.4-1-2 3.4 2 1.6a6.6 6.6 0 000 2.2l-2 1.6 2 3.4 2.4-1a6.9 6.9 0 001.9 1.1l.4 2.8h4l.4-2.8a6.9 6.9 0 001.9-1.1l2.4 1 2-3.4-2-1.6c.1-.4.1-.7.1-1.1z' },
-    { href: '/staff', label: 'Staff', icon: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z' },
+    { href: '/staff', label: 'Staff', key: 'F', icon: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z' },
+    { href: '/system', label: 'Controls', key: 'W', icon: 'M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 4a6.6 6.6 0 00-.1-1.1l2-1.6-2-3.4-2.4 1a6.9 6.9 0 00-1.9-1.1L15.8 3h-4l-.4 2.8a6.9 6.9 0 00-1.9 1.1l-2.4-1-2 3.4 2 1.6a6.6 6.6 0 000 2.2l-2 1.6 2 3.4 2.4-1a6.9 6.9 0 001.9 1.1l.4 2.8h4l.4-2.8a6.9 6.9 0 001.9-1.1l2.4 1 2-3.4-2-1.6c.1-.4.1-.7.1-1.1z' },
   ]},
+];
+
+// Quick actions are permission-shaped: a desk you cannot open never offers its action.
+const ACTIONS: { href: string; label: string }[] = [
+  { href: '/queue', label: 'Review verification queue' },
+  { href: '/reports', label: 'Review open reports' },
+  { href: '/support', label: 'Answer support tickets' },
+  { href: '/users', label: 'Find a member' },
+  { href: '/system', label: 'Publish an announcement' },
+  { href: '/staff', label: 'Invite a staff member' },
 ];
 
 export default async function Shell({ admin, active, title, crumb, sub, children }: {
@@ -60,6 +75,8 @@ export default async function Shell({ admin, active, title, crumb, sub, children
 
   const allow = allowedDesks(admin.role);
   const groups = GROUPS.map(g => ({ ...g, items: g.items.filter(d => allow.has(d.href)) })).filter(g => g.items.length > 0);
+  const paletteItems = groups.flatMap(g => g.items.map(d => ({ href: d.href, label: d.label, group: g.label, key: d.key })));
+  const actions = ACTIONS.filter(a => allow.has(a.href));
   const local = (admin.email || '').split('@')[0] || 'desk';
   const initial = (admin.email || '?').slice(0, 1).toUpperCase();
   const roleLabel = admin.role.replace(/_/g, ' ');
@@ -68,54 +85,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', color: 'var(--txt)' }}>
 
-      <aside style={{ position: 'sticky', top: 0, alignSelf: 'flex-start', height: '100vh', width: 236, flex: '0 0 236px', display: 'flex', flexDirection: 'column', background: 'var(--rail)', backdropFilter: 'blur(26px) saturate(1.15)', WebkitBackdropFilter: 'blur(26px) saturate(1.15)', borderRight: '1px solid rgba(var(--on),0.10)', zIndex: 20 }}>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '17px 16px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
-          <img src="/pearl.png" alt="Platinum Circles" style={{ width: 32, height: 32, flex: '0 0 32px', display: 'block', objectFit: 'contain' }} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 14, letterSpacing: '0.01em', color: 'var(--txt-strong)', lineHeight: 1.15, whiteSpace: 'nowrap' }}>Platinum Circles</div>
-            <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.02em', color: 'rgba(var(--on),0.46)', marginTop: 2 }}>Operations</div>
-          </div>
-        </div>
-
-        <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 10px 8px' }}>
-          {groups.map(g => (
-            <div key={g.label} style={{ marginBottom: 15 }}>
-              <div style={{ padding: '0 8px 6px', fontSize: 9.5, fontWeight: 700, color: 'rgba(var(--on),0.44)' }}>{g.label}</div>
-              {g.items.map(d => {
-                const on = active === d.href;
-                const n = counts[d.href] || 0;
-                return (
-                  <Link key={d.href} href={d.href} className="pc-nav"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 10, padding: '7px 9px', marginBottom: 1,
-                      borderRadius: 8, fontSize: 12.8, fontWeight: on ? 600 : 500,
-                      color: on ? 'var(--txt-strong)' : 'rgba(var(--on),0.55)',
-                      background: on ? 'rgba(var(--on),0.075)' : 'transparent',
-                      boxShadow: on ? 'inset 0 0 0 1px rgba(var(--accent-rgb),0.16)' : 'none',
-                    }}>
-                    <svg width="14.5" height="14.5" viewBox="0 0 24 24" style={{ flex: '0 0 14.5px', fill: on ? 'var(--accent)' : 'rgba(var(--on),0.33)' }}><path d={d.icon} /></svg>
-                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.label}</span>
-                    {n > 0 ? (
-                      <span className="pc-num" style={{ fontSize: 10, fontWeight: 600, padding: '1.5px 5px', borderRadius: 5, background: on ? 'rgba(var(--accent-rgb),0.16)' : 'rgba(var(--on),0.07)', color: on ? 'var(--accent)' : 'rgba(var(--on),0.45)' }}>{n}</span>
-                    ) : null}
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
-        </nav>
-
-        <div style={{ borderTop: '1px solid rgba(var(--on),0.10)', padding: '11px 13px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-            <span style={{ width: 27, height: 27, flex: '0 0 27px', borderRadius: 7, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{initial}</span>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 11.8, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{admin.email}</div>
-              <div style={{ fontSize: 9.5, color: 'rgba(var(--on),0.34)', textTransform: 'capitalize', marginTop: 1 }}>{roleLabel}</div>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <SideRail groups={groups} counts={counts} active={active} email={admin.email} roleLabel={roleLabel} />
 
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
@@ -127,11 +97,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
             <span style={{ fontWeight: 600, color: 'var(--txt)' }}>{crumb ?? title}</span>
           </div>
 
-          <form method="get" action="/users" className="pc-search" style={{ marginLeft: 8, flex: '1 1 240px', minWidth: 190, maxWidth: 340, display: 'flex', alignItems: 'center', gap: 9, padding: '7px 11px', borderRadius: 9, background: 'rgba(var(--on),0.04)', border: '1px solid rgba(var(--on),0.10)' }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ stroke: 'rgba(var(--on),0.38)', flex: '0 0 13px' }} strokeWidth="2.3"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.6-3.6" /></svg>
-            <input name="q" placeholder="Search members, posts, tickets" style={{ flex: 1, minWidth: 0, fontSize: 12.3, color: 'var(--txt)', background: 'transparent', border: 'none', outline: 'none' }} />
-            <span className="pc-num" style={{ fontSize: 10, color: 'rgba(var(--on),0.3)', border: '1px solid rgba(var(--on),0.11)', borderRadius: 4, padding: '1px 4px' }}>K</span>
-          </form>
+          <CommandPalette items={paletteItems} actions={actions} />
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 9 }}>
 
@@ -160,7 +126,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
           </div>
         </header>
 
-        <div style={{ flex: 1, minWidth: 0, padding: '22px 22px 30px' }}>
+        <Workspace>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 19 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{ margin: 0, fontSize: 25, fontWeight: 400, letterSpacing: '0.005em', color: 'var(--txt-strong)' }}>{title}</h1>
@@ -168,7 +134,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
             </div>
           </div>
           {children}
-        </div>
+        </Workspace>
       </main>
     </div>
   );

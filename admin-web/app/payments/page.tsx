@@ -101,7 +101,7 @@ export default async function PaymentsPage() {
   const cards = [
     { label: 'Volume this week', value: money(volWeek), delta: volDelta.text, deltaTone: volDelta.tone, note: 'completed transfers only', icon: IC.money, color: 'var(--c2)', spark: volSpark },
     { label: 'Completed this week', value: fmt(doneWeek.length), note: 'chat_payments status completed', icon: IC.check, color: 'var(--c1)', spark: spark('completed') },
-    { label: 'Failed this week', value: fmt(failedWeek.length), delta: failDelta.text, deltaTone: failedWeek.length > 0 ? 'bad' : 'neutral', note: 'each one is a member who lost trust', icon: IC.x, color: 'var(--c5)', spark: spark('failed') },
+    { label: 'Failed this week', value: fmt(failedWeek.length), delta: failDelta.text, deltaTone: (failedWeek.length > 0 ? 'bad' : 'neutral') as Tone, note: 'each one is a member who lost trust', icon: IC.x, color: 'var(--c5)', spark: spark('failed') },
     { label: 'Success rate', value: successRate.toFixed(1) + '%', note: 'completed against settled, all time', icon: IC.card, color: 'var(--c6)' },
     { label: 'Average transfer', value: money(avgTicket), note: 'this week, completed', icon: IC.clock, color: 'var(--c3)' },
   ];
