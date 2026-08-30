@@ -80,18 +80,17 @@ export default function StudioHomePage() {
   const lineFor = (key?: string) => (key ? series.map((d) => Number(d[key] ?? 0)) : []);
 
   return (
-    <div className="max-w-[920px]">
-      <h1 className="font-display text-2xl text-porcelain">Good day, {me?.business_name || me?.display_name || "team"}</h1>
-      <p className="mt-1 text-[13px] text-ink/50">Last 7 days against the 7 before.</p>
-
-      <section className="mt-6">
+    <div>
+      {/* The greeting lives in the Studio header now, so the page opens on the
+          work rather than repeating the name. */}
+      <section>
         <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Needs attention</h2>
         {todos.length === 0 ? (
           <p className="rounded-lg border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">Nothing waiting on you. Inbox, offers, applicants and ads are all clear.</p>
         ) : (
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             {todos.map(t => (
-              <Link key={t.label} href={t.href} className="flex items-center gap-3.5 rounded-lg border border-ink/10 px-4 py-3.5 transition-colors duration-[140ms] hover:bg-surface">
+              <Link key={t.label} href={t.href} className="flex items-center gap-3.5 rounded-2xl border border-ink/10 bg-white px-4 py-3.5 transition-colors duration-[140ms] hover:bg-surface">
                 <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pearl/12">
                   <t.icon size={16} className="text-pearl" />
                   <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-pearl" aria-hidden />
@@ -105,13 +104,13 @@ export default function StudioHomePage() {
 
       <section className="mt-7">
         <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Performance</h2>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
           {stats.map(s => {
             const p = pct(s.now, s.prev);
             const up = p > 0, flat = p === 0;
             const line = lineFor(s.key);
             return (
-              <div key={s.label} className="flex flex-col rounded-lg border border-ink/10 px-4 py-3.5">
+              <div key={s.label} className="flex flex-col rounded-2xl border border-ink/10 bg-white px-4 py-3.5">
                 <p className="text-[11.5px] text-ink/45">{s.label}</p>
                 <p className="mt-0.5 font-display text-[26px] leading-tight text-porcelain">{s.now.toLocaleString()}</p>
                 <p className={"mt-0.5 flex items-center gap-1 text-[11.5px] " + (flat ? "text-ink/35" : up ? "text-success" : "text-red-400")}>
@@ -134,13 +133,13 @@ export default function StudioHomePage() {
         ) : null}
       </section>
 
-      <section className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px]">
+      <section className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
         <div>
           <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Recent posts</h2>
           {h.recent.length === 0 ? (
             <p className="rounded-lg border border-ink/10 px-4 py-5 text-[13.5px] text-ink/50">No posts yet. <Link href="/studio/planner" className="text-pearl">Plan the first one.</Link></p>
           ) : h.recent.map(p => (
-            <Link key={p.post_id} href={"/post/" + p.post_id} className="mb-2 flex items-start gap-3.5 rounded-lg border border-ink/10 px-4 py-3.5 transition-colors duration-[140ms] hover:bg-surface">
+            <Link key={p.post_id} href={"/post/" + p.post_id} className="mb-2 flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-white px-4 py-3.5 transition-colors duration-[140ms] hover:bg-surface">
               <ContentThumb url={thumbs[p.post_id]?.url} kind={thumbs[p.post_id]?.media_type} label={p.content || p.body} size={44} />
               <span className="min-w-0 flex-1">
                 <span className="line-clamp-2 block text-[13.5px] text-ink">{p.content || p.body || "Media post"}</span>
@@ -151,7 +150,7 @@ export default function StudioHomePage() {
         </div>
         <div>
           <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Best times to post</h2>
-          <div className="rounded-lg border border-ink/10 px-4 py-3.5">
+          <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3.5">
             {h.best_hours.length === 0 ? (
               <p className="text-[13px] text-ink/50">Appears after your posts collect engagement.</p>
             ) : h.best_hours.map(b => (

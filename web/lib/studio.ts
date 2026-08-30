@@ -24,15 +24,18 @@ export type ScheduledPost = {
 export type SavedReply = { id: string; shortcut: string; title: string; body: string };
 export type AutoReplies = { welcome_enabled: boolean; welcome_text: string | null; away_enabled: boolean; away_text: string | null; faq: { q: string; a: string }[] };
 
+// Desk order follows the design: the daily surfaces first, the deeper tools
+// after, settings last. Every href here is a route that exists; nothing is
+// listed that would land on a blank page.
 export const ROOMS = [
-  { key: "home", href: "/studio", label: "Home", ready: true },
-  { key: "inbox", href: "/studio/inbox", label: "Inbox", ready: true },
-  { key: "planner", href: "/studio/planner", label: "Planner", ready: true },
-  { key: "commerce", href: "/studio/commerce", label: "Commerce", ready: true },
-  { key: "recruiter", href: "/studio/recruiter", label: "Recruiter", ready: true },
-  { key: "ads", href: "/studio/ads", label: "Ads", ready: true },
+  { key: "home", href: "/studio", label: "Overview", ready: true },
   { key: "insights", href: "/studio/insights", label: "Insights", ready: true },
+  { key: "planner", href: "/studio/planner", label: "Planner", ready: true },
+  { key: "inbox", href: "/studio/inbox", label: "Inbox", ready: true },
+  { key: "recruiter", href: "/studio/recruiter", label: "Recruiter", ready: true },
+  { key: "commerce", href: "/studio/commerce", label: "Commerce", ready: true },
   { key: "audience", href: "/studio/audience", label: "Audience", ready: true },
+  { key: "ads", href: "/studio/ads", label: "Ads", ready: true },
   { key: "reviews", href: "/studio/reviews", label: "Reviews", ready: true },
   { key: "settings", href: "/studio/settings", label: "Settings", ready: true },
 ] as const;
