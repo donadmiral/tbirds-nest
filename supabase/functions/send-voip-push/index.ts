@@ -1,5 +1,11 @@
-// send-voip-push: rings locked iPhones through Apple's VoIP push service.
-// Expo push cannot send apns-push-type=voip, so this speaks APNs directly.
+// send-voip-push: rings locked phones on both platforms.
+//
+// iPhone goes through Apple's VoIP push service, which Expo push cannot send
+// (it has no way to set apns-push-type=voip), so this speaks APNs directly.
+// Android goes through Expo's push service, which relays to FCM as a high
+// priority message on the calls channel, so the phone rings and vibrates even
+// when locked. The two branches are independent: if the APNs secrets are
+// missing, Android still rings, and the reverse holds too.
 // BUILD DAY: set secrets APNS_KEY_P8 (the .p8 file contents), APNS_KEY_ID,
 // APNS_TEAM_ID, then: npx supabase functions deploy send-voip-push
 // Ring path: after a call session is created, invoke this with { callId }.
@@ -44,33 +50,69 @@ Deno.serve(async (req) => {
     if (receivers.length === 0) return new Response('no receivers', { status: 200 });
 
     const { data: toks } = await admin.from('user_push_tokens')
-      .select('user_id, voip_token').in('user_id', receivers).not('voip_token', 'is', null);
-    if (!toks || toks.length === 0) return new Response('no voip tokens', { status: 200 });
+      .select('user_id, platform, expo_push_token, voip_token').in('user_id', receivers);
+    if (!toks || toks.length === 0) return new Response('no tokens', { status: 200 });
 
     const { data: caller } = await admin.from('profiles')
       .select('full_name').eq('id', call.initiator_id ?? call.caller_id).maybeSingle();
+    const callerName = caller?.full_name || 'Platinum Circles';
+    const isVideo = !!call.is_video;
 
-    const jwt = await apnsJwt();
-    const payload = JSON.stringify({
-      aps: {},
-      callId,
-      callerName: caller?.full_name || 'Platinum Circles',
-      isVideo: !!call.is_video,
-    });
-    const results = await Promise.all(toks.map((t: any) =>
-      fetch(`${APNS_HOST}/3/device/${t.voip_token}`, {
-        method: 'POST',
-        headers: {
-          authorization: `bearer ${jwt}`,
-          'apns-topic': APNS_TOPIC,
-          'apns-push-type': 'voip',
-          'apns-priority': '10',
-          'content-type': 'application/json',
-        },
-        body: payload,
-      }).then((r) => r.status)
-    ));
-    return new Response(JSON.stringify({ sent: results }), { status: 200 });
+    // ── iPhone: PushKit, which wakes the app even when it is not running ────
+    const voipTokens = toks.filter((t: any) => t.voip_token);
+    let apns: Array<number | string> = [];
+    if (voipTokens.length > 0) {
+      try {
+        const jwt = await apnsJwt();
+        const payload = JSON.stringify({ aps: {}, callId, callerName, isVideo });
+        apns = await Promise.all(voipTokens.map((t: any) =>
+          fetch(`${APNS_HOST}/3/device/${t.voip_token}`, {
+            method: 'POST',
+            headers: {
+              authorization: `bearer ${jwt}`,
+              'apns-topic': APNS_TOPIC,
+              'apns-push-type': 'voip',
+              'apns-priority': '10',
+              'content-type': 'application/json',
+            },
+            body: payload,
+          }).then((r) => r.status).catch((e) => String(e?.message ?? e))
+        ));
+      } catch (e) {
+        apns = [String((e as any)?.message ?? e)];
+      }
+    }
+
+    // ── Android: Expo push, high priority, on the calls channel ─────────────
+    // ttl is short on purpose: a call push that arrives after the ring has
+    // stopped is worse than no push, because it rings for a call that ended.
+    const androidTokens = toks.filter((t: any) =>
+      t.platform === 'android' && t.expo_push_token && !t.voip_token);
+    let expo: unknown = null;
+    if (androidTokens.length > 0) {
+      const messages = androidTokens.map((t: any) => ({
+        to: t.expo_push_token,
+        title: callerName,
+        body: isVideo ? 'Incoming video call' : 'Incoming call',
+        data: { type: 'incoming_call', callId, callerName, isVideo },
+        channelId: 'calls',
+        priority: 'high',
+        ttl: 45,
+        sound: 'default',
+      }));
+      try {
+        const r = await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', accept: 'application/json' },
+          body: JSON.stringify(messages),
+        });
+        expo = await r.json().catch(() => ({ status: r.status }));
+      } catch (e) {
+        expo = String((e as any)?.message ?? e);
+      }
+    }
+
+    return new Response(JSON.stringify({ apns, expo }), { status: 200 });
   } catch (e) {
     return new Response(String((e as any)?.message ?? e), { status: 500 });
   }

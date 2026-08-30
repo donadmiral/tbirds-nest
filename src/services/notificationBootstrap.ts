@@ -1,7 +1,7 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { pushTokenService } from './pushTokenService';
 import { nativeCallService } from './nativeCallService';
 
@@ -35,6 +35,33 @@ Notifications.setNotificationHandler({
 
 let activeCallNavId: string | null = null;
 let activeCallNavTimer: ReturnType<typeof setTimeout> | null = null;
+
+// ── Android calls channel ─────────────────────────────────────────────────
+// Android decides how loud a notification is from its channel, not from the
+// message, so a call push on the default channel gets a single soft tone. This
+// channel rings with the bundled ringtone, vibrates in a call pattern, shows on
+// the lock screen and ignores Do Not Disturb, which is what a call needs.
+// Channel settings are fixed once created, so changing them later needs a new
+// channel id, not an edit.
+let callChannelReady = false;
+export async function ensureCallChannel(): Promise<void> {
+  if (Platform.OS !== 'android' || callChannelReady) return;
+  try {
+    await Notifications.setNotificationChannelAsync('calls', {
+      name: 'Incoming calls',
+      importance: Notifications.AndroidImportance.MAX,
+      sound: 'incallmanager_ringtone.mp3',
+      vibrationPattern: [0, 1000, 800, 1000, 800, 1000],
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      bypassDnd: true,
+      enableVibrate: true,
+      showBadge: false,
+    });
+    callChannelReady = true;
+  } catch (e) {
+    console.log('CALL_CHANNEL_ERROR', (e as any)?.message);
+  }
+}
 
 export function setActiveCallNavId(callId: string) {
   activeCallNavId = callId;
@@ -70,6 +97,8 @@ export async function registerForPushNotifications(userId: string) {
     console.log('Must use physical device for push notifications');
     return null;
   }
+
+  await ensureCallChannel();
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
