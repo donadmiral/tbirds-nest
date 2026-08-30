@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { TrendingUp, UserPlus } from "lucide-react";
+import { Flame, UserPlus } from "lucide-react";
+import { Panel, RankRow } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
@@ -44,37 +45,32 @@ export function DiscoveryRail() {
     })();
   }, [supabase]);
 
-  const card = "rounded-lg border border-ink/10 bg-white";
-  const header = "flex items-center gap-2 border-b border-ink/10 px-4 py-3 text-[14px] font-semibold text-ink";
-
   return (
-    <div className="sticky top-6 flex w-full flex-col gap-4">
+    <>
       {topics.length > 0 ? (
-        <section className={card}>
-          <h2 className={header}><TrendingUp size={15} className="text-pearl" /> Hot topics</h2>
-          <div className="divide-y divide-ink/5">
-            {topics.map((t) => {
+        <Panel title="Trending now" icon={<Flame size={15} />} action="View all" actionHref="/discover">
+          <div className="flex flex-col gap-0.5">
+            {topics.map((t, i) => {
               const tag = t.topic.startsWith("#") ? t.topic : "#" + t.topic;
               return (
-                <Link key={t.topic}
+                <RankRow
+                  key={t.topic}
+                  rank={i + 1}
+                  label={tag}
+                  meta={t.post_count.toLocaleString() + (t.post_count === 1 ? " post" : " posts")}
                   href={"/topic/" + encodeURIComponent(tag.slice(1))}
-                  className="flex items-baseline justify-between px-4 py-2.5 transition-colors duration-[140ms] hover:bg-surface"
-                >
-                  <span className="truncate text-[14px] font-semibold text-ink">{tag}</span>
-                  <span className="ml-3 shrink-0 text-[12px] text-ink/40">{t.post_count} {t.post_count === 1 ? "post" : "posts"}</span>
-                </Link>
+                />
               );
             })}
           </div>
-        </section>
+        </Panel>
       ) : null}
 
       {people.length > 0 ? (
-        <section className={card}>
-          <h2 className={header}><UserPlus size={15} className="text-pearl" /> Who to follow</h2>
-          <div className="divide-y divide-ink/5">
+        <Panel title="Suggested for you" icon={<UserPlus size={15} />} action={people.length > 4 ? (showAll ? "Show less" : "View all") : undefined} actionHref={people.length > 4 ? "#" : undefined}>
+          <div className="flex flex-col gap-3">
             {(showAll ? people : people.slice(0, 4)).map((p) => (
-              <div key={p.id} className="flex items-center gap-3 px-4 py-3">
+              <div key={p.id} className="flex items-center gap-3">
                 <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={40} href={p.username ? "/" + p.username : null} />
                 <Link href={p.username ? "/" + p.username : "#"} className="min-w-0 flex-1">
                   <span className="flex items-center gap-[3px] text-[14px] font-semibold leading-tight text-ink">
@@ -90,12 +86,12 @@ export function DiscoveryRail() {
             ))}
           </div>
           {people.length > 4 ? (
-            <button onClick={() => setShowAll((v) => !v)} className="w-full border-t border-ink/10 px-4 py-2.5 text-left text-[13px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-surface">
+            <button onClick={() => setShowAll((v) => !v)} className="mt-3 w-full rounded-full border border-ink/10 py-2 text-[12.5px] font-semibold text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
               {showAll ? "Show less" : "Show more"}
             </button>
           ) : null}
-        </section>
+        </Panel>
       ) : null}
-    </div>
+    </>
   );
 }

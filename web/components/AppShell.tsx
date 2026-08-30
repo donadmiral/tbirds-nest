@@ -5,8 +5,20 @@ import { WebCallLayer } from "@/components/WebCallLayer";
 import { GlobalMediaLightbox } from "@/components/GlobalMediaLightbox";
 import { GlobalBack } from "@/components/GlobalBack";
 import { DiscoveryRail } from "@/components/DiscoveryRail";
+import { TopBar } from "@/components/TopBar";
 
-export async function AppShell({ children, wide = false, rail = false }: { children: React.ReactNode; wide?: boolean; rail?: boolean }) {
+export async function AppShell({
+  children,
+  wide = false,
+  rail = false,
+  railContent,
+}: {
+  children: React.ReactNode;
+  wide?: boolean;
+  rail?: boolean;
+  /** A route's own rail panels. Falls back to discovery when omitted. */
+  railContent?: React.ReactNode;
+}) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) {
@@ -29,7 +41,7 @@ export async function AppShell({ children, wide = false, rail = false }: { child
   }
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, username, account_type")
+    .select("full_name, username, account_type, avatar_url")
     .eq("id", data.user.id)
     .maybeSingle();
   return (
@@ -38,20 +50,23 @@ export async function AppShell({ children, wide = false, rail = false }: { child
       <WebCallLayer />
       <GlobalMediaLightbox />
       <GlobalBack />
-      {wide ? (
-        <main className="ml-[260px]">{children}</main>
-      ) : rail ? (
-        <main className="ml-[260px] flex justify-center gap-6 px-4 py-8">
-          <div className="w-full min-w-0 max-w-[640px]">{children}</div>
-          <aside className="hidden w-80 shrink-0 xl:block">
-            <DiscoveryRail />
-          </aside>
-        </main>
-      ) : (
-        <main className="ml-[260px] flex justify-center px-6 py-8">
-          <div className="w-full max-w-[640px]">{children}</div>
-        </main>
-      )}
+      <div className="ml-[260px]">
+        <TopBar name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} avatarUrl={profile?.avatar_url} />
+        {wide ? (
+          <main className="-mt-[60px] px-6 pb-10 pt-[76px]">{children}</main>
+        ) : rail ? (
+          <main className="-mt-[60px] flex justify-center gap-6 px-6 pb-10 pt-[76px]">
+            <div className="w-full min-w-0 max-w-[640px]">{children}</div>
+            <aside className="hidden w-[340px] shrink-0 xl:block">
+              <div className="sticky top-[88px] flex flex-col gap-4">{railContent ?? <DiscoveryRail />}</div>
+            </aside>
+          </main>
+        ) : (
+          <main className="-mt-[60px] flex justify-center px-6 pb-10 pt-[76px]">
+            <div className="w-full max-w-[640px]">{children}</div>
+          </main>
+        )}
+      </div>
     </div>
   );
 }
