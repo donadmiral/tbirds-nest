@@ -16,7 +16,7 @@ async function loadProfile(username: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, username, avatar_url, bio, is_verified, verified_tier, account_type")
+    .select("id, full_name, username, avatar_url, banner_url, bio, is_verified, verified_tier, account_type")
     .ilike("username", username)
     .limit(1)
     .maybeSingle();
@@ -69,18 +69,38 @@ export default async function ProfilePage({ params }: Params) {
       <Link href="/home" aria-label="Back to Platinum Circles" className="mb-6 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
         <ArrowLeft size={19} />
       </Link>
-      <header className="flex items-start gap-5 px-1 pb-7">
-        <span className="rounded-full p-[3px] ring-1 ring-pearl/30">
-          <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={80} />
-        </span>
-        <div className="min-w-0 flex-1 pt-1.5">
-          <div className="flex items-center gap-1">
-            <h1 className="truncate text-[22px] font-semibold text-ink" style={p.is_verified ? { color: getTierColor(p.verified_tier) ?? undefined } : undefined}>{p.full_name}</h1>
+      <header className="-mx-4 pb-6">
+        <div className="h-[164px] w-full border-b-2 border-pearl bg-navy">
+          {p.banner_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.banner_url} alt="" className="h-full w-full object-cover" />
+          ) : null}
+        </div>
+
+        <div className="px-4">
+          <div className="-mt-[55px] mb-1 flex justify-center">
+            <span className="flex h-[106px] w-[106px] items-center justify-center rounded-full ring-1 ring-pearl/30">
+              <span className="rounded-full border-[3px] border-white bg-surface">
+                <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={92} />
+              </span>
+            </span>
+          </div>
+
+          <div className="flex items-center justify-center gap-[3px]">
+            <h1
+              className="truncate text-[22px] font-bold tracking-[-0.6px] text-ink"
+              style={p.is_verified ? { color: getTierColor(p.verified_tier) ?? undefined } : undefined}
+            >
+              {p.full_name}
+            </h1>
             {p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={17} /> : null}
           </div>
-          <p className="text-[13.5px] text-ink/50">@{p.username}</p>
-          {p.bio ? <p className="mt-2.5 whitespace-pre-wrap text-[14.5px] leading-relaxed text-ink/80">{p.bio}</p> : null}
-          <p className="mt-3.5 flex gap-5 text-[13px] text-ink/50">
+          <p className="text-center text-[13.5px] text-ink/50">@{p.username}</p>
+          {p.bio ? (
+            <p className="mx-auto mt-2.5 max-w-[420px] whitespace-pre-wrap text-center text-[14.5px] leading-relaxed text-ink/80">{p.bio}</p>
+          ) : null}
+
+          <p className="mt-3.5 flex justify-center gap-6 text-[13px] text-ink/50">
             {!isBusiness ? (
               <Link href={"/" + p.username + "/follows?tab=following"} className="flex items-baseline gap-1.5 transition-colors duration-[140ms] hover:text-ink"><span className="font-display text-[17px] text-porcelain">{following.count ?? 0}</span> Following</Link>
             ) : null}
@@ -88,7 +108,7 @@ export default async function ProfilePage({ params }: Params) {
           </p>
         </div>
       </header>
-      <div className="mb-6 px-1">
+      <div className="mb-6 flex flex-col items-center gap-2 px-1">
         <MessageButton profileId={p.id} />
         <ProfileContext profileId={p.id} username={p.username ?? ""} />
       </div>
