@@ -1,5 +1,7 @@
 "use client";
 
+import { RecruiterFunnel } from "@/components/RecruiterFunnel";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Briefcase, Calendar, ExternalLink, FileText, MessageCircle, Phone, Plus, X } from "lucide-react";
@@ -11,6 +13,16 @@ type Job = { id: string; title: string; company: string; location: string | null
 type Applicant = { id: string; status: string; applied_at: string; updated_at: string; cover_note: string | null; cover_letter: string | null; cv_url: string | null; cv_name: string | null; phone: string | null; portfolio_url: string | null; interview_at: string | null; interview_location: string | null; applicant_id: string; name: string; username: string | null; avatar_url: string | null; bio: string | null; location: string | null; tags: string[]; notes: { id: string; body: string; created_at: string; author: string | null }[] };
 
 const STAGES = ["applied", "screening", "interview", "offer", "hired", "rejected"] as const;
+// The pipeline reads left to right, so each column carries a colour that warms
+// as a candidate advances and goes red only at the end.
+const STAGE_BAR: Record<string, string> = {
+  applied: "bg-ink/15",
+  screening: "bg-ink/30",
+  interview: "bg-pearl/50",
+  offer: "bg-pearl",
+  hired: "bg-success",
+  rejected: "bg-red-400/40",
+};
 const STAGE_LABEL: Record<string, string> = { applied: "New", screening: "Screening", interview: "Interview", offer: "Offer", hired: "Hired", rejected: "Rejected" };
 const toLocalInput = (iso: string | null) => iso ? new Date(new Date(iso).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "";
 
@@ -127,14 +139,21 @@ export default function RecruiterPage() {
             </div>
           ) : null}
 
+          <RecruiterFunnel apps={apps} jobs={jobs} />
+
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
             <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
               {STAGES.map(st => {
                 const col = apps.filter(a => a.status === st);
                 return (
                   <div key={st} className="rounded-2xl border border-ink/10 bg-white p-2">
-                    <p className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-ink/45"><span>{STAGE_LABEL[st]}</span><span>{col.length}</span></p>
-                    {loadingApps ? <p className="px-1 text-[12px] text-ink/30">Loading</p> : col.map(a => (
+                    <span className={"mb-2 block h-[3px] w-full rounded-full " + STAGE_BAR[st]} aria-hidden />
+                    <p className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-ink/45"><span>{STAGE_LABEL[st]}</span><span className="tabular-nums">{col.length}</span></p>
+                    {loadingApps ? <p className="px-1 text-[12px] text-ink/30">Loading</p> : col.length === 0 ? (
+                      <p className="px-1 pb-1 text-[11.5px] leading-snug text-ink/25">
+                        {st === "applied" ? "New applications land here" : st === "rejected" ? "Nobody rejected" : "Nobody at this stage"}
+                      </p>
+                    ) : col.map(a => (
                       <button key={a.id} onClick={() => setSel(a)} className={"mb-1.5 w-full rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (sel?.id === a.id ? "border-pearl" : "border-ink/10")}>
                         <span className="flex items-center gap-2">
                           {a.avatar_url ? (
