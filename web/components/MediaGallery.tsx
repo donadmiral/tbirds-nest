@@ -288,7 +288,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
 
       {lightbox !== null ? (
         <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Media viewer"
-          className="fixed inset-0 z-50 flex flex-col bg-[#0b0b0d]"
+          className="theater fixed inset-0 z-50 flex flex-col bg-[#0b0b0d]"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox(null); }}
           onTouchStart={onTouchStart} onTouchMove={onModalTouchMove} onTouchEnd={onModalTouchEnd}
           onMouseMove={onDragMove} onMouseUp={onDragEnd} onMouseLeave={onDragEnd}

@@ -6,6 +6,7 @@ import { AtSign, Briefcase, ChevronRight, Edit3, EyeOff, FileText, HelpCircle, I
 import { autoplayEnabled, dataSaverEnabled, setAutoplay, setDataSaver } from "@/lib/mediaPrefs";
 import { PageHeader } from "@/components/ui";
 import { AccountStatus } from "@/components/AccountStatus";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function SettingsPage() {
   const [auto, setAuto] = useState(true);
@@ -94,6 +95,13 @@ export default function SettingsPage() {
       <div id="device" className="mb-4 scroll-mt-[88px] rounded-2xl border border-ink/10 bg-white p-4">
         <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Data and appearance</h2>
         <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-ink/10 p-4">
+            <span>
+              <span className="block text-[14px] font-semibold text-ink">Appearance</span>
+              <span className="block text-[12.5px] text-ink/50">Light, dark, or whatever your device uses.</span>
+            </span>
+            <ThemeToggle />
+          </div>
         <div className={row}>
           <span>
             <span className="block text-[14px] font-semibold text-ink">Autoplay videos</span>

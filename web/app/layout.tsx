@@ -38,6 +38,14 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${marcellus.variable} ${instrument.variable}`}>
+      <head>
+        {/* Applies the saved appearance before paint so dark users see no flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{var t=localStorage.getItem('pc:theme')||'light';if(t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}",
+          }}
+        />
+      </head>
       <body suppressHydrationWarning>
         {children}
         {/* Global, so a dropped connection is reported on every route. */}

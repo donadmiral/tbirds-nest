@@ -52,3 +52,23 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Dark mode.
+   Every colour in the app is a token, so dark is a second set of values, not
+   a second set of classes. bg-white is remapped to a dark card colour; the
+   .theater scope restores true white inside the video viewer, which is dark
+   in both modes and needs light text. */
+.dark {
+  --color-ink: #ece8df;
+  --color-navy: #ece8df;
+  --color-porcelain: #f6f2ea;
+  --color-white: #17191d;
+  --color-pearl-muted: #b9ae9e;
+  --color-surface: rgba(255, 255, 255, 0.06);
+  --color-surface-elevated: rgba(255, 255, 255, 0.10);
+  --color-surface-active: rgba(255, 255, 255, 0.14);
+  color-scheme: dark;
+}
+.dark body { background: #0f1013; }
+.dark .theater { --color-white: #ffffff; }
+.dark img[src$=".svg"] { filter: none; }
