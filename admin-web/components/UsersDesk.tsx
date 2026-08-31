@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Seal from '@/components/Seal';
-import { suspendUser, restoreUser, revokeVerification, issueStrike } from '@/lib/actions';
+import { suspendUser, restoreUser, revokeVerification, issueStrike, adminDeleteAccount } from '@/lib/actions';
 
 type Row = {
   id: string; full_name: string | null; username: string | null; email: string | null;
@@ -152,11 +152,23 @@ export default function UsersDesk({ rows, appeals }: { rows: Row[]; appeals: { i
             ) : null}
 
             {!selected.deactivated_at && !strikeOpen ? (
+              <>
+              <details className="mt-4 rounded-[10px] border border-[#F3C9C9] bg-[#FFF7F7] p-3">
+                <summary className="cursor-pointer text-[12.5px] font-bold text-[#B03A3A]">Delete this account permanently</summary>
+                <p className="mt-2 text-[12px] text-[#6B6E76]">Removes every post, story, message, listing, follow and membership this person owns, then the login itself. There is no undo. Prefer suspension unless deletion is required.</p>
+                <form action={adminDeleteAccount} className="mt-2 flex flex-col gap-2">
+                  <input type="hidden" name="id" value={selected.id} />
+                  <input name="reason" required placeholder="Reason (required, kept in the audit log)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
+                  <input name="confirm" required placeholder="Type DELETE to confirm" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
+                  <button className="self-start rounded-[9px] bg-[#B03A3A] px-3.5 py-2 text-[12px] font-bold text-white transition-colors duration-150 hover:bg-[#8F2E2E]">Delete permanently</button>
+                </form>
+              </details>
               <form action={suspendUser} className="mt-3 flex flex-col gap-2">
                 <input type="hidden" name="id" value={selected.id} />
                 <input name="reason" required placeholder="Suspension reason (required)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
                 <button className="self-start rounded-[9px] border border-[#F3C9C9] bg-[#FBF0F0] px-3.5 py-2 text-[12px] font-bold text-[#B03A3A] transition-colors duration-150 hover:bg-[#F8E4E4]">Suspend account</button>
               </form>
+              </>
             ) : null}
           </div>
         )}

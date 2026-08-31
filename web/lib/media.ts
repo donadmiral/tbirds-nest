@@ -25,3 +25,24 @@ export function srcSetFor(url: string): { srcSet: string; sizes: string } {
     sizes: "(max-width: 700px) 92vw, 640px",
   };
 }
+/**
+ * Formats a browser can render. Everything else is refused at the picker with
+ * a message that says what to do, so a HEIC photo or a QuickTime clip never
+ * reaches the bucket from web again. Phones convert on their side.
+ */
+const RENDERABLE = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm", "audio/mpeg", "audio/mp4", "audio/aac", "application/pdf"]);
+const BAD_EXT = /\.(heic|heif|mov|avi|wmv|flv|tiff?|bmp|3gp)$/i;
+
+export function checkUploadable(file: File): string | null {
+  const type = (file.type || "").toLowerCase();
+  const name = file.name || "";
+  if (BAD_EXT.test(name) || type === "image/heic" || type === "image/heif" || type === "video/quicktime") {
+    return name.match(/\.(mov|3gp)$/i) || type === "video/quicktime"
+      ? "That video is a QuickTime file, which browsers cannot play. Export it as MP4 and try again."
+      : "That photo is a HEIC file, which browsers cannot show. Save it as JPG or PNG and try again.";
+  }
+  if (type && !RENDERABLE.has(type) && !type.startsWith("image/") && !type.startsWith("video/")) {
+    return "That file type is not supported here.";
+  }
+  return null;
+}

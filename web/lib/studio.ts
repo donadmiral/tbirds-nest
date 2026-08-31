@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { checkUploadable } from "@/lib/media";
 
 export type StudioRole = "owner" | "admin" | "editor" | "recruiter" | "support";
 export type StudioMe = {
@@ -102,6 +103,8 @@ export async function uploadStudioMedia(file: File): Promise<{ url: string; medi
   if (!uid) throw new Error("Not signed in");
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace("jpeg", "jpg");
   const path = uid + "/studio_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+  const bad = checkUploadable(file);
+  if (bad) throw new Error(bad);
   const up = await s.storage.from("post-media").upload(path, file, { contentType: file.type || "application/octet-stream" });
   if (up.error) throw up.error;
   return { url: s.storage.from("post-media").getPublicUrl(path).data.publicUrl, media_type: file.type.startsWith("video") ? "video" : "image" };

@@ -613,3 +613,37 @@ export async function adminTransferOwnership(formData: FormData) {
   await svc.from('org_audit_log').insert({ org_id: id, actor_id: admin.id, action: 'ownership_set_by_platform', target_type: 'user', target_id: p.id });
   redirect('/organizations');
 }
+
+
+// Permanent deletion. delete_user_account removes everything the person owns
+// (posts, media rows, messages, follows, stories, listings, memberships) and
+// finally the auth user, in one transaction. There is no undo.
+export async function adminDeleteAccount(formData: FormData) {
+  const admin = await requireSuper();
+  const id = String(formData.get('id') || '');
+  const reason = String(formData.get('reason') || '').trim();
+  const confirm = String(formData.get('confirm') || '').trim().toUpperCase();
+  if (!id || !reason || confirm !== 'DELETE') redirect('/users?id=' + id);
+  const svc = serviceClient();
+  const { data: before } = await svc.from('profiles').select('username, full_name, account_type').eq('id', id).maybeSingle();
+  await svc.from('admin_audit_log').insert({ admin_id: admin.id, action: 'account.delete', target_kind: 'profile', target_id: id, reason, before: before ?? {}, after: {} });
+  const { error } = await svc.rpc('delete_user_account', { p_user_id: id });
+  if (error) {
+    await svc.from('admin_audit_log').insert({ admin_id: admin.id, action: 'account.delete_failed', target_kind: 'profile', target_id: id, reason: error.message, before: {}, after: {} });
+    redirect('/users?id=' + id + '&err=' + encodeURIComponent(error.message));
+  }
+  redirect('/users');
+}
+
+// Remove one comment. The post's counts are trigger-maintained.
+export async function adminRemoveComment(formData: FormData) {
+  const admin = await requireSuper();
+  const id = String(formData.get('id') || '');
+  const reason = String(formData.get('reason') || 'Removed by platform').trim();
+  if (!id) redirect('/content');
+  const svc = serviceClient();
+  const { data: before } = await svc.from('post_comments').select('post_id, user_id, body, content').eq('id', id).maybeSingle();
+  await svc.from('post_comments').delete().eq('id', id);
+  await svc.from('admin_audit_log').insert({ admin_id: admin.id, action: 'comment.remove', target_kind: 'comment', target_id: id, reason, before: before ?? {}, after: {} });
+  redirect('/content');
+}

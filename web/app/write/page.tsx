@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { checkUploadable } from "@/lib/media";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, X } from "lucide-react";
@@ -68,6 +69,8 @@ export default function WriteArticlePage() {
     if (!uid) return;
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const path = uid + "/article-" + Date.now() + "." + ext;
+    const bad = checkUploadable(file);
+    if (bad) { setError(bad); return; }
     const { error: upErr } = await supabase.storage.from("post-media").upload(path, file, { contentType: file.type });
     if (upErr) { setError("That image did not upload: " + upErr.message); return; }
     const { data } = supabase.storage.from("post-media").getPublicUrl(path);
@@ -107,6 +110,8 @@ export default function WriteArticlePage() {
     if (cover) {
       const ext = (cover.name.split(".").pop() || "jpg").toLowerCase();
       const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+      const badCover = checkUploadable(cover);
+      if (badCover) { setError(badCover); setBusy(false); return; }
       const { error: upErr } = await supabase.storage.from("post-media").upload(path, cover, { contentType: cover.type });
       if (!upErr) {
         const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
