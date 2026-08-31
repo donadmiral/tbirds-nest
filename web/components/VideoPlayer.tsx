@@ -31,6 +31,8 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
   const [unplayable, setUnplayable] = useState(false);
   const [portrait, setPortrait] = useState(() => !!(width && height && height > width));
   const [posterBg, setPosterBg] = useState<string | null>(null);
+  // Expanded view fills the whole area by default; Fit shows the uncropped frame.
+  const [fill, setFill] = useState(true);
   const posterTried = useRef(false);
 
   const reportDwell = useCallback(async () => {
@@ -195,13 +197,13 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
             setPosterBg(c.toDataURL("image/jpeg", 0.7));
           } catch { /* tainted or unavailable, fine */ }
         }}
-        className={(fs || immersive) ? "relative min-h-0 w-full flex-1 object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.10)]" : "relative h-full w-full object-cover"}
+        className={(fs || immersive) ? ("relative min-h-0 w-full flex-1 " + (fill ? "object-cover" : "object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.10)]")) : "relative h-full w-full object-cover"}
       />
 
       {!playing && posterBg && !unplayable ? (
         <button onClick={(e) => { e.stopPropagation(); playNow(); }} aria-label="Play video" className="absolute inset-0 z-[5] flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={posterBg} alt="" aria-hidden className={"absolute inset-0 h-full w-full " + ((fs || immersive) ? "object-contain" : "object-cover")} />
+          <img src={posterBg} alt="" aria-hidden className={"absolute inset-0 h-full w-full " + ((fs || immersive) && !fill ? "object-contain" : "object-cover")} />
           <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-ink/70 pl-1 text-white">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
           </span>
@@ -226,6 +228,11 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
           {(fs || immersive) ? <span className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-pearl shadow" style={{ left: "calc(" + progress * 100 + "% - 7px)" }} aria-hidden /> : null}
         </div>
         <div className="flex items-center gap-1.5">
+          {(fs || immersive) ? (
+            <button onClick={(e) => { e.stopPropagation(); setFill((v) => !v); }} title={fill ? "Show the whole frame" : "Fill the screen"} className="mr-1 rounded-full border border-pearl/70 px-3 py-1 text-[12.5px] font-semibold text-pearl transition-colors hover:bg-pearl/10">
+              {fill ? "Fit" : "Fill"}
+            </button>
+          ) : null}
           <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} title={playing ? "Pause (Space)" : "Play (Space)"} className={btn}>
             {playing ? <Pause size={15} /> : <Play size={15} />}
           </button>
