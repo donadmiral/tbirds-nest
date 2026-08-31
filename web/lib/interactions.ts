@@ -1,16 +1,24 @@
 // Direct table ops, mirroring mobile. Count columns are trigger-maintained.
 import { createClient } from "@/lib/supabase/client";
 
-let viewerIdPromise: Promise<string | null> | null = null;
-
-export function getViewerId(): Promise<string | null> {
-  if (!viewerIdPromise) {
-    viewerIdPromise = createClient()
-      .auth.getSession()
-      .then(({ data }) => data.session?.user.id ?? null)
-      .catch(() => null);
+/**
+ * The signed-in user's id, read fresh every time.
+ *
+ * This used to be cached in a module variable for the life of the tab. Next
+ * keeps modules alive across client navigations, so after switching accounts
+ * (Don to Intobank, say) every like, bookmark and repost was still written
+ * under the previous user's id. Row-level security rejects an insert whose
+ * user_id is not auth.uid(), so the button flipped back and nothing was saved,
+ * with no error anywhere. getSession reads local storage, not the network, so
+ * there is nothing to gain from caching it.
+ */
+export async function getViewerId(): Promise<string | null> {
+  try {
+    const { data } = await createClient().auth.getSession();
+    return data.session?.user.id ?? null;
+  } catch {
+    return null;
   }
-  return viewerIdPromise;
 }
 
 type Table = "post_likes" | "post_bookmarks" | "post_reposts";
