@@ -138,16 +138,22 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     load();
+    // A unique name per mount: React runs this effect twice in development,
+    // and two runs in the same millisecond used to get the same channel back
+    // already subscribed. The cancelled flag stops the first run's async
+    // setup from subscribing after its cleanup has already happened.
     let ch: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+    const name = "web_notifications_" + Math.random().toString(36).slice(2);
     supabase.auth.getSession().then(({ data }) => {
       const uid = data.session?.user.id;
-      if (!uid) return;
+      if (!uid || cancelled) return;
       ch = supabase
-        .channel("web_notifications_" + Date.now())
+        .channel(name)
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: "recipient_id=eq." + uid }, () => load())
         .subscribe();
     });
-    return () => { if (ch) supabase.removeChannel(ch); };
+    return () => { cancelled = true; if (ch) supabase.removeChannel(ch); };
   }, [supabase, load]);
 
   async function markAllRead() {
