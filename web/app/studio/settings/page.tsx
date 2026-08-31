@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { Panel } from "@/components/ui";
 
@@ -72,6 +74,17 @@ export default function SettingsPage() {
       {info ? (
         <StudioRailPortal>
           <>
+            <Link
+              href="/studio/settings/organization"
+              className="flex items-center justify-between rounded-2xl border border-pearl/50 bg-pearl/8 px-4 py-3.5 transition-colors duration-[140ms] hover:bg-pearl/12"
+            >
+              <span>
+                <span className="block text-[13.5px] font-semibold text-ink">Organization</span>
+                <span className="block text-[12px] text-ink/50">Team, brands and locations, desks, agencies, history</span>
+              </span>
+              <span className="text-pearl">&rarr;</span>
+            </Link>
+
             <Panel title="Workspace">
               <div className="flex items-center justify-between text-[13px]">
                 <span className="text-ink/55">Your role</span>
