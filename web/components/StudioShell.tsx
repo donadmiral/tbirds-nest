@@ -138,7 +138,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
             the widest tables and made each one look unfinished. */}
         <div className="mt-6 flex gap-6">
           <div className="min-w-0 flex-1">{children}</div>
-          <aside className="hidden w-[300px] shrink-0 2xl:block">
+          <aside className="hidden w-[300px] shrink-0 xl:block">
             <div className="sticky top-[88px] flex flex-col gap-4">
               {/* Desk-specific panels land here, above the shared ones. */}
               <div id={STUDIO_RAIL_SLOT} className="flex flex-col gap-4" />

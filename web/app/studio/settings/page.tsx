@@ -141,6 +141,17 @@ export default function SettingsPage() {
       <h1 className="font-display text-[21px] leading-tight text-porcelain">Settings</h1>
       <p className="mt-1 text-[13px] text-ink/50">Business details and hours, who can work in Studio, and which devices may sign in.</p>
 
+      <Link
+        href="/studio/settings/organization"
+        className="mt-4 flex items-center justify-between rounded-2xl border border-pearl/50 bg-pearl/8 px-4 py-3.5 transition-colors duration-[140ms] hover:bg-pearl/12"
+      >
+        <span>
+          <span className="block text-[14px] font-semibold text-ink">Organization</span>
+          <span className="block text-[12.5px] text-ink/55">Team and roles, brands and locations, which desks are on, agencies, history</span>
+        </span>
+        <span className="text-[18px] text-pearl">&rarr;</span>
+      </Link>
+
       <section className="mt-5 rounded-xl border border-ink/10 p-4">
         <div className="flex items-center gap-3">
           {info.profile?.avatar_url ? (
