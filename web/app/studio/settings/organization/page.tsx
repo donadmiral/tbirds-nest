@@ -60,7 +60,7 @@ export default function OrganizationPage() {
   const [delegations, setDelegations] = useState<Delegation[]>([]);
   const [audit, setAudit] = useState<Audit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<string | false>(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -86,7 +86,8 @@ export default function OrganizationPage() {
       if (!me) throw new Error("no session");
 
       const { data: o, error } = await supabase.from("organizations").select("id, kind, name, slug, profile_id, parent_id").eq("profile_id", me).maybeSingle();
-      if (error || !o) throw error ?? new Error("no org");
+      if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
+      if (!o) throw new Error("No organization row has profile_id = " + me + ". Only a business account has one.");
       setOrg(o as Org);
 
       const [m, t, s, d, a] = await Promise.all([
@@ -101,8 +102,8 @@ export default function OrganizationPage() {
       setSurfaces(Object.fromEntries(((s.data ?? []) as { surface: string; enabled: boolean }[]).map((r) => [r.surface, r.enabled])));
       setDelegations(((d.data ?? []) as unknown) as Delegation[]);
       setAudit(((a.data ?? []) as unknown) as Audit[]);
-    } catch {
-      setFailed(true);
+    } catch (e) {
+      setFailed(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -128,7 +129,7 @@ export default function OrganizationPage() {
   }
 
   if (loading) return <p className="py-14 text-center text-sm text-ink/40">Loading</p>;
-  if (failed || !org) return <ErrorState title="Could not load your organization" line="Only a business account has one. Sign in as the business to manage it." onRetry={() => void load()} />;
+  if (failed || !org) return <ErrorState title="Could not load your organization" line={failed || "No organization found for this account."} onRetry={() => void load()} />;
 
   return (
     <div>
