@@ -186,6 +186,7 @@ export default function FeedScreen({ navigation }: any) {
   const [discoverCat, setDiscoverCat] = useState('innovation');
   const discoverInnoIdsRef = useRef<Set<string>>(new Set());
   const discoverMetaRef = useRef<Map<string, string | null>>(new Map());
+  const discoverCatRef = useRef(discoverCat);
   const mediaTouchRef = useRef(false);
   const hiddenIdsRef = useRef<Set<string>>(new Set());
   const seenPendingRef = useRef<Set<string>>(new Set());
@@ -420,11 +421,20 @@ export default function FeedScreen({ navigation }: any) {
 
       let feedRows: any[] | null = null; let feedErr: any = null;
       if (feedModeRef.current === 'discover') {
-        const [dA, dB, dC] = await Promise.all([
+        const [dA, dB, dC, ...rest] = await Promise.all([
           supabase.rpc('get_feed', { p_mode: 'latest', p_cursor_key: null, p_cursor_id: null, p_limit: 50 }),
           supabase.rpc('get_feed', { p_mode: 'trending', p_cursor_key: null, p_cursor_id: null, p_limit: 20 }),
           supabase.rpc('get_feed', { p_mode: 'innovation', p_cursor_key: null, p_cursor_id: null, p_limit: 30 }),
+          // Exact: the chosen category as the author filed it in the composer.
+          // The keyword guessing that used to fill these chips is gone.
+          discoverCatRef.current === 'innovation'
+            ? Promise.resolve({ data: [], error: null })
+            : supabase.from('posts')
+                .select('id, user_id, content, body, category, channel, article_title, read_minutes, created_at, likes_count, comments_count, reposts_count, bookmarks_count, views_count, media_url')
+                .eq('category', discoverCatRef.current).is('community_id', null)
+                .order('created_at', { ascending: false }).limit(40),
         ]);
+        const dD = (rest as any[])[0];
         feedErr = dA.error || dB.error || dC.error || null;
         const seenIds = new Set<string>(); const merged: any[] = [];
         const innoIds = new Set<string>(); const catMeta = new Map<string, string | null>();
@@ -432,6 +442,37 @@ export default function FeedScreen({ navigation }: any) {
         for (const r of ([...(dB.data ?? []), ...(dA.data ?? []), ...(dC.data ?? [])] as any[])) {
           if (r.reposted_by_id || seenIds.has(r.post_id)) continue;
           seenIds.add(r.post_id); merged.push(r); catMeta.set(r.post_id, r.category ?? null);
+        }
+        // Category rows arrive as raw posts; shape them like feed rows and
+        // fetch their media and authors so the card draws them fully.
+        const catRows = ((dD?.data ?? []) as any[]);
+        if (catRows.length) {
+          const ids = catRows.map((p: any) => p.id);
+          const authorIds = Array.from(new Set(catRows.map((p: any) => p.user_id)));
+          const [{ data: med }, { data: auth }] = await Promise.all([
+            supabase.from('post_media').select('id, post_id, url, media_type, width, height, sort_order').in('post_id', ids),
+            supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier, account_type').in('id', authorIds),
+          ]);
+          const mediaBy = new Map<string, any[]>();
+          ((med ?? []) as any[]).forEach((m: any) => { const a = mediaBy.get(m.post_id) ?? []; a.push(m); mediaBy.set(m.post_id, a); });
+          const authorBy = new Map<string, any>();
+          ((auth ?? []) as any[]).forEach((a: any) => authorBy.set(a.id, a));
+          for (const p of catRows) {
+            if (seenIds.has(p.id)) { catMeta.set(p.id, p.category ?? null); continue; }
+            const a = authorBy.get(p.user_id) ?? {};
+            seenIds.add(p.id);
+            merged.push({
+              post_id: p.id, author_id: p.user_id, content: p.content, body: p.body, media_url: p.media_url,
+              media: (mediaBy.get(p.id) ?? []).sort((x: any, y: any) => (x.sort_order ?? 0) - (y.sort_order ?? 0)),
+              products: [], link: null, channel: p.channel, article_title: p.article_title, read_minutes: p.read_minutes,
+              created_at: p.created_at, likes_count: p.likes_count ?? 0, comments_count: p.comments_count ?? 0,
+              reposts_count: p.reposts_count ?? 0, bookmarks_count: p.bookmarks_count ?? 0, views_count: p.views_count ?? 0,
+              author_name: a.full_name ?? null, author_username: a.username ?? null, author_avatar: a.avatar_url ?? null,
+              author_verified: a.is_verified ?? false, author_verified_tier: a.verified_tier ?? null, author_kind: a.account_type ?? null,
+              category: p.category,
+            });
+            catMeta.set(p.id, p.category ?? null);
+          }
         }
         discoverInnoIdsRef.current = innoIds; discoverMetaRef.current = catMeta;
         feedRows = merged;
@@ -544,11 +585,12 @@ export default function FeedScreen({ navigation }: any) {
 
   useEffect(() => {
     feedModeRef.current = feedMode;
+    discoverCatRef.current = discoverCat;
     if (modeFirstRun.current) { modeFirstRun.current = false; return; }
     cursorRef.current = null;
     hasMoreRef.current = true;
     loadFeedRef.current?.(true);
-  }, [feedMode]);
+  }, [feedMode, discoverCat]);
 
   useEffect(() => {
     if (!userId) return;
@@ -1332,13 +1374,7 @@ export default function FeedScreen({ navigation }: any) {
       if (discoverCat === 'innovation') {
         list = list.filter(p => discoverInnoIdsRef.current.has(p.id) || (p as any).channel === 'innovation');
       } else {
-        const active = CATEGORIES.find(x => x.key === discoverCat) ?? CATEGORIES[0];
-        list = list.filter(p => {
-          const rc = discoverMetaRef.current.get(p.id);
-          if (rc) return rc === discoverCat;
-          const hay = ((p.content || '') + ' ' + ((p as any).article_title || '')).toLowerCase();
-          return active.words.some(w => hay.includes(w));
-        });
+        list = list.filter(p => discoverMetaRef.current.get(p.id) === discoverCat);
         const density = (p: any) => {
           const hours = Math.max(1, (Date.now() - new Date(p.created_at || 0).getTime()) / 3600000);
           return ((p.likes_count ?? 0) + (p.comments_count ?? 0) * 2.5 + (p.reposts_count ?? 0) * 2) / Math.pow(hours + 2, 1.2);
@@ -1930,6 +1966,24 @@ if (!search && promos.length > 0) {
                     <Feather name="chevron-down" size={12} color={NAVY} />
                   </TouchableOpacity>
                 </View>
+                <View style={s.kindRow}>
+                  <TouchableOpacity style={[s.kindChip, !innovationPost && s.kindChipOn]} onPress={() => setInnovationPost(false)} accessibilityLabel="Regular post">
+                    <Feather name="edit-3" size={15} color={!innovationPost ? '#FFFFFF' : 'rgba(11,30,61,0.55)'} />
+                    <Text style={[s.kindTxt, !innovationPost && s.kindTxtOn]}>Post</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('Profile', { screen: 'ArticleCompose' }); }} accessibilityLabel="Write an article">
+                    <Feather name="file-text" size={15} color="rgba(11,30,61,0.55)" />
+                    <Text style={s.kindTxt}>Article</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('Market', { screen: 'CreateListing' }); }} accessibilityLabel="Create a listing">
+                    <Feather name="tag" size={15} color="rgba(11,30,61,0.55)" />
+                    <Text style={s.kindTxt}>Listing</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[s.kindChip, s.kindChipGold, innovationPost && s.kindChipGoldOn]} onPress={() => setInnovationPost(true)} accessibilityLabel="Post to Innovation">
+                    <Ionicons name="bulb-outline" size={16} color={light.brand.base} />
+                    <Text style={[s.kindTxt, { color: light.brand.base }, innovationPost && { fontWeight: '800' }]}>Innovation</Text>
+                  </TouchableOpacity>
+                </View>
                 <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
                 <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={light.ink.faint} multiline autoFocus maxLength={2000} />
                 {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
@@ -2016,12 +2070,12 @@ if (!search && promos.length > 0) {
                       <Text style={s.toolCap}>Photo</Text>
                     </View>
                     <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={openCamera} accessibilityLabel="Open camera"><Feather name="camera" size={20} color={light.ink.muted} /></TouchableOpacity>
-                      <Text style={s.toolCap}>Camera</Text>
+                      <TouchableOpacity style={s.toolBtn} onPress={pickMedia} accessibilityLabel="Add a video"><Feather name="video" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <Text style={s.toolCap}>Video</Text>
                     </View>
                     <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={[s.toolBtn, innovationPost && s.toolBtnActive]} onPress={() => setInnovationPost(p => !p)} accessibilityLabel="Post to the Innovation channel"><Feather name="zap" size={20} color={innovationPost ? '#D97706' : '#6B7280'} /></TouchableOpacity>
-                      <Text style={[s.toolCap, innovationPost && { color: '#D97706', fontWeight: '800' }]}>Innovation</Text>
+                      <TouchableOpacity style={s.toolBtn} onPress={openCamera} accessibilityLabel="Open camera"><Feather name="camera" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <Text style={s.toolCap}>Camera</Text>
                     </View>
                     
                     <View style={{ alignItems: 'center' }}>
@@ -2365,11 +2419,18 @@ const s = StyleSheet.create({
   cRemoveTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
   cAddMore: { width: 80, height: 80, borderRadius: 10, backgroundColor: light.surface.raised, borderWidth: 1.5, borderColor: light.surface.hairline, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   cAddMoreTxt: { fontSize: 28, color: light.ink.faint, fontWeight: '300' },
-  cToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
-  cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, gap: 8 },
+  cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0, overflow: 'hidden' },
+  kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'nowrap', overflow: 'hidden' },
+  kindChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingHorizontal: 12, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, flexShrink: 1, minWidth: 0 },
+  kindChipOn: { backgroundColor: NAVY, borderColor: NAVY },
+  kindChipGold: { backgroundColor: 'rgba(201,191,176,0.30)', borderColor: light.brand.warm },
+  kindChipGoldOn: { backgroundColor: 'rgba(201,191,176,0.55)' },
+  kindTxt: { fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.7)', flexShrink: 1 },
+  kindTxtOn: { color: '#FFFFFF' },
   audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: '#D7DEE9', backgroundColor: '#F4F6FA' },
   audChipTxt: { fontSize: 12, fontWeight: '700', color: NAVY },
-  cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
   toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   toolCap: { fontSize: 9.5, fontWeight: '600', color: 'rgba(11,30,61,0.5)', marginTop: 3 },
   toolBtnActive: { backgroundColor: light.status.linkBg, borderColor: '#BFDBFE' },
