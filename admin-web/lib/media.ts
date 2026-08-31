@@ -90,10 +90,19 @@ export async function resolveMedia(values: (string | null | undefined)[], ttlSec
   if (jobs.length === 0) return map;
 
   let bucketNames: string[] = [];
+  const publicBuckets = new Set<string>();
   try {
     const { data } = await svc.storage.listBuckets();
     bucketNames = (data ?? []).map(b => b.name);
+    (data ?? []).forEach(b => { if (b.public) publicBuckets.add(b.name); });
   } catch { bucketNames = []; }
+
+  // Images in public buckets go through the render endpoint, exactly as the
+  // web app does. It resizes, so thumbnails stop pulling full-size originals,
+  // and it decodes formats a raw <img> refuses, which is why one story that
+  // rendered on web showed broken here.
+  const RENDER_BASE = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/$/, '') + '/storage/v1/render/image/public/';
+  const isImagePath = (path: string) => /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(path.split('?')[0]);
 
   const byBucket: Record<string, Job[]> = {};
   const orphans: Job[] = [];
@@ -110,6 +119,15 @@ export async function resolveMedia(values: (string | null | undefined)[], ttlSec
 
   async function sign(bucket: string, group: Job[]) {
     if (group.length === 0) return;
+    if (publicBuckets.has(bucket) && RENDER_BASE.length > 40) {
+      const rest: Job[] = [];
+      for (const j of group) {
+        if (isImagePath(j.path)) map[j.raw] = RENDER_BASE + bucket + '/' + j.path.split('?')[0].split('/').map(encodeURIComponent).join('/') + '?width=900&quality=80';
+        else rest.push(j);
+      }
+      group = rest;
+      if (group.length === 0) return;
+    }
     try {
       const { data } = await svc.storage.from(bucket).createSignedUrls(group.map(j => j.path), ttlSeconds);
       (data ?? []).forEach((row, i) => {
