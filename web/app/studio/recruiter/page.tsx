@@ -143,7 +143,7 @@ export default function RecruiterPage() {
           <StudioRailPortal><RecruiterRail apps={apps} jobs={jobs} /></StudioRailPortal>
           <RecruiterFunnel apps={apps} jobs={jobs} />
 
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_400px]">
             <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
               {STAGES.map(st => {
                 const col = apps.filter(a => a.status === st);
@@ -173,7 +173,7 @@ export default function RecruiterPage() {
               })}
             </div>
 
-            <aside className="rounded-2xl border border-ink/10 bg-white p-4">
+            <aside className="sticky top-[88px] max-h-[calc(100vh-110px)] overflow-y-auto rounded-2xl border border-ink/10 bg-white p-4">
               {!sel ? <p className="text-[13px] text-ink/45">Select an applicant to see their application, move them, schedule an interview or leave notes.</p> : (
                 <>
                   <div className="flex items-start gap-3.5">
@@ -188,10 +188,37 @@ export default function RecruiterPage() {
                     <button onClick={() => setSel(null)} className="rounded-full p-1 text-ink/40 transition-colors duration-[140ms] hover:bg-surface" aria-label="Close"><X size={15} /></button>
                   </div>
                   {sel.bio ? <p className="mt-2 text-[12.5px] text-ink/60">{sel.bio}</p> : null}
+                  <div className="mt-3 flex items-center gap-2 text-[11.5px] text-ink/45">
+                    <span className={"rounded-full px-2 py-0.5 font-semibold " + (sel.status === "hired" ? "bg-success/15 text-success" : sel.status === "rejected" ? "bg-red-500/10 text-red-400" : "bg-pearl/20 text-pearl-muted")}>{STAGE_LABEL[sel.status as keyof typeof STAGE_LABEL] ?? sel.status}</span>
+                    <span>Applied {new Date(sel.applied_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                    {sel.phone ? <span>· {sel.phone}</span> : null}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      disabled={busy}
+                      onClick={async () => {
+                        const { data, error } = await supabase.rpc("start_dm_ctx", { p_receiver_id: sel.applicant_id, p_context: "jobs", p_ref_id: jobId });
+                        if (!error && data) window.location.href = "/messages?c=" + data;
+                      }}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-ink px-3 py-2 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40"
+                    >
+                      Message
+                    </button>
+                    {sel.username ? (
+                      <Link href={"/" + sel.username} className="flex flex-1 items-center justify-center rounded-full border border-ink/15 px-3 py-2 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">View profile</Link>
+                    ) : null}
+                  </div>
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {sel.username ? <Link href={"/" + sel.username} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><ExternalLink size={12} /> Profile</Link> : null}
                     <button onClick={() => message(sel)} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><MessageCircle size={12} /> Message</button>
                     {sel.cv_url ? <a href={sel.cv_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><FileText size={12} /> {sel.cv_name || "CV"}</a> : null}
+                  </div>
+                  {sel.cv_url && /\.pdf($|\?)/i.test(sel.cv_url) ? (
+                    <div className="mt-3 overflow-hidden rounded-xl border border-ink/10">
+                      <iframe src={sel.cv_url + "#toolbar=0"} title="Resume" className="h-[360px] w-full" />
+                    </div>
+                  ) : null}
+                  <div className="hidden">
                     {sel.portfolio_url ? <a href={sel.portfolio_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><ExternalLink size={12} /> Portfolio</a> : null}
                     {sel.phone ? <a href={"tel:" + sel.phone} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Phone size={12} /> {sel.phone}</a> : null}
                   </div>

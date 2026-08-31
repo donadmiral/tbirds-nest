@@ -148,7 +148,25 @@ export default function AdWizardPage() {
       {step === 2 ? (
         <div className="flex flex-col gap-5">
           <div>
-            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Write a new ad</p>
+            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Choose a format</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {([
+                ["Image", "One photo with a caption", "/home?compose=photo", "photo"],
+                ["Carousel", "Up to ten photos or products to swipe", "/home?compose=photo", "carousel"],
+                ["Video", "A clip that plays in the feed", "/home?compose=photo", "video"],
+                ["Article", "Long-form with a cover and title", "/write", "article"],
+              ] as [string, string, string, string][]).map(([name, blurb, href, kind]) => (
+                <Link key={kind} href={href + (href.includes("?") ? "&" : "?") + "then=promote"}
+                  className="flex flex-col rounded-xl border border-ink/10 px-3.5 py-3 transition-colors duration-[140ms] hover:border-pearl/60 hover:bg-pearl/5">
+                  <span className="text-[13.5px] font-semibold text-ink">{name}</span>
+                  <span className="mt-0.5 text-[11.5px] leading-snug text-ink/50">{blurb}</span>
+                </Link>
+              ))}
+            </div>
+            <p className="mt-2 text-[12px] text-ink/45">These open the composer. Publish the post, come back here, and it appears under existing posts to promote.</p>
+          </div>
+          <div>
+            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Or write a text ad now</p>
             <textarea value={newText}
               onChange={(e) => { setNewText(e.target.value); if (e.target.value.trim()) setPick({ kind: "new", text: e.target.value }); }}
               onFocus={() => { if (newText.trim()) setPick({ kind: "new", text: newText }); }}
