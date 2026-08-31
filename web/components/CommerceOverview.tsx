@@ -122,7 +122,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_320px]">
+      <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)]">
         <div className="rounded-2xl border border-ink/10 bg-white px-5 py-4">
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="text-[15px] font-semibold text-ink">

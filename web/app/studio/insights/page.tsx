@@ -179,7 +179,7 @@ export default function InsightsPage() {
             </div>
           )}
 
-          <div className="mt-7 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
+          <div className="mt-7 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,300px)]">
             <div>
               <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Top content, last {days} days</h2>
               {ins.top_posts.length === 0 ? <p className="rounded-2xl border border-ink/10 bg-white px-4 py-5 text-[13.5px] text-ink/50">No posts in this period.</p> : ins.top_posts.map((p, i) => (

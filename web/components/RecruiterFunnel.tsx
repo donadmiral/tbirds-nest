@@ -59,7 +59,7 @@ export function RecruiterFunnel({ apps, jobs }: { apps: Applicant[]; jobs: Job[]
   if (apps.length === 0 && f.openJobs === 0) return null;
 
   return (
-    <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_300px]">
+    <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,300px)]">
       <div className="rounded-2xl border border-ink/10 bg-white px-5 py-4">
         <h2 className="mb-3 text-[15px] font-semibold text-ink">Hiring funnel</h2>
         <div className="flex items-stretch gap-1 overflow-x-auto">

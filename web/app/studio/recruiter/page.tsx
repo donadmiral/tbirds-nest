@@ -143,16 +143,16 @@ export default function RecruiterPage() {
           <StudioRailPortal><RecruiterRail apps={apps} jobs={jobs} /></StudioRailPortal>
           <RecruiterFunnel apps={apps} jobs={jobs} />
 
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_400px]">
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]">
+            <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
               {STAGES.map(st => {
                 const col = apps.filter(a => a.status === st);
                 return (
-                  <div key={st} className="rounded-2xl border border-ink/10 bg-white p-2">
+                  <div key={st} className="w-[168px] shrink-0 rounded-2xl border border-ink/10 bg-white p-2">
                     <span className={"mb-2 block h-[3px] w-full rounded-full " + STAGE_BAR[st]} aria-hidden />
                     <p className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-ink/45"><span>{STAGE_LABEL[st]}</span><span className="tabular-nums">{col.length}</span></p>
                     {loadingApps ? <p className="px-1 text-[12px] text-ink/30">Loading</p> : col.length === 0 ? (
-                      <p className="px-1 pb-1 text-[11.5px] leading-snug text-ink/25">
+                      <p className="px-1 pb-1 text-[11.5px] leading-snug text-ink/35 break-words">
                         {st === "applied" ? "New applications land here" : st === "rejected" ? "Nobody rejected" : "Nobody at this stage"}
                       </p>
                     ) : col.map(a => (
@@ -173,7 +173,7 @@ export default function RecruiterPage() {
               })}
             </div>
 
-            <aside className="sticky top-[88px] max-h-[calc(100vh-110px)] overflow-y-auto rounded-2xl border border-ink/10 bg-white p-4">
+            <aside className="sticky top-[88px] min-w-0 max-h-[calc(100vh-110px)] overflow-y-auto overflow-x-hidden break-words rounded-2xl border border-ink/10 bg-white p-4">
               {!sel ? <p className="text-[13px] text-ink/45">Select an applicant to see their application, move them, schedule an interview or leave notes.</p> : (
                 <>
                   <div className="flex items-start gap-3.5">

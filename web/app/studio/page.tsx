@@ -162,7 +162,7 @@ export default function StudioHomePage() {
         ) : null}
       </section>
 
-      <section className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+      <section className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)]">
         <div>
           <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Recent posts</h2>
           {h.recent.length === 0 ? (
