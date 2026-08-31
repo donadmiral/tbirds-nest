@@ -1966,24 +1966,24 @@ if (!search && promos.length > 0) {
                     <Feather name="chevron-down" size={12} color={NAVY} />
                   </TouchableOpacity>
                 </View>
-                <View style={s.kindRow}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
                   <TouchableOpacity style={[s.kindChip, !innovationPost && s.kindChipOn]} onPress={() => setInnovationPost(false)} accessibilityLabel="Regular post">
                     <Feather name="edit-3" size={15} color={!innovationPost ? '#FFFFFF' : 'rgba(11,30,61,0.55)'} />
-                    <Text style={[s.kindTxt, !innovationPost && s.kindTxtOn]}>Post</Text>
+                    <Text numberOfLines={1} style={[s.kindTxt, !innovationPost && s.kindTxtOn]}>Post</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('Profile', { screen: 'ArticleCompose' }); }} accessibilityLabel="Write an article">
                     <Feather name="file-text" size={15} color="rgba(11,30,61,0.55)" />
-                    <Text style={s.kindTxt}>Article</Text>
+                    <Text numberOfLines={1} style={s.kindTxt}>Article</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('Market', { screen: 'CreateListing' }); }} accessibilityLabel="Create a listing">
                     <Feather name="tag" size={15} color="rgba(11,30,61,0.55)" />
-                    <Text style={s.kindTxt}>Listing</Text>
+                    <Text numberOfLines={1} style={s.kindTxt}>Listing</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={[s.kindChip, s.kindChipGold, innovationPost && s.kindChipGoldOn]} onPress={() => setInnovationPost(true)} accessibilityLabel="Post to Innovation">
                     <Ionicons name="bulb-outline" size={16} color={light.brand.base} />
-                    <Text style={[s.kindTxt, { color: light.brand.base }, innovationPost && { fontWeight: '800' }]}>Innovation</Text>
+                    <Text numberOfLines={1} style={[s.kindTxt, { color: light.brand.base }, innovationPost && { fontWeight: '800' }]}>Innovation</Text>
                   </TouchableOpacity>
-                </View>
+                </ScrollView>
                 <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
                 <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={light.ink.faint} multiline autoFocus maxLength={2000} />
                 {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
@@ -2421,12 +2421,12 @@ const s = StyleSheet.create({
   cAddMoreTxt: { fontSize: 28, color: light.ink.faint, fontWeight: '300' },
   cToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, gap: 8 },
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0, overflow: 'hidden' },
-  kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'nowrap', overflow: 'hidden' },
-  kindChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingHorizontal: 12, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, flexShrink: 1, minWidth: 0 },
+  kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' },
+  kindChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingHorizontal: 12, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, flexShrink: 0 },
   kindChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   kindChipGold: { backgroundColor: 'rgba(201,191,176,0.30)', borderColor: light.brand.warm },
   kindChipGoldOn: { backgroundColor: 'rgba(201,191,176,0.55)' },
-  kindTxt: { fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.7)', flexShrink: 1 },
+  kindTxt: { fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.7)' },
   kindTxtOn: { color: '#FFFFFF' },
   audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: '#D7DEE9', backgroundColor: '#F4F6FA' },
   audChipTxt: { fontSize: 12, fontWeight: '700', color: NAVY },

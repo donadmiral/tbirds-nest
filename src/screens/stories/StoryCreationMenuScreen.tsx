@@ -264,6 +264,9 @@ export default function StoryCreationMenuScreen() {
           <Animated.View style={{ opacity: row5Opacity, transform: [{ translateY: row5TransY }] }}>
             <MenuOption icon="aperture" label="Dual" onPress={() => navigation.navigate('StoryDualCapture', extraParams)} />
           </Animated.View>
+          <Animated.View style={{ opacity: row5Opacity, transform: [{ translateY: row5TransY }] }}>
+            <MenuOption icon="grid" label="Layout" onPress={() => navigation.navigate('StoryLayout')} />
+          </Animated.View>
         </View>
 
         <Animated.View style={[s.footer, { opacity: footerOpacity, paddingBottom: Math.max(insets.bottom, 16) }]}>
