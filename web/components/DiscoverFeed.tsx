@@ -129,6 +129,7 @@ export function DiscoverFeed() {
 
   useEffect(() => { void load(); }, [load]);
 
+  const hidePost = (id: string) => setRows((cur) => cur.filter((r) => r.post_id !== id));
   const active = CHIPS.find((c) => c.key === chip) ?? CHIPS[0];
   const heroIdx = chip === "videos" ? -1 : rows.findIndex((r) => (r.media ?? []).length > 0);
   const hero = heroIdx >= 0 ? rows[heroIdx] : null;
@@ -165,11 +166,11 @@ export function DiscoverFeed() {
         </div>
       ) : (
         <>
-          {hero ? <div className="mt-4"><DiscoverTile post={hero} /></div> : null}
+          {hero ? <div className="mt-4"><DiscoverTile post={hero} onHide={hidePost} /></div> : null}
           {/* Videos sit three across, square, like every video surface people
               already know. Everything else is two across so text has room. */}
           <div className={"mt-4 grid gap-4 " + (chip === "videos" ? "grid-cols-3" : "grid-cols-2")}>
-            {rest.map((r) => <DiscoverTile key={r.post_id} post={r} />)}
+            {rest.map((r) => <DiscoverTile key={r.post_id} post={r} onHide={hidePost} />)}
           </div>
         </>
       )}

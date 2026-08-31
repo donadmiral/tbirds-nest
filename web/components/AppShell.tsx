@@ -4,6 +4,7 @@ import { Nav } from "@/components/Nav";
 import { WebCallLayer } from "@/components/WebCallLayer";
 import { GlobalMediaLightbox } from "@/components/GlobalMediaLightbox";
 import { GlobalBack } from "@/components/GlobalBack";
+import { ScrollMemory } from "@/components/ScrollMemory";
 import { TopBar } from "@/components/TopBar";
 
 export async function AppShell({
@@ -49,6 +50,7 @@ export async function AppShell({
       <WebCallLayer />
       <GlobalMediaLightbox />
       <GlobalBack />
+      <ScrollMemory />
       <div className="ml-[260px] transition-[margin] duration-200 [.nav-collapsed_&]:ml-[76px]">
         <TopBar name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} avatarUrl={profile?.avatar_url} />
         {wide ? (

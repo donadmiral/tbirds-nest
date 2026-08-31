@@ -6,7 +6,16 @@ import { createClient } from "@/lib/supabase/client";
 import { autoplayEnabled, dataSaverEnabled } from "@/lib/mediaPrefs";
 
 let activeStop: (() => void) | null = null;
-let mutedPref = true;
+// Remembered across sessions, not just across posts in one tab.
+const PREF_KEY = "pc:video-prefs";
+function readPrefs(): { muted: boolean; speed: number } {
+  if (typeof window === "undefined") return { muted: true, speed: 1 };
+  try { const p = JSON.parse(window.localStorage.getItem(PREF_KEY) || "{}"); return { muted: p.muted ?? true, speed: p.speed ?? 1 }; } catch { return { muted: true, speed: 1 }; }
+}
+function writePrefs(p: Partial<{ muted: boolean; speed: number }>) {
+  try { window.localStorage.setItem(PREF_KEY, JSON.stringify({ ...readPrefs(), ...p })); } catch { /* private mode */ }
+}
+let mutedPref = readPrefs().muted;
 // One playback identity per src: feed and fullscreen resume each other
 // and share the view session, so expanding never double-counts or restarts.
 const positions: Record<string, number> = {};
@@ -26,7 +35,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
   const [muted, setMuted] = useState(mutedPref);
   const [progress, setProgress] = useState(0);
   const [fs, setFs] = useState(false);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(() => readPrefs().speed);
   const [speedMenu, setSpeedMenu] = useState(false);
   const [unplayable, setUnplayable] = useState(false);
   const [portrait, setPortrait] = useState(() => !!(width && height && height > width));
@@ -104,9 +113,19 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
     else stop();
   }
 
+  async function togglePip() {
+    const v = ref.current as (HTMLVideoElement & { requestPictureInPicture?: () => Promise<unknown> }) | null;
+    if (!v || !document.pictureInPictureEnabled) return;
+    try {
+      if (document.pictureInPictureElement) await document.exitPictureInPicture();
+      else await v.requestPictureInPicture?.();
+    } catch { /* not supported for this stream */ }
+  }
+
   function toggleMute() {
     const next = !muted;
     mutedPref = next;
+    writePrefs({ muted: next });
     setMuted(next);
     if (ref.current) ref.current.muted = next;
   }
@@ -134,6 +153,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
     setSpeed(s);
     setSpeedMenu(false);
     if (ref.current) ref.current.playbackRate = s;
+    writePrefs({ speed: s });
   }
 
   function onKey(e: React.KeyboardEvent) {
@@ -141,6 +161,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
     if (k === " " || k === "k") { e.preventDefault(); togglePlay(); }
     else if (k === "m") { e.preventDefault(); toggleMute(); }
     else if (k === "f") { e.preventDefault(); toggleFullscreen(); }
+    else if (k === "p") { e.preventDefault(); void togglePip(); }
     else if (k === "arrowleft") { e.preventDefault(); seekBy(-10); }
     else if (k === "arrowright") { e.preventDefault(); seekBy(10); }
   }
@@ -258,7 +279,10 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
               </span>
             ) : null}
           </span>
-          <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} title={fs ? "Exit fullscreen (F)" : "Fullscreen (F)"} className={btn}>
+                    <button onClick={(e) => { e.stopPropagation(); void togglePip(); }} title="Picture in picture (P)" className={btn} aria-label="Picture in picture">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><rect x="2" y="4" width="20" height="16" rx="2" /><rect x="12" y="11" width="8" height="6" rx="1" fill="currentColor" /></svg>
+          </button>
+<button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} title={fs ? "Exit fullscreen (F)" : "Fullscreen (F)"} className={btn}>
             {fs ? <Minimize size={15} /> : <Maximize size={15} />}
           </button>
         </div>

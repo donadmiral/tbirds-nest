@@ -13,7 +13,8 @@
  * grid of them still has rhythm.
  */
 import Link from "next/link";
-import { Play, FileText, Link2 } from "lucide-react";
+import { Play, FileText, Link2, EyeOff } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import type { FeedRow } from "@/lib/feed";
 import { displayImageUrl } from "@/lib/media";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
@@ -22,7 +23,17 @@ import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 // full articles, which is exactly what happened.
 const CLAMP = (n: number): React.CSSProperties => ({ display: "-webkit-box", WebkitLineClamp: n, WebkitBoxOrient: "vertical", overflow: "hidden" });
 
-export function DiscoverTile({ post }: { post: FeedRow }) {
+export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: string) => void }) {
+  const hide = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const supabase = createClient();
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user.id;
+    if (!uid) return;
+    onHide?.(post.post_id);
+    await supabase.from("hidden_posts").insert({ user_id: uid, post_id: post.post_id });
+  };
   const href = "/post/" + post.post_id;
   const media = (post.media ?? []).slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   const first = media[0] ?? null;
@@ -33,7 +44,7 @@ export function DiscoverTile({ post }: { post: FeedRow }) {
   const link = (post as unknown as { link?: { url: string; domain: string | null; title: string | null; image_url: string | null } | null }).link;
 
   const byline = (
-    <span className="flex min-w-0 items-center gap-2 px-3 pb-3 pt-2.5">
+    <span className="group/byline flex min-w-0 items-center gap-2 px-3 pb-3 pt-2.5">
       {post.author_avatar ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={post.author_avatar} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" />
@@ -49,6 +60,14 @@ export function DiscoverTile({ post }: { post: FeedRow }) {
         </span>
         {verified ? <VerifiedBadge tier={tier} size={12} /> : null}
       </span>
+      <button
+        onClick={hide}
+        title="Not interested"
+        aria-label="Hide this post"
+        className="ml-auto shrink-0 rounded-full p-1 text-ink/30 opacity-0 transition-opacity duration-[140ms] hover:bg-surface hover:text-ink group-hover/byline:opacity-100 focus:opacity-100"
+      >
+        <EyeOff size={13} />
+      </button>
     </span>
   );
 
