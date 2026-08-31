@@ -6,19 +6,25 @@ import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
-import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather } from "lucide-react";
+import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather, Video } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string };
-type PostKind = "post" | "media" | "article" | "poll" | "innovation";
+type PostKind = "post" | "media" | "video" | "article" | "listing" | "poll" | "innovation";
 
-const KINDS: { key: PostKind; label: string; icon: typeof ImagePlus }[] = [
+// The same row as the phone: Post, Article and Listing are kinds of thing;
+// Innovation is a kind with its own tint. Photo, video and poll are tools.
+const KINDS: { key: PostKind; label: string; icon: typeof ImagePlus; href?: string }[] = [
   { key: "post", label: "Post", icon: Feather },
-  { key: "media", label: "Photo or video", icon: ImageIcon },
-  { key: "article", label: "Article", icon: FileText },
-  { key: "poll", label: "Poll", icon: BarChart3 },
+  { key: "article", label: "Article", icon: FileText, href: "/write" },
+  { key: "listing", label: "Listing", icon: Tag, href: "/market/new" },
   { key: "innovation", label: "Innovation", icon: Lightbulb },
+];
+const TOOLS: { key: PostKind; label: string; icon: typeof ImagePlus }[] = [
+  { key: "media", label: "Photo", icon: ImageIcon },
+  { key: "video", label: "Video", icon: Video },
+  { key: "poll", label: "Poll", icon: BarChart3 },
 ];
 
 type MentionHit = { id: string; full_name: string | null; username: string | null; avatar_url: string | null };
@@ -61,6 +67,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     setKindState(k);
     setPollOn(k === "poll");
     setInno(k === "innovation");
+    if (k === "video") setKind("media");
     // Picking media should do the obvious thing and ask for the files. The
     // timeout lets the dialog mount first, otherwise the click lands on
     // nothing on the first open.
@@ -324,21 +331,27 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
       {!quote && !threadTo ? (
         <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-ink/8 pb-3">
           {KINDS.map((k) => {
-            const on = k.key === kind;
+            const on = k.key === kind || (k.key === "post" && (kind === "media" || kind === "video" || kind === "poll"));
+            const gold = k.key === "innovation";
+            const cls = "flex h-[34px] items-center gap-1.5 rounded-xl border px-3 text-[12.5px] font-semibold transition-colors duration-[140ms] " +
+              (gold
+                ? (on ? "border-pearl bg-pearl/55 text-navy" : "border-pearl bg-pearl/30 text-navy hover:bg-pearl/40")
+                : (on ? "border-navy bg-navy text-white" : "border-ink/10 bg-surface text-ink/70 hover:text-ink"));
+            if (k.href) return <a key={k.key} href={k.href} className={cls}><k.icon size={14} />{k.label}</a>;
             return (
-              <button
-                key={k.key}
-                onClick={() => setKind(k.key)}
-                className={
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " +
-                  (on ? "bg-pearl text-ink" : "text-ink/55 hover:bg-surface hover:text-ink")
-                }
-              >
+              <button key={k.key} onClick={() => setKind(k.key)} className={cls}>
                 <k.icon size={14} />
                 {k.label}
               </button>
             );
           })}
+          <span className="mx-1 h-5 w-px bg-ink/10" aria-hidden />
+          {TOOLS.map((t) => (
+            <button key={t.key} onClick={() => setKind(t.key)} title={t.label} aria-label={t.label}
+              className={"flex h-9 w-9 items-center justify-center rounded-xl border transition-colors duration-[140ms] " + (kind === t.key ? "border-[#BFDBFE] bg-[#EFF6FF] text-ink" : "border-ink/10 bg-surface text-ink/45 hover:text-ink")}>
+              <t.icon size={17} />
+            </button>
+          ))}
           <Link
             href="/market/new"
             className="ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-ink/55 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
