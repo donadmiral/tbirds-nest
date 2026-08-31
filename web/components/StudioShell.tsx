@@ -24,6 +24,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   // studio_me carries no verification fields, so the seal comes from the
   // profile rather than being assumed from the business role.
   const [tier, setTier] = useState<string | null>(null);
+  // Which desks this organization uses. Null until loaded means "all", so
+  // nothing flickers away and then back.
+  const [surfaces, setSurfaces] = useState<string[] | null>(null);
   const [me, setMe] = useState<StudioMe | null>(null);
   const [loading, setLoading] = useState(true);
   const [code, setCode] = useState("");
@@ -40,6 +43,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
       if (!uid) return;
       const { data } = await supabase.from("profiles").select("is_verified, verified_tier").eq("id", uid).maybeSingle();
       setTier(data?.verified_tier ?? (data?.is_verified ? "business" : null));
+      const { data: sf } = await supabase.rpc("studio_surfaces");
+      if (Array.isArray(sf)) setSurfaces(sf as string[]);
     })();
   }, []);
   useEffect(() => { (async () => { await refresh(); setLoading(false); })(); }, []);
@@ -104,7 +109,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <nav className="mt-5 flex gap-1 overflow-x-auto border-b border-ink/10">
-          {ROOMS.map((r) => {
+          {ROOMS.filter((r) => r.key === "home" || surfaces === null || surfaces.length === 0 || surfaces.includes(r.key)).map((r) => {
             const Icon = ICONS[r.key];
             const active = r.href === "/studio" ? pathname === "/studio" : pathname.startsWith(r.href);
             return (
