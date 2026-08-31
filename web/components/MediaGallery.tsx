@@ -95,6 +95,12 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   }, []);
 
   const resetZoom = useCallback(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, []);
+  useEffect(() => {
+    if (lightbox === null) return;
+    const block = (e: WheelEvent) => { if (e.ctrlKey || e.metaKey) e.preventDefault(); };
+    window.addEventListener("wheel", block, { passive: false });
+    return () => window.removeEventListener("wheel", block);
+  }, [lightbox]);
 
   useEffect(() => {
     if (lightbox === null) return;
@@ -162,7 +168,9 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
       if (!pinchRef.current) { pinchRef.current = { dist, zoom }; return; }
-      setZoomClamped(pinchRef.current.zoom * (dist / pinchRef.current.dist));
+      const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      zoomAt(pinchRef.current.zoom * (dist / pinchRef.current.dist), mx, my, e.currentTarget as HTMLElement);
     } else if (e.touches.length === 1 && zoom > 1) {
       const t0 = e.touches[0];
       if (!dragRef.current) { dragRef.current = { x: t0.clientX, y: t0.clientY, px: pan.x, py: pan.y }; return; }
@@ -191,11 +199,26 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
     const limY = pane ? (pane.clientHeight * (z - 1)) / 2 : 400;
     return { x: Math.max(-limX, Math.min(limX, p.x)), y: Math.max(-limY, Math.min(limY, p.y)) };
   }
+  // Zoom anchored at the pointer: the point under the cursor stays under the
+  // cursor, which is what makes it feel like leaning into the picture rather
+  // than the picture growing away from you. Trackpad pinch arrives as a
+  // wheel event with ctrlKey set, so it takes the same path as Ctrl+wheel.
+  function zoomAt(next: number, clientX: number, clientY: number, el: HTMLElement) {
+    const z = Math.max(1, Math.min(4, next));
+    const r = el.getBoundingClientRect();
+    const cx = clientX - (r.left + r.width / 2);
+    const cy = clientY - (r.top + r.height / 2);
+    const k = z / zoom;
+    if (z <= 1) { resetZoom(); return; }
+    setZoom(z);
+    setPan(clampPan({ x: cx - (cx - pan.x) * k, y: cy - (cy - pan.y) * k }, z));
+  }
   function onWheelZoom(e: React.WheelEvent) {
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     e.stopPropagation();
-    setZoomClamped(zoom + (e.deltaY < 0 ? 0.35 : -0.35));
+    const step = Math.abs(e.deltaY) < 20 ? 0.08 : 0.35;
+    zoomAt(zoom * (e.deltaY < 0 ? 1 + step : 1 - step), e.clientX, e.clientY, e.currentTarget as HTMLElement);
   }
   function onDoubleClick(e: React.MouseEvent) {
     e.stopPropagation();
@@ -345,7 +368,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 onMouseDown={onDragStart}
                 draggable={false}
                 style={{ transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ")", transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
-                className="max-h-[94vh] max-w-full select-none object-contain"
+                className="max-h-[94vh] max-w-full select-none object-contain [touch-action:none]"
               />
             )}
             {media[lightbox].media_type === "image" ? (
