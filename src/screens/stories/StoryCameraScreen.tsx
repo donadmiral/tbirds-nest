@@ -120,8 +120,16 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       },
       onPanResponderMove: (_e: any, g: any) => {
         if (!recordingRef.current) return;
-        const lift = Math.max(0, -g.dy);
-        const z = Math.max(0, Math.min(1, zoomStartRef.current + lift / 220));
+        // Instagram's gesture: the recording finger slides up to zoom in and
+        // back down to zoom out. The curve is eased, so the first stop of
+        // travel moves 1x to 2x with fine control and the top of the travel
+        // reaches the lens's limit, and the value is smoothed frame to frame
+        // so the lens never jumps.
+        const travel = 260;
+        const raw = Math.max(0, Math.min(1, zoomStartRef.current + (-g.dy) / travel));
+        const eased = raw * raw * (3 - 2 * raw);
+        const prev = zoomBaseRef.current;
+        const z = prev + (eased - prev) * 0.35;
         zoomBaseRef.current = z;
         setZoom(z);
       },

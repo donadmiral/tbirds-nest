@@ -9,6 +9,8 @@
  * - Forces ScrollView content into a horizontal row so media cannot stack vertically.
  */
 import React, { useCallback, useEffect, useState } from 'react';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import {
   View,
   FlatList,
@@ -514,6 +516,7 @@ export default function MediaRenderer({
         visible={zoomVisible}
         onClose={() => setZoomVisible(false)}
       />
+      <PinchInspect>
       <View style={{ marginTop: 8 }}>
         <Carousel
           items={sorted}
@@ -523,7 +526,44 @@ export default function MediaRenderer({
           maxHeight={maxHeight}
         />
       </View>
+      </PinchInspect>
     </>
+  );
+}
+
+/**
+ * Pinch to inspect, the Instagram feed gesture. Media scales around the
+ * midpoint between the fingers and lifts above its neighbours; letting go
+ * springs it back. Video keeps playing throughout. The gesture is transient
+ * and never stored, and it is not the crop editor.
+ */
+function PinchInspect({ children }: { children: React.ReactNode }) {
+  const scale = useSharedValue(1);
+  const tx = useSharedValue(0);
+  const ty = useSharedValue(0);
+  const fx = useSharedValue(0);
+  const fy = useSharedValue(0);
+  const active = useSharedValue(0);
+  const pinch = Gesture.Pinch()
+    .onStart((e) => { fx.value = e.focalX; fy.value = e.focalY; active.value = 1; })
+    .onUpdate((e) => {
+      scale.value = Math.max(1, Math.min(4, e.scale));
+      tx.value = e.focalX - fx.value;
+      ty.value = e.focalY - fy.value;
+    })
+    .onEnd(() => {
+      scale.value = withSpring(1, { damping: 18, stiffness: 180 });
+      tx.value = withSpring(0); ty.value = withSpring(0);
+      active.value = 0;
+    });
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }],
+    zIndex: scale.value > 1 ? 50 : 0,
+  }));
+  return (
+    <GestureDetector gesture={pinch}>
+      <Animated.View style={style}>{children}</Animated.View>
+    </GestureDetector>
   );
 }
 
