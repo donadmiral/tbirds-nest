@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { ArticleBody } from "@/components/ArticleBody";
 
 export default function WriteArticlePage() {
   const supabase = useRef(createClient()).current;
@@ -13,6 +14,9 @@ export default function WriteArticlePage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [cover, setCover] = useState<File | null>(null);
+  const [preview, setPreview] = useState(false);
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const DRAFT_KEY = "pc:article-draft";
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -38,6 +42,53 @@ export default function WriteArticlePage() {
     setCover(f);
     setCoverPreview(URL.createObjectURL(f));
   };
+  // Wraps the current selection, or inserts at the caret, then restores focus.
+  function wrap(before: string, after: string) {
+    const el = bodyRef.current;
+    if (!el) { setBody((b) => b + before + after); return; }
+    const start = el.selectionStart ?? body.length;
+    const end = el.selectionEnd ?? start;
+    const chosen = body.slice(start, end);
+    const lineStart = before.startsWith("#") || before.startsWith(">");
+    const insertion = (lineStart && start > 0 && body[start - 1] !== "\n" ? "\n" : "") + before + chosen + after;
+    const next = body.slice(0, start) + insertion + body.slice(end);
+    setBody(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + insertion.length - after.length;
+      el.setSelectionRange(chosen ? pos : start + insertion.length - after.length, chosen ? pos : start + insertion.length - after.length);
+    });
+  }
+
+  async function insertImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user.id;
+    if (!uid) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = uid + "/article-" + Date.now() + "." + ext;
+    const { error: upErr } = await supabase.storage.from("post-media").upload(path, file, { contentType: file.type });
+    if (upErr) { setError("That image did not upload: " + upErr.message); return; }
+    const { data } = supabase.storage.from("post-media").getPublicUrl(path);
+    wrap("\n![](" + data.publicUrl + ")\n", "");
+    e.target.value = "";
+  }
+
+  // The draft outlives the tab: closing it by accident no longer loses the piece.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY);
+      if (raw) { const d = JSON.parse(raw) as { title?: string; body?: string }; if (d.title) setTitle(d.title); if (d.body) setBody(d.body); }
+    } catch { /* no draft */ }
+  }, []);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (title || body) window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body }));
+    }, 500);
+    return () => clearTimeout(t);
+  }, [title, body]);
+
   const clearCover = () => { if (coverPreview) URL.revokeObjectURL(coverPreview); setCover(null); setCoverPreview(null); if (fileRef.current) fileRef.current.value = ""; };
 
   const publish = async () => {
@@ -63,6 +114,7 @@ export default function WriteArticlePage() {
       }
     }
 
+    window.localStorage.removeItem(DRAFT_KEY);
     const { data: newPost, error: insErr } = await supabase.from("posts").insert({
       user_id: uid,
       body: body.trim(),
@@ -102,8 +154,35 @@ export default function WriteArticlePage() {
 
       <p className="mb-3 text-[12px] font-semibold text-ink/45">{minutes} min read · publishing as {name || "you"}</p>
 
-      <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write the piece. Paragraphs are preserved exactly as you write them."
-        className="min-h-[420px] w-full resize-none border-0 text-[16px] leading-relaxed text-ink outline-none placeholder:text-ink/30" />
+      {/* Formatting inserts the same markup X uses under the hood: headings,
+          bold, italic, quotes, links and images. Plain paragraphs need none. */}
+      <div className="sticky top-[72px] z-10 mb-2 flex flex-wrap items-center gap-1 rounded-xl border border-ink/10 bg-white/95 px-2 py-1.5 backdrop-blur">
+        {([
+          ["H", "Heading", "# ", ""], ["h", "Subheading", "## ", ""], ["B", "Bold", "**", "**"], ["I", "Italic", "_", "_"],
+          ["\u201C", "Quote", "> ", ""], ["\u2014", "Divider", "\n---\n", ""], ["\u{1F517}", "Link", "[", "](https://)"],
+        ] as [string, string, string, string][]).map(([glyph, title, before, after]) => (
+          <button key={title} type="button" title={title} onClick={() => wrap(before, after)}
+            className="min-w-[32px] rounded-lg px-2 py-1 text-[13px] font-semibold text-ink/70 transition-colors hover:bg-surface hover:text-ink">{glyph}</button>
+        ))}
+        <label title="Insert an image" className="min-w-[32px] cursor-pointer rounded-lg px-2 py-1 text-ink/70 transition-colors hover:bg-surface hover:text-ink">
+          <ImagePlus size={15} />
+          <input type="file" accept="image/*" onChange={insertImage} className="hidden" />
+        </label>
+        <span className="ml-auto text-[11.5px] text-ink/40">{body.trim() ? body.trim().split(/\s+/).length : 0} words</span>
+        <button type="button" onClick={() => setPreview((v) => !v)}
+          className={"rounded-full px-3 py-1 text-[12.5px] font-semibold transition-colors " + (preview ? "bg-ink text-white" : "bg-surface text-ink/70 hover:text-ink")}>
+          {preview ? "Edit" : "Preview"}
+        </button>
+      </div>
+
+      {preview ? (
+        <div className="min-h-[420px] rounded-xl border border-ink/10 bg-white px-5 py-4">
+          {body.trim() ? <ArticleBody text={body} /> : <p className="text-[14px] text-ink/40">Nothing to preview yet.</p>}
+        </div>
+      ) : (
+        <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder="Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images."
+          className="min-h-[420px] w-full resize-none border-0 text-[16px] leading-relaxed text-ink outline-none placeholder:text-ink/30" />
+      )}
 
       {error ? <p className="mt-2 text-[13px] text-red-500">{error}</p> : null}
     </div>

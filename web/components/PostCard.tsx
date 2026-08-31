@@ -13,6 +13,7 @@ import { PostMenu } from "@/components/PostMenu";
 import { RichText } from "@/components/RichText";
 import { PollCard } from "@/components/PollCard";
 import { MediaGallery } from "@/components/MediaGallery";
+import { ArticleBody } from "@/components/ArticleBody";
 import { LikesModal } from "@/components/LikesModal";
 import { ShareMenu } from "@/components/ShareMenu";
 import { displayImageUrl } from "@/lib/media";
@@ -184,15 +185,15 @@ export function PostCard({ post }: { post: FeedRow }) {
 
           {text ? (
             <>
-              <p onClick={() => router.push(postHref)}
+              <div onClick={() => router.push(postHref)}
                 onDoubleClick={doubleLike}
                 className={
                   "mt-1.5 cursor-pointer whitespace-pre-wrap text-[16px] leading-relaxed text-ink/90 " +
                   (isLong && !expanded ? "line-clamp-[10]" : "")
                 }
               >
-                <RichText text={text} />
-              </p>
+                {post.article_title ? <ArticleBody text={text} /> : <RichText text={text} />}
+              </div>
               {isLong ? (
                 <button
                   onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
