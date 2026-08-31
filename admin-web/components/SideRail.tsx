@@ -258,8 +258,8 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
       >
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: open ? '17px 16px 16px' : '17px 0 16px', justifyContent: open ? 'flex-start' : 'center', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
-          <img src="/pearl.png" alt="Platinum Circles" className="pc-mark"
-            style={{ width: 32, height: 32, flex: '0 0 32px', display: 'block', objectFit: 'contain', transition: 'transform 220ms ' + EASE }} />
+          <img src="/logo.png" alt="Platinum Circles" className="pc-mark"
+            style={{ width: 32, height: 32, flex: '0 0 32px', display: 'block', objectFit: 'cover', borderRadius: '50%', transition: 'transform 220ms ' + EASE }} />
           {open ? (
             <div style={{ minWidth: 0, flex: 1 }}>
               {/* Same lockup as the web app: Platinum in ink, Circles in grey, one heavy sans. */}

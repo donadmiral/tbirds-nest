@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -138,7 +139,7 @@ export default async function JobPage({ params }: Params) {
         <Link href={poster.username ? "/" + poster.username : "#"} className="mt-7 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
           {poster.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={poster.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
+            <img src={displayImageUrl(poster.avatar_url, 200) ?? poster.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
           ) : (
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">
               {(poster.full_name ?? "?").charAt(0).toUpperCase()}

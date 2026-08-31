@@ -1,26 +1,66 @@
-/** The scalloped seal in the three metals, for the web desk. */
-const GRADS: Record<string, string[]> = {
-  public_figure: ['#D9FBEC', '#4ADE9C', '#059669', '#064E3B'],
-  business: ['#EDEFF3', '#C3C8CF', '#6E7278', '#3F4348'],
-  official: ['#FBF8F0', '#F4EFE4', '#C9BFB0', '#A2977F'],
+/** The verified seal, identical to the web app's VerifiedBadge: same rosette,
+ * same metals derived from the tier colour, same centred check. Admin keeps its
+ * own props (tier, size) so nothing that renders a seal changes. */
+const TIER_COLORS: Record<string, string> = {
+  public_figure: "#1D7A38",
+  business: "#5B6470",
+  official: "#B08D3F",
 };
-const CHECKS: Record<string, string> = { public_figure: '#FFFFFF', business: '#FFFFFF', official: '#0B1E3D' };
-const SEAL = 'M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z';
-const CHECK = 'M10.54 16.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z';
+
+function shade(hex: string, amount: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const mix = (c: number) => (amount >= 0 ? Math.round(c + (255 - c) * amount) : Math.round(c * (1 + amount)));
+  return "#" + [mix(r), mix(g), mix(b)].map((c) => c.toString(16).padStart(2, "0")).join("");
+}
+
+function isLight(hex: string): boolean {
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.42;
+}
+
+function metalFor(base: string) {
+  return {
+    grad: [shade(base, 0.72), shade(base, 0.3), base, shade(base, -0.42)],
+    check: isLight(base) ? "#12203A" : "#FFFFFF",
+  };
+}
+
+const METALS: Record<string, { grad: string[]; check: string }> = {
+  public_figure: metalFor(TIER_COLORS.public_figure),
+  business: metalFor(TIER_COLORS.business),
+  official: metalFor(TIER_COLORS.official),
+};
+
+// A twelve-lobe rosette, generated rather than traced so every scallop is even.
+// The old shape had deep valleys and came to points, which reads as a gear at
+// 13px; these lobes are shallow (11.35 out, 9.55 in) so the silhouette stays a
+// circle with a decorated edge, the way Instagram's and X's badges do.
+const SEAL = "M12.00 0.65Q13.55 0.24 14.47 2.78Q15.73 3.00 17.67 2.17Q19.22 2.59 18.75 5.25Q19.73 6.07 21.83 6.33Q22.96 7.46 21.22 9.53Q21.66 10.73 23.35 12.00Q23.76 13.55 21.22 14.47Q21.00 15.73 21.83 17.67Q21.41 19.22 18.75 18.75Q17.93 19.73 17.68 21.83Q16.54 22.96 14.47 21.22Q13.27 21.66 12.00 23.35Q10.45 23.76 9.53 21.22Q8.27 21.00 6.33 21.83Q4.78 21.41 5.25 18.75Q4.27 17.93 2.17 17.68Q1.04 16.54 2.78 14.47Q2.34 13.27 0.65 12.00Q0.24 10.45 2.78 9.53Q3.00 8.27 2.17 6.33Q2.59 4.78 5.25 5.25Q6.07 4.27 6.32 2.17Q7.46 1.04 9.53 2.78Q10.73 2.34 12.00 0.65Z";
+// Centred on the 24 box: x runs 8.2 to 15.8, y runs 9.5 to 14.9.
+const CHECK = "M8.2 12.3l2.6 2.6 5-5.4";
 
 export default function Seal({ tier, size = 18 }: { tier: string; size?: number }) {
-  const g = GRADS[tier] || GRADS.business;
-  const id = 'seal-' + tier;
+  const key = tier && METALS[tier] ? tier : 'business';
+  const m = METALS[key];
+  const px = Math.round(size);
+  const detailed = px >= 16;
+  const gid = 'seal-' + key;
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+    <svg width={px} height={px} viewBox="0 0 24 24" style={{ display: 'inline-block', verticalAlign: '-0.1em', flexShrink: 0 }} role="img" aria-label="Verified">
       <defs>
-        <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={g[0]} /><stop offset="35%" stopColor={g[1]} />
-          <stop offset="70%" stopColor={g[2]} /><stop offset="100%" stopColor={g[3]} />
+        <linearGradient id={gid} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0" stopColor={m.grad[0]} /><stop offset="0.35" stopColor={m.grad[1]} />
+          <stop offset="0.7" stopColor={m.grad[2]} /><stop offset="1" stopColor={m.grad[3]} />
         </linearGradient>
       </defs>
-      <path d={SEAL} fill={'url(#' + id + ')'} stroke="rgba(255,255,255,0.5)" strokeWidth="0.4" />
-      <path d={CHECK} fill={CHECKS[tier] || '#FFFFFF'} />
+      <path d={SEAL} fill={'url(#' + gid + ')'} stroke={detailed ? 'rgba(255,255,255,0.5)' : undefined} strokeWidth={detailed ? 0.4 : undefined} />
+      {detailed ? <ellipse cx="9" cy="7" rx="3.4" ry="1.7" fill="rgba(255,255,255,0.38)" transform="rotate(-20 9 7)" /> : null}
+      <path d={CHECK} fill="none" stroke={m.check} strokeWidth={px >= 24 ? 2 : 2.4} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

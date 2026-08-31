@@ -1,6 +1,7 @@
 "use client";
 
 import { RecruiterFunnel, RecruiterRail } from "@/components/RecruiterFunnel";
+import { displayImageUrl } from "@/lib/media";
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -160,7 +161,7 @@ export default function RecruiterPage() {
                         <span className="flex items-center gap-2">
                           {a.avatar_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={a.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
+                            <img src={displayImageUrl(a.avatar_url, 200) ?? a.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
                           ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy text-[11px] font-semibold text-white">{a.name.charAt(0)}</span>}
                           <span className="min-w-0"><span className="block truncate text-[12.5px] font-semibold text-ink">{a.name}</span><span className="block text-[10.5px] text-ink/40">{new Date(a.applied_at).toLocaleDateString()}</span></span>
                         </span>
@@ -179,7 +180,7 @@ export default function RecruiterPage() {
                   <div className="flex items-start gap-3.5">
                     {sel.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sel.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
+                      <img src={displayImageUrl(sel.avatar_url, 200) ?? sel.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
                     ) : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">{sel.name.charAt(0)}</span>}
                     <div className="min-w-0 flex-1">
                       <p className="text-[16px] font-semibold text-ink">{sel.name}</p>

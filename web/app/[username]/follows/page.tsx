@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, Search, X } from "lucide-react";
@@ -110,7 +111,7 @@ export default function FollowsPage() {
               <Link href={"/" + (p.username ?? "")} className="flex min-w-0 flex-1 items-center gap-3">
                 {p.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+                  <img src={displayImageUrl(p.avatar_url, 200) ?? p.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
                 ) : (
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink/5 text-[14px] font-bold text-[#0B1E3D]">{initials(p.full_name)}</span>
                 )}

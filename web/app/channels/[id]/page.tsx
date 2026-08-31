@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, BarChart2, Camera, Check, ChevronDown, ChevronUp, HelpCircle, Image as ImageIcon, Plus, Radio, Send, Settings2, X } from "lucide-react";
@@ -639,7 +640,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
                   <div key={r.id} className="flex items-center gap-2 rounded-lg px-1 py-1.5">
                     {r.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                      <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                     ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13.5px] font-semibold text-ink">{r.full_name || "Member"}</span>
@@ -656,7 +657,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
               <div key={m.user_id} className="flex items-center gap-2 rounded-lg px-1 py-1.5">
                 {m.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                  <img src={displayImageUrl(m.avatar_url, 200) ?? m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(m.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink">{m.full_name || "Member"}{m.user_id === meId ? " (you)" : ""}</span>

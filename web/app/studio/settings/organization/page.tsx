@@ -13,6 +13,7 @@
  * empty rather than as an error.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, Building2, Clock, Crown, MapPin, Plus, Shield, Trash2, UserPlus, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -157,7 +158,7 @@ export default function OrganizationPage() {
                   <div key={m.id} className="flex items-center gap-3 border-b border-ink/8 py-2.5 last:border-0">
                     {m.profile?.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.profile.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                      <img src={displayImageUrl(m.profile.avatar_url, 200) ?? m.profile.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
                     ) : <span className="h-9 w-9 shrink-0 rounded-full bg-surface" />}
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-1.5 text-[13.5px] font-semibold text-ink">

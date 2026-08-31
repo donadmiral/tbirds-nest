@@ -1,6 +1,7 @@
 "use client";
 
 import { StudioRailPortal } from "@/components/StudioRailPortal";
+import { displayImageUrl } from "@/lib/media";
 import { Panel } from "@/components/ui";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -156,7 +157,7 @@ export default function InboxPage() {
                 <div className="flex items-start gap-3">
                   {it.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={it.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+                    <img src={displayImageUrl(it.avatar_url, 200) ?? it.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
                   ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{it.title.charAt(0)}</span>}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

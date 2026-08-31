@@ -515,7 +515,7 @@ function ViewersSheet({ storyId, onClose }: { storyId: string; onClose: () => vo
         <div key={p.id} className="flex items-center gap-2.5 py-1.5">
           {p.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+            <img src={displayImageUrl(p.avatar_url, 200) ?? p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
           ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-pearl text-[12px] font-semibold text-ink">{(p.full_name ?? "?").charAt(0)}</span>}
           <span className="text-[13px] text-ink">{p.full_name} <span className="text-ink/40">@{p.username}</span></span>
         </div>

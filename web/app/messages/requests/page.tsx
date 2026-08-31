@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Inbox } from "lucide-react";
@@ -62,7 +63,7 @@ export default function MessageRequestsPage() {
           <div className="flex items-center gap-3">
             {r.sender_avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.sender_avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+              <img src={displayImageUrl(r.sender_avatar_url, 200) ?? r.sender_avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
             ) : <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{(r.sender_name || "U").charAt(0)}</span>}
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-semibold text-ink">{r.sender_name || "User"}</p>

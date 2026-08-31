@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { Briefcase, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -39,7 +40,7 @@ export default function BusinessesPage() {
         <Link key={r.business_id} href={"/" + (r.username || "")} className="mb-2 flex items-center gap-3 rounded-xl border border-ink/10 p-3.5 transition-colors hover:bg-ink/[0.02]">
           {r.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={r.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+            <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
           ) : <span className="flex h-12 w-12 items-center justify-center rounded-full bg-navy text-[14px] font-semibold text-white">{(r.full_name || "B").charAt(0)}</span>}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name || "Business"}{r.is_verified ? <span className="ml-1.5 text-pearl">✓</span> : null}</p>

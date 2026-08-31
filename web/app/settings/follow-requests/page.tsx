@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, UserCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -57,7 +58,7 @@ export default function FollowRequestsPage() {
           <Link href={"/" + (r.username || "")} className="flex min-w-0 flex-1 items-center gap-3.5">
             {r.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
+              <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
             ) : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">{(r.full_name || "U").charAt(0)}</span>}
             <div className="min-w-0">
               <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name || "Member"}</p>

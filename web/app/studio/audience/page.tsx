@@ -1,6 +1,7 @@
 "use client";
 
 import { StudioRailPortal } from "@/components/StudioRailPortal";
+import { displayImageUrl } from "@/lib/media";
 import { Panel } from "@/components/ui";
 
 import { AudienceBreakdown } from "@/components/AudienceBreakdown";
@@ -118,7 +119,7 @@ export default function AudiencePage() {
                   <div key={p.id} className="flex items-center gap-2.5">
                     {p.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.avatar_url} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                      <img src={displayImageUrl(p.avatar_url, 200) ?? p.avatar_url} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
                     ) : (
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy text-[11px] font-semibold text-white">{p.name.charAt(0)}</span>
                     )}
@@ -151,7 +152,7 @@ export default function AudiencePage() {
           <div key={p.id} className="mt-2 flex items-center gap-3 rounded-xl border border-ink/10 px-3 py-2.5">
             {p.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+              <img src={displayImageUrl(p.avatar_url, 200) ?? p.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
             ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{p.name.charAt(0)}</span>}
             <div className="min-w-0 flex-1">
               <Link href={p.username ? "/" + p.username : "#"} className="text-[14px] font-semibold text-ink hover:underline">{p.name}</Link>
@@ -166,7 +167,7 @@ export default function AudiencePage() {
           <div key={l.id} className="mt-2 flex items-center gap-3 rounded-xl border border-ink/10 px-3 py-2.5">
             {l.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={l.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+              <img src={displayImageUrl(l.avatar_url, 200) ?? l.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
             ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-white"><Users size={15} /></span>}
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-semibold text-ink">{l.name} <span className={"ml-1 rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + chip(l.status)}>{l.status}</span></p>

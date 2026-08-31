@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Megaphone, Eye, UserPlus, MousePointerClick, MessageCircle, ShoppingBag, Briefcase, Check, ArrowLeft, ArrowRight } from "lucide-react";
@@ -276,7 +277,7 @@ export default function AdWizardPage() {
             <div className="flex gap-3">
               {me?.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={me.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+                <img src={displayImageUrl(me.avatar_url, 200) ?? me.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
               ) : (
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">{(me?.full_name ?? "?").charAt(0)}</span>
               )}

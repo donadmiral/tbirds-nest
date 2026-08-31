@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FileText, Phone, Link2, CalendarClock, MessageCircle } from "lucide-react";
@@ -124,7 +125,7 @@ export default function ApplicantsPage() {
                   <Link href={a.profile?.username ? "/" + a.profile.username : "#"} className="shrink-0">
                     {a.profile?.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={a.profile.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+                      <img src={displayImageUrl(a.profile.avatar_url, 200) ?? a.profile.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
                     ) : (
                       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">
                         {(a.profile?.full_name ?? "?").charAt(0).toUpperCase()}

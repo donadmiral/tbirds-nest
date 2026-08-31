@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, Phone, PhoneIncoming, PhoneMissed, PhoneOff, PhoneOutgoing, Video } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -89,7 +90,7 @@ export default function CallsPage() {
           <div key={r.id} className="flex items-center gap-3 border-b border-ink/[0.06] py-3 last:border-0">
             {r.other?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.other.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
+              <img src={displayImageUrl(r.other.avatar_url, 200) ?? r.other.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
             ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-navy text-[13px] font-semibold text-white">{(r.other?.full_name || "U").charAt(0)}</span>}
             <div className="min-w-0 flex-1">
               <p className={"truncate text-[14px] font-semibold " + (missed ? "text-red-500" : "text-ink")}>{r.other?.full_name || "Unknown"}</p>

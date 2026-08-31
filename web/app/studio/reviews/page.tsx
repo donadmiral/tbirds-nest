@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { MessageSquare, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -63,7 +64,7 @@ export default function ReviewsPage() {
               <div className="flex items-start gap-3">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
+                  <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
                 ) : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-[12px] font-semibold text-white">{r.name.charAt(0)}</span>}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">

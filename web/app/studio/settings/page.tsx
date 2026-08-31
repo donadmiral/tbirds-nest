@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { displayImageUrl } from "@/lib/media";
 
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { Panel } from "@/components/ui";
@@ -156,7 +157,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-3">
           {info.profile?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={info.profile.avatar_url} alt="" className="h-12 w-12 rounded-xl object-cover" />
+            <img src={displayImageUrl(info.profile.avatar_url, 200) ?? info.profile.avatar_url} alt="" className="h-12 w-12 rounded-xl object-cover" />
           ) : <span className="h-12 w-12 rounded-xl bg-navy" />}
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[15px] font-semibold text-ink">{info.profile?.full_name}{info.profile?.is_verified || info.business?.is_verified ? <BadgeCheck size={15} className="text-pearl" /> : null}</p>
