@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send } from "lucide-react";
-import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, STORY_FILTERS, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker } from "@/lib/stories";
+import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker } from "@/lib/stories";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
@@ -94,7 +94,7 @@ function FilterOverlay({ filterId }: { filterId: string | null | undefined }) {
   const f = STORY_FILTERS.find((x) => x.id === filterId);
   if (!f) return null;
   return (
-    <div className="pointer-events-none absolute inset-0 z-[1]">
+    <div className="pointer-events-none absolute inset-0 z-[1]" style={{ backdropFilter: filterCss(filterId), WebkitBackdropFilter: filterCss(filterId) }}>
       {f.layers.map((l, i) => (
         <div key={i} className="pointer-events-none absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />
       ))}

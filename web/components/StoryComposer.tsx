@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, ImagePlus, Plus, Trash2, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { STORY_FILTERS, STORY_FILTER_FAMILIES, filterCss } from "@/lib/stories";
 import { searchPeople, type AccessPerson } from "@/lib/memoryAlbum";
 
 type Draft = {
@@ -30,6 +31,7 @@ function ComposerInner() {
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [durationSec, setDurationSec] = useState<number | null>(null);
   const [caption, setCaption] = useState("");
+  const [filterId, setFilterId] = useState<string | null>(null);
   const [audience, setAudience] = useState("everyone");
   const [people, setPeople] = useState<AccessPerson[]>([]);
   const [q, setQ] = useState("");
@@ -107,7 +109,7 @@ function ComposerInner() {
     setError(null);
     const { data: row, error: insErr } = await supabase.from("stories").insert({
       user_id: uid, media_url: mediaUrl, media_type: mediaType,
-      caption: caption.trim() || null, audience,
+      caption: caption.trim() || null, audience, filter_id: filterId,
       duration_sec: mediaType === "video" ? durationSec ?? 10 : null,
     }).select("id").single();
     if (insErr || !row) { setError(insErr?.message || "Could not post the story."); setBusy(null); return; }
@@ -169,6 +171,7 @@ function ComposerInner() {
           <span className="text-[13px] font-semibold">{busy === "upload" ? "Uploading" : "Add a photo or video"}</span>
         </button>
       ) : (
+        <>
         <div className="relative aspect-[9/14] w-full overflow-hidden rounded-2xl bg-ink">
           {mediaType === "video" ? (
             <video src={mediaUrl} controls playsInline className="h-full w-full object-contain" />
@@ -176,8 +179,38 @@ function ComposerInner() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={mediaUrl} alt="" className="h-full w-full object-contain" />
           )}
+          {/* The chosen look, drawn exactly as the viewer draws it. */}
+          {filterId ? (() => { const f = STORY_FILTERS.find((x) => x.id === filterId); return f ? (
+            <div className="pointer-events-none absolute inset-0" style={{ backdropFilter: filterCss(filterId), WebkitBackdropFilter: filterCss(filterId) }}>
+              {f.layers.map((l, i) => <div key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />)}
+            </div>) : null; })() : null}
           <button onClick={() => { setMediaUrl(null); setDraftId(null); }} className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white" aria-label="Remove media"><X size={14} /></button>
         </div>
+        {mediaType === "image" ? (
+          <div className="mt-3">
+            {STORY_FILTER_FAMILIES.map((fam) => (
+              <div key={fam.key} className="mb-2">
+                <p className="mb-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-ink/40">{fam.label}</p>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {(fam.key === "classic" ? [{ id: null as string | null, label: "None", layers: [] as { color: string; opacity: number }[], css: undefined as string | undefined }, ...STORY_FILTERS.filter((f) => f.family === fam.key)] : STORY_FILTERS.filter((f) => f.family === fam.key)).map((f) => {
+                    const on = filterId === f.id;
+                    return (
+                      <button key={f.id ?? "none"} type="button" onClick={() => setFilterId(f.id)} className="flex w-[64px] shrink-0 flex-col items-center gap-1">
+                        <span className={"relative block h-[64px] w-[64px] overflow-hidden rounded-xl border-2 " + (on ? "border-pearl" : "border-transparent")}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={mediaUrl} alt="" className="h-full w-full object-cover" style={{ filter: filterCss(f.id) }} />
+                          {f.layers.map((l, i) => <span key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />)}
+                        </span>
+                        <span className={"text-[11px] " + (on ? "font-semibold text-ink" : "text-ink/50")}>{f.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        </>
       )}
       <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) pickFile(f); e.target.value = ""; }} />
