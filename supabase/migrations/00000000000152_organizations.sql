@@ -392,3 +392,26 @@ commit;
 -- select (select count(*) from organizations) as orgs,
 --        (select count(*) from business_profiles where profile_id is not null) as businesses,
 --        (select count(*) from org_memberships) as memberships;
+
+-- Amendment applied 2026-08-31: the read policies consulted org_memberships
+-- from inside its own policy, which recurses. Membership checks now go
+-- through security-definer helpers that bypass row security for that test.
+create or replace function public.org_is_member(p_org uuid)
+returns boolean language sql stable security definer set search_path to 'public' as $$
+  select exists (select 1 from org_memberships m where m.org_id = p_org and m.user_id = auth.uid() and (m.expires_at is null or m.expires_at > now()));
+$$;
+create or replace function public.org_is_manager(p_org uuid)
+returns boolean language sql stable security definer set search_path to 'public' as $$
+  select exists (select 1 from org_memberships m where m.org_id = p_org and m.user_id = auth.uid() and m.role in ('owner','admin') and (m.expires_at is null or m.expires_at > now()));
+$$;
+grant execute on function public.org_is_member(uuid), public.org_is_manager(uuid) to authenticated;
+drop policy if exists organizations_read on public.organizations;
+create policy organizations_read on public.organizations for select to authenticated using (archived_at is null and (org_is_member(id) or (profile_id is not null and profile_id = auth.uid())));
+drop policy if exists org_memberships_read on public.org_memberships;
+create policy org_memberships_read on public.org_memberships for select to authenticated using (user_id = auth.uid() or org_is_member(org_id));
+drop policy if exists org_delegations_read on public.org_delegations;
+create policy org_delegations_read on public.org_delegations for select to authenticated using (org_is_member(client_org_id) or org_is_member(principal_org_id));
+drop policy if exists org_surfaces_read on public.org_surfaces;
+create policy org_surfaces_read on public.org_surfaces for select to authenticated using (org_is_member(org_id));
+drop policy if exists org_audit_read on public.org_audit_log;
+create policy org_audit_read on public.org_audit_log for select to authenticated using (org_is_manager(org_id));
