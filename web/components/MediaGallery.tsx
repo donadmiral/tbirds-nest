@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircle, Repeat2 } from "lucide-react";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Comments } from "@/components/Comments";
 import { RichText } from "@/components/RichText";
 import { displayImageUrl, srcSetFor } from "@/lib/media";
@@ -17,6 +18,8 @@ export type ViewerPost = {
   author_name?: string | null;
   author_username?: string | null;
   author_avatar?: string | null;
+  author_verified?: boolean | null;
+  author_verified_tier?: string | null;
   content?: string | null;
   likes_count?: number;
   comments_count?: number;
@@ -285,19 +288,39 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
 
       {lightbox !== null ? (
         <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Media viewer"
-          className="fixed inset-0 z-50 flex bg-black/95"
+          className="fixed inset-0 z-50 flex flex-col bg-[#0b0b0d]"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox(null); }}
           onTouchStart={onTouchStart} onTouchMove={onModalTouchMove} onTouchEnd={onModalTouchEnd}
           onMouseMove={onDragMove} onMouseUp={onDragEnd} onMouseLeave={onDragEnd}
         >
-          <div data-media-pane className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden">
-            <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="absolute left-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><X size={18} /></button>
-            <span className="absolute left-16 top-5 z-10 text-[12px] font-semibold text-white/70">{lightbox + 1} / {media.length}</span>
+          {/* Top bar, as in the reference: wordmark, author, Fit to screen, close. */}
+          <div onClick={(e) => e.stopPropagation()} className="flex h-[60px] shrink-0 items-center gap-4 border-b border-white/10 px-5">
+            <span className="flex items-center gap-2.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="" className="h-7 w-7 rounded-full" />
+              <span className="text-[15px] leading-none text-white"><span className="font-bold">Platinum</span> <span className="font-normal text-white/70">Circles</span></span>
+            </span>
             {post ? (
-              <button onClick={(e) => { e.stopPropagation(); setImmersive((v) => !v); }} aria-label={immersive ? "Show details" : "Immersive view"} className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20">
-                {immersive ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+              <Link href={"/" + (post.author_username ?? "")} className="ml-3 flex items-center gap-2.5 text-white">
+                {post.author_avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={post.author_avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+                ) : null}
+                <span className="flex items-center gap-[3px] text-[15px] font-semibold">{post.author_name}{post.author_verified ? <VerifiedBadge tier={post.author_verified_tier ?? null} size={14} /> : null}</span>
+                <span className="text-[13px] text-white/55">@{post.author_username}</span>
+              </Link>
+            ) : null}
+            <span className="ml-auto text-[12px] font-semibold text-white/50">{lightbox + 1} / {media.length}</span>
+            {post ? (
+              <button onClick={() => setImmersive((v) => !v)} className="flex items-center gap-2 rounded-full border border-pearl/70 px-3.5 py-1.5 text-[13.5px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-pearl/10">
+                {immersive ? <Minimize2 size={15} /> : <Maximize2 size={15} />} {immersive ? "Show comments" : "Fit to screen"}
               </button>
             ) : null}
+            <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white transition-colors duration-[140ms] hover:bg-white/10"><X size={17} /></button>
+          </div>
+
+          <div className="flex min-h-0 flex-1">
+          <div data-media-pane className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden">
             {lightbox > 0 ? (
               <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><ChevronLeft size={20} /></button>
             ) : null}
@@ -380,6 +403,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               </Link>
             </aside>
           ) : null}
+          </div>
         </div>
       ) : null}
     </div>

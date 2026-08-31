@@ -151,14 +151,8 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
       onKeyDown={onKey}
       onClick={() => wrapRef.current?.focus()}
       style={!fs && !immersive && width && height ? { aspectRatio: width + " / " + height } : undefined}
-      className={"group relative overflow-hidden bg-black outline-none " + (fs || immersive ? "flex h-full w-full items-center justify-center" : "h-full w-full rounded-lg")}
+      className={"group relative overflow-hidden outline-none " + (fs || immersive ? "flex h-full w-full flex-col bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}
     >
-      {(fs || immersive) && posterBg ? (
-        // A blurred poster copy behind the video in fullscreen. First in the
-        // DOM so the video and the controls paint over it.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={posterBg} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl" />
-      ) : null}
       <video ref={ref}
         src={src}
         playsInline
@@ -201,7 +195,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
             setPosterBg(c.toDataURL("image/jpeg", 0.7));
           } catch { /* tainted or unavailable, fine */ }
         }}
-        className={(fs || immersive) ? "relative h-full max-h-none w-full object-contain" : "relative h-full w-full object-cover"}
+        className={(fs || immersive) ? "relative min-h-0 w-full flex-1 object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.10)]" : "relative h-full w-full object-cover"}
       />
 
       {!playing && posterBg && !unplayable ? (
@@ -224,9 +218,12 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
           <Eye size={12} /> {viewsCount >= 1000 ? (viewsCount / 1000).toFixed(1).replace(/\.0$/, "") + "K" : viewsCount}
         </span>
       ) : null}
-      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-        <div onClick={scrub} className="h-1.5 w-full cursor-pointer overflow-hidden rounded-full bg-white/25">
-          <div className="h-full bg-pearl" style={{ width: progress * 100 + "%" }} />
+      <div className={(fs || immersive)
+        ? "relative flex shrink-0 flex-col gap-3 bg-[#0b0b0d] px-6 pb-4 pt-4"
+        : "absolute inset-x-0 bottom-0 flex flex-col gap-1.5 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"}>
+        <div onClick={scrub} className={"relative w-full cursor-pointer rounded-full bg-white/20 " + ((fs || immersive) ? "h-1" : "h-1.5 overflow-hidden")}>
+          <div className="h-full rounded-full bg-pearl" style={{ width: progress * 100 + "%" }} />
+          {(fs || immersive) ? <span className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-pearl shadow" style={{ left: "calc(" + progress * 100 + "% - 7px)" }} aria-hidden /> : null}
         </div>
         <div className="flex items-center gap-1.5">
           <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} title={playing ? "Pause (Space)" : "Play (Space)"} className={btn}>
