@@ -161,7 +161,7 @@ export default function SavedPage() {
                 name={p.author?.full_name}
                 avatarUrl={p.author?.avatar_url}
                 size={44}
-                href={p.author?.username ? "/" + p.author.username : null}
+                href={null}
               />
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5 text-[14px]">
