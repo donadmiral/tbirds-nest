@@ -83,24 +83,24 @@ export function Nav({ name, username, business = false }: { name: string; userna
   }
 
   return (
-    <aside className={"fixed inset-y-0 left-0 flex flex-col overflow-y-auto border-r border-ink/10 py-6 transition-[width] duration-200 " + (collapsed ? "w-[76px] px-2" : "w-[260px] px-4")}>
+    <aside className={"fixed inset-y-0 left-0 flex flex-col overflow-visible border-r border-ink/10 py-6 transition-[width] duration-200 " + (collapsed ? "w-[76px] px-2" : "w-[260px] px-4")}>
       <div className={"mb-6 flex items-center " + (collapsed ? "justify-center" : "justify-between px-3")}>
         <Link href="/home" className="flex items-center gap-2.5" aria-label="Platinum Circles home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl" />
-          {!collapsed ? <Wordmark size={22} /> : null}
+          {!collapsed ? <Wordmark size={19} /> : null}
         </Link>
-        {!collapsed ? (
-          <button onClick={toggle} aria-label="Collapse sidebar" title="Collapse" className="rounded-full p-1.5 text-ink/45 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
-            <PanelLeftClose size={17} />
-          </button>
-        ) : null}
       </div>
-      {collapsed ? (
-        <button onClick={toggle} aria-label="Expand sidebar" title="Expand" className="mx-auto mb-3 rounded-full p-1.5 text-ink/45 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
-          <PanelLeftOpen size={17} />
-        </button>
-      ) : null}
+      {/* A tab on the sidebar's edge, so it is visible whatever the wordmark
+          width does and stays in the same place collapsed or expanded. */}
+      <button
+        onClick={toggle}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        title={collapsed ? "Expand" : "Collapse"}
+        className="absolute -right-3 top-7 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 bg-white text-ink/60 shadow-sm transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
+      >
+        {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+      </button>
       <nav className="flex flex-1 flex-col gap-0.5">
         {allItems.map(({ href, label, icon: Icon, badge, dot, tag }) => {
           const active = pathname === href || pathname.startsWith(href + "/");

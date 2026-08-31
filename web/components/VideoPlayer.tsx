@@ -195,7 +195,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
             setPosterBg(c.toDataURL("image/jpeg", 0.7));
           } catch { /* tainted or unavailable, fine */ }
         }}
-        className={(fs || immersive) ? "relative z-[1] h-full max-h-none w-full object-contain" : "relative h-full w-full object-contain"}
+        className={(fs || immersive) ? "relative z-[1] h-full max-h-none w-full object-contain" : "relative h-full w-full object-cover"}
       />
       {/* Fullscreen only: a blurred copy of the poster fills the screen behind
           the video so a portrait clip is not a strip between two black slabs.

@@ -4,7 +4,6 @@ import { Nav } from "@/components/Nav";
 import { WebCallLayer } from "@/components/WebCallLayer";
 import { GlobalMediaLightbox } from "@/components/GlobalMediaLightbox";
 import { GlobalBack } from "@/components/GlobalBack";
-import { DiscoveryRail } from "@/components/DiscoveryRail";
 import { TopBar } from "@/components/TopBar";
 
 export async function AppShell({
@@ -54,11 +53,11 @@ export async function AppShell({
         <TopBar name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} avatarUrl={profile?.avatar_url} />
         {wide ? (
           <main className="-mt-[60px] px-6 pb-10 pt-[76px]">{children}</main>
-        ) : rail ? (
+        ) : rail && railContent ? (
           <main className="-mt-[60px] flex justify-center gap-6 px-6 pb-10 pt-[76px]">
             <div className="w-full min-w-0 max-w-[640px]">{children}</div>
             <aside className="hidden w-[340px] shrink-0 xl:block">
-              <div className="sticky top-[88px] flex flex-col gap-4">{railContent ?? <DiscoveryRail />}</div>
+              <div className="sticky top-[88px] flex flex-col gap-4">{railContent}</div>
             </aside>
           </main>
         ) : (

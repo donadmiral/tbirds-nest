@@ -132,7 +132,13 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   if (media.length === 0) return null;
   const item = media[Math.min(idx, media.length - 1)];
   const known = trueDims[item.id] ?? (item.width && item.height ? { w: item.width, h: item.height } : null);
-  const dims = fitted(known?.w, known?.h, availW, maxH);
+  const fittedDims = fitted(known?.w, known?.h, availW, maxH);
+  // Video takes the whole card width and caps its height at 4:5, exactly as
+  // Instagram's feed does. A tall clip is cover-cropped to that box in the
+  // feed; the full frame is one click away in the viewer.
+  const dims = item.media_type === "video" && availW
+    ? { w: availW, h: Math.round(Math.min(known?.w && known?.h ? availW * (known.h / known.w) : availW * 1.25, availW * 1.25)) }
+    : fittedDims;
   const altOf = (m: MediaItem, i: number) => m.alt_text || "Post media " + (i + 1);
   const showPanel = !!post && !immersive;
 
