@@ -153,6 +153,12 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
       style={!fs && !immersive && width && height ? { aspectRatio: width + " / " + height } : undefined}
       className={"group relative overflow-hidden bg-black outline-none " + (fs || immersive ? "flex h-full w-full items-center justify-center" : "h-full w-full rounded-lg")}
     >
+      {(fs || immersive) && posterBg ? (
+        // A blurred poster copy behind the video in fullscreen. First in the
+        // DOM so the video and the controls paint over it.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={posterBg} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl" />
+      ) : null}
       <video ref={ref}
         src={src}
         playsInline
@@ -195,25 +201,13 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
             setPosterBg(c.toDataURL("image/jpeg", 0.7));
           } catch { /* tainted or unavailable, fine */ }
         }}
-        className={(fs || immersive) ? "relative z-[1] h-full max-h-none w-full object-contain" : "relative h-full w-full object-cover"}
+        className={(fs || immersive) ? "relative h-full max-h-none w-full object-contain" : "relative h-full w-full object-cover"}
       />
-      {/* Fullscreen only: a blurred copy of the poster fills the screen behind
-          the video so a portrait clip is not a strip between two black slabs.
-          The video itself stays uncropped; only the backdrop is a copy. The
-          feed keeps its shrink-wrapped card with no blur, as before. */}
-      {(fs || immersive) && posterBg ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={posterBg}
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
-        />
-      ) : null}
+
       {!playing && posterBg && !unplayable ? (
         <button onClick={(e) => { e.stopPropagation(); playNow(); }} aria-label="Play video" className="absolute inset-0 z-[5] flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={posterBg} alt="" aria-hidden className="absolute inset-0 h-full w-full object-contain" />
+          <img src={posterBg} alt="" aria-hidden className={"absolute inset-0 h-full w-full " + ((fs || immersive) ? "object-contain" : "object-cover")} />
           <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-ink/70 pl-1 text-white">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
           </span>

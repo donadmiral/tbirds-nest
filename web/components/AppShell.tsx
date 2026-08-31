@@ -33,7 +33,7 @@ export async function AppShell({
           </Link>
         </header>
         <main className="flex justify-center px-6 py-8">
-          <div className="w-full max-w-[640px]">{children}</div>
+          <div className="w-full max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[760px]">{children}</div>
         </main>
       </div>
     );
@@ -55,14 +55,14 @@ export async function AppShell({
           <main className="-mt-[60px] px-6 pb-10 pt-[76px]">{children}</main>
         ) : rail && railContent ? (
           <main className="-mt-[60px] flex justify-center gap-6 px-6 pb-10 pt-[76px]">
-            <div className="w-full min-w-0 max-w-[640px]">{children}</div>
+            <div className="w-full min-w-0 max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[720px]">{children}</div>
             <aside className="hidden w-[340px] shrink-0 xl:block">
               <div className="sticky top-[88px] flex flex-col gap-4">{railContent}</div>
             </aside>
           </main>
         ) : (
           <main className="-mt-[60px] flex justify-center px-6 pb-10 pt-[76px]">
-            <div className="w-full max-w-[640px]">{children}</div>
+            <div className="w-full max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[760px]">{children}</div>
           </main>
         )}
       </div>

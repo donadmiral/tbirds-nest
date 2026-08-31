@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircle, Repeat2 } from "lucide-react";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { Comments } from "@/components/Comments";
 import { RichText } from "@/components/RichText";
 import { displayImageUrl, srcSetFor } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
@@ -371,8 +372,11 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                   <svg width="16" height="16" viewBox="0 0 24 24" fill={marked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" aria-hidden><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
                 </button>
               </div>
-              <Link href={"/post/" + post!.post_id} className="mt-5 rounded-full bg-pearl px-4 py-2.5 text-center text-[13.5px] font-bold text-ink shadow-sm transition-opacity duration-[140ms] hover:opacity-90">
-                Open post and comments
+              <div className="mt-4 min-h-0 flex-1 overflow-y-auto border-t border-white/10 pt-4 [&_*]:text-white [&_input]:bg-white/10 [&_textarea]:bg-white/10">
+                <Comments postId={post!.post_id} />
+              </div>
+              <Link href={"/post/" + post!.post_id} className="mt-3 text-center text-[12px] text-white/45 hover:text-white/70">
+                Open the full post
               </Link>
             </aside>
           ) : null}
