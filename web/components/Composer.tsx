@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { checkUploadable } from "@/lib/media";
+import { checkUploadableBytes } from "@/lib/media";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
@@ -197,7 +197,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
       const p = items[i];
       const ext = (p.file.name.split(".").pop() || (p.isVideo ? "mp4" : "jpg")).toLowerCase();
       const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
-      const bad = checkUploadable(p.file);
+      const bad = await checkUploadableBytes(p.file);
       if (bad) { setError(bad); setPending(false); return; }
       const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type });
       if (upErr) {

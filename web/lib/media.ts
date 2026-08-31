@@ -46,3 +46,28 @@ export function checkUploadable(file: File): string | null {
   }
   return null;
 }
+
+
+/**
+ * The same judgement, by bytes rather than by name. A phone can hand over a
+ * QuickTime clip called photo.jpg with a JPEG label; the first sixteen bytes
+ * cannot lie. Call this before uploading anything from a picker.
+ */
+export async function checkUploadableBytes(file: File): Promise<string | null> {
+  const quick = checkUploadable(file);
+  if (quick) return quick;
+  try {
+    const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    const brand = String.fromCharCode(...head.slice(4, 12));
+    if (/^ftyp(heic|heix|hevc|mif1|msf1)/.test(brand)) return "That photo is a HEIC file, which browsers cannot show. Save it as JPG or PNG and try again.";
+    const isVideo = /^ftyp(qt|isom|mp42|mp41|avc1|iso2|M4V)/.test(brand);
+    if (isVideo && !file.type.startsWith("video/")) return "That file is a video, not a photo. Choose it as a video instead.";
+    if (/^ftypqt/.test(brand)) return "That video is a QuickTime file, which browsers cannot play. Export it as MP4 and try again.";
+    const isJpeg = head[0] === 0xff && head[1] === 0xd8;
+    const isPng = head[0] === 0x89 && head[1] === 0x50;
+    const isWebp = String.fromCharCode(...head.slice(8, 12)) === "WEBP";
+    const isGif = String.fromCharCode(...head.slice(0, 3)) === "GIF";
+    if (file.type.startsWith("image/") && !(isJpeg || isPng || isWebp || isGif)) return "That file is not an image a browser can show. Save it as JPG or PNG and try again.";
+  } catch { /* unreadable slice: let the server decide */ }
+  return null;
+}

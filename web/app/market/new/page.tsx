@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { checkUploadable } from "@/lib/media";
+import { checkUploadableBytes } from "@/lib/media";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ImagePlus, X } from "lucide-react";
@@ -67,7 +67,7 @@ export default function CreateListingPage() {
     for (const p of photos) {
       const ext = (p.file.name.split(".").pop() || "jpg").toLowerCase();
       const path = "listings/" + uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
-      const bad = checkUploadable(p.file);
+      const bad = await checkUploadableBytes(p.file);
       if (bad) { setError(bad); setPending(false); return; }
       const { error: upErr } = await supabase.storage.from("market-media").upload(path, p.file, { contentType: p.file.type });
       if (upErr) { setError("Photo upload failed: " + upErr.message); setPending(false); return; }
