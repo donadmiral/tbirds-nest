@@ -262,7 +262,10 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
             style={{ width: 32, height: 32, flex: '0 0 32px', display: 'block', objectFit: 'contain', transition: 'transform 220ms ' + EASE }} />
           {open ? (
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 14, letterSpacing: '0.01em', color: 'var(--txt-strong)', lineHeight: 1.15, whiteSpace: 'nowrap' }}>Platinum Circles</div>
+              {/* Same lockup as the web app: Platinum in ink, Circles in grey, one heavy sans. */}
+              <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, whiteSpace: 'nowrap', fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif" }}>
+                <span style={{ color: 'var(--txt-strong)' }}>Platinum</span><span style={{ color: 'rgba(var(--on),0.46)' }}>Circles</span>
+              </div>
               <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.02em', color: 'rgba(var(--on),0.46)', marginTop: 2 }}>Operations</div>
             </div>
           ) : null}

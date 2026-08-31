@@ -1,108 +1,174 @@
 "use client";
 
+/**
+ * Discover.
+ *
+ * Categories are exact. A post appears under Comedy because its author filed
+ * it under Comedy in the composer, never because the text contained "lol".
+ * The keyword guessing that used to live here is gone; it put finance posts
+ * under Comedy and confused everyone.
+ *
+ * For you is the ranked feed. Videos is every video post, laid out as a grid
+ * with its caption, the way a video surface should be.
+ */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { FeedRow } from "@/lib/feed";
+import { CATEGORIES } from "@/lib/categories";
 import { DiscoverTile } from "@/components/DiscoverTile";
 import { EmptyState } from "@/components/ui";
 import { ErrorState } from "@/components/ErrorState";
 import { withTimeout } from "@/lib/withTimeout";
-import { CATEGORIES } from "@/lib/categories";
-import type { FeedRow } from "@/lib/feed";
 
-// Discover: Innovation leads, exact category matches outrank keyword
-// guesses, the interest graph replaces keywords at scale.
+type Chip = { key: string; label: string };
+const CHIPS: Chip[] = [
+  { key: "for_you", label: "For you" },
+  { key: "videos", label: "Videos" },
+  ...CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
+];
+
+function hasVideo(r: FeedRow) {
+  return (r.media ?? []).some((m) => m.media_type === "video");
+}
+
 export function DiscoverFeed() {
   const supabase = useRef(createClient()).current;
-  const [cat, setCat] = useState("innovation");
-  const [pool, setPool] = useState<FeedRow[]>([]);
-  const [inno, setInno] = useState<FeedRow[]>([]);
+  const [chip, setChip] = useState("for_you");
+  const [rows, setRows] = useState<FeedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+
+  const loadRanked = useCallback(async () => {
+    const [a, b] = await withTimeout(Promise.all([
+      supabase.rpc("get_feed", { p_mode: "trending", p_limit: 30 }),
+      supabase.rpc("get_feed", { p_mode: "for_you", p_limit: 60 }),
+    ]));
+    if (a.error && b.error) throw a.error;
+    const seen = new Set<string>();
+    const out: FeedRow[] = [];
+    for (const r of ([...(a.data ?? []), ...(b.data ?? [])] as FeedRow[])) {
+      const reposted = (r as unknown as { reposted_by_id?: string | null }).reposted_by_id;
+      if (!seen.has(r.post_id) && !reposted) { seen.add(r.post_id); out.push(r); }
+    }
+    return out;
+  }, [supabase]);
+
+  // Strict: posts.category must equal the chip. Three small queries rather
+  // than one guess: the posts, their media, their authors.
+  const loadCategory = useCallback(async (key: string) => {
+    const { data: posts, error } = await withTimeout(
+      supabase
+        .from("posts")
+        .select("id, user_id, content, body, category, channel, article_title, read_minutes, created_at, likes_count, comments_count, reposts_count, bookmarks_count, views_count, media_url, link_url")
+        .eq("category", key)
+        .is("community_id", null)
+        .order("created_at", { ascending: false })
+        .limit(40),
+    );
+    if (error) throw error;
+    const list = (posts ?? []) as Record<string, unknown>[];
+    if (list.length === 0) return [];
+    const ids = list.map((p) => p.id as string);
+    const authorIds = Array.from(new Set(list.map((p) => p.user_id as string)));
+    const [{ data: media }, { data: authors }] = await Promise.all([
+      supabase.from("post_media").select("id, post_id, url, media_type, width, height, sort_order").in("post_id", ids),
+      supabase.from("profiles").select("id, full_name, username, avatar_url, is_verified, verified_tier, account_type").in("id", authorIds),
+    ]);
+    const mediaBy = new Map<string, FeedRow["media"]>();
+    for (const m of (media ?? []) as (FeedRow["media"][number] & { post_id: string })[]) {
+      const arr = mediaBy.get(m.post_id) ?? [];
+      arr.push(m);
+      mediaBy.set(m.post_id, arr);
+    }
+    const authorBy = new Map<string, Record<string, unknown>>();
+    for (const a of (authors ?? []) as Record<string, unknown>[]) authorBy.set(a.id as string, a);
+
+    return list.map((p) => {
+      const a = authorBy.get(p.user_id as string) ?? {};
+      return {
+        post_id: p.id,
+        author_id: p.user_id,
+        content: p.content,
+        body: p.body,
+        media_url: p.media_url,
+        media: mediaBy.get(p.id as string) ?? [],
+        products: [],
+        link: null,
+        channel: p.channel,
+        article_title: p.article_title,
+        read_minutes: p.read_minutes,
+        created_at: p.created_at,
+        likes_count: p.likes_count ?? 0,
+        comments_count: p.comments_count ?? 0,
+        reposts_count: p.reposts_count ?? 0,
+        bookmarks_count: p.bookmarks_count ?? 0,
+        views_count: p.views_count ?? 0,
+        author_name: a.full_name ?? null,
+        author_username: a.username ?? null,
+        author_avatar: a.avatar_url ?? null,
+        author_verified: a.is_verified ?? false,
+        author_verified_tier: a.verified_tier ?? null,
+        author_kind: a.account_type ?? null,
+      } as unknown as FeedRow;
+    });
+  }, [supabase]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setFailed(false);
     try {
-      // Bounded, so a stalled connection surfaces a retry instead of spinning
-      // forever with nothing on screen.
-      const [a, b, c] = await withTimeout(Promise.all([
-        supabase.rpc("get_feed", { p_mode: "latest", p_limit: 50 }),
-        supabase.rpc("get_feed", { p_mode: "trending", p_limit: 20 }),
-        supabase.rpc("get_feed", { p_mode: "innovation", p_limit: 30 }),
-      ]));
-      if (a.error && b.error && c.error) throw a.error;
-      const seen = new Set<string>();
-      const merged: FeedRow[] = [];
-      for (const r of ([...(b.data ?? []), ...(a.data ?? [])] as FeedRow[])) {
-        if (!seen.has(r.post_id) && !(r as unknown as { reposted_by_id?: string | null }).reposted_by_id) { seen.add(r.post_id); merged.push(r); }
-      }
-      setPool(merged);
-      setInno(((c.data ?? []) as FeedRow[]).filter((r) => !(r as unknown as { reposted_by_id?: string | null }).reposted_by_id));
+      if (chip === "for_you") setRows(await loadRanked());
+      else if (chip === "videos") setRows((await loadRanked()).filter(hasVideo));
+      else setRows(await loadCategory(chip));
     } catch {
       setFailed(true);
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, [chip, loadRanked, loadCategory]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
-  const active = CATEGORIES.find((x) => x.key === cat) ?? CATEGORIES[0];
-  const density = (r: FeedRow) => {
-    const hours = Math.max(1, (Date.now() - new Date(r.created_at).getTime()) / 3600000);
-    return ((r.likes_count ?? 0) + (r.comments_count ?? 0) * 2.5 + (r.reposts_count ?? 0) * 2) / Math.pow(hours + 2, 1.2);
-  };
-  const shownRaw = cat === "innovation"
-    ? inno
-    : pool.filter((r) => {
-        const rc = (r as unknown as { category?: string | null }).category;
-        if (rc) return rc === cat;
-        const hay = ((r.content ?? "") + " " + (r.article_title ?? "")).toLowerCase();
-        return active.words.some((w) => hay.includes(w));
-      });
-  const shown = shownRaw.slice().sort((a, b) => density(b) - density(a));
-  // The lead slot only earns its size if it has something to show.
-  const heroIdx = shown.findIndex((r) => (r.media ?? []).length > 0);
-  const hero = heroIdx >= 0 ? shown[heroIdx] : null;
-  const rest = hero ? shown.filter((_, i) => i !== heroIdx) : shown;
+  const active = CHIPS.find((c) => c.key === chip) ?? CHIPS[0];
+  const heroIdx = chip === "videos" ? -1 : rows.findIndex((r) => (r.media ?? []).length > 0);
+  const hero = heroIdx >= 0 ? rows[heroIdx] : null;
+  const rest = hero ? rows.filter((_, i) => i !== heroIdx) : rows;
 
   return (
     <div>
       <div className="sticky top-[72px] z-10 flex gap-1.5 overflow-x-auto rounded-2xl border border-ink/10 bg-white/95 px-3 py-2.5 backdrop-blur">
-        {CATEGORIES.map((c) => (
-          <button key={c.key} onClick={() => setCat(c.key)}
-            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (c.key === cat ? "bg-pearl text-ink" : "text-ink/55 hover:bg-surface hover:text-ink")}
+        {CHIPS.map((c) => (
+          <button
+            key={c.key}
+            onClick={() => setChip(c.key)}
+            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (c.key === chip ? "bg-pearl text-ink" : "text-ink/55 hover:bg-surface hover:text-ink")}
           >
             {c.label}
           </button>
         ))}
       </div>
+
       {failed ? (
-        <div className="mt-4">
-          <ErrorState title="Could not load Discover" onRetry={() => void load()} />
-        </div>
+        <div className="mt-4"><ErrorState title="Could not load Discover" onRetry={() => void load()} /></div>
       ) : loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
-      ) : shown.length === 0 ? (
+        <div className="mt-4 grid grid-cols-2 gap-4 animate-pulse" aria-busy="true">
+          {[0, 1, 2, 3].map((i) => <div key={i} className="aspect-square rounded-2xl border border-ink/10 bg-white" />)}
+        </div>
+      ) : rows.length === 0 ? (
         <div className="mt-4">
           <EmptyState
-            title={"Nothing in " + active.label + " yet"}
-            line="The first post claims the category. Write something and it lands here."
+            title={chip === "videos" ? "No videos yet" : "Nothing in " + active.label + " yet"}
+            line={chip === "for_you" || chip === "videos" ? "Follow a few people and this fills up." : "Posts filed under " + active.label + " in the composer appear here."}
             action="Write a post"
             actionHref="/write"
           />
         </div>
       ) : (
         <>
-          {/* The strongest item in the category leads at full width. Everything
-              after it is a grid, because discovery is about seeing many things
-              at once rather than one post at a time. */}
-          {hero ? (
-            <div className="mt-4">
-              <DiscoverTile post={hero} />
-            </div>
-          ) : null}
-          <div className="mt-4 grid grid-cols-2 gap-4">
+          {hero ? <div className="mt-4"><DiscoverTile post={hero} /></div> : null}
+          {/* Videos sit three across, square, like every video surface people
+              already know. Everything else is two across so text has room. */}
+          <div className={"mt-4 grid gap-4 " + (chip === "videos" ? "grid-cols-3" : "grid-cols-2")}>
             {rest.map((r) => <DiscoverTile key={r.post_id} post={r} />)}
           </div>
         </>

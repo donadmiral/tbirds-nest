@@ -50,7 +50,7 @@ export async function AppShell({
       <WebCallLayer />
       <GlobalMediaLightbox />
       <GlobalBack />
-      <div className="ml-[260px]">
+      <div className="ml-[260px] transition-[margin] duration-200 [.nav-collapsed_&]:ml-[76px]">
         <TopBar name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} avatarUrl={profile?.avatar_url} />
         {wide ? (
           <main className="-mt-[60px] px-6 pb-10 pt-[76px]">{children}</main>

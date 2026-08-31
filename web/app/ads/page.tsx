@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Megaphone, Pause, Play, Square, Plus, ArrowLeft } from "lucide-react";
+import { Megaphone, Pause, Play, Square, Plus, ArrowLeft, ExternalLink } from "lucide-react";
 import { myPromos, setPromoStatus, type Promo } from "@/lib/ads";
 import { createClient } from "@/lib/supabase/client";
 import { TrendChart } from "@/components/Charts";
@@ -91,7 +91,28 @@ export default function AdsPage() {
         </>
       ) : null}
 
-      <div className="flex items-center gap-2 pb-1">
+      <div className="mb-4 rounded-2xl border border-ink/10 bg-white px-5 py-4">
+        <h1 className="font-display text-[21px] leading-tight text-porcelain">Ads</h1>
+        <p className="mt-1 text-[13.5px] leading-6 text-ink/60">
+          An ad is one of your posts shown as <span className="font-semibold text-ink">Sponsored</span> in other people&apos;s feeds.
+          You pick the post, set how long it runs and how many people see it, and it starts immediately.
+        </p>
+        <div className="mt-3 grid grid-cols-1 gap-2 text-[12.5px] text-ink/60 sm:grid-cols-3">
+          <span><span className="font-semibold text-ink">Create</span>: choose a post below, or open any post and pick Promote.</span>
+          <span><span className="font-semibold text-ink">Manage</span>: pause, resume or end each ad from its card.</span>
+          <span><span className="font-semibold text-ink">Measure</span>: impressions, clicks and click rate update live.</span>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/ads/new" className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">
+            <Plus size={14} /> Create an ad
+          </Link>
+          <Link href="/studio/ads" className="rounded-full border border-ink/15 px-4 py-2 text-[13px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
+            Campaigns with budgets, in Studio
+          </Link>
+        </div>
+      </div>
+
+      <div className="hidden">
         <Link href="/home" title="Back to the feed" className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={18} /></Link>
         <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-pearl" /> Ads</h1>
       </div>
@@ -135,15 +156,17 @@ export default function AdsPage() {
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-2">
-                <Link href={"/post/" + p.post_id} className="text-[12px] text-pearl hover:underline">View the post</Link>
+                <Link href={"/post/" + p.post_id} className="flex items-center gap-1 text-[12.5px] font-semibold text-pearl hover:underline">
+                  <ExternalLink size={12} /> Open the promoted post
+                </Link>
                 <span className="ml-auto flex gap-1.5">
                   {p.status === "active" ? (
-                    <button onClick={() => setStatus(p, "paused")} className="flex items-center gap-1 rounded-md bg-surface px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated"><Pause size={12} /> Pause</button>
+                    <button onClick={() => setStatus(p, "paused")} className="flex items-center gap-1 rounded-md bg-surface px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated" title="Stop showing this ad, keep its numbers"><Pause size={12} /> Pause</button>
                   ) : p.status === "paused" ? (
-                    <button onClick={() => setStatus(p, "active")} className="flex items-center gap-1 rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success transition-opacity duration-[140ms] hover:opacity-80"><Play size={12} /> Resume</button>
+                    <button onClick={() => setStatus(p, "active")} className="flex items-center gap-1 rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success transition-opacity duration-[140ms] hover:opacity-80" title="Start showing this ad again"><Play size={12} /> Resume</button>
                   ) : null}
                   {p.status !== "ended" ? (
-                    <button onClick={() => { if (window.confirm("End this promotion permanently?")) setStatus(p, "ended"); }} className="flex items-center gap-1 rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger transition-opacity duration-[140ms] hover:opacity-80"><Square size={12} /> End</button>
+                    <button onClick={() => { if (window.confirm("End this promotion permanently?")) setStatus(p, "ended"); }} className="flex items-center gap-1 rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger transition-opacity duration-[140ms] hover:opacity-80" title="Finish this ad for good"><Square size={12} /> End</button>
                   ) : null}
                 </span>
               </div>

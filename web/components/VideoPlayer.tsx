@@ -195,8 +195,21 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
             setPosterBg(c.toDataURL("image/jpeg", 0.7));
           } catch { /* tainted or unavailable, fine */ }
         }}
-        className={(fs || immersive) ? "relative h-full max-h-none w-full object-contain" : "relative h-full w-full object-contain"}
+        className={(fs || immersive) ? "relative z-[1] h-full max-h-none w-full object-contain" : "relative h-full w-full object-contain"}
       />
+      {/* Fullscreen only: a blurred copy of the poster fills the screen behind
+          the video so a portrait clip is not a strip between two black slabs.
+          The video itself stays uncropped; only the backdrop is a copy. The
+          feed keeps its shrink-wrapped card with no blur, as before. */}
+      {(fs || immersive) && posterBg ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={posterBg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
+        />
+      ) : null}
       {!playing && posterBg && !unplayable ? (
         <button onClick={(e) => { e.stopPropagation(); playNow(); }} aria-label="Play video" className="absolute inset-0 z-[5] flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}

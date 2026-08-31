@@ -14,6 +14,7 @@ export function StoryAvatar({ userId, name, avatarUrl, size = 44, href }: {
   size?: number;
   href?: string | null;
 }) {
+  const [raw, setRaw] = useState(false);
   const [users, setUsers] = useState<CatchupUser[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -28,7 +29,7 @@ export function StoryAvatar({ userId, name, avatarUrl, size = 44, href }: {
 
   const face = avatarUrl ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={displayImageUrl(avatarUrl, 200)!} onError={(e) => { if (avatarUrl && e.currentTarget.src !== avatarUrl) e.currentTarget.src = avatarUrl; }} alt="" style={{ width: size, height: size }} className="rounded-full object-cover" />
+    <img src={raw ? avatarUrl! : displayImageUrl(avatarUrl, 200)!} onError={() => setRaw(true)} alt="" style={{ width: size, height: size }} className="rounded-full object-cover" />
   ) : (
     <span style={{ width: size, height: size, fontSize: Math.max(11, Math.round(size / 2.8)) }} className="flex items-center justify-center rounded-full bg-navy font-semibold text-white">
       {(name ?? "?").charAt(0).toUpperCase()}

@@ -9,7 +9,6 @@ import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
-import { DiscoverFeed } from "@/components/DiscoverFeed";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { SponsoredCard } from "@/components/SponsoredCard";
 import { getActivePromos, type PromoRow } from "@/lib/ads";
@@ -19,7 +18,6 @@ const PAGE_SIZE = 20;
 const MODES = [
   { key: "for_you", label: "For You" },
   { key: "latest", label: "Latest" },
-  { key: "discover", label: "Discover" },
   { key: "trending", label: "Trending" },
 ] as const;
 
@@ -69,7 +67,6 @@ export default function HomeFeed() {
 
   const load = useCallback(
     async (more: boolean) => {
-      if (mode === "discover") { setPosts([]); setLoading(false); setLoadingMore(false); return; }
       if (more) { setLoadingMore(true); loadingMoreRef.current = true; }
       else {
         setLoading(true);
@@ -264,8 +261,6 @@ export default function HomeFeed() {
             Try again
           </button>
         </div>
-      ) : mode === "discover" ? (
-        <DiscoverFeed />
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center gap-2 px-6 py-20 text-center">
           <p className="text-[17px] font-semibold text-ink">{EMPTY_COPY[mode].title}</p>

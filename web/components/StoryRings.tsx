@@ -37,7 +37,7 @@ function PlatinumRingWeb({ userId, size, active }: { userId: string; size: numbe
       </defs>
       <circle cx={center} cy={center} r={radius} fill="none" stroke={"url(#" + gid + ")"} strokeWidth={active ? 2 : 1.5} opacity={active ? 1 : 0.55} />
       {active ? (
-        <g style={{ transformOrigin: "center", animation: "platinumspin " + hashSpeed(userId) + "ms linear infinite" }}>
+        <g style={{ transformOrigin: "center", willChange: "transform", animation: "platinumspin " + hashSpeed(userId) + "ms linear infinite" }}>
           <circle cx={center} cy={center} r={radius} fill="none" stroke={PLATINUM_GLOW} strokeWidth={2.5} strokeLinecap="round" strokeDasharray={arcDash + " " + (circumference - arcDash)} />
         </g>
       ) : null}

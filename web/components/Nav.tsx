@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Wordmark } from "@/components/Wordmark";
 import {
+  PanelLeftClose,
+  PanelLeftOpen,
   Home,
   Compass,
   Briefcase,
@@ -49,7 +53,23 @@ const items: NavItem[] = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
+const COLLAPSE_KEY = "pc:nav-collapsed";
+
 export function Nav({ name, username, business = false }: { name: string; username: string; business?: boolean }) {
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    const saved = window.localStorage.getItem(COLLAPSE_KEY) === "1";
+    setCollapsed(saved);
+    document.documentElement.classList.toggle("nav-collapsed", saved);
+  }, []);
+  const toggle = () => {
+    setCollapsed((c) => {
+      const next = !c;
+      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+      document.documentElement.classList.toggle("nav-collapsed", next);
+      return next;
+    });
+  };
   const profileHref = username ? "/" + username : "/home";
   const pathname = usePathname();
   const router = useRouter();
@@ -63,24 +83,31 @@ export function Nav({ name, username, business = false }: { name: string; userna
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 flex w-[260px] flex-col overflow-y-auto border-r border-ink/10 px-4 py-6">
-      {/* The wordmark sets on two lines so the display face has room to read as
-          a lockup rather than a cramped single line. */}
-      <Link href="/home" className="mb-7 flex items-center gap-3 px-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="" className="h-10 w-10 rounded-xl" />
-        <span className="font-display text-[15px] uppercase leading-[1.15] tracking-[0.14em] text-porcelain">
-          Platinum
-          <br />
-          Circles
-        </span>
-      </Link>
+    <aside className={"fixed inset-y-0 left-0 flex flex-col overflow-y-auto border-r border-ink/10 py-6 transition-[width] duration-200 " + (collapsed ? "w-[76px] px-2" : "w-[260px] px-4")}>
+      <div className={"mb-6 flex items-center " + (collapsed ? "justify-center" : "justify-between px-3")}>
+        <Link href="/home" className="flex items-center gap-2.5" aria-label="Platinum Circles home">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl" />
+          {!collapsed ? <Wordmark size={22} /> : null}
+        </Link>
+        {!collapsed ? (
+          <button onClick={toggle} aria-label="Collapse sidebar" title="Collapse" className="rounded-full p-1.5 text-ink/45 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
+            <PanelLeftClose size={17} />
+          </button>
+        ) : null}
+      </div>
+      {collapsed ? (
+        <button onClick={toggle} aria-label="Expand sidebar" title="Expand" className="mx-auto mb-3 rounded-full p-1.5 text-ink/45 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
+          <PanelLeftOpen size={17} />
+        </button>
+      ) : null}
       <nav className="flex flex-1 flex-col gap-0.5">
         {allItems.map(({ href, label, icon: Icon, badge, dot, tag }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link key={label}
               href={href}
+              title={collapsed ? label : undefined}
               onClick={(e) => {
                 // Tapping the item you are already on scrolls to the top rather
                 // than re-navigating, which is what every app of this shape
@@ -100,11 +127,11 @@ export function Nav({ name, username, business = false }: { name: string; userna
                 <Icon size={20} strokeWidth={active ? 2.2 : 1.8} className={active ? "text-pearl-muted" : undefined} />
                 {dot ? <span className="absolute -right-0.5 -top-0.5 h-[7px] w-[7px] rounded-full bg-danger ring-2 ring-white" aria-hidden /> : null}
               </span>
-              <span className="min-w-0 flex-1 truncate">{label}</span>
-              {tag ? (
+              {!collapsed ? <span className="min-w-0 flex-1 truncate">{label}</span> : null}
+              {tag && !collapsed ? (
                 <span className="shrink-0 rounded-full bg-pearl/20 px-1.5 py-[1px] text-[10px] font-semibold uppercase tracking-wide text-pearl-muted">{tag}</span>
               ) : null}
-              {badge ? (
+              {badge && !collapsed ? (
                 <span className="shrink-0 rounded-full bg-surface-elevated px-1.5 py-[1px] text-[11px] font-semibold tabular-nums text-ink/70">{badge}</span>
               ) : null}
             </Link>

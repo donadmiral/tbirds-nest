@@ -18,6 +18,10 @@ import type { FeedRow } from "@/lib/feed";
 import { displayImageUrl } from "@/lib/media";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 
+// Inline, because a tile that fails to clamp turns the grid into one column of
+// full articles, which is exactly what happened.
+const CLAMP = (n: number): React.CSSProperties => ({ display: "-webkit-box", WebkitLineClamp: n, WebkitBoxOrient: "vertical", overflow: "hidden" });
+
 export function DiscoverTile({ post }: { post: FeedRow }) {
   const href = "/post/" + post.post_id;
   const media = (post.media ?? []).slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
@@ -80,7 +84,7 @@ export function DiscoverTile({ post }: { post: FeedRow }) {
             </span>
           ) : null}
         </span>
-        {text ? <span className="line-clamp-2 px-3 pt-2.5 text-[13px] leading-snug text-ink/80">{text}</span> : null}
+        {text ? <span className="px-3 pt-2.5 text-[13px] leading-snug text-ink/80" style={CLAMP(2)}>{text}</span> : null}
         {byline}
       </Link>
     );
@@ -98,7 +102,7 @@ export function DiscoverTile({ post }: { post: FeedRow }) {
             <FileText size={12} /> Article
           </span>
           <span className="mt-2 block font-display text-[19px] leading-snug text-porcelain">{post.article_title}</span>
-          {text ? <span className="mt-1.5 line-clamp-3 block text-[13px] leading-snug text-ink/55">{text}</span> : null}
+          {text ? <span className="mt-1.5 block text-[13px] leading-snug text-ink/55" style={CLAMP(3)}>{text}</span> : null}
         </span>
         {byline}
       </Link>
@@ -118,7 +122,7 @@ export function DiscoverTile({ post }: { post: FeedRow }) {
           <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40">
             <Link2 size={11} /> {link.domain}
           </span>
-          <span className="mt-1 line-clamp-2 block text-[13.5px] font-medium leading-snug text-ink">{link.title ?? text}</span>
+          <span className="mt-1 block text-[13.5px] font-medium leading-snug text-ink" style={CLAMP(2)}>{link.title ?? text}</span>
         </span>
         {byline}
       </Link>
@@ -131,7 +135,7 @@ export function DiscoverTile({ post }: { post: FeedRow }) {
       className="flex flex-col justify-between overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20"
     >
       <span className="block px-4 pt-4">
-        <span className="line-clamp-6 block text-[15px] leading-relaxed text-ink/90">{text}</span>
+        <span className="block text-[15px] leading-relaxed text-ink/90" style={CLAMP(6)}>{text}</span>
       </span>
       {byline}
     </Link>
