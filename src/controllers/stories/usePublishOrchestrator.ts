@@ -43,6 +43,7 @@ interface Draft {
   dualLayout?: any;
   audio?: any;
   filterId?: string | null;
+  thumbnailUri?: string | null;
 }
 
 export interface PublishOrchestratorInput {
@@ -87,6 +88,8 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
 
     let successCount = 0;
     let failCount = 0;
+    // Split publishes share one source file: upload once, reuse for siblings.
+    const uploadedByUri: Record<string, { url: string; thumb: string | null }> = {};
 
     for (let i = 0; i < drafts.length; i++) {
       if (!mountedRef.current) return;
@@ -117,9 +120,11 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           sharedWith: (d as any).sharedWith || null,
           reach: (d as any).reach || 'followers',
           durationSec: d.mediaType === 'video' ? Math.round(d.durationSec || 15) : null,
-          thumbnailLocalUri: null,
+          thumbnailLocalUri: (d as any).thumbnailUri || null,
           stickersJson: stickerPayload,
           mediaTransform: d.mediaTransform || null,
+          preUploadedUrl: d.localUri ? (uploadedByUri[d.localUri]?.url ?? null) : null,
+          preUploadedThumb: d.localUri ? (uploadedByUri[d.localUri]?.thumb ?? null) : null,
           category: d.category || null,
           textBackground: d.textBackground || null,
           dualFrontLocalUri: d.dualFrontUri || null,
@@ -127,6 +132,10 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           audio: (d as any).audio || null,
           filterId: (d as any).filterId || null,
         });
+
+        if (d.localUri && (story as any)?.media_url && !uploadedByUri[d.localUri]) {
+          uploadedByUri[d.localUri] = { url: (story as any).media_url, thumb: (story as any).thumbnail_url ?? null };
+        }
 
         // Create poll if present
         if (d.pollData) {

@@ -9,6 +9,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   storiesService, StoryTextSticker, StoryStickerStyle, MediaFit, MediaTransform,
@@ -647,6 +648,7 @@ export default function StoryComposerScreen() {
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
             imageW={active?.imageW} imageH={active?.imageH} mediaFit={active?.mediaFit || 'cover'}
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
+            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
           >

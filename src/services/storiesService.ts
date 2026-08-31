@@ -263,6 +263,8 @@ export async function uploadAndCreateStory(params: {
   dualLayout?: any | null;
   audio?: StoryAudioDraft | null;
   filterId?: string | null;
+  preUploadedUrl?: string | null;
+  preUploadedThumb?: string | null;
 }): Promise<StoryRow> {
   const {
     userId,
@@ -287,6 +289,8 @@ export async function uploadAndCreateStory(params: {
     audio,
     filterId,
   } = params;
+  const preUploadedUrl = (params as any).preUploadedUrl ?? null;
+  const preUploadedThumb = (params as any).preUploadedThumb ?? null;
 
   if (!userId) throw new Error('userId required');
   if (mediaType !== 'text' && !localUri) throw new Error('localUri required for image/video');

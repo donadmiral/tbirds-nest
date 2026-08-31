@@ -17,6 +17,7 @@ import {
 } from 'react-native-gesture-handler';
 import { Feather } from '@expo/vector-icons';
 import type { MediaFit, MediaTransform } from '../../services/storiesService';
+import { BackgroundLayer, type StoryBg } from './storyPanels';
 
 // ── Video layer: plays the recorded/selected clip (Instagram behaviour) ──
 let ExpoVideoView: any = null;
@@ -27,13 +28,14 @@ try {
   useExpoVideoPlayer = vm.useVideoPlayer;
 } catch {}
 
-function StoryVideoLayer({ uri }: { uri: string }) {
-  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = false; p.play(); });
-  return <ExpoVideoView style={StyleSheet.absoluteFill} player={player} contentFit="cover" nativeControls={false} />;
+function StoryVideoLayer({ uri, fit, muted }: { uri: string; fit: 'cover' | 'contain'; muted: boolean }) {
+  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.play(); });
+  useEffect(() => { try { (player as any).muted = muted; } catch {} }, [muted, player]);
+  return <ExpoVideoView style={StyleSheet.absoluteFill} player={player} contentFit={fit} nativeControls={false} />;
 }
 
 // ── Constants ──
-const MIN_SCALE = 1.0;
+const MIN_SCALE = 0.35;
 const MAX_SCALE = 5.0;
 const DOUBLE_TAP_ZOOM = 2.5;
 
@@ -107,6 +109,8 @@ type MediaCanvasProps = {
   onTransformChange: (transform: MediaTransform) => void;
   onFitToggle: () => void;
   interactive: boolean;
+  bg?: StoryBg | null;
+  videoMuted?: boolean;
 };
 
 export default function MediaCanvas({
@@ -126,8 +130,10 @@ export default function MediaCanvas({
   onTransformChange,
   onFitToggle,
   interactive,
+  bg = null,
+  videoMuted = false,
 }: MediaCanvasProps) {
-  const gesturesEnabled = interactive && mediaType === 'image' && imageW > 0 && imageH > 0;
+  const gesturesEnabled = interactive && imageW > 0 && imageH > 0;
 
   // Container dimensions
   const containerW = useRef(0);
@@ -193,6 +199,7 @@ export default function MediaCanvas({
   const pinchRef = useRef<PinchGestureHandler>(null);
   const panRef = useRef<PanGestureHandler>(null);
   const doubleTapRef = useRef<TapGestureHandler>(null);
+  const pinchFocal = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
 
   // ── Pinch ──
   const onPinchEvent = useCallback((e: any) => {
@@ -201,13 +208,19 @@ export default function MediaCanvas({
     const newScale = clamp(pinchBaseScale.current * scale, MIN_SCALE, MAX_SCALE);
     imgScale.setValue(newScale);
 
-    // Re-clamp translation at new scale
+    // Zoom around the midpoint between the fingers, not the frame center.
     const cw = containerW.current;
     const ch = containerH.current;
     if (cw > 0 && ch > 0) {
+      const f = pinchFocal.current;
+      const ratio = newScale / Math.max(0.01, pinchBaseScale.current);
+      const fx = f ? f.x - cw / 2 : 0;
+      const fy = f ? f.y - ch / 2 : 0;
+      const t0x = f ? f.tx : panBaseTxPx.current;
+      const t0y = f ? f.ty : panBaseTyPx.current;
       const { maxTxPx, maxTyPx } = computeMaxTranslate(imageW, imageH, cw, ch, mediaFit, newScale);
-      const clampedTx = clamp(panBaseTxPx.current, -maxTxPx, maxTxPx);
-      const clampedTy = clamp(panBaseTyPx.current, -maxTyPx, maxTyPx);
+      const clampedTx = clamp(fx - (fx - t0x) * ratio, -maxTxPx, maxTxPx);
+      const clampedTy = clamp(fy - (fy - t0y) * ratio, -maxTyPx, maxTyPx);
       imgTx.setValue(clampedTx);
       imgTy.setValue(clampedTy);
     }
@@ -216,17 +229,27 @@ export default function MediaCanvas({
   const onPinchStateChange = useCallback((e: any) => {
     if (!gesturesEnabled) return;
     const { state, scale } = e.nativeEvent;
+    if (state === GHState.BEGAN) {
+      pinchFocal.current = { x: e.nativeEvent.focalX ?? containerW.current / 2, y: e.nativeEvent.focalY ?? containerH.current / 2, tx: panBaseTxPx.current, ty: panBaseTyPx.current };
+    }
     if (state === GHState.END || state === GHState.CANCELLED) {
       const finalScale = clamp(pinchBaseScale.current * scale, MIN_SCALE, MAX_SCALE);
+      const cw = containerW.current;
+      const ch = containerH.current;
+      const f = pinchFocal.current;
+      const ratio = finalScale / Math.max(0.01, pinchBaseScale.current);
+      pinchFocal.current = null;
       pinchBaseScale.current = finalScale;
       imgScale.setValue(finalScale);
 
-      const cw = containerW.current;
-      const ch = containerH.current;
       if (cw > 0 && ch > 0) {
+        const fx = f ? f.x - cw / 2 : 0;
+        const fy = f ? f.y - ch / 2 : 0;
+        const t0x = f ? f.tx : panBaseTxPx.current;
+        const t0y = f ? f.ty : panBaseTyPx.current;
         const { maxTxPx, maxTyPx } = computeMaxTranslate(imageW, imageH, cw, ch, mediaFit, finalScale);
-        const clampedTx = clamp(panBaseTxPx.current, -maxTxPx, maxTxPx);
-        const clampedTy = clamp(panBaseTyPx.current, -maxTyPx, maxTyPx);
+        const clampedTx = clamp(fx - (fx - t0x) * ratio, -maxTxPx, maxTxPx);
+        const clampedTy = clamp(fy - (fy - t0y) * ratio, -maxTyPx, maxTyPx);
         panBaseTxPx.current = clampedTx;
         panBaseTyPx.current = clampedTy;
         imgTx.setValue(clampedTx);
@@ -317,7 +340,7 @@ export default function MediaCanvas({
   }, [gesturesEnabled, imageW, imageH, mediaFit, imgScale, imgTx, imgTy, persistTransform]);
 
   // ── Fit/fill toggle button visibility ──
-  const showFitToggle = interactive && mediaType === 'image' && imageW > 0 && imageH > 0;
+  const showFitToggle = interactive && imageW > 0 && imageH > 0;
 
   // ── Image resizeMode ──
   const resizeMode = mediaFit === 'contain' ? 'contain' : 'cover';
@@ -340,11 +363,15 @@ export default function MediaCanvas({
         },
       ]}
     >
-      <Image
-        source={{ uri: localUri }}
-        style={styles.media}
-        resizeMode={resizeMode}
-      />
+      {mediaType === 'video' && ExpoVideoView && useExpoVideoPlayer ? (
+        <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} />
+      ) : (
+        <Image
+          source={{ uri: localUri }}
+          style={styles.media}
+          resizeMode={resizeMode}
+        />
+      )}
     </Animated.View>
   ) : null;
 
@@ -408,13 +435,18 @@ export default function MediaCanvas({
       style={[styles.wrap, { opacity: opacityAnim, transform: [{ scale: scaleAnim }] }]}
       onLayout={handleLayout}
     >
-      {/* Base media layer */}
-      {mediaType === 'image' && localUri ? gestureWrappedContent : null}
+      {/* Backdrop preview: exactly what the viewer will render behind fit media */}
+      {bg && mediaFit === 'contain' ? (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          <BackgroundLayer bg={bg} mediaUrl={mediaType === 'image' ? localUri : null} />
+        </View>
+      ) : null}
 
-      {/* Video layer */}
-      {mediaType === 'video' && localUri && ExpoVideoView && useExpoVideoPlayer ? (
-        <StoryVideoLayer key={localUri} uri={localUri} />
-      ) : mediaType === 'video' && uploadState === 'idle' ? (
+      {/* Media layer: image and video share one gesture + transform pipeline */}
+      {localUri ? gestureWrappedContent : null}
+
+      {/* Video fallback when expo-video is unavailable */}
+      {mediaType === 'video' && localUri && !(ExpoVideoView && useExpoVideoPlayer) && uploadState === 'idle' ? (
         <View style={styles.videoOverlay}>
           <View style={styles.playCircle}>
             <Feather name="play" size={32} color="#FFF" />
