@@ -153,7 +153,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
       onKeyDown={onKey}
       onClick={() => wrapRef.current?.focus()}
       style={!fs && !immersive && width && height ? { aspectRatio: width + " / " + height } : undefined}
-      className={"group relative overflow-hidden outline-none " + (fs || immersive ? "flex h-full w-full flex-col bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}
+      className={"group relative overflow-hidden outline-none " + (fs || immersive ? "flex h-full w-full flex-col items-stretch bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}
     >
       <video ref={ref}
         src={src}
@@ -197,13 +197,16 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
             setPosterBg(c.toDataURL("image/jpeg", 0.7));
           } catch { /* tainted or unavailable, fine */ }
         }}
-        className={(fs || immersive) ? ("relative min-h-0 w-full flex-1 " + (fill ? "object-cover" : "object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.10)]")) : "relative h-full w-full object-cover"}
+        className={(fs || immersive) ? ("relative mx-auto block min-h-0 flex-1 " + (fill ? "object-cover" : "max-w-full object-contain")) : "relative h-full w-full object-cover"}
+        style={(fs || immersive) && fill ? { aspectRatio: String(Math.max(width && height ? width / height : 0.8, 0.8)), maxWidth: "100%" } : undefined}
       />
 
       {!playing && posterBg && !unplayable ? (
-        <button onClick={(e) => { e.stopPropagation(); playNow(); }} aria-label="Play video" className="absolute inset-0 z-[5] flex items-center justify-center">
+        <button onClick={(e) => { e.stopPropagation(); playNow(); }} aria-label="Play video" className={"z-[5] flex items-center justify-center " + ((fs || immersive) ? "absolute inset-x-0 top-0 bottom-[84px]" : "absolute inset-0")}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={posterBg} alt="" aria-hidden className={"absolute inset-0 h-full w-full " + ((fs || immersive) && !fill ? "object-contain" : "object-cover")} />
+          <img src={posterBg} alt="" aria-hidden
+            className={(fs || immersive) ? ("relative mx-auto block " + (fill ? "h-full object-cover" : "max-h-full max-w-full object-contain")) : "absolute inset-0 h-full w-full object-cover"}
+            style={(fs || immersive) && fill ? { aspectRatio: String(Math.max(width && height ? width / height : 0.8, 0.8)), maxWidth: "100%" } : undefined} />
           <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-ink/70 pl-1 text-white">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
           </span>
