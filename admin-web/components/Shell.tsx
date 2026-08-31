@@ -25,6 +25,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
   { label: 'Community', items: [
     { href: '/users', label: 'Users', key: 'U', icon: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z' },
     { href: '/businesses', label: 'Businesses', key: 'B', icon: 'M4 21V5a2 2 0 012-2h7a2 2 0 012 2v16h-4v-4H8v4H4zm13-9h3a1 1 0 011 1v8h-4v-9z' },
+    { href: '/organizations', label: 'Organizations', key: 'G', icon: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01M9 13h.01M15 13h.01' },
   ]},
   { label: 'Commerce', items: [
     { href: '/market', label: 'Market', key: 'M', icon: 'M4 7l2-4h12l2 4v2a3 3 0 01-1 2.2V20H5v-8.8A3 3 0 014 9V7zm3 6h4v5H7v-5z' },

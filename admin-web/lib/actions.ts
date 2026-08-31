@@ -570,3 +570,46 @@ export async function setTicketStatus(formData: FormData) {
   revalidatePath('/support/' + tid); revalidatePath('/support');
 }
 
+
+
+// ---- Organizations desk ---------------------------------------------------
+
+export async function archiveOrganization(formData: FormData) {
+  const admin = await requireSuper();
+  const id = String(formData.get('id') || '');
+  if (!id) redirect('/organizations');
+  const svc = serviceClient();
+  await svc.from('organizations').update({ archived_at: new Date().toISOString() }).eq('id', id);
+  await svc.from('admin_audit_log').insert({ admin_id: admin.id, action: 'organization.archive', target_kind: 'organization', target_id: id, reason: 'Archived from the Organizations desk', before: {}, after: { archived: true } });
+  await svc.from('org_audit_log').insert({ org_id: id, actor_id: admin.id, action: 'archived_by_platform', target_type: 'organization', target_id: id });
+  redirect('/organizations?show=archived');
+}
+
+export async function restoreOrganization(formData: FormData) {
+  const admin = await requireSuper();
+  const id = String(formData.get('id') || '');
+  if (!id) redirect('/organizations');
+  const svc = serviceClient();
+  await svc.from('organizations').update({ archived_at: null }).eq('id', id);
+  await svc.from('admin_audit_log').insert({ admin_id: admin.id, action: 'organization.restore', target_kind: 'organization', target_id: id, reason: 'Restored from the Organizations desk', before: { archived: true }, after: {} });
+  await svc.from('org_audit_log').insert({ org_id: id, actor_id: admin.id, action: 'restored_by_platform', target_type: 'organization', target_id: id });
+  redirect('/organizations');
+}
+
+// Ownership changes hands when a business is sold or an owner leaves; the
+// platform can force it when the organization cannot do it itself.
+export async function adminTransferOwnership(formData: FormData) {
+  const admin = await requireSuper();
+  const id = String(formData.get('id') || '');
+  const username = String(formData.get('username') || '').trim().replace(/^@/, '').toLowerCase();
+  if (!id || !username) redirect('/organizations');
+  const svc = serviceClient();
+  const { data: p } = await svc.from('profiles').select('id').ilike('username', username).maybeSingle();
+  if (!p) redirect('/organizations?q=' + encodeURIComponent(username));
+  const { data: before } = await svc.from('org_memberships').select('user_id').eq('org_id', id).eq('role', 'owner');
+  await svc.from('org_memberships').update({ role: 'admin' }).eq('org_id', id).eq('role', 'owner');
+  await svc.from('org_memberships').upsert({ org_id: id, user_id: p.id, role: 'owner', expires_at: null }, { onConflict: 'org_id,user_id' });
+  await svc.from('admin_audit_log').insert({ admin_id: admin.id, action: 'organization.transfer_ownership', target_kind: 'organization', target_id: id, reason: 'Ownership set to @' + username, before: { owners: (before ?? []).map((b) => b.user_id) }, after: { owner: p.id } });
+  await svc.from('org_audit_log').insert({ org_id: id, actor_id: admin.id, action: 'ownership_set_by_platform', target_type: 'user', target_id: p.id });
+  redirect('/organizations');
+}
