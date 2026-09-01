@@ -35,7 +35,7 @@ type UserProfile = {
   avatar_url: string | null; role: string; profile_visibility: string;
   is_verified_school_user: boolean;
   banner_url?: string | null; headline?: string | null; workplace?: string | null;
-  account_type?: string; is_verified?: boolean; verified_tier?: string | null; created_at?: string;
+  account_type?: string; account_class?: string | null; account_labels?: any; is_verified?: boolean; verified_tier?: string | null; created_at?: string;
   business?: any; can_view_content?: boolean;
 };
 type Stats = { posts: number; followers: number; following?: number };
@@ -98,7 +98,7 @@ export default function UserProfileScreen() {
         profile_visibility: pd.profile_visibility || 'public',
         is_verified_school_user: false,
         banner_url: pd.banner_url || null, headline: pd.headline || null,
-        workplace: pd.workplace || null, account_type: pd.account_type || 'personal',
+        workplace: pd.workplace || null, account_type: pd.account_type || 'personal', account_class: pd.account_class || null, account_labels: pd.account_labels || null,
         is_verified: !!pd.is_verified, verified_tier: pd.verified_tier ?? null, created_at: pd.created_at,
         business: pd.business || null, can_view_content: !!pd.can_view_content,
       });

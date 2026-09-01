@@ -219,6 +219,11 @@ export default function ProfileHeader({
         ) : null}
 
         {business?.category ? <Text style={s.category}>{business.category}</Text> : null}
+        {(() => { const c = (profile as any)?.account_class; const lb = (profile as any)?.account_labels || {}; const chips: string[] = []; if (c === 'creator') chips.push('Creator'); if (c === 'organization') chips.push('Organization'); if (c === 'automated') chips.push('Automated'); if (lb?.parody) chips.push('Parody'); if (lb?.fan) chips.push('Fan account'); if (lb?.commentary) chips.push('Commentary'); if (lb?.memorialized) chips.push('Remembering'); if (!chips.length) return null; return (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+            {chips.map(ch => <View key={ch} style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: 'rgba(201,191,176,0.28)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.14)' }}><Text style={{ fontSize: 11, fontWeight: '700', color: '#0B1E3D', letterSpacing: 0.2 }}>{ch}</Text></View>)}
+          </View>
+        ); })()}
         {profile?.headline ? <Text style={s.headline}>{profile.headline}</Text> : null}
 
         {profile?.bio ? (
