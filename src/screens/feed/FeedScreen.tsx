@@ -267,6 +267,7 @@ export default function FeedScreen({ navigation }: any) {
   const [wtfSuggestions, setWtfSuggestions] = useState<any[]>([]);
   const [sendPost, setSendPost] = useState<Post | null>(null);
   const [sendConvs, setSendConvs] = useState<any[]>([]);
+  const [sendGroups, setSendGroups] = useState<any[]>([]);
   const [sendBusy, setSendBusy] = useState(false);
   const [sendLoading, setSendLoading] = useState(false);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
@@ -993,6 +994,15 @@ export default function FeedScreen({ navigation }: any) {
       (profs ?? []).forEach((p: any) => { pm[p.id] = p; });
     }
     setSendConvs(rows.map((c: any) => { const oid = c.user_1 === userId ? c.user_2 : c.user_1; return { ...c, other: pm[oid] ?? null, otherId: oid }; }));
+    // Groups you belong to: sharing drops the post into the group chat for everyone in it.
+    try {
+      const { data: mem } = await supabase.from('conversation_members').select('conversation_id').eq('user_id', userId);
+      const gids = Array.from(new Set((mem ?? []).map((r: any) => r.conversation_id).filter(Boolean)));
+      if (gids.length > 0) {
+        const { data: groups } = await supabase.from('conversations').select('id, group_name, group_emoji, last_message_time').eq('is_group', true).in('id', gids).order('last_message_time', { ascending: false }).limit(20);
+        setSendGroups((groups ?? []).map((g: any) => ({ ...g, otherId: null, group: true })));
+      } else { setSendGroups([]); }
+    } catch { setSendGroups([]); }
     setSendLoading(false);
   }, [userId]);
 
@@ -1009,6 +1019,7 @@ export default function FeedScreen({ navigation }: any) {
       await supabase.from('conversations').update({ last_message: 'Shared a post', last_message_time: new Date().toISOString(), last_message_sender_id: userId }).eq('id', conv.id);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setSendPost(null);
+      setSendGroups([]);
     } catch (e: any) {
       Alert.alert('Could not send', e?.message || 'Try again.');
     } finally {
@@ -2151,7 +2162,7 @@ if (!search && promos.length > 0) {
             <View style={s.menuHandle} />
             <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
             {sendLoading && <ActivityIndicator size="small" color={light.brand.base} style={{ paddingVertical: 18 }} />}
-            {!sendLoading && sendConvs.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
+            {!sendLoading && sendConvs.length === 0 && sendGroups.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
             <ScrollView style={{ maxHeight: 320 }}>
               {sendConvs.map((c: any) => (
                 <TouchableOpacity key={c.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(c)} disabled={sendBusy}>
@@ -2159,6 +2170,18 @@ if (!search && promos.length > 0) {
                   <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{c.other?.full_name || c.other?.username || 'Member'}</Text>
                 </TouchableOpacity>
               ))}
+              {sendGroups.length > 0 && (
+                <>
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', letterSpacing: 0.6, color: light.ink.muted, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6, textTransform: 'uppercase' }}>Groups</Text>
+                  {sendGroups.map((g: any) => (
+                    <TouchableOpacity key={g.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(g)} disabled={sendBusy}>
+                      <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18 }}>{g.group_emoji || '\uD83D\uDC65'}</Text></View>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flex: 1 }} numberOfLines={1}>{g.group_name || 'Group'}</Text>
+                      <Feather name="users" size={15} color={light.ink.muted} />
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
             </ScrollView>
           </TouchableOpacity>
         </TouchableOpacity>
