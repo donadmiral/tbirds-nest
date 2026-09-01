@@ -19,12 +19,13 @@ function fmt(v: number): string {
   return m + ':' + (r < 10 ? '0' : '') + r;
 }
 
-export default function TrimStrip({ uri, durationSec, start, end, onChange, player, width }: {
+export default function TrimStrip({ uri, durationSec, start, end, onChange, onDuration, player, width }: {
   uri: string; durationSec: number; start: number; end: number;
-  onChange: (start: number, end: number) => void; player: any; width: number;
+  onChange: (start: number, end: number) => void; onDuration?: (sec: number) => void; player: any; width: number;
 }) {
   const dur = Math.max(1, durationSec || 1);
-  const trackW = Math.max(120, width - 96);
+  const trackW = Math.max(120, width - 160);
+  const durRef = useRef(dur); durRef.current = dur;
   const [thumbs, setThumbs] = useState<string[]>([]);
   const [cur, setCur] = useState(start);
   const [playing, setPlaying] = useState(true);
@@ -51,11 +52,11 @@ export default function TrimStrip({ uri, durationSec, start, end, onChange, play
   useEffect(() => {
     const p: any = player; if (!p) return;
     let sub: any = null;
-    try { sub = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (typeof t === 'number') setCur(t); }); } catch {}
+    try { sub = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (typeof t === 'number') setCur(t); const d = typeof p.duration === 'number' ? p.duration : 0; if (d > 0.5 && Number.isFinite(d) && Math.abs(d - durRef.current) > 0.3) onDuration?.(Math.round(d * 10) / 10); }); } catch {}
     let sub2: any = null;
     try { sub2 = p.addListener?.('playingChange', (ev: any) => { const v = typeof ev?.isPlaying === 'boolean' ? ev.isPlaying : (typeof ev === 'boolean' ? ev : p.playing); setPlaying(!!v); }); } catch {}
     return () => { try { sub?.remove?.(); } catch {} try { sub2?.remove?.(); } catch {} };
-  }, [player]);
+  }, [player, onDuration]);
 
   const toX = (sec: number) => (Math.max(0, Math.min(dur, sec)) / dur) * trackW;
   const toSec = (x: number) => Math.round((Math.max(0, Math.min(trackW, x)) / trackW) * dur * 10) / 10;
@@ -100,7 +101,7 @@ export default function TrimStrip({ uri, durationSec, start, end, onChange, play
 }
 
 const ts = StyleSheet.create({
-  wrap: { position: 'absolute', left: 0, zIndex: 28, alignItems: 'center' },
+  wrap: { alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(12,16,26,0.62)', borderRadius: 16, paddingHorizontal: 8, paddingVertical: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.16)' },
   playBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
   track: { height: 44, borderRadius: 8, overflow: 'visible', backgroundColor: '#12141B' },
@@ -110,6 +111,6 @@ const ts = StyleSheet.create({
   playhead: { position: 'absolute', top: -4, bottom: -4, width: 2, backgroundColor: '#FFFFFF', borderRadius: 1 },
   handle: { position: 'absolute', top: -4, bottom: -4, width: HANDLE_W, borderRadius: 6, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
   grip: { width: 2.5, height: 16, borderRadius: 2, backgroundColor: '#0C0C10' },
-  counter: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'], minWidth: 74, textAlign: 'right' },
+  counter: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'], minWidth: 72, textAlign: 'right' },
   hint: { color: 'rgba(255,255,255,0.72)', fontSize: 11.5, fontWeight: '600', marginTop: 6 },
 });

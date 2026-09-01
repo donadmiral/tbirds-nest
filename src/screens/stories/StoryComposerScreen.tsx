@@ -777,7 +777,7 @@ export default function StoryComposerScreen() {
 
         {/* Studio rail: primary tools on the canvas, the rest behind the chevron */}
         {!drawMode && !previewOn && active?.uploadState === 'idle' && (
-          <StudioRail top={insets.top + 118} items={([
+          <StudioRail top={insets.top + 64} maxHeight={previewSize.h - (insets.top + 64) - (Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 92 : 0) + 10)} items={([
             { id: 'rtext', label: 'Text', feather: 'type', primary: true, run: () => openTextEditor() },
             { id: 'rsticker', label: 'Sticker', feather: 'smile', primary: true, on: (active?.stickers || []).length > 0, run: () => setOverflowOpen(true) },
             { id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', primary: true, on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() },
@@ -795,7 +795,7 @@ export default function StoryComposerScreen() {
         {/* Trim strip: live timeline under the canvas for video stories */}
         {!drawMode && !previewOn && active?.mediaType === 'video' && !!active?.localUri && active?.uploadState === 'idle' && (
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106), alignItems: 'center', zIndex: 28 }} pointerEvents="box-none">
-            <TrimStrip uri={active.localUri} durationSec={active.durationSec || 15} start={(getTx() as any).trimStart ?? 0} end={(getTx() as any).trimEnd ?? Math.min(active.durationSec || 15, 60)} onChange={(s2, e2) => setTx({ trimStart: Math.round(s2 * 10) / 10, trimEnd: Math.round(e2 * 10) / 10 } as any)} player={vidPlayer} width={previewSize.w - 24} />
+            <TrimStrip uri={active.localUri} durationSec={active.durationSec || 15} start={(getTx() as any).trimStart ?? 0} end={(getTx() as any).trimEnd ?? Math.min(active.durationSec || 15, 60)} onChange={(s2, e2) => setTx({ trimStart: Math.round(s2 * 10) / 10, trimEnd: Math.round(e2 * 10) / 10 } as any)} onDuration={(d) => { const aid = active?.id; if (!aid) return; setDrafts(prev => prev.map(x => x.id === aid ? { ...x, durationSec: d } : x)); }} player={vidPlayer} width={previewSize.w - 24} />
           </View>
         )}
 
@@ -842,11 +842,6 @@ export default function StoryComposerScreen() {
             </TouchableOpacity>
             <View style={st.toolRowGap} />
           </>}
-          {bloomTools.map((tool: BloomToolDef) => (
-            <TouchableOpacity key={tool.id} style={st.topToolBtn} onPress={() => { handleBloomToolAction(tool.id); }} activeOpacity={0.7} disabled={publish.publishing} accessibilityLabel={tool.accessibilityLabel}>
-              <Feather name={tool.icon as React.ComponentProps<typeof Feather>['name']} size={19} color="#FFF" />
-            </TouchableOpacity>
-          ))}
         </View>
 
         {/* Business reach switch */}
