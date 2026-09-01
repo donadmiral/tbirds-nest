@@ -40,6 +40,7 @@ import IdentityPresence from '../../components/stories/IdentityPresence';
 import MemoryCaption from '../../components/stories/MemoryCaption';
 import StoryProgressBar from '../../components/stories/StoryProgressBar';
 import { FilterLayer } from '../../components/stories/StoryFilters';
+import { BackgroundLayer } from '../../components/stories/storyPanels';
 import { useStoryAudio } from '../../hooks/useStoryAudio';
 import StoryOptionsSheet from '../../components/stories/StoryOptionsSheet';
 import StorySettingsSheet from '../../components/stories/StorySettingsSheet';
