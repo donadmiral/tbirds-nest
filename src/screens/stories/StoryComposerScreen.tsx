@@ -441,6 +441,19 @@ export default function StoryComposerScreen() {
   const [filterOpen, setFilterOpen] = useState(false);
   const openMusicSheet = useCallback(() => setMusicOpen(true), []);
   const openFilterSheet = useCallback(() => setFilterOpen(true), []);
+  // Video drafts picked without dimensions: probe the first frame so canvas
+  // gestures work and the story publishes with a real thumbnail.
+  useEffect(() => {
+    const d = active;
+    if (!d || d.mediaType !== 'video' || !d.localUri) return;
+    if ((d.imageW || 0) > 0 && d.thumbnailUri) return;
+    let dead = false;
+    VideoThumbnails.getThumbnailAsync(d.localUri, { time: 0, quality: 0.6 }).then(t => {
+      if (dead) return;
+      setDrafts(prev => prev.map(x => x.id === d.id ? { ...x, imageW: x.imageW || t.width || 0, imageH: x.imageH || t.height || 0, thumbnailUri: x.thumbnailUri || t.uri } : x));
+    }).catch(() => {});
+    return () => { dead = true; };
+  }, [active?.id, active?.localUri, active?.mediaType, active?.imageW, active?.thumbnailUri, setDrafts]);
 
   // Debounce cleanup
   useEffect(() => { return () => { if (locationDebounceRef.current) clearTimeout(locationDebounceRef.current); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }; }, []);
