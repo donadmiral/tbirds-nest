@@ -10,10 +10,10 @@
  * the story or the long-press that pauses it.
  */
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle, Dimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  useAnimatedStyle, useSharedValue, withTiming, runOnJS,
+  useAnimatedStyle, useSharedValue, withSpring, runOnJS,
 } from 'react-native-reanimated';
 
 type Props = {
@@ -25,50 +25,52 @@ type Props = {
 };
 
 export default function ZoomableMedia({
-  children, style, onZoomChange, maxScale = 4,
+  children, style, onZoomChange, maxScale = 3,
 }: Props) {
   const scale = useSharedValue(1);
-  const savedScale = useSharedValue(1);
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
   const originX = useSharedValue(0);
   const originY = useSharedValue(0);
+  const panX = useSharedValue(0);
+  const panY = useSharedValue(0);
+  const W = Dimensions.get('window').width;
+  const H = Dimensions.get('window').height;
 
-  const notify = (z: boolean) => { onZoomChange?.(z); };
+  const notify = (zooming: boolean) => { onZoomChange?.(zooming); };
 
+  // Pinch: the point under your fingers stays under your fingers. Translation is
+  // the focal offset from the centre, scaled, plus how far the fingers drift.
   const pinch = Gesture.Pinch()
     .onStart(e => {
       originX.value = e.focalX;
       originY.value = e.focalY;
+      panX.value = 0; panY.value = 0;
       if (onZoomChange) runOnJS(notify)(true);
     })
     .onUpdate(e => {
-      const next = savedScale.value * e.scale;
-      scale.value = Math.min(Math.max(next, 1), maxScale);
-      // Follow the fingers so the point you pinched stays under them.
-      tx.value = e.focalX - originX.value;
-      ty.value = e.focalY - originY.value;
+      const s = Math.min(Math.max(e.scale, 1), maxScale);
+      scale.value = s;
+      tx.value = (originX.value - W / 2) * (1 - s) + (e.focalX - originX.value) + panX.value;
+      ty.value = (originY.value - H / 2) * (1 - s) + (e.focalY - originY.value) + panY.value;
     })
     .onEnd(() => {
-      savedScale.value = 1;
-      scale.value = withTiming(1, { duration: 180 });
-      tx.value = withTiming(0, { duration: 180 });
-      ty.value = withTiming(0, { duration: 180 });
+      scale.value = withSpring(1, { damping: 18, stiffness: 220, mass: 0.6 });
+      tx.value = withSpring(0, { damping: 18, stiffness: 220, mass: 0.6 });
+      ty.value = withSpring(0, { damping: 18, stiffness: 220, mass: 0.6 });
       if (onZoomChange) runOnJS(notify)(false);
     });
 
-  // Panning only does anything once you are zoomed in.
+  // Two-finger drag while zoomed moves the picture with the fingers.
   const pan = Gesture.Pan()
     .minPointers(2)
+    .maxPointers(2)
     .onUpdate(e => {
-      if (scale.value <= 1) return;
-      tx.value = e.translationX;
-      ty.value = e.translationY;
+      if (scale.value <= 1.01) return;
+      panX.value = e.translationX;
+      panY.value = e.translationY;
     })
-    .onEnd(() => {
-      tx.value = withTiming(0, { duration: 180 });
-      ty.value = withTiming(0, { duration: 180 });
-    });
+    .onEnd(() => { panX.value = 0; panY.value = 0; });
 
   const composed = Gesture.Simultaneous(pinch, pan);
 
