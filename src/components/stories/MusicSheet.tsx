@@ -66,6 +66,7 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
 
   useEffect(() => {
     if (!visible || tab === 'record') return;
+    if (tab === 'library') { setRows([]); setLoadingRows(false); return; }
     let cancelled = false;
     setLoadingRows(true);
     storiesService.listStorySounds(tab === 'sounds' ? 'original' : 'library').then(list => {
@@ -221,7 +222,13 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
               </View>
             ) : (
               <View style={ms.listPane}>
-                {loadingRows ? (
+                {tab === 'library' ? (
+                  <View style={{ alignItems: 'center', paddingVertical: 34, paddingHorizontal: 24 }}>
+                    <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(201,191,176,0.16)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}><Feather name="music" size={24} color="#C9BFB0" /></View>
+                    <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', marginBottom: 6 }}>Music library coming soon</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center', lineHeight: 18 }}>Record your own sound for now, or reuse a sound shared by the community.</Text>
+                  </View>
+                ) : loadingRows ? (
                   <ActivityIndicator color="#FFFFFF" style={{ marginTop: 26 }} />
                 ) : rows.length === 0 ? (
                   <Text style={ms.emptyTxt}>{tab === 'sounds' ? 'No shared sounds yet. Record one and share it.' : 'No library tracks yet.'}</Text>
