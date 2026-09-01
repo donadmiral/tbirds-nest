@@ -268,6 +268,7 @@ export default function FeedScreen({ navigation }: any) {
   const [sendPost, setSendPost] = useState<Post | null>(null);
   const [sendConvs, setSendConvs] = useState<any[]>([]);
   const [sendGroups, setSendGroups] = useState<any[]>([]);
+  const [sendCommunities, setSendCommunities] = useState<any[]>([]);
   const [sendBusy, setSendBusy] = useState(false);
   const [sendLoading, setSendLoading] = useState(false);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
@@ -1003,8 +1004,18 @@ export default function FeedScreen({ navigation }: any) {
         setSendGroups((groups ?? []).map((g: any) => ({ ...g, otherId: null, group: true })));
       } else { setSendGroups([]); }
     } catch { setSendGroups([]); }
+    // Communities you belong to: sharing goes to the community's group chat (created on first share, members synced server-side).
+    try {
+      const { data: cm } = await supabase.from('community_members').select('community_id').eq('user_id', userId);
+      const cids = Array.from(new Set((cm ?? []).map((r: any) => r.community_id).filter(Boolean)));
+      if (cids.length > 0) {
+        const { data: comms } = await supabase.from('communities').select('id, name, emoji, member_count').in('id', cids).order('name');
+        setSendCommunities(comms ?? []);
+      } else { setSendCommunities([]); }
+    } catch { setSendCommunities([]); }
     setSendLoading(false);
   }, [userId]);
+
 
   const sendPostTo = useCallback(async (conv: any) => {
     if (!userId || !sendPost || sendBusy) return;
@@ -1020,12 +1031,27 @@ export default function FeedScreen({ navigation }: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setSendPost(null);
       setSendGroups([]);
+      setSendCommunities([]);
     } catch (e: any) {
       Alert.alert('Could not send', e?.message || 'Try again.');
     } finally {
       setSendBusy(false);
     }
   }, [userId, sendPost, sendBusy]);
+
+  const sendPostToCommunity = useCallback(async (community: any) => {
+    if (!userId || !sendPost || sendBusy) return;
+    setSendBusy(true);
+    try {
+      const { data: convId, error } = await supabase.rpc('ensure_community_conversation', { p_community: community.id });
+      if (error || !convId) throw error || new Error('No conversation');
+      setSendBusy(false);
+      await sendPostTo({ id: convId as string, otherId: null, group: true });
+    } catch (e: any) {
+      setSendBusy(false);
+      Alert.alert('Could not send', e?.message || 'Try again.');
+    }
+  }, [userId, sendPost, sendBusy, sendPostTo]);
 
   const addPostToStory = useCallback((post: Post) => {
     const author = profilesMap[post.user_id];
@@ -2162,7 +2188,7 @@ if (!search && promos.length > 0) {
             <View style={s.menuHandle} />
             <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
             {sendLoading && <ActivityIndicator size="small" color={light.brand.base} style={{ paddingVertical: 18 }} />}
-            {!sendLoading && sendConvs.length === 0 && sendGroups.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
+            {!sendLoading && sendConvs.length === 0 && sendGroups.length === 0 && sendCommunities.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
             <ScrollView style={{ maxHeight: 320 }}>
               {sendConvs.map((c: any) => (
                 <TouchableOpacity key={c.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(c)} disabled={sendBusy}>
@@ -2178,6 +2204,18 @@ if (!search && promos.length > 0) {
                       <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18 }}>{g.group_emoji || '\uD83D\uDC65'}</Text></View>
                       <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flex: 1 }} numberOfLines={1}>{g.group_name || 'Group'}</Text>
                       <Feather name="users" size={15} color={light.ink.muted} />
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+              {sendCommunities.length > 0 && (
+                <>
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', letterSpacing: 0.6, color: light.ink.muted, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6, textTransform: 'uppercase' }}>Communities</Text>
+                  {sendCommunities.map((cmt: any) => (
+                    <TouchableOpacity key={cmt.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostToCommunity(cmt)} disabled={sendBusy}>
+                      <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: 'rgba(201,191,176,0.28)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18 }}>{cmt.emoji || '\uD83C\uDFDB\uFE0F'}</Text></View>
+                      <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{cmt.name}</Text>{cmt.member_count != null ? <Text style={{ fontSize: 11.5, color: light.ink.muted }}>{cmt.member_count} members</Text> : null}</View>
+                      <Feather name="globe" size={15} color={light.ink.muted} />
                     </TouchableOpacity>
                   ))}
                 </>
