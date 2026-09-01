@@ -1859,7 +1859,7 @@ if (!search && promos.length > 0) {
                   <AnnouncementBanner />
                   {feedMode === 'trending' && <TrendingStoriesRail />}
                   {feedMode === 'discover' && (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled directionalLockEnabled bounces={false} onStartShouldSetResponderCapture={() => true} onMoveShouldSetResponderCapture={() => true} contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled directionalLockEnabled bounces={false} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} onTouchCancel={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} onScrollBeginDrag={() => { mediaTouchRef.current = true; }} onScrollEndDrag={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
                       {CATEGORIES.map(c => (
                         <TouchableOpacity key={c.key} onPress={() => setDiscoverCat(c.key)}
                           style={{ paddingHorizontal: 13, paddingVertical: 6, borderRadius: 99, backgroundColor: discoverCat === c.key ? '#E8E0D0' : 'rgba(0,0,0,0.05)' }}>

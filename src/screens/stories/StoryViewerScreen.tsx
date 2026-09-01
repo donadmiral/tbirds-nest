@@ -389,7 +389,7 @@ export default function StoryViewerScreen() {
       const p: any = videoPlayer; let subT: any = null; let subE: any = null; let ended = false;
       try { p.timeUpdateEventInterval = 0.05; } catch {}
       const finish = () => { if (ended) return; ended = true; progressSV.value = 1; advanceForward(); };
-      try { subT = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (typeof t !== 'number') return; const frac = Math.max(PROGRESS_SEED, Math.min(1, (t - tS2) / winSec)); progressSV.value = frac; if (t - tS2 >= winSec - 0.06) finish(); }); } catch {}
+      try { subT = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (typeof t !== 'number') return; const pd = typeof p.duration === 'number' && Number.isFinite(p.duration) ? p.duration : 0; const win = pd > 0.3 ? Math.max(0.3, Math.min(winSec, pd - tS2)) : winSec; const frac = Math.max(PROGRESS_SEED, Math.min(1, (t - tS2) / win)); progressSV.value = frac; if (t - tS2 >= win - 0.06) finish(); }); } catch {}
       try { subE = p.addListener?.('playToEnd', () => finish()); } catch {}
       return () => { try { subT?.remove?.(); } catch {} try { subE?.remove?.(); } catch {} };
     }
