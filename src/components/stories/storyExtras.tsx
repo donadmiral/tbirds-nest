@@ -12,7 +12,7 @@ import type { StoryTextSticker } from '../../services/storiesService';
 
 /* ── Expanded text catalog (doc 17): merges over the base 9 styles ── */
 export const EXTRA_TEXT_STYLES = [
-  'mono', 'serif2', 'condensed', 'marker', 'signature', 'poster', 'luxury', 'retro', 'tech', 'bubble',
+  'mono', 'serif2', 'condensed', 'marker', 'signature', 'poster', 'luxury', 'tech', 'bubble',
 ] as const;
 const EXTRA_MAP: Record<string, { fontFamily?: string; fontWeight?: any; fontStyle?: any; letterSpacing?: number }> = {
   mono:      { fontFamily: 'Courier', fontWeight: '600' },
@@ -22,13 +22,12 @@ const EXTRA_MAP: Record<string, { fontFamily?: string; fontWeight?: any; fontSty
   signature: { fontFamily: 'Snell Roundhand', fontWeight: '600' },
   poster:    { fontFamily: 'AvenirNextCondensed-Heavy', fontWeight: '900', letterSpacing: 0.5 },
   luxury:    { fontFamily: 'Didot', fontWeight: '400', letterSpacing: 1 },
-  retro:     { fontFamily: 'American Typewriter', fontWeight: '600' },
   tech:      { fontFamily: 'Menlo', fontWeight: '600', letterSpacing: 0.5 },
   bubble:    { fontFamily: 'Chalkboard SE', fontWeight: '700' },
 };
 export const EXTRA_TEXT_LABELS: Record<string, string> = {
   mono: 'Mono', serif2: 'Serif+', condensed: 'Condensed', marker: 'Marker', signature: 'Signature',
-  poster: 'Poster', luxury: 'Luxury', retro: 'Retro', tech: 'Tech', bubble: 'Bubble',
+  poster: 'Poster', luxury: 'Luxury', tech: 'Tech', bubble: 'Bubble',
 };
 /** Same contract as stickerTextStyle, extended styles overlay the classic base. */
 export function composedTextStyle(style: any, color: string, bgEnabled?: boolean, fontSizeOverride?: number) {

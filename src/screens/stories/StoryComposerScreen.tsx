@@ -906,7 +906,7 @@ export default function StoryComposerScreen() {
           </View>
           <View style={st.editorBottom}>
             <ScrollView ref={stylePickerRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.stylePickerScroll} keyboardShouldPersistTaps="always">
-              {([...STICKER_STYLES, ...EXTRA_TEXT_STYLES] as any[]).map(ss => { const fp = composedTextStyle(ss, '#FFFFFF', false); return (
+              {([...STICKER_STYLES, ...EXTRA_TEXT_STYLES.filter(x => !(STICKER_STYLES as any[]).includes(x))] as any[]).map(ss => { const fp = composedTextStyle(ss, '#FFFFFF', false); return (
                 <TouchableOpacity key={ss} style={[st.fontPill, stickerStyle === ss && st.fontPillActive]} onPress={() => setStickerStyle(ss)}>
                   <Text style={[{ color: '#FFF', fontFamily: (fp.textStyle as any).fontFamily, fontWeight: (fp.textStyle as any).fontWeight, fontStyle: (fp.textStyle as any).fontStyle }, st.fontPillTxt, stickerStyle === ss && st.fontPillTxtActive]} numberOfLines={1}>{(STICKER_STYLE_LABELS as any)[ss] || (EXTRA_TEXT_LABELS as any)[ss] || ss}</Text>
                 </TouchableOpacity>
