@@ -70,14 +70,16 @@ export const STORY_FILTERS: StoryFilterDef[] = [
   { id: 'nashville', label: 'Nashville', family: 'film', layers: [{ color: '#FFD1B8', opacity: 0.18 }, { color: '#3C5A99', opacity: 0.10 }] },
 ];
 
-export function FilterLayer({ filterId, zIndex }: { filterId: string | null; zIndex?: number }) {
+export function FilterLayer({ filterId, zIndex, amt }: { filterId: string | null; zIndex?: number; amt?: number | null }) {
   if (!filterId) return null;
   const f = STORY_FILTERS.find(x => x.id === filterId);
   if (!f) return null;
+  // Creative engine: filterAmt (0-100) scales the look's planes; default 100 keeps the look as designed.
+  const k = Math.max(0, Math.min(1, (typeof amt === 'number' ? amt : 100) / 100));
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, zIndex != null ? { zIndex } : null]}>
       {f.layers.map((l, i) => (
-        <View key={i} pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: l.color, opacity: l.opacity }]} />
+        <View key={i} pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: l.color, opacity: l.opacity * k }]} />
       ))}
     </View>
   );

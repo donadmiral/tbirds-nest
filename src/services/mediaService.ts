@@ -4,6 +4,8 @@ import { useSettingsStore } from '../stores/settingsStore';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase';
 
+import { resolveTrueMeta } from '../utils/sniffMedia';
+
 export type MediaKind = 'image' | 'video' | 'gif' | 'document' | 'audio';
 
 export type PickedMedia = {
@@ -91,9 +93,16 @@ export async function pickFromLibrary(opts?: {
 
   const out: PickedMedia[] = [];
   for (const a of result.assets) {
-    const isVideo = a.type === 'video';
-    const kind: MediaKind = isVideo ? 'video' : 'image';
-    const ext = safeExt(a.uri, isVideo ? 'mp4' : 'jpg');
+    let isVideo = a.type === 'video';
+    let kind: MediaKind = isVideo ? 'video' : 'image';
+    let ext = safeExt(a.uri, isVideo ? 'mp4' : 'jpg');
+    let sniffMime: string | null = null;
+    try {
+      const tm = await resolveTrueMeta(a.uri, isVideo ? 'video' : 'image', ext, mimeFor(kind, ext));
+      ext = tm.ext; sniffMime = tm.mime;
+      if (tm.kind === 'video' && !isVideo) { isVideo = true; kind = 'video'; }
+      if (tm.kind === 'image' && isVideo) { isVideo = false; kind = 'image'; }
+    } catch {}
     const fileSize = (a as any).fileSize as number | undefined;
 
     // Only enforce size limits on images, not videos
@@ -113,7 +122,7 @@ export async function pickFromLibrary(opts?: {
       uri: a.uri,
       kind,
       ext,
-      mimeType: mimeFor(kind, ext),
+      mimeType: sniffMime || mimeFor(kind, ext),
       width: a.width ?? undefined,
       height: a.height ?? undefined,
       fileSize,
@@ -137,12 +146,14 @@ export async function pickFromCamera(opts?: {
   });
   if (result.canceled || !result.assets?.[0]) return null;
   const a = result.assets[0];
-  const ext = safeExt(a.uri, 'jpg');
+  let ext = safeExt(a.uri, 'jpg');
+  let camMime: string | null = null;
+  try { const tm = await resolveTrueMeta(a.uri, 'image', ext, mimeFor('image', ext)); ext = tm.ext; camMime = tm.mime; } catch {}
   return {
     uri: a.uri,
     kind: 'image',
     ext,
-    mimeType: mimeFor('image', ext),
+    mimeType: camMime || mimeFor('image', ext),
     width: a.width ?? undefined,
     height: a.height ?? undefined,
     fileSize: (a as any).fileSize,

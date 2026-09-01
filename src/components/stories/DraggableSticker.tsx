@@ -34,6 +34,7 @@ import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard from './PostStoryCard';
 import CountdownStickerCard from './CountdownStickerCard';
+import { TimeStickerView, DateStickerView, WeatherStickerView, PhotoStickerView, GifStickerView, EntityStickerCard, composedTextStyle } from './storyExtras';
 import { motion, feedback } from '../../constants/tokens';
 
 // ── Constants ──
@@ -156,7 +157,7 @@ function getProfile(kind?: string): PhysicsProfile {
   if (kind === 'emoji') return PROFILES.emoji;
   if (kind === 'poll' || kind === 'quiz') return PROFILES.poll;
   if (kind === 'question') return PROFILES.question;
-  if (kind === 'location' || kind === 'mention' || kind === 'hashtag' || kind === 'link' || kind === 'post' || kind === 'countdown') return PROFILES.location;
+  if (kind === 'location' || kind === 'mention' || kind === 'hashtag' || kind === 'link' || kind === 'post' || kind === 'countdown' || kind === 'entity' || kind === 'photo' || kind === 'gif' || kind === 'time' || kind === 'date' || kind === 'weather') return PROFILES.location;
   if (kind === 'slider') return PROFILES.slider;
   return DEFAULT_PROFILE;
 }
@@ -728,7 +729,19 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       >
         <View style={{ flex: 1, alignItems: containerAlign, justifyContent: 'center' }}>
           <View style={wrapperStyle}>
-            {sticker.kind === 'countdown' ? (
+            {sticker.kind === 'gif' ? (
+              <GifStickerView sticker={sticker} />
+            ) : sticker.kind === 'photo' ? (
+              <PhotoStickerView sticker={sticker} />
+            ) : sticker.kind === 'time' ? (
+              <TimeStickerView sticker={sticker} />
+            ) : sticker.kind === 'date' ? (
+              <DateStickerView sticker={sticker} />
+            ) : sticker.kind === 'weather' ? (
+              <WeatherStickerView sticker={sticker} />
+            ) : sticker.kind === 'entity' ? (
+              <EntityStickerCard sticker={sticker} />
+            ) : sticker.kind === 'countdown' ? (
               <CountdownStickerCard title={sticker.countdownTitle || sticker.text} target={sticker.countdownTarget || null} />
             ) : sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />

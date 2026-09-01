@@ -8,6 +8,7 @@ import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
 import type { StoryTextSticker } from '../../services/storiesService';
+import { StickerAnim, TimeStickerView, DateStickerView, WeatherStickerView, PhotoStickerView, GifStickerView, EntityStickerCard } from './storyExtras';
 
 // Phase 2.3: Match composer's text wrapping width (85% of screen)
 const SCREEN_W = Dimensions.get('window').width;
@@ -26,6 +27,9 @@ type StickerOverlayProps = {
   storyPaused?: boolean;
   onStickerLayout?: (id: string, rect: { left: number; right: number; top: number; bottom: number }) => void;
   interactive?: boolean;
+  // Creative engine: playback clock (video) gates timed stickers; entity taps route out
+  clockSec?: number | null;
+  onEntityTap?: (sticker: StoryTextSticker) => void;
   // Engagement sticker interaction callbacks (viewer only)
   engagementProps?: {
     isOwn: boolean;
@@ -44,6 +48,10 @@ type StickerOverlayProps = {
 
 function getWidthForKind(kind?: string): number {
   if (kind === 'post') return POST_CARD_W;
+  if (kind === 'entity') return 260;
+  if (kind === 'photo') return 200;
+  if (kind === 'gif') return 180;
+  if (kind === 'time' || kind === 'date' || kind === 'weather') return 170;
   if (kind === 'countdown') return 236;
   if (kind === 'question') return 240;
   if (kind === 'slider') return 240;
@@ -67,6 +75,7 @@ export function renderStickerContent(
   onPostHoldStart?: () => void,
   onPostHoldEnd?: () => void,
   storyPaused?: boolean,
+  onEntityTap?: (sticker: StoryTextSticker) => void,
 ): React.ReactNode {
   const isEmoji = sticker.kind === 'emoji';
   const isLink = sticker.kind === 'link';
@@ -163,6 +172,16 @@ export function renderStickerContent(
     );
   }
 
+  if (sticker.kind === 'drawing') return null;
+  if (sticker.kind === 'gif') return <GifStickerView sticker={sticker} />;
+  if (sticker.kind === 'photo') return <PhotoStickerView sticker={sticker} />;
+  if (sticker.kind === 'time') return <TimeStickerView sticker={sticker} />;
+  if (sticker.kind === 'date') return <DateStickerView sticker={sticker} />;
+  if (sticker.kind === 'weather') return <WeatherStickerView sticker={sticker} />;
+  if (sticker.kind === 'entity') {
+    return <EntityStickerCard sticker={sticker} onPress={interactive && onEntityTap ? () => onEntityTap(sticker) : undefined} />;
+  }
+
   if (isPill) {
     let handlePress: (() => void) | undefined;
     if (interactive) {
@@ -225,6 +244,8 @@ export default function StickerOverlay({
   storyPaused,
   onStickerLayout,
   interactive = true,
+  clockSec,
+  onEntityTap,
   engagementProps,
 }: StickerOverlayProps) {
   if (!stickers || stickers.length === 0 || containerW === 0 || containerH === 0) return null;
@@ -232,8 +253,15 @@ export default function StickerOverlay({
   return (
     <View style={[StyleSheet.absoluteFill, { zIndex: 20, elevation: 20 }]} pointerEvents="box-none">
       {stickers.map(st => {
+        if (st.kind === 'drawing') return null;
+        const anyst = st as any;
+        if (typeof clockSec === 'number' && (anyst.startSec != null || anyst.endSec != null)) {
+          const t0 = typeof anyst.startSec === 'number' ? anyst.startSec : 0;
+          const t1 = typeof anyst.endSec === 'number' ? anyst.endSec : Number.POSITIVE_INFINITY;
+          if (clockSec < t0 - 0.05 || clockSec > t1 + 0.05) return null;
+        }
         const isEmoji = st.kind === 'emoji';
-        const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag' || st.kind === 'post';
+        const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag' || st.kind === 'post' || st.kind === 'entity';
         const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown';
         const containerAlign = isEmoji || isPill ? 'center' as const
           : st.textAlign === 'left' ? 'flex-start' as const
@@ -265,7 +293,7 @@ export default function StickerOverlay({
               elevation: interactive && (isPill || isEngagement) ? 30 : 20,
             }}
           >
-            {renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd, storyPaused)}
+            <StickerAnim anim={(st as any).anim} playKey={st.id}>{renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd, storyPaused, onEntityTap)}</StickerAnim>
           </View>
         );
       })}

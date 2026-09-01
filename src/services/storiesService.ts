@@ -16,7 +16,24 @@ export type StoryTextSticker = {
   scale: number;
   rotation: number;
   bgEnabled?: boolean;
-  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post' | 'countdown';
+  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post' | 'countdown' | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'drawing';
+  // Creative engine (all optional, JSON-stored)
+  gifUrl?: string;
+  photoUri?: string | null;
+  photoUrl?: string | null;
+  photoShape?: 'square' | 'rounded' | 'circle';
+  infoStyle?: number;
+  weatherTemp?: number;
+  weatherCode?: number;
+  entityType?: 'profile' | 'listing' | 'job' | 'article';
+  entityId?: string;
+  entityTitle?: string;
+  entitySub?: string;
+  entityImage?: string | null;
+  strokes?: { tool: string; color: string; width: number; points: { x: number; y: number }[] }[];
+  startSec?: number;
+  endSec?: number;
+  anim?: string;
   fontSizeOverride?: number;
   opacity?: number;
   textAlign?: 'left' | 'center' | 'right';
@@ -56,6 +73,13 @@ export type MediaTransform = {
   translateNX: number;
   translateNY: number;
   fit: MediaFit;
+  // Creative engine extras — all optional, replayed by phone + web viewers
+  trimStart?: number;
+  trimEnd?: number;
+  filterAmt?: number;
+  bg?: { kind: 'blur' | 'color' | 'gradient' | 'none'; a?: string; b?: string } | null;
+  adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null;
+  mix?: { orig?: number; music?: number } | null;
 };
 
 export type StoryAudioDraft = {
@@ -196,6 +220,8 @@ function safeExtFromUri(uri: string, fallback: string): string {
   return fallback;
 }
 
+import { resolveTrueMeta } from '../utils/sniffMedia';
+
 function resolveMediaMeta(
   mediaType: StoryMediaType,
   localUri: string,
@@ -303,9 +329,21 @@ export async function uploadAndCreateStory(params: {
   let mediaPublicUrl: string | null = null;
   let thumbnailUrl: string | null = null;
   let dualFrontPublicUrl: string | null = null;
+  let effectiveMediaType: StoryMediaType = mediaType;
 
-  if (mediaType !== 'text' && localUri) {
-    const { ext, mimeType } = resolveMediaMeta(mediaType, localUri, hintMimeType, hintFileName);
+  if (preUploadedUrl) {
+    // Split publish: siblings reuse the already-uploaded source file.
+    mediaPublicUrl = preUploadedUrl;
+    if (preUploadedThumb) thumbnailUrl = preUploadedThumb;
+  } else if (mediaType !== 'text' && localUri) {
+    let { ext, mimeType } = resolveMediaMeta(mediaType, localUri, hintMimeType, hintFileName);
+    // Bytes over names: the picker's label and the extension both lie sometimes.
+    const trueMeta = await resolveTrueMeta(localUri, mediaType === 'video' ? 'video' : 'image', ext, mimeType);
+    ext = trueMeta.ext; mimeType = trueMeta.mime;
+    if (trueMeta.corrected && trueMeta.kind !== mediaType) {
+      console.log('[storiesService] media_type corrected by bytes:', mediaType, '->', trueMeta.kind);
+      effectiveMediaType = trueMeta.kind;
+    }
     const fileName = `${userId}/${Date.now()}.${ext}`;
 
     console.log('[storiesService] Uploading:', { mediaType, ext, mimeType, fileName, uriTail: localUri.slice(-50), hintMimeType, hintFileName });
@@ -347,7 +385,9 @@ export async function uploadAndCreateStory(params: {
 
     // ── Dual front photo upload (with retry + exponential backoff) ──
     if (dualFrontLocalUri) {
-      const frontMeta = resolveMediaMeta('image', dualFrontLocalUri);
+      let frontMeta = resolveMediaMeta('image', dualFrontLocalUri);
+      const frontTrue = await resolveTrueMeta(dualFrontLocalUri, 'image', frontMeta.ext, frontMeta.mimeType);
+      frontMeta = { ext: frontTrue.ext, mimeType: frontTrue.mime };
       const frontRand = Math.random().toString(36).slice(2, 8);
       const frontFileName = `${userId}/${Date.now()}_${frontRand}_front.${frontMeta.ext}`;
       const MAX_FRONT_RETRIES = 2;
@@ -472,10 +512,38 @@ export async function uploadAndCreateStory(params: {
     }
   }
 
+  // ── Photo stickers: upload any local photo sticker to storage first ──
+  if (Array.isArray(stickersJson)) {
+    for (const stAny of stickersJson as any[]) {
+      if (stAny && stAny.kind === 'photo' && stAny.photoUri && !stAny.photoUrl) {
+        try {
+          let pm = resolveMediaMeta('image', stAny.photoUri);
+          const pt = await resolveTrueMeta(stAny.photoUri, 'image', pm.ext, pm.mimeType);
+          const pName = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}_stk.${pt.ext}`;
+          const pf = new FormData();
+          pf.append('file', { uri: stAny.photoUri, type: pt.mime, name: `stk.${pt.ext}` } as any);
+          const pRes = await fetch(`${supabaseUrl}/storage/v1/object/story-media/${pName}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, apikey: supabaseKey, 'x-upsert': 'true' },
+            body: pf,
+          });
+          if (pRes.ok) {
+            stAny.photoUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${pName}`;
+            delete stAny.photoUri;
+          } else {
+            console.log('[storiesService] photo sticker upload failed:', pRes.status);
+          }
+        } catch (e: any) {
+          console.log('[storiesService] photo sticker upload error:', e?.message);
+        }
+      }
+    }
+  }
+
   const insertPayload: any = {
     user_id: currentAuthorId(userId) ?? userId,
     media_url: mediaPublicUrl,
-    media_type: mediaType,
+    media_type: effectiveMediaType,
     thumbnail_url: thumbnailUrl,
     duration_sec: durationSec ?? null,
     caption: caption?.trim() || null,
@@ -491,7 +559,7 @@ export async function uploadAndCreateStory(params: {
   if (textBackground) {
     insertPayload.text_background = textBackground;
   }
-  if (mediaTransform && (mediaTransform.scale !== 1 || mediaTransform.translateNX !== 0 || mediaTransform.translateNY !== 0 || mediaTransform.fit !== 'cover')) {
+  if (mediaTransform && (mediaTransform.scale !== 1 || mediaTransform.translateNX !== 0 || mediaTransform.translateNY !== 0 || mediaTransform.fit !== 'cover' || (mediaTransform as any).trimStart != null || (mediaTransform as any).trimEnd != null || (mediaTransform as any).bg || (mediaTransform as any).adjust || (mediaTransform as any).mix || (mediaTransform as any).filterAmt != null)) {
     insertPayload.media_transform = mediaTransform;
   }
   if (category) {

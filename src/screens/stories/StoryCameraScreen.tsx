@@ -96,6 +96,15 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [zoom, setZoom] = useState(0);
+  const [handsFree, setHandsFree] = useState(false);
+  const [timerSec, setTimerSec] = useState<0 | 3 | 10>(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const handsFreeRef = useRef(false);
+  const timerSecRef = useRef<0 | 3 | 10>(0);
+  const countdownTimerRef = useRef<any>(null);
+  useEffect(() => { handsFreeRef.current = handsFree; }, [handsFree]);
+  useEffect(() => { timerSecRef.current = timerSec; }, [timerSec]);
+  useEffect(() => () => { if (countdownTimerRef.current) clearInterval(countdownTimerRef.current); }, []);
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
   const pendingRecordRef = useRef(false);
   const recordStartRef = useRef(0);
@@ -116,7 +125,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       onPanResponderGrant: () => {
         pressStartRef.current = Date.now();
         zoomStartRef.current = zoomBaseRef.current;
-        holdTimerRef.current = setTimeout(() => { captureCbRef.current.requestRecord?.(); }, 250);
+        if (!handsFreeRef.current) holdTimerRef.current = setTimeout(() => { captureCbRef.current.requestRecord?.(); }, 250);
       },
       onPanResponderMove: (_e: any, g: any) => {
         if (!recordingRef.current) return;
@@ -135,8 +144,9 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       },
       onPanResponderRelease: () => {
         if (holdTimerRef.current) { clearTimeout(holdTimerRef.current); holdTimerRef.current = null; }
+        if (handsFreeRef.current) { if (recordingRef.current) { captureCbRef.current.stopRecording?.(); } else { captureCbRef.current.timedFire?.('video'); } return; }
         const held = Date.now() - pressStartRef.current;
-        if (held < 250 && !recordingRef.current) { captureCbRef.current.takePhoto?.(); return; }
+        if (held < 250 && !recordingRef.current) { captureCbRef.current.timedFire?.('photo'); return; }
         captureCbRef.current.stopRecording?.();
       },
       onPanResponderTerminate: () => {
@@ -146,7 +156,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
     })
   ).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
-  captureCbRef.current = { takePhoto: (...a: any[]) => takePhotoRef.current(...a), requestRecord: (...a: any[]) => requestRecordRef.current(...a), stopRecording: (...a: any[]) => stopRecordingRef.current(...a) };
+  captureCbRef.current = { takePhoto: (...a: any[]) => takePhotoRef.current(...a), requestRecord: (...a: any[]) => requestRecordRef.current(...a), stopRecording: (...a: any[]) => stopRecordingRef.current(...a), timedFire: (kind2: 'photo' | 'video') => { const t = timerSecRef.current; const fire = () => { if (kind2 === 'photo') takePhotoRef.current?.(); else requestRecordRef.current?.(); }; if (!t) { fire(); return; } if (countdownTimerRef.current) { clearInterval(countdownTimerRef.current); countdownTimerRef.current = null; setCountdown(null); return; } let left = t; setCountdown(left); countdownTimerRef.current = setInterval(() => { left -= 1; if (left <= 0) { clearInterval(countdownTimerRef.current); countdownTimerRef.current = null; setCountdown(null); fire(); } else { setCountdown(left); } }, 1000); } };
   const takePhotoRef = useRef<any>(() => {});
   const requestRecordRef = useRef<any>(() => {});
   const stopRecordingRef = useRef<any>(() => {});
@@ -406,12 +416,25 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         </View>
       </TapGestureHandler>
 
+      {countdown != null && (
+        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#FFF', fontSize: 110, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 16 }}>{countdown}</Text>
+        </View>
+      )}
+
       {/* Top controls */}
       <SafeAreaView style={s.topControls} edges={['top']}>
         <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="x" size={24} color="#FFF" />
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
+        <TouchableOpacity style={s.topBtn} onPress={() => setTimerSec(t => (t === 0 ? 3 : t === 3 ? 10 : 0))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="clock" size={20} color={timerSec ? '#FFD60A' : '#FFF'} />
+          {timerSec > 0 && <Text style={{ position: 'absolute', bottom: 2, right: 2, color: '#FFD60A', fontSize: 9, fontWeight: '800' }}>{timerSec}</Text>}
+        </TouchableOpacity>
+        <TouchableOpacity style={s.topBtn} onPress={() => setHandsFree(h => !h)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="video" size={20} color={handsFree ? '#FFD60A' : '#FFF'} />
+        </TouchableOpacity>
         <TouchableOpacity style={s.topBtn} onPress={() => setFlash(f => (f === 'off' ? 'on' : 'off'))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name={flash === 'on' ? 'zap' : 'zap-off'} size={20} color="#FFF" />
         </TouchableOpacity>
@@ -456,7 +479,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             <Feather name="refresh-cw" size={22} color="#FFF" />
           </TouchableOpacity>
         </View>
-        <Text style={s.hintTxt}>{recording ? (zoom > 0.02 ? 'Slide up to zoom · ' + Math.round(zoom * 100) + '%' : 'Release to stop · slide up to zoom') : 'Tap for photo, hold for video'}</Text>
+        <Text style={s.hintTxt}>{recording ? (zoom > 0.02 ? 'Slide up to zoom · ' + Math.round(zoom * 100) + '%' : 'Release to stop · slide up to zoom') : (handsFree ? (timerSec ? `Hands-free · ${timerSec}s timer — tap to record` : 'Hands-free — tap to start and stop') : (timerSec ? `Timer ${timerSec}s — tap for photo, hold for video` : 'Tap for photo, hold for video'))}</Text>
         {!recording && (
           <View style={s.modeRow}>
             <TouchableOpacity onPress={() => navigation.navigate('StoryComposer', { mode: 'text', assets: [] })} activeOpacity={0.7} style={s.modeItem}>
