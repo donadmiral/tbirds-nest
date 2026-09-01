@@ -49,10 +49,10 @@ export default function QuestionStickerCard({
 }
 
 const s = StyleSheet.create({
-  card: { width: 268, backgroundColor: 'rgba(255,255,255,0.94)', borderRadius: 18, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
-  prompt: { fontSize: 16, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.3, textAlign: 'center', marginBottom: 12 },
-  field: { height: 44, borderRadius: 11, backgroundColor: 'rgba(10,10,10,0.06)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
-  fieldAnswered: { backgroundColor: 'rgba(10,10,10,0.14)' },
-  fieldTxt: { fontSize: 15, fontWeight: '500', color: 'rgba(10,10,10,0.45)', letterSpacing: -0.2 },
-  fieldTxtAnswered: { color: '#0A0A0A', fontWeight: '700' },
+  card: { width: 268, backgroundColor: '#FFFFFF', borderRadius: 18, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  prompt: { fontSize: 16, fontWeight: '800', color: '#0B1E3D', letterSpacing: -0.2, textAlign: 'center', marginBottom: 12 },
+  field: { height: 44, borderRadius: 12, backgroundColor: '#F6F5F2', borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.14)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
+  fieldAnswered: { backgroundColor: 'rgba(201,191,176,0.35)', borderColor: '#C9BFB0' },
+  fieldTxt: { fontSize: 15, fontWeight: '600', color: 'rgba(11,30,61,0.5)', letterSpacing: -0.2 },
+  fieldTxtAnswered: { color: '#0B1E3D', fontWeight: '800' },
 });

@@ -44,7 +44,11 @@ function Row({ option, index, revealed, chosen, pct, onPress }: {
         style={[s.bar, correct ? s.barCorrect : wrong ? s.barWrong : s.barPlain, barStyle]}
         pointerEvents="none"
       />
-      <Text style={[s.label, (correct || wrong) && s.labelStrong]} numberOfLines={1}>{option.label}</Text>
+      <View style={s.rowInner}>
+        <View style={[s.badge, correct && s.badgeCorrect, wrong && s.badgeWrong]}><Text style={s.badgeTxt}>{String.fromCharCode(65 + index)}</Text></View>
+        <Text style={[s.label, (correct || wrong) && s.labelStrong]} numberOfLines={1}>{option.label}</Text>
+        {correct ? <Text style={s.check}>{'\u2713'}</Text> : null}
+      </View>
       {revealed && <Text style={[s.pct, (correct || wrong) && s.labelStrong]}>{Math.round(pct * 100)}%</Text>}
     </TouchableOpacity>
   );
@@ -100,16 +104,22 @@ export default function QuizStickerCard({
 }
 
 const s = StyleSheet.create({
-  card: { width: 268, backgroundColor: 'rgba(255,255,255,0.94)', borderRadius: 18, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
-  question: { fontSize: 16, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.3, textAlign: 'center', marginBottom: 12 },
+  card: { width: 268, backgroundColor: '#FFFFFF', borderRadius: 18, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  question: { fontSize: 16, fontWeight: '800', color: '#0B1E3D', letterSpacing: -0.2, textAlign: 'center', marginBottom: 12 },
   rows: { gap: 8 },
-  row: { height: 44, borderRadius: 11, backgroundColor: 'rgba(10,10,10,0.05)', justifyContent: 'center', paddingHorizontal: 14, overflow: 'hidden' },
+  row: { height: 46, borderRadius: 12, backgroundColor: '#F6F5F2', borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.14)', justifyContent: 'center', paddingHorizontal: 12, overflow: 'hidden' },
+  rowInner: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingRight: 44 },
+  badge: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' },
+  badgeCorrect: { backgroundColor: '#2F9E63' },
+  badgeWrong: { backgroundColor: '#C62F1D' },
+  badgeTxt: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+  check: { color: '#0B1E3D', fontSize: 15, fontWeight: '800' },
   bar: { position: 'absolute', left: 0, top: 0, bottom: 0 },
-  barPlain: { backgroundColor: 'rgba(10,10,10,0.10)' },
-  barCorrect: { backgroundColor: 'rgba(47,158,99,0.55)' },
-  barWrong: { backgroundColor: 'rgba(198,47,29,0.45)' },
-  label: { fontSize: 15, fontWeight: '500', color: '#0A0A0A', letterSpacing: -0.2, paddingRight: 44 },
+  barPlain: { backgroundColor: 'rgba(11,30,61,0.10)' },
+  barCorrect: { backgroundColor: '#DCF5E6' },
+  barWrong: { backgroundColor: '#FBE1E1' },
+  label: { fontSize: 14.5, fontWeight: '600', color: '#0B1E3D', letterSpacing: -0.2, flexShrink: 1 },
   labelStrong: { fontWeight: '800' },
-  pct: { position: 'absolute', right: 14, fontSize: 15, fontWeight: '600', color: '#0A0A0A' },
-  total: { marginTop: 10, fontSize: 12.5, fontWeight: '600', color: 'rgba(10,10,10,0.5)', textAlign: 'center' },
+  pct: { position: 'absolute', right: 12, fontSize: 14, fontWeight: '800', color: '#0B1E3D', fontVariant: ['tabular-nums'] },
+  total: { marginTop: 10, fontSize: 12, fontWeight: '600', color: 'rgba(11,30,61,0.55)', textAlign: 'center' },
 });

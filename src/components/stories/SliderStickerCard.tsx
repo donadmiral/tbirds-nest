@@ -5,6 +5,7 @@
  */
 import React, { useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -88,7 +89,7 @@ export default function SliderStickerCard({
       <GestureDetector gesture={pan}>
         <View style={s.trackArea}>
           <View style={s.track}>
-            <Animated.View style={[s.fill, fillStyle]} />
+            <Animated.View style={[s.fill, fillStyle]}><LinearGradient colors={['#C9BFB0', '#E8A13A']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} /></Animated.View>
           </View>
           {avgLeft !== null && (isOwn || answered) && (
             <View style={[s.avgMark, { left: avgLeft - 1 }]} pointerEvents="none" />
@@ -111,13 +112,13 @@ export default function SliderStickerCard({
 }
 
 const s = StyleSheet.create({
-  card: { width: CARD_W, backgroundColor: 'rgba(255,255,255,0.94)', borderRadius: 18, paddingHorizontal: PAD, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
-  label: { fontSize: 16, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.3, textAlign: 'center', marginBottom: 18 },
+  card: { width: CARD_W, backgroundColor: '#FFFFFF', borderRadius: 18, paddingHorizontal: PAD, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  label: { fontSize: 16, fontWeight: '800', color: '#0B1E3D', letterSpacing: -0.2, textAlign: 'center', marginBottom: 18 },
   trackArea: { height: KNOB, justifyContent: 'center' },
-  track: { height: TRACK_H, borderRadius: TRACK_H / 2, backgroundColor: 'rgba(10,10,10,0.10)', overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: TRACK_H / 2, backgroundColor: 'rgba(10,10,10,0.55)' },
-  avgMark: { position: 'absolute', width: 2, height: 16, borderRadius: 1, backgroundColor: 'rgba(10,10,10,0.35)' },
+  track: { height: TRACK_H + 3, borderRadius: (TRACK_H + 3) / 2, backgroundColor: 'rgba(11,30,61,0.10)', overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: (TRACK_H + 3) / 2, overflow: 'hidden' },
+  avgMark: { position: 'absolute', width: 2.5, height: 18, borderRadius: 1.5, backgroundColor: '#0B1E3D' },
   knob: { position: 'absolute', left: 0, width: KNOB, height: KNOB, alignItems: 'center', justifyContent: 'center' },
   knobTxt: { fontSize: 26 },
-  meta: { marginTop: 12, fontSize: 12.5, fontWeight: '600', color: 'rgba(10,10,10,0.5)', textAlign: 'center' },
+  meta: { marginTop: 12, fontSize: 12, fontWeight: '600', color: 'rgba(11,30,61,0.55)', textAlign: 'center' },
 });
