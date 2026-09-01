@@ -11,6 +11,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
+import StudioRail, { type RailItem } from '../../components/stories/StudioRail';
+import TrimStrip from '../../components/stories/TrimStrip';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   storiesService, StoryTextSticker, StoryStickerStyle, MediaFit, MediaTransform,
@@ -468,6 +470,7 @@ export default function StoryComposerScreen() {
   const [entityOpen, setEntityOpen] = useState(false);
   const [gifOpen, setGifOpen] = useState(false);
   const [previewOn, setPreviewOn] = useState(false);
+  const [vidPlayer, setVidPlayer] = useState<any>(null);
   // Music preview in the editor at the mixed volume, exactly as the viewer will play it.
   const previewAudioUrl = active?.audio?.localUri || active?.audio?.url || null;
   const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
@@ -758,7 +761,7 @@ export default function StoryComposerScreen() {
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
             imageW={active?.imageW} imageH={active?.imageH} mediaFit={active?.mediaFit || 'cover'}
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
-            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null}
+            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
           >
@@ -770,6 +773,30 @@ export default function StoryComposerScreen() {
             )}
             {hasPoll && active?.uploadState === 'idle' && <View style={st.pollBadge}><Feather name="bar-chart-2" size={14} color="#FFF" /><Text style={st.pollBadgeTxt} numberOfLines={1}>{active.pollData!.question}</Text></View>}
           </MediaCanvas>
+        )}
+
+        {/* Studio rail: primary tools on the canvas, the rest behind the chevron */}
+        {!drawMode && !previewOn && active?.uploadState === 'idle' && (
+          <StudioRail top={insets.top + 118} items={([
+            { id: 'rtext', label: 'Text', feather: 'type', primary: true, run: () => openTextEditor() },
+            { id: 'rsticker', label: 'Sticker', feather: 'smile', primary: true, on: (active?.stickers || []).length > 0, run: () => setOverflowOpen(true) },
+            { id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', primary: true, on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() },
+            { id: 'rsound', label: 'Sound', feather: 'music', primary: true, on: !!active?.audio, run: () => openMusicSheet() },
+            ...(active?.mediaType === 'video' ? [{ id: 'rtrim', label: 'Trim', icon: 'trim', on: (getTx() as any).trimEnd != null, run: () => setTrimOpen(true) } as RailItem] : []),
+            { id: 'rfilter', label: 'Filter', icon: 'filter', on: !!active?.filterId, run: () => openFilterSheet() },
+            { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
+            { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
+            { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => setBgOpen(true) },
+            { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) },
+            { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
+            { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },
+          ] as RailItem[])} />
+        )}
+        {/* Trim strip: live timeline under the canvas for video stories */}
+        {!drawMode && !previewOn && active?.mediaType === 'video' && !!active?.localUri && active?.uploadState === 'idle' && (
+          <View style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106), alignItems: 'center', zIndex: 28 }} pointerEvents="box-none">
+            <TrimStrip uri={active.localUri} durationSec={active.durationSec || 15} start={(getTx() as any).trimStart ?? 0} end={(getTx() as any).trimEnd ?? Math.min(active.durationSec || 15, 60)} onChange={(s2, e2) => setTx({ trimStart: Math.round(s2 * 10) / 10, trimEnd: Math.round(e2 * 10) / 10 } as any)} player={vidPlayer} width={previewSize.w - 24} />
+          </View>
         )}
 
         {/* Scrims */}
