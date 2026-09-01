@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircle, Repeat2 } from "lucide-react";
-import { VideoPlayer } from "@/components/VideoPlayer";
+import { VideoPlayer, type PostMediaEditRecipe } from "@/components/VideoPlayer";
+import { STORY_FILTERS, filterCss } from "@/lib/stories";
+import { AdjustOverlay } from "@/components/StoryEngine";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Comments } from "@/components/Comments";
 import { RichText } from "@/components/RichText";
@@ -11,7 +13,28 @@ import { displayImageUrl, srcSetFor } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
 import { createClient } from "@/lib/supabase/client";
 
-type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null };
+type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null };
+
+// post_media.edit recipes come from a small side query (the feed RPC predates the column); cached per media id.
+const editCache = new Map<string, PostMediaEditRecipe | null>();
+function editStyle(e: PostMediaEditRecipe | null | undefined): React.CSSProperties {
+  if (!e) return {};
+  const sc = typeof e.scale === "number" && e.scale > 0 ? e.scale : 1; const nx = typeof e.translateNX === "number" ? e.translateNX : 0; const ny = typeof e.translateNY === "number" ? e.translateNY : 0;
+  const st: React.CSSProperties = { objectFit: e.fit === "contain" ? "contain" : "cover" };
+  if (sc !== 1 || nx !== 0 || ny !== 0) st.transform = "translate(" + (nx * 100) + "%, " + (ny * 100) + "%) scale(" + sc + ")";
+  return st;
+}
+function EditPlanes({ e }: { e: PostMediaEditRecipe | null | undefined }) {
+  if (!e) return null;
+  const f = e.filterId ? STORY_FILTERS.find((x) => x.id === e.filterId) : null;
+  const k = Math.max(0, Math.min(1, (typeof e.filterAmt === "number" ? e.filterAmt : 100) / 100));
+  return (
+    <>
+      {f ? <div className="pointer-events-none absolute inset-0" style={{ backdropFilter: filterCss(f.id, k), WebkitBackdropFilter: filterCss(f.id, k) }}>{f.layers.map((l, i) => <div key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity * k }} />)}</div> : null}
+      {e.adjust ? <AdjustOverlay adjust={e.adjust} /> : null}
+    </>
+  );
+}
 type Dims = { w: number; h: number };
 export type ViewerPost = {
   post_id: string;
@@ -35,6 +58,24 @@ function fitted(w: number | null | undefined, h: number | null | undefined, avai
 }
 
 export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; onDoubleClick?: (e: React.MouseEvent) => void }) {
+  const [edits, setEdits] = useState<Record<string, PostMediaEditRecipe | null>>({});
+  useEffect(() => {
+    const need = media.filter((m) => m.edit === undefined && !editCache.has(m.id)).map((m) => m.id);
+    const seed: Record<string, PostMediaEditRecipe | null> = {};
+    media.forEach((m) => { if (m.edit !== undefined) seed[m.id] = m.edit ?? null; else if (editCache.has(m.id)) seed[m.id] = editCache.get(m.id) ?? null; });
+    setEdits(seed);
+    if (!need.length) return;
+    let dead = false;
+    createClient().from("post_media").select("id, edit").in("id", need).then(({ data }) => {
+      if (dead) return;
+      const next: Record<string, PostMediaEditRecipe | null> = {};
+      need.forEach((id) => { editCache.set(id, null); next[id] = null; });
+      (data || []).forEach((r: any) => { editCache.set(r.id, r.edit ?? null); next[r.id] = r.edit ?? null; });
+      setEdits((p) => ({ ...p, ...next }));
+    });
+    return () => { dead = true; };
+  }, [media]);
+  const editOf = (m: MediaItem) => (m.edit !== undefined ? m.edit : edits[m.id]) ?? null;
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -251,10 +292,11 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
         >
           {item.media_type === "video" ? (
             <div style={dims ? { width: dims.w + "px", height: dims.h + "px" } : { width: "100%" }}>
-              <VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount}
+              <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount}
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
-              />
+                edit={editOf(item)}
+              /><EditPlanes e={editOf(item)} /></div>
             </div>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
@@ -269,7 +311,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               aria-label={"Open " + altOf(item, idx)}
               alt={altOf(item, idx)}
               loading="lazy"
-              style={dims ? { width: dims.w + "px", height: dims.h + "px" } : undefined}
+              style={dims ? { width: dims.w + "px", height: dims.h + "px", ...editStyle(editOf(item)) } : editStyle(editOf(item))}
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
           )}

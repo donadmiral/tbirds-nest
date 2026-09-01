@@ -22,17 +22,20 @@ const positions: Record<string, number> = {};
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 const SPEEDS = [0.5, 1, 1.25, 1.5, 2];
 
-export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, immersive = false }: {
+export type PostMediaEditRecipe = { scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
+
+export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, immersive = false, edit = null }: {
   src: string; postId: string; viewsCount?: number | null;
   width?: number; height?: number;
   onDims?: (w: number, h: number) => void;
+  edit?: PostMediaEditRecipe | null;
   immersive?: boolean;
 }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const dwellStart = useRef<number | null>(null);
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(mutedPref);
+  const [muted, setMuted] = useState(edit?.muted ? true : mutedPref);
   const [progress, setProgress] = useState(0);
   const [fs, setFs] = useState(false);
   const [speed, setSpeed] = useState(() => readPrefs().speed);
@@ -185,6 +188,9 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
         onTimeUpdate={() => {
           const v = ref.current;
           if (!v) return;
+          // Post edit recipe: loop inside the trim window.
+          const t0 = Number(edit?.trimStart) || 0; const t1 = Number(edit?.trimEnd) || 0;
+          if (t1 > t0 && v.currentTime >= t1 - 0.05) { try { v.currentTime = t0; } catch {} }
           if (v.duration) setProgress(v.currentTime / v.duration);
           positions[src] = v.currentTime;
           if (!posterTried.current && v.currentTime > 0.1 && v.videoWidth > 0) {
@@ -205,7 +211,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
         }}
         onEnded={() => { positions[src] = 0; stop(); }}
         onError={() => setUnplayable(true)}
-        onLoadedMetadata={() => { const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else { setPortrait(v.videoHeight > v.videoWidth); onDims?.(v.videoWidth, v.videoHeight); if (v.paused && !positions[src] && !posterTried.current) { try { v.currentTime = 0.15; } catch { /* fine */ } } } }}
+        onLoadedMetadata={() => { { const vv = ref.current; const t0 = Number(edit?.trimStart) || 0; if (vv && t0 > 0.05 && vv.currentTime < t0) { try { vv.currentTime = t0; } catch {} } } const v = ref.current; if (!v) return; if (v.videoWidth === 0) setUnplayable(true); else { setPortrait(v.videoHeight > v.videoWidth); onDims?.(v.videoWidth, v.videoHeight); if (v.paused && !positions[src] && !posterTried.current) { try { v.currentTime = 0.15; } catch { /* fine */ } } } }}
         onSeeked={() => {
           const v = ref.current;
           if (!v || posterTried.current || v.videoWidth === 0 || !v.paused) return;
