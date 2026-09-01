@@ -215,6 +215,13 @@ export function StoryViewer({ users, startIndex, onClose }: {
     if (!heldRef.current) return;
     startedAt.current = Date.now() - pausedAtRef.current * durRef.current;
     timerRef.current = setInterval(() => {
+      const el = videoRef.current;
+      if (el && !el.paused) {
+        const t0 = Number((story?.media_transform as StoryMediaTransform | undefined)?.trimStart) || 0; const win = durRef.current / 1000;
+        const p = Math.max(0, Math.min(1, (el.currentTime - t0) / win));
+        if (el.ended || (el.currentTime - t0) >= win - 0.06) advance(); else setProgress(p);
+        return;
+      }
       const p = (Date.now() - startedAt.current) / durRef.current;
       if (p >= 1) advance();
       else setProgress(p);
@@ -330,6 +337,13 @@ export function StoryViewer({ users, startIndex, onClose }: {
     durRef.current = dur;
     startedAt.current = Date.now();
     timerRef.current = setInterval(() => {
+      if (isVideo && videoRef.current) {
+        // Video: the bar follows the player's own clock, so buffering stalls the bar instead of advancing past the picture.
+        const el = videoRef.current; const t0 = Number(mtx.trimStart) || 0; const win = durRef.current / 1000;
+        const p = Math.max(0, Math.min(1, (el.currentTime - t0) / win));
+        if (el.ended || (el.currentTime - t0) >= win - 0.06) advance(); else setProgress(p);
+        return;
+      }
       const p = (Date.now() - startedAt.current) / durRef.current;
       if (p >= 1) advance();
       else setProgress(p);
