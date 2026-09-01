@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send } from "lucide-react";
-import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker } from "@/lib/stories";
+import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
+import { StoryPollCard } from "@/components/StoryPollCard";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
@@ -58,18 +59,26 @@ function StickerLayer({ stickers, clock }: { stickers: StoryTextSticker[]; clock
         if (kind === "gif" || kind === "photo" || kind === "time" || kind === "date" || kind === "weather" || kind === "entity") {
           return <div key={st.id} style={{ ...pos, ...animStyle(st.anim) }}><EngineSticker st={st} /></div>;
         }
-        const pillCls = "pointer-events-auto inline-flex max-w-full items-center gap-1 truncate rounded-full bg-black/55 px-3 py-1.5 text-[12px] font-semibold text-white";
+        // Pill looks mirror the phone StickerPill: 0 white, 1 ink, 2 gradient, 3 glass.
+        const pv = (((st as any).pillVariant || 0) % 4 + 4) % 4;
+        const pillBase = "pointer-events-auto inline-flex max-w-full items-center gap-1.5 truncate rounded-[11px] px-3.5 py-2 text-[15px] font-extrabold tracking-[-0.3px] shadow-lg";
+        const pillGrad: Record<string, string> = { link: "linear-gradient(135deg,#3C7DFF,#00C2FF)", location: "linear-gradient(135deg,#FF6B4A,#FFB03A)", mention: "linear-gradient(135deg,#7C5CFF,#B96BFF)", hashtag: "linear-gradient(135deg,#0EA5E9,#22D3EE)" };
+        const pillStyle: React.CSSProperties = pv === 0 ? { background: "#FFFFFF", color: "#0A0A0A" }
+          : pv === 1 ? { background: "#0B1E3D", color: "#FFFFFF" }
+          : pv === 2 ? { background: pillGrad[kind] || pillGrad.link, color: "#FFFFFF" }
+          : { background: "rgba(10,12,18,0.42)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.5)", boxShadow: "none" };
+        const pillCls = pillBase;
         if (kind === "link" && st.url) {
-          return <a key={st.id} href={st.url} target="_blank" rel="noopener noreferrer" style={pos} className={pillCls}>{"\uD83D\uDD17 "}{st.text || st.url}</a>;
+          return <a key={st.id} href={st.url} target="_blank" rel="noopener noreferrer" style={{ ...pos, ...pillStyle }} className={pillCls}>{"\uD83D\uDD17 "}{st.text || st.url}</a>;
         }
         if (kind === "mention" && st.mentionUsername) {
-          return <a key={st.id} href={"/" + st.mentionUsername} style={pos} className={pillCls}>@{st.mentionUsername}</a>;
+          return <a key={st.id} href={"/" + st.mentionUsername} style={{ ...pos, ...pillStyle }} className={pillCls}>@{st.mentionUsername}</a>;
         }
         if (kind === "hashtag" && st.hashtag) {
-          return <a key={st.id} href={"/topic/" + encodeURIComponent(st.hashtag)} style={pos} className={pillCls}>#{st.hashtag}</a>;
+          return <a key={st.id} href={"/topic/" + encodeURIComponent(st.hashtag)} style={{ ...pos, ...pillStyle }} className={pillCls}>#{st.hashtag}</a>;
         }
         if (kind === "location") {
-          return <span key={st.id} style={pos} className={pillCls}>{"\uD83D\uDCCD "}{st.locationDisplayName || st.locationName || st.text}</span>;
+          return <span key={st.id} style={{ ...pos, ...pillStyle }} className={pillCls}>{"\uD83D\uDCCD "}{st.locationDisplayName || st.locationName || st.text}</span>;
         }
         if (kind === "post" && st.postId) {
           return (
@@ -131,6 +140,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const [uid, setUid] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const [clock, setClock] = useState<number | null>(null);
+  const [poll, setPoll] = useState<StoryPoll | null>(null);
   const [viewersOpen, setViewersOpen] = useState(false);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heldRef = useRef(false);
@@ -166,6 +176,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
   }, [stories, itemIdx]);
   const storyAudioUrl = story && story.media_type !== "video" ? (story.audio_url ?? null) : null;
   const isOwn = !!(uid && story && uid === story.user_id);
+  useEffect(() => { setPoll(null); if (!story) return; let dead = false; getStoryPoll(story.id).then((p) => { if (!dead) setPoll(p); }).catch(() => {}); return () => { dead = true; }; }, [story?.id]);
   const canReact = !!(story && !isOwn && story.allow_reactions !== false);
   const canReply = !!(story && !isOwn && story.allow_replies !== false);
 
@@ -433,6 +444,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={story.dual_front_url} alt="" className="absolute bottom-20 left-3 z-[2] h-32 w-24 rounded-xl border-2 border-white/70 object-cover shadow-lg" />
             ) : null}
+            {poll ? <StoryPollCard poll={poll} isOwn={isOwn} onUpdate={setPoll} /> : null}
             {story.stickers_json && story.stickers_json.length > 0 ? (
               <StickerLayer stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} />
             ) : null}
