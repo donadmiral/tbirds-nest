@@ -14,6 +14,8 @@ import { Audio } from 'expo-av';
 import { storiesService, StoryAudioDraft, StorySound } from '../../services/storiesService';
 
 const MAX_RECORD_SEC = 30;
+// Sound is parked: one card, no tabs, no queries, no recording. Flip to false to bring the sheet back.
+const SOUND_COMING_SOON = true;
 
 type Props = {
   visible: boolean;
@@ -65,7 +67,7 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
   }, [visible, stopPreview, cleanupRecording]);
 
   useEffect(() => {
-    if (!visible || tab === 'record') return;
+    if (!visible || tab === 'record' || SOUND_COMING_SOON) return;
     if (tab === 'library') { setRows([]); setLoadingRows(false); return; }
     let cancelled = false;
     setLoadingRows(true);
@@ -184,6 +186,13 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
               </View>
             ) : null}
 
+            {SOUND_COMING_SOON ? (
+              <View style={{ alignItems: 'center', paddingVertical: 36, paddingHorizontal: 24 }}>
+                <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(201,191,176,0.16)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}><Feather name="music" size={26} color="#C9BFB0" /></View>
+                <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '800', marginBottom: 6 }}>Sound is coming soon</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center', lineHeight: 18 }}>Music, shared sounds and voiceovers are on the way.</Text>
+              </View>
+            ) : (<>
             <View style={ms.tabsRow}>
               {([['record', 'Record'], ['sounds', 'Sounds'], ['library', 'Library']] as [Tab, string][]).map(t => (
                 <TouchableOpacity key={t[0]} style={[ms.tabBtn, tab === t[0] && ms.tabBtnOn]} activeOpacity={0.8} onPress={() => { stopPreview(); setTab(t[0]); }}>
@@ -237,6 +246,7 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
                 )}
               </View>
             )}
+            </>)}
           </View>
         </TouchableOpacity>
       </TouchableOpacity>
