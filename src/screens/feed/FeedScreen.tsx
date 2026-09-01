@@ -483,7 +483,25 @@ export default function FeedScreen({ navigation }: any) {
           }
         }
         discoverInnoIdsRef.current = innoIds; discoverMetaRef.current = catMeta;
-        feedRows = merged;
+        // Discover order comes from the server: engagement with recency decay,
+        // a media bonus, what you already saw pushed down, and a daily rotation
+        // so the page is not the same list tomorrow. Then author spacing.
+        try {
+          const { data: ranked } = await supabase.rpc('rank_discover', { p_ids: merged.map((r: any) => r.post_id) });
+          const scoreBy = new Map<string, number>();
+          ((ranked ?? []) as any[]).forEach((x: any) => scoreBy.set(x.id, Number(x.score) || 0));
+          if (scoreBy.size > 0) {
+            merged.sort((a: any, b: any) => (scoreBy.get(b.post_id) ?? 0) - (scoreBy.get(a.post_id) ?? 0));
+            const spaced: any[] = []; const deferred: any[] = []; let lastAuthor: string | null = null; let run = 0;
+            for (const r of merged) {
+              const au = r.author_id ?? null;
+              if (au && au === lastAuthor && run >= 2) { deferred.push(r); continue; }
+              if (au === lastAuthor) run += 1; else { lastAuthor = au; run = 1; }
+              spaced.push(r);
+            }
+            feedRows = [...spaced, ...deferred];
+          } else { feedRows = merged; }
+        } catch { feedRows = merged; }
       } else {
         const fr = await supabase.rpc('get_feed', {
           p_mode: feedModeToServer(feedModeRef.current),
