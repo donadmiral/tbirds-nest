@@ -58,6 +58,12 @@ function Flower({ size, petal, heart }: { size: number; petal: string; heart: st
 export default function MemoryAlbumScreen({ route, navigation }: any) {
   const ownerId: string = route.params?.ownerId;
   const albumIdParam: string | null = route.params?.albumId ?? null;
+  // Who is looking, and who owns the album: the Message button on a video memory DMs the owner.
+  const [viewerId, setViewerId] = useState<string | null>(null);
+  const [ownerProfile, setOwnerProfile] = useState<{ full_name: string | null; username: string | null; avatar_url: string | null } | null>(null);
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => setViewerId(data.session?.user.id ?? null)).catch(() => {}); }, []);
+  useEffect(() => { if (!ownerId) return; (async () => { try { const { data } = await supabase.from('profiles').select('full_name, username, avatar_url').eq('id', ownerId).maybeSingle(); if (data) setOwnerProfile(data as any); } catch {} })(); }, [ownerId]);
+  const ownerName = ownerProfile?.full_name ?? null; const ownerUsername = ownerProfile?.username ?? null; const ownerAvatar = ownerProfile?.avatar_url ?? null;
   const [bookId, setBookId] = useState<string | null>(albumIdParam);
   const insets = useSafeAreaInsets();
   const [album, setAlbum] = useState<any | null>(null);
@@ -441,7 +447,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
       </Modal>
 
       {playingUrl ? (
-        <MemoryVideo url={playingUrl} topInset={Math.max(insets.top, 12)} onClose={() => setPlayingUrl(null)} />
+        <MemoryVideo url={playingUrl} topInset={Math.max(insets.top, 12)} onClose={() => setPlayingUrl(null)} onMessage={viewerId && ownerId && viewerId !== ownerId ? () => { setPlayingUrl(null); (navigation as any).navigate('Chat', { userId: ownerId, userName: ownerName || undefined, otherUser: { id: ownerId, full_name: ownerName || '', username: ownerUsername || '', avatar_url: ownerAvatar || null } }); } : undefined} />
       ) : null}
 
       <Modal visible={!!captionFor} transparent animationType="fade" onRequestClose={() => setCaptionFor(null)}>
@@ -460,12 +466,25 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   );
 }
 
-function MemoryVideo({ url, topInset, onClose }: { url: string; topInset: number; onClose: () => void }) {
-  const player = useVideoPlayer(url, p => { p.loop = true; p.play(); });
+function MemoryVideo({ url, topInset, onClose, onMessage }: { url: string; topInset: number; onClose: () => void; onMessage?: () => void }) {
+  const player = useVideoPlayer(url, p => { p.loop = true; p.muted = false; p.play(); });
+  const [muted, setMuted] = React.useState(false);
+  const toggleMute = () => { setMuted(v => { const nv = !v; try { (player as any).muted = nv; } catch {} return nv; }); };
   return (
     <Modal visible transparent={false} animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls />
+        <View style={{ position: 'absolute', top: topInset + 6, right: 14, flexDirection: 'row', gap: 10 }}>
+          <TouchableOpacity onPress={toggleMute} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel={muted ? 'Unmute' : 'Mute'}>
+            <Feather name={muted ? 'volume-x' : 'volume-2'} size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+          {onMessage ? (
+            <TouchableOpacity onPress={onMessage} style={{ height: 36, borderRadius: 18, paddingHorizontal: 14, backgroundColor: '#C9BFB0', flexDirection: 'row', alignItems: 'center', gap: 6 }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Message">
+              <Feather name="send" size={15} color="#0B1E3D" />
+              <Text style={{ color: '#0B1E3D', fontSize: 13, fontWeight: '800' }}>Message</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
         <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: topInset + 6, left: 14, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>
           <Feather name="x" size={20} color="#FFFFFF" />
         </TouchableOpacity>
@@ -521,5 +540,13 @@ const st = StyleSheet.create({
 
 function PageVideo({ url }: { url: string }) {
   const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; try { pp.play(); } catch {} });
-  return <VideoView player={pv} style={{ width: '100%', height: '100%' }} contentFit="cover" nativeControls={false} />;
+  const [muted, setMuted] = React.useState(true);
+  return (
+    <View style={{ width: '100%', height: '100%' }}>
+      <VideoView player={pv} style={{ width: '100%', height: '100%' }} contentFit="cover" nativeControls={false} />
+      <TouchableOpacity onPress={() => setMuted(v => { const nv = !v; try { (pv as any).muted = nv; } catch {} return nv; })} style={{ position: 'absolute', left: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityLabel={muted ? 'Unmute' : 'Mute'}>
+        <Feather name={muted ? 'volume-x' : 'volume-2'} size={15} color="#FFFFFF" />
+      </TouchableOpacity>
+    </View>
+  );
 }
