@@ -20,24 +20,61 @@ export type EntityPick = { entityType: 'profile' | 'listing' | 'job' | 'article'
 
 /* ── MiniSlider: dependency-free track used by every panel ── */
 export function MiniSlider({ value, min, max, onChange, width = 210 }: { value: number; min: number; max: number; onChange: (v: number) => void; width?: number }) {
-  const wRef = useRef(width);
-  wRef.current = width;
-  const valRef = useRef(value);
-  valRef.current = value;
-  const startXRef = useRef(0);
-  const startValRef = useRef(0);
+  // Stable slider: the thumb follows the finger from where it was grabbed (no
+  // jump on touch), the visual updates locally every frame, and the parent is
+  // committed at most every 60ms plus once on release, so the editor never
+  // re-renders per touch event.
+  const wRef = useRef(width); wRef.current = width;
+  const minRef = useRef(min); minRef.current = min;
+  const maxRef = useRef(max); maxRef.current = max;
+  const onChangeRef = useRef(onChange); onChangeRef.current = onChange;
+  const [live, setLive] = useState(value);
+  const [dragging, setDragging] = useState(false);
+  const liveRef = useRef(value);
+  const draggingRef = useRef(false);
+  const startValRef = useRef(value);
+  const lastCommitRef = useRef(0);
+  const lastSentRef = useRef(value);
+  useEffect(() => { if (!draggingRef.current) { liveRef.current = value; setLive(value); } }, [value]);
+  const toVal = (x: number) => { const w = Math.max(1, wRef.current); const lo = minRef.current, hi = maxRef.current; return Math.round(Math.max(lo, Math.min(hi, lo + (Math.max(0, Math.min(w, x)) / w) * (hi - lo)))); };
+  const toX = (v: number) => { const lo = minRef.current, hi = maxRef.current; return ((v - lo) / (hi - lo || 1)) * wRef.current; };
+  const commit = (v: number, force: boolean) => {
+    const now = Date.now();
+    if (!force && now - lastCommitRef.current < 60) return;
+    if (v === lastSentRef.current && !force) return;
+    lastCommitRef.current = now; lastSentRef.current = v; onChangeRef.current(v);
+  };
   const pan = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => { startXRef.current = e.nativeEvent.locationX; startValRef.current = valRef.current; onChange(clampToRange(min + (e.nativeEvent.locationX / wRef.current) * (max - min), min, max)); },
-    onPanResponderMove: (e, g) => { const x = Math.max(0, Math.min(wRef.current, startXRef.current + g.dx)); onChange(clampToRange(min + (x / wRef.current) * (max - min), min, max)); },
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: (e) => {
+      draggingRef.current = true; setDragging(true);
+      const x = e.nativeEvent.locationX;
+      const thumbX = toX(liveRef.current);
+      // Grab the thumb where it is; tap elsewhere on the track to jump.
+      const v = Math.abs(x - thumbX) <= 22 ? liveRef.current : toVal(x);
+      startValRef.current = v; liveRef.current = v; setLive(v);
+      if (v !== lastSentRef.current) commit(v, true);
+    },
+    onPanResponderMove: (_e, g) => {
+      const v = toVal(toX(startValRef.current) + g.dx);
+      if (v !== liveRef.current) { liveRef.current = v; setLive(v); commit(v, false); }
+    },
+    onPanResponderRelease: () => { draggingRef.current = false; setDragging(false); commit(liveRef.current, true); },
+    onPanResponderTerminate: () => { draggingRef.current = false; setDragging(false); commit(liveRef.current, true); },
   })).current;
-  function clampToRange(v: number, lo: number, hi: number) { return Math.round(Math.max(lo, Math.min(hi, v))); }
-  const pct = (value - min) / (max - min || 1);
+  const pct = (live - min) / (max - min || 1);
+  const thumbLeft = Math.max(0, Math.min(width - 18, pct * width - 9));
   return (
-    <View {...pan.panHandlers} style={[sl.track, { width }]} hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}>
+    <View {...pan.panHandlers} style={[sl.track, { width }]} hitSlop={{ top: 14, bottom: 14, left: 8, right: 8 }}>
       <View style={[sl.fill, { width: Math.max(4, pct * width) }]} />
-      <View style={[sl.thumb, { left: Math.max(0, Math.min(width - 18, pct * width - 9)) }]} />
+      {dragging && (
+        <View style={[sl.bubble, { left: Math.max(0, Math.min(width - 40, thumbLeft - 11)) }]} pointerEvents="none">
+          <Text style={sl.bubbleTxt}>{live}</Text>
+        </View>
+      )}
+      <View style={[sl.thumb, dragging && sl.thumbActive, { left: thumbLeft }]} />
     </View>
   );
 }
@@ -354,6 +391,9 @@ const sl = StyleSheet.create({
   track: { height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.22)', justifyContent: 'center' },
   fill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 2, backgroundColor: '#C9BFB0' },
   thumb: { position: 'absolute', width: 18, height: 18, borderRadius: 9, backgroundColor: '#FFFFFF', top: -7, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 },
+  thumbActive: { transform: [{ scale: 1.25 }] },
+  bubble: { position: 'absolute', top: -34, width: 40, height: 24, borderRadius: 12, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  bubbleTxt: { color: '#0B1E3D', fontSize: 12, fontWeight: '800', fontVariant: ['tabular-nums'] },
 });
 
 const vg = StyleSheet.create({
