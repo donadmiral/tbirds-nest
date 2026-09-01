@@ -10,6 +10,7 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   storiesService, StoryTextSticker, StoryStickerStyle, MediaFit, MediaTransform,
@@ -110,19 +111,28 @@ type SmartGuidesState = { x: SmartGuideEntry; y: SmartGuideEntry; stickerId: str
 
 // ── ComposerStickerOverlay (unchanged from original) ──
 function ComposerStickerOverlay({
-  stickers, containerW, containerH, onDragEnd, onTapSticker, onScaleEnd, onRotateEnd,
-  onSnapChange, snapGuides, onDragStart, onDeleteZoneChange, onDeleteDrop, dragZone,
-  onSmartGuideChange, smartGuides,
+  stickers, containerW, containerH, onDragEnd, onTapSticker, onScaleEnd, onRotateEnd, onDeleteDrop,
 }: {
   stickers: StoryTextSticker[]; containerW: number; containerH: number;
   onDragEnd: (id: string, nx: number, ny: number) => void; onTapSticker: (id: string) => void;
   onScaleEnd: (id: string, s: number) => void; onRotateEnd: (id: string, r: number) => void;
-  onSnapChange: (id: string, x: boolean, y: boolean) => void;
-  snapGuides: { x: boolean; y: boolean; stickerId?: string | null };
-  onDragStart: (id: string) => void; onDeleteZoneChange: (id: string, inZone: boolean) => void;
-  onDeleteDrop: (id: string) => void; dragZone: { draggingId: string | null; inDeleteZone: boolean };
-  onSmartGuideChange: (id: string, x: SmartGuideEntry, y: SmartGuideEntry) => void; smartGuides: SmartGuidesState;
+  onDeleteDrop: (id: string) => void;
 }) {
+  // Drag feedback state lives here, not in the composer: a snap or delete-zone
+  // transition re-renders this thin overlay only, never the whole editor.
+  const [snapGuides, setSnapGuides] = useState<{ x: boolean; y: boolean; stickerId?: string | null }>({ x: false, y: false, stickerId: null });
+  const [dragZone, setDragZone] = useState<{ draggingId: string | null; inDeleteZone: boolean }>({ draggingId: null, inDeleteZone: false });
+  const [smartGuides, setSmartGuides] = useState<SmartGuidesState>({ x: null, y: null, stickerId: null });
+  const onSnapChange = useCallback((id: string, x: boolean, y: boolean) => { setSnapGuides(p => (!x && !y) ? (p.stickerId === id ? { x: false, y: false, stickerId: null } : p) : (p.x === x && p.y === y && p.stickerId === id ? p : { x, y, stickerId: id })); }, []);
+  const onSmartGuideChange = useCallback((id: string, x: SmartGuideEntry, y: SmartGuideEntry) => { setSmartGuides(p => (x === null && y === null) ? (p.stickerId === id ? { x: null, y: null, stickerId: null } : p) : { x, y, stickerId: id }); }, []);
+  const onDragStart = useCallback((id: string) => { setDragZone({ draggingId: id, inDeleteZone: false }); }, []);
+  const onDeleteZoneChange = useCallback((id: string, inZone: boolean) => { setDragZone(p => p.draggingId !== id ? p : (p.inDeleteZone === inZone ? p : { ...p, inDeleteZone: inZone })); }, []);
+  const clearDrag = useCallback(() => { setDragZone({ draggingId: null, inDeleteZone: false }); setSnapGuides({ x: false, y: false, stickerId: null }); setSmartGuides({ x: null, y: null, stickerId: null }); }, []);
+  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { clearDrag(); onDragEnd(id, nx, ny); }, [clearDrag, onDragEnd]);
+  const handleDeleteDrop = useCallback((id: string) => { clearDrag(); onDeleteDrop(id); }, [clearDrag, onDeleteDrop]);
+  // Stable per-sticker neighbour lists so React.memo on DraggableSticker holds during drags.
+  const visibleStickers = useMemo(() => (stickers || []).filter(st => (st as any).kind !== 'drawing'), [stickers]);
+  const othersById = useMemo(() => { const m: Record<string, StoryTextSticker[]> = {}; for (const st of visibleStickers) m[st.id] = visibleStickers.filter(s => s.id !== st.id); return m; }, [visibleStickers]);
   const deleteZoneNy = containerH > 0 ? 1 - DELETE_ZONE_HEIGHT / containerH : 0.88;
   const safeTopNy = containerH > 0 ? SAFE_TOP_PX / containerH : 0.1;
   const safeBottomNy = containerH > 0 ? 1 - SAFE_BOTTOM_PX / containerH : 0.97;
@@ -143,12 +153,12 @@ function ComposerStickerOverlay({
           {dragZone.inDeleteZone ? 'Release to delete' : 'Drag here to delete'}
         </Text>
       </Animated.View>
-      {stickers.filter(st => (st as any).kind !== 'drawing').map(st => (
+      {visibleStickers.map(st => (
         <DraggableSticker key={st.id} sticker={st} containerW={containerW} containerH={containerH}
-          onDragEnd={onDragEnd} onTap={onTapSticker} onScaleEnd={onScaleEnd} onRotateEnd={onRotateEnd}
+          onDragEnd={handleDragEnd} onTap={onTapSticker} onScaleEnd={onScaleEnd} onRotateEnd={onRotateEnd}
           onSnapChange={onSnapChange} onDragStart={onDragStart} onDeleteZoneChange={onDeleteZoneChange}
-          onDeleteDrop={onDeleteDrop} deleteZoneNy={deleteZoneNy} safeTopNy={safeTopNy}
-          safeBottomNy={safeBottomNy} otherStickers={stickers.filter(s => s.id !== st.id)}
+          onDeleteDrop={handleDeleteDrop} deleteZoneNy={deleteZoneNy} safeTopNy={safeTopNy}
+          safeBottomNy={safeBottomNy} otherStickers={othersById[st.id] || []}
           onSmartGuideChange={onSmartGuideChange} />
       ))}
     </View>
@@ -371,9 +381,6 @@ export default function StoryComposerScreen() {
   const MAX_HISTORY = 30;
   const [undoCount, setUndoCount] = useState(0);
   const [redoCount, setRedoCount] = useState(0);
-  const [snapGuides, setSnapGuides] = useState<{ x: boolean; y: boolean; stickerId?: string | null }>({ x: false, y: false, stickerId: null });
-  const [dragZone, setDragZone] = useState<{ draggingId: string | null; inDeleteZone: boolean }>({ draggingId: null, inDeleteZone: false });
-  const [smartGuides, setSmartGuides] = useState<SmartGuidesState>({ x: null, y: null, stickerId: null });
 
   // Text editor
   const [textEditorOpen, setTextEditorOpen] = useState(false);
@@ -461,6 +468,10 @@ export default function StoryComposerScreen() {
   const [entityOpen, setEntityOpen] = useState(false);
   const [gifOpen, setGifOpen] = useState(false);
   const [previewOn, setPreviewOn] = useState(false);
+  // Music preview in the editor at the mixed volume, exactly as the viewer will play it.
+  const previewAudioUrl = active?.audio?.localUri || active?.audio?.url || null;
+  const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
+  useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode, previewMusicVol);
   // Video drafts picked without dimensions: probe the first frame so canvas
   // gestures work and the story publishes with a real thumbnail.
   useEffect(() => {
@@ -587,14 +598,10 @@ export default function StoryComposerScreen() {
 
   // ── Sticker interaction handlers ──
   const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
-  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, nx, ny } : s)); setDragZone({ draggingId: null, inDeleteZone: false }); }, [active, updateStickers]);
+  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
   const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
   const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
-  const handleSnapChange = useCallback((id: string, x: boolean, y: boolean) => { setSnapGuides(p => (!x && !y) ? (p.stickerId === id ? { x: false, y: false, stickerId: null } : p) : { x, y, stickerId: id }); }, []);
-  const handleSmartGuideChange = useCallback((id: string, x: SmartGuideEntry, y: SmartGuideEntry) => { setSmartGuides(p => (x === null && y === null) ? (p.stickerId === id ? { x: null, y: null, stickerId: null } : p) : { x, y, stickerId: id }); }, []);
-  const handleDragStart = useCallback((id: string) => { setDragZone({ draggingId: id, inDeleteZone: false }); }, []);
-  const handleDeleteZoneChange = useCallback((id: string, inZone: boolean) => { setDragZone(p => p.draggingId !== id ? p : { ...p, inDeleteZone: inZone }); }, []);
-  const handleDeleteDrop = useCallback((id: string) => { updateStickers((active?.stickers || []).filter(s => s.id !== id)); setDragZone({ draggingId: null, inDeleteZone: false }); setSnapGuides({ x: false, y: false, stickerId: null }); setSmartGuides({ x: null, y: null, stickerId: null }); }, [active, updateStickers]);
+  const handleDeleteDrop = useCallback((id: string) => { updateStickers((active?.stickers || []).filter(s => s.id !== id)); }, [active, updateStickers]);
 
   // ── Poll ──
   const openPollEditor = useCallback(() => { if (active?.pollData) { setPollQuestion(active.pollData.question); setPollOptions([...active.pollData.options]); } else { setPollQuestion(''); setPollOptions(['', '']); } setPollEditorOpen(true); }, [active]);
@@ -738,7 +745,7 @@ export default function StoryComposerScreen() {
           <View style={st.canvasInner} onLayout={e => setPreviewSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
             {renderTextBg(active?.textBackground || null)}
             {active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
-              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onSnapChange={handleSnapChange} snapGuides={snapGuides} onDragStart={handleDragStart} onDeleteZoneChange={handleDeleteZoneChange} onDeleteDrop={handleDeleteDrop} dragZone={dragZone} onSmartGuideChange={handleSmartGuideChange} smartGuides={smartGuides} />
+              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} />
             )}
             {hasPoll && active?.uploadState === 'idle' && <View style={st.pollBadge}><Feather name="bar-chart-2" size={14} color="#FFF" /><Text style={st.pollBadgeTxt} numberOfLines={1}>{active.pollData!.question}</Text></View>}
           </View>
@@ -751,7 +758,7 @@ export default function StoryComposerScreen() {
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
             imageW={active?.imageW} imageH={active?.imageH} mediaFit={active?.mediaFit || 'cover'}
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
-            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)}
+            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
           >
@@ -759,7 +766,7 @@ export default function StoryComposerScreen() {
             <AdjustLayer adjust={(getTx() as any).adjust || null} />
             <DrawingLayer strokes={drawStrokes.length ? drawStrokes : null} width={previewSize.w} height={previewSize.h} />
             {!arrangement.arrangementOpen && active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
-              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onSnapChange={handleSnapChange} snapGuides={snapGuides} onDragStart={handleDragStart} onDeleteZoneChange={handleDeleteZoneChange} onDeleteDrop={handleDeleteDrop} dragZone={dragZone} onSmartGuideChange={handleSmartGuideChange} smartGuides={smartGuides} />
+              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} />
             )}
             {hasPoll && active?.uploadState === 'idle' && <View style={st.pollBadge}><Feather name="bar-chart-2" size={14} color="#FFF" /><Text style={st.pollBadgeTxt} numberOfLines={1}>{active.pollData!.question}</Text></View>}
           </MediaCanvas>
@@ -1065,9 +1072,6 @@ export default function StoryComposerScreen() {
                   <Text style={st.trayRemoveTxt}>Remove poll</Text>
                 </TouchableOpacity>
               )}
-
-              <Text style={st.traySection}>Topic</Text>
-              <CategoryPicker selected={active?.category || null} onChange={cat => updateActive({ category: cat })} disabled={publish.publishing} />
 
               {isTextStory && (
                 <>

@@ -370,7 +370,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   // ── Pan gesture ──
 
   const panGesture = useMemo(() => Gesture.Pan()
-    .minDistance(10)
+    .minDistance(4)
     .onStart(() => {
       'worklet';
       cancelAnimation(translateX);
