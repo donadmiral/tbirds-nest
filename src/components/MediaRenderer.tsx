@@ -512,6 +512,7 @@ export default function MediaRenderer({
 
   if (sorted.length === 1 && sorted[0].media_type === 'video') {
     return (
+      <PinchInspect>
       <View style={{ marginTop: 8 }}>
         <VideoItem
           item={sorted[0]}
@@ -521,6 +522,7 @@ export default function MediaRenderer({
           maxHeight={maxHeight}
         />
       </View>
+      </PinchInspect>
     );
   }
 
@@ -533,6 +535,7 @@ export default function MediaRenderer({
           visible={zoomVisible}
           onClose={() => setZoomVisible(false)}
         />
+        <PinchInspect>
         <View style={{ marginTop: 8 }}>
           <SingleImage
             item={sorted[0]}
@@ -541,6 +544,7 @@ export default function MediaRenderer({
             fullBleed={fullBleed}
           />
         </View>
+        </PinchInspect>
       </>
     );
   }
