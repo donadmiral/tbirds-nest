@@ -28,12 +28,15 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { FilterLayer } from './stories/StoryFilters';
+import { AdjustLayer } from './stories/storyPanels';
 import { setAudioModeAsync } from 'expo-audio';
 
 export type PostMedia = {
   id: string;
   url: string;
   media_type: 'image' | 'video';
+  edit?: { scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; trimStart?: number | null; trimEnd?: number | null; muted?: boolean } | null;
   width?: number | null;
   height?: number | null;
   sort_order?: number;
@@ -63,6 +66,18 @@ async function ensureAudioSession() {
   } catch (e) {
     console.log('[MEDIA] audio session setup failed:', e);
   }
+}
+
+/** Non-destructive post edit recipe -> render props. Same numbers the editor wrote. */
+function editStyle(item: PostMedia, w: number, h: number) {
+  const e = item.edit; if (!e) return { transform: undefined as any, fit: 'cover' as 'cover' | 'contain' };
+  const sc = typeof e.scale === 'number' && e.scale > 0 ? e.scale : 1; const nx = typeof e.translateNX === 'number' ? e.translateNX : 0; const ny = typeof e.translateNY === 'number' ? e.translateNY : 0;
+  const has = sc !== 1 || nx !== 0 || ny !== 0;
+  return { transform: has ? [{ translateX: nx * w }, { translateY: ny * h }, { scale: sc }] : undefined, fit: (e.fit === 'contain' ? 'contain' : 'cover') as 'cover' | 'contain' };
+}
+function EditOverlays({ item }: { item: PostMedia }) {
+  const e = item.edit; if (!e) return null;
+  return (<>{e.filterId ? <FilterLayer filterId={e.filterId} amt={e.filterAmt ?? 100} /> : null}{e.adjust ? <AdjustLayer adjust={e.adjust} /> : null}</>);
 }
 
 function getRatio(item: PostMedia) {
@@ -200,14 +215,15 @@ function SingleImage({
     >
       <Image
         source={{ uri: item.url }}
-        style={{ width, height }}
-        resizeMode="cover"
+        style={{ width, height, transform: editStyle(item, width, height).transform }}
+        resizeMode={editStyle(item, width, height).fit}
         onLoad={() => setStatus('ok')}
         onError={(e) => {
           console.log('[IMG_ERR]', item.url, e.nativeEvent.error);
           setStatus('error');
         }}
       />
+      <EditOverlays item={item} />
 
       {status === 'loading' && (
         <View style={[StyleSheet.absoluteFillObject, s.centered, { backgroundColor: '#F0F0F0' }]}>
@@ -247,14 +263,24 @@ function VideoItem({
 
   const player = useVideoPlayer(item.url, p => {
     p.loop = true;
-    p.muted = false;
-    p.volume = 1.0;
+    p.muted = !!item.edit?.muted;
+    p.volume = item.edit?.muted ? 0 : 1.0;
+    try { (p as any).timeUpdateEventInterval = 0.1; } catch {}
   });
 
   useEffect(() => {
     if (isActive) player.play();
     else player.pause();
   }, [isActive, player]);
+  // Trim window from the edit recipe: seek to the start and loop inside it.
+  useEffect(() => {
+    const e = item.edit; const p: any = player; if (!e || !p) return;
+    const t0 = typeof e.trimStart === 'number' ? e.trimStart : 0; const t1 = typeof e.trimEnd === 'number' && e.trimEnd > t0 ? e.trimEnd : null;
+    if (t0 > 0.05) { try { p.currentTime = t0; } catch {} }
+    let sub: any = null;
+    try { sub = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (t1 != null && typeof t === 'number' && t >= t1 - 0.05) { try { p.currentTime = t0; } catch {} } }); } catch {}
+    return () => { try { sub?.remove?.(); } catch {} };
+  }, [player, item.edit]);
 
   return (
     <View
@@ -270,11 +296,12 @@ function VideoItem({
       <VideoView
         pointerEvents="none"
         player={player}
-        style={{ width, height }}
-        contentFit="cover"
+        style={{ width, height, transform: editStyle(item, width, height).transform }}
+        contentFit={editStyle(item, width, height).fit === 'contain' ? 'contain' : 'cover'}
         nativeControls={false}
         allowsPictureInPicture={false}
       />
+      <EditOverlays item={item} />
     </View>
   );
 }
@@ -317,14 +344,24 @@ function CarouselVideoItem({
 
   const player = useVideoPlayer(item.url, p => {
     p.loop = true;
-    p.muted = false;
-    p.volume = 1.0;
+    p.muted = !!item.edit?.muted;
+    p.volume = item.edit?.muted ? 0 : 1.0;
+    try { (p as any).timeUpdateEventInterval = 0.1; } catch {}
   });
 
   useEffect(() => {
     if (isActive) player.play();
     else player.pause();
   }, [isActive, player]);
+  // Trim window from the edit recipe: seek to the start and loop inside it.
+  useEffect(() => {
+    const e = item.edit; const p: any = player; if (!e || !p) return;
+    const t0 = typeof e.trimStart === 'number' ? e.trimStart : 0; const t1 = typeof e.trimEnd === 'number' && e.trimEnd > t0 ? e.trimEnd : null;
+    if (t0 > 0.05) { try { p.currentTime = t0; } catch {} }
+    let sub: any = null;
+    try { sub = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (t1 != null && typeof t === 'number' && t >= t1 - 0.05) { try { p.currentTime = t0; } catch {} } }); } catch {}
+    return () => { try { sub?.remove?.(); } catch {} };
+  }, [player, item.edit]);
 
   return (
     <View style={{ width, height, backgroundColor: '#F0F0F0', overflow: 'hidden' }}>

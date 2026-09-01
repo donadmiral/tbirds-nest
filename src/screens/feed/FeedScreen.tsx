@@ -19,6 +19,7 @@ import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import PostMediaEditSheet, { type PostMediaEdit } from '../../components/PostMediaEditSheet';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -63,8 +64,8 @@ type Post = {
 type ProfileLite = { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null; is_verified?: boolean | null; verified_tier?: string | null };
 type ProfileMap = Record<string, ProfileLite>;
 type CommentPreview = { body: string; authorName: string; likes?: number };
-type LocalMedia = { uri: string; type: 'image' | 'video'; ext: string; width?: number; height?: number; fileSize?: number; thumbnail?: string; };
-type PostMediaRow = { id: string; url: string; media_type: 'image' | 'video'; width?: number | null; height?: number | null; sort_order: number };
+type LocalMedia = { uri: string; type: 'image' | 'video'; ext: string; width?: number; height?: number; fileSize?: number; thumbnail?: string; edit?: PostMediaEdit | null; };
+type PostMediaRow = { id: string; url: string; media_type: 'image' | 'video'; width?: number | null; height?: number | null; sort_order: number; edit?: PostMediaEdit | null };
 
 function scorePost(p: Omit<Post, 'score'>): number {
   const h = (Date.now() - new Date(p.created_at || Date.now()).getTime()) / 3600000;
@@ -222,6 +223,7 @@ export default function FeedScreen({ navigation }: any) {
   }, []);
   const [composerText, setComposerText] = useState('');
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
+  const [editMediaIdx, setEditMediaIdx] = useState<number | null>(null);
   const [posting, setPosting] = useState(false);
   const [exclusivePost, setExclusivePost] = useState(false);
   const [innovationPost, setInnovationPost] = useState(false);
@@ -454,7 +456,7 @@ export default function FeedScreen({ navigation }: any) {
           const ids = catRows.map((p: any) => p.id);
           const authorIds = Array.from(new Set(catRows.map((p: any) => p.user_id)));
           const [{ data: med }, { data: auth }] = await Promise.all([
-            supabase.from('post_media').select('id, post_id, url, media_type, width, height, sort_order').in('post_id', ids),
+            supabase.from('post_media').select('id, post_id, url, media_type, width, height, sort_order, edit').in('post_id', ids),
             supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier, account_type').in('id', authorIds),
           ]);
           const mediaBy = new Map<string, any[]>();
@@ -1172,7 +1174,7 @@ export default function FeedScreen({ navigation }: any) {
     setPosting(true);
     try {
       let mediaUrl: string | null = null;
-      const uploadedMedia: { url: string; media_type: 'image' | 'video'; width?: number; height?: number; sort_order: number }[] = [];
+      const uploadedMedia: { url: string; media_type: 'image' | 'video'; width?: number; height?: number; sort_order: number; edit?: PostMediaEdit | null }[] = [];
       const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
       const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
       const { data: sessionData } = await supabase.auth.getSession();
@@ -1223,7 +1225,7 @@ export default function FeedScreen({ navigation }: any) {
           }
 
           const publicUrl = `${supabaseUrl}/storage/v1/object/public/post-media/${fileName}`;
-          uploadedMedia.push({ url: publicUrl, media_type: isVideo ? 'video' : 'image', width: m.width, height: m.height, sort_order: i });
+          uploadedMedia.push({ url: publicUrl, media_type: isVideo ? 'video' : 'image', width: m.width, height: m.height, sort_order: i, edit: m.edit || null });
           if (i === 0) mediaUrl = publicUrl;
 
         } catch (e: any) {
@@ -1278,6 +1280,7 @@ export default function FeedScreen({ navigation }: any) {
             sort_order: m.sort_order,
             ...(m.width  != null ? { width:  m.width  } : {}),
             ...(m.height != null ? { height: m.height } : {}),
+            ...(m.edit ? { edit: m.edit } : {}),
           }));
           const { error: mErr } = await supabase.from('post_media').insert(mediaRows);
           if (mErr) {
@@ -2056,11 +2059,18 @@ if (!search && promos.length > 0) {
                           <View style={s.cVideoOverlay}><Text style={s.cVideoPlayIcon}>▶</Text></View>
                         )}
                         <TouchableOpacity style={s.cRemove} onPress={() => setComposerMedia(p => p.filter((_, j) => j !== i))}><Text style={s.cRemoveTxt}>×</Text></TouchableOpacity>
+                        <TouchableOpacity style={{ position: 'absolute', left: 4, bottom: 4, backgroundColor: 'rgba(11,30,61,0.85)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={() => setEditMediaIdx(i)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="sliders" size={11} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{m.edit ? 'Edited' : 'Edit'}</Text></TouchableOpacity>
                       </View>
                     ))}
                     {composerMedia.length < 10 && <TouchableOpacity style={s.cAddMore} onPress={pickMedia}><Text style={s.cAddMoreTxt}>+</Text></TouchableOpacity>}
                   </ScrollView>
                 )}
+                {editMediaIdx != null && composerMedia[editMediaIdx] ? (
+                  <PostMediaEditSheet visible uri={composerMedia[editMediaIdx].uri} mediaType={composerMedia[editMediaIdx].type} width={composerMedia[editMediaIdx].width} height={composerMedia[editMediaIdx].height}
+                    initial={composerMedia[editMediaIdx].edit || null}
+                    onCancel={() => setEditMediaIdx(null)}
+                    onDone={(ed) => { const idx = editMediaIdx; setComposerMedia(p => p.map((x, j) => j === idx ? { ...x, edit: Object.keys(ed).length ? ed : null } : x)); setEditMediaIdx(null); }} />
+                ) : null}
                 </ScrollView>
                 <View style={s.cToolbar}>
                   <View style={s.cToolbarLeft}>
