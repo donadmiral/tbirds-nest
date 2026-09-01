@@ -1859,7 +1859,7 @@ if (!search && promos.length > 0) {
                   <AnnouncementBanner />
                   {feedMode === 'trending' && <TrendingStoriesRail />}
                   {feedMode === 'discover' && (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled directionalLockEnabled bounces={false} onStartShouldSetResponderCapture={() => true} onMoveShouldSetResponderCapture={() => true} contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
                       {CATEGORIES.map(c => (
                         <TouchableOpacity key={c.key} onPress={() => setDiscoverCat(c.key)}
                           style={{ paddingHorizontal: 13, paddingVertical: 6, borderRadius: 99, backgroundColor: discoverCat === c.key ? '#E8E0D0' : 'rgba(0,0,0,0.05)' }}>
@@ -1867,12 +1867,6 @@ if (!search && promos.length > 0) {
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
-                  )}
-                  {feedMode === 'discover' && discoverCat === 'innovation' && (
-                    <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 }}>
-                      <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 2.2, color: '#8A8172' }}>INNOVATION - ZIMBABWE STEM</Text>
-                      <Text style={{ fontSize: 12.5, color: 'rgba(11,30,61,0.55)', marginTop: 4, lineHeight: 18 }}>Science, engineering and creation - what Zimbabwe is building, and who is building it.</Text>
-                    </View>
                   )}
                   {feedError ? (
                     <View style={{
