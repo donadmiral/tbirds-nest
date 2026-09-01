@@ -593,7 +593,8 @@ export default function FeedScreen({ navigation }: any) {
     if (modeFirstRun.current) { modeFirstRun.current = false; return; }
     cursorRef.current = null;
     hasMoreRef.current = true;
-    loadFeedRef.current?.(true);
+    // Keep the current rows on screen while the new mode or category loads; the list swaps in place instead of flashing white.
+    loadFeedRef.current?.(false);
   }, [feedMode, discoverCat]);
 
   useEffect(() => {
@@ -1826,7 +1827,7 @@ if (!search && promos.length > 0) {
                 <Text style={s.emptyBtnTxt}>Try again</Text>
               </TouchableOpacity>
             </View>
-          ) : loading ? (
+          ) : (loading && posts.length === 0) ? (
             <FeedSkeleton />
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
