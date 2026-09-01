@@ -5,6 +5,7 @@ import { displayImageUrl } from "@/lib/media";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
+import { QuestionCard, QuizCard, SliderCard, CountdownCard } from "@/components/StoryEngageCards";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
@@ -41,7 +42,7 @@ function stickerCss(st: StoryTextSticker): React.CSSProperties {
   }
 }
 
-function StickerLayer({ stickers, clock }: { stickers: StoryTextSticker[]; clock?: number | null }) {
+function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryTextSticker[]; clock?: number | null; storyId: string; isOwn: boolean }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-[2]">
       {stickers.map((st) => {
@@ -88,10 +89,10 @@ function StickerLayer({ stickers, clock }: { stickers: StoryTextSticker[]; clock
             </a>
           );
         }
-        if (kind === "question" || kind === "slider" || kind === "quiz") {
-          const label = st.questionPrompt || st.sliderLabel || st.quizQuestion || st.text;
-          return <span key={st.id} style={pos} className="inline-flex max-w-full items-center rounded-xl bg-porcelain px-4 py-2.5 text-[13px] font-semibold text-ink">{(kind === "slider" && st.sliderEmoji ? st.sliderEmoji + " " : "") + label}</span>;
-        }
+        if (kind === "question") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><QuestionCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
+        if (kind === "quiz") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><QuizCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
+        if (kind === "slider") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><SliderCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
+        if (kind === "countdown") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><CountdownCard st={st} /></div>;
         return null;
       })}
     </div>
@@ -446,7 +447,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
             ) : null}
             {poll ? <StoryPollCard poll={poll} isOwn={isOwn} onUpdate={setPoll} /> : null}
             {story.stickers_json && story.stickers_json.length > 0 ? (
-              <StickerLayer stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} />
+              <StickerLayer stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} />
             ) : null}
             {story.caption ? (
               <p className="absolute inset-x-0 bottom-20 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow">{story.caption}</p>

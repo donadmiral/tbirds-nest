@@ -58,6 +58,8 @@ export type StoryTextSticker = {
   sliderLabel?: string;
   quizQuestion?: string;
   quizOptions?: { id: string; label: string; isCorrect: boolean }[];
+  countdownTitle?: string;
+  countdownTarget?: string | null;
 };
 
 export type StoryPollOption = { id: string; label: string; position: number; vote_count: number };
@@ -256,6 +258,14 @@ export async function submitStickerResponse(storyId: string, stickerId: string, 
     p_option_id: value.option_id ?? null,
   });
   return !error;
+}
+
+export type StickerResponseRow = StickerResponseValue & { user_id?: string; created_at?: string };
+export async function getStickerResponses(storyId: string, stickerId: string): Promise<StickerResponseRow[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_sticker_responses", { p_story_id: storyId, p_sticker_id: stickerId });
+  if (error || !data) return [];
+  return data as StickerResponseRow[];
 }
 
 export async function getMyStickerResponse(storyId: string, stickerId: string): Promise<StickerResponseValue | null> {
