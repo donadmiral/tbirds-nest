@@ -24,6 +24,23 @@ export type StoryTextSticker = {
   rotation: number;
   bgEnabled?: boolean;
   kind?: string;
+  // Creative engine sticker kinds (gif, photo, time, date, weather, entity, drawing)
+  gifUrl?: string;
+  photoUri?: string | null;
+  photoUrl?: string | null;
+  photoShape?: "square" | "rounded" | "circle";
+  infoStyle?: number;
+  weatherTemp?: number;
+  weatherCode?: number;
+  entityType?: "profile" | "listing" | "job" | "article";
+  entityId?: string;
+  entityTitle?: string;
+  entitySub?: string;
+  entityImage?: string | null;
+  strokes?: { tool: string; color: string; width: number; points: { x: number; y: number }[] }[];
+  startSec?: number;
+  endSec?: number;
+  anim?: string;
   fontSizeOverride?: number;
   opacity?: number;
   textAlign?: "left" | "center" | "right";
@@ -61,6 +78,13 @@ export type StoryMediaTransform = {
   translateNX: number;
   translateNY: number;
   fit?: "cover" | "contain";
+  // Creative engine extras, written by the phone composer and replayed here
+  trimStart?: number;
+  trimEnd?: number;
+  filterAmt?: number;
+  adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null;
+  mix?: { orig?: number; music?: number } | null;
+  bg?: { kind: "blur" | "color" | "gradient" | "none"; a?: string; b?: string } | null;
 };
 
 export type StoryRow = {
@@ -102,6 +126,10 @@ export const STORY_FILTERS: StoryFilterDef[] = [
   { id: "rose", label: "Rose", family: "classic", layers: [{ color: "#FF5E8A", opacity: 0.12 }] },
   { id: "fade", label: "Fade", family: "modern", layers: [{ color: "#FFFFFF", opacity: 0.16 }, { color: "#000000", opacity: 0.05 }], css: "contrast(0.9) saturate(0.85)" },
   { id: "dusk", label: "Dusk", family: "classic", layers: [{ color: "#5B3B8F", opacity: 0.14 }, { color: "#000000", opacity: 0.10 }], css: "contrast(1.05)" },
+  { id: "sepia", label: "Sepia", family: "classic", layers: [{ color: "#8A6A3B", opacity: 0.2 }, { color: "#2B1D07", opacity: 0.1 }] },
+  { id: "mint", label: "Mint", family: "modern", layers: [{ color: "#3ECF8E", opacity: 0.1 }, { color: "#02291A", opacity: 0.07 }] },
+  { id: "berry", label: "Berry", family: "modern", layers: [{ color: "#B33771", opacity: 0.13 }, { color: "#1B0210", opacity: 0.09 }] },
+  { id: "noir", label: "Noir", family: "classic", layers: [{ color: "#000000", opacity: 0.22 }, { color: "#1C2B4A", opacity: 0.12 }] },
   { id: "fade_warm", label: "Fade warm", family: "modern", layers: [{ color: "#FFE0B8", opacity: 0.18 }, { color: "#000000", opacity: 0.04 }], css: "contrast(0.9) saturate(0.85)" },
   { id: "fade_cool", label: "Fade cool", family: "modern", layers: [{ color: "#C8DBFF", opacity: 0.18 }, { color: "#000000", opacity: 0.04 }], css: "contrast(0.9) saturate(0.85)" },
   { id: "simple", label: "Simple", family: "modern", layers: [{ color: "#FFFFFF", opacity: 0.06 }], css: "contrast(1.06) saturate(0.95)" },

@@ -7,6 +7,7 @@ import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactio
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
+import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, animStyle, extraFontCss, STICKER_ANIM_CSS } from "@/components/StoryEngine";
 
 const IMAGE_DURATION_MS = 5000;
 const MAX_AUDIO_MS = 30000;
@@ -39,14 +40,23 @@ function stickerCss(st: StoryTextSticker): React.CSSProperties {
   }
 }
 
-function StickerLayer({ stickers }: { stickers: StoryTextSticker[] }) {
+function StickerLayer({ stickers, clock }: { stickers: StoryTextSticker[]; clock?: number | null }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-[2]">
       {stickers.map((st) => {
         const pos: React.CSSProperties = { position: "absolute", left: (st.nx * 100) + "%", top: (st.ny * 100) + "%", transform: "translate(-50%, -50%) rotate(" + (st.rotation || 0) + "rad) scale(" + (st.scale || 1) + ")", opacity: st.opacity ?? 1, maxWidth: "82%" };
         const kind = st.kind || "text";
+        if (kind === "drawing") return null;
+        if (typeof clock === "number" && (st.startSec != null || st.endSec != null)) {
+          const t0 = typeof st.startSec === "number" ? st.startSec : 0;
+          const t1 = typeof st.endSec === "number" ? st.endSec : Number.MAX_SAFE_INTEGER;
+          if (clock < t0 - 0.05 || clock > t1 + 0.05) return null;
+        }
         if (kind === "text" || kind === "emoji") {
-          return <div key={st.id} style={{ ...pos, ...stickerCss(st) }}>{st.text}</div>;
+          return <div key={st.id} style={{ ...pos, ...stickerCss(st), ...extraFontCss(st.style), ...animStyle(st.anim) }}>{st.text}</div>;
+        }
+        if (kind === "gif" || kind === "photo" || kind === "time" || kind === "date" || kind === "weather" || kind === "entity") {
+          return <div key={st.id} style={{ ...pos, ...animStyle(st.anim) }}><EngineSticker st={st} /></div>;
         }
         const pillCls = "pointer-events-auto inline-flex max-w-full items-center gap-1 truncate rounded-full bg-black/55 px-3 py-1.5 text-[12px] font-semibold text-white";
         if (kind === "link" && st.url) {
@@ -89,14 +99,16 @@ function mediaStyle(mt: StoryMediaTransform | null | undefined): React.CSSProper
   return style;
 }
 
-function FilterOverlay({ filterId }: { filterId: string | null | undefined }) {
+function FilterOverlay({ filterId, amt }: { filterId: string | null | undefined; amt?: number | null }) {
   if (!filterId) return null;
   const f = STORY_FILTERS.find((x) => x.id === filterId);
   if (!f) return null;
+  // filterAmt (0-100) scales the look exactly as the phone FilterLayer does; the CSS grade scales toward neutral.
+  const k = Math.max(0, Math.min(1, (typeof amt === "number" ? amt : 100) / 100));
   return (
-    <div className="pointer-events-none absolute inset-0 z-[1]" style={{ backdropFilter: filterCss(filterId), WebkitBackdropFilter: filterCss(filterId) }}>
+    <div className="pointer-events-none absolute inset-0 z-[1]" style={{ backdropFilter: filterCss(filterId, k), WebkitBackdropFilter: filterCss(filterId, k) }}>
       {f.layers.map((l, i) => (
-        <div key={i} className="pointer-events-none absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />
+        <div key={i} className="pointer-events-none absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity * k }} />
       ))}
     </div>
   );
@@ -118,6 +130,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
+  const [clock, setClock] = useState<number | null>(null);
   const [viewersOpen, setViewersOpen] = useState(false);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heldRef = useRef(false);
@@ -289,10 +302,16 @@ export function StoryViewer({ users, startIndex, onClose }: {
     markStoryViewed(story.id);
     setProgress(0);
     stopTimer();
+    const mtx = (story.media_transform || {}) as StoryMediaTransform;
+    if ((mtx.mix?.orig ?? 100) <= 0) setMuted(true);
+    const hasTrim = typeof mtx.trimStart === "number" && typeof mtx.trimEnd === "number" && mtx.trimEnd > mtx.trimStart;
+    setClock(story.media_type === "video" ? (Number(mtx.trimStart) || 0) : null);
+    if (audioRef.current) { try { audioRef.current.volume = Math.max(0, Math.min(1, (mtx.mix?.music ?? 100) / 100)); } catch {} }
     const isVideo = story.media_type === "video";
     let dur = isVideo
       ? Math.max(1000, (story.duration_sec ?? 10) * 1000)
       : IMAGE_DURATION_MS;
+    if (isVideo && hasTrim) dur = Math.max(800, ((mtx.trimEnd as number) - (mtx.trimStart as number)) * 1000);
     if (!isVideo && story.audio_url && story.audio_duration_sec && story.audio_duration_sec > 0) {
       dur = Math.min(Math.max(dur, story.audio_duration_sec * 1000), MAX_AUDIO_MS);
     }
@@ -368,6 +387,9 @@ export function StoryViewer({ users, startIndex, onClose }: {
             {!mediaReady && story.media_url ? (
               <span className="absolute inset-0 z-[1] animate-pulse bg-white/[0.06]" aria-hidden />
             ) : null}
+            {story.media_transform?.bg && story.media_transform?.fit === "contain" ? (
+              <div className="pointer-events-none absolute inset-0 z-0"><BgLayer bg={story.media_transform.bg} mediaUrl={story.media_type === "image" ? story.media_url : null} /></div>
+            ) : null}
             {story.media_type === "video" && story.media_url ? (
               <video
                 ref={videoRef}
@@ -378,7 +400,10 @@ export function StoryViewer({ users, startIndex, onClose }: {
                 preload="auto"
                 muted={muted}
                 onLoadedData={() => setMediaReady(true)}
+                onLoadedMetadata={(e) => { const m = (story.media_transform || {}) as StoryMediaTransform; const t0 = Number(m.trimStart) || 0; if (t0 > 0.05) { try { (e.target as HTMLVideoElement).currentTime = t0; } catch {} } }}
+                onTimeUpdate={(e) => { const el = e.target as HTMLVideoElement; const m = (story.media_transform || {}) as StoryMediaTransform; setClock(el.currentTime); const t1 = Number(m.trimEnd) || 0; if (t1 > 0 && el.currentTime >= t1) advance(); }}
                 className="h-full w-full object-contain"
+                style={mediaStyle(story.media_transform)}
               />
             ) : story.media_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -392,7 +417,10 @@ export function StoryViewer({ users, startIndex, onClose }: {
                 style={mediaStyle(story.media_transform)}
               />
             ) : null}
-            <FilterOverlay filterId={story.filter_id} />
+            <FilterOverlay filterId={story.filter_id} amt={story.media_transform?.filterAmt ?? 100} />
+            <AdjustOverlay adjust={story.media_transform?.adjust || null} />
+            <DrawSvg stickers={story.stickers_json} />
+            <style dangerouslySetInnerHTML={{ __html: STICKER_ANIM_CSS }} />
             {storyAudioUrl ? (
               <audio ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} autoPlay muted={muted} />
             ) : null}
@@ -406,7 +434,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
               <img src={story.dual_front_url} alt="" className="absolute bottom-20 left-3 z-[2] h-32 w-24 rounded-xl border-2 border-white/70 object-cover shadow-lg" />
             ) : null}
             {story.stickers_json && story.stickers_json.length > 0 ? (
-              <StickerLayer stickers={story.stickers_json} />
+              <StickerLayer stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} />
             ) : null}
             {story.caption ? (
               <p className="absolute inset-x-0 bottom-20 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow">{story.caption}</p>
