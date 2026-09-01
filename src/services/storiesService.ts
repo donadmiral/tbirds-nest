@@ -31,6 +31,7 @@ export type StoryTextSticker = {
   entitySub?: string;
   entityImage?: string | null;
   strokes?: { tool: string; color: string; width: number; points: { x: number; y: number }[] }[];
+  pillVariant?: number;
   startSec?: number;
   endSec?: number;
   anim?: string;

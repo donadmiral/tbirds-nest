@@ -13,6 +13,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import StudioRail, { type RailItem } from '../../components/stories/StudioRail';
 import TrimStrip from '../../components/stories/TrimStrip';
+import StudioSheet, { type StudioTile } from '../../components/stories/StudioSheet';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   storiesService, StoryTextSticker, StoryStickerStyle, MediaFit, MediaTransform,
@@ -600,7 +601,7 @@ export default function StoryComposerScreen() {
   const sendBackward = useCallback((id: string) => { const stk = active?.stickers || []; const i = stk.findIndex(s => s.id === id); if (i <= 0) return; const u = [...stk]; [u[i], u[i-1]] = [u[i-1], u[i]]; updateStickers(u); }, [active, updateStickers]);
 
   // ── Sticker interaction handlers ──
-  const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
+  const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if (s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag') { updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, pillVariant: (((x as any).pillVariant || 0) + 1) % 4 } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
   const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
   const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
   const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
@@ -739,6 +740,33 @@ export default function StoryComposerScreen() {
   // RENDER
   // ══════════════════════════════════════════════════════════
 
+  const studioTiles: StudioTile[] = [
+    { id: 'poll', cat: 'interactive', tint: '#8B5CF6', icon: 'bar-chart-2', label: hasPoll ? 'Edit poll' : 'Poll', on: hasPoll, run: openPollEditor },
+    { id: 'question', cat: 'interactive', tint: '#38BDF8', icon: 'help-circle', label: 'Question', on: stickerCounts.question > 0, run: () => openQuestionModal() },
+    { id: 'quiz', cat: 'interactive', tint: '#34D399', icon: 'check-square', label: 'Quiz', on: stickerCounts.quiz > 0, run: () => openQuizModal() },
+    { id: 'slider', cat: 'interactive', tint: '#FB923C', icon: 'sliders', label: 'Slider', on: stickerCounts.slider > 0, run: () => openSliderModal() },
+    { id: 'countdown', cat: 'interactive', tint: '#F59E0B', icon: 'countdown', label: 'Countdown', on: stickerCounts.countdown > 0, run: openCountdownModal },
+    { id: 'mention', cat: 'sharing', tint: '#60A5FA', icon: 'at-sign', label: 'Mention', on: stickerCounts.mention > 0, run: openMentionModal },
+    { id: 'hashtag', cat: 'sharing', tint: '#A78BFA', icon: 'hash', label: 'Hashtag', on: stickerCounts.hashtag > 0, run: openHashtagModal },
+    { id: 'location', cat: 'sharing', tint: '#F472B6', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
+    { id: 'link', cat: 'sharing', tint: '#7DD3FC', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
+    { id: 'emoji', cat: 'fun', tint: '#FBBF24', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
+    { id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet },
+    { id: 'filter', cat: 'media', tint: '#818CF8', icon: 'droplet', label: 'Filter', on: !!active?.filterId, run: openFilterSheet },
+    { id: 'trim', cat: 'media', tint: '#F59E0B', icon: 'trim', label: 'Trim', on: (getTx() as any).trimEnd != null, run: () => { if (active?.mediaType !== 'video') { Alert.alert('Video only', 'Trim works on video stories.'); return; } setTrimOpen(true); } },
+    { id: 'adjust', cat: 'media', tint: '#34D399', icon: 'adjust', label: 'Adjust', on: !!(getTx() as any).adjust || (getTx() as any).filterAmt != null, run: () => setAdjustOpen(true) },
+    { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
+    { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
+    { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) },
+    { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: 'Save media', on: false, run: saveMediaToDevice },
+    { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
+    { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
+    { id: 'gif', cat: 'fun', tint: '#C4B5FD', icon: 'gif', label: 'GIF', on: stickerCounts.gif > 0, run: () => setGifOpen(true) },
+    { id: 'photo', cat: 'fun', tint: '#5EEAD4', icon: 'photo', label: 'Photo', on: stickerCounts.photo > 0, run: addPhotoSticker },
+    { id: 'time', cat: 'fun', tint: '#93C5FD', icon: 'time', label: 'Time', on: stickerCounts.time > 0, run: () => addSimpleSticker({ kind: 'time', infoStyle: 0 }) },
+    { id: 'date', cat: 'fun', tint: '#FCA5A5', icon: 'date', label: 'Date', on: stickerCounts.date > 0, run: () => addSimpleSticker({ kind: 'date', infoStyle: 0 }) },
+    { id: 'weather', cat: 'fun', tint: '#6EE7B7', icon: 'weather', label: 'Weather', on: stickerCounts.weather > 0, run: addWeatherSticker },];
+
   return (
     <TouchableOpacity style={st.root} activeOpacity={1} onPress={() => Keyboard.dismiss()}>
       <StatusBar barStyle="dark-content" />
@@ -799,6 +827,16 @@ export default function StoryComposerScreen() {
           </View>
         )}
 
+        {/* Song chip: what plays, tap x to remove */}
+        {!drawMode && !previewOn && !!active?.audio && (
+          <View style={{ position: 'absolute', left: 14, top: insets.top + 60, zIndex: 30, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(12,16,26,0.62)', borderRadius: 16, paddingLeft: 10, paddingRight: 6, paddingVertical: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)', maxWidth: 210 }}>
+            <Feather name="music" size={13} color="#C9BFB0" />
+            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>{active.audio.title || (active.audio.kind === 'voiceover' ? 'Voiceover' : 'Sound')}</Text>
+            <TouchableOpacity onPress={() => updateActive({ audio: null })} hitSlop={{ top: 8, bottom: 8, left: 6, right: 8 }} style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' }}>
+              <Feather name="x" size={12} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Scrims */}
         <LinearGradient colors={['rgba(0,0,0,0.35)', 'rgba(0,0,0,0)']} style={st.topScrim} pointerEvents="none" />
         <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.4)']} style={st.bottomScrim} pointerEvents="none" />
@@ -1021,98 +1059,32 @@ export default function StoryComposerScreen() {
         <PreviewChrome name={'You'} avatarUrl={null} onClose={() => setPreviewOn(false)} />
       )}
 
-      <Modal visible={overflowOpen} transparent animationType="slide" onRequestClose={() => setOverflowOpen(false)}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setOverflowOpen(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-            <View style={[st.overflowSheet, { paddingBottom: Math.max(insets.bottom, 18) }]}>
-              <View style={st.overflowHandle} />
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4, paddingBottom: 10 }}>
-                <Text style={st.trayTitle2}>Stickers</Text>
-                <Text style={{ color: '#A78BFA', fontSize: 15 }}>{'\u2726'}</Text>
-              </View>
-              <View style={st.traySearchWrap}>
-                <Feather name="search" size={15} color="rgba(255,255,255,0.45)" />
-                <TextInput value={traySearch} onChangeText={setTraySearch} placeholder="Search stickers" placeholderTextColor="rgba(255,255,255,0.35)" style={st.traySearchInput} keyboardAppearance="dark" />
-              </View>
-              <View style={st.trayCatRow}>
-                {([['interactive', 'zap', 'Interactive'], ['sharing', 'send', 'Sharing'], ['media', 'image', 'Media'], ['fun', 'smile', 'Fun']] as const).map(([k, ic, lb]) => (
-                  <TouchableOpacity key={k} onPress={() => setTrayCat(k)} style={[st.trayCatPill, trayCat === k && !traySearch.trim() && st.trayCatPillOn]} activeOpacity={0.8}>
-                    <Feather name={ic as any} size={13} color={trayCat === k && !traySearch.trim() ? '#C4B5FD' : 'rgba(255,255,255,0.65)'} />
-                    <Text style={[st.trayCatTxt, trayCat === k && !traySearch.trim() && st.trayCatTxtOn]}>{lb}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <View style={st.trayGrid}>
-                {[
-                  { id: 'poll', cat: 'interactive', tint: '#8B5CF6', icon: 'bar-chart-2', label: hasPoll ? 'Edit poll' : 'Poll', on: hasPoll, run: openPollEditor },
-                  { id: 'question', cat: 'interactive', tint: '#38BDF8', icon: 'help-circle', label: 'Question', on: stickerCounts.question > 0, run: () => openQuestionModal() },
-                  { id: 'quiz', cat: 'interactive', tint: '#34D399', icon: 'check-square', label: 'Quiz', on: stickerCounts.quiz > 0, run: () => openQuizModal() },
-                  { id: 'slider', cat: 'interactive', tint: '#FB923C', icon: 'sliders', label: 'Slider', on: stickerCounts.slider > 0, run: () => openSliderModal() },
-                  { id: 'countdown', cat: 'interactive', tint: '#F59E0B', icon: 'countdown', label: 'Countdown', on: stickerCounts.countdown > 0, run: openCountdownModal },
-                  { id: 'mention', cat: 'sharing', tint: '#60A5FA', icon: 'at-sign', label: 'Mention', on: stickerCounts.mention > 0, run: openMentionModal },
-                  { id: 'hashtag', cat: 'sharing', tint: '#A78BFA', icon: 'hash', label: 'Hashtag', on: stickerCounts.hashtag > 0, run: openHashtagModal },
-                  { id: 'location', cat: 'sharing', tint: '#F472B6', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
-                  { id: 'link', cat: 'sharing', tint: '#7DD3FC', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
-                  { id: 'emoji', cat: 'fun', tint: '#FBBF24', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
-                  { id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet },
-                  { id: 'filter', cat: 'media', tint: '#818CF8', icon: 'droplet', label: 'Filter', on: !!active?.filterId, run: openFilterSheet },
-                  { id: 'trim', cat: 'media', tint: '#F59E0B', icon: 'trim', label: 'Trim', on: (getTx() as any).trimEnd != null, run: () => { if (active?.mediaType !== 'video') { Alert.alert('Video only', 'Trim works on video stories.'); return; } setTrimOpen(true); } },
-                  { id: 'adjust', cat: 'media', tint: '#34D399', icon: 'adjust', label: 'Adjust', on: !!(getTx() as any).adjust || (getTx() as any).filterAmt != null, run: () => setAdjustOpen(true) },
-                  { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
-                  { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
-                  { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) },
-                  { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: 'Save media', on: false, run: saveMediaToDevice },
-                  { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
-                  { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
-                  { id: 'gif', cat: 'fun', tint: '#C4B5FD', icon: 'gif', label: 'GIF', on: stickerCounts.gif > 0, run: () => setGifOpen(true) },
-                  { id: 'photo', cat: 'fun', tint: '#5EEAD4', icon: 'photo', label: 'Photo', on: stickerCounts.photo > 0, run: addPhotoSticker },
-                  { id: 'time', cat: 'fun', tint: '#93C5FD', icon: 'time', label: 'Time', on: stickerCounts.time > 0, run: () => addSimpleSticker({ kind: 'time', infoStyle: 0 }) },
-                  { id: 'date', cat: 'fun', tint: '#FCA5A5', icon: 'date', label: 'Date', on: stickerCounts.date > 0, run: () => addSimpleSticker({ kind: 'date', infoStyle: 0 }) },
-                  { id: 'weather', cat: 'fun', tint: '#6EE7B7', icon: 'weather', label: 'Weather', on: stickerCounts.weather > 0, run: addWeatherSticker },
-                ].filter(t => {
-                  const q = traySearch.trim().toLowerCase();
-                  if (q) return t.label.toLowerCase().includes(q) || t.id.includes(q);
-                  return t.cat === trayCat;
-                }).map(t => (
-                  <TouchableOpacity
-                    key={t.id}
-                    style={st.trayTile2}
-                    activeOpacity={0.75}
-                    onPress={() => { setOverflowOpen(false); setTimeout(() => t.run(), 220); }}
-                  >
-                    <View style={[st.trayChip, { backgroundColor: t.tint + '26' }, t.on && { borderWidth: 1.5, borderColor: t.tint }]}>
-                      <StickerIcon name={t.id as any} size={21} color={t.tint} bg={'transparent'} />
-                    </View>
-                    <Text style={st.trayLabel} numberOfLines={1}>{t.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+      <StudioSheet visible={overflowOpen} onClose={() => setOverflowOpen(false)} tiles={studioTiles} bottomInset={insets.bottom} extra={(
+        <>
+                  {hasPoll && (
+                    <TouchableOpacity style={st.trayRemove} activeOpacity={0.7} onPress={() => { setOverflowOpen(false); removePoll(); }}>
+                      <Feather name="trash-2" size={15} color="#FF3B30" />
+                      <Text style={st.trayRemoveTxt}>Remove poll</Text>
+                    </TouchableOpacity>
+                  )}
 
-              {hasPoll && (
-                <TouchableOpacity style={st.trayRemove} activeOpacity={0.7} onPress={() => { setOverflowOpen(false); removePoll(); }}>
-                  <Feather name="trash-2" size={15} color="#FF3B30" />
-                  <Text style={st.trayRemoveTxt}>Remove poll</Text>
-                </TouchableOpacity>
-              )}
-
-              {isTextStory && (
-                <>
-                  <Text style={st.traySection}>Background</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 4, gap: 10, paddingVertical: 8 }}>
-                    {TEXT_BG_OPTIONS.map(o => (
-                      <TouchableOpacity key={o.id} style={[st.bgSwatch, active?.textBgId === o.id && st.bgSwatchActive]} onPress={() => updateActive({ textBgId: o.id, textBackground: o.bg })} activeOpacity={0.7} disabled={publish.publishing}>
-                        {o.previewColors.length === 1
-                          ? <View style={[st.bgSwatchInner, { backgroundColor: o.previewColors[0] }, o.id === 'white' && st.bgSwatchWhite]} />
-                          : <LinearGradient colors={o.previewColors as [string, string, ...string[]]} style={st.bgSwatchInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </>
-              )}
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+                  {isTextStory && (
+                    <>
+                      <Text style={st.traySection}>Background</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 4, gap: 10, paddingVertical: 8 }}>
+                        {TEXT_BG_OPTIONS.map(o => (
+                          <TouchableOpacity key={o.id} style={[st.bgSwatch, active?.textBgId === o.id && st.bgSwatchActive]} onPress={() => updateActive({ textBgId: o.id, textBackground: o.bg })} activeOpacity={0.7} disabled={publish.publishing}>
+                            {o.previewColors.length === 1
+                              ? <View style={[st.bgSwatchInner, { backgroundColor: o.previewColors[0] }, o.id === 'white' && st.bgSwatchWhite]} />
+                              : <LinearGradient colors={o.previewColors as [string, string, ...string[]]} style={st.bgSwatchInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </>
+                  )}
+        
+        </>
+      )} />
       {/* Link Modal */}
       <Modal visible={linkModalOpen} transparent animationType="slide" onRequestClose={closeLinkModal}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeLinkModal}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
