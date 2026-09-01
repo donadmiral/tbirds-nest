@@ -43,7 +43,6 @@ interface Draft {
   dualLayout?: any;
   audio?: any;
   filterId?: string | null;
-  thumbnailUri?: string | null;
 }
 
 export interface PublishOrchestratorInput {

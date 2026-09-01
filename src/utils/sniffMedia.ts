@@ -99,5 +99,6 @@ export async function resolveTrueMeta(
   if (corrected) {
     try { console.log('[sniffMedia] corrected', { declared, fallbackExt, true: s }); } catch {}
   }
-  return { ext: s.ext, mime: s.mime, kind: s.kind, corrected };
+  const trueKind: 'image' | 'video' = s.kind === 'unknown' ? declared : s.kind;
+  return { ext: s.ext, mime: s.mime, kind: trueKind, corrected };
 }
