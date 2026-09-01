@@ -188,6 +188,10 @@ export default function FeedScreen({ navigation }: any) {
   const discoverMetaRef = useRef<Map<string, string | null>>(new Map());
   const discoverCatRef = useRef(discoverCat);
   const mediaTouchRef = useRef(false);
+  // Discover pill row: remember its scroll offset across feed reloads so tapping a far pill never snaps the row back to the start.
+  const discoverPillsRef = useRef<ScrollView>(null);
+  const discoverPillsXRef = useRef(0);
+  const restoreDiscoverPills = useCallback(() => { const x = discoverPillsXRef.current; if (x > 0) { try { discoverPillsRef.current?.scrollTo({ x, animated: false }); } catch {} } }, []);
   const hiddenIdsRef = useRef<Set<string>>(new Set());
   const seenPendingRef = useRef<Set<string>>(new Set());
   const seenSentRef = useRef<Set<string>>(new Set());
@@ -1859,9 +1863,9 @@ if (!search && promos.length > 0) {
                   <AnnouncementBanner />
                   {feedMode === 'trending' && <TrendingStoriesRail />}
                   {feedMode === 'discover' && (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled directionalLockEnabled bounces={false} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} onTouchCancel={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} onScrollBeginDrag={() => { mediaTouchRef.current = true; }} onScrollEndDrag={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
+                    <ScrollView ref={discoverPillsRef} horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled directionalLockEnabled bounces={false} scrollEventThrottle={16} onScroll={(e) => { discoverPillsXRef.current = e.nativeEvent.contentOffset.x; }} onLayout={restoreDiscoverPills} onContentSizeChange={restoreDiscoverPills} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} onTouchCancel={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} onScrollBeginDrag={() => { mediaTouchRef.current = true; }} onScrollEndDrag={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
                       {CATEGORIES.map(c => (
-                        <TouchableOpacity key={c.key} onPress={() => setDiscoverCat(c.key)}
+                        <TouchableOpacity key={c.key} onPress={() => { restoreDiscoverPills(); setDiscoverCat(c.key); }}
                           style={{ paddingHorizontal: 13, paddingVertical: 6, borderRadius: 99, backgroundColor: discoverCat === c.key ? '#E8E0D0' : 'rgba(0,0,0,0.05)' }}>
                           <Text style={{ fontSize: 12.5, fontWeight: '700', color: discoverCat === c.key ? '#0A0A0A' : 'rgba(11,30,61,0.55)' }}>{c.label}</Text>
                         </TouchableOpacity>
