@@ -38,8 +38,10 @@ const TABS = [
 ];
 
 const ROLE_LABEL: Record<OrgRole, string> = {
-  owner: "Owner", admin: "Admin", editor: "Editor", analyst: "Analyst", recruiter: "Recruiter",
-  ads_manager: "Ads manager", commerce_manager: "Commerce manager", support: "Support", member: "Member",
+  owner: "Owner", admin: "Administrator", manager: "Manager", editor: "Content editor", publisher: "Publisher",
+  community_manager: "Community manager", support: "Customer support", recruiter: "Recruiter", ads_manager: "Advertising manager",
+  commerce_manager: "Commerce manager", analyst: "Analyst", finance_manager: "Finance manager", verification_manager: "Verification manager",
+  viewer: "Read-only", member: "Member",
 };
 const SURFACE_LABEL: Record<Surface, string> = {
   content: "Content", insights: "Insights", planner: "Planner", inbox: "Inbox", recruiter: "Recruiter",

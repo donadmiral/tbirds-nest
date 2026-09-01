@@ -5,12 +5,26 @@
  */
 import { createClient } from "@/lib/supabase/client";
 
-export type OrgRole = "owner" | "admin" | "editor" | "analyst" | "recruiter" | "ads_manager" | "commerce_manager" | "support" | "member";
+export type OrgRole = "owner" | "admin" | "manager" | "editor" | "publisher" | "community_manager" | "support" | "recruiter" | "ads_manager" | "commerce_manager" | "analyst" | "finance_manager" | "verification_manager" | "viewer" | "member";
+export type AccountClass = "personal" | "creator" | "organization" | "automated";
+export type OrgSector = "business" | "government" | "nonprofit" | "media" | "school" | "employer" | "political" | "community";
+export const ACCOUNT_CLASSES: AccountClass[] = ["personal", "creator", "organization", "automated"];
+export const ORG_SECTORS: OrgSector[] = ["business", "government", "nonprofit", "media", "school", "employer", "political", "community"];
+/** Permission keys from org_role_permissions; ask for a permission, never compare role strings. */
+export type OrgPermission = "org.manage" | "team.manage" | "content.create" | "content.publish" | "content.moderate" | "community.manage" | "support.reply" | "jobs.manage" | "ads.manage" | "commerce.manage" | "analytics.view" | "finance.manage" | "verification.manage" | "settings.view";
+export async function hasPermission(orgId: string, permission: OrgPermission): Promise<boolean> {
+  const { data, error } = await sb().rpc("org_has_permission", { p_org: orgId, p_permission: permission });
+  return !error && data === true;
+}
+export async function setOrgSector(orgId: string, sector: OrgSector): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await sb().from("organizations").update({ sector }).eq("id", orgId);
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
 export type Surface = "content" | "insights" | "planner" | "inbox" | "recruiter" | "commerce" | "audience" | "ads" | "reviews" | "settings";
 export type OrgNode = { id: string; parent_id: string | null; kind: string; name: string; slug: string | null; profile_id: string | null; depth: number };
 export type Actor = { actor_id: string; full_name: string | null; username: string | null; avatar_url: string | null; kind: string; role: string };
 
-export const ORG_ROLES: OrgRole[] = ["owner", "admin", "editor", "analyst", "recruiter", "ads_manager", "commerce_manager", "support", "member"];
+export const ORG_ROLES: OrgRole[] = ["owner", "admin", "manager", "editor", "publisher", "community_manager", "support", "recruiter", "ads_manager", "commerce_manager", "analyst", "finance_manager", "verification_manager", "viewer", "member"];
 export const SURFACES: Surface[] = ["content", "insights", "planner", "inbox", "recruiter", "commerce", "audience", "ads", "reviews", "settings"];
 
 const sb = () => createClient();
