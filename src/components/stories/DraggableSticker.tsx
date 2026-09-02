@@ -26,7 +26,6 @@ import Animated, {
   runOnJS,
   cancelAnimation,
   Easing,
-  type SharedValue,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -176,9 +175,7 @@ export interface DraggableStickerProps {
   onTap: (id: string) => void;
   onScaleEnd: (id: string, newScale: number) => void;
   onRotateEnd: (id: string, newRotation: number) => void;
-  onSnapChange?: (id: string, xSnapped: boolean, ySnapped: boolean) => void;
-  guideXOp?: SharedValue<number>;
-  guideYOp?: SharedValue<number>;
+  onSnapChange: (id: string, xSnapped: boolean, ySnapped: boolean) => void;
   onDragStart: (id: string) => void;
   onDeleteZoneChange: (id: string, inZone: boolean) => void;
   onDeleteDrop: (id: string) => void;
@@ -240,7 +237,6 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
     onSnapChange, onDragStart, onDeleteZoneChange, onDeleteDrop,
     deleteZoneNy, safeTopNy, safeBottomNy,
     otherStickers, onSmartGuideChange,
-    guideXOp, guideYOp,
   } = props;
 
   // ── Visual properties (computed once per render) ──
@@ -370,7 +366,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   }, [onTap]);
 
   const jsSnapChange = useCallback((id: string, x: boolean, y: boolean) => {
-    if (onSnapChange) onSnapChange(id, x, y);
+    onSnapChange(id, x, y);
   }, [onSnapChange]);
 
   const jsDeleteZoneChange = useCallback((id: string, inZone: boolean) => {
@@ -427,15 +423,12 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       const rawNx = startNx.value + e.translationX / containerW;
       const rawNy = startNy.value + e.translationY / containerH;
 
-      // Continuous center magnet: no threshold, no teleport. Inside the band
-      // the offset is scaled by (d / band)^2, smooth at the band edge and
-      // strongly attracted at the center. xClose/yClose = visibly locked.
-      const dX = rawNx - 0.5;
-      const dY = rawNy - 0.5;
-      const magnetX = Math.abs(dX) < SNAP_CENTER_ENTRY;
-      const magnetY = Math.abs(dY) < SNAP_CENTER_ENTRY;
-      const xClose = magnetX && Math.abs(dX) < SNAP_CENTER_ENTRY * 0.6;
-      const yClose = magnetY && Math.abs(dY) < SNAP_CENTER_ENTRY * 0.6;
+      // Center snap with hysteresis
+      const distFromCenterX = Math.abs(rawNx - 0.5);
+      const distFromCenterY = Math.abs(rawNy - 0.5);
+      const threshold = isSnappedCenter.value ? SNAP_CENTER_EXIT : SNAP_CENTER_ENTRY;
+      const xClose = distFromCenterX < threshold;
+      const yClose = distFromCenterY < threshold;
 
       // Delete zone with distance-weighted attraction
       const inZone = rawNy > deleteZoneNy;
@@ -455,26 +448,23 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       let finalNx: number;
       let finalNy: number;
 
-      if (magnetX) {
-        const kx = Math.abs(dX) / SNAP_CENTER_ENTRY;
-        finalNx = 0.5 + dX * kx * kx;
+      if (xClose) {
+        finalNx = 0.5;
+        isSnappedCenter.value = true;
+        if (!hapticFiredCenter.value) {
+          hapticFiredCenter.value = true;
+          runOnJS(fireHapticLight)();
+        }
       } else {
+        isSnappedCenter.value = false;
+        hapticFiredCenter.value = false;
         finalNx = clampWithRubber(rawNx, BOUNDARY_X_MIN, BOUNDARY_X_MAX, RUBBER_BAND_FACTOR);
       }
 
-      if (magnetY) {
-        const ky = Math.abs(dY) / SNAP_CENTER_ENTRY;
-        finalNy = 0.5 + dY * ky * ky;
+      if (yClose) {
+        finalNy = 0.5;
       } else {
         finalNy = clampWithRubber(rawNy, BOUNDARY_Y_MIN, BOUNDARY_Y_MAX, RUBBER_BAND_FACTOR);
-      }
-
-      // One haptic per lock-on, re-armed only after leaving both bands
-      if ((xClose || yClose) && !hapticFiredCenter.value) {
-        hapticFiredCenter.value = true;
-        runOnJS(fireHapticLight)();
-      } else if (!magnetX && !magnetY) {
-        hapticFiredCenter.value = false;
       }
 
       // Delete zone attraction: distance-weighted downward pull
@@ -487,15 +477,12 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       translateX.value = (finalNx - startNx.value) * containerW;
       translateY.value = (finalNy - startNy.value) * containerH;
 
-      // Guide lines live on the UI thread: opacity only, never mounted or
-      // unmounted mid-gesture, no JS round trip.
-      if (xClose !== isSnappedX.value) {
+      // Update snap state
+      const nowSnapped = xClose || yClose;
+      if (xClose !== isSnappedX.value || yClose !== isSnappedY.value) {
         isSnappedX.value = xClose;
-        if (guideXOp) guideXOp.value = withTiming(xClose ? 1 : 0, { duration: 120 });
-      }
-      if (yClose !== isSnappedY.value) {
         isSnappedY.value = yClose;
-        if (guideYOp) guideYOp.value = withTiming(yClose ? 1 : 0, { duration: 120 });
+        runOnJS(jsSnapChange)(stickerId, xClose, yClose);
       }
     })
     .onEnd((e) => {
@@ -508,10 +495,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       }
 
       // Clean up snap guides
-      isSnappedX.value = false;
-      isSnappedY.value = false;
-      if (guideXOp) guideXOp.value = withTiming(0, { duration: 120 });
-      if (guideYOp) guideYOp.value = withTiming(0, { duration: 120 });
+      runOnJS(jsSnapChange)(stickerId, false, false);
       runOnJS(jsSmartGuideChange)(stickerId, null, null);
       runOnJS(jsDeleteZoneChange)(stickerId, false);
 
@@ -563,7 +547,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       translateY.value = withSpring(0, SPRING_LAND);
       runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
     }),
-    [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, jsDeleteDrop, jsSmartGuideChange, guideXOp, guideYOp]
+    [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, jsDeleteDrop, jsSmartGuideChange]
   );
 
   // ── Pinch gesture ──

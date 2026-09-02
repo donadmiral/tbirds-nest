@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import ReAnimated, { useSharedValue as useRASharedValue, useAnimatedStyle as useRAAnimatedStyle } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -124,18 +123,14 @@ function ComposerStickerOverlay({
 }) {
   // Drag feedback state lives here, not in the composer: a snap or delete-zone
   // transition re-renders this thin overlay only, never the whole editor.
-  // Center guide lines are UI-thread only: the dragged sticker's worklet writes
-  // these opacities directly, so no state update and no mount/unmount mid-drag.
-  const guideXOp = useRASharedValue(0);
-  const guideYOp = useRASharedValue(0);
-  const guideXStyle = useRAAnimatedStyle(() => ({ opacity: guideXOp.value }));
-  const guideYStyle = useRAAnimatedStyle(() => ({ opacity: guideYOp.value }));
+  const [snapGuides, setSnapGuides] = useState<{ x: boolean; y: boolean; stickerId?: string | null }>({ x: false, y: false, stickerId: null });
   const [dragZone, setDragZone] = useState<{ draggingId: string | null; inDeleteZone: boolean }>({ draggingId: null, inDeleteZone: false });
   const [smartGuides, setSmartGuides] = useState<SmartGuidesState>({ x: null, y: null, stickerId: null });
+  const onSnapChange = useCallback((id: string, x: boolean, y: boolean) => { setSnapGuides(p => (!x && !y) ? (p.stickerId === id ? { x: false, y: false, stickerId: null } : p) : (p.x === x && p.y === y && p.stickerId === id ? p : { x, y, stickerId: id })); }, []);
   const onSmartGuideChange = useCallback((id: string, x: SmartGuideEntry, y: SmartGuideEntry) => { setSmartGuides(p => (x === null && y === null) ? (p.stickerId === id ? { x: null, y: null, stickerId: null } : p) : { x, y, stickerId: id }); }, []);
   const onDragStart = useCallback((id: string) => { setDragZone({ draggingId: id, inDeleteZone: false }); }, []);
   const onDeleteZoneChange = useCallback((id: string, inZone: boolean) => { setDragZone(p => p.draggingId !== id ? p : (p.inDeleteZone === inZone ? p : { ...p, inDeleteZone: inZone })); }, []);
-  const clearDrag = useCallback(() => { setDragZone({ draggingId: null, inDeleteZone: false }); guideXOp.value = 0; guideYOp.value = 0; setSmartGuides({ x: null, y: null, stickerId: null }); }, []);
+  const clearDrag = useCallback(() => { setDragZone({ draggingId: null, inDeleteZone: false }); setSnapGuides({ x: false, y: false, stickerId: null }); setSmartGuides({ x: null, y: null, stickerId: null }); }, []);
   const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { clearDrag(); onDragEnd(id, nx, ny); }, [clearDrag, onDragEnd]);
   const handleDeleteDrop = useCallback((id: string) => { clearDrag(); onDeleteDrop(id); }, [clearDrag, onDeleteDrop]);
   // Stable per-sticker neighbour lists so React.memo on DraggableSticker holds during drags.
@@ -151,8 +146,8 @@ function ComposerStickerOverlay({
   if (!stickers || stickers.length === 0 || containerW === 0 || containerH === 0) return null;
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <ReAnimated.View style={[snapStyles.guideVertical, guideXStyle]} pointerEvents="none" />
-      <ReAnimated.View style={[snapStyles.guideHorizontal, guideYStyle]} pointerEvents="none" />
+      {snapGuides.x && <View style={snapStyles.guideVertical} pointerEvents="none" />}
+      {snapGuides.y && <View style={snapStyles.guideHorizontal} pointerEvents="none" />}
       {smartGuides.x !== null && <View style={[snapStyles.smartGuideVertical, { left: smartGuides.x.position * containerW }]} pointerEvents="none" />}
       {smartGuides.y !== null && <View style={[snapStyles.smartGuideHorizontal, { top: smartGuides.y.position * containerH }]} pointerEvents="none" />}
       <Animated.View style={[snapStyles.deleteZone, dragZone.inDeleteZone && snapStyles.deleteZoneActive, { opacity: deleteZoneOpacity }]} pointerEvents="none">
@@ -164,7 +159,7 @@ function ComposerStickerOverlay({
       {visibleStickers.map(st => (
         <DraggableSticker key={st.id} sticker={st} containerW={containerW} containerH={containerH}
           onDragEnd={handleDragEnd} onTap={onTapSticker} onScaleEnd={onScaleEnd} onRotateEnd={onRotateEnd}
-          guideXOp={guideXOp} guideYOp={guideYOp} onDragStart={onDragStart} onDeleteZoneChange={onDeleteZoneChange}
+          onSnapChange={onSnapChange} onDragStart={onDragStart} onDeleteZoneChange={onDeleteZoneChange}
           onDeleteDrop={handleDeleteDrop} deleteZoneNy={deleteZoneNy} safeTopNy={safeTopNy}
           safeBottomNy={safeBottomNy} otherStickers={othersById[st.id] || []}
           onSmartGuideChange={onSmartGuideChange} />
