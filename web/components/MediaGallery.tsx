@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircl
 import { VideoPlayer, type PostMediaEditRecipe } from "@/components/VideoPlayer";
 import { STORY_FILTERS, filterCss } from "@/lib/stories";
 import { AdjustOverlay } from "@/components/StoryEngine";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { Comments } from "@/components/Comments";
 import { RichText } from "@/components/RichText";
 import { displayImageUrl, srcSetFor } from "@/lib/media";
@@ -24,6 +24,37 @@ function editStyle(e: PostMediaEditRecipe | null | undefined): React.CSSProperti
   if (sc !== 1 || nx !== 0 || ny !== 0) st.transform = "translate(" + (nx * 100) + "%, " + (ny * 100) + "%) scale(" + sc + ")";
   return st;
 }
+
+// Tagged people: a pearl people-mark with the count; tap it and the tags rise as
+// navy pills anchored where each person is, each linking to the profile.
+type MediaTag = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null; verified_tier: string | null };
+const tagCache = new Map<string, MediaTag[]>();
+function TagLayer({ tags }: { tags: MediaTag[] }) {
+  const [open, setOpen] = useState(false);
+  if (!tags.length) return null;
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      {open ? tags.map((t) => {
+        const flip = t.nx > 0.6; const tier = getTierColor(t.verified_tier);
+        return (
+          <Link key={t.user_id} href={"/" + (t.username || "")} onClick={(e) => e.stopPropagation()}
+            className="pointer-events-auto absolute flex max-w-[70%] items-center gap-1.5 rounded-[14px] bg-[#0B1E3D]/90 py-1 pl-1 pr-2.5 text-[12.5px] font-bold text-white shadow-lg"
+            style={{ top: "calc(" + (t.ny * 100) + "% + 8px)", left: flip ? undefined : "calc(" + (t.nx * 100) + "% - 10px)", right: flip ? "calc(" + ((1 - t.nx) * 100) + "% - 10px)" : undefined }}>
+            <span className="absolute -top-1 h-2.5 w-2.5 rotate-45 rounded-[2px] bg-[#0B1E3D]/90" style={{ left: flip ? undefined : 8, right: flip ? 8 : undefined }} />
+            {t.avatar_url ? <img src={t.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" /> : <span className="h-5 w-5 rounded-full bg-[#C9BFB0]" />}
+            <span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>
+            {t.verified_tier ? <VerifiedBadge tier={t.verified_tier as any} size={12} /> : null}
+          </Link>
+        );
+      }) : null}
+      <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} aria-label={open ? "Hide tagged people" : "Show tagged people"}
+        className={"pointer-events-auto absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-xl px-2 py-1 text-[11px] font-extrabold " + (open ? "bg-[#C9BFB0] text-[#0B1E3D]" : "bg-black/50 text-white")}>
+        <span className={"h-2 w-2 rounded-full " + (open ? "bg-[#0B1E3D]" : "bg-[#C9BFB0]")} />{tags.length}
+      </button>
+    </div>
+  );
+}
+
 function EditPlanes({ e }: { e: PostMediaEditRecipe | null | undefined }) {
   if (!e) return null;
   const f = e.filterId ? STORY_FILTERS.find((x) => x.id === e.filterId) : null;
@@ -76,6 +107,22 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
     return () => { dead = true; };
   }, [media]);
   const editOf = (m: MediaItem) => (m.edit !== undefined ? m.edit : edits[m.id]) ?? null;
+  const [tags, setTags] = useState<Record<string, MediaTag[]>>({});
+  useEffect(() => {
+    const seed: Record<string, MediaTag[]> = {}; const need: string[] = [];
+    media.forEach((m) => { if (tagCache.has(m.id)) seed[m.id] = tagCache.get(m.id)!; else need.push(m.id); });
+    setTags(seed);
+    if (!need.length) return;
+    let dead = false;
+    createClient().from("post_media_tags").select("media_id, user_id, nx, ny, profile:profiles!post_media_tags_user_id_fkey(full_name, username, avatar_url, verified_tier)").in("media_id", need).then(({ data }) => {
+      if (dead) return;
+      const next: Record<string, MediaTag[]> = {}; need.forEach((id) => { next[id] = []; });
+      (data || []).forEach((r: any) => { const p = r.profile || {}; (next[r.media_id] ||= []).push({ user_id: r.user_id, nx: Number(r.nx) || 0.5, ny: Number(r.ny) || 0.5, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null, verified_tier: p.verified_tier ?? null }); });
+      Object.entries(next).forEach(([id, t]) => tagCache.set(id, t));
+      setTags((prev) => ({ ...prev, ...next }));
+    });
+    return () => { dead = true; };
+  }, [media]);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -299,7 +346,8 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               /><EditPlanes e={editOf(item)} /></div>
             </div>
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
+            <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={displayImageUrl(item.url, dataSaverEnabled() ? 480 : 1200)!}
               {...(dataSaverEnabled() ? {} : srcSetFor(item.url))}
               onError={(e) => { if (e.currentTarget.src !== item.url) { e.currentTarget.removeAttribute("srcset"); e.currentTarget.src = item.url; } }}
@@ -314,6 +362,8 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               style={dims ? { width: dims.w + "px", height: dims.h + "px", ...editStyle(editOf(item)) } : editStyle(editOf(item))}
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
+              <TagLayer tags={tags[item.id] || []} />
+            </div>
           )}
         </div>
         )}
