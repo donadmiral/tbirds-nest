@@ -154,7 +154,7 @@ export default function StoryLayoutScreen() {
             return (
               <SlotView key={tpl.key + '_' + i} index={i} left={left} top={top} width={width} height={height} fill={fills[i]} isActive={i === active}
                 onTap={() => slotMenu(i)}
-                onTransform={(scale, tx, ty) => s{Fills(cur => cur.map((f, j) => (j === i && f ? { ...f, scale, tx, ty } : f)))} />
+                onTransform={(scale, tx, ty) => setFills(cur => cur.map((f, j) => (j === i && f ? { ...f, scale, tx, ty } : f)))} />
             );
           })}
         </ViewShot>

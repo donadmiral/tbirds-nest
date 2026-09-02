@@ -492,6 +492,9 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             <TouchableOpacity onPress={() => navigation.navigate('StoryDualCapture')} activeOpacity={0.7} style={s.modeItem}>
               <Text style={s.modeRowTxt}>DUAL</Text>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('StoryLayout')} activeOpacity={0.7} style={s.modeItem}>
+              <Text style={s.modeRowTxt}>LAYOUT</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
