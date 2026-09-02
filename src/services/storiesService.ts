@@ -21,7 +21,11 @@ export type StoryTextSticker = {
   gifUrl?: string;
   photoUri?: string | null;
   photoUrl?: string | null;
-  photoShape?: 'square' | 'rounded' | 'circle';
+  photoShape?: 'square' | 'rounded' | 'circle' | 'cell';
+  /** Layout cells: size as a fraction of the story canvas, so every renderer
+   *  (composer, phone viewer, web) reproduces the same grid. */
+  photoFw?: number;
+  photoFh?: number;
   infoStyle?: number;
   weatherTemp?: number;
   weatherCode?: number;
@@ -515,6 +519,8 @@ export async function uploadAndCreateStory(params: {
 
   // ── Photo stickers: upload any local photo sticker to storage first ──
   if (Array.isArray(stickersJson)) {
+    // An empty layout cell is a composer placeholder, never part of the story.
+    for (let ci = stickersJson.length - 1; ci >= 0; ci--) { const cs: any = stickersJson[ci]; if (cs && cs.kind === 'photo' && cs.photoShape === 'cell' && !cs.photoUri && !cs.photoUrl) stickersJson.splice(ci, 1); }
     for (const stAny of stickersJson as any[]) {
       if (stAny && stAny.kind === 'photo' && stAny.photoUri && !stAny.photoUrl) {
         try {

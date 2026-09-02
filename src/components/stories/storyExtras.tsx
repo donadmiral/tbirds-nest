@@ -142,16 +142,18 @@ export function WeatherStickerView({ sticker }: { sticker: StoryTextSticker }) {
 
 /* ── Photo sticker (doc 44): shape cycles square → rounded → circle ── */
 export const PHOTO_SHAPES = ['square', 'rounded', 'circle'] as const;
-export function PhotoStickerView({ sticker }: { sticker: StoryTextSticker }) {
+export function PhotoStickerView({ sticker, containerW, containerH }: { sticker: StoryTextSticker; containerW?: number; containerH?: number }) {
   const s: any = sticker;
   const uri = s.photoUrl || s.photoUri;
-  if (!uri) return null;
   const shape = s.photoShape || 'rounded';
-  const size = 200;
-  const radius = shape === 'circle' ? size / 2 : shape === 'rounded' ? 22 : 2;
+  if (!uri && shape !== 'cell') return null;
+  const isCell = shape === 'cell' && typeof s.photoFw === 'number' && typeof s.photoFh === 'number' && !!containerW && !!containerH;
+  const w = isCell ? Math.round(s.photoFw * (containerW as number)) : 200;
+  const h = isCell ? Math.round(s.photoFh * (containerH as number)) : 200;
+  const radius = isCell ? 6 : shape === 'circle' ? 100 : shape === 'rounded' ? 22 : 2;
   return (
-    <View style={{ width: size, height: size, borderRadius: radius, overflow: 'hidden', borderWidth: 3, borderColor: '#FFFFFF', backgroundColor: '#111' }}>
-      <ExpoImage source={{ uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={0} />
+    <View style={{ width: w, height: h, borderRadius: radius, overflow: 'hidden', borderWidth: isCell ? 2 : 3, borderColor: '#FFFFFF', backgroundColor: uri ? '#111' : 'rgba(11,30,61,0.55)', alignItems: 'center', justifyContent: 'center' }}>
+      {uri ? <ExpoImage source={{ uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={0} /> : <Feather name="plus" size={Math.max(16, Math.min(30, Math.min(w, h) * 0.3))} color="rgba(255,255,255,0.9)" />}
     </View>
   );
 }

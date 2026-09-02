@@ -17,7 +17,8 @@ function c0(v: any): number { const n = Number(v); if (!n || Number.isNaN(n)) re
 export function AdjustOverlay({ adjust }: { adjust: StoryAdjust | null | undefined }) {
   if (!adjust || typeof adjust !== "object") return null;
   const bri = cN(adjust.bri), warm = cN(adjust.warm), tint = cN(adjust.tint), sat = cN(adjust.sat), fade = c0(adjust.fade), vig = c0(adjust.vig);
-  if (!bri && !warm && !tint && !sat && !fade && !vig) return null;
+  const a: any = adjust; const con = cN(a.con), hi = cN(a.hi), sh = cN(a.sh), grain = c0(a.grain);
+  if (!bri && !con && !warm && !tint && !sat && !hi && !sh && !fade && !grain && !vig) return null;
   const layers: { color: string; opacity: number }[] = [];
   if (bri > 0) layers.push({ color: "#FFFFFF", opacity: (bri / 100) * 0.35 });
   if (bri < 0) layers.push({ color: "#000000", opacity: (-bri / 100) * 0.4 });
@@ -28,12 +29,21 @@ export function AdjustOverlay({ adjust }: { adjust: StoryAdjust | null | undefin
   if (sat < 0) layers.push({ color: "#808080", opacity: (-sat / 100) * 0.5 });
   if (sat > 0) layers.push({ color: "#FF3D6E", opacity: (sat / 100) * 0.06 });
   if (fade > 0) layers.push({ color: "#D8D2C8", opacity: (fade / 100) * 0.28 });
+  if (con > 0) layers.push({ color: "#000000", opacity: (con / 100) * 0.10 });
+  if (con < 0) layers.push({ color: "#8A8A8A", opacity: (-con / 100) * 0.22 });
   const vTB = (vig / 100) * 0.55, vLR = (vig / 100) * 0.4;
+  // Same deterministic grain lattice as the phone (seeded LCG, 220 dots).
+  const dots: { top: string; left: string; o: number; s: number }[] = [];
+  if (grain > 0) { let seed = 9301; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }; for (let i = 0; i < 220; i++) dots.push({ top: (rnd() * 100).toFixed(2) + "%", left: (rnd() * 100).toFixed(2) + "%", o: 0.25 + rnd() * 0.75, s: rnd() > 0.5 ? 2 : 1 }); }
+  const gk = Math.max(0, Math.min(100, grain)) / 100;
   return (
     <div className="pointer-events-none absolute inset-0 z-[1]">
       {layers.map((l, i) => (
         <div key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />
       ))}
+      {hi !== 0 ? <div className="absolute inset-0" style={{ background: hi > 0 ? "linear-gradient(to bottom, rgba(255,255,255," + ((hi / 100) * 0.22) + "), rgba(255,255,255,0))" : "linear-gradient(to bottom, rgba(0,0,0," + ((-hi / 100) * 0.18) + "), rgba(0,0,0,0))" }} /> : null}
+      {sh !== 0 ? <div className="absolute inset-0" style={{ background: sh > 0 ? "linear-gradient(to top, rgba(255,255,255," + ((sh / 100) * 0.18) + "), rgba(255,255,255,0))" : "linear-gradient(to top, rgba(0,0,0," + ((-sh / 100) * 0.24) + "), rgba(0,0,0,0))" }} /> : null}
+      {dots.map((d, i) => (<div key={"g" + i} className="absolute rounded-full" style={{ top: d.top, left: d.left, width: d.s, height: d.s, backgroundColor: i % 2 ? "#FFFFFF" : "#000000", opacity: d.o * gk * 0.35 }} />))}
       {vig > 0 ? (
         <>
           <div className="absolute inset-x-0 top-0" style={{ height: "32%", background: "linear-gradient(to bottom, rgba(0,0,0," + vTB + "), rgba(0,0,0,0))" }} />
@@ -185,11 +195,13 @@ export function EngineSticker({ st }: { st: StoryTextSticker }) {
   }
   if (kind === "photo") {
     const uri = s.photoUrl || s.photoUri;
-    if (!uri) return null;
+    if (!uri) return null; // empty layout cells are composer-only
     const shape = s.photoShape || "rounded";
-    const radius = shape === "circle" ? 100 : shape === "rounded" ? 22 : 2;
+    const isCell = shape === "cell" && typeof s.photoFw === "number";
+    const radius = isCell ? 6 : shape === "circle" ? 100 : shape === "rounded" ? 22 : 2;
+    // Layout cells fill the percent-sized wrapper the viewer gives them.
     // eslint-disable-next-line @next/next/no-img-element
-    return <div style={{ width: 200, height: 200, borderRadius: radius, overflow: "hidden", border: "3px solid #FFFFFF", background: "#111" }}><img src={uri} alt="" className="h-full w-full object-cover" /></div>;
+    return <div style={{ width: isCell ? "100%" : 200, height: isCell ? "100%" : 200, borderRadius: radius, overflow: "hidden", border: isCell ? "2px solid #FFFFFF" : "3px solid #FFFFFF", background: "#111" }}><img src={uri} alt="" className="h-full w-full object-cover" /></div>;
   }
   if (kind === "time") {
     const now = new Date();

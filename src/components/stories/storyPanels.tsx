@@ -45,20 +45,21 @@ export function MiniSlider({ value, min, max, onChange, width = 210 }: { value: 
     lastCommitRef.current = now; lastSentRef.current = v; onChangeRef.current(v);
   };
   const pan = useRef(PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
+    // The slider must never steal a scroll. It claims the gesture only once
+    // the finger has clearly moved sideways, and a plain touch changes nothing.
+    onStartShouldSetPanResponder: () => false,
+    onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 6 && Math.abs(g.dx) > Math.abs(g.dy) * 1.6,
     onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: (e) => {
+    onPanResponderGrant: () => {
       draggingRef.current = true; setDragging(true);
-      const x = e.nativeEvent.locationX;
-      const thumbX = toX(liveRef.current);
-      // Grab the thumb where it is; tap elsewhere on the track to jump.
-      const v = Math.abs(x - thumbX) <= 22 ? liveRef.current : toVal(x);
-      startValRef.current = v; liveRef.current = v; setLive(v);
-      if (v !== lastSentRef.current) commit(v, true);
+      // Always start from the current value: the finger drags it relatively,
+      // so nothing jumps to where you happened to touch.
+      startValRef.current = liveRef.current;
     },
     onPanResponderMove: (_e, g) => {
-      const v = toVal(toX(startValRef.current) + g.dx);
+      // Half-speed travel: a full sweep of the track moves roughly half the
+      // range, which is what makes fine adjustment possible with a thumb.
+      const v = toVal(toX(startValRef.current) + g.dx * 0.55);
       if (v !== liveRef.current) { liveRef.current = v; setLive(v); commit(v, false); }
     },
     onPanResponderRelease: () => { draggingRef.current = false; setDragging(false); commit(liveRef.current, true); },

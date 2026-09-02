@@ -482,6 +482,7 @@ export default function StoryComposerScreen() {
   const [mixOpen, setMixOpen] = useState(false);
   const [entityOpen, setEntityOpen] = useState(false);
   const [gifOpen, setGifOpen] = useState(false);
+  const [layoutOpen, setLayoutOpen] = useState(false);
   const [previewOn, setPreviewOn] = useState(false);
   const [vidPlayer, setVidPlayer] = useState<any>(null);
   // Music preview in the editor at the mixed volume, exactly as the viewer will play it.
@@ -527,6 +528,46 @@ export default function StoryComposerScreen() {
       addSimpleSticker({ kind: 'photo', photoUri: a.uri, photoShape: 'rounded' });
     } catch {}
   }, [addSimpleSticker]);
+  // Layout: a grid of photo cells placed as photo stickers, each sized as a
+  // fraction of the canvas so the same grid replays on the phone viewer and web.
+  const applyLayout = useCallback(async (cells: { x: number; y: number; w: number; h: number }[]) => {
+    setLayoutOpen(false);
+    // The grid drops in as empty cells. Tap any cell to fill it from the
+    // library or the camera, so a layout can mix saved and freshly shot photos.
+    const gap = 0.012;
+    const made = cells.map((c, i) => ({
+      id: newStickerId() + '_' + i, text: '', color: '#FFFFFF', scale: 1, rotation: 0, kind: 'photo',
+      photoUri: null, photoShape: 'cell', photoFw: Math.max(0.05, c.w - gap), photoFh: Math.max(0.05, c.h - gap),
+      nx: c.x + c.w / 2, ny: c.y + c.h / 2,
+    }));
+    updateStickers([...(active?.stickers || []), ...made] as any);
+  }, [active, updateStickers]);
+  const setCellPhoto = useCallback((id: string, uri: string | null) => {
+    updateStickers(((active?.stickers || []) as any[]).map(s => s.id === id ? { ...s, photoUri: uri, photoUrl: null } : s) as any);
+  }, [active, updateStickers]);
+  const fillCellFromLibrary = useCallback(async (id: string) => {
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] as any, quality: 0.85, allowsMultipleSelection: false });
+      const a = res?.assets?.[0]; if (a?.uri) setCellPhoto(id, a.uri);
+    } catch {}
+  }, [setCellPhoto]);
+  const fillCellFromCamera = useCallback(async (id: string) => {
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) { Alert.alert('Camera off', 'Allow camera access to shoot a photo for this cell.'); return; }
+      const res = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'] as any, quality: 0.85 });
+      const a = res?.assets?.[0]; if (a?.uri) setCellPhoto(id, a.uri);
+    } catch {}
+  }, [setCellPhoto]);
+  const openCellMenu = useCallback((id: string, hasPhoto: boolean) => {
+    Alert.alert('Photo cell', undefined, [
+      { text: 'Choose from library', onPress: () => fillCellFromLibrary(id) },
+      { text: 'Take a photo', onPress: () => fillCellFromCamera(id) },
+      ...(hasPhoto ? [{ text: 'Clear photo', onPress: () => setCellPhoto(id, null) }] : []),
+      { text: 'Remove cell', style: 'destructive' as const, onPress: () => updateStickers(((active?.stickers || []) as any[]).filter(s => s.id !== id) as any) },
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
+  }, [fillCellFromLibrary, fillCellFromCamera, setCellPhoto, active, updateStickers]);
   const addWeatherSticker = useCallback(async () => {
     let lat: number | null = null, lon: number | null = null;
     try { const Loc = require('expo-location'); const perm = await Loc.requestForegroundPermissionsAsync(); if (perm?.granted) { const pos = await Loc.getLastKnownPositionAsync({}) || await Loc.getCurrentPositionAsync({ accuracy: 3 }); lat = pos?.coords?.latitude ?? null; lon = pos?.coords?.longitude ?? null; } } catch {}
@@ -568,10 +609,16 @@ export default function StoryComposerScreen() {
   useEffect(() => {
     if (!active || active.mediaType !== 'video') return;
     const d = active.durationSec || 0;
-    if (d <= STORY_MAX_SEC + 0.5) return;
     if (autoTrimSetRef.current.has(active.id)) return;
     const tx: any = active.mediaTransform || {};
-    if (tx.trimEnd == null) { autoTrimSetRef.current.add(active.id); setTx({ trimStart: 0, trimEnd: STORY_MAX_SEC }); setTrimOpen(true); }
+    if (tx.trimEnd != null) return;
+    // Every video opens the trimmer once, the way Instagram does: long clips
+    // get a 60s window pre-set, short ones open on their full length.
+    autoTrimSetRef.current.add(active.id);
+    if (d > STORY_MAX_SEC + 0.5) setTx({ trimStart: 0, trimEnd: STORY_MAX_SEC });
+    else if (d > 1.2) setTx({ trimStart: 0, trimEnd: d });
+    else return;
+    setTrimOpen(true);
   }, [active?.id, active?.durationSec, active?.mediaType, setTx]);
 
   // Debounce cleanup
@@ -613,7 +660,8 @@ export default function StoryComposerScreen() {
   const sendBackward = useCallback((id: string) => { const stk = active?.stickers || []; const i = stk.findIndex(s => s.id === id); if (i <= 0) return; const u = [...stk]; [u[i], u[i-1]] = [u[i-1], u[i]]; updateStickers(u); }, [active, updateStickers]);
 
   // ── Sticker interaction handlers ──
-  const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if (s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag') { updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, pillVariant: (((x as any).pillVariant || 0) + 1) % 4 } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
+  const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'photo' && (s as any).photoShape === 'cell') openCellMenu(id, !!((s as any).photoUri || (s as any).photoUrl));
+    else if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if (s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag') { updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, pillVariant: (((x as any).pillVariant || 0) + 1) % 4 } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
   const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
   const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
   const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
@@ -795,6 +843,7 @@ export default function StoryComposerScreen() {
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
     { id: 'gif', cat: 'fun', tint: '#C4B5FD', icon: 'gif', label: 'GIF', on: stickerCounts.gif > 0, run: () => setGifOpen(true) },
     { id: 'photo', cat: 'fun', tint: '#5EEAD4', icon: 'photo', label: 'Photo', on: stickerCounts.photo > 0, run: addPhotoSticker },
+    { id: 'layout', cat: 'media', tint: '#F9A8D4', icon: 'layout', label: 'Layout', on: false, run: () => setLayoutOpen(true) },
     { id: 'time', cat: 'fun', tint: '#93C5FD', icon: 'time', label: 'Time', on: stickerCounts.time > 0, run: () => addSimpleSticker({ kind: 'time', infoStyle: 0 }) },
     { id: 'date', cat: 'fun', tint: '#FCA5A5', icon: 'date', label: 'Date', on: stickerCounts.date > 0, run: () => addSimpleSticker({ kind: 'date', infoStyle: 0 }) },
     { id: 'weather', cat: 'fun', tint: '#6EE7B7', icon: 'weather', label: 'Weather', on: stickerCounts.weather > 0, run: addWeatherSticker },];
@@ -1047,6 +1096,36 @@ export default function StoryComposerScreen() {
           </View>
         </View>
       </Modal>
+      {/* Layout Modal */}
+      <Modal visible={layoutOpen} transparent animationType="slide" onRequestClose={() => setLayoutOpen(false)}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setLayoutOpen(false)}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={() => setLayoutOpen(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Layout</Text><View style={{ width: 64 }} /></View>
+            <Text style={[st.sheetHint, { marginBottom: 12 }]}>Pick a grid, then choose your photos. Each cell can still be moved, resized or replaced on the story.</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              {([
+                { id: 'two', label: 'Two up', cells: [{ x: 0.04, y: 0.2, w: 0.46, h: 0.6 }, { x: 0.5, y: 0.2, w: 0.46, h: 0.6 }] },
+                { id: 'stack', label: 'Stacked', cells: [{ x: 0.06, y: 0.08, w: 0.88, h: 0.42 }, { x: 0.06, y: 0.5, w: 0.88, h: 0.42 }] },
+                { id: 'triple', label: 'One + two', cells: [{ x: 0.06, y: 0.08, w: 0.88, h: 0.44 }, { x: 0.06, y: 0.52, w: 0.44, h: 0.4 }, { x: 0.5, y: 0.52, w: 0.44, h: 0.4 }] },
+                { id: 'grid', label: 'Grid', cells: [{ x: 0.04, y: 0.12, w: 0.46, h: 0.38 }, { x: 0.5, y: 0.12, w: 0.46, h: 0.38 }, { x: 0.04, y: 0.5, w: 0.46, h: 0.38 }, { x: 0.5, y: 0.5, w: 0.46, h: 0.38 }] },
+                { id: 'six', label: 'Six', cells: [{ x: 0.04, y: 0.08, w: 0.46, h: 0.28 }, { x: 0.5, y: 0.08, w: 0.46, h: 0.28 }, { x: 0.04, y: 0.36, w: 0.46, h: 0.28 }, { x: 0.5, y: 0.36, w: 0.46, h: 0.28 }, { x: 0.04, y: 0.64, w: 0.46, h: 0.28 }, { x: 0.5, y: 0.64, w: 0.46, h: 0.28 }] },
+                { id: 'strip', label: 'Film strip', cells: [{ x: 0.04, y: 0.14, w: 0.3, h: 0.72 }, { x: 0.35, y: 0.14, w: 0.3, h: 0.72 }, { x: 0.66, y: 0.14, w: 0.3, h: 0.72 }] },
+              ] as { id: string; label: string; cells: { x: number; y: number; w: number; h: number }[] }[]).map(l => (
+                <TouchableOpacity key={l.id} onPress={() => applyLayout(l.cells)} activeOpacity={0.8} style={{ width: '30%', flexGrow: 1, alignItems: 'center' }}>
+                  <View style={{ width: 76, height: 128, borderRadius: 12, backgroundColor: '#F2F3F5', overflow: 'hidden' }}>
+                    {l.cells.map((c, i) => (
+                      <View key={i} style={{ position: 'absolute', left: c.x * 76 + 1, top: c.y * 128 + 1, width: c.w * 76 - 2, height: c.h * 128 - 2, borderRadius: 3, backgroundColor: '#0B1E3D', opacity: 0.85 }} />
+                    ))}
+                  </View>
+                  <Text style={{ marginTop: 6, fontSize: 12.5, fontWeight: '700', color: '#0B1E3D' }}>{l.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity></TouchableOpacity>
+      </Modal>
+
       {/* Emoji Modal */}
       <Modal visible={emojiTrayOpen} transparent animationType="slide" onRequestClose={closeEmojiTray}>
         <TouchableOpacity style={st.emojiOverlay} activeOpacity={1} onPress={closeEmojiTray}>
