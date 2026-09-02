@@ -1491,6 +1491,7 @@ if (!search && promos.length > 0) {
     .filter((p: any) => Array.isArray(p.media) && p.media.some((m: any) => m.media_type === 'video'))
     .map((p: any) => ({
       id: p.id,
+      authorId: p.user_id,
       url: (p.media.find((m: any) => m.media_type === 'video') as any).url,
       authorName: profilesMap[p.user_id]?.full_name || profilesMap[p.user_id]?.username || 'Member',
       authorAvatar: profilesMap[p.user_id]?.avatar_url || null,
@@ -2293,8 +2294,20 @@ if (!search && promos.length > 0) {
               items={videoPosts}
               startId={fsVideo.id as string}
               likedMap={likedPosts}
+              savedMap={bookmarkedPosts}
+              repostedMap={repostedPosts}
+              followingIds={followingIds}
+              myId={userId}
+              startAt={(fsVideo as any).at || 0}
               onClose={() => setFsVideo(null)}
               onToggleLike={(id: string) => toggleLike(id)}
+              onToggleSave={(id: string) => toggleBookmark(id)}
+              onToggleRepost={(id: string) => toggleRepost(id)}
+              onShare={(id: string) => { const p = displayPosts.find((x: any) => x.id === id); if (p) { setFsVideo(null); openSendSheet(p as any); } }}
+              onOpenProfile={(uid: string) => { setFsVideo(null); (navigation as any).navigate('UserProfile', { userId: uid }); }}
+              onFollow={async (uid: string) => { try { await supabase.rpc('handle_follow_action', { p_target_id: uid }); setFollowingIds(prev => { const n = new Set(prev); n.add(uid); return n; }); } catch {} }}
+              onNotInterested={(id: string) => { setFsVideo(null); hidePost(id); }}
+              onReport={(id: string) => { setFsVideo(null); reportPost(id, 'other'); }}
               onOpenComments={(id: string) => { setFsVideo(null); navigation.navigate('Post', { postId: id, focusComment: true }); }}
               onViewed={(id: string) => { if (userId) supabase.rpc('record_video_view', { p_post_id: id, p_viewer_id: userId, p_session: viewSessionRef.current, p_duration: 5 }).then(() => {}, () => {}); }}
             />
