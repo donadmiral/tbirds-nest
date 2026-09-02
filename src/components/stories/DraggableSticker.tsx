@@ -34,6 +34,7 @@ import { StoryTextSticker, StoryStickerStyle } from '../../services/storiesServi
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard from './PostStoryCard';
+import StoryReshareCard, { STORY_CARD_W, STORY_CARD_H } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
@@ -688,9 +689,11 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
 
   // Interactive cards (question, slider, quiz) are real cards in the composer
   // too, so their hit box follows the card, not the text-sticker default.
-  const cardHitH = sticker.kind === 'question' ? 150 : sticker.kind === 'slider' ? 140 : sticker.kind === 'quiz' ? 64 + 46 * Math.max(2, (sticker.quizOptions || []).length) : 0;
+  const cellFw = sticker.kind === 'photo' && (sticker as any).photoShape === 'cell' ? Number((sticker as any).photoFw) || 0 : 0;
+  const cellFh = sticker.kind === 'photo' && (sticker as any).photoShape === 'cell' ? Number((sticker as any).photoFh) || 0 : 0;
+  const cardHitH = cellFh ? Math.round(cellFh * containerH) : sticker.kind === 'story' ? STORY_CARD_H : sticker.kind === 'photo' ? 200 : sticker.kind === 'question' ? 150 : sticker.kind === 'slider' ? 140 : sticker.kind === 'quiz' ? 64 + 46 * Math.max(2, (sticker.quizOptions || []).length) : 0;
   const baseHitH = cardHitH || (textMayWrap ? STICKER_HIT_H_WRAP : STICKER_HIT_H);
-  const hitW = Math.max(cardHitH ? 270 : (textMaxWidth || STICKER_HIT_W), STICKER_HIT_W * sticker.scale);
+  const hitW = Math.max(cellFw ? Math.round(cellFw * containerW) : cardHitH ? (sticker.kind === 'story' ? STORY_CARD_W : sticker.kind === 'photo' ? 200 : 270) : (textMaxWidth || STICKER_HIT_W), STICKER_HIT_W * sticker.scale);
   const hitH = Math.max(baseHitH, baseHitH * sticker.scale);
 
 
@@ -730,7 +733,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
             {sticker.kind === 'gif' ? (
               <GifStickerView sticker={sticker} />
             ) : sticker.kind === 'photo' ? (
-              <PhotoStickerView sticker={sticker} />
+              <PhotoStickerView sticker={sticker} containerW={containerW} containerH={containerH} />
             ) : sticker.kind === 'time' ? (
               <TimeStickerView sticker={sticker} />
             ) : sticker.kind === 'date' ? (
@@ -741,6 +744,8 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
               <EntityStickerCard sticker={sticker} />
             ) : sticker.kind === 'countdown' ? (
               <CountdownStickerCard title={sticker.countdownTitle || sticker.text} target={sticker.countdownTarget || null} />
+            ) : sticker.kind === 'story' ? (
+              <StoryReshareCard sticker={sticker} />
             ) : sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />
             ) : sticker.kind === 'question' ? (

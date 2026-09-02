@@ -268,6 +268,21 @@ export default function NotificationsScreen({ navigation }: any) {
     if (err) { console.log('[NOTIF_READ]', err.message); load(); }
   };
 
+  // Add to your story: the original is placed as a reference card, never
+  // re-uploaded. The RPC only answers for people mentioned with resharing on.
+  const reshareStory = async (storyId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('get_story_for_reshare', { p_story_id: storyId });
+      if (error || !data) { Alert.alert('Not available', 'This story can no longer be added, or resharing is off.'); return; }
+      const st: any = data;
+      const sticker = {
+        id: 'story_' + Date.now(), kind: 'story', text: '', color: '#FFFFFF', nx: 0.5, ny: 0.48, scale: 1, rotation: 0,
+        storyId: st.story_id, storyAuthorId: st.user_id, storyAuthorName: st.full_name || st.username || 'Story', storyAuthorUsername: st.username || null, storyAuthorAvatar: st.avatar_url || null,
+        storyMediaUrl: st.media_url || null, storyThumbUrl: st.thumbnail_url || null, storyMediaType: st.media_type || null,
+      };
+      navigation.navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: [sticker] });
+    } catch { Alert.alert('Not available', 'Could not load that story.'); }
+  };
   const open = async (n: Notif) => {
     if (n.unread_in_group > 0) {
       setRows(prev => prev.map(r => r.notification_id === n.notification_id
@@ -279,7 +294,12 @@ export default function NotificationsScreen({ navigation }: any) {
     if (n.post_id || d.post_id) {
       navigation.navigate('Post', { postId: n.post_id || d.post_id, commentId: d.comment_id });
     } else if (n.type === 'story_mention' && d.story_id && n.actor_id) {
-      navigation.navigate('StoryViewer', { userId: n.actor_id });
+      if (d.allow_reshare === false) { navigation.navigate('StoryViewer', { userId: n.actor_id }); return; }
+      Alert.alert(n.actor_name ? n.actor_name + ' mentioned you' : 'Mentioned in a story', undefined, [
+        { text: 'View story', onPress: () => navigation.navigate('StoryViewer', { userId: n.actor_id }) },
+        { text: 'Add to your story', onPress: () => reshareStory(String(d.story_id)) },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
     } else if (n.type === 'payment_received' && d.conversation_id) {
       navigation.navigate('Messages', { screen: 'Chat', params: { conversationId: d.conversation_id } });
     } else if (n.type === 'job_application' && d.job_id) {

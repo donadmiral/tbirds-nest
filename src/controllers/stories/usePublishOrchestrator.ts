@@ -161,6 +161,9 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           ...visibleIds.map((uid) => ({ story_id: story.id, mentioned_user_id: uid, mentioned_by_user_id: myId, visible: true, allow_reshare: allowReshare })),
           ...hiddenIds.filter((uid) => !visibleIds.includes(uid)).map((uid) => ({ story_id: story.id, mentioned_user_id: uid, mentioned_by_user_id: myId, visible: false, allow_reshare: allowReshare })),
         ];
+        // A reshared story card marks the original mention as reshared.
+        const resharedIds: string[] = Array.from(new Set((stickerPayload || []).filter((s: any) => s.kind === 'story' && s.storyId).map((s: any) => String(s.storyId))));
+        for (const rid of resharedIds) { try { await supabase.rpc('mark_story_reshared', { p_story_id: rid }); } catch {} }
         if (mentionRows.length > 0) {
           const { error: mentionErr } = await supabase.from('story_mentions').insert(mentionRows);
           if (mentionErr) console.error('[Publish] story_mentions failed:', mentionErr.message);

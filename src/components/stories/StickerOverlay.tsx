@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard, { POST_CARD_W, POST_CARD_EST_H } from './PostStoryCard';
+import StoryReshareCard, { STORY_CARD_W } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
@@ -30,6 +31,7 @@ type StickerOverlayProps = {
   // Creative engine: playback clock (video) gates timed stickers; entity taps route out
   clockSec?: number | null;
   onEntityTap?: (sticker: StoryTextSticker) => void;
+  onStoryTap?: (authorId: string, storyId: string) => void;
   // Engagement sticker interaction callbacks (viewer only)
   engagementProps?: {
     isOwn: boolean;
@@ -48,6 +50,7 @@ type StickerOverlayProps = {
 
 function getWidthForKind(kind?: string): number {
   if (kind === 'post') return POST_CARD_W;
+  if (kind === 'story') return STORY_CARD_W;
   if (kind === 'entity') return 260;
   if (kind === 'photo') return 200;
   if (kind === 'gif') return 180;
@@ -76,6 +79,7 @@ export function renderStickerContent(
   onPostHoldEnd?: () => void,
   storyPaused?: boolean,
   onEntityTap?: (sticker: StoryTextSticker) => void,
+  onStoryTap?: (authorId: string, storyId: string) => void,
 ): React.ReactNode {
   const isEmoji = sticker.kind === 'emoji';
   const isLink = sticker.kind === 'link';
@@ -101,6 +105,10 @@ export function renderStickerContent(
     );
   }
 
+  if (sticker.kind === 'story') {
+    const st: any = sticker;
+    return <StoryReshareCard sticker={sticker} onOpen={interactive && onStoryTap && st.storyAuthorId ? () => onStoryTap(st.storyAuthorId, st.storyId) : undefined} onOpenProfile={interactive && onPostProfileTap && st.storyAuthorId ? () => onPostProfileTap(st.storyAuthorId) : undefined} />;
+  }
   if (sticker.kind === 'post') {
     return (
       <PostStoryCard
@@ -174,7 +182,7 @@ export function renderStickerContent(
 
   if (sticker.kind === 'drawing') return null;
   if (sticker.kind === 'gif') return <GifStickerView sticker={sticker} />;
-  if (sticker.kind === 'photo') return <PhotoStickerView sticker={sticker} />;
+  if (sticker.kind === 'photo') return <PhotoStickerView sticker={sticker} containerW={containerW} containerH={containerH} />;
   if (sticker.kind === 'time') return <TimeStickerView sticker={sticker} />;
   if (sticker.kind === 'date') return <DateStickerView sticker={sticker} />;
   if (sticker.kind === 'weather') return <WeatherStickerView sticker={sticker} />;
@@ -248,6 +256,7 @@ export default function StickerOverlay({
   interactive = true,
   clockSec,
   onEntityTap,
+  onStoryTap,
   engagementProps,
 }: StickerOverlayProps) {
   if (!stickers || stickers.length === 0 || containerW === 0 || containerH === 0) return null;
@@ -295,7 +304,7 @@ export default function StickerOverlay({
               elevation: interactive && (isPill || isEngagement) ? 30 : 20,
             }}
           >
-            <StickerAnim anim={(st as any).anim} playKey={st.id}>{renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd, storyPaused, onEntityTap)}</StickerAnim>
+            <StickerAnim anim={(st as any).anim} playKey={st.id}>{renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd, storyPaused, onEntityTap, onStoryTap)}</StickerAnim>
           </View>
         );
       })}

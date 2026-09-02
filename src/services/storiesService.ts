@@ -50,6 +50,15 @@ export type StoryTextSticker = {
   locationPlaceId?: string;
   mentionUserId?: string;
   postAuthorId?: string;
+  /** Story reshare (a mentioned person's Add to your story): reference to the original. */
+  storyId?: string;
+  storyAuthorId?: string;
+  storyAuthorName?: string;
+  storyAuthorUsername?: string;
+  storyAuthorAvatar?: string | null;
+  storyMediaUrl?: string | null;
+  storyThumbUrl?: string | null;
+  storyMediaType?: 'image' | 'video' | null;
   hashtag?: string;
   postId?: string;
   postAuthorName?: string;

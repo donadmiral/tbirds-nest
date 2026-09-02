@@ -58,7 +58,8 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
           return <div key={st.id} style={{ ...pos, ...stickerCss(st), ...extraFontCss(st.style), ...animStyle(st.anim) }}>{st.text}</div>;
         }
         if (kind === "gif" || kind === "photo" || kind === "time" || kind === "date" || kind === "weather" || kind === "entity") {
-          return <div key={st.id} style={{ ...pos, ...animStyle(st.anim) }}><EngineSticker st={st} /></div>;
+          const cell = kind === "photo" && (st as any).photoShape === "cell" && typeof (st as any).photoFw === "number" ? { width: ((st as any).photoFw * 100) + "%", height: ((st as any).photoFh * 100) + "%" } : null;
+          return <div key={st.id} style={{ ...pos, ...(cell || {}), ...animStyle(st.anim) }}><EngineSticker st={st} /></div>;
         }
         // Pill looks mirror the phone StickerPill: 0 white, 1 ink, 2 gradient, 3 glass.
         const pv = (((st as any).pillVariant || 0) % 4 + 4) % 4;
@@ -80,6 +81,18 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
         }
         if (kind === "location") {
           return <span key={st.id} style={{ ...pos, ...pillStyle }} className={pillCls}>{"\uD83D\uDCCD "}{st.locationDisplayName || st.locationName || st.text}</span>;
+        }
+        if (kind === "story" && (st as any).storyId) {
+          const rs: any = st;
+          const thumb = rs.storyThumbUrl || rs.storyMediaUrl;
+          const href = rs.storyAuthorUsername ? "/" + rs.storyAuthorUsername : undefined;
+          return (
+            <a key={st.id} href={href} style={{ ...pos, width: 200, height: 356 }} className="pointer-events-auto block overflow-hidden rounded-[18px] border-2 border-white bg-black">
+              {thumb ? <img src={thumb} alt="" className="h-full w-full object-cover" /> : null}
+              <span className="absolute left-2.5 top-2.5 flex items-center gap-2 text-[12px] font-extrabold text-white drop-shadow">{rs.storyAuthorAvatar ? <img src={rs.storyAuthorAvatar} alt="" className="h-6 w-6 rounded-full border border-white object-cover" /> : null}{rs.storyAuthorName || "Story"}</span>
+              <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/45 px-2 py-1 text-[11px] font-bold text-white">@ Mentioned you</span>
+            </a>
+          );
         }
         if (kind === "post" && st.postId) {
           return (

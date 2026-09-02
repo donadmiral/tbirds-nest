@@ -100,6 +100,8 @@ export default function StickerIcon({ name, size = 22, color = '#FFFFFF', bg = '
           <Path d="M9.4 7.6l-1.5 8.8M16.1 7.6l-1.5 8.8M7.3 10.5h9.8M6.9 13.9h9.8" stroke={bg} strokeWidth="1.9" strokeLinecap="round" fill="none" />
         </Svg>
       );
+    case 'layout':
+      return (<Svg {...p}><Rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.8" stroke={color} strokeWidth="2" fill="none" /><Rect x="13" y="3.5" width="7.5" height="7.5" rx="1.8" stroke={color} strokeWidth="2" fill="none" /><Rect x="3.5" y="13" width="7.5" height="7.5" rx="1.8" stroke={color} strokeWidth="2" fill="none" /><Rect x="13" y="13" width="7.5" height="7.5" rx="1.8" stroke={color} strokeWidth="2" fill="none" /></Svg>);
     case 'gif':
       return (<Svg {...p}><Rect x="3" y="6" width="18" height="12" rx="3" stroke={color} strokeWidth="2" fill="none" /><Path d="M7.5 10.5v3M10.5 9.5v5M13.5 9.5h3M13.5 12h2.2M13.5 9.5v5" stroke={color} strokeWidth="1.7" strokeLinecap="round" fill="none" /></Svg>);
     case 'photo':
