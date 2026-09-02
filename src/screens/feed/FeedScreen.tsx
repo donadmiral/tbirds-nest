@@ -266,6 +266,16 @@ export default function FeedScreen({ navigation }: any) {
   const [likersList, setLikersList] = useState<any[]>([]);
   const [wtfSuggestions, setWtfSuggestions] = useState<any[]>([]);
   const [sendPost, setSendPost] = useState<Post | null>(null);
+  // Who viewed a video post: owner-only list behind the eye badge.
+  const [viewersPost, setViewersPost] = useState<Post | null>(null);
+  const [viewersRows, setViewersRows] = useState<any[]>([]);
+  const [viewersLoading, setViewersLoading] = useState(false);
+  const openPostViewers = useCallback(async (post: Post) => {
+    setViewersPost(post); setViewersRows([]); setViewersLoading(true);
+    try { const { data } = await supabase.rpc('get_post_viewers', { p_post: post.id }); setViewersRows((data ?? []) as any[]); }
+    catch { setViewersRows([]); }
+    finally { setViewersLoading(false); }
+  }, []);
   const [sendConvs, setSendConvs] = useState<any[]>([]);
   const [sendGroups, setSendGroups] = useState<any[]>([]);
   const [sendCommunities, setSendCommunities] = useState<any[]>([]);
@@ -1732,10 +1742,11 @@ if (!search && promos.length > 0) {
                 </Animated.View>
               )}
               {isVidPost && (post.views_count ?? 0) > 0 && (
-                <View style={{ position:'absolute', bottom:10, left:10, flexDirection:'row', alignItems:'center', gap:4, backgroundColor:'rgba(0,0,0,0.55)', borderRadius:12, paddingHorizontal:8, paddingVertical:4 }}>
+                <TouchableOpacity disabled={post.user_id !== userId} onPress={() => openPostViewers(post)} activeOpacity={0.8} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ position:'absolute', bottom:10, left:10, flexDirection:'row', alignItems:'center', gap:4, backgroundColor:'rgba(0,0,0,0.55)', borderRadius:12, paddingHorizontal:8, paddingVertical:4 }}>
                   <Feather name="eye" size={11} color={light.ink.inverse} />
                   <Text style={{ color:light.ink.inverse, fontSize:11, fontWeight:'600' }}>{fmtCount(post.views_count ?? 0)}</Text>
-                </View>
+                  {post.user_id === userId ? <Feather name="chevron-right" size={11} color={light.ink.inverse} /> : null}
+                </TouchableOpacity>
               )}
             </View>
           );
@@ -2194,6 +2205,29 @@ if (!search && promos.length > 0) {
                     </TouchableOpacity>
                   )}
                 </View>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={!!viewersPost} transparent animationType="slide" onRequestClose={() => setViewersPost(null)}>
+        <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setViewersPost(null)}>
+          <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
+            <View style={s.menuHandle} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8, gap: 8 }}>
+              <Feather name="eye" size={16} color={light.ink.primary} />
+              <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary }}>{fmtCount(viewersPost?.views_count ?? 0)} {(viewersPost?.views_count ?? 0) === 1 ? 'view' : 'views'}</Text>
+            </View>
+            {viewersLoading && <ActivityIndicator size="small" color={light.brand.base} style={{ paddingVertical: 18 }} />}
+            {!viewersLoading && viewersRows.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No viewers yet. Your own views are not counted.</Text>}
+            <ScrollView style={{ maxHeight: 360 }}>
+              {viewersRows.map((v: any) => (
+                <TouchableOpacity key={v.user_id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => { setViewersPost(null); (navigation as any).navigate('UserProfile', { userId: v.user_id }); }}>
+                  {v.avatar_url ? <ExpoImage source={{ uri: v.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.ink.muted }}>{initials(v.full_name || v.username)}</Text></View>}
+                  <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{v.full_name || v.username || 'Member'}</Text>{v.username ? <Text style={{ fontSize: 12, color: light.ink.muted }}>@{v.username}</Text> : null}</View>
+                  {v.seen_at ? <Text style={{ fontSize: 11.5, color: light.ink.muted }}>{(() => { const d = (Date.now() - new Date(v.seen_at).getTime()) / 60000; return d < 60 ? Math.max(1, Math.round(d)) + 'm' : d < 1440 ? Math.round(d / 60) + 'h' : Math.round(d / 1440) + 'd'; })()}</Text> : null}
+                </TouchableOpacity>
               ))}
             </ScrollView>
           </TouchableOpacity>
