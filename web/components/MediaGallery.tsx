@@ -62,6 +62,7 @@ function TagLayer({ tags, w, h }: { tags: MediaTag[]; w?: number; h?: number }) 
       </Link>
     );
   };
+  const markRight = placed.some((p) => p.y + PILL > H - 44 && p.x < 130) || tags.some((t) => t.ny > 0.82 && t.nx < 0.35);
   return (
     <div className="pointer-events-none absolute inset-0">
       {open ? (W && H ? placed.map(({ t, dx, dy, x, y }) => {
@@ -75,7 +76,7 @@ function TagLayer({ tags, w, h }: { tags: MediaTag[]; w?: number; h?: number }) 
         );
       }) : tags.map((t) => pill(t, { top: "calc(" + (t.ny * 100) + "% + 8px)", left: t.nx > 0.6 ? undefined : "calc(" + (t.nx * 100) + "% - 10px)", right: t.nx > 0.6 ? "calc(" + ((1 - t.nx) * 100) + "% - 10px)" : undefined }))) : null}
       <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} aria-label={open ? "Hide tagged people" : "Show tagged people"}
-        className={"pointer-events-auto absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-xl px-2 py-1 text-[11px] font-extrabold " + (open ? "bg-[#C9BFB0] text-[#0B1E3D]" : "bg-black/50 text-white")}>
+        className={"pointer-events-auto absolute bottom-2.5 flex items-center gap-1.5 rounded-xl px-2 py-1 text-[11px] font-extrabold " + (markRight ? "right-2.5 " : "left-2.5 ") + (open ? "bg-[#C9BFB0] text-[#0B1E3D]" : "bg-black/50 text-white")}>
         <span className={"h-2 w-2 rounded-full " + (open ? "bg-[#0B1E3D]" : "bg-[#C9BFB0]")} />{tags.length}
       </button>
     </div>
