@@ -24,6 +24,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
 import { stickerTextStyle, STICKER_STYLES, STICKER_STYLE_LABELS, BASE_FONT_SIZES } from '../../utils/stickerStyles';
 import StickerOverlay from '../../components/stories/StickerOverlay';
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import DraggableSticker from '../../components/stories/DraggableSticker';
 import type { SmartGuideEntry } from '../../components/stories/DraggableSticker';
 import MediaCanvas from '../../components/stories/MediaCanvas';
@@ -640,7 +642,7 @@ export default function StoryComposerScreen() {
   // ── Mention ──
   const openMentionModal = useCallback(() => { setMentionSearch(''); setMentionResults([]); setMentionModalOpen(true); }, []);
   const closeMentionModal = useCallback(() => { setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
-  const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { setMentionResults([]); setMentionLoading(false); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
+  const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { setMentionResults([]); setMentionLoading(false); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
   const onMentionSearchChange = useCallback((t: string) => { setMentionSearch(t); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => searchUsers(t), 300); }, [searchUsers]);
   const addMentionSticker = useCallback((u: any) => {
     if (mentionHidden) {
@@ -962,7 +964,7 @@ export default function StoryComposerScreen() {
       {/* ── MODALS (text editor, emoji, poll, link, location, mention, question, slider, quiz, overflow, preview) ── */}
       {/* Text Editor Modal — Instagram construction */}
       <Modal visible={textEditorOpen} transparent animationType="fade" onRequestClose={closeTextEditor}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={st.textEditorOverlay}>
+        <View style={[st.textEditorOverlay, { paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }]}>
           {isTextStory && active?.textBackground && <View style={StyleSheet.absoluteFill} pointerEvents="none">{renderTextBg(active.textBackground)}<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)' }]} /></View>}
           <View style={[st.textEditorHeader, { paddingTop: Math.max(insets.top, 12) }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1030,7 +1032,7 @@ export default function StoryComposerScreen() {
               </View>
             )}
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
       {/* Emoji Modal */}
       <Modal visible={emojiTrayOpen} transparent animationType="slide" onRequestClose={closeEmojiTray}>
@@ -1047,7 +1049,7 @@ export default function StoryComposerScreen() {
 
       {/* Poll Modal */}
       <Modal visible={pollEditorOpen} transparent animationType="slide" onRequestClose={closePollEditor}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closePollEditor}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closePollEditor}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={closePollEditor}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Create Poll</Text><TouchableOpacity onPress={savePoll}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false} style={{ maxHeight: SCREEN_H * 0.45 }} contentContainerStyle={{ paddingBottom: space.md }}>
@@ -1056,7 +1058,7 @@ export default function StoryComposerScreen() {
               {pollOptions.length < 4 && <TouchableOpacity onPress={addPollOption} style={st.pollAddBtn}><Feather name="plus" size={14} color="rgba(255,255,255,0.6)" /><Text style={st.pollAddTxt}>Add option</Text></TouchableOpacity>}
             </ScrollView>
           </View>
-        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+        </TouchableOpacity></View></TouchableOpacity>
       </Modal>
 
       {/* Sticker Tray - Instagram construction */}
@@ -1105,19 +1107,19 @@ export default function StoryComposerScreen() {
       )} />
       {/* Link Modal */}
       <Modal visible={linkModalOpen} transparent animationType="slide" onRequestClose={closeLinkModal}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeLinkModal}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeLinkModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={closeLinkModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Add Link</Text><TouchableOpacity onPress={addLinkSticker} disabled={!linkLabel.trim() || !linkUrl.trim() || !isValidUrl(linkUrl.trim())}><Text style={[st.sheetDoneTxt, (!linkLabel.trim() || !linkUrl.trim()) && { opacity: 0.4 }]}>Add</Text></TouchableOpacity></View>
             <View style={st.sheetInputWrap}><TextInput value={linkLabel} onChangeText={setLinkLabel} placeholder="Label (e.g. My Website)" placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={60} autoFocus keyboardAppearance="dark" returnKeyType="next" onSubmitEditing={() => linkUrlRef.current?.focus()} blurOnSubmit={false} /></View>
             <View style={st.sheetInputWrap}><TextInput ref={linkUrlRef} value={linkUrl} onChangeText={setLinkUrl} placeholder="https://..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={500} autoCapitalize="none" autoCorrect={false} keyboardType="url" keyboardAppearance="dark" returnKeyType="done" onSubmitEditing={addLinkSticker} /></View>
             {linkUrl.trim().length > 0 && !isValidUrl(linkUrl.trim()) && <Text style={st.linkErrorTxt}>Enter a valid URL starting with http:// or https://</Text>}
           </View>
-        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+        </TouchableOpacity></View></TouchableOpacity>
       </Modal>
 
       {/* Location Modal */}
       <Modal visible={locationModalOpen} transparent animationType="slide" onRequestClose={closeLocationModal}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeLocationModal}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeLocationModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.6 }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={closeLocationModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Add Location</Text><View style={{ width: 50 }} /></View>
             <View style={st.sheetInputWrap}><TextInput value={locationSearch} onChangeText={onLocationSearchChange} placeholder="Search a place..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} autoFocus keyboardAppearance="dark" /></View>
@@ -1132,12 +1134,12 @@ export default function StoryComposerScreen() {
               ); })}
             </ScrollView>
           </View>
-        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+        </TouchableOpacity></View></TouchableOpacity>
       </Modal>
 
       {/* Mention Modal */}
       <Modal visible={mentionModalOpen} transparent animationType="slide" onRequestClose={closeMentionModal}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeMentionModal}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeMentionModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.6 }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={closeMentionModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Mention Someone</Text><View style={{ width: 50 }} /></View>
             <View style={st.sheetInputWrap}><TextInput value={mentionSearch} onChangeText={onMentionSearchChange} placeholder="@username or name..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} autoFocus autoCapitalize="none" keyboardAppearance="dark" /></View>
@@ -1167,23 +1169,23 @@ export default function StoryComposerScreen() {
               {mentionResults.map(u => (
                 <TouchableOpacity key={u.id} style={st.mentionRow} onPress={() => addMentionSticker(u)} activeOpacity={0.6}>
                   {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={st.mentionAvatar} /> : <View style={[st.mentionAvatar, { backgroundColor: surface.secondary, alignItems: 'center', justifyContent: 'center' }]}><Feather name="user" size={14} color={textColor.secondary} /></View>}
-                  <View style={{ flex: 1 }}><Text style={st.mentionName} numberOfLines={1}>{u.full_name || u.username}</Text>{u.username && <Text style={st.mentionUsername} numberOfLines={1}>@{u.username}</Text>}</View>
+                  <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center' }}><TierName text={u.full_name || u.username} tier={u.is_verified ? (u.verified_tier ?? 'business') : null} baseStyle={[st.mentionName, { flexShrink: 1 }]} />{u.is_verified ? <View style={{ marginLeft: 5 }}><VerifiedBadge tier={u.verified_tier ?? undefined} userId={u.id} size={13} /></View> : null}</View>{u.username && <Text style={st.mentionUsername} numberOfLines={1}>@{u.username}</Text>}</View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
-        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+        </TouchableOpacity></View></TouchableOpacity>
       </Modal>
 
       {/* Question Modal */}
       <Modal visible={questionModalOpen} transparent animationType="slide" onRequestClose={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingQuestionId ? 'Edit Question' : 'Add Question'}</Text><TouchableOpacity onPress={saveQuestion}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
             <View style={st.sheetInputWrap}><TextInput value={questionPrompt} onChangeText={setQuestionPrompt} placeholder="Ask me anything..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="dark" /></View>
             <Text style={st.charCount}>{questionPrompt.length}/120</Text>
           </View>
-        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+        </TouchableOpacity></View></TouchableOpacity>
       </Modal>
 
       {/* Hashtag Modal */}
@@ -1218,28 +1220,28 @@ export default function StoryComposerScreen() {
       </Modal>
 
       <Modal visible={hashtagModalOpen} transparent animationType="slide" onRequestClose={closeHashtagModal}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeHashtagModal}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeHashtagModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={closeHashtagModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Add Hashtag</Text><TouchableOpacity onPress={addHashtagSticker}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
             <View style={st.sheetInputWrap}><TextInput value={hashtagText} onChangeText={t => setHashtagText(t.replace(/[^A-Za-z0-9_#]/g, ''))} placeholder="#harare" placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={31} autoFocus autoCapitalize="none" autoCorrect={false} keyboardAppearance="dark" /></View>
             <Text style={st.charCount}>Letters, numbers and underscores</Text>
           </View>
-        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+        </TouchableOpacity></View></TouchableOpacity>
       </Modal>
       {/* Slider Modal */}
       <Modal visible={sliderModalOpen} transparent animationType="slide" onRequestClose={() => { setSliderModalOpen(false); setEditingSliderId(null); }}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingSliderId ? 'Edit Slider' : 'Add Slider'}</Text><TouchableOpacity onPress={saveSlider}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
             <View style={st.sheetInputWrap}><TextInput value={sliderLabel} onChangeText={setSliderLabel} placeholder="How much do you love...?" placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={80} autoFocus keyboardAppearance="dark" /></View>
             <View style={st.sliderEmojiRow}><Text style={st.sliderEmojiLabel}>Emoji</Text><TextInput value={sliderEmoji} onChangeText={t => setSliderEmoji(t.slice(0, 4))} style={st.sliderEmojiInput} maxLength={4} keyboardAppearance="dark" /></View>
           </View>
-        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+        </TouchableOpacity></View></TouchableOpacity>
       </Modal>
 
       {/* Quiz Modal */}
       <Modal visible={quizModalOpen} transparent animationType="slide" onRequestClose={() => { setQuizModalOpen(false); setEditingQuizId(null); }}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setQuizModalOpen(false); setEditingQuizId(null); }}><KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setQuizModalOpen(false); setEditingQuizId(null); }}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setQuizModalOpen(false); setEditingQuizId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingQuizId ? 'Edit Quiz' : 'Add Quiz'}</Text><TouchableOpacity onPress={saveQuiz}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={{ maxHeight: SCREEN_H * 0.45 }} contentContainerStyle={{ paddingBottom: space.md }}>
@@ -1255,7 +1257,7 @@ export default function StoryComposerScreen() {
               <Text style={st.quizHint}>Tap the checkmark to mark the correct answer</Text>
             </ScrollView>
           </View>
-        </TouchableOpacity></KeyboardAvoidingView></TouchableOpacity>
+        </TouchableOpacity></View></TouchableOpacity>
       </Modal>
 
       {/* Enhancement Modal */}
