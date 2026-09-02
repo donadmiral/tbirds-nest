@@ -1345,11 +1345,20 @@ export default function FeedScreen({ navigation }: any) {
             sort_order: m.sort_order,
             ...(m.width  != null ? { width:  m.width  } : {}),
             ...(m.height != null ? { height: m.height } : {}),
-            ...(m.edit ? { edit: m.edit } : {}),
+            ...(m.edit ? { edit: (() => { const { tags: _t, ...rest } = (m.edit as any) || {}; return Object.keys(rest).length ? rest : null; })() } : {}),
           }));
-          const { error: mErr } = await supabase.from('post_media').insert(mediaRows);
+          const { data: inserted, error: mErr } = await supabase.from('post_media').insert(mediaRows).select('id, sort_order');
           if (mErr) {
             Alert.alert('Warning', 'Post created but media metadata failed to save. Media may not display correctly.');
+          } else {
+            // Tagged people: anchor each tag to the media row it was placed on.
+            const tagRows: any[] = [];
+            (uploadedMedia as any[]).forEach(m => {
+              const row = ((inserted ?? []) as any[]).find(r => r.sort_order === m.sort_order);
+              const tags = (m.edit as any)?.tags as any[] | undefined;
+              if (row && tags && tags.length) tags.forEach(t => tagRows.push({ post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }));
+            });
+            if (tagRows.length) { try { await supabase.from('post_media_tags').insert(tagRows); } catch (e: any) { console.log('[POST] tags insert:', e?.message); } }
           }
         } catch (e: any) {
           console.log('[POST] post_media insert exception:', e?.message);
