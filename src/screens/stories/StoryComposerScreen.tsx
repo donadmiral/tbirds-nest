@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList,
   ActivityIndicator, Alert, Platform, StatusBar, KeyboardAvoidingView,
-  Dimensions, Modal, ScrollView, Animated, Keyboard, AccessibilityInfo, Easing,
+  Dimensions, Modal, ScrollView, Animated, Keyboard, AccessibilityInfo, Easing, Switch,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -434,6 +434,7 @@ export default function StoryComposerScreen() {
   const [mentionLoading, setMentionLoading] = useState(false);
   const mentionDebounceRef = useRef<any>(null);
   const [mentionHidden, setMentionHidden] = useState(false);
+  const [mentionPicks, setMentionPicks] = useState<any[]>([]);
 
   // Question
   const [hashtagModalOpen, setHashtagModalOpen] = useState(false);
@@ -641,20 +642,28 @@ export default function StoryComposerScreen() {
 
   // ── Mention ──
   const openMentionModal = useCallback(() => { setMentionSearch(''); setMentionResults([]); setMentionModalOpen(true); }, []);
-  const closeMentionModal = useCallback(() => { setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
+  const closeMentionModal = useCallback(() => { setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); setMentionPicks([]); setMentionHidden(false); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
   const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { setMentionResults([]); setMentionLoading(false); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
   const onMentionSearchChange = useCallback((t: string) => { setMentionSearch(t); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => searchUsers(t), 300); }, [searchUsers]);
-  const addMentionSticker = useCallback((u: any) => {
-    if (mentionHidden) {
-      // Hidden mention: a backend relationship only. Nothing is drawn on the
-      // story; the person is notified and can reshare if allowed.
-      const cur = ((active as any)?.hiddenMentions || []) as { id: string; username: string }[];
-      if (!cur.some(h => h.id === u.id)) updateActive({ hiddenMentions: [...cur, { id: u.id, username: u.username || u.full_name || 'member' }] } as any);
-      setMentionSearch(''); setMentionResults([]);
-      return;
+  const toggleMentionPick = useCallback((u: any) => { setMentionPicks(prev => prev.some(p => p.id === u.id) ? prev.filter(p => p.id !== u.id) : [...prev, u]); }, []);
+  const confirmMentions = useCallback(() => {
+    const picks = mentionPicks;
+    if (picks.length > 0) {
+      if (mentionHidden) {
+        // Hidden mention: a backend relationship only. Nothing is drawn on the
+        // story; the person is notified and can reshare if allowed.
+        const cur = ((active as any)?.hiddenMentions || []) as { id: string; username: string }[];
+        const add = picks.filter(u => !cur.some(h => h.id === u.id)).map(u => ({ id: u.id, username: u.username || u.full_name || 'member' }));
+        if (add.length > 0) updateActive({ hiddenMentions: [...cur, ...add] } as any);
+      } else {
+        const existing = (active?.stickers || []) as any[];
+        const fresh = picks.filter(u => !existing.some(s => s.kind === 'mention' && s.mentionUserId === u.id));
+        const made = fresh.map((u, i) => ({ id: newStickerId(), text: `@${u.username || u.full_name}`, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: Math.min(0.82, 0.5 + i * 0.075), scale: 1, rotation: 0, kind: 'mention', mentionUserId: u.id, mentionUsername: u.username || u.full_name }));
+        if (made.length > 0) updateStickers([...existing, ...made] as any);
+      }
     }
-    updateStickers([...(active?.stickers || []), { id: newStickerId(), text: `@${u.username || u.full_name}`, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.55, scale: 1, rotation: 0, kind: 'mention', mentionUserId: u.id, mentionUsername: u.username || u.full_name }]); closeMentionModal();
-  }, [active, updateStickers, closeMentionModal, mentionHidden, updateActive]);
+    closeMentionModal();
+  }, [mentionPicks, mentionHidden, active, updateActive, updateStickers, closeMentionModal]);
   const removeHiddenMention = useCallback((id: string) => { const cur = ((active as any)?.hiddenMentions || []) as { id: string; username: string }[]; updateActive({ hiddenMentions: cur.filter(h => h.id !== id) } as any); }, [active, updateActive]);
 
   // ── Hashtag ──
@@ -1140,39 +1149,61 @@ export default function StoryComposerScreen() {
       {/* Mention Modal */}
       <Modal visible={mentionModalOpen} transparent animationType="slide" onRequestClose={closeMentionModal}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeMentionModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
-          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.6 }]}>
-            <View style={st.sheetHeader}><TouchableOpacity onPress={closeMentionModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Mention Someone</Text><View style={{ width: 50 }} /></View>
-            <View style={st.sheetInputWrap}><TextInput value={mentionSearch} onChangeText={onMentionSearchChange} placeholder="@username or name..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} autoFocus autoCapitalize="none" keyboardAppearance="dark" /></View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, paddingTop: 10 }}>
-              <TouchableOpacity onPress={() => setMentionHidden(h => !h)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: mentionHidden ? '#FFFFFF' : 'rgba(255,255,255,0.12)' }}>
-                <Feather name={mentionHidden ? 'eye-off' : 'eye'} size={13} color={mentionHidden ? '#0B1E3D' : '#FFFFFF'} />
-                <Text style={{ marginLeft: 6, fontSize: 12.5, fontWeight: '700', color: mentionHidden ? '#0B1E3D' : '#FFFFFF' }}>{mentionHidden ? 'Hidden from viewers' : 'Visible on story'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => updateActive({ allowMentionReshare: (active as any)?.allowMentionReshare === false } as any)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)' }}>
-                <Feather name={(active as any)?.allowMentionReshare === false ? 'square' : 'check-square'} size={13} color="#FFFFFF" />
-                <Text style={{ marginLeft: 6, fontSize: 12.5, fontWeight: '700', color: '#FFFFFF' }}>Can reshare</Text>
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.62 }]}>
+            <View style={st.sheetHeader}>
+              <TouchableOpacity onPress={closeMentionModal} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity>
+              <Text style={st.sheetTitle}>Mention people</Text>
+              <TouchableOpacity onPress={confirmMentions} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ backgroundColor: mentionPicks.length > 0 ? '#FFFFFF' : 'rgba(255,255,255,0.14)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999 }}>
+                <Text style={{ color: mentionPicks.length > 0 ? '#0B1E3D' : 'rgba(255,255,255,0.7)', fontWeight: '800', fontSize: 14 }}>{mentionPicks.length > 0 ? `Done (${mentionPicks.length})` : 'Done'}</Text>
               </TouchableOpacity>
             </View>
-            {(((active as any)?.hiddenMentions || []) as { id: string; username: string }[]).length > 0 ? (
+            <View style={st.sheetInputWrap}><TextInput value={mentionSearch} onChangeText={onMentionSearchChange} placeholder="Search people..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} autoFocus autoCapitalize="none" keyboardAppearance="dark" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} /></View>
+            {mentionPicks.length > 0 ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingTop: 10, gap: 6 }}>
-                {(((active as any)?.hiddenMentions || []) as { id: string; username: string }[]).map(h => (
-                  <TouchableOpacity key={h.id} onPress={() => removeHiddenMention(h.id)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(124,92,255,0.25)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(124,92,255,0.6)' }}>
-                    <Feather name="eye-off" size={11} color="#C9BFB0" />
-                    <Text style={{ marginLeft: 5, fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>@{h.username}</Text>
-                    <Feather name="x" size={12} color="rgba(255,255,255,0.7)" style={{ marginLeft: 6 }} />
+                {mentionPicks.map(u => (
+                  <TouchableOpacity key={u.id} onPress={() => toggleMentionPick(u)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingLeft: 5, paddingRight: 10, borderRadius: 999, backgroundColor: '#FFFFFF' }}>
+                    {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={{ width: 22, height: 22, borderRadius: 11 }} /> : <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#0B1E3D' }} />}
+                    <Text style={{ marginLeft: 6, fontSize: 12.5, fontWeight: '800', color: '#0B1E3D' }}>@{u.username || u.full_name}</Text>
+                    <Feather name="x" size={12} color="#0B1E3D" style={{ marginLeft: 6 }} />
                   </TouchableOpacity>
                 ))}
               </View>
             ) : null}
             {mentionLoading && <ActivityIndicator color={accent.warm} style={{ marginVertical: 12 }} />}
-            <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 240 }}>
-              {mentionResults.map(u => (
-                <TouchableOpacity key={u.id} style={st.mentionRow} onPress={() => addMentionSticker(u)} activeOpacity={0.6}>
+            <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: keyboard.keyboardHeight > 0 ? 150 : 220 }}>
+              {mentionResults.map(u => { const picked = mentionPicks.some(p => p.id === u.id); return (
+                <TouchableOpacity key={u.id} style={st.mentionRow} onPress={() => toggleMentionPick(u)} activeOpacity={0.6}>
                   {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={st.mentionAvatar} /> : <View style={[st.mentionAvatar, { backgroundColor: surface.secondary, alignItems: 'center', justifyContent: 'center' }]}><Feather name="user" size={14} color={textColor.secondary} /></View>}
                   <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center' }}><TierName text={u.full_name || u.username} tier={u.is_verified ? (u.verified_tier ?? 'business') : null} baseStyle={[st.mentionName, { flexShrink: 1 }]} />{u.is_verified ? <View style={{ marginLeft: 5 }}><VerifiedBadge tier={u.verified_tier ?? undefined} userId={u.id} size={13} /></View> : null}</View>{u.username && <Text style={st.mentionUsername} numberOfLines={1}>@{u.username}</Text>}</View>
+                  <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: picked ? '#FFFFFF' : 'rgba(255,255,255,0.35)', backgroundColor: picked ? '#FFFFFF' : 'transparent', alignItems: 'center', justifyContent: 'center' }}>{picked ? <Feather name="check" size={14} color="#0B1E3D" /> : null}</View>
                 </TouchableOpacity>
-              ))}
+              ); })}
+              {!mentionLoading && mentionSearch.trim().length >= 2 && mentionResults.length === 0 ? <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, paddingVertical: 12, textAlign: 'center' }}>No one found</Text> : null}
+              {!mentionLoading && mentionSearch.trim().length < 2 && mentionResults.length === 0 ? <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, paddingVertical: 12, textAlign: 'center' }}>Type a name or @username</Text> : null}
             </ScrollView>
+            <View style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.14)', marginTop: 8, paddingTop: 10 }}>
+              <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, padding: 3 }}>
+                <TouchableOpacity onPress={() => setMentionHidden(false)} activeOpacity={0.8} style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', backgroundColor: !mentionHidden ? '#FFFFFF' : 'transparent' }}><Text style={{ fontSize: 13, fontWeight: '800', color: !mentionHidden ? '#0B1E3D' : '#FFFFFF' }}>On the story</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => setMentionHidden(true)} activeOpacity={0.8} style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', backgroundColor: mentionHidden ? '#FFFFFF' : 'transparent' }}><Text style={{ fontSize: 13, fontWeight: '800', color: mentionHidden ? '#0B1E3D' : '#FFFFFF' }}>Hidden</Text></TouchableOpacity>
+              </View>
+              <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, marginTop: 8, lineHeight: 16 }}>{mentionHidden ? 'Nobody sees the mention on your story. The people you pick still get notified and can view it.' : 'An @name tag appears on your story. Viewers can tap it to open their profile.'}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 13.5, fontWeight: '700' }}>Let them add this to their story</Text>
+                <Switch value={(active as any)?.allowMentionReshare !== false} onValueChange={(v: boolean) => updateActive({ allowMentionReshare: v } as any)} trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#C9BFB0' }} thumbColor="#FFFFFF" />
+              </View>
+              {(((active as any)?.hiddenMentions || []) as { id: string; username: string }[]).length > 0 ? (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', paddingTop: 10, gap: 6 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '700', marginRight: 2 }}>Hidden on this story:</Text>
+                  {(((active as any)?.hiddenMentions || []) as { id: string; username: string }[]).map(h => (
+                    <TouchableOpacity key={h.id} onPress={() => removeHiddenMention(h.id)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 9, borderRadius: 999, backgroundColor: 'rgba(124,92,255,0.25)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(124,92,255,0.6)' }}>
+                      <Feather name="eye-off" size={11} color="#C9BFB0" />
+                      <Text style={{ marginLeft: 5, fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>@{h.username}</Text>
+                      <Feather name="x" size={12} color="rgba(255,255,255,0.7)" style={{ marginLeft: 6 }} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
+            </View>
           </View>
         </TouchableOpacity></View></TouchableOpacity>
       </Modal>
