@@ -1509,7 +1509,7 @@ if (!search && promos.length > 0) {
       comments: p.comments_count || 0,
     })), [displayPosts, profilesMap]);
 
-  const renderMedia = useCallback((post: any, isActive: boolean, onMediaPress?: () => void) => {
+  const renderMedia = useCallback((post: any, isActive: boolean, onMediaPress?: (idx?: number, at?: number) => void) => {
     const mediaItems: CarouselMedia[] = Array.isArray(post.media) && post.media.length > 0
       ? post.media
       : (post.media_url ? [{
@@ -1723,17 +1723,17 @@ if (!search && promos.length > 0) {
         })()}
 
         {(() => {
-          const openViewer = (idx?: number) => {
+          const openViewer = (idx?: number, at?: number) => {
             const items: any[] = (post.media && post.media.length > 0) ? post.media : (post.media_url ? [{ url: post.media_url, media_type: 'image' }] : []);
             const tappedItem = items[idx ?? 0];
-            if (tappedItem && tappedItem.media_type === 'video') { setFsVideo({ id: post.id, url: tappedItem.url }); return; }
+            if (tappedItem && tappedItem.media_type === 'video') { setFsVideo({ id: post.id, url: tappedItem.url, at: at || 0 } as any); return; }
             const imgs = items.filter((m: any) => m.media_type === 'image').map((m: any) => ({ uri: m.url }));
             if (imgs.length === 0) { openPost(); return; }
             const tapped = items[idx ?? 0];
             const vIdx = tapped ? imgs.findIndex(i => i.uri === tapped.url) : 0;
             setViewer({ images: imgs, index: vIdx >= 0 ? vIdx : 0 });
           };
-          const media = renderMedia(post, screenFocused && !fsVideo && post.id === activePostId, (idx?: number) => handleDoubleTap(post.id, () => openViewer(idx)));
+          const media = renderMedia(post, screenFocused && !fsVideo && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (

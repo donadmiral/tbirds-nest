@@ -23,6 +23,7 @@ import {
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { useMediaTags, TagLayer } from './MediaRenderer';
 import { useIsFocused } from '@react-navigation/native';
 import { useSettingsStore } from '../stores/settingsStore';
 import { Feather } from '@expo/vector-icons';
@@ -40,7 +41,7 @@ type Props = {
   media: CarouselMedia[];
   containerWidth: number;
   isActive?: boolean;
-  onMediaPress?: (index?: number) => void;
+  onMediaPress?: (index?: number, at?: number) => void;
 };
 
 // 4:5 portrait = height is 1.25x width (same as Instagram)
@@ -79,8 +80,8 @@ function CarouselVideo({
 }: {
   uri: string; width: number; height: number;
   isVisible: boolean; isScreenActive: boolean;
-  onTapOverride?: () => void;
-  onExpand?: () => void;
+  onTapOverride?: (at?: number) => void;
+  onExpand?: (at?: number) => void;
 }) {
 // expo-video hands you a player object rather than a component ref, so
   // seeking and muting are property writes instead of async calls.
@@ -182,7 +183,7 @@ function CarouselVideo({
     <TouchableOpacity
       style={{ width, height, backgroundColor: '#000' }}
       activeOpacity={1}
-      onPress={onTapOverride ?? toggleControls}
+      onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
       <VideoView
         style={{ width: '100%', height: '100%' }}
@@ -232,7 +233,7 @@ function CarouselVideo({
           {onExpand ? (
             <TouchableOpacity
               style={st.expandBtn}
-              onPress={() => { scheduleHide(); onExpand(); }}
+              onPress={() => { scheduleHide(); let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onExpand(at); }}
               activeOpacity={0.8}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
@@ -248,6 +249,7 @@ function CarouselVideo({
 }
 
 export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress }: Props) {
+  const tagMap = useMediaTags((media || []).map((m: any) => m.id).filter(Boolean));
   const [activeIndex, setActiveIndex] = useState(0);
   const slideHeight = Math.round(containerWidth * HEIGHT_RATIO);
   const total = media.length;
@@ -271,18 +273,21 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           height={slideHeight}
           isVisible={index === activeIndex}
           isScreenActive={isActive}
-          onTapOverride={onMediaPress ? () => onMediaPress(index) : undefined}
+          onTapOverride={onMediaPress ? (at?: number) => onMediaPress(index, at) : undefined}
         />
       );
     }
     return (
-      <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(index)} disabled={!onMediaPress}>
-        <CarouselImage
-          uri={item.url}
-          width={containerWidth}
-          height={slideHeight}
-        />
-      </TouchableOpacity>
+      <View>
+        <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(index)} disabled={!onMediaPress}>
+          <CarouselImage
+            uri={item.url}
+            width={containerWidth}
+            height={slideHeight}
+          />
+        </TouchableOpacity>
+        <TagLayer tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
+      </View>
     );
   }, [containerWidth, slideHeight, activeIndex, isActive, onMediaPress]);
 
@@ -302,16 +307,19 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
               height={slideHeight}
               isVisible={true}
               isScreenActive={isActive}
-              onExpand={onMediaPress ? () => onMediaPress(0) : undefined}
+              onExpand={onMediaPress ? (at?: number) => onMediaPress(0, at) : undefined}
             />
           ) : (
-            <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(0)} disabled={!onMediaPress}>
-              <CarouselImage
-                uri={item.url}
-                width={containerWidth}
-                height={slideHeight}
-              />
-            </TouchableOpacity>
+            <View>
+              <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(0)} disabled={!onMediaPress}>
+                <CarouselImage
+                  uri={item.url}
+                  width={containerWidth}
+                  height={slideHeight}
+                />
+              </TouchableOpacity>
+              <TagLayer tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
+            </View>
           )}
 
         </View>
