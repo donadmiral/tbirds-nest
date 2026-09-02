@@ -843,7 +843,7 @@ export default function StoryComposerScreen() {
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
     { id: 'gif', cat: 'fun', tint: '#C4B5FD', icon: 'gif', label: 'GIF', on: stickerCounts.gif > 0, run: () => setGifOpen(true) },
     { id: 'photo', cat: 'fun', tint: '#5EEAD4', icon: 'photo', label: 'Photo', on: stickerCounts.photo > 0, run: addPhotoSticker },
-    { id: 'layout', cat: 'media', tint: '#F9A8D4', icon: 'layout', label: 'Layout', on: false, run: () => setLayoutOpen(true) },
+
     { id: 'time', cat: 'fun', tint: '#93C5FD', icon: 'time', label: 'Time', on: stickerCounts.time > 0, run: () => addSimpleSticker({ kind: 'time', infoStyle: 0 }) },
     { id: 'date', cat: 'fun', tint: '#FCA5A5', icon: 'date', label: 'Date', on: stickerCounts.date > 0, run: () => addSimpleSticker({ kind: 'date', infoStyle: 0 }) },
     { id: 'weather', cat: 'fun', tint: '#6EE7B7', icon: 'weather', label: 'Weather', on: stickerCounts.weather > 0, run: addWeatherSticker },];
@@ -1096,35 +1096,7 @@ export default function StoryComposerScreen() {
           </View>
         </View>
       </Modal>
-      {/* Layout Modal */}
-      <Modal visible={layoutOpen} transparent animationType="slide" onRequestClose={() => setLayoutOpen(false)}>
-        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setLayoutOpen(false)}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
-          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={st.sheetGrab} />
-            <View style={st.sheetHeader}><TouchableOpacity onPress={() => setLayoutOpen(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Layout</Text><View style={{ width: 64 }} /></View>
-            <Text style={[st.sheetHint, { marginBottom: 12 }]}>Pick a grid, then choose your photos. Each cell can still be moved, resized or replaced on the story.</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-              {([
-                { id: 'two', label: 'Two up', cells: [{ x: 0.04, y: 0.2, w: 0.46, h: 0.6 }, { x: 0.5, y: 0.2, w: 0.46, h: 0.6 }] },
-                { id: 'stack', label: 'Stacked', cells: [{ x: 0.06, y: 0.08, w: 0.88, h: 0.42 }, { x: 0.06, y: 0.5, w: 0.88, h: 0.42 }] },
-                { id: 'triple', label: 'One + two', cells: [{ x: 0.06, y: 0.08, w: 0.88, h: 0.44 }, { x: 0.06, y: 0.52, w: 0.44, h: 0.4 }, { x: 0.5, y: 0.52, w: 0.44, h: 0.4 }] },
-                { id: 'grid', label: 'Grid', cells: [{ x: 0.04, y: 0.12, w: 0.46, h: 0.38 }, { x: 0.5, y: 0.12, w: 0.46, h: 0.38 }, { x: 0.04, y: 0.5, w: 0.46, h: 0.38 }, { x: 0.5, y: 0.5, w: 0.46, h: 0.38 }] },
-                { id: 'six', label: 'Six', cells: [{ x: 0.04, y: 0.08, w: 0.46, h: 0.28 }, { x: 0.5, y: 0.08, w: 0.46, h: 0.28 }, { x: 0.04, y: 0.36, w: 0.46, h: 0.28 }, { x: 0.5, y: 0.36, w: 0.46, h: 0.28 }, { x: 0.04, y: 0.64, w: 0.46, h: 0.28 }, { x: 0.5, y: 0.64, w: 0.46, h: 0.28 }] },
-                { id: 'strip', label: 'Film strip', cells: [{ x: 0.04, y: 0.14, w: 0.3, h: 0.72 }, { x: 0.35, y: 0.14, w: 0.3, h: 0.72 }, { x: 0.66, y: 0.14, w: 0.3, h: 0.72 }] },
-              ] as { id: string; label: string; cells: { x: number; y: number; w: number; h: number }[] }[]).map(l => (
-                <TouchableOpacity key={l.id} onPress={() => applyLayout(l.cells)} activeOpacity={0.8} style={{ width: '30%', flexGrow: 1, alignItems: 'center' }}>
-                  <View style={{ width: 76, height: 128, borderRadius: 12, backgroundColor: '#F2F3F5', overflow: 'hidden' }}>
-                    {l.cells.map((c, i) => (
-                      <View key={i} style={{ position: 'absolute', left: c.x * 76 + 1, top: c.y * 128 + 1, width: c.w * 76 - 2, height: c.h * 128 - 2, borderRadius: 3, backgroundColor: '#0B1E3D', opacity: 0.85 }} />
-                    ))}
-                  </View>
-                  <Text style={{ marginTop: 6, fontSize: 12.5, fontWeight: '700', color: '#0B1E3D' }}>{l.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </TouchableOpacity></TouchableOpacity>
-      </Modal>
+
 
       {/* Emoji Modal */}
       <Modal visible={emojiTrayOpen} transparent animationType="slide" onRequestClose={closeEmojiTray}>
