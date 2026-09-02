@@ -16,7 +16,7 @@ async function loadProfile(username: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, username, avatar_url, banner_url, bio, is_verified, verified_tier, account_type")
+    .select("id, full_name, username, avatar_url, banner_url, bio, is_verified, verified_tier, account_type, account_class, account_labels")
     .ilike("username", username)
     .limit(1)
     .maybeSingle();
@@ -103,6 +103,17 @@ export default async function ProfilePage({ params }: Params) {
             {p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={17} /> : null}
           </div>
           <p className="text-center text-[13.5px] text-ink/50">@{p.username}</p>
+          {(() => {
+            const c = (p as any).account_class as string | null; const lb = ((p as any).account_labels || {}) as Record<string, boolean>;
+            const chips: string[] = [];
+            if (c === "creator") chips.push("Creator"); if (c === "organization") chips.push("Organization"); if (c === "automated") chips.push("Automated");
+            if (lb.parody) chips.push("Parody"); if (lb.fan) chips.push("Fan account"); if (lb.commentary) chips.push("Commentary"); if (lb.memorialized) chips.push("Remembering");
+            return chips.length ? (
+              <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                {chips.map((ch) => <span key={ch} className="rounded-full border border-ink/15 bg-[#C9BFB0]/30 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-ink">{ch}</span>)}
+              </div>
+            ) : null;
+          })()}
           {p.bio ? (
             <p className="mx-auto mt-2.5 max-w-[420px] whitespace-pre-wrap text-center text-[14.5px] leading-relaxed text-ink/80">{p.bio}</p>
           ) : null}

@@ -85,6 +85,7 @@ export default function SettingsPage() {
         <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Account</h2>
         <div className="flex flex-col gap-2">
         <NavRow href="/settings/username" icon={<AtSign size={16} />} label="Username" sub="Change your @handle" />
+        <NavRow href="/settings/account-type" icon={<UserCheck size={16} />} label="Account type" sub="Personal, Creator, Organization or Automated" />
         <NavRow href="/settings/follow-requests" icon={<UserCheck size={16} />} label="Follow requests" sub="Approve who follows your private account" />
         <NavRow href="/settings/blocked" icon={<ShieldOff size={16} />} label="Blocked accounts" sub="Manage who you have blocked" />
         <NavRow href="/settings/muted" icon={<EyeOff size={16} />} label="Muted stories" sub="Manage who you have muted" />
