@@ -28,9 +28,10 @@ export default function ExplorePage() {
     (async () => {
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user.id ?? null;
-      const [t, feed, ppl, mkt, jb] = await Promise.all([
+      const [t, feedT, feedL, ppl, mkt, jb] = await Promise.all([
         supabase.rpc("get_trending_topics", { p_days: 7, p_limit: 10 }),
-        supabase.rpc("get_feed", { p_mode: "trending", p_cursor_key: null, p_cursor_id: null, p_limit: 10 }),
+        supabase.rpc("get_feed", { p_mode: "trending", p_cursor_key: null, p_cursor_id: null, p_limit: 20 }),
+        supabase.rpc("get_feed", { p_mode: "latest", p_cursor_key: null, p_cursor_id: null, p_limit: 30 }),
         uid
           ? supabase.from("profiles").select("id, full_name, username, avatar_url, headline, connections_count").neq("id", uid).is("deactivated_at", null).order("connections_count", { ascending: false, nullsFirst: false }).limit(12)
           : Promise.resolve({ data: [] as Person[] }),
@@ -38,7 +39,25 @@ export default function ExplorePage() {
         supabase.from("jobs").select("id, title, company, location, salary_range").order("created_at", { ascending: false }).limit(5),
       ]);
       setTopics(((t.data ?? []) as Topic[]).slice(0, 10));
-      setPosts((feed.data ?? []) as FeedRow[]);
+      // Same order as the phone's Discover: the server scores every candidate
+      // (engagement with recency decay, media bonus, seen push-down, daily
+      // rotation), then authors are spaced so nobody gets more than two in a row.
+      {
+        const seen = new Set<string>(); const merged: FeedRow[] = [];
+        for (const r of [...((feedT.data ?? []) as FeedRow[]), ...((feedL.data ?? []) as FeedRow[])]) { if (!seen.has(r.post_id)) { seen.add(r.post_id); merged.push(r); } }
+        let ordered = merged;
+        try {
+          const { data: ranked } = await supabase.rpc("rank_discover", { p_ids: merged.map((r) => r.post_id) });
+          const score = new Map<string, number>(); ((ranked ?? []) as any[]).forEach((x) => score.set(x.id, Number(x.score) || 0));
+          if (score.size) {
+            merged.sort((a, b) => (score.get(b.post_id) ?? 0) - (score.get(a.post_id) ?? 0));
+            const spaced: FeedRow[] = []; const deferred: FeedRow[] = []; let last: string | null = null; let run = 0;
+            for (const r of merged) { const au = (r as any).author_id ?? null; if (au && au === last && run >= 2) { deferred.push(r); continue; } if (au === last) run += 1; else { last = au; run = 1; } spaced.push(r); }
+            ordered = [...spaced, ...deferred];
+          }
+        } catch { /* fall back to fetch order */ }
+        setPosts(ordered.slice(0, 20));
+      }
       let candidates = (ppl.data ?? []) as Person[];
       if (uid && candidates.length > 0) {
         const { data: fRows } = await supabase.from("follows").select("following_id").eq("follower_id", uid);
