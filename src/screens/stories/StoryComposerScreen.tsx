@@ -25,6 +25,7 @@ import { supabase } from '../../services/supabase';
 import { stickerTextStyle, STICKER_STYLES, STICKER_STYLE_LABELS, BASE_FONT_SIZES } from '../../utils/stickerStyles';
 import StickerOverlay from '../../components/stories/StickerOverlay';
 import StickerPill from '../../components/stories/StickerPill';
+import PollCard from '../../components/stories/PollCard';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import DraggableSticker from '../../components/stories/DraggableSticker';
@@ -642,9 +643,10 @@ export default function StoryComposerScreen() {
   const addLocationSticker = useCallback((item: any) => { const { name } = fmtLoc(item); updateStickers([...(active?.stickers || []), { id: newStickerId(), text: name, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.45, scale: 1, rotation: 0, kind: 'location', locationName: name, locationDisplayName: item.display_name || name, locationLat: parseFloat(item.lat) || undefined, locationLng: parseFloat(item.lon) || undefined, locationPlaceId: item.place_id ? String(item.place_id) : undefined }]); closeLocationModal(); }, [active, updateStickers, closeLocationModal]);
 
   // ── Mention ──
-  const openMentionModal = useCallback(() => { setMentionSearch(''); setMentionResults([]); setMentionModalOpen(true); }, []);
+  const loadMentionDefaults = useCallback(async () => { setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').neq('id', myId || '').order('last_seen', { ascending: false, nullsFirst: false }).limit(30); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
+  const openMentionModal = useCallback(() => { setMentionSearch(''); setMentionResults([]); setMentionModalOpen(true); loadMentionDefaults(); }, [loadMentionDefaults]);
   const closeMentionModal = useCallback(() => { setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); setMentionPicks([]); setMentionHidden(false); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
-  const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { setMentionResults([]); setMentionLoading(false); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
+  const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { loadMentionDefaults(); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId, loadMentionDefaults]);
   const onMentionSearchChange = useCallback((t: string) => { setMentionSearch(t); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => searchUsers(t), 300); }, [searchUsers]);
   const toggleMentionPick = useCallback((u: any) => { setMentionPicks(prev => prev.some(p => p.id === u.id) ? prev.filter(p => p.id !== u.id) : [...prev, u]); }, []);
   const confirmMentions = useCallback(() => {
@@ -808,7 +810,7 @@ export default function StoryComposerScreen() {
             {active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
               <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} />
             )}
-            {hasPoll && active?.uploadState === 'idle' && <View style={st.pollBadge}><Feather name="bar-chart-2" size={14} color="#FFF" /><Text style={st.pollBadgeTxt} numberOfLines={1}>{active.pollData!.question}</Text></View>}
+            {hasPoll && active?.uploadState === 'idle' && (<View pointerEvents="none" style={{ position: 'absolute', left: previewSize.w * 0.1, width: previewSize.w * 0.8, top: Math.max(90, Math.min(previewSize.h * 0.75 - 100, previewSize.h - 360)), zIndex: 12, alignItems: 'center' }}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></View>)}
           </View>
         ) : (
           <MediaCanvas
@@ -829,7 +831,7 @@ export default function StoryComposerScreen() {
             {!arrangement.arrangementOpen && active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
               <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} />
             )}
-            {hasPoll && active?.uploadState === 'idle' && <View style={st.pollBadge}><Feather name="bar-chart-2" size={14} color="#FFF" /><Text style={st.pollBadgeTxt} numberOfLines={1}>{active.pollData!.question}</Text></View>}
+            {hasPoll && active?.uploadState === 'idle' && (<View pointerEvents="none" style={{ position: 'absolute', left: previewSize.w * 0.1, width: previewSize.w * 0.8, top: Math.max(90, Math.min(previewSize.h * 0.75 - 100, previewSize.h - 360)), zIndex: 12, alignItems: 'center' }}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></View>)}
           </MediaCanvas>
         )}
 

@@ -7,6 +7,8 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated, Easing, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
+import TierName from '../TierName';
+import VerifiedBadge from '../VerifiedBadge';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import type { StoryTextSticker } from '../../services/storiesService';
 
@@ -178,7 +180,11 @@ export function EntityStickerCard({ sticker, onPress }: { sticker: StoryTextStic
           <Feather name={icon as any} size={11} color="#8A93A6" />
           <Text style={xs.entityTag}>{label}</Text>
         </View>
-        <Text style={xs.entityTitle} numberOfLines={2}>{s.entityTitle || sticker.text}</Text>
+        {s.entityType === 'profile' && s.entityId ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}><TierName userId={s.entityId} text={s.entityTitle || sticker.text} baseStyle={[xs.entityTitle, { flexShrink: 1 }]} /><View style={{ marginLeft: 5 }}><VerifiedBadge userId={s.entityId} size={14} /></View></View>
+        ) : (
+          <Text style={xs.entityTitle} numberOfLines={2}>{s.entityTitle || sticker.text}</Text>
+        )}
         {!!s.entitySub && <Text style={xs.entitySub} numberOfLines={1}>{s.entitySub}</Text>}
       </View>
       <Feather name="chevron-right" size={18} color="#8A93A6" />

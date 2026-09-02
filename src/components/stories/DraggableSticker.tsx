@@ -35,6 +35,9 @@ import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard from './PostStoryCard';
 import CountdownStickerCard from './CountdownStickerCard';
+import QuestionStickerCard from './QuestionStickerCard';
+import SliderStickerCard from './SliderStickerCard';
+import QuizStickerCard from './QuizStickerCard';
 import { TimeStickerView, DateStickerView, WeatherStickerView, PhotoStickerView, GifStickerView, EntityStickerCard, composedTextStyle } from './storyExtras';
 import { motion, feedback } from '../../constants/tokens';
 
@@ -683,8 +686,11 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
 
   // ── Hit area ──
 
-  const baseHitH = textMayWrap ? STICKER_HIT_H_WRAP : STICKER_HIT_H;
-  const hitW = Math.max(textMaxWidth || STICKER_HIT_W, STICKER_HIT_W * sticker.scale);
+  // Interactive cards (question, slider, quiz) are real cards in the composer
+  // too, so their hit box follows the card, not the text-sticker default.
+  const cardHitH = sticker.kind === 'question' ? 150 : sticker.kind === 'slider' ? 140 : sticker.kind === 'quiz' ? 64 + 46 * Math.max(2, (sticker.quizOptions || []).length) : 0;
+  const baseHitH = cardHitH || (textMayWrap ? STICKER_HIT_H_WRAP : STICKER_HIT_H);
+  const hitW = Math.max(cardHitH ? 270 : (textMaxWidth || STICKER_HIT_W), STICKER_HIT_W * sticker.scale);
   const hitH = Math.max(baseHitH, baseHitH * sticker.scale);
 
 
@@ -737,6 +743,12 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
               <CountdownStickerCard title={sticker.countdownTitle || sticker.text} target={sticker.countdownTarget || null} />
             ) : sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />
+            ) : sticker.kind === 'question' ? (
+              <QuestionStickerCard prompt={sticker.questionPrompt || sticker.text} interactive={false} isOwn={true} responseCount={0} />
+            ) : sticker.kind === 'slider' ? (
+              <SliderStickerCard label={sticker.sliderLabel || sticker.text} emoji={sticker.sliderEmoji || '❤️'} interactive={false} isOwn={true} myValue={null} averageValue={null} responseCount={0} />
+            ) : sticker.kind === 'quiz' ? (
+              <QuizStickerCard question={sticker.quizQuestion || sticker.text} options={sticker.quizOptions || []} interactive={false} isOwn={true} responseCounts={{}} totalResponses={0} />
             ) : isPill ? (
               <StickerPill label={sticker.text} kind={sticker.kind as any}  variant={(sticker as any).pillVariant || 0} userId={(sticker as any).mentionUserId || null} />
             ) : (
