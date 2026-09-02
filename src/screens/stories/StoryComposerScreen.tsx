@@ -24,6 +24,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
 import { stickerTextStyle, STICKER_STYLES, STICKER_STYLE_LABELS, BASE_FONT_SIZES } from '../../utils/stickerStyles';
 import StickerOverlay from '../../components/stories/StickerOverlay';
+import StickerPill from '../../components/stories/StickerPill';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import DraggableSticker from '../../components/stories/DraggableSticker';
@@ -1047,9 +1048,10 @@ export default function StoryComposerScreen() {
       <Modal visible={emojiTrayOpen} transparent animationType="slide" onRequestClose={closeEmojiTray}>
         <TouchableOpacity style={st.emojiOverlay} activeOpacity={1} onPress={closeEmojiTray}>
           <View style={[st.emojiTray, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={st.emojiHeader}><Text style={st.emojiTitle}>{editingEmojiStickerId ? 'Change Emoji' : 'Add Emoji'}</Text>
-              {editingEmojiStickerId && <TouchableOpacity onPress={deleteEditingEmoji} style={st.emojiDeleteBtn}><Feather name="trash-2" size={16} color="#FF3B30" /><Text style={st.emojiDeleteTxt}>Remove</Text></TouchableOpacity>}
-              {editingEmojiStickerId && <TouchableOpacity onPress={() => { duplicateSticker(editingEmojiStickerId); closeEmojiTray(); }} style={st.emojiDuplicateBtn}><Feather name="copy" size={16} color="#FFF" /><Text style={st.emojiDuplicateTxt}>Duplicate</Text></TouchableOpacity>}
+            <View style={st.sheetGrab} />
+            <View style={st.emojiHeader}><Text style={st.emojiTitle}>{editingEmojiStickerId ? 'Change emoji' : 'Emoji'}</Text>
+              {editingEmojiStickerId && <TouchableOpacity onPress={() => { duplicateSticker(editingEmojiStickerId); closeEmojiTray(); }} style={st.emojiDuplicateBtn}><Feather name="copy" size={14} color="#0B1E3D" /><Text style={st.emojiDuplicateTxt}>Duplicate</Text></TouchableOpacity>}
+              {editingEmojiStickerId && <TouchableOpacity onPress={deleteEditingEmoji} style={st.emojiDeleteBtn}><Feather name="trash-2" size={14} color="#C62F1D" /><Text style={st.emojiDeleteTxt}>Remove</Text></TouchableOpacity>}
             </View>
             <View style={st.emojiGrid}>{EMOJI_LIST.map(e => <TouchableOpacity key={e} style={st.emojiCell} onPress={() => selectEmoji(e)} activeOpacity={0.7}><Text style={st.emojiCellTxt}>{e}</Text></TouchableOpacity>)}</View>
           </View>
@@ -1060,11 +1062,21 @@ export default function StoryComposerScreen() {
       <Modal visible={pollEditorOpen} transparent animationType="slide" onRequestClose={closePollEditor}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closePollEditor}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={st.sheetHeader}><TouchableOpacity onPress={closePollEditor}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Create Poll</Text><TouchableOpacity onPress={savePoll}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
-            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false} style={{ maxHeight: SCREEN_H * 0.45 }} contentContainerStyle={{ paddingBottom: space.md }}>
-              <View style={st.sheetInputWrap}><TextInput value={pollQuestion} onChangeText={setPollQuestion} placeholder="Ask a question..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="dark" /></View>
-              {pollOptions.map((o, i) => <View key={i} style={st.pollOptionRow}><TextInput value={o} onChangeText={t => updatePollOption(i, t)} placeholder={`Option ${i+1}`} placeholderTextColor="rgba(255,255,255,0.3)" style={st.pollOptionInput} maxLength={40} keyboardAppearance="dark" />{pollOptions.length > 2 && <TouchableOpacity onPress={() => removePollOption(i)} style={st.pollRemoveBtn}><Feather name="x" size={16} color="rgba(255,255,255,0.5)" /></TouchableOpacity>}</View>)}
-              {pollOptions.length < 4 && <TouchableOpacity onPress={addPollOption} style={st.pollAddBtn}><Feather name="plus" size={14} color="rgba(255,255,255,0.6)" /><Text style={st.pollAddTxt}>Add option</Text></TouchableOpacity>}
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={closePollEditor} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Poll</Text><TouchableOpacity onPress={savePoll} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false} style={{ maxHeight: SCREEN_H * 0.5 }} contentContainerStyle={{ paddingBottom: space.md }}>
+              <View style={st.sheetPreview}>
+                <Text style={st.sheetPreviewCap}>Preview</Text>
+                <View style={st.sheetCard}>
+                  <Text style={{ textAlign: 'center', color: '#0B1E3D', fontSize: 15, fontWeight: '800', marginBottom: 10 }}>{pollQuestion.trim() || 'Ask a question'}</Text>
+                  {pollOptions.map((o, i) => (
+                    <View key={i} style={{ backgroundColor: '#F2F3F5', borderRadius: 10, paddingVertical: 9, alignItems: 'center', marginTop: i === 0 ? 0 : 6 }}><Text style={{ color: o.trim() ? '#0B1E3D' : 'rgba(11,30,61,0.35)', fontSize: 13.5, fontWeight: '700' }}>{o.trim() || `Option ${i + 1}`}</Text></View>
+                  ))}
+                </View>
+              </View>
+              <View style={st.sheetInputWrap}><TextInput value={pollQuestion} onChangeText={setPollQuestion} placeholder="Ask a question..." placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="light" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} /></View>
+              {pollOptions.map((o, i) => <View key={i} style={st.pollOptionRow}><TextInput value={o} onChangeText={t => updatePollOption(i, t)} placeholder={`Option ${i+1}`} placeholderTextColor="rgba(11,30,61,0.35)" style={st.pollOptionInput} maxLength={40} keyboardAppearance="light" />{pollOptions.length > 2 && <TouchableOpacity onPress={() => removePollOption(i)} style={st.pollRemoveBtn} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="x" size={16} color="rgba(11,30,61,0.5)" /></TouchableOpacity>}</View>)}
+              {pollOptions.length < 4 && <TouchableOpacity onPress={addPollOption} style={st.pollAddBtn}><Feather name="plus" size={14} color="#0B1E3D" /><Text style={st.pollAddTxt}>Add option</Text></TouchableOpacity>}
             </ScrollView>
           </View>
         </TouchableOpacity></View></TouchableOpacity>
@@ -1118,10 +1130,11 @@ export default function StoryComposerScreen() {
       <Modal visible={linkModalOpen} transparent animationType="slide" onRequestClose={closeLinkModal}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeLinkModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={st.sheetHeader}><TouchableOpacity onPress={closeLinkModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Add Link</Text><TouchableOpacity onPress={addLinkSticker} disabled={!linkLabel.trim() || !linkUrl.trim() || !isValidUrl(linkUrl.trim())}><Text style={[st.sheetDoneTxt, (!linkLabel.trim() || !linkUrl.trim()) && { opacity: 0.4 }]}>Add</Text></TouchableOpacity></View>
-            <View style={st.sheetInputWrap}><TextInput value={linkLabel} onChangeText={setLinkLabel} placeholder="Label (e.g. My Website)" placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={60} autoFocus keyboardAppearance="dark" returnKeyType="next" onSubmitEditing={() => linkUrlRef.current?.focus()} blurOnSubmit={false} /></View>
-            <View style={st.sheetInputWrap}><TextInput ref={linkUrlRef} value={linkUrl} onChangeText={setLinkUrl} placeholder="https://..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={500} autoCapitalize="none" autoCorrect={false} keyboardType="url" keyboardAppearance="dark" returnKeyType="done" onSubmitEditing={addLinkSticker} /></View>
-            {linkUrl.trim().length > 0 && !isValidUrl(linkUrl.trim()) && <Text style={st.linkErrorTxt}>Enter a valid URL starting with http:// or https://</Text>}
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={closeLinkModal} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Link</Text><TouchableOpacity onPress={addLinkSticker} disabled={!linkLabel.trim() || !linkUrl.trim() || !isValidUrl(linkUrl.trim())} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={[st.sheetDoneTxt, (!linkLabel.trim() || !linkUrl.trim() || !isValidUrl(linkUrl.trim())) && { opacity: 0.35 }]}>Add</Text></TouchableOpacity></View>
+            <View style={st.sheetInputWrap}><TextInput value={linkLabel} onChangeText={setLinkLabel} placeholder="Label (e.g. My website)" placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} maxLength={60} autoFocus keyboardAppearance="light" returnKeyType="next" onSubmitEditing={() => linkUrlRef.current?.focus()} blurOnSubmit={false} /></View>
+            <View style={st.sheetInputWrap}><TextInput ref={linkUrlRef} value={linkUrl} onChangeText={setLinkUrl} placeholder="https://..." placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} maxLength={500} autoCapitalize="none" autoCorrect={false} keyboardType="url" keyboardAppearance="light" returnKeyType="done" onSubmitEditing={addLinkSticker} /></View>
+            {linkUrl.trim().length > 0 && !isValidUrl(linkUrl.trim()) ? <Text style={st.linkErrorTxt}>Enter a valid URL starting with http:// or https://</Text> : <Text style={st.sheetHint}>Viewers tap the link sticker to open it.</Text>}
           </View>
         </TouchableOpacity></View></TouchableOpacity>
       </Modal>
@@ -1129,18 +1142,22 @@ export default function StoryComposerScreen() {
       {/* Location Modal */}
       <Modal visible={locationModalOpen} transparent animationType="slide" onRequestClose={closeLocationModal}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeLocationModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
-          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.6 }]}>
-            <View style={st.sheetHeader}><TouchableOpacity onPress={closeLocationModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Add Location</Text><View style={{ width: 50 }} /></View>
-            <View style={st.sheetInputWrap}><TextInput value={locationSearch} onChangeText={onLocationSearchChange} placeholder="Search a place..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} autoFocus keyboardAppearance="dark" /></View>
-            {locationLoading && <ActivityIndicator color={accent.warm} style={{ marginVertical: 12 }} />}
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.7 }]}>
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={closeLocationModal} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Location</Text><View style={{ width: 64 }} /></View>
+            <View style={st.sheetInputWrap}><TextInput value={locationSearch} onChangeText={onLocationSearchChange} placeholder="Search a place..." placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} autoFocus keyboardAppearance="light" returnKeyType="search" /></View>
+            {locationLoading && <ActivityIndicator color="#0B1E3D" style={{ marginVertical: 12 }} />}
             {locationError && <Text style={st.locationErrorTxt}>Search failed. Try again.</Text>}
-            <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 240 }}>
+            <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: keyboard.keyboardHeight > 0 ? 220 : 300 }}>
               {locationResults.map((item, idx) => { const { name, subtitle } = fmtLoc(item); return (
                 <TouchableOpacity key={idx} style={st.locationRow} onPress={() => addLocationSticker(item)} activeOpacity={0.6}>
-                  <Feather name="map-pin" size={16} color={textColor.secondary} />
+                  <View style={st.locationPin}><Feather name="map-pin" size={16} color="#0B1E3D" /></View>
                   <View style={{ flex: 1 }}><Text style={st.locationName} numberOfLines={1}>{name}</Text>{subtitle ? <Text style={st.locationSub} numberOfLines={1}>{subtitle}</Text> : null}</View>
+                  <Feather name="chevron-right" size={16} color="rgba(11,30,61,0.3)" />
                 </TouchableOpacity>
               ); })}
+              {!locationLoading && locationSearch.trim().length < 2 && locationResults.length === 0 ? <Text style={[st.sheetHint, { textAlign: 'center', paddingVertical: 18 }]}>Search a city, place or business</Text> : null}
+              {!locationLoading && !locationError && locationSearch.trim().length >= 2 && locationResults.length === 0 ? <Text style={[st.sheetHint, { textAlign: 'center', paddingVertical: 18 }]}>No places found</Text> : null}
             </ScrollView>
           </View>
         </TouchableOpacity></View></TouchableOpacity>
@@ -1149,19 +1166,20 @@ export default function StoryComposerScreen() {
       {/* Mention Modal */}
       <Modal visible={mentionModalOpen} transparent animationType="slide" onRequestClose={closeMentionModal}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeMentionModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
-          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.62 }]}>
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.7 }]}>
+            <View style={st.sheetGrab} />
             <View style={st.sheetHeader}>
               <TouchableOpacity onPress={closeMentionModal} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity>
               <Text style={st.sheetTitle}>Mention people</Text>
-              <TouchableOpacity onPress={confirmMentions} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ backgroundColor: mentionPicks.length > 0 ? '#FFFFFF' : 'rgba(255,255,255,0.14)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999 }}>
-                <Text style={{ color: mentionPicks.length > 0 ? '#0B1E3D' : 'rgba(255,255,255,0.7)', fontWeight: '800', fontSize: 14 }}>{mentionPicks.length > 0 ? `Done (${mentionPicks.length})` : 'Done'}</Text>
+              <TouchableOpacity onPress={confirmMentions} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ backgroundColor: mentionPicks.length > 0 ? '#0B1E3D' : 'rgba(11,30,61,0.12)', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 }}>
+                <Text style={{ color: mentionPicks.length > 0 ? '#FFFFFF' : 'rgba(11,30,61,0.55)', fontWeight: '800', fontSize: 14 }}>{mentionPicks.length > 0 ? `Done (${mentionPicks.length})` : 'Done'}</Text>
               </TouchableOpacity>
             </View>
-            <View style={st.sheetInputWrap}><TextInput value={mentionSearch} onChangeText={onMentionSearchChange} placeholder="Search people..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} autoFocus autoCapitalize="none" keyboardAppearance="dark" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} /></View>
+            <View style={st.sheetInputWrap}><TextInput value={mentionSearch} onChangeText={onMentionSearchChange} placeholder="Search people..." placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} autoFocus autoCapitalize="none" keyboardAppearance="light" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} /></View>
             {mentionPicks.length > 0 ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingTop: 10, gap: 6 }}>
                 {mentionPicks.map(u => (
-                  <TouchableOpacity key={u.id} onPress={() => toggleMentionPick(u)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingLeft: 5, paddingRight: 10, borderRadius: 999, backgroundColor: '#FFFFFF' }}>
+                  <TouchableOpacity key={u.id} onPress={() => toggleMentionPick(u)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingLeft: 5, paddingRight: 10, borderRadius: 999, backgroundColor: '#F2F3F5' }}>
                     {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={{ width: 22, height: 22, borderRadius: 11 }} /> : <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#0B1E3D' }} />}
                     <Text style={{ marginLeft: 6, fontSize: 12.5, fontWeight: '800', color: '#0B1E3D' }}>@{u.username || u.full_name}</Text>
                     <Feather name="x" size={12} color="#0B1E3D" style={{ marginLeft: 6 }} />
@@ -1169,36 +1187,36 @@ export default function StoryComposerScreen() {
                 ))}
               </View>
             ) : null}
-            {mentionLoading && <ActivityIndicator color={accent.warm} style={{ marginVertical: 12 }} />}
+            {mentionLoading && <ActivityIndicator color="#0B1E3D" style={{ marginVertical: 12 }} />}
             <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: keyboard.keyboardHeight > 0 ? 150 : 220 }}>
               {mentionResults.map(u => { const picked = mentionPicks.some(p => p.id === u.id); return (
                 <TouchableOpacity key={u.id} style={st.mentionRow} onPress={() => toggleMentionPick(u)} activeOpacity={0.6}>
                   {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={st.mentionAvatar} /> : <View style={[st.mentionAvatar, { backgroundColor: surface.secondary, alignItems: 'center', justifyContent: 'center' }]}><Feather name="user" size={14} color={textColor.secondary} /></View>}
                   <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center' }}><TierName text={u.full_name || u.username} tier={u.is_verified ? (u.verified_tier ?? 'business') : null} baseStyle={[st.mentionName, { flexShrink: 1 }]} />{u.is_verified ? <View style={{ marginLeft: 5 }}><VerifiedBadge tier={u.verified_tier ?? undefined} userId={u.id} size={13} /></View> : null}</View>{u.username && <Text style={st.mentionUsername} numberOfLines={1}>@{u.username}</Text>}</View>
-                  <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: picked ? '#FFFFFF' : 'rgba(255,255,255,0.35)', backgroundColor: picked ? '#FFFFFF' : 'transparent', alignItems: 'center', justifyContent: 'center' }}>{picked ? <Feather name="check" size={14} color="#0B1E3D" /> : null}</View>
+                  <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: picked ? '#0B1E3D' : 'rgba(11,30,61,0.3)', backgroundColor: picked ? '#0B1E3D' : 'transparent', alignItems: 'center', justifyContent: 'center' }}>{picked ? <Feather name="check" size={14} color="#FFFFFF" /> : null}</View>
                 </TouchableOpacity>
               ); })}
-              {!mentionLoading && mentionSearch.trim().length >= 2 && mentionResults.length === 0 ? <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, paddingVertical: 12, textAlign: 'center' }}>No one found</Text> : null}
-              {!mentionLoading && mentionSearch.trim().length < 2 && mentionResults.length === 0 ? <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, paddingVertical: 12, textAlign: 'center' }}>Type a name or @username</Text> : null}
+              {!mentionLoading && mentionSearch.trim().length >= 2 && mentionResults.length === 0 ? <Text style={[st.sheetHint, { textAlign: 'center', paddingVertical: 14 }]}>No one found</Text> : null}
+              {!mentionLoading && mentionSearch.trim().length < 2 && mentionResults.length === 0 ? <Text style={[st.sheetHint, { textAlign: 'center', paddingVertical: 14 }]}>Type a name or @username</Text> : null}
             </ScrollView>
-            <View style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.14)', marginTop: 8, paddingTop: 10 }}>
-              <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 12, padding: 3 }}>
-                <TouchableOpacity onPress={() => setMentionHidden(false)} activeOpacity={0.8} style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', backgroundColor: !mentionHidden ? '#FFFFFF' : 'transparent' }}><Text style={{ fontSize: 13, fontWeight: '800', color: !mentionHidden ? '#0B1E3D' : '#FFFFFF' }}>On the story</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => setMentionHidden(true)} activeOpacity={0.8} style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', backgroundColor: mentionHidden ? '#FFFFFF' : 'transparent' }}><Text style={{ fontSize: 13, fontWeight: '800', color: mentionHidden ? '#0B1E3D' : '#FFFFFF' }}>Hidden</Text></TouchableOpacity>
+            <View style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.10)', marginTop: 8, paddingTop: 12 }}>
+              <View style={{ flexDirection: 'row', backgroundColor: '#F2F3F5', borderRadius: 12, padding: 3 }}>
+                <TouchableOpacity onPress={() => setMentionHidden(false)} activeOpacity={0.8} style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', backgroundColor: !mentionHidden ? '#0B1E3D' : 'transparent' }}><Text style={{ fontSize: 13, fontWeight: '800', color: !mentionHidden ? '#FFFFFF' : '#0B1E3D' }}>On the story</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => setMentionHidden(true)} activeOpacity={0.8} style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', backgroundColor: mentionHidden ? '#0B1E3D' : 'transparent' }}><Text style={{ fontSize: 13, fontWeight: '800', color: mentionHidden ? '#FFFFFF' : '#0B1E3D' }}>Hidden</Text></TouchableOpacity>
               </View>
-              <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, marginTop: 8, lineHeight: 16 }}>{mentionHidden ? 'Nobody sees the mention on your story. The people you pick still get notified and can view it.' : 'An @name tag appears on your story. Viewers can tap it to open their profile.'}</Text>
+              <Text style={[st.sheetHint, { marginTop: 8 }]}>{mentionHidden ? 'Nobody sees the mention on your story. The people you pick still get notified and can view it.' : 'An @name tag appears on your story. Viewers can tap it to open their profile.'}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                <Text style={{ color: '#FFFFFF', fontSize: 13.5, fontWeight: '700' }}>Let them add this to their story</Text>
-                <Switch value={(active as any)?.allowMentionReshare !== false} onValueChange={(v: boolean) => updateActive({ allowMentionReshare: v } as any)} trackColor={{ false: 'rgba(255,255,255,0.2)', true: '#C9BFB0' }} thumbColor="#FFFFFF" />
+                <Text style={{ color: '#0B1E3D', fontSize: 13.5, fontWeight: '700' }}>Let them add this to their story</Text>
+                <Switch value={(active as any)?.allowMentionReshare !== false} onValueChange={(v: boolean) => updateActive({ allowMentionReshare: v } as any)} trackColor={{ false: 'rgba(11,30,61,0.18)', true: '#0B1E3D' }} thumbColor="#FFFFFF" />
               </View>
               {(((active as any)?.hiddenMentions || []) as { id: string; username: string }[]).length > 0 ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', paddingTop: 10, gap: 6 }}>
-                  <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '700', marginRight: 2 }}>Hidden on this story:</Text>
+                  <Text style={{ color: 'rgba(11,30,61,0.55)', fontSize: 12, fontWeight: '700', marginRight: 2 }}>Hidden on this story:</Text>
                   {(((active as any)?.hiddenMentions || []) as { id: string; username: string }[]).map(h => (
-                    <TouchableOpacity key={h.id} onPress={() => removeHiddenMention(h.id)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 9, borderRadius: 999, backgroundColor: 'rgba(124,92,255,0.25)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(124,92,255,0.6)' }}>
-                      <Feather name="eye-off" size={11} color="#C9BFB0" />
-                      <Text style={{ marginLeft: 5, fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>@{h.username}</Text>
-                      <Feather name="x" size={12} color="rgba(255,255,255,0.7)" style={{ marginLeft: 6 }} />
+                    <TouchableOpacity key={h.id} onPress={() => removeHiddenMention(h.id)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 9, borderRadius: 999, backgroundColor: 'rgba(124,92,255,0.12)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(124,92,255,0.5)' }}>
+                      <Feather name="eye-off" size={11} color="#7C5CFF" />
+                      <Text style={{ marginLeft: 5, fontSize: 12, fontWeight: '700', color: '#0B1E3D' }}>@{h.username}</Text>
+                      <Feather name="x" size={12} color="rgba(11,30,61,0.5)" style={{ marginLeft: 6 }} />
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -1212,50 +1230,60 @@ export default function StoryComposerScreen() {
       <Modal visible={questionModalOpen} transparent animationType="slide" onRequestClose={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingQuestionId ? 'Edit Question' : 'Add Question'}</Text><TouchableOpacity onPress={saveQuestion}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
-            <View style={st.sheetInputWrap}><TextInput value={questionPrompt} onChangeText={setQuestionPrompt} placeholder="Ask me anything..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="dark" /></View>
-            <Text style={st.charCount}>{questionPrompt.length}/120</Text>
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setQuestionModalOpen(false); setEditingQuestionId(null); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingQuestionId ? 'Edit question' : 'Question'}</Text><TouchableOpacity onPress={saveQuestion} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <View style={st.sheetPreview}>
+              <Text style={st.sheetPreviewCap}>Preview</Text>
+              <View style={st.sheetCard}>
+                <Text style={{ textAlign: 'center', color: '#0B1E3D', fontSize: 15, fontWeight: '800' }}>{questionPrompt.trim() || 'Ask me anything'}</Text>
+                <View style={{ marginTop: 10, backgroundColor: '#F2F3F5', borderRadius: 10, paddingVertical: 9, alignItems: 'center' }}><Text style={{ color: 'rgba(11,30,61,0.4)', fontSize: 13, fontWeight: '600' }}>Type something...</Text></View>
+              </View>
+            </View>
+            <View style={st.sheetInputWrap}><TextInput value={questionPrompt} onChangeText={setQuestionPrompt} placeholder="Ask me anything..." placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="light" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} /></View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Text style={st.sheetHint}>Viewers answer privately. You see the answers.</Text><Text style={st.charCount}>{questionPrompt.length}/120</Text></View>
+          </View>
+        </TouchableOpacity></View></TouchableOpacity>
+      </Modal>
+
+      {/* Countdown Modal */}
+      <Modal visible={countdownModalOpen} transparent animationType="slide" onRequestClose={() => setCountdownModalOpen(false)}>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setCountdownModalOpen(false)}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={() => setCountdownModalOpen(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Countdown</Text><TouchableOpacity onPress={addCountdownSticker} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <View style={st.sheetInputWrap}><TextInput value={cdTitle} onChangeText={setCdTitle} placeholder="What are you counting down to?" placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} maxLength={60} keyboardAppearance="light" autoFocus returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} /></View>
+            <View style={st.sheetPreview}>
+              <Text style={st.sheetPreviewCap}>Ends</Text>
+              <Text style={{ color: '#0B1E3D', fontSize: 20, fontWeight: '800', textAlign: 'center', letterSpacing: -0.4 }}>{cdTarget.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 }}>
+                {([[-86400000, '-1 day'], [-3600000, '-1 hr'], [-900000, '-15 min'], [900000, '+15 min'], [3600000, '+1 hr'], [86400000, '+1 day']] as const).map(([ms, lb]) => (
+                  <TouchableOpacity key={lb} onPress={() => cdShift(ms)} style={[st.chip, { paddingHorizontal: 9, paddingVertical: 6 }]} activeOpacity={0.8}><Text style={[st.chipTxt, { fontSize: 11.5 }]}>{lb}</Text></TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            <Text style={[st.sheetPreviewCap, { textAlign: 'left', marginBottom: 8 }]}>Quick pick</Text>
+            <View style={st.chipRow}>
+              {([['1h', 'In 1 hour'], ['3h', 'In 3 hours'], ['tonight', 'Tonight 8 PM'], ['tomorrow', 'Tomorrow 9 AM'], ['3d', 'In 3 days'], ['1w', 'In 1 week']] as const).map(([k, lb]) => (
+                <TouchableOpacity key={k} onPress={() => cdPreset(k)} style={st.chip} activeOpacity={0.8}><Text style={st.chipTxt}>{lb}</Text></TouchableOpacity>
+              ))}
+            </View>
+            <Text style={[st.sheetHint, { marginTop: 12 }]}>Viewers can tap the sticker to get a reminder when it ends.</Text>
           </View>
         </TouchableOpacity></View></TouchableOpacity>
       </Modal>
 
       {/* Hashtag Modal */}
-      <Modal visible={countdownModalOpen} transparent animationType="fade" onRequestClose={() => setCountdownModalOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', paddingHorizontal: 24 }}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View style={{ backgroundColor: 'rgba(13,20,38,0.98)', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)' }}>
-            <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '800', marginBottom: 12 }}>Countdown</Text>
-            <TextInput value={cdTitle} onChangeText={setCdTitle} placeholder="What are you counting down to?" placeholderTextColor="rgba(255,255,255,0.35)" style={{ backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, color: '#FFF', fontSize: 14.5, marginBottom: 14 }} maxLength={60} keyboardAppearance="dark" autoFocus />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
-              {([['1h', 'In 1 hour'], ['3h', 'In 3 hours'], ['tonight', 'Tonight 8 PM'], ['tomorrow', 'Tomorrow 9 AM'], ['3d', 'In 3 days'], ['1w', 'In 1 week']] as const).map(([k, lb]) => (
-                <TouchableOpacity key={k} onPress={() => cdPreset(k)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(245,158,11,0.12)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.4)' }} activeOpacity={0.8}>
-                  <Text style={{ color: '#F59E0B', fontSize: 12, fontWeight: '700' }}>{lb}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
-              {([[-86400000, '-1d'], [86400000, '+1d'], [-3600000, '-1h'], [3600000, '+1h'], [-900000, '-15m'], [900000, '+15m']] as const).map(([ms, lb]) => (
-                <TouchableOpacity key={lb} onPress={() => cdShift(ms)} style={{ paddingHorizontal: 9, paddingVertical: 6, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.08)' }} activeOpacity={0.8}>
-                  <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11.5, fontWeight: '700' }}>{lb}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text style={{ color: '#F59E0B', fontSize: 13.5, fontWeight: '800', textAlign: 'center', marginBottom: 16 }}>{cdTarget.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</Text>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <TouchableOpacity onPress={() => setCountdownModalOpen(false)} style={{ flex: 1, paddingVertical: 12, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center' }} activeOpacity={0.8}><Text style={{ color: 'rgba(255,255,255,0.75)', fontWeight: '800', fontSize: 14 }}>Cancel</Text></TouchableOpacity>
-              <TouchableOpacity onPress={addCountdownSticker} style={{ flex: 1, paddingVertical: 12, borderRadius: 14, backgroundColor: '#F59E0B', alignItems: 'center' }} activeOpacity={0.85}><Text style={{ color: '#0B1E3D', fontWeight: '800', fontSize: 14 }}>Add</Text></TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-        </View>
-      </Modal>
-
       <Modal visible={hashtagModalOpen} transparent animationType="slide" onRequestClose={closeHashtagModal}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={closeHashtagModal}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={st.sheetHeader}><TouchableOpacity onPress={closeHashtagModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Add Hashtag</Text><TouchableOpacity onPress={addHashtagSticker}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
-            <View style={st.sheetInputWrap}><TextInput value={hashtagText} onChangeText={t => setHashtagText(t.replace(/[^A-Za-z0-9_#]/g, ''))} placeholder="#harare" placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={31} autoFocus autoCapitalize="none" autoCorrect={false} keyboardAppearance="dark" /></View>
-            <Text style={st.charCount}>Letters, numbers and underscores</Text>
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={closeHashtagModal} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Hashtag</Text><TouchableOpacity onPress={addHashtagSticker} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <View style={st.sheetPreview}>
+              <Text style={st.sheetPreviewCap}>Preview</Text>
+              <View style={{ alignItems: 'center' }}><StickerPill label={hashtagText.replace(/^#/, '') || 'hashtag'} kind="hashtag" variant={1} /></View>
+            </View>
+            <View style={st.sheetInputWrap}><TextInput value={hashtagText} onChangeText={t => setHashtagText(t.replace(/[^A-Za-z0-9_#]/g, ''))} placeholder="#harare" placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} maxLength={31} autoFocus autoCapitalize="none" autoCorrect={false} keyboardAppearance="light" returnKeyType="done" onSubmitEditing={addHashtagSticker} /></View>
+            <Text style={st.sheetHint}>Letters, numbers and underscores. Viewers tap it to see the tag.</Text>
           </View>
         </TouchableOpacity></View></TouchableOpacity>
       </Modal>
@@ -1263,9 +1291,26 @@ export default function StoryComposerScreen() {
       <Modal visible={sliderModalOpen} transparent animationType="slide" onRequestClose={() => { setSliderModalOpen(false); setEditingSliderId(null); }}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingSliderId ? 'Edit Slider' : 'Add Slider'}</Text><TouchableOpacity onPress={saveSlider}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
-            <View style={st.sheetInputWrap}><TextInput value={sliderLabel} onChangeText={setSliderLabel} placeholder="How much do you love...?" placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={80} autoFocus keyboardAppearance="dark" /></View>
-            <View style={st.sliderEmojiRow}><Text style={st.sliderEmojiLabel}>Emoji</Text><TextInput value={sliderEmoji} onChangeText={t => setSliderEmoji(t.slice(0, 4))} style={st.sliderEmojiInput} maxLength={4} keyboardAppearance="dark" /></View>
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setSliderModalOpen(false); setEditingSliderId(null); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingSliderId ? 'Edit slider' : 'Emoji slider'}</Text><TouchableOpacity onPress={saveSlider} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <View style={st.sheetPreview}>
+              <Text style={st.sheetPreviewCap}>Preview</Text>
+              <View style={st.sheetCard}>
+                <Text style={{ textAlign: 'center', color: '#0B1E3D', fontSize: 14.5, fontWeight: '800', marginBottom: 12 }}>{sliderLabel.trim() || 'How much do you love this?'}</Text>
+                <View style={{ height: 10, borderRadius: 5, backgroundColor: '#F2F3F5', justifyContent: 'center' }}>
+                  <View style={{ position: 'absolute', left: 0, width: '55%', height: 10, borderRadius: 5, backgroundColor: '#C9BFB0' }} />
+                  <Text style={{ position: 'absolute', left: '55%', marginLeft: -16, fontSize: 26 }}>{sliderEmoji || '❤️'}</Text>
+                </View>
+              </View>
+            </View>
+            <View style={st.sheetInputWrap}><TextInput value={sliderLabel} onChangeText={setSliderLabel} placeholder="How much do you love...?" placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} maxLength={80} autoFocus keyboardAppearance="light" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} /></View>
+            <View style={st.sliderEmojiRow}>
+              <Text style={st.sliderEmojiLabel}>Emoji</Text>
+              {['❤️', '😍', '🔥', '😂', '👍', '😮', '🥺', '🤩'].map(em => (
+                <TouchableOpacity key={em} onPress={() => setSliderEmoji(em)} style={[st.sliderEmojiChip, sliderEmoji === em && st.sliderEmojiChipOn]} activeOpacity={0.7}><Text style={{ fontSize: 20 }}>{em}</Text></TouchableOpacity>
+              ))}
+              <TextInput value={['❤️', '😍', '🔥', '😂', '👍', '😮', '🥺', '🤩'].includes(sliderEmoji) ? '' : sliderEmoji} onChangeText={t => { const v = t.slice(-2); if (v.trim()) setSliderEmoji(v); }} placeholder="+" placeholderTextColor="rgba(11,30,61,0.35)" style={st.sliderEmojiInput} maxLength={4} keyboardAppearance="light" />
+            </View>
           </View>
         </TouchableOpacity></View></TouchableOpacity>
       </Modal>
@@ -1274,18 +1319,19 @@ export default function StoryComposerScreen() {
       <Modal visible={quizModalOpen} transparent animationType="slide" onRequestClose={() => { setQuizModalOpen(false); setEditingQuizId(null); }}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => { setQuizModalOpen(false); setEditingQuizId(null); }}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setQuizModalOpen(false); setEditingQuizId(null); }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingQuizId ? 'Edit Quiz' : 'Add Quiz'}</Text><TouchableOpacity onPress={saveQuiz}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
-            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={{ maxHeight: SCREEN_H * 0.45 }} contentContainerStyle={{ paddingBottom: space.md }}>
-              <View style={st.sheetInputWrap}><TextInput value={quizQuestion} onChangeText={setQuizQuestion} placeholder="Quiz question..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="dark" /></View>
+            <View style={st.sheetGrab} />
+            <View style={st.sheetHeader}><TouchableOpacity onPress={() => { setQuizModalOpen(false); setEditingQuizId(null); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>{editingQuizId ? 'Edit quiz' : 'Quiz'}</Text><TouchableOpacity onPress={saveQuiz} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.sheetDoneTxt}>Done</Text></TouchableOpacity></View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} style={{ maxHeight: SCREEN_H * 0.5 }} contentContainerStyle={{ paddingBottom: space.md }}>
+              <View style={st.sheetInputWrap}><TextInput value={quizQuestion} onChangeText={setQuizQuestion} placeholder="Quiz question..." placeholderTextColor="rgba(11,30,61,0.35)" style={st.sheetInput} maxLength={120} autoFocus keyboardAppearance="light" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} /></View>
               {quizOptions.map((o, i) => (
                 <View key={o.id} style={st.quizOptionRow}>
-                  <TouchableOpacity style={[st.quizCorrectBtn, o.isCorrect && st.quizCorrectBtnActive]} onPress={() => setQuizOptions(p => p.map((opt, idx) => ({ ...opt, isCorrect: idx === i })))}><Feather name="check" size={14} color={o.isCorrect ? '#020408' : 'rgba(255,255,255,0.4)'} /></TouchableOpacity>
-                  <TextInput value={o.label} onChangeText={t => setQuizOptions(p => p.map((opt, idx) => idx === i ? { ...opt, label: t } : opt))} placeholder={`Option ${i + 1}`} placeholderTextColor="rgba(255,255,255,0.3)" style={st.quizOptionInput} maxLength={40} keyboardAppearance="dark" />
-                  {quizOptions.length > 2 && <TouchableOpacity onPress={() => removeQuizOption(i)} style={st.pollRemoveBtn}><Feather name="x" size={16} color="rgba(255,255,255,0.5)" /></TouchableOpacity>}
+                  <TouchableOpacity style={[st.quizCorrectBtn, o.isCorrect && st.quizCorrectBtnActive]} onPress={() => setQuizOptions(p => p.map((opt, idx) => ({ ...opt, isCorrect: idx === i })))} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="check" size={14} color={o.isCorrect ? '#FFFFFF' : 'rgba(11,30,61,0.35)'} /></TouchableOpacity>
+                  <TextInput value={o.label} onChangeText={t => setQuizOptions(p => p.map((opt, idx) => idx === i ? { ...opt, label: t } : opt))} placeholder={`Option ${i + 1}`} placeholderTextColor="rgba(11,30,61,0.35)" style={st.quizOptionInput} maxLength={40} keyboardAppearance="light" />
+                  {quizOptions.length > 2 && <TouchableOpacity onPress={() => removeQuizOption(i)} style={st.pollRemoveBtn} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="x" size={16} color="rgba(11,30,61,0.5)" /></TouchableOpacity>}
                 </View>
               ))}
-              {quizOptions.length < 4 && <TouchableOpacity onPress={addQuizOption} style={st.pollAddBtn}><Feather name="plus" size={14} color="rgba(255,255,255,0.6)" /><Text style={st.pollAddTxt}>Add option</Text></TouchableOpacity>}
-              <Text style={st.quizHint}>Tap the checkmark to mark the correct answer</Text>
+              {quizOptions.length < 4 && <TouchableOpacity onPress={addQuizOption} style={st.pollAddBtn}><Feather name="plus" size={14} color="#0B1E3D" /><Text style={st.pollAddTxt}>Add option</Text></TouchableOpacity>}
+              <Text style={st.quizHint}>Tap the circle to mark the correct answer</Text>
             </ScrollView>
           </View>
         </TouchableOpacity></View></TouchableOpacity>
@@ -1390,29 +1436,39 @@ const st = StyleSheet.create({
   deleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: space.sm, paddingVertical: 10 },
   deleteBtnTxt: { color: '#FF3B30', fontSize: typeSize.caption, fontWeight: fontWeight.semibold },
   emojiOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
-  emojiTray: { backgroundColor: surface.primary, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 14, paddingHorizontal: 16 },
-  emojiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  emojiTitle: { color: '#FFF', fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
-  emojiDeleteBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, backgroundColor: 'rgba(255,59,48,0.15)' },
-  emojiDeleteTxt: { color: '#FF3B30', fontSize: typeSize.micro, fontWeight: fontWeight.semibold },
-  emojiDuplicateBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, backgroundColor: surface.secondary },
-  emojiDuplicateTxt: { color: '#FFF', fontSize: typeSize.micro, fontWeight: fontWeight.semibold },
+  emojiTray: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 8, paddingHorizontal: 16 },
+  emojiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 8 },
+  emojiTitle: { color: '#0B1E3D', fontSize: 16, fontWeight: '800', letterSpacing: -0.3, flex: 1 },
+  emojiDeleteBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, backgroundColor: 'rgba(198,47,29,0.10)' },
+  emojiDeleteTxt: { color: '#C62F1D', fontSize: typeSize.micro, fontWeight: fontWeight.semibold },
+  emojiDuplicateBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, backgroundColor: '#F2F3F5' },
+  emojiDuplicateTxt: { color: '#0B1E3D', fontSize: typeSize.micro, fontWeight: fontWeight.semibold },
   emojiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   emojiCell: { width: (SCREEN_W - 32 - 24) / 8, height: 46, alignItems: 'center', justifyContent: 'center' },
   emojiCellTxt: { fontSize: 30 },
   sheetOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheetModal: { backgroundColor: surface.primary, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 14, paddingHorizontal: 16 },
-  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, paddingTop: 4 },
-  sheetCancelTxt: { color: 'rgba(255,255,255,0.65)', fontSize: 15, fontWeight: '500' },
-  sheetTitle: { color: '#FFF', fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
-  sheetDoneTxt: { color: '#3797F0', fontSize: 15, fontWeight: '700' },
+  sheetModal: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 8, paddingHorizontal: 16 },
+  sheetGrab: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(11,30,61,0.14)', marginBottom: 8 },
+  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingTop: 2 },
+  sheetCancelTxt: { color: 'rgba(11,30,61,0.6)', fontSize: 15, fontWeight: '600', minWidth: 64 },
+  sheetTitle: { color: '#0B1E3D', fontSize: 16, fontWeight: '800', letterSpacing: -0.3 },
+  sheetDoneTxt: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', backgroundColor: '#0B1E3D', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 999, overflow: 'hidden', minWidth: 64, textAlign: 'center' },
   sheetInputWrap: { marginBottom: 12 },
-  sheetInput: { color: '#FFF', fontSize: 15, fontWeight: '500', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13 },
+  sheetInput: { color: '#0B1E3D', fontSize: 15.5, fontWeight: '600', backgroundColor: '#F2F3F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13 },
+  sheetPreview: { backgroundColor: '#FAFAF9', borderRadius: 18, paddingVertical: 16, paddingHorizontal: 14, marginBottom: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)' },
+  sheetPreviewCap: { color: 'rgba(11,30,61,0.45)', fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center', marginBottom: 10 },
+  sheetCard: { alignSelf: 'center', width: '84%', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  sheetHint: { color: 'rgba(11,30,61,0.55)', fontSize: 12.5, lineHeight: 17, paddingHorizontal: 2 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: '#F2F3F5', borderWidth: 1, borderColor: 'transparent' },
+  chipOn: { backgroundColor: '#0B1E3D', borderColor: '#0B1E3D' },
+  chipTxt: { color: '#0B1E3D', fontSize: 13, fontWeight: '700' },
+  chipTxtOn: { color: '#FFFFFF' },
   pollOptionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  pollOptionInput: { flex: 1, color: '#FFF', fontSize: 14.5, fontWeight: '500', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 11, paddingHorizontal: 13, paddingVertical: 11 },
+  pollOptionInput: { flex: 1, color: '#0B1E3D', fontSize: 14.5, fontWeight: '600', backgroundColor: '#F2F3F5', borderRadius: 11, paddingHorizontal: 13, paddingVertical: 11 },
   pollRemoveBtn: { padding: 4 },
   pollAddBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10 },
-  pollAddTxt: { color: 'rgba(255,255,255,0.6)', fontSize: typeSize.caption, fontWeight: fontWeight.medium },
+  pollAddTxt: { color: 'rgba(11,30,61,0.55)', fontSize: typeSize.caption, fontWeight: fontWeight.semibold },
   overflowSheet: { backgroundColor: 'rgba(13,20,38,0.97)', borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingTop: 8, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
   overflowHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.15)', alignSelf: 'center', marginBottom: 12 },
   overflowRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14 },
@@ -1441,22 +1497,25 @@ const st = StyleSheet.create({
   bgSwatchActive: { borderColor: accent.warm },
   bgSwatchInner: { flex: 1, borderRadius: 16 },
   bgSwatchWhite: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)' },
-  linkErrorTxt: { color: '#FF6B6B', fontSize: typeSize.micro, fontWeight: fontWeight.medium, paddingHorizontal: 4, paddingTop: 4 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 },
-  locationName: { color: '#FFF', fontSize: typeSize.caption, fontWeight: fontWeight.semibold },
-  locationSub: { color: textColor.secondary, fontSize: typeSize.micro, marginTop: 2 },
-  locationErrorTxt: { color: '#FF6B6B', fontSize: typeSize.micro, fontWeight: fontWeight.medium, textAlign: 'center', paddingVertical: 12 },
+  linkErrorTxt: { color: '#C62F1D', fontSize: typeSize.micro, fontWeight: fontWeight.medium, paddingHorizontal: 4, paddingTop: 4 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
+  locationPin: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(201,191,176,0.28)', alignItems: 'center', justifyContent: 'center' },
+  locationName: { color: '#0B1E3D', fontSize: 14.5, fontWeight: '700' },
+  locationSub: { color: 'rgba(11,30,61,0.55)', fontSize: typeSize.micro, marginTop: 2 },
+  locationErrorTxt: { color: '#C62F1D', fontSize: typeSize.micro, fontWeight: fontWeight.medium, textAlign: 'center', paddingVertical: 12 },
   mentionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11 },
   mentionAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: surface.secondary },
   mentionName: { color: '#FFF', fontSize: typeSize.caption, fontWeight: fontWeight.semibold },
   mentionUsername: { color: textColor.secondary, fontSize: typeSize.micro, marginTop: 1 },
-  charCount: { color: textColor.faint, fontSize: typeSize.micro, textAlign: 'right', paddingHorizontal: 4, paddingTop: 4 },
-  sliderEmojiRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, paddingHorizontal: 4 },
-  sliderEmojiLabel: { color: textColor.secondary, fontSize: typeSize.caption, fontWeight: fontWeight.medium },
-  sliderEmojiInput: { color: '#FFF', fontSize: 24, width: 48, textAlign: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: borderColor.default, paddingVertical: 4 },
+  charCount: { color: 'rgba(11,30,61,0.45)', fontSize: typeSize.micro, textAlign: 'right', paddingHorizontal: 4, paddingTop: 4 },
+  sliderEmojiRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4, flexWrap: 'wrap' },
+  sliderEmojiLabel: { color: 'rgba(11,30,61,0.55)', fontSize: 12.5, fontWeight: '700', marginRight: 4 },
+  sliderEmojiInput: { color: '#0B1E3D', fontSize: 22, width: 46, height: 40, textAlign: 'center', backgroundColor: '#F2F3F5', borderRadius: 12, paddingVertical: 4 },
+  sliderEmojiChip: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F2F3F5', borderWidth: 1.5, borderColor: 'transparent' },
+  sliderEmojiChipOn: { borderColor: '#0B1E3D', backgroundColor: '#FFFFFF' },
   quizOptionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  quizCorrectBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' },
-  quizCorrectBtnActive: { backgroundColor: '#34C759', borderColor: '#34C759' },
-  quizOptionInput: { flex: 1, color: '#FFF', fontSize: 14.5, fontWeight: '500', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 11, paddingHorizontal: 13, paddingVertical: 11 },
-  quizHint: { color: textColor.faint, fontSize: typeSize.micro, textAlign: 'center', paddingTop: 8 },
+  quizCorrectBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.25)', alignItems: 'center', justifyContent: 'center' },
+  quizCorrectBtnActive: { backgroundColor: '#2F9E63', borderColor: '#2F9E63' },
+  quizOptionInput: { flex: 1, color: '#0B1E3D', fontSize: 14.5, fontWeight: '600', backgroundColor: '#F2F3F5', borderRadius: 11, paddingHorizontal: 13, paddingVertical: 11 },
+  quizHint: { color: 'rgba(11,30,61,0.55)', fontSize: typeSize.micro, textAlign: 'center', paddingTop: 8 },
 });

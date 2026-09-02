@@ -121,15 +121,19 @@ export const WEATHER_STYLES = 2;
 export function WeatherStickerView({ sticker }: { sticker: StoryTextSticker }) {
   const s: any = sticker;
   const styleIdx = (s.infoStyle || 0) % WEATHER_STYLES;
-  const t = typeof s.weatherTemp === 'number' ? `${s.weatherTemp}°` : '--°';
+  // Temperature is stored in Celsius; both units are always shown.
+  const hasT = typeof s.weatherTemp === 'number';
+  const tc = hasT ? `${Math.round(s.weatherTemp)}°C` : '--°C';
+  const tf = hasT ? `${Math.round(s.weatherTemp * 9 / 5 + 32)}°F` : '--°F';
   const g = weatherGlyph(Number(s.weatherCode) || 0);
   if (styleIdx === 1) return (
-    <View style={xs.pillDark}><Text style={xs.pillDarkTxt}>{`${g} ${t}`}</Text></View>
+    <View style={xs.pillDark}><Text style={xs.pillDarkTxt}>{`${g} ${tc} · ${tf}`}</Text></View>
   );
   return (
     <View style={{ alignItems: 'center' }}>
       <Text style={{ fontSize: 42 }}>{g}</Text>
-      <Text style={xs.weatherTemp}>{t}</Text>
+      <Text style={xs.weatherTemp}>{tc}</Text>
+      <Text style={[xs.weatherTemp, { fontSize: 17, marginTop: -2, opacity: 0.85 }]}>{tf}</Text>
     </View>
   );
 }
