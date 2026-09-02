@@ -96,16 +96,33 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
                 <View pointerEvents="none" style={{ position: 'absolute', top: 12, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}><Text style={{ color: '#FFF', fontSize: 12.5, fontWeight: '700' }}>Tap where the person is</Text></View>
               </TouchableOpacity>
             ) : null}
-            {(edit.tags || []).map(t => (
-              <View key={t.user_id} pointerEvents="box-none" style={{ position: 'absolute', left: t.nx * canvasW - 5, top: t.ny * canvasH - 5 }}>
-                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#C9BFB0', borderWidth: 1.5, borderColor: '#FFF' }} />
-                <View style={{ position: 'absolute', top: 14, left: -6, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(11,30,61,0.88)', borderRadius: 12, paddingLeft: 8, paddingRight: 4, paddingVertical: 3 }}>
-                  <TierName userId={t.user_id} baseStyle={{ color: '#FFF', fontSize: 12, fontWeight: '700', maxWidth: 140 }} text={t.full_name || t.username || 'Member'} />
-                  <VerifiedBadge userId={t.user_id} size={12} />
-                  <TouchableOpacity onPress={() => removeTag(t.user_id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={13} color="#FFF" /></TouchableOpacity>
-                </View>
-              </View>
-            ))}
+            {(() => {
+              // Placed tags while editing: the same pill as the post (avatar, tier name,
+              // seal) plus a remove x, laid out so they never overlap or run off the
+              // picture; the pearl dot stays exactly where you tapped.
+              const PILL = 32, GAP = 6; const placed: { t: any; dx: number; dy: number; x: number; y: number; w: number }[] = [];
+              [...(edit.tags || [])].sort((a, b) => a.ny - b.ny || a.nx - b.nx).forEach(t => {
+                const dx = t.nx * canvasW, dy = t.ny * canvasH; const w = Math.min(canvasW * 0.75, 84 + (t.full_name || t.username || 'Member').length * 7.4);
+                let x = dx - 10; if (x + w > canvasW - 6) x = canvasW - 6 - w; if (x < 6) x = 6;
+                let y = dy + 10; if (y + PILL > canvasH - 6) y = dy - 10 - PILL;
+                for (let g = 0; g < 12; g++) { const hit = placed.find(p => !(x + w < p.x || p.x + p.w < x) && Math.abs(y - p.y) < PILL + GAP); if (!hit) break; y = hit.y + PILL + GAP; if (y + PILL > canvasH - 6) y = Math.max(6, hit.y - PILL - GAP); }
+                placed.push({ t, dx, dy, x, y, w });
+              });
+              return placed.map(({ t, dx, dy, x, y, w }) => (
+                <React.Fragment key={t.user_id}>
+                  {Math.abs((y - 10) - dy) > 14 ? <View pointerEvents="none" style={{ position: 'absolute', left: dx - 1, top: Math.min(dy, y + PILL / 2), width: 2, height: Math.abs((y + PILL / 2) - dy), backgroundColor: 'rgba(255,255,255,0.55)' }} /> : null}
+                  <View pointerEvents="none" style={{ position: 'absolute', left: dx - 5, top: dy - 5, width: 10, height: 10, borderRadius: 5, backgroundColor: '#C9BFB0', borderWidth: 1.5, borderColor: '#FFF' }} />
+                  <View style={{ position: 'absolute', left: x, top: y, width: w, height: PILL, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(11,30,61,0.9)', borderRadius: 16, paddingLeft: 4, paddingRight: 6 }}>
+                    {t.avatar_url ? <Image source={{ uri: t.avatar_url }} style={{ width: 24, height: 24, borderRadius: 12 }} /> : <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#C9BFB0' }} />}
+                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 6, minWidth: 0 }}>
+                      <TierName userId={t.user_id} baseStyle={{ color: '#FFF', fontSize: 12.5, fontWeight: '700', flexShrink: 1 }} text={t.full_name || t.username || 'Member'} />
+                      <VerifiedBadge userId={t.user_id} size={12} />
+                    </View>
+                    <TouchableOpacity onPress={() => removeTag(t.user_id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.14)', marginLeft: 4 }}><Feather name="x" size={13} color="#FFF" /></TouchableOpacity>
+                  </View>
+                </React.Fragment>
+              ));
+            })()}
           </View>
           {isVideo && !!uri && (
             <View style={{ alignItems: 'center', marginTop: 12 }}>
