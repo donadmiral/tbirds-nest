@@ -13,7 +13,7 @@
  * - Snap: magnetic spring to center (not hard threshold)
  */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -283,6 +283,11 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
 
   const startNx = useSharedValue(sticker.nx);
   const startNy = useSharedValue(sticker.ny);
+  const posNx = useSharedValue(sticker.nx);
+  const posNy = useSharedValue(sticker.ny);
+  const committedPos = useRef({ nx: sticker.nx, ny: sticker.ny });
+  const committedScale = useRef(sticker.scale);
+  const committedRot = useRef(sticker.rotation);
   const pinchBase = useSharedValue(sticker.scale);
   const rotationBase = useSharedValue(sticker.rotation);
   const inDeleteZone = useSharedValue(false);
@@ -302,21 +307,30 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   // ── Sync from props (when external changes happen: undo, edit) ──
 
   useEffect(() => {
+    const c = committedPos.current;
+    if (Math.abs(sticker.nx - c.nx) < 1e-6 && Math.abs(sticker.ny - c.ny) < 1e-6) return;
+    committedPos.current = { nx: sticker.nx, ny: sticker.ny };
     cancelAnimation(translateX);
     cancelAnimation(translateY);
     translateX.value = 0;
     translateY.value = 0;
+    posNx.value = sticker.nx;
+    posNy.value = sticker.ny;
     startNx.value = sticker.nx;
     startNy.value = sticker.ny;
   }, [sticker.nx, sticker.ny]);
 
   useEffect(() => {
+    if (Math.abs(sticker.scale - committedScale.current) < 1e-6) return;
+    committedScale.current = sticker.scale;
     cancelAnimation(scale);
     scale.value = sticker.scale;
     pinchBase.value = sticker.scale;
   }, [sticker.scale]);
 
   useEffect(() => {
+    if (Math.abs(sticker.rotation - committedRot.current) < 1e-6) return;
+    committedRot.current = sticker.rotation;
     cancelAnimation(rotation);
     rotation.value = sticker.rotation;
     rotationBase.value = sticker.rotation;
@@ -333,14 +347,17 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   }, [onDragStart]);
 
   const jsDragEnd = useCallback((id: string, nx: number, ny: number) => {
+    committedPos.current = { nx, ny };
     onDragEnd(id, nx, ny);
   }, [onDragEnd]);
 
   const jsScaleEnd = useCallback((id: string, s: number) => {
+    committedScale.current = s;
     onScaleEnd(id, s);
   }, [onScaleEnd]);
 
   const jsRotateEnd = useCallback((id: string, r: number) => {
+    committedRot.current = r;
     onRotateEnd(id, r);
   }, [onRotateEnd]);
 
@@ -375,8 +392,12 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       'worklet';
       cancelAnimation(translateX);
       cancelAnimation(translateY);
-      startNx.value = startNx.value + translateX.value / containerW;
-      startNy.value = startNy.value + translateY.value / containerH;
+      if (containerW > 0 && containerH > 0) {
+        posNx.value = posNx.value + translateX.value / containerW;
+        posNy.value = posNy.value + translateY.value / containerH;
+        startNx.value = posNx.value;
+        startNy.value = posNy.value;
+      }
       translateX.value = 0;
       translateY.value = 0;
       hapticFiredCenter.value = false;
@@ -481,7 +502,6 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       // Delete drop with animation
       if (inDeleteZone.value) {
         inDeleteZone.value = false;
-        // Shrink and fade before removal
         scale.value = withTiming(0, { duration: 150 });
         opacity.value = withTiming(0, { duration: 150 }, (finished) => {
           'worklet';
@@ -497,56 +517,35 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
         return;
       }
 
-      const currentNx = startNx.value + translateX.value / containerW;
-      const currentNy = startNy.value + translateY.value / containerH;
+      // Stability model: the resting point is decided HERE, synchronously.
+      // Momentum is a short projected toss (Instagram-style), not an
+      // open-ended decay, so the position commit never waits on an animation
+      // callback and X/Y can never desynchronize. Springs are decorative.
+      const visNx = startNx.value + translateX.value / containerW;
+      const visNy = startNy.value + translateY.value / containerH;
 
-      // Apply momentum with profile-specific decay
-      const velocityX = e.velocityX;
-      const velocityY = e.velocityY;
-      const speed = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
-
+      const speed = Math.sqrt(e.velocityX * e.velocityX + e.velocityY * e.velocityY);
+      let targetNx = visNx;
+      let targetNy = visNy;
       if (speed > 100) {
-        translateX.value = withDecay(
-          {
-            velocity: velocityX,
-            deceleration: profile.decayStandard.deceleration,
-            clamp: [(BOUNDARY_X_MIN - startNx.value) * containerW, (BOUNDARY_X_MAX - startNx.value) * containerW],
-          },
-          (finished) => {
-            'worklet';
-            if (finished) {
-              const finalNx = Math.max(BOUNDARY_X_MIN, Math.min(BOUNDARY_X_MAX, startNx.value + translateX.value / containerW));
-              const finalNy = Math.max(safeTopNy, Math.min(safeBottomNy, startNy.value + translateY.value / containerH));
-              runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
-            }
-          }
-        );
-        translateY.value = withDecay({
-          velocity: velocityY,
-          deceleration: profile.decayStandard.deceleration,
-          clamp: [(safeTopNy - startNy.value) * containerH, (safeBottomNy - startNy.value) * containerH],
-        });
-      } else {
-        // Low velocity: settle with gentle spring (physical landing)
-        const finalNx = Math.max(BOUNDARY_X_MIN, Math.min(BOUNDARY_X_MAX, currentNx));
-        const finalNy = Math.max(safeTopNy, Math.min(safeBottomNy, currentNy));
-        const targetTx = (finalNx - startNx.value) * containerW;
-        const targetTy = (finalNy - startNy.value) * containerH;
-
-        if (Math.abs(translateX.value - targetTx) > 0.5 || Math.abs(translateY.value - targetTy) > 0.5) {
-          translateX.value = withSpring(targetTx, SPRING_LAND, (finished) => {
-            'worklet';
-            if (finished) {
-              runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
-            }
-          });
-          translateY.value = withSpring(targetTy, SPRING_LAND);
-        } else {
-          translateX.value = 0;
-          translateY.value = 0;
-          runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
-        }
+        targetNx = visNx + (e.velocityX * 0.12) / containerW;
+        targetNy = visNy + (e.velocityY * 0.12) / containerH;
       }
+
+      const finalNx = Math.max(BOUNDARY_X_MIN, Math.min(BOUNDARY_X_MAX, targetNx));
+      const finalNy = Math.max(safeTopNy, Math.min(safeBottomNy, targetNy));
+
+      // Fold: base moves to the final point, translate carries the visual
+      // remainder and springs to zero.
+      posNx.value = finalNx;
+      posNy.value = finalNy;
+      startNx.value = finalNx;
+      startNy.value = finalNy;
+      translateX.value = (visNx - finalNx) * containerW;
+      translateY.value = (visNy - finalNy) * containerH;
+      translateX.value = withSpring(0, SPRING_LAND);
+      translateY.value = withSpring(0, SPRING_LAND);
+      runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
     }),
     [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, jsDeleteDrop, jsSmartGuideChange]
   );
@@ -574,23 +573,16 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       'worklet';
       const currentScale = scale.value;
 
-      // Snap to 1.0 if very close
+      // Snap to 1.0 if very close. Commit immediately, spring decorates.
       if (Math.abs(currentScale - 1.0) < profile.scaleDeadzone * 2) {
-        scale.value = withSpring(1.0, SPRING_SNAP, (finished) => {
-          'worklet';
-          if (finished) {
-            runOnJS(jsScaleEnd)(stickerId, 1.0);
-            runOnJS(fireHapticLight)();
-          }
-        });
+        scale.value = withSpring(1.0, SPRING_SNAP);
+        pinchBase.value = 1.0;
+        runOnJS(jsScaleEnd)(stickerId, 1.0);
+        runOnJS(fireHapticLight)();
       } else {
-        // Settle with profile-specific spring
-        scale.value = withSpring(currentScale, profile.scaleSettle, (finished) => {
-          'worklet';
-          if (finished) {
-            runOnJS(jsScaleEnd)(stickerId, currentScale);
-          }
-        });
+        scale.value = withSpring(currentScale, profile.scaleSettle);
+        pinchBase.value = currentScale;
+        runOnJS(jsScaleEnd)(stickerId, currentScale);
       }
     }),
     [stickerId, profile, jsScaleEnd]
@@ -624,36 +616,21 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       const velocity = e.velocity;
       const currentRotation = rotation.value;
 
+      // Final angle decided synchronously: fast spins take a short projected
+      // toss, then detent-snap. Commit never waits on an animation callback.
+      let target = currentRotation;
       if (Math.abs(velocity) > profile.rotationSnapVelocity) {
-        rotation.value = withDecay(
-          { velocity: velocity, deceleration: profile.decayRotation.deceleration },
-          (finished) => {
-            'worklet';
-            if (finished) {
-              runOnJS(jsRotateEnd)(stickerId, rotation.value);
-            }
-          }
-        );
-      } else {
-        const nearest = nearestDetent(currentRotation);
-        if (Math.abs(currentRotation - nearest) < profile.rotationDetentRad * 3) {
-          rotation.value = withSpring(nearest, SPRING_SNAP, (finished) => {
-            'worklet';
-            if (finished) {
-              runOnJS(jsRotateEnd)(stickerId, nearest);
-              if (Math.abs(nearest) < 0.001 || Math.abs(nearest % (Math.PI / 2)) < 0.001) {
-                runOnJS(fireHapticSelection)();
-              }
-            }
-          });
-        } else {
-          rotation.value = withSpring(currentRotation, profile.scaleSettle, (finished) => {
-            'worklet';
-            if (finished) {
-              runOnJS(jsRotateEnd)(stickerId, currentRotation);
-            }
-          });
-        }
+        target = currentRotation + velocity * 0.12;
+      }
+      const nearest = nearestDetent(target);
+      if (Math.abs(target - nearest) < profile.rotationDetentRad * 3) {
+        target = nearest;
+      }
+      rotation.value = withSpring(target, SPRING_SNAP);
+      rotationBase.value = target;
+      runOnJS(jsRotateEnd)(stickerId, target);
+      if (Math.abs(target) < 0.001 || Math.abs(target % (Math.PI / 2)) < 0.001) {
+        runOnJS(fireHapticSelection)();
       }
     }),
     [stickerId, profile, jsRotateEnd]
@@ -693,8 +670,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   const baseHitH = textMayWrap ? STICKER_HIT_H_WRAP : STICKER_HIT_H;
   const hitW = Math.max(textMaxWidth || STICKER_HIT_W, STICKER_HIT_W * sticker.scale);
   const hitH = Math.max(baseHitH, baseHitH * sticker.scale);
-  const baseLeft = sticker.nx * containerW;
-  const baseTop = sticker.ny * containerH;
+
 
   // ── Animated style ──
 
@@ -702,6 +678,8 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
     const mountFactor = 0.85 + 0.15 * mountProgress.value;
     const s = scale.value * mountFactor * pickupScale.value;
     return {
+      left: posNx.value * containerW - hitW / 2,
+      top: posNy.value * containerH - hitH / 2,
       transform: [
         { translateX: translateX.value },
         { translateY: translateY.value },
@@ -718,8 +696,6 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
         style={[
           {
             position: 'absolute',
-            left: baseLeft - hitW / 2,
-            top: baseTop - hitH / 2,
             width: hitW,
             height: hitH,
             zIndex: 10,

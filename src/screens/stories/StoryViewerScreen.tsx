@@ -326,7 +326,7 @@ export default function StoryViewerScreen() {
     const curStories = storiesRef.current; const curStoryIdx = storyIndexRef.current; const curUserIdx = userIndexRef.current;
     if (curStoryIdx < curStories.length - 1) { isUserSwitchRef.current = false; progressSV.value = PROGRESS_SEED; const next = curStoryIdx + 1; storyIndexRef.current = next; setStoryIndex(next); }
     else if (curUserIdx < userIds.length - 1) { isUserSwitchRef.current = true; contentScale.setValue(0.96); Animated.spring(contentScale, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start(); progressSV.value = PROGRESS_SEED; const next = curUserIdx + 1; userIndexRef.current = next; setUserIndex(next); }
-    else { if (highlightId) { saveAndGoBack(); } else { setCaughtUp(true); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); caughtUpOpacitySV.value = 0; caughtUpOpacitySV.value = withTiming(1, { duration: 700, easing: REasing.out(REasing.ease) }); const viewed = storiesViewedRef.current; const lingerMs = viewed <= 3 ? 2500 : viewed <= 8 ? 3500 : 4500; caughtUpTimer.current = setTimeout(() => saveAndGoBack(), lingerMs); } }
+    else { saveAndGoBack(); }
   }, [resetProgress, userIds.length, saveAndGoBack, contentScale, highlightId, captureHoldover, prepareCrossfade, progressSV, caughtUpOpacitySV]);
 
   const advanceBackward = useCallback(() => {
