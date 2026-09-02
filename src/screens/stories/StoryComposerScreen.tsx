@@ -106,6 +106,7 @@ type Draft = {
   category: StoryCategory | null; textBgId: string; textBackground: StoryTextBackground | null;
   dualFrontUri?: string | null; dualLayout?: any | null;
   audio?: StoryAudioDraft | null; filterId?: string | null;
+  hiddenMentions?: { id: string; username: string }[] | null; allowMentionReshare?: boolean;
 };
 
 function newDraftId() { return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
@@ -430,6 +431,7 @@ export default function StoryComposerScreen() {
   const [mentionResults, setMentionResults] = useState<any[]>([]);
   const [mentionLoading, setMentionLoading] = useState(false);
   const mentionDebounceRef = useRef<any>(null);
+  const [mentionHidden, setMentionHidden] = useState(false);
 
   // Question
   const [hashtagModalOpen, setHashtagModalOpen] = useState(false);
@@ -640,7 +642,18 @@ export default function StoryComposerScreen() {
   const closeMentionModal = useCallback(() => { setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
   const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { setMentionResults([]); setMentionLoading(false); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
   const onMentionSearchChange = useCallback((t: string) => { setMentionSearch(t); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => searchUsers(t), 300); }, [searchUsers]);
-  const addMentionSticker = useCallback((u: any) => { updateStickers([...(active?.stickers || []), { id: newStickerId(), text: `@${u.username || u.full_name}`, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.55, scale: 1, rotation: 0, kind: 'mention', mentionUserId: u.id, mentionUsername: u.username || u.full_name }]); closeMentionModal(); }, [active, updateStickers, closeMentionModal]);
+  const addMentionSticker = useCallback((u: any) => {
+    if (mentionHidden) {
+      // Hidden mention: a backend relationship only. Nothing is drawn on the
+      // story; the person is notified and can reshare if allowed.
+      const cur = ((active as any)?.hiddenMentions || []) as { id: string; username: string }[];
+      if (!cur.some(h => h.id === u.id)) updateActive({ hiddenMentions: [...cur, { id: u.id, username: u.username || u.full_name || 'member' }] } as any);
+      setMentionSearch(''); setMentionResults([]);
+      return;
+    }
+    updateStickers([...(active?.stickers || []), { id: newStickerId(), text: `@${u.username || u.full_name}`, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.55, scale: 1, rotation: 0, kind: 'mention', mentionUserId: u.id, mentionUsername: u.username || u.full_name }]); closeMentionModal();
+  }, [active, updateStickers, closeMentionModal, mentionHidden, updateActive]);
+  const removeHiddenMention = useCallback((id: string) => { const cur = ((active as any)?.hiddenMentions || []) as { id: string; username: string }[]; updateActive({ hiddenMentions: cur.filter(h => h.id !== id) } as any); }, [active, updateActive]);
 
   // ── Hashtag ──
   // No search and no external service: a hashtag is just text, and forcing a
@@ -1128,6 +1141,27 @@ export default function StoryComposerScreen() {
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16), maxHeight: SCREEN_H * 0.6 }]}>
             <View style={st.sheetHeader}><TouchableOpacity onPress={closeMentionModal}><Text style={st.sheetCancelTxt}>Cancel</Text></TouchableOpacity><Text style={st.sheetTitle}>Mention Someone</Text><View style={{ width: 50 }} /></View>
             <View style={st.sheetInputWrap}><TextInput value={mentionSearch} onChangeText={onMentionSearchChange} placeholder="@username or name..." placeholderTextColor="rgba(255,255,255,0.4)" style={st.sheetInput} autoFocus autoCapitalize="none" keyboardAppearance="dark" /></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, paddingTop: 10 }}>
+              <TouchableOpacity onPress={() => setMentionHidden(h => !h)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: mentionHidden ? '#FFFFFF' : 'rgba(255,255,255,0.12)' }}>
+                <Feather name={mentionHidden ? 'eye-off' : 'eye'} size={13} color={mentionHidden ? '#0B1E3D' : '#FFFFFF'} />
+                <Text style={{ marginLeft: 6, fontSize: 12.5, fontWeight: '700', color: mentionHidden ? '#0B1E3D' : '#FFFFFF' }}>{mentionHidden ? 'Hidden from viewers' : 'Visible on story'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => updateActive({ allowMentionReshare: (active as any)?.allowMentionReshare === false } as any)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)' }}>
+                <Feather name={(active as any)?.allowMentionReshare === false ? 'square' : 'check-square'} size={13} color="#FFFFFF" />
+                <Text style={{ marginLeft: 6, fontSize: 12.5, fontWeight: '700', color: '#FFFFFF' }}>Can reshare</Text>
+              </TouchableOpacity>
+            </View>
+            {(((active as any)?.hiddenMentions || []) as { id: string; username: string }[]).length > 0 ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingTop: 10, gap: 6 }}>
+                {(((active as any)?.hiddenMentions || []) as { id: string; username: string }[]).map(h => (
+                  <TouchableOpacity key={h.id} onPress={() => removeHiddenMention(h.id)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(124,92,255,0.25)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(124,92,255,0.6)' }}>
+                    <Feather name="eye-off" size={11} color="#C9BFB0" />
+                    <Text style={{ marginLeft: 5, fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>@{h.username}</Text>
+                    <Feather name="x" size={12} color="rgba(255,255,255,0.7)" style={{ marginLeft: 6 }} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
             {mentionLoading && <ActivityIndicator color={accent.warm} style={{ marginVertical: 12 }} />}
             <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 240 }}>
               {mentionResults.map(u => (

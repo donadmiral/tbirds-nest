@@ -30,6 +30,8 @@ interface Draft {
   scope: 'global';
   audience?: 'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except';
   sharedWith?: string[] | null;
+  hiddenMentions?: { id: string; username: string }[] | null;
+  allowMentionReshare?: boolean;
   reach?: 'followers' | 'wider';
   uploadState: 'idle' | 'uploading' | 'done' | 'error';
   errorMsg?: string | null;
@@ -145,28 +147,23 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           }
         }
 
-        // Send mention notifications
-        const mentionUserIds = [
-          ...new Set(
-            (stickerPayload || [])
-              .filter((s: any) => s.kind === 'mention' && s.mentionUserId)
-              .map((s: any) => s.mentionUserId)
-          ),
+        // Mentions: visible ones come from mention stickers, hidden ones from
+        // the draft's hidden list. One story_mentions row per person; the DB
+        // trigger writes the notification, so there is a single source.
+        const visibleIds: string[] = Array.from(new Set(
+          (stickerPayload || []).filter((s: any) => s.kind === 'mention' && s.mentionUserId).map((s: any) => String(s.mentionUserId))
+        ));
+        const hiddenIds: string[] = Array.from(new Set(
+          (((d as any).hiddenMentions || []) as any[]).map((h: any) => h?.id).filter(Boolean).map(String)
+        ));
+        const allowReshare = (d as any).allowMentionReshare !== false;
+        const mentionRows = [
+          ...visibleIds.map((uid) => ({ story_id: story.id, mentioned_user_id: uid, mentioned_by_user_id: myId, visible: true, allow_reshare: allowReshare })),
+          ...hiddenIds.filter((uid) => !visibleIds.includes(uid)).map((uid) => ({ story_id: story.id, mentioned_user_id: uid, mentioned_by_user_id: myId, visible: false, allow_reshare: allowReshare })),
         ];
-        for (const mentionedId of mentionUserIds) {
-          try {
-            await supabase.from('notifications').insert({
-              recipient_id: mentionedId,
-              actor_id: myId,
-              type: 'story_mention',
-              message: 'mentioned you in their story',
-              body_preview: d.caption?.trim()?.slice(0, 100) || null,
-              data: { story_id: story.id },
-              account_type: 'personal',
-            });
-          } catch (notifErr) {
-            console.error('[Publish] mention notification failed:', notifErr);
-          }
+        if (mentionRows.length > 0) {
+          const { error: mentionErr } = await supabase.from('story_mentions').insert(mentionRows);
+          if (mentionErr) console.error('[Publish] story_mentions failed:', mentionErr.message);
         }
 
 

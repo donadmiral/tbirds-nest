@@ -278,6 +278,8 @@ export default function NotificationsScreen({ navigation }: any) {
     const d = n.data || {};
     if (n.post_id || d.post_id) {
       navigation.navigate('Post', { postId: n.post_id || d.post_id, commentId: d.comment_id });
+    } else if (n.type === 'story_mention' && d.story_id && n.actor_id) {
+      navigation.navigate('StoryViewer', { userId: n.actor_id });
     } else if (n.type === 'payment_received' && d.conversation_id) {
       navigation.navigate('Messages', { screen: 'Chat', params: { conversationId: d.conversation_id } });
     } else if (n.type === 'job_application' && d.job_id) {
