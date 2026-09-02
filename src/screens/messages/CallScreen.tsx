@@ -9,6 +9,8 @@
  * Ringback is now managed by CallContext via audioService.
  */
 import React, { useEffect, useRef, useState } from 'react';
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image,
   StatusBar, Alert, ScrollView, ActivityIndicator, Modal, Vibration,
@@ -185,7 +187,7 @@ export default function CallScreen() {
               {callerAvatar ? <Image source={{ uri: callerAvatar }} style={s.remoteAvatar} />
                 : <View style={[s.remoteAvatar, { backgroundColor: avatarBg(callerId) }]}>
                     <Text style={s.remoteAvatarTxt}>{initials(callerName)}</Text></View>}
-              <Text style={s.videoCallerName}>{callerName}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>{!isGroupCall && callerId ? <TierName userId={callerId} baseStyle={s.videoCallerName} text={callerName} /> : <Text style={s.videoCallerName}>{callerName}</Text>}{!isGroupCall && callerId ? <VerifiedBadge userId={callerId} size={16} /> : null}</View>
               <View style={s.connectingRow}>
                 {!errorMsg && !connected && <ActivityIndicator color="rgba(255,255,255,0.8)" />}
                 <Text style={s.videoStatus}>{statusText}</Text>
@@ -213,7 +215,7 @@ export default function CallScreen() {
           <View style={s.videoTopCenter}>
             {connected && (
               <>
-                <Text style={s.videoTopName}>{callerName}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>{!isGroupCall && callerId ? <TierName userId={callerId} baseStyle={s.videoTopName} text={callerName} /> : <Text style={s.videoTopName}>{callerName}</Text>}{!isGroupCall && callerId ? <VerifiedBadge userId={callerId} size={13} /> : null}</View>
                 <Text style={s.videoTopTimer}>{fmtTime(elapsed)}</Text>
               </>
             )}
@@ -325,7 +327,7 @@ export default function CallScreen() {
                   onPress={() => Alert.alert('Add to call', `${user.full_name} will be notified.`)}>
                   {user.avatar_url ? <Image source={{ uri: user.avatar_url }} style={s.addAvatar} />
                     : <View style={[s.addAvatar, { backgroundColor: avatarBg(user.id) }]}><Text style={s.addAvatarTxt}>{initials(user.full_name)}</Text></View>}
-                  <View style={{ flex: 1 }}><Text style={s.addName}>{user.full_name}</Text><Text style={s.addSub}>Tap to add</Text></View>
+                  <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={user.id} baseStyle={s.addName} text={user.full_name} /><VerifiedBadge userId={user.id} size={13} /></View><Text style={s.addSub}>Tap to add</Text></View>
                   <View style={s.addPlusBtn}><Feather name="user-plus" size={15} color="#FFF" /></View></TouchableOpacity>))}
             </View>
           )}

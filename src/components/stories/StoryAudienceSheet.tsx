@@ -2,6 +2,8 @@
  * StoryAudienceSheet - Instagram audience picker for the composer.
  */
 import React, { useCallback, useEffect, useState } from 'react';
+import VerifiedBadge from '../VerifiedBadge';
+import TierName from '../TierName';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { storiesService } from '../../services/storiesService';
@@ -85,7 +87,7 @@ export default function StoryAudienceSheet({ visible, onClose, audience, onChang
                           ? <Image source={{ uri: item.avatar_url }} style={s.avatar} />
                           : <View style={[s.avatar, s.avatarFallback]}><Text style={s.avatarTxt}>{(item.full_name || '?')[0]}</Text></View>}
                         <View style={{ flex: 1 }}>
-                          <Text style={s.personName} numberOfLines={1}>{item.full_name || 'Member'}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={item.id} baseStyle={[s.personName, { flexShrink: 1 }]} text={item.full_name || 'Member'} /><VerifiedBadge userId={item.id} size={13} /></View>
                           {!!item.username && <Text style={s.personSub}>@{item.username}</Text>}
                         </View>
                         <View style={[s.check, on && s.checkOn]}>{on ? <Feather name="check" size={14} color="#FFFFFF" /> : null}</View>
@@ -137,7 +139,7 @@ export default function StoryAudienceSheet({ visible, onClose, audience, onChang
                             ? <Image source={{ uri: item.avatar_url }} style={s.avatar} />
                             : <View style={[s.avatar, s.avatarFallback]}><Text style={s.avatarTxt}>{(item.full_name || '?')[0]}</Text></View>}
                           <View style={{ flex: 1 }}>
-                            <Text style={s.personName} numberOfLines={1}>{item.full_name || 'Member'}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={item.id} baseStyle={[s.personName, { flexShrink: 1 }]} text={item.full_name || 'Member'} /><VerifiedBadge userId={item.id} size={13} /></View>
                             {!!item.username && <Text style={s.personSub}>@{item.username}</Text>}
                           </View>
                           <View style={[s.check, on && s.checkOn]}>

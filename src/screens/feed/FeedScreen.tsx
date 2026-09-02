@@ -2225,7 +2225,7 @@ if (!search && promos.length > 0) {
               {viewersRows.map((v: any) => (
                 <TouchableOpacity key={v.user_id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => { setViewersPost(null); (navigation as any).navigate('UserProfile', { userId: v.user_id }); }}>
                   {v.avatar_url ? <ExpoImage source={{ uri: v.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.ink.muted }}>{initials(v.full_name || v.username)}</Text></View>}
-                  <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{v.full_name || v.username || 'Member'}</Text>{v.username ? <Text style={{ fontSize: 12, color: light.ink.muted }}>@{v.username}</Text> : null}</View>
+                  <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={v.user_id} baseStyle={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flexShrink: 1 }} text={v.full_name || v.username || 'Member'} /><VerifiedBadge userId={v.user_id} size={13} /></View>{v.username ? <Text style={{ fontSize: 12, color: light.ink.muted }}>@{v.username}</Text> : null}</View>
                   {v.seen_at ? <Text style={{ fontSize: 11.5, color: light.ink.muted }}>{(() => { const d = (Date.now() - new Date(v.seen_at).getTime()) / 60000; return d < 60 ? Math.max(1, Math.round(d)) + 'm' : d < 1440 ? Math.round(d / 60) + 'h' : Math.round(d / 1440) + 'd'; })()}</Text> : null}
                 </TouchableOpacity>
               ))}
@@ -2245,7 +2245,7 @@ if (!search && promos.length > 0) {
               {sendConvs.map((c: any) => (
                 <TouchableOpacity key={c.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(c)} disabled={sendBusy}>
                   {c.other?.avatar_url ? <ExpoImage source={{ uri: c.other.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.ink.muted }}>{initials(c.other?.full_name || c.other?.username)}</Text></View>}
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{c.other?.full_name || c.other?.username || 'Member'}</Text>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={c.otherId} baseStyle={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flexShrink: 1 }} text={c.other?.full_name || c.other?.username || 'Member'} /><VerifiedBadge userId={c.otherId} size={13} /></View>
                 </TouchableOpacity>
               ))}
               {sendGroups.length > 0 && (
