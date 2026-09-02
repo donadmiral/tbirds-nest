@@ -1,9 +1,11 @@
 "use client";
 
+import { MessageButton } from "@/components/MessageButton";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown, Volume2, VolumeX } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   getMemoryAlbum, getMemoryBook, saveAlbumSettings, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
@@ -25,6 +27,25 @@ function postSticker(pg: any) {
 function fmtDate(s: string | null) {
   if (!s) return "";
   return new Date(s).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
+
+
+// A video page: plays muted on open (the phone starts muted too), one tap on
+// the speaker toggles sound, and a Message pill opens a DM with the owner
+// when you are looking at someone else's album.
+function MemoryVideo({ src, poster, ownerId }: { src: string; poster?: string; ownerId: string }) {
+  const [muted, setMuted] = useState(true);
+  return (
+    <div className="relative h-full w-full">
+      <video src={src} poster={poster} controls playsInline muted={muted} className="h-full w-full object-contain" />
+      <div className="pointer-events-none absolute right-2 top-2 flex items-center gap-2">
+        <button type="button" onClick={() => setMuted((v) => !v)} aria-label={muted ? "Unmute" : "Mute"} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30">
+          {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+        </button>
+        <span className="pointer-events-auto [&>button]:border-0 [&>button]:bg-[#C9BFB0] [&>button]:px-3 [&>button]:py-1.5 [&>button]:text-[12px] [&>button]:text-[#0B1E3D]"><MessageButton profileId={ownerId} /></span>
+      </div>
+    </div>
+  );
 }
 
 export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
@@ -140,7 +161,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
                   <div className={page.style === "polaroid" ? "mx-auto max-w-[340px] rotate-[-1.5deg] border border-ink/10 bg-white p-2.5 pb-3" : ""}>
                     <div className={"relative overflow-hidden bg-ink " + (page.style === "polaroid" ? "aspect-[4/5]" : "aspect-[9/14] rounded-lg")}>
                       {page.media_type === "video" && page.media_url ? (
-                        <video key={page.id} src={page.media_url} poster={page.thumbnail_url ?? undefined} controls playsInline className="h-full w-full object-contain" />
+                        <MemoryVideo key={page.id} src={page.media_url} poster={page.thumbnail_url ?? undefined} ownerId={ownerId} />
                       ) : page.media_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img key={page.id} src={page.media_url} alt="" className="h-full w-full object-cover" />
