@@ -138,6 +138,8 @@ export function TagLayer({ tags, width, height }: { tags?: MediaTag[]; width: nu
     }
     placed.push({ t, dx, dy, x, y, w });
   });
+  // The count mark keeps the bottom-left corner unless a tag lives there; then it moves to the bottom-right.
+  const markRight = placed.some(p => p.y + PILL_H > height - 44 && p.x < 130) || tags.some(t => t.ny > 0.82 && t.nx < 0.35);
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {open ? placed.map(({ t, dx, dy, x, y, w }) => {
@@ -156,7 +158,7 @@ export function TagLayer({ tags, width, height }: { tags?: MediaTag[]; width: nu
         );
       }) : null}
       <TouchableOpacity onPress={() => setOpen(o => !o)} activeOpacity={0.85} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        style={{ position: 'absolute', left: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: open ? '#C9BFB0' : 'rgba(0,0,0,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 }}>
+        style={{ position: 'absolute', left: markRight ? undefined : 10, right: markRight ? 10 : undefined, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: open ? '#C9BFB0' : 'rgba(0,0,0,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 }}>
         <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: open ? '#0B1E3D' : '#C9BFB0' }} />
         <Text style={{ color: open ? '#0B1E3D' : '#FFFFFF', fontSize: 11, fontWeight: '800' }}>{tags.length}</Text>
       </TouchableOpacity>
