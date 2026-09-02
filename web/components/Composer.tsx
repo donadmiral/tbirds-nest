@@ -9,6 +9,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather, Video } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { STORY_FILTERS, filterCss } from "@/lib/stories";
 import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
 
@@ -75,7 +76,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     let dead = false;
     const t = window.setTimeout(async () => {
       const sb = createClient();
-      const base = sb.from("profiles").select("id, full_name, username, avatar_url").limit(12);
+      const base = sb.from("profiles").select("id, full_name, username, avatar_url, is_verified, verified_tier").limit(20);
       const { data } = q ? await base.or("username.ilike." + q + "%,full_name.ilike.%" + q + "%") : await base.order("last_seen", { ascending: false });
       if (!dead) setTagHits(data || []);
     }, 160);
@@ -83,7 +84,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   }, [tagQ, tagAt]);
   const addTag = (p: any) => {
     if (tagIdx === null || !tagAt) return;
-    setItems((prev) => prev.map((it, i) => i !== tagIdx ? it : { ...it, tags: [...(it.tags || []).filter((t) => t.user_id !== p.id), { user_id: p.id, nx: tagAt.nx, ny: tagAt.ny, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null }] }));
+    setItems((prev) => prev.map((it, i) => i !== tagIdx ? it : { ...it, tags: [...(it.tags || []).filter((t) => t.user_id !== p.id), { user_id: p.id, nx: tagAt.nx, ny: tagAt.ny, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null, ...(p.is_verified ? { verified_tier: p.verified_tier ?? null } : {}) } as any] }));
     setTagAt(null); setTagQ(""); setTagHits([]);
   };
   const removeTag = (i: number, uid: string) => setItems((prev) => prev.map((it, x) => x !== i ? it : { ...it, tags: (it.tags || []).filter((t) => t.user_id !== uid) }));
@@ -492,7 +493,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
             {(items[tagIdx].tags || []).map((t) => (
               <span key={t.user_id} className="absolute" style={{ left: "calc(" + t.nx * 100 + "% - 5px)", top: "calc(" + t.ny * 100 + "% - 5px)" }}>
                 <span className="block h-2.5 w-2.5 rounded-full border-2 border-white bg-[#C9BFB0]" />
-                <span className="absolute left-[-6px] top-3.5 flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-[#0B1E3D]/90 py-0.5 pl-2 pr-1 text-[12px] font-bold text-white">{t.full_name || t.username}
+                <span className="absolute left-[-6px] top-3.5 flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-[#0B1E3D]/90 py-0.5 pl-2 pr-1 text-[12px] font-bold text-white">{t.full_name || t.username}{(t as any).verified_tier ? <VerifiedBadge tier={(t as any).verified_tier} size={12} /> : null}
                   <button type="button" onClick={() => removeTag(tagIdx, t.user_id)} className="rounded-full p-0.5 hover:bg-white/20"><X size={12} /></button>
                 </span>
               </span>
@@ -504,7 +505,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
                   {tagHits.map((p) => (
                     <button key={p.id} type="button" onClick={() => addTag(p)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-ink/5">
                       {p.avatar_url ? <img src={p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" /> : <span className="h-8 w-8 rounded-full bg-ink/10" />}
-                      <span className="min-w-0"><span className="block truncate text-[14px] font-bold text-ink">{p.full_name || p.username}</span>{p.username ? <span className="block text-[12px] text-ink/55">@{p.username}</span> : null}</span>
+                      <span className="min-w-0"><span className="flex items-center gap-1 text-[14px] font-bold text-ink"><span className="truncate" style={p.is_verified && getTierColor(p.verified_tier) ? { color: getTierColor(p.verified_tier) as string } : undefined}>{p.full_name || p.username}</span>{p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={13} /> : null}</span>{p.username ? <span className="block text-[12px] text-ink/55">@{p.username}</span> : null}</span>
                     </button>
                   ))}
                 </div>

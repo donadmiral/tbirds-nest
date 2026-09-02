@@ -29,24 +29,51 @@ function editStyle(e: PostMediaEditRecipe | null | undefined): React.CSSProperti
 // navy pills anchored where each person is, each linking to the profile.
 type MediaTag = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null; verified_tier: string | null };
 const tagCache = new Map<string, MediaTag[]>();
-function TagLayer({ tags }: { tags: MediaTag[] }) {
+function TagLayer({ tags, w, h }: { tags: MediaTag[]; w?: number; h?: number }) {
   const [open, setOpen] = useState(false);
   if (!tags.length) return null;
+  // Tidy layout, same rules as the phone: the pearl dot stays on the person, pills
+  // stack top to bottom without overlapping or leaving the picture, and a thin
+  // connector runs from the dot to a pill that had to move. Needs the box size;
+  // until it is measured the pills sit at their anchors.
+  const W = w || 0, H = h || 0; const PILL = 30, GAP = 6;
+  const est = (t: MediaTag) => Math.min(W * 0.7, 46 + (t.full_name || t.username || "Member").length * 7.2);
+  const placed: { t: MediaTag; dx: number; dy: number; x: number; y: number; wpx: number }[] = [];
+  if (W && H) {
+    [...tags].sort((a, b) => a.ny - b.ny || a.nx - b.nx).forEach((t) => {
+      const dx = Math.max(6, Math.min(W - 6, t.nx * W)); const dy = Math.max(6, Math.min(H - 6, t.ny * H)); const wpx = est(t);
+      let x = dx - 10; if (x + wpx > W - 6) x = W - 6 - wpx; if (x < 6) x = 6;
+      let y = dy + 10; if (y + PILL > H - 6) y = dy - 10 - PILL;
+      for (let guard = 0; guard < 12; guard++) {
+        const hit = placed.find((p) => !(x + wpx < p.x || p.x + p.wpx < x) && Math.abs(y - p.y) < PILL + GAP);
+        if (!hit) break; y = hit.y + PILL + GAP; if (y + PILL > H - 6) y = Math.max(6, hit.y - PILL - GAP);
+      }
+      placed.push({ t, dx, dy, x, y, wpx });
+    });
+  }
+  const pill = (t: MediaTag, style: React.CSSProperties) => {
+    const tier = getTierColor(t.verified_tier);
+    return (
+      <Link key={t.user_id} href={"/" + (t.username || "")} onClick={(e) => e.stopPropagation()}
+        className="pointer-events-auto absolute flex h-[30px] max-w-[70%] items-center gap-1.5 rounded-[15px] bg-[#0B1E3D]/90 pl-1 pr-2.5 text-[12.5px] font-bold text-white shadow-lg" style={style}>
+        {t.avatar_url ? <img src={t.avatar_url} alt="" className="h-[22px] w-[22px] rounded-full object-cover" /> : <span className="h-[22px] w-[22px] rounded-full bg-[#C9BFB0]" />}
+        <span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>
+        {t.verified_tier ? <VerifiedBadge tier={t.verified_tier as any} size={12} /> : null}
+      </Link>
+    );
+  };
   return (
     <div className="pointer-events-none absolute inset-0">
-      {open ? tags.map((t) => {
-        const flip = t.nx > 0.6; const tier = getTierColor(t.verified_tier);
+      {open ? (W && H ? placed.map(({ t, dx, dy, x, y }) => {
+        const moved = Math.abs((y - 10) - dy) > 14 || Math.abs((x + 10) - dx) > 14;
         return (
-          <Link key={t.user_id} href={"/" + (t.username || "")} onClick={(e) => e.stopPropagation()}
-            className="pointer-events-auto absolute flex max-w-[70%] items-center gap-1.5 rounded-[14px] bg-[#0B1E3D]/90 py-1 pl-1 pr-2.5 text-[12.5px] font-bold text-white shadow-lg"
-            style={{ top: "calc(" + (t.ny * 100) + "% + 8px)", left: flip ? undefined : "calc(" + (t.nx * 100) + "% - 10px)", right: flip ? "calc(" + ((1 - t.nx) * 100) + "% - 10px)" : undefined }}>
-            <span className="absolute -top-1 h-2.5 w-2.5 rotate-45 rounded-[2px] bg-[#0B1E3D]/90" style={{ left: flip ? undefined : 8, right: flip ? 8 : undefined }} />
-            {t.avatar_url ? <img src={t.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" /> : <span className="h-5 w-5 rounded-full bg-[#C9BFB0]" />}
-            <span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>
-            {t.verified_tier ? <VerifiedBadge tier={t.verified_tier as any} size={12} /> : null}
-          </Link>
+          <span key={t.user_id}>
+            {moved ? <span className="absolute w-[2px] bg-white/55" style={{ left: dx - 1, top: Math.min(dy, y + PILL / 2), height: Math.abs((y + PILL / 2) - dy) }} /> : null}
+            <span className="absolute h-2.5 w-2.5 rounded-full border-[1.5px] border-white bg-[#C9BFB0]" style={{ left: dx - 5, top: dy - 5 }} />
+            {pill(t, { left: x, top: y })}
+          </span>
         );
-      }) : null}
+      }) : tags.map((t) => pill(t, { top: "calc(" + (t.ny * 100) + "% + 8px)", left: t.nx > 0.6 ? undefined : "calc(" + (t.nx * 100) + "% - 10px)", right: t.nx > 0.6 ? "calc(" + ((1 - t.nx) * 100) + "% - 10px)" : undefined }))) : null}
       <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} aria-label={open ? "Hide tagged people" : "Show tagged people"}
         className={"pointer-events-auto absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-xl px-2 py-1 text-[11px] font-extrabold " + (open ? "bg-[#C9BFB0] text-[#0B1E3D]" : "bg-black/50 text-white")}>
         <span className={"h-2 w-2 rounded-full " + (open ? "bg-[#0B1E3D]" : "bg-[#C9BFB0]")} />{tags.length}
@@ -362,7 +389,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               style={dims ? { width: dims.w + "px", height: dims.h + "px", ...editStyle(editOf(item)) } : editStyle(editOf(item))}
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
-              <TagLayer tags={tags[item.id] || []} />
+              <TagLayer tags={tags[item.id] || []} w={dims?.w} h={dims?.h} />
             </div>
           )}
         </div>
