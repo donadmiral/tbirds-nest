@@ -9,8 +9,11 @@ import { CATEGORIES } from "@/lib/categories";
 import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather, Video } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
+import { STORY_FILTERS, filterCss } from "@/lib/stories";
+import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
 
-type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string };
+type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null };
+type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null };
 type PostKind = "post" | "media" | "video" | "article" | "listing" | "poll" | "innovation";
 
 // The same row as the phone: Post, Article and Listing are kinds of thing;
@@ -60,6 +63,30 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
   const [pickerOpen, setPickerOpen] = useState(false);
   const [threadTo, setThreadTo] = useState<string | null>(null);
   const [pollOn, setPollOn] = useState(false);
+  // Tag people on a photo: open the tagger for one item, click where the person is, pick them.
+  const [tagIdx, setTagIdx] = useState<number | null>(null);
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [tagAt, setTagAt] = useState<{ nx: number; ny: number } | null>(null);
+  const [tagQ, setTagQ] = useState("");
+  const [tagHits, setTagHits] = useState<any[]>([]);
+  useEffect(() => {
+    if (tagAt === null) return;
+    const q = tagQ.trim().replace(/^@/, "");
+    let dead = false;
+    const t = window.setTimeout(async () => {
+      const sb = createClient();
+      const base = sb.from("profiles").select("id, full_name, username, avatar_url").limit(12);
+      const { data } = q ? await base.or("username.ilike." + q + "%,full_name.ilike.%" + q + "%") : await base.order("last_seen", { ascending: false });
+      if (!dead) setTagHits(data || []);
+    }, 160);
+    return () => { dead = true; window.clearTimeout(t); };
+  }, [tagQ, tagAt]);
+  const addTag = (p: any) => {
+    if (tagIdx === null || !tagAt) return;
+    setItems((prev) => prev.map((it, i) => i !== tagIdx ? it : { ...it, tags: [...(it.tags || []).filter((t) => t.user_id !== p.id), { user_id: p.id, nx: tagAt.nx, ny: tagAt.ny, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null }] }));
+    setTagAt(null); setTagQ(""); setTagHits([]);
+  };
+  const removeTag = (i: number, uid: string) => setItems((prev) => prev.map((it, x) => x !== i ? it : { ...it, tags: (it.tags || []).filter((t) => t.user_id !== uid) }));
   // "kind" is a view over the flags that already existed, not a new source of
   // truth: picking one sets the flags, so every downstream check still works.
   const [kind, setKindState] = useState<PostKind>("post");
@@ -213,7 +240,7 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
         return;
       }
       const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
-      media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
+      media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.edit && Object.keys(p.edit).length ? { edit: p.edit } : {}), ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
     }
 
     const insertData: Record<string, unknown> = {
@@ -258,8 +285,14 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     }
     if (media.length > 0) {
       const rows = media.map((m) => ({ post_id: newPost.id, ...m }));
-      const { error: mErr } = await supabase.from("post_media").insert(rows);
+      const { data: inserted, error: mErr } = await supabase.from("post_media").insert(rows).select("id, sort_order");
       if (mErr) setError("Posted, but media did not attach: " + mErr.message);
+      else {
+        // Tagged people, anchored to the media row each tag was placed on.
+        const tagRows: any[] = [];
+        items.forEach((it, i) => { const row = (inserted || []).find((r: any) => r.sort_order === i); (it.tags || []).forEach((t) => { if (row) tagRows.push({ post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
+        if (tagRows.length) await supabase.from("post_media_tags").insert(tagRows);
+      }
     }
 
     items.forEach((p) => URL.revokeObjectURL(p.preview));
@@ -432,12 +465,53 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={p.preview} alt="" className="h-20 w-20 rounded-lg object-cover" />
               )}
-              {p.isVideo ? <span className="absolute bottom-1 left-1 rounded-sm bg-ink/70 px-1 text-[9px] font-bold text-white">VIDEO</span> : null}
+              {p.isVideo ? <span className="absolute bottom-1 left-1 rounded-sm bg-ink/70 px-1 text-[9px] font-bold text-white">VIDEO</span> : (
+                <button type="button" onClick={() => setTagIdx(i)} title="Tag people" className="absolute bottom-1 left-1 flex items-center gap-1 rounded-md bg-ink/70 px-1.5 py-0.5 text-[10px] font-bold text-white hover:bg-ink/85">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#C9BFB0]" />{(p.tags || []).length ? (p.tags || []).length : "Tag"}
+                </button>
+              )}
+              <button type="button" onClick={() => setEditIdx(i)} title="Edit" className={"absolute bottom-1 right-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-white " + (p.edit && Object.keys(p.edit).length ? "bg-[#C9BFB0] text-[#0B1E3D]" : "bg-ink/70 hover:bg-ink/85")}>Edit</button>
               <button onClick={() => setItems(items.filter((_, x) => x !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-white transition-opacity duration-[140ms] hover:opacity-80">
                 <X size={13} />
               </button>
             </span>
           ))}
+        </div>
+      ) : null}
+      {editIdx !== null && items[editIdx] ? (
+        <MediaEditDialog item={items[editIdx]} onClose={() => setEditIdx(null)}
+          onSave={(edit) => { setItems((prev) => prev.map((it, x) => x !== editIdx ? it : { ...it, edit })); setEditIdx(null); }} />
+      ) : null}
+      {tagIdx !== null && items[tagIdx] ? (
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => { setTagIdx(null); setTagAt(null); }}>
+          <div className="relative max-h-[92vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={items[tagIdx].preview} alt="" className="max-h-[80vh] max-w-[92vw] select-none rounded-xl object-contain" draggable={false}
+              onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTagAt({ nx: Math.max(0.02, Math.min(0.98, (e.clientX - r.left) / r.width)), ny: Math.max(0.02, Math.min(0.98, (e.clientY - r.top) / r.height)) }); }} />
+            <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-[12.5px] font-bold text-white">{tagAt ? "Who is this?" : "Click where the person is"}</div>
+            {(items[tagIdx].tags || []).map((t) => (
+              <span key={t.user_id} className="absolute" style={{ left: "calc(" + t.nx * 100 + "% - 5px)", top: "calc(" + t.ny * 100 + "% - 5px)" }}>
+                <span className="block h-2.5 w-2.5 rounded-full border-2 border-white bg-[#C9BFB0]" />
+                <span className="absolute left-[-6px] top-3.5 flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-[#0B1E3D]/90 py-0.5 pl-2 pr-1 text-[12px] font-bold text-white">{t.full_name || t.username}
+                  <button type="button" onClick={() => removeTag(tagIdx, t.user_id)} className="rounded-full p-0.5 hover:bg-white/20"><X size={12} /></button>
+                </span>
+              </span>
+            ))}
+            {tagAt ? (
+              <div className="absolute inset-x-0 bottom-0 max-h-[55%] overflow-auto rounded-b-xl bg-white p-3 shadow-2xl">
+                <input autoFocus value={tagQ} onChange={(e) => setTagQ(e.target.value)} placeholder="Search by name or handle" className="w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] outline-none focus:border-ink/40" />
+                <div className="mt-1">
+                  {tagHits.map((p) => (
+                    <button key={p.id} type="button" onClick={() => addTag(p)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-ink/5">
+                      {p.avatar_url ? <img src={p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" /> : <span className="h-8 w-8 rounded-full bg-ink/10" />}
+                      <span className="min-w-0"><span className="block truncate text-[14px] font-bold text-ink">{p.full_name || p.username}</span>{p.username ? <span className="block text-[12px] text-ink/55">@{p.username}</span> : null}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <button type="button" onClick={() => { setTagIdx(null); setTagAt(null); }} className="absolute -right-2 -top-2 rounded-full bg-white p-1.5 text-ink shadow"><X size={16} /></button>
+          </div>
         </div>
       ) : null}
       {items.filter((m) => !m.isVideo).length > 0 ? (
@@ -555,6 +629,86 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
           </button>
         </div>
       </div>
+      </div>
+    </div>
+  );
+}
+
+// The web edit stage: the same non-destructive recipe the phone writes to
+// post_media.edit (fit, filter with strength, adjust, video trim and mute), so
+// both surfaces render one post the same way.
+function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () => void; onSave: (e: PostMediaEditRecipe | null) => void }) {
+  const [e, setE] = useState<PostMediaEditRecipe>({ ...(item.edit || {}) });
+  const [dur, setDur] = useState(0);
+  const adj = e.adjust || {};
+  const setAdj = (k: string, v: number) => setE((p) => ({ ...p, adjust: { ...(p.adjust || {}), [k]: v } }));
+  const css = filterCss(e.filterId, (e.filterAmt ?? 100) / 100);
+  const adjCss = [
+    adj.bri ? "brightness(" + (1 + adj.bri / 200) + ")" : "",
+    adj.sat ? "saturate(" + (1 + adj.sat / 100) + ")" : "",
+    adj.warm ? "sepia(" + Math.max(0, adj.warm) / 300 + ")" : "",
+  ].filter(Boolean).join(" ");
+  const filterStyle = [css, adjCss].filter(Boolean).join(" ") || undefined;
+  const fit = e.fit === "contain" ? "object-contain" : "object-cover";
+  const clean = (): PostMediaEditRecipe | null => {
+    const out: any = {};
+    if (e.fit === "contain") out.fit = "contain";
+    if (e.filterId) { out.filterId = e.filterId; if ((e.filterAmt ?? 100) !== 100) out.filterAmt = e.filterAmt; }
+    const a: any = {}; Object.entries(adj).forEach(([k, v]) => { if (v) a[k] = v; }); if (Object.keys(a).length) out.adjust = a;
+    if (e.muted) out.muted = true;
+    if (typeof e.trimStart === "number" && e.trimStart > 0) out.trimStart = e.trimStart;
+    if (typeof e.trimEnd === "number" && dur > 0 && e.trimEnd < dur - 0.05) out.trimEnd = e.trimEnd;
+    return Object.keys(out).length ? out : null;
+  };
+  const slider = (label: string, key: string, min = -100, max = 100) => (
+    <label className="flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">{label}</span>
+      <input type="range" min={min} max={max} value={(adj as any)[key] || 0} onChange={(ev) => setAdj(key, Number(ev.target.value))} className="flex-1 accent-[#0B1E3D]" />
+      <span className="w-8 text-right tabular-nums text-ink/50">{(adj as any)[key] || 0}</span></label>
+  );
+  return (
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
+      <div className="flex max-h-[92vh] w-full max-w-[920px] flex-col gap-4 overflow-auto rounded-2xl bg-white p-4 md:flex-row" onClick={(ev) => ev.stopPropagation()}>
+        <div className="flex min-h-[260px] flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">
+          {item.isVideo ? (
+            <video src={item.preview} muted={!!e.muted} controls playsInline className={"max-h-[70vh] w-full " + fit} style={{ filter: filterStyle }}
+              onLoadedMetadata={(ev) => { const d = ev.currentTarget.duration || 0; setDur(d); if (typeof e.trimEnd !== "number") setE((p) => ({ ...p, trimEnd: Math.round(d * 10) / 10 })); }} />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.preview} alt="" className={"max-h-[70vh] w-full " + fit} style={{ filter: filterStyle }} />
+          )}
+        </div>
+        <div className="flex w-full flex-col gap-4 md:w-[320px]">
+          <div>
+            <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Filter</p>
+            <div className="flex flex-wrap gap-1.5">
+              <button type="button" onClick={() => setE((p) => ({ ...p, filterId: null }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (!e.filterId ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>None</button>
+              {STORY_FILTERS.map((f) => <button key={f.id} type="button" onClick={() => setE((p) => ({ ...p, filterId: f.id }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (e.filterId === f.id ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>{f.label}</button>)}
+            </div>
+            {e.filterId ? <label className="mt-2 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Strength</span><input type="range" min={0} max={100} value={e.filterAmt ?? 100} onChange={(ev) => setE((p) => ({ ...p, filterAmt: Number(ev.target.value) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-8 text-right tabular-nums text-ink/50">{e.filterAmt ?? 100}</span></label> : null}
+          </div>
+          <div>
+            <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Adjust</p>
+            <div className="flex flex-col gap-1.5">{slider("Brightness", "bri")}{slider("Saturation", "sat")}{slider("Warmth", "warm")}{slider("Fade", "fade", 0, 100)}{slider("Vignette", "vig", 0, 100)}</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setE((p) => ({ ...p, fit: (p.fit || "cover") === "cover" ? "contain" : "cover" }))} className="rounded-full bg-ink/5 px-3 py-1 text-[12px] font-bold text-ink hover:bg-ink/10">{e.fit === "contain" ? "Fill" : "Fit"}</button>
+            {item.isVideo ? <button type="button" onClick={() => setE((p) => ({ ...p, muted: !p.muted }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (e.muted ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>{e.muted ? "Muted" : "Sound on"}</button> : null}
+          </div>
+          {item.isVideo && dur > 0 ? (
+            <div>
+              <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Trim</p>
+              <label className="flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Start</span><input type="range" min={0} max={dur} step={0.1} value={e.trimStart ?? 0} onChange={(ev) => setE((p) => ({ ...p, trimStart: Math.min(Number(ev.target.value), (p.trimEnd ?? dur) - 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-ink/50">{(e.trimStart ?? 0).toFixed(1)}s</span></label>
+              <label className="mt-1.5 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">End</span><input type="range" min={0} max={dur} step={0.1} value={e.trimEnd ?? dur} onChange={(ev) => setE((p) => ({ ...p, trimEnd: Math.max(Number(ev.target.value), (p.trimStart ?? 0) + 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-ink/50">{(e.trimEnd ?? dur).toFixed(1)}s</span></label>
+            </div>
+          ) : null}
+          <div className="mt-auto flex items-center justify-between pt-2">
+            <button type="button" onClick={() => setE({})} className="text-[12.5px] font-bold text-ink/60 hover:text-ink">Reset</button>
+            <div className="flex gap-2">
+              <button type="button" onClick={onClose} className="rounded-full px-4 py-2 text-[13px] font-bold text-ink hover:bg-ink/5">Cancel</button>
+              <button type="button" onClick={() => onSave(clean())} className="rounded-full bg-[#0B1E3D] px-4 py-2 text-[13px] font-bold text-white">Done</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
