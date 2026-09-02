@@ -36,6 +36,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
   const dwellStart = useRef<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(edit?.muted ? true : mutedPref);
+  const [skipHint, setSkipHint] = useState<number>(0);
   const [progress, setProgress] = useState(0);
   const [fs, setFs] = useState(false);
   const [speed, setSpeed] = useState(() => readPrefs().speed);
@@ -184,7 +185,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
         playsInline
         preload="metadata"
         crossOrigin="anonymous"
-        onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
+        onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); const el = ref.current; const now = Date.now(); const last = (el as any)?._pcLastTap || 0; if (el) (el as any)._pcLastTap = now; if (now - last < 300 && el) { const r = el.getBoundingClientRect(); const dir = e.clientX < r.left + r.width / 2 ? -1 : 1; el.currentTime = Math.max(0, Math.min(el.duration || el.currentTime + dir * 10, el.currentTime + dir * 10)); if (el.paused) el.play().catch(() => {}); setSkipHint(dir); window.setTimeout(() => setSkipHint(0), 600); return; } window.setTimeout(() => { const el2 = ref.current; if (!el2) return; if (Date.now() - ((el2 as any)._pcLastTap || 0) >= 300) togglePlay(); }, 300); }}
         onTimeUpdate={() => {
           const v = ref.current;
           if (!v) return;
@@ -227,6 +228,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
         className={(fs || immersive) ? ("relative mx-auto block min-h-0 flex-1 " + (fill ? "object-cover" : "max-w-full object-contain")) : "relative h-full w-full object-cover"}
         style={(fs || immersive) && fill ? { aspectRatio: String(Math.max(width && height ? width / height : 0.8, 0.8)), maxWidth: "100%" } : undefined}
       />
+      {skipHint !== 0 ? (<div className={"pointer-events-none absolute inset-y-0 flex w-[45%] items-center justify-center " + (skipHint < 0 ? "left-0" : "right-0")}><div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white/20 text-[12px] font-bold text-white">{skipHint < 0 ? "\u25C0\u25C0" : "\u25B6\u25B6"}<span>10 seconds</span></div></div>) : null}
 
       {!playing && posterBg && !unplayable ? (
         <button onClick={(e) => { e.stopPropagation(); playNow(); }} aria-label="Play video" className={"z-[5] flex items-center justify-center " + ((fs || immersive) ? "absolute inset-x-0 top-0 bottom-[84px]" : "absolute inset-0")}>
