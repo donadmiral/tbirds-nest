@@ -738,7 +738,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
             ) : sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />
             ) : isPill ? (
-              <StickerPill label={sticker.text} kind={sticker.kind as any}  variant={(sticker as any).pillVariant || 0} />
+              <StickerPill label={sticker.text} kind={sticker.kind as any}  variant={(sticker as any).pillVariant || 0} userId={(sticker as any).mentionUserId || null} />
             ) : (
               <Text style={[textStyle, textMaxWidth ? { maxWidth: textMaxWidth } : undefined]}>
                 {sticker.text}

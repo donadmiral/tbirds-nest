@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import VerifiedBadge, { getTierColor, useVerifiedTier } from '../VerifiedBadge';
 
 type StickerPillProps = {
   label: string;
@@ -9,6 +10,8 @@ type StickerPillProps = {
   onPress?: () => void;
   /** Tap cycles the look: 0 white, 1 ink, 2 gradient, 3 glass. Stored on the sticker. */
   variant?: number;
+  /** Mention pills: the mentioned profile, so the name wears its tier colour and seal. */
+  userId?: string | null;
 };
 
 /**
@@ -31,7 +34,7 @@ const GRADIENTS: Record<string, [string, string]> = {
   hashtag: ['#0EA5E9', '#22D3EE'],
 };
 
-export default function StickerPill({ label, kind, onPress, variant = 0 }: StickerPillProps) {
+export default function StickerPill({ label, kind, onPress, variant = 0, userId }: StickerPillProps) {
   const cfg = CONFIG[kind];
   const text =
     kind === 'mention' && !label.startsWith('@') ? '@' + label
@@ -39,11 +42,17 @@ export default function StickerPill({ label, kind, onPress, variant = 0 }: Stick
     : label;
   const v = ((variant % 4) + 4) % 4;
   const fg = v === 0 ? '#0A0A0A' : '#FFFFFF';
+  // Mention pills carry the mentioned account's verification: seal on every
+  // look, tier colour on the name where it reads (white and glass looks).
+  const tier = useVerifiedTier(kind === 'mention' ? userId : null);
+  const tierColor = getTierColor(tier);
+  const nameColor = tierColor && (v === 0 || v === 3) ? tierColor : fg;
 
   const inner = (
     <View style={s.row}>
       {cfg.icon ? <Feather name={cfg.icon} size={14} color={fg} style={{ marginRight: 5 }} /> : null}
-      <Text style={[s.label, { color: fg }]} numberOfLines={1}>{text}</Text>
+      <Text style={[s.label, { color: nameColor }]} numberOfLines={1}>{text}</Text>
+      {kind === 'mention' && tier ? <View style={{ marginLeft: 5 }}><VerifiedBadge tier={tier as any} size={15} /></View> : null}
     </View>
   );
 

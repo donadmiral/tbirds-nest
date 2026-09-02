@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import ReAnimated, { useSharedValue as useRASharedValue, useAnimatedStyle as useRAAnimatedStyle } from 'react-native-reanimated';
+import ReAnimated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -126,10 +126,10 @@ function ComposerStickerOverlay({
   // transition re-renders this thin overlay only, never the whole editor.
   // Center guide lines are UI-thread only: the dragged sticker's worklet writes
   // these opacities directly, so no state update and no mount/unmount mid-drag.
-  const guideXOp = useRASharedValue(0);
-  const guideYOp = useRASharedValue(0);
-  const guideXStyle = useRAAnimatedStyle(() => ({ opacity: guideXOp.value }));
-  const guideYStyle = useRAAnimatedStyle(() => ({ opacity: guideYOp.value }));
+  const guideXOp = useSharedValue(0);
+  const guideYOp = useSharedValue(0);
+  const guideXStyle = useAnimatedStyle(() => { 'worklet'; return { opacity: guideXOp.value }; });
+  const guideYStyle = useAnimatedStyle(() => { 'worklet'; return { opacity: guideYOp.value }; });
   const [dragZone, setDragZone] = useState<{ draggingId: string | null; inDeleteZone: boolean }>({ draggingId: null, inDeleteZone: false });
   const [smartGuides, setSmartGuides] = useState<SmartGuidesState>({ x: null, y: null, stickerId: null });
   const onSmartGuideChange = useCallback((id: string, x: SmartGuideEntry, y: SmartGuideEntry) => { setSmartGuides(p => (x === null && y === null) ? (p.stickerId === id ? { x: null, y: null, stickerId: null } : p) : { x, y, stickerId: id }); }, []);

@@ -207,6 +207,7 @@ export function renderStickerContent(
         kind={sticker.kind as 'link' | 'location' | 'mention' | 'hashtag'}
         onPress={handlePress}
         variant={(sticker as any).pillVariant || 0}
+        userId={(sticker as any).mentionUserId || null}
       />
     );
   }
