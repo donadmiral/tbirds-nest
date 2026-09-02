@@ -14,7 +14,7 @@ import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity, Image, 
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming, withSequence, runOnJS } from 'react-native-reanimated';
 import VerifiedBadge from './VerifiedBadge';
 import TierName from './TierName';
@@ -50,6 +50,7 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
   const [scrubbing, setScrubbing] = useState(false);
   const [scrubT, setScrubT] = useState(0);
   const [menu, setMenu] = useState(false);
+  const [clean, setClean] = useState(false);
   const viewedRef = useRef(false);
   const trackW = useRef(1);
 
@@ -93,7 +94,10 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
     .onUpdate(e => { if (scale.value > 1.01) { tx.value = baseX.value + e.translationX; ty.value = baseY.value + e.translationY; } });
   const dbl = Gesture.Tap().numberOfTaps(2).maxDuration(260).onEnd((e, ok) => { if (!ok) return; if (scale.value > 1.05) { scale.value = withSpring(1); tx.value = withSpring(0); ty.value = withSpring(0); return; } runOnJS(burst)(e.x, e.y); });
   const single = Gesture.Tap().numberOfTaps(1).maxDuration(260).onEnd((_e, ok) => { if (ok) runOnJS(setPaused)(!paused); });
-  const gesture = Gesture.Simultaneous(pinch, pan2, Gesture.Exclusive(dbl, single));
+  // Full-view: fling left hides the rail, creator row and scrubber; fling right brings them back.
+  const flingL = Gesture.Fling().direction(Directions.LEFT).onEnd(() => { runOnJS(setClean)(true); });
+  const flingR = Gesture.Fling().direction(Directions.RIGHT).onEnd(() => { runOnJS(setClean)(false); });
+  const gesture = Gesture.Simultaneous(pinch, pan2, Gesture.Exclusive(flingL, flingR, dbl, single));
   const zoomStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }] }));
 
   const seekTo = (sec: number) => { try { player.currentTime = Math.max(0, Math.min(dur || sec, sec)); } catch {} };
@@ -119,7 +123,7 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
       {paused ? <View style={s.pauseBadge} pointerEvents="none"><Feather name="play" size={30} color="#FFF" /></View> : null}
 
       {/* Rail */}
-      <View style={[s.rail, { bottom: railBottom }]} pointerEvents="box-none">
+      {!clean ? <View style={[s.rail, { bottom: railBottom }]} pointerEvents="box-none">
         <TouchableOpacity style={s.railBtn} onPress={() => actions.onToggleLike(item.id)} activeOpacity={0.8}>
           <Ionicons name={liked ? 'heart' : 'heart-outline'} size={31} color={liked ? '#FF3040' : '#FFFFFF'} />
           <Text style={s.railTxt}>{count(item.likes)}</Text>
@@ -139,10 +143,18 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
         <TouchableOpacity style={s.railBtn} onPress={() => setMenu(true)} activeOpacity={0.8}>
           <Feather name="settings" size={25} color="#FFFFFF" />
         </TouchableOpacity>
-      </View>
+        <TouchableOpacity style={s.railBtn} onPress={() => setClean(true)} activeOpacity={0.8} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+          <Feather name="chevrons-right" size={22} color="rgba(255,255,255,0.75)" />
+        </TouchableOpacity>
+      </View> : (
+        <TouchableOpacity onPress={() => setClean(false)} activeOpacity={0.8} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={{ position: 'absolute', right: 0, top: H / 2 - 22, width: 18, height: 44, borderTopLeftRadius: 10, borderBottomLeftRadius: 10, backgroundColor: 'rgba(201,191,176,0.55)', alignItems: 'center', justifyContent: 'center' }}>
+          <Feather name="chevron-left" size={14} color="#0B1E3D" />
+        </TouchableOpacity>
+      )}
 
       {/* Creator + caption */}
-      <View style={[s.meta, { bottom: Math.max(insetBottom, 12) + 46 }]} pointerEvents="box-none">
+      {!clean ? <View style={[s.meta, { bottom: Math.max(insetBottom, 12) + 46 }]} pointerEvents="box-none">
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity onPress={() => item.authorId && actions.onOpenProfile?.(item.authorId)} activeOpacity={0.8}>
             {item.authorAvatar ? <Image source={{ uri: item.authorAvatar }} style={s.av} /> : <View style={[s.av, s.avFb]}><Text style={s.avTxt}>{String(item.authorName || '?').slice(0, 1).toUpperCase()}</Text></View>}
@@ -156,16 +168,18 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
           ) : null}
         </View>
         {!!item.caption && <Text style={s.cap} numberOfLines={2}>{item.caption}</Text>}
-      </View>
+      </View> : null}
 
       {/* Scrubber inside the safe area */}
-      <View style={[s.bottom, { paddingBottom: Math.max(insetBottom, 12) }]} pointerEvents="box-none">
+      {!clean ? <View style={[s.bottom, { paddingBottom: Math.max(insetBottom, 12) }]} pointerEvents="box-none">
         <View {...scrub.panHandlers} style={s.trackHit} onLayout={e => { trackW.current = Math.max(1, e.nativeEvent.layout.width); }}>
           <View style={[s.track, scrubbing && { height: 5 }]}><View style={[s.fill, { width: `${pct * 100}%` }]} /></View>
           <View style={[s.knob, scrubbing && s.knobBig, { left: Math.max(0, pct * trackW.current - (scrubbing ? 9 : 5)) }]} />
         </View>
         <View style={s.timeRow}><Text style={s.time}>{fmt(shown)}</Text><Text style={s.timeDim}> / {fmt(dur)}</Text><View style={{ flex: 1 }} /><TouchableOpacity onPress={() => onSpeed(SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length])} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={s.speed}>{speed}x</Text></TouchableOpacity></View>
-      </View>
+      </View> : (
+        <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(insetBottom, 8), height: 2, backgroundColor: 'rgba(255,255,255,0.18)' }}><View style={{ width: `${pct * 100}%`, height: '100%', backgroundColor: '#C9BFB0' }} /></View>
+      )}
 
       {/* More menu */}
       <Modal visible={menu} transparent animationType="fade" onRequestClose={() => setMenu(false)}>

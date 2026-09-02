@@ -5,7 +5,9 @@
  * stored on post_media.edit. The original file is never touched.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, Dimensions, TextInput, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, Dimensions, TextInput, Image, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import TierName from './TierName';
+import VerifiedBadge from './VerifiedBadge';
 import { supabase } from '../services/supabase';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -46,7 +48,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
     let dead = false;
     const t = setTimeout(async () => {
       try {
-        const base = supabase.from('profiles').select('id, full_name, username, avatar_url').limit(12);
+        const base = supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').limit(20);
         const { data } = q ? await base.or(`username.ilike.${q}%,full_name.ilike.%${q}%`) : await base.order('last_seen', { ascending: false });
         if (!dead) setTagResults((data ?? []) as any[]);
       } catch { if (!dead) setTagResults([]); }
@@ -98,7 +100,8 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
               <View key={t.user_id} pointerEvents="box-none" style={{ position: 'absolute', left: t.nx * canvasW - 5, top: t.ny * canvasH - 5 }}>
                 <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#C9BFB0', borderWidth: 1.5, borderColor: '#FFF' }} />
                 <View style={{ position: 'absolute', top: 14, left: -6, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(11,30,61,0.88)', borderRadius: 12, paddingLeft: 8, paddingRight: 4, paddingVertical: 3 }}>
-                  <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }} numberOfLines={1}>{t.full_name || t.username || 'Member'}</Text>
+                  <TierName userId={t.user_id} baseStyle={{ color: '#FFF', fontSize: 12, fontWeight: '700', maxWidth: 140 }} text={t.full_name || t.username || 'Member'} />
+                  <VerifiedBadge userId={t.user_id} size={12} />
                   <TouchableOpacity onPress={() => removeTag(t.user_id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={13} color="#FFF" /></TouchableOpacity>
                 </View>
               </View>
@@ -128,24 +131,31 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
           ))}
         </View>
         <Modal visible={!!tagAt} transparent animationType="fade" onRequestClose={() => setTagAt(null)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
-            <View style={{ backgroundColor: '#FFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 12) + 8, maxHeight: '70%' }}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setTagAt(null)} />
+            <View style={{ backgroundColor: '#FFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 12) + 8, maxHeight: '62%' }}>
               <View style={{ alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.18)', marginBottom: 10 }} />
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, backgroundColor: 'rgba(11,30,61,0.06)', borderRadius: 12, paddingHorizontal: 12, height: 42 }}>
                 <Feather name="search" size={16} color="rgba(11,30,61,0.55)" />
-                <TextInput value={tagQuery} onChangeText={setTagQuery} placeholder="Who is this?" placeholderTextColor="rgba(11,30,61,0.45)" autoFocus autoCapitalize="none" autoCorrect={false} style={{ flex: 1, fontSize: 15, color: '#0B1E3D' }} />
+                <TextInput value={tagQuery} onChangeText={setTagQuery} placeholder="Who is this?" placeholderTextColor="rgba(11,30,61,0.45)" autoFocus autoCapitalize="none" autoCorrect={false} returnKeyType="search" style={{ flex: 1, fontSize: 15, color: '#0B1E3D' }} />
                 <TouchableOpacity onPress={() => setTagAt(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={{ color: '#0B1E3D', fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
               </View>
-              <ScrollView keyboardShouldPersistTaps="handled" style={{ marginTop: 6 }}>
-                {tagResults.map((p: any) => (
-                  <TouchableOpacity key={p.id} onPress={() => addTag(p)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 }}>
+              <FlatList data={tagResults} keyExtractor={(p: any) => p.id} keyboardShouldPersistTaps="always" keyboardDismissMode="on-drag" style={{ marginTop: 6 }}
+                ListEmptyComponent={<Text style={{ textAlign: 'center', color: 'rgba(11,30,61,0.5)', paddingVertical: 18, fontSize: 13 }}>{tagQuery.trim() ? 'No one matches that yet' : 'Type a name or handle'}</Text>}
+                renderItem={({ item: p }: any) => (
+                  <TouchableOpacity onPress={() => addTag(p)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 }}>
                     {p.avatar_url ? <Image source={{ uri: p.avatar_url }} style={{ width: 38, height: 38, borderRadius: 19 }} /> : <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(11,30,61,0.08)' }} />}
-                    <View style={{ flex: 1 }}><Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }} numberOfLines={1}>{p.full_name || p.username}</Text>{p.username ? <Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.55)' }}>@{p.username}</Text> : null}</View>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <TierName userId={p.id} tier={p.is_verified ? (p.verified_tier ?? null) : null} baseStyle={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D', flexShrink: 1 }} text={p.full_name || p.username} />
+                        {p.is_verified ? <VerifiedBadge tier={p.verified_tier ?? undefined} size={14} /> : null}
+                      </View>
+                      {p.username ? <Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.55)' }}>@{p.username}</Text> : null}
+                    </View>
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
+                )} />
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
         <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={edit.filterId || null} onSelect={(id: string | null) => setEdit(e => ({ ...e, filterId: id }))} previewUri={uri} />
         <AdjustPanel visible={adjustOpen} onClose={() => setAdjustOpen(false)} adjust={edit.adjust || {}} onChange={(a) => setEdit(e => ({ ...e, adjust: Object.keys(a).some(k => (a as any)[k] != null) ? a : null }))}
