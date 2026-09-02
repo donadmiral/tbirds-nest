@@ -1,4 +1,5 @@
 import VideoThumb from '../../components/VideoThumb';
+import SharedPostCard from '../../components/feed/SharedPostCard';
 import { TapTopFlatList } from '../../components/TapTopList';
 import NewPostsPill from '../../components/NewPostsPill';
 import TierName from '../../components/TierName';
@@ -1706,19 +1707,9 @@ if (!search && promos.length > 0) {
           const q = quotedMap[qid];
           const qAuthor = q ? profilesMap[q.user_id] : undefined;
           return (
-            <TouchableOpacity style={{ marginHorizontal: 16, marginTop: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: qid })}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: light.ink.primary }} numberOfLines={1}>{qAuthor?.full_name || qAuthor?.username || 'Post'}</Text>
-                <Text style={{ fontSize: 13, color: light.ink.secondary, marginTop: 2 }} numberOfLines={2}>{q?.content || 'Tap to view'}</Text>
-              </View>
-              {(q as any)?.media?.url ? (
-                (q as any).media.media_type === 'video' ? (
-                  <VideoThumb uri={(q as any).media.url} size={64} />
-                ) : (
-                  <ExpoImage source={{ uri: (q as any).media.url }} style={{ width: 64, height: 64, borderRadius: 8 }} contentFit="cover" />
-                )
-              ) : null}
-            </TouchableOpacity>
+            <View style={{ marginHorizontal: 16, marginTop: 10 }}>
+              <SharedPostCard layout="compact" post={q ? { id: qid, content: q.content, author: qAuthor ? { id: q.user_id, full_name: qAuthor.full_name, username: qAuthor.username, avatar_url: qAuthor.avatar_url } : { id: q.user_id }, media: (q as any)?.media || null } : null} onPress={() => navigation.navigate('Post', { postId: qid })} />
+            </View>
           );
         })()}
 
@@ -1787,7 +1778,7 @@ if (!search && promos.length > 0) {
             <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => addPostToStory(post) }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => addPostToStory(post) }, { text: 'Add to thread', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
             <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{post.shares_count}</Text> : null}
           </TouchableOpacity>
         </View>

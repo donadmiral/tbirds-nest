@@ -1,6 +1,7 @@
 import TierName from '../../components/TierName';
 import { flagsService } from '../../services/flagsService';
 import VerifiedBadge from '../../components/VerifiedBadge';
+import SharedPostCard from '../../components/feed/SharedPostCard';
 import SendMoneySheet from '../../components/SendMoneySheet';
 /**
  * ChatScreen.tsx
@@ -1517,30 +1518,9 @@ const pickAndSendDocument = useCallback(async () => {
             </Text>
           )}
           {msg.shared_post_id && (
-            <TouchableOpacity style={{ width: 232, backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#D1D5DB', borderRadius: 14, overflow: 'hidden', marginBottom: 4 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onLongPress={() => setSelectedMsg(msg)} delayLongPress={380}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 8 }}>
-                {sharedPost?.author?.avatar_url
-                  ? <ExpoImage source={{ uri: sharedPost.author.avatar_url }} style={{ width: 24, height: 24, borderRadius: 12 }} contentFit="cover" />
-                  : <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#E5E7EB' }} />}
-                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0A0A0A', flex: 1 }} numberOfLines={1}>{sharedPost?.author?.full_name || sharedPost?.author?.username || 'Post'}</Text>
-              </View>
-              {sharedPost?.media?.url ? (
-                sharedPost.media.media_type === 'video' ? (
-                  <View style={{ width: '100%', height: 232, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
-                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ fontSize: 15, color: '#0A0A0A', marginLeft: 3 }}>{'\u25B6'}</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <ExpoImage source={{ uri: sharedPost.media.url }} style={{ width: '100%', height: 232 }} contentFit="cover" />
-                )
-              ) : null}
-              {(sharedPost?.content ?? '') !== '' ? (
-                <Text style={{ fontSize: 13, color: '#374151', paddingHorizontal: 10, paddingVertical: 8 }} numberOfLines={sharedPost?.media?.url ? 2 : 4}>{sharedPost?.content}</Text>
-              ) : (!sharedPost?.media?.url ? (
-                <Text style={{ fontSize: 13, color: '#8E8E93', paddingHorizontal: 10, paddingBottom: 8 }}>Tap to view post</Text>
-              ) : null)}
-            </TouchableOpacity>
+            <View style={{ marginBottom: 4 }}>
+              <SharedPostCard post={sharedPost ? { id: msg.shared_post_id, content: sharedPost.content, author: sharedPost.author, media: sharedPost.media } : null} width={232} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onAuthorPress={sharedPost?.author?.id ? () => navigation.navigate('UserProfile' as never, { userId: sharedPost.author.id } as never) : undefined} />
+            </View>
           )}
 
           {replyPreview && (
