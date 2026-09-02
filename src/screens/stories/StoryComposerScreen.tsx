@@ -823,6 +823,7 @@ export default function StoryComposerScreen() {
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
             bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
+            bottomInset={Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106)}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
           >
             <FilterLayer filterId={active?.filterId || null} amt={(getTx() as any).filterAmt} />

@@ -13,7 +13,7 @@ import { supabase } from '../../services/supabase';
 
 const SCREEN_W = Dimensions.get('window').width;
 
-export type StoryAdjust = { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number };
+export type StoryAdjust = { bri?: number; con?: number; warm?: number; tint?: number; sat?: number; hi?: number; sh?: number; fade?: number; grain?: number; vig?: number };
 export type StoryBg = { kind: 'blur' | 'color' | 'gradient' | 'none'; a?: string; b?: string };
 export type StoryMix = { orig?: number; music?: number };
 export type EntityPick = { entityType: 'profile' | 'listing' | 'job' | 'article'; entityId: string; entityTitle: string; entitySub?: string; entityImage?: string | null };
@@ -84,10 +84,31 @@ export function MiniSlider({ value, min, max, onChange, width = 210 }: { value: 
  * CSS filters from the SAME stored values. Close enough to art-direct,
  * identical data underneath.
  */
+/** Film grain: a fixed lattice of faint dots. Deterministic, so the composer
+ *  and both viewers draw the identical pattern from the same amount. */
+function GrainLayer({ amount }: { amount: number }) {
+  const dots = React.useMemo(() => {
+    const out: { top: string; left: string; o: number; s: number }[] = [];
+    let seed = 9301;
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    for (let i = 0; i < 220; i++) out.push({ top: (rnd() * 100).toFixed(2) + '%', left: (rnd() * 100).toFixed(2) + '%', o: 0.25 + rnd() * 0.75, s: rnd() > 0.5 ? 2 : 1 });
+    return out;
+  }, []);
+  const k = Math.max(0, Math.min(100, amount)) / 100;
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {dots.map((d, i) => (
+        <View key={i} pointerEvents="none" style={{ position: 'absolute', top: d.top as any, left: d.left as any, width: d.s, height: d.s, borderRadius: d.s, backgroundColor: i % 2 ? '#FFFFFF' : '#000000', opacity: d.o * k * 0.35 }} />
+      ))}
+    </View>
+  );
+}
+
 export function AdjustLayer({ adjust, zIndex }: { adjust: StoryAdjust | null | undefined; zIndex?: number }) {
   if (!adjust || typeof adjust !== 'object') return null;
   const bri = clampN(adjust.bri), warm = clampN(adjust.warm), tint = clampN(adjust.tint), sat = clampN(adjust.sat), fade = clamp0(adjust.fade), vig = clamp0(adjust.vig);
-  if (!bri && !warm && !tint && !sat && !fade && !vig) return null;
+  const con = clampN((adjust as any).con), hi = clampN((adjust as any).hi), sh = clampN((adjust as any).sh), grain = clamp0((adjust as any).grain);
+  if (!bri && !con && !warm && !tint && !sat && !hi && !sh && !fade && !grain && !vig) return null;
   const layers: { color: string; opacity: number }[] = [];
   if (bri > 0) layers.push({ color: '#FFFFFF', opacity: (bri / 100) * 0.35 });
   if (bri < 0) layers.push({ color: '#000000', opacity: (-bri / 100) * 0.4 });
@@ -98,11 +119,24 @@ export function AdjustLayer({ adjust, zIndex }: { adjust: StoryAdjust | null | u
   if (sat < 0) layers.push({ color: '#808080', opacity: (-sat / 100) * 0.5 });
   if (sat > 0) layers.push({ color: '#FF3D6E', opacity: (sat / 100) * 0.06 });
   if (fade > 0) layers.push({ color: '#D8D2C8', opacity: (fade / 100) * 0.28 });
+  // Contrast: a light plane on the top half and a dark plane on the bottom
+  // half of the tonal range is not possible without pixel access, so contrast
+  // is expressed as paired hard-light-ish planes at low opacity, which reads
+  // as punch without crushing the image.
+  if (con > 0) layers.push({ color: '#000000', opacity: (con / 100) * 0.10 });
+  if (con < 0) layers.push({ color: '#8A8A8A', opacity: (-con / 100) * 0.22 });
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, zIndex != null ? { zIndex } : null]}>
       {layers.map((l, i) => (
         <View key={i} pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: l.color, opacity: l.opacity }]} />
       ))}
+      {hi !== 0 && (
+        <LinearGradient pointerEvents="none" colors={hi > 0 ? ['rgba(255,255,255,' + (hi / 100) * 0.22 + ')', 'rgba(255,255,255,0)'] : ['rgba(0,0,0,' + (-hi / 100) * 0.18 + ')', 'rgba(0,0,0,0)']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+      )}
+      {sh !== 0 && (
+        <LinearGradient pointerEvents="none" colors={sh > 0 ? ['rgba(255,255,255,0)', 'rgba(255,255,255,' + (sh / 100) * 0.18 + ')'] : ['rgba(0,0,0,0)', 'rgba(0,0,0,' + (-sh / 100) * 0.24 + ')']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+      )}
+      {grain > 0 && <GrainLayer amount={grain} />}
       {vig > 0 && (
         <>
           <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,' + (vig / 100) * 0.55 + ')', 'rgba(0,0,0,0)']} style={[StyleSheet.absoluteFill, { height: '32%' }]} />
@@ -119,10 +153,14 @@ function clamp0(v: any): number { const n = Number(v); if (!n || Number.isNaN(n)
 
 const ADJ_FIELDS: { key: keyof StoryAdjust; label: string; min: number; max: number }[] = [
   { key: 'bri', label: 'Brightness', min: -100, max: 100 },
+  { key: 'con', label: 'Contrast', min: -100, max: 100 },
+  { key: 'sat', label: 'Saturation', min: -100, max: 100 },
   { key: 'warm', label: 'Warmth', min: -100, max: 100 },
   { key: 'tint', label: 'Tint', min: -100, max: 100 },
-  { key: 'sat', label: 'Saturation', min: -100, max: 100 },
+  { key: 'hi', label: 'Highlights', min: -100, max: 100 },
+  { key: 'sh', label: 'Shadows', min: -100, max: 100 },
   { key: 'fade', label: 'Fade', min: 0, max: 100 },
+  { key: 'grain', label: 'Grain', min: 0, max: 100 },
   { key: 'vig', label: 'Vignette', min: 0, max: 100 },
 ];
 
@@ -147,7 +185,7 @@ export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filt
             <Text style={pp.dockDoneTxt}>Done</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView style={{ maxHeight: 262 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
+        <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
           {filterOn && (
             <View style={pp.row}>
               <Text style={pp.rowLabel}>Filter strength</Text>

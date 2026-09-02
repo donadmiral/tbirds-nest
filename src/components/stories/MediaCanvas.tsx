@@ -122,6 +122,9 @@ type MediaCanvasProps = {
   onTransformChange: (transform: MediaTransform) => void;
   onFitToggle: () => void;
   interactive: boolean;
+  /** Space at the bottom of the canvas that chrome occupies (caption bar,
+   *  Post button, home indicator) so canvas controls never sit under it. */
+  bottomInset?: number;
   bg?: StoryBg | null;
   videoMuted?: boolean;
   videoVolume?: number;
@@ -147,6 +150,7 @@ export default function MediaCanvas({
   onTransformChange,
   onFitToggle,
   interactive,
+  bottomInset = 0,
   bg = null,
   videoMuted = false,
   videoVolume = 1,
@@ -501,7 +505,7 @@ export default function MediaCanvas({
 
       {/* Fit/fill toggle */}
       {showFitToggle && uploadState === 'idle' && (
-        <TouchableOpacity style={styles.fitToggle} onPress={onFitToggle} activeOpacity={0.75}>
+        <TouchableOpacity style={[styles.fitToggle, { bottom: 16 + bottomInset }]} onPress={onFitToggle} activeOpacity={0.75}>
           <Feather name={mediaFit === 'cover' ? 'minimize-2' : 'maximize-2'} size={16} color="#FFF" />
         </TouchableOpacity>
       )}
