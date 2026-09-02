@@ -16,11 +16,32 @@ import type { MediaTransform, MediaFit } from '../services/storiesService';
 import { FilterPickerSheet, FilterLayer } from './stories/StoryFilters';
 import { AdjustPanel, AdjustLayer, type StoryAdjust } from './stories/storyPanels';
 import TrimStrip from './stories/TrimStrip';
+import { MiniSlider } from './stories/storyPanels';
+import * as VideoThumbnails from 'expo-video-thumbnails';
+
+/** Cover preview: the chosen frame, regenerated as the slider settles. */
+function CoverPreview({ uri, at }: { uri: string; at: number }) {
+  const [thumb, setThumb] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    const t = setTimeout(async () => {
+      try { const r = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.max(0, Math.round(at * 1000)), quality: 0.6 }); if (live) setThumb(r.uri); } catch {}
+    }, 220);
+    return () => { live = false; clearTimeout(t); };
+  }, [uri, at]);
+  return (
+    <View style={{ width: 54, height: 54, borderRadius: 8, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1.5, borderColor: '#C9BFB0' }}>
+      {thumb ? <Image source={{ uri: thumb }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : null}
+    </View>
+  );
+}
 
 export type PostMediaEdit = {
   scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain';
   filterId?: string | null; filterAmt?: number; adjust?: StoryAdjust | null;
   trimStart?: number | null; trimEnd?: number | null; muted?: boolean;
+  /** Video cover: chosen frame (seconds) and the uploaded poster image. */
+  coverAt?: number | null; coverUrl?: string | null;
   /** Tagged people, anchored by normalised position; saved to post_media_tags on publish, not kept in the recipe. */
   tags?: MediaTagDraft[] | null;
 };
@@ -129,6 +150,11 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
               <TrimStrip uri={uri} durationSec={dur || 15} start={edit.trimStart ?? 0} end={trimEnd ?? Math.min(dur || 15, 600)}
                 onChange={(s2, e2) => setEdit(e => ({ ...e, trimStart: Math.round(s2 * 10) / 10, trimEnd: Math.round(e2 * 10) / 10 }))}
                 onDuration={(d) => setDur(d)} player={player} width={SCREEN_W - 24} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10, width: SCREEN_W - 24 }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', width: 44 }}>Cover</Text>
+                <MiniSlider value={Math.round(((edit as any).coverAt ?? edit.trimStart ?? 0) * 10)} min={0} max={Math.max(10, Math.round((dur || 15) * 10))} onChange={(v) => setEdit(e => ({ ...e, coverAt: v / 10 } as any))} width={SCREEN_W - 24 - 44 - 10 - 54 - 10} />
+                <CoverPreview uri={uri} at={(edit as any).coverAt ?? edit.trimStart ?? 0} />
+              </View>
             </View>
           )}
         </View>

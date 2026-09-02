@@ -76,9 +76,9 @@ function CarouselImage({ uri, width, height }: { uri: string; width: number; hei
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand,
+  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster,
 }: {
-  uri: string; width: number; height: number;
+  uri: string; width: number; height: number; poster?: string | null;
   isVisible: boolean; isScreenActive: boolean;
   onTapOverride?: (at?: number) => void;
   onExpand?: (at?: number) => void;
@@ -192,6 +192,7 @@ function CarouselVideo({
         nativeControls={false}
         fullscreenOptions={{ enable: false }}
       />
+      {poster && !isVisible ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height }} contentFit="cover" /> : null}
 
       {/* Playback progress bar */}
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' }} pointerEvents="none">
@@ -269,6 +270,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
       return (
         <CarouselVideo
           uri={item.url}
+          poster={(item as any).edit?.coverUrl || null}
           width={containerWidth}
           height={slideHeight}
           isVisible={index === activeIndex}
@@ -303,6 +305,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           {item.media_type === 'video' ? (
             <CarouselVideo
               uri={item.url}
+              poster={(item as any).edit?.coverUrl || null}
               width={containerWidth}
               height={slideHeight}
               isVisible={true}

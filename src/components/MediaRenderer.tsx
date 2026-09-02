@@ -387,6 +387,9 @@ function VideoItem({
         nativeControls={false}
         allowsPictureInPicture={false}
       />
+      {(item as any).edit?.coverUrl && !isActive ? (
+        <Image source={{ uri: (item as any).edit.coverUrl }} style={{ position: 'absolute', left: 0, top: 0, width, height }} resizeMode={editStyle(item, width, height).fit === 'contain' ? 'contain' : 'cover'} />
+      ) : null}
       <EditOverlays item={item} />
     </View>
   );

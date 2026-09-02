@@ -1291,7 +1291,22 @@ export default function FeedScreen({ navigation }: any) {
           }
 
           const publicUrl = `${supabaseUrl}/storage/v1/object/public/post-media/${fileName}`;
-          uploadedMedia.push({ url: publicUrl, media_type: isVideo ? 'video' : 'image', width: m.width, height: m.height, sort_order: i, edit: m.edit || null });
+          // Video cover: the frame chosen in the editor (or the first trimmed
+          // second) becomes a real poster image so feeds, cards and web show a
+          // picture instead of a black box before play.
+          let editOut: any = m.edit || null;
+          if (isVideo) {
+            try {
+              const at = Math.max(0, Number((m.edit as any)?.coverAt ?? (m.edit as any)?.trimStart ?? 0.5));
+              const th = await VideoThumbnails.getThumbnailAsync(m.uri, { time: Math.round(at * 1000), quality: 0.85 });
+              const cName = `${userId}/${Date.now()}_${i}_cover.jpg`;
+              const cfd = new FormData();
+              cfd.append('file', { uri: th.uri, type: 'image/jpeg', name: `cover_${i}.jpg` } as any);
+              const cr = await fetch(`${supabaseUrl}/storage/v1/object/post-media/${cName}`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, apikey: supabaseKey, 'x-upsert': 'true' }, body: cfd });
+              if (cr.ok) editOut = { ...(editOut || {}), coverAt: at, coverUrl: `${supabaseUrl}/storage/v1/object/public/post-media/${cName}` };
+            } catch {}
+          }
+          uploadedMedia.push({ url: publicUrl, media_type: isVideo ? 'video' : 'image', width: m.width, height: m.height, sort_order: i, edit: editOut });
           if (i === 0) mediaUrl = publicUrl;
 
         } catch (e: any) {
