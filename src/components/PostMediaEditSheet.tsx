@@ -5,7 +5,7 @@
  * stored on post_media.edit. The original file is never touched.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, Dimensions, TextInput, Image, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, Dimensions, TextInput, Image, FlatList, KeyboardAvoidingView, PanResponder, Platform } from 'react-native';
 import TierName from './TierName';
 import VerifiedBadge from './VerifiedBadge';
 import { supabase } from '../services/supabase';
@@ -16,22 +16,87 @@ import type { MediaTransform, MediaFit } from '../services/storiesService';
 import { FilterPickerSheet, FilterLayer } from './stories/StoryFilters';
 import { AdjustPanel, AdjustLayer, type StoryAdjust } from './stories/storyPanels';
 import TrimStrip from './stories/TrimStrip';
-import { MiniSlider } from './stories/storyPanels';
+ 
 import * as VideoThumbnails from 'expo-video-thumbnails';
 
-/** Cover preview: the chosen frame, regenerated as the slider settles. */
-function CoverPreview({ uri, at }: { uri: string; at: number }) {
-  const [thumb, setThumb] = useState<string | null>(null);
+/** Cover strip: a filmstrip of the trimmed window with a draggable frame
+ *  selector, the way Instagram picks a cover. The selector follows the finger
+ *  every frame from local state; the recipe is committed at most every 60ms
+ *  and once on release, and the frame under the selector is regenerated only
+ *  when the finger stops. */
+function CoverStrip({ uri, durationSec, start, end, at, width, onChange }: {
+  uri: string; durationSec: number; start: number; end: number; at: number; width: number; onChange: (sec: number) => void;
+}) {
+  const N = 8;
+  const SEL = 46;
+  const trackW = width;
+  const s = Math.max(0, start);
+  const e = Math.max(s + 0.5, Math.min(durationSec || s + 1, end));
+  const span = Math.max(0.5, e - s);
+  const [thumbs, setThumbs] = useState<string[]>([]);
+  const [frame, setFrame] = useState<string | null>(null);
+  const [live, setLive] = useState<number | null>(null);
+  const liveRef = useRef(at);
+  const grab = useRef(0);
+  const lastCommit = useRef(0);
+  const stopTimer = useRef<any>(null);
+
   useEffect(() => {
-    let live = true;
-    const t = setTimeout(async () => {
-      try { const r = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.max(0, Math.round(at * 1000)), quality: 0.6 }); if (live) setThumb(r.uri); } catch {}
-    }, 220);
-    return () => { live = false; clearTimeout(t); };
-  }, [uri, at]);
+    let alive = true;
+    (async () => {
+      const out: string[] = [];
+      for (let i = 0; i < N; i++) {
+        try {
+          const t = s + (i / N) * span;
+          const th = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.max(0, Math.round(t * 1000)), quality: 0.3 });
+          if (!alive) return; out.push(th.uri); setThumbs([...out]);
+        } catch { out.push(''); }
+      }
+    })();
+    return () => { alive = false; };
+  }, [uri, s, span]);
+
+  const regen = (sec: number) => {
+    if (stopTimer.current) clearTimeout(stopTimer.current);
+    stopTimer.current = setTimeout(async () => {
+      try { const r = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.max(0, Math.round(sec * 1000)), quality: 0.6 }); setFrame(r.uri); } catch {}
+    }, 260);
+  };
+  useEffect(() => { regen(at); return () => { if (stopTimer.current) clearTimeout(stopTimer.current); }; }, [uri]);
+
+  const toX = (sec: number) => ((Math.max(s, Math.min(e, sec)) - s) / span) * (trackW - SEL);
+  const toSec = (x: number) => s + (Math.max(0, Math.min(trackW - SEL, x)) / (trackW - SEL)) * span;
+  const commit = (sec: number, force: boolean) => {
+    const now = Date.now();
+    if (!force && now - lastCommit.current < 60) return;
+    lastCommit.current = now; onChange(sec); regen(sec);
+  };
+
+  const pan = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (_e2, g) => Math.abs(g.dx) > 2,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => { grab.current = toX(liveRef.current); setLive(liveRef.current); },
+    onPanResponderMove: (_e2, g) => { const v = toSec(grab.current + g.dx); liveRef.current = v; setLive(v); commit(v, false); },
+    onPanResponderRelease: () => { commit(liveRef.current, true); setLive(null); },
+    onPanResponderTerminate: () => { commit(liveRef.current, true); setLive(null); },
+  })).current;
+  liveRef.current = live ?? at;
+  const vx = toX(live ?? at);
+
   return (
-    <View style={{ width: 54, height: 54, borderRadius: 8, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1.5, borderColor: '#C9BFB0' }}>
-      {thumb ? <Image source={{ uri: thumb }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : null}
+    <View style={{ width, marginTop: 12 }}>
+      <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>Cover</Text>
+      <View {...pan.panHandlers} style={{ width: trackW, height: 52, borderRadius: 10, overflow: 'hidden', backgroundColor: '#12141B' }}>
+        <View style={{ flexDirection: 'row', height: 52 }}>
+          {thumbs.map((t, i) => t ? <Image key={i} source={{ uri: t }} style={{ width: trackW / N, height: 52 }} resizeMode="cover" /> : <View key={i} style={{ width: trackW / N, height: 52 }} />)}
+        </View>
+        <View pointerEvents="none" style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: vx, backgroundColor: 'rgba(0,0,0,0.45)' }} />
+        <View pointerEvents="none" style={{ position: 'absolute', left: vx + SEL, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)' }} />
+        <View pointerEvents="none" style={{ position: 'absolute', left: vx, top: 0, width: SEL, height: 52, borderRadius: 8, borderWidth: 2.5, borderColor: '#FFFFFF', overflow: 'hidden', backgroundColor: '#000' }}>
+          {frame ? <Image source={{ uri: frame }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : null}
+        </View>
+      </View>
     </View>
   );
 }
@@ -150,11 +215,8 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
               <TrimStrip uri={uri} durationSec={dur || 15} start={edit.trimStart ?? 0} end={trimEnd ?? Math.min(dur || 15, 600)}
                 onChange={(s2, e2) => setEdit(e => ({ ...e, trimStart: Math.round(s2 * 10) / 10, trimEnd: Math.round(e2 * 10) / 10 }))}
                 onDuration={(d) => setDur(d)} player={player} width={SCREEN_W - 24} />
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10, width: SCREEN_W - 24 }}>
-                <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', width: 44 }}>Cover</Text>
-                <MiniSlider value={Math.round(((edit as any).coverAt ?? edit.trimStart ?? 0) * 10)} min={0} max={Math.max(10, Math.round((dur || 15) * 10))} onChange={(v) => setEdit(e => ({ ...e, coverAt: v / 10 } as any))} width={SCREEN_W - 24 - 44 - 10 - 54 - 10} />
-                <CoverPreview uri={uri} at={(edit as any).coverAt ?? edit.trimStart ?? 0} />
-              </View>
+              <CoverStrip uri={uri} durationSec={dur || 15} start={edit.trimStart ?? 0} end={trimEnd ?? (dur || 15)} at={(edit as any).coverAt ?? edit.trimStart ?? 0} width={SCREEN_W - 24}
+                onChange={(sec) => setEdit(e => ({ ...e, coverAt: Math.round(sec * 10) / 10 } as any))} />
             </View>
           )}
         </View>
