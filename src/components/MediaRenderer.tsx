@@ -29,6 +29,10 @@ import {
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { FilterLayer } from './stories/StoryFilters';
+import { useNavigation } from '@react-navigation/native';
+import { supabase } from '../services/supabase';
+import TierName from './TierName';
+import VerifiedBadge from './VerifiedBadge';
 import { AdjustLayer } from './stories/storyPanels';
 import { setAudioModeAsync } from 'expo-audio';
 
@@ -78,6 +82,66 @@ function editStyle(item: PostMedia, w: number, h: number) {
 function EditOverlays({ item }: { item: PostMedia }) {
   const e = item.edit; if (!e) return null;
   return (<>{e.filterId ? <FilterLayer filterId={e.filterId} amt={e.filterAmt ?? 100} /> : null}{e.adjust ? <AdjustLayer adjust={e.adjust} /> : null}</>);
+}
+
+
+/**
+ * Tagged people. Our own construction, not Instagram's: a pearl people-mark
+ * in the bottom-left corner shows the count; tap it and the tags rise from
+ * the picture as soft pills anchored where each person is, each with avatar,
+ * tier-coloured name and seal. Tap a pill to open the profile; tap the mark
+ * again and they sink back. Tags load once per media id and are cached.
+ */
+export type MediaTag = { user_id: string; nx: number; ny: number; full_name?: string | null; username?: string | null; avatar_url?: string | null };
+const tagCache = new Map<string, MediaTag[]>();
+export function useMediaTags(mediaIds: string[]): Record<string, MediaTag[]> {
+  const [map, setMap] = useState<Record<string, MediaTag[]>>({});
+  useEffect(() => {
+    const seed: Record<string, MediaTag[]> = {}; const need: string[] = [];
+    mediaIds.forEach(id => { if (tagCache.has(id)) seed[id] = tagCache.get(id)!; else need.push(id); });
+    setMap(seed);
+    if (!need.length) return;
+    let dead = false;
+    (async () => {
+      try {
+        const { data } = await supabase.from('post_media_tags').select('media_id, user_id, nx, ny, profile:profiles!post_media_tags_user_id_fkey(full_name, username, avatar_url)').in('media_id', need);
+        const next: Record<string, MediaTag[]> = {}; need.forEach(id => { next[id] = []; });
+        ((data ?? []) as any[]).forEach((row: any) => { const p = row.profile || {}; (next[row.media_id] ||= []).push({ user_id: row.user_id, nx: Number(row.nx) || 0.5, ny: Number(row.ny) || 0.5, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null }); });
+        Object.entries(next).forEach(([id, t]) => tagCache.set(id, t));
+        if (!dead) setMap(prev => ({ ...prev, ...next }));
+      } catch {}
+    })();
+    return () => { dead = true; };
+  }, [mediaIds.join('|')]);
+  return map;
+}
+
+export function TagLayer({ tags, width, height }: { tags?: MediaTag[]; width: number; height: number }) {
+  const [open, setOpen] = useState(false);
+  const nav = useNavigation<any>();
+  if (!tags || tags.length === 0) return null;
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      {open ? tags.map(t => {
+        const x = Math.max(8, Math.min(width - 8, t.nx * width)); const y = Math.max(8, Math.min(height - 8, t.ny * height));
+        const flipLeft = x > width * 0.6;
+        return (
+          <TouchableOpacity key={t.user_id} onPress={() => nav.navigate('UserProfile', { userId: t.user_id })} activeOpacity={0.85}
+            style={{ position: 'absolute', top: y + 8, left: flipLeft ? undefined : x - 10, right: flipLeft ? (width - x - 10) : undefined, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(11,30,61,0.86)', borderRadius: 14, paddingLeft: 4, paddingRight: 10, paddingVertical: 4, maxWidth: width * 0.7 }}>
+            <View style={{ position: 'absolute', top: -5, left: flipLeft ? undefined : 8, right: flipLeft ? 8 : undefined, width: 10, height: 10, backgroundColor: 'rgba(11,30,61,0.86)', transform: [{ rotate: '45deg' }], borderRadius: 2 }} />
+            {t.avatar_url ? <Image source={{ uri: t.avatar_url }} style={{ width: 20, height: 20, borderRadius: 10 }} /> : <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#C9BFB0' }} />}
+            <TierName userId={t.user_id} baseStyle={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', flexShrink: 1 }} text={t.full_name || t.username || 'Member'} />
+            <VerifiedBadge userId={t.user_id} size={12} />
+          </TouchableOpacity>
+        );
+      }) : null}
+      <TouchableOpacity onPress={() => setOpen(o => !o)} activeOpacity={0.85} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        style={{ position: 'absolute', left: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: open ? '#C9BFB0' : 'rgba(0,0,0,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 }}>
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: open ? '#0B1E3D' : '#C9BFB0' }} />
+        <Text style={{ color: open ? '#0B1E3D' : '#FFFFFF', fontSize: 11, fontWeight: '800' }}>{tags.length}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
 
 function getRatio(item: PostMedia) {
@@ -498,12 +562,14 @@ export default function MediaRenderer({
   maxHeight = 420,
   isActive = false,
 }: Props) {
+  const tagMap = useMediaTags((media || []).map((m: any) => m.id));
   const [zoomIndex, setZoomIndex] = useState(0);
   const [zoomVisible, setZoomVisible] = useState(false);
 
   if (!media?.length) return null;
 
   const sorted = [...media].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const sortedT = sorted.map((m: any) => (tagMap[m.id] && tagMap[m.id].length ? { ...m, tags: tagMap[m.id] } : m));
   const imageItems = sorted.filter(m => m.media_type !== 'video');
 
   if (__DEV__ && sorted.length > 1) {
@@ -515,7 +581,7 @@ export default function MediaRenderer({
       <PinchInspect>
       <View style={{ marginTop: 8 }}>
         <VideoItem
-          item={sorted[0]}
+          item={sortedT[0]}
           width={containerWidth}
           fullBleed={fullBleed}
           isActive={isActive}
@@ -538,7 +604,7 @@ export default function MediaRenderer({
         <PinchInspect>
         <View style={{ marginTop: 8 }}>
           <SingleImage
-            item={sorted[0]}
+            item={sortedT[0]}
             width={containerWidth}
             maxH={maxHeight}
             fullBleed={fullBleed}
@@ -560,7 +626,7 @@ export default function MediaRenderer({
       <PinchInspect>
       <View style={{ marginTop: 8 }}>
         <Carousel
-          items={sorted}
+          items={sortedT}
           width={containerWidth}
           fullBleed={fullBleed}
           isActive={isActive}
