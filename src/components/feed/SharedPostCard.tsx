@@ -16,7 +16,7 @@ export type SharedPostData = {
   id: string;
   content?: string | null;
   author?: { id?: string; full_name?: string | null; username?: string | null; avatar_url?: string | null } | null;
-  media?: { url: string; media_type: string } | null;
+  media?: { url: string; media_type: string; thumbnail_url?: string | null } | null;
   mediaCount?: number;
 };
 
@@ -26,6 +26,7 @@ export default function SharedPostCard({ post, layout = 'full', width = 240, onP
   const name = post?.author?.full_name || post?.author?.username || 'Post';
   const media = post?.media?.url ? post.media : null;
   const isVideo = media?.media_type === 'video';
+  const displayUri = (isVideo && media?.thumbnail_url) ? media.thumbnail_url : media?.url;
   const text = (post?.content || '').trim();
 
   const Author = (
@@ -49,7 +50,7 @@ export default function SharedPostCard({ post, layout = 'full', width = 240, onP
         </View>
         {media ? (
           <View style={c.thumbWrap}>
-            <ExpoImage source={{ uri: media.url }} style={c.thumb} contentFit="cover" />
+            <ExpoImage source={{ uri: displayUri }} style={c.thumb} contentFit="cover" />
             {isVideo ? <View style={c.playSmall}><Feather name="play" size={11} color="#FFFFFF" /></View> : null}
           </View>
         ) : null}

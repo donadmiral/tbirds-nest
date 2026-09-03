@@ -1,6 +1,7 @@
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
+import ArticleBody from '../../components/ArticleBody';
 /**
  * PostScreen.tsx
  * Matches Feed's Clean Premium (navy) language. Clickable mentions/hashtags.
@@ -10,7 +11,7 @@ import VerifiedBadge from '../../components/VerifiedBadge';
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
+  View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Linking,
   TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard,
   Alert, RefreshControl, StatusBar, Dimensions,
 } from 'react-native';
@@ -50,6 +51,8 @@ type Post = {
   likes_count: number; comments_count: number;
   reposts_count: number; bookmarks_count: number;
   media_url?: string | null; created_at?: string | null;
+  link_url?: string | null;
+  article_title?: string | null; read_minutes?: number | null;
   post_media?: PostMedia[];
   author: { id?: string; full_name?: string | null; username?: string | null; avatar_url?: string | null; degree_program?: string | null } | null;
 };
@@ -110,6 +113,8 @@ export default function PostScreen({ route, navigation }: any) {
   const userId = profile?.id ?? null;
 
   const [post, setPost] = useState<Post | null>(null);
+  const [linkPreview, setLinkPreview] = useState<{ url: string; title: string | null; description: string | null; image_url: string | null; domain: string | null } | null>(null);
+  const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
   const [likedPost, setLikedPost] = useState(false);
 
   const [commentData, setCommentData] = useState<{
@@ -169,6 +174,21 @@ export default function PostScreen({ route, navigation }: any) {
           bookmarks_count: pd.bookmarks_count ?? 0,
           post_media: Array.isArray(pd.post_media) ? pd.post_media : [],
         });
+        if (pd.link_url) {
+          supabase.from('link_previews').select('url, title, description, image_url, domain').eq('url', pd.link_url).maybeSingle()
+            .then(({ data: lp }) => { if (lp) setLinkPreview(lp as any); });
+        }
+        if (pd.article_title) {
+          supabase.from('articles').select('current_revision_id').eq('linked_post_id', pd.id).maybeSingle()
+            .then(({ data: art }: { data: { current_revision_id: string } | null }) => {
+              if (!art?.current_revision_id) return;
+              supabase.from('article_blocks').select('content').eq('revision_id', art.current_revision_id).eq('block_type', 'gallery').maybeSingle()
+                .then(({ data: blk }: { data: { content: unknown } | null }) => {
+                  const imgs = (blk?.content as any)?.images;
+                  if (Array.isArray(imgs)) setGalleryImages(imgs);
+                });
+            });
+        }
         try {
           const above: any[] = [];
           let cursor = pd.thread_parent_id ?? null;
@@ -585,12 +605,28 @@ export default function PostScreen({ route, navigation }: any) {
                         <Text style={s.postAuthorSub}>{relTime(post.created_at)}</Text>
                       </View>
                     </TouchableOpacity>
-                    <RichText
-                      text={post.content}
-                      onMention={handleMentionTap}
-                      onHashtag={handleHashtagTap}
-                      style={s.postBody}
-                    />
+                    {post.article_title ? (
+                      <View style={s.articleWrap}>
+                        <Text style={s.articleMeta}>{post.read_minutes ? post.read_minutes + ' min read' : 'Article'}</Text>
+                        <Text style={s.articleTitle}>{post.article_title}</Text>
+                        <ArticleBody text={post.content} />
+                        {galleryImages.length > 0 && (
+                          <View style={s.galleryGrid}>
+                            {galleryImages.map((img: { url: string; width?: number; height?: number }, i: number) => (
+                              <Image
+                                key={img.url + i}
+                                source={{ uri: img.url }}
+                                style={galleryImages.length === 1 ? s.galleryFull : s.galleryHalf}
+                              />
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                    ) : (
+                      <View style={{ marginTop: 4 }}>
+                        <ArticleBody text={post.content} onMention={handleMentionTap} onHashtag={handleHashtagTap} />
+                      </View>
+                    )}
                     {mediaItems.length > 0 && (
                       <View style={s.mediaEdgeWrap}>
                         <PostCarousel
@@ -600,6 +636,15 @@ export default function PostScreen({ route, navigation }: any) {
                         />
                       </View>
                     )}
+                    {mediaItems.length === 0 && post.link_url && linkPreview ? (
+                      <TouchableOpacity activeOpacity={0.85} onPress={() => Linking.openURL(post.link_url!)} style={s.linkCard}>
+                        {linkPreview.image_url ? <Image source={{ uri: linkPreview.image_url }} style={s.linkCardImg} /> : null}
+                        <View style={s.linkCardBody}>
+                          <Text style={s.linkCardDomain} numberOfLines={1}>{linkPreview.domain || ''}</Text>
+                          <Text style={s.linkCardTitle} numberOfLines={2}>{linkPreview.title || post.link_url}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ) : null}
                     {(post.likes_count > 0 || post.comments_count > 0 || post.reposts_count > 0) && (
                       <View style={s.postCounts}>
                         <View style={s.countsLeft}>
@@ -738,6 +783,17 @@ const s = StyleSheet.create({
   postAuthorName: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY, letterSpacing: -0.1 },
   postAuthorRole: { fontSize: 12, color: '#3C3C43', marginTop: 1 },
   postAuthorSub: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 1 },
+  articleWrap: { marginTop: 4 },
+  galleryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 },
+  galleryFull: { width: '100%', height: 260, borderRadius: 14, backgroundColor: '#F2F3F5' },
+  galleryHalf: { width: '48%', height: 150, borderRadius: 14, backgroundColor: '#F2F3F5' },
+  articleMeta: { fontSize: 12, fontWeight: '700', color: TEXT_SECONDARY, letterSpacing: 0.3 },
+  articleTitle: { marginTop: 6, fontSize: 24, fontWeight: '800', color: TEXT_PRIMARY, lineHeight: 30 },
+  linkCard: { flexDirection: 'row', marginTop: 10, marginHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: HAIRLINE, overflow: 'hidden' },
+  linkCardImg: { width: 84, height: 84, backgroundColor: '#F2F3F5' },
+  linkCardBody: { flex: 1, padding: 10, justifyContent: 'center' },
+  linkCardDomain: { fontSize: 10.5, fontWeight: '700', color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.4 },
+  linkCardTitle: { fontSize: 13.5, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 2 },
   postBody: { fontSize: 16, lineHeight: 24, color: '#1A1A1A', marginBottom: 14, paddingHorizontal: 16 },
 
   // Edge-to-edge media: negative margin cancels parent padding

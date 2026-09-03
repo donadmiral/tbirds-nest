@@ -1,4 +1,5 @@
 import VideoThumb from '../../components/VideoThumb';
+import ArticleBody from '../../components/ArticleBody';
 import SharedPostCard from '../../components/feed/SharedPostCard';
 import { TapTopFlatList } from '../../components/TapTopList';
 import NewPostsPill from '../../components/NewPostsPill';
@@ -24,6 +25,7 @@ import PostMediaEditSheet, { type PostMediaEdit } from '../../components/PostMed
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { ensureUploadSafe } from '../../utils/uploadSafe';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { supabase } from '../../services/supabase';
@@ -142,6 +144,14 @@ function safeExtFromUri(uri: string, fallback: string): string {
   return fallback;
 }
 
+// Single source of truth for "does this post have a video". Used by the
+// quote-with-video eligibility check; not touching the other pre-existing
+// inline copies of this same test elsewhere in this file since that's a
+// separate, larger cleanup Don didn't ask for here.
+function isVideoPost(post: { media?: any[] | null }): boolean {
+  return !!post.media?.some((m: any) => m.media_type === 'video');
+}
+
 function renderRichText(text: string, onHashtag: (t: string) => void, onMention: (u: string) => void) {
   return text.split(/([@#][\w.]+)/g).map((part, i) => {
     if (part.startsWith('#')) return <Text key={i} style={s.hashTag} onPress={() => onHashtag(part.slice(1))}>{part}</Text>;
@@ -170,6 +180,7 @@ export default function FeedScreen({ navigation }: any) {
     return () => { alive = false; };
   }, []));
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
   const [likerNames, setLikerNames] = useState<Record<string, string[]>>({});
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
@@ -284,7 +295,7 @@ export default function FeedScreen({ navigation }: any) {
   const [sendLoading, setSendLoading] = useState(false);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
   const [threadingPost, setThreadingPost] = useState<Post | null>(null);
-  const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; media?: { url: string; media_type: string } | null }>>({});
+  const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [momentRefreshKey, setMomentRefreshKey] = useState(0);
 
@@ -549,10 +560,10 @@ export default function FeedScreen({ navigation }: any) {
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows: any[] = [];
       if (qIds.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order)').in('id', qIds);
+        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order, edit)').in('id', qIds);
         qRows = qData ?? [];
         const qm: Record<string, { content: string; user_id: string; media?: { url: string; media_type: string } | null }> = {};
-        qRows.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; });
+        qRows.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type, thumbnail_url: (pm[0] as any)?.edit?.coverUrl ?? null } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; });
         setQuotedMap(qm);
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
@@ -1221,6 +1232,37 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
+  const reactToVideo = async (post: Post) => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Permission required'); return; }
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 1,
+        mediaTypes: ['videos'] as ImagePicker.MediaType[],
+        allowsEditing: false,
+        videoMaxDuration: 60,
+      });
+      if (result.canceled || !result.assets?.[0]) return;
+      const a = result.assets[0];
+      const rawExt = safeExtFromUri(a.uri, 'mp4');
+      const ext = ['mov', 'mp4', 'webm'].includes(rawExt) ? rawExt : 'mp4';
+
+      let thumbnail: string | undefined;
+      try {
+        const thumbResult = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 0, quality: 0.7 });
+        thumbnail = thumbResult.uri;
+      } catch (e) {
+        console.log('[REACT_THUMB_ERR]', e);
+      }
+
+      setQuotingPost(post);
+      setComposerMedia([{ uri: a.uri, type: 'video', ext, width: a.width ?? undefined, height: a.height ?? undefined, thumbnail }]);
+      setComposerOpen(true);
+    } catch (e: any) {
+      console.log('[REACT_CAMERA_ERR]', e?.message || e);
+    }
+  };
+
   const handleComposerChange = (text: string) => {
     setComposerText(text);
     const match = text.match(/@([\w.]*)$/);
@@ -1252,23 +1294,13 @@ export default function FeedScreen({ navigation }: any) {
         const m = composerMedia[i];
         try {
           const isVideo = m.type === 'video';
-          const rawExt = safeExtFromUri(m.uri, isVideo ? 'mp4' : 'jpg');
-          let mimeType: string;
-          let ext: string;
-          if (isVideo) {
-            if (rawExt === 'mov') { mimeType = 'video/quicktime'; ext = 'mov'; }
-            else if (rawExt === 'webm') { mimeType = 'video/webm'; ext = 'webm'; }
-            else { mimeType = 'video/mp4'; ext = 'mp4'; }
-          } else {
-            if (rawExt === 'png') { mimeType = 'image/png'; ext = 'png'; }
-            else if (rawExt === 'webp') { mimeType = 'image/webp'; ext = 'webp'; }
-            else if (rawExt === 'heic') { mimeType = 'image/heic'; ext = 'heic'; }
-            else { mimeType = 'image/jpeg'; ext = 'jpg'; }
-          }
+          const safe = await ensureUploadSafe(m.uri, isVideo ? 'video' : 'image', safeExtFromUri(m.uri, isVideo ? 'mp4' : 'jpg'));
+          const mimeType: string = safe.mime;
+          const ext: string = safe.ext;
 
           const fileName = `${userId}/${Date.now()}_${i}.${ext}`;
           const formData = new FormData();
-          formData.append('file', { uri: m.uri, type: mimeType, name: `media_${i}.${ext}` } as any);
+          formData.append('file', { uri: safe.uri, type: mimeType, name: `media_${i}.${ext}` } as any);
 
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 120000);
@@ -1344,12 +1376,22 @@ export default function FeedScreen({ navigation }: any) {
         ...(threadingPost ? { thread_parent_id: threadingPost.id } : {}),
       };
       if (mediaUrl) insertData.media_url = mediaUrl;
+      if (composerPreview?.url) insertData.link_url = composerPreview.url;
 
       const { data: newPost, error } = await supabase
         .from('posts').insert(insertData).select('id').single();
       if (error) {
         Alert.alert('Post failed', error.message);
         return;
+      }
+      if (composerPreview?.url) {
+        supabase.rpc('upsert_link_preview', {
+          p_url: composerPreview.url,
+          p_title: composerPreview.title ?? null,
+          p_description: composerPreview.description ?? null,
+          p_image_url: composerPreview.image_url ?? null,
+          p_domain: composerPreview.domain ?? null,
+        }).then(() => {}, () => {});
       }
 
       if (newPost?.id && uploadedMedia.length > 0) {
@@ -1434,9 +1476,9 @@ export default function FeedScreen({ navigation }: any) {
       const qIds2 = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows2: any[] = [];
       if (qIds2.length > 0) {
-        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order)').in('id', qIds2);
+        const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order, edit)').in('id', qIds2);
         qRows2 = qData ?? [];
-        setQuotedMap(prev => { const qm = { ...prev }; qRows2.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; }); return qm; });
+        setQuotedMap(prev => { const qm = { ...prev }; qRows2.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type, thumbnail_url: (pm[0] as any)?.edit?.coverUrl ?? null } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; }); return qm; });
       }
       const uids2 = Array.from(new Set([...scored.map(p => p.user_id), ...qRows2.map((qr: any) => qr.user_id)]));
       const missingU = uids2.filter(u => !profilesMap[u]);
@@ -1706,14 +1748,34 @@ if (!search && promos.length > 0) {
               <View style={s.articleBody}>
                 <Text style={s.articleKicker}>ARTICLE</Text>
                 <Text style={s.articleTitle} numberOfLines={3}>{(post as any).article_title}</Text>
-                <Text style={s.articleExcerpt} numberOfLines={2}>{post.content}</Text>
+                <Text style={s.articleExcerpt} numberOfLines={3}>{stripMd(post.content)}</Text>
                 <Text style={s.articleMeta}>
                   {(post as any).read_minutes ? (post as any).read_minutes + ' min read' : 'Read article'}
                 </Text>
               </View>
             </TouchableOpacity>
           ) : (
-            <Text style={s.content}>{renderRichText(post.content, openHashtag, openMention)}</Text>
+            (() => {
+              const bodyText = post.content || '';
+              const isLong = bodyText.length > 600 || bodyText.split('\n').length > 12;
+              const isExpanded = !!expandedPosts[post.id];
+              return (
+                <View style={s.content}>
+                  <View style={!isExpanded && isLong ? { maxHeight: 260, overflow: 'hidden' } : undefined}>
+                    <ArticleBody text={bodyText} onMention={openMention} onHashtag={openHashtag} />
+                  </View>
+                  {isLong && (
+                    <TouchableOpacity
+                      onPress={() => setExpandedPosts((prev: Record<string, boolean>) => ({ ...prev, [post.id]: !prev[post.id] }))}
+                      activeOpacity={0.7}
+                      style={{ marginTop: 4 }}
+                    >
+                      <Text style={s.readMoreBtn}>{isExpanded ? 'Show less' : 'Read more'}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })()
           )}
         </TouchableOpacity>
         {(() => {
@@ -1793,7 +1855,7 @@ if (!search && promos.length > 0) {
             <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { Alert.alert('Share post', '', [{ text: 'Add to story', onPress: () => addPostToStory(post) }, { text: 'Add to thread', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { const canReact = isVideoPost(post); Alert.alert('Share post', '', [...(canReact ? [{ text: 'React to video', onPress: () => reactToVideo(post) }] : []), { text: 'Add to story', onPress: () => addPostToStory(post) }, { text: 'Add to thread', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
             <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{post.shares_count}</Text> : null}
           </TouchableOpacity>
         </View>
@@ -2130,6 +2192,9 @@ if (!search && promos.length > 0) {
                       <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, color: light.ink.muted }}>{String(composerPreview.domain || '').toUpperCase()}</Text>
                       <Text style={{ fontSize: 13.5, fontWeight: '600', color: light.ink.primary }} numberOfLines={2}>{composerPreview.title || composerPreview.url}</Text>
                     </View>
+                    <TouchableOpacity onPress={() => setComposerPreview(null)} hitSlop={8}>
+                      <Feather name="x" size={16} color={light.ink.muted} />
+                    </TouchableOpacity>
                   </View>
                 )}
                 {composerMedia.length > 0 && (
@@ -2488,13 +2553,13 @@ if (!search && promos.length > 0) {
 }
 
 const s = StyleSheet.create({
-  articleCard: { borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, borderRadius: 16, overflow: 'hidden', marginTop: 6, backgroundColor: light.surface.canvas },
-  articleCover: { width: '100%', height: 170, backgroundColor: '#EFEFF4' },
-  articleBody: { padding: 14 },
-  articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: light.status.innovation },
-  articleTitle: { fontSize: 19, fontWeight: '800', color: light.ink.primary, letterSpacing: -0.5, lineHeight: 24, marginTop: 5 },
-  articleExcerpt: { fontSize: 14.5, color: '#4B5563', lineHeight: 20, marginTop: 6 },
-  articleMeta: { fontSize: 12.5, fontWeight: '600', color: light.ink.muted, marginTop: 10 },
+  articleCard: { borderRadius: 18, overflow: 'hidden', marginTop: 8, backgroundColor: light.surface.canvas },
+  articleCover: { width: '100%', height: 190, backgroundColor: '#EFEFF4' },
+  articleBody: { padding: 16 },
+  articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: 'rgba(11,30,61,0.45)' },
+  articleTitle: { fontSize: 20, fontWeight: '800', color: light.ink.primary, letterSpacing: -0.5, lineHeight: 25, marginTop: 6 },
+  articleExcerpt: { fontSize: 14.5, color: '#4B5563', lineHeight: 21, marginTop: 7 },
+  articleMeta: { fontSize: 12.5, fontWeight: '600', color: light.ink.muted, marginTop: 11 },
   safe: { flex: 1, backgroundColor: light.surface.canvas },
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: light.surface.canvas },
@@ -2522,6 +2587,7 @@ const s = StyleSheet.create({
   menuBtn: { paddingHorizontal: 8, paddingVertical: 6 },
   menuBtnTxt: { fontSize: 16, color: light.ink.faint, letterSpacing: 1 },
   content: { fontSize: 15, lineHeight: 21, color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 12 },
+  readMoreBtn: { fontSize: 13.5, fontWeight: '700', color: light.brand.base, paddingHorizontal: 16 },
   hashTag: { color: light.brand.base, fontWeight: '600' },
   mention: { color: light.brand.base, fontWeight: '600' },
   

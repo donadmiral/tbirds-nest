@@ -2,15 +2,35 @@ import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 /**
  * ArticleReaderScreen - Twitter long-form reading view.
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { supabase } from '../../services/supabase';
+import ArticleBody from '../../components/ArticleBody';
 
 const W = Dimensions.get('window').width;
 
 export default function ArticleReaderScreen({ route, navigation }: any) {
   const a = route.params?.article || {};
+  const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
+
+  useEffect(() => {
+    if (!a.postId) return;
+    let dead = false;
+    supabase.from('articles').select('current_revision_id').eq('linked_post_id', a.postId).maybeSingle()
+      .then(({ data: art }: { data: { current_revision_id: string } | null }) => {
+        if (dead || !art?.current_revision_id) return;
+        supabase.from('article_blocks').select('content').eq('revision_id', art.current_revision_id).eq('block_type', 'gallery').maybeSingle()
+          .then(({ data: blk }: { data: { content: unknown } | null }) => {
+            if (dead) return;
+            const imgs = (blk?.content as { images?: unknown })?.images;
+            if (Array.isArray(imgs)) setGalleryImages(imgs as { url: string; width?: number; height?: number }[]);
+          });
+      });
+    return () => { dead = true; };
+  }, [a.postId]);
+
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.bar}>
@@ -26,7 +46,18 @@ export default function ArticleReaderScreen({ route, navigation }: any) {
             <Text style={s.meta}>{a.author || 'Member'}</Text>
             {!!a.readMinutes && <Text style={s.meta}>  ·  {a.readMinutes} min read</Text>}
           </View>
-          <Text style={s.text}>{a.body}</Text>
+          <ArticleBody text={a.body} />
+          {galleryImages.length > 0 && (
+            <View style={s.galleryGrid}>
+              {galleryImages.map((img: { url: string; width?: number; height?: number }, i: number) => (
+                <Image
+                  key={img.url + i}
+                  source={{ uri: img.url }}
+                  style={galleryImages.length === 1 ? s.galleryFull : s.galleryHalf}
+                />
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -42,4 +73,7 @@ const s = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, marginBottom: 20 },
   meta: { fontSize: 14, color: '#6B7280' },
   text: { fontSize: 17.5, lineHeight: 28, color: '#111827' },
+  galleryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 20 },
+  galleryFull: { width: '100%', height: 260, borderRadius: 14, backgroundColor: '#EFEFF4' },
+  galleryHalf: { width: '48%', height: 150, borderRadius: 14, backgroundColor: '#EFEFF4' },
 });

@@ -15,7 +15,7 @@ type Draft = { id: string | null; content: string; body: string; category: strin
 
 const empty = (): Draft => ({ id: null, content: "", body: "", category: null, community: null, media: [], products: [], publishAt: "" });
 const toLocalInput = (iso: string | null) => iso ? new Date(new Date(iso).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "";
-const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+const dayKey = (d: Date) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 
 export default function PlannerPage() {
   const { me } = useStudio();

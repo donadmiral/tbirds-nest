@@ -161,7 +161,7 @@ export default function ContentPage() {
       ) : (
         <div className="mt-4 overflow-hidden rounded-2xl border border-ink/10 bg-white">
           {shown.map((r, i) => {
-            const e = engagement.get(r.id);
+            const e = engagement.get(r.published_post_id || r.id);
             const cover = r.media?.[0];
             const when = r.publish_at ? new Date(r.publish_at) : null;
             const text = r.content || r.body || "Untitled";
@@ -207,7 +207,7 @@ export default function ContentPage() {
                 </span>
 
                 <Link
-                  href={r.status === "published" ? "/post/" + r.id : "/studio/planner"}
+                  href={r.status === "published" ? "/post/" + (r.published_post_id || r.id) : "/studio/planner"}
                   className="shrink-0 rounded-full border border-ink/15 px-3 py-1.5 text-[12px] font-semibold text-ink/65 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
                 >
                   {r.status === "published" ? "View" : "Edit"}

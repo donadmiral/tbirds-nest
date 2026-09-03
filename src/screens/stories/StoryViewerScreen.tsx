@@ -45,6 +45,7 @@ import { DrawingLayer } from '../../components/stories/DrawLayer';
 import { BackgroundLayer, AdjustLayer } from '../../components/stories/storyPanels';
 import StoryOptionsSheet from '../../components/stories/StoryOptionsSheet';
 import StorySettingsSheet from '../../components/stories/StorySettingsSheet';
+import ManageMentionsSheet from '../../components/stories/ManageMentionsSheet';
 import ImmersiveReplyField from '../../components/stories/ImmersiveReplyField';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
@@ -218,6 +219,7 @@ export default function StoryViewerScreen() {
   const [sendingReply, setSendingReply] = useState(false);
   const [replyToast, setReplyToast] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [mentionsOpen, setMentionsOpen] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const replyInputRef = useRef<TextInput>(null);
   const replyToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -582,6 +584,7 @@ export default function StoryViewerScreen() {
         authorId={currentStory?.user_id ?? null}
         authorName={storyUser?.full_name || 'this person'}
         mediaUrl={currentStory?.media_url}
+        onManageMentions={() => { pauseFor('mentions'); setMentionsOpen(true); }}
       />
       {!isOwn && (currentStory as any).allow_replies !== false && (<ImmersiveReplyField replyMode={replyMode} replyText={replyText} onChangeText={setReplyText} sendingReply={sendingReply} heartActive={heartActive} chromeOpacity={chromeOpacity} onOpenReply={openReplyInput} onCloseReply={closeReplyInput} onSendReply={sendReply} onHeartTap={handleHeartTap} onLongPressHeart={openPicker} canSend={canSendReply} keyboardHeight={keyboardHeight} bottomInset={insets.bottom} inputRef={replyInputRef} />)}
 
@@ -647,6 +650,7 @@ export default function StoryViewerScreen() {
       </ReAnimated.View>)}
 
       {isOwn && myId && currentStory && (<SaveToMemorySheet visible={highlightSheetOpen} onClose={() => { setHighlightSheetOpen(false); resumeFrom('highlight'); }} storyId={currentStory.id} userId={myId} />)}
+      {isOwn && currentStory && (<ManageMentionsSheet visible={mentionsOpen} onClose={() => { setMentionsOpen(false); resumeFrom('mentions'); }} storyId={currentStory.id} />)}
       {responsesSheet.open && (<StickerResponsesSheet visible={responsesSheet.open} onClose={() => { dispatchResponsesSheet({ type: 'CLOSE' }); resumeFrom('responsesSheet'); }} storyId={currentStory.id} stickerId={responsesSheet.stickerId} responseType={responsesSheet.type} title={responsesSheet.title} quizOptions={responsesSheet.quizOptions} />)}
     </Animated.View>
   );

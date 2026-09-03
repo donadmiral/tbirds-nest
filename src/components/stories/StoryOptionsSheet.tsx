@@ -26,6 +26,7 @@ type Props = {
   authorName: string;
   mediaUrl?: string | null;
   onDeleted?: () => void;
+  onManageMentions?: () => void;
   onOpenInsights?: () => void;
 };
 
@@ -40,7 +41,7 @@ const REPORT_REASONS = [
 
 export default function StoryOptionsSheet({
   visible, onClose, isMine, storyId, authorId, authorName, mediaUrl,
-  onDeleted, onOpenInsights,
+  onDeleted, onOpenInsights, onManageMentions,
 }: Props) {
   const insets = useSafeAreaInsets();
   const [busy, setBusy] = useState(false);
@@ -111,6 +112,7 @@ export default function StoryOptionsSheet({
   const rows = isMine
     ? [
         { icon: 'bar-chart-2', label: 'View insights', tone: 'normal', run: () => { onClose(); onOpenInsights?.(); } },
+        { icon: 'at-sign', label: 'Manage mentions', tone: 'normal', run: () => { onClose(); onManageMentions?.(); } },
         { icon: 'share', label: 'Share', tone: 'normal', run: shareStory },
         { icon: 'trash-2', label: 'Delete story', tone: 'danger', run: deleteStory },
       ]

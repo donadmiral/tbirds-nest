@@ -18,6 +18,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
+import { ensureUploadSafe } from '../../utils/uploadSafe';
 import Svg, { Circle } from 'react-native-svg';
 import { PinchGestureHandler, TapGestureHandler, State as GHState } from 'react-native-gesture-handler';
 
@@ -243,7 +244,12 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       setCamMode('picture');
       resetAudioMode();
       console.log('[Camera] recorded OK:', video?.uri ? 'uri received' : 'NO URI');
-      if (video?.uri) { goToComposer(video.uri, 'video'); return; }
+      if (video?.uri) {
+        setProcessing(true);
+        try { const safe = await ensureUploadSafe(video.uri, 'video'); goToComposer(safe.uri, 'video'); }
+        finally { setProcessing(false); }
+        return;
+      }
       Alert.alert('Recording failed', 'No video was captured. Try again.');
     } catch (e: any) {
       const msg = e?.message || '';
@@ -344,7 +350,8 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         if (isVideo) {
           const durationSec = first.duration ? Math.round(first.duration / 1000) : null;
           if (durationSec && durationSec > 60) { Alert.alert('Video too long', 'Please select a video under 60 seconds.'); return; }
-          navigation.navigate('StoryComposer', { mode: 'video', assets: [{ localUri: first.uri, mediaType: 'video', width: first.width, height: first.height, durationSec }] });
+          const safeVid = await ensureUploadSafe(first.uri, 'video');
+          navigation.navigate('StoryComposer', { mode: 'video', assets: [{ localUri: safeVid.uri, mediaType: 'video', width: first.width, height: first.height, durationSec }] });
         } else {
           const assets = res.assets.filter(a => a.type !== 'video').map(a => ({ localUri: a.uri, mediaType: 'image' as const, width: a.width, height: a.height }));
           navigation.navigate('StoryComposer', { mode: 'image', assets });

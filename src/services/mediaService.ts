@@ -5,6 +5,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase';
 
 import { resolveTrueMeta } from '../utils/sniffMedia';
+import { ensureUploadSafe } from '../utils/uploadSafe';
 
 export type MediaKind = 'image' | 'video' | 'gif' | 'document' | 'audio';
 
@@ -169,9 +170,12 @@ export async function uploadMedia(
 ): Promise<UploadResult> {
   if (!userId) throw new Error('uploadMedia: userId is required');
 
+  const safe = (media.kind === 'image' || media.kind === 'video')
+    ? await ensureUploadSafe(media.uri, media.kind, media.ext)
+    : { uri: media.uri, ext: media.ext, mime: media.mimeType };
   const filename =
-    opts?.filename ??
-    `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${media.ext}`;
+    (opts?.filename ? opts.filename.replace(/\.[A-Za-z0-9]+$/, '.' + safe.ext) : null) ??
+    `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${safe.ext}`;
   const path = opts?.pathPrefix
     ? `${opts.pathPrefix}/${userId}/${filename}`
     : `${userId}/${filename}`;
@@ -179,8 +183,8 @@ export async function uploadMedia(
   const token = await getAuthToken();
   const formData = new FormData();
   formData.append('file', {
-    uri: media.uri,
-    type: media.mimeType,
+    uri: safe.uri,
+    type: safe.mime,
     name: filename,
   } as any);
 

@@ -109,12 +109,12 @@ export default function StudioScreen() {
           ))}
         </ScrollView>
       </View>
-      {seg === 'home' ? <HomeSeg me={me} navigation={navigation} /> : seg === 'inbox' ? <InboxSeg me={me} navigation={navigation} /> : seg === 'planner' ? <PlannerSeg canPublish={canPublish} meId={profile?.id} /> : seg === 'insights' ? <InsightsSeg navigation={navigation} /> : <SettingsSeg me={me} reload={loadMe} />}
+      {seg === 'home' ? <HomeSeg me={me} navigation={navigation} setSeg={setSeg} /> : seg === 'inbox' ? <InboxSeg me={me} navigation={navigation} /> : seg === 'planner' ? <PlannerSeg canPublish={canPublish} meId={profile?.id} /> : seg === 'insights' ? <InsightsSeg navigation={navigation} /> : <SettingsSeg me={me} reload={loadMe} />}
     </SafeAreaView>
   );
 }
 
-function HomeSeg({ me, navigation }: { me: Me; navigation: any }) {
+function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: (k: Seg) => void }) {
   const [h, setH] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const load = useCallback(async () => { const { data } = await supabase.rpc('studio_home'); setH(data || null); }, []);
@@ -124,10 +124,10 @@ function HomeSeg({ me, navigation }: { me: Me; navigation: any }) {
     { n: h.todos.unanswered, label: 'unanswered messages', icon: 'message-circle', go: () => navigation.navigate('Messages') },
     { n: h.todos.offers, label: 'offers waiting on you', icon: 'tag', go: () => navigation.navigate('Messages') },
     { n: h.todos.applicants, label: 'applicants to review', icon: 'briefcase', go: () => navigation.navigate('Jobs') },
-    { n: h.todos.ads_ending, label: 'ads ending or near cap', icon: 'radio', go: () => {} },
+    { n: h.todos.ads_ending, label: 'ads ending or near cap', icon: 'radio', go: () => setSeg('insights') },
     { n: h.todos.reviews, label: 'new reviews this month', icon: 'star', go: () => navigation.navigate('Profile') },
-    { n: h.todos.scheduled_today, label: 'posts scheduled today', icon: 'clock', go: () => {} },
-    { n: h.todos.failed_posts, label: 'posts failed to publish', icon: 'alert-triangle', go: () => {} },
+    { n: h.todos.scheduled_today, label: 'posts scheduled today', icon: 'clock', go: () => setSeg('planner') },
+    { n: h.todos.failed_posts, label: 'posts failed to publish', icon: 'alert-triangle', go: () => setSeg('planner') },
   ].filter(t => t.n > 0);
   const stats = [
     ['Posts', h.now.posts, h.prev.posts], ['Likes', h.now.likes, h.prev.likes], ['Comments', h.now.comments, h.prev.comments],

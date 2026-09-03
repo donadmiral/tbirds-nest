@@ -1420,13 +1420,13 @@ const pickAndSendDocument = useCallback(async () => {
     for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
     return SENDER_COLORS[h % SENDER_COLORS.length];
   }, []);
-  const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string } | null }>>({});
+  const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
   useEffect(() => {
     const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
     const missing = ids.filter(id => !sharedPostsMap[id]);
     if (missing.length === 0) return;
     (async () => {
-      const { data: sp } = await supabase.from('posts').select('id, user_id, content, body, media_url, post_media(url, media_type, sort_order)').in('id', missing);
+      const { data: sp } = await supabase.from('posts').select('id, user_id, content, body, media_url, post_media(url, media_type, sort_order, edit)').in('id', missing);
       const rows = sp ?? [];
       const uids = Array.from(new Set(rows.map((r: any) => r.user_id)));
       const am: Record<string, any> = {};
@@ -1438,7 +1438,7 @@ const pickAndSendDocument = useCallback(async () => {
         const n = { ...prev };
         rows.forEach((r: any) => {
           const pmArr = Array.isArray(r.post_media) ? [...r.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : [];
-          const firstMedia = pmArr[0] ? { url: pmArr[0].url, media_type: pmArr[0].media_type } : (r.media_url ? { url: r.media_url, media_type: 'image' } : null);
+          const firstMedia = pmArr[0] ? { url: pmArr[0].url, media_type: pmArr[0].media_type, thumbnail_url: (pmArr[0] as any)?.edit?.coverUrl ?? null } : (r.media_url ? { url: r.media_url, media_type: 'image' } : null);
           n[r.id] = { content: r.content ?? r.body ?? '', author: am[r.user_id] ?? null, media: firstMedia };
         });
         missing.forEach(id => { if (!n[id]) n[id] = { content: 'Post unavailable', author: null }; });
