@@ -53,6 +53,18 @@ export type StoryTextSticker = {
   postId?: string;
   postAuthorName?: string;
   postText?: string;
+  postAuthorAvatar?: string | null;
+  postMediaUrl?: string | null;
+  postMediaType?: string | null;
+  postUsername?: string | null;
+  postVerified?: boolean;
+  postVerifiedTier?: string | null;
+  postAuthorId?: string;
+  postArticleTitle?: string | null;
+  postCreatedAt?: string | null;
+  postLikes?: number;
+  postComments?: number;
+  postReposts?: number;
   questionPrompt?: string;
   sliderEmoji?: string;
   sliderLabel?: string;
@@ -101,7 +113,7 @@ export type StoryRow = {
   expires_at: string;
   created_at: string;
   is_viewed?: boolean;
-  text_background?: { colors?: string[] } | string | null;
+  text_background?: { colors?: string[] } | { kind?: string; color?: string } | string | null;
   stickers_json?: StoryTextSticker[] | null;
   allow_replies?: boolean;
   allow_reactions?: boolean;

@@ -10,6 +10,8 @@ import { EmptyState, PageHeader } from "@/components/ui";
 import { ErrorState } from "@/components/ErrorState";
 import { withTimeout } from "@/lib/withTimeout";
 import { UnreadSummary } from "@/components/NotificationsRail";
+import { StoryViewer } from "@/components/StoryViewer";
+import type { CatchupUser } from "@/lib/stories";
 
 function iconFor(type: string) {
   if (type === "like") return <Heart size={15} className="text-danger" />;
@@ -108,6 +110,7 @@ export default function NotificationsPage() {
   const [filt, setFilt] = useState("all");
   const [failed, setFailed] = useState(false);
   const [sThumbs, setSThumbs] = useState<Record<string, string>>({});
+  const [storyView, setStoryView] = useState<CatchupUser | null>(null);
 
   const load = useCallback(async () => {
     setFailed(false);
@@ -243,6 +246,7 @@ export default function NotificationsPage() {
               return (
                 <Link key={n.notification_id}
                   href={hrefFor(n)}
+                  onClick={(e) => { if (n.type === "story_mention" && n.actor_id) { e.preventDefault(); setStoryView({ user_id: n.actor_id, full_name: n.actor_name, username: n.actor_username, avatar_url: n.actor_avatar, story_count: 1, unseen_count: 0, latest_story_at: n.created_at, latest_story_id: String((n.data as { story_id?: string } | null)?.story_id ?? ""), has_unseen: false }); } }}
                   className={"relative flex items-center gap-3 border-b border-ink/5 py-3.5 pl-5 pr-2 transition-colors duration-[140ms] hover:bg-surface/60 " + (unread ? "" : "opacity-90")}
                 >
                   {unread ? <span aria-hidden className="absolute left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-pearl" /> : null}
@@ -287,6 +291,7 @@ export default function NotificationsPage() {
           </section>
         ))
       )}
+      {storyView ? <StoryViewer users={[storyView]} startIndex={0} onClose={() => setStoryView(null)} /> : null}
     </div>
   );
 }

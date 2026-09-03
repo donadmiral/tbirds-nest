@@ -53,13 +53,13 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
 
 function QuoteCard({ quotedId }: { quotedId: string }) {
   const supabase = useRef(createClient()).current;
-  const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; first: { url: string; media_type: string } | null } | null>(null);
+  const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; first: { url: string; media_type: string; edit?: { coverUrl?: string | null } | null } | null } | null>(null);
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase
         .from("posts")
-        .select("content, body, created_at, user_id, post_media(url, media_type, sort_order)")
+        .select("content, body, created_at, user_id, post_media(url, media_type, sort_order, edit)")
         .eq("id", quotedId)
         .maybeSingle();
       if (!data) return;
@@ -85,7 +85,15 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
         <img src={displayImageUrl(q.first.url, 160)!} onError={(e) => { if (q.first && e.currentTarget.src !== q.first.url) e.currentTarget.src = q.first.url; }} alt="" loading="lazy" decoding="async" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
       ) : null}
       {q.first && q.first.media_type === "video" ? (
-        <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-black"><video src={q.first.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span></span>
+        q.first.edit?.coverUrl ? (
+          <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-black">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={q.first.edit.coverUrl} alt="" className="h-full w-full object-cover" />
+            <span className="absolute inset-0 flex items-center justify-center text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span>
+          </span>
+        ) : (
+          <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-black"><video src={q.first.url} preload="metadata" muted playsInline className="h-full w-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg></span></span>
+        )
       ) : null}
     </Link>
   );
@@ -93,7 +101,9 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
 
 export function PostCard({ post }: { post: FeedRow }) {
   const router = useRouter();
+  const supabase = useRef(createClient()).current;
   const [hidden, setHidden] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
   const [heart, setHeart] = useState(false);
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
@@ -108,6 +118,23 @@ export function PostCard({ post }: { post: FeedRow }) {
   const media = post.media ?? [];
   const products = post.products ?? [];
   const readMinutes = (post as unknown as { read_minutes?: number | null }).read_minutes ?? null;
+  // Only the writer's own gallery block is fetched here - articles are a
+  // small extra lookup, not part of get_feed's normal columns.
+  useEffect(() => {
+    if (!post.article_title) return;
+    let dead = false;
+    supabase.from("articles").select("current_revision_id").eq("linked_post_id", post.post_id).maybeSingle()
+      .then(({ data: art }: { data: { current_revision_id: string } | null }) => {
+        if (dead || !art?.current_revision_id) return;
+        supabase.from("article_blocks").select("content").eq("revision_id", art.current_revision_id).eq("block_type", "gallery").maybeSingle()
+          .then(({ data: blk }: { data: { content: unknown } | null }) => {
+            if (dead) return;
+            const imgs = (blk?.content as { images?: unknown })?.images;
+            if (Array.isArray(imgs)) setGalleryImages(imgs as { url: string; width?: number; height?: number }[]);
+          });
+      });
+    return () => { dead = true; };
+  }, [post.article_title, post.post_id, supabase]);
   // Long enough that it would crowd out the next post in the feed.
   const isLong = text.length > 600 || text.split("\n").length > 12;
   const like = useToggle(post.viewer_liked, post.likes_count, toggleLike, post.post_id);
@@ -192,7 +219,7 @@ export function PostCard({ post }: { post: FeedRow }) {
                   (isLong && !expanded ? "line-clamp-[10]" : "")
                 }
               >
-                {post.article_title ? <ArticleBody text={text} /> : <RichText text={text} />}
+                <ArticleBody text={text} />
               </div>
               {isLong ? (
                 <button
@@ -203,6 +230,21 @@ export function PostCard({ post }: { post: FeedRow }) {
                 </button>
               ) : null}
             </>
+          ) : null}
+
+          {post.article_title && galleryImages.length > 0 ? (
+            <div className={"mt-3 grid gap-2 " + (galleryImages.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+              {galleryImages.map((img: { url: string; width?: number; height?: number }, i: number) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={img.url + i}
+                  src={img.url}
+                  alt=""
+                  loading="lazy"
+                  className={"w-full rounded-xl bg-surface object-cover " + (galleryImages.length === 1 ? "h-72" : "h-40")}
+                />
+              ))}
+            </div>
           ) : null}
 
           {media.length > 0 ? (

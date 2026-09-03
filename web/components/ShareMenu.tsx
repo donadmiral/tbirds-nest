@@ -123,7 +123,7 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
         {n > 0 ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "K" : n) : ""}
       </button>
       {open ? (
-        <div className="absolute bottom-7 right-0 z-20 w-60 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
+        <div className="absolute bottom-7 right-0 z-20 w-60 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-2xl">
           {sendMode ? (
             convs.length === 0 && groups.length === 0 && communities.length === 0 ? (
               <p className="px-3.5 py-3 text-[12px] text-ink/40">No conversations yet.</p>

@@ -263,9 +263,19 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     if (quote) insertData.quoted_post_id = quote.id;
     if (threadTo) insertData.thread_parent_id = threadTo;
     if (postCategory) insertData.category = postCategory;
+    if (preview?.url) insertData.link_url = preview.url;
 
     const { data: newPost, error: insErr } = await supabase.from("posts").insert(insertData).select("id").single();
     if (insErr || !newPost) { setError(insErr?.message || "Could not post."); setPending(false); return; }
+    if (preview?.url) {
+      supabase.rpc("upsert_link_preview", {
+        p_url: preview.url,
+        p_title: preview.title ?? null,
+        p_description: preview.description ?? null,
+        p_image_url: preview.image_url ?? null,
+        p_domain: preview.domain ?? null,
+      }).then(() => {});
+    }
 
     if (products.length > 0) {
       const { error: prodErr } = await supabase.rpc("set_post_products", {

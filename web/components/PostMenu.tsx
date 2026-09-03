@@ -126,7 +126,7 @@ export function PostMenu({ postId, authorId, text, onHidden, reason }: {
         <MoreHorizontal size={17} />
       </button>
       {open ? (
-        <div className="absolute right-0 top-8 z-20 w-56 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
+        <div className="absolute right-0 top-8 z-20 w-56 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-2xl">
           {reason && !reporting ? <p className="border-b border-ink/10 px-3.5 py-2 text-[11px] text-ink/40">{reason}</p> : null}
           {reporting ? (
             REASONS.map((r) => (

@@ -43,7 +43,7 @@ const items: NavItem[] = [
   { href: "/discover", label: "Discover", icon: Compass },
   { href: "/search", label: "Search", icon: Search },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/market", label: "Market", icon: Store, tag: "New" },
+  { href: "/market", label: "Market", icon: Store },
   { href: "/messages", label: "Messages", icon: MessageCircle },
   { href: "/channels", label: "Channels", icon: Radio },
   { href: "/communities", label: "Communities", icon: Users },

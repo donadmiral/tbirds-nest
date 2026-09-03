@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
-import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
 import { QuestionCard, QuizCard, SliderCard, CountdownCard } from "@/components/StoryEngageCards";
@@ -42,9 +42,32 @@ function stickerCss(st: StoryTextSticker): React.CSSProperties {
   }
 }
 
+const TIER_COLORS: Record<string, string> = { public_figure: "#22C55E", business: "#8E8E93", official: "#C9BFB0" };
+const tierCache = new Map<string, string | null>();
+function MentionTag({ userId, username, pos, pillStyle, pillCls, tint }: { userId?: string; username: string; pos: React.CSSProperties; pillStyle: React.CSSProperties; pillCls: string; tint: boolean }) {
+  const [tier, setTier] = useState<string | null>(userId ? (tierCache.get(userId) ?? null) : null);
+  useEffect(() => {
+    if (!userId || tierCache.has(userId)) return;
+    let dead = false;
+    createClient().from("profiles").select("is_verified, verified_tier").eq("id", userId).maybeSingle().then(({ data }) => {
+      const t = data?.is_verified ? ((data.verified_tier as string) || "business") : null;
+      tierCache.set(userId, t);
+      if (!dead) setTier(t);
+    });
+    return () => { dead = true; };
+  }, [userId]);
+  const color = tier ? (TIER_COLORS[tier] || TIER_COLORS.business) : null;
+  return (
+    <a href={"/" + username} style={{ ...pos, ...pillStyle, ...(tint && color ? { color } : null) }} className={pillCls}>
+      @{username}
+      {color ? <BadgeCheck size={13} style={{ color, flexShrink: 0 }} /> : null}
+    </a>
+  );
+}
+
 function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryTextSticker[]; clock?: number | null; storyId: string; isOwn: boolean }) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-[2]">
+    <div className="pointer-events-none absolute inset-0 z-[4]">
       {stickers.map((st) => {
         const pos: React.CSSProperties = { position: "absolute", left: (st.nx * 100) + "%", top: (st.ny * 100) + "%", transform: "translate(-50%, -50%) rotate(" + (st.rotation || 0) + "rad) scale(" + (st.scale || 1) + ")", opacity: st.opacity ?? 1, maxWidth: "82%" };
         const kind = st.kind || "text";
@@ -74,7 +97,7 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
           return <a key={st.id} href={st.url} target="_blank" rel="noopener noreferrer" style={{ ...pos, ...pillStyle }} className={pillCls}>{"\uD83D\uDD17 "}{st.text || st.url}</a>;
         }
         if (kind === "mention" && st.mentionUsername) {
-          return <a key={st.id} href={"/" + st.mentionUsername} style={{ ...pos, ...pillStyle }} className={pillCls}>@{st.mentionUsername}</a>;
+          return <MentionTag key={st.id} userId={st.mentionUserId} username={st.mentionUsername} pos={pos} pillStyle={pillStyle} pillCls={pillCls} tint={pv === 0 || pv === 3} />;
         }
         if (kind === "hashtag" && st.hashtag) {
           return <a key={st.id} href={"/topic/" + encodeURIComponent(st.hashtag)} style={{ ...pos, ...pillStyle }} className={pillCls}>#{st.hashtag}</a>;
@@ -95,10 +118,51 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
           );
         }
         if (kind === "post" && st.postId) {
+          // Mirrors the phone's shared-post card: media hero, author row,
+          // text, actions, "View original post". Every field is already on
+          // the sticker (see the phone's addPostToStory), so no fetch.
+          const ps: any = st;
+          const dt = ps.postCreatedAt ? new Date(ps.postCreatedAt) : null;
+          const dateStr = dt && !isNaN(dt.getTime()) ? dt.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : null;
+          const badgeColor = ps.postVerified ? (TIER_COLORS[ps.postVerifiedTier] || TIER_COLORS.official) : null;
+          const isVideo = ps.postMediaType === "video";
           return (
-            <a key={st.id} href={"/post/" + st.postId} style={{ ...pos, maxWidth: 260 }} className="pointer-events-auto block rounded-xl bg-black/60 p-3 text-white">
-              <span className="block text-[12px] font-semibold">{st.postAuthorName || "Post"}</span>
-              <span className="mt-0.5 block max-h-16 overflow-hidden text-[12px] text-white/80">{st.postText || "View post"}</span>
+            <a key={st.id} href={"/post/" + st.postId} style={{ ...pos, width: "86%", maxWidth: "86%" }} className="pointer-events-auto block overflow-hidden rounded-[20px] bg-white text-left shadow-2xl">
+              {ps.postMediaUrl ? (
+                <span className="relative block w-full overflow-hidden bg-black/5" style={{ aspectRatio: "1 / 1.1" }}>
+                  {isVideo ? (
+                    <video src={ps.postMediaUrl} muted autoPlay loop playsInline className="h-full w-full object-cover" />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={ps.postMediaUrl} alt="" className="h-full w-full object-cover" />
+                  )}
+                  {isVideo ? <span className="absolute bottom-3 right-3 rounded-full bg-black/60 p-2 text-white"><VolumeX size={14} /></span> : null}
+                </span>
+              ) : null}
+              <span className="flex items-center gap-2.5 px-4 pt-3.5">
+                {ps.postAuthorAvatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={ps.postAuthorAvatar} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{(ps.postAuthorName || "?").charAt(0).toUpperCase()}</span>
+                )}
+                <span className="min-w-0">
+                  <span className="flex items-center gap-1 text-[15px] font-bold leading-tight text-ink">
+                    <span className="truncate">{ps.postAuthorName || "Post"}</span>
+                    {badgeColor ? <BadgeCheck size={14} style={{ color: badgeColor, flexShrink: 0 }} /> : null}
+                  </span>
+                  <span className="block truncate text-[12.5px] text-ink/50">{ps.postUsername ? "@" + ps.postUsername : ""}{ps.postUsername && dateStr ? " \u00B7 " : ""}{dateStr || ""}</span>
+                </span>
+              </span>
+              {ps.postArticleTitle ? <span className="mt-2 block px-4 text-[16px] font-bold leading-snug text-ink">{ps.postArticleTitle}</span> : null}
+              {ps.postText ? <span className="mt-1.5 block max-h-24 overflow-hidden px-4 text-[15px] leading-snug text-ink">{ps.postText}</span> : null}
+              <span className="mt-3 flex items-center gap-5 px-4">
+                <Heart size={20} style={{ color: "#E0245E" }} />
+                <MessageCircle size={20} className="text-navy" />
+                <Repeat2 size={20} style={{ color: "#17BF63" }} />
+                <Bookmark size={20} className="ml-auto text-navy" />
+              </span>
+              <span className="mt-3 block border-t px-4 py-3 text-center text-[15px] font-bold text-ink" style={{ borderColor: "rgba(11,30,61,0.08)" }}>View original post {"\u203A"}</span>
             </a>
           );
         }
@@ -156,6 +220,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const [clock, setClock] = useState<number | null>(null);
   const [poll, setPoll] = useState<StoryPoll | null>(null);
   const [viewersOpen, setViewersOpen] = useState(false);
+  const [storyMentions, setStoryMentions] = useState<{ id: string; mentioned_user_id: string; visible: boolean; username?: string | null }[]>([]);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heldRef = useRef(false);
   const pausedAtRef = useRef(0);
@@ -191,6 +256,22 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const storyAudioUrl = story && story.media_type !== "video" ? (story.audio_url ?? null) : null;
   const isOwn = !!(uid && story && uid === story.user_id);
   useEffect(() => { setPoll(null); if (!story) return; let dead = false; getStoryPoll(story.id).then((p) => { if (!dead) setPoll(p); }).catch(() => {}); return () => { dead = true; }; }, [story?.id]);
+  // Only the author and mentioned people get rows back (RLS), so a normal
+  // viewer sees no chip and pays one cheap empty query.
+  useEffect(() => {
+    setStoryMentions([]);
+    if (!story) return;
+    let dead = false;
+    const sb = createClient();
+    sb.from("story_mentions").select("id, mentioned_user_id, visible").eq("story_id", story.id).then(async ({ data }) => {
+      const rows = (data ?? []) as { id: string; mentioned_user_id: string; visible: boolean }[];
+      if (rows.length === 0) return;
+      const { data: profs } = await sb.from("profiles").select("id, username").in("id", rows.map((r) => r.mentioned_user_id));
+      const names = new Map(((profs ?? []) as { id: string; username: string | null }[]).map((p) => [p.id, p.username]));
+      if (!dead) setStoryMentions(rows.map((r) => ({ ...r, username: names.get(r.mentioned_user_id) ?? null })));
+    });
+    return () => { dead = true; };
+  }, [story?.id]);
   const canReact = !!(story && !isOwn && story.allow_reactions !== false);
   const canReply = !!(story && !isOwn && story.allow_replies !== false);
 
@@ -377,8 +458,13 @@ export function StoryViewer({ users, startIndex, onClose }: {
 
   if (!user) return null;
 
-  const bg = typeof story?.text_background === "object" && story?.text_background?.colors?.length
-    ? "linear-gradient(135deg, " + story.text_background.colors.join(", ") + ")"
+  const tb = story?.text_background as { kind?: string; color?: string; colors?: string[] } | null | undefined;
+  const bg = tb && typeof tb === "object"
+    ? tb.kind === "solid" && tb.color
+      ? tb.color
+      : tb.colors?.length
+        ? "linear-gradient(135deg, " + tb.colors.join(", ") + ")"
+        : undefined
     : undefined;
 
   return (
@@ -471,6 +557,12 @@ export function StoryViewer({ users, startIndex, onClose }: {
             {story.dual_front_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={story.dual_front_url} alt="" className="absolute bottom-20 left-3 z-[2] h-32 w-24 rounded-xl border-2 border-white/70 object-cover shadow-lg" />
+            ) : null}
+            {!isOwn && uid && storyMentions.some((m) => m.mentioned_user_id === uid && !m.visible) ? (
+              <span className="absolute right-3 top-14 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white"><AtSign size={11} /> Mentioned you</span>
+            ) : null}
+            {isOwn && storyMentions.length > 0 ? (
+              <span title={storyMentions.map((m) => "@" + (m.username || "user") + (m.visible ? "" : " (hidden)")).join(", ")} className="absolute right-3 top-14 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white"><AtSign size={11} /> {storyMentions.length} mentioned</span>
             ) : null}
             {poll ? <StoryPollCard poll={poll} isOwn={isOwn} onUpdate={setPoll} /> : null}
             {story.stickers_json && story.stickers_json.length > 0 ? (
