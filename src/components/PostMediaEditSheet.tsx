@@ -105,6 +105,8 @@ export type PostMediaEdit = {
   scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain';
   filterId?: string | null; filterAmt?: number; adjust?: StoryAdjust | null;
   trimStart?: number | null; trimEnd?: number | null; muted?: boolean;
+  /** Playback speed as a creative effect, e.g. 0.5, 1.5, 2, 3. 1 or unset means normal speed. */
+  speed?: number | null;
   /** Video cover: chosen frame (seconds) and the uploaded poster image. */
   coverAt?: number | null; coverUrl?: string | null;
   /** Tagged people, anchored by normalised position; saved to post_media_tags on publish, not kept in the recipe. */
@@ -123,6 +125,8 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   const [filterOpen, setFilterOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [player, setPlayer] = useState<any>(null);
+  const [speedOpen, setSpeedOpen] = useState(false);
+  useEffect(() => { if (player) { try { player.playbackRate = edit.speed || 1; } catch {} } }, [player, edit.speed]);
   // Tag people: arm the tool, tap the picture where the person is, pick them.
   const [tagMode, setTagMode] = useState(false);
   const [tagAt, setTagAt] = useState<{ nx: number; ny: number } | null>(null);
@@ -220,6 +224,16 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
             </View>
           )}
         </View>
+        {speedOpen && isVideo ? (
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, paddingBottom: 10 }}>
+            {[0.5, 1, 1.5, 2, 3].map(sp => (
+              <TouchableOpacity key={sp} onPress={() => { setEdit(e => ({ ...e, speed: sp === 1 ? undefined : sp })); setSpeedOpen(false); }}
+                style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: (edit.speed || 1) === sp ? '#C9BFB0' : 'rgba(255,255,255,0.1)' }}>
+                <Text style={{ color: (edit.speed || 1) === sp ? '#0B1E3D' : '#FFF', fontSize: 13, fontWeight: '800' }}>{sp}x</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
         <View style={[st.tools, { paddingBottom: Math.max(insets.bottom, 14) }]}>
           {([
             { id: 'filter', label: 'Filter', icon: 'droplet', on: !!edit.filterId, run: () => setFilterOpen(true) },
@@ -227,6 +241,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
             { id: 'fit', label: fit === 'contain' ? 'Fill' : 'Fit', icon: 'crop', on: fit === 'contain', run: () => setEdit(e => ({ ...e, fit: (e.fit || 'cover') === 'cover' ? 'contain' : 'cover' })) },
             ...(!isVideo ? [{ id: 'tag', label: tagMode ? 'Done tagging' : 'Tag people', icon: 'user-plus', on: tagMode || !!(edit.tags && edit.tags.length), run: () => setTagMode(m => !m) }] : []),
             ...(isVideo ? [{ id: 'mute', label: edit.muted ? 'Unmute' : 'Mute', icon: edit.muted ? 'volume-x' : 'volume-2', on: !!edit.muted, run: () => setEdit(e => ({ ...e, muted: !e.muted })) }] : []),
+            ...(isVideo ? [{ id: 'speed', label: (edit.speed && edit.speed !== 1) ? edit.speed + 'x' : 'Speed', icon: 'fast-forward', on: !!(edit.speed && edit.speed !== 1), run: () => setSpeedOpen(v => !v) }] : []),
             { id: 'reset', label: 'Reset', icon: 'rotate-ccw', on: false, run: () => setEdit({}) },
           ] as { id: string; label: string; icon: any; on: boolean; run: () => void }[]).map(t => (
             <TouchableOpacity key={t.id} style={st.tool} onPress={t.run} activeOpacity={0.75}>

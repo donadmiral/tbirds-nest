@@ -24,6 +24,8 @@ import {
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useMediaTags, TagLayer } from './MediaRenderer';
+import { FilterLayer } from './stories/StoryFilters';
+import { AdjustLayer } from './stories/storyPanels';
 import { useIsFocused } from '@react-navigation/native';
 import { useSettingsStore } from '../stores/settingsStore';
 import { Feather } from '@expo/vector-icons';
@@ -35,6 +37,7 @@ export type CarouselMedia = {
   sort_order: number;
   width?: number | null;
   height?: number | null;
+  edit?: { scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; coverUrl?: string | null; muted?: boolean; trimStart?: number | null; trimEnd?: number | null } | null;
 };
 
 type Props = {
@@ -50,15 +53,18 @@ const HEIGHT_RATIO = 5 / 4; // 1.25
 // Feed sound rule: autoplay muted; once the user unmutes, new videos inherit sound this session
 let sessionMuted = true;
 
-function CarouselImage({ uri, width, height }: { uri: string; width: number; height: number }) {
+function CarouselImage({ uri, width, height, edit }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit'] }) {
   const [loaded, setLoaded] = useState(false);
+  const fit = edit?.fit === 'contain' ? 'contain' : 'cover';
+  const hasXform = !!(edit?.scale && edit.scale !== 1) || !!edit?.translateNX || !!edit?.translateNY;
+  const xform = hasXform ? [{ translateX: (edit?.translateNX || 0) * width }, { translateY: (edit?.translateNY || 0) * height }, { scale: edit?.scale || 1 }] : undefined;
 
   return (
     <View style={{ width, height, backgroundColor: '#F0F0F0' }}>
       <ExpoImage
         source={{ uri }}
-        style={{ width: '100%', height: '100%' }}
-        contentFit="cover"
+        style={{ width: '100%', height: '100%', transform: xform as any }}
+        contentFit={fit}
         contentPosition="center"
         cachePolicy="memory-disk"
         priority="high"
@@ -66,6 +72,8 @@ function CarouselImage({ uri, width, height }: { uri: string; width: number; hei
         onLoad={() => setLoaded(true)}
         onError={(e: any) => console.log('[CAROUSEL_IMG_ERR]', uri, e?.error)}
       />
+      {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
+      {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
       {!loaded && (
         <View style={st.loadingOverlay}>
           <ActivityIndicator color="#C7C7CC" size="small" />
@@ -76,9 +84,9 @@ function CarouselImage({ uri, width, height }: { uri: string; width: number; hei
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster,
+  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit,
 }: {
-  uri: string; width: number; height: number; poster?: string | null;
+  uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit'];
   isVisible: boolean; isScreenActive: boolean;
   onTapOverride?: (at?: number) => void;
   onExpand?: (at?: number) => void;
@@ -88,6 +96,7 @@ function CarouselVideo({
   const player = useVideoPlayer(uri, p => {
     p.loop = true;
     p.muted = sessionMuted;
+    p.playbackRate = edit?.speed || 1;
     p.timeUpdateEventInterval = 0.25;
   });
   // Data saver: with autoplay off, videos hold at their poster until tapped.
@@ -188,11 +197,13 @@ function CarouselVideo({
       <VideoView
         style={{ width: '100%', height: '100%' }}
         player={player}
-        contentFit="cover"
+        contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'}
         nativeControls={false}
         fullscreenOptions={{ enable: false }}
       />
       {poster && !isVisible ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height }} contentFit="cover" /> : null}
+      {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
+      {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
 
       {/* Playback progress bar */}
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' }} pointerEvents="none">
@@ -286,6 +297,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             uri={item.url}
             width={containerWidth}
             height={slideHeight}
+            edit={item.edit}
           />
         </TouchableOpacity>
         <TagLayer tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
@@ -319,6 +331,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
                   uri={item.url}
                   width={containerWidth}
                   height={slideHeight}
+                  edit={item.edit}
                 />
               </TouchableOpacity>
               <TagLayer tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
