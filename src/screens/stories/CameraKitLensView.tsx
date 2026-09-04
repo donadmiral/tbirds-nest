@@ -4,8 +4,20 @@
 // startVideo, stopVideo. Talks to the engine entirely over postMessage.
 import React, { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { WebView } from 'react-native-webview';
+import type { WebView as WebViewType } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system';
+
+// Safe import: react-native-webview needs a native module that only exists
+// after a real build. A static import crashes the whole app on startup on
+// any client built before this dependency existed.
+let WebViewComp: any = null;
+export let webViewAvailable = false;
+try {
+  WebViewComp = require('react-native-webview').WebView;
+  webViewAvailable = !!WebViewComp;
+} catch {
+  webViewAvailable = false;
+}
 import { CAMERA_KIT_ENGINE_HTML } from './cameraKitEngine';
 
 export type CKLens = { id: string; groupId: string; name: string; iconUrl: string | null };
@@ -38,7 +50,7 @@ export const CameraKitLensView = forwardRef<CameraKitLensViewHandle, Props>(func
   { apiToken, lensGroupId, onReady, onLenses, onError },
   ref
 ) {
-  const webRef = useRef<WebView>(null);
+  const webRef = useRef<WebViewType>(null);
   const photoResolveRef = useRef<((uri: string) => void) | null>(null);
   const videoResolveRef = useRef<((uri: string) => void) | null>(null);
 
@@ -77,9 +89,11 @@ export const CameraKitLensView = forwardRef<CameraKitLensViewHandle, Props>(func
     send({ type: 'init', apiToken, lensGroupId, facing: 'user' });
   }, [send, apiToken, lensGroupId]);
 
+  if (!webViewAvailable || !WebViewComp) return null;
+
   return (
     <View style={StyleSheet.absoluteFill}>
-      <WebView
+      <WebViewComp
         ref={webRef}
         source={{ html: CAMERA_KIT_ENGINE_HTML }}
         style={StyleSheet.absoluteFill}

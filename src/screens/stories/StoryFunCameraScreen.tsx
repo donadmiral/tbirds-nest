@@ -21,7 +21,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
 import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
-import { CameraKitLensView, CKLens, CameraKitLensViewHandle } from './CameraKitLensView';
+import { CameraKitLensView, CKLens, CameraKitLensViewHandle, webViewAvailable } from './CameraKitLensView';
 
 const MAX_VIDEO_SEC = 60;
 const CAPTURE_SIZE = 72;
@@ -313,7 +313,11 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
           </View>
         </>
       ) : (
-        !apiToken || !lensGroupId ? (
+        !webViewAvailable ? (
+          <View style={[s.fallback, { flex: 1 }]}>
+            <Text style={[s.fallbackSub, { paddingHorizontal: 40 }]}>Lenses need a new app build.</Text>
+          </View>
+        ) : !apiToken || !lensGroupId ? (
           <View style={[s.fallback, { flex: 1 }]}>
             <Text style={[s.fallbackSub, { paddingHorizontal: 40 }]}>{!apiToken ? 'No Camera Kit token set. Add EXPO_PUBLIC_CAMERAKIT_API_TOKEN to .env.' : 'No Lens Group set. Add EXPO_PUBLIC_CAMERAKIT_LENS_GROUP_ID to .env, copy it from My Lenses -> Camera Kit -> your app.'}</Text>
           </View>
