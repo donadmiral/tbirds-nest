@@ -111,7 +111,7 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
   useEffect(() => { if (job) void loadApps(job); }, [job, loadApps]);
   useEffect(() => { if (sel) { setIvAt(fmtLocal(sel.interview_at)); setIvLoc(sel.interview_location || ''); setTagText(sel.tags.join(', ')); setNote(''); } }, [sel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const act = async (fn: () => Promise<any>, then?: () => void) => {
+  const act = async (fn: () => PromiseLike<any>, then?: () => void) => {
     if (busy) return;
     setBusy(true);
     try { const r = await fn(); if (r?.error) throw r.error; if (job) await loadApps(job); await loadJobs(); then?.(); }
@@ -264,7 +264,7 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
   }, []);
   useEffect(() => { if (canSee) void load(); else setLoading(false); }, [canSee, load]);
 
-  const act = async (fn: () => Promise<any>, then?: () => void) => {
+  const act = async (fn: () => PromiseLike<any>, then?: () => void) => {
     if (busy) return;
     setBusy(true);
     try { const r = await fn(); if (r?.error) throw r.error; await load(); then?.(); }

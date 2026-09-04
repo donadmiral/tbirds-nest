@@ -1,3 +1,18 @@
+function stripMd(input: string | null | undefined): string {
+  if (!input) return '';
+  return input
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    .replace(/^\s{0,3}>\s?/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/\n{2,}/g, ' ')
+    .replace(/\n/g, ' ')
+    .trim();
+}
 import VideoThumb from '../../components/VideoThumb';
 import ArticleBody from '../../components/ArticleBody';
 import SharedPostCard from '../../components/feed/SharedPostCard';

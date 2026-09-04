@@ -9,7 +9,7 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 export type StickerIconName =
   | 'poll' | 'question' | 'quiz' | 'slider'
   | 'mention' | 'location' | 'link' | 'emoji' | 'hashtag' | 'music' | 'filter' | 'countdown'
-  | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'draw' | 'adjust' | 'trim' | 'mix' | 'bg' | 'preview' | 'save';
+  | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'draw' | 'adjust' | 'trim' | 'mix' | 'bg' | 'layout' | 'preview' | 'save';
 
 type Props = { name: StickerIconName; size?: number; color?: string; bg?: string };
 

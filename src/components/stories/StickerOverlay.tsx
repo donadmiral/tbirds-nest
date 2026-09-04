@@ -80,6 +80,8 @@ export function renderStickerContent(
   storyPaused?: boolean,
   onEntityTap?: (sticker: StoryTextSticker) => void,
   onStoryTap?: (authorId: string, storyId: string) => void,
+  containerW?: number,
+  containerH?: number,
 ): React.ReactNode {
   const isEmoji = sticker.kind === 'emoji';
   const isLink = sticker.kind === 'link';

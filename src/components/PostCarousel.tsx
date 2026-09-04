@@ -96,7 +96,7 @@ function CarouselVideo({
   const player = useVideoPlayer(uri, p => {
     p.loop = true;
     p.muted = sessionMuted;
-    p.playbackRate = edit?.speed || 1;
+    p.playbackRate = (edit as any)?.speed || 1;
     p.timeUpdateEventInterval = 0.25;
   });
   // Data saver: with autoplay off, videos hold at their poster until tapped.

@@ -5,7 +5,7 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { WebView as WebViewType } from 'react-native-webview';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 // Safe import: react-native-webview needs a native module that only exists
 // after a real build. A static import crashes the whole app on startup on
