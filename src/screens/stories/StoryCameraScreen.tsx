@@ -246,8 +246,12 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       console.log('[Camera] recorded OK:', video?.uri ? 'uri received' : 'NO URI');
       if (video?.uri) {
         setProcessing(true);
-        try { const safe = await ensureUploadSafe(video.uri, 'video'); goToComposer(safe.uri, 'video'); }
-        finally { setProcessing(false); }
+        try {
+          let safeUri = video.uri;
+          try { safeUri = (await ensureUploadSafe(video.uri, 'video')).uri; }
+          catch (e: any) { console.log('[Camera] uploadSafe unavailable, using raw file:', e?.message || e); }
+          goToComposer(safeUri, 'video');
+        } finally { setProcessing(false); }
         return;
       }
       Alert.alert('Recording failed', 'No video was captured. Try again.');
@@ -350,8 +354,10 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         if (isVideo) {
           const durationSec = first.duration ? Math.round(first.duration / 1000) : null;
           if (durationSec && durationSec > 60) { Alert.alert('Video too long', 'Please select a video under 60 seconds.'); return; }
-          const safeVid = await ensureUploadSafe(first.uri, 'video');
-          navigation.navigate('StoryComposer', { mode: 'video', assets: [{ localUri: safeVid.uri, mediaType: 'video', width: first.width, height: first.height, durationSec }] });
+          let safeVidUri = first.uri;
+          try { safeVidUri = (await ensureUploadSafe(first.uri, 'video')).uri; }
+          catch (e: any) { console.log('[Camera] uploadSafe unavailable, using raw file:', e?.message || e); }
+          navigation.navigate('StoryComposer', { mode: 'video', assets: [{ localUri: safeVidUri, mediaType: 'video', width: first.width, height: first.height, durationSec }] });
         } else {
           const assets = res.assets.filter(a => a.type !== 'video').map(a => ({ localUri: a.uri, mediaType: 'image' as const, width: a.width, height: a.height }));
           navigation.navigate('StoryComposer', { mode: 'image', assets });
