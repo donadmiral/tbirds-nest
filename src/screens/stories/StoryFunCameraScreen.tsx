@@ -1,12 +1,12 @@
 // src/screens/stories/StoryFunCameraScreen.tsx
 // The "FUN" mode from the story camera's mode row. Same capture pipeline as
 // the main camera (tap for photo, hold for video, same ensureUploadSafe gate,
-// same StoryComposer handoff) plus a lens strip across the top.
-//
-// applyLens() below is the ONE integration seam for the actual Camera Kit AR
-// session. It is intentionally a no-op stub right now — everything else on
-// this screen is real and works today without it. Wiring a real lens engine
-// here later does not touch anything else on this screen.
+// same StoryComposer handoff), now showing a real, live filter preview using
+// the same 44-filter system already proven everywhere else in the app
+// (FilterLayer/FilterPickerSheet from components/stories/StoryFilters) —
+// not a placeholder AR carousel. Filters here are the "swipe-through 2D
+// look" kind; true face-tracking AR Lenses are a separate, later system
+// that needs a real Camera Kit session — see the note by applyLens below.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -17,14 +17,12 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  Animated,
-  ScrollView,
-  Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
+import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
 
 const MAX_VIDEO_SEC = 60;
 const CAPTURE_SIZE = 72;
@@ -50,24 +48,14 @@ function resetAudioMode() {
 }
 
 /**
- * Placeholder lens catalog. Swap these ids for the real ones once lenses are
- * published to your Group ID in Lens Studio (or a Snap demo group while
- * testing) — nothing else on this screen needs to change when you do.
+ * Real AR face/body/world Lenses (Snap's "Lens" tier, not "Filter") need a
+ * live Camera Kit session — a different SDK, still not wired. This function
+ * is the one seam for that later. Nothing on this screen depends on it
+ * anymore: the working feature right now is the live filter preview below,
+ * built on the same StoryFilters system already used everywhere else.
  */
-type FunLens = { id: string | null; label: string; thumb?: string | null };
-const FUN_LENSES: FunLens[] = [
-  { id: null, label: 'None' },
-  { id: 'lens-placeholder-1', label: 'Warm' },
-  { id: 'lens-placeholder-2', label: 'Comic' },
-  { id: 'lens-placeholder-3', label: 'Dreamy' },
-  { id: 'lens-placeholder-4', label: 'Big Eyes' },
-  { id: 'lens-placeholder-5', label: 'Glow' },
-];
-
-/** The one integration seam. Everything above and below this function is real. */
 async function applyLens(lensId: string | null): Promise<void> {
-  // TODO: real Camera Kit session hookup goes here.
-  console.log('[FunCamera] applyLens (stub):', lensId);
+  console.log('[FunCamera] applyLens (stub, AR tier not wired):', lensId);
 }
 
 export default function StoryFunCameraScreen({ navigation }: any) {
@@ -105,8 +93,12 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
-  const [selectedLens, setSelectedLens] = useState<string | null>(null);
-  const [lensBusy, setLensBusy] = useState(false);
+
+  // Live filter: the real, working part of this screen.
+  const [filterId, setFilterId] = useState<string | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [previewSnapshot, setPreviewSnapshot] = useState<string | null>(null);
+  const [snapshotting, setSnapshotting] = useState(false);
 
   const cameraRef = useRef<any>(null);
   const recordingRef = useRef(false);
@@ -114,22 +106,31 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
   const holdTimerRef = useRef<any>(null);
   const pressStartRef = useRef(0);
   const recordStartRef = useRef(0);
-  const progressAnim = useRef(new Animated.Value(0)).current;
 
   const goToComposer = useCallback((uri: string, type: 'image' | 'video', width?: number, height?: number) => {
     navigation.navigate('StoryComposer', {
-      assets: [{ uri, localUri: uri, type, mediaType: type, width, height }],
+      assets: [{ uri, localUri: uri, type, mediaType: type, width, height, filterId }],
       mode: type,
     });
-  }, [navigation]);
+  }, [navigation, filterId]);
 
-  const pickLens = useCallback(async (lens: FunLens) => {
-    if (lensBusy) return;
+  // The filter picker shows the filter applied to a real frame, not a
+  // generic icon — grab a lightweight still the first time it's opened.
+  const openFilters = useCallback(async () => {
     Haptics.selectionAsync();
-    setLensBusy(true);
-    setSelectedLens(lens.id);
-    try { await applyLens(lens.id); } finally { setLensBusy(false); }
-  }, [lensBusy]);
+    if (!previewSnapshot && cameraRef.current && !recording) {
+      setSnapshotting(true);
+      try {
+        const still = await cameraRef.current.takePictureAsync({ quality: 0.4, skipProcessing: true });
+        if (still?.uri) setPreviewSnapshot(still.uri);
+      } catch (e) {
+        console.log('[FunCamera] filter preview snapshot failed:', e);
+      } finally {
+        setSnapshotting(false);
+      }
+    }
+    setFilterOpen(true);
+  }, [previewSnapshot, recording]);
 
   const takePhoto = useCallback(async () => {
     if (!cameraRef.current || processing || recordingRef.current) return;
@@ -150,16 +151,12 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
     if (!cameraRef.current || recordingRef.current || processing || !pendingRecordRef.current) return;
     recordingRef.current = true;
     setRecording(true);
-    progressAnim.setValue(0);
-    Animated.timing(progressAnim, { toValue: 1, duration: MAX_VIDEO_SEC * 1000, useNativeDriver: false }).start();
     try {
       recordStartRef.current = Date.now();
       const video = await cameraRef.current.recordAsync({ maxDuration: MAX_VIDEO_SEC, codec: 'avc1' });
       pendingRecordRef.current = false;
       recordingRef.current = false;
       setRecording(false);
-      progressAnim.stopAnimation();
-      progressAnim.setValue(0);
       setCamMode('picture');
       resetAudioMode();
       if (video?.uri) {
@@ -177,8 +174,6 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
       const msg = e?.message || '';
       recordingRef.current = false;
       setRecording(false);
-      progressAnim.stopAnimation();
-      progressAnim.setValue(0);
       if (msg.toLowerCase().includes('not ready') && pendingRecordRef.current && attempt < 12) {
         setTimeout(() => doRecord(attempt + 1), 150);
         return;
@@ -188,7 +183,7 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
       resetAudioMode();
       if (!msg.toLowerCase().includes('not ready')) Alert.alert('Recording failed', msg || 'Unknown error');
     }
-  }, [processing, goToComposer, progressAnim]);
+  }, [processing, goToComposer]);
 
   const requestRecord = useCallback(async () => {
     if (recordingRef.current || processing) return;
@@ -212,15 +207,13 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
         if (recordingRef.current) {
           recordingRef.current = false;
           setRecording(false);
-          progressAnim.stopAnimation();
-          progressAnim.setValue(0);
           pendingRecordRef.current = false;
           setCamMode('picture');
           resetAudioMode();
         }
       }, 2600);
     }, wait);
-  }, [progressAnim]);
+  }, []);
 
   const onPressIn = useCallback(() => {
     pressStartRef.current = Date.now();
@@ -256,6 +249,9 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
       <StatusBar hidden />
       <CameraView key={camMode} ref={cameraRef} style={s.camera} facing={facing} mode={camMode} videoQuality="720p"
         onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') doRecord(0); }} />
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <FilterLayer filterId={filterId} amt={100} />
+      </View>
 
       <SafeAreaView style={s.topControls} edges={['top']}>
         <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -267,24 +263,12 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
         </TouchableOpacity>
       </SafeAreaView>
 
-      {/* Lens strip: circular thumbnails, selected one lifted and ringed, Snapchat's own layout */}
-      <View style={[s.lensStripWrap, { bottom: Math.max(insets.bottom + 150, 176) }]} pointerEvents={recording ? 'none' : 'auto'}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.lensStrip}>
-          {FUN_LENSES.map(lens => {
-            const on = selectedLens === lens.id;
-            return (
-              <TouchableOpacity key={lens.id ?? 'none'} onPress={() => pickLens(lens)} activeOpacity={0.85} style={s.lensItem}>
-                <View style={[s.lensCircle, on && s.lensCircleOn]}>
-                  {lens.thumb ? <Image source={{ uri: lens.thumb }} style={s.lensThumbImg} /> : (
-                    <Feather name={lens.id ? 'zap' : 'slash'} size={18} color="#FFF" />
-                  )}
-                  {on && lensBusy ? <ActivityIndicator color="#FFF" size="small" style={StyleSheet.absoluteFill as any} /> : null}
-                </View>
-                <Text style={[s.lensLabel, on && s.lensLabelOn]} numberOfLines={1}>{lens.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+      {/* Filters: the real, working feature — 44 presets, live on the preview above */}
+      <View style={[s.filterBarWrap, { bottom: Math.max(insets.bottom + 150, 176) }]} pointerEvents={recording ? 'none' : 'auto'}>
+        <TouchableOpacity onPress={openFilters} activeOpacity={0.85} style={s.filterBtn} disabled={snapshotting}>
+          {snapshotting ? <ActivityIndicator color="#FFF" size="small" /> : <Feather name="sliders" size={18} color="#FFF" />}
+          <Text style={s.filterBtnTxt}>{filterId ? filterId.charAt(0).toUpperCase() + filterId.slice(1) : 'Filters'}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 18, 32) }]}>
@@ -305,6 +289,14 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
         </View>
         <Text style={s.hintTxt}>{recording ? 'Release to stop' : 'Tap for photo, hold for video'}</Text>
       </View>
+
+      <FilterPickerSheet
+        visible={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        selected={filterId}
+        onSelect={(fid: string | null) => setFilterId(fid)}
+        previewUri={previewSnapshot}
+      />
     </View>
   );
 }
@@ -323,14 +315,9 @@ const s = StyleSheet.create({
   topControls: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, zIndex: 10 },
   topBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
 
-  lensStripWrap: { position: 'absolute', left: 0, right: 0 },
-  lensStrip: { paddingHorizontal: 16, gap: 14, alignItems: 'flex-end' },
-  lensItem: { alignItems: 'center', width: 58 },
-  lensCircle: { width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent', overflow: 'hidden' },
-  lensCircleOn: { borderColor: '#FFD60A', backgroundColor: 'rgba(0,0,0,0.3)' },
-  lensThumbImg: { width: '100%', height: '100%' },
-  lensLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10.5, fontWeight: '600', marginTop: 4 },
-  lensLabelOn: { color: '#FFD60A', fontWeight: '800' },
+  filterBarWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  filterBtnTxt: { color: '#FFF', fontSize: 13.5, fontWeight: '700' },
 
   bottomControls: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', paddingTop: 16 },
   captureRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 40 },

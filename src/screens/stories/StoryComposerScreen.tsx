@@ -378,6 +378,7 @@ export default function StoryComposerScreen() {
           mediaFit: 'cover' as MediaFit,
           mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
           category: null, textBgId: 'navy', textBackground: null,
+          filterId: (asset as any).filterId || null,
         };
       });
       setDrafts(newDrafts);
