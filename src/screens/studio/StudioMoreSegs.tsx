@@ -17,7 +17,7 @@ const LABELS = ['customer', 'lead', 'vip', 'supplier', 'partner'];
 const REPLY_ROLES = ['owner', 'admin', 'editor', 'support'];
 const LISTING_ROLES = ['owner', 'admin', 'editor'];
 
-export type MoreKey = 'reviews' | 'audience' | 'commerce' | 'settings';
+export type MoreKey = 'reviews' | 'audience' | 'commerce' | 'recruiter' | 'ads' | 'settings';
 
 function whenLabel(iso: string | null | undefined) {
   if (!iso) return '';
@@ -50,12 +50,14 @@ export function MoreSeg({ go }: { go: (k: MoreKey) => void }) {
     { k: 'reviews', label: 'Reviews', sub: 'Ratings and replies', icon: 'star' },
     { k: 'audience', label: 'Audience', sub: 'Followers, customers, labels', icon: 'users' },
     { k: 'commerce', label: 'Commerce', sub: 'Orders and catalog', icon: 'shopping-bag' },
+    { k: 'recruiter', label: 'Recruiter', sub: 'Jobs, applicants, interviews', icon: 'briefcase' },
+    { k: 'ads', label: 'Ads', sub: 'Campaigns and sponsored posts', icon: 'radio' },
     { k: 'settings', label: 'Settings', sub: 'Business, team, devices', icon: 'settings' },
   ];
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}>
       <Text style={s.h1}>More desks</Text>
-      <Text style={s.sub}>Recruiter and Ads run on the web studio for now.</Text>
+      <Text style={s.sub}>Every web desk, on the phone.</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
         {items.map(it => (
           <TouchableOpacity key={it.k} style={[s.card, { width: '48%', marginBottom: 0, minHeight: 96 }]} onPress={() => go(it.k)} activeOpacity={0.85}>

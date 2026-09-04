@@ -10,11 +10,12 @@ import { useAuthStore } from '../../stores/authStore';
 import { uploadMedia } from '../../services/mediaService';
 import { CATEGORIES } from '../../constants/categories';
 import { MoreSeg, ReviewsSeg, AudienceSeg, CommerceSeg } from './StudioMoreSegs';
+import { RecruiterSeg, AdsSeg } from './StudioHiringAdsSegs';
 
 const NAVY = '#0B1E3D';
 const TAB_CLEAR = 110;
-type Seg = 'home' | 'inbox' | 'planner' | 'insights' | 'settings' | 'more' | 'reviews' | 'audience' | 'commerce';
-const MORE_SEGS: Seg[] = ['more', 'settings', 'reviews', 'audience', 'commerce'];
+type Seg = 'home' | 'inbox' | 'planner' | 'insights' | 'settings' | 'more' | 'reviews' | 'audience' | 'commerce' | 'recruiter' | 'ads';
+const MORE_SEGS: Seg[] = ['more', 'settings', 'reviews', 'audience', 'commerce', 'recruiter', 'ads'];
 type Me = { is_business: boolean; needs_code: boolean; role: string | null; display_name: string | null; business_name: string | null; username: string | null; avatar_url: string | null };
 const PUBLISH_ROLES = ['owner', 'admin', 'editor'];
 
@@ -111,7 +112,7 @@ export default function StudioScreen() {
           ); })}
         </ScrollView>
       </View>
-      {seg === 'home' ? <HomeSeg me={me} navigation={navigation} setSeg={setSeg} /> : seg === 'inbox' ? <InboxSeg me={me} navigation={navigation} setSeg={setSeg} /> : seg === 'planner' ? <PlannerSeg canPublish={canPublish} meId={profile?.id} /> : seg === 'insights' ? <InsightsSeg navigation={navigation} /> : seg === 'reviews' ? <ReviewsSeg role={me.role} onBack={() => setSeg('more')} /> : seg === 'audience' ? <AudienceSeg role={me.role} navigation={navigation} onBack={() => setSeg('more')} /> : seg === 'commerce' ? <CommerceSeg role={me.role} navigation={navigation} onBack={() => setSeg('more')} /> : seg === 'more' ? <MoreSeg go={setSeg} /> : <SettingsSeg me={me} reload={loadMe} />}
+      {seg === 'home' ? <HomeSeg me={me} navigation={navigation} setSeg={setSeg} /> : seg === 'inbox' ? <InboxSeg me={me} navigation={navigation} setSeg={setSeg} /> : seg === 'planner' ? <PlannerSeg canPublish={canPublish} meId={profile?.id} /> : seg === 'insights' ? <InsightsSeg navigation={navigation} /> : seg === 'reviews' ? <ReviewsSeg role={me.role} onBack={() => setSeg('more')} /> : seg === 'audience' ? <AudienceSeg role={me.role} navigation={navigation} onBack={() => setSeg('more')} /> : seg === 'commerce' ? <CommerceSeg role={me.role} navigation={navigation} onBack={() => setSeg('more')} /> : seg === 'recruiter' ? <RecruiterSeg role={me.role} navigation={navigation} onBack={() => setSeg('more')} /> : seg === 'ads' ? <AdsSeg role={me.role} navigation={navigation} onBack={() => setSeg('more')} /> : seg === 'more' ? <MoreSeg go={setSeg} /> : <SettingsSeg me={me} reload={loadMe} />}
     </SafeAreaView>
   );
 }
@@ -125,8 +126,8 @@ function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: 
   const todos = [
     { n: h.todos.unanswered, label: 'unanswered messages', icon: 'message-circle', go: () => navigation.navigate('Messages') },
     { n: h.todos.offers, label: 'offers waiting on you', icon: 'tag', go: () => navigation.navigate('Messages') },
-    { n: h.todos.applicants, label: 'applicants to review', icon: 'briefcase', go: () => navigation.navigate('Jobs') },
-    { n: h.todos.ads_ending, label: 'ads ending or near cap', icon: 'radio', go: () => setSeg('insights') },
+    { n: h.todos.applicants, label: 'applicants to review', icon: 'briefcase', go: () => setSeg('recruiter') },
+    { n: h.todos.ads_ending, label: 'ads ending or near cap', icon: 'radio', go: () => setSeg('ads') },
     { n: h.todos.reviews, label: 'new reviews this month', icon: 'star', go: () => setSeg('reviews') },
     { n: h.todos.scheduled_today, label: 'posts scheduled today', icon: 'clock', go: () => setSeg('planner') },
     { n: h.todos.failed_posts, label: 'posts failed to publish', icon: 'alert-triangle', go: () => setSeg('planner') },
@@ -196,7 +197,7 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
   const open = (it: any) => {
     if (it.kind === 'dm') navigation.navigate('Chat', { conversationId: it.id, userId: it.other_id, userName: it.title, otherUser: { id: it.other_id, full_name: it.title, username: it.username, avatar_url: it.avatar_url } });
     else if (it.kind === 'offer') navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId: it.ref } });
-    else if (it.kind === 'applicant') navigation.navigate('Jobs');
+    else if (it.kind === 'applicant') setSeg('recruiter');
     else setSeg('reviews');
   };
   const respond = (it: any, action: 'accepted' | 'declined') => {

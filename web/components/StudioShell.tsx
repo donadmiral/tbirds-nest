@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Briefcase, FileText, Home, Inbox, KeyRound, LayoutDashboard, Megaphone, Settings, ShoppingBag, Star, Users, CalendarClock } from "lucide-react";
 import { ExternalLink } from "lucide-react";
-import { ROOMS, bindMember, studioMe, type StudioMe } from "@/lib/studio";
+import { GROUPS, ROOMS, bindMember, studioMe, type StudioMe } from "@/lib/studio";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StudioSideRail } from "@/components/StudioSideRail";
 import { STUDIO_RAIL_SLOT } from "@/components/StudioRailPortal";
@@ -108,7 +108,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           ) : null}
         </header>
 
-        <nav className="mt-5 flex gap-1 overflow-x-auto border-b border-ink/10">
+        <nav className="mt-5 flex gap-1 overflow-x-auto border-b border-ink/10 lg:hidden">
           {ROOMS.filter((r) => r.key === "home" || surfaces === null || surfaces.length === 0 || surfaces.includes(r.key)).map((r) => {
             const Icon = ICONS[r.key];
             const active = r.href === "/studio" ? pathname === "/studio" : pathname.startsWith(r.href);
@@ -137,6 +137,33 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
             full width, which left a third of the screen empty on anything but
             the widest tables and made each one look unfinished. */}
         <div className="mt-6 flex gap-6">
+          <aside className="hidden w-[190px] shrink-0 lg:block">
+            <div className="sticky top-[88px] flex flex-col gap-5">
+              {GROUPS.map((g) => {
+                const rooms = ROOMS.filter((r) => g.keys.includes(r.key) && (r.key === "home" || surfaces === null || surfaces.length === 0 || surfaces.includes(r.key)));
+                if (rooms.length === 0) return null;
+                return (
+                  <div key={g.label || "home"} className="flex flex-col gap-0.5">
+                    {g.label ? <p className="mb-1 px-2 text-[10.5px] font-semibold uppercase tracking-wide text-ink/40">{g.label}</p> : null}
+                    {rooms.map((r) => {
+                      const Icon = ICONS[r.key];
+                      const active = r.href === "/studio" ? pathname === "/studio" : pathname.startsWith(r.href);
+                      return (
+                        <Link
+                          key={r.key}
+                          href={r.href}
+                          className={"flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13.5px] transition-colors duration-[140ms] " + (active ? "bg-pearl/10 font-semibold text-ink" : "text-ink/60 hover:bg-surface hover:text-ink")}
+                        >
+                          <Icon size={15} className={active ? "text-pearl" : "text-ink/45"} />
+                          {r.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </aside>
           <div className="min-w-0 flex-1">{children}</div>
           <aside className="hidden w-[300px] shrink-0 xl:block">
             <div className="sticky top-[88px] flex flex-col gap-4">

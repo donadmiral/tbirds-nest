@@ -42,6 +42,17 @@ export const ROOMS = [
   { key: "settings", href: "/studio/settings", label: "Settings", ready: true },
 ] as const;
 
+// Grouped rail for wide screens. Same keys as ROOMS; a group with no visible
+// room hides itself.
+export const GROUPS: { label: string; keys: string[] }[] = [
+  { label: "", keys: ["home"] },
+  { label: "Create and manage", keys: ["content", "planner"] },
+  { label: "Engage", keys: ["inbox", "audience", "reviews"] },
+  { label: "Grow", keys: ["insights", "ads"] },
+  { label: "Operate", keys: ["commerce", "recruiter"] },
+  { label: "Manage", keys: ["settings"] },
+];
+
 export const ROLE_CAN: Record<string, StudioRole[]> = {
   publish: ["owner", "admin", "editor"],
   spend: ["owner", "admin"],
