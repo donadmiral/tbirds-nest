@@ -99,6 +99,7 @@ import StoryComposerScreen       from '../screens/stories/StoryComposerScreen';
 import StoryCreationMenuScreen   from '../screens/stories/StoryCreationMenuScreen';
 import StoryCameraScreen         from '../screens/stories/StoryCameraScreen';
 import StoryFunCameraScreen      from '../screens/stories/StoryFunCameraScreen';
+import StoryBoomerangScreen      from '../screens/stories/StoryBoomerangScreen';
 import StoryDualCaptureScreen    from '../screens/stories/StoryDualCaptureScreen';
 import StoryLayoutScreen         from '../screens/stories/StoryLayoutScreen';
 import MemoryArrangementScreen   from '../screens/stories/MemoryArrangementScreen';
@@ -519,6 +520,7 @@ export default function AppNavigator() {
                 <RootStack.Screen name="StoryComposer"        component={StoryComposerScreen} />
                 <RootStack.Screen name="StoryCamera"          component={StoryCameraScreen} />
                 <RootStack.Screen name="StoryFunCamera"       component={StoryFunCameraScreen} />
+                <RootStack.Screen name="StoryBoomerang"       component={StoryBoomerangScreen} />
                 <RootStack.Screen name="StoryDualCapture"     component={StoryDualCaptureScreen} />
                 <RootStack.Screen name="StoryLayout"          component={StoryLayoutScreen} />
                 <RootStack.Screen name="MemoryArrangement"    component={MemoryArrangementScreen} />

@@ -511,6 +511,9 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             <TouchableOpacity onPress={() => navigation.navigate('StoryLayout')} activeOpacity={0.7} style={s.modeItem}>
               <Text style={s.modeRowTxt}>LAYOUT</Text>
             </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('StoryBoomerang')} activeOpacity={0.7} style={s.modeItem}>
+            <Text style={s.modeRowTxt}>BOOM</Text>
+          </TouchableOpacity>
           </View>
         )}
       </View>
