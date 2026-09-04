@@ -1247,15 +1247,24 @@ const pickAndSendDocument = useCallback(async () => {
     await doSend('', url, 'sticker', null);
   }, [doSend]);
 
-  const openCamera = useCallback(async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Permission required'); return; }
-    const result = await ImagePicker.launchCameraAsync({ quality: 1, base64: false });
-    if (result.canceled || !result.assets?.[0]) return;
-    const asset = result.assets[0];
+  const funCamNav = useNavigation<any>();
+  const funCamRoute = useRoute();
+  useEffect(() => {
+    const cm = (funCamRoute.params as any)?.capturedMedia;
+    if (!cm) return;
+    if (cm.type === 'video') {
+      Alert.alert('Video not supported here yet', 'Use the gallery picker to send a video for now.');
+      funCamNav.setParams({ capturedMedia: undefined });
+      return;
+    }
+    setEditTarget({ uri: cm.uri, width: cm.width ?? 1000, height: cm.height ?? 1000 });
+    funCamNav.setParams({ capturedMedia: undefined });
+  }, [(funCamRoute.params as any)?.capturedMedia]);
+
+  const openCamera = useCallback(() => {
     setShowToolbar(false);
-    setEditTarget({ uri: asset.uri, width: asset.width ?? 1000, height: asset.height ?? 1000 });
-  }, []);
+    funCamNav.navigate('StoryFunCamera', { returnTo: 'chat', chatParams: {} });
+  }, [funCamNav]);
 
   const toggleReaction = useCallback(async (msgId: string, emoji: string) => {
     if (!currentUserId) return;

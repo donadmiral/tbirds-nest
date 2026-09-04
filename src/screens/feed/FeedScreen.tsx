@@ -13,6 +13,7 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
+import { useNavigation, useRoute } from '@react-navigation/native';
 import VideoThumb from '../../components/VideoThumb';
 import ArticleBody from '../../components/ArticleBody';
 import SharedPostCard from '../../components/feed/SharedPostCard';
@@ -1214,37 +1215,32 @@ export default function FeedScreen({ navigation }: any) {
     }
   };
 
-  const openCamera = async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Permission required'); return; }
-    try {
-      const result = await ImagePicker.launchCameraAsync({
-        quality: 1,
-        mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
-        allowsEditing: false,
-      });
-      if (!result.canceled && result.assets?.[0]) {
-        const a = result.assets[0];
-        const mediaType = detectMediaType(a);
-        const isVideo = mediaType === 'video';
-        const rawExt = safeExtFromUri(a.uri, isVideo ? 'mp4' : 'jpg');
-        const ext = isVideo ? (['mov', 'mp4', 'webm'].includes(rawExt) ? rawExt : 'mp4') : rawExt;
-
-        let thumbnail: string | undefined;
-        if (isVideo) {
-          try {
-            const thumbResult = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 0, quality: 0.7 });
-            thumbnail = thumbResult.uri;
-          } catch (e) {
-            console.log('[CAMERA_THUMB_ERR]', e);
-          }
+  const funCamNav = useNavigation<any>();
+  const funCamRoute = useRoute();
+  useEffect(() => {
+    const cm = (funCamRoute.params as any)?.capturedMedia;
+    if (!cm) return;
+    (async () => {
+      const isVideo = cm.type === 'video';
+      const rawExt = safeExtFromUri(cm.uri, isVideo ? 'mp4' : 'jpg');
+      const ext = isVideo ? (['mov', 'mp4', 'webm'].includes(rawExt) ? rawExt : 'mp4') : rawExt;
+      let thumbnail: string | undefined;
+      if (isVideo) {
+        try {
+          const thumbResult = await VideoThumbnails.getThumbnailAsync(cm.uri, { time: 0, quality: 0.7 });
+          thumbnail = thumbResult.uri;
+        } catch (e) {
+          console.log('[FUNCAM_THUMB_ERR]', e);
         }
-
-        setComposerMedia(p => [...p, { uri: a.uri, type: mediaType, ext, width: a.width ?? undefined, height: a.height ?? undefined, thumbnail }]);
       }
-    } catch (e: any) {
-      console.log('[CAMERA_ERR]', e?.message || e);
-    }
+      setComposerMedia(p => [...p, { uri: cm.uri, type: isVideo ? 'video' : 'image', ext, width: cm.width ?? undefined, height: cm.height ?? undefined, thumbnail }]);
+      setComposerOpen(true);
+      funCamNav.setParams({ capturedMedia: undefined });
+    })();
+  }, [(funCamRoute.params as any)?.capturedMedia]);
+
+  const openCamera = () => {
+    funCamNav.navigate('StoryFunCamera', { returnTo: 'feed', feedParams: {} });
   };
 
   const reactToVideo = async (post: Post) => {
