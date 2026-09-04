@@ -9,6 +9,7 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { uploadMedia } from '../../services/mediaService';
 import { CATEGORIES } from '../../constants/categories';
+import { useStudioLive } from '../../hooks/useStudioLive';
 import { MoreSeg, ReviewsSeg, AudienceSeg, CommerceSeg } from './StudioMoreSegs';
 import { RecruiterSeg, AdsSeg } from './StudioHiringAdsSegs';
 
@@ -122,6 +123,7 @@ function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: 
   const [refreshing, setRefreshing] = useState(false);
   const load = useCallback(async () => { const { data } = await supabase.rpc('studio_home'); setH(data || null); }, []);
   useEffect(() => { void load(); }, [load]);
+  useStudioLive(load);
   if (!h) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>;
   const todos = [
     { n: h.todos.unanswered, label: 'unanswered messages', icon: 'message-circle', go: () => navigation.navigate('Messages') },
@@ -188,6 +190,7 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
     finally { setLoading(false); }
   }, [filter]);
   useEffect(() => { void load(); }, [load]);
+  useStudioLive(load);
 
   const setState = async (it: any, patch: any) => {
     setItems(prev => prev.map(x => x.id === it.id ? { ...x, ...patch } : x));

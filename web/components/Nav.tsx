@@ -73,6 +73,15 @@ export function Nav({ name, username, business = false }: { name: string; userna
   const profileHref = username ? "/" + username : "/home";
   const pathname = usePathname();
   const router = useRouter();
+  // Inside Studio the grouped rail takes the left column, so the consumer nav
+  // folds to icons; leaving Studio restores whatever the person had saved.
+  const inStudio = pathname.startsWith("/studio");
+  useEffect(() => {
+    const saved = window.localStorage.getItem(COLLAPSE_KEY) === "1";
+    const next = inStudio ? true : saved;
+    setCollapsed(next);
+    document.documentElement.classList.toggle("nav-collapsed", next);
+  }, [inStudio]);
   const supabase = createClient();
   const allItems: NavItem[] = [...items, ...(business ? [{ href: "/studio", label: "Studio", icon: LayoutDashboard }] : []), { href: profileHref, label: "Profile", icon: User }];
 

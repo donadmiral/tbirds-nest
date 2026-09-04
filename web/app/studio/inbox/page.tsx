@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Briefcase, Check, CheckCircle2, MessageCircle, Plus, Star, Tag, Trash2, X, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useStudioLive } from "@/lib/studioLive";
 import { can, deleteReply, getAutoReplies, listReplies, setAutoReplies, upsertReply, type AutoReplies, type SavedReply } from "@/lib/studio";
 import { useStudio } from "@/components/StudioShell";
 
@@ -45,6 +46,7 @@ export default function InboxPage() {
     } finally { setLoading(false); }
   }, [supabase, filter]);
   useEffect(() => { void load(); }, [load]);
+  useStudioLive(load);
   useEffect(() => {
     supabase.rpc("studio_team").then(({ data }) => setTeam((data as Member[]) ?? []));
     listReplies().then(setReplies).catch(() => {});
