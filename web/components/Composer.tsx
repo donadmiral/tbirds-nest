@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { STORY_FILTERS, filterCss } from "@/lib/stories";
 import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
+import { AdjustOverlay } from "@/components/StoryEngine";
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null };
 type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null };
@@ -653,13 +654,7 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
   const [dur, setDur] = useState(0);
   const adj = e.adjust || {};
   const setAdj = (k: string, v: number) => setE((p) => ({ ...p, adjust: { ...(p.adjust || {}), [k]: v } }));
-  const css = filterCss(e.filterId, (e.filterAmt ?? 100) / 100);
-  const adjCss = [
-    adj.bri ? "brightness(" + (1 + adj.bri / 200) + ")" : "",
-    adj.sat ? "saturate(" + (1 + adj.sat / 100) + ")" : "",
-    adj.warm ? "sepia(" + Math.max(0, adj.warm) / 300 + ")" : "",
-  ].filter(Boolean).join(" ");
-  const filterStyle = [css, adjCss].filter(Boolean).join(" ") || undefined;
+  const filterStyle = filterCss(e.filterId, (e.filterAmt ?? 100) / 100);
   const fit = e.fit === "contain" ? "object-contain" : "object-cover";
   const clean = (): PostMediaEditRecipe | null => {
     const out: any = {};
@@ -679,7 +674,7 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
       <div className="flex max-h-[92vh] w-full max-w-[920px] flex-col gap-4 overflow-auto rounded-2xl bg-white p-4 md:flex-row" onClick={(ev) => ev.stopPropagation()}>
-        <div className="flex min-h-[260px] flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">
+        <div className="relative flex min-h-[260px] flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">
           {item.isVideo ? (
             <video src={item.preview} muted={!!e.muted} controls playsInline className={"max-h-[70vh] w-full " + fit} style={{ filter: filterStyle }}
               onLoadedMetadata={(ev) => { const d = ev.currentTarget.duration || 0; setDur(d); if (typeof e.trimEnd !== "number") setE((p) => ({ ...p, trimEnd: Math.round(d * 10) / 10 })); }} />
@@ -687,6 +682,7 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
             // eslint-disable-next-line @next/next/no-img-element
             <img src={item.preview} alt="" className={"max-h-[70vh] w-full " + fit} style={{ filter: filterStyle }} />
           )}
+          <AdjustOverlay adjust={e.adjust} />
         </div>
         <div className="flex w-full flex-col gap-4 md:w-[320px]">
           <div>

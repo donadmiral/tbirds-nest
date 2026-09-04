@@ -390,6 +390,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               style={dims ? { width: dims.w + "px", height: dims.h + "px", ...editStyle(editOf(item)) } : editStyle(editOf(item))}
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
+              <EditPlanes e={editOf(item)} />
               <TagLayer tags={tags[item.id] || []} w={dims?.w} h={dims?.h} />
             </div>
           )}
@@ -491,6 +492,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 className="max-h-[94vh] max-w-full select-none object-contain [touch-action:none]"
               />
             )}
+            {media[lightbox].media_type === "image" ? <EditPlanes e={editOf(media[lightbox])} /> : null}
             {media[lightbox].media_type === "image" ? (
               <span className="absolute bottom-4 right-4 z-10 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
                 <button onClick={() => setZoomClamped(zoom - 0.5)} aria-label="Zoom out" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white transition-colors duration-[140ms] hover:bg-white/20">-</button>
