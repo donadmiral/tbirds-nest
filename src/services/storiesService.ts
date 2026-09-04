@@ -235,6 +235,7 @@ function safeExtFromUri(uri: string, fallback: string): string {
 }
 
 import { resolveTrueMeta } from '../utils/sniffMedia';
+import { ensureUploadSafe } from '../utils/uploadSafe';
 
 function resolveMediaMeta(
   mediaType: StoryMediaType,
@@ -344,6 +345,7 @@ export async function uploadAndCreateStory(params: {
   let thumbnailUrl: string | null = null;
   let dualFrontPublicUrl: string | null = null;
   let effectiveMediaType: StoryMediaType = mediaType;
+  let uploadUri: string = localUri || '';
 
   if (preUploadedUrl) {
     // Split publish: siblings reuse the already-uploaded source file.
@@ -358,13 +360,15 @@ export async function uploadAndCreateStory(params: {
       console.log('[storiesService] media_type corrected by bytes:', mediaType, '->', trueMeta.kind);
       effectiveMediaType = trueMeta.kind;
     }
+    const safe = await ensureUploadSafe(localUri, effectiveMediaType === 'video' ? 'video' : 'image', ext);
+    ext = safe.ext; mimeType = safe.mime; uploadUri = safe.uri;
     const fileName = `${userId}/${Date.now()}.${ext}`;
 
     console.log('[storiesService] Uploading:', { mediaType, ext, mimeType, fileName, uriTail: localUri.slice(-50), hintMimeType, hintFileName });
 
     const formData = new FormData();
     formData.append('file', {
-      uri: localUri,
+      uri: uploadUri,
       type: mimeType,
       name: `story.${ext}`,
     } as any);

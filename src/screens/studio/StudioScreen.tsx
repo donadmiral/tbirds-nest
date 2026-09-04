@@ -9,10 +9,12 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { uploadMedia } from '../../services/mediaService';
 import { CATEGORIES } from '../../constants/categories';
+import { MoreSeg, ReviewsSeg, AudienceSeg, CommerceSeg } from './StudioMoreSegs';
 
 const NAVY = '#0B1E3D';
 const TAB_CLEAR = 110;
-type Seg = 'home' | 'inbox' | 'planner' | 'insights' | 'settings';
+type Seg = 'home' | 'inbox' | 'planner' | 'insights' | 'settings' | 'more' | 'reviews' | 'audience' | 'commerce';
+const MORE_SEGS: Seg[] = ['more', 'settings', 'reviews', 'audience', 'commerce'];
 type Me = { is_business: boolean; needs_code: boolean; role: string | null; display_name: string | null; business_name: string | null; username: string | null; avatar_url: string | null };
 const PUBLISH_ROLES = ['owner', 'admin', 'editor'];
 
@@ -102,14 +104,14 @@ export default function StudioScreen() {
           </View>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14 }} contentContainerStyle={{ gap: 8 }}>
-          {(['home', 'inbox', 'planner', 'insights', 'settings'] as Seg[]).map(k => (
-            <TouchableOpacity key={k} style={[s.segChip, seg === k && s.segChipOn]} onPress={() => setSeg(k)} activeOpacity={0.85}>
-              <Text style={[s.segTxt, seg === k && s.segTxtOn]}>{k === 'home' ? 'Home' : k === 'inbox' ? 'Inbox' : k === 'planner' ? 'Planner' : k === 'insights' ? 'Insights' : 'Settings'}</Text>
+          {(['home', 'inbox', 'planner', 'insights', 'more'] as Seg[]).map(k => { const on = k === 'more' ? MORE_SEGS.includes(seg) : seg === k; return (
+            <TouchableOpacity key={k} style={[s.segChip, on && s.segChipOn]} onPress={() => setSeg(k)} activeOpacity={0.85}>
+              <Text style={[s.segTxt, on && s.segTxtOn]}>{k === 'home' ? 'Home' : k === 'inbox' ? 'Inbox' : k === 'planner' ? 'Planner' : k === 'insights' ? 'Insights' : 'More'}</Text>
             </TouchableOpacity>
-          ))}
+          ); })}
         </ScrollView>
       </View>
-      {seg === 'home' ? <HomeSeg me={me} navigation={navigation} setSeg={setSeg} /> : seg === 'inbox' ? <InboxSeg me={me} navigation={navigation} /> : seg === 'planner' ? <PlannerSeg canPublish={canPublish} meId={profile?.id} /> : seg === 'insights' ? <InsightsSeg navigation={navigation} /> : <SettingsSeg me={me} reload={loadMe} />}
+      {seg === 'home' ? <HomeSeg me={me} navigation={navigation} setSeg={setSeg} /> : seg === 'inbox' ? <InboxSeg me={me} navigation={navigation} setSeg={setSeg} /> : seg === 'planner' ? <PlannerSeg canPublish={canPublish} meId={profile?.id} /> : seg === 'insights' ? <InsightsSeg navigation={navigation} /> : seg === 'reviews' ? <ReviewsSeg role={me.role} onBack={() => setSeg('more')} /> : seg === 'audience' ? <AudienceSeg role={me.role} navigation={navigation} onBack={() => setSeg('more')} /> : seg === 'commerce' ? <CommerceSeg role={me.role} navigation={navigation} onBack={() => setSeg('more')} /> : seg === 'more' ? <MoreSeg go={setSeg} /> : <SettingsSeg me={me} reload={loadMe} />}
     </SafeAreaView>
   );
 }
@@ -125,7 +127,7 @@ function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: 
     { n: h.todos.offers, label: 'offers waiting on you', icon: 'tag', go: () => navigation.navigate('Messages') },
     { n: h.todos.applicants, label: 'applicants to review', icon: 'briefcase', go: () => navigation.navigate('Jobs') },
     { n: h.todos.ads_ending, label: 'ads ending or near cap', icon: 'radio', go: () => setSeg('insights') },
-    { n: h.todos.reviews, label: 'new reviews this month', icon: 'star', go: () => navigation.navigate('Profile') },
+    { n: h.todos.reviews, label: 'new reviews this month', icon: 'star', go: () => setSeg('reviews') },
     { n: h.todos.scheduled_today, label: 'posts scheduled today', icon: 'clock', go: () => setSeg('planner') },
     { n: h.todos.failed_posts, label: 'posts failed to publish', icon: 'alert-triangle', go: () => setSeg('planner') },
   ].filter(t => t.n > 0);
@@ -174,7 +176,7 @@ function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: 
   );
 }
 
-function InboxSeg({ me, navigation }: { me: Me; navigation: any }) {
+function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: (k: Seg) => void }) {
   const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState<'all' | 'dm' | 'offer' | 'applicant' | 'review'>('all');
   const [loading, setLoading] = useState(true);
@@ -195,7 +197,7 @@ function InboxSeg({ me, navigation }: { me: Me; navigation: any }) {
     if (it.kind === 'dm') navigation.navigate('Chat', { conversationId: it.id, userId: it.other_id, userName: it.title, otherUser: { id: it.other_id, full_name: it.title, username: it.username, avatar_url: it.avatar_url } });
     else if (it.kind === 'offer') navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId: it.ref } });
     else if (it.kind === 'applicant') navigation.navigate('Jobs');
-    else navigation.navigate('Profile');
+    else setSeg('reviews');
   };
   const respond = (it: any, action: 'accepted' | 'declined') => {
     Alert.alert(action === 'accepted' ? 'Accept this offer?' : 'Decline this offer?', it.preview, [
