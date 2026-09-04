@@ -893,6 +893,7 @@ export default function StoryComposerScreen() {
             { id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', primary: true, on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() },
             { id: 'rsound', label: 'Sound', feather: 'music', primary: true, on: !!active?.audio, run: () => openMusicSheet() },
             ...(active?.mediaType === 'video' ? [{ id: 'rtrim', label: 'Trim', icon: 'trim', on: (getTx() as any).trimEnd != null, run: () => setTrimOpen(true) } as RailItem] : []),
+            ...(active?.mediaType === 'video' ? [{ id: 'rspeed', label: ((getTx() as any).speed && (getTx() as any).speed !== 1) ? (getTx() as any).speed + 'x' : 'Speed', feather: 'fast-forward', primary: true, on: !!((getTx() as any).speed && (getTx() as any).speed !== 1), run: () => { const cur = (getTx() as any).speed || 1; const opts = [0.5, 1, 1.5, 2, 3]; const i = opts.indexOf(cur); const next = opts[(i + 1) % opts.length]; setTx({ speed: next === 1 ? undefined : next } as any); } } as RailItem] : []),
             { id: 'rfilter', label: 'Filter', icon: 'filter', on: !!active?.filterId, run: () => openFilterSheet() },
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
