@@ -57,6 +57,7 @@ export default function StoryDualCaptureScreen() {
   const [mediaMode, setMediaMode] = useState<'photo' | 'video'>('photo');
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const cameraRef = useRef<CameraView>(null);
   const mountedRef = useRef(true);
@@ -113,7 +114,7 @@ export default function StoryDualCaptureScreen() {
 
   // ── REAR CAPTURE ───────────────────────────────────────────
   const captureRear = useCallback(async () => {
-    if (!cameraRef.current || phase !== 'idle') return;
+    if (!cameraRef.current || phase !== 'idle' || !cameraReady) return;
 
     if (mediaMode === 'video') {
       if (recording) { try { cameraRef.current.stopRecording(); } catch {} return; }
@@ -123,7 +124,19 @@ export default function StoryDualCaptureScreen() {
       recTickRef.current = setInterval(() => { if (mountedRef.current) setRecSeconds(Math.floor((Date.now() - recStartRef.current) / 1000)); }, 250);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       try {
-        const video = await cameraRef.current.recordAsync({ maxDuration: 15, codec: 'avc1' });
+        const recordWithRetry = async (attempt: number): Promise<any> => {
+          try {
+            return await cameraRef.current!.recordAsync({ maxDuration: 15, codec: 'avc1' });
+          } catch (e: any) {
+            const msg = String(e?.message || '').toLowerCase();
+            if (msg.includes('not ready') && attempt < 20) {
+              await new Promise(r => setTimeout(r, 150));
+              return recordWithRetry(attempt + 1);
+            }
+            throw e;
+          }
+        };
+        const video = await recordWithRetry(0);
         if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
         setRecording(false);
         if (!video?.uri || !mountedRef.current) return;
@@ -368,7 +381,7 @@ export default function StoryDualCaptureScreen() {
   return (
     <View style={s.root}>
       {/* Live camera preview */}
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} videoQuality="720p" />
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} videoQuality="720p" onCameraReady={() => setCameraReady(true)} />
 
       {/* Atmospheric top gradient (always visible, gives depth) */}
       <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0)']} style={s.topGradient} pointerEvents="none" />

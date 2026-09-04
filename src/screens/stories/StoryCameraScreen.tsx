@@ -261,7 +261,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       setRecording(false);
       progressAnim.stopAnimation();
       progressAnim.setValue(0);
-      if (msg.toLowerCase().includes('not ready') && pendingRecordRef.current && attempt < 12) {
+      if (msg.toLowerCase().includes('not ready') && pendingRecordRef.current && attempt < 20) {
         setTimeout(() => doRecord(attempt + 1), 150);
         return;
       }

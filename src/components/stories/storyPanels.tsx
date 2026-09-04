@@ -8,6 +8,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, PanResponder, TextInput, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 
@@ -139,12 +140,15 @@ export function AdjustLayer({ adjust, zIndex }: { adjust: StoryAdjust | null | u
       )}
       {grain > 0 && <GrainLayer amount={grain} />}
       {vig > 0 && (
-        <>
-          <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,' + (vig / 100) * 0.55 + ')', 'rgba(0,0,0,0)']} style={[StyleSheet.absoluteFill, { height: '32%' }]} />
-          <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0)', 'rgba(0,0,0,' + (vig / 100) * 0.55 + ')']} style={[vg.bottom]} />
-          <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,' + (vig / 100) * 0.4 + ')', 'rgba(0,0,0,0)']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={[vg.left]} />
-          <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0)', 'rgba(0,0,0,' + (vig / 100) * 0.4 + ')']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={[vg.right]} />
-        </>
+        <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width="100%" height="100%">
+          <Defs>
+            <RadialGradient id="adjVig" cx="50%" cy="50%" r="72%">
+              <Stop offset="55%" stopColor="#000000" stopOpacity={0} />
+              <Stop offset="100%" stopColor="#000000" stopOpacity={(vig / 100) * 0.65} />
+            </RadialGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#adjVig)" />
+        </Svg>
       )}
     </View>
   );

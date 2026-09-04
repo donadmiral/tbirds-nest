@@ -65,14 +65,27 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [facing, setFacing] = useState<'back' | 'front'>('back');
+  const [cameraReady, setCameraReady] = useState(false);
 
   const startRecord = useCallback(async () => {
-    if (!cameraRef.current || recordingRef.current) return;
+    if (!cameraRef.current || recordingRef.current || !cameraReady) return;
     recordingRef.current = true;
     setRecording(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     try {
-      const video = await cameraRef.current.recordAsync({ maxDuration: MAX_BOOM_SEC, codec: 'avc1' });
+      const recordWithRetry = async (attempt: number): Promise<any> => {
+        try {
+          return await cameraRef.current.recordAsync({ maxDuration: MAX_BOOM_SEC, codec: 'avc1' });
+        } catch (e: any) {
+          const msg = String(e?.message || '').toLowerCase();
+          if (msg.includes('not ready') && attempt < 20) {
+            await new Promise(r => setTimeout(r, 150));
+            return recordWithRetry(attempt + 1);
+          }
+          throw e;
+        }
+      };
+      const video = await recordWithRetry(0);
       recordingRef.current = false;
       setRecording(false);
       resetAudioMode();
@@ -115,7 +128,7 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" />
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode="video" videoQuality="720p" />
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode="video" videoQuality="720p" onCameraReady={() => setCameraReady(true)} />
       <SafeAreaView style={s.topBar} edges={['top']}>
         <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="x" size={24} color="#FFF" />
