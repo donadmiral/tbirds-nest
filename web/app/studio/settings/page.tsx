@@ -7,8 +7,9 @@ import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { Panel } from "@/components/ui";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BadgeCheck, Copy, KeyRound, Smartphone, Users } from "lucide-react";
+import { Copy, KeyRound, Smartphone, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useStudio } from "@/components/StudioShell";
 
 type Member = { id: string; display_name: string; role: string; active: boolean; last_sign_in_at: string | null; created_at: string };
@@ -29,8 +30,11 @@ export default function SettingsPage() {
   const [newName, setNewName] = useState("");
   const [newRole, setNewRole] = useState("admin");
   const [issued, setIssued] = useState<{ name: string; code: string } | null>(null);
+  const [uid, setUid] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    const { data: authData } = await supabase.auth.getUser();
+    setUid(authData.user?.id ?? null);
     const { data, error } = await supabase.rpc("studio_get_business");
     if (error) { alert(error.message); return; }
     const i = data as Info;
@@ -160,7 +164,7 @@ export default function SettingsPage() {
             <img src={displayImageUrl(info.profile.avatar_url, 200) ?? info.profile.avatar_url} alt="" className="h-12 w-12 rounded-xl object-cover" />
           ) : <span className="h-12 w-12 rounded-xl bg-navy" />}
           <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1.5 text-[15px] font-semibold text-ink">{info.profile?.full_name}{info.profile?.is_verified || info.business?.is_verified ? <BadgeCheck size={15} className="text-pearl" /> : null}</p>
+            <p className="flex items-center gap-1.5 text-[15px] font-semibold text-ink">{info.profile?.full_name} <VerifiedBadge userId={uid} size={15} /></p>
             <p className="text-[12px] text-ink/45">@{info.profile?.username}{info.business?.review_count ? " · " + Number(info.business.avg_rating).toFixed(1) + " from " + info.business.review_count + " reviews" : ""}{info.profile?.is_verified || info.business?.is_verified ? " · verified" : " · not verified, request verification from the admin team"}</p>
           </div>
         </div>
