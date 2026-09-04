@@ -47,7 +47,7 @@ function resetAudioMode() {
   try { if (ExpoAVAudio) ExpoAVAudio.setAudioModeAsync({ allowsRecordingIOS: false }); } catch {}
 }
 
-export default function StoryFunCameraScreen({ navigation }: any) {
+export default function StoryFunCameraScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
 
   if (!cameraAvailable) {
@@ -66,10 +66,15 @@ export default function StoryFunCameraScreen({ navigation }: any) {
     );
   }
 
-  return <FunCameraInner navigation={navigation} insets={insets} />;
+  return <FunCameraInner navigation={navigation} insets={insets} route={route} />;
 }
 
-function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }) {
+function FunCameraInner({ navigation, insets, route }: { navigation: any; insets: any; route: any }) {
+  // Where the captured photo/video goes. Any screen can open this camera by
+  // navigating here with { returnTo: 'chat' | 'feed', chatParams / feedParams }.
+  // Default (no params, or opened from the story mode row) behaves exactly as
+  // before: straight into the story composer.
+  const returnTo: 'story' | 'chat' | 'feed' = route?.params?.returnTo || 'story';
   const [permission, requestPermission] = useCameraPermissions();
   const micPair = useMicrophonePermissions ? useMicrophonePermissions() : [null, null];
   const micPerm = micPair[0];
@@ -105,11 +110,22 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
   const recordStartRef = useRef(0);
 
   const goToComposer = useCallback((uri: string, type: 'image' | 'video', width?: number, height?: number) => {
+    const fid = tab === 'filters' ? filterId : null;
+    if (returnTo === 'chat') {
+      const chatParams = route?.params?.chatParams || {};
+      navigation.navigate('Chat', { ...chatParams, capturedMedia: { uri, type, width, height, filterId: fid } });
+      return;
+    }
+    if (returnTo === 'feed') {
+      const feedParams = route?.params?.feedParams || {};
+      navigation.navigate('Feed', { ...feedParams, capturedMedia: { uri, type, width, height, filterId: fid } });
+      return;
+    }
     navigation.navigate('StoryComposer', {
-      assets: [{ uri, localUri: uri, type, mediaType: type, width, height, filterId: tab === 'filters' ? filterId : null }],
+      assets: [{ uri, localUri: uri, type, mediaType: type, width, height, filterId: fid }],
       mode: type,
     });
-  }, [navigation, filterId, tab]);
+  }, [navigation, filterId, tab, returnTo, route]);
 
   // ── Filters tab: preview snapshot + picker (same as before) ──
   const openFilters = useCallback(async () => {
@@ -334,9 +350,15 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
       )}
 
       <SafeAreaView style={s.topControls} edges={['top']}>
-        <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="x" size={24} color="#FFF" />
-        </TouchableOpacity>
+        <View style={s.cornerRow}>
+          <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Feather name="x" size={24} color="#FFF" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity style={s.topBtn} onPress={() => ckRef.current?.flip()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} disabled={recording}>
+            <Feather name="refresh-cw" size={20} color="#FFF" />
+          </TouchableOpacity>
+        </View>
         <View style={s.tabSwitch}>
           <TouchableOpacity style={[s.tabBtn, tab === 'filters' && s.tabBtnOn]} onPress={() => setTab('filters')} disabled={recording}>
             <Text style={[s.tabTxt, tab === 'filters' && s.tabTxtOn]}>Filters</Text>
@@ -345,9 +367,6 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
             <Text style={[s.tabTxt, tab === 'lenses' && s.tabTxtOn]}>Lenses</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={s.topBtn} onPress={() => ckRef.current?.flip()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} disabled={recording}>
-          <Feather name="refresh-cw" size={20} color="#FFF" />
-        </TouchableOpacity>
       </SafeAreaView>
 
       {tab === 'filters' ? (
@@ -422,10 +441,11 @@ const s = StyleSheet.create({
   fallbackBtn: { marginTop: 20, backgroundColor: '#FFF', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 14, alignItems: 'center', width: '100%' },
   fallbackBtnTxt: { color: '#000', fontSize: 15, fontWeight: '700' },
 
-  topControls: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, zIndex: 10 },
+  topControls: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 16, paddingTop: 8, zIndex: 10 },
+  cornerRow: { flexDirection: 'row', alignItems: 'center' },
   topBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
 
-  tabSwitch: { flex: 1, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  tabSwitch: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 },
   tabBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.35)' },
   tabBtnOn: { backgroundColor: 'rgba(255,255,255,0.9)' },
   tabTxt: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '700' },
