@@ -1,12 +1,8 @@
 // src/screens/stories/StoryFunCameraScreen.tsx
-// The "FUN" mode from the story camera's mode row. Same capture pipeline as
-// the main camera (tap for photo, hold for video, same ensureUploadSafe gate,
-// same StoryComposer handoff), now showing a real, live filter preview using
-// the same 44-filter system already proven everywhere else in the app
-// (FilterLayer/FilterPickerSheet from components/stories/StoryFilters) —
-// not a placeholder AR carousel. Filters here are the "swipe-through 2D
-// look" kind; true face-tracking AR Lenses are a separate, later system
-// that needs a real Camera Kit session — see the note by applyLens below.
+// FUN mode. Two tabs now: Filters (2D looks, live via FilterLayer, unchanged
+// from before) and Lenses (real AR via CameraKitLensView, backed by a real
+// Camera Kit session and a real lens group). Capture routes through whichever
+// pipeline is active into the same StoryComposer handoff either way.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -17,15 +13,19 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
 import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
+import { CameraKitLensView, CKLens, CameraKitLensViewHandle } from './CameraKitLensView';
 
 const MAX_VIDEO_SEC = 60;
 const CAPTURE_SIZE = 72;
+
 
 let CameraView: any = null;
 let useCameraPermissions: any = null;
@@ -45,17 +45,6 @@ let ExpoAVAudio: any = null;
 try { ExpoAVAudio = require('expo-av').Audio; } catch {}
 function resetAudioMode() {
   try { if (ExpoAVAudio) ExpoAVAudio.setAudioModeAsync({ allowsRecordingIOS: false }); } catch {}
-}
-
-/**
- * Real AR face/body/world Lenses (Snap's "Lens" tier, not "Filter") need a
- * live Camera Kit session — a different SDK, still not wired. This function
- * is the one seam for that later. Nothing on this screen depends on it
- * anymore: the working feature right now is the live filter preview below,
- * built on the same StoryFilters system already used everywhere else.
- */
-async function applyLens(lensId: string | null): Promise<void> {
-  console.log('[FunCamera] applyLens (stub, AR tier not wired):', lensId);
 }
 
 export default function StoryFunCameraScreen({ navigation }: any) {
@@ -89,16 +78,24 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
     if (micPerm && !micPerm.granted && micPerm.canAskAgain && requestMicPerm) requestMicPerm();
   }, [micPerm, requestMicPerm]);
 
-  const [facing, setFacing] = useState<'front' | 'back'>('front');
+  const [tab, setTab] = useState<'filters' | 'lenses'>('filters');
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
 
-  // Live filter: the real, working part of this screen.
+  // Filters tab (unchanged) ---------------------------------------------
   const [filterId, setFilterId] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [previewSnapshot, setPreviewSnapshot] = useState<string | null>(null);
   const [snapshotting, setSnapshotting] = useState(false);
+
+  // Lenses tab (new, real) ------------------------------------------------
+  const ckRef = useRef<CameraKitLensViewHandle>(null);
+  const [ckReady, setCkReady] = useState(false);
+  const [ckLenses, setCkLenses] = useState<CKLens[]>([]);
+  const [ckSelectedLens, setCkSelectedLens] = useState<string | null>(null);
+  const apiToken = (process.env.EXPO_PUBLIC_CAMERAKIT_API_TOKEN as string) || '';
+  const lensGroupId = (process.env.EXPO_PUBLIC_CAMERAKIT_LENS_GROUP_ID as string) || '';
 
   const cameraRef = useRef<any>(null);
   const recordingRef = useRef(false);
@@ -109,13 +106,12 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
 
   const goToComposer = useCallback((uri: string, type: 'image' | 'video', width?: number, height?: number) => {
     navigation.navigate('StoryComposer', {
-      assets: [{ uri, localUri: uri, type, mediaType: type, width, height, filterId }],
+      assets: [{ uri, localUri: uri, type, mediaType: type, width, height, filterId: tab === 'filters' ? filterId : null }],
       mode: type,
     });
-  }, [navigation, filterId]);
+  }, [navigation, filterId, tab]);
 
-  // The filter picker shows the filter applied to a real frame, not a
-  // generic icon — grab a lightweight still the first time it's opened.
+  // ── Filters tab: preview snapshot + picker (same as before) ──
   const openFilters = useCallback(async () => {
     Haptics.selectionAsync();
     if (!previewSnapshot && cameraRef.current && !recording) {
@@ -132,7 +128,8 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
     setFilterOpen(true);
   }, [previewSnapshot, recording]);
 
-  const takePhoto = useCallback(async () => {
+  // ── Filters tab capture (expo-camera, unchanged) ──
+  const takePhotoFilters = useCallback(async () => {
     if (!cameraRef.current || processing || recordingRef.current) return;
     setProcessing(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -147,7 +144,7 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
     }
   }, [processing, goToComposer]);
 
-  const doRecord = useCallback(async (attempt: number = 0) => {
+  const doRecordFilters = useCallback(async (attempt: number = 0) => {
     if (!cameraRef.current || recordingRef.current || processing || !pendingRecordRef.current) return;
     recordingRef.current = true;
     setRecording(true);
@@ -175,7 +172,7 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
       recordingRef.current = false;
       setRecording(false);
       if (msg.toLowerCase().includes('not ready') && pendingRecordRef.current && attempt < 12) {
-        setTimeout(() => doRecord(attempt + 1), 150);
+        setTimeout(() => doRecordFilters(attempt + 1), 150);
         return;
       }
       pendingRecordRef.current = false;
@@ -185,17 +182,17 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
     }
   }, [processing, goToComposer]);
 
-  const requestRecord = useCallback(async () => {
+  const requestRecordFilters = useCallback(async () => {
     if (recordingRef.current || processing) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (micPerm && !micPerm.granted && requestMicPerm) requestMicPerm();
     try { if (ExpoAVAudio) await ExpoAVAudio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true }); } catch {}
     pendingRecordRef.current = true;
     setCamMode('video');
-    setTimeout(() => { if (pendingRecordRef.current) doRecord(0); }, 300);
-  }, [processing, micPerm, requestMicPerm, doRecord]);
+    setTimeout(() => { if (pendingRecordRef.current) doRecordFilters(0); }, 300);
+  }, [processing, micPerm, requestMicPerm, doRecordFilters]);
 
-  const stopRecording = useCallback(() => {
+  const stopRecordFilters = useCallback(() => {
     pendingRecordRef.current = false;
     if (!recordingRef.current) { setCamMode('picture'); return; }
     const elapsed = Date.now() - recordStartRef.current;
@@ -215,16 +212,75 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
     }, wait);
   }, []);
 
+  // ── Lenses tab capture (Camera Kit, real) ──
+  const takePhotoLenses = useCallback(async () => {
+    if (!ckReady || processing) return;
+    setProcessing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      const uri = await ckRef.current?.capturePhoto();
+      if (uri) goToComposer(uri, 'image');
+      else Alert.alert('Error', 'Could not take photo.');
+    } catch (e) {
+      console.error('[FunCamera] lens photo error:', e);
+      Alert.alert('Error', 'Could not take photo.');
+    } finally {
+      setProcessing(false);
+    }
+  }, [ckReady, processing, goToComposer]);
+
+  const startRecordLenses = useCallback(() => {
+    if (!ckReady || recordingRef.current) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    recordingRef.current = true;
+    setRecording(true);
+    ckRef.current?.startVideo();
+  }, [ckReady]);
+
+  const stopRecordLenses = useCallback(async () => {
+    if (!recordingRef.current) return;
+    recordingRef.current = false;
+    setRecording(false);
+    setProcessing(true);
+    try {
+      const uri = await ckRef.current?.stopVideo();
+      if (uri) {
+        let safeUri = uri;
+        try { safeUri = (await ensureUploadSafe(uri, 'video')).uri; }
+        catch (e: any) { console.log('[FunCamera] uploadSafe unavailable, using raw file:', e?.message || e); }
+        goToComposer(safeUri, 'video');
+      } else {
+        Alert.alert('Recording failed', 'No video was captured. Try again.');
+      }
+    } finally {
+      setProcessing(false);
+    }
+  }, [goToComposer]);
+
+  // ── Unified capture button: tap = photo, hold = video, routed by tab ──
   const onPressIn = useCallback(() => {
     pressStartRef.current = Date.now();
-    holdTimerRef.current = setTimeout(() => { requestRecord(); }, 250);
-  }, [requestRecord]);
+    holdTimerRef.current = setTimeout(() => {
+      if (tab === 'filters') requestRecordFilters();
+      else startRecordLenses();
+    }, 250);
+  }, [tab, requestRecordFilters, startRecordLenses]);
+
   const onPressOut = useCallback(() => {
     if (holdTimerRef.current) { clearTimeout(holdTimerRef.current); holdTimerRef.current = null; }
     const held = Date.now() - pressStartRef.current;
-    if (held < 250 && !recordingRef.current) { takePhoto(); return; }
-    stopRecording();
-  }, [takePhoto, stopRecording]);
+    if (held < 250 && !recordingRef.current) {
+      if (tab === 'filters') takePhotoFilters(); else takePhotoLenses();
+      return;
+    }
+    if (tab === 'filters') stopRecordFilters(); else stopRecordLenses();
+  }, [tab, takePhotoFilters, takePhotoLenses, stopRecordFilters, stopRecordLenses]);
+
+  const pickLens = useCallback((lens: CKLens | null) => {
+    Haptics.selectionAsync();
+    setCkSelectedLens(lens?.id || null);
+    ckRef.current?.applyLens(lens?.id || null, lensGroupId);
+  }, [lensGroupId]);
 
   if (!permission) {
     return <View style={s.fallback}><StatusBar barStyle="light-content" /><ActivityIndicator color="#FFF" size="large" /></View>;
@@ -247,39 +303,87 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
   return (
     <View style={s.root}>
       <StatusBar hidden />
-      <CameraView key={camMode} ref={cameraRef} style={s.camera} facing={facing} mode={camMode} videoQuality="720p"
-        onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') doRecord(0); }} />
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <FilterLayer filterId={filterId} amt={100} />
-      </View>
+
+      {tab === 'filters' ? (
+        <>
+          <CameraView key={camMode} ref={cameraRef} style={s.camera} facing="front" mode={camMode} videoQuality="720p"
+            onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') doRecordFilters(0); }} />
+          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+            <FilterLayer filterId={filterId} amt={100} />
+          </View>
+        </>
+      ) : (
+        !apiToken || !lensGroupId ? (
+          <View style={[s.fallback, { flex: 1 }]}>
+            <Text style={[s.fallbackSub, { paddingHorizontal: 40 }]}>{!apiToken ? 'No Camera Kit token set. Add EXPO_PUBLIC_CAMERAKIT_API_TOKEN to .env.' : 'No Lens Group set. Add EXPO_PUBLIC_CAMERAKIT_LENS_GROUP_ID to .env, copy it from My Lenses -> Camera Kit -> your app.'}</Text>
+          </View>
+        ) : (
+          <CameraKitLensView
+            ref={ckRef}
+            apiToken={apiToken}
+            lensGroupId={lensGroupId}
+            onReady={() => setCkReady(true)}
+            onLenses={(l) => setCkLenses(l)}
+            onError={(m) => console.log('[FunCamera] CameraKit error:', m)}
+          />
+        )
+      )}
 
       <SafeAreaView style={s.topControls} edges={['top']}>
         <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="x" size={24} color="#FFF" />
         </TouchableOpacity>
-        <View style={{ flex: 1 }} />
-        <TouchableOpacity style={s.topBtn} onPress={() => setFacing(f => (f === 'back' ? 'front' : 'back'))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} disabled={recording}>
+        <View style={s.tabSwitch}>
+          <TouchableOpacity style={[s.tabBtn, tab === 'filters' && s.tabBtnOn]} onPress={() => setTab('filters')} disabled={recording}>
+            <Text style={[s.tabTxt, tab === 'filters' && s.tabTxtOn]}>Filters</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.tabBtn, tab === 'lenses' && s.tabBtnOn]} onPress={() => setTab('lenses')} disabled={recording}>
+            <Text style={[s.tabTxt, tab === 'lenses' && s.tabTxtOn]}>Lenses</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={s.topBtn} onPress={() => ckRef.current?.flip()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} disabled={recording}>
           <Feather name="refresh-cw" size={20} color="#FFF" />
         </TouchableOpacity>
       </SafeAreaView>
 
-      {/* Filters: the real, working feature — 44 presets, live on the preview above */}
-      <View style={[s.filterBarWrap, { bottom: Math.max(insets.bottom + 150, 176) }]} pointerEvents={recording ? 'none' : 'auto'}>
-        <TouchableOpacity onPress={openFilters} activeOpacity={0.85} style={s.filterBtn} disabled={snapshotting}>
-          {snapshotting ? <ActivityIndicator color="#FFF" size="small" /> : <Feather name="sliders" size={18} color="#FFF" />}
-          <Text style={s.filterBtnTxt}>{filterId ? filterId.charAt(0).toUpperCase() + filterId.slice(1) : 'Filters'}</Text>
-        </TouchableOpacity>
-      </View>
+      {tab === 'filters' ? (
+        <View style={[s.filterBarWrap, { bottom: Math.max(insets.bottom + 150, 176) }]} pointerEvents={recording ? 'none' : 'auto'}>
+          <TouchableOpacity onPress={openFilters} activeOpacity={0.85} style={s.filterBtn} disabled={snapshotting}>
+            {snapshotting ? <ActivityIndicator color="#FFF" size="small" /> : <Feather name="sliders" size={18} color="#FFF" />}
+            <Text style={s.filterBtnTxt}>{filterId ? filterId.charAt(0).toUpperCase() + filterId.slice(1) : 'Filters'}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={[s.lensStripWrap, { bottom: Math.max(insets.bottom + 150, 176) }]} pointerEvents={recording ? 'none' : 'auto'}>
+          {!ckReady ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.lensStrip}>
+              <TouchableOpacity onPress={() => pickLens(null)} activeOpacity={0.85} style={s.lensItem}>
+                <View style={[s.lensCircle, !ckSelectedLens && s.lensCircleOn]}><Feather name="slash" size={18} color="#FFF" /></View>
+                <Text style={[s.lensLabel, !ckSelectedLens && s.lensLabelOn]}>None</Text>
+              </TouchableOpacity>
+              {ckLenses.map((lens) => {
+                const on = ckSelectedLens === lens.id;
+                return (
+                  <TouchableOpacity key={lens.id} onPress={() => pickLens(lens)} activeOpacity={0.85} style={s.lensItem}>
+                    <View style={[s.lensCircle, on && s.lensCircleOn]}>
+                      {lens.iconUrl ? <Image source={{ uri: lens.iconUrl }} style={s.lensThumbImg} /> : <Feather name="zap" size={18} color="#FFF" />}
+                    </View>
+                    <Text style={[s.lensLabel, on && s.lensLabelOn]} numberOfLines={1}>{lens.name}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+        </View>
+      )}
 
       <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 18, 32) }]}>
         <View style={s.captureRow}>
           <View style={{ width: 44 }} />
-          <TouchableOpacity
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            activeOpacity={1}
-            style={[s.captureWrap, { transform: [{ scale: recording ? 1.08 : 1 }] }]}
-          >
+          <TouchableOpacity onPressIn={onPressIn} onPressOut={onPressOut} activeOpacity={1}
+            style={[s.captureWrap, { transform: [{ scale: recording ? 1.08 : 1 }] }]}>
             <View style={[s.captureRing, recording && s.captureRingRecording]} />
             <View style={[s.captureInner, recording && s.captureInnerRecording]}>
               {processing && <ActivityIndicator color="#000" size="small" />}
@@ -290,13 +394,15 @@ function FunCameraInner({ navigation, insets }: { navigation: any; insets: any }
         <Text style={s.hintTxt}>{recording ? 'Release to stop' : 'Tap for photo, hold for video'}</Text>
       </View>
 
-      <FilterPickerSheet
-        visible={filterOpen}
-        onClose={() => setFilterOpen(false)}
-        selected={filterId}
-        onSelect={(fid: string | null) => setFilterId(fid)}
-        previewUri={previewSnapshot}
-      />
+      {tab === 'filters' && (
+        <FilterPickerSheet
+          visible={filterOpen}
+          onClose={() => setFilterOpen(false)}
+          selected={filterId}
+          onSelect={(fid: string | null) => setFilterId(fid)}
+          previewUri={previewSnapshot}
+        />
+      )}
     </View>
   );
 }
@@ -315,9 +421,24 @@ const s = StyleSheet.create({
   topControls: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, zIndex: 10 },
   topBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
 
+  tabSwitch: { flex: 1, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  tabBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.35)' },
+  tabBtnOn: { backgroundColor: 'rgba(255,255,255,0.9)' },
+  tabTxt: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '700' },
+  tabTxtOn: { color: '#000' },
+
   filterBarWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   filterBtnTxt: { color: '#FFF', fontSize: 13.5, fontWeight: '700' },
+
+  lensStripWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', justifyContent: 'center', minHeight: 70 },
+  lensStrip: { paddingHorizontal: 16, gap: 14, alignItems: 'flex-end' },
+  lensItem: { alignItems: 'center', width: 58 },
+  lensCircle: { width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent', overflow: 'hidden' },
+  lensCircleOn: { borderColor: '#FFD60A', backgroundColor: 'rgba(0,0,0,0.3)' },
+  lensThumbImg: { width: '100%', height: '100%' },
+  lensLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10.5, fontWeight: '600', marginTop: 4 },
+  lensLabelOn: { color: '#FFD60A', fontWeight: '800' },
 
   bottomControls: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', paddingTop: 16 },
   captureRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 40 },
