@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, ImagePlus, Plus, Trash2, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { STORY_FILTERS, STORY_FILTER_FAMILIES, filterCss } from "@/lib/stories";
 import { searchPeople, type AccessPerson } from "@/lib/memoryAlbum";
 
@@ -236,7 +237,7 @@ function ComposerInner() {
           {results.map((r) => (
             <button key={r.id} onClick={() => { if (!people.some((p) => p.id === r.id)) setPeople([...people, r]); setQ(""); setResults([]); }}
               className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-black/5">
-              <span className="text-[13px] text-ink">{r.full_name} <span className="text-ink/40">@{r.username}</span></span>
+              <span className="text-[13px] text-ink">{r.full_name} <VerifiedBadge userId={r.id} size={12} /> <span className="text-ink/40">@{r.username}</span></span>
               <Plus size={13} className="ml-auto text-ink/40" />
             </button>
           ))}
@@ -244,6 +245,7 @@ function ComposerInner() {
             {people.map((p) => (
               <span key={p.id} className="flex items-center gap-1 rounded-full bg-black/5 px-2.5 py-1 text-[12px] text-ink">
                 {p.full_name}
+                <VerifiedBadge userId={p.id} size={11} />
                 <button onClick={() => setPeople(people.filter((x) => x.id !== p.id))} aria-label="Remove"><X size={11} /></button>
               </span>
             ))}

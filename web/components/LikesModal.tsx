@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { X, Heart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 
@@ -39,7 +40,7 @@ export function LikesModal({ postId, onClose }: { postId: string; onClose: () =>
             <div key={p.id} className="flex items-center gap-2.5 py-2">
               <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={38} href={p.username ? "/" + p.username : null} />
               <Link href={p.username ? "/" + p.username : "#"} className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-semibold text-ink">{p.full_name}</span>
+                <span className="block truncate text-[13px] font-semibold text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={13} /></span>
                 <span className="block truncate text-[12px] text-ink/45">@{p.username}</span>
               </Link>
               <FollowButton authorId={p.id} />

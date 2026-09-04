@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ThumbsUp, ThumbsDown, Reply, Trash2, Copy, MoreHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { RichText } from "@/components/RichText";
 import { timeAgo } from "@/lib/feed";
@@ -138,7 +139,7 @@ export function Comments({ postId }: { postId: string }) {
           <StoryAvatar userId={c.user_id} name={c.author?.full_name} avatarUrl={c.author?.avatar_url} size={depth > 0 ? 30 : 36} href={c.author?.username ? "/" + c.author.username : null} />
           <div className="min-w-0 flex-1">
             <p className="flex items-baseline gap-1.5 text-[13px]">
-              <Link href={c.author?.username ? "/" + c.author.username : "#"} className="font-semibold text-ink hover:underline">{c.author?.full_name ?? "Member"}</Link>
+              <Link href={c.author?.username ? "/" + c.author.username : "#"} className="font-semibold text-ink hover:underline">{c.author?.full_name ?? "Member"}</Link> <VerifiedBadge userId={c.user_id} size={13} />
               <span className="text-ink/40">{timeAgo(c.created_at)}</span>
             </p>
             <p className="whitespace-pre-wrap text-[14px] text-ink/90"><RichText text={c.body} /></p>

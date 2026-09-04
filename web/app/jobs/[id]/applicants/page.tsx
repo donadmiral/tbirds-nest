@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FileText, Phone, Link2, CalendarClock, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { timeAgo } from "@/lib/feed";
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -134,7 +135,7 @@ export default function ApplicantsPage() {
                   </Link>
                   <div className="min-w-0 flex-1">
                     <Link href={a.profile?.username ? "/" + a.profile.username : "#"} className="block truncate text-[15px] font-semibold text-ink hover:underline">
-                      {a.profile?.full_name ?? "Member"}
+                      {a.profile?.full_name ?? "Member"} <VerifiedBadge userId={a.profile?.id} size={13} />
                     </Link>
                     <p className="text-[12px] text-ink/40">@{a.profile?.username} · {timeAgo(a.created_at || new Date().toISOString())}</p>
                   </div>

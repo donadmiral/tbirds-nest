@@ -5,6 +5,7 @@ import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, ShieldOff, UserX } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 type Row = { blocked_id: string; created_at: string | null; full_name: string | null; username: string | null; avatar_url: string | null };
 
@@ -58,7 +59,7 @@ export default function BlockedAccountsPage() {
             <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
           ) : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">{(r.full_name || "U").charAt(0)}</span>}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name || "User"}</p>
+            <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name || "User"} <VerifiedBadge userId={r.blocked_id} size={13} /></p>
             {r.username ? <p className="text-[12px] text-ink/45">@{r.username}</p> : null}
           </div>
           <button onClick={() => unblock(r)} disabled={!!busy[r.blocked_id]} className="rounded-full border border-ink/15 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface disabled:opacity-40">{busy[r.blocked_id] ? "..." : "Unblock"}</button>

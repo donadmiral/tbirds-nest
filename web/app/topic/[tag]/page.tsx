@@ -3,6 +3,7 @@
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { RichText } from "@/components/RichText";
 import { timeAgo } from "@/lib/feed";
@@ -56,7 +57,7 @@ export default function TopicPage({ params }: { params: Promise<{ tag: string }>
             <StoryAvatar userId={p.user_id} name={p.author?.full_name} avatarUrl={p.author?.avatar_url} size={44} href={p.author?.username ? "/" + p.author.username : null} />
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5 text-[14px]">
-                <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"}</span>
+                <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"} <VerifiedBadge userId={p.user_id} size={13} /></span>
                 <span className="truncate text-ink/50">@{p.author?.username}</span>
                 <span className="text-ink/30">·</span>
                 <span className="shrink-0 text-ink/50">{timeAgo(p.created_at)}</span>

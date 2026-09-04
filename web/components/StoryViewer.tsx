@@ -9,6 +9,7 @@ import { QuestionCard, QuizCard, SliderCard, CountdownCard } from "@/components/
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, animStyle, extraFontCss, STICKER_ANIM_CSS } from "@/components/StoryEngine";
 
 const IMAGE_DURATION_MS = 5000;
@@ -500,7 +501,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
               {(user.full_name ?? "?").charAt(0).toUpperCase()}
             </span>
           )}
-          <span className="text-[13px] font-semibold text-white drop-shadow">{user.full_name}</span>
+          <span className="text-[13px] font-semibold text-white drop-shadow">{user.full_name}</span> <VerifiedBadge userId={user.user_id} size={13} />
           {story ? <span className="text-[12px] text-white/70 drop-shadow">{timeAgo(story.created_at)}</span> : null}
         </div>
 
@@ -677,7 +678,7 @@ function ViewersSheet({ storyId, onClose }: { storyId: string; onClose: () => vo
             // eslint-disable-next-line @next/next/no-img-element
             <img src={displayImageUrl(p.avatar_url, 200) ?? p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
           ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-pearl text-[12px] font-semibold text-ink">{(p.full_name ?? "?").charAt(0)}</span>}
-          <span className="text-[13px] text-ink">{p.full_name} <span className="text-ink/40">@{p.username}</span></span>
+          <span className="text-[13px] text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={12} /> <span className="text-ink/40">@{p.username}</span></span>
         </div>
       ))}
     </div>

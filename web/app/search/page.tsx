@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Briefcase, ShoppingBag, ArrowLeft, FileText, MapPin, Play, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { RichText } from "@/components/RichText";
@@ -203,7 +204,7 @@ export default function SearchPage() {
                 <div key={p.id} className="flex items-center gap-3 rounded-md px-1 py-2 transition-colors duration-[140ms] hover:bg-surface">
                   <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={42} href={p.username ? "/" + p.username : null} />
                   <Link href={p.username ? "/" + p.username : "#"} onClick={() => saveRecent(q)} className="min-w-0 flex-1">
-                    <span className="block truncate text-[14px] font-semibold text-ink">{p.full_name}</span>
+                    <span className="block truncate text-[14px] font-semibold text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={13} /></span>
                     <span className="block truncate text-[12px] text-ink/45">{p.headline || "@" + (p.username ?? "")}</span>
                   </Link>
                   <FollowButton authorId={p.id} />
@@ -221,7 +222,7 @@ export default function SearchPage() {
                   <StoryAvatar userId={p.user_id} name={p.author?.full_name} avatarUrl={p.author?.avatar_url} size={36} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline gap-1.5 text-[13px]">
-                      <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"}</span>
+                      <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"} <VerifiedBadge userId={p.user_id} size={13} /></span>
                       <span className="shrink-0 text-ink/40">{timeAgo(p.created_at)}</span>
                     </span>
                     <span className="line-clamp-2 block text-[13px] text-ink/80"><RichText text={p.content ?? ""} /></span>

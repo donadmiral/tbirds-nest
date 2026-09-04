@@ -1,3 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
 // The Platinum verified seal. Kept in lockstep with mobile src/components/VerifiedBadge.tsx:
 // same seal path, same metals per tier, same optical sizing rules.
 //
@@ -61,8 +66,36 @@ const SEAL = "M12.00 0.65Q13.55 0.24 14.47 2.78Q15.73 3.00 17.67 2.17Q19.22 2.59
 // Centred on the 24 box: x runs 8.2 to 15.8, y runs 9.5 to 14.9.
 const CHECK = "M8.2 12.3l2.6 2.6 5-5.4";
 
-export function VerifiedBadge({ tier, size = 14 }: { tier?: Tier; size?: number }) {
-  const key = tier && METALS[tier] ? tier : "business";
+const tierCache = new Map<string, Tier | null>();
+const inFlight = new Map<string, Promise<Tier | null>>();
+
+async function lookupTier(userId: string): Promise<Tier | null> {
+  if (tierCache.has(userId)) return tierCache.get(userId)!;
+  if (inFlight.has(userId)) return inFlight.get(userId)!;
+  const p = (async () => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase.from("profiles").select("is_verified, verified_tier").eq("id", userId).maybeSingle();
+      const t: Tier | null = data?.verified_tier ? (data.verified_tier as Tier) : (data?.is_verified ? "business" : null);
+      tierCache.set(userId, t);
+      return t;
+    } catch { return null; }
+    finally { inFlight.delete(userId); }
+  })();
+  inFlight.set(userId, p);
+  return p;
+}
+
+export function VerifiedBadge({ tier, userId, size = 14 }: { tier?: Tier; userId?: string | null; size?: number }) {
+  const [looked, setLooked] = useState<Tier | null>(userId ? tierCache.get(userId) ?? null : null);
+  useEffect(() => {
+    let alive = true;
+    if (!tier && userId) lookupTier(userId).then((t) => { if (alive) setLooked(t); });
+    return () => { alive = false; };
+  }, [tier, userId]);
+  const eff = tier || looked;
+  if (userId && !tier && !eff) return null;
+  const key = eff && METALS[eff as string] ? (eff as string) : "business";
   const m = METALS[key];
   const px = Math.round(size);
   const detailed = px >= 16;

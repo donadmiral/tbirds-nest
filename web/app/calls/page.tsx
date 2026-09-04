@@ -5,6 +5,7 @@ import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, Phone, PhoneIncoming, PhoneMissed, PhoneOff, PhoneOutgoing, Video } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { requestWebCall } from "@/lib/calls";
 
 type Row = {
@@ -93,7 +94,7 @@ export default function CallsPage() {
               <img src={displayImageUrl(r.other.avatar_url, 200) ?? r.other.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
             ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-navy text-[13px] font-semibold text-white">{(r.other?.full_name || "U").charAt(0)}</span>}
             <div className="min-w-0 flex-1">
-              <p className={"truncate text-[14px] font-semibold " + (missed ? "text-red-500" : "text-ink")}>{r.other?.full_name || "Unknown"}</p>
+              <p className={"truncate text-[14px] font-semibold " + (missed ? "text-red-500" : "text-ink")}>{r.other?.full_name || "Unknown"} <VerifiedBadge userId={r.other?.id} size={13} /></p>
               <p className={"flex items-center gap-1.5 text-[12.5px] " + (missed ? "text-red-500" : "text-ink/45")}>
                 {icon(r)} {label(r)}{r.is_video ? " · Video" : " · Audio"}{r.duration_sec ? " · " + fmtDuration(r.duration_sec) : ""}
               </p>

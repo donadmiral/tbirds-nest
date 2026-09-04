@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { X, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 
 type Liker = { id: string; full_name: string | null; username: string | null; avatar_url?: string | null };
@@ -91,7 +92,7 @@ export function InsightsModal({ postId, onClose }: { postId: string; onClose: ()
                   <Link key={p.id} href={p.username ? "/" + p.username : "#"} className="flex items-center gap-2.5 rounded-md px-1 py-1.5 transition-colors hover:bg-surface">
                     <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={32} />
                     <span className="min-w-0">
-                      <span className="block truncate text-[13px] font-semibold text-ink">{p.full_name}</span>
+                      <span className="block truncate text-[13px] font-semibold text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={13} /></span>
                       <span className="block truncate text-[12px] text-ink/45">@{p.username}</span>
                     </span>
                   </Link>

@@ -35,6 +35,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -85,6 +86,7 @@ type MessageItem = {
   media_b64?: string | null;
   media_width?: number | null;
   media_height?: number | null;
+  thumbnail_url?: string | null;
   reply_to_id?: string | null;
   shared_post_id?: string | null;
   payment_id?: string | null;
@@ -96,6 +98,7 @@ type InfoMediaMsg = {
   id: string;
   media_url: string;
   media_type: string;
+  thumbnail_url: string | null;
   created_at: string;
   sender_id: string | null;
 };
@@ -701,7 +704,7 @@ export default function ChatScreen() {
     try {
       const [mediaRes, filesRes, starredRes] = await Promise.all([
         supabase.from('messages')
-          .select('id, media_url, media_type, created_at, sender_id')
+          .select('id, media_url, media_type, thumbnail_url, created_at, sender_id')
           .eq('conversation_id', conversationId)
           .not('media_url', 'is', null)
           .in('media_type', ['image', 'video', 'gif'])
@@ -1071,7 +1074,7 @@ const insertMention = useCallback((username: string) => {
     setShowForwardPicker(true);
   };
 
-  const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null, mediaWidth?: number, mediaHeight?: number): Promise<boolean> => {
+  const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null, mediaWidth?: number, mediaHeight?: number, mediaThumbUrl?: string): Promise<boolean> => {
     if (!currentUserId) return false;
 
     const convId = await getOrCreateConversation();
@@ -1082,7 +1085,7 @@ const insertMention = useCallback((username: string) => {
     const optimistic: MessageItem = {
       id: tempId, text: text || null, sender_id: currentUserId, receiver_id: receiverId, conversation_id: convId,
       created_at: now, media_url: mediaUrl || null, media_type: mediaType || null, media_b64: mediaB64 || null,
-      media_width: mediaWidth || null, media_height: mediaHeight || null,
+      media_width: mediaWidth || null, media_height: mediaHeight || null, thumbnail_url: mediaThumbUrl || null,
       reply_to_id: replyId || null, _optimistic: true,
     };
     LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
@@ -1090,7 +1093,7 @@ const insertMention = useCallback((username: string) => {
     try {
       const { data, error } = await supabase.from('messages').insert([{
         conversation_id: convId, text: text || null, sender_id: currentUserId, receiver_id: receiverId, view_limit: pendingViewLimitRef.current,
-        media_url: mediaUrl || null, media_type: mediaType || null, reply_to_id: replyId || null,
+        media_url: mediaUrl || null, media_type: mediaType || null, thumbnail_url: mediaThumbUrl || null, reply_to_id: replyId || null,
       }]).select().single();
       if (error) {
         setMessages(prev => prev.filter(m => m.id !== tempId));
@@ -1099,7 +1102,7 @@ const insertMention = useCallback((username: string) => {
         }
         return false;
       }
-      mergeMsg({ ...data, media_width: mediaWidth || null, media_height: mediaHeight || null, media_b64: mediaB64 || null });
+      mergeMsg({ ...data, media_width: mediaWidth || null, media_height: mediaHeight || null, media_b64: mediaB64 || null, thumbnail_url: mediaThumbUrl || null });
       await refreshStatus();
       const body = mediaUrl
         ? (mediaType === 'image' ? ((pendingViewLimitRef.current ?? (data as any)?.view_limit) ? '🕐 Photo' : '📷 Photo')
@@ -1200,7 +1203,17 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
             uri: asset.uri, kind: isVid ? 'video' : 'image', ext, mimeType: mime,
             width: asset.width, height: asset.height, base64: imgBase64,
           }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}` });
-          await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height);
+          let thumbUrl: string | undefined;
+          if (isVid) {
+            try {
+              const th = await VideoThumbnails.getThumbnailAsync(asset.uri, { time: 0, quality: 0.7 });
+              const up = await uploadMedia('chat-media', currentUserId!, {
+                uri: th.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg', base64: null,
+              }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}_thumb.jpg` });
+              thumbUrl = up.url;
+            } catch (thumbErr: any) { console.log('[CHAT_THUMB_ERR]', thumbErr?.message); }
+          }
+          await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height, thumbUrl);
         } catch (upErr: any) { console.log('[CHAT_UPLOAD_ERR]', upErr?.message); continue; }
       }
     } catch (e: any) { Alert.alert('Upload failed', e?.message); } finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
@@ -1636,6 +1649,9 @@ const pickAndSendDocument = useCallback(async () => {
                 <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_MAX_W, height: MSG_VID_H }]}
                   activeOpacity={0.85} onPress={() => setFullscreenVideo(msg.media_url!)}
                   onLongPress={() => setSelectedMsg(msg)}>
+                  {msg.thumbnail_url ? (
+                    <ExpoImage source={{ uri: msg.thumbnail_url }} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                  ) : null}
                   <View style={s.videoPlayCircle}><Feather name="play" size={24} color="#FFF" /></View>
                 </TouchableOpacity>
               ) : null}
@@ -1742,7 +1758,11 @@ const pickAndSendDocument = useCallback(async () => {
                 else setFullscreenImg(m.media_url);
               }, 250);
             }}>
-            <ExpoImage source={{ uri: m.media_url }} style={{ width: Math.floor((SCREEN_W - 28 - 6) / 3), height: Math.floor((SCREEN_W - 28 - 6) / 3) }} contentFit="cover" cachePolicy="memory-disk" />
+            {m.media_type === 'video' && !m.thumbnail_url ? (
+              <View style={{ width: '100%', height: '100%', backgroundColor: '#1C1C1E' }} />
+            ) : (
+              <ExpoImage source={{ uri: m.media_type === 'video' ? (m.thumbnail_url || m.media_url) : m.media_url }} style={{ width: Math.floor((SCREEN_W - 28 - 6) / 3), height: Math.floor((SCREEN_W - 28 - 6) / 3) }} contentFit="cover" cachePolicy="memory-disk" />
+            )}
             {m.media_type === 'video' && (
               <View style={s.mediaPlayOverlay}><Feather name="play" size={20} color="#FFF" /></View>
             )}

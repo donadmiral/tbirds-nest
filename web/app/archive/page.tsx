@@ -56,7 +56,7 @@ export default function ArchivePage() {
                 <Link href={"/story/new?draft=" + d.id} className="block aspect-[9/14] overflow-hidden rounded-lg border border-ink/10 bg-ink/5">
                   {d.media_url ? (
                     d.media_type === "video"
-                      ? <video src={d.media_url} muted className="h-full w-full object-cover" />
+                      ? <video src={d.media_url} muted preload="metadata" className="h-full w-full object-cover" />
                       // eslint-disable-next-line @next/next/no-img-element
                       : <img src={d.media_url} alt="" className="h-full w-full object-cover" />
                   ) : null}

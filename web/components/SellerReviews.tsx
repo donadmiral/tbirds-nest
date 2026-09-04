@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import { Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { timeAgo } from "@/lib/feed";
 
 type Review = {
@@ -108,7 +109,7 @@ export function SellerReviews({ sellerId, listingId, viewerId }: { sellerId: str
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 text-[13px]">
-                <span className="font-semibold text-ink">{r.reviewer?.full_name ?? "Member"}</span>
+                <span className="font-semibold text-ink">{r.reviewer?.full_name ?? "Member"} <VerifiedBadge userId={r.reviewer?.id} size={13} /></span>
                 <span className="flex items-center gap-0.5 text-pearl">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <Star key={n} size={11} fill={n <= r.rating ? "currentColor" : "none"} className={n <= r.rating ? "" : "text-ink/20"} />

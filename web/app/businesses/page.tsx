@@ -5,6 +5,7 @@ import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { Briefcase, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 type Row = { business_id: string; full_name: string | null; username: string | null; avatar_url: string | null; role: string; category: string | null; is_verified: boolean; member_count: number; post_count: number };
 
@@ -43,7 +44,7 @@ export default function BusinessesPage() {
             <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
           ) : <span className="flex h-12 w-12 items-center justify-center rounded-full bg-navy text-[14px] font-semibold text-white">{(r.full_name || "B").charAt(0)}</span>}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name || "Business"}{r.is_verified ? <span className="ml-1.5 text-pearl">✓</span> : null}</p>
+            <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name || "Business"} <VerifiedBadge userId={r.business_id} size={13} /></p>
             <p className="text-[12px] text-ink/45">{r.category || "Business"} · {r.member_count} team{r.member_count === 1 ? "" : "s"} · {r.post_count} posts</p>
           </div>
           <span className="shrink-0 rounded-full bg-pearl/15 px-2.5 py-1 text-[11px] font-bold capitalize text-pearl">{r.role}</span>
