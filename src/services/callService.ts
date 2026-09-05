@@ -57,6 +57,9 @@ export const callService = {
       is_video: params.isVideo ?? false, is_group_call: false,
     }).select().single();
     if (error) { console.log('[SVC_INITIATE_ERR]', error.message); return null; }
+    // Wake the other phone: Apple VoIP push on iPhone, high-priority push on
+    // Android. Fire and forget; the in-app listener still covers open apps.
+    supabase.functions.invoke('send-voip-push', { body: { callId: (data as any).id } }).catch(() => {});
     return toRecord(data as CallSessionRow);
   },
 
