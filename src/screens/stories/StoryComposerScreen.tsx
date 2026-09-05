@@ -838,7 +838,7 @@ export default function StoryComposerScreen() {
     { id: 'adjust', cat: 'media', tint: '#34D399', icon: 'adjust', label: 'Adjust', on: !!(getTx() as any).adjust || (getTx() as any).filterAmt != null, run: () => setAdjustOpen(true) },
     { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
     { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
-    { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) },
+    { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => { if (!active?.audio) { Alert.alert('Add a sound first', 'Mix balances your original audio against the added track. Add a sound, then mix.'); return; } setMixOpen(true); } },
     { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: 'Save media', on: false, run: saveMediaToDevice },
     { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
@@ -899,7 +899,7 @@ export default function StoryComposerScreen() {
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
             { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => setBgOpen(true) },
-            { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) },
+            { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => { if (!active?.audio) { Alert.alert('Add a sound first', 'Mix balances your original audio against the added track. Add a sound, then mix.'); return; } setMixOpen(true); } },
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
             { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },
           ] as RailItem[])} />
@@ -949,11 +949,14 @@ export default function StoryComposerScreen() {
         )}
 
         {/* Close button */}
+        {!drawMode && (
         <TouchableOpacity style={[st.closeBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={publish.publishing} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <View style={st.closeBtnInner}><Feather name="x" size={18} color={textColor.primary} /></View>
         </TouchableOpacity>
+        )}
 
         {/* Top tool row — Instagram construction */}
+        {!drawMode && (
         <View style={[st.undoRedoWrap, { top: insets.top + 8 }]}>
           {(undoCount > 0 || redoCount > 0) && <>
             <TouchableOpacity style={st.undoBtn} onPress={undo} disabled={undoCount === 0 || publish.publishing} activeOpacity={0.6}>
@@ -965,9 +968,10 @@ export default function StoryComposerScreen() {
             <View style={st.toolRowGap} />
           </>}
         </View>
+        )}
 
         {/* Business reach switch */}
-        {isBusiness && (
+        {isBusiness && !drawMode && (
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 96 }]}>
           <TouchableOpacity onPress={toggleReach} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: reach === 'wider' ? '#0B1E3D' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: reach === 'wider' ? '#E8A13A' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
             <Feather name={reach === 'wider' ? 'trending-up' : 'users'} size={13} color={reach === 'wider' ? '#E8A13A' : '#FFFFFF'} />
@@ -983,25 +987,29 @@ export default function StoryComposerScreen() {
         />
 
         {/* Audience picker */}
+        {!drawMode && (
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 52 }]}>
           <TouchableOpacity onPress={() => setAudienceSheetOpen(true)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
             <Feather name={(audience === 'close_friends' ? 'star' : audience === 'only_with' ? 'user-check' : audience === 'followers' ? 'users' : 'globe') as any} size={13} color="#FFFFFF" />
             <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{audience === 'close_friends' ? 'Close friends' : 'Everyone'}</Text>
           </TouchableOpacity>
         </Animated.View>
+        )}
         {/* Post button */}
+        {!drawMode && (
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) }]}>
           <TouchableOpacity onPress={publish.publishAll} disabled={!canPublish} style={[st.postPillInner, !canPublish && { opacity: 0.4 }]} activeOpacity={0.85}>
             {publish.publishing ? <ActivityIndicator color="#0A0A0A" size={14} /> : <><Text style={st.postPillTxt}>Post</Text><Feather name="arrow-up" size={13} color="#0A0A0A" /></>}
           </TouchableOpacity>
         </Animated.View>
+        )}
 
 
 
       </Animated.View>
 
       {/* Caption */}
-      {active?.uploadState === 'idle' && !arrangement.arrangementOpen && (
+      {active?.uploadState === 'idle' && !arrangement.arrangementOpen && !drawMode && (
         <Animated.View style={[st.captionFloating, { bottom: keyboard.captionBottomAnim }]}>
           <TextInput value={active?.caption || ''} onChangeText={t => updateActive({ caption: t })} placeholder="Add a caption..." placeholderTextColor={textColor.faint} style={st.captionInput} maxLength={200} editable={!publish.publishing} keyboardAppearance="dark" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} blurOnSubmit />
         </Animated.View>
@@ -1153,7 +1161,7 @@ export default function StoryComposerScreen() {
         <DrawSurface width={previewSize.w || 1} height={previewSize.h || 1} strokes={drawStrokes} onChange={setDrawStrokes} onDone={() => setDrawMode(false)} />
       )}
       {previewOn && (
-        <PreviewChrome name={'You'} avatarUrl={null} onClose={() => setPreviewOn(false)} />
+        <PreviewChrome name={(profile as any)?.username ? '@' + (profile as any).username : ((profile as any)?.full_name || 'You')} avatarUrl={(profile as any)?.avatar_url || null} onClose={() => setPreviewOn(false)} />
       )}
 
       <StudioSheet visible={overflowOpen} onClose={() => setOverflowOpen(false)} tiles={studioTiles} bottomInset={insets.bottom} extra={(

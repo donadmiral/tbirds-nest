@@ -9,6 +9,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, PanResponder } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MiniSlider } from './storyPanels';
 
 export type DrawStroke = { tool: string; color: string; width: number; points: { x: number; y: number }[] };
@@ -101,6 +102,7 @@ export default function DrawSurface({ width, height, strokes, onChange, onDone }
   onChange: (s: DrawStroke[]) => void;
   onDone: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [tool, setTool] = useState('pen');
   const [color, setColor] = useState('#FFFFFF');
   const [size, setSize] = useState(8);
@@ -180,7 +182,7 @@ export default function DrawSurface({ width, height, strokes, onChange, onDone }
         <DrawingLayer strokes={live ? [...strokes, live] : strokes} width={width} height={height} />
       </View>
 
-      <View style={dw.topRow} pointerEvents="box-none">
+      <View style={[dw.topRow, { top: insets.top + 8 }]} pointerEvents="box-none">
         <TouchableOpacity onPress={undo} style={dw.topBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="corner-up-left" size={19} color="#FFF" />
         </TouchableOpacity>
@@ -196,7 +198,7 @@ export default function DrawSurface({ width, height, strokes, onChange, onDone }
         </TouchableOpacity>
       </View>
 
-      <View style={dw.dock} pointerEvents="box-none">
+      <View style={[dw.dock, { paddingBottom: Math.max(insets.bottom, 12) + 22 }]} pointerEvents="box-none">
         <View style={dw.toolRow}>
           {TOOLS.map(t => (
             <TouchableOpacity key={t.id} onPress={() => setTool(t.id)} style={[dw.toolBtn, tool === t.id && dw.toolBtnOn]} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>

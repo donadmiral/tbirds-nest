@@ -19,7 +19,7 @@ export type StoryMix = { orig?: number; music?: number };
 export type EntityPick = { entityType: 'profile' | 'listing' | 'job' | 'article'; entityId: string; entityTitle: string; entitySub?: string; entityImage?: string | null };
 
 /* ── MiniSlider: dependency-free track used by every panel ── */
-export function MiniSlider({ value, min, max, onChange, width = 210 }: { value: number; min: number; max: number; onChange: (v: number) => void; width?: number }) {
+export function MiniSlider({ value, min, max, onChange, width = 210, onDragStateChange }: { value: number; min: number; max: number; onChange: (v: number) => void; width?: number; onDragStateChange?: (dragging: boolean) => void }) {
   // Stable slider: the thumb follows the finger from where it was grabbed (no
   // jump on touch), the visual updates locally every frame, and the parent is
   // committed at most every 60ms plus once on release, so the editor never
@@ -28,6 +28,7 @@ export function MiniSlider({ value, min, max, onChange, width = 210 }: { value: 
   const minRef = useRef(min); minRef.current = min;
   const maxRef = useRef(max); maxRef.current = max;
   const onChangeRef = useRef(onChange); onChangeRef.current = onChange;
+  const onDragRef = useRef(onDragStateChange); onDragRef.current = onDragStateChange;
   const [live, setLive] = useState(value);
   const [dragging, setDragging] = useState(false);
   const liveRef = useRef(value);
@@ -47,11 +48,15 @@ export function MiniSlider({ value, min, max, onChange, width = 210 }: { value: 
   const pan = useRef(PanResponder.create({
     // The slider must never steal a scroll. It claims the gesture only once
     // the finger has clearly moved sideways, and a plain touch changes nothing.
-    onStartShouldSetPanResponder: () => false,
-    onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 6 && Math.abs(g.dx) > Math.abs(g.dy) * 1.6,
+    // A touch that begins on the track is meant for the slider. Claim it at once:
+    // waiting for sideways movement lets the sheet's ScrollView take the gesture
+    // natively first, and the thumb never moves. The panel disables its own
+    // scrolling while a slider is held, so this never fights a real scroll.
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
     onPanResponderTerminationRequest: () => false,
     onPanResponderGrant: () => {
-      draggingRef.current = true; setDragging(true);
+      draggingRef.current = true; setDragging(true); onDragRef.current?.(true);
       // Always start from the current value: the finger drags it relatively,
       // so nothing jumps to where you happened to touch.
       startValRef.current = liveRef.current;
@@ -62,8 +67,8 @@ export function MiniSlider({ value, min, max, onChange, width = 210 }: { value: 
       const v = toVal(toX(startValRef.current) + g.dx * 0.55);
       if (v !== liveRef.current) { liveRef.current = v; setLive(v); commit(v, false); }
     },
-    onPanResponderRelease: () => { draggingRef.current = false; setDragging(false); commit(liveRef.current, true); },
-    onPanResponderTerminate: () => { draggingRef.current = false; setDragging(false); commit(liveRef.current, true); },
+    onPanResponderRelease: () => { draggingRef.current = false; setDragging(false); onDragRef.current?.(false); commit(liveRef.current, true); },
+    onPanResponderTerminate: () => { draggingRef.current = false; setDragging(false); onDragRef.current?.(false); commit(liveRef.current, true); },
   })).current;
   const pct = (live - min) / (max - min || 1);
   const thumbLeft = Math.max(0, Math.min(width - 18, pct * width - 9));
@@ -170,6 +175,7 @@ export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filt
   adjust: StoryAdjust; onChange: (a: StoryAdjust) => void;
   filterOn: boolean; filterAmt: number; onFilterAmt: (v: number) => void;
 }) {
+  const [sliding, setSliding] = useState(false);
   if (!visible) return null;
   const hasAny = ADJ_FIELDS.some(f => (adjust as any)[f.key]);
   return (
@@ -186,18 +192,18 @@ export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filt
             <Text style={pp.dockDoneTxt}>Done</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
+        <ScrollView style={{ maxHeight: 300 }} scrollEnabled={!sliding} bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
           {filterOn && (
             <View style={pp.row}>
               <Text style={pp.rowLabel}>Filter strength</Text>
-              <MiniSlider value={filterAmt} min={0} max={100} onChange={onFilterAmt} />
+              <MiniSlider value={filterAmt} min={0} max={100} onChange={onFilterAmt} onDragStateChange={setSliding} />
               <Text style={pp.rowVal}>{filterAmt}</Text>
             </View>
           )}
           {ADJ_FIELDS.map(f => (
             <View key={f.key as string} style={pp.row}>
               <Text style={pp.rowLabel}>{f.label}</Text>
-              <MiniSlider value={Number((adjust as any)[f.key]) || 0} min={f.min} max={f.max} onChange={v => onChange({ ...adjust, [f.key]: v === 0 ? undefined : v })} />
+              <MiniSlider value={Number((adjust as any)[f.key]) || 0} min={f.min} max={f.max} onChange={v => onChange({ ...adjust, [f.key]: v === 0 ? undefined : v })} onDragStateChange={setSliding} />
               <Text style={pp.rowVal}>{Number((adjust as any)[f.key]) || 0}</Text>
             </View>
           ))}
