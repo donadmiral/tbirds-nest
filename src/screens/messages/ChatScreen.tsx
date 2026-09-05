@@ -1311,7 +1311,7 @@ const pickAndSendDocument = useCallback(async () => {
       if (!conversationId) { Alert.alert('Cannot call', 'No conversation found.'); return; }
       const { data: sessId, error: gcErr } = await supabase.rpc('start_group_call', { p_conversation_id: conversationId, p_is_video: isVideo });
       if (gcErr || !sessId) { Alert.alert('Could not start call', gcErr?.message || 'Someone may already be calling.'); return; }
-      supabase.functions.invoke('send-voip-push', { body: { callId: String(sessId) } }).catch(() => {});
+      supabase.functions.invoke('send-voip-push', { body: { callId: String(sessId) } }).then((r: any) => console.log('[voip] ring', JSON.stringify(r?.data ?? null), r?.error ? String(r.error.message || r.error) : 'ok')).catch((e: any) => console.log('[voip] ring failed', e?.message));
       const chanId = String(sessId);
       navigation.navigate('Call', {
         callId: String(sessId), channelId: chanId,

@@ -14,7 +14,7 @@ import { nativeCallService } from '../services/nativeCallService';
 import { useAuthStore } from '../stores/authStore';
 import { callService, CallRecord } from '../services/callService';
 import { supabase } from '../services/supabase';
-import { View, Text, TouchableOpacity, Image, Vibration, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Vibration, StyleSheet, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallContext } from '../contexts/CallContext';
@@ -26,7 +26,7 @@ export default function IncomingCallListener() {
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
   const insets = useSafeAreaInsets();
-  const { callState, startCall } = useCallContext();
+  const { callState, startCall, endCall } = useCallContext();
   const callStateRef = useRef(callState);
   useEffect(() => { callStateRef.current = callState; }, [callState]);
 
@@ -41,12 +41,25 @@ export default function IncomingCallListener() {
           if (!call) return;
           handledCallIdsRef.current.add(uuid);
           clearCallNavGuard();
+          // The real name and face, the same lookup the in-app banner does.
+          let name = call.is_group_call ? 'Group call' : 'Call';
+          let avatar: string | null = null;
+          try {
+            if (call.is_group_call && call.conversation_id) {
+              const { data: conv } = await supabase.from('conversations').select('group_name').eq('id', call.conversation_id).maybeSingle();
+              if (conv?.group_name) name = conv.group_name;
+            } else if (call.caller_id) {
+              const { data: p } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', call.caller_id).maybeSingle();
+              if (p?.full_name) name = p.full_name;
+              avatar = p?.avatar_url ?? null;
+            }
+          } catch {}
           startCall({
             callId: uuid,
             channelId: call.channel_id || call.agora_channel || '',
             otherUserId: call.caller_id || '',
-            otherUserName: call.is_group_call ? 'Group call' : 'Call',
-            otherUserAvatar: null,
+            otherUserName: name,
+            otherUserAvatar: avatar,
             isVideo: !!call.is_video,
             isIncoming: true,
             isGroupCall: !!call.is_group_call,
@@ -55,9 +68,9 @@ export default function IncomingCallListener() {
           nav.navigate('Call', {
             callId: uuid,
             channelId: call.channel_id || call.agora_channel || '',
-            callerName: call.is_group_call ? 'Group call' : 'Call',
-            callerAvatar: null,
-            otherUser: { id: call.caller_id, full_name: 'Call', avatar_url: null },
+            callerName: name,
+            callerAvatar: avatar,
+            otherUser: { id: call.caller_id, full_name: name, avatar_url: avatar },
             isIncoming: true,
             isVideo: !!call.is_video,
             fromContext: true,
@@ -68,6 +81,9 @@ export default function IncomingCallListener() {
       },
       onEnd: (uuid) => {
         try {
+          // The OS end button ends the real call when one is running, and
+          // declines a ringing one.
+          if (callStateRef.current !== 'idle') { endCall(); return; }
           supabase.rpc('decline_group_call', { p_session_id: uuid }).then(() => {}, () => {});
           callService.declineCall(uuid).catch(() => {});
         } catch {}
@@ -79,7 +95,7 @@ export default function IncomingCallListener() {
     nativeCallService.listenForVoipPushes((callId) => {
       handledCallIdsRef.current.add(callId);
     });
-  }, [userId, nav, startCall]);
+  }, [userId, nav, startCall, endCall]);
   const activeCallIdRef = useRef<string | null>(null);
   const [banner, setBanner] = useState<{ callId: string; navParams: any; name: string; avatar: string | null; isGroup: boolean; isVideo: boolean } | null>(null);
   const bannerRef = useRef<any>(null);
@@ -104,6 +120,12 @@ export default function IncomingCallListener() {
       if (activeCallIdRef.current === call.id) return;
       if (call.status !== 'ringing') return;
       if (callStateRef.current !== 'idle') { handledCallIdsRef.current.add(call.id); return; } // busy: call waiting is a Phase B item
+      // On iPhones with CallKit the VoIP push rings this call natively. Give
+      // it a moment and only fall back to the in-app banner if no push came.
+      if (Platform.OS === 'ios' && nativeCallService.available()) {
+        await new Promise(r => setTimeout(r, 1500));
+        if (handledCallIdsRef.current.has(call.id)) return;
+      }
 
       // If push tap handler already handling this call, skip
       if (isCallNavActive(call.id)) {

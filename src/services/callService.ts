@@ -59,7 +59,7 @@ export const callService = {
     if (error) { console.log('[SVC_INITIATE_ERR]', error.message); return null; }
     // Wake the other phone: Apple VoIP push on iPhone, high-priority push on
     // Android. Fire and forget; the in-app listener still covers open apps.
-    supabase.functions.invoke('send-voip-push', { body: { callId: (data as any).id } }).catch(() => {});
+    supabase.functions.invoke('send-voip-push', { body: { callId: (data as any).id } }).then((r: any) => console.log('[voip] ring', JSON.stringify(r?.data ?? null), r?.error ? String(r.error.message || r.error) : 'ok')).catch((e: any) => console.log('[voip] ring failed', e?.message));
     return toRecord(data as CallSessionRow);
   },
 

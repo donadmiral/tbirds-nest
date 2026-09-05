@@ -34,6 +34,7 @@ import Daily, {
 } from '@daily-co/react-native-daily-js';
 import { callService, CallStatus } from '../services/callService';
 import { audioService } from '../services/audioService';
+import { nativeCallService } from '../services/nativeCallService';
 import { supabase } from '../services/supabase';
 import { useAuthStore } from '../stores/authStore';
 
@@ -332,6 +333,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     callObjRef.current = null;
 
     const cleanup = async () => {
+      // Drop the OS-side call first, or iOS keeps its call alive after ours ends.
+      if (cid) nativeCallService.endNativeCall(String(cid).toLowerCase()); else nativeCallService.endAllNativeCalls();
       // 1. Leave and destroy Daily
       if (call) {
         try { await call.leave(); } catch {}
@@ -480,6 +483,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       // 3. Transition to RINGING (outgoing) or CONNECTING (incoming)
       if (!params.isIncoming) {
         transitionTo('ringing', 'outgoing wait');
+        nativeCallService.startOutgoingCall(String(callId).toLowerCase(), params.otherUserName || 'Call', !!params.isVideo);
         await audioService.playRingback();
         ringingTimeoutRef.current = setTimeout(() => {
           if (stateRef.current === 'ringing') {
@@ -796,6 +800,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     await audioService.stopAndSwitchToVoiceChat();
 
     transitionTo('active', 'media connected');
+    if (callIdRef.current) nativeCallService.reportConnected(String(callIdRef.current).toLowerCase());
     setConnected(true);
 
     // Apply default speaker routing: video = speakerphone, voice = earpiece

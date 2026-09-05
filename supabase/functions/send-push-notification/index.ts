@@ -37,6 +37,9 @@ serve(async (req) => {
     const recipientId = record.recipient_id || null;
     const actorId = record.actor_id || null;
     const type = record.type || "notification";
+    // Ringing is send-voip-push's job on both platforms (CallKit on iPhone, the
+    // call channel on Android). A second push here only doubles the ring.
+    if (type === "incoming_call") return json(200, { skipped: true, reason: "rung by send-voip-push" });
     const message = record.message || "";
     const bodyPreview = record.body_preview || "";
     const data = record.data || {};

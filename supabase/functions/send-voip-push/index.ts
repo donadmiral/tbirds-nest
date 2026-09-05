@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     const isVideo = !!call.is_video;
 
     // ── iPhone: PushKit, which wakes the app even when it is not running ────
-    const voipTokens = toks.filter((t: any) => t.voip_token);
+    const voipTokens = Array.from(new Map(toks.filter((t: any) => t.voip_token).map((t: any) => [t.voip_token, t])).values());
     let apns: Array<number | string> = [];
     if (voipTokens.length > 0) {
       try {
@@ -102,9 +102,11 @@ Deno.serve(async (req) => {
         apns = await Promise.all(voipTokens.map(async (t: any) => {
           try {
             const r = await post(APNS_HOST, t.voip_token);
-            if (r.status !== 400) return r.status;
+            if (r.status === 200) return 200;
+            // Apple's body names the reason (InvalidProviderToken, BadDeviceToken...).
+            if (r.status !== 400) return `${r.status}:${(await r.text().catch(() => '')).slice(0, 120)}`;
             const r2 = await post(APNS_HOST_SANDBOX, t.voip_token);
-            return `prod400/sandbox${r2.status}`;
+            return r2.status === 200 ? 'sandbox200' : `prod400/sandbox${r2.status}:${(await r2.text().catch(() => '')).slice(0, 120)}`;
           } catch (e) {
             return String((e as any)?.message ?? e);
           }
