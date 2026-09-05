@@ -5,6 +5,7 @@
 // pipeline is active into the same StoryComposer handoff either way.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useCameraLife } from '../../hooks/useCameraLife';
+import { PinchGestureHandler, State as GHState } from 'react-native-gesture-handler';
 import {
   View,
   Text,
@@ -89,6 +90,18 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
+  // Pinch zoom, same feel as the story camera. zoom is the CameraView's 0..1 value.
+  const [zoom, setZoom] = useState(0);
+  const zoomBaseRef = useRef(0);
+  const onPinch = useCallback((e: any) => {
+    const scale = e.nativeEvent.scale;
+    setZoom(Math.max(0, Math.min(1, zoomBaseRef.current + (scale - 1) * 0.35)));
+  }, []);
+  const onPinchState = useCallback((e: any) => {
+    if (e.nativeEvent.state === GHState.END || e.nativeEvent.state === GHState.CANCELLED) {
+      zoomBaseRef.current = Math.max(0, Math.min(1, zoomBaseRef.current + (e.nativeEvent.scale - 1) * 0.35));
+    }
+  }, []);
 
   // Filters tab (unchanged) ---------------------------------------------
   const [filterId, setFilterId] = useState<string | null>(null);
@@ -327,8 +340,12 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
 
       {tab === 'filters' ? (
         <>
-          <CameraView key={camMode + ':' + cam.epoch} active={cam.active} ref={cameraRef} style={s.camera} facing="front" mode={camMode} videoQuality="720p"
-            onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') doRecordFilters(0); }} />
+          <PinchGestureHandler onGestureEvent={onPinch} onHandlerStateChange={onPinchState}>
+            <View style={{ flex: 1 }}>
+              <CameraView key={camMode + ':' + cam.epoch} active={cam.active} ref={cameraRef} style={s.camera} facing="front" zoom={zoom} mode={camMode} videoQuality="720p"
+                onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') doRecordFilters(0); }} />
+            </View>
+          </PinchGestureHandler>
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <FilterLayer filterId={filterId} amt={100} />
           </View>
