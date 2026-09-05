@@ -33,13 +33,17 @@ type Draft = {
   isPrivate: boolean;
   avatar_url: string | null;
   banner_url: string | null;
+  links: { title: string; url: string }[];
 };
 
 const EMPTY: Draft = {
   full_name: '', username: '', headline: '', bio: '',
   workplace: '', location: '', isPrivate: false,
   avatar_url: null, banner_url: null,
+  links: [],
 };
+
+const normalizeUrl = (u: string) => { const t = u.trim(); if (!t) return ''; return /^https?:\/\//i.test(t) ? t : 'https://' + t; };
 
 export default function EditProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -58,7 +62,7 @@ export default function EditProfileScreen({ navigation }: any) {
       if (!userId) { setLoading(false); return; }
       const { data, error: err } = await supabase
         .from('profiles')
-        .select('full_name, username, headline, bio, workplace, location, profile_visibility, avatar_url, banner_url')
+        .select('full_name, username, headline, bio, workplace, location, profile_visibility, avatar_url, banner_url, links')
         .eq('id', userId)
         .single();
       if (!alive) return;
@@ -70,6 +74,7 @@ export default function EditProfileScreen({ navigation }: any) {
         bio: data.bio || '',
         workplace: data.workplace || '',
         location: data.location || '',
+        links: Array.isArray((data as any).links) ? ((data as any).links as any[]).filter(l => l && l.url).map(l => ({ title: String(l.title || ''), url: String(l.url || '') })) : [],
         isPrivate: (data.profile_visibility || 'public') === 'private',
         avatar_url: data.avatar_url || null,
         banner_url: data.banner_url || null,
@@ -80,6 +85,9 @@ export default function EditProfileScreen({ navigation }: any) {
   }, [userId]);
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft(d => ({ ...d, [k]: v }));
+  const setLink = (i: number, k: 'title' | 'url', v: string) => setDraft(d => ({ ...d, links: d.links.map((l, j) => (j === i ? { ...l, [k]: v } : l)) }));
+  const addLink = () => setDraft(d => (d.links.length >= 5 ? d : { ...d, links: [...d.links, { title: '', url: '' }] }));
+  const removeLink = (i: number) => setDraft(d => ({ ...d, links: d.links.filter((_, j) => j !== i) }));
 
   const pickImage = async (kind: 'avatar' | 'banner') => {
     if (!userId) return;
@@ -122,6 +130,7 @@ export default function EditProfileScreen({ navigation }: any) {
       bio: draft.bio.trim() || null,
       workplace: draft.workplace.trim() || null,
       location: draft.location.trim() || null,
+      links: draft.links.filter(l => l.url.trim()).slice(0, 5).map(l => ({ title: l.title.trim(), url: normalizeUrl(l.url) })),
       profile_visibility: draft.isPrivate ? 'private' : 'public',
       avatar_url: draft.avatar_url,
       banner_url: draft.banner_url,
@@ -234,6 +243,29 @@ export default function EditProfileScreen({ navigation }: any) {
             <Field label="Location">
               <TextInput value={draft.location} onChangeText={v => set('location', v)} style={s.input}
                 placeholder="City, Country" placeholderTextColor={light.ink.faint} autoCapitalize="words" />
+            </Field>
+
+            <Field label="Links">
+              <Text style={s.toggleHint}>Up to five. They show as buttons under your bio.</Text>
+              {draft.links.map((l, i) => (
+                <View key={i} style={{ marginTop: 8, gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <TextInput value={l.title} onChangeText={v => setLink(i, 'title', v)} style={[s.input, { flex: 1 }]}
+                      placeholder="Label, e.g. My shop" placeholderTextColor={light.ink.faint} />
+                    <TouchableOpacity onPress={() => removeLink(i)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Remove link">
+                      <Feather name="x" size={18} color={light.ink.muted} />
+                    </TouchableOpacity>
+                  </View>
+                  <TextInput value={l.url} onChangeText={v => setLink(i, 'url', v)} style={s.input}
+                    placeholder="https://" placeholderTextColor={light.ink.faint} autoCapitalize="none" autoCorrect={false} keyboardType="url" />
+                </View>
+              ))}
+              {draft.links.length < 5 ? (
+                <TouchableOpacity onPress={addLink} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }} activeOpacity={0.8}>
+                  <Feather name="plus" size={16} color={light.brand.base} />
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: light.brand.base }}>Add a link</Text>
+                </TouchableOpacity>
+              ) : null}
             </Field>
 
             <View style={s.toggleRow}>

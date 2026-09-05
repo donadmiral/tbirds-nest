@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Link as LinkIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProfilePosts } from "@/components/ProfilePosts";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
@@ -16,7 +16,7 @@ async function loadProfile(username: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, username, avatar_url, banner_url, bio, is_verified, verified_tier, account_type, account_class, account_labels")
+    .select("id, full_name, username, avatar_url, banner_url, bio, links, is_verified, verified_tier, account_type, account_class, account_labels")
     .ilike("username", username)
     .limit(1)
     .maybeSingle();
@@ -116,6 +116,15 @@ export default async function ProfilePage({ params }: Params) {
           })()}
           {p.bio ? (
             <p className="mx-auto mt-2.5 max-w-[420px] whitespace-pre-wrap text-center text-[14.5px] leading-relaxed text-ink/80">{p.bio}</p>
+          ) : null}
+          {Array.isArray((p as { links?: unknown }).links) && ((p as { links: { title?: string; url?: string }[] }).links).some((l) => l?.url) ? (
+            <div className="mx-auto mt-3 flex max-w-[420px] flex-wrap justify-center gap-2">
+              {((p as { links: { title?: string; url?: string }[] }).links).filter((l) => l?.url).slice(0, 5).map((l, i) => (
+                <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1 text-[12.5px] font-semibold text-ink/80 transition-colors duration-[140ms] hover:border-pearl hover:bg-pearl/10">
+                  <LinkIcon size={12} />{l.title || String(l.url).replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0]}
+                </a>
+              ))}
+            </div>
           ) : null}
 
           {/* One segmented capsule, as on the phone: followers, following and

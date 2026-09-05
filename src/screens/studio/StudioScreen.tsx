@@ -500,6 +500,9 @@ function InsightsSeg({ navigation }: { navigation: any }) {
       </View>
       {(cur.paid_usd || cur.paid_zwg) ? <Text style={[s.sub, { marginTop: 10 }]}>Received: {cur.paid_usd ? 'USD ' + Number(cur.paid_usd).toLocaleString() : ''}{cur.paid_usd && cur.paid_zwg ? ' · ' : ''}{cur.paid_zwg ? 'ZWG ' + Number(cur.paid_zwg).toLocaleString() : ''}</Text> : null}
       <Text style={s.section}>Funnels</Text>
+      {(Number(fun.commerce.chats || 0) + Number(fun.commerce.offers || 0) + Number(fun.commerce.payments || 0) + Number(fun.recruiting.applications || 0) + Number(fun.recruiting.interviews || 0) + Number(fun.recruiting.hired || 0)) === 0 ? (
+        <View style={s.card}><Text style={s.cardMuted}>Funnels fill in as buyers message you, make offers and pay, and as people apply, reach interview and get hired. Nothing has happened in this period yet.</Text></View>
+      ) : (<>
       <View style={s.card}>
         <Text style={[s.cardTxt, { fontWeight: '700' }]}>Commerce</Text>
         {[['Market conversations', fun.commerce.chats], ['Offers received', fun.commerce.offers], ['Payments', fun.commerce.payments]].map(([l, n]) => (
@@ -518,6 +521,7 @@ function InsightsSeg({ navigation }: { navigation: any }) {
           </View>
         ))}
       </View>
+      </>)}
       <Text style={s.section}>Top content</Text>
       {(ins.top_posts || []).length === 0 ? <View style={s.card}><Text style={s.cardMuted}>No posts in this period.</Text></View>
         : ins.top_posts.map((p: any, i: number) => (

@@ -15,7 +15,7 @@ import VerifiedBadge from './VerifiedBadge';
  * live opening hours on a business.
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Share, Linking } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
@@ -114,6 +114,20 @@ export default function ProfileHeader({
   const [ctxMutual, setCtxMutual] = useState<string | null>(null);
   const [ctxInsights, setCtxInsights] = useState<string | null>(null);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  // Profile links: read straight from profiles, so get_profile stays untouched.
+  const [profileLinks, setProfileLinks] = useState<{ title: string; url: string }[]>([]);
+  useEffect(() => {
+    let alive = true;
+    const pid = (profile as any)?.id;
+    if (!pid) { setProfileLinks([]); return; }
+    supabase.from('profiles').select('links').eq('id', pid).maybeSingle().then(({ data }) => {
+      if (!alive) return;
+      const raw = Array.isArray((data as any)?.links) ? ((data as any).links as any[]) : [];
+      setProfileLinks(raw.filter(l => l && l.url).slice(0, 5).map(l => ({ title: String(l.title || ''), url: String(l.url) })));
+    });
+    return () => { alive = false; };
+  }, [(profile as any)?.id]);
+  const hostOf = (u: string) => u.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0];
   useEffect(() => {
     let alive = true;
     const pid = profile?.id;
@@ -252,6 +266,18 @@ export default function ProfileHeader({
             </View>
           ) : null}
         </View>
+
+        {profileLinks.length > 0 ? (
+          <View style={[s.metaRow, { marginTop: space.sm }]}>
+            {profileLinks.map((l, i) => (
+              <TouchableOpacity key={i} onPress={() => Linking.openURL(l.url).catch(() => {})} activeOpacity={0.8}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.16)', backgroundColor: '#FFFFFF' }}>
+                <Feather name="link" size={12} color={light.ink.primary} />
+                <Text style={{ fontSize: 12.5, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{l.title || hostOf(l.url)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
 
         {business ? (
           <View style={s.metaRow}>
