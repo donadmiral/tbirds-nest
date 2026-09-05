@@ -22,6 +22,7 @@ import * as Haptics from 'expo-haptics';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
 import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
 import { CameraKitLensView, CKLens, CameraKitLensViewHandle, webViewAvailable } from './CameraKitLensView';
+import { setPendingCapture } from '../../utils/captureBridge';
 
 const MAX_VIDEO_SEC = 60;
 const CAPTURE_SIZE = 72;
@@ -117,8 +118,10 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
       return;
     }
     if (returnTo === 'feed') {
-      const feedParams = route?.params?.feedParams || {};
-      navigation.navigate('Feed', { ...feedParams, capturedMedia: { uri, type, width, height, filterId: fid } });
+      // FeedMain sits inside the Feed tab inside Main, unreachable by name from
+      // this stack, so hand the capture over the bridge and pop back to it.
+      setPendingCapture('feed', { uri, type, width, height, filterId: fid });
+      navigation.goBack();
       return;
     }
     navigation.navigate('StoryComposer', {
@@ -349,7 +352,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
         )
       )}
 
-      <SafeAreaView style={s.topControls} edges={['top']}>
+      <View style={[s.topControls, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
         <View style={s.cornerRow}>
           <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name="x" size={24} color="#FFF" />
@@ -367,7 +370,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
             <Text style={[s.tabTxt, tab === 'lenses' && s.tabTxtOn]}>Lenses</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
 
       {tab === 'filters' ? (
         <View style={[s.filterBarWrap, { bottom: Math.max(insets.bottom + 150, 176) }]} pointerEvents={recording ? 'none' : 'auto'}>

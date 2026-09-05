@@ -13,7 +13,8 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { takePendingCapture } from '../../utils/captureBridge';
 import VideoThumb from '../../components/VideoThumb';
 import ArticleBody from '../../components/ArticleBody';
 import SharedPostCard from '../../components/feed/SharedPostCard';
@@ -1216,9 +1217,8 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const funCamNav = useNavigation<any>();
-  const funCamRoute = useRoute();
-  useEffect(() => {
-    const cm = (funCamRoute.params as any)?.capturedMedia;
+  useFocusEffect(useCallback(() => {
+    const cm = takePendingCapture('feed');
     if (!cm) return;
     (async () => {
       const isVideo = cm.type === 'video';
@@ -1235,9 +1235,8 @@ export default function FeedScreen({ navigation }: any) {
       }
       setComposerMedia(p => [...p, { uri: cm.uri, type: isVideo ? 'video' : 'image', ext, width: cm.width ?? undefined, height: cm.height ?? undefined, thumbnail }]);
       setComposerOpen(true);
-      funCamNav.setParams({ capturedMedia: undefined });
     })();
-  }, [(funCamRoute.params as any)?.capturedMedia]);
+  }, []));
 
   const openCamera = () => {
     funCamNav.navigate('StoryFunCamera', { returnTo: 'feed', feedParams: {} });

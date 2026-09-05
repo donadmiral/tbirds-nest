@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Animated,
   PanResponder,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -436,7 +437,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       )}
 
       {/* Top controls */}
-      <SafeAreaView style={s.topControls} edges={['top']}>
+      <View style={[s.topControls, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
         <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="x" size={24} color="#FFF" />
         </TouchableOpacity>
@@ -451,7 +452,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         <TouchableOpacity style={s.topBtn} onPress={() => setFlash(f => (f === 'off' ? 'on' : 'off'))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name={flash === 'on' ? 'zap' : 'zap-off'} size={20} color="#FFF" />
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
 
       {/* Bottom controls: gallery | capture | flip */}
       <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 18, 32) }]}>
@@ -494,7 +495,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         </View>
         <Text style={s.hintTxt}>{recording ? (zoom > 0.02 ? 'Slide up to zoom · ' + Math.round(zoom * 100) + '%' : 'Release to stop · slide up to zoom') : (handsFree ? (timerSec ? `Hands-free · ${timerSec}s timer — tap to record` : 'Hands-free — tap to start and stop') : (timerSec ? `Timer ${timerSec}s — tap for photo, hold for video` : 'Tap for photo, hold for video'))}</Text>
         {!recording && (
-          <View style={s.modeRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} style={s.modeScroll} contentContainerStyle={s.modeRow}>
             <TouchableOpacity onPress={() => navigation.navigate('StoryComposer', { mode: 'text', assets: [] })} activeOpacity={0.7} style={s.modeItem}>
               <Text style={s.modeRowTxt}>TEXT</Text>
             </TouchableOpacity>
@@ -514,7 +515,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
           <TouchableOpacity onPress={() => navigation.navigate('StoryBoomerang')} activeOpacity={0.7} style={s.modeItem}>
             <Text style={s.modeRowTxt}>BOOM</Text>
           </TouchableOpacity>
-          </View>
+          </ScrollView>
         )}
       </View>
     </View>
@@ -547,8 +548,9 @@ const s = StyleSheet.create({
 
   flipBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
 
-  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 26, marginTop: 14 },
-  modeItem: { alignItems: 'center', paddingHorizontal: 6, paddingVertical: 4 },
+  modeScroll: { marginTop: 14, alignSelf: 'stretch', flexGrow: 0 },
+  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 12, flexGrow: 1 },
+  modeItem: { alignItems: 'center', paddingHorizontal: 3, paddingVertical: 4 },
   modeRowTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 12.5, fontWeight: '700', letterSpacing: 1.2 },
   modeRowTxtOn: { color: '#FFFFFF' },
   modeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#FFFFFF', marginTop: 5 },
