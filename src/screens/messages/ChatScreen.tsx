@@ -2120,7 +2120,7 @@ const pickAndSendDocument = useCallback(async () => {
             </View>
           ) : (<>
           {isBizSession && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 6, gap: 8, alignItems: 'center' }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" style={{ height: 44, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 7, gap: 8, alignItems: 'center' }}>
               {savedReplies.map(r => (
                 <TouchableOpacity key={r.id} activeOpacity={0.8} onPress={() => setMessage(r.body)}
                   onLongPress={() => Alert.alert('Remove saved reply?', r.body.slice(0, 60), [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: async () => { await supabase.from('business_saved_replies').delete().eq('id', r.id); setSavedReplies(p => p.filter(x => x.id !== r.id)); } }])}

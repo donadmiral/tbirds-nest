@@ -1163,12 +1163,13 @@ export default function FeedScreen({ navigation }: any) {
     setTimeout(() => setSharingPost(p => { const n = { ...p }; delete n[post.id]; return n; }), 600);
   }, [profilesMap]);
 
-  const pickMedia = async () => {
+  const pickMedia = async (only?: 'images' | 'videos') => {
+    const onlyKind = only === 'images' || only === 'videos' ? only : null;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
+        mediaTypes: (onlyKind ? [onlyKind] : ['images', 'videos']) as ImagePicker.MediaType[],
         allowsMultipleSelection: true,
         selectionLimit: 10,
         preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
@@ -2236,7 +2237,7 @@ if (!search && promos.length > 0) {
                       <Text style={s.toolCap}>Photo</Text>
                     </View>
                     <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={pickMedia} accessibilityLabel="Add a video"><Feather name="video" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <TouchableOpacity style={s.toolBtn} onPress={() => pickMedia('videos')} accessibilityLabel="Add a video"><Feather name="video" size={20} color={light.ink.muted} /></TouchableOpacity>
                       <Text style={s.toolCap}>Video</Text>
                     </View>
                     <View style={{ alignItems: 'center' }}>
