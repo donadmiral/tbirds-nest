@@ -22,6 +22,19 @@ const METRICS: { key: keyof Day; label: string; cumulative?: boolean }[] = [
 ];
 
 
+// Plain-language comparison, same as the phone: percentages on small counts
+// mislead, so the line always says the actual prior number.
+function compareText(n: number, p: number, prior: string): string {
+  if (n === 0 && p === 0) return "nothing yet";
+  if (n === p) return "same as " + prior;
+  return (n > p ? "up from " : "down from ") + p.toLocaleString() + " in " + prior;
+}
+const HINT: Record<string, string> = {
+  Impressions: "Times your content was shown", Reach: "People who saw your content", Engagements: "Likes, comments, shares and saves",
+  "Followers gained": "New followers in the period", Messages: "Received in your inbox", "Market chats": "Buyer conversations started",
+  Payments: "Payments received in chat", Applications: "Applications to your jobs", "Ad clicks": "Taps on your ads",
+};
+
 export default function InsightsPage() {
   const supabase = useRef(createClient()).current;
   const [days, setDays] = useState(30);
@@ -134,10 +147,11 @@ export default function InsightsPage() {
               return (
                 <div key={label} className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
                   <p className="text-[11.5px] text-ink/45">{label}</p>
+                  <p className="text-[10.5px] text-ink/30">{HINT[label] || ""}</p>
                   <div className="mt-0.5"><Metric value={Number(n || 0)} size={24} /></div>
                   {label !== "Followers gained" ? (
                     <p className={"mt-0.5 flex items-center gap-1 text-[11.5px] " + (d === 0 ? "text-ink/35" : d > 0 ? "text-success" : "text-red-400")}>
-                      {d === 0 ? null : d > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{d === 0 ? "no change" : Math.abs(d) + "% vs prior " + days + " days"}
+                      {d === 0 ? null : d > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{compareText(Number(n || 0), Number(p || 0), "the " + days + " days before")}
                     </p>
                   ) : <p className="mt-0.5 text-[11.5px] text-ink/35">{Number(cur.followers_end || 0).toLocaleString()} total</p>}
                 </div>
