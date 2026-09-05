@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ArticleBody } from "@/components/ArticleBody";
+import { CATEGORIES } from "@/lib/categories";
 
 export default function WriteArticlePage() {
   const supabase = useRef(createClient()).current;
@@ -15,6 +16,7 @@ export default function WriteArticlePage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [cover, setCover] = useState<File | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [linkText, setLinkText] = useState("");
@@ -234,6 +236,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
 
     setBusy(false);
     if (insErr || !newPostId) { setError(insErr?.message || "Could not publish."); return; }
+    if (category) { await supabase.from("posts").update({ category }).eq("id", newPostId); }
     router.push("/post/" + newPostId);
   };
 
@@ -247,6 +250,12 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
       <textarea value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" rows={1}
         onInput={e => { const el = e.currentTarget; el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }}
         className="w-full resize-none overflow-hidden border-0 font-display text-[26px] font-bold leading-tight text-ink outline-none placeholder:text-ink/30" />
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {CATEGORIES.map((c) => (
+          <button key={c.key} type="button" onClick={() => setCategory(category === c.key ? null : c.key)}
+            className={"rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (category === c.key ? "border-ink bg-ink text-white" : "border-ink/15 text-ink/60 hover:border-ink/40")}>{c.label}</button>
+        ))}
+      </div>
 
       {coverPreview ? (
         <div className="relative mb-3 mt-2 overflow-hidden rounded-xl">

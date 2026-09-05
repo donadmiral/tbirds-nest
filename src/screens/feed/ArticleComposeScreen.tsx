@@ -15,6 +15,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { authorId as currentAuthorId } from '../../stores/actorStore';
 import { feedService } from '../../services/feedService';
 import ArticleBody from '../../components/ArticleBody';
+import { CATEGORIES } from '../../constants/categories';
 
 const DRAFT_KEY = 'pc:article-draft';
 
@@ -27,6 +28,7 @@ export default function ArticleComposeScreen() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [cover, setCover] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
   const [coverDims, setCoverDims] = useState<{ width: number; height: number } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
   const [busy, setBusy] = useState(false);
@@ -221,6 +223,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
         p_blocks: bodyToBlocks(body.trim()),
       });
       if (error) throw error;
+      if (category && newPostId) { await supabase.from('posts').update({ category }).eq('id', newPostId as any); }
       AsyncStorage.removeItem(DRAFT_KEY).catch(() => {});
       Alert.alert('Published', 'Your article is live in the feed.');
       navigation.goBack();
@@ -244,6 +247,14 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
         </View>
         <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: Math.max(insets.bottom + 120, 140) }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <TextInput value={title} onChangeText={setTitle} placeholder="Title" placeholderTextColor="#9CA3AF" multiline style={s.title} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8, marginBottom: 10, flexGrow: 0 }} contentContainerStyle={{ gap: 6 }} keyboardShouldPersistTaps="handled">
+            {CATEGORIES.map(c => (
+              <TouchableOpacity key={c.key} onPress={() => setCategory(category === c.key ? null : c.key)} activeOpacity={0.8}
+                style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: category === c.key ? '#0B1E3D' : 'rgba(11,30,61,0.18)', backgroundColor: category === c.key ? '#0B1E3D' : '#FFFFFF' }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: category === c.key ? '#FFFFFF' : 'rgba(11,30,61,0.6)' }}>{c.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
           <TouchableOpacity onPress={pickCover} activeOpacity={0.85} style={s.coverBtn}>
             {cover ? <Image source={{ uri: cover }} style={s.cover} /> : <Text style={s.coverTxt}>Add a cover image (optional)</Text>}
           </TouchableOpacity>

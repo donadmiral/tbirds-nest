@@ -286,6 +286,7 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
     if (canSpend && ['approved', 'paused'].includes(c.status)) b.push({ text: 'Go live', onPress: () => act(() => supabase.rpc('studio_set_campaign_status', { p_id: c.id, p_status: 'live' })) });
     if (canSpend && c.status === 'live') b.push({ text: 'Pause', onPress: () => act(() => supabase.rpc('studio_set_campaign_status', { p_id: c.id, p_status: 'paused' })) });
     if (canSpend && !['ended', 'draft'].includes(c.status)) b.push({ text: 'End campaign', style: 'destructive', onPress: () => Alert.alert('End campaign?', c.name, [{ text: 'Cancel', style: 'cancel' }, { text: 'End', style: 'destructive', onPress: () => act(() => supabase.rpc('studio_set_campaign_status', { p_id: c.id, p_status: 'ended' })) }]) });
+    if (canSpend && ['draft', 'rejected'].includes(c.status)) b.push({ text: 'Delete draft', style: 'destructive', onPress: () => Alert.alert('Delete this draft?', c.name + ' and its ads will be removed.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => act(() => supabase.rpc('studio_delete_campaign', { p_id: c.id })) }]) });
     b.push({ text: 'Cancel', style: 'cancel' });
     Alert.alert(c.name, c.status + (c.review_note ? ' · ' + c.review_note : ''), b);
   };

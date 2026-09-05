@@ -165,7 +165,8 @@ export default function HomeFeed() {
     seenObserverRef.current = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         const pid2 = (e.target as HTMLElement).dataset.pid;
-        if (e.isIntersecting && pid2 && !seenSentRef.current.has(pid2)) seenPendingRef.current.add(pid2);
+        const aid2 = (e.target as HTMLElement).dataset.aid;
+        if (e.isIntersecting && pid2 && aid2 !== uidRef.current && !seenSentRef.current.has(pid2)) seenPendingRef.current.add(pid2);
       });
     }, { threshold: 0.5 });
     const flushSeen = async () => {
@@ -286,7 +287,7 @@ export default function HomeFeed() {
             const slot = i === 1 ? promos[0] : (i > 1 && (i - 1) % 6 === 0 ? promos[Math.floor((i - 1) / 6)] : null);
             return (
               <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")}>
-                <div data-pid={p.post_id} ref={observeSeen}>
+                <div data-pid={p.post_id} data-aid={p.author_id} ref={observeSeen}>
                   <PostCard post={p} />
                 </div>
                 {slot && slot.post_id !== p.post_id ? <SponsoredCard promo={slot} /> : null}

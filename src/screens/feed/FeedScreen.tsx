@@ -382,7 +382,11 @@ export default function FeedScreen({ navigation }: any) {
     // fast scroll does not fire one insert per post.
     viewableItems.forEach((v: any) => {
       const id = v?.item?.id;
-      if (id && !String(id).startsWith('__') && !seenSentRef.current.has(id)) seenPendingRef.current.add(id);
+      // Seeing your own post is not a view, on your account or any business you act as.
+      const me = useAuthStore.getState().profile?.id ?? null;
+      const acting = currentAuthorId(me);
+      const own = !!v?.item?.user_id && (v.item.user_id === me || v.item.user_id === acting);
+      if (id && !own && !String(id).startsWith('__') && !seenSentRef.current.has(id)) seenPendingRef.current.add(id);
     });
   }, []);
 
@@ -2220,7 +2224,7 @@ if (!search && promos.length > 0) {
                         <TouchableOpacity style={{ position: 'absolute', left: 4, bottom: 4, backgroundColor: 'rgba(11,30,61,0.85)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={() => setEditMediaIdx(i)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="sliders" size={11} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{m.edit ? 'Edited' : 'Edit'}</Text></TouchableOpacity>
                       </View>
                     ))}
-                    {composerMedia.length < 10 && <TouchableOpacity style={s.cAddMore} onPress={pickMedia}><Text style={s.cAddMoreTxt}>+</Text></TouchableOpacity>}
+                    {composerMedia.length < 10 && <TouchableOpacity style={s.cAddMore} onPress={() => pickMedia()}><Text style={s.cAddMoreTxt}>+</Text></TouchableOpacity>}
                   </ScrollView>
                 )}
                 {editMediaIdx != null && composerMedia[editMediaIdx] ? (
@@ -2233,7 +2237,7 @@ if (!search && promos.length > 0) {
                 <View style={s.cToolbar}>
                   <View style={s.cToolbarLeft}>
                     <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={pickMedia} accessibilityLabel="Add photos or videos"><Feather name="image" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <TouchableOpacity style={s.toolBtn} onPress={() => pickMedia()} accessibilityLabel="Add photos or videos"><Feather name="image" size={20} color={light.ink.muted} /></TouchableOpacity>
                       <Text style={s.toolCap}>Photo</Text>
                     </View>
                     <View style={{ alignItems: 'center' }}>

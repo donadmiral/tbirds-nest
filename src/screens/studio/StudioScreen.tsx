@@ -21,6 +21,21 @@ type Me = { is_business: boolean; needs_code: boolean; role: string | null; disp
 const PUBLISH_ROLES = ['owner', 'admin', 'editor'];
 
 function pct(n: number, p: number) { if (p === 0) return n === 0 ? 0 : 100; return Math.round(((n - p) / p) * 100); }
+function greeting() { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
+// Plain-language comparison. Percentages on small counts mislead (five likes
+// going to none reads as "-100%"), so the line always says the actual number.
+function compare(n: number, p: number, prior: string): { text: string; color: string } {
+  const a = Number(n) || 0, b = Number(p) || 0;
+  if (a === 0 && b === 0) return { text: 'nothing yet', color: '#8E8E93' };
+  if (a === b) return { text: 'same as ' + prior, color: '#8E8E93' };
+  return a > b ? { text: 'up from ' + b.toLocaleString() + ' ' + prior, color: '#1C8C4E' } : { text: 'down from ' + b.toLocaleString() + ' ' + prior, color: '#D64545' };
+}
+const STAT_MEANING: Record<string, string> = {
+  Posts: 'Published by this business', Likes: 'On your posts', Comments: 'On your posts', Views: 'Times your posts were seen',
+  Followers: 'New followers', Messages: 'Received in your inbox', 'Ad views': 'Times your ads were shown', 'Ad clicks': 'Taps on your ads',
+  Impressions: 'Times your content was shown', Reach: 'People who saw your content', Engagements: 'Likes, comments, shares and saves',
+  'Market chats': 'Buyer conversations started', Payments: 'Payments received in chat', Applications: 'Applications to your jobs',
+};
 function hourLabel(h: number) { return (h % 12 === 0 ? 12 : h % 12) + (h < 12 ? 'am' : 'pm'); }
 function whenLabel(iso: string) { const d = new Date(iso); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 function parseLocal(s: string): Date | null {
@@ -141,7 +156,7 @@ function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: 
   ] as [string, number, number][];
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
-      <Text style={s.h1}>Good day, {me.display_name || me.business_name || 'team'}</Text>
+      <Text style={s.h1}>{greeting()}, {me.business_name || me.display_name || 'team'}</Text>
       <Text style={s.sub}>Last 7 days against the 7 before.</Text>
       <Text style={s.section}>Needs attention</Text>
       {todos.length === 0 ? <View style={s.card}><Text style={s.cardMuted}>Nothing waiting on you. Inbox, offers, applicants and ads are clear.</Text></View>
@@ -153,11 +168,12 @@ function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: 
         ))}
       <Text style={s.section}>Performance</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        {stats.map(([label, n, p]) => { const d = pct(n, p); return (
+        {stats.map(([label, n, p]) => { const cmp = compare(n, p, 'last week'); return (
           <View key={label} style={[s.card, { width: '48%', marginBottom: 0 }]}>
             <Text style={s.statLabel}>{label}</Text>
-            <Text style={s.statNum}>{Number(n).toLocaleString()}</Text>
-            <Text style={[s.statDelta, { color: d === 0 ? '#8E8E93' : d > 0 ? '#1C8C4E' : '#D64545' }]}>{d === 0 ? 'no change' : (d > 0 ? '+' : '') + d + '% vs prior week'}</Text>
+            <Text style={s.statHint}>{STAT_MEANING[label] || ''}</Text>
+            <Text style={[s.statNum, (Number(n) || 0) === 0 && s.statNumZero]}>{Number(n).toLocaleString()}</Text>
+            <Text style={[s.statDelta, { color: cmp.color }]}>{cmp.text}</Text>
           </View>
         ); })}
       </View>
@@ -473,13 +489,14 @@ function InsightsSeg({ navigation }: { navigation: any }) {
       </View>
       <Text style={s.sub}>Rolled up nightly. Followers now: {Number(cur.followers_end || 0).toLocaleString()} ({Number((cur.followers_end || 0) - (cur.followers_start || 0)) >= 0 ? '+' : ''}{Number((cur.followers_end || 0) - (cur.followers_start || 0))} in period).</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-        {tiles.map(([label, n, p]) => (
+        {tiles.map(([label, n, p]) => { const cmp = compare(n || 0, p || 0, 'the ' + days + ' days before'); return (
           <View key={label} style={[s.card, { width: '48%', marginBottom: 0 }]}>
             <Text style={s.statLabel}>{label}</Text>
-            <Text style={s.statNum}>{Number(n || 0).toLocaleString()}</Text>
-            <Text style={[s.statDelta, { color: pct(n || 0, p || 0) === 0 ? '#8E8E93' : pct(n || 0, p || 0) > 0 ? '#1C8C4E' : '#D64545' }]}>{pctLabel(n || 0, p || 0)}</Text>
+            <Text style={s.statHint}>{STAT_MEANING[label] || ''}</Text>
+            <Text style={[s.statNum, (Number(n) || 0) === 0 && s.statNumZero]}>{Number(n || 0).toLocaleString()}</Text>
+            <Text style={[s.statDelta, { color: cmp.color }]}>{cmp.text}</Text>
           </View>
-        ))}
+        ); })}
       </View>
       {(cur.paid_usd || cur.paid_zwg) ? <Text style={[s.sub, { marginTop: 10 }]}>Received: {cur.paid_usd ? 'USD ' + Number(cur.paid_usd).toLocaleString() : ''}{cur.paid_usd && cur.paid_zwg ? ' · ' : ''}{cur.paid_zwg ? 'ZWG ' + Number(cur.paid_zwg).toLocaleString() : ''}</Text> : null}
       <Text style={s.section}>Funnels</Text>
@@ -632,6 +649,8 @@ const s = StyleSheet.create({
   cardMeta: { fontSize: 11.5, color: '#8E8E93', marginTop: 3 },
   statLabel: { fontSize: 11.5, color: '#8E8E93' },
   statNum: { fontSize: 22, fontWeight: '800', color: '#0F1419', marginTop: 2 },
+  statNumZero: { color: '#B0B3B8', fontWeight: '600' },
+  statHint: { fontSize: 10.5, color: '#B0B3B8', marginTop: 1 },
   statDelta: { fontSize: 11, marginTop: 2 },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#0F1419', textAlign: 'center' },
   emptySub: { fontSize: 13, color: '#8E8E93', textAlign: 'center', lineHeight: 18 },

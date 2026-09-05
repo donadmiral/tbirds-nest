@@ -66,6 +66,11 @@ export default function StudioHomePage() {
   // Only cards whose daily key means the same thing as the total get a line.
   // Likes, comments and reposts roll up into one engagements series, so a line
   // under each of them would be the same shape three times, which is a lie.
+  const HINT: Record<string, string> = {
+    Posts: "Published by this business", Likes: "On your posts", Comments: "On your posts", Reposts: "Of your posts",
+    "Post views": "Times your posts were seen", "New followers": "Followers gained", "Messages received": "In your inbox",
+    "Ad impressions": "Times your ads were shown", "Ad clicks": "Taps on your ads",
+  };
   const stats: { label: string; now: number; prev: number; key?: string }[] = [
     { label: "Posts", now: h.now.posts, prev: h.prev.posts, key: "posts" },
     { label: "Likes", now: h.now.likes, prev: h.prev.likes },
@@ -124,6 +129,7 @@ export default function StudioHomePage() {
             return (
               <div key={s.label} className="flex flex-col rounded-2xl border border-ink/10 bg-white px-4 py-3">
                 <p className="text-[11.5px] text-ink/45">{s.label}</p>
+                <p className="text-[10.5px] text-ink/30">{HINT[s.label] || ""}</p>
                 {/* Marcellus renders 0 as a near-perfect circle at this size, so a
                     zero metric read as a decorative ring rather than a number.
                     Zero drops to the body face and a quieter colour: it is
