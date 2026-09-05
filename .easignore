@@ -1,0 +1,22 @@
+# Files the phone build never needs. EAS uses this file instead of .gitignore.
+node_modules/
+**/node_modules/
+.git/
+.expo/
+.next/
+**/.next/
+**/.turbo/
+web/
+admin-web/
+supabase/
+docs/
+{*
+*.zip
+*.mov
+*.mp4
+*.log
+*.ipa
+*.aab
+*.apk
+.vscode/
+.idea/

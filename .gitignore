@@ -34,3 +34,5 @@ _export/
 admin-web/_backup-*/
 cloudflared.exe
 *.log
+*.zip
+.ffmpeg/
