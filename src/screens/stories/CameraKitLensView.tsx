@@ -95,7 +95,7 @@ export const CameraKitLensView = forwardRef<CameraKitLensViewHandle, Props>(func
     <View style={StyleSheet.absoluteFill}>
       <WebViewComp
         ref={webRef}
-        source={{ html: CAMERA_KIT_ENGINE_HTML }}
+        source={{ html: CAMERA_KIT_ENGINE_HTML, baseUrl: 'https://platinumcircles.com/' }}
         style={StyleSheet.absoluteFill}
         onLoadEnd={onLoadEnd}
         onMessage={onMessage}
