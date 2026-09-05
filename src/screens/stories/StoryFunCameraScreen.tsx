@@ -4,6 +4,7 @@
 // Camera Kit session and a real lens group). Capture routes through whichever
 // pipeline is active into the same StoryComposer handoff either way.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCameraLife } from '../../hooks/useCameraLife';
 import {
   View,
   Text,
@@ -104,6 +105,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
   const lensGroupId = (process.env.EXPO_PUBLIC_CAMERAKIT_LENS_GROUP_ID as string) || '';
 
   const cameraRef = useRef<any>(null);
+  const cam = useCameraLife();
   const recordingRef = useRef(false);
   const pendingRecordRef = useRef(false);
   const holdTimerRef = useRef<any>(null);
@@ -325,7 +327,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
 
       {tab === 'filters' ? (
         <>
-          <CameraView key={camMode} ref={cameraRef} style={s.camera} facing="front" mode={camMode} videoQuality="720p"
+          <CameraView key={camMode + ':' + cam.epoch} active={cam.active} ref={cameraRef} style={s.camera} facing="front" mode={camMode} videoQuality="720p"
             onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') doRecordFilters(0); }} />
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <FilterLayer filterId={filterId} amt={100} />

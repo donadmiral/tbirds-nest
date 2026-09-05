@@ -526,7 +526,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
                 preload="auto"
                 muted={muted}
                 onLoadedData={() => setMediaReady(true)}
-                onLoadedMetadata={(e) => { const m = (story.media_transform || {}) as StoryMediaTransform; const t0 = Number(m.trimStart) || 0; if (t0 > 0.05) { try { (e.target as HTMLVideoElement).currentTime = t0; } catch {} } }}
+                onLoadedMetadata={(e) => { const m = (story.media_transform || {}) as StoryMediaTransform; try { (e.target as HTMLVideoElement).playbackRate = Number(m.speed) || 1; } catch {} const t0 = Number(m.trimStart) || 0; if (t0 > 0.05) { try { (e.target as HTMLVideoElement).currentTime = t0; } catch {} } }}
                 onTimeUpdate={(e) => { const el = e.target as HTMLVideoElement; const m = (story.media_transform || {}) as StoryMediaTransform; setClock(el.currentTime); const t1 = Number(m.trimEnd) || 0; if (t1 > 0 && el.currentTime >= t1) advance(); }}
                 className="h-full w-full object-contain"
                 style={mediaStyle(story.media_transform)}

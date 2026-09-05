@@ -98,6 +98,7 @@ export type StoryMediaTransform = {
   filterAmt?: number;
   adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null;
   mix?: { orig?: number; music?: number } | null;
+  speed?: number;
   bg?: { kind: "blur" | "color" | "gradient" | "none"; a?: string; b?: string } | null;
 };
 

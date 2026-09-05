@@ -6,6 +6,7 @@
 // with a not-ready retry behind it, so a cold camera never swallows the tap.
 // Bounce playback (forward, back, forward) is the next slice.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCameraLife } from '../../hooks/useCameraLife';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -66,6 +67,7 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
   }, [micPerm, requestMicPerm]);
 
   const cameraRef = useRef<any>(null);
+  const cam = useCameraLife();
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
   const [recording, setRecording] = useState(false);
@@ -161,7 +163,8 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
     <View style={s.root}>
       <StatusBar barStyle="light-content" />
       <CameraView
-        key={camMode}
+        key={camMode + ':' + cam.epoch}
+        active={cam.active}
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
         facing={facing}

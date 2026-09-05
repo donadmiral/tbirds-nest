@@ -8,6 +8,7 @@
  * spring-animated bubble reveal, cancel at any phase.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCameraLife } from '../../hooks/useCameraLife';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
   Dimensions, Alert, Animated, Image, Easing,
@@ -59,6 +60,7 @@ export default function StoryDualCaptureScreen() {
   const [recSeconds, setRecSeconds] = useState(0);
 
   const cameraRef = useRef<CameraView>(null);
+  const cam = useCameraLife();
   const mountedRef = useRef(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rearPhotoUriRef = useRef<string | null>(null);
@@ -380,7 +382,7 @@ export default function StoryDualCaptureScreen() {
   return (
     <View style={s.root}>
       {/* Live camera preview */}
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} videoQuality="720p" />
+      <CameraView key={'dual:' + cam.epoch} active={cam.active} ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} videoQuality="720p" />
 
       {/* Atmospheric top gradient (always visible, gives depth) */}
       <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0)']} style={s.topGradient} pointerEvents="none" />
