@@ -180,7 +180,6 @@ function ProfileStackNav() {
       <ProfStack.Screen name="ChangeUsername" component={ChangeUsernameScreen} />
       <ProfStack.Screen name="BusinessAccess" component={BusinessAccessScreen} />
       <ProfStack.Screen name="AccountStanding" component={AccountStandingScreen} />
-      <ProfStack.Screen name="ArticleCompose" component={ArticleComposeScreen} />
       <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
       <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
       <ProfStack.Screen name="CreateBusiness"  component={CreateBusinessScreen} />
@@ -500,6 +499,8 @@ export default function AppNavigator() {
 
               <RootStack.Group>
                 <RootStack.Screen name="Post"                 component={PostScreen} />
+                <RootStack.Screen name="ArticleCompose"       component={ArticleComposeScreen} />
+                <RootStack.Screen name="ArticleCompose"       component={ArticleComposeScreen} />
                 <RootStack.Screen name="TrendFeed"            component={TrendFeedScreen} />
                 <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
                 <RootStack.Screen name="Chat"                 component={ChatScreen} />

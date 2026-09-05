@@ -2134,7 +2134,7 @@ if (!search && promos.length > 0) {
                     <Feather name="edit-3" size={15} color={!innovationPost ? '#FFFFFF' : 'rgba(11,30,61,0.55)'} />
                     <Text numberOfLines={1} style={[s.kindTxt, !innovationPost && s.kindTxtOn]}>Post</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('Profile', { screen: 'ArticleCompose' }); }} accessibilityLabel="Write an article">
+                  <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('ArticleCompose'); }} accessibilityLabel="Write an article">
                     <Feather name="file-text" size={15} color="rgba(11,30,61,0.55)" />
                     <Text numberOfLines={1} style={s.kindTxt}>Article</Text>
                   </TouchableOpacity>
