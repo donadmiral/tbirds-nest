@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Camera, Check, Image as ImageIcon, Inbox, LogOut, MoreHorizontal, Send, Settings2, Shield, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { PostCard } from "@/components/PostCard";
 import { CATEGORIES } from "@/lib/categories";
 import { COMM_COLORS } from "@/lib/communities";
@@ -279,7 +280,7 @@ export default function CommunityPage() {
                   <img src={displayImageUrl(m.avatar_url, 200) ?? m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(m.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-semibold text-ink">{m.full_name || "Member"}{m.user_id === me ? " (you)" : ""}</span>
+                  <span className="block truncate text-[13.5px] font-semibold text-ink">{m.full_name || "Member"} <VerifiedBadge userId={m.user_id} size={12} />{m.user_id === me ? " (you)" : ""}</span>
                   {m.username ? <span className="block text-[12px] text-ink/45">@{m.username}</span> : null}
                 </span>
                 {m.role !== "member" ? <span className="rounded-full bg-[#0B1E3D]/10 px-2 py-0.5 text-[10.5px] font-bold text-[#0B1E3D]">{m.role === "owner" ? "Owner" : "Moderator"}</span> : null}

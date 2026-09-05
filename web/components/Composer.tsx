@@ -48,7 +48,7 @@ const AUDIENCES = [
   { key: "verified", label: "Verified only", icon: BadgeCheck },
 ] as const;
 
-export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => void; quote?: QuoteTarget | null; onQuoteDone?: () => void }) {
+export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind }) {
   const supabase = useRef(createClient()).current;
   const fileRef = useRef<HTMLInputElement | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
@@ -328,8 +328,17 @@ export function Composer({ onPosted, quote, onQuoteDone }: { onPosted: () => voi
     setPollDays(1);
     setPostCategory("");
     onQuoteDone?.();
-    onPosted();
+    onPosted(newPost.id);
   }
+
+  // A page can open the composer already set to a kind: the ads wizard's
+  // format tiles land on home with ?compose=.
+  useEffect(() => {
+    if (!initialKind) return;
+    setOpen(true);
+    setKind(initialKind);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialKind]);
 
   const remaining = MAX_CHARS - text.length;
   const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/55 hover:text-ink");

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { timeAgo } from "@/lib/feed";
 
 export function SharedPostCard({ postId }: { postId: string }) {
   const supabase = useRef(createClient()).current;
-  const [p, setP] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; thumb: string | null; isVideo: boolean } | null | undefined>(undefined);
+  const [p, setP] = useState<{ content: string | null; body: string | null; created_at: string; author: { id?: string | null; full_name: string | null; username: string | null } | null; thumb: string | null; isVideo: boolean } | null | undefined>(undefined);
 
   useEffect(() => {
     (async () => {
@@ -21,7 +22,7 @@ export function SharedPostCard({ postId }: { postId: string }) {
       const media = (data.post_media ?? []).slice().sort((x: { sort_order: number }, y: { sort_order: number }) => x.sort_order - y.sort_order);
       const top = media[0] as { url: string; media_type?: string; edit?: { coverUrl?: string | null } | null } | undefined;
       const isVideo = top?.media_type === "video";
-      setP({ content: data.content, body: data.body, created_at: data.created_at, author: a ?? null, thumb: (isVideo ? top?.edit?.coverUrl : top?.url) ?? null, isVideo });
+      setP({ content: data.content, body: data.body, created_at: data.created_at, author: a ? { ...a, id: data.user_id as string } : null, thumb: (isVideo ? top?.edit?.coverUrl : top?.url) ?? null, isVideo });
     })();
   }, [supabase, postId]);
 
@@ -32,7 +33,7 @@ export function SharedPostCard({ postId }: { postId: string }) {
     <Link href={"/post/" + postId} className="flex w-60 gap-2.5 rounded-lg border border-ink/15 p-2.5 transition-colors hover:bg-surface-elevated">
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-1.5 text-[12px]">
-          <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"}</span>
+          <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"}</span>{p.author?.id ? <VerifiedBadge userId={p.author.id} size={12} /> : null}
           <span className="shrink-0 text-ink/40">{timeAgo(p.created_at)}</span>
         </span>
         <span className="mt-0.5 line-clamp-3 block text-[13px] text-ink/80">{p.content ?? p.body ?? ""}</span>

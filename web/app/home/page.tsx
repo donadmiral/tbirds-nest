@@ -5,6 +5,7 @@ import { withTimeout } from "@/lib/withTimeout";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
@@ -53,6 +54,19 @@ export default function HomeFeed() {
   const [error, setError] = useState<string | null>(null);
   const [pendingNew, setPendingNew] = useState(0);
   const [quote, setQuote] = useState<{ id: string; author: string; text: string } | null>(null);
+  const router = useRouter();
+  // The ads wizard's format tiles land here: open the composer set to the
+  // chosen kind, and after posting go back to the wizard with the post picked.
+  const [composeKind, setComposeKind] = useState<"media" | "video" | undefined>(undefined);
+  const thenPromote = useRef(false);
+  useEffect(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const ck = sp.get("compose");
+      if (ck === "video") setComposeKind("video"); else if (ck === "photo" || ck === "carousel") setComposeKind("media");
+      thenPromote.current = sp.get("then") === "promote";
+    } catch { /* fine */ }
+  }, []);
   const [promos, setPromos] = useState<PromoRow[]>([]);
   const cursor = useRef<{ key: number; id: string } | null>(null);
   const uidRef = useRef<string | null>(null);
@@ -204,7 +218,7 @@ export default function HomeFeed() {
     <div>
       <AnnouncementBanner />
       <StoryRings />
-      <Composer onPosted={() => load(false)} quote={quote} onQuoteDone={() => setQuote(null)} />
+      <Composer initialKind={composeKind} onPosted={(id) => { load(false); if (id && thenPromote.current) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} />
 
       {/* Mode tabs: the active indicator is a pearl set in a ring, echoing the
           mark itself, instead of a plain underline. */}

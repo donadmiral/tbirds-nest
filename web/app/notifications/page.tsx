@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { Heart, Repeat2, MessageCircle, UserPlus, AtSign, Bell, Check, ShieldQuestion } from "lucide-react";
@@ -254,7 +255,7 @@ export default function NotificationsPage() {
                   <StoryAvatar userId={n.actor_id} name={n.actor_name || ((n.others_count || 0) > 0 ? String((n.others_count || 0) + 1) : " ")} avatarUrl={n.actor_avatar || n.other_avatars?.[0] || null} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block text-[14px] leading-snug text-ink/90">
-                      <span className="font-semibold text-ink">{lead}</span>
+                      <span className="font-semibold text-ink">{lead}</span>{n.actor_id && n.actor_name && !(n.others_count || 0) ? <VerifiedBadge userId={n.actor_id} size={12} /> : null}
                       {rest}
                     </span>
                     <span className="mt-0.5 flex items-center gap-2 text-[12px] text-ink/40">

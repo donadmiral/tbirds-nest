@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, BarChart2, Camera, Check, ChevronDown, ChevronUp, HelpCircle, Image as ImageIcon, Plus, Radio, Send, Settings2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 const EMOJIS = ["\u2764\uFE0F", "\uD83D\uDD25", "\uD83D\uDC4F", "\uD83D\uDE02", "\uD83D\uDE2E"];
 
@@ -643,7 +644,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
                       <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                     ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13.5px] font-semibold text-ink">{r.full_name || "Member"}</span>
+                      <span className="block truncate text-[13.5px] font-semibold text-ink">{r.full_name || "Member"} <VerifiedBadge userId={r.id} size={12} /></span>
                       {r.username ? <span className="block text-[12px] text-ink/45">@{r.username}</span> : null}
                     </span>
                     <button onClick={() => invite(r)} disabled={inviting === r.id} className="rounded-full bg-ink px-3.5 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Invite</button>
@@ -660,7 +661,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
                   <img src={displayImageUrl(m.avatar_url, 200) ?? m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(m.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-semibold text-ink">{m.full_name || "Member"}{m.user_id === meId ? " (you)" : ""}</span>
+                  <span className="block truncate text-[13.5px] font-semibold text-ink">{m.full_name || "Member"} <VerifiedBadge userId={m.user_id} size={12} />{m.user_id === meId ? " (you)" : ""}</span>
                   {m.username ? <span className="block text-[12px] text-ink/45">@{m.username}</span> : null}
                 </span>
                 {roleLabel(m.role) ? <span className="rounded-full bg-[#0B1E3D]/8 px-2 py-0.5 text-[10.5px] font-bold text-[#0B1E3D]">{roleLabel(m.role)}</span> : null}

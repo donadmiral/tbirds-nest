@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
 import { signChatMedia, isChatMediaUrl } from "@/lib/chatMedia";
 import { StoryAvatar } from "@/components/StoryAvatar";
@@ -377,7 +378,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-baseline gap-1.5">
-            <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>
+            <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>{!c.is_group && c.other_id ? <VerifiedBadge userId={c.other_id} size={13} /> : null}
             {c.unread > 0 ? <span className="h-[6px] w-[6px] shrink-0 rounded-full bg-pearl" aria-hidden /> : null}
           </span>
           {c.last_message_time ? <span className="shrink-0 text-[11px] text-ink/40">{timeAgo(c.last_message_time)}</span> : null}
@@ -440,7 +441,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
                 <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back">←</button>
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={36} />
                 <div className="min-w-0">
-                  <p className="truncate text-[15px] font-semibold text-ink">{active.title}</p>
+                  <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>
                   {typingLine}
                 </div>
               </div>
@@ -505,7 +506,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               <div className="flex items-center gap-3">
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={38} />
                 <div className="min-w-0">
-                  <p className="truncate text-[15px] font-semibold text-ink">{active.title}</p>
+                  <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>
                   {typingLine ?? (active.username ? <p className="text-[12px] text-ink/40">@{active.username}</p> : null)}
                 </div>
               </div>

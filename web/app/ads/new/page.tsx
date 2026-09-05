@@ -63,6 +63,12 @@ export default function AdWizardPage() {
       ]);
       setMe(prof ?? null);
       setPosts((p ?? []) as MyPost[]);
+      // Coming back from the composer with ?post=: pick that post straight away.
+      try {
+        const want = new URLSearchParams(window.location.search).get("post");
+        const hit = want ? ((p ?? []) as MyPost[]).find((x) => x.id === want) : null;
+        if (hit) setPick({ kind: "post", post: hit });
+      } catch { /* fine */ }
       setListings((l ?? []) as Listing[]);
       setJobs((j ?? []) as MyJob[]);
     })();
@@ -153,8 +159,8 @@ export default function AdWizardPage() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {([
                 ["Image", "One photo with a caption", "/home?compose=photo", "photo"],
-                ["Carousel", "Up to ten photos or products to swipe", "/home?compose=photo", "carousel"],
-                ["Video", "A clip that plays in the feed", "/home?compose=photo", "video"],
+                ["Carousel", "Up to ten photos or products to swipe", "/home?compose=carousel", "carousel"],
+                ["Video", "A clip that plays in the feed", "/home?compose=video", "video"],
                 ["Article", "Long-form with a cover and title", "/write", "article"],
               ] as [string, string, string, string][]).map(([name, blurb, href, kind]) => (
                 <Link key={kind} href={href + (href.includes("?") ? "&" : "?") + "then=promote"}
