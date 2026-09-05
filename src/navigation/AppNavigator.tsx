@@ -500,7 +500,6 @@ export default function AppNavigator() {
               <RootStack.Group>
                 <RootStack.Screen name="Post"                 component={PostScreen} />
                 <RootStack.Screen name="ArticleCompose"       component={ArticleComposeScreen} />
-                <RootStack.Screen name="ArticleCompose"       component={ArticleComposeScreen} />
                 <RootStack.Screen name="TrendFeed"            component={TrendFeedScreen} />
                 <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
                 <RootStack.Screen name="Chat"                 component={ChatScreen} />
