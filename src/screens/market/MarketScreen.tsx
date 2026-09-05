@@ -282,7 +282,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', marginHorizontal: 16,
     backgroundColor: GRAY_100, borderRadius: 12, paddingHorizontal: 12, height: 40,
   },
-  searchInput: { flex: 1, fontSize: 15, color: GRAY_900, paddingVertical: 0 },
+  searchInput: { flex: 1, height: 40, fontSize: 15, color: GRAY_900, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' },
   chipRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
   chip: {
     paddingHorizontal: 14, height: 32, borderRadius: 16, backgroundColor: GRAY_100,

@@ -3,7 +3,7 @@
  * Link once, then: amount -> Pay or Request -> biometric confirm.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { paymentsService } from '../services/paymentsService';
 import { flagsService } from '../services/flagsService';
@@ -177,10 +177,10 @@ export default function SendMoneySheet({
             </View>
           ) : (
             <>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Text style={s.to}>To {recipientName}</Text>{peerHasBank ? <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E9F2EE', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2, gap: 3 }}><View style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: '#0A3D2E', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#C8963E', fontSize: 9, fontWeight: '900' }}>I</Text></View><Text style={{ fontSize: 10.5, fontWeight: '700', color: '#0A3D2E' }}>IntoBank</Text></View> : null}</View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Text style={s.to}>To {recipientName}</Text>{peerHasBank ? <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E9F2EE', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2, gap: 3 }}><Image source={require('../../assets/intobank-mark.png')} style={{ width: 16, height: 16, borderRadius: 4 }} /><Text style={{ fontSize: 10.5, fontWeight: '700', color: '#0A3D2E' }}>IntoBank</Text></View> : null}</View>
               {!!wallet && (
                 <View style={s.fundRow}>
-                  <Feather name="credit-card" size={12} color="#8E8E93" />
+                  <Image source={require('../../assets/intobank-mark.png')} style={{ width: 14, height: 14, borderRadius: 4 }} />
                   <Text style={s.fundTxt} numberOfLines={1}>
                     {(wallet.email || 'IntoBank') + '  ·  ' + (wallet.currency || 'USD') + ' ' + Number(wallet.available ?? 0).toFixed(2) + ' available'}
                   </Text>
@@ -206,7 +206,7 @@ export default function SendMoneySheet({
                 {KEYS.map(k => (
                   <TouchableOpacity key={k} style={s.key} onPress={() => press(k)} activeOpacity={0.6}>
                     {k === 'del'
-                      ? <Feather name="delete" size={22} color="#0A0A0A" />
+                      ? <Feather name="delete" size={22} color={NAVY} />
                       : <Text style={s.keyTxt}>{k}</Text>}
                   </TouchableOpacity>
                 ))}
@@ -259,13 +259,13 @@ const s = StyleSheet.create({
   fundTxt: { fontSize: 12.5, fontWeight: '500', color: '#8E8E93' },
   amountRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 },
   amountWrap: { flex: 1, alignItems: 'center' },
-  amount: { fontWeight: '800', color: '#0A0A0A', letterSpacing: -2.5 },
+  amount: { fontWeight: '800', color: NAVY, letterSpacing: -1.5 },
   step: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  keypad: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
-  key: { width: '33.33%', height: 58, alignItems: 'center', justifyContent: 'center' },
-  keyTxt: { fontSize: 27, fontWeight: '500', color: '#0A0A0A' },
+  keypad: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, gap: 8 },
+  key: { flexBasis: '31%', flexGrow: 1, height: 54, borderRadius: 14, backgroundColor: '#F5F6F8', alignItems: 'center', justifyContent: 'center' },
+  keyTxt: { fontSize: 24, fontWeight: '600', color: NAVY },
   actions: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  request: { flex: 1, backgroundColor: '#F2F2F7', borderRadius: 16, paddingVertical: 16, alignItems: 'center' },
+  request: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.18)', borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
   requestTxt: { color: NAVY, fontSize: 16, fontWeight: '700' },
   pay: { flex: 1, flexDirection: 'row', gap: 8, backgroundColor: NAVY, borderRadius: 16, paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
   payTxt: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
