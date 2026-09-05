@@ -65,13 +65,14 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [facing, setFacing] = useState<'back' | 'front'>('back');
-  const [cameraReady, setCameraReady] = useState(false);
+  const recordStartRef = useRef(0);
 
   const startRecord = useCallback(async () => {
-    if (!cameraRef.current || recordingRef.current || !cameraReady) return;
+    if (!cameraRef.current || recordingRef.current) return;
     recordingRef.current = true;
     setRecording(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    recordStartRef.current = Date.now();
     try {
       const recordWithRetry = async (attempt: number): Promise<any> => {
         try {
@@ -106,7 +107,15 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
 
   const stopRecord = useCallback(() => {
     if (!recordingRef.current) return;
-    try { cameraRef.current?.stopRecording(); } catch {}
+    // expo-camera rejects a recording stopped before it has produced data, so a
+    // quick tap-release must wait for a minimum clip. Same 800ms floor and second
+    // stop attempt StoryCameraScreen uses (expo#2837).
+    const elapsed = Date.now() - recordStartRef.current;
+    const wait = Math.max(0, 800 - elapsed);
+    setTimeout(() => {
+      try { cameraRef.current?.stopRecording(); } catch {}
+      setTimeout(() => { if (recordingRef.current) { try { cameraRef.current?.stopRecording(); } catch {} } }, 700);
+    }, wait);
   }, []);
 
   if (!permission) return <View style={s.fallback} />;
@@ -128,7 +137,7 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" />
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode="video" videoQuality="720p" onCameraReady={() => setCameraReady(true)} />
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode="video" videoQuality="720p" />
       <SafeAreaView style={s.topBar} edges={['top']}>
         <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="x" size={24} color="#FFF" />

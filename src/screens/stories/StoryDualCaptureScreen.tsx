@@ -57,7 +57,6 @@ export default function StoryDualCaptureScreen() {
   const [mediaMode, setMediaMode] = useState<'photo' | 'video'>('photo');
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
-  const [cameraReady, setCameraReady] = useState(false);
 
   const cameraRef = useRef<CameraView>(null);
   const mountedRef = useRef(true);
@@ -114,7 +113,7 @@ export default function StoryDualCaptureScreen() {
 
   // ── REAR CAPTURE ───────────────────────────────────────────
   const captureRear = useCallback(async () => {
-    if (!cameraRef.current || phase !== 'idle' || !cameraReady) return;
+    if (!cameraRef.current || phase !== 'idle') return;
 
     if (mediaMode === 'video') {
       if (recording) { try { cameraRef.current.stopRecording(); } catch {} return; }
@@ -381,7 +380,7 @@ export default function StoryDualCaptureScreen() {
   return (
     <View style={s.root}>
       {/* Live camera preview */}
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} videoQuality="720p" onCameraReady={() => setCameraReady(true)} />
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} videoQuality="720p" />
 
       {/* Atmospheric top gradient (always visible, gives depth) */}
       <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0)']} style={s.topGradient} pointerEvents="none" />

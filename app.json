@@ -97,7 +97,8 @@
         }
       ],
       "expo-font",
-      "expo-asset"
+      "expo-asset",
+      "react-native-compressor"
     ],
     "extra": {
       "eas": {

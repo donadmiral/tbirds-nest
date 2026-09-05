@@ -23,12 +23,33 @@ function mimeOf(kind: SafeKind, ext: string): string {
   return 'image/jpeg';
 }
 
+function nitroNativeAvailable(): boolean {
+  // react-native-compressor 2.x runs on Nitro Modules. The JS package installs
+  // fine, so require() succeeds even when the native side is missing from the
+  // current build, and the first call into it throws or never resolves. Check
+  // for the native module by name before touching the library at all.
+  try {
+    const RN: any = require('react-native');
+    if (RN?.TurboModuleRegistry?.get?.('NitroModules')) return true;
+    if (RN?.NativeModules?.NitroModules) return true;
+  } catch {}
+  return false;
+}
+
 async function transcodeVideo(uri: string): Promise<string | null> {
+  if (!nitroNativeAvailable()) {
+    console.log('[uploadSafe] NitroModules not in this build, uploading untranscoded');
+    return null;
+  }
   try {
     const mod: any = require('react-native-compressor');
     const Video = mod?.Video || mod?.default?.Video;
     if (!Video?.compress) return null;
-    const out: string = await Video.compress(uri, { compressionMethod: 'manual', maxSize: 1920, bitrate: 6000000 });
+    const work: Promise<string | null> = Promise.resolve()
+      .then(() => Video.compress(uri, { compressionMethod: 'manual', maxSize: 1920, bitrate: 6000000 }))
+      .catch((e: any) => { console.log('[uploadSafe] native transcode failed', e?.message || e); return null; });
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 45000));
+    const out = await Promise.race([work, timeout]);
     if (!out || out === uri) return null;
     return out;
   } catch (e) {
