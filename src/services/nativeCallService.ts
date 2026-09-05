@@ -27,7 +27,11 @@ export // The switch is BINARY-AWARE: native calls arm only on builds that
 // binaries and Expo Go read a lower or unparseable native build
 // number and stay safely dormant, so Metro can never crash them.
 const __nb = Number((Constants as any)?.nativeBuildVersion ?? 0) || 0;
-const NATIVE_CALLS_ENABLED = __nb >= 5;
+// Expo Go is the one binary without the PushKit delegate; every EAS build
+// since August carries it, whatever number the build reports.
+const __isExpoGo = (Constants as any)?.appOwnership === 'expo' || (Constants as any)?.executionEnvironment === 'storeClient';
+const NATIVE_CALLS_ENABLED = !__isExpoGo && (__nb >= 5 || !(__nb > 0));
+console.log('[NativeCalls] gate', JSON.stringify({ build: __nb, expoGo: __isExpoGo, enabled: NATIVE_CALLS_ENABLED }));
 
 let RNCallKeep: any = null;
 let VoipPushNotification: any = null;
@@ -100,6 +104,14 @@ export const nativeCallService = {
     if (!loadNatives() || Platform.OS !== 'ios' || !VoipPushNotification) return;
     try {
       VoipPushNotification.addEventListener('register', (token: string) => onToken(token));
+      // PushKit hands the token over at launch, before JavaScript exists, and
+      // the native side caches it. Replay the cache, or the token is never seen
+      // and never saved, which is exactly the has_voip=false table.
+      VoipPushNotification.addEventListener('didLoadWithEvents', (events: any[]) => {
+        (events || []).forEach((e: any) => {
+          if (e?.name === VoipPushNotification.RNVoipPushRemoteNotificationsRegisteredEvent && e?.data) onToken(String(e.data));
+        });
+      });
       VoipPushNotification.registerVoipToken();
     } catch (e) {
       console.log('[NativeCalls] voip register failed:', (e as any)?.message);
