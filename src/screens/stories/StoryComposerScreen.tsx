@@ -41,6 +41,7 @@ import DrawSurface, { DrawingLayer, type DrawStroke } from '../../components/sto
 import { AdjustPanel, AdjustLayer, BackgroundSheet, BackgroundLayer, AudioMixSheet, EntitySheet, PreviewChrome, type StoryAdjust, type StoryBg, type StoryMix, type EntityPick } from '../../components/stories/storyPanels';
 import { EXTRA_TEXT_STYLES, EXTRA_TEXT_LABELS, composedTextStyle, TEXT_ANIMS, fetchWeatherNow, PHOTO_SHAPES, TIME_STYLES, DATE_STYLES, WEATHER_STYLES } from '../../components/stories/storyExtras';
 import GifPickerLite from '../../components/GifPickerLite';
+import PollDragWrap from '../../components/stories/PollDragWrap';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import {
@@ -100,7 +101,7 @@ function getDefaultStickerColor(bgId: string): string {
   return opt?.isDark ? '#FFFFFF' : '#000000';
 }
 
-type PollData = { question: string; options: string[] };
+type PollData = { question: string; options: string[]; nx?: number; ny?: number; scale?: number };
 type Draft = {
   id: string; localUri: string | null; thumbnailUri: string | null;
   mediaType: 'image' | 'video' | 'text'; caption: string; scope: 'global'; audience?: 'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except'; sharedWith?: string[] | null; reach?: 'followers' | 'wider';
@@ -674,7 +675,7 @@ export default function StoryComposerScreen() {
   const addPollOption = useCallback(() => { if (pollOptions.length < 4) setPollOptions(p => [...p, '']); }, [pollOptions.length]);
   const removePollOption = useCallback((i: number) => { if (pollOptions.length <= 2) return; setPollOptions(p => p.filter((_, idx) => idx !== i)); }, [pollOptions.length]);
   const updatePollOption = useCallback((i: number, t: string) => { setPollOptions(p => p.map((o, idx) => idx === i ? t : o)); }, []);
-  const savePoll = useCallback(() => { const q = pollQuestion.trim(); if (!q) { Alert.alert('Missing question', 'Enter a poll question.'); return; } if (q.length > 120) { Alert.alert('Question too long', 'Keep under 120 characters.'); return; } const opts = pollOptions.map(o => o.trim()).filter(o => o.length > 0); if (opts.length < 2) { Alert.alert('Not enough options', 'Add at least 2.'); return; } for (const o of opts) { if (o.length > 40) { Alert.alert('Option too long', 'Keep under 40 characters.'); return; } } const ls = new Set<string>(); for (const o of opts) { const l = o.toLowerCase(); if (ls.has(l)) { Alert.alert('Duplicate', `"${o}" appears twice.`); return; } ls.add(l); } updateActive({ pollData: { question: q, options: opts } }); setPollEditorOpen(false); }, [pollQuestion, pollOptions, updateActive]);
+  const savePoll = useCallback(() => { const q = pollQuestion.trim(); if (!q) { Alert.alert('Missing question', 'Enter a poll question.'); return; } if (q.length > 120) { Alert.alert('Question too long', 'Keep under 120 characters.'); return; } const opts = pollOptions.map(o => o.trim()).filter(o => o.length > 0); if (opts.length < 2) { Alert.alert('Not enough options', 'Add at least 2.'); return; } for (const o of opts) { if (o.length > 40) { Alert.alert('Option too long', 'Keep under 40 characters.'); return; } } const ls = new Set<string>(); for (const o of opts) { const l = o.toLowerCase(); if (ls.has(l)) { Alert.alert('Duplicate', `"${o}" appears twice.`); return; } ls.add(l); } updateActive({ pollData: { ...(active?.pollData || {}), question: q, options: opts } }); setPollEditorOpen(false); }, [pollQuestion, pollOptions, updateActive]);
   const removePoll = useCallback(() => { updateActive({ pollData: null }); }, [updateActive]);
 
   // ── Link ──
@@ -838,7 +839,7 @@ export default function StoryComposerScreen() {
     { id: 'adjust', cat: 'media', tint: '#34D399', icon: 'adjust', label: 'Adjust', on: !!(getTx() as any).adjust || (getTx() as any).filterAmt != null, run: () => setAdjustOpen(true) },
     { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
     { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
-    { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => { if (!active?.audio) { Alert.alert('Add a sound first', 'Mix balances your original audio against the added track. Add a sound, then mix.'); return; } setMixOpen(true); } },
+    { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => { Alert.alert('Coming soon', 'Sound mix arrives together with music.'); } },
     { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: 'Save media', on: false, run: saveMediaToDevice },
     { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
@@ -860,7 +861,7 @@ export default function StoryComposerScreen() {
             {active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
               <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} />
             )}
-            {hasPoll && active?.uploadState === 'idle' && (<View pointerEvents="none" style={{ position: 'absolute', left: previewSize.w * 0.1, width: previewSize.w * 0.8, top: Math.max(90, Math.min(previewSize.h * 0.75 - 100, previewSize.h - 360)), zIndex: 12, alignItems: 'center' }}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></View>)}
+            {hasPoll && active?.uploadState === 'idle' && (<PollDragWrap containerW={previewSize.w} containerH={previewSize.h} nx={active.pollData!.nx ?? 0.5} ny={active.pollData!.ny ?? 0.4} scale={active.pollData!.scale ?? 1} onChange={(nx, ny, scale) => updateActive({ pollData: { ...active.pollData!, nx, ny, scale } })} onTap={openPollEditor}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap>)}
           </View>
         ) : (
           <MediaCanvas
@@ -871,9 +872,9 @@ export default function StoryComposerScreen() {
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
             imageW={active?.imageW} imageH={active?.imageH} mediaFit={active?.mediaFit || 'cover'}
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
-            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
+            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
-            bottomInset={Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106)}
+            bottomInset={Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 66 : 0)}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
           >
             <FilterLayer filterId={active?.filterId || null} amt={(getTx() as any).filterAmt} />
@@ -882,7 +883,7 @@ export default function StoryComposerScreen() {
             {!arrangement.arrangementOpen && active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
               <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} />
             )}
-            {hasPoll && active?.uploadState === 'idle' && (<View pointerEvents="none" style={{ position: 'absolute', left: previewSize.w * 0.1, width: previewSize.w * 0.8, top: Math.max(90, Math.min(previewSize.h * 0.75 - 100, previewSize.h - 360)), zIndex: 12, alignItems: 'center' }}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></View>)}
+            {hasPoll && active?.uploadState === 'idle' && (<PollDragWrap containerW={previewSize.w} containerH={previewSize.h} nx={active.pollData!.nx ?? 0.5} ny={active.pollData!.ny ?? 0.4} scale={active.pollData!.scale ?? 1} onChange={(nx, ny, scale) => updateActive({ pollData: { ...active.pollData!, nx, ny, scale } })} onTap={openPollEditor}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap>)}
           </MediaCanvas>
         )}
 
@@ -899,7 +900,7 @@ export default function StoryComposerScreen() {
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
             { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => setBgOpen(true) },
-            { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => { if (!active?.audio) { Alert.alert('Add a sound first', 'Mix balances your original audio against the added track. Add a sound, then mix.'); return; } setMixOpen(true); } },
+            { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => { Alert.alert('Coming soon', 'Sound mix arrives together with music.'); } },
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
             { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },
           ] as RailItem[])} />
@@ -949,14 +950,14 @@ export default function StoryComposerScreen() {
         )}
 
         {/* Close button */}
-        {!drawMode && (
+        {!drawMode && !previewOn && (
         <TouchableOpacity style={[st.closeBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={publish.publishing} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <View style={st.closeBtnInner}><Feather name="x" size={18} color={textColor.primary} /></View>
         </TouchableOpacity>
         )}
 
         {/* Top tool row — Instagram construction */}
-        {!drawMode && (
+        {!drawMode && !previewOn && (
         <View style={[st.undoRedoWrap, { top: insets.top + 8 }]}>
           {(undoCount > 0 || redoCount > 0) && <>
             <TouchableOpacity style={st.undoBtn} onPress={undo} disabled={undoCount === 0 || publish.publishing} activeOpacity={0.6}>
@@ -971,7 +972,7 @@ export default function StoryComposerScreen() {
         )}
 
         {/* Business reach switch */}
-        {isBusiness && !drawMode && (
+        {isBusiness && !drawMode && !previewOn && (
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 96 }]}>
           <TouchableOpacity onPress={toggleReach} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: reach === 'wider' ? '#0B1E3D' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: reach === 'wider' ? '#E8A13A' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
             <Feather name={reach === 'wider' ? 'trending-up' : 'users'} size={13} color={reach === 'wider' ? '#E8A13A' : '#FFFFFF'} />
@@ -987,7 +988,7 @@ export default function StoryComposerScreen() {
         />
 
         {/* Audience picker */}
-        {!drawMode && (
+        {!drawMode && !previewOn && (
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 52 }]}>
           <TouchableOpacity onPress={() => setAudienceSheetOpen(true)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
             <Feather name={(audience === 'close_friends' ? 'star' : audience === 'only_with' ? 'user-check' : audience === 'followers' ? 'users' : 'globe') as any} size={13} color="#FFFFFF" />
@@ -996,7 +997,7 @@ export default function StoryComposerScreen() {
         </Animated.View>
         )}
         {/* Post button */}
-        {!drawMode && (
+        {!drawMode && !previewOn && (
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) }]}>
           <TouchableOpacity onPress={publish.publishAll} disabled={!canPublish} style={[st.postPillInner, !canPublish && { opacity: 0.4 }]} activeOpacity={0.85}>
             {publish.publishing ? <ActivityIndicator color="#0A0A0A" size={14} /> : <><Text style={st.postPillTxt}>Post</Text><Feather name="arrow-up" size={13} color="#0A0A0A" /></>}
@@ -1009,7 +1010,7 @@ export default function StoryComposerScreen() {
       </Animated.View>
 
       {/* Caption */}
-      {active?.uploadState === 'idle' && !arrangement.arrangementOpen && !drawMode && (
+      {active?.uploadState === 'idle' && !arrangement.arrangementOpen && !drawMode && !previewOn && (
         <Animated.View style={[st.captionFloating, { bottom: keyboard.captionBottomAnim }]}>
           <TextInput value={active?.caption || ''} onChangeText={t => updateActive({ caption: t })} placeholder="Add a caption..." placeholderTextColor={textColor.faint} style={st.captionInput} maxLength={200} editable={!publish.publishing} keyboardAppearance="dark" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} blurOnSubmit />
         </Animated.View>

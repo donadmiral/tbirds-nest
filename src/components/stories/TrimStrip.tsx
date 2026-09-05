@@ -38,13 +38,27 @@ export default function TrimStrip({ uri, durationSec, start, end, onChange, onDu
     let alive = true;
     (async () => {
       if (!VideoThumbnails?.getThumbnailAsync) return;
+      // Frame times stay inside a conservative window: durationSec is rounded and
+      // can overshoot the real clip, and a request past the end fails. A failed
+      // frame reuses the last good one instead of leaving a blank cell.
       const out: string[] = [];
+      let last = '';
+      const safeDur = Math.max(0.2, dur - 0.25);
       for (let i = 0; i < THUMBS; i++) {
-        try {
-          const t = Math.min(dur - 0.15, (i / THUMBS) * dur + 0.05);
-          const th = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.max(0, t * 1000), quality: 0.3 });
-          if (!alive) return; out.push(th.uri); setThumbs([...out]);
-        } catch { out.push(''); }
+        const t = Math.max(0, (i / THUMBS) * safeDur);
+        let got = '';
+        for (const cand of [t, t * 0.6, 0]) {
+          try {
+            const th = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.round(cand * 1000), quality: 0.3 });
+            if (th?.uri) { got = th.uri; break; }
+          } catch {}
+          if (!alive) return;
+        }
+        if (!alive) return;
+        if (!got) got = last;
+        if (got) last = got;
+        out.push(got);
+        setThumbs([...out]);
       }
     })();
     return () => { alive = false; };

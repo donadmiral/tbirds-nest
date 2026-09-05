@@ -36,7 +36,7 @@ interface Draft {
   uploadState: 'idle' | 'uploading' | 'done' | 'error';
   errorMsg?: string | null;
   durationSec?: number | null;
-  pollData?: { question: string; options: string[] } | null;
+  pollData?: { question: string; options: string[]; nx?: number; ny?: number; scale?: number } | null;
   stickers?: any[];
   mediaTransform: any;
   category: any;
@@ -141,7 +141,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
         // Create poll if present
         if (d.pollData) {
           try {
-            await storiesService.createStoryPoll(story.id, d.pollData.question, d.pollData.options);
+            await storiesService.createStoryPoll(story.id, d.pollData.question, d.pollData.options, { nx: d.pollData.nx, ny: d.pollData.ny, scale: d.pollData.scale });
           } catch (pollErr: any) {
             console.error('[Publish] poll creation failed:', pollErr?.message);
           }

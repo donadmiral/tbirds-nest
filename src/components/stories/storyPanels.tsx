@@ -184,7 +184,7 @@ export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filt
         <View style={pp.dockHead}>
           <Text style={pp.dockTitle}>Adjust</Text>
           {(hasAny || filterAmt !== 100) && (
-            <TouchableOpacity onPress={() => { onChange({}); onFilterAmt(100); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <TouchableOpacity onPress={() => { onChange({}); onFilterAmt(100); }} style={pp.dockResetBtn} activeOpacity={0.8}>
               <Text style={pp.dockReset}>Reset</Text>
             </TouchableOpacity>
           )}
@@ -450,9 +450,10 @@ const vg = StyleSheet.create({
 const pp = StyleSheet.create({
   dockWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 60 },
   dock: { backgroundColor: 'rgba(12,14,20,0.96)', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10, paddingBottom: 30, borderTopWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
-  dockHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 6, gap: 14 },
+  dockHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 6, gap: 10 },
   dockTitle: { color: '#FFF', fontSize: 15.5, fontWeight: '800', flex: 1 },
-  dockReset: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '700' },
+  dockResetBtn: { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.10)' },
+  dockReset: { color: '#FFF', fontSize: 13, fontWeight: '700' },
   dockDone: { backgroundColor: '#C9BFB0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 },
   dockDoneTxt: { color: '#0B1E3D', fontSize: 13, fontWeight: '800' },
   dockHint: { color: 'rgba(255,255,255,0.5)', fontSize: 11.5, paddingHorizontal: 16, paddingTop: 2, paddingBottom: 4 },

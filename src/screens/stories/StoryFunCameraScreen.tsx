@@ -190,7 +190,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
       const msg = e?.message || '';
       recordingRef.current = false;
       setRecording(false);
-      if (msg.toLowerCase().includes('not ready') && pendingRecordRef.current && attempt < 12) {
+      if (msg.toLowerCase().includes('not ready') && pendingRecordRef.current && attempt < 20) {
         setTimeout(() => doRecordFilters(attempt + 1), 150);
         return;
       }

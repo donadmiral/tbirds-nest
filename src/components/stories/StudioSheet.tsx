@@ -6,7 +6,7 @@
  * only favorites and recents, persisted locally.
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet, Keyboard, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import StickerIcon from './StickerIcons';
 
@@ -25,6 +25,16 @@ const SECTIONS: { key: string; title: string }[] = [
 export default function StudioSheet({ visible, onClose, tiles, extra, bottomInset }: { visible: boolean; onClose: () => void; tiles: StudioTile[]; extra?: React.ReactNode; bottomInset: number }) {
   const [tab, setTab] = useState<Tab>('stickers');
   const [q, setQ] = useState('');
+  // The sheet is a plain modal at the bottom of the screen, so the keyboard
+  // covers it. Track the keyboard height and lift the sheet by that much.
+  const [kb, setKb] = useState(0);
+  useEffect(() => {
+    const showEv = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEv = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const a = Keyboard.addListener(showEv, (e: any) => setKb(e?.endCoordinates?.height || 0));
+    const b = Keyboard.addListener(hideEv, () => setKb(0));
+    return () => { a.remove(); b.remove(); };
+  }, []);
   const [favs, setFavs] = useState<string[]>([]);
   const [recents, setRecents] = useState<string[]>([]);
   useEffect(() => {
@@ -62,7 +72,7 @@ export default function StudioSheet({ visible, onClose, tiles, extra, bottomInse
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={ss.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-          <View style={[ss.sheet, { paddingBottom: Math.max(bottomInset, 16) }]}>
+          <View style={[ss.sheet, { paddingBottom: kb > 0 ? kb + 12 : Math.max(bottomInset, 16) }]}>
             <View style={ss.handle} />
             <View style={ss.tabs}>
               {([['stickers', 'Stickers'], ['collections', 'Collections'], ['favorites', 'Favorites'], ['recents', 'Recents']] as [Tab, string][]).map(([k, lb]) => (
@@ -74,10 +84,10 @@ export default function StudioSheet({ visible, onClose, tiles, extra, bottomInse
             <View style={ss.searchRow}>
               <View style={ss.search}>
                 <Feather name="search" size={15} color="rgba(255,255,255,0.45)" />
-                <TextInput value={q} onChangeText={setQ} placeholder="Search stickers" placeholderTextColor="rgba(255,255,255,0.35)" style={ss.searchInput} keyboardAppearance="dark" autoCorrect={false} />
+                <TextInput value={q} onChangeText={setQ} placeholder="Search stickers" placeholderTextColor="rgba(255,255,255,0.5)" style={ss.searchInput} keyboardAppearance="dark" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => Keyboard.dismiss()} />
               </View>
             </View>
-            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView style={{ maxHeight: kb > 0 ? 240 : 380 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               {tab === 'stickers' && (
                 <>
                   {featured.length > 0 && <Text style={ss.section}>Featured</Text>}
@@ -117,7 +127,7 @@ const ss = StyleSheet.create({
   tabTxtOn: { color: '#0B1E3D' },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, height: 40, borderRadius: 12, paddingHorizontal: 12, backgroundColor: 'rgba(255,255,255,0.08)' },
-  searchInput: { flex: 1, color: '#FFF', fontSize: 14, paddingVertical: 0 },
+  searchInput: { flex: 1, height: 40, color: '#FFF', fontSize: 14, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' },
   section: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '800', letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 8, marginBottom: 8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 6 },
   tile: { width: '22.5%', alignItems: 'center', paddingVertical: 8, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.05)' },

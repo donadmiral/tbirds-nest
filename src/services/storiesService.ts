@@ -773,6 +773,7 @@ export const storiesService = {
     storyId: string,
     question: string,
     options: string[],
+    pos?: { nx?: number; ny?: number; scale?: number },
   ): Promise<StoryPoll> {
     if (options.length < 2 || options.length > 4) {
       throw new Error('Poll requires 2 to 4 options');
@@ -805,6 +806,9 @@ export const storiesService = {
       .insert({
         story_id: storyId,
         question: trimmedQuestion,
+        ...(pos && typeof pos.nx === 'number' ? { nx: pos.nx } : {}),
+        ...(pos && typeof pos.ny === 'number' ? { ny: pos.ny } : {}),
+        ...(pos && typeof pos.scale === 'number' ? { scale: pos.scale } : {}),
       })
       .select('id')
       .single();
