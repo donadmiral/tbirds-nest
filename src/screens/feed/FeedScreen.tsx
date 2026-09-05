@@ -81,6 +81,7 @@ type Post = {
   channel?: string | null;
   article_title?: string | null;
   quoted_post_id?: string | null;
+  quotes_count?: number;
   thread_parent_id?: string | null;
   media: MediaItem[]; score: number; is_trending?: boolean; products?: PostProduct[]; _promo?: { id: string; label: string };
 };
@@ -1155,6 +1156,13 @@ export default function FeedScreen({ navigation }: any) {
       data.forEach((r: any) => { m[r.id] = r.shares_count ?? 0; });
       setPosts(prev => prev.map(pp => m[pp.id] != null && (pp.shares_count ?? 0) < m[pp.id] ? { ...pp, shares_count: m[pp.id] } : pp));
     }, () => {});
+    // Quotes are posts that point at these ids. Counted here so the repost
+    // number means reposts and quotes together, as on X.
+    supabase.from('posts').select('quoted_post_id').in('quoted_post_id', ids).then(({ data }) => {
+      const q: Record<string, number> = {};
+      (data || []).forEach((r: any) => { if (r.quoted_post_id) q[r.quoted_post_id] = (q[r.quoted_post_id] || 0) + 1; });
+      setPosts(prev => prev.map(pp => ids.includes(pp.id) ? { ...pp, quotes_count: q[pp.id] || 0 } : pp));
+    }, () => {});
   }, []);
 
   const recordShare = useCallback((p: Post) => {
@@ -1875,15 +1883,15 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
           <TouchableOpacity style={s.pill} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
             <Feather name="repeat" size={20} color={isReposted ? light.status.success : light.ink.muted} />
-            <Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{post.reposts_count > 0 ? fmtCount(post.reposts_count) : ''}</Text>
+            <Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{(post.reposts_count + (post.quotes_count ?? 0)) > 0 ? fmtCount(post.reposts_count + (post.quotes_count ?? 0)) : ''}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => toggleBookmark(post.id)} activeOpacity={0.75} disabled={isBusy(`bk-${post.id}`)}>
-            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />
+            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />{(post.bookmarks_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: isBookmarked ? light.status.link : light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.bookmarks_count)}</Text> : null}
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => setSharePostTarget(post)} activeOpacity={0.75}>
-            <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{post.shares_count}</Text> : null}
+            <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.shares_count ?? 0)}</Text> : null}
           </TouchableOpacity>
         </View>
         {post.products && post.products.length > 0 && (/* carousel holds the tab swipe */
