@@ -49,8 +49,9 @@ function Avatar({ uri, name, size = 38 }: { uri?: string | null; name?: string |
   if (uri) return <ExpoImage source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} contentFit="cover" />;
   return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFF', fontWeight: '700' }}>{(name || '?').trim()[0]?.toUpperCase() || '?'}</Text></View>;
 }
-function BackRow({ title, label, onBack, right }: { title: string; label: string; onBack: () => void; right?: React.ReactNode }) {
+function BackRow({ title, label, onBack, right, sub }: { title: string; label: string; onBack: () => void; right?: React.ReactNode; sub?: string }) {
   return (
+    <>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingTop: 12 }}>
       <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
         <Feather name="chevron-left" size={20} color={NAVY} /><Text style={{ fontSize: 14, fontWeight: '700', color: NAVY }}>{label}</Text>
@@ -58,6 +59,8 @@ function BackRow({ title, label, onBack, right }: { title: string; label: string
       <Text style={[s.h1, { marginLeft: 6, flex: 1 }]} numberOfLines={1}>{title}</Text>
       {right}
     </View>
+    {sub ? <Text style={{ fontSize: 12.5, color: '#8E8E93', paddingHorizontal: 16, marginTop: 4, lineHeight: 17 }}>{sub}</Text> : null}
+    </>
   );
 }
 function Sheet({ visible, title, onClose, onSave, saveLabel, busy, canSave, children }: { visible: boolean; title: string; onClose: () => void; onSave?: () => void; saveLabel?: string; busy?: boolean; canSave?: boolean; children: React.ReactNode }) {
@@ -214,7 +217,7 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
 
   return (
     <View style={{ flex: 1 }}>
-      <BackRow title="Recruiter" label="More" onBack={onBack} />
+      <BackRow title="Recruiter" sub="Every application moves through one pipeline. Candidates hear from you on offer, hire, rejection and interviews." label="More" onBack={onBack} />
       {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>
       : <FlatList data={jobs} keyExtractor={j => j.id} contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await loadJobs(); setRefreshing(false); }} />}
@@ -304,7 +307,7 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
 
   return (
     <View style={{ flex: 1 }}>
-      <BackRow title="Ads" label="More" onBack={onBack} right={canSpend ? <TouchableOpacity style={s.plusBtn} onPress={() => { setF(emptyForm()); setOpen(true); }}><Feather name="plus" size={18} color="#FFF" /></TouchableOpacity> : null} />
+      <BackRow title="Ads" sub="Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live." label="More" onBack={onBack} right={canSpend ? <TouchableOpacity style={s.plusBtn} onPress={() => { setF(emptyForm()); setOpen(true); }}><Feather name="plus" size={18} color="#FFF" /></TouchableOpacity> : null} />
       {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>
       : <FlatList data={rows} keyExtractor={c => c.id} contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}

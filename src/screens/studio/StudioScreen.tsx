@@ -241,6 +241,7 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
   const icon = (k: string) => k === 'dm' ? 'message-circle' : k === 'offer' ? 'tag' : k === 'applicant' ? 'briefcase' : 'star';
   return (
     <View style={{ flex: 1 }}>
+      <Text style={[s.sub, { paddingHorizontal: 16, paddingTop: 10 }]}>Messages, offers, applicants and reviews in one queue. Label, assign, and mark done.</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8 }} style={{ flexGrow: 0 }}>
         {(['all', 'dm', 'offer', 'applicant', 'review'] as const).map(f => (
           <TouchableOpacity key={f} style={[s.filterChip, filter === f && s.filterChipOn]} onPress={() => setFilter(f)}>
@@ -376,6 +377,7 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
 
   return (
     <View style={{ flex: 1 }}>
+      <Text style={[s.sub, { paddingHorizontal: 16, paddingTop: 10 }]}>Drafts, schedule and publish. Scheduled posts go out on the minute, even with the app closed.</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}>
         {(['upcoming', 'drafts', 'published'] as const).map(t => (
           <TouchableOpacity key={t} style={[s.filterChip, tab === t && s.filterChipOn]} onPress={() => setTab(t)}><Text style={[s.filterTxt, tab === t && s.filterTxtOn]}>{t === 'upcoming' ? 'Upcoming' : t === 'drafts' ? 'Drafts' : 'Published'}</Text></TouchableOpacity>

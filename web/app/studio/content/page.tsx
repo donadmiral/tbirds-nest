@@ -112,19 +112,19 @@ export default function ContentPage() {
 
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Pieces of content</p>
+          <p className="text-[11.5px] text-ink/45">Items in the library</p>
           <Metric value={rows.length} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Views, recent posts</p>
+          <p className="text-[11.5px] text-ink/45">Views across recent posts</p>
           <Metric value={totals.views} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Likes, recent posts</p>
+          <p className="text-[11.5px] text-ink/45">Likes across recent posts</p>
           <Metric value={totals.likes} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Comments, recent posts</p>
+          <p className="text-[11.5px] text-ink/45">Comments across recent posts</p>
           <Metric value={totals.comments} size={24} />
         </div>
       </div>

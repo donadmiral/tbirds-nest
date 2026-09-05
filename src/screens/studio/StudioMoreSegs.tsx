@@ -33,14 +33,17 @@ function Avatar({ uri, name, size = 38 }: { uri?: string | null; name?: string |
 function Stars({ n }: { n: number }) {
   return <View style={{ flexDirection: 'row', gap: 2 }}>{[1, 2, 3, 4, 5].map(i => <Feather key={i} name="star" size={12} color={i <= n ? '#C9A227' : '#D9D9DE'} />)}</View>;
 }
-function BackRow({ title, onBack }: { title: string; onBack: () => void }) {
+function BackRow({ title, onBack, sub }: { title: string; onBack: () => void; sub?: string }) {
   return (
+    <>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingTop: 12 }}>
       <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
         <Feather name="chevron-left" size={20} color={NAVY} /><Text style={{ fontSize: 14, fontWeight: '700', color: NAVY }}>More</Text>
       </TouchableOpacity>
       <Text style={[s.h1, { marginLeft: 6 }]}>{title}</Text>
     </View>
+    {sub ? <Text style={{ fontSize: 12.5, color: '#8E8E93', paddingHorizontal: 16, marginTop: 4, lineHeight: 17 }}>{sub}</Text> : null}
+    </>
   );
 }
 
@@ -100,7 +103,7 @@ export function ReviewsSeg({ role, onBack }: { role: string | null; onBack: () =
   const max = Math.max(1, ...dist.map(d => d.n));
   return (
     <View style={{ flex: 1 }}>
-      <BackRow title="Reviews" onBack={onBack} />
+      <BackRow title="Reviews" sub="Reply in public. A calm answer to a bad review is read by more people than the review itself." onBack={onBack} />
       <FlatList
         data={data.reviews}
         keyExtractor={r => r.id}
@@ -205,7 +208,7 @@ export function AudienceSeg({ role, navigation, onBack }: { role: string | null;
   const labelKeys = useMemo(() => Object.keys((summary?.labels as Record<string, number>) || {}), [summary]);
   return (
     <View style={{ flex: 1 }}>
-      <BackRow title="Audience" onBack={onBack} />
+      <BackRow title="Audience" sub="Who follows you, who pays you, and the leads you are working." onBack={onBack} />
       <FlatList
         data={people}
         keyExtractor={p => p.id}
@@ -305,7 +308,7 @@ export function CommerceSeg({ role, navigation, onBack }: { role: string | null;
 
   return (
     <View style={{ flex: 1 }}>
-      <BackRow title="Commerce" onBack={onBack} />
+      <BackRow title="Commerce" sub="Your catalog, the money that came in, and how your storefront presents itself." onBack={onBack} />
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
         {(['orders', 'catalog'] as const).map(t => (
           <TouchableOpacity key={t} style={[s.filterChip, tab === t && s.filterChipOn]} onPress={() => setTab(t)}><Text style={[s.filterTxt, tab === t && s.filterTxtOn]}>{t === 'orders' ? 'Orders · ' + orders.length : 'Catalog · ' + catalog.length}</Text></TouchableOpacity>
