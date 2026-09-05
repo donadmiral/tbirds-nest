@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import { getCatchupFeed, type CatchupUser } from "@/lib/stories";
 import { createClient } from "@/lib/supabase/client";
@@ -47,12 +47,29 @@ function PlatinumRingWeb({ userId, size, active }: { userId: string; size: numbe
 
 export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   const [users, setUsers] = useState<CatchupUser[]>([]);
+  const [spot, setSpot] = useState<CatchupUser[]>([]);
   const [openAt, setOpenAt] = useState<number | null>(null);
   const [myAvatar, setMyAvatar] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    getCatchupFeed(30, mode).then((u) => { setUsers(u); setReady(true); });
+    getCatchupFeed(30, mode).then(async (u) => {
+      setUsers(u); setReady(true);
+      // Spotlight: public stories from people you don't follow, ranked by
+      // engagement, after your own and followed rings.
+      try {
+        const supabase = createClient();
+        const { data: sess } = await supabase.auth.getSession();
+        const me = sess.session?.user.id ?? null;
+        const { data: hot } = await supabase.rpc("get_trending_stories", { p_limit: 12 });
+        const known = new Set(u.map((x) => x.user_id));
+        if (me) known.add(me);
+        setSpot(((hot ?? []) as any[]).filter((h) => h?.user_id && !known.has(h.user_id)).map((h) => ({
+          user_id: h.user_id, full_name: h.full_name ?? null, username: h.username ?? null, avatar_url: h.avatar_url ?? null,
+          story_count: 1, unseen_count: 1, latest_story_at: new Date().toISOString(), latest_story_id: h.story_id, has_unseen: true,
+        } as unknown as CatchupUser)));
+      } catch { /* the rings still work without it */ }
+    });
   }, [mode]);
 
   useEffect(() => {
@@ -86,8 +103,10 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
           </span>
           <span className="w-full truncate text-center text-[11px] text-ink/60">Your story</span>
         </a>
-        {users.map((u, i) => (
-          <button key={u.user_id} onClick={() => setOpenAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+        {[...users, ...spot].map((u, i) => (
+          <Fragment key={u.user_id}>
+          {i === users.length && spot.length > 0 ? <span className="my-2 w-px shrink-0 self-stretch bg-ink/10" title="Spotlight: public stories from people you don't follow" aria-hidden /> : null}
+          <button onClick={() => setOpenAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
             <span className="relative block h-[62px] w-[62px]">
               <PlatinumRingWeb userId={u.user_id} size={62} active={!!u.has_unseen} />
               <span className="absolute inset-[4px] overflow-hidden rounded-full bg-ink">
@@ -100,15 +119,17 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
                   </span>
                 )}
               </span>
+              {i >= users.length ? <span className="absolute -bottom-0.5 -right-0.5 flex h-[20px] w-[20px] items-center justify-center rounded-full border-2 border-white bg-white text-[11px] leading-none" aria-label="Spotlight">{"\uD83D\uDD25"}</span> : null}
             </span>
             <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-ink/50")}>
               {u.full_name?.split(" ")[0] ?? u.username}
             </span>
           </button>
+          </Fragment>
         ))}
       </div>
       {openAt !== null ? (
-        <StoryViewer users={users} startIndex={openAt} onClose={() => { setOpenAt(null); getCatchupFeed(30, mode).then(setUsers); }} />
+        <StoryViewer users={[...users, ...spot]} startIndex={openAt} onClose={() => { setOpenAt(null); getCatchupFeed(30, mode).then(setUsers); }} />
       ) : null}
     </>
   );

@@ -22,7 +22,7 @@ import { withTimeout } from "@/lib/withTimeout";
 
 type Chip = { key: string; label: string };
 const CHIPS: Chip[] = [
-  { key: "for_you", label: "For you" },
+  { key: "for_you", label: "All" },
   { key: "videos", label: "Videos" },
   ...CATEGORIES.map((c) => ({ key: c.key, label: c.label })),
 ];

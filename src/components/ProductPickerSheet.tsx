@@ -11,7 +11,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, TextInput,
-  ActivityIndicator, Image, Pressable, KeyboardAvoidingView, Platform,
+  ActivityIndicator, Image, Pressable, Platform, Keyboard,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +41,16 @@ const MAX_CARDS = 8;
 export default function ProductPickerSheet({ visible, sellerId, selected, onClose, onSave }: Props) {
   const insets = useSafeAreaInsets();
   const [listings, setListings] = useState<Listing[]>([]);
+  // The sheet lives in a modal, where a keyboard-avoiding wrapper fails on
+  // iOS. Track the keyboard and lift the sheet by its height instead.
+  const [kb, setKb] = useState(0);
+  useEffect(() => {
+    const showEv = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEv = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const a = Keyboard.addListener(showEv, (e: any) => setKb(e?.endCoordinates?.height || 0));
+    const b = Keyboard.addListener(hideEv, () => setKb(0));
+    return () => { a.remove(); b.remove(); };
+  }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<PostProduct[]>(selected);
@@ -117,14 +127,14 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={[s.sheet, { paddingBottom: insets.bottom + space.md }]} onPress={() => {}}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Pressable style={[s.sheet, { paddingBottom: kb > 0 ? kb + space.sm : insets.bottom + space.md }]} onPress={() => {}}>
+          <View>
             <View style={s.handle} />
 
             <View style={s.headerRow}>
               <View>
                 <Text style={s.title}>Add products</Text>
-                <Text style={s.subtitle}>{draft.length} of {MAX_CARDS} selected</Text>
+                <Text style={s.subtitle}>{draft.length} of {MAX_CARDS} selected. They show as a product card under the post.</Text>
               </View>
               <TouchableOpacity
                 onPress={() => { onSave(draft.map((d, i) => ({ ...d, sort_order: i }))); onClose(); }}
@@ -148,8 +158,8 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
               </ScrollView>
             )}
 
-            <ScrollView style={s.body} showsVerticalScrollIndicator={false}>
-              <Text style={s.sectionLbl}>Your listings</Text>
+            <ScrollView style={[s.body, kb > 0 && { maxHeight: 220 }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={s.sectionLbl}>From your Market listings</Text>
 
               {loading ? (
                 <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
@@ -161,7 +171,7 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
               ) : listings.length === 0 ? (
                 <View style={s.centered}>
                   <Feather name="package" size={26} color={light.ink.faint} />
-                  <Text style={s.emptyTxt}>No available listings yet. Add a link card instead.</Text>
+                  <Text style={s.emptyTxt}>No listings on Market yet. Add a product with its link below.</Text>
                 </View>
               ) : (
                 listings.map(l => {
@@ -199,7 +209,7 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
 
               <TouchableOpacity style={s.linkToggle} onPress={() => setShowLinkForm(v => !v)} activeOpacity={0.7}>
                 <Feather name={showLinkForm ? 'minus' : 'plus'} size={14} color={light.status.link} />
-                <Text style={s.linkToggleTxt}>Add a card with an external link</Text>
+                <Text style={s.linkToggleTxt}>Add a product by link, from your shop or any site</Text>
               </TouchableOpacity>
 
               {showLinkForm && (
@@ -224,12 +234,12 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
                     onPress={addLinkCard}
                     disabled={!linkTitle.trim() || !linkUrl.trim()}
                   >
-                    <Text style={s.addBtnTxt}>Add card</Text>
+                    <Text style={s.addBtnTxt}>Add product</Text>
                   </TouchableOpacity>
                 </View>
               )}
             </ScrollView>
-          </KeyboardAvoidingView>
+          </View>
         </Pressable>
       </Pressable>
     </Modal>
