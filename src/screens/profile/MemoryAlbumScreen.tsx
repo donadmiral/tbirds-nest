@@ -97,6 +97,16 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         : await supabase.rpc('get_memory_album', { p_owner: ownerId });
       if (!error) {
         setAlbum(data ?? null);
+        // Seed the hearts with what this person already liked, so the button
+        // reads true on open instead of forgetting every time.
+        try {
+          const ids = ((data?.pages ?? []) as any[]).map((pg: any) => pg.story_id).filter(Boolean);
+          const { data: u } = await supabase.auth.getUser();
+          if (ids.length && u?.user?.id) {
+            const { data: mine } = await supabase.from('story_reactions').select('story_id').eq('user_id', u.user.id).in('story_id', ids);
+            setLikedPages(new Set(((mine ?? []) as any[]).map((r: any) => String(r.story_id))));
+          }
+        } catch {}
         if (data) {
           setTitle(data.title || 'Memories'); setColor(data.cover_color || 'blush'); setAud(data.audience || 'profile');
           if (data.id) setBookId(data.id);
@@ -345,7 +355,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                     <Text numberOfLines={2} style={st.handCaption}>{page?.caption || ' '}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
                       <Text style={st.handDate}>{fmtDate(page?.taken_at)}</Text>
-                      <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => { if (!page?.story_id) return; setLikedPages(prev => { const n = new Set(prev); if (n.has(page.story_id)) { n.delete(page.story_id); } else { n.add(page.story_id); } return n; }); void supabase.rpc('toggle_story_reaction', { p_story_id: page.story_id, p_emoji: '\u2764\uFE0F' }); }}><Feather name="heart" size={13} color={likedPages.has(page?.story_id) ? '#E0245E' : '#D4537E'} /></TouchableOpacity>
+                      <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.8} onPress={() => { if (!page?.story_id) return; setLikedPages(prev => { const n = new Set(prev); if (n.has(page.story_id)) { n.delete(page.story_id); } else { n.add(page.story_id); } return n; }); void supabase.rpc('toggle_story_reaction', { p_story_id: page.story_id, p_emoji: '\u2764\uFE0F' }); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: likedPages.has(page?.story_id) ? 'rgba(224,36,94,0.14)' : 'rgba(11,30,61,0.06)' }}><Feather name="heart" size={15} color={likedPages.has(page?.story_id) ? '#E0245E' : 'rgba(11,30,61,0.7)'} /><Text style={{ fontSize: 12, fontWeight: '700', color: likedPages.has(page?.story_id) ? '#E0245E' : 'rgba(11,30,61,0.7)' }}>{likedPages.has(page?.story_id) ? 'Liked' : 'Like'}</Text></TouchableOpacity>
                     </View>
                   </View>
                 </Animated.View>

@@ -68,6 +68,14 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
   }, [supabase]);
+  // Seed the hearts with what this person already liked.
+  useEffect(() => {
+    if (!uid || !album) return;
+    const ids = (((album as any).pages ?? []) as any[]).map((pg) => String(pg.story_id)).filter(Boolean);
+    if (!ids.length) return;
+    supabase.from("story_reactions").select("story_id").eq("user_id", uid).in("story_id", ids)
+      .then(({ data }) => setLikedPages(new Set(((data ?? []) as any[]).map((r) => String(r.story_id)))));
+  }, [uid, album, supabase]);
 
   const pages = useMemo(() => album?.pages ?? [], [album]);
   const page = pages[idx];

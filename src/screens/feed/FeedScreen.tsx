@@ -201,6 +201,7 @@ export default function FeedScreen({ navigation }: any) {
   const [likerNames, setLikerNames] = useState<Record<string, string[]>>({});
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
+  const [sharePostTarget, setSharePostTarget] = useState<Post | null>(null);
   const feedListRef = useRef<any>(null);
   const [commentPreviews, setCommentPreviews] = useState<Record<string, CommentPreview>>({});
   const [loading, setLoading] = useState(true);
@@ -1157,12 +1158,13 @@ export default function FeedScreen({ navigation }: any) {
     setPosts(prev => prev.map(x => x.id === p.id ? { ...x, shares_count: (x.shares_count ?? 0) + 1 } : x));
   }, []);
 
+  const postLink = (p: Post) => 'https://platinumcircles.com/post/' + p.id;
   const sharePost = useCallback(async (post: Post) => {
     if (sharingPostRef.current[post.id]) return;
     setSharingPost(p => ({ ...p, [post.id]: true }));
     const author = profilesMap[post.user_id];
     try {
-      const res = await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${post.content}\n\nSee it: https://platinum-admin.vercel.app/p/${post.id}` }); if ((res as any)?.action === Share.sharedAction) recordShare(post);
+      const res = await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${post.content}\n\nSee it: ${postLink(post)}` }); if ((res as any)?.action === Share.sharedAction) recordShare(post);
     } catch {}
     setTimeout(() => setSharingPost(p => { const n = { ...p }; delete n[post.id]; return n; }), 600);
   }, [profilesMap]);
@@ -1870,7 +1872,7 @@ if (!search && promos.length > 0) {
             <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => { const canReact = isVideoPost(post); Alert.alert('Share post', '', [...(canReact ? [{ text: 'React to video', onPress: () => reactToVideo(post) }] : []), { text: 'Add to story', onPress: () => addPostToStory(post) }, { text: 'Add to thread', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Send to...', onPress: () => openSendSheet(post) }, { text: 'Share via...', onPress: () => sharePost(post) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.75}>
+          <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => setSharePostTarget(post)} activeOpacity={0.75}>
             <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{post.shares_count}</Text> : null}
           </TouchableOpacity>
         </View>
@@ -2330,6 +2332,41 @@ if (!search && promos.length > 0) {
         </TouchableOpacity>
       </Modal>
 
+      <Modal visible={!!sharePostTarget} transparent animationType="slide" onRequestClose={() => setSharePostTarget(null)}>
+        <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setSharePostTarget(null)}>
+          <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
+            <View style={s.menuHandle} />
+            <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 4, paddingBottom: 6 }}>Share</Text>
+            {sharePostTarget && isVideoPost(sharePostTarget) ? (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) reactToVideo(p); }, 350); }}>
+                <Feather name="video" size={18} color={light.ink.primary} />
+                <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>React to video</Text><Text style={s.menuOptionSub}>Record your reaction and post it as a reply</Text></View>
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) addPostToStory(p); }, 350); }}>
+              <Feather name="plus-square" size={18} color={light.ink.primary} />
+              <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Add to your story</Text><Text style={s.menuOptionSub}>Share this post as a card on your story</Text></View>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); if (p) { setQuotingPost(p); setComposerOpen(true); } }}>
+              <Feather name="corner-down-right" size={18} color={light.ink.primary} />
+              <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Add to thread</Text><Text style={s.menuOptionSub}>Quote this post with your own words</Text></View>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) openSendSheet(p); }, 350); }}>
+              <Feather name="send" size={18} color={light.ink.primary} />
+              <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Send to</Text><Text style={s.menuOptionSub}>A message, a group or a community</Text></View>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={async () => { const p = sharePostTarget; setSharePostTarget(null); if (p) { await Clipboard.setStringAsync(postLink(p)); Alert.alert('Link copied', postLink(p)); } }}>
+              <Feather name="link" size={18} color={light.ink.primary} />
+              <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Copy link</Text><Text style={s.menuOptionSub} numberOfLines={1}>{sharePostTarget ? postLink(sharePostTarget) : ''}</Text></View>
+            </TouchableOpacity>
+            <TouchableOpacity style={[s.menuOption, { borderBottomWidth: 0 }]} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) sharePost(p); }, 350); }}>
+              <Feather name="share" size={18} color={light.ink.primary} />
+              <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Share via</Text><Text style={s.menuOptionSub}>WhatsApp, Messages and other apps</Text></View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
       <Modal visible={!!sendPost} transparent animationType="slide" onRequestClose={() => setSendPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setSendPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
@@ -2687,6 +2724,7 @@ const s = StyleSheet.create({
   menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: light.surface.sunken, marginBottom: 8 },
   menuOption: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
   menuOptionTxt: { fontSize: 16, color: light.ink.primary, fontWeight: '400' },
+  menuOptionSub: { fontSize: 12, color: light.ink.muted, marginTop: 1 },
   menuCancel: { justifyContent: 'center', marginTop: 8, borderBottomWidth: 0 },
   menuCancelTxt: { fontSize: 16, color: light.ink.muted, fontWeight: '500', textAlign: 'center', width: '100%' },
   bellBadge: { position: 'absolute', top: -6, right: -8, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: light.status.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FFFFFF' },
