@@ -37,9 +37,9 @@ function inline(
     if (tok.startsWith("**")) out.push(<strong key={key + i++}>{tok.slice(2, -2)}</strong>);
     else if (tok.startsWith("_")) out.push(<em key={key + i++}>{tok.slice(1, -1)}</em>);
     else if (tok.startsWith("#") && onHashtag) {
-      out.push(<button key={key + i++} type="button" onClick={() => onHashtag(tok.slice(1))} className="font-semibold text-blue-600 hover:underline">{tok}</button>);
+      out.push(<button key={key + i++} type="button" onClick={() => onHashtag(tok.slice(1))} className="font-semibold text-pearl-muted hover:underline">{tok}</button>);
     } else if (tok.startsWith("@") && onMention) {
-      out.push(<button key={key + i++} type="button" onClick={() => onMention(tok.slice(1))} className="font-semibold text-ink hovex�underline">{tok}</button>);
+      out.push(<button key={key + i++} type="button" onClick={() => onMention(tok.slice(1))} className="font-semibold text-ink hover:underline">{tok}</button>);
     } else if (tok.startsWith("@") || tok.startsWith("#")) {
       out.push(tok);
     } else {
