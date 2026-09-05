@@ -230,6 +230,7 @@ function StoryStrip({ mode = 'all' }: Props) {
   const [catchup, setCatchup] = useState<CatchupUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [myHasStories, setMyHasStories] = useState(false);
+  const [spotlight, setSpotlight] = useState<{ story_id: string; user_id: string; full_name: string; username: string; avatar_url: string | null; views: number }[]>([]);
 
   // Phase 4.0A: Track which userIds were sent to the viewer
   // so we can optimistically mark them as seen on focus return
@@ -240,6 +241,15 @@ function StoryStrip({ mode = 'all' }: Props) {
       const rows = await storiesService.getCatchupFeed(mode, 30);
       setCatchup(rows);
       setMyHasStories(!!myId && rows.some(r => r.user_id === myId));
+      // Spotlight: public stories from people you don't follow, ranked by
+      // engagement, after your own and followed rings. A story posted to
+      // Everyone is eligible on its own.
+      try {
+        const { data: hot } = await supabase.rpc('get_trending_stories', { p_limit: 12 });
+        const known = new Set<string>(rows.map(r => r.user_id));
+        if (myId) known.add(myId);
+        setSpotlight(((hot ?? []) as any[]).filter(h => h?.user_id && !known.has(h.user_id)));
+      } catch {}
     } catch (e) {
       console.log('[StoryStrip.load]', e);
     } finally {
@@ -415,6 +425,25 @@ function StoryStrip({ mode = 'all' }: Props) {
       >
         {renderSelfBubble()}
         {others.map(renderUserBubble)}
+        {spotlight.length > 0 ? (
+          <>
+            <View style={s.spotDivider} accessibilityLabel="Spotlight"><View style={s.spotLine} /><Text style={s.spotFlameTxt}>{'\u{1F525}'}</Text><View style={s.spotLine} /></View>
+            {spotlight.map(h => (
+              <TouchableOpacity key={'spot-' + h.user_id} style={s.bubble} activeOpacity={0.75}
+                onPress={() => { viewerOpenedForRef.current = new Set([h.user_id]); navigation.navigate('StoryViewer', { userIds: spotlight.map(x => x.user_id), startUserId: h.user_id }); }}>
+                <View style={s.ringContainer}>
+                  <PlatinumRing userId={h.user_id} />
+                  <AvatarContent avatarUrl={h.avatar_url} name={h.full_name} />
+                  <View style={s.spotFlame}><Text style={{ fontSize: 10 }}>{'\u{1F525}'}</Text></View>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  <TierName userId={h.user_id} baseStyle={[s.nameTxt, { flexShrink: 1 }]} text={h.full_name?.split(' ')[0] || 'User'} />
+                  <VerifiedBadge userId={h.user_id} size={11} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -435,6 +464,10 @@ const s = StyleSheet.create({
     width: 68,
     alignItems: 'center',
   },
+  spotDivider: { width: 22, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', gap: 4 },
+  spotLine: { width: 1, flex: 1, backgroundColor: 'rgba(11,30,61,0.12)' },
+  spotFlameTxt: { fontSize: 12 },
+  spotFlame: { position: 'absolute', right: -2, bottom: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
   ringContainer: {
     width: RING_SIZE,
     height: RING_SIZE,

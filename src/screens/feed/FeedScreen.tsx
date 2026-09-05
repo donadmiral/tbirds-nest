@@ -214,7 +214,7 @@ export default function FeedScreen({ navigation }: any) {
   const loadingMoreRef = useRef(false);
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'discover' | 'trending'>('forYou');
-  const [discoverCat, setDiscoverCat] = useState('innovation');
+  const [discoverCat, setDiscoverCat] = useState('all');
   const discoverInnoIdsRef = useRef<Set<string>>(new Set());
   const discoverMetaRef = useRef<Map<string, string | null>>(new Map());
   const discoverCatRef = useRef(discoverCat);
@@ -479,7 +479,7 @@ export default function FeedScreen({ navigation }: any) {
           supabase.rpc('get_feed', { p_mode: 'innovation', p_cursor_key: null, p_cursor_id: null, p_limit: 30 }),
           // Exact: the chosen category as the author filed it in the composer.
           // The keyword guessing that used to fill these chips is gone.
-          discoverCatRef.current === 'innovation'
+          (discoverCatRef.current === 'innovation' || discoverCatRef.current === 'all')
             ? Promise.resolve({ data: [], error: null })
             : supabase.from('posts')
                 .select('id, user_id, content, body, category, channel, article_title, read_minutes, created_at, likes_count, comments_count, reposts_count, bookmarks_count, views_count, media_url')
@@ -1527,7 +1527,7 @@ export default function FeedScreen({ navigation }: any) {
 
   const displayPosts = useMemo(() => {
     let list = [...posts];
-    if (feedMode === 'discover') {
+    if (feedMode === 'discover' && discoverCat !== 'all') {
       if (discoverCat === 'innovation') {
         list = list.filter(p => discoverInnoIdsRef.current.has(p.id) || (p as any).channel === 'innovation');
       } else {
@@ -2029,7 +2029,7 @@ if (!search && promos.length > 0) {
                   {feedMode === 'trending' && <TrendingStoriesRail />}
                   {feedMode === 'discover' && (
                     <ScrollView ref={discoverPillsRef} horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled directionalLockEnabled bounces={false} scrollEventThrottle={16} onScroll={(e) => { discoverPillsXRef.current = e.nativeEvent.contentOffset.x; }} onLayout={restoreDiscoverPills} onContentSizeChange={restoreDiscoverPills} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} onTouchCancel={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} onScrollBeginDrag={() => { mediaTouchRef.current = true; }} onScrollEndDrag={() => { setTimeout(() => { mediaTouchRef.current = false; }, 150); }} contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
-                      {CATEGORIES.map(c => (
+                      {[{ key: 'all', label: 'All' }, ...CATEGORIES].map(c => (
                         <TouchableOpacity key={c.key} onPress={() => { restoreDiscoverPills(); setDiscoverCat(c.key); }}
                           style={{ paddingHorizontal: 13, paddingVertical: 6, borderRadius: 99, backgroundColor: discoverCat === c.key ? '#E8E0D0' : 'rgba(0,0,0,0.05)' }}>
                           <Text style={{ fontSize: 12.5, fontWeight: '700', color: discoverCat === c.key ? '#0A0A0A' : 'rgba(11,30,61,0.55)' }}>{c.label}</Text>
