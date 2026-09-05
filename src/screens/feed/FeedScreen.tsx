@@ -44,6 +44,7 @@ import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
 import * as Clipboard from 'expo-clipboard';
+import DiscoverTile from '../../components/feed/DiscoverTile';
 import * as Haptics from 'expo-haptics';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -66,6 +67,7 @@ import PostInsightsSheet from '../../components/PostInsightsSheet';
 import VerifiedBadge from '../../components/VerifiedBadge';
 
 const SCREEN_W = Dimensions.get('window').width;
+const TILE_W = Math.floor((SCREEN_W - 12 * 2 - 10) / 2);
 const NAVY = light.brand.base;
 
 type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number; width?: number | null; height?: number | null };
@@ -77,6 +79,7 @@ type Post = {
   likes_count: number; comments_count: number; reposts_count: number; bookmarks_count: number; views_count?: number; shares_count?: number;
   created_at?: string | null; media_url?: string | null; location?: string | null;
   channel?: string | null;
+  article_title?: string | null;
   quoted_post_id?: string | null;
   thread_parent_id?: string | null;
   media: MediaItem[]; score: number; is_trending?: boolean; products?: PostProduct[]; _promo?: { id: string; label: string };
@@ -109,6 +112,7 @@ function mapFeedRow(r: any): Post {
     created_at: r.created_at, media_url: r.media_url ?? null,
     location: null,
     channel: r.channel ?? null,
+    article_title: r.article_title ?? null,
     quoted_post_id: r.quoted_post_id ?? null,
     thread_parent_id: r.thread_parent_id ?? null,
     media: Array.isArray(r.media)
@@ -1551,10 +1555,10 @@ export default function FeedScreen({ navigation }: any) {
       list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     }
     const wtfVisible = wtfSuggestions.filter((p: any) => !followingIds.has(p.id));
-    if (!search && wtfVisible.length >= 3 && list.length > 8) {
+    if (!search && feedMode !== 'discover' && wtfVisible.length >= 3 && list.length > 8) {
       list = [...list.slice(0, 8), { id: '__wtf', __suggestions: true } as any, ...list.slice(8)];
     }
-if (!search && promos.length > 0) {
+if (!search && feedMode !== 'discover' && promos.length > 0) {
       const promoIds = new Set(promos.map(p => p.id)); list = list.filter(p => !promoIds.has(p.id));
       const eligible = promos;
       if (eligible.length > 0) {
@@ -1616,6 +1620,12 @@ if (!search && promos.length > 0) {
   }, [navigation]);
 
   const renderPost = useCallback(({ item: post }: { item: Post }) => {
+    // Discover is a grid of tiles, the web Discover's twin, not a feed.
+    if (feedModeRef.current === 'discover' && !(post as any).__suggestions && !(post as any)._promo && !String(post.id).startsWith('__')) {
+      return (
+        <DiscoverTile post={post as any} author={profilesMap[post.user_id]} width={TILE_W} onPress={() => navigation.navigate('Post', { postId: post.id })} />
+      );
+    }
     if ((post as any).__suggestions) {
       const vis = wtfSuggestions.filter((p: any) => !followingIds.has(p.id)).slice(0, 8);
       if (vis.length === 0) return <View />;
@@ -1996,7 +2006,7 @@ if (!search && promos.length > 0) {
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
               <NewPostsPill topCreatedAt={posts.length ? posts.reduce((m, p) => ((p.created_at ?? '') > m ? (p.created_at ?? '') : m), posts[0].created_at ?? '') : null} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
-            <TapTopFlatList innerRef={feedListRef}
+            <TapTopFlatList innerRef={feedListRef} key={feedMode === 'discover' ? 'discover-grid' : 'feed-list'} numColumns={feedMode === 'discover' ? 2 : 1} columnWrapperStyle={feedMode === 'discover' ? { paddingHorizontal: 12, gap: 10, marginBottom: 10 } : undefined}
               data={displayPosts}
               onScroll={handleTabBarScroll}
               scrollEventThrottle={16}
