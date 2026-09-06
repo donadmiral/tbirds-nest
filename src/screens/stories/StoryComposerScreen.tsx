@@ -926,7 +926,7 @@ export default function StoryComposerScreen() {
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
             { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => setBgOpen(true) },
-            ...(active?.mediaType === 'image' ? [{ id: 'rcut', label: cutBusy ? 'Cutting' : 'Cutout', feather: 'scissors', on: cutBusy, run: () => { void cutoutSubject(); } } as RailItem] : []),
+            ...(active?.mediaType === 'image' ? [{ id: 'rcut', label: 'AI Backdrop', feather: 'scissors', on: false, run: () => Alert.alert('Coming soon', 'AI Backdrop, the subject cut out and placed on a new background, arrives in a later update.') } as RailItem] : []),
             { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => { Alert.alert('Coming soon', 'Sound mix arrives together with music.'); } },
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
             { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },
