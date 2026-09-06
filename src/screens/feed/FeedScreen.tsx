@@ -275,8 +275,8 @@ export default function FeedScreen({ navigation }: any) {
   // Who can comment, Instagram's rule set, enforced by the server on every comment.
   const [commentPolicy, setCommentPolicy] = useState<'everyone' | 'following' | 'followers' | 'mentioned' | 'off'>('everyone');
   const COMMENT_META: Record<string, { label: string; icon: string }> = {
-    everyone: { label: 'Comments: everyone', icon: 'message-circle' }, following: { label: 'Comments: people I follow', icon: 'user-check' },
-    followers: { label: 'Comments: my followers', icon: 'users' }, mentioned: { label: 'Comments: mentioned only', icon: 'at-sign' }, off: { label: 'Comments off', icon: 'slash' },
+    everyone: { label: 'Anyone', icon: 'message-circle' }, following: { label: 'People I follow', icon: 'user-check' },
+    followers: { label: 'My followers', icon: 'users' }, mentioned: { label: 'Mentioned only', icon: 'at-sign' }, off: { label: 'Comments off', icon: 'slash' },
   };
   const pickCommentPolicy = useCallback(() => {
     Alert.alert('Who can comment?', 'Enforced by the server on every comment.', [
@@ -2236,7 +2236,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               <View style={s.composerCard}>
                 <View style={s.cAuthorRow}>
                   {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.cAvatar} fadeDuration={200} /> : <View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
-                  <Text style={s.cName}>{profile?.full_name || 'You'}</Text>
+                  <Text style={s.cName} numberOfLines={1}>{profile?.full_name || 'You'}</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipScroller} contentContainerStyle={{ gap: 8, alignItems: 'center', paddingRight: 8 }} keyboardShouldPersistTaps="handled">
                   <TouchableOpacity style={s.audChip} onPress={pickAudience} activeOpacity={0.75}>
                     <Feather name={AUD_META[postAudience].icon} size={12} color={NAVY} />
                     <Text style={s.audChipTxt}>{AUD_META[postAudience].label}</Text>
@@ -2247,6 +2248,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     <Text style={s.audChipTxt}>{COMMENT_META[commentPolicy].label}</Text>
                     <Feather name="chevron-down" size={12} color={NAVY} />
                   </TouchableOpacity>
+                  </ScrollView>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
                   <TouchableOpacity style={[s.kindChip, !innovationPost && s.kindChipOn]} onPress={() => setInnovationPost(false)} accessibilityLabel="Regular post">
@@ -2816,6 +2818,7 @@ const s = themedSheet((t) => ({
   mUser: { fontSize: 12, color: t.ink.muted },
   composerCard: { backgroundColor: t.surface.canvas, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, padding: 16, shadowColor: t.ink.primary, shadowOpacity: 0.12, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 10 },
   cAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  chipScroller: { flex: 1, marginLeft: 6 },
   cAvatar: { width: 36, height: 36, borderRadius: 18 },
   cAvatarFb: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
   cAvatarTxt: { fontSize: 13, fontWeight: '700', color: t.status.link },
@@ -2842,7 +2845,7 @@ const s = themedSheet((t) => ({
   kindChipGoldOn: { backgroundColor: 'rgba(201,191,176,0.55)' },
   kindTxt: { fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.7)' },
   kindTxtOn: { color: t.ink.inverse },
-  audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: '#D7DEE9', backgroundColor: '#F4F6FA' },
+  audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: '#D7DEE9', backgroundColor: '#F4F6FA' },
   audChipTxt: { fontSize: 12, fontWeight: '700', color: NAVY },
   cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
   toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },

@@ -232,7 +232,8 @@ export default function PostScreen({ route, navigation }: any) {
 
       // A hidden comment is seen by its writer and by the post's author only; the author sees it folded.
       const postAuthorId = (pd as any)?.user_id;
-      let allRows = (rows ?? []).filter((r: any) => !r.hidden_at || r.user_id === userId || postAuthorId === userId).map((r: any) => ({ ...r, body: r.body || r.content || '', hidden: !!r.hidden_at }));
+      const commentsOff = (pd as any)?.comment_policy === 'off';
+      let allRows = commentsOff ? [] : (rows ?? []).filter((r: any) => !r.hidden_at || r.user_id === userId || postAuthorId === userId).map((r: any) => ({ ...r, body: r.body || r.content || '', hidden: !!r.hidden_at }));
       if (userId) {
         try {
           const { data: blk } = await supabase.from('blocked_users').select('blocker_id, blocked_id').or('blocker_id.eq.' + userId + ',blocked_id.eq.' + userId);
@@ -742,7 +743,7 @@ export default function PostScreen({ route, navigation }: any) {
             )}
             {!canComment ? (
               <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 8), justifyContent: 'center' }]}>
-                <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '600' }}>Comments are limited on this post</Text>
+                <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '600' }}>{(post as any)?.comment_policy === 'off' ? 'Comments are turned off' : 'Comments are limited on this post'}</Text>
               </View>
             ) : (
             <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>

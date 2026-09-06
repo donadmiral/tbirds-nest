@@ -23,6 +23,7 @@ type CommentRow = {
 };
 
 export function Comments({ postId }: { postId: string }) {
+  const [off, setOff] = useState(false);
   const supabase = useRef(createClient()).current;
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
@@ -39,6 +40,9 @@ export function Comments({ postId }: { postId: string }) {
     const { data: sess } = await supabase.auth.getSession();
     const userId = sess.session?.user.id ?? null;
     setUid(userId);
+    const { data: pol } = await supabase.from("posts").select("comment_policy").eq("id", postId).maybeSingle();
+    if ((pol as { comment_policy?: string } | null)?.comment_policy === "off") { setOff(true); setItems([]); return; }
+    setOff(false);
     const { data: rows } = await supabase
       .from("post_comments")
       .select("id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, hidden_at")
