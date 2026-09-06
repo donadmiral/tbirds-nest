@@ -11,6 +11,9 @@ import { useThemeStore } from '../stores/themeStore';
 import { useAccountsStore } from '../stores/accountsStore';
 import AccountSwitcherSheet from '../components/AccountSwitcherSheet';
 import HiddenWordsScreen from '../screens/profile/HiddenWordsScreen';
+import TwoFactorScreen from '../screens/profile/TwoFactorScreen';
+import LoginActivityScreen from '../screens/profile/LoginActivityScreen';
+import MfaGate from '../components/MfaGate';
 import AddAccountSheet from '../components/AddAccountSheet';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -182,6 +185,8 @@ function ProfileStackNav() {
       <ProfStack.Screen name="Settings"        component={SettingsScreen} />
       <ProfStack.Screen name="ApplyVerification" component={ApplyVerificationScreen} />
       <ProfStack.Screen name="HiddenWords" component={HiddenWordsScreen} />
+      <ProfStack.Screen name="TwoFactor" component={TwoFactorScreen} />
+      <ProfStack.Screen name="LoginActivity" component={LoginActivityScreen} />
       <ProfStack.Screen name="ContactSupport" component={ContactSupportScreen} />
       <ProfStack.Screen name="Ticket" component={TicketScreen} />
       <ProfStack.Screen name="BusinessApply" component={BusinessApplyScreen} />
@@ -491,6 +496,7 @@ export default function AppNavigator() {
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <AccountSwitcherSheet />
           <AddAccountSheet />
+          <MfaGate />
           <LaunchVeil busy={loading} />
           <OfflineBanner />
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -515,6 +521,7 @@ export default function AppNavigator() {
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <AccountSwitcherSheet />
           <AddAccountSheet />
+          <MfaGate />
           <OfflineBanner />
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {isReady ? (

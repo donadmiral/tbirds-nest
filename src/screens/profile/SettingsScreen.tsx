@@ -243,7 +243,8 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     { title: 'Account', rows: [
       { icon: 'user', color: '#0B1E3D', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
       { icon: 'award', color: '#0B1E3D', label: 'Account type', sub: ((): string => { const t = currentAccountType(); return t === 'business' ? 'Business' : t === 'creator' ? 'Creator' : 'Personal'; })(), onPress: () => setClassModal(true) },
-      { icon: 'lock', color: '#0B1E3D', label: 'Change Password', sub: 'Update your account password', onPress: () => setPwModal(true) },
+            { icon: 'shield', color: '#0B1E3D', label: 'Two-factor authentication', sub: 'A code from an authenticator app at every sign-in', onPress: () => (navigation as any).navigate('TwoFactor') },
+      { icon: 'smartphone', color: '#0B1E3D', label: 'Login activity', sub: 'Devices signed in, and log the others out', onPress: () => (navigation as any).navigate('LoginActivity') },
       { icon: 'eye', color: '#0B1E3D', label: 'Privacy', sub: 'Public, or private with approved followers', onPress: () => setPrivacyModal(true) },
       { icon: 'user-check', color: '#0B1E3D', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
             { icon: 'eye-off', color: '#0B1E3D', label: 'Hidden words', sub: 'Hide comments that contain certain words', onPress: () => (navigation as any).navigate('HiddenWords') },
