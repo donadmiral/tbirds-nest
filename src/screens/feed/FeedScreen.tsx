@@ -1826,7 +1826,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 {((author as any)?.verified_tier || (author as any)?.is_verified) ? <VerifiedBadge tier={(author as any)?.verified_tier} size={13} /> : null}
                 {(collabs[post.id] || []).map((x: any) => (
                   <View key={x.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                    <Text style={[s.postSub, { marginTop: 0 }]}>and</Text>
+                    <Text style={[s.postAuthor, { fontWeight: '800' }]}>×</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: x.id })} activeOpacity={0.7}>
                       <TierName tier={x.verified_tier ?? (x.is_verified ? 'business' : null)} baseStyle={s.postAuthor} text={x.full_name || x.username || ''} />
                     </TouchableOpacity>
