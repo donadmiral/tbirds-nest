@@ -379,7 +379,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
   const sections = useMemo(() => {
     // Things that want an ACTION from you sit pinned on top, out of the stream.
-    const NEEDS = new Set(['follow_request', 'job_application', 'payment_received']);
+    const NEEDS = new Set(['collab_invite', 'follow_request', 'job_application', 'payment_received']);
     const needs: Notif[] = [];
     const order = ['Today', 'This week', 'This month', 'Earlier'];
     const buckets: Record<string, Notif[]> = {};
@@ -388,6 +388,7 @@ export default function NotificationsScreen({ navigation }: any) {
       comments: ['comment', 'reply'],
       follows: ['follow', 'follow_request', 'follow_accepted'],
       mentions: ['mention', 'story_mention'],
+      collabs: ['collab_invite'],
     };
     const visible = filt === 'all' ? rows : rows.filter(r => (FILTS[filt] || []).includes(r.type));
     visible.forEach(r => {
@@ -396,6 +397,8 @@ export default function NotificationsScreen({ navigation }: any) {
       (buckets[k] ||= []).push(r);
     });
     const out = order.filter(k => buckets[k]?.length).map(k => ({ title: k, data: buckets[k] }));
+    // Invitations first inside the pinned section, then the rest of what needs you.
+    needs.sort((a, b) => (a.type === 'collab_invite' ? 0 : 1) - (b.type === 'collab_invite' ? 0 : 1));
     return needs.length ? [{ title: 'Needs you', data: needs }, ...out] : out;
   }, [rows, filt]);
 
@@ -537,7 +540,7 @@ export default function NotificationsScreen({ navigation }: any) {
       ) : (
         <TapTopSectionList ListHeaderComponent={<>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 2, gap: 6 }}>
-              {([['all', 'All'], ['likes', 'Likes'], ['comments', 'Comments'], ['follows', 'Follows'], ['mentions', 'Mentions']] as const).map(([k, lbl]) => (
+              {([['all', 'All'], ['collabs', 'Collabs'], ['likes', 'Likes'], ['comments', 'Comments'], ['follows', 'Follows'], ['mentions', 'Mentions']] as const).map(([k, lbl]) => (
                 <TouchableOpacity key={k} onPress={() => setFilt(k)} style={[s.chip, filt === k && s.chipOn]}>
                   <Text style={[s.chipTxt, filt === k && s.chipTxtOn]}>{lbl}</Text>
                 </TouchableOpacity>

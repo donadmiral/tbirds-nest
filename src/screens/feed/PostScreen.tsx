@@ -116,6 +116,7 @@ export default function PostScreen({ route, navigation }: any) {
   const [post, setPost] = useState<Post | null>(null);
   const [canComment, setCanComment] = useState<boolean>(true);
   const [collabInvite, setCollabInvite] = useState<boolean>(false);
+  useFocusEffect(useCallback(() => { if (userId) supabase.from('post_collaborators').select('status').eq('post_id', postId).eq('user_id', userId).maybeSingle().then(({ data }) => setCollabInvite((data as any)?.status === 'invited'), () => {}); }, [postId, userId]));
   const [showHidden, setShowHidden] = useState(false);
   const [linkPreview, setLinkPreview] = useState<{ url: string; title: string | null; description: string | null; image_url: string | null; domain: string | null } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
