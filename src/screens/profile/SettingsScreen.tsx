@@ -81,19 +81,32 @@ export default function SettingsScreen() {
   // Account class: the four root classes; organization details live in Studio.
   const [classModal, setClassModal] = useState(false);
   const [savingClass, setSavingClass] = useState(false);
-  const ACCOUNT_CLASSES: { value: 'personal' | 'creator' | 'organization' | 'automated'; icon: string; title: string; desc: string }[] = [
+  // Instagram's three, and only three. Business is a switch, not an
+  // application: it opens the Studio on this same login.
+  const ACCOUNT_CLASSES: { value: 'personal' | 'creator' | 'business'; icon: string; title: string; desc: string }[] = [
     { value: 'personal', icon: 'user', title: 'Personal', desc: 'A person sharing with their circle.' },
-    { value: 'creator', icon: 'star', title: 'Creator', desc: 'Public figure, artist, athlete, journalist, educator or influencer. Unlocks creator insights.' },
-    { value: 'organization', icon: 'briefcase', title: 'Organization', desc: 'Business, government, nonprofit, media, school, employer or political account. Subtype and team are managed in Studio.' },
-    { value: 'automated', icon: 'cpu', title: 'Automated', desc: 'A bot or service account. Labelled as automated on the profile.' },
+    { value: 'creator', icon: 'star', title: 'Creator', desc: 'Public figure, artist, athlete, journalist, educator or influencer. Adds creator insights.' },
+    { value: 'business', icon: 'briefcase', title: 'Business', desc: 'Opens the Studio on this account: catalogue, storefront, inbox, ads and team. Verification is applied for separately.' },
   ];
-  const saveAccountClass = async (value: 'personal' | 'creator' | 'organization' | 'automated') => {
+  const currentAccountType = (): 'personal' | 'creator' | 'business' => {
+    const t = (pf as any)?.account_type; const cl = (pf as any)?.account_class;
+    return t === 'business' ? 'business' : cl === 'creator' ? 'creator' : 'personal';
+  };  const saveAccountClass = async (value: 'personal' | 'creator' | 'business') => {
     if (!profile?.id) return;
     setSavingClass(true);
     try {
-      const { error } = await supabase.from('profiles').update({ account_class: value }).eq('id', profile.id);
+      const patch = value === 'business'
+        ? { account_type: 'business', account_class: 'organization' }
+        : { account_type: 'personal', account_class: value };
+      const { error } = await supabase.from('profiles').update(patch).eq('id', profile.id);
       if (error) throw error;
-      setLocalProfile((p: any) => ({ ...(p || {}), account_class: value }));
+      if (value === 'business') {
+        // The storefront reads a business profile row keyed to this account;
+        // make sure one exists so the Studio opens complete on the next tap.
+        const { data: bp } = await supabase.from('business_profiles').select('id').eq('profile_id', profile.id).limit(1).maybeSingle();
+        if (!bp) { await supabase.from('business_profiles').insert({ owner_id: profile.id, profile_id: profile.id, name: (pf as any)?.full_name || 'My business' }).then(() => {}, () => {}); }
+      }
+      setLocalProfile((p: any) => ({ ...(p || {}), ...patch }));
       setClassModal(false);
     } catch (e: any) { Alert.alert('Not saved', e?.message || 'Try again.'); }
     finally { setSavingClass(false); }
@@ -205,7 +218,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     ] },
     { title: 'Account', rows: [
       { icon: 'user', color: '#0B1E3D', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
-      { icon: 'award', color: '#0B1E3D', label: 'Account type', sub: ((): string => { const c = (pf as any)?.account_class || 'personal'; return c === 'organization' ? 'Organization' : c === 'creator' ? 'Creator' : c === 'automated' ? 'Automated' : 'Personal'; })(), onPress: () => setClassModal(true) },
+      { icon: 'award', color: '#0B1E3D', label: 'Account type', sub: ((): string => { const t = currentAccountType(); return t === 'business' ? 'Business' : t === 'creator' ? 'Creator' : 'Personal'; })(), onPress: () => setClassModal(true) },
       { icon: 'lock', color: '#0B1E3D', label: 'Change Password', sub: 'Update your account password', onPress: () => setPwModal(true) },
       { icon: 'eye', color: '#0B1E3D', label: 'Privacy', sub: 'Private account and visibility', onPress: () => navigation.navigate('FollowRequests') },
       { icon: 'user-check', color: '#0B1E3D', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
@@ -509,8 +522,8 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             <View style={{ width: 52 }}>{savingClass ? <ActivityIndicator color="#0B1E3D" size={16} /> : null}</View>
           </View>
           <ScrollView contentContainerStyle={s.modalBody}>
-            <Text style={s.privDesc}>Verification is a label you apply for separately. Recruiter, seller, advertiser and moderator are team permissions inside an organization, not account types.</Text>
-            {ACCOUNT_CLASSES.map(opt => { const on = ((pf as any)?.account_class || 'personal') === opt.value; return (
+            <Text style={s.privDesc}>Switch any time; nothing is deleted. Business opens the Studio on this account. Verification is applied for separately, under Verification.</Text>
+            {ACCOUNT_CLASSES.map(opt => { const on = currentAccountType() === opt.value; return (
               <TouchableOpacity key={opt.value} onPress={() => saveAccountClass(opt.value)} disabled={savingClass} activeOpacity={0.8}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, marginTop: 10, borderWidth: 1.5, borderColor: on ? '#0B1E3D' : 'rgba(11,30,61,0.12)', backgroundColor: on ? 'rgba(201,191,176,0.22)' : '#FFF' }}>
                 <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: on ? '#0B1E3D' : 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Feather name={opt.icon as any} size={18} color={on ? '#FFF' : '#0B1E3D'} /></View>

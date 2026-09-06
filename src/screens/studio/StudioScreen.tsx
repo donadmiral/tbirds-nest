@@ -86,8 +86,9 @@ export default function StudioScreen() {
         <View style={[s.center, { flex: 1, paddingHorizontal: 32 }]}>
           <Feather name="grid" size={36} color="#E5E5EA" />
           <Text style={s.emptyTitle}>Business Studio</Text>
-          <Text style={s.emptySub}>Studio opens for business sessions. Sign in through the business door with your access code.</Text>
-          <TouchableOpacity style={s.primaryBtn} onPress={() => navigation.navigate('BusinessSignIn')}><Text style={s.primaryTxt}>Business sign in</Text></TouchableOpacity>
+          <Text style={s.emptySub}>Switch your account to Business in Settings and the Studio opens here: catalogue, storefront, inbox, ads and team.</Text>
+          <TouchableOpacity style={s.primaryBtn} onPress={() => navigation.navigate('Settings')}><Text style={s.primaryTxt}>Open Settings</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('BusinessSignIn')} style={{ marginTop: 14 }}><Text style={{ fontSize: 13, color: 'rgba(11,30,61,0.55)', fontWeight: '600' }}>Part of a team? Sign in to the business</Text></TouchableOpacity>
         </View>
       </SafeAreaView>
     );
