@@ -56,7 +56,7 @@ window.__bounce = async function(b64, mime, effect){
         ctx.drawImage(cur,0,0);
       }
     }
-    var mimeOut=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp8','video/webm'].filter(function(m){ return window.MediaRecorder && MediaRecorder.isTypeSupported(m); })[0];
+    var mimeOut=['video/mp4;codecs=avc1','video/mp4'].filter(function(m){ return window.MediaRecorder && MediaRecorder.isTypeSupported(m); })[0];
     if(!mimeOut) throw new Error('this web engine has no video encoder');
     var stream=c.captureStream(fps), rec=new MediaRecorder(stream,{mimeType:mimeOut, videoBitsPerSecond:5000000}), chunks=[];
     rec.ondataavailable=function(e){ if(e.data&&e.data.size) chunks.push(e.data); };
