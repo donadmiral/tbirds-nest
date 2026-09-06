@@ -115,6 +115,7 @@ export default function PostScreen({ route, navigation }: any) {
 
   const [post, setPost] = useState<Post | null>(null);
   const [canComment, setCanComment] = useState<boolean>(true);
+  const [collabInvite, setCollabInvite] = useState<boolean>(false);
   const [showHidden, setShowHidden] = useState(false);
   const [linkPreview, setLinkPreview] = useState<{ url: string; title: string | null; description: string | null; image_url: string | null; domain: string | null } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
@@ -157,6 +158,7 @@ export default function PostScreen({ route, navigation }: any) {
     try {
       const { data: vis } = await supabase.rpc('can_view_post', { p_post_id: postId });
       supabase.rpc('can_comment', { p_post_id: postId }).then(({ data }) => setCanComment(data !== false), () => {});
+      if (userId) supabase.from('post_collaborators').select('status').eq('post_id', postId).eq('user_id', userId).maybeSingle().then(({ data }) => setCollabInvite((data as any)?.status === 'invited'), () => {});
       if (vis === false) { setNotFound(true); setLoading(false); return; }
     } catch {}
     try {
@@ -741,6 +743,13 @@ export default function PostScreen({ route, navigation }: any) {
                 <TouchableOpacity onPress={() => setPendingGif(null)}><Feather name="x-circle" size={20} color="#8E8E93" /></TouchableOpacity>
               </View>
             )}
+            {collabInvite ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)' }}>
+                <Text style={{ flex: 1, fontSize: 13.5, color: '#0B1E3D', fontWeight: '600' }}>You're invited to collaborate on this post</Text>
+                <TouchableOpacity onPress={async () => { if (!userId) return; await supabase.from('post_collaborators').update({ status: 'accepted' }).eq('post_id', postId).eq('user_id', userId); setCollabInvite(false); }} style={{ backgroundColor: '#0B1E3D', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}><Text style={{ color: '#FFF', fontWeight: '800', fontSize: 13 }}>Accept</Text></TouchableOpacity>
+                <TouchableOpacity onPress={async () => { if (!userId) return; await supabase.from('post_collaborators').update({ status: 'declined' }).eq('post_id', postId).eq('user_id', userId); setCollabInvite(false); }} style={{ paddingHorizontal: 8, paddingVertical: 6 }}><Text style={{ color: 'rgba(11,30,61,0.6)', fontWeight: '700', fontSize: 13 }}>Decline</Text></TouchableOpacity>
+              </View>
+            ) : null}
             {!canComment ? (
               <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 8), justifyContent: 'center' }]}>
                 <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '600' }}>{(post as any)?.comment_policy === 'off' ? 'Comments are turned off' : 'Comments are limited on this post'}</Text>

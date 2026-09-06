@@ -176,6 +176,12 @@ export default function ProfileScreen() {
           const { data } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
           postsData = data || [];
         }
+        // Posts this person collaborated on show here too, as on Instagram.
+        try {
+          const { data: cl } = await supabase.from('post_collaborators').select('post_id').eq('user_id', userId).eq('status', 'accepted');
+          const collabIds = (cl || []).map((x: any) => x.post_id).filter((id: string) => !postsData.some((p: any) => p.id === id));
+          if (collabIds.length) { const { data: cp } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', collabIds); postsData = [...postsData, ...((cp as any[]) || [])].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); }
+        } catch {}
         // Archived posts never show; the pinned post leads.
         postsData = postsData.filter((x: any) => !x.archived_at);
         const pinnedId = (authProfile as any)?.pinned_post_id ?? null;

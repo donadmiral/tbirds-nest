@@ -24,6 +24,7 @@ type CommentRow = {
 
 export function Comments({ postId }: { postId: string }) {
   const [off, setOff] = useState(false);
+  const [collabInvite, setCollabInvite] = useState(false);
   const supabase = useRef(createClient()).current;
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
@@ -40,6 +41,7 @@ export function Comments({ postId }: { postId: string }) {
     const { data: sess } = await supabase.auth.getSession();
     const userId = sess.session?.user.id ?? null;
     setUid(userId);
+    if (userId) { const { data: ci } = await supabase.from("post_collaborators").select("status").eq("post_id", postId).eq("user_id", userId).maybeSingle(); setCollabInvite((ci as { status?: string } | null)?.status === "invited"); }
     const { data: pol } = await supabase.from("posts").select("comment_policy").eq("id", postId).maybeSingle();
     if ((pol as { comment_policy?: string } | null)?.comment_policy === "off") { setOff(true); setItems([]); return; }
     setOff(false);
@@ -138,6 +140,8 @@ export function Comments({ postId }: { postId: string }) {
     const total = countAll(c);
     const open = expanded.has(c.id);
     return (
+      <>
+      {collabInvite ? <div className="mb-3 flex items-center gap-3 rounded-xl border border-ink/10 bg-surface px-3 py-2 text-[13px] text-ink"><span className="flex-1 font-semibold">You are invited to collaborate on this post</span><button type="button" onClick={async () => { const { data: s } = await supabase.auth.getSession(); const id = s.session?.user.id; if (!id) return; await supabase.from("post_collaborators").update({ status: "accepted" }).eq("post_id", postId).eq("user_id", id); setCollabInvite(false); }} className="rounded-full bg-ink px-3 py-1 text-[12.5px] font-bold text-white">Accept</button><button type="button" onClick={async () => { const { data: s } = await supabase.auth.getSession(); const id = s.session?.user.id; if (!id) return; await supabase.from("post_collaborators").update({ status: "declined" }).eq("post_id", postId).eq("user_id", id); setCollabInvite(false); }} className="text-[12.5px] font-semibold text-ink/60">Decline</button></div> : null}
       <div className={depth > 0 ? "mt-3 " + (depth === 1 ? "ml-10" : "ml-6") : "mt-4"}>
         <div className="group flex gap-2.5">
           <StoryAvatar userId={c.user_id} name={c.author?.full_name} avatarUrl={c.author?.avatar_url} size={depth > 0 ? 30 : 36} href={c.author?.username ? "/" + c.author.username : null} />
@@ -212,5 +216,6 @@ export function Comments({ postId }: { postId: string }) {
         </div>
       </div>
     </section>
+  </>
   );
 }

@@ -288,6 +288,26 @@ export default function FeedScreen({ navigation }: any) {
   const [commentPolicy, setCommentPolicy] = useState<'everyone' | 'following' | 'followers' | 'mentioned' | 'off'>('everyone');
   // Sensitive media, the poster's own mark: readers see it by their own setting.
   const [composerSensitive, setComposerSensitive] = useState(false);
+  // Collab: one invited co-author; the post shows on both profiles once they accept.
+  const [collabUsername, setCollabUsername] = useState<string | null>(null);
+  const [collabs, setCollabs] = useState<Record<string, { username: string | null; full_name: string | null }[]>>({});
+  const askCollaborator = useCallback(() => {
+    Alert.prompt('Invite a collaborator', 'Their @username. They get a notification and choose to accept.', (v) => { const u = (v || '').trim().replace(/^@/, ''); setCollabUsername(u || null); }, 'plain-text', collabUsername || '');
+  }, [collabUsername]);
+  const inviteCollaborator = useCallback(async (postId: string, username: string) => {
+    const { data: who } = await supabase.from('profiles').select('id').ilike('username', username).maybeSingle();
+    if (!who?.id || !userId) { Alert.alert('Not found', '@' + username + ' is not on Platinum Circles.'); return; }
+    const { error } = await supabase.from('post_collaborators').insert({ post_id: postId, user_id: (who as any).id, invited_by: userId });
+    if (error) Alert.alert('Not invited', error.message);
+  }, [userId]);
+  const hydrateCollabs = useCallback((ids: string[]) => {
+    if (!ids.length) return;
+    supabase.from('post_collaborators').select('post_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
+      const m: Record<string, { username: string | null; full_name: string | null }[]> = {};
+      (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ username: pr.username ?? null, full_name: pr.full_name ?? null }); });
+      setCollabs(prev => ({ ...prev, ...m }));
+    }, () => {});
+  }, []);
   const COMMENT_META: Record<string, { label: string; icon: string }> = {
     everyone: { label: 'Anyone', icon: 'message-circle' }, following: { label: 'People I follow', icon: 'user-check' },
     followers: { label: 'My followers', icon: 'users' }, mentioned: { label: 'Mentioned only', icon: 'at-sign' }, off: { label: 'Comments off', icon: 'slash' },
@@ -604,6 +624,7 @@ export default function FeedScreen({ navigation }: any) {
       const rows = (feedRows ?? []) as any[];
       const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !isMuted(pp));
       hydrateShares(scored.map(pp => pp.id));
+      hydrateCollabs(scored.map(pp => pp.id));
       const seenOnce = new Set<string>();
       setPosts(scored.filter(p => seenOnce.has(p.id) ? false : (seenOnce.add(p.id), true)));
       cursorRef.current = rows.length
@@ -1516,6 +1537,7 @@ export default function FeedScreen({ navigation }: any) {
 
       const { data: newPost, error } = await supabase
         .from('posts').insert(insertData).select('id').single();
+      if (!pErr && created?.id && collabUsername) { await inviteCollaborator(created.id, collabUsername); }
       if (error) {
         Alert.alert('Post failed', error.message);
         return;
@@ -1572,6 +1594,7 @@ export default function FeedScreen({ navigation }: any) {
       setPostAudience('everyone');
       setCommentPolicy('everyone');
       setComposerSensitive(false);
+      setCollabUsername(null);
       setQuotingPost(null);
       setThreadingPost(null);
       Keyboard.dismiss();
@@ -1604,6 +1627,7 @@ export default function FeedScreen({ navigation }: any) {
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
       const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !isMuted(pp));
       hydrateShares(scored.map(pp => pp.id));
+      hydrateCollabs(scored.map(pp => pp.id));
       setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: any[] = []; for (const p of scored) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } return [...prev, ...add]; });
       setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });
       setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked) m[r.post_id] = true; }); return m; });
@@ -2268,6 +2292,10 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     <Feather name="alert-triangle" size={12} color={composerSensitive ? '#FFFFFF' : NAVY} />
                     <Text style={[s.audChipTxt, composerSensitive && { color: '#FFFFFF' }]}>{composerSensitive ? 'Sensitive' : 'Mark sensitive'}</Text>
                   </TouchableOpacity>
+                  <TouchableOpacity style={[s.audChip, !!collabUsername && { backgroundColor: '#0B1E3D' }]} onPress={askCollaborator} activeOpacity={0.75}>
+                    <Feather name="users" size={12} color={collabUsername ? '#FFFFFF' : NAVY} />
+                    <Text style={[s.audChipTxt, !!collabUsername && { color: '#FFFFFF' }]}>{collabUsername ? 'With @' + collabUsername : 'Invite collaborator'}</Text>
+                  </TouchableOpacity>
                   </ScrollView>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
@@ -2686,6 +2714,16 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               }}>
                 <Feather name="archive" size={18} color={getTheme().ink.primary} />
                 <Text style={s.menuOptionTxt}>Archive post</Text>
+              </TouchableOpacity>
+            )}
+
+            {menuPost?.user_id === userId && (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
+                const captured = menuPost; setMenuPost(null); if (!captured) return;
+                Alert.prompt('Invite a collaborator', 'Their @username. The post appears on both profiles once they accept.', (v) => { const u = (v || '').trim().replace(/^@/, ''); if (u) inviteCollaborator(captured.id, u); }, 'plain-text');
+              }}>
+                <Feather name="users" size={18} color={getTheme().ink.primary} />
+                <Text style={s.menuOptionTxt}>Invite collaborator</Text>
               </TouchableOpacity>
             )}
 

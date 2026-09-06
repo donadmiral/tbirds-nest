@@ -107,6 +107,16 @@ export function PostCard({ post }: { post: FeedRow }) {
   const [heart, setHeart] = useState(false);
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
+  const [collabNames, setCollabNames] = useState<string[]>([]);
+  useEffect(() => {
+    let dead = false;
+    supabase.from("post_collaborators").select("status, profile:profiles!post_collaborators_user_id_fkey(username, full_name)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
+      if (dead) return;
+      const names = ((data ?? []) as { profile?: { username?: string | null; full_name?: string | null } | { username?: string | null; full_name?: string | null }[] }[]).map((r) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; return pr ? "@" + (pr.username || pr.full_name || "") : ""; }).filter(Boolean);
+      setCollabNames(names);
+    });
+    return () => { dead = true; };
+  }, [supabase, post.post_id]);
   const [listKind, setListKind] = useState<"likes" | "reposts" | "bookmarks">("likes");
   const [expanded, setExpanded] = useState(false);
   const text = post.content ?? post.body ?? "";
