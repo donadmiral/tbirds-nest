@@ -71,6 +71,7 @@ export default function SettingsScreen() {
   const [localProfile,     setLocalProfile]     = useState(profile);
 
   const [pwModal,     setPwModal]     = useState(false);
+  const [currentPw,   setCurrentPw]   = useState('');
   const [newPw,       setNewPw]       = useState('');
   const [confirmPw,   setConfirmPw]   = useState('');
   const [showNewPw,   setShowNewPw]   = useState(false);

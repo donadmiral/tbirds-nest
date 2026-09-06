@@ -97,5 +97,22 @@ serve(async (req) => {
     return json(r.status, await r.json());
   }
 
+  // ── run an allowlisted model by name, waiting for the result ─────────────
+  // Backdrop sends a photo and gets the subject back on a transparent
+  // background. Names rather than version hashes, so a model update never
+  // needs a redeploy.
+  if (op === "run") {
+    const model = String(body?.model ?? "");
+    const extraModels = (Deno.env.get("REPLICATE_ALLOWED_MODELS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    const allowedModels = new Set(["cjwbw/rembg", ...extraModels]);
+    if (!allowedModels.has(model)) return json(403, { error: "That model is not permitted" });
+    const r = await fetch(`${REPLICATE}/models/${model}/predictions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json", Prefer: "wait=60" },
+      body: JSON.stringify({ input: body?.input ?? {} }),
+    });
+    return json(r.status, await r.json());
+  }
+
   return json(400, { error: "Unknown op" });
 });
