@@ -13,6 +13,7 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
+import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import PeoplePickerSheet from '../../components/PeoplePickerSheet';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme } from '../../theme/useTheme';
@@ -291,6 +292,7 @@ export default function FeedScreen({ navigation }: any) {
   const [composerSensitive, setComposerSensitive] = useState(false);
   // Collab: one invited co-author; the post shows on both profiles once they accept.
   const [collabPicks, setCollabPicks] = useState<{ id: string; username: string | null; full_name: string | null }[]>([]);
+  const [collabSheet, setCollabSheet] = useState<any[] | null>(null);
   const [collabs, setCollabs] = useState<Record<string, { id: string; username: string | null; full_name: string | null }[]>>({});
   const [collabPicker, setCollabPicker] = useState<'composer' | { postId: string } | null>(null);
   const askCollaborator = useCallback(() => { setCollabPicker('composer'); }, []);
@@ -1824,15 +1826,20 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
                 <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />
                 {((author as any)?.verified_tier || (author as any)?.is_verified) ? <VerifiedBadge tier={(author as any)?.verified_tier} size={13} /> : null}
-                {(collabs[post.id] || []).map((x: any) => (
-                  <View key={x.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                {(() => { const list = collabs[post.id] || []; if (!list.length) return null; if (list.length === 1) { const x: any = list[0]; return (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                     <Text style={[s.postAuthor, { fontWeight: '800' }]}>×</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: x.id })} activeOpacity={0.7}>
                       <TierName tier={x.verified_tier ?? (x.is_verified ? 'business' : null)} baseStyle={s.postAuthor} text={x.full_name || x.username || ''} />
                     </TouchableOpacity>
                     {(x.verified_tier || x.is_verified) ? <VerifiedBadge tier={x.verified_tier} size={13} /> : null}
                   </View>
-                ))}
+                ); } return (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                    <Text style={[s.postAuthor, { fontWeight: '800' }]}>×</Text>
+                    <TouchableOpacity onPress={() => setCollabSheet([...list])} activeOpacity={0.7}><Text style={s.postAuthor}>{list.length} others</Text></TouchableOpacity>
+                  </View>
+                ); })()}
               </View>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: getTheme().status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
               {(post as any)._promo && (
@@ -2661,6 +2668,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
       />
 
+      <CollaboratorsSheet visible={!!collabSheet} people={collabSheet || []} onClose={() => setCollabSheet(null)} />
       <PeoplePickerSheet visible={!!collabPicker} title="Invite a collaborator" excludeId={userId}
         onClose={() => setCollabPicker(null)}
         onPick={(p) => { setCollabPicks(prev => (prev.some(x => x.id === p.id) || prev.length >= 5) ? prev : [...prev, { id: p.id, username: p.username, full_name: p.full_name }]); }} />
