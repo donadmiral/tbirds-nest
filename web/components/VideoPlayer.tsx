@@ -270,9 +270,9 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
           </button>
           <button onClick={(e) => { e.stopPropagation(); seekBy(-10); }} title="Back 10 seconds" className={btn}><RotateCcw size={15} /></button>
           <button onClick={(e) => { e.stopPropagation(); seekBy(10); }} title="Forward 10 seconds" className={btn}><RotateCw size={15} /></button>
-          <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} title={muted ? "Unmute (M)" : "Mute (M)"} className={btn}>
+          {edit?.muted ? null : <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} title={muted ? "Unmute (M)" : "Mute (M)"} className={btn}>
             {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
-          </button>
+          </button>}
           <span className="relative ml-auto">
             <button onClick={(e) => { e.stopPropagation(); setSpeedMenu((v) => !v); }} title="Playback speed" className={btn + " flex items-center gap-1 px-2 text-[11px] font-semibold"}>
               <Gauge size={14} /> {speed}x

@@ -2318,6 +2318,12 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                         )}
                         <TouchableOpacity style={s.cRemove} onPress={() => setComposerMedia(p => p.filter((_, j) => j !== i))}><Text style={s.cRemoveTxt}>×</Text></TouchableOpacity>
                         <TouchableOpacity style={{ position: 'absolute', left: 4, bottom: 4, backgroundColor: 'rgba(11,30,61,0.85)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={() => setEditMediaIdx(i)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="sliders" size={11} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{m.edit ? 'Edited' : 'Edit'}</Text></TouchableOpacity>
+                        {m.type === 'video' ? (
+                          <TouchableOpacity accessibilityLabel={(m.edit as any)?.muted ? 'Post with sound' : 'Post without sound'} style={{ position: 'absolute', right: 4, bottom: 4, width: 26, height: 26, borderRadius: 13, backgroundColor: (m.edit as any)?.muted ? '#D64545' : 'rgba(11,30,61,0.85)', alignItems: 'center', justifyContent: 'center' }}
+                            onPress={() => setComposerMedia(p => p.map((x, j) => j === i ? { ...x, edit: { ...((x.edit as any) || {}), muted: !((x.edit as any)?.muted) } as any } : x))} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                            <Feather name={(m.edit as any)?.muted ? 'volume-x' : 'volume-2'} size={12} color="#FFF" />
+                          </TouchableOpacity>
+                        ) : null}
                       </View>
                     ))}
                     {composerMedia.length < 10 && <TouchableOpacity style={s.cAddMore} onPress={() => pickMedia()}><Text style={s.cAddMoreTxt}>+</Text></TouchableOpacity>}

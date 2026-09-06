@@ -95,7 +95,7 @@ function CarouselVideo({
   // seeking and muting are property writes instead of async calls.
   const player = useVideoPlayer(uri, p => {
     p.loop = true;
-    p.muted = sessionMuted;
+    p.muted = sessionMuted || !!(edit as any)?.muted;
     p.playbackRate = (edit as any)?.speed || 1;
     p.timeUpdateEventInterval = 0.25;
   });
@@ -107,7 +107,8 @@ function CarouselVideo({
   useEffect(() => { setUserPlayed(false); }, [uri]); // recycled cards forget the old tap
   // Navigation focus: leaving the tab MUST silence the video.
   const screenFocused = useIsFocused();
-  const [muted, setMuted] = useState(sessionMuted);
+  const postedMuted = !!(edit as any)?.muted;
+  const [muted, setMuted] = useState(sessionMuted || postedMuted);
   const [progress, setProgress] = useState(0);
   const [showControls, setShowControls] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -117,7 +118,7 @@ function CarouselVideo({
 
   // shouldPlay was a prop on expo-av's Video. On a player object it is an effect.
   useEffect(() => { if (shouldPlay) player.play(); else player.pause(); }, [shouldPlay, player]);
-  useEffect(() => { player.muted = muted; }, [muted, player]);
+  useEffect(() => { player.muted = muted || postedMuted; }, [muted, postedMuted, player]);
   useEffect(() => {
     const sub = player.addListener('timeUpdate', (e: any) => {
       const d = player.duration;
@@ -211,14 +212,14 @@ function CarouselVideo({
       </View>
 
       {/* Mute button always visible bottom-right */}
-      <TouchableOpacity
+      {postedMuted ? null : <TouchableOpacity
         style={st.muteBtn}
         onPress={toggleMute}
         activeOpacity={0.8}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <Feather name={muted ? 'volume-x' : 'volume-2'} size={14} color="#FFF" />
-      </TouchableOpacity>
+      </TouchableOpacity>}
 
       {/* Controls overlay */}
       {showControls && (
