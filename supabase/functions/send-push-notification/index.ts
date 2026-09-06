@@ -42,7 +42,7 @@ serve(async (req) => {
     if (type === "incoming_call") return json(200, { skipped: true, reason: "rung by send-voip-push" });
     // Quiet mode: nothing pushes during the person's chosen hours, in their own time zone.
     {
-      const { data: prof } = await supabase.from("profiles").select("quiet_from, quiet_to, quiet_tz_offset_min").eq("id", record.user_id).maybeSingle();
+      const { data: prof } = await supabase.from("profiles").select("quiet_from, quiet_to, quiet_tz_offset_min").eq("id", record.recipient_id || record.user_id).maybeSingle();
       const qf = (prof as any)?.quiet_from, qt = (prof as any)?.quiet_to;
       if (qf != null && qt != null) {
         const off = Number((prof as any)?.quiet_tz_offset_min || 0);

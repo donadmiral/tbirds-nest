@@ -8,8 +8,9 @@ import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
 import { useTheme } from '../theme/useTheme';
+import VerifiedBadge from './VerifiedBadge';
 
-export type PickedPerson = { id: string; username: string | null; full_name: string | null; avatar_url: string | null };
+export type PickedPerson = { id: string; username: string | null; full_name: string | null; avatar_url: string | null; is_verified?: boolean | null; verified_tier?: string | null; headline?: string | null };
 
 export default function PeoplePickerSheet({ visible, title, excludeId, onPick, onClose }: { visible: boolean; title: string; excludeId?: string | null; onPick: (p: PickedPerson) => void; onClose: () => void }) {
   const insets = useSafeAreaInsets();
@@ -22,7 +23,7 @@ export default function PeoplePickerSheet({ visible, title, excludeId, onPick, o
     const term = q.trim().replace(/^@/, '');
     let dead = false;
     const run = async () => {
-      let query = supabase.from('profiles').select('id, username, full_name, avatar_url').limit(12);
+      let query = supabase.from('profiles').select('id, username, full_name, avatar_url, is_verified, verified_tier, headline').limit(12);
       query = term ? query.or('username.ilike.' + term + '%,full_name.ilike.%' + term + '%') : query.order('created_at', { ascending: false });
       const { data } = await query;
       if (!dead) setRows(((data as PickedPerson[]) || []).filter((p) => p.id !== excludeId));
@@ -48,8 +49,8 @@ export default function PeoplePickerSheet({ visible, title, excludeId, onPick, o
                 <TouchableOpacity style={st.row} activeOpacity={0.75} onPress={() => { onPick(item); onClose(); }}>
                   {item.avatar_url ? <Image source={{ uri: item.avatar_url }} style={st.avatar} /> : <View style={[st.avatar, { backgroundColor: t.brand.tintBg, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ color: t.ink.primary, fontWeight: '800' }}>{(item.full_name || item.username || '?').slice(0, 1).toUpperCase()}</Text></View>}
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={[st.name, { color: t.ink.primary }]} numberOfLines={1}>{item.full_name || item.username}</Text>
-                    {item.username ? <Text style={[st.handleTxt, { color: t.ink.muted }]} numberOfLines={1}>@{item.username}</Text> : null}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Text style={[st.name, { color: t.ink.primary }]} numberOfLines={1}>{item.full_name || item.username}</Text>{item.is_verified ? <VerifiedBadge tier={(item.verified_tier as any) || undefined} userId={item.id} size={14} /> : null}</View>
+                    {item.username ? <Text style={[st.handleTxt, { color: t.ink.muted }]} numberOfLines={1}>@{item.username}{item.headline ? '  ·  ' + item.headline : ''}</Text> : null}
                   </View>
                 </TouchableOpacity>
               )}
