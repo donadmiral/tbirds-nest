@@ -2308,6 +2308,27 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     </TouchableOpacity>
                   </View>
                 )}
+                {composerMedia.length > 0 && (() => {
+                  // Instagram's frame: square by default; the expand icon opens it to the
+                  // closest supported ratio for the media, 4:5 or 1.91:1, and back.
+                  const m0 = composerMedia[0];
+                  const asp = (((m0.edit as any)?.aspect) || 'square') as 'square' | 'portrait' | 'landscape';
+                  const ratio = asp === 'square' ? 1 : asp === 'landscape' ? 1 / 1.91 : 1.25;
+                  const natural: 'portrait' | 'landscape' = ((m0.height || 1) / (m0.width || 1)) >= 1 ? 'portrait' : 'landscape';
+                  return (
+                    <View style={{ width: '100%', aspectRatio: 1 / ratio, borderRadius: 14, overflow: 'hidden', backgroundColor: '#F2F2F7', marginBottom: 8 }}>
+                      <Image source={{ uri: m0.type === 'video' ? (m0.thumbnail || m0.uri) : m0.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                      <TouchableOpacity accessibilityLabel="Expand or crop" activeOpacity={0.8}
+                        onPress={() => setComposerMedia(p => p.map((x, j) => j === 0 ? { ...x, edit: { ...(((x.edit as any)) || {}), aspect: asp === 'square' ? natural : 'square' } as any } : x))}
+                        style={{ position: 'absolute', left: 10, bottom: 10, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' }}>
+                        <Feather name={asp === 'square' ? 'maximize-2' : 'minimize-2'} size={14} color="#FFF" />
+                      </TouchableOpacity>
+                      <View pointerEvents="none" style={{ position: 'absolute', right: 10, bottom: 10, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
+                        <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{asp === 'square' ? '1:1' : asp === 'portrait' ? '4:5' : '1.91:1'}</Text>
+                      </View>
+                    </View>
+                  );
+                })()}
                 {composerMedia.length > 0 && (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.cMediaScroll} keyboardShouldPersistTaps="handled">
                     {composerMedia.map((m, i) => (
@@ -2333,7 +2354,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   <PostMediaEditSheet visible uri={composerMedia[editMediaIdx].uri} mediaType={composerMedia[editMediaIdx].type} width={composerMedia[editMediaIdx].width} height={composerMedia[editMediaIdx].height}
                     initial={composerMedia[editMediaIdx].edit || null}
                     onCancel={() => setEditMediaIdx(null)}
-                    onDone={(ed) => { const idx = editMediaIdx; setComposerMedia(p => p.map((x, j) => j === idx ? { ...x, edit: Object.keys(ed).length ? ed : null } : x)); setEditMediaIdx(null); }} />
+                    onDone={(ed) => { const idx = editMediaIdx; setComposerMedia(p => p.map((x, j) => { if (j !== idx) return x; const keep = (x.edit as any)?.aspect ? { aspect: (x.edit as any).aspect } : {}; const merged = { ...keep, ...(ed as any) }; return { ...x, edit: Object.keys(merged).length ? merged as any : null }; })); setEditMediaIdx(null); }} />
                 ) : null}
                 </ScrollView>
                 <View style={s.cToolbar}>

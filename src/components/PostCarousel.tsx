@@ -264,7 +264,11 @@ function CarouselVideo({
 export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress }: Props) {
   const tagMap = useMediaTags((media || []).map((m: any) => m.id).filter(Boolean));
   const [activeIndex, setActiveIndex] = useState(0);
-  const slideHeight = Math.round(containerWidth * HEIGHT_RATIO);
+  // The frame the composer chose for this post: square, 4:5 or 1.91:1.
+  // Posts made before the choice existed keep 4:5.
+  const aspect = (media[0]?.edit as any)?.aspect as ('square' | 'portrait' | 'landscape' | undefined);
+  const ratio = aspect === 'square' ? 1 : aspect === 'landscape' ? 1 / 1.91 : HEIGHT_RATIO;
+  const slideHeight = Math.round(containerWidth * ratio);
   const total = media.length;
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
