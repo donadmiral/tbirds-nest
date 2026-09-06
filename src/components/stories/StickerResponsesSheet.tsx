@@ -1,3 +1,5 @@
+import VerifiedBadge from '../VerifiedBadge';
+import TierName from '../TierName';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
@@ -77,7 +79,7 @@ export default function StickerResponsesSheet({
           </View>
         )}
         <View style={s.responseInfo}>
-          <Text style={s.responseName} numberOfLines={1}>{item.full_name || 'User'}</Text>
+          <Text style={s.responseName} numberOfLines={1}><TierName userId={((item) as any)?.id ?? ((item) as any)?.user_id} baseStyle={s.responseName} text={item.full_name || 'User' || ''} numberOfLines={1} /> <VerifiedBadge userId={((item) as any)?.id ?? ((item) as any)?.user_id} size={12} /></Text>
           {responseType === 'question' && item.text_value && (
             <Text style={s.responseValue} numberOfLines={2}>{item.text_value}</Text>
           )}

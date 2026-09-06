@@ -130,7 +130,7 @@ export default function FollowRequestsScreen() {
     const name = item.requester?.full_name || 'Member';
     const avatar = item.requester?.avatar_url;
     const username = item.requester?.username;
-    const program = item.requester?.degree_program;
+    const program = null as string | null; // retired school-era field
     const busy = !!busyIds[item.id];
 
     return (

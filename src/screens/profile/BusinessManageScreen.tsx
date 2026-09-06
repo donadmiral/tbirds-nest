@@ -10,6 +10,8 @@
  * Role permissions are enforced on the server. They are mirrored here so a
  * manager never sees an action that would come back as an error.
  */
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -265,7 +267,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
-        <Text style={s.title} numberOfLines={1}>{profile?.full_name || 'Business'}</Text>
+        <Text style={s.title} numberOfLines={1}><TierName userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} baseStyle={s.title} text={profile?.full_name || 'Business' || ''} numberOfLines={1} /> <VerifiedBadge userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} size={12} /></Text>
         <TouchableOpacity onPress={saveInfo} disabled={saving} style={[s.saveBtn, saving && s.saveBtnOff]}>
           {saving ? <ActivityIndicator size="small" color={getTheme().ink.inverse} /> : <Text style={s.saveTxt}>Save</Text>}
         </TouchableOpacity>

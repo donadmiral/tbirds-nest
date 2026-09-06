@@ -329,6 +329,19 @@ export default function NotificationsScreen({ navigation }: any) {
       ? { ...r, viewer_follows: !r.viewer_follows } : r));
   };
 
+  // Any invitation notification whose request is no longer open is removed, here and on the server.
+  const pruneAnsweredInvites = useCallback(async (list: Notif[]) => {
+    const inv = list.filter(r => r.type === 'collab_invite'); if (!inv.length) return;
+    const { data: s } = await supabase.auth.getSession(); const me = s.session?.user.id; if (!me) return;
+    const ids = inv.map(r => (r as any).post_id || (r as any).data?.post_id).filter(Boolean);
+    const { data } = await supabase.from('post_collaborators').select('post_id').eq('user_id', me).eq('status', 'invited').in('post_id', ids.length ? ids : ['00000000-0000-0000-0000-000000000000']);
+    const open = new Set(((data as any[]) || []).map(x => x.post_id));
+    const stale = inv.filter(r => !open.has((r as any).post_id || (r as any).data?.post_id));
+    if (!stale.length) return;
+    setRows(prev => prev.filter(r => !stale.some(x => x.notification_id === r.notification_id)));
+    supabase.from('notifications').delete().in('id', stale.map(r => r.notification_id)).then(() => {}, () => {});
+  }, []);
+  useEffect(() => { pruneAnsweredInvites(rows); }, [rows.length, pruneAnsweredInvites]);
   const invitesFirst = (list: Notif[]) => { const inv = list.filter(r => r.type === 'collab_invite'); const rest = list.filter(r => r.type !== 'collab_invite'); return [...inv, ...rest]; };
   const respondCollab = async (n: Notif, accept: boolean) => {
     const pid = (n as any).post_id || (n as any).data?.post_id; const { data: s } = await supabase.auth.getSession(); const me = s.session?.user.id;
@@ -337,8 +350,8 @@ export default function NotificationsScreen({ navigation }: any) {
     const { data: updated, error } = await supabase.from('post_collaborators').update({ status: accept ? 'accepted' : 'declined' }).eq('post_id', pid).eq('user_id', me).eq('status', 'invited').select('post_id');
     setBusy(b => ({ ...b, [n.notification_id]: false }));
     if (error) { Alert.alert('Not saved', error.message); return; }
-    if (!updated || updated.length === 0) { Alert.alert('No longer open', 'This invitation was already answered or withdrawn.'); setRows(prev => prev.filter(r => r.notification_id !== n.notification_id)); return; }
-    await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', n.notification_id);
+    if (!updated || updated.length === 0) { await supabase.from('notifications').delete().eq('id', n.notification_id); setRows(prev => prev.filter(r => r.notification_id !== n.notification_id)); return; }
+    await supabase.from('notifications').delete().eq('id', n.notification_id);
     setRows(prev => prev.filter(r => r.notification_id !== n.notification_id));
     showMessage({ message: accept ? "You're now a collaborator" : 'Invitation declined', description: accept ? 'The post is on your profile too.' : undefined, type: 'success', duration: 2000 });
   };

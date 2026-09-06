@@ -1,3 +1,5 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 /**
@@ -76,7 +78,7 @@ export default function MutedStoriesScreen({ navigation }: any) {
                 ? <Image source={{ uri: item.profile.avatar_url }} style={s.avatar} />
                 : <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarTxt}>{(item.profile?.full_name || '?')[0]}</Text></View>}
               <View style={{ flex: 1 }}>
-                <Text style={s.name} numberOfLines={1}>{item.profile?.full_name || 'Member'}</Text>
+                <Text style={s.name} numberOfLines={1}><TierName userId={((item.profile) as any)?.id ?? ((item.profile) as any)?.user_id} baseStyle={s.name} text={item.profile?.full_name || 'Member' || ''} numberOfLines={1} /> <VerifiedBadge userId={((item.profile) as any)?.id ?? ((item.profile) as any)?.user_id} size={12} /></Text>
                 {!!item.profile?.username && <Text style={s.handle}>@{item.profile.username}</Text>}
               </View>
               <TouchableOpacity style={s.unmute} onPress={() => unmute(item.muted_id)} activeOpacity={0.8}>

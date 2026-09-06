@@ -2,6 +2,7 @@
  * Pick a person by typing: results appear as you type, name, handle and
  * photo. Used to choose a collaborator; reusable wherever one person is chosen.
  */
+import TierName from './TierName';
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, Image, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
@@ -49,7 +50,7 @@ export default function PeoplePickerSheet({ visible, title, excludeId, onPick, o
                 <TouchableOpacity style={st.row} activeOpacity={0.75} onPress={() => { onPick(item); onClose(); }}>
                   {item.avatar_url ? <Image source={{ uri: item.avatar_url }} style={st.avatar} /> : <View style={[st.avatar, { backgroundColor: t.brand.tintBg, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ color: t.ink.primary, fontWeight: '800' }}>{(item.full_name || item.username || '?').slice(0, 1).toUpperCase()}</Text></View>}
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Text style={[st.name, { color: t.ink.primary }]} numberOfLines={1}>{item.full_name || item.username}</Text>{item.is_verified ? <VerifiedBadge tier={(item.verified_tier as any) || undefined} userId={item.id} size={14} /> : null}</View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Text style={[st.name, { color: t.ink.primary }]} numberOfLines={1}><TierName userId={((item) as any)?.id ?? ((item) as any)?.user_id} baseStyle={[st.name, { color: t.ink.primary }]} text={item.full_name || item.username || ''} numberOfLines={1} /> <VerifiedBadge userId={((item) as any)?.id ?? ((item) as any)?.user_id} size={12} /></Text>{item.is_verified ? <VerifiedBadge tier={(item.verified_tier as any) || undefined} userId={item.id} size={14} /> : null}</View>
                     {item.username ? <Text style={[st.handleTxt, { color: t.ink.muted }]} numberOfLines={1}>@{item.username}{item.headline ? '  ·  ' + item.headline : ''}</Text> : null}
                   </View>
                 </TouchableOpacity>

@@ -1,3 +1,5 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 /**
@@ -154,7 +156,7 @@ export default function BlockedAccountsScreen({ navigation }: any) {
                 </View>
               )}
               <View style={s.rowText}>
-                <Text style={s.name} numberOfLines={1}>{item.full_name || 'User'}</Text>
+                <Text style={s.name} numberOfLines={1}><TierName userId={((item) as any)?.id ?? ((item) as any)?.user_id} baseStyle={s.name} text={item.full_name || 'User' || ''} numberOfLines={1} /> <VerifiedBadge userId={((item) as any)?.id ?? ((item) as any)?.user_id} size={12} /></Text>
                 {item.username ? <Text style={s.handle} numberOfLines={1}>@{item.username}</Text> : null}
               </View>
               <TouchableOpacity

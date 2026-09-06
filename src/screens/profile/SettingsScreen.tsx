@@ -1,3 +1,5 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme } from '../../theme/useTheme';
@@ -483,7 +485,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
                 <Text style={s.profileCardAvatarTxt}>{initials(pf?.full_name)}</Text>
               </View>}
           <View style={s.profileCardInfo}>
-            <Text style={s.profileCardName}>{pf?.full_name || 'Your Name'}</Text>
+            <Text style={s.profileCardName}><TierName userId={((pf) as any)?.id ?? ((pf) as any)?.user_id} baseStyle={s.profileCardName} text={pf?.full_name || 'Your Name' || ''} /> <VerifiedBadge userId={((pf) as any)?.id ?? ((pf) as any)?.user_id} size={12} /></Text>
             <Text style={s.profileCardEmail}>{pf?.email || 'Edit your profile'}</Text>
             <View style={[
               s.accountTypeBadge,

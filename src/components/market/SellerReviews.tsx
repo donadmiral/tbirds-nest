@@ -1,6 +1,8 @@
 /**
  * SellerReviews - Google-style rating summary plus review list and composer.
  */
+import VerifiedBadge from '../VerifiedBadge';
+import TierName from '../TierName';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
@@ -151,7 +153,7 @@ export default function SellerReviews({ sellerId, listingId, currentUserId }: { 
       {reviews.map(r => (
         <View key={r.id} style={s.review}>
           <View style={s.reviewHead}>
-            <Text style={s.reviewer}>{r.reviewer?.full_name || 'Member'}</Text>
+            <Text style={s.reviewer}><TierName userId={((r.reviewer) as any)?.id ?? ((r.reviewer) as any)?.user_id} baseStyle={s.reviewer} text={r.reviewer?.full_name || 'Member' || ''} /> <VerifiedBadge userId={((r.reviewer) as any)?.id ?? ((r.reviewer) as any)?.user_id} size={12} /></Text>
             <Stars value={r.rating} size={12} />
           </View>
           {!!r.comment && <Text style={s.comment}>{r.comment}</Text>}

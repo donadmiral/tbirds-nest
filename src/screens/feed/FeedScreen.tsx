@@ -1830,9 +1830,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                     <Text style={[s.postAuthor, { fontWeight: '800' }]}>×</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: x.id })} activeOpacity={0.7}>
-                      <TierName tier={x.verified_tier ?? (x.is_verified ? 'business' : null)} baseStyle={s.postAuthor} text={x.full_name || x.username || ''} />
+                      <TierName userId={x.id} baseStyle={s.postAuthor} text={x.full_name || x.username || ''} />
                     </TouchableOpacity>
-                    {(x.verified_tier || x.is_verified) ? <VerifiedBadge tier={x.verified_tier} size={13} /> : null}
+                    <VerifiedBadge userId={x.id} size={13} />
                   </View>
                 ); } return (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
@@ -2282,7 +2282,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   {mentionResults.map(u => (
                     <TouchableOpacity key={u.id} style={s.mentionRow} onPress={() => insertMention(u)}>
                       {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={s.mAvatar} fadeDuration={200} /> : <View style={s.mAvatarFb}><Text style={s.mAvatarTxt}>{initials(u.full_name || u.username)}</Text></View>}
-                      <View><Text style={s.mName}>{u.full_name}</Text><Text style={s.mUser}>@{u.username}</Text></View>
+                      <View><Text style={s.mName}><TierName userId={((u) as any)?.id ?? ((u) as any)?.user_id} baseStyle={s.mName} text={u.full_name || ''} /> <VerifiedBadge userId={((u) as any)?.id ?? ((u) as any)?.user_id} size={12} /></Text><Text style={s.mUser}>@{u.username}</Text></View>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -2290,7 +2290,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               <View style={s.composerCard}>
                 <View style={s.cAuthorRow}>
                   {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.cAvatar} fadeDuration={200} /> : <View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
-                  <Text style={s.cName} numberOfLines={1}>{profile?.full_name || 'You'}</Text>
+                  <Text style={s.cName} numberOfLines={1}><TierName userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} baseStyle={s.cName} text={profile?.full_name || 'You' || ''} numberOfLines={1} /> <VerifiedBadge userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} size={12} /></Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipScroller} contentContainerStyle={{ gap: 8, alignItems: 'center', paddingRight: 8 }} keyboardShouldPersistTaps="handled">
                   <TouchableOpacity style={s.audChip} onPress={pickAudience} activeOpacity={0.75}>
                     <Feather name={AUD_META[postAudience].icon} size={12} color={NAVY} />

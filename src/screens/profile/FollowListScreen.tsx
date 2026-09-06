@@ -1,3 +1,4 @@
+import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
@@ -108,7 +109,7 @@ export default function FollowListScreen() {
           )}
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Text style={s.name} numberOfLines={1}>{item.full_name || 'Member'}</Text>
+              <Text style={s.name} numberOfLines={1}><TierName userId={((item) as any)?.id ?? ((item) as any)?.user_id} baseStyle={s.name} text={item.full_name || 'Member' || ''} numberOfLines={1} /> <VerifiedBadge userId={((item) as any)?.id ?? ((item) as any)?.user_id} size={12} /></Text>
               <VerifiedBadge userId={item.id} size={13} />
             </View>
             {item.username ? <Text style={s.handle} numberOfLines={1}>@{item.username}</Text> : null}

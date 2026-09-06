@@ -10,6 +10,7 @@
  * mention record, but the drawn tag stays on the media until the story is
  * deleted. The remove confirmation says so.
  */
+import TierName from '../TierName';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, Alert, ActivityIndicator,
@@ -127,7 +128,7 @@ export default function ManageMentionsSheet({ visible, onClose, storyId }: Props
                   )}
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={[s.name, { flexShrink: 1 }, item.verified_tier ? { color: TIER_COLORS[item.verified_tier] || TIER_COLORS.business } : null]} numberOfLines={1}>{item.full_name || 'User'}</Text>
+                      <Text style={[s.name, { flexShrink: 1 }, item.verified_tier ? { color: TIER_COLORS[item.verified_tier] || TIER_COLORS.business } : null]} numberOfLines={1}><TierName userId={((item) as any)?.id ?? ((item) as any)?.user_id} baseStyle={[s.name, { flexShrink: 1 }, item.verified_tier ? { color: TIER_COLORS[item.verified_tier] || TIER_COLORS.business } : null]} text={item.full_name || 'User' || ''} numberOfLines={1} /> <VerifiedBadge userId={((item) as any)?.id ?? ((item) as any)?.user_id} size={12} /></Text>
                       <VerifiedBadge userId={item.mentioned_user_id} size={12} />
                     </View>
                     <Text style={s.meta} numberOfLines={1}>

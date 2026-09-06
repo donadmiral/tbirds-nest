@@ -2049,7 +2049,7 @@ const pickAndSendDocument = useCallback(async () => {
                     ? <ExpoImage source={{ uri: gm.profile.avatar_url }} style={{ width: 30, height: 30, borderRadius: 15 }} contentFit="cover" />
                     : <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>{initials(gm.profile.full_name)}</Text></View>}
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' }} numberOfLines={1}>{gm.profile.full_name}</Text>
+                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' }} numberOfLines={1}><TierName userId={((gm.profile) as any)?.id ?? ((gm.profile) as any)?.user_id} baseStyle={{ fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' }} text={gm.profile.full_name || ''} numberOfLines={1} /> <VerifiedBadge userId={((gm.profile) as any)?.id ?? ((gm.profile) as any)?.user_id} size={12} /></Text>
                     <Text style={{ fontSize: 11.5, color: 'rgba(11,30,61,0.5)' }} numberOfLines={1}>@{gm.profile.username}</Text>
                   </View>
                 </TouchableOpacity>
@@ -2357,7 +2357,7 @@ const pickAndSendDocument = useCallback(async () => {
                             {(m.profile?.full_name?.[0] || 'U').toUpperCase()}
                           </Text>
                         </View>}
-                    <Text style={s.infoMemberName}>{m.profile?.full_name || 'Member'}</Text>
+                    <Text style={s.infoMemberName}><TierName userId={((m.profile) as any)?.id ?? ((m.profile) as any)?.user_id} baseStyle={s.infoMemberName} text={m.profile?.full_name || 'Member' || ''} /> <VerifiedBadge userId={((m.profile) as any)?.id ?? ((m.profile) as any)?.user_id} size={12} /></Text>
                     {m.role === 'admin' && <View style={s.infoAdminBadge}><Text style={s.infoAdminTxt}>Admin</Text></View>}
                   </View>
                 ))}

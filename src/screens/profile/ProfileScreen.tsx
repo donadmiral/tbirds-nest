@@ -364,7 +364,7 @@ export default function ProfileScreen() {
         {post._savedAt && !post._repostLabel && (<View style={st.repostBanner}><Feather name="bookmark" size={12} color={NAVY} /><Text style={[st.repostBannerTxt, { color: NAVY }]}>Saved {relTime(post._savedAt)}</Text></View>)}
         <View style={st.postHeader}>
           {displayAvatar ? <ExpoImage source={{ uri: displayAvatar }} style={st.postAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /> : <View style={[st.postAvatar, st.postAvatarFb]}><Text style={st.postAvatarTxt}>{initials(displayName)}</Text></View>}
-          <View style={{ flex: 1 }}><Text style={st.postAuthorName} numberOfLines={1}>{displayName}</Text><Text style={st.postTime}>{relTime(post.created_at)}</Text></View>
+          <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><TierName userId={post.user_id} baseStyle={[st.postAuthorName, { flexShrink: 1 }]} text={displayName} /><VerifiedBadge userId={post.user_id} size={13} /></View><Text style={st.postTime}>{relTime(post.created_at)}</Text></View>
           <TouchableOpacity onPress={() => {
             const buttons: any[] = [];
             if (isOwnPost) { buttons.push({ text: 'Delete post', style: 'destructive' as const, onPress: () => { Alert.alert('Delete post?', 'This will permanently remove your post.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { await supabase.from('posts').delete().eq('id', post.id); load(); } }]); } }); }

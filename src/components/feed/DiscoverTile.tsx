@@ -4,6 +4,7 @@
 // where it is the point. One tile handles every kind a post can be: photo and
 // video lead with the frame, an article leads with its title, a shared link
 // keeps its preview, and a text post becomes a quote card.
+import TierName from '../TierName';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
@@ -32,7 +33,7 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
       {author?.avatar_url
         ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" />
         : <View style={[s.avatar, s.avatarEmpty]} />}
-      <Text style={s.name} numberOfLines={1}>{author?.full_name || author?.username || 'Member'}</Text>
+      <Text style={s.name} numberOfLines={1}><TierName userId={((author) as any)?.id ?? ((author) as any)?.user_id} baseStyle={s.name} text={author?.full_name || author?.username || 'Member' || ''} numberOfLines={1} /> <VerifiedBadge userId={((author) as any)?.id ?? ((author) as any)?.user_id} size={12} /></Text>
       <VerifiedBadge userId={post.user_id} size={11} />
     </View>
   );

@@ -1,3 +1,5 @@
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
@@ -448,7 +450,7 @@ export default function CommunityScreen() {
               <View style={s.memberRow}>
                 {r.avatar_url ? <ExpoImage source={{ uri: r.avatar_url }} style={s.memberAvatar} contentFit="cover" /> : <View style={[s.memberAvatar, s.avatarFb]}><Text style={s.avatarTxt}>{(r.full_name || '?')[0]}</Text></View>}
                 <View style={{ flex: 1 }}>
-                  <Text style={s.authorName} numberOfLines={1}>{r.full_name || 'Member'}</Text>
+                  <Text style={s.authorName} numberOfLines={1}><TierName userId={((r) as any)?.id ?? ((r) as any)?.user_id} baseStyle={s.authorName} text={r.full_name || 'Member' || ''} numberOfLines={1} /> <VerifiedBadge userId={((r) as any)?.id ?? ((r) as any)?.user_id} size={12} /></Text>
                   {r.username ? <Text style={s.authorMeta}>@{r.username}</Text> : null}
                 </View>
                 <TouchableOpacity style={s.approveBtn} onPress={() => resolveReq(r, true)}><Feather name="check" size={15} color="#FFF" /></TouchableOpacity>

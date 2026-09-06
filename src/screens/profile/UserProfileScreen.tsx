@@ -1,3 +1,4 @@
+import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
 /**
@@ -251,7 +252,7 @@ export default function UserProfileScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="chevron-left" size={26} color={NAVY} />
         </TouchableOpacity>
-        <Text style={s.headerTitle} numberOfLines={1}>{profile.full_name || 'Profile'}</Text>
+        <Text style={s.headerTitle} numberOfLines={1}><TierName userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} baseStyle={s.headerTitle} text={profile.full_name || 'Profile' || ''} numberOfLines={1} /> <VerifiedBadge userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} size={12} /></Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -334,21 +335,10 @@ export default function UserProfileScreen() {
           <BusinessReviews businessId={targetId} canReview={!isOwnProfile} />
         ) : canViewContent ? (
           <>
-            {(profile.bio || profile.degree_program || profile.location) && (
+            {(profile.bio || profile.location) && (
               <View style={s.section}>
                 <Text style={s.sectionTitle}>About</Text>
                 {profile.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
-                {profile.degree_program ? (
-                  <View style={s.itm}>
-                    <View style={s.itmIconBg}>
-                      <Feather name="book" size={16} color={NAVY} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={s.itmTxt}>{profile.degree_program}</Text>
-                      {profile.graduation_year ? <Text style={s.itmSub}>Class of {profile.graduation_year}</Text> : null}
-                    </View>
-                  </View>
-                ) : null}
                 {profile.location ? (
                   <View style={s.itm}>
                     <View style={s.itmIconBg}>

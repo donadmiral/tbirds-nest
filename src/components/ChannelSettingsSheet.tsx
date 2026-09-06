@@ -1,3 +1,5 @@
+import VerifiedBadge from './VerifiedBadge';
+import TierName from './TierName';
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Modal, Alert, Switch, KeyboardAvoidingView, Platform } from 'react-native';
@@ -225,7 +227,7 @@ export default function ChannelSettingsSheet({ visible, onClose, channelId, myRo
                     <View key={r.id} style={s.memberRow}>
                       {r.avatar_url ? <ExpoImage source={{ uri: r.avatar_url }} style={s.memberAvatar} contentFit="cover" /> : <View style={[s.memberAvatar, s.iconFb]}><Text style={s.memberAvatarTxt}>{(r.full_name || '?')[0]}</Text></View>}
                       <View style={{ flex: 1 }}>
-                        <Text style={s.memberName} numberOfLines={1}>{r.full_name || 'Member'}</Text>
+                        <Text style={s.memberName} numberOfLines={1}><TierName userId={((r) as any)?.id ?? ((r) as any)?.user_id} baseStyle={s.memberName} text={r.full_name || 'Member' || ''} numberOfLines={1} /> <VerifiedBadge userId={((r) as any)?.id ?? ((r) as any)?.user_id} size={12} /></Text>
                         {r.username ? <Text style={s.memberSub}>@{r.username}</Text> : null}
                       </View>
                       <TouchableOpacity style={s.inviteBtn} onPress={() => invite(r)} disabled={inviting === r.id} activeOpacity={0.85}>

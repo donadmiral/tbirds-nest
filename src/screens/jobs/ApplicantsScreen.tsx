@@ -254,7 +254,7 @@ export default function ApplicantsScreen() {
                       ? <Image source={{ uri: a.avatar_url }} style={sh.av} />
                       : <View style={[sh.av, sh.avFb]}><Text style={sh.avTxt}>{String(a.full_name || '?').slice(0, 1).toUpperCase()}</Text></View>}
                     <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={sh.name} numberOfLines={1}>{a.full_name || 'Applicant'}</Text>
+                      <Text style={sh.name} numberOfLines={1}><TierName userId={((a) as any)?.id ?? ((a) as any)?.user_id} baseStyle={sh.name} text={a.full_name || 'Applicant' || ''} numberOfLines={1} /> <VerifiedBadge userId={((a) as any)?.id ?? ((a) as any)?.user_id} size={12} /></Text>
                       {p.headline ? <Text style={sh.headline} numberOfLines={2}>{p.headline}</Text> : null}
                       <Text style={sh.applied}>Applied {relTime(sheetApp.applied_at)}</Text>
                     </View>

@@ -3,6 +3,8 @@
  * Settings. Lists every account signed in on this phone, the current one
  * ticked; switching needs no sign-in.
  */
+import VerifiedBadge from './VerifiedBadge';
+import TierName from './TierName';
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Image, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
@@ -41,7 +43,7 @@ export default function AccountSwitcherSheet() {
                 onPress={async () => { const err = await switchTo(a.id); if (err) Alert.alert('Could not switch', err); }}>
                 {a.avatar_url ? <Image source={{ uri: a.avatar_url }} style={st.avatar} /> : <View style={[st.avatar, { backgroundColor: t.brand.tintBg, alignItems: 'center', justifyContent: 'center' }]}><Feather name="user" size={18} color={t.ink.muted} /></View>}
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[st.name, { color: t.ink.primary }]} numberOfLines={1}>{a.full_name || a.username || 'Account'}</Text>
+                  <Text style={[st.name, { color: t.ink.primary }]} numberOfLines={1}><TierName userId={((a) as any)?.id ?? ((a) as any)?.user_id} baseStyle={[st.name, { color: t.ink.primary }]} text={a.full_name || a.username || 'Account' || ''} numberOfLines={1} /> <VerifiedBadge userId={((a) as any)?.id ?? ((a) as any)?.user_id} size={12} /></Text>
                   {a.username ? <Text style={[st.handleTxt, { color: t.ink.muted }]} numberOfLines={1}>@{a.username}</Text> : null}
                 </View>
                 {isCurrent ? <Feather name="check-circle" size={20} color={t.ink.primary} /> : null}

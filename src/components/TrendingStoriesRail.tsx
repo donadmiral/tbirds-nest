@@ -4,6 +4,8 @@
  * plus double-weighted reactions, floor of 3 views, capped at 8. The flame
  * says why they are here.
  */
+import VerifiedBadge from './VerifiedBadge';
+import TierName from './TierName';
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
@@ -64,7 +66,7 @@ export default function TrendingStoriesRail() {
                   <View style={[s.tileAvatar, s.fallback]}><Text style={[s.fallbackTxt, { fontSize: 13 }]}>{(r.full_name || '?').slice(0, 1)}</Text></View>
                 )}
               </View>
-              <Text style={s.tileName} numberOfLines={1}>{r.full_name}</Text>
+              <Text style={s.tileName} numberOfLines={1}><TierName userId={((r) as any)?.id ?? ((r) as any)?.user_id} baseStyle={s.tileName} text={r.full_name || ''} numberOfLines={1} /> <VerifiedBadge userId={((r) as any)?.id ?? ((r) as any)?.user_id} size={12} /></Text>
               <Text style={s.tileViews}>{r.views} views</Text>
             </View>
           </TouchableOpacity>

@@ -2,6 +2,8 @@
  * SavedPostsScreen.tsx
  * Shows user's bookmarked posts, matches Clean Premium style.
  */
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -171,7 +173,7 @@ export default function SavedPostsScreen({ navigation }: any) {
               ? <Image source={{ uri: author.avatar_url }} style={ss.avatar} />
               : <View style={[ss.avatar, ss.avatarFb]}><Text style={ss.avatarFbTxt}>{initials(author?.full_name || author?.username)}</Text></View>}
             <View style={ss.authorMeta}>
-              <Text style={ss.authorName} numberOfLines={1}>{author?.full_name || 'Member'}</Text>
+              <Text style={ss.authorName} numberOfLines={1}><TierName userId={((author) as any)?.id ?? ((author) as any)?.user_id} baseStyle={ss.authorName} text={author?.full_name || 'Member' || ''} numberOfLines={1} /> <VerifiedBadge userId={((author) as any)?.id ?? ((author) as any)?.user_id} size={12} /></Text>
               <Text style={ss.authorSub}>
                 {author?.username ? `@${author.username} · ` : ''}
                 {relTime(post.created_at)}

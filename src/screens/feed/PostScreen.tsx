@@ -1,3 +1,4 @@
+import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
@@ -116,6 +117,8 @@ export default function PostScreen({ route, navigation }: any) {
   const [post, setPost] = useState<Post | null>(null);
   const [canComment, setCanComment] = useState<boolean>(true);
   const [collabInvite, setCollabInvite] = useState<boolean>(false);
+  const [postCollabs, setPostCollabs] = useState<{ id: string; username: string | null; full_name: string | null; avatar_url: string | null }[]>([]);
+  const [collabSheet, setCollabSheet] = useState(false);
   useFocusEffect(useCallback(() => { if (userId) supabase.from('post_collaborators').select('status').eq('post_id', postId).eq('user_id', userId).maybeSingle().then(({ data }) => setCollabInvite((data as any)?.status === 'invited'), () => {}); }, [postId, userId]));
   const [showHidden, setShowHidden] = useState(false);
   const [linkPreview, setLinkPreview] = useState<{ url: string; title: string | null; description: string | null; image_url: string | null; domain: string | null } | null>(null);
@@ -159,6 +162,7 @@ export default function PostScreen({ route, navigation }: any) {
     try {
       const { data: vis } = await supabase.rpc('can_view_post', { p_post_id: postId });
       supabase.rpc('can_comment', { p_post_id: postId }).then(({ data }) => setCanComment(data !== false), () => {});
+      supabase.from('post_collaborators').select('user_id, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url)').eq('post_id', postId).eq('status', 'accepted').then(({ data }) => setPostCollabs(((data as any[]) || []).map((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; return { id: r.user_id, username: pr?.username ?? null, full_name: pr?.full_name ?? null, avatar_url: pr?.avatar_url ?? null }; })), () => {});
       if (userId) supabase.from('post_collaborators').select('status').eq('post_id', postId).eq('user_id', userId).maybeSingle().then(({ data }) => setCollabInvite((data as any)?.status === 'invited'), () => {});
       if (vis === false) { setNotFound(true); setLoading(false); return; }
     } catch {}
@@ -596,7 +600,7 @@ export default function PostScreen({ route, navigation }: any) {
               }
               if (row.type === 'post' && post) {
                 const a = post.author;
-                const roleLine = a?.degree_program || null;
+                const roleLine = null; // the school-era degree line is retired; the handle shows instead
 
                 const mediaItems: CarouselMedia[] = post.post_media?.length
                   ? (post.post_media as CarouselMedia[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
@@ -615,9 +619,18 @@ export default function PostScreen({ route, navigation }: any) {
                         ? <Image source={{ uri: a.avatar_url }} style={s.postAvatar} fadeDuration={200} />
                         : <View style={[s.postAvatar, s.postAvatarFb]}><Text style={s.postAvatarFbTxt}>{initials(a?.full_name || a?.username)}</Text></View>}
                       <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
                           <TierName userId={a?.id} baseStyle={[s.postAuthorName, { flexShrink: 1 }]} text={a?.full_name || 'Member'} />
                           <VerifiedBadge userId={a?.id} size={14} />
+                          {postCollabs.length === 1 ? (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginLeft: 3 }}>
+                              <Text style={[s.postAuthorName, { fontWeight: '800' }]}>×</Text>
+                              <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: postCollabs[0].id })} activeOpacity={0.7}><TierName userId={postCollabs[0].id} baseStyle={[s.postAuthorName, { flexShrink: 1 }]} text={postCollabs[0].full_name || postCollabs[0].username || ''} /></TouchableOpacity>
+                              <VerifiedBadge userId={postCollabs[0].id} size={14} />
+                            </View>
+                          ) : postCollabs.length > 1 ? (
+                            <TouchableOpacity onPress={() => setCollabSheet(true)} activeOpacity={0.7} style={{ marginLeft: 3 }}><Text style={s.postAuthorName}>× {postCollabs.length} others</Text></TouchableOpacity>
+                          ) : null}
                         </View>
                         {roleLine ? <Text style={s.postAuthorRole}>{roleLine}</Text> : a?.username ? <Text style={s.postAuthorRole}>@{a.username}</Text> : null}
                         <Text style={s.postAuthorSub}>{relTime(post.created_at)}</Text>
@@ -720,7 +733,7 @@ export default function PostScreen({ route, navigation }: any) {
               {mentions.map(u => (
                 <TouchableOpacity key={u.id} style={s.mentionRow} onPress={() => insertMention(u)}>
                   {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={s.mentionAvatar} fadeDuration={200} /> : <View style={s.mentionAvatarFb}><Text style={s.mentionAvatarTxt}>{initials(u.full_name || u.username)}</Text></View>}
-                  <View><Text style={s.mentionName}>{u.full_name || u.username}</Text>{u.username && <Text style={s.mentionHandle}>@{u.username}</Text>}</View>
+                  <View><Text style={s.mentionName}><TierName userId={((u) as any)?.id ?? ((u) as any)?.user_id} baseStyle={s.mentionName} text={u.full_name || u.username || ''} /> <VerifiedBadge userId={((u) as any)?.id ?? ((u) as any)?.user_id} size={12} /></Text>{u.username && <Text style={s.mentionHandle}>@{u.username}</Text>}</View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -744,6 +757,7 @@ export default function PostScreen({ route, navigation }: any) {
                 <TouchableOpacity onPress={() => setPendingGif(null)}><Feather name="x-circle" size={20} color="#8E8E93" /></TouchableOpacity>
               </View>
             )}
+            <CollaboratorsSheet visible={collabSheet} people={postCollabs} onClose={() => setCollabSheet(false)} />
             {collabInvite ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)' }}>
                 <Text style={{ flex: 1, fontSize: 13.5, color: '#0B1E3D', fontWeight: '600' }}>You're invited to collaborate on this post</Text>
