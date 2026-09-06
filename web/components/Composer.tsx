@@ -57,6 +57,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   const [text, setText] = useState("");
   const [items, setItems] = useState<Media[]>([]);
   const [audience, setAudience] = useState<(typeof AUDIENCES)[number]["key"]>("everyone");
+  const [commentPolicy, setCommentPolicy] = useState<"everyone" | "following" | "followers" | "mentioned" | "off">("everyone");
   const [inno, setInno] = useState(false);
   const [innoField, setInnoField] = useState<string | null>(null);
   const [innoStage, setInnoStage] = useState<string | null>(null);
@@ -249,6 +250,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       user_id: uid,
       content: content || null,
       audience,
+      comment_policy: commentPolicy,
       is_exclusive: false,
       channel: inno ? "innovation" : null,
     };
@@ -643,7 +645,13 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             <option key={a.key} value={a.key} className="bg-navy">{a.label}</option>
           ))}
         </select>
-        <div className="ml-auto flex gap-2">
+        <select value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} title="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+          <option value="everyone" className="bg-navy">Comments: everyone</option>
+          <option value="following" className="bg-navy">Comments: people I follow</option>
+          <option value="followers" className="bg-navy">Comments: my followers</option>
+          <option value="mentioned" className="bg-navy">Comments: mentioned only</option>
+          <option value="off" className="bg-navy">Comments off</option>
+        </select>        <div className="ml-auto flex gap-2">
           <button onClick={() => { setOpen(false); setError(null); onQuoteDone?.(); }} className="rounded-full bg-surface px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Cancel</button>
           <button onClick={post} disabled={pending || (!text.trim() && items.length === 0)} className="rounded-full bg-pearl px-6 py-2 text-[13.5px] font-bold text-ink shadow-sm transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
             {pending ? "Posting" : "Post"}

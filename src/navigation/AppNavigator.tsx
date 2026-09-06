@@ -10,6 +10,7 @@ import { useTheme, themedSheet } from '../theme/useTheme';
 import { useThemeStore } from '../stores/themeStore';
 import { useAccountsStore } from '../stores/accountsStore';
 import AccountSwitcherSheet from '../components/AccountSwitcherSheet';
+import HiddenWordsScreen from '../screens/profile/HiddenWordsScreen';
 import AddAccountSheet from '../components/AddAccountSheet';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -180,6 +181,7 @@ function ProfileStackNav() {
       <ProfStack.Screen name="ProfileMain"     component={ProfileScreen} />
       <ProfStack.Screen name="Settings"        component={SettingsScreen} />
       <ProfStack.Screen name="ApplyVerification" component={ApplyVerificationScreen} />
+      <ProfStack.Screen name="HiddenWords" component={HiddenWordsScreen} />
       <ProfStack.Screen name="ContactSupport" component={ContactSupportScreen} />
       <ProfStack.Screen name="Ticket" component={TicketScreen} />
       <ProfStack.Screen name="BusinessApply" component={BusinessApplyScreen} />

@@ -41,10 +41,10 @@ export function Comments({ postId }: { postId: string }) {
     setUid(userId);
     const { data: rows } = await supabase
       .from("post_comments")
-      .select("id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at")
+      .select("id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, hidden_at")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
-    const all = ((rows ?? []) as (CommentRow & { content: string | null })[]).map((r) => ({ ...r, body: r.body || r.content || "", replies: [] as CommentRow[] }));
+    const all = ((rows ?? []) as (CommentRow & { content: string | null; hidden_at?: string | null })[]).filter((r) => !r.hidden_at || r.user_id === userId).map((r) => ({ ...r, body: r.body || r.content || "", replies: [] as CommentRow[] }));
     const ids = Array.from(new Set(all.map((c) => c.user_id)));
     if (ids.length > 0) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);

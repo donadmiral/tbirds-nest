@@ -114,6 +114,8 @@ export default function PostScreen({ route, navigation }: any) {
   const userId = profile?.id ?? null;
 
   const [post, setPost] = useState<Post | null>(null);
+  const [canComment, setCanComment] = useState<boolean>(true);
+  const [showHidden, setShowHidden] = useState(false);
   const [linkPreview, setLinkPreview] = useState<{ url: string; title: string | null; description: string | null; image_url: string | null; domain: string | null } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
   const [likedPost, setLikedPost] = useState(false);
@@ -154,6 +156,7 @@ export default function PostScreen({ route, navigation }: any) {
   const load = useCallback(async () => {
     try {
       const { data: vis } = await supabase.rpc('can_view_post', { p_post_id: postId });
+      supabase.rpc('can_comment', { p_post_id: postId }).then(({ data }) => setCanComment(data !== false), () => {});
       if (vis === false) { setNotFound(true); setLoading(false); return; }
     } catch {}
     try {
@@ -221,13 +224,15 @@ export default function PostScreen({ route, navigation }: any) {
 
       const { data: rows, error: cErr } = await supabase
         .from('post_comments')
-        .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, media_url, media_type')
+        .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, media_url, media_type, hidden_at')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
       if (cErr) console.log('COMMENTS_ERROR', JSON.stringify(cErr));
 
-      let allRows = (rows ?? []).map((r: any) => ({ ...r, body: r.body || r.content || '' }));
+      // A hidden comment is seen by its writer and by the post's author only; the author sees it folded.
+      const postAuthorId = (pd as any)?.user_id;
+      let allRows = (rows ?? []).filter((r: any) => !r.hidden_at || r.user_id === userId || postAuthorId === userId).map((r: any) => ({ ...r, body: r.body || r.content || '', hidden: !!r.hidden_at }));
       if (userId) {
         try {
           const { data: blk } = await supabase.from('blocked_users').select('blocker_id, blocked_id').or('blocker_id.eq.' + userId + ',blocked_id.eq.' + userId);
@@ -411,6 +416,8 @@ export default function PostScreen({ route, navigation }: any) {
     const isLiked = myReaction === 1;
     const isDisliked = myReaction === -1;
     const isOwn = c.user_id === userId;
+    const isPostAuthor = !!post && (post as any).user_id === userId;
+    if ((c as any).hidden && !showHidden && !isOwn) return null;
     const a = c.author;
     return (
       <View key={c.id} style={[s.commentWrap, isReply && s.replyWrap]}>
@@ -477,6 +484,12 @@ export default function PostScreen({ route, navigation }: any) {
               >
                 <Feather name="corner-up-left" size={13} color={TEXT_SECONDARY} />
                 <Text style={s.commentActionTxt}>Reply</Text>
+              </TouchableOpacity>
+            )}
+            {isPostAuthor && !isOwn && (
+              <TouchableOpacity style={s.commentAction} activeOpacity={0.75}
+                onPress={() => supabase.rpc('set_comment_hidden', { p_comment_id: c.id, p_hidden: !(c as any).hidden }).then(() => load(), () => {})}>
+                <Text style={s.commentActionTxt}>{(c as any).hidden ? 'Unhide' : 'Hide'}</Text>
               </TouchableOpacity>
             )}
             {isOwn && (
@@ -727,6 +740,11 @@ export default function PostScreen({ route, navigation }: any) {
                 <TouchableOpacity onPress={() => setPendingGif(null)}><Feather name="x-circle" size={20} color="#8E8E93" /></TouchableOpacity>
               </View>
             )}
+            {!canComment ? (
+              <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 8), justifyContent: 'center' }]}>
+                <Text style={{ fontSize: 13, color: TEXT_SECONDARY, fontWeight: '600' }}>Comments are limited on this post</Text>
+              </View>
+            ) : (
             <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
               {profile?.avatar_url
                 ? <Image source={{ uri: profile.avatar_url }} style={s.inputAvatar} fadeDuration={200} />
@@ -755,6 +773,7 @@ export default function PostScreen({ route, navigation }: any) {
                 {submitting ? <ActivityIndicator color="#fff" size={14} /> : <Feather name="arrow-up" size={18} color="#FFF" />}
               </TouchableOpacity>
             </View>
+            )}
           </KeyboardAvoidingView>
         </View>
       )}

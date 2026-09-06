@@ -272,6 +272,22 @@ export default function FeedScreen({ navigation }: any) {
   const [innoField, setInnoField] = useState<string | null>(null);
   const [innoStage, setInnoStage] = useState<string | null>(null);
   const [postAudience, setPostAudience] = useState<'everyone' | 'followers' | 'mentioned' | 'verified'>('everyone');
+  // Who can comment, Instagram's rule set, enforced by the server on every comment.
+  const [commentPolicy, setCommentPolicy] = useState<'everyone' | 'following' | 'followers' | 'mentioned' | 'off'>('everyone');
+  const COMMENT_META: Record<string, { label: string; icon: string }> = {
+    everyone: { label: 'Comments: everyone', icon: 'message-circle' }, following: { label: 'Comments: people I follow', icon: 'user-check' },
+    followers: { label: 'Comments: my followers', icon: 'users' }, mentioned: { label: 'Comments: mentioned only', icon: 'at-sign' }, off: { label: 'Comments off', icon: 'slash' },
+  };
+  const pickCommentPolicy = useCallback(() => {
+    Alert.alert('Who can comment?', 'Enforced by the server on every comment.', [
+      { text: 'Everyone', onPress: () => setCommentPolicy('everyone') },
+      { text: 'People I follow', onPress: () => setCommentPolicy('following') },
+      { text: 'My followers', onPress: () => setCommentPolicy('followers') },
+      { text: 'Mentioned only', onPress: () => setCommentPolicy('mentioned') },
+      { text: 'Turn off comments', onPress: () => setCommentPolicy('off') },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }, []);
   const [articleTitle, setArticleTitle] = useState('');
   const [composerProducts, setComposerProducts] = useState<PostProduct[]>([]);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
@@ -1475,6 +1491,7 @@ export default function FeedScreen({ navigation }: any) {
         ...(innovationPost && innoField ? { innovation_field: innoField } : {}),
         ...(innovationPost && innoStage ? { innovation_stage: innoStage } : {}),
         audience: postAudience,
+        comment_policy: commentPolicy,
         ...(postCategory ? { category: postCategory } : {}),
         ...(innovationPost && articleTitle.trim() ? { article_title: articleTitle.trim(), read_minutes: Math.max(1, Math.round((composerText.trim().split(/\s+/).length || 0) / 200)) } : {}),
         ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
@@ -1538,6 +1555,7 @@ export default function FeedScreen({ navigation }: any) {
       setComposerProducts([]);
       setInnovationPost(false);
       setPostAudience('everyone');
+      setCommentPolicy('everyone');
       setQuotingPost(null);
       setThreadingPost(null);
       Keyboard.dismiss();
@@ -2222,6 +2240,11 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   <TouchableOpacity style={s.audChip} onPress={pickAudience} activeOpacity={0.75}>
                     <Feather name={AUD_META[postAudience].icon} size={12} color={NAVY} />
                     <Text style={s.audChipTxt}>{AUD_META[postAudience].label}</Text>
+                    <Feather name="chevron-down" size={12} color={NAVY} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.audChip} onPress={pickCommentPolicy} activeOpacity={0.75}>
+                    <Feather name={COMMENT_META[commentPolicy].icon as any} size={12} color={NAVY} />
+                    <Text style={s.audChipTxt}>{COMMENT_META[commentPolicy].label}</Text>
                     <Feather name="chevron-down" size={12} color={NAVY} />
                   </TouchableOpacity>
                 </View>

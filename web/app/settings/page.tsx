@@ -89,6 +89,7 @@ export default function SettingsPage() {
         <NavRow href="/settings/follow-requests" icon={<UserCheck size={16} />} label="Follow requests" sub="Approve who follows your private account" />
         <NavRow href="/settings/blocked" icon={<ShieldOff size={16} />} label="Blocked accounts" sub="Manage who you have blocked" />
         <NavRow href="/settings/muted" icon={<EyeOff size={16} />} label="Muted stories" sub="Manage who you have muted" />
+        <NavRow href="/settings/hidden-words" icon={<EyeOff size={16} />} label="Hidden words" sub="Hide comments that contain certain words" />
         <NavRow href="/settings/standing" icon={<ShieldAlert size={16} />} label="Account standing" sub="Your record with Platinum Circles" />
         </div>
       </div>
