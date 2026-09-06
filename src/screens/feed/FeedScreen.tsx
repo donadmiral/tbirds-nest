@@ -286,6 +286,8 @@ export default function FeedScreen({ navigation }: any) {
   const [postAudience, setPostAudience] = useState<'everyone' | 'followers' | 'mentioned' | 'verified'>('everyone');
   // Who can comment, Instagram's rule set, enforced by the server on every comment.
   const [commentPolicy, setCommentPolicy] = useState<'everyone' | 'following' | 'followers' | 'mentioned' | 'off'>('everyone');
+  // Sensitive media, the poster's own mark: readers see it by their own setting.
+  const [composerSensitive, setComposerSensitive] = useState(false);
   const COMMENT_META: Record<string, { label: string; icon: string }> = {
     everyone: { label: 'Anyone', icon: 'message-circle' }, following: { label: 'People I follow', icon: 'user-check' },
     followers: { label: 'My followers', icon: 'users' }, mentioned: { label: 'Mentioned only', icon: 'at-sign' }, off: { label: 'Comments off', icon: 'slash' },
@@ -1538,6 +1540,7 @@ export default function FeedScreen({ navigation }: any) {
             ...(m.width  != null ? { width:  m.width  } : {}),
             ...(m.height != null ? { height: m.height } : {}),
             ...(m.edit ? { edit: (() => { const { tags: _t, ...rest } = (m.edit as any) || {}; return Object.keys(rest).length ? rest : null; })() } : {}),
+            is_sensitive: composerSensitive,
           }));
           const { data: inserted, error: mErr } = await supabase.from('post_media').insert(mediaRows).select('id, sort_order');
           if (mErr) {
@@ -1568,6 +1571,7 @@ export default function FeedScreen({ navigation }: any) {
       setInnovationPost(false);
       setPostAudience('everyone');
       setCommentPolicy('everyone');
+      setComposerSensitive(false);
       setQuotingPost(null);
       setThreadingPost(null);
       Keyboard.dismiss();
@@ -2260,6 +2264,10 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     <Text style={s.audChipTxt}>{COMMENT_META[commentPolicy].label}</Text>
                     <Feather name="chevron-down" size={12} color={NAVY} />
                   </TouchableOpacity>
+                  <TouchableOpacity style={[s.audChip, composerSensitive && { backgroundColor: '#0B1E3D' }]} onPress={() => setComposerSensitive(v => !v)} activeOpacity={0.75}>
+                    <Feather name="alert-triangle" size={12} color={composerSensitive ? '#FFFFFF' : NAVY} />
+                    <Text style={[s.audChipTxt, composerSensitive && { color: '#FFFFFF' }]}>{composerSensitive ? 'Sensitive' : 'Mark sensitive'}</Text>
+                  </TouchableOpacity>
                   </ScrollView>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
@@ -2678,6 +2686,20 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               }}>
                 <Feather name="archive" size={18} color={getTheme().ink.primary} />
                 <Text style={s.menuOptionTxt}>Archive post</Text>
+              </TouchableOpacity>
+            )}
+
+            {menuPost?.user_id === userId && (menuPost?.media?.length ?? 0) > 0 && (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={async () => {
+                const captured = menuPost; setMenuPost(null); if (!captured) return;
+                const nowSensitive = (captured.media || []).some((m: any) => !!m?.is_sensitive);
+                const { error } = await supabase.from('post_media').update({ is_sensitive: !nowSensitive }).eq('post_id', captured.id);
+                if (error) { Alert.alert('Not saved', error.message); return; }
+                setPosts(prev => prev.map(pp => pp.id === captured.id ? { ...pp, media: (pp.media || []).map((m: any) => ({ ...m, is_sensitive: !nowSensitive })) } : pp));
+                showMessage({ message: nowSensitive ? 'Unmarked' : 'Marked as sensitive', type: 'success', duration: 1500 });
+              }}>
+                <Feather name="alert-triangle" size={18} color={getTheme().ink.primary} />
+                <Text style={s.menuOptionTxt}>{(menuPost?.media || []).some((m: any) => !!m?.is_sensitive) ? 'Unmark as sensitive' : 'Mark as sensitive'}</Text>
               </TouchableOpacity>
             )}
 

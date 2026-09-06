@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import { KeyboardAvoidingView, Platform } from 'react-native';
@@ -204,7 +205,13 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       }
     } catch { Alert.alert('Could not enable', 'Please try again.'); }
   };
-  React.useEffect(() => { paymentsService.getLinkStatus().then(r => setIbLinked(!!r.linked), () => setIbLinked(false)); }, []);
+  // The last known IntoBank state shows at once; the server's answer refreshes it quietly.
+  React.useEffect(() => {
+    let alive = true;
+    AsyncStorage.getItem('pc.ib.linked').then(v => { if (alive && v != null && ibLinked === null) setIbLinked(v === '1'); }).catch(() => {});
+    paymentsService.getLinkStatus().then(r => { if (!alive) return; setIbLinked(!!r.linked); AsyncStorage.setItem('pc.ib.linked', r.linked ? '1' : '0').catch(() => {}); }, () => { if (alive && ibLinked === null) setIbLinked(false); });
+    return () => { alive = false; };
+  }, []);
   const confirmUnlink = () => {
     Alert.alert('Unlink IntoBank?', 'Payments in chats stop until you link an account again, from Settings or from any pay sheet. Nothing about your IntoBank account itself changes.', [
       { text: 'Cancel', style: 'cancel' },
@@ -253,7 +260,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: 'Face ID at launch and when you return after being away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
     ] },
     { title: 'IntoBank', rows: [
-      { icon: 'credit-card', color: '#0B1E3D', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibLinked === false) setShowLinkSheet(true); } },
+      { icon: 'credit-card', color: '#0B1E3D', label: ibLinked === null ? 'IntoBank' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibLinked === false) setShowLinkSheet(true); } },
       ...(ibLinked ? [{ icon: 'x-circle', color: '#FF3B30', label: 'Unlink IntoBank', sub: 'Disconnect this bank account, or unlink to connect a different one', onPress: confirmUnlink }] : []),
       ...(ibLinked === false ? [{ icon: 'link', color: '#0B1E3D', label: 'Link IntoBank', sub: 'Email plus a 6-digit code, done in a minute', onPress: () => setShowLinkSheet(true) }] : []),
     ] },

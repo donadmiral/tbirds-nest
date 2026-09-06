@@ -58,6 +58,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   const [items, setItems] = useState<Media[]>([]);
   const [audience, setAudience] = useState<(typeof AUDIENCES)[number]["key"]>("everyone");
   const [commentPolicy, setCommentPolicy] = useState<"everyone" | "following" | "followers" | "mentioned" | "off">("everyone");
+  const [sensitiveMark, setSensitiveMark] = useState(false);
   const [inno, setInno] = useState(false);
   const [innoField, setInnoField] = useState<string | null>(null);
   const [innoStage, setInnoStage] = useState<string | null>(null);
