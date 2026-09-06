@@ -201,19 +201,31 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   };
   React.useEffect(() => { paymentsService.getLinkStatus().then(r => setIbLinked(!!r.linked), () => setIbLinked(false)); }, []);
   const confirmUnlink = () => {
-    Alert.alert('Deactivate IntoBank?', 'Payments in chats will stop working until you link an account again from any payment sheet.', [
+    Alert.alert('Unlink IntoBank?', 'Payments in chats stop until you link an account again, from Settings or from any pay sheet. Nothing about your IntoBank account itself changes.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Deactivate', style: 'destructive', onPress: async () => { try { await paymentsService.unlink(); setIbLinked(false); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch (e: any) { Alert.alert('Could not deactivate', e?.message || 'Please try again.'); } } },
+      { text: 'Unlink', style: 'destructive', onPress: async () => { try {
+        // Disconnecting a bank is confirmed the same way sending money is.
+        if (LocalAuthentication?.authenticateAsync) { const ok = await LocalAuthentication.authenticateAsync({ promptMessage: 'Confirm to unlink IntoBank', fallbackLabel: 'Use passcode' }); if (!ok?.success) return; }
+        await paymentsService.unlink(); setIbLinked(false); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch (e: any) { Alert.alert('Could not deactivate', e?.message || 'Please try again.'); } } },
     ]);
   };
 
   const buildSections = (): { title: string; rows: SetRow[] }[] => [
     { title: 'Security', rows: [
-      { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: 'Face ID at launch and after a minute away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
+      ...(lockEnabled ? [{ icon: 'clock', color: '#0B1E3D', label: 'Ask for Face ID', sub: (() => { const ms = useLockStore.getState().lockAfterMs; return ms <= 0 ? 'Immediately when I return' : ms >= 900000 ? 'After 15 minutes away' : ms >= 300000 ? 'After 5 minutes away' : 'After 1 minute away'; })(), onPress: () => {
+        Alert.alert('Ask for Face ID', 'When you come back to the app after being away', [
+          { text: 'Immediately', onPress: () => useLockStore.getState().setLockAfterMs(0) },
+          { text: 'After 1 minute', onPress: () => useLockStore.getState().setLockAfterMs(60000) },
+          { text: 'After 5 minutes', onPress: () => useLockStore.getState().setLockAfterMs(300000) },
+          { text: 'After 15 minutes', onPress: () => useLockStore.getState().setLockAfterMs(900000) },
+          { text: 'Cancel', style: 'cancel' },
+        ]);
+      } }] : []),
+      { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: 'Face ID at launch and when you return after being away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
     ] },
     { title: 'IntoBank', rows: [
       { icon: 'credit-card', color: '#0B1E3D', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibLinked === false) setShowLinkSheet(true); } },
-      ...(ibLinked ? [{ icon: 'x-circle', color: '#FF3B30', label: 'Deactivate IntoBank', sub: 'Unlink this account, or unlink to add a different one', onPress: confirmUnlink }] : []),
+      ...(ibLinked ? [{ icon: 'x-circle', color: '#FF3B30', label: 'Unlink IntoBank', sub: 'Disconnect this bank account, or unlink to connect a different one', onPress: confirmUnlink }] : []),
       ...(ibLinked === false ? [{ icon: 'link', color: '#0B1E3D', label: 'Link IntoBank', sub: 'Email plus a 6-digit code, done in a minute', onPress: () => setShowLinkSheet(true) }] : []),
     ] },
     { title: 'Account', rows: [

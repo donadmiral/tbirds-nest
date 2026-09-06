@@ -8,7 +8,6 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useLockStore } from '../stores/lockStore';
 
 const NAVY = '#18294C';
-const LOCK_AFTER_MS = 60000;
 
 export default function AppLockGate() {
   const enabled = useLockStore(st => st.enabled);
@@ -16,6 +15,7 @@ export default function AppLockGate() {
   const unlock = useLockStore(st => st.unlock);
   const relock = useLockStore(st => st.relock);
   const init = useLockStore(st => st.init);
+  const lockAfterMs = useLockStore(st => st.lockAfterMs);
   const busyRef = useRef(false);
   const awayAt = useRef<number | null>(null);
 
@@ -25,12 +25,12 @@ export default function AppLockGate() {
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'background') awayAt.current = Date.now();
       if (s === 'active') {
-        if (awayAt.current && Date.now() - awayAt.current > LOCK_AFTER_MS) relock();
+        if (awayAt.current && Date.now() - awayAt.current >= lockAfterMs) relock();
         awayAt.current = null;
       }
     });
     return () => sub.remove();
-  }, [relock]);
+  }, [relock, lockAfterMs]);
 
   const prompt = useCallback(async () => {
     if (busyRef.current) return;
