@@ -43,6 +43,8 @@ import { EXTRA_TEXT_STYLES, EXTRA_TEXT_LABELS, composedTextStyle, TEXT_ANIMS, fe
 import GifPickerLite from '../../components/GifPickerLite';
 import PollDragWrap from '../../components/stories/PollDragWrap';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import {
   getBloomTools, BLOOM_RADIUS, INVOKE_SIZE, BLOOM_TOOL_SIZE,
@@ -481,6 +483,7 @@ export default function StoryComposerScreen() {
   const [drawMode, setDrawMode] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
+  const [cutBusy, setCutBusy] = useState(false);
   const [mixOpen, setMixOpen] = useState(false);
   const [entityOpen, setEntityOpen] = useState(false);
   const [gifOpen, setGifOpen] = useState(false);
@@ -507,6 +510,29 @@ export default function StoryComposerScreen() {
   const autoTrimSetRef = useRef<Set<string>>(new Set());
   const getTx = useCallback((): MediaTransform => (active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (active?.mediaFit || 'cover') as MediaFit }), [active]);
   const setTx = useCallback((patch: Partial<MediaTransform>) => { const cur = active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (active?.mediaFit || 'cover') as MediaFit }; updateActive({ mediaTransform: { ...cur, ...patch } as MediaTransform }); }, [active, updateActive]);
+  // Backdrop: cut the subject out with the background-removal model behind the
+  // Replicate proxy, then let the background layer show through behind them.
+  const cutoutSubject = useCallback(async () => {
+    if (!active || active.mediaType !== 'image' || !active.localUri) { Alert.alert('Photos only', 'Backdrop cuts the subject out of a photo. Video comes later.'); return; }
+    if (cutBusy) return;
+    setCutBusy(true);
+    try {
+      const small = await ImageManipulator.manipulateAsync(active.localUri, [{ resize: { width: 1280 } }], { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG, base64: true });
+      const { data, error } = await supabase.functions.invoke('replicate-proxy', { body: { op: 'run', model: 'cjwbw/rembg', input: { image: 'data:image/jpeg;base64,' + small.base64 } } });
+      if (error) throw error;
+      const out = (data as any)?.output;
+      const url = typeof out === 'string' ? out : Array.isArray(out) ? out[0] : null;
+      if (!url) throw new Error((data as any)?.error || (data as any)?.detail || 'The cutout did not come back.');
+      const dest = (FileSystem.cacheDirectory || '') + 'cutout-' + Date.now() + '.png';
+      await FileSystem.downloadAsync(url, dest);
+      updateActive({ localUri: dest, mediaFit: 'contain' as MediaFit });
+      const bg = (getTx() as any).bg;
+      if (!bg || bg.kind === 'blur' || bg.kind === 'none') setTx({ bg: { kind: 'gradient', a: '#0B1E3D', b: '#C9BFB0' } } as any);
+      setBgOpen(true);
+    } catch (e: any) {
+      Alert.alert('Backdrop failed', e?.message || 'Try again.');
+    } finally { setCutBusy(false); }
+  }, [active, cutBusy, updateActive, getTx, setTx]);
   const pushHistory = useCallback(() => { const cur = active?.stickers || []; undoStackRef.current.push(cur.map(s => ({ ...s }))); if (undoStackRef.current.length > MAX_HISTORY) undoStackRef.current.shift(); redoStackRef.current = []; setUndoCount(undoStackRef.current.length); setRedoCount(0); }, [active]);
   const updateStickers = useCallback((ns: StoryTextSticker[]) => { pushHistory(); updateActive({ stickers: ns }); }, [pushHistory, updateActive]);
   const drawStrokes: DrawStroke[] = ((active?.stickers || []).find(sx => (sx as any).kind === 'drawing') as any)?.strokes || [];
@@ -900,6 +926,7 @@ export default function StoryComposerScreen() {
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
             { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => setBgOpen(true) },
+            ...(active?.mediaType === 'image' ? [{ id: 'rcut', label: cutBusy ? 'Cutting' : 'Cutout', feather: 'scissors', on: cutBusy, run: () => { void cutoutSubject(); } } as RailItem] : []),
             { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => { Alert.alert('Coming soon', 'Sound mix arrives together with music.'); } },
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
             { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },

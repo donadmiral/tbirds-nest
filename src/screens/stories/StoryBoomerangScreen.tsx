@@ -6,6 +6,8 @@
 // with a not-ready retry behind it, so a cold camera never swallows the tap.
 // Bounce playback (forward, back, forward) is the next slice.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import * as FileSystem from 'expo-file-system/legacy';
+import { makeBoomerang } from '../../../modules/boomerang';
 import { useCameraLife } from '../../hooks/useCameraLife';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -114,8 +116,18 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
       setProgress(0);
       setCamMode('picture');
       if (!video?.uri) return;
+      // A real boomerang: forward then backward, encoded into one clip. On a
+      // client without the module the straight clip goes through instead.
+      let uri = video.uri;
+      let dur = durationSec;
+      try {
+        const out = (FileSystem.cacheDirectory || '') + 'boom-' + Date.now() + '.mp4';
+        await makeBoomerang(video.uri, out, 1);
+        uri = out;
+        dur = Math.max(1, durationSec * 2);
+      } catch (e: any) { console.log('[Boomerang] straight clip:', e?.message); }
       navigation.navigate('StoryComposer', {
-        assets: [{ uri: video.uri, localUri: video.uri, type: 'video', mediaType: 'video', durationSec }],
+        assets: [{ uri, localUri: uri, type: 'video', mediaType: 'video', durationSec: dur }],
         mode: 'video',
       });
     } catch (e: any) {
