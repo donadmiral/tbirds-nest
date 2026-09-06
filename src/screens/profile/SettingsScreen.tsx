@@ -275,6 +275,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       } },
       { icon: 'bookmark', color: '#0B1E3D', label: 'Saved posts', sub: 'Posts you bookmarked', onPress: () => navigation.navigate('SavedPosts') },
       { icon: 'archive', color: '#0B1E3D', label: 'Archive', sub: 'Posts you hid without deleting', onPress: () => (navigation as any).navigate('Archive') },
+      { icon: 'activity', color: '#0B1E3D', label: 'Your activity', sub: 'Likes, comments, reposts and saves', onPress: () => (navigation as any).navigate('YourActivity') },
       { icon: 'slash', color: '#FF3B30', label: 'Blocked accounts', sub: 'See and undo who you blocked', onPress: () => navigation.navigate('BlockedAccounts') },
       { icon: 'briefcase', color: '#0B1E3D', label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages
       { icon: 'mail', color: '#0B1E3D', label: 'Message requests', sub: 'Messages from people you do not follow', onPress: () => (navigation as any).navigate('MessageRequests') },

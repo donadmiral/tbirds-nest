@@ -14,6 +14,7 @@ import HiddenWordsScreen from '../screens/profile/HiddenWordsScreen';
 import TwoFactorScreen from '../screens/profile/TwoFactorScreen';
 import MutedWordsScreen from '../screens/profile/MutedWordsScreen';
 import ArchiveScreen from '../screens/profile/ArchiveScreen';
+import YourActivityScreen from '../screens/profile/YourActivityScreen';
 import LoginActivityScreen from '../screens/profile/LoginActivityScreen';
 import MfaGate from '../components/MfaGate';
 import AddAccountSheet from '../components/AddAccountSheet';
@@ -190,6 +191,7 @@ function ProfileStackNav() {
       <ProfStack.Screen name="TwoFactor" component={TwoFactorScreen} />
       <ProfStack.Screen name="MutedWords" component={MutedWordsScreen} />
       <ProfStack.Screen name="Archive" component={ArchiveScreen} />
+      <ProfStack.Screen name="YourActivity" component={YourActivityScreen} />
       <ProfStack.Screen name="LoginActivity" component={LoginActivityScreen} />
       <ProfStack.Screen name="ContactSupport" component={ContactSupportScreen} />
       <ProfStack.Screen name="Ticket" component={TicketScreen} />
