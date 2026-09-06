@@ -16,7 +16,7 @@ import { callService, CallRecord } from '../services/callService';
 import { supabase } from '../services/supabase';
 import { View, Text, TouchableOpacity, Image, Vibration, StyleSheet, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 import { useCallContext } from '../contexts/CallContext';
 import { audioService } from '../services/audioService';
 import { setActiveCallNavId, clearCallNavGuard, isCallNavActive } from '../services/notificationBootstrap';

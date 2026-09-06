@@ -15,7 +15,7 @@ import {
   TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard,
   Alert, RefreshControl, StatusBar, Dimensions,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { PostMedia } from '../../components/MediaRenderer';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';

@@ -1,4 +1,4 @@
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../../components/SafeArea';
 import React, { useRef, useState } from 'react';
 import {
   View,

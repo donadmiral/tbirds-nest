@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 import { useActorStore, type Actor } from '../stores/actorStore';
 import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
 

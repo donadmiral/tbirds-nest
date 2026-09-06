@@ -13,7 +13,7 @@ import AccountSwitcherSheet from '../components/AccountSwitcherSheet';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../components/SafeArea';
 import * as Notifications from 'expo-notifications';
 import * as Haptics from 'expo-haptics';
 import type { ComponentProps } from 'react';

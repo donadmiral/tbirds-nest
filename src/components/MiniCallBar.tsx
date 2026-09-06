@@ -8,7 +8,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { useCallContext } from '../contexts/CallContext';

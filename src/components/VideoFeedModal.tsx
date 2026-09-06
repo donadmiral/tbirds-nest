@@ -13,7 +13,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity, Image, PanResponder, Modal } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming, withSequence, runOnJS } from 'react-native-reanimated';
 import VerifiedBadge from './VerifiedBadge';

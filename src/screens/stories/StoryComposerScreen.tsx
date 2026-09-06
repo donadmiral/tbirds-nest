@@ -5,7 +5,7 @@ import {
   ActivityIndicator, Alert, Platform, StatusBar, KeyboardAvoidingView,
   Dimensions, Modal, ScrollView, Animated, Keyboard, AccessibilityInfo, Easing, Switch,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import ReAnimated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';

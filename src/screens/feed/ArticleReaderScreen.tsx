@@ -4,7 +4,7 @@ import { TAB_BAR_CLEARANCE } from '../../constants/layout';
  */
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import ArticleBody from '../../components/ArticleBody';

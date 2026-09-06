@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
 import * as Application from 'expo-application';
 import { supabase } from '../../services/supabase';

@@ -7,7 +7,7 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { authorId as currentAuthorId } from '../../stores/actorStore';
 import { Feather, Ionicons } from '@expo/vector-icons';

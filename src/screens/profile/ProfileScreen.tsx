@@ -11,7 +11,7 @@ import {
   TextInput, ActivityIndicator, RefreshControl, StatusBar, Alert, Share,
   KeyboardAvoidingView, Platform, FlatList, Modal, Dimensions,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import ProfileHeader from '../../components/ProfileHeader';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';

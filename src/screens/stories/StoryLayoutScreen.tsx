@@ -14,7 +14,7 @@
  */
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, ActivityIndicator, Alert, ScrollView, PanResponder } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import ViewShot, { captureRef } from 'react-native-view-shot';

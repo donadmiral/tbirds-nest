@@ -72,3 +72,9 @@ body {
 .dark body { background: #0f1013; }
 .dark .theater { --color-white: #ffffff; }
 .dark img[src$=".svg"] { filter: none; }
+
+/* Safe areas for phones in the browser: the notch and the home indicator. */
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.fixed.bottom-0 { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.fixed.top-0 { padding-top: env(safe-area-inset-top, 0px); }

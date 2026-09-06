@@ -15,7 +15,7 @@ import {
   Platform,
   Keyboard,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { storiesService, type StoryHighlight } from '../../services/storiesService';

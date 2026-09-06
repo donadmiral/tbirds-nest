@@ -7,7 +7,7 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
   ActivityIndicator, StatusBar, RefreshControl, Alert, Dimensions,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';

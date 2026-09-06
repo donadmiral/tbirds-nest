@@ -2,7 +2,7 @@ import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import SellerTrust from '../../components/market/SellerTrust';
 import ReportListingSheet from '../../components/market/ReportListingSheet';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import SellerReviews from '../../components/market/SellerReviews';
 import React, { useCallback, useState, useEffect } from 'react';

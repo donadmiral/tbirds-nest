@@ -4,7 +4,7 @@ import EmptyState from '../../components/EmptyState';
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 

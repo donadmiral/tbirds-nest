@@ -248,7 +248,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             </div>
           ) : null}
 
-          {media.length > 0 ? (
+          {media.length > 0 && !post.article_title ? (
             <MediaGallery media={media}
               postId={post.post_id}
               viewsCount={(post as unknown as { views_count?: number | null }).views_count ?? null}

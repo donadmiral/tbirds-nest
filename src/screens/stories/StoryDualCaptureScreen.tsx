@@ -14,7 +14,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
   Dimensions, Alert, Animated, Image, Easing,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';

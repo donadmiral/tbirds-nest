@@ -16,6 +16,7 @@ const instrument = Instrument_Sans({
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://platinumcircles.com";
 
+export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover' as const };
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: { default: "Platinum Circles", template: "%s | Platinum Circles" },

@@ -9,7 +9,7 @@ import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, Dimensions, 
 import TierName from './TierName';
 import VerifiedBadge from './VerifiedBadge';
 import { supabase } from '../services/supabase';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import MediaCanvas from './stories/MediaCanvas';
 import type { MediaTransform, MediaFit } from '../services/storiesService';

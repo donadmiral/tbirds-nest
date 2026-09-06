@@ -10,7 +10,7 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Alert,
   ActivityIndicator, StatusBar, Modal, TextInput, ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';

@@ -22,7 +22,7 @@ import {
   View, Text, StyleSheet, SectionList, TouchableOpacity, ActivityIndicator,
   Image, RefreshControl, StatusBar,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';

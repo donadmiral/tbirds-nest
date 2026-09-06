@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { Keyboard, Text, View, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 
 export default function KeyboardDebugOverlay() {
   const [kb, setKb] = useState(0);

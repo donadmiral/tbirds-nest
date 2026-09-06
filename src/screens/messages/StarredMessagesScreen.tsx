@@ -12,7 +12,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator,
   StatusBar, Image, RefreshControl,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';

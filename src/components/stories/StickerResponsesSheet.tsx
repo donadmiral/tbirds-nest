@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
   FlatList, Image, ActivityIndicator, Dimensions,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { storiesService, type StickerResponse } from '../../services/storiesService';
 

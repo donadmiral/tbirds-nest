@@ -7,7 +7,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, TouchableOpacity, StyleSheet, AppState } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
 import { useAuthStore } from '../stores/authStore';

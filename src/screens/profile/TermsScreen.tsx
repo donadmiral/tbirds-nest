@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
 
 const NAVY = '#0B1E3D';

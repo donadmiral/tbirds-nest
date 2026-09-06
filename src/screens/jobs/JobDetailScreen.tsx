@@ -11,7 +11,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput,
   Alert, Linking, Modal, ActivityIndicator, Image, StatusBar, KeyboardAvoidingView, Platform, Share,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';

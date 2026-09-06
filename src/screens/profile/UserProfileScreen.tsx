@@ -8,7 +8,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
   ActivityIndicator, StatusBar, Alert, Share, RefreshControl, Dimensions,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import ProfileHeader from '../../components/ProfileHeader';

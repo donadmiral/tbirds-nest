@@ -6,7 +6,7 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList,
   ActivityIndicator, Image, StatusBar, Keyboard,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';

@@ -8,7 +8,7 @@ import {
   ActivityIndicator, Dimensions, FlatList, RefreshControl, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useUnreadStore } from '../../stores/unreadStore';
 import { Feather, Ionicons } from '@expo/vector-icons';

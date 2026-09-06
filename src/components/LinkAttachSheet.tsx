@@ -12,7 +12,7 @@ import {
   View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
   ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { fetchLinkPreview, normalizeUrl, deriveDomain, type LinkPreview } from '../services/linkPreview';
 

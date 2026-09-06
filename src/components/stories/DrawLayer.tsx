@@ -9,7 +9,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, PanResponder } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../SafeArea';
 import { MiniSlider } from './storyPanels';
 
 export type DrawStroke = { tool: string; color: string; width: number; points: { x: number; y: number }[] };

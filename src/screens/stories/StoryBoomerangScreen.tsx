@@ -11,7 +11,7 @@ import { makeBoomerang } from '../../../modules/boomerang';
 import BoomerangWeb, { BoomerangEffect } from './BoomerangWeb';
 import { useCameraLife } from '../../hooks/useCameraLife';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle } from 'react-native-svg';

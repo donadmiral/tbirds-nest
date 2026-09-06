@@ -34,7 +34,7 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from '../../components/SafeArea';
 
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -1911,6 +1911,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             const vIdx = tapped ? imgs.findIndex(i => i.uri === tapped.url) : 0;
             setViewer({ images: imgs, index: vIdx >= 0 ? vIdx : 0 });
           };
+          // An article's picture is its cover, drawn inside the article block; the media strip would show it twice.
+          if ((post as any).article_title) return null;
           const media = renderMedia(post, screenFocused && !fsVideo && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;

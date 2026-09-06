@@ -10,7 +10,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
   StatusBar, Linking, Modal, TextInput, ActivityIndicator, Image,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';

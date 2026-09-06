@@ -13,7 +13,7 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, Alert, ActivityIndicator, Share,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from '../SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 

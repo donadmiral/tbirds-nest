@@ -7,7 +7,7 @@ import {
   View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity,
   Image, ActivityIndicator, RefreshControl, StatusBar, ScrollView, Alert, Modal, Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { supabase } from '../../services/supabase';

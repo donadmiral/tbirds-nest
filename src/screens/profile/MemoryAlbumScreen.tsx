@@ -13,7 +13,7 @@ import {
   ActivityIndicator, Alert, Dimensions, StatusBar, ScrollView, Animated,
   Easing, PanResponder, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import Svg, { Ellipse, Circle } from 'react-native-svg';

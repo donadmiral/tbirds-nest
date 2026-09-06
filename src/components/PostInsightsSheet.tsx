@@ -14,7 +14,7 @@ import {
   ActivityIndicator, Image, Pressable,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from './SafeArea';
 import { supabase } from '../services/supabase';
 import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
 
