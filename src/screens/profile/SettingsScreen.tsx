@@ -298,13 +298,19 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   };
 
   const changePassword = async () => {
+    if (!currentPw) { Alert.alert('Current password', 'Enter your current password first.'); return; }
     if (!newPw.trim()) { Alert.alert('Required', 'Enter a new password.'); return; }
-    if (newPw.length < 8)  { Alert.alert('Too short', 'Password must be at least 8 characters.'); return; }
+    if (newPw.length < 8 || !/[A-Za-z]/.test(newPw) || !/[0-9]/.test(newPw)) { Alert.alert('Stronger password', 'At least 8 characters, with a letter and a number.'); return; }
     if (newPw !== confirmPw) { Alert.alert('Mismatch', 'Passwords do not match.'); return; }
     setSavingPw(true);
     try {
+      // Instagram's rule: prove you know the current password before changing it.
+      const email = (await supabase.auth.getUser()).data.user?.email || '';
+      const check = await supabase.auth.signInWithPassword({ email, password: currentPw });
+      if (check.error) { Alert.alert('Current password', 'That is not your current password.'); return; }
       const { error } = await supabase.auth.updateUser({ password: newPw });
       if (error) { Alert.alert('Error', error.message); return; }
+      setCurrentPw('');
       setPwModal(false); setNewPw(''); setConfirmPw('');
       Alert.alert('Password updated', 'Your password has been changed successfully. You will remain signed in.');
     } catch (e: any) { Alert.alert('Error', e?.message || 'Could not update password.'); }
@@ -492,7 +498,8 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             </View>
             <Text style={s.modalFieldLabel}>New Password</Text>
             <View style={s.pwInputRow}>
-              <TextInput value={newPw} onChangeText={setNewPw} placeholder="Enter new password" placeholderTextColor="rgba(11,30,61,0.24)" style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
+              <TextInput value={currentPw} onChangeText={setCurrentPw} placeholder="Current password" placeholderTextColor="rgba(11,30,61,0.24)" style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
+<TextInput value={newPw} onChangeText={setNewPw} placeholder="Enter new password" placeholderTextColor="rgba(11,30,61,0.24)" style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
               <TouchableOpacity onPress={() => setShowNewPw(p => !p)} style={s.pwEye}><Feather name={showNewPw ? 'eye-off' : 'eye'} size={18} color="rgba(11,30,61,0.42)" /></TouchableOpacity>
             </View>
             {newPw.length > 0 && (
