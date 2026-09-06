@@ -2625,6 +2625,20 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             )}
 
             {menuPost?.user_id === userId && (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={async () => {
+                const captured = menuPost; setMenuPost(null); if (!captured) return;
+                const off = (captured as any).comment_policy === 'off';
+                // Comments are kept, never deleted: off hides them, on brings them back as they were.
+                const { error } = await supabase.from('posts').update({ comment_policy: off ? 'everyone' : 'off' }).eq('id', captured.id);
+                if (error) { Alert.alert('Not saved', error.message); return; }
+                setPosts(prev => prev.map(pp => pp.id === captured.id ? { ...pp, comment_policy: off ? 'everyone' : 'off' } as any : pp));
+              }}>
+                <Feather name="message-circle" size={18} color={getTheme().ink.primary} />
+                <Text style={s.menuOptionTxt}>{(menuPost as any)?.comment_policy === 'off' ? 'Turn on comments' : 'Turn off comments'}</Text>
+              </TouchableOpacity>
+            )}
+
+            {menuPost?.user_id === userId && (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
                 setMenuPost(null);
                 Alert.alert('Delete post?', 'This will permanently remove your post and all its comments.', [

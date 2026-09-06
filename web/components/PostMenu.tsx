@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3, ShieldAlert } from "lucide-react";
+import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3, ShieldAlert, MessageCircle } from "lucide-react";
 import { InsightsModal } from "@/components/InsightsModal";
 import { PromoteModal } from "@/components/PromoteModal";
 import { FactCheckModal } from "@/components/FactCheck";
