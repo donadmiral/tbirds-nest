@@ -417,7 +417,7 @@ export default function PostScreen({ route, navigation }: any) {
     const isDisliked = myReaction === -1;
     const isOwn = c.user_id === userId;
     const isPostAuthor = !!post && (post as any).user_id === userId;
-    if ((c as any).hidden && !showHidden && !isOwn) return null;
+    if ((c as any).hidden && !showHidden && !isOwn) return null as any;
     const a = c.author;
     return (
       <View key={c.id} style={[s.commentWrap, isReply && s.replyWrap]}>
