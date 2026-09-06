@@ -13,6 +13,7 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
+import PeoplePickerSheet from '../../components/PeoplePickerSheet';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import { useNavigation } from '@react-navigation/native';
@@ -291,9 +292,8 @@ export default function FeedScreen({ navigation }: any) {
   // Collab: one invited co-author; the post shows on both profiles once they accept.
   const [collabUsername, setCollabUsername] = useState<string | null>(null);
   const [collabs, setCollabs] = useState<Record<string, { username: string | null; full_name: string | null }[]>>({});
-  const askCollaborator = useCallback(() => {
-    Alert.prompt('Invite a collaborator', 'Their @username. They get a notification and choose to accept.', (v) => { const u = (v || '').trim().replace(/^@/, ''); setCollabUsername(u || null); }, 'plain-text', collabUsername || '');
-  }, [collabUsername]);
+  const [collabPicker, setCollabPicker] = useState<'composer' | { postId: string } | null>(null);
+  const askCollaborator = useCallback(() => { setCollabPicker('composer'); }, []);
   const inviteCollaborator = useCallback(async (postId: string, username: string) => {
     const { data: who } = await supabase.from('profiles').select('id').ilike('username', username).maybeSingle();
     if (!who?.id || !userId) { Alert.alert('Not found', '@' + username + ' is not on Platinum Circles.'); return; }
@@ -333,7 +333,7 @@ export default function FeedScreen({ navigation }: any) {
   const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
   const [fsVideo, setFsVideo] = useState<{ id?: string; url: string } | null>(null);
   useEffect(() => {
-    AsyncStorage.getItem('pc_draft').then(v => {
+    AsyncStorage.getItem(('pc_draft:' + (userId || 'anon'))).then(v => {
       if (!v) return;
       try {
         const d = JSON.parse(v);
@@ -346,9 +346,9 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => {
     const t = setTimeout(() => {
       if (composerText.trim().length > 0) {
-        AsyncStorage.setItem('pc_draft', JSON.stringify({ text: composerText, exclusive: exclusivePost, innovation: innovationPost })).catch(() => {});
+        AsyncStorage.setItem(('pc_draft:' + (userId || 'anon')), JSON.stringify({ text: composerText, exclusive: exclusivePost, innovation: innovationPost })).catch(() => {});
       } else {
-        AsyncStorage.removeItem('pc_draft').catch(() => {});
+        AsyncStorage.removeItem(('pc_draft:' + (userId || 'anon'))).catch(() => {});
       }
     }, 400);
     return () => clearTimeout(t);
@@ -2654,6 +2654,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
       />
 
+      <PeoplePickerSheet visible={!!collabPicker} title="Invite a collaborator" excludeId={userId}
+        onClose={() => setCollabPicker(null)}
+        onPick={(p) => { const target = collabPicker; if (target === 'composer') { setCollabUsername(p.username || p.full_name || null); } else if (target && typeof target === 'object' && p.username) { inviteCollaborator(target.postId, p.username); } }} />
       <Modal visible={!!menuPost} transparent animationType="slide" onRequestClose={() => setMenuPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setMenuPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
@@ -2720,7 +2723,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             {menuPost?.user_id === userId && (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
                 const captured = menuPost; setMenuPost(null); if (!captured) return;
-                Alert.prompt('Invite a collaborator', 'Their @username. The post appears on both profiles once they accept.', (v) => { const u = (v || '').trim().replace(/^@/, ''); if (u) inviteCollaborator(captured.id, u); }, 'plain-text');
+                setCollabPicker({ postId: captured.id });
               }}>
                 <Feather name="users" size={18} color={getTheme().ink.primary} />
                 <Text style={s.menuOptionTxt}>Invite collaborator</Text>
