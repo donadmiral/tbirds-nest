@@ -448,6 +448,13 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
           <Feather name="clock" size={20} color={timerSec ? '#FFD60A' : '#FFF'} />
           {timerSec > 0 && <Text style={{ position: 'absolute', bottom: 2, right: 2, color: '#FFD60A', fontSize: 9, fontWeight: '800' }}>{timerSec}</Text>}
         </TouchableOpacity>
+        {zoom > 0.02 && !recording ? (
+          <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 64, alignItems: 'center', zIndex: 20 }} testID="zoomReadout">
+            <View style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}>
+              <Text style={{ color: '#FFF', fontSize: 12.5, fontWeight: '700' }}>{(1 + zoom * 9).toFixed(1)}x</Text>
+            </View>
+          </View>
+        ) : null}
         <TouchableOpacity style={s.topBtn} onPress={() => setHandsFree(h => !h)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="video" size={20} color={handsFree ? '#FFD60A' : '#FFF'} />
         </TouchableOpacity>
