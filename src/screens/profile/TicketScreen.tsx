@@ -13,8 +13,8 @@ import { useAuthStore } from '../../stores/authStore';
 const NAVY = '#0B1E3D';
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   open: { label: 'Open', color: '#B03A3A', bg: 'rgba(176,58,58,0.08)' },
-  pending: { label: 'Replied - your turn', color: '#B08D3F', bg: 'rgba(176,141,63,0.1)' },
-  solved: { label: 'Solved', color: '#1D7A38', bg: 'rgba(29,122,56,0.08)' },
+  pending: { label: 'Replied - your turn', color: '#0B1E3D', bg: 'rgba(176,141,63,0.1)' },
+  solved: { label: 'Solved', color: '#059669', bg: 'rgba(29,122,56,0.08)' },
 };
 
 export default function TicketScreen() {

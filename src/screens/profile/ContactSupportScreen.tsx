@@ -110,9 +110,9 @@ const s = StyleSheet.create({
   pillDone: { backgroundColor: 'rgba(5,150,105,0.1)' },
   pillPend: { backgroundColor: 'rgba(176,141,63,0.12)' },
   pillTxt: { fontSize: 10.5, fontWeight: '800' },
-  pillTxtOpen: { color: '#B45309' },
+  pillTxtOpen: { color: '#D97706' },
   pillTxtDone: { color: '#059669' },
-  pillTxtPend: { color: '#B08D3F' },
+  pillTxtPend: { color: '#0B1E3D' },
   reply: { fontSize: 13, lineHeight: 18, color: 'rgba(11,30,61,0.75)', marginTop: 8, backgroundColor: 'rgba(11,30,61,0.04)', borderRadius: 10, padding: 10 },
   when: { fontSize: 11, color: 'rgba(11,30,61,0.4)', marginTop: 8 },
 });

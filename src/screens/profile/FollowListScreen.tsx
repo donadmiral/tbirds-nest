@@ -120,7 +120,7 @@ export default function FollowListScreen() {
         ) : null}
         {isSelf && tab === 'followers' && !self ? (
           <TouchableOpacity style={s.moreBtn} onPress={() => removeFollower(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Feather name="x" size={16} color="#8E8E93" />
+            <Feather name="x" size={16} color="rgba(11,30,61,0.42)" />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -144,17 +144,17 @@ export default function FollowListScreen() {
         ))}
       </View>
       <View style={s.searchWrap}>
-        <Feather name="search" size={15} color="#8E8E93" />
-        <TextInput style={s.searchInput} placeholder="Search" placeholderTextColor="#8E8E93" value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} />
+        <Feather name="search" size={15} color="rgba(11,30,61,0.42)" />
+        <TextInput style={s.searchInput} placeholder="Search" placeholderTextColor="rgba(11,30,61,0.42)" value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} />
         {query.length > 0 ? (
-          <TouchableOpacity onPress={() => setQuery('')}><Feather name="x-circle" size={16} color="#C7C7CC" /></TouchableOpacity>
+          <TouchableOpacity onPress={() => setQuery('')}><Feather name="x-circle" size={16} color="rgba(11,30,61,0.24)" /></TouchableOpacity>
         ) : null}
       </View>
       {loading ? (
         <View style={s.center}><ActivityIndicator color={NAVY} /></View>
       ) : filtered.length === 0 ? (
         <View style={s.center}>
-          <Feather name="users" size={38} color="#E5E5EA" />
+          <Feather name="users" size={38} color="rgba(11,30,61,0.08)" />
           <Text style={s.emptyTitle}>{query ? 'No matches' : tab === 'followers' ? 'No followers yet' : 'Not following anyone yet'}</Text>
         </View>
       ) : (
@@ -171,26 +171,26 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFF' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { flex: 1, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: '#0F1419' },
-  tabs: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#EFF3F4' },
+  title: { flex: 1, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: '#0B1E3D' },
+  tabs: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
   tabOn: { borderBottomWidth: 2, borderBottomColor: NAVY },
-  tabTxt: { fontSize: 14.5, fontWeight: '600', color: '#8E8E93' },
+  tabTxt: { fontSize: 14.5, fontWeight: '600', color: 'rgba(11,30,61,0.42)' },
   tabTxtOn: { color: NAVY, fontWeight: '700' },
   searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', borderRadius: 12, marginHorizontal: 16, marginTop: 12, marginBottom: 4, paddingHorizontal: 12, paddingVertical: 9 },
-  searchInput: { flex: 1, fontSize: 15, color: '#0F1419', padding: 0 },
+  searchInput: { flex: 1, fontSize: 15, color: '#0B1E3D', padding: 0 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingBottom: 60 },
-  emptyTitle: { fontSize: 15, fontWeight: '600', color: '#8E8E93' },
+  emptyTitle: { fontSize: 15, fontWeight: '600', color: 'rgba(11,30,61,0.42)' },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, gap: 10 },
   rowMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 46, height: 46, borderRadius: 23 },
   avatarFb: { backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { fontSize: 16, fontWeight: '700', color: NAVY },
-  name: { fontSize: 15.5, fontWeight: '600', color: '#0F1419', flexShrink: 1 },
-  handle: { fontSize: 13, color: '#8E8E93', marginTop: 1 },
+  name: { fontSize: 15.5, fontWeight: '600', color: '#0B1E3D', flexShrink: 1 },
+  handle: { fontSize: 13, color: 'rgba(11,30,61,0.42)', marginTop: 1 },
   followBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 999, backgroundColor: NAVY },
   followBtnOn: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#D1D5DB' },
   followTxt: { fontSize: 13, fontWeight: '700', color: '#FFF' },
-  followTxtOn: { color: '#0F1419' },
+  followTxtOn: { color: '#0B1E3D' },
   moreBtn: { padding: 6 },
 });

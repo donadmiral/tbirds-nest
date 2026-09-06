@@ -79,7 +79,7 @@ export default function BusinessInboxScreen() {
         <View style={st.center}><Text style={st.errTxt}>{err}</Text></View>
       ) : rows.length === 0 ? (
         <View style={st.center}>
-          <Feather name="inbox" size={38} color="#C7CDD6" />
+          <Feather name="inbox" size={38} color="rgba(11,30,61,0.24)" />
           <Text style={st.emptyTitle}>No conversations yet</Text>
           <Text style={st.emptySub}>When customers message {businessName}, the whole team sees it here.</Text>
         </View>
@@ -92,8 +92,8 @@ export default function BusinessInboxScreen() {
                 const n = rows.filter((r: any) => t === 'requests' ? r.is_request : !r.is_request).length;
                 const on = tab === t;
                 return (
-                  <TouchableOpacity key={t} onPress={() => setTab(t)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 16, backgroundColor: on ? '#0B1E3D' : '#F0F2F5' }}>
-                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: on ? '#FFFFFF' : '#5B6B84' }}>{t === 'primary' ? 'Primary' : 'Requests'}{n > 0 ? ' ' + n : ''}</Text>
+                  <TouchableOpacity key={t} onPress={() => setTab(t)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 16, backgroundColor: on ? '#0B1E3D' : '#F4F3F1' }}>
+                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: on ? '#FFFFFF' : 'rgba(11,30,61,0.42)' }}>{t === 'primary' ? 'Primary' : 'Requests'}{n > 0 ? ' ' + n : ''}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -145,10 +145,10 @@ const st = StyleSheet.create({
   previewUnread: { color: NAVY, fontWeight: '600' },
   ctxChip: { alignSelf: 'flex-start', marginTop: 5, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.05)' },
   ctxTxt: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6, color: 'rgba(11,30,61,0.55)' },
-  unreadDot: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#FF3040', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  unreadDot: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   unreadTxt: { color: '#FFF', fontSize: 11, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  errTxt: { fontSize: 14.5, fontWeight: '600', color: '#DC2626', textAlign: 'center' },
+  errTxt: { fontSize: 14.5, fontWeight: '600', color: '#FF3B30', textAlign: 'center' },
   emptyTitle: { fontSize: 16.5, fontWeight: '800', color: NAVY, marginTop: 12 },
   emptySub: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', textAlign: 'center', marginTop: 4, lineHeight: 19 },
 });

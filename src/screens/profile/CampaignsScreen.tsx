@@ -128,7 +128,7 @@ export default function CampaignsScreen() {
         <View style={st.center}><ActivityIndicator size="large" color={NAVY} /></View>
       ) : rows.length === 0 ? (
         <View style={st.center}>
-          <Feather name="trending-up" size={38} color="#C7CDD6" />
+          <Feather name="trending-up" size={38} color="rgba(11,30,61,0.24)" />
           <Text style={st.emptyTitle}>No campaigns yet</Text>
           <Text style={st.emptySub}>Promote one of {businessName}'s posts and it appears as a sponsored card in the feed.</Text>
           <TouchableOpacity style={st.newBtn} onPress={openPicker} activeOpacity={0.9}>
@@ -150,7 +150,7 @@ export default function CampaignsScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Text style={st.cardTitle} numberOfLines={1}>{excerpt}</Text>
                   <TouchableOpacity style={[st.statusChip, on ? st.chipOn : item.status === 'paused' ? st.chipPause : st.chipEnd]} onPress={() => setStatus(item)}>
-                    <Text style={[st.statusTxt, on ? { color: '#065F46' } : item.status === 'paused' ? { color: '#B45309' } : { color: '#6B7280' }]}>
+                    <Text style={[st.statusTxt, on ? { color: '#065F46' } : item.status === 'paused' ? { color: '#D97706' } : { color: '#6B7280' }]}>
                       {item.status}
                     </Text>
                   </TouchableOpacity>

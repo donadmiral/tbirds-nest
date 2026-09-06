@@ -16,8 +16,8 @@ import { useAuthStore } from '../../stores/authStore';
 
 const NAVY = '#0B1E3D';
 const TEXT_PRIMARY = '#000000';
-const TEXT_SECONDARY = '#8E8E93';
-const HAIRLINE = '#E5E5EA';
+const TEXT_SECONDARY = 'rgba(11,30,61,0.42)';
+const HAIRLINE = 'rgba(11,30,61,0.08)';
 
 type FollowRequest = {
   id: string;
@@ -200,7 +200,7 @@ export default function FollowRequestsScreen() {
           }
           ListEmptyComponent={
             <View style={st.empty}>
-              <Feather name="user-check" size={40} color="#E5E5EA" />
+              <Feather name="user-check" size={40} color="rgba(11,30,61,0.08)" />
               <Text style={st.emptyTitle}>No pending requests</Text>
               <Text style={st.emptySub}>When someone requests to follow your private account, they will appear here.</Text>
             </View>
@@ -233,7 +233,7 @@ const st = StyleSheet.create({
   name: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY },
   username: { fontSize: 13, color: NAVY, fontWeight: '500', marginTop: 1 },
   program: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
-  time: { fontSize: 11, color: '#C7C7CC', marginTop: 2 },
+  time: { fontSize: 11, color: 'rgba(11,30,61,0.24)', marginTop: 2 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   acceptBtn: {
     backgroundColor: NAVY, borderRadius: 10,

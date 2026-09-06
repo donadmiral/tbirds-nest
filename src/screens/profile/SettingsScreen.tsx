@@ -163,7 +163,7 @@ const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
 
 type SetRow = { icon: string; color?: string; label: string; sub?: string; onPress?: () => void; right?: React.ReactNode; danger?: boolean; chevron?: boolean; visible?: boolean };
   const sw = (value: boolean, onChange: (v: boolean) => void, disabled = false) => (
-    <Switch value={value} onValueChange={onChange} trackColor={{ false: '#E5E5EA', true: '#34C759' }} thumbColor="#FFF" disabled={disabled} />
+    <Switch value={value} onValueChange={onChange} trackColor={{ false: 'rgba(11,30,61,0.08)', true: '#059669' }} thumbColor="#FFF" disabled={disabled} />
   );
   const [ibLinked, setIbLinked] = React.useState<boolean | null>(null);
   const [showLinkSheet, setShowLinkSheet] = React.useState(false);
@@ -199,56 +199,56 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: 'Face ID at launch and after a minute away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
     ] },
     { title: 'IntoBank', rows: [
-      { icon: 'credit-card', color: '#0A3D2E', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibLinked === false) setShowLinkSheet(true); } },
-      ...(ibLinked ? [{ icon: 'x-circle', color: '#A32D2D', label: 'Deactivate IntoBank', sub: 'Unlink this account, or unlink to add a different one', onPress: confirmUnlink }] : []),
-      ...(ibLinked === false ? [{ icon: 'link', color: '#0A3D2E', label: 'Link IntoBank', sub: 'Email plus a 6-digit code, done in a minute', onPress: () => setShowLinkSheet(true) }] : []),
+      { icon: 'credit-card', color: '#0B1E3D', label: ibLinked === null ? 'Checking connection...' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibLinked === false) setShowLinkSheet(true); } },
+      ...(ibLinked ? [{ icon: 'x-circle', color: '#FF3B30', label: 'Deactivate IntoBank', sub: 'Unlink this account, or unlink to add a different one', onPress: confirmUnlink }] : []),
+      ...(ibLinked === false ? [{ icon: 'link', color: '#0B1E3D', label: 'Link IntoBank', sub: 'Email plus a 6-digit code, done in a minute', onPress: () => setShowLinkSheet(true) }] : []),
     ] },
     { title: 'Account', rows: [
-      { icon: 'user', color: '#007AFF', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
-      { icon: 'award', color: '#C9A227', label: 'Account type', sub: ((): string => { const c = (pf as any)?.account_class || 'personal'; return c === 'organization' ? 'Organization' : c === 'creator' ? 'Creator' : c === 'automated' ? 'Automated' : 'Personal'; })(), onPress: () => setClassModal(true) },
-      { icon: 'lock', color: '#FF9500', label: 'Change Password', sub: 'Update your account password', onPress: () => setPwModal(true) },
-      { icon: 'eye', color: '#5856D6', label: 'Privacy', sub: 'Private account and visibility', onPress: () => navigation.navigate('FollowRequests') },
-      { icon: 'user-check', color: '#34C759', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
-      { icon: 'volume-x', color: '#8E8E93', label: 'Muted stories', sub: 'People whose stories you hide', onPress: () => navigation.navigate('MutedStories') },
+      { icon: 'user', color: '#0B1E3D', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
+      { icon: 'award', color: '#0B1E3D', label: 'Account type', sub: ((): string => { const c = (pf as any)?.account_class || 'personal'; return c === 'organization' ? 'Organization' : c === 'creator' ? 'Creator' : c === 'automated' ? 'Automated' : 'Personal'; })(), onPress: () => setClassModal(true) },
+      { icon: 'lock', color: '#0B1E3D', label: 'Change Password', sub: 'Update your account password', onPress: () => setPwModal(true) },
+      { icon: 'eye', color: '#0B1E3D', label: 'Privacy', sub: 'Private account and visibility', onPress: () => navigation.navigate('FollowRequests') },
+      { icon: 'user-check', color: '#0B1E3D', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
+      { icon: 'volume-x', color: 'rgba(11,30,61,0.42)', label: 'Muted stories', sub: 'People whose stories you hide', onPress: () => navigation.navigate('MutedStories') },
       { icon: 'bookmark', color: '#0B1E3D', label: 'Saved posts', sub: 'Posts you bookmarked', onPress: () => navigation.navigate('SavedPosts') },
       { icon: 'slash', color: '#FF3B30', label: 'Blocked accounts', sub: 'See and undo who you blocked', onPress: () => navigation.navigate('BlockedAccounts') },
-      { icon: 'briefcase', color: '#B08D3F', label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages
-      { icon: 'mail', color: '#5856D6', label: 'Message requests', sub: 'Messages from people you do not follow', onPress: () => (navigation as any).navigate('MessageRequests') },
-      { icon: 'award', color: '#B08D3F', label: 'Verification', sub: 'Apply for the badge - earned, never bought', onPress: () => (navigation as any).navigate('ApplyVerification') },
-      { icon: 'life-buoy', color: '#0E7490', label: 'Contact support', sub: 'Write to the operations team', onPress: () => (navigation as any).navigate('ContactSupport') },
-      { icon: 'briefcase', color: '#5B6470', label: 'Apply for a business account', sub: 'Companies get their own @ and the space-grey seal', onPress: () => (navigation as any).navigate('BusinessApply') },
+      { icon: 'briefcase', color: '#0B1E3D', label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages
+      { icon: 'mail', color: '#0B1E3D', label: 'Message requests', sub: 'Messages from people you do not follow', onPress: () => (navigation as any).navigate('MessageRequests') },
+      { icon: 'award', color: '#0B1E3D', label: 'Verification', sub: 'Apply for the badge - earned, never bought', onPress: () => (navigation as any).navigate('ApplyVerification') },
+      { icon: 'life-buoy', color: '#0B1E3D', label: 'Contact support', sub: 'Write to the operations team', onPress: () => (navigation as any).navigate('ContactSupport') },
+      { icon: 'briefcase', color: 'rgba(11,30,61,0.42)', label: 'Apply for a business account', sub: 'Companies get their own @ and the space-grey seal', onPress: () => (navigation as any).navigate('BusinessApply') },
       { icon: 'at-sign', color: '#0B1E3D', label: 'Change username', sub: 'Pick a new @ if it is available', onPress: () => (navigation as any).navigate('ChangeUsername') },
-      { icon: 'key', color: '#B08D3F', label: 'Business access', sub: 'For business accounts - the people and devices that may speak as it', onPress: () => (navigation as any).navigate('BusinessAccess') },
-      { icon: 'shield', color: '#1D7A38', label: 'Account standing', sub: 'Your record and any active restriction', onPress: () => (navigation as any).navigate('AccountStanding') },
-      { icon: 'trending-up', color: '#5B6470', label: 'Promotions and campaigns', sub: 'Promote your posts as sponsored placements', onPress: () => (navigation as any).navigate('Campaigns') },
-      { icon: 'edit-3', color: '#0E7490', label: 'Write an article', sub: 'Long-form publishing with a cover and read time', onPress: () => (navigation as any).navigate('ArticleCompose') },
+      { icon: 'key', color: '#0B1E3D', label: 'Business access', sub: 'For business accounts - the people and devices that may speak as it', onPress: () => (navigation as any).navigate('BusinessAccess') },
+      { icon: 'shield', color: '#0B1E3D', label: 'Account standing', sub: 'Your record and any active restriction', onPress: () => (navigation as any).navigate('AccountStanding') },
+      { icon: 'trending-up', color: 'rgba(11,30,61,0.42)', label: 'Promotions and campaigns', sub: 'Promote your posts as sponsored placements', onPress: () => (navigation as any).navigate('Campaigns') },
+      { icon: 'edit-3', color: '#0B1E3D', label: 'Write an article', sub: 'Long-form publishing with a cover and read time', onPress: () => (navigation as any).navigate('ArticleCompose') },
     ]},
     { title: 'Notifications', rows: [
       { icon: 'bell', color: '#FF3B30', label: 'Push Notifications', sub: 'Master toggle for all alerts', chevron: false, right: sw(pushEnabled, togglePush) },
-      ...NOTIF_TYPES.map(t => ({ icon: 'bell' as const, color: '#5856D6', label: t.label, sub: t.sub, chevron: false,
+      ...NOTIF_TYPES.map(t => ({ icon: 'bell' as const, color: '#0B1E3D', label: t.label, sub: t.sub, chevron: false,
         right: sw(notifPrefs[t.key] !== false && pushEnabled, (v: boolean) => setTypePref(t.key, v), !pushEnabled) })),
     ]},
     { title: 'Data & appearance', rows: [
-      { icon: 'play-circle', color: '#34C759', label: 'Autoplay videos', sub: 'Turn off to save mobile data', chevron: false,
+      { icon: 'play-circle', color: '#0B1E3D', label: 'Autoplay videos', sub: 'Turn off to save mobile data', chevron: false,
         right: sw(appSet.autoplayVideos, v => appSet.set({ autoplayVideos: v })) },
-      { icon: 'upload-cloud', color: '#007AFF', label: 'Upload quality', sub: appSet.uploadQuality === 'high' ? 'High — best quality' : 'Data saver — smaller uploads', chevron: false,
+      { icon: 'upload-cloud', color: '#0B1E3D', label: 'Upload quality', sub: appSet.uploadQuality === 'high' ? 'High — best quality' : 'Data saver — smaller uploads', chevron: false,
         right: sw(appSet.uploadQuality === 'high', v => appSet.set({ uploadQuality: v ? 'high' : 'data-saver' })) },
-      { icon: 'moon', color: '#8E8E93', label: 'Dark mode', sub: 'Coming soon', chevron: false,
+      { icon: 'moon', color: 'rgba(11,30,61,0.42)', label: 'Dark mode', sub: 'Coming soon', chevron: false,
         right: sw(appSet.darkMode, v => appSet.set({ darkMode: v })) },
     ]},
     { title: 'Support', rows: [
-      { icon: 'help-circle', color: '#34C759', label: 'Help & Support', sub: 'FAQs, submit a ticket', onPress: () => navigation.navigate('HelpSupport') },
-      { icon: 'mail', color: '#007AFF', label: 'Contact Us', sub: 'support@platinumcircles.app', onPress: () => Linking.openURL('mailto:support@platinumcircles.app?subject=PlatinumCircles%20Inquiry').catch(() => Alert.alert('No mail app', 'Email us at support@platinumcircles.app')) },
-      { icon: 'star', color: '#FFD60A', label: 'Rate the App', sub: 'Share your feedback', onPress: () => Alert.alert('Thank you!', 'App Store rating coming soon.') },
+      { icon: 'help-circle', color: '#0B1E3D', label: 'Help & Support', sub: 'FAQs, submit a ticket', onPress: () => navigation.navigate('HelpSupport') },
+      { icon: 'mail', color: '#0B1E3D', label: 'Contact Us', sub: 'support@platinumcircles.app', onPress: () => Linking.openURL('mailto:support@platinumcircles.app?subject=PlatinumCircles%20Inquiry').catch(() => Alert.alert('No mail app', 'Email us at support@platinumcircles.app')) },
+      { icon: 'star', color: '#0B1E3D', label: 'Rate the App', sub: 'Share your feedback', onPress: () => Alert.alert('Thank you!', 'App Store rating coming soon.') },
     ]},
     { title: 'Legal', rows: [
-      { icon: 'file-text', color: '#8E8E93', label: 'Terms of Service', onPress: () => navigation.navigate('Terms') },
-      { icon: 'shield', color: '#8E8E93', label: 'Privacy Policy', onPress: () => navigation.navigate('PrivacyPolicy') },
+      { icon: 'file-text', color: 'rgba(11,30,61,0.42)', label: 'Terms of Service', onPress: () => navigation.navigate('Terms') },
+      { icon: 'shield', color: 'rgba(11,30,61,0.42)', label: 'Privacy Policy', onPress: () => navigation.navigate('PrivacyPolicy') },
     ]},
     { title: 'Account Actions', rows: [
-      { icon: 'refresh-cw', color: '#007AFF', label: 'Switch Account', sub: 'Sign out and use a different account', onPress: handleSwitchAccount },
-      { icon: 'log-out', color: '#FF9500', label: 'Sign Out', onPress: handleSignOut },
-      { icon: 'moon', color: '#8E8E93', label: 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: handleDeactivate },
+      { icon: 'refresh-cw', color: '#0B1E3D', label: 'Switch Account', sub: 'Sign out and use a different account', onPress: handleSwitchAccount },
+      { icon: 'log-out', color: '#0B1E3D', label: 'Sign Out', onPress: handleSignOut },
+      { icon: 'moon', color: 'rgba(11,30,61,0.42)', label: 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: handleDeactivate },
       { icon: 'trash-2', color: '#FF3B30', label: 'Delete Account', sub: 'Permanently remove all your data', danger: true, onPress: () => { setDeleteConfirmTxt(''); setDeleteModal(true); } },
     ]},
   ];
@@ -404,13 +404,13 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               <Feather
                 name={isASU ? (isVerifiedInstitution ? 'shield' : 'clock') : 'globe'}
                 size={10}
-                color={isASU ? (isVerifiedInstitution ? MAROON : '#D97706') : '#007AFF'}
+                color={isASU ? (isVerifiedInstitution ? MAROON : '#D97706') : '#0B1E3D'}
               />
               <Text style={[
                 s.accountTypeTxt,
                 isASU
                   ? { color: isVerifiedInstitution ? MAROON : '#D97706' }
-                  : { color: '#007AFF' }
+                  : { color: '#0B1E3D' }
               ]}>
                 {isASU
                   ? (isVerifiedInstitution ? 'ASU Verified' : 'ASU Pending Verification')
@@ -418,15 +418,15 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               </Text>
             </View>
           </View>
-          <Feather name="chevron-right" size={20} color="#C7C7CC" />
+          <Feather name="chevron-right" size={20} color="rgba(11,30,61,0.24)" />
         </TouchableOpacity>
 
         <View style={{ paddingHorizontal: 16, paddingBottom: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(11,30,61,0.05)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 }}>
-            <Feather name="search" size={15} color="#8E8E93" />
+            <Feather name="search" size={15} color="rgba(11,30,61,0.42)" />
             <TextInput value={settingsQuery} onChangeText={setSettingsQuery} placeholder="Search settings"
-              placeholderTextColor="#8E8E93" style={{ flex: 1, fontSize: 15, color: '#0B1E3D', padding: 0 }} />
-            {settingsQuery ? <TouchableOpacity onPress={() => setSettingsQuery('')}><Feather name="x" size={15} color="#8E8E93" /></TouchableOpacity> : null}
+              placeholderTextColor="rgba(11,30,61,0.42)" style={{ flex: 1, fontSize: 15, color: '#0B1E3D', padding: 0 }} />
+            {settingsQuery ? <TouchableOpacity onPress={() => setSettingsQuery('')}><Feather name="x" size={15} color="rgba(11,30,61,0.42)" /></TouchableOpacity> : null}
           </View>
         </View>
         {buildSections().map(sec => {
@@ -457,18 +457,18 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             <TouchableOpacity onPress={() => { setPwModal(false); setNewPw(''); setConfirmPw(''); }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Change Password</Text>
             <TouchableOpacity onPress={changePassword} disabled={savingPw}>
-              {savingPw ? <ActivityIndicator color="#007AFF" size={16} /> : <Text style={s.modalSave}>Update</Text>}
+              {savingPw ? <ActivityIndicator color="#0B1E3D" size={16} /> : <Text style={s.modalSave}>Update</Text>}
             </TouchableOpacity>
           </View>
           <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
             <View style={s.pwInfo}>
-              <Feather name="lock" size={18} color="#007AFF" />
+              <Feather name="lock" size={18} color="#0B1E3D" />
               <Text style={s.pwInfoTxt}>Your new password must be at least 8 characters. You will remain signed in after changing it.</Text>
             </View>
             <Text style={s.modalFieldLabel}>New Password</Text>
             <View style={s.pwInputRow}>
-              <TextInput value={newPw} onChangeText={setNewPw} placeholder="Enter new password" placeholderTextColor="#C7C7CC" style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
-              <TouchableOpacity onPress={() => setShowNewPw(p => !p)} style={s.pwEye}><Feather name={showNewPw ? 'eye-off' : 'eye'} size={18} color="#8E8E93" /></TouchableOpacity>
+              <TextInput value={newPw} onChangeText={setNewPw} placeholder="Enter new password" placeholderTextColor="rgba(11,30,61,0.24)" style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
+              <TouchableOpacity onPress={() => setShowNewPw(p => !p)} style={s.pwEye}><Feather name={showNewPw ? 'eye-off' : 'eye'} size={18} color="rgba(11,30,61,0.42)" /></TouchableOpacity>
             </View>
             {newPw.length > 0 && (
               <View style={s.pwStrength}>
@@ -476,8 +476,8 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
                   const checks = [newPw.length >= 8, /[A-Z]/.test(newPw), /\d/.test(newPw), /[^A-Za-z0-9]/.test(newPw)];
                   return (
                     <View key={c} style={s.pwCheck}>
-                      <Feather name={checks[i] ? 'check-circle' : 'circle'} size={13} color={checks[i] ? '#34C759' : '#C7C7CC'} />
-                      <Text style={[s.pwCheckTxt, checks[i] && { color: '#34C759' }]}>{c}</Text>
+                      <Feather name={checks[i] ? 'check-circle' : 'circle'} size={13} color={checks[i] ? '#059669' : 'rgba(11,30,61,0.24)'} />
+                      <Text style={[s.pwCheckTxt, checks[i] && { color: '#059669' }]}>{c}</Text>
                     </View>
                   );
                 })}
@@ -485,8 +485,8 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             )}
             <Text style={[s.modalFieldLabel, { marginTop: 20 }]}>Confirm New Password</Text>
             <View style={s.pwInputRow}>
-              <TextInput value={confirmPw} onChangeText={setConfirmPw} placeholder="Confirm new password" placeholderTextColor="#C7C7CC" style={s.pwInput} secureTextEntry={!showConfPw} autoCapitalize="none" autoCorrect={false} />
-              <TouchableOpacity onPress={() => setShowConfPw(p => !p)} style={s.pwEye}><Feather name={showConfPw ? 'eye-off' : 'eye'} size={18} color="#8E8E93" /></TouchableOpacity>
+              <TextInput value={confirmPw} onChangeText={setConfirmPw} placeholder="Confirm new password" placeholderTextColor="rgba(11,30,61,0.24)" style={s.pwInput} secureTextEntry={!showConfPw} autoCapitalize="none" autoCorrect={false} />
+              <TouchableOpacity onPress={() => setShowConfPw(p => !p)} style={s.pwEye}><Feather name={showConfPw ? 'eye-off' : 'eye'} size={18} color="rgba(11,30,61,0.42)" /></TouchableOpacity>
             </View>
             {confirmPw.length > 0 && newPw !== confirmPw && <Text style={s.pwMismatch}>Passwords do not match</Text>}
             <TouchableOpacity
@@ -506,7 +506,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => setClassModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Account type</Text>
-            <View style={{ width: 52 }}>{savingClass ? <ActivityIndicator color="#007AFF" size={16} /> : null}</View>
+            <View style={{ width: 52 }}>{savingClass ? <ActivityIndicator color="#0B1E3D" size={16} /> : null}</View>
           </View>
           <ScrollView contentContainerStyle={s.modalBody}>
             <Text style={s.privDesc}>Verification is a label you apply for separately. Recruiter, seller, advertiser and moderator are team permissions inside an organization, not account types.</Text>
@@ -529,7 +529,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             <TouchableOpacity onPress={() => setPrivacyModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Privacy</Text>
             <TouchableOpacity onPress={savePrivacy} disabled={savingPriv}>
-              {savingPriv ? <ActivityIndicator color="#007AFF" size={16} /> : <Text style={s.modalSave}>Save</Text>}
+              {savingPriv ? <ActivityIndicator color="#0B1E3D" size={16} /> : <Text style={s.modalSave}>Save</Text>}
             </TouchableOpacity>
           </View>
           <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={s.modalBody}>
@@ -541,17 +541,17 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             ].map(opt => (
               <TouchableOpacity key={opt.value} style={[s.privOption, visibility === opt.value && s.privOptionActive]} onPress={() => setVisibility(opt.value)} activeOpacity={0.8}>
                 <View style={[s.privOptionIcon, visibility === opt.value && s.privOptionIconActive]}>
-                  <Feather name={opt.icon as any} size={20} color={visibility === opt.value ? '#007AFF' : '#8E8E93'} />
+                  <Feather name={opt.icon as any} size={20} color={visibility === opt.value ? '#0B1E3D' : 'rgba(11,30,61,0.42)'} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.privOptionTitle, visibility === opt.value && { color: '#007AFF' }]}>{opt.title}</Text>
+                  <Text style={[s.privOptionTitle, visibility === opt.value && { color: '#0B1E3D' }]}>{opt.title}</Text>
                   <Text style={s.privOptionDesc}>{opt.desc}</Text>
                 </View>
-                {visibility === opt.value && <Feather name="check-circle" size={20} color="#007AFF" />}
+                {visibility === opt.value && <Feather name="check-circle" size={20} color="#0B1E3D" />}
               </TouchableOpacity>
             ))}
             <View style={s.privNote}>
-              <Feather name="info" size={14} color="#8E8E93" />
+              <Feather name="info" size={14} color="rgba(11,30,61,0.42)" />
               <Text style={s.privNoteTxt}>
                 {isASU
                   ? 'Your privacy setting only affects profile visibility within the ASU network.'
@@ -581,7 +581,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               </Text>
             </View>
             <Text style={s.modalFieldLabel}>Type DELETE to confirm</Text>
-            <TextInput value={deleteConfirmTxt} onChangeText={setDeleteConfirmTxt} placeholder="DELETE" placeholderTextColor="#C7C7CC" style={s.deleteInput} autoCapitalize="characters" autoCorrect={false} />
+            <TextInput value={deleteConfirmTxt} onChangeText={setDeleteConfirmTxt} placeholder="DELETE" placeholderTextColor="rgba(11,30,61,0.24)" style={s.deleteInput} autoCapitalize="characters" autoCorrect={false} />
             <TouchableOpacity
               style={[s.deleteBtn, (deleting || deleteConfirmTxt !== 'DELETE') && s.deleteBtnOff]}
               onPress={handleDeleteAccount} disabled={deleting || deleteConfirmTxt !== 'DELETE'} activeOpacity={0.85}

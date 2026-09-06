@@ -83,7 +83,7 @@ export default function ApplyVerificationScreen() {
           <Text style={[s.statusLine, { color: '#059669' }]}>Approved. Your badge is live across Platinum Circles.</Text>
         ) : st === 'rejected' ? (
           <>
-            <Text style={[s.statusLine, { color: '#B91C1C' }]}>Not approved this time.</Text>
+            <Text style={[s.statusLine, { color: '#FF3B30' }]}>Not approved this time.</Text>
             {existing.decision_reason ? <Text style={s.statusReason}>{existing.decision_reason}</Text> : null}
             <TouchableOpacity style={s.reapply} onPress={() => setExisting(null)} activeOpacity={0.85}>
               <Text style={s.reapplyTxt}>Apply again</Text>

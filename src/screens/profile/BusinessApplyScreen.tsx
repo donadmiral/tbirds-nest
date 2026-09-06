@@ -123,7 +123,7 @@ export default function BusinessApplyScreen() {
         <TextInput value={website} onChangeText={setWebsite} autoCapitalize="none" placeholder="Website (optional)" placeholderTextColor="#9CA3AF" style={s.input} />
         <TextInput value={regInfo} onChangeText={setRegInfo} placeholder="Registration or license details (optional)" placeholderTextColor="#9CA3AF" style={s.input} />
         <TextInput value={handle} onChangeText={checkHandle} autoCapitalize="none" placeholder="Desired @ for the business" placeholderTextColor="#9CA3AF" style={s.input} />
-        {handleHint ? <Text style={[s.hint, handleState === 'free' ? { color: '#059669' } : handleState === 'checking' ? { color: 'rgba(11,30,61,0.5)' } : { color: '#DC2626' }]}>{handleHint}</Text> : null}
+        {handleHint ? <Text style={[s.hint, handleState === 'free' ? { color: '#059669' } : handleState === 'checking' ? { color: 'rgba(11,30,61,0.5)' } : { color: '#FF3B30' }]}>{handleHint}</Text> : null}
         <TouchableOpacity style={[s.submit, busy && { opacity: 0.5 }]} onPress={submit} disabled={busy} activeOpacity={0.85}>
           {busy ? <ActivityIndicator color="#FFFFFF" size={16} /> : <Text style={s.submitTxt}>Send application</Text>}
         </TouchableOpacity>
@@ -167,9 +167,9 @@ const s = StyleSheet.create({
   pillDone: { backgroundColor: 'rgba(5,150,105,0.1)' },
   pillBad: { backgroundColor: 'rgba(220,38,38,0.1)' },
   pillTxt: { fontSize: 10.5, fontWeight: '800' },
-  pillTxtOpen: { color: '#B45309' },
+  pillTxtOpen: { color: '#D97706' },
   pillTxtDone: { color: '#059669' },
-  pillTxtBad: { color: '#DC2626' },
+  pillTxtBad: { color: '#FF3B30' },
   reply: { fontSize: 13, lineHeight: 18, color: 'rgba(11,30,61,0.75)', marginTop: 8, backgroundColor: 'rgba(11,30,61,0.04)', borderRadius: 10, padding: 10 },
   when: { fontSize: 11, color: 'rgba(11,30,61,0.4)', marginTop: 8 },
 });

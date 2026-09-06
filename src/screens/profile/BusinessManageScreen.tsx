@@ -327,7 +327,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
             <TextInput value={awayMsg} onChangeText={setAwayMsg} onBlur={() => saveAway(awayOn, awayMsg)}
               placeholder="Thanks for reaching out. We reply during business hours."
               placeholderTextColor="#9AA6B8" multiline
-              style={{ borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 13.5, color: '#0B1E3D', minHeight: 64, textAlignVertical: 'top', marginBottom: 14 }} />
+              style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.08)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 13.5, color: '#0B1E3D', minHeight: 64, textAlignVertical: 'top', marginBottom: 14 }} />
           ) : <View style={{ height: 6 }} />}
           <Text style={s.sectionLbl}>Category</Text>
           <View style={s.chips}>

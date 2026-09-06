@@ -212,8 +212,8 @@ export default function ProfileHeader({
           {(profile?.verified_tier || profile?.is_verified) ? <VerifiedBadge tier={profile?.verified_tier} size={17} /> : null}
         </View>
         {profile?.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
-        {ctxMutual ? <Text style={{ fontSize: 13, color: '#8E8E93', marginTop: 5, textAlign: 'center', paddingHorizontal: 24 }}>{ctxMutual}</Text> : null}
-        {isSelf && ctxInsights ? <Text style={{ fontSize: 12.5, color: '#8E8E93', marginTop: 5, textAlign: 'center' }}>{ctxInsights}</Text> : null}
+        {ctxMutual ? <Text style={{ fontSize: 13, color: 'rgba(11,30,61,0.42)', marginTop: 5, textAlign: 'center', paddingHorizontal: 24 }}>{ctxMutual}</Text> : null}
+        {isSelf && ctxInsights ? <Text style={{ fontSize: 12.5, color: 'rgba(11,30,61,0.42)', marginTop: 5, textAlign: 'center' }}>{ctxInsights}</Text> : null}
         {profile?.username ? <TouchableOpacity onPress={shareProfile} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'center', marginTop: 8, paddingHorizontal: 13, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}><Feather name="share" size={12} color="#0B1E3D" /><Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0B1E3D' }}>Share profile</Text></TouchableOpacity> : null}
         <Modal visible={avatarOpen} transparent animationType="fade" onRequestClose={() => setAvatarOpen(false)}>
           <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center' }} activeOpacity={1} onPress={() => setAvatarOpen(false)}>

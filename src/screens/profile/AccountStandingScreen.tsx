@@ -13,10 +13,10 @@ import { useAuthStore } from '../../stores/authStore';
 
 const NAVY = '#0B1E3D';
 const KIND_META: Record<string, { label: string; color: string; bg: string }> = {
-  warn: { label: 'Warning', color: '#B45309', bg: 'rgba(180,83,9,0.08)' },
-  restrict: { label: 'Restriction', color: '#B45309', bg: 'rgba(180,83,9,0.08)' },
-  suspend: { label: 'Suspension', color: '#DC2626', bg: 'rgba(220,38,38,0.07)' },
-  ban: { label: 'Ban', color: '#DC2626', bg: 'rgba(220,38,38,0.07)' },
+  warn: { label: 'Warning', color: '#D97706', bg: 'rgba(180,83,9,0.08)' },
+  restrict: { label: 'Restriction', color: '#D97706', bg: 'rgba(180,83,9,0.08)' },
+  suspend: { label: 'Suspension', color: '#FF3B30', bg: 'rgba(220,38,38,0.07)' },
+  ban: { label: 'Ban', color: '#FF3B30', bg: 'rgba(220,38,38,0.07)' },
 };
 
 export default function AccountStandingScreen() {
@@ -53,13 +53,13 @@ export default function AccountStandingScreen() {
           <>
             {restrictionActive ? (
               <View style={[s.banner, { backgroundColor: 'rgba(180,83,9,0.08)', borderColor: 'rgba(180,83,9,0.25)' }]}>
-                <Feather name="alert-triangle" size={16} color="#B45309" />
-                <Text style={[s.bannerTxt, { color: '#B45309' }]}>Posting and listing are restricted until {restrictedUntil!.toLocaleString()}. The limit lifts automatically.</Text>
+                <Feather name="alert-triangle" size={16} color="#D97706" />
+                <Text style={[s.bannerTxt, { color: '#D97706' }]}>Posting and listing are restricted until {restrictedUntil!.toLocaleString()}. The limit lifts automatically.</Text>
               </View>
             ) : (
               <View style={[s.banner, { backgroundColor: 'rgba(29,122,56,0.07)', borderColor: 'rgba(29,122,56,0.25)' }]}>
-                <Feather name="check-circle" size={16} color="#1D7A38" />
-                <Text style={[s.bannerTxt, { color: '#1D7A38' }]}>{rows.length ? 'No active restriction on the account.' : 'Good standing. No strikes on this account.'}</Text>
+                <Feather name="check-circle" size={16} color="#059669" />
+                <Text style={[s.bannerTxt, { color: '#059669' }]}>{rows.length ? 'No active restriction on the account.' : 'Good standing. No strikes on this account.'}</Text>
               </View>
             )}
             {rows.length ? <Text style={s.section}>Record</Text> : null}

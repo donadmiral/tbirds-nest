@@ -51,7 +51,7 @@ export default function MutedStoriesScreen({ navigation }: any) {
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.bar}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Feather name="chevron-left" size={26} color="#0A0A0A" />
+          <Feather name="chevron-left" size={26} color="#0B1E3D" />
         </TouchableOpacity>
         <Text style={s.title}>Muted stories</Text>
         <View style={{ width: 26 }} />
@@ -91,17 +91,17 @@ export default function MutedStoriesScreen({ navigation }: any) {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
-  title: { fontSize: 17, fontWeight: '700', color: '#0A0A0A' },
+  bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
+  title: { fontSize: 17, fontWeight: '700', color: '#0B1E3D' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#0A0A0A' },
-  emptySub: { fontSize: 14, color: '#8E8E93' },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#0B1E3D' },
+  emptySub: { fontSize: 14, color: 'rgba(11,30,61,0.42)' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#E5E5EA' },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(11,30,61,0.08)' },
   avatarFb: { alignItems: 'center', justifyContent: 'center' },
-  avatarTxt: { fontSize: 17, fontWeight: '700', color: '#8E8E93' },
-  name: { fontSize: 15.5, fontWeight: '600', color: '#0A0A0A' },
-  handle: { fontSize: 13, color: '#8E8E93', marginTop: 1 },
+  avatarTxt: { fontSize: 17, fontWeight: '700', color: 'rgba(11,30,61,0.42)' },
+  name: { fontSize: 15.5, fontWeight: '600', color: '#0B1E3D' },
+  handle: { fontSize: 13, color: 'rgba(11,30,61,0.42)', marginTop: 1 },
   unmute: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 7 },
   unmuteTxt: { fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' },
 });

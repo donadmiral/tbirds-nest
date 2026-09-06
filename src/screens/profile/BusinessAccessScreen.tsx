@@ -152,7 +152,7 @@ const s = StyleSheet.create({
   rowName: { fontSize: 14, fontWeight: '700', color: NAVY },
   rowSub: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', marginTop: 2 },
   dangerBtn: { borderWidth: 1, borderColor: 'rgba(220,38,38,0.3)', backgroundColor: 'rgba(220,38,38,0.06)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
-  dangerTxt: { color: '#DC2626', fontSize: 12, fontWeight: '800' },
+  dangerTxt: { color: '#FF3B30', fontSize: 12, fontWeight: '800' },
   okBtn: { backgroundColor: NAVY, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
   okTxt: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
   mutedPill: { fontSize: 11, fontWeight: '800', color: 'rgba(11,30,61,0.35)' },

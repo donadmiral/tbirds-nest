@@ -26,8 +26,8 @@ const NAVY = '#0B1E3D';
 const NAVY_SOFT = '#1A3560';
 const BG_GREY = '#F7F7F9';
 const TEXT_PRIMARY = '#000000';
-const TEXT_SECONDARY = '#8E8E93';
-const HAIRLINE = '#E5E5EA';
+const TEXT_SECONDARY = 'rgba(11,30,61,0.42)';
+const HAIRLINE = 'rgba(11,30,61,0.08)';
 
 type UserProfile = {
   id: string; full_name: string; username: string; bio: string;
@@ -234,7 +234,7 @@ export default function UserProfileScreen() {
   if (!profile) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
       <View style={s.loader}>
-        <Feather name="user-x" size={40} color="#E5E5EA" />
+        <Feather name="user-x" size={40} color="rgba(11,30,61,0.08)" />
         <Text style={s.notFoundTxt}>Profile not found</Text>
         <TouchableOpacity style={s.goBackBtn} onPress={() => navigation.goBack()}>
           <Text style={s.goBackBtnTxt}>Go back</Text>
@@ -306,7 +306,7 @@ export default function UserProfileScreen() {
                       else Alert.alert('Could not vouch', String((data as any)?.error || ''));
                     } catch (e: any) { Alert.alert('Could not vouch', e?.message || ''); }
                   }}>
-                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#1D7A38' }}>Vouch</Text>
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#059669' }}>Vouch</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -378,14 +378,14 @@ export default function UserProfileScreen() {
               </View>
               {posts.length === 0 ? (
                 <View style={s.emptyPosts}>
-                  <Feather name="edit-3" size={28} color="#E5E5EA" />
+                  <Feather name="edit-3" size={28} color="rgba(11,30,61,0.08)" />
                   <Text style={s.emptyPostsTxt}>No posts yet</Text>
                 </View>
               ) : (
                 posts.map((post, idx) => (
                   <View
                     key={post.id}
-                    style={[s.postCard, { marginBottom: 10, borderBottomWidth: 6, borderBottomColor: '#F4F4F6' }, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
+                    style={[s.postCard, { marginBottom: 10, borderBottomWidth: 6, borderBottomColor: '#F4F3F1' }, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <TouchableOpacity style={{ flex: 1 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
@@ -462,7 +462,7 @@ export default function UserProfileScreen() {
         ) : (
           <View style={s.lockedSection}>
             <View style={s.lockedIcon}>
-              <Feather name="lock" size={32} color="#C7C7CC" />
+              <Feather name="lock" size={32} color="rgba(11,30,61,0.24)" />
             </View>
             <Text style={s.lockedTitle}>This account is private</Text>
             <Text style={s.lockedSub}>Follow this account to see their posts and activity.</Text>
@@ -476,7 +476,7 @@ export default function UserProfileScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG_GREY },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: '#FFFFFF' },
-  notFoundTxt: { fontSize: 16, fontWeight: '600', color: '#3C3C43' },
+  notFoundTxt: { fontSize: 16, fontWeight: '600', color: 'rgba(11,30,61,0.62)' },
   goBackBtn: { backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
   goBackBtnTxt: { color: '#FFF', fontSize: 14, fontWeight: '600' },
 
@@ -528,7 +528,7 @@ const s = StyleSheet.create({
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionMeta: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
 
-  bio: { fontSize: 14, color: '#3C3C43', lineHeight: 21, marginBottom: 12 },
+  bio: { fontSize: 14, color: 'rgba(11,30,61,0.62)', lineHeight: 21, marginBottom: 12 },
 
   itm: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
   itmIconBg: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
@@ -537,12 +537,12 @@ const s = StyleSheet.create({
 
   emptyPosts: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyPostsTxt: { fontSize: 14, color: TEXT_SECONDARY },
-  postCard: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  postContent: { fontSize: 14, color: '#1A1A1A', lineHeight: 20, marginBottom: 10 },
+  postCard: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F4F3F1' },
+  postContent: { fontSize: 14, color: '#0B1E3D', lineHeight: 20, marginBottom: 10 },
   postFooter: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   postFooterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   postFooterTxt: { fontSize: 12, color: TEXT_SECONDARY },
-  postTime: { fontSize: 12, color: '#C7C7CC', marginLeft: 'auto' },
+  postTime: { fontSize: 12, color: 'rgba(11,30,61,0.24)', marginLeft: 'auto' },
 
   lockedSection: { alignItems: 'center', paddingVertical: 80, paddingHorizontal: 32, gap: 10 },
   lockedIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },

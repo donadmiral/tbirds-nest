@@ -31,8 +31,8 @@ import { ProfileSkeleton } from '../../components/Skeleton';
 const SCREEN_W = Dimensions.get('window').width;
 const NAVY = '#0B1E3D';
 const TEXT_PRIMARY = '#000000';
-const TEXT_SECONDARY = '#8E8E93';
-const HAIRLINE = '#E5E5EA';
+const TEXT_SECONDARY = 'rgba(11,30,61,0.42)';
+const HAIRLINE = 'rgba(11,30,61,0.08)';
 
 const ROLES = ['student','alumni','faculty','staff'];
 
@@ -79,8 +79,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const COMMUNITY = [
-  { label: 'Jobs',        sub: 'Roles & referrals',   ring: '#5856D6', bg: '#F0EEFF', emoji: null, featherIcon: 'briefcase',  featherColor: '#5856D6', route: 'Jobs' },
-  { label: 'Support',     sub: 'FAQs & tickets',      ring: '#34C759', bg: '#EDFBF0', emoji: null, featherIcon: 'help-circle', featherColor: '#34C759', route: 'HelpSupport' },
+  { label: 'Jobs',        sub: 'Roles & referrals',   ring: '#0B1E3D', bg: '#F0EEFF', emoji: null, featherIcon: 'briefcase',  featherColor: '#0B1E3D', route: 'Jobs' },
+  { label: 'Support',     sub: 'FAQs & tickets',      ring: '#059669', bg: '#EDFBF0', emoji: null, featherIcon: 'help-circle', featherColor: '#059669', route: 'HelpSupport' },
 ] as const;
 
 type StatsModalKey = 'followers' | 'following' | null;
@@ -348,7 +348,7 @@ export default function ProfileScreen() {
     const displayAvatar = author?.avatar_url;
     const mediaWidth = SCREEN_W - 32;
     return (
-      <Pressable key={post.id} style={[st.postCard, { marginBottom: 10, borderBottomWidth: 6, borderBottomColor: '#F4F4F6' }]} onPress={() => navigation.navigate('Post', { postId: post.id })}>
+      <Pressable key={post.id} style={[st.postCard, { marginBottom: 10, borderBottomWidth: 6, borderBottomColor: '#F4F3F1' }]} onPress={() => navigation.navigate('Post', { postId: post.id })}>
         {post._savedAt && !post._repostLabel && (<View style={st.repostBanner}><Feather name="bookmark" size={12} color={NAVY} /><Text style={[st.repostBannerTxt, { color: NAVY }]}>Saved {relTime(post._savedAt)}</Text></View>)}
         <View style={st.postHeader}>
           {displayAvatar ? <ExpoImage source={{ uri: displayAvatar }} style={st.postAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /> : <View style={[st.postAvatar, st.postAvatarFb]}><Text style={st.postAvatarTxt}>{initials(displayName)}</Text></View>}
@@ -377,7 +377,7 @@ export default function ProfileScreen() {
           <View style={st.postMetricItem}><Feather name="heart" size={13} color={TEXT_SECONDARY} /><Text style={st.postMetricTxt}>{post.likes_count}</Text></View>
           <View style={st.postMetricItem}><Feather name="message-circle" size={13} color={TEXT_SECONDARY} /><Text style={st.postMetricTxt}>{post.comments_count}</Text></View>
           {post.reposts_count > 0 && <View style={st.postMetricItem}><Feather name="repeat" size={13} color={TEXT_SECONDARY} /><Text style={st.postMetricTxt}>{post.reposts_count}</Text></View>}
-          <Text style={{ marginLeft: 'auto', fontSize: 12, color: '#C7C7CC' }}>{relTime(post.created_at)}</Text>
+          <Text style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(11,30,61,0.24)' }}>{relTime(post.created_at)}</Text>
         </View>
       </Pressable>
     );
@@ -391,7 +391,7 @@ export default function ProfileScreen() {
       tagged: { icon: 'image', title: 'No media yet', sub: 'Photos and videos you post will show here.' },
     };
     const c = configs[tab];
-    return (<View style={st.tabEmpty}><View style={st.tabEmptyIcon}><Feather name={c.icon as any} size={28} color="#C7C7CC" /></View><Text style={st.tabEmptyTitle}>{c.title}</Text><Text style={st.tabEmptySub}>{c.sub}</Text></View>);
+    return (<View style={st.tabEmpty}><View style={st.tabEmptyIcon}><Feather name={c.icon as any} size={28} color="rgba(11,30,61,0.24)" /></View><Text style={st.tabEmptyTitle}>{c.title}</Text><Text style={st.tabEmptySub}>{c.sub}</Text></View>);
   };
 
 const loadMorePosts = useCallback(async () => {
@@ -468,7 +468,7 @@ const loadMorePosts = useCallback(async () => {
       <Modal visible={!!statsModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={()=>setStatsModal(null)}>
         <SafeAreaView style={{flex:1,backgroundColor:'#FFF',paddingTop:insets.top}} edges={['left','right','bottom']}>
           <View style={st.modalHeader}><View style={{width:60}}/><Text style={st.modalTitle}>{statsModalTitle}</Text><TouchableOpacity onPress={()=>setStatsModal(null)} style={{width:60,alignItems:'flex-end'}}><Feather name="x" size={22} color="#000"/></TouchableOpacity></View>
-          {statsLoading?<View style={st.center}><ActivityIndicator color={NAVY} size="large"/></View>:statsPeople.length===0?<View style={st.empty}><Feather name="users" size={40} color="#E5E5EA"/><Text style={st.emptyTitle}>Nobody here yet</Text><Text style={st.emptyTxt}>{statsEmptyMsg}</Text></View>:<FlatList  ListEmptyComponent={<EmptyState icon="grid" title="No posts yet" line="What you share appears here." />}data={statsPeople} keyExtractor={p=>p.id} contentContainerStyle={{padding:16}} renderItem={({item:person})=>(<TouchableOpacity style={st.personRow} activeOpacity={0.85} onPress={()=>{setStatsModal(null);navigation.navigate('UserProfile',{userId:person.id});}}>{person.avatar_url?<ExpoImage source={{uri:person.avatar_url}} style={st.personAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<View style={[st.personAvatar,st.personAvatarFb]}><Text style={st.personAvatarTxt}>{initials(person.full_name)}</Text></View>}<View style={{flex:1}}><View style={{flexDirection:'row',alignItems:'center'}}><TierName userId={person.id} baseStyle={st.personName} text={person.full_name||'Member'} /><VerifiedBadge userId={person.id} size={12} /></View>{person.username?<Text style={st.personHandle}>@{person.username}</Text>:null}</View><Feather name="chevron-right" size={16} color="#C7C7CC"/></TouchableOpacity>)}/>}
+          {statsLoading?<View style={st.center}><ActivityIndicator color={NAVY} size="large"/></View>:statsPeople.length===0?<View style={st.empty}><Feather name="users" size={40} color="rgba(11,30,61,0.08)"/><Text style={st.emptyTitle}>Nobody here yet</Text><Text style={st.emptyTxt}>{statsEmptyMsg}</Text></View>:<FlatList  ListEmptyComponent={<EmptyState icon="grid" title="No posts yet" line="What you share appears here." />}data={statsPeople} keyExtractor={p=>p.id} contentContainerStyle={{padding:16}} renderItem={({item:person})=>(<TouchableOpacity style={st.personRow} activeOpacity={0.85} onPress={()=>{setStatsModal(null);navigation.navigate('UserProfile',{userId:person.id});}}>{person.avatar_url?<ExpoImage source={{uri:person.avatar_url}} style={st.personAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<View style={[st.personAvatar,st.personAvatarFb]}><Text style={st.personAvatarTxt}>{initials(person.full_name)}</Text></View>}<View style={{flex:1}}><View style={{flexDirection:'row',alignItems:'center'}}><TierName userId={person.id} baseStyle={st.personName} text={person.full_name||'Member'} /><VerifiedBadge userId={person.id} size={12} /></View>{person.username?<Text style={st.personHandle}>@{person.username}</Text>:null}</View><Feather name="chevron-right" size={16} color="rgba(11,30,61,0.24)"/></TouchableOpacity>)}/>}
         </SafeAreaView>
       </Modal>
 
@@ -477,34 +477,34 @@ const loadMorePosts = useCallback(async () => {
 }
 
 const st = StyleSheet.create({
-  twTabRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#EFF3F4', backgroundColor: '#FFFFFF' },
+  twTabRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)', backgroundColor: '#FFFFFF' },
   twTab: { flex: 1, alignItems: 'center', paddingVertical: 15, position: 'relative' },
-  twTabTxt: { fontSize: 15, fontWeight: '600', color: '#536471' },
-  twTabTxtOn: { color: '#0F1419', fontWeight: '700' },
+  twTabTxt: { fontSize: 15, fontWeight: '600', color: 'rgba(11,30,61,0.42)' },
+  twTabTxtOn: { color: '#0B1E3D', fontWeight: '700' },
   twTabBar: { position: 'absolute', bottom: 0, height: 4, width: 56, borderRadius: 2, backgroundColor: '#1D9BF0' },
   twBanner: { height: 140, backgroundColor: '#CBD5E1' },
   twSettings: { position: 'absolute', right: 14, top: 14, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
   twHead: { paddingHorizontal: 16, paddingBottom: 12 },
   twAvatarRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -42 },
   twAvatarWrap: { borderRadius: 44, borderWidth: 4, borderColor: '#FFFFFF', backgroundColor: '#FFFFFF' },
-  twAvatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E5E5EA' },
-  twAvatarTxt: { fontSize: 28, fontWeight: '800', color: '#8E8E93' },
+  twAvatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(11,30,61,0.08)' },
+  twAvatarTxt: { fontSize: 28, fontWeight: '800', color: 'rgba(11,30,61,0.42)' },
   twEditBtn: { borderWidth: 1, borderColor: '#CFD9DE', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 8, marginBottom: 6 },
-  twEditTxt: { fontSize: 14.5, fontWeight: '700', color: '#0F1419' },
-  twName: { fontSize: 21, fontWeight: '800', color: '#0F1419', letterSpacing: -0.5, marginTop: 10 },
-  twHandle: { fontSize: 15, color: '#536471', marginTop: 1 },
-  twBio: { fontSize: 15, color: '#0F1419', lineHeight: 21, marginTop: 12 },
-  twBioEmpty: { fontSize: 15, color: '#8E8E93', marginTop: 12 },
+  twEditTxt: { fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' },
+  twName: { fontSize: 21, fontWeight: '800', color: '#0B1E3D', letterSpacing: -0.5, marginTop: 10 },
+  twHandle: { fontSize: 15, color: 'rgba(11,30,61,0.42)', marginTop: 1 },
+  twBio: { fontSize: 15, color: '#0B1E3D', lineHeight: 21, marginTop: 12 },
+  twBioEmpty: { fontSize: 15, color: 'rgba(11,30,61,0.42)', marginTop: 12 },
   twMetaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 12 },
   twMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  twMeta: { fontSize: 14.5, color: '#536471' },
+  twMeta: { fontSize: 14.5, color: 'rgba(11,30,61,0.42)' },
   twCounts: { flexDirection: 'row', gap: 20, marginTop: 14 },
   twCountItem: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  twCountNum: { fontSize: 14.5, fontWeight: '700', color: '#0F1419' },
-  twCountLbl: { fontSize: 14.5, color: '#536471' },
+  twCountNum: { fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' },
+  twCountLbl: { fontSize: 14.5, color: 'rgba(11,30,61,0.42)' },
   safe:{flex:1,backgroundColor:'#FFF'},
   center:{flex:1,alignItems:'center',justifyContent:'center'},
-  identityRegion:{backgroundColor:'#F9F9FB',paddingBottom:20,marginBottom:8},
+  identityRegion:{backgroundColor:'#FAFAF9',paddingBottom:20,marginBottom:8},
   identityTopRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingTop:10,paddingBottom:20},
   iconBtn:{width:36,height:36,borderRadius:18,backgroundColor:'rgba(0,0,0,0.04)',alignItems:'center',justifyContent:'center'},
   identityCenter:{alignItems:'center',paddingHorizontal:24},
@@ -512,20 +512,20 @@ const st = StyleSheet.create({
   avatarLoading:{backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   avatarFb:{backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   avatarFbTxt:{fontSize:34,fontWeight:'700',color:NAVY},
-  cameraBadge:{position:'absolute',bottom:2,right:2,width:28,height:28,borderRadius:14,backgroundColor:NAVY,alignItems:'center',justifyContent:'center',borderWidth:2.5,borderColor:'#F9F9FB'},
+  cameraBadge:{position:'absolute',bottom:2,right:2,width:28,height:28,borderRadius:14,backgroundColor:NAVY,alignItems:'center',justifyContent:'center',borderWidth:2.5,borderColor:'#FAFAF9'},
   nameText:{fontSize:24,fontWeight:'800',color:TEXT_PRIMARY,marginTop:14,letterSpacing:-0.4},
   handleText:{fontSize:15,color:NAVY,fontWeight:'500',marginTop:3},
   roleBadge:{marginTop:8,backgroundColor:'rgba(11,30,61,0.06)',borderRadius:8,paddingHorizontal:12,paddingVertical:5},
-  roleBadgeTxt:{fontSize:12,fontWeight:'600',color:'#3C3C43'},
-  identityBio:{fontSize:15,color:'#3C3C43',lineHeight:22,textAlign:'center',marginTop:12,paddingHorizontal:8},
+  roleBadgeTxt:{fontSize:12,fontWeight:'600',color:'rgba(11,30,61,0.62)'},
+  identityBio:{fontSize:15,color:'rgba(11,30,61,0.62)',lineHeight:22,textAlign:'center',marginTop:12,paddingHorizontal:8},
   identityMeta:{gap:5,marginTop:10,alignItems:'center'},
   statsBar:{flexDirection:'row',alignItems:'center',marginHorizontal:16,marginTop:20,backgroundColor:'#FFFFFF',borderRadius:14,overflow:'hidden'},
   statCell:{flex:1,alignItems:'center',paddingVertical:14},
   statNum:{fontSize:20,fontWeight:'700',color:TEXT_PRIMARY},
   statLbl:{fontSize:11,color:TEXT_SECONDARY,marginTop:2,textAlign:'center'},
   statDivider:{width:StyleSheet.hairlineWidth,height:36,backgroundColor:HAIRLINE},
-  bioTxt:{fontSize:15,color:'#1A1A1A',lineHeight:22},
-  bioEmpty:{fontSize:15,color:'#C7C7CC'},
+  bioTxt:{fontSize:15,color:'#0B1E3D',lineHeight:22},
+  bioEmpty:{fontSize:15,color:'rgba(11,30,61,0.24)'},
   metaRow:{flexDirection:'row',alignItems:'center',gap:6},
   metaTxt:{fontSize:14,color:'#6B6B6B',flexShrink:1},
   communitySection:{paddingHorizontal:16,marginBottom:16},
@@ -566,7 +566,7 @@ const st = StyleSheet.create({
   postAvatarTxt:{fontSize:14,fontWeight:'700',color:'#FFF'},
   postAuthorName:{fontSize:14,fontWeight:'600',color:TEXT_PRIMARY},
   postTime:{fontSize:12,color:TEXT_SECONDARY,marginTop:1},
-  postContent:{fontSize:15,color:'#1A1A1A',lineHeight:22,marginBottom:10},
+  postContent:{fontSize:15,color:'#0B1E3D',lineHeight:22,marginBottom:10},
   postMediaWrap:{borderRadius:12,overflow:'hidden',marginBottom:10},
   postMetrics:{flexDirection:'row',alignItems:'center',gap:14},
   postMetricItem:{flexDirection:'row',alignItems:'center',gap:4},
@@ -579,7 +579,7 @@ const st = StyleSheet.create({
   addInstRow:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:16,paddingVertical:12,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F2F2F7'},
   modalHeader:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,paddingVertical:14,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:HAIRLINE},
   modalTitle:{fontSize:17,fontWeight:'600',color:TEXT_PRIMARY},
-  personRow:{flexDirection:'row',alignItems:'center',gap:12,paddingVertical:12,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#F5F5F5'},
+  personRow:{flexDirection:'row',alignItems:'center',gap:12,paddingVertical:12,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#F4F3F1'},
   personAvatar:{width:46,height:46,borderRadius:23},
   personAvatarFb:{backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   personAvatarTxt:{fontSize:17,fontWeight:'700',color:NAVY},
@@ -600,28 +600,28 @@ const st = StyleSheet.create({
   editCameraBadge:{position:'absolute',bottom:0,right:0,width:28,height:28,borderRadius:14,backgroundColor:NAVY,alignItems:'center',justifyContent:'center',borderWidth:2,borderColor:'#FFF'},
   field:{marginBottom:22},
   fieldLabel:{fontSize:12,fontWeight:'700',color:TEXT_SECONDARY,textTransform:'uppercase',letterSpacing:0.5,marginBottom:8},
-  input:{backgroundColor:'#F5F5F5',borderRadius:12,paddingHorizontal:14,paddingVertical:13,fontSize:16,color:TEXT_PRIMARY},
+  input:{backgroundColor:'#F4F3F1',borderRadius:12,paddingHorizontal:14,paddingVertical:13,fontSize:16,color:TEXT_PRIMARY},
   inputMulti:{minHeight:90,paddingTop:13,textAlignVertical:'top'},
   visRow:{flexDirection:'row',gap:10},
-  visChip:{flex:1,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,paddingVertical:12,borderRadius:12,borderWidth:1.5,borderColor:HAIRLINE,backgroundColor:'#F5F5F5'},
+  visChip:{flex:1,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,paddingVertical:12,borderRadius:12,borderWidth:1.5,borderColor:HAIRLINE,backgroundColor:'#F4F3F1'},
   visChipOn:{backgroundColor:NAVY,borderColor:NAVY},
   visChipTxt:{fontSize:15,fontWeight:'500',color:TEXT_SECONDARY},
   visChipTxtOn:{color:'#FFF',fontWeight:'600'},
-  picker:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',backgroundColor:'#F5F5F5',borderRadius:12,paddingHorizontal:14,paddingVertical:13},
+  picker:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',backgroundColor:'#F4F3F1',borderRadius:12,paddingHorizontal:14,paddingVertical:13},
   pickerTxt:{fontSize:16,color:TEXT_PRIMARY,flex:1,paddingRight:8},
-  pickerPh:{color:'#C7C7CC'},
+  pickerPh:{color:'rgba(11,30,61,0.24)'},
   dropList:{marginTop:4,backgroundColor:'#FFF',borderRadius:12,borderWidth:StyleSheet.hairlineWidth,borderColor:HAIRLINE,overflow:'hidden'},
-  dropItem:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:14,paddingVertical:13,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#F0F0F0'},
+  dropItem:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:14,paddingVertical:13,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#F4F3F1'},
   dropItemOn:{backgroundColor:'#F2F2F7'},
   dropTxt:{fontSize:15,color:TEXT_PRIMARY,flex:1,paddingRight:8},
   dropTxtOn:{color:NAVY,fontWeight:'500'},
   semesterRow:{flexDirection:'row',gap:10},
-  semesterChip:{flex:1,alignItems:'center',justifyContent:'center',paddingVertical:13,borderRadius:12,borderWidth:1.5,borderColor:HAIRLINE,backgroundColor:'#F5F5F5'},
+  semesterChip:{flex:1,alignItems:'center',justifyContent:'center',paddingVertical:13,borderRadius:12,borderWidth:1.5,borderColor:HAIRLINE,backgroundColor:'#F4F3F1'},
   semesterChipOn:{backgroundColor:NAVY,borderColor:NAVY},
   semesterChipTxt:{fontSize:15,fontWeight:'500',color:TEXT_SECONDARY},
   semesterChipTxtOn:{color:'#FFF',fontWeight:'700'},
   roleRow:{flexDirection:'row',flexWrap:'wrap',gap:8},
-  roleChip:{paddingHorizontal:18,paddingVertical:10,borderRadius:20,borderWidth:1,borderColor:HAIRLINE,backgroundColor:'#F5F5F5'},
+  roleChip:{paddingHorizontal:18,paddingVertical:10,borderRadius:20,borderWidth:1,borderColor:HAIRLINE,backgroundColor:'#F4F3F1'},
   roleChipOn:{backgroundColor:NAVY,borderColor:NAVY},
   roleChipTxt:{fontSize:14,color:TEXT_SECONDARY,fontWeight:'500'},
   roleChipTxtOn:{color:'#FFF',fontWeight:'600'},
