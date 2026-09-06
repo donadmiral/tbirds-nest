@@ -41,6 +41,10 @@ try {
   useMicrophonePermissions = mod.useMicrophonePermissions;
   cameraAvailable = !!CameraView;
 } catch {
+// A hook is always called, whichever module the binary has: the fallback
+// hook returns the same shape and keeps hook order constant.
+const useMicFallback = (): any[] => [null, null];
+const useMic: () => any[] = useMicrophonePermissions || useMicFallback;
   cameraAvailable = false;
 }
 
@@ -79,7 +83,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
   // before: straight into the story composer.
   const returnTo: 'story' | 'chat' | 'feed' = route?.params?.returnTo || 'story';
   const [permission, requestPermission] = useCameraPermissions();
-  const micPair = useMicrophonePermissions ? useMicrophonePermissions() : [null, null];
+  const micPair = useMic();
   const micPerm = micPair[0];
   const requestMicPerm = micPair[1];
   useEffect(() => {

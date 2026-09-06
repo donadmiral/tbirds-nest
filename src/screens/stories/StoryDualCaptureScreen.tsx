@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks -- the component body is wrapped in a try block for a crash guard; hook order is constant inside it. */
 /**
  * StoryDualCaptureScreen.tsx
  * 

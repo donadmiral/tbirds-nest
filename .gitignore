@@ -26,8 +26,8 @@ _full-source.zip
 
 *.bak[0-9]
 
-android/
-ios/
+/android
+/ios
 
 # local backups, tunnels and logs, never committed
 _export/
