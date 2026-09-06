@@ -262,7 +262,26 @@ function CarouselVideo({
   );
 }
 
+// The reader's sensitive-content setting, read once per session and shared by every card.
+let sensitiveMode: 'show' | 'blur' | 'hide' = 'blur';
+let sensitiveLoaded = false;
+async function loadSensitiveMode() {
+  if (sensitiveLoaded) return; sensitiveLoaded = true;
+  try {
+    const { supabase } = require('../services/supabase');
+    const { data: auth } = await supabase.auth.getUser(); const id = auth.user?.id; if (!id) return;
+    const { data } = await supabase.from('profiles').select('sensitive_content').eq('id', id).maybeSingle();
+    const v = (data as any)?.sensitive_content; if (v === 'show' || v === 'blur' || v === 'hide') sensitiveMode = v;
+  } catch {}
+}
+
 export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress }: Props) {
+  const [revealed, setRevealed] = useState(false);
+  const [, bump] = useState(0);
+  useEffect(() => { loadSensitiveMode().then(() => bump((n) => n + 1)); }, []);
+  const isSensitive = (media || []).some((m: any) => !!m?.is_sensitive || !!m?.edit?.sensitive);
+  if (isSensitive && sensitiveMode === 'hide') return null;
+  const veil = isSensitive && sensitiveMode === 'blur' && !revealed;
   const tagMap = useMediaTags((media || []).map((m: any) => m.id).filter(Boolean));
   const [activeIndex, setActiveIndex] = useState(0);
   // The frame the composer chose for this post: square, 4:5 or 1.91:1.
@@ -270,6 +289,14 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   const aspect = (media[0]?.edit as any)?.aspect as ('square' | 'portrait' | 'landscape' | undefined);
   const ratio = aspect === 'square' ? 1 : aspect === 'landscape' ? 1 / 1.91 : HEIGHT_RATIO;
   const slideHeight = Math.round(containerWidth * ratio);
+  if (veil) {
+    return (
+      <TouchableOpacity activeOpacity={0.9} onPress={() => setRevealed(true)} style={{ width: containerWidth, height: slideHeight, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>Sensitive content</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>This photo or video may be sensitive. Tap to view.</Text>
+      </TouchableOpacity>
+    );
+  }
   const total = media.length;
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {

@@ -48,6 +48,16 @@ export default function HomeFeed() {
   const supabase = useRef(createClient()).current;
   const [mode, setMode] = useState<(typeof MODES)[number]["key"]>("for_you");
   const [posts, setPosts] = useState<FeedRow[]>([]);
+  // Muted words: posts containing any of them stay out of the feed.
+  const mutedRef = useRef<string[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser(); const id = auth.user?.id; if (!id) return;
+      const { data } = await supabase.from("profiles").select("muted_words").eq("id", id).maybeSingle();
+      mutedRef.current = ((((data as { muted_words?: string[] } | null)?.muted_words) || []) as string[]).map((w) => String(w).toLowerCase());
+    })();
+  }, [supabase]);
+  const isMuted = (r: FeedRow) => { const m = mutedRef.current; if (!m.length) return false; const text = ((r as unknown as { content?: string; article_title?: string }).content || "") + " " + ((r as unknown as { article_title?: string }).article_title || ""); const low = text.toLowerCase(); return m.some((w) => w && low.includes(w)); };
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -120,7 +130,7 @@ export default function HomeFeed() {
           const last = raw[raw.length - 1];
           cursor.current = { key: last.sort_key, id: last.post_id };
         }
-        const rows = raw.filter((r) => !hiddenRef.current.has(r.post_id));
+        const rows = raw.filter((r) => !hiddenRef.current.has(r.post_id) && !isMuted(r));
         setPosts((prev) => {
           const base = more ? prev : [];
           const known = new Set(base.map((p) => p.post_id));

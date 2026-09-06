@@ -264,6 +264,15 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'eye', color: '#0B1E3D', label: 'Privacy', sub: 'Public, or private with approved followers', onPress: () => setPrivacyModal(true) },
       { icon: 'user-check', color: '#0B1E3D', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
                   { icon: 'volume-x', color: '#0B1E3D', label: 'Muted words', sub: 'Keep posts with certain words out of your feed', onPress: () => (navigation as any).navigate('MutedWords') },
+      { icon: 'alert-triangle', color: '#0B1E3D', label: 'Sensitive content', sub: ((): string => { const v = (pf as any)?.sensitive_content || 'blur'; return v === 'show' ? 'Shown' : v === 'hide' ? 'Hidden' : 'Blurred until you tap'; })(), onPress: () => {
+        const set = async (v: 'show' | 'blur' | 'hide') => { if (!profile?.id) return; const { error } = await supabase.from('profiles').update({ sensitive_content: v }).eq('id', profile.id); if (error) { Alert.alert('Not saved', error.message); return; } setLocalProfile((p: any) => ({ ...(p || {}), sensitive_content: v })); };
+        Alert.alert('Sensitive content', 'Photos and videos a poster marked as sensitive', [
+          { text: 'Show', onPress: () => set('show') },
+          { text: 'Blur until I tap', onPress: () => set('blur') },
+          { text: 'Hide', onPress: () => set('hide') },
+          { text: 'Cancel', style: 'cancel' },
+        ]);
+      } },
       { icon: 'bookmark', color: '#0B1E3D', label: 'Saved posts', sub: 'Posts you bookmarked', onPress: () => navigation.navigate('SavedPosts') },
       { icon: 'archive', color: '#0B1E3D', label: 'Archive', sub: 'Posts you hid without deleting', onPress: () => (navigation as any).navigate('Archive') },
       { icon: 'slash', color: '#FF3B30', label: 'Blocked accounts', sub: 'See and undo who you blocked', onPress: () => navigation.navigate('BlockedAccounts') },
