@@ -23,7 +23,7 @@ export const MAX_ACCOUNTS = 5;
 async function readIndex(): Promise<string[]> {
   try { const v = await SecureStore.getItemAsync(INDEX_KEY); const arr = v ? JSON.parse(v) : []; return Array.isArray(arr) ? arr.filter((x) => typeof x === 'string') : []; } catch { return []; }
 }
-async function writeIndex(ids: string[]) { try { await SecureStore.setItemAsync(INDEX_KEY, JSON.stringify(ids)); } catch {} }
+async function writeIndex(ids: string[]) { try { await SecureStore.setItemAsync(INDEX_KEY, JSON.stringify(ids)); console.log('[accounts] index', ids.length); } catch (e: any) { console.log('[accounts] index failed', e?.message); } }
 
 type State = {
   accounts: SavedAccount[];
@@ -68,6 +68,7 @@ export const useAccountsStore = create<State>((set, get) => ({
     }
     accounts.sort((a, b) => (b.saved_at || 0) - (a.saved_at || 0));
     const { data } = await supabase.auth.getSession();
+    console.log('[accounts] init', accounts.length, 'stored:', ids.length, 'current:', data.session?.user?.id?.slice(0, 8));
     set({ accounts, currentId: data.session?.user?.id ?? null });
   },
 
@@ -83,7 +84,7 @@ export const useAccountsStore = create<State>((set, get) => ({
       refresh_token: session.refresh_token,
       saved_at: Date.now(),
     };
-    try { await SecureStore.setItemAsync(itemKey(id), JSON.stringify(next)); } catch {}
+    try { await SecureStore.setItemAsync(itemKey(id), JSON.stringify(next)); } catch (e: any) { console.log('[accounts] save failed', e?.message); }
     const others = get().accounts.filter((a) => a.id !== id);
     let accounts = [next, ...others];
     if (accounts.length > MAX_ACCOUNTS) {
@@ -95,6 +96,7 @@ export const useAccountsStore = create<State>((set, get) => ({
   },
 
   forget: async (id) => {
+    console.log('[accounts] forget', id.slice(0, 8));
     try { await SecureStore.deleteItemAsync(itemKey(id)); } catch {}
     const accounts = get().accounts.filter((a) => a.id !== id);
     await writeIndex(accounts.map((a) => a.id));
@@ -111,6 +113,7 @@ export const useAccountsStore = create<State>((set, get) => ({
       // on the server. The other account's token simply becomes the session.
       const { data, error } = await supabase.auth.refreshSession({ refresh_token: target.refresh_token });
       if (error || !data.session) {
+        console.log('[accounts] switch refused', error?.message);
         await get().forget(id);
         set({ busy: false });
         return 'That account needs to sign in again.';
