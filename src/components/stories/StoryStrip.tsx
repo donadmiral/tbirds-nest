@@ -222,7 +222,6 @@ function SkeletonBubble({ index, showPlus }: { index: number; showPlus: boolean 
 function StoryStrip({ mode = 'all' }: Props) {
   const [flagOff, setFlagOff] = useState(false);
   useEffect(() => { flagsService.isEnabled('stories').then(on => setFlagOff(!on)).catch(() => {}); }, []);
-  if (flagOff) return null;
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
@@ -416,6 +415,9 @@ function StoryStrip({ mode = 'all' }: Props) {
 
   const others = catchup.filter(c => c.user_id !== myId);
 
+  // After every hook, never before one: a flag that flips at runtime must
+  // not change how many hooks this component calls.
+  if (flagOff) return null;
   return (
     <View style={s.container}>
       <ScrollView

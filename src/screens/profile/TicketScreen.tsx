@@ -21,6 +21,7 @@ export default function TicketScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- the screen can open outside the tabs, where this hook throws; the try is the guard and the call order is constant.
   let tabH = 0; try { tabH = useBottomTabBarHeight(); } catch {}
   const { profile } = useAuthStore();
   const ticketId: string = route.params?.ticketId;

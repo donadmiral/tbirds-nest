@@ -41,10 +41,6 @@ try {
   useMicrophonePermissions = mod.useMicrophonePermissions;
   cameraAvailable = !!CameraView;
 } catch {
-// A hook is always called, whichever module the binary has: the fallback
-// hook returns the same shape and keeps hook order constant.
-const useMicFallback = (): any[] => [null, null];
-const useMic: () => any[] = useMicrophonePermissions || useMicFallback;
   cameraAvailable = false;
 }
 
@@ -53,6 +49,11 @@ try { ExpoAVAudio = require('expo-av').Audio; } catch {}
 function resetAudioMode() {
   try { if (ExpoAVAudio) ExpoAVAudio.setAudioModeAsync({ allowsRecordingIOS: false }); } catch {}
 }
+
+// A hook is always called, whichever module the binary has: the fallback
+// hook returns the same shape and keeps hook order constant.
+const useMicFallback = (): any[] => [null, null];
+const useMic: () => any[] = useMicrophonePermissions || useMicFallback;
 
 export default function StoryFunCameraScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();

@@ -148,7 +148,7 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
     onSelect({ kind: 'voiceover', localUri: recordedUri, durationSec: recordedSec, title: 'Voiceover', source: 'voiceover', addToSounds: shareToSounds });
   }, [recordedUri, recordedSec, shareToSounds, onSelect, stopPreview]);
 
-  const useSound = useCallback((row: StorySound) => {
+  const pickSound = useCallback((row: StorySound) => {
     stopPreview();
     onSelect({ kind: 'sound', url: row.url, soundId: row.id, title: row.title, durationSec: row.duration_sec, source: row.source });
   }, [onSelect, stopPreview]);
@@ -162,7 +162,7 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
         <Text style={ms.soundTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={ms.soundMeta} numberOfLines={1}>{[item.artist, fmtSec(item.duration_sec), item.source === 'original' ? item.use_count + ' uses' : 'Free library'].filter(Boolean).join(' · ')}</Text>
       </View>
-      <TouchableOpacity style={ms.useBtn} activeOpacity={0.8} onPress={() => useSound(item)} disabled={disabled}>
+      <TouchableOpacity style={ms.useBtn} activeOpacity={0.8} onPress={() => pickSound(item)} disabled={disabled}>
         <Text style={ms.useBtnTxt}>Use</Text>
       </TouchableOpacity>
     </View>
