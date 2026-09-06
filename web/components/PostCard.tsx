@@ -330,7 +330,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             </span>
             <button onClick={mark.flip} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (mark.on ? "text-pearl" : "text-ink/50 hover:bg-pearl/10 hover:text-pearl")}>
               <Bookmark size={18} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
-              {mark.n > 0 ? <span role="button" title="See who bookmarked" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setListKind("bookmarks"); setLikesOpen(true); }} className="hover:underline">{count(mark.n)}</span> : null}
+              {count(mark.n)}
             </button>
             <span className="ml-auto">
               <ShareMenu postId={post.post_id} sharesCount={(post as unknown as { shares_count?: number }).shares_count ?? 0} />

@@ -1963,7 +1963,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => toggleBookmark(post.id)} activeOpacity={0.75} disabled={isBusy(`bk-${post.id}`)}>
-            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />{(post.bookmarks_count ?? 0) > 0 ? <TouchableOpacity onPress={() => openLikers(post, 'bookmarks')} hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }} activeOpacity={0.7}><Text style={{ fontSize: 13, color: isBookmarked ? light.status.link : light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.bookmarks_count)}</Text></TouchableOpacity> : null}
+            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />{(post.bookmarks_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: isBookmarked ? light.status.link : light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.bookmarks_count)}</Text> : null}
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => setSharePostTarget(post)} activeOpacity={0.75}>
