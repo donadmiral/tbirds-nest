@@ -1,3 +1,4 @@
+import { useAccountsStore } from './accountsStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 let consumedRecoveryUrl: string | null = null;
 import { create } from 'zustand';
@@ -54,6 +55,7 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     } catch {}
   }
   if (data) { AsyncStorage.setItem('pc-profile-cache', JSON.stringify(data)).catch(() => {}); }
+  if (data) { supabase.auth.getSession().then(({ data: s }) => { if (s.session) useAccountsStore.getState().remember(s.session as any, { username: (data as any).username, full_name: (data as any).full_name, avatar_url: (data as any).avatar_url }).catch(() => {}); }).catch(() => {}); }
   return (data ?? null) as Profile | null;
 }
 
@@ -247,6 +249,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
           // Fire-and-forget side effects (do not trigger state changes)
           if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            useAccountsStore.getState().remember(newSession as any).catch(() => {});
             supabase.from('user_presence').upsert({
               user_id: newSession.user.id,
               is_online: true,

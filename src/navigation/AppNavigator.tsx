@@ -8,6 +8,8 @@ import { NavigationContainer, DefaultTheme, DarkTheme as NavDarkTheme } from '@r
 import { StatusBar } from 'react-native';
 import { useTheme } from '../theme/useTheme';
 import { useThemeStore } from '../stores/themeStore';
+import { useAccountsStore } from '../stores/accountsStore';
+import AccountSwitcherSheet from '../components/AccountSwitcherSheet';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -338,7 +340,7 @@ function MainTabs() {
       <Tab.Screen name="Market"   component={NetworkStackNav} />
       {isBusiness ? <Tab.Screen name="Studio" component={StudioScreen} /> : <Tab.Screen name="Jobs" component={JobsStackNav} />}
       <Tab.Screen name="Messages" component={MessagesStackNav} />
-      <Tab.Screen name="Profile"  component={ProfileStackNav} />
+      <Tab.Screen name="Profile"  component={ProfileStackNav} listeners={{ tabLongPress: () => useAccountsStore.getState().openSwitcher() }} />
     </Tab.Navigator>
   );
 }
@@ -483,6 +485,7 @@ export default function AppNavigator() {
         <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
           theme={navTheme}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+          <AccountSwitcherSheet />
           <LaunchVeil busy={loading} />
           <OfflineBanner />
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -504,6 +507,7 @@ export default function AppNavigator() {
       <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
         theme={navTheme}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+          <AccountSwitcherSheet />
           <OfflineBanner />
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {isReady ? (

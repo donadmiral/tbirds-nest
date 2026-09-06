@@ -2,6 +2,7 @@ import { KeyboardAvoidingView, Platform } from 'react-native';
 import { paymentsService } from '../../services/paymentsService';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { useAccountsStore } from '../../stores/accountsStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { useLockStore } from '../../stores/lockStore';
 import React, { useCallback, useState } from 'react';
@@ -279,7 +280,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'shield', color: 'rgba(11,30,61,0.42)', label: 'Privacy Policy', onPress: () => navigation.navigate('PrivacyPolicy') },
     ]},
     { title: 'Account Actions', rows: [
-      { icon: 'refresh-cw', color: '#0B1E3D', label: 'Switch Account', sub: 'Sign out and use a different account', onPress: handleSwitchAccount },
+      { icon: 'refresh-cw', color: '#0B1E3D', label: 'Switch Account', sub: 'Up to five accounts on this phone; long-press the Profile tab any time', onPress: () => useAccountsStore.getState().openSwitcher() },
       { icon: 'log-out', color: '#0B1E3D', label: 'Sign Out', onPress: handleSignOut },
       { icon: 'moon', color: 'rgba(11,30,61,0.42)', label: 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: handleDeactivate },
       { icon: 'trash-2', color: '#FF3B30', label: 'Delete Account', sub: 'Permanently remove all your data', danger: true, onPress: () => { setDeleteConfirmTxt(''); setDeleteModal(true); } },
