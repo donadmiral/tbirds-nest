@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * ChangeUsernameScreen - the @ is the one permanent handle; changing it
@@ -72,16 +73,16 @@ export default function ChangeUsernameScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
   backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
   lede: { fontSize: 13, lineHeight: 19, color: 'rgba(11,30,61,0.6)', marginBottom: 14, marginTop: 4 },
-  input: { borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, marginBottom: 8, backgroundColor: '#FFFFFF' },
+  input: { borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, marginBottom: 8, backgroundColor: t.surface.canvas },
   hint: { fontSize: 12, fontWeight: '600', marginBottom: 10, marginLeft: 4 },
   submit: { backgroundColor: NAVY, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
-  submitTxt: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
-});
+  submitTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '800' },
+}));

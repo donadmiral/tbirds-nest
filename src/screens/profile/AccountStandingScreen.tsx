@@ -3,6 +3,7 @@
  * Shows every strike issued against the account and any active
  * restriction, or a clean bill when there is nothing.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -85,8 +86,8 @@ export default function AccountStandingScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
@@ -94,11 +95,11 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
   banner: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1.2, borderRadius: 12, padding: 12, marginTop: 4, marginBottom: 16 },
   bannerTxt: { flex: 1, fontSize: 12.5, fontWeight: '600', lineHeight: 18 },
-  section: { fontSize: 12, fontWeight: '800', color: 'rgba(11,30,61,0.45)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  section: { fontSize: 12, fontWeight: '800', color: t.ink.muted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   row: { flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.1)', borderRadius: 14, padding: 12, marginBottom: 8 },
   pill: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 },
   pillTxt: { fontSize: 10.5, fontWeight: '800' },
   reason: { fontSize: 13, color: NAVY, lineHeight: 18 },
   when: { fontSize: 11, color: 'rgba(11,30,61,0.4)', marginTop: 4 },
   foot: { fontSize: 11.5, lineHeight: 17, color: 'rgba(11,30,61,0.4)', marginTop: 14 },
-});
+}));

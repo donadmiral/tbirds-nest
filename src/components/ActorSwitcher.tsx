@@ -7,6 +7,7 @@
  * Deliberately only appears on create surfaces. Switching actor changes what
  * you make, never what you read, so there is no global account switcher.
  */
+import { themedSheet, getTheme } from '../theme/useTheme';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -55,7 +56,7 @@ export default function ActorSwitcher() {
         <Text style={s.chipTxt} numberOfLines={1}>
           {current?.kind === 'business' ? current.full_name : 'You'}
         </Text>
-        <Feather name="chevron-down" size={13} color={light.ink.muted} />
+        <Feather name="chevron-down" size={13} color={getTheme().ink.muted} />
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
@@ -88,7 +89,7 @@ export default function ActorSwitcher() {
                       {a.kind === 'business' && a.role ? `  ·  ${a.role}` : ''}
                     </Text>
                   </View>
-                  {on ? <Feather name="check" size={18} color={light.brand.base} /> : null}
+                  {on ? <Feather name="check" size={18} color={getTheme().brand.base} /> : null}
                 </TouchableOpacity>
               );
             })}
@@ -101,36 +102,36 @@ export default function ActorSwitcher() {
 
 const HAIR = StyleSheet.hairlineWidth;
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
     paddingLeft: 4, paddingRight: 9, paddingVertical: 4,
-    borderRadius: radius.full, borderWidth: HAIR, borderColor: light.surface.hairline,
-    backgroundColor: light.surface.raised, maxWidth: 190,
+    borderRadius: radius.full, borderWidth: HAIR, borderColor: t.surface.hairline,
+    backgroundColor: t.surface.raised, maxWidth: 190,
   },
-  chipTxt: { flexShrink: 1, fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary },
+  chipTxt: { flexShrink: 1, fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.ink.primary },
 
-  avatarBase: { backgroundColor: light.surface.sunken },
-  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.warm },
-  avatarTxt: { fontWeight: fontWeight.heavy, color: light.brand.base },
+  avatarBase: { backgroundColor: t.surface.sunken },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.warm },
+  avatarTxt: { fontWeight: fontWeight.heavy, color: t.brand.base },
 
-  overlay: { flex: 1, backgroundColor: light.surface.scrim, justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: t.surface.scrim, justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: light.surface.canvas,
+    backgroundColor: t.surface.canvas,
     borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
     paddingHorizontal: space.md, paddingTop: space.sm,
   },
-  handle: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: light.surface.hairline, marginBottom: space.sm },
-  title: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.4 },
-  subtitle: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 2, marginBottom: space.md, lineHeight: 17 },
+  handle: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: t.surface.hairline, marginBottom: space.sm },
+  title: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.4 },
+  subtitle: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 2, marginBottom: space.md, lineHeight: 17 },
 
   row: {
     flexDirection: 'row', alignItems: 'center', gap: space.sm,
     paddingVertical: space.sm, paddingHorizontal: space.xs,
     borderRadius: radius.md, marginBottom: 2,
   },
-  rowOn: { backgroundColor: light.brand.tintBg },
+  rowOn: { backgroundColor: t.brand.tintBg },
   rowText: { flex: 1 },
-  rowName: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  rowMeta: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1 },
-});
+  rowName: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  rowMeta: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 1 },
+}));

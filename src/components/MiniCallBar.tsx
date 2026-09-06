@@ -6,6 +6,7 @@
  * FIX: Uses navigation.navigate with correct params.
  * Passes fromMiniBar: true so CallScreen attaches to existing context.
  */
+import { themedSheet } from '../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
@@ -119,7 +120,7 @@ export default function MiniCallBar() {
   );
 }
 
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   bar: {
     position: 'absolute',
     top: 0, left: 0, right: 0,
@@ -139,9 +140,9 @@ const st = StyleSheet.create({
     gap: 8,
     flex: 1,
   },
-  pulseDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFF' },
-  name: { fontSize: 14, fontWeight: '600', color: '#FFF', flex: 1 },
-  timer: { fontSize: 14, fontWeight: '700', color: '#FFF', fontVariant: ['tabular-nums'] },
+  pulseDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.surface.canvas },
+  name: { fontSize: 14, fontWeight: '600', color: t.ink.inverse, flex: 1 },
+  timer: { fontSize: 14, fontWeight: '700', color: t.ink.inverse, fontVariant: ['tabular-nums'] },
   endBtn: {
     width: 30, height: 30, borderRadius: 15,
     backgroundColor: '#EF4444',
@@ -149,4 +150,4 @@ const st = StyleSheet.create({
   },
   expandHint: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   expandTxt: { fontSize: 11, color: 'rgba(255,255,255,0.6)' },
-});
+}));

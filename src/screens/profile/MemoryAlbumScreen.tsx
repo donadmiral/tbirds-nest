@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
 /**
  * MemoryAlbumScreen — the memory book.
@@ -507,10 +508,10 @@ function MemoryVideo({ url, topInset, onClose, onMessage }: { url: string; topIn
   );
 }
 
-const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const st = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
-  topTitle: { fontSize: 15.5, fontWeight: '800', color: '#0B1E3D' },
+  topTitle: { fontSize: 15.5, fontWeight: '800', color: t.ink.primary },
   book: { borderRadius: 16, padding: 9, paddingLeft: 15, shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
   bookInner: { flex: 1, borderRadius: 10, borderWidth: 1.4, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   coverTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center', letterSpacing: 0.4, lineHeight: 31 },
@@ -522,35 +523,35 @@ const st = StyleSheet.create({
   pagePaper: { flex: 1, backgroundColor: PAGE_CREAM, paddingLeft: 34, paddingRight: 18, paddingVertical: 18 },
   rings: { position: 'absolute', left: 8, top: 0, bottom: 0, width: 20, alignItems: 'center', justifyContent: 'space-evenly' },
   ring: { width: 14, height: 14, borderRadius: 7, borderWidth: 2.5, borderColor: '#AAB0BA', backgroundColor: 'transparent' },
-  polaroid: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 6, padding: 12, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 7, shadowOffset: { width: 0, height: 3 }, elevation: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)' },
+  polaroid: { flex: 1, backgroundColor: t.surface.canvas, borderRadius: 6, padding: 12, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 7, shadowOffset: { width: 0, height: 3 }, elevation: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
   tapeTop: { position: 'absolute', top: -9, alignSelf: 'center', width: 84, height: 20, backgroundColor: TAPE, transform: [{ rotate: '-3deg' }], borderRadius: 2, zIndex: 3 },
-  polImgWrap: { flex: 1, borderRadius: 4, overflow: 'hidden', backgroundColor: '#0B1E3D' },
+  polImgWrap: { flex: 1, borderRadius: 4, overflow: 'hidden', backgroundColor: t.brand.base },
   playChip: { position: 'absolute', alignSelf: 'center', top: '44%', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
   handCaption: { fontSize: 15, fontStyle: 'italic', fontWeight: '600', color: '#5a5140', marginTop: 12, minHeight: 20 },
   handDate: { fontSize: 11.5, fontStyle: 'italic', color: '#8b7f68' },
   edgeL: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 46 },
   edgeR: { position: 'absolute', right: 0, top: 0, bottom: 0, width: 46 },
   pagerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
-  pagerBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
-  pagerPill: { backgroundColor: '#FFFFFF', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
-  pagerTxt: { fontSize: 13, fontWeight: '800', color: '#0B1E3D' },
+  pagerBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  pagerPill: { backgroundColor: t.surface.canvas, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  pagerTxt: { fontSize: 13, fontWeight: '800', color: t.ink.primary },
   emptyTxt: { fontSize: 13.5, color: '#8b7f68', textAlign: 'center', lineHeight: 20 },
-  fab: { position: 'absolute', bottom: 26, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#0B1E3D', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 6 },
-  fabTxt: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800' },
+  fab: { position: 'absolute', bottom: 26, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: t.brand.base, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 6 },
+  fabTxt: { color: t.ink.inverse, fontSize: 13.5, fontWeight: '800' },
   vidBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 2.5 },
   checkWrap: { position: 'absolute', top: 6, left: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: '#1D7A38', alignItems: 'center', justifyContent: 'center' },
   inChip: { position: 'absolute', bottom: 6, left: 6, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 },
-  inChipTxt: { color: '#FFF', fontSize: 9.5, fontWeight: '700' },
+  inChipTxt: { color: t.ink.inverse, fontSize: 9.5, fontWeight: '700' },
   sheetWrap: { flex: 1, backgroundColor: 'rgba(11,30,61,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 },
-  sheet: { alignSelf: 'stretch', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, maxHeight: '82%' },
-  sheetTitle: { fontSize: 15.5, fontWeight: '800', color: '#0B1E3D', marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: '#0B1E3D', marginBottom: 12 },
+  sheet: { alignSelf: 'stretch', backgroundColor: t.surface.canvas, borderRadius: 16, padding: 16, maxHeight: '82%' },
+  sheetTitle: { fontSize: 15.5, fontWeight: '800', color: t.ink.primary, marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: t.ink.primary, marginBottom: 12 },
   lbl: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: '#5B6B84', marginBottom: 8, marginTop: 2 },
   audRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#E7EAF0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 7 },
-  audRowOn: { borderColor: '#0B1E3D', backgroundColor: 'rgba(11,30,61,0.03)' },
-  audTxt: { fontSize: 13, color: '#0B1E3D', flex: 1, marginRight: 8 },
+  audRowOn: { borderColor: t.ink.primary, backgroundColor: 'rgba(11,30,61,0.03)' },
+  audTxt: { fontSize: 13, color: t.ink.primary, flex: 1, marginRight: 8 },
   hint: { fontSize: 11.5, color: '#5B6B84', marginBottom: 4 },
-});
+}));
 
 function PageVideo({ url }: { url: string }) {
   const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; try { pp.play(); } catch {} });

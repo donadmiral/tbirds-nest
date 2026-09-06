@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
@@ -167,30 +168,30 @@ export default function FollowListScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { flex: 1, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: '#0B1E3D' },
-  tabs: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
+  title: { flex: 1, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: t.ink.primary },
+  tabs: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
   tabOn: { borderBottomWidth: 2, borderBottomColor: NAVY },
-  tabTxt: { fontSize: 14.5, fontWeight: '600', color: 'rgba(11,30,61,0.42)' },
+  tabTxt: { fontSize: 14.5, fontWeight: '600', color: t.ink.muted },
   tabTxtOn: { color: NAVY, fontWeight: '700' },
   searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', borderRadius: 12, marginHorizontal: 16, marginTop: 12, marginBottom: 4, paddingHorizontal: 12, paddingVertical: 9 },
-  searchInput: { flex: 1, fontSize: 15, color: '#0B1E3D', padding: 0 },
+  searchInput: { flex: 1, fontSize: 15, color: t.ink.primary, padding: 0 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingBottom: 60 },
-  emptyTitle: { fontSize: 15, fontWeight: '600', color: 'rgba(11,30,61,0.42)' },
+  emptyTitle: { fontSize: 15, fontWeight: '600', color: t.ink.muted },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, gap: 10 },
   rowMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 46, height: 46, borderRadius: 23 },
   avatarFb: { backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { fontSize: 16, fontWeight: '700', color: NAVY },
-  name: { fontSize: 15.5, fontWeight: '600', color: '#0B1E3D', flexShrink: 1 },
-  handle: { fontSize: 13, color: 'rgba(11,30,61,0.42)', marginTop: 1 },
+  name: { fontSize: 15.5, fontWeight: '600', color: t.ink.primary, flexShrink: 1 },
+  handle: { fontSize: 13, color: t.ink.muted, marginTop: 1 },
   followBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 999, backgroundColor: NAVY },
-  followBtnOn: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#D1D5DB' },
-  followTxt: { fontSize: 13, fontWeight: '700', color: '#FFF' },
-  followTxtOn: { color: '#0B1E3D' },
+  followBtnOn: { backgroundColor: t.surface.canvas, borderWidth: 1, borderColor: '#D1D5DB' },
+  followTxt: { fontSize: 13, fontWeight: '700', color: t.ink.inverse },
+  followTxtOn: { color: t.ink.primary },
   moreBtn: { padding: 6 },
-});
+}));

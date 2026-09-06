@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 /**
  * CampaignsScreen — a business's sponsored placements.
@@ -219,17 +220,17 @@ export default function CampaignsScreen() {
   );
 }
 
-const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
+const st = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY, textAlign: 'center' },
   headerSub: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', textAlign: 'center', marginTop: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   emptyTitle: { fontSize: 16.5, fontWeight: '800', color: NAVY, marginTop: 12 },
   emptySub: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', textAlign: 'center', marginTop: 4, lineHeight: 19 },
   newBtn: { marginTop: 16, backgroundColor: NAVY, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12 },
-  newBtnTxt: { color: '#FFF', fontSize: 14.5, fontWeight: '700' },
-  card: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.10)', padding: 14, marginBottom: 12, backgroundColor: '#FFFFFF' },
+  newBtnTxt: { color: t.ink.inverse, fontSize: 14.5, fontWeight: '700' },
+  card: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, padding: 14, marginBottom: 12, backgroundColor: t.surface.canvas },
   cardTitle: { flex: 1, fontSize: 14.5, fontWeight: '700', color: NAVY },
   statusChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
   chipOn: { backgroundColor: '#ECFDF5' }, chipPause: { backgroundColor: '#FFFBEB' }, chipEnd: { backgroundColor: '#F3F4F6' },
@@ -239,22 +240,22 @@ const st = StyleSheet.create({
   metric: {},
   metricNum: { fontSize: 20, fontWeight: '800', color: NAVY, fontVariant: ['tabular-nums'] },
   metricLbl: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', marginTop: 1 },
-  scrim: { flex: 1, backgroundColor: 'rgba(11,30,61,0.45)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 28, maxHeight: '88%' },
+  scrim: { flex: 1, backgroundColor: t.ink.muted, justifyContent: 'flex-end' },
+  sheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 28, maxHeight: '88%' },
   grab: { alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.16)', marginBottom: 12 },
   sheetTitle: { fontSize: 17, fontWeight: '800', color: NAVY, marginBottom: 12 },
   pickRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.07)' },
   pickTxt: { flex: 1, fontSize: 14, color: 'rgba(11,30,61,0.85)' },
   noPosts: { fontSize: 13.5, color: 'rgba(11,30,61,0.5)', paddingVertical: 20, textAlign: 'center' },
-  pickedExcerpt: { fontSize: 14, color: 'rgba(11,30,61,0.75)', backgroundColor: '#FAFAF9', borderRadius: 12, padding: 12 },
+  pickedExcerpt: { fontSize: 14, color: 'rgba(11,30,61,0.75)', backgroundColor: t.surface.raised, borderRadius: 12, padding: 12 },
   fieldLbl: { fontSize: 12, fontWeight: '800', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 14, marginBottom: 6 },
-  input: { borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.14)', paddingHorizontal: 12, paddingVertical: 11, fontSize: 14.5, color: NAVY },
-  durChip: { paddingHorizontal: 13, paddingVertical: 9, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.05)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.10)' },
+  input: { borderRadius: 12, borderWidth: 1, borderColor: t.surface.hairline, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14.5, color: NAVY },
+  durChip: { paddingHorizontal: 13, paddingVertical: 9, borderRadius: 999, backgroundColor: t.brand.tintBg, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
   durChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   durTxt: { fontSize: 13, fontWeight: '700', color: NAVY },
   backBtn: { paddingHorizontal: 16, justifyContent: 'center' },
   backTxt: { fontSize: 14, fontWeight: '600', color: 'rgba(11,30,61,0.6)' },
   goBtn: { flex: 1, backgroundColor: NAVY, borderRadius: 999, paddingVertical: 13, alignItems: 'center' },
-  goTxt: { color: '#FFF', fontSize: 14.5, fontWeight: '700' },
+  goTxt: { color: t.ink.inverse, fontSize: 14.5, fontWeight: '700' },
   closeX: { position: 'absolute', top: 14, right: 16 },
-});
+}));

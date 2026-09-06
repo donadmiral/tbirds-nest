@@ -3,6 +3,7 @@
  * representative enters the business @, their own access code, on a
  * registered company device. The session that opens IS the business.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
@@ -82,16 +83,16 @@ export default function BusinessSignInScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: NAVY },
   header: { paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
-  backChev: { fontSize: 26, color: '#FFFFFF', marginRight: 2, marginTop: -3 },
-  backLbl: { fontSize: 15, color: '#FFFFFF', fontWeight: '600' },
-  title: { fontSize: 24, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
+  backChev: { fontSize: 26, color: t.ink.inverse, marginRight: 2, marginTop: -3 },
+  backLbl: { fontSize: 15, color: t.ink.inverse, fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '800', color: t.ink.inverse, marginBottom: 8 },
   lede: { fontSize: 13, lineHeight: 19, color: 'rgba(255,255,255,0.6)', marginBottom: 18 },
-  input: { borderWidth: 1.2, borderColor: 'rgba(255,255,255,0.22)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#FFFFFF', marginBottom: 10, backgroundColor: 'rgba(255,255,255,0.06)' },
+  input: { borderWidth: 1.2, borderColor: 'rgba(255,255,255,0.22)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: t.ink.inverse, marginBottom: 10, backgroundColor: 'rgba(255,255,255,0.06)' },
   submit: { backgroundColor: '#E8E2D6', borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 6 },
   submitTxt: { color: NAVY, fontSize: 15, fontWeight: '800' },
   foot: { fontSize: 11.5, lineHeight: 17, color: 'rgba(255,255,255,0.4)', marginTop: 14 },
-});
+}));

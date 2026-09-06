@@ -3,6 +3,7 @@
  * network is gone, with the outbox count when messages are waiting.
  * Mounting it also starts the connection listener.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
@@ -25,12 +26,12 @@ export default function OfflineBanner() {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   wrap: {
     position: 'absolute', alignSelf: 'center', zIndex: 9999,
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: 'rgba(11,30,61,0.92)', borderRadius: 999,
     paddingHorizontal: 12, paddingVertical: 6,
   },
-  txt: { color: '#FFFFFF', fontSize: 11.5, fontWeight: '700' },
-});
+  txt: { color: t.ink.inverse, fontSize: 11.5, fontWeight: '700' },
+}));

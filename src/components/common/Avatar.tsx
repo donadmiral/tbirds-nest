@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { avatarColor, initials } from '../../utils/helpers';
@@ -16,7 +17,7 @@ export default function Avatar({ name, url, size = 40 }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedSheet((t) => ({
   wrap: { alignItems: 'center', justifyContent: 'center' },
   text: { color: '#fff', fontWeight: '700' },
-});
+}));

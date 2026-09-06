@@ -2,6 +2,7 @@
  * SendMoneySheet - Apple Cash flow.
  * Link once, then: amount -> Pay or Request -> biometric confirm.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -243,10 +244,10 @@ export default function SendMoneySheet({
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
   dismiss: { flex: 1 },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 30 },
+  sheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 30 },
   handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#D8D8DC', alignSelf: 'center', marginBottom: 14 },
   center: { paddingVertical: 50, alignItems: 'center' },
   pad: { paddingBottom: 8 },
@@ -265,11 +266,11 @@ const s = StyleSheet.create({
   key: { flexBasis: '31%', flexGrow: 1, height: 54, borderRadius: 14, backgroundColor: '#F5F6F8', alignItems: 'center', justifyContent: 'center' },
   keyTxt: { fontSize: 24, fontWeight: '600', color: NAVY },
   actions: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  request: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.18)', borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
+  request: { flex: 1, backgroundColor: t.surface.canvas, borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.18)', borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
   requestTxt: { color: NAVY, fontSize: 16, fontWeight: '700' },
   pay: { flex: 1, flexDirection: 'row', gap: 8, backgroundColor: NAVY, borderRadius: 16, paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
-  payTxt: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  payTxt: { color: t.ink.inverse, fontSize: 16, fontWeight: '700' },
   off: { opacity: 0.4 },
   cta: { backgroundColor: NAVY, borderRadius: 16, paddingVertical: 16, marginTop: 16, alignItems: 'center' },
-  ctaTxt: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-});
+  ctaTxt: { color: t.ink.inverse, fontSize: 16, fontWeight: '700' },
+}));

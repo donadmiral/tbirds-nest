@@ -3,6 +3,7 @@
  * Identical white field, identical lockup, so from tap to feed the
  * launch reads as ONE screen with a quiet pulse while things load.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef } from 'react';
 import { View, Image, Animated, StyleSheet } from 'react-native';
 
@@ -27,7 +28,7 @@ export default function SplashLoader() {
   );
 }
 
-const s = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+const s = themedSheet((t) => ({
+  wrap: { flex: 1, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center' },
   art: { width: '78%', height: '60%' },
-});
+}));

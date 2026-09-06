@@ -3,6 +3,7 @@
  * Signed in but the profile has not arrived: auto-retries every 4s,
  * offers Retry and Sign out. Never silent, never infinite.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Image, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../stores/authStore';
@@ -35,12 +36,12 @@ export default function ProfileRestore() {
   );
 }
 
-const s = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+const s = themedSheet((t) => ({
+  wrap: { flex: 1, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   art: { width: '58%', height: '30%' },
-  title: { marginTop: 10, fontSize: 16.5, fontWeight: '700', color: '#0B1E3D' },
+  title: { marginTop: 10, fontSize: 16.5, fontWeight: '700', color: t.ink.primary },
   sub: { marginTop: 6, fontSize: 13, color: '#8A8F98', textAlign: 'center' },
-  btn: { marginTop: 18, backgroundColor: '#0B1E3D', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 34 },
-  btnText: { color: '#FFFFFF', fontSize: 14.5, fontWeight: '700' },
+  btn: { marginTop: 18, backgroundColor: t.brand.base, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 34 },
+  btnText: { color: t.ink.inverse, fontSize: 14.5, fontWeight: '700' },
   out: { color: '#A32D2D', fontSize: 13.5, fontWeight: '600' },
-});
+}));

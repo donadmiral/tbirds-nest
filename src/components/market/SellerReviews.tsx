@@ -1,6 +1,7 @@
 /**
  * SellerReviews - Google-style rating summary plus review list and composer.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -161,7 +162,7 @@ export default function SellerReviews({ sellerId, listingId, currentUserId }: { 
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   wrap: { paddingHorizontal: 16, paddingTop: 20, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E5EA', marginTop: 18 },
   center: { paddingVertical: 24, alignItems: 'center' },
   heading: { fontSize: 17, fontWeight: '800', color: '#0A0A0A', letterSpacing: -0.4, marginBottom: 12 },
@@ -182,10 +183,10 @@ const s = StyleSheet.create({
   composerActions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 16 },
   cancel: { fontSize: 14.5, color: '#8E8E93', fontWeight: '600' },
   post: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 9 },
-  postTxt: { color: '#FFFFFF', fontSize: 14.5, fontWeight: '700' },
+  postTxt: { color: t.ink.inverse, fontSize: 14.5, fontWeight: '700' },
   review: { paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#EFEFF4' },
   reviewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
   reviewer: { fontSize: 14.5, fontWeight: '700', color: '#0A0A0A' },
   comment: { fontSize: 14, color: '#3C3C43', lineHeight: 19 },
   date: { fontSize: 11.5, color: '#8E8E93', marginTop: 5 },
-});
+}));

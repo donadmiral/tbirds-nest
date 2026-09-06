@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -267,7 +268,7 @@ export default function MarketScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: BG },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -302,4 +303,4 @@ const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: GRAY_900, marginTop: 12 },
   emptyTxt: { fontSize: 13, color: GRAY_500, marginTop: 4, textAlign: 'center' },
-});
+}));

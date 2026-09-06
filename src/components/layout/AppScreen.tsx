@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import React from 'react';
 import {
   KeyboardAvoidingView,
@@ -77,7 +78,7 @@ export default function AppScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedSheet((t) => ({
   safeArea: {
     flex: 1,
   },
@@ -92,4 +93,4 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 16,
   },
-});
+}));

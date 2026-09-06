@@ -10,6 +10,7 @@
  * Role permissions are enforced on the server. They are mirrored here so a
  * manager never sees an action that would come back as an error.
  */
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView,
@@ -252,7 +253,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
   if (loading) {
     return (
       <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-        <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
+        <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
       </SafeAreaView>
     );
   }
@@ -262,11 +263,11 @@ export default function BusinessManageScreen({ route, navigation }: any) {
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Feather name="chevron-left" size={26} color={light.ink.primary} />
+          <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.title} numberOfLines={1}>{profile?.full_name || 'Business'}</Text>
         <TouchableOpacity onPress={saveInfo} disabled={saving} style={[s.saveBtn, saving && s.saveBtnOff]}>
-          {saving ? <ActivityIndicator size="small" color={light.ink.inverse} /> : <Text style={s.saveTxt}>Save</Text>}
+          {saving ? <ActivityIndicator size="small" color={getTheme().ink.inverse} /> : <Text style={s.saveTxt}>Save</Text>}
         </TouchableOpacity>
       </View>
 
@@ -284,7 +285,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
               onPress={() => navigation.navigate('UserProfile', { userId: businessId })}
               activeOpacity={0.75}
             >
-              <Feather name="external-link" size={14} color={light.status.link} />
+              <Feather name="external-link" size={14} color={getTheme().status.link} />
               <Text style={s.viewProfileTxt}>View public profile</Text>
             </TouchableOpacity>
         <TouchableOpacity
@@ -342,11 +343,11 @@ export default function BusinessManageScreen({ route, navigation }: any) {
           </View>
 
           <Text style={[s.sectionLbl, { marginTop: space.lg }]}>Contact</Text>
-          <TextInput value={phone} onChangeText={setPhone} style={s.input} placeholder="Phone" placeholderTextColor={light.ink.faint} keyboardType="phone-pad" />
-          <TextInput value={email} onChangeText={setEmail} style={s.input} placeholder="Email" placeholderTextColor={light.ink.faint} autoCapitalize="none" keyboardType="email-address" />
-          <TextInput value={website} onChangeText={setWebsite} style={s.input} placeholder="Website" placeholderTextColor={light.ink.faint} autoCapitalize="none" keyboardType="url" />
-          <TextInput value={address} onChangeText={setAddress} style={s.input} placeholder="Street address" placeholderTextColor={light.ink.faint} />
-          <TextInput value={location} onChangeText={setLocation} style={s.input} placeholder="City" placeholderTextColor={light.ink.faint} autoCapitalize="words" />
+          <TextInput value={phone} onChangeText={setPhone} style={s.input} placeholder="Phone" placeholderTextColor={getTheme().ink.faint} keyboardType="phone-pad" />
+          <TextInput value={email} onChangeText={setEmail} style={s.input} placeholder="Email" placeholderTextColor={getTheme().ink.faint} autoCapitalize="none" keyboardType="email-address" />
+          <TextInput value={website} onChangeText={setWebsite} style={s.input} placeholder="Website" placeholderTextColor={getTheme().ink.faint} autoCapitalize="none" keyboardType="url" />
+          <TextInput value={address} onChangeText={setAddress} style={s.input} placeholder="Street address" placeholderTextColor={getTheme().ink.faint} />
+          <TextInput value={location} onChangeText={setLocation} style={s.input} placeholder="City" placeholderTextColor={getTheme().ink.faint} autoCapitalize="words" />
 
           <Text style={[s.sectionLbl, { marginTop: space.lg }]}>Opening hours</Text>
           <Text style={s.sectionHint}>The first thing anyone checks about a shop.</Text>
@@ -362,19 +363,19 @@ export default function BusinessManageScreen({ route, navigation }: any) {
                     <TextInput
                       value={range[0]} onChangeText={v => setDayTime(d.key, 0, v)}
                       style={[s.time, invalid && s.timeBad]} placeholder="08:00"
-                      placeholderTextColor={light.ink.faint} keyboardType="number-pad" maxLength={5}
+                      placeholderTextColor={getTheme().ink.faint} keyboardType="number-pad" maxLength={5}
                     />
                     <Text style={s.dash}>to</Text>
                     <TextInput
                       value={range[1]} onChangeText={v => setDayTime(d.key, 1, v)}
                       style={[s.time, invalid && s.timeBad]} placeholder="17:00"
-                      placeholderTextColor={light.ink.faint} keyboardType="number-pad" maxLength={5}
+                      placeholderTextColor={getTheme().ink.faint} keyboardType="number-pad" maxLength={5}
                     />
                   </View>
                 ) : (
                   <Text style={s.closed}>Closed</Text>
                 )}
-                <Switch value={open} onValueChange={v => setDayOpen(d.key, v)} trackColor={{ true: light.brand.base, false: light.surface.hairline }} />
+                <Switch value={open} onValueChange={v => setDayOpen(d.key, v)} trackColor={{ true: getTheme().brand.base, false: getTheme().surface.hairline }} />
               </View>
             );
           })}
@@ -409,7 +410,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
                   {m.username ? <Text style={s.memberHandle}>@{m.username}</Text> : null}
                 </View>
                 <View style={s.roleChip}><Text style={s.roleTxt}>{m.role}</Text></View>
-                {tappable ? <Feather name="chevron-right" size={15} color={light.ink.faint} /> : null}
+                {tappable ? <Feather name="chevron-right" size={15} color={getTheme().ink.faint} /> : null}
               </TouchableOpacity>
             );
           })}
@@ -420,7 +421,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
                 value={newMember}
                 onChangeText={v => setNewMember(v.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase())}
                 style={[s.input, { flex: 1, marginBottom: 0 }]}
-                placeholder="Add by username" placeholderTextColor={light.ink.faint}
+                placeholder="Add by username" placeholderTextColor={getTheme().ink.faint}
                 autoCapitalize="none" autoCorrect={false}
               />
               <TouchableOpacity
@@ -428,7 +429,7 @@ export default function BusinessManageScreen({ route, navigation }: any) {
                 onPress={addMember}
                 disabled={!newMember.trim() || adding}
               >
-                {adding ? <ActivityIndicator size="small" color={light.ink.inverse} /> : <Text style={s.addTxt}>Add</Text>}
+                {adding ? <ActivityIndicator size="small" color={getTheme().ink.inverse} /> : <Text style={s.addTxt}>Add</Text>}
               </TouchableOpacity>
             </View>
           ) : null}
@@ -440,66 +441,66 @@ export default function BusinessManageScreen({ route, navigation }: any) {
 
 const HAIR = StyleSheet.hairlineWidth;
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   flex: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: space.sm, gap: space.sm,
-    borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline,
+    borderBottomWidth: HAIR, borderBottomColor: t.surface.hairline,
   },
-  title: { flex: 1, textAlign: 'center', fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
-  saveBtn: { minWidth: 62, alignItems: 'center', paddingHorizontal: space.md, paddingVertical: 7, borderRadius: radius.full, backgroundColor: light.brand.base },
+  title: { flex: 1, textAlign: 'center', fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
+  saveBtn: { minWidth: 62, alignItems: 'center', paddingHorizontal: space.md, paddingVertical: 7, borderRadius: radius.full, backgroundColor: t.brand.base },
   saveBtnOff: { opacity: 0.5 },
-  saveTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  saveTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
-  errBar: { backgroundColor: light.status.dangerBg, paddingHorizontal: 14, paddingVertical: space.sm },
-  errTxt: { fontSize: typeSize.caption, color: light.status.danger, fontWeight: fontWeight.semibold },
+  errBar: { backgroundColor: t.status.dangerBg, paddingHorizontal: 14, paddingVertical: space.sm },
+  errTxt: { fontSize: typeSize.caption, color: t.status.danger, fontWeight: fontWeight.semibold },
 
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md },
   viewProfile: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  viewProfileTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: light.status.link },
+  viewProfileTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.status.link },
 
-  sectionLbl: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1, textTransform: 'uppercase', color: light.ink.muted, marginBottom: space.xs },
-  sectionHint: { fontSize: typeSize.micro, color: light.ink.faint, marginTop: -4, marginBottom: space.sm, lineHeight: 15 },
+  sectionLbl: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1, textTransform: 'uppercase', color: t.ink.muted, marginBottom: space.xs },
+  sectionHint: { fontSize: typeSize.micro, color: t.ink.faint, marginTop: -4, marginBottom: space.sm, lineHeight: 15 },
 
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
-  chip: { paddingHorizontal: space.sm, paddingVertical: 7, borderRadius: radius.full, borderWidth: HAIR, borderColor: light.surface.hairline },
-  chipOn: { backgroundColor: light.brand.base, borderColor: light.brand.base },
-  chipTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.ink.secondary },
-  chipTxtOn: { color: light.ink.inverse },
+  chip: { paddingHorizontal: space.sm, paddingVertical: 7, borderRadius: radius.full, borderWidth: HAIR, borderColor: t.surface.hairline },
+  chipOn: { backgroundColor: t.brand.base, borderColor: t.brand.base },
+  chipTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.ink.secondary },
+  chipTxtOn: { color: t.ink.inverse },
 
   input: {
-    borderWidth: HAIR, borderColor: light.surface.hairline, borderRadius: radius.md,
+    borderWidth: HAIR, borderColor: t.surface.hairline, borderRadius: radius.md,
     paddingHorizontal: space.sm, paddingVertical: 11, marginBottom: space.xs,
-    fontSize: typeSize.body, color: light.ink.primary, backgroundColor: light.surface.raised,
+    fontSize: typeSize.body, color: t.ink.primary, backgroundColor: t.surface.raised,
   },
 
   dayRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 6 },
-  dayLbl: { width: 84, fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.ink.primary },
+  dayLbl: { width: 84, fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.ink.primary },
   timeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   time: {
-    flex: 1, borderWidth: HAIR, borderColor: light.surface.hairline, borderRadius: radius.sm,
+    flex: 1, borderWidth: HAIR, borderColor: t.surface.hairline, borderRadius: radius.sm,
     paddingHorizontal: 8, paddingVertical: 7, fontSize: typeSize.caption,
-    color: light.ink.primary, backgroundColor: light.surface.raised, textAlign: 'center',
+    color: t.ink.primary, backgroundColor: t.surface.raised, textAlign: 'center',
   },
-  timeBad: { borderColor: light.status.danger, color: light.status.danger },
-  dash: { fontSize: typeSize.micro, color: light.ink.muted },
-  closed: { flex: 1, fontSize: typeSize.caption, color: light.ink.faint },
+  timeBad: { borderColor: t.status.danger, color: t.status.danger },
+  dash: { fontSize: typeSize.micro, color: t.ink.muted },
+  closed: { flex: 1, fontSize: typeSize.caption, color: t.ink.faint },
 
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs },
-  avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: light.surface.sunken },
-  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.base },
-  avatarTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface.sunken },
+  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base },
+  avatarTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
   memberText: { flex: 1 },
-  memberName: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  memberHandle: { fontSize: typeSize.micro, color: light.ink.muted },
-  roleChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.full, backgroundColor: light.brand.tintBg },
-  roleTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary, textTransform: 'capitalize' },
+  memberName: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  memberHandle: { fontSize: typeSize.micro, color: t.ink.muted },
+  roleChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.full, backgroundColor: t.brand.tintBg },
+  roleTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.ink.primary, textTransform: 'capitalize' },
 
   addRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginTop: space.sm },
-  addBtn: { paddingHorizontal: space.md, paddingVertical: 11, borderRadius: radius.md, backgroundColor: light.brand.base },
+  addBtn: { paddingHorizontal: space.md, paddingVertical: 11, borderRadius: radius.md, backgroundColor: t.brand.base },
   addBtnOff: { opacity: 0.4 },
-  addTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
-});
+  addTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+}));

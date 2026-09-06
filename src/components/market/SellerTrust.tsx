@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
 /**
@@ -68,10 +69,10 @@ export default function SellerTrust({ sellerId }: { sellerId: string }) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F3F4F6', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   pillWarn: { backgroundColor: '#FEF3C7' },
   pillTxt: { fontSize: 11.5, fontWeight: '600', color: '#4B5563' },
   pillTxtWarn: { color: '#92400E' },
-});
+}));

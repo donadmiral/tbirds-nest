@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -636,15 +637,15 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   center: { alignItems: 'center', justifyContent: 'center', gap: 8 },
   band: { backgroundColor: NAVY, paddingHorizontal: 16, paddingBottom: 12 },
   bandIcon: { width: 44, height: 44, borderRadius: 13 },
-  bandTitle: { fontSize: 17, fontWeight: '800', color: '#FFF' },
+  bandTitle: { fontSize: 17, fontWeight: '800', color: t.ink.inverse },
   bandMeta: { fontSize: 12, color: '#FFFFFFAA', marginTop: 1 },
   segChip: { alignItems: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, backgroundColor: '#FFFFFF1A' },
-  segChipOn: { backgroundColor: '#FFF' },
+  segChipOn: { backgroundColor: t.surface.canvas },
   segTxt: { fontSize: 13, fontWeight: '700', color: '#FFFFFFCC' },
   segTxtOn: { color: NAVY },
   h1: { fontSize: 20, fontWeight: '800', color: '#0F1419' },
@@ -662,18 +663,18 @@ const s = StyleSheet.create({
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#0F1419', textAlign: 'center' },
   emptySub: { fontSize: 13, color: '#8E8E93', textAlign: 'center', lineHeight: 18 },
   primaryBtn: { marginTop: 16, backgroundColor: NAVY, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center' },
-  primaryTxt: { color: '#FFF', fontWeight: '700', fontSize: 15 },
+  primaryTxt: { color: t.ink.inverse, fontWeight: '700', fontSize: 15 },
   secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F2F2F7', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
   secondaryTxt: { color: NAVY, fontWeight: '700', fontSize: 15 },
   codeInput: { marginTop: 18, width: '100%', backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14, fontSize: 18, letterSpacing: 4, textAlign: 'center', color: '#0F1419' },
   filterChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F2F2F7' },
   filterChipOn: { backgroundColor: NAVY },
   filterTxt: { fontSize: 12.5, fontWeight: '700', color: '#5B6B84' },
-  filterTxtOn: { color: '#FFF' },
+  filterTxtOn: { color: t.ink.inverse },
   avatar: { width: 38, height: 38, borderRadius: 19 },
   unread: { backgroundColor: NAVY, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 },
-  unreadTxt: { color: '#FFF', fontSize: 10.5, fontWeight: '800' },
-  labelPill: { fontSize: 10.5, fontWeight: '700', color: NAVY, backgroundColor: 'rgba(11,30,61,0.08)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
+  unreadTxt: { color: t.ink.inverse, fontSize: 10.5, fontWeight: '800' },
+  labelPill: { fontSize: 10.5, fontWeight: '700', color: NAVY, backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
   plusBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   thumb: { width: 52, height: 52, borderRadius: 10 },
   thumbLg: { width: 72, height: 72, borderRadius: 12 },
@@ -692,9 +693,9 @@ const s = StyleSheet.create({
   catChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#E5E5EA' },
   catChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   catTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
-  catTxtOn: { color: '#FFF' },
+  catTxtOn: { color: t.ink.inverse },
   barTrack: { height: 6, borderRadius: 3, backgroundColor: '#E5E5EA', marginTop: 4 },
   barFill: { height: 6, borderRadius: 3, backgroundColor: NAVY },
   approveBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   denyBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-});
+}));

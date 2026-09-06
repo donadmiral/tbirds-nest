@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 /**
  * ReportListingSheet - Facebook-style report reasons for a marketplace listing.
@@ -70,9 +71,9 @@ export default function ReportListingSheet({ visible, onClose, listingId, report
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 32 },
+  sheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 32 },
   handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#D8D8DC', alignSelf: 'center', marginBottom: 14 },
   title: { fontSize: 18, fontWeight: '800', color: '#0A0A0A', letterSpacing: -0.4 },
   sub: { fontSize: 13.5, color: '#8E8E93', marginTop: 3, marginBottom: 8 },
@@ -83,5 +84,5 @@ const s = StyleSheet.create({
   radioOn: { backgroundColor: '#DC2626', borderColor: '#DC2626' },
   input: { marginTop: 12, backgroundColor: '#F2F2F7', borderRadius: 12, padding: 12, minHeight: 60, fontSize: 14.5, color: '#0A0A0A', textAlignVertical: 'top' },
   cta: { marginTop: 16, height: 48, borderRadius: 14, backgroundColor: '#DC2626', alignItems: 'center', justifyContent: 'center' },
-  ctaTxt: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-});
+  ctaTxt: { color: t.ink.inverse, fontSize: 16, fontWeight: '700' },
+}));

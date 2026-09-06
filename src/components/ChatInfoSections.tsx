@@ -12,6 +12,7 @@
  * exactly that rather than borrowing WhatsApp's, because telling someone their
  * messages are private when they are not is worse than saying nothing.
  */
+import { themedSheet, getTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -134,7 +135,7 @@ export default function ChatInfoSections({
             <Text style={s.rowHint}>You still receive the messages, without the alert.</Text>
           </View>
           <Switch value={muted} onValueChange={onToggleMute}
-            trackColor={{ true: light.brand.base, false: light.surface.hairline }} />
+            trackColor={{ true: getTheme().brand.base, false: getTheme().surface.hairline }} />
         </View>
       </View>
 
@@ -184,7 +185,7 @@ export default function ChatInfoSections({
                 <Text style={s.rowLabel} numberOfLines={1}>{g.group_name || 'Group'}</Text>
                 <Text style={s.rowHint}>{g.member_count} members</Text>
               </View>
-              <Feather name="chevron-right" size={16} color={light.ink.faint} />
+              <Feather name="chevron-right" size={16} color={getTheme().ink.faint} />
             </TouchableOpacity>
           ))}
         </View>
@@ -209,7 +210,7 @@ export default function ChatInfoSections({
             activeOpacity={0.75}
           >
             <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(220,38,38,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="flag" size={14} color={reported ? '#9CA3AF' : '#DC2626'} /></View>
-            <Text style={[s.reportTxt, reported && { color: light.ink.faint }]}>
+            <Text style={[s.reportTxt, reported && { color: getTheme().ink.faint }]}>
               {reported ? 'Reported' : 'Report ' + otherName}
             </Text>
           </TouchableOpacity>
@@ -219,37 +220,37 @@ export default function ChatInfoSections({
   );
 }
 
-const s = StyleSheet.create({
-  section: { paddingHorizontal: 16, paddingVertical: space.sm, borderTopWidth: HAIR, borderTopColor: light.surface.divider },
+const s = themedSheet((t) => ({
+  section: { paddingHorizontal: 16, paddingVertical: space.sm, borderTopWidth: HAIR, borderTopColor: t.surface.divider },
   sectionTitle: {
     fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1,
-    textTransform: 'uppercase', color: light.ink.muted, marginBottom: space.xs,
+    textTransform: 'uppercase', color: t.ink.muted, marginBottom: space.xs,
   },
-  sectionHint: { fontSize: typeSize.micro, color: light.ink.faint, lineHeight: 16, marginBottom: space.sm },
+  sectionHint: { fontSize: typeSize.micro, color: t.ink.faint, lineHeight: 16, marginBottom: space.sm },
 
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs },
   rowText: { flex: 1 },
-  rowLabel: { fontSize: typeSize.body, fontWeight: fontWeight.medium, color: light.ink.primary },
-  rowHint: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1, lineHeight: 15 },
+  rowLabel: { fontSize: typeSize.body, fontWeight: fontWeight.medium, color: t.ink.primary },
+  rowHint: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 1, lineHeight: 15 },
 
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   chip: {
     paddingHorizontal: space.sm, paddingVertical: 7, borderRadius: radius.full,
-    borderWidth: HAIR, borderColor: light.surface.hairline,
+    borderWidth: HAIR, borderColor: t.surface.hairline,
   },
-  chipOn: { backgroundColor: light.brand.base, borderColor: light.brand.base },
-  chipTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.ink.secondary },
-  chipTxtOn: { color: light.ink.inverse },
+  chipOn: { backgroundColor: t.brand.base, borderColor: t.brand.base },
+  chipTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.ink.secondary },
+  chipTxtOn: { color: t.ink.inverse },
 
-  groupAvatar: { width: 34, height: 34, borderRadius: 11, backgroundColor: light.surface.sunken },
+  groupAvatar: { width: 34, height: 34, borderRadius: 11, backgroundColor: t.surface.sunken },
   groupAvatarFb: { alignItems: 'center', justifyContent: 'center' },
 
   securityRow: { flexDirection: 'row', gap: space.xs, alignItems: 'flex-start' },
-  securityTxt: { flex: 1, fontSize: typeSize.micro, color: light.ink.muted, lineHeight: 16 },
+  securityTxt: { flex: 1, fontSize: typeSize.micro, color: t.ink.muted, lineHeight: 16 },
 
   reportBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
-    paddingVertical: 13, borderRadius: radius.md, backgroundColor: light.status.dangerBg,
+    paddingVertical: 13, borderRadius: radius.md, backgroundColor: t.status.dangerBg,
   },
-  reportTxt: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.status.danger },
-});
+  reportTxt: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: t.status.danger },
+}));

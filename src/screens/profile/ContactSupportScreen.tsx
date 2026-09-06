@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * ContactSupportScreen - the member's line to operations. A normal
@@ -136,28 +137,28 @@ export default function ContactSupportScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, height: 48, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, height: 48, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
   lede: { fontSize: 13.5, lineHeight: 19, color: 'rgba(11,30,61,0.6)', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
   section: { paddingHorizontal: 16, marginTop: 14 },
-  label: { fontSize: 12, fontWeight: '800', color: 'rgba(11,30,61,0.45)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  label: { fontSize: 12, fontWeight: '800', color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.14)', backgroundColor: '#FFFFFF' },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: t.surface.hairline, backgroundColor: t.surface.canvas },
   chipOn: { backgroundColor: NAVY, borderColor: NAVY },
   chipTxt: { fontSize: 13, fontWeight: '600', color: NAVY },
-  chipTxtOn: { color: '#FFFFFF' },
-  input: { borderWidth: 1, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontSize: 15, color: NAVY, backgroundColor: '#FFFFFF' },
+  chipTxtOn: { color: t.ink.inverse },
+  input: { borderWidth: 1, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontSize: 15, color: NAVY, backgroundColor: t.surface.canvas },
   box: { minHeight: 150, lineHeight: 21, paddingTop: 11 },
   count: { fontSize: 11.5, color: 'rgba(11,30,61,0.4)', marginTop: 6, textAlign: 'right' },
   submit: { backgroundColor: NAVY, borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center' },
-  submitTxt: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
-  rowFirst: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)' },
+  submitTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '800' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
+  rowFirst: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline },
   rowSubject: { fontSize: 14.5, fontWeight: '700', color: NAVY },
-  rowWhen: { fontSize: 12, color: 'rgba(11,30,61,0.45)', marginTop: 2 },
+  rowWhen: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
   pill: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 },
   pillTxt: { fontSize: 11, fontWeight: '800' },
-});
+}));

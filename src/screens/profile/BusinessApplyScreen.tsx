@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * BusinessApplyScreen - a company applies to exist on Platinum Circles.
@@ -147,19 +148,19 @@ export default function BusinessApplyScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
   backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
   lede: { fontSize: 13, lineHeight: 19, color: 'rgba(11,30,61,0.6)', marginBottom: 14, marginTop: 4 },
-  input: { borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, marginBottom: 10, backgroundColor: '#FFFFFF' },
+  input: { borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, marginBottom: 10, backgroundColor: t.surface.canvas },
   hint: { fontSize: 12, fontWeight: '600', marginTop: -4, marginBottom: 10, marginLeft: 4 },
   submit: { backgroundColor: NAVY, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
-  submitTxt: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
-  histLabel: { fontSize: 12, fontWeight: '800', color: 'rgba(11,30,61,0.45)', marginTop: 22, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  submitTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '800' },
+  histLabel: { fontSize: 12, fontWeight: '800', color: t.ink.muted, marginTop: 22, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   ticket: { borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.1)', borderRadius: 14, padding: 12, marginBottom: 10 },
   ticketSubject: { flex: 1, fontSize: 13.5, fontWeight: '700', color: NAVY, marginRight: 8 },
   pill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
@@ -172,4 +173,4 @@ const s = StyleSheet.create({
   pillTxtBad: { color: '#FF3B30' },
   reply: { fontSize: 13, lineHeight: 18, color: 'rgba(11,30,61,0.75)', marginTop: 8, backgroundColor: 'rgba(11,30,61,0.04)', borderRadius: 10, padding: 10 },
   when: { fontSize: 11, color: 'rgba(11,30,61,0.4)', marginTop: 8 },
-});
+}));

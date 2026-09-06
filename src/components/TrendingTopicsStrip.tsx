@@ -1,3 +1,4 @@
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -213,9 +214,9 @@ export default function TrendingTopicsStrip({ refreshSignal }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedSheet((t) => ({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#F0F0F0',
     paddingVertical: 8,
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
@@ -306,4 +307,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#085041',
   },
-});
+}));

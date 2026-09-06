@@ -3,6 +3,7 @@
  * Ranked rows: context line, topic, post count. Uses the same
  * get_trending_topics scoring the strip already relies on.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl, ScrollView } from 'react-native';
 import { supabase } from '../services/supabase';
@@ -83,7 +84,7 @@ export default function TrendingList({ onOpenTag }: { onOpenTag?: (tag: string) 
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   center: { paddingVertical: 60, alignItems: 'center', gap: 6 },
   emptyTitle: { fontSize: 17, fontWeight: '800', color: '#0A0A0A' },
   emptySub: { fontSize: 14, color: '#8E8E93' },
@@ -94,4 +95,4 @@ const s = StyleSheet.create({
   count: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
   more: { fontSize: 16, color: '#C7C7CC', paddingLeft: 10, paddingTop: 2 },
   rep: { fontSize: 13.5, color: '#4B5563', marginTop: 6, lineHeight: 18 },
-});
+}));

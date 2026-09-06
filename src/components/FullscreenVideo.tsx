@@ -8,6 +8,7 @@
  * chrome on both platforms. Mounted only while open, so its player is created
  * and destroyed with the modal.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, PanResponder, Dimensions } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -173,24 +174,24 @@ export default function FullscreenVideo({
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: '#000000' },
   loading: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
   close: { position: 'absolute', left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   centerRow: { ...StyleSheet.absoluteFillObject, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 44 },
   btn: { alignItems: 'center', justifyContent: 'center' },
-  btnLbl: { color: '#FFFFFF', fontSize: 10, fontWeight: '700', marginTop: -2 },
+  btnLbl: { color: t.ink.inverse, fontSize: 10, fontWeight: '700', marginTop: -2 },
   btnCenter: { width: 66, height: 66, borderRadius: 33, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 18, paddingTop: 30, backgroundColor: 'transparent' },
   timeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  time: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  time: { color: t.ink.inverse, fontSize: 12.5, fontWeight: '700', fontVariant: ['tabular-nums'] },
   timeDim: { color: 'rgba(255,255,255,0.6)', fontSize: 12.5, fontWeight: '600', fontVariant: ['tabular-nums'] },
   trackHit: { height: 28, justifyContent: 'center' },
   track: { height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)', overflow: 'hidden' },
-  fill: { height: '100%', backgroundColor: '#FFFFFF' },
-  knob: { position: 'absolute', top: 8, width: 12, height: 12, borderRadius: 6, backgroundColor: '#FFFFFF' },
+  fill: { height: '100%', backgroundColor: t.surface.canvas },
+  knob: { position: 'absolute', top: 8, width: 12, height: 12, borderRadius: 6, backgroundColor: t.surface.canvas },
   knobBig: { top: 5, width: 18, height: 18, borderRadius: 9 },
   ripple: { position: 'absolute', top: 0, bottom: 0, width: '45%', alignItems: 'center', justifyContent: 'center' },
   rippleDisc: { width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  rippleTxt: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
-});
+  rippleTxt: { color: t.ink.inverse, fontSize: 12, fontWeight: '700' },
+}));

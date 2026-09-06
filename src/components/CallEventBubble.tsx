@@ -4,6 +4,7 @@
  * Shows: Missed voice call, Video call · 05:23, Declined voice call, etc.
  * Centered row, no message bubble. Phone/video icon + status text.
  */
+import { themedSheet } from '../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -58,7 +59,7 @@ export default function CallEventBubble({ content, mediaUrl }: Props) {
   );
 }
 
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   container: {
     alignItems: 'center',
     paddingVertical: 8,
@@ -98,4 +99,4 @@ const st = StyleSheet.create({
   textRed: {
     color: '#EF4444',
   },
-});
+}));

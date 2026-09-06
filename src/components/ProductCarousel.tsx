@@ -6,6 +6,7 @@
  * marketplace listing instead of an external site, so the product opens inside
  * the app with the seller attached rather than dumping the buyer on a website.
  */
+import { themedSheet, getTheme } from '../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Linking } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -76,7 +77,7 @@ export default function ProductCarousel({ products, onOpenListing }: Props) {
                   <Image source={{ uri: p.image_url }} style={s.thumb} resizeMode="cover" />
                 ) : (
                   <View style={[s.thumb, s.thumbEmpty]}>
-                    <Feather name="package" size={22} color={light.ink.faint} />
+                    <Feather name="package" size={22} color={getTheme().ink.faint} />
                   </View>
                 )}
                 {p.listing_status && p.listing_status !== 'available' && (
@@ -86,7 +87,7 @@ export default function ProductCarousel({ products, onOpenListing }: Props) {
                 )}
                 {!internal && (
                   <View style={s.extBadge}>
-                    <Feather name="external-link" size={9} color={light.ink.inverse} />
+                    <Feather name="external-link" size={9} color={getTheme().ink.inverse} />
                   </View>
                 )}
               </View>
@@ -107,30 +108,30 @@ export default function ProductCarousel({ products, onOpenListing }: Props) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   wrap: { marginTop: space.xs },
   row: { paddingHorizontal: 14, gap: space.xs },
   card: {
     width: CARD_W,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: light.surface.hairline,
-    backgroundColor: light.surface.canvas,
+    borderColor: t.surface.hairline,
+    backgroundColor: t.surface.canvas,
     overflow: 'hidden',
   },
   thumbWrap: { position: 'relative' },
-  thumb: { width: '100%', height: 118, backgroundColor: light.surface.sunken },
+  thumb: { width: '100%', height: 118, backgroundColor: t.surface.sunken },
   thumbEmpty: { alignItems: 'center', justifyContent: 'center' },
   extBadge: {
     position: 'absolute', top: 6, right: 6,
     width: 18, height: 18, borderRadius: 9,
-    backgroundColor: light.surface.scrim,
+    backgroundColor: t.surface.scrim,
     alignItems: 'center', justifyContent: 'center',
   },
   body: { paddingHorizontal: 9, paddingTop: 7, paddingBottom: 9, gap: 2 },
-  title: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.ink.primary, lineHeight: 16 },
-  subtitle: { fontSize: typeSize.micro, color: light.ink.muted },
+  title: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.ink.primary, lineHeight: 16 },
+  subtitle: { fontSize: typeSize.micro, color: t.ink.muted },
   footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 3 },
-  price: { fontSize: typeSize.body, fontWeight: fontWeight.heavy, color: light.ink.primary },
-  cta: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.status.link },
-});
+  price: { fontSize: typeSize.body, fontWeight: fontWeight.heavy, color: t.ink.primary },
+  cta: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.status.link },
+}));

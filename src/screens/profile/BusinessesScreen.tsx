@@ -1,3 +1,4 @@
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -53,7 +54,7 @@ export default function BusinessesScreen({ navigation }: any) {
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Feather name="chevron-left" size={26} color={light.ink.primary} />
+          <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.title}>Businesses</Text>
         <TouchableOpacity onPress={() => navigation.navigate('CreateBusiness')} style={s.newBtn}>
@@ -62,10 +63,10 @@ export default function BusinessesScreen({ navigation }: any) {
       </View>
 
       {loading ? (
-        <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
+        <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
       ) : error ? (
         <View style={s.centered}>
-          <Feather name="alert-circle" size={30} color={light.ink.faint} />
+          <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Could not load your businesses</Text>
           <Text style={s.emptySub}>{error}</Text>
           <TouchableOpacity style={s.cta} onPress={() => { setLoading(true); load(); }}>
@@ -74,7 +75,7 @@ export default function BusinessesScreen({ navigation }: any) {
         </View>
       ) : rows.length === 0 ? (
         <View style={s.centered}>
-          <Feather name="briefcase" size={30} color={light.ink.faint} />
+          <Feather name="briefcase" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>No businesses yet</Text>
           <Text style={s.emptySub}>
             A business gets its own profile, followers, posts and chats. You stay signed in as
@@ -112,7 +113,7 @@ export default function BusinessesScreen({ navigation }: any) {
                 </Text>
               </View>
               <View style={s.roleChip}><Text style={s.roleTxt}>{item.role}</Text></View>
-              <Feather name="chevron-right" size={16} color={light.ink.faint} />
+              <Feather name="chevron-right" size={16} color={getTheme().ink.faint} />
             </TouchableOpacity>
           )}
         />
@@ -123,31 +124,31 @@ export default function BusinessesScreen({ navigation }: any) {
 
 const HAIR = StyleSheet.hairlineWidth;
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: space.sm,
-    borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline,
+    borderBottomWidth: HAIR, borderBottomColor: t.surface.hairline,
   },
-  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
-  newBtn: { paddingHorizontal: space.sm, paddingVertical: 6, borderRadius: radius.full, backgroundColor: light.brand.base },
-  newTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
+  newBtn: { paddingHorizontal: space.sm, paddingVertical: 6, borderRadius: radius.full, backgroundColor: t.brand.base },
+  newTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 36, gap: space.xs },
-  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.ink.primary, marginTop: space.xs },
-  emptySub: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center', lineHeight: 19 },
-  cta: { marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: light.brand.base },
-  ctaTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: t.ink.primary, marginTop: space.xs },
+  emptySub: { fontSize: typeSize.caption, color: t.ink.muted, textAlign: 'center', lineHeight: 19 },
+  cta: { marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: t.brand.base },
+  ctaTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: light.surface.sunken },
-  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.warm },
-  avatarTxt: { color: light.brand.base, fontSize: typeSize.body, fontWeight: fontWeight.heavy },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: t.surface.sunken },
+  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.warm },
+  avatarTxt: { color: t.brand.base, fontSize: typeSize.body, fontWeight: fontWeight.heavy },
   rowText: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  name: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  meta: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1 },
-  roleChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.full, backgroundColor: light.brand.tintBg },
-  roleTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary, textTransform: 'capitalize' },
-});
+  name: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  meta: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 1 },
+  roleChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.full, backgroundColor: t.brand.tintBg },
+  roleTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.ink.primary, textTransform: 'capitalize' },
+}));

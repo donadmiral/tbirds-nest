@@ -1,6 +1,7 @@
 /**
  * AboutScreen - what Platinum Circles is, in its own words.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -57,8 +58,8 @@ export default function AboutScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
@@ -68,13 +69,13 @@ const s = StyleSheet.create({
   hero: { alignItems: 'center', paddingVertical: 26 },
   mark: { width: 84, height: 84, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   ring: { position: 'absolute', width: 84, height: 84, borderRadius: 42, borderWidth: 5, borderColor: PLATINUM },
-  pearl: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F3EFE7', borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)' },
+  pearl: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F3EFE7', borderWidth: 1, borderColor: t.surface.hairline },
   appName: { fontSize: 24, fontWeight: '800', color: NAVY, letterSpacing: -0.5 },
   tagline: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', marginTop: 4 },
-  versionPill: { marginTop: 12, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99, backgroundColor: 'rgba(11,30,61,0.06)' },
+  versionPill: { marginTop: 12, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99, backgroundColor: t.brand.tintBg },
   versionTxt: { fontSize: 12, fontWeight: '600', color: 'rgba(11,30,61,0.6)' },
   card: { backgroundColor: 'rgba(11,30,61,0.035)', borderRadius: 16, padding: 16, marginBottom: 12 },
   cardTitle: { fontSize: 14.5, fontWeight: '800', color: NAVY, marginBottom: 8 },
   body: { fontSize: 13.5, lineHeight: 21, color: 'rgba(11,30,61,0.8)' },
-  foot: { textAlign: 'center', fontSize: 12.5, color: 'rgba(11,30,61,0.45)', marginTop: 16 },
-});
+  foot: { textAlign: 'center', fontSize: 12.5, color: t.ink.muted, marginTop: 16 },
+}));

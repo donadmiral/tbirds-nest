@@ -8,6 +8,7 @@
  * CHANGE: Removed local ringback/Audio.Sound code.
  * Ringback is now managed by CallContext via audioService.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
@@ -390,15 +391,15 @@ function MoreMenu({ visible, onClose, muted, held, isVideo, speakerOn, onMute, o
 }
 
 const NAVY = '#0B1E3D';
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   callScrimTop:{position:'absolute',top:0,left:0,right:0},
   callScrimBottom:{position:'absolute',bottom:0,left:0,right:0},
-  safe:{flex:1,backgroundColor:'#FFF'},
+  safe:{flex:1,backgroundColor: t.surface.canvas},
   hero:{backgroundColor:NAVY,paddingHorizontal:24,paddingBottom:32,alignItems:'center'},
   backBtn:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:6,marginBottom:16,paddingVertical:4},backTxt:{fontSize:14,color:'rgba(255,255,255,0.45)',fontWeight:'500'},
   callTypeLabel:{fontSize:12,fontWeight:'700',letterSpacing:1.5,color:'rgba(255,255,255,0.35)',marginBottom:20,textTransform:'uppercase'},
-  avatarWrap:{marginBottom:16},avatar:{width:88,height:88,borderRadius:28,alignItems:'center',justifyContent:'center'},avatarTxt:{fontSize:32,fontWeight:'800',color:'#FFF'},
-  callerName:{fontSize:26,fontWeight:'800',color:'#FFF',letterSpacing:-0.5,marginBottom:10,textAlign:'center'},
+  avatarWrap:{marginBottom:16},avatar:{width:88,height:88,borderRadius:28,alignItems:'center',justifyContent:'center'},avatarTxt:{fontSize:32,fontWeight:'800',color: t.ink.inverse},
+  callerName:{fontSize:26,fontWeight:'800',color: t.ink.inverse,letterSpacing:-0.5,marginBottom:10,textAlign:'center'},
   groupParticipantCount:{fontSize:13,fontWeight:'600',color:'rgba(255,255,255,0.5)',marginBottom:4},
   statusRow:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:16},statusDot:{width:8,height:8,borderRadius:4},
   statusTxt:{fontSize:14,color:'rgba(255,255,255,0.45)',fontWeight:'600'},statusConnected:{color:'#22C55E'},
@@ -409,18 +410,18 @@ const s = StyleSheet.create({
   networkBannerRed:{backgroundColor:'rgba(239,68,68,0.15)',borderColor:'rgba(239,68,68,0.25)'},
   networkBannerTxt:{fontSize:13,fontWeight:'600',color:'#FEF3C7'},
   networkBannerTxtRed:{color:'#FEE2E2'},
-  timer:{fontSize:48,fontWeight:'200',color:'#FFF',letterSpacing:4},
-  middle:{flex:1,backgroundColor:'#FFF',paddingTop:28},
+  timer:{fontSize:48,fontWeight:'200',color: t.ink.inverse,letterSpacing:4},
+  middle:{flex:1,backgroundColor: t.surface.canvas,paddingTop:28},
   controlsGrid:{flexDirection:'row',justifyContent:'space-around',paddingHorizontal:12,marginBottom:16},
   ctrl:{alignItems:'center',gap:8,minWidth:60},ctrlCircle:{width:62,height:62,borderRadius:31,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   ctrlCircleActive:{backgroundColor:NAVY},ctrlLabel:{fontSize:11,fontWeight:'600',color:'#8E8E93',textAlign:'center'},
   addSection:{paddingHorizontal:20,paddingTop:12,paddingBottom:8,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F0F0F0'},
   addTitle:{fontSize:11,fontWeight:'700',color:'#8E8E93',letterSpacing:1,textTransform:'uppercase',marginBottom:10},
   addRow:{flexDirection:'row',alignItems:'center',gap:12,paddingVertical:9,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F5F5F5'},
-  addAvatar:{width:40,height:40,borderRadius:13,alignItems:'center',justifyContent:'center'},addAvatarTxt:{fontSize:14,fontWeight:'800',color:'#FFF'},
+  addAvatar:{width:40,height:40,borderRadius:13,alignItems:'center',justifyContent:'center'},addAvatarTxt:{fontSize:14,fontWeight:'800',color: t.ink.inverse},
   addName:{fontSize:14,fontWeight:'600',color:'#000'},addSub:{fontSize:12,color:'#8E8E93',marginTop:1},
   addPlusBtn:{width:38,height:38,borderRadius:12,backgroundColor:NAVY,alignItems:'center',justifyContent:'center'},
-  pinnedBottom:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:36,paddingTop:20,backgroundColor:'#FFF',borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F0F0F0'},
+  pinnedBottom:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:36,paddingTop:20,backgroundColor: t.surface.canvas,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#F0F0F0'},
   sideCircle:{width:64,height:64,borderRadius:22,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   endCircle:{width:68,height:68,borderRadius:24,backgroundColor:'#EF4444',alignItems:'center',justifyContent:'center',shadowColor:'#EF4444',shadowOpacity:0.35,shadowRadius:14,shadowOffset:{width:0,height:5},elevation:8},
 
@@ -429,8 +430,8 @@ const s = StyleSheet.create({
   remoteVideo:{flex:1,width:'100%',height:'100%'},
   remoteFallback:{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:NAVY},
   remoteAvatar:{width:120,height:120,borderRadius:60,alignItems:'center',justifyContent:'center',marginBottom:20},
-  remoteAvatarTxt:{fontSize:44,fontWeight:'800',color:'#FFF'},
-  videoCallerName:{fontSize:24,fontWeight:'700',color:'#FFF',marginBottom:14},
+  remoteAvatarTxt:{fontSize:44,fontWeight:'800',color: t.ink.inverse},
+  videoCallerName:{fontSize:24,fontWeight:'700',color: t.ink.inverse,marginBottom:14},
   connectingRow:{flexDirection:'row',alignItems:'center',gap:10},
   videoStatus:{fontSize:14,color:'rgba(255,255,255,0.7)'},
 
@@ -447,7 +448,7 @@ const s = StyleSheet.create({
     alignItems:'center',justifyContent:'center',
   },
   videoTopCenter:{flex:1,alignItems:'center'},
-  videoTopName:{fontSize:15,fontWeight:'700',color:'#FFF'},
+  videoTopName:{fontSize:15,fontWeight:'700',color: t.ink.inverse},
   videoTopTimer:{fontSize:12,color:'rgba(255,255,255,0.7)',marginTop:2},
 
   selfView:{
@@ -465,23 +466,23 @@ const s = StyleSheet.create({
     zIndex:10,
   },
   videoCtrl:{width:54,height:54,borderRadius:27,backgroundColor:'rgba(18,22,30,0.55)',borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,0.28)',alignItems:'center',justifyContent:'center'},
-  videoCtrlActive:{backgroundColor:'#FFFFFF',borderColor:'#FFFFFF'},
+  videoCtrlActive:{backgroundColor: t.surface.canvas,borderColor: t.ink.inverse},
   videoEndCircle:{width:64,height:64,borderRadius:32,backgroundColor:'#EF4444',alignItems:'center',justifyContent:'center',shadowColor:'#EF4444',shadowOpacity:0.5,shadowRadius:14,shadowOffset:{width:0,height:5},elevation:8},
 
   sheetOverlay:{flex:1,backgroundColor:'rgba(0,0,0,0.5)',justifyContent:'flex-end'},
   sheetHandle:{width:36,height:4,borderRadius:2,backgroundColor:'#E0E0E0',alignSelf:'center',marginBottom:16},
-  keypadSheet:{backgroundColor:'#FFF',borderTopLeftRadius:22,borderTopRightRadius:22,paddingHorizontal:24,paddingBottom:40,paddingTop:12},
+  keypadSheet:{backgroundColor: t.surface.canvas,borderTopLeftRadius:22,borderTopRightRadius:22,paddingHorizontal:24,paddingBottom:40,paddingTop:12},
   keypadTitle:{fontSize:12,fontWeight:'600',color:'#8E8E93',textAlign:'center',marginBottom:8,textTransform:'uppercase',letterSpacing:0.5},
   keypadDisplay:{fontSize:28,fontWeight:'300',color:'#000',textAlign:'center',marginBottom:20,letterSpacing:4,minHeight:36},
   keypadRow:{flexDirection:'row',justifyContent:'space-around',marginBottom:12},
   keypadBtn:{width:72,height:72,borderRadius:36,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   keypadDigit:{fontSize:28,fontWeight:'400',color:'#000'},
   keypadDone:{alignSelf:'center',marginTop:8,paddingHorizontal:32,paddingVertical:12,borderRadius:14,backgroundColor:NAVY},
-  keypadDoneTxt:{fontSize:15,fontWeight:'600',color:'#FFF'},
-  moreSheet:{backgroundColor:'#FFF',borderTopLeftRadius:22,borderTopRightRadius:22,paddingHorizontal:20,paddingBottom:40,paddingTop:12},
+  keypadDoneTxt:{fontSize:15,fontWeight:'600',color: t.ink.inverse},
+  moreSheet:{backgroundColor: t.surface.canvas,borderTopLeftRadius:22,borderTopRightRadius:22,paddingHorizontal:20,paddingBottom:40,paddingTop:12},
   moreTitle:{fontSize:17,fontWeight:'700',color:'#000',textAlign:'center',marginBottom:16},
   moreRow:{flexDirection:'row',alignItems:'center',gap:14,paddingVertical:14,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#F0F0F0'},
   moreIcon:{width:44,height:44,borderRadius:14,backgroundColor:'#F2F2F7',alignItems:'center',justifyContent:'center'},
   moreLabel:{fontSize:16,fontWeight:'500',color:'#000',flex:1},
   moreCheck:{width:28,height:28,borderRadius:14,backgroundColor:'#F0FDF4',alignItems:'center',justifyContent:'center'},
-});
+}));

@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
 /**
  * UserProfileScreen.tsx
@@ -473,17 +474,17 @@ export default function UserProfileScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: BG_GREY },
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: '#FFFFFF' },
-  notFoundTxt: { fontSize: 16, fontWeight: '600', color: 'rgba(11,30,61,0.62)' },
+  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: t.surface.canvas },
+  notFoundTxt: { fontSize: 16, fontWeight: '600', color: t.ink.secondary },
   goBackBtn: { backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
-  goBackBtnTxt: { color: '#FFF', fontSize: 14, fontWeight: '600' },
+  goBackBtnTxt: { color: t.ink.inverse, fontSize: 14, fontWeight: '600' },
 
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 12, paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
   },
   headerTitle: { fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY, flex: 1, textAlign: 'center' },
@@ -492,12 +493,12 @@ const s = StyleSheet.create({
   hero: {
     alignItems: 'center',
     paddingTop: 28, paddingHorizontal: 20, paddingBottom: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
   },
   avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 12, backgroundColor: '#EFF6FF' },
   avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: NAVY },
-  avatarFbTxt: { fontSize: 36, fontWeight: '700', color: '#FFF' },
+  avatarFbTxt: { fontSize: 36, fontWeight: '700', color: t.ink.inverse },
   name: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.4 },
   handle: { fontSize: 14, color: NAVY, fontWeight: '500', marginTop: 4 },
   privateBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, backgroundColor: '#F2F2F7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
@@ -518,7 +519,7 @@ const s = StyleSheet.create({
   editOwnBtnTxt: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
 
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     marginTop: 10,
     paddingHorizontal: 16, paddingVertical: 14,
     borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth,
@@ -528,24 +529,24 @@ const s = StyleSheet.create({
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionMeta: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
 
-  bio: { fontSize: 14, color: 'rgba(11,30,61,0.62)', lineHeight: 21, marginBottom: 12 },
+  bio: { fontSize: 14, color: t.ink.secondary, lineHeight: 21, marginBottom: 12 },
 
   itm: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
-  itmIconBg: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  itmIconBg: { width: 32, height: 32, borderRadius: 10, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   itmTxt: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '500' },
   itmSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 1 },
 
   emptyPosts: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyPostsTxt: { fontSize: 14, color: TEXT_SECONDARY },
   postCard: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F4F3F1' },
-  postContent: { fontSize: 14, color: '#0B1E3D', lineHeight: 20, marginBottom: 10 },
+  postContent: { fontSize: 14, color: t.ink.primary, lineHeight: 20, marginBottom: 10 },
   postFooter: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   postFooterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   postFooterTxt: { fontSize: 12, color: TEXT_SECONDARY },
-  postTime: { fontSize: 12, color: 'rgba(11,30,61,0.24)', marginLeft: 'auto' },
+  postTime: { fontSize: 12, color: t.ink.faint, marginLeft: 'auto' },
 
   lockedSection: { alignItems: 'center', paddingVertical: 80, paddingHorizontal: 32, gap: 10 },
   lockedIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   lockedTitle: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY },
   lockedSub: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
-});
+}));

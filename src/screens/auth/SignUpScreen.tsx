@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import React, { useRef, useState } from 'react';
 import {
@@ -249,7 +250,7 @@ export default function SignUpScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: NAVY },
   flex: { flex: 1 },
   container: {
@@ -284,7 +285,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FBFBFA',
     borderWidth: 1,
-    borderColor: 'rgba(11,30,61,0.12)',
+    borderColor: t.surface.hairline,
     borderRadius: 14,
     marginBottom: 10,
     position: 'relative',
@@ -381,4 +382,4 @@ const s = StyleSheet.create({
     marginTop: 20,
     lineHeight: 16,
   },
-});
+}));

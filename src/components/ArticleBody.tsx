@@ -14,6 +14,7 @@
  * check against, so every link opens through the system browser. Everything
  * else matches.
  */
+import { themedSheet } from '../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet, Linking } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
@@ -157,7 +158,7 @@ export default function ArticleBody({
   );
 }
 
-const ab = StyleSheet.create({
+const ab = themedSheet((t) => ({
   h1: { marginTop: 22, fontSize: 21, fontWeight: '800', color: NAVY, lineHeight: 27 },
   h2: { marginTop: 18, fontSize: 17, fontWeight: '700', color: NAVY, lineHeight: 23 },
   p: { marginTop: 14, fontSize: 16, lineHeight: 25, color: 'rgba(11,30,61,0.88)' },
@@ -177,4 +178,4 @@ const ab = StyleSheet.create({
   listText: { flex: 1, fontSize: 16, lineHeight: 25, color: 'rgba(11,30,61,0.88)' },
   mention: { color: NAVY, fontWeight: '700' },
   hashtag: { color: '#2563EB', fontWeight: '700' },
-});
+}));

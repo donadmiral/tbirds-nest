@@ -4,6 +4,7 @@
 // (studio_reviews / studio_reply_review, studio_audience / studio_audience_summary /
 // studio_set_contact_label, studio_orders / studio_catalog / studio_set_listing).
 // Every screen is keyboard-safe, safe-area-aware and clears the tab bar.
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
@@ -362,7 +363,7 @@ export function CommerceSeg({ role, navigation, onBack }: { role: string | null;
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   center: { alignItems: 'center', justifyContent: 'center', gap: 8 },
   h1: { fontSize: 20, fontWeight: '800', color: '#0F1419' },
   sub: { fontSize: 12.5, color: '#8E8E93', marginTop: 2 },
@@ -373,17 +374,17 @@ const s = StyleSheet.create({
   cardMeta: { fontSize: 11.5, color: '#8E8E93', marginTop: 3 },
   statLabel: { fontSize: 11.5, color: '#8E8E93' },
   statNum: { fontSize: 22, fontWeight: '800', color: '#0F1419', marginTop: 2 },
-  iconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  iconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   filterChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F2F2F7' },
   filterChipOn: { backgroundColor: NAVY },
   filterTxt: { fontSize: 12.5, fontWeight: '700', color: '#5B6B84' },
-  filterTxtOn: { color: '#FFF' },
-  labelPill: { fontSize: 10.5, fontWeight: '700', color: NAVY, backgroundColor: 'rgba(11,30,61,0.08)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
+  filterTxtOn: { color: t.ink.inverse },
+  labelPill: { fontSize: 10.5, fontWeight: '700', color: NAVY, backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
   thumb: { width: 52, height: 52, borderRadius: 10 },
   statusPill: { fontSize: 10.5, fontWeight: '800' },
   barTrack: { height: 6, borderRadius: 3, backgroundColor: '#E5E5EA', marginTop: 4 },
   barFill: { height: 6, borderRadius: 3, backgroundColor: NAVY },
-  replyBox: { marginTop: 8, backgroundColor: '#FFF', borderRadius: 10, padding: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E5EA' },
+  replyBox: { marginTop: 8, backgroundColor: t.surface.canvas, borderRadius: 10, padding: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E5EA' },
   linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8, alignSelf: 'flex-start' },
   linkTxt: { fontSize: 12.5, fontWeight: '700', color: NAVY },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
@@ -392,4 +393,4 @@ const s = StyleSheet.create({
   input: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0F1419' },
   secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F2F2F7', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
   secondaryTxt: { color: NAVY, fontWeight: '700', fontSize: 15 },
-});
+}));

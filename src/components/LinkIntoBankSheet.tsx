@@ -1,3 +1,4 @@
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
@@ -101,9 +102,9 @@ export default function LinkIntoBankSheet({ visible, onClose, onLinked }: Props)
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   backdrop: { flex: 1, backgroundColor: 'rgba(8, 12, 22, 0.45)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 22, paddingTop: 10, paddingBottom: 34 },
+  sheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 22, paddingTop: 10, paddingBottom: 34 },
   grabber: { alignSelf: 'center', width: 40, height: 4.5, borderRadius: 3, backgroundColor: '#E3E3E8', marginBottom: 14 },
   markRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
   mark: { width: 30, height: 30, borderRadius: 8, backgroundColor: '#0A3D2E', alignItems: 'center', justifyContent: 'center' },
@@ -113,7 +114,7 @@ const s = StyleSheet.create({
   input: { borderWidth: 1, borderColor: '#E3E3E8', borderRadius: 13, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15.5, color: NAVY, marginBottom: 10 },
   cta: { backgroundColor: NAVY, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   off: { opacity: 0.55 },
-  ctaTxt: { color: '#FFFFFF', fontSize: 15.5, fontWeight: '800' },
+  ctaTxt: { color: t.ink.inverse, fontSize: 15.5, fontWeight: '800' },
   alt: { textAlign: 'center', color: NAVY, fontSize: 13.5, fontWeight: '700', marginTop: 14 },
   cancel: { textAlign: 'center', color: '#8E8E93', fontSize: 14, fontWeight: '600', marginTop: 12 },
-});
+}));

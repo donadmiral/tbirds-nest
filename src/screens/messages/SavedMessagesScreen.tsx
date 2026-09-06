@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import {
@@ -142,8 +143,8 @@ export default function SavedMessagesScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe:      { flex: 1, backgroundColor: '#FFF' },
+const s = themedSheet((t) => ({
+  safe:      { flex: 1, backgroundColor: t.surface.canvas },
   center:    { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
   title:     { fontSize: 17, fontWeight: '700', color: '#000' },
@@ -158,4 +159,4 @@ const s = StyleSheet.create({
   empty:     { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, gap: 10, paddingHorizontal: 40 },
   emptyTitle:{ fontSize: 18, fontWeight: '700', color: '#000' },
   emptySub:  { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
-});
+}));

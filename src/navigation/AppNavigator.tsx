@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AppState, Platform, StyleSheet, Text, View, Animated, Pressable } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme as NavDarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'react-native';
-import { useTheme } from '../theme/useTheme';
+import { useTheme, themedSheet } from '../theme/useTheme';
 import { useThemeStore } from '../stores/themeStore';
 import { useAccountsStore } from '../stores/accountsStore';
 import AccountSwitcherSheet from '../components/AccountSwitcherSheet';
@@ -579,7 +579,7 @@ export default function AppNavigator() {
   );
 }
 
-const s = StyleSheet.create({
-  dot: { position: 'absolute', top: -3, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FFFFFF' },
-  dotTxt: { fontSize: 10, fontWeight: '700', color: '#FFFFFF' },
-});
+const s = themedSheet((t) => ({
+  dot: { position: 'absolute', top: -3, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: t.ink.inverse },
+  dotTxt: { fontSize: 10, fontWeight: '700', color: t.ink.inverse },
+}));

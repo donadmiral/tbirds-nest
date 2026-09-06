@@ -1,3 +1,4 @@
+import { themedSheet, getTheme } from '../theme/useTheme';
 import { getTierColor } from './VerifiedBadge';
 import VerifiedBadge from './VerifiedBadge';
 /**
@@ -79,12 +80,12 @@ function BusinessHours({ hours }: { hours: any }) {
         accessibilityRole="button"
         accessibilityLabel={isOpen ? 'Open now. Show opening hours.' : 'Closed. Show opening hours.'}
       >
-        <Feather name="clock" size={12} color={light.ink.muted} />
+        <Feather name="clock" size={12} color={getTheme().ink.muted} />
         <Text style={[s.hoursState, isOpen ? s.hoursOpen : s.hoursClosed]}>
           {isOpen ? 'Open' : 'Closed'}
         </Text>
         <Text style={s.meta}>{summary}</Text>
-        <Feather name={open ? 'chevron-up' : 'chevron-down'} size={13} color={light.ink.faint} />
+        <Feather name={open ? 'chevron-up' : 'chevron-down'} size={13} color={getTheme().ink.faint} />
       </TouchableOpacity>
 
       {open ? (
@@ -171,7 +172,7 @@ export default function ProfileHeader({
             accessibilityRole="button"
             accessibilityLabel="Settings"
           >
-            <Feather name="settings" size={17} color={light.ink.inverse} />
+            <Feather name="settings" size={17} color={getTheme().ink.inverse} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -190,7 +191,7 @@ export default function ProfileHeader({
                 <PlatinumRing userId={profile?.id || 'me'} size={RING} active={!!hasStory} />
               </View>
               {uploadingPhoto ? (
-                <View style={[s.avatar, s.avatarLoading]}><ActivityIndicator color={light.brand.base} /></View>
+                <View style={[s.avatar, s.avatarLoading]}><ActivityIndicator color={getTheme().brand.base} /></View>
               ) : profile?.avatar_url ? (
                 ((!isSelf) ? (<TouchableOpacity activeOpacity={0.9} onPress={() => setAvatarOpen(true)}><ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /></TouchableOpacity>) : (<ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />))
               ) : (
@@ -200,7 +201,7 @@ export default function ProfileHeader({
               )}
               {onChangePhoto && hasStory ? (
                 <TouchableOpacity style={s.cameraChip} onPress={onChangePhoto} activeOpacity={0.85} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                  <Feather name="camera" size={11} color={light.ink.inverse} />
+                  <Feather name="camera" size={11} color={getTheme().ink.inverse} />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -226,7 +227,7 @@ export default function ProfileHeader({
         ) : onEdit ? (
           <View style={s.actionsCenter}>
             <TouchableOpacity style={s.editBtn} onPress={onEdit} activeOpacity={0.8} accessibilityRole="button">
-              <Feather name="edit-2" size={12} color={light.ink.primary} />
+              <Feather name="edit-2" size={12} color={getTheme().ink.primary} />
               <Text style={s.editTxt}>Edit profile</Text>
             </TouchableOpacity>
           </View>
@@ -249,19 +250,19 @@ export default function ProfileHeader({
         <View style={s.metaRow}>
           {profile?.workplace ? (
             <View style={s.metaItem}>
-              <Feather name="briefcase" size={12} color={light.ink.muted} />
+              <Feather name="briefcase" size={12} color={getTheme().ink.muted} />
               <Text style={s.meta}>{profile.workplace}</Text>
             </View>
           ) : null}
           {profile?.location ? (
             <View style={s.metaItem}>
-              <Feather name="map-pin" size={12} color={light.ink.muted} />
+              <Feather name="map-pin" size={12} color={getTheme().ink.muted} />
               <Text style={s.meta}>{profile.location}</Text>
             </View>
           ) : null}
           {joined ? (
             <View style={s.metaItem}>
-              <Feather name="calendar" size={12} color={light.ink.muted} />
+              <Feather name="calendar" size={12} color={getTheme().ink.muted} />
               <Text style={s.meta}>{joined}</Text>
             </View>
           ) : null}
@@ -272,8 +273,8 @@ export default function ProfileHeader({
             {profileLinks.map((l, i) => (
               <TouchableOpacity key={i} onPress={() => Linking.openURL(l.url).catch(() => {})} activeOpacity={0.8}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.16)', backgroundColor: '#FFFFFF' }}>
-                <Feather name="link" size={12} color={light.ink.primary} />
-                <Text style={{ fontSize: 12.5, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{l.title || hostOf(l.url)}</Text>
+                <Feather name="link" size={12} color={getTheme().ink.primary} />
+                <Text style={{ fontSize: 12.5, fontWeight: '600', color: getTheme().ink.primary }} numberOfLines={1}>{l.title || hostOf(l.url)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -282,13 +283,13 @@ export default function ProfileHeader({
         {business ? (
           <View style={s.metaRow}>
             {business.phone ? (
-              <View style={s.metaItem}><Feather name="phone" size={12} color={light.ink.muted} /><Text style={s.meta}>{business.phone}</Text></View>
+              <View style={s.metaItem}><Feather name="phone" size={12} color={getTheme().ink.muted} /><Text style={s.meta}>{business.phone}</Text></View>
             ) : null}
             {business.website ? (
-              <View style={s.metaItem}><Feather name="globe" size={12} color={light.ink.muted} /><Text style={s.meta} numberOfLines={1}>{business.website}</Text></View>
+              <View style={s.metaItem}><Feather name="globe" size={12} color={getTheme().ink.muted} /><Text style={s.meta} numberOfLines={1}>{business.website}</Text></View>
             ) : null}
             {business.address ? (
-              <View style={s.metaItem}><Feather name="navigation" size={12} color={light.ink.muted} /><Text style={s.meta} numberOfLines={1}>{business.address}</Text></View>
+              <View style={s.metaItem}><Feather name="navigation" size={12} color={getTheme().ink.muted} /><Text style={s.meta} numberOfLines={1}>{business.address}</Text></View>
             ) : null}
           </View>
         ) : null}
@@ -351,14 +352,14 @@ export default function ProfileHeader({
 
 const HAIR = StyleSheet.hairlineWidth;
 
-const s = StyleSheet.create({
-  banner: { height: BANNER_H, backgroundColor: light.brand.base, borderBottomWidth: 2, borderBottomColor: light.brand.warm },
+const s = themedSheet((t) => ({
+  banner: { height: BANNER_H, backgroundColor: t.brand.base, borderBottomWidth: 2, borderBottomColor: t.brand.warm },
   bannerImg: { width: '100%', height: '100%' },
-  bannerFallback: { backgroundColor: light.brand.base },
+  bannerFallback: { backgroundColor: t.brand.base },
   settingsBtn: {
     position: 'absolute', top: 12, right: 14,
     width: 34, height: 34, borderRadius: 17,
-    backgroundColor: 'rgba(11,30,61,0.42)',
+    backgroundColor: t.ink.muted,
     alignItems: 'center', justifyContent: 'center',
   },
 
@@ -368,67 +369,67 @@ const s = StyleSheet.create({
   ringSvg: { position: 'absolute', top: 0, left: 0 },
   cameraChip: {
     position: 'absolute', bottom: 3, right: 3, width: 24, height: 24, borderRadius: 12,
-    backgroundColor: light.brand.base, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: light.surface.canvas,
+    backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: t.surface.canvas,
   },
   avatar: {
     width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2,
-    borderWidth: 3, borderColor: light.surface.canvas, backgroundColor: light.surface.sunken,
+    borderWidth: 3, borderColor: t.surface.canvas, backgroundColor: t.surface.sunken,
   },
-  avatarLoading: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.surface.canvas },
-  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.warm },
-  avatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: light.brand.base },
+  avatarLoading: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface.canvas },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.warm },
+  avatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: t.brand.base },
   actionsCenter: { alignItems: 'center', marginTop: space.sm },
   editBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: space.md, paddingVertical: 7,
-    borderRadius: radius.full, borderWidth: HAIR, borderColor: light.surface.hairline,
+    borderRadius: radius.full, borderWidth: HAIR, borderColor: t.surface.hairline,
   },
-  editTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary },
+  editTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.ink.primary },
 
   nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 },
-  name: { fontSize: 22, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.6, textAlign: 'center' },
-  handle: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 1, textAlign: 'center' },
+  name: { fontSize: 22, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.6, textAlign: 'center' },
+  handle: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 1, textAlign: 'center' },
 
   category: {
     fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1,
-    textTransform: 'uppercase', color: light.brand.warm, marginTop: 5, textAlign: 'center',
+    textTransform: 'uppercase', color: t.brand.warm, marginTop: 5, textAlign: 'center',
   },
-  headline: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary, marginTop: 5, textAlign: 'center' },
-  bio: { fontSize: typeSize.body, color: light.ink.secondary, lineHeight: 20, marginTop: 5 },
-  bioEmpty: { fontSize: typeSize.body, color: light.status.link, fontWeight: fontWeight.semibold, marginTop: 5 },
+  headline: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary, marginTop: 5, textAlign: 'center' },
+  bio: { fontSize: typeSize.body, color: t.ink.secondary, lineHeight: 20, marginTop: 5 },
+  bioEmpty: { fontSize: typeSize.body, color: t.status.link, fontWeight: fontWeight.semibold, marginTop: 5 },
 
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.xs },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: 230 },
-  meta: { fontSize: typeSize.caption, color: light.ink.muted },
+  meta: { fontSize: typeSize.caption, color: t.ink.muted },
 
   hoursWrap: { marginTop: space.xs },
   hoursRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   hoursState: { fontSize: typeSize.caption, fontWeight: fontWeight.bold },
-  hoursOpen: { color: light.status.success },
-  hoursClosed: { color: light.status.danger },
+  hoursOpen: { color: t.status.success },
+  hoursClosed: { color: t.status.danger },
   hoursWeek: { marginTop: 6, paddingLeft: 17, gap: 3 },
   hoursDay: { flexDirection: 'row', justifyContent: 'space-between', maxWidth: 240 },
-  hoursDayLbl: { fontSize: typeSize.micro, color: light.ink.muted },
-  hoursDayVal: { fontSize: typeSize.micro, color: light.ink.secondary, fontWeight: fontWeight.medium },
+  hoursDayLbl: { fontSize: typeSize.micro, color: t.ink.muted },
+  hoursDayVal: { fontSize: typeSize.micro, color: t.ink.secondary, fontWeight: fontWeight.medium },
 
   rail: { flexGrow: 1, justifyContent: 'center', paddingTop: space.sm, paddingBottom: space.sm },
   capsule: {
     flexDirection: 'row', borderRadius: radius.full, overflow: 'hidden',
-    borderWidth: HAIR, borderColor: light.surface.hairline, backgroundColor: light.brand.tintBg,
+    borderWidth: HAIR, borderColor: t.surface.hairline, backgroundColor: t.brand.tintBg,
   },
   seg: {
     alignItems: 'center', minWidth: 84,
     paddingHorizontal: space.sm, paddingVertical: space.xs,
-    borderLeftWidth: HAIR, borderLeftColor: light.surface.hairline,
+    borderLeftWidth: HAIR, borderLeftColor: t.surface.hairline,
   },
   segAccent: { backgroundColor: 'rgba(201,191,176,0.30)' },
-  pillNum: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
-  pillLbl: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1 },
+  pillNum: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
+  pillLbl: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 1 },
 
-  tabRow: { flexDirection: 'row', borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline },
+  tabRow: { flexDirection: 'row', borderBottomWidth: HAIR, borderBottomColor: t.surface.hairline },
   tab: { flex: 1, alignItems: 'center', paddingVertical: space.sm },
-  tabTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.ink.muted },
-  tabTxtOn: { color: light.ink.primary, fontWeight: fontWeight.heavy },
-  tabBar: { position: 'absolute', bottom: -1, height: 2.5, width: 34, borderRadius: 2, backgroundColor: light.brand.warm },
-});
+  tabTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.ink.muted },
+  tabTxtOn: { color: t.ink.primary, fontWeight: fontWeight.heavy },
+  tabBar: { position: 'absolute', bottom: -1, height: 2.5, width: 34, borderRadius: 2, backgroundColor: t.brand.warm },
+}));

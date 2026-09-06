@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import SellerTrust from '../../components/market/SellerTrust';
@@ -355,7 +356,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: BG },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG },
   backBtn: { padding: 16 },
@@ -369,12 +370,12 @@ const s = StyleSheet.create({
     position: 'absolute', bottom: 12, alignSelf: 'center', flexDirection: 'row', gap: 5,
   },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.5)' },
-  dotActive: { backgroundColor: '#FFF' },
+  dotActive: { backgroundColor: t.surface.canvas },
   soldBanner: {
     position: 'absolute', top: 12, right: 12, backgroundColor: RED,
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
-  soldTxt: { color: '#FFF', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
+  soldTxt: { color: t.ink.inverse, fontWeight: '800', fontSize: 12, letterSpacing: 1 },
   body: { padding: 16 },
   price: { fontSize: 24, fontWeight: '800', color: GRAY_900 },
   title: { fontSize: 17, color: GRAY_900, marginTop: 2 },
@@ -396,4 +397,4 @@ const s = StyleSheet.create({
   },
   ctaTxt: { color: BG, fontSize: 16, fontWeight: '700' },
   emptyTxt: { fontSize: 14, color: GRAY_500 },
-});
+}));

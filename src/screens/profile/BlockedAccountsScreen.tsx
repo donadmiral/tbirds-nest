@@ -1,3 +1,4 @@
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 /**
  * BlockedAccountsScreen
@@ -113,17 +114,17 @@ export default function BlockedAccountsScreen({ navigation }: any) {
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityRole="button" accessibilityLabel="Go back"
         >
-          <Feather name="chevron-left" size={26} color={light.ink.primary} />
+          <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.title}>Blocked accounts</Text>
         <View style={{ width: 26 }} />
       </View>
 
       {loading ? (
-        <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
+        <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
       ) : error ? (
         <View style={s.centered}>
-          <Feather name="alert-circle" size={30} color={light.ink.faint} />
+          <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Could not load blocked accounts</Text>
           <Text style={s.emptySub}>{error}</Text>
           <TouchableOpacity style={s.retry} onPress={() => { setLoading(true); load(); }}>
@@ -132,7 +133,7 @@ export default function BlockedAccountsScreen({ navigation }: any) {
         </View>
       ) : rows.length === 0 ? (
         <View style={s.centered}>
-          <Feather name="slash" size={30} color={light.ink.faint} />
+          <Feather name="slash" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Nobody is blocked</Text>
           <Text style={s.emptySub}>
             When you block someone they cannot see your posts or message you. You can undo it here.
@@ -165,7 +166,7 @@ export default function BlockedAccountsScreen({ navigation }: any) {
                 accessibilityLabel={`Unblock ${item.full_name || 'user'}`}
               >
                 {busy[item.blocked_id]
-                  ? <ActivityIndicator size="small" color={light.ink.primary} />
+                  ? <ActivityIndicator size="small" color={getTheme().ink.primary} />
                   : <Text style={s.unblockTxt}>Unblock</Text>}
               </TouchableOpacity>
             </View>
@@ -176,35 +177,35 @@ export default function BlockedAccountsScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: space.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: light.surface.hairline,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
-  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
+  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: space.xs },
-  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.ink.primary, marginTop: space.xs },
-  emptySub: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center', lineHeight: 19 },
+  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: t.ink.primary, marginTop: space.xs },
+  emptySub: { fontSize: typeSize.caption, color: t.ink.muted, textAlign: 'center', lineHeight: 19 },
   retry: {
     marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.xs,
-    borderRadius: radius.full, backgroundColor: light.brand.base,
+    borderRadius: radius.full, backgroundColor: t.brand.base,
   },
-  retryTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  retryTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: light.surface.sunken },
-  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.base },
-  avatarTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.surface.sunken },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base },
+  avatarTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
   rowText: { flex: 1 },
-  name: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  handle: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 1 },
+  name: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  handle: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 1 },
   unblockBtn: {
     minWidth: 78, alignItems: 'center',
     paddingHorizontal: space.sm, paddingVertical: 7,
     borderRadius: radius.full,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline,
   },
-  unblockTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: light.ink.primary },
-});
+  unblockTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.ink.primary },
+}));

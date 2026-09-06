@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
@@ -917,12 +918,12 @@ function ToggleRow({ label, sub, value, onChange }: { label: string; sub?: strin
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: BG_GREY },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 12, paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
   },
   headerTitle: { fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY, flex: 1, textAlign: 'center' },
@@ -931,19 +932,19 @@ const s = StyleSheet.create({
   hero: {
     alignItems: 'center',
     paddingTop: 28, paddingHorizontal: 20, paddingBottom: 24,
-    gap: 8, backgroundColor: '#FFFFFF',
+    gap: 8, backgroundColor: t.surface.canvas,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
   },
   heroAvatarWrap: { position: 'relative' },
   heroAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  cameraOverlay: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#FFFFFF' },
+  cameraOverlay: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: t.ink.inverse },
   nameRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 10 },
   heroName: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, textAlign: 'center', letterSpacing: -0.4 },
   heroSub: { fontSize: 13, color: TEXT_SECONDARY, marginTop: 2 },
   nameEdit: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, alignSelf: 'stretch', marginTop: 8 },
   nameInput: { flex: 1, fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, borderBottomWidth: 2, borderBottomColor: NAVY, paddingVertical: 4, textAlign: 'center' },
   saveNameBtn: { backgroundColor: NAVY, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
-  saveNameTxt: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  saveNameTxt: { color: t.ink.inverse, fontWeight: '700', fontSize: 13 },
   cancelNameTxt: { color: TEXT_SECONDARY, fontWeight: '600', fontSize: 13, paddingHorizontal: 4 },
 
   heroActions: { flexDirection: 'row', gap: 20, marginTop: 20 },
@@ -952,7 +953,7 @@ const s = StyleSheet.create({
   heroActionLbl: { fontSize: 11, fontWeight: '500', color: TEXT_PRIMARY },
 
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     marginTop: 10,
     paddingHorizontal: 16, paddingVertical: 14,
     borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth,
@@ -967,7 +968,7 @@ const s = StyleSheet.create({
   descCancel: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F3F4F6' },
   descCancelTxt: { color: '#374151', fontWeight: '600', fontSize: 13 },
   descSave: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: NAVY, minWidth: 70, alignItems: 'center' },
-  descSaveTxt: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  descSaveTxt: { color: t.ink.inverse, fontWeight: '700', fontSize: 13 },
   descText: { fontSize: 14, color: '#3C3C43', lineHeight: 21 },
   descEmpty: { fontSize: 14, color: NAVY, fontWeight: '500' },
 
@@ -977,12 +978,12 @@ const s = StyleSheet.create({
 
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
   memberAvatar: { width: 40, height: 40, borderRadius: 20 },
-  memberAvatarTxt: { fontSize: 14, fontWeight: '700', color: '#FFF' },
+  memberAvatarTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
   memberInfo: { flex: 1 },
   memberName: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY },
   memberHandle: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 1 },
   adminBadge: { backgroundColor: NAVY, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginRight: 4 },
-  adminBadgeTxt: { fontSize: 10, color: '#FFF', fontWeight: '700', letterSpacing: 0.3 },
+  adminBadgeTxt: { fontSize: 10, color: t.ink.inverse, fontWeight: '700', letterSpacing: 0.3 },
   memberMenuBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 
   seeAllBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10, marginTop: 4, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#F0F0F0' },
@@ -993,7 +994,7 @@ const s = StyleSheet.create({
   videoPlayBadge: { position: 'absolute', bottom: 4, left: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
 
   listRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 2 },
-  listIconBg: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  listIconBg: { width: 36, height: 36, borderRadius: 10, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   listLabel: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY },
   listMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
 
@@ -1004,14 +1005,14 @@ const s = StyleSheet.create({
   toggleSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
   switch: { width: 46, height: 28, borderRadius: 14, backgroundColor: '#E5E7EB', padding: 2, justifyContent: 'center' },
   switchOn: { backgroundColor: '#34C759' },
-  switchThumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#FFF' },
+  switchThumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: t.surface.canvas },
   switchThumbOn: { transform: [{ translateX: 18 }] },
 
-  leaveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginHorizontal: 16, marginTop: 18, backgroundColor: '#FFF', borderRadius: 14, paddingVertical: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE },
+  leaveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginHorizontal: 16, marginTop: 18, backgroundColor: t.surface.canvas, borderRadius: 14, paddingVertical: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE },
   leaveBtnTxt: { fontSize: 15, fontWeight: '600', color: '#DC2626' },
 
   sheetBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingBottom: 34 },
+  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingBottom: 34 },
   sheetHandle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#D1D5DB', marginTop: 10, marginBottom: 8 },
   sheetTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, textAlign: 'center', paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F3F4F6' },
   sheetRow: { paddingVertical: 16, paddingHorizontal: 24 },
@@ -1019,23 +1020,23 @@ const s = StyleSheet.create({
   sheetClose: { marginTop: 6, marginHorizontal: 16, paddingVertical: 14, backgroundColor: BG_GREY, borderRadius: 12, alignItems: 'center' },
   sheetCloseTxt: { color: '#374151', fontWeight: '700', fontSize: 14 },
 
-  gallerySafe: { flex: 1, backgroundColor: '#FFF' },
+  gallerySafe: { flex: 1, backgroundColor: t.surface.canvas },
   galleryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
   galleryTabs: { flexDirection: 'row', gap: 4, backgroundColor: BG_GREY, borderRadius: 10, padding: 3 },
   galleryTab: { paddingHorizontal: 18, paddingVertical: 7, borderRadius: 8 },
-  galleryTabActive: { backgroundColor: '#FFF' },
+  galleryTabActive: { backgroundColor: t.surface.canvas },
   galleryTabTxt: { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY },
   galleryTabTxtActive: { color: NAVY },
   galleryTile: { width: GALLERY_TILE, height: GALLERY_TILE, backgroundColor: '#F3F4F6', overflow: 'hidden' },
   galleryVideoBadge: { position: 'absolute', bottom: 4, left: 4, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4 },
   galleryGifBadge: { position: 'absolute', bottom: 4, left: 4, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4 },
-  galleryGifTxt: { color: '#FFF', fontSize: 10, fontWeight: '700' },
+  galleryGifTxt: { color: t.ink.inverse, fontSize: 10, fontWeight: '700' },
   galleryEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   galleryEmptyTxt: { fontSize: 15, color: '#9CA3AF' },
   galleryFooter: { textAlign: 'center', fontSize: 13, color: TEXT_SECONDARY, paddingVertical: 18 },
 
   fileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F3F4F6' },
-  fileIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  fileIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   fileName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
   fileMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
-});
+}));

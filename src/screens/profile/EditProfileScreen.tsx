@@ -8,6 +8,7 @@
  * degree_program as "Profession", which is a school column doing a job it was
  * not designed for. headline is the correct field and the one the header shows.
  */
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView,
@@ -153,7 +154,7 @@ export default function EditProfileScreen({ navigation }: any) {
   if (loading) {
     return (
       <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-        <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
+        <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
       </SafeAreaView>
     );
   }
@@ -167,11 +168,11 @@ export default function EditProfileScreen({ navigation }: any) {
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityRole="button" accessibilityLabel="Cancel"
         >
-          <Feather name="chevron-left" size={26} color={light.ink.primary} />
+          <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.title}>Edit profile</Text>
         <TouchableOpacity onPress={save} disabled={saving} style={[s.saveBtn, saving && s.saveBtnOff]}>
-          {saving ? <ActivityIndicator size="small" color={light.ink.inverse} /> : <Text style={s.saveTxt}>Save</Text>}
+          {saving ? <ActivityIndicator size="small" color={getTheme().ink.inverse} /> : <Text style={s.saveTxt}>Save</Text>}
         </TouchableOpacity>
       </View>
 
@@ -193,21 +194,21 @@ export default function EditProfileScreen({ navigation }: any) {
             )}
             <View style={s.bannerOverlay}>
               {busyImage === 'banner'
-                ? <ActivityIndicator color={light.ink.inverse} />
-                : <><Feather name="camera" size={16} color={light.ink.inverse} /><Text style={s.overlayTxt}>Change banner</Text></>}
+                ? <ActivityIndicator color={getTheme().ink.inverse} />
+                : <><Feather name="camera" size={16} color={getTheme().ink.inverse} /><Text style={s.overlayTxt}>Change banner</Text></>}
             </View>
           </TouchableOpacity>
 
           <View style={s.avatarRow}>
             <TouchableOpacity onPress={() => pickImage('avatar')} activeOpacity={0.85}>
               {busyImage === 'avatar' ? (
-                <View style={[s.avatar, s.avatarBusy]}><ActivityIndicator color={light.brand.base} /></View>
+                <View style={[s.avatar, s.avatarBusy]}><ActivityIndicator color={getTheme().brand.base} /></View>
               ) : draft.avatar_url ? (
                 <ExpoImage source={{ uri: draft.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" />
               ) : (
-                <View style={[s.avatar, s.avatarEmpty]}><Feather name="user" size={26} color={light.ink.faint} /></View>
+                <View style={[s.avatar, s.avatarEmpty]}><Feather name="user" size={26} color={getTheme().ink.faint} /></View>
               )}
-              <View style={s.avatarBadge}><Feather name="camera" size={11} color={light.ink.inverse} /></View>
+              <View style={s.avatarBadge}><Feather name="camera" size={11} color={getTheme().ink.inverse} /></View>
             </TouchableOpacity>
             <Text style={s.avatarHint}>Tap either image to change it</Text>
           </View>
@@ -215,34 +216,34 @@ export default function EditProfileScreen({ navigation }: any) {
           <View style={s.form}>
             <Field label="Full name" required>
               <TextInput value={draft.full_name} onChangeText={v => set('full_name', v)} style={s.input}
-                placeholder="Your full name" placeholderTextColor={light.ink.faint} autoCapitalize="words" />
+                placeholder="Your full name" placeholderTextColor={getTheme().ink.faint} autoCapitalize="words" />
             </Field>
 
             <Field label="Username" hint="Letters, numbers and underscores. This is your @handle.">
               <TextInput value={draft.username} onChangeText={v => set('username', v)} style={s.input}
-                placeholder="username" placeholderTextColor={light.ink.faint} autoCapitalize="none" autoCorrect={false} />
+                placeholder="username" placeholderTextColor={getTheme().ink.faint} autoCapitalize="none" autoCorrect={false} />
             </Field>
 
             <Field label="Headline" hint="What you do, in one line.">
               <TextInput value={draft.headline} onChangeText={v => set('headline', v)} style={s.input}
-                placeholder="e.g. Software developer, Trader, Nurse" placeholderTextColor={light.ink.faint} />
+                placeholder="e.g. Software developer, Trader, Nurse" placeholderTextColor={getTheme().ink.faint} />
             </Field>
 
             <Field label="Bio">
               <TextInput value={draft.bio} onChangeText={v => set('bio', v)} style={[s.input, s.inputMulti]}
-                placeholder="Tell people about yourself" placeholderTextColor={light.ink.faint}
+                placeholder="Tell people about yourself" placeholderTextColor={getTheme().ink.faint}
                 multiline textAlignVertical="top" maxLength={280} />
               <Text style={s.counter}>{draft.bio.length}/280</Text>
             </Field>
 
             <Field label="Workplace">
               <TextInput value={draft.workplace} onChangeText={v => set('workplace', v)} style={s.input}
-                placeholder="Where you work" placeholderTextColor={light.ink.faint} />
+                placeholder="Where you work" placeholderTextColor={getTheme().ink.faint} />
             </Field>
 
             <Field label="Location">
               <TextInput value={draft.location} onChangeText={v => set('location', v)} style={s.input}
-                placeholder="City, Country" placeholderTextColor={light.ink.faint} autoCapitalize="words" />
+                placeholder="City, Country" placeholderTextColor={getTheme().ink.faint} autoCapitalize="words" />
             </Field>
 
             <Field label="Links">
@@ -251,19 +252,19 @@ export default function EditProfileScreen({ navigation }: any) {
                 <View key={i} style={{ marginTop: 8, gap: 6 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <TextInput value={l.title} onChangeText={v => setLink(i, 'title', v)} style={[s.input, { flex: 1 }]}
-                      placeholder="Label, e.g. My shop" placeholderTextColor={light.ink.faint} />
+                      placeholder="Label, e.g. My shop" placeholderTextColor={getTheme().ink.faint} />
                     <TouchableOpacity onPress={() => removeLink(i)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Remove link">
-                      <Feather name="x" size={18} color={light.ink.muted} />
+                      <Feather name="x" size={18} color={getTheme().ink.muted} />
                     </TouchableOpacity>
                   </View>
                   <TextInput value={l.url} onChangeText={v => setLink(i, 'url', v)} style={s.input}
-                    placeholder="https://" placeholderTextColor={light.ink.faint} autoCapitalize="none" autoCorrect={false} keyboardType="url" />
+                    placeholder="https://" placeholderTextColor={getTheme().ink.faint} autoCapitalize="none" autoCorrect={false} keyboardType="url" />
                 </View>
               ))}
               {draft.links.length < 5 ? (
                 <TouchableOpacity onPress={addLink} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }} activeOpacity={0.8}>
-                  <Feather name="plus" size={16} color={light.brand.base} />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: light.brand.base }}>Add a link</Text>
+                  <Feather name="plus" size={16} color={getTheme().brand.base} />
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: getTheme().brand.base }}>Add a link</Text>
                 </TouchableOpacity>
               ) : null}
             </Field>
@@ -278,7 +279,7 @@ export default function EditProfileScreen({ navigation }: any) {
               <Switch
                 value={draft.isPrivate}
                 onValueChange={v => set('isPrivate', v)}
-                trackColor={{ true: light.brand.base, false: light.surface.hairline }}
+                trackColor={{ true: getTheme().brand.base, false: getTheme().surface.hairline }}
               />
             </View>
           </View>
@@ -300,70 +301,70 @@ function Field({ label, hint, required, children }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   flex: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: space.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: light.surface.hairline,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
-  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
+  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
   saveBtn: {
     minWidth: 62, alignItems: 'center',
     paddingHorizontal: space.md, paddingVertical: 7,
-    borderRadius: radius.full, backgroundColor: light.brand.base,
+    borderRadius: radius.full, backgroundColor: t.brand.base,
   },
   saveBtnOff: { opacity: 0.6 },
-  saveTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  saveTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
-  banner: { backgroundColor: light.status.dangerBg, paddingHorizontal: 14, paddingVertical: space.sm },
-  bannerTxt: { fontSize: typeSize.caption, color: light.status.danger, fontWeight: fontWeight.semibold },
+  banner: { backgroundColor: t.status.dangerBg, paddingHorizontal: 14, paddingVertical: space.sm },
+  bannerTxt: { fontSize: typeSize.caption, color: t.status.danger, fontWeight: fontWeight.semibold },
 
-  bannerPick: { height: 132, backgroundColor: light.brand.base },
+  bannerPick: { height: 132, backgroundColor: t.brand.base },
   bannerImg: { width: '100%', height: '100%' },
-  bannerEmpty: { backgroundColor: light.brand.base },
+  bannerEmpty: { backgroundColor: t.brand.base },
   bannerOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center', justifyContent: 'center',
     flexDirection: 'row', gap: 6,
     backgroundColor: 'rgba(11,30,61,0.34)',
   },
-  overlayTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  overlayTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   avatarRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: 14, marginTop: -30 },
-  avatar: { width: 72, height: 72, borderRadius: 36, borderWidth: 2.5, borderColor: light.surface.canvas, backgroundColor: light.surface.sunken },
+  avatar: { width: 72, height: 72, borderRadius: 36, borderWidth: 2.5, borderColor: t.surface.canvas, backgroundColor: t.surface.sunken },
   avatarEmpty: { alignItems: 'center', justifyContent: 'center' },
-  avatarBusy: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.surface.canvas },
+  avatarBusy: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface.canvas },
   avatarBadge: {
     position: 'absolute', right: 0, bottom: 2,
     width: 22, height: 22, borderRadius: 11,
-    backgroundColor: light.brand.base,
-    borderWidth: 2, borderColor: light.surface.canvas,
+    backgroundColor: t.brand.base,
+    borderWidth: 2, borderColor: t.surface.canvas,
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarHint: { flex: 1, fontSize: typeSize.micro, color: light.ink.muted, marginTop: 30 },
+  avatarHint: { flex: 1, fontSize: typeSize.micro, color: t.ink.muted, marginTop: 30 },
 
   form: { paddingHorizontal: 14, paddingTop: space.md, gap: space.md },
   field: { gap: 5 },
-  label: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1, textTransform: 'uppercase', color: light.ink.muted },
-  req: { color: light.status.danger },
-  hint: { fontSize: typeSize.micro, color: light.ink.faint, lineHeight: 15 },
+  label: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1, textTransform: 'uppercase', color: t.ink.muted },
+  req: { color: t.status.danger },
+  hint: { fontSize: typeSize.micro, color: t.ink.faint, lineHeight: 15 },
   input: {
-    borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline,
     borderRadius: radius.md, paddingHorizontal: space.sm, paddingVertical: 11,
-    fontSize: typeSize.body, color: light.ink.primary, backgroundColor: light.surface.raised,
+    fontSize: typeSize.body, color: t.ink.primary, backgroundColor: t.surface.raised,
   },
   inputMulti: { minHeight: 96, paddingTop: 11 },
-  counter: { alignSelf: 'flex-end', fontSize: typeSize.micro, color: light.ink.faint },
+  counter: { alignSelf: 'flex-end', fontSize: typeSize.micro, color: t.ink.faint },
 
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', gap: space.sm,
     paddingVertical: space.sm, marginTop: space.xs,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: light.surface.hairline,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline,
   },
   toggleText: { flex: 1 },
-  toggleLbl: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  toggleHint: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 2, lineHeight: 15 },
-});
+  toggleLbl: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  toggleHint: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 2, lineHeight: 15 },
+}));

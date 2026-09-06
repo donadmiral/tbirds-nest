@@ -5,6 +5,7 @@
 // studio_campaigns / studio_save_campaign / studio_submit_campaign /
 // studio_set_campaign_status / studio_add_ad / studio_remove_ad /
 // studio_my_posts_for_ads. Keyboard-safe, safe-area-aware, tab bar cleared.
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl, Linking } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
@@ -387,7 +388,7 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   center: { alignItems: 'center', justifyContent: 'center', gap: 8 },
   h1: { fontSize: 20, fontWeight: '800', color: '#0F1419' },
   section: { fontSize: 11.5, fontWeight: '800', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 18, marginBottom: 8 },
@@ -400,8 +401,8 @@ const s = StyleSheet.create({
   filterChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F2F2F7' },
   filterChipOn: { backgroundColor: NAVY },
   filterTxt: { fontSize: 12.5, fontWeight: '700', color: '#5B6B84' },
-  filterTxtOn: { color: '#FFF' },
-  labelPill: { fontSize: 10.5, fontWeight: '700', color: NAVY, backgroundColor: 'rgba(11,30,61,0.08)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
+  filterTxtOn: { color: t.ink.inverse },
+  labelPill: { fontSize: 10.5, fontWeight: '700', color: NAVY, backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
   statusPill: { fontSize: 10.5, fontWeight: '800' },
   thumbSm: { width: 44, height: 44, borderRadius: 8 },
   plusBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
@@ -412,7 +413,7 @@ const s = StyleSheet.create({
   input: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0F1419' },
   fieldLabel: { fontSize: 12, fontWeight: '700', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   primaryBtn: { marginTop: 16, backgroundColor: NAVY, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center' },
-  primaryTxt: { color: '#FFF', fontWeight: '700', fontSize: 15 },
+  primaryTxt: { color: t.ink.inverse, fontWeight: '700', fontSize: 15 },
   secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F2F2F7', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
   secondaryTxt: { color: NAVY, fontWeight: '700', fontSize: 15 },
   toolChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F2F2F7', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
@@ -420,5 +421,5 @@ const s = StyleSheet.create({
   catChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#E5E5EA' },
   catChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   catTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
-  catTxtOn: { color: '#FFF' },
-});
+  catTxtOn: { color: t.ink.inverse },
+}));

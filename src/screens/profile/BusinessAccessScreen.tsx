@@ -3,6 +3,7 @@
  * manages who can speak as it (access members with revocable codes)
  * and which devices are permitted.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -137,24 +138,24 @@ export default function BusinessAccessScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
   backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
-  section: { fontSize: 12, fontWeight: '800', color: 'rgba(11,30,61,0.45)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
-  input: { borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, backgroundColor: '#FFFFFF' },
+  section: { fontSize: 12, fontWeight: '800', color: t.ink.muted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  input: { borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, backgroundColor: t.surface.canvas },
   smallBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 14, justifyContent: 'center' },
-  smallBtnTxt: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
+  smallBtnTxt: { color: t.ink.inverse, fontSize: 13, fontWeight: '800' },
   row: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.1)', borderRadius: 14, padding: 12, marginBottom: 8 },
   rowName: { fontSize: 14, fontWeight: '700', color: NAVY },
   rowSub: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', marginTop: 2 },
   dangerBtn: { borderWidth: 1, borderColor: 'rgba(220,38,38,0.3)', backgroundColor: 'rgba(220,38,38,0.06)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
   dangerTxt: { color: '#FF3B30', fontSize: 12, fontWeight: '800' },
   okBtn: { backgroundColor: NAVY, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
-  okTxt: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+  okTxt: { color: t.ink.inverse, fontSize: 12, fontWeight: '800' },
   mutedPill: { fontSize: 11, fontWeight: '800', color: 'rgba(11,30,61,0.35)' },
   logLine: { fontSize: 12.5, color: 'rgba(11,30,61,0.65)', marginBottom: 5 },
-});
+}));

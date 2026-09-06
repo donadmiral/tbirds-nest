@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -508,8 +509,8 @@ export default function CommunityScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   band: { paddingHorizontal: 10, paddingBottom: 12 },
   bandRow: { flexDirection: 'row', alignItems: 'center' },
   bandBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
@@ -519,7 +520,7 @@ const s = StyleSheet.create({
   commMeta: { fontSize: 12.5, color: '#1F2937', opacity: 0.7, marginTop: 1 },
   commDesc: { fontSize: 13, color: '#1F2937', opacity: 0.8, paddingHorizontal: 6, marginTop: 8, lineHeight: 18 },
   joinDark: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#0F1419' },
-  joinDarkTxt: { fontSize: 13, fontWeight: '700', color: '#FFF' },
+  joinDarkTxt: { fontSize: 13, fontWeight: '700', color: t.ink.inverse },
   joinLight: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFFB3' },
   joinLightTxt: { fontSize: 12.5, fontWeight: '700', color: '#1F2937' },
   rulesCard: { marginHorizontal: 14, marginTop: 10, borderRadius: 12, borderWidth: 1, borderColor: '#E5E5EA', padding: 11 },
@@ -534,7 +535,7 @@ const s = StyleSheet.create({
   cardHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   avatar: { width: 36, height: 36, borderRadius: 18 },
   avatarFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  avatarTxt: { fontSize: 14, fontWeight: '700', color: '#FFF' },
+  avatarTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
   authorName: { fontSize: 14, fontWeight: '700', color: '#0F1419' },
   authorMeta: { fontSize: 11.5, color: '#8E8E93', marginTop: 1 },
   cardBody: { fontSize: 15, color: '#1A1A1A', lineHeight: 21, marginTop: 8 },
@@ -542,7 +543,7 @@ const s = StyleSheet.create({
   cardActions: { flexDirection: 'row', gap: 18, marginTop: 10 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   actionTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
-  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 12, paddingTop: 8, backgroundColor: '#FFF' },
+  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 12, paddingTop: 8, backgroundColor: t.surface.canvas },
   composerInput: { flex: 1, backgroundColor: '#F2F2F7', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9, fontSize: 15, color: '#0F1419', maxHeight: 110 },
   sendBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   toolBtn: { width: 32, height: 36, alignItems: 'center', justifyContent: 'center' },
@@ -553,21 +554,21 @@ const s = StyleSheet.create({
   modalTitle: { fontSize: 16.5, fontWeight: '700', color: '#0F1419' },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   memberAvatar: { width: 38, height: 38, borderRadius: 19 },
-  roleChip: { backgroundColor: 'rgba(11,30,61,0.08)', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
+  roleChip: { backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
   roleChipTxt: { fontSize: 10.5, fontWeight: '700', color: NAVY },
   approveBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   denyBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   settingsIcon: { width: 76, height: 76, borderRadius: 20 },
-  iconBadge: { position: 'absolute', right: -2, bottom: -2, width: 25, height: 25, borderRadius: 13, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
+  iconBadge: { position: 'absolute', right: -2, bottom: -2, width: 25, height: 25, borderRadius: 13, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.ink.inverse },
   input: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0F1419' },
   audChip: { flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: 12, backgroundColor: '#F5F5F5', borderWidth: 1.5, borderColor: '#E5E5EA' },
   audChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   audTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
-  audTxtOn: { color: '#FFF' },
+  audTxtOn: { color: t.ink.inverse },
   catChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#E5E5EA' },
   catChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   catTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
-  catTxtOn: { color: '#FFF' },
+  catTxtOn: { color: t.ink.inverse },
   colorDot: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'transparent' },
   colorDotOn: { borderColor: '#0F1419' },
-});
+}));

@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 /**
  * MutedStoriesScreen - manage who you have muted.
@@ -89,19 +90,19 @@ export default function MutedStoriesScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
-  title: { fontSize: 17, fontWeight: '700', color: '#0B1E3D' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
+  title: { fontSize: 17, fontWeight: '700', color: t.ink.primary },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#0B1E3D' },
-  emptySub: { fontSize: 14, color: 'rgba(11,30,61,0.42)' },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: t.ink.primary },
+  emptySub: { fontSize: 14, color: t.ink.muted },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(11,30,61,0.08)' },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: t.surface.hairline },
   avatarFb: { alignItems: 'center', justifyContent: 'center' },
-  avatarTxt: { fontSize: 17, fontWeight: '700', color: 'rgba(11,30,61,0.42)' },
-  name: { fontSize: 15.5, fontWeight: '600', color: '#0B1E3D' },
-  handle: { fontSize: 13, color: 'rgba(11,30,61,0.42)', marginTop: 1 },
+  avatarTxt: { fontSize: 17, fontWeight: '700', color: t.ink.muted },
+  name: { fontSize: 15.5, fontWeight: '600', color: t.ink.primary },
+  handle: { fontSize: 13, color: t.ink.muted, marginTop: 1 },
   unmute: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 7 },
-  unmuteTxt: { fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' },
-});
+  unmuteTxt: { fontSize: 13.5, fontWeight: '700', color: t.ink.primary },
+}));

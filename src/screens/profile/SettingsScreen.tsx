@@ -1,3 +1,4 @@
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { paymentsService } from '../../services/paymentsService';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
@@ -47,7 +48,7 @@ function Row({ icon, label, sublabel, onPress, danger, right, chevron = true }: 
   // iconColor and iconBg are accepted for call-site compatibility and
   // deliberately ignored. A different pastel tile per row is what made this
   // screen read as generated. One weight, colour only where it means something.
-  const tint = danger ? light.status.danger : light.ink.muted;
+  const tint = danger ? getTheme().status.danger : getTheme().ink.muted;
   return (
     <TouchableOpacity style={s.row} onPress={onPress} activeOpacity={onPress ? 0.6 : 1} disabled={!onPress}>
       <Feather name={icon as any} size={18} color={tint} style={s.rowIcon} />
@@ -55,7 +56,7 @@ function Row({ icon, label, sublabel, onPress, danger, right, chevron = true }: 
         <Text style={[s.rowLabel, danger && s.rowLabelDanger]}>{label}</Text>
         {sublabel ? <Text style={s.rowSublabel}>{sublabel}</Text> : null}
       </View>
-      {right ?? (chevron && onPress ? <Feather name="chevron-right" size={16} color={light.ink.faint} /> : null)}
+      {right ?? (chevron && onPress ? <Feather name="chevron-right" size={16} color={getTheme().ink.faint} /> : null)}
     </TouchableOpacity>
   );
 }
@@ -647,81 +648,81 @@ const HAIR = StyleSheet.hairlineWidth;
  * separated by space and hairlines. Uppercase micro labels with letter-spacing.
  * Navy ink throughout, platinum for the account chip, red only for destructive.
  */
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: space.sm, backgroundColor: light.surface.canvas, borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: space.sm, backgroundColor: t.surface.canvas, borderBottomWidth: HAIR, borderBottomColor: t.surface.hairline },
   backBtn: { flexDirection: 'row', alignItems: 'center', minWidth: 60 },
-  backChev: { fontSize: 28, color: light.ink.primary, lineHeight: 32, marginRight: 2 },
-  backLbl: { fontSize: typeSize.body, color: light.ink.primary },
-  headerTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
+  backChev: { fontSize: 28, color: t.ink.primary, lineHeight: 32, marginRight: 2 },
+  backLbl: { fontSize: typeSize.body, color: t.ink.primary },
+  headerTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
   scroll: { paddingHorizontal: 14, paddingTop: space.md },
 
-  profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: light.surface.raised, borderRadius: radius.lg, padding: space.sm, marginBottom: space.xl, gap: space.sm, borderWidth: HAIR, borderColor: light.surface.hairline },
+  profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface.raised, borderRadius: radius.lg, padding: space.sm, marginBottom: space.xl, gap: space.sm, borderWidth: HAIR, borderColor: t.surface.hairline },
   profileCardAvatar: { width: 52, height: 52, borderRadius: 26 },
-  profileCardAvatarFb: { width: 52, height: 52, borderRadius: 26, backgroundColor: light.brand.warm, alignItems: 'center', justifyContent: 'center' },
-  profileCardAvatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: light.brand.base },
+  profileCardAvatarFb: { width: 52, height: 52, borderRadius: 26, backgroundColor: t.brand.warm, alignItems: 'center', justifyContent: 'center' },
+  profileCardAvatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: t.brand.base },
   profileCardInfo: { flex: 1 },
-  profileCardName: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.3 },
-  profileCardEmail: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 2 },
+  profileCardName: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.3 },
+  profileCardEmail: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 2 },
   accountTypeBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.sm, marginTop: 6, backgroundColor: 'rgba(201,191,176,0.30)' },
   accountTypeBadgeASU: { backgroundColor: 'rgba(201,191,176,0.30)' },
-  accountTypeBadgePending: { backgroundColor: light.status.innovationBg },
-  accountTypeBadgePublic: { backgroundColor: light.brand.tintBg },
+  accountTypeBadgePending: { backgroundColor: t.status.innovationBg },
+  accountTypeBadgePublic: { backgroundColor: t.brand.tintBg },
   accountTypeTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.heavy, letterSpacing: 0.4 },
 
   section: { marginBottom: space.xl },
-  sectionTitle: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: light.ink.muted, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: space.xs, paddingLeft: 2 },
-  sectionCard: { backgroundColor: light.surface.canvas, borderRadius: radius.md, borderWidth: HAIR, borderColor: light.surface.hairline, overflow: 'hidden' },
+  sectionTitle: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: space.xs, paddingLeft: 2 },
+  sectionCard: { backgroundColor: t.surface.canvas, borderRadius: radius.md, borderWidth: HAIR, borderColor: t.surface.hairline, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.sm, paddingVertical: 13, gap: space.sm },
   rowIcon: { width: 22, textAlign: 'center' },
   rowContent: { flex: 1 },
-  rowLabel: { fontSize: typeSize.emphasis, color: light.ink.primary, fontWeight: fontWeight.medium },
-  rowLabelDanger: { color: light.status.danger },
-  rowSublabel: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 2, lineHeight: 15 },
-  divider: { height: HAIR, backgroundColor: light.surface.divider, marginLeft: 46 },
+  rowLabel: { fontSize: typeSize.emphasis, color: t.ink.primary, fontWeight: fontWeight.medium },
+  rowLabelDanger: { color: t.status.danger },
+  rowSublabel: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 2, lineHeight: 15 },
+  divider: { height: HAIR, backgroundColor: t.surface.divider, marginLeft: 46 },
 
-  versionChip: { fontSize: typeSize.caption, color: light.ink.muted, backgroundColor: light.surface.raised, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.sm },
-  footerTxt: { textAlign: 'center', fontSize: typeSize.caption, color: light.ink.faint, marginBottom: space.xs },
+  versionChip: { fontSize: typeSize.caption, color: t.ink.muted, backgroundColor: t.surface.raised, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.sm },
+  footerTxt: { textAlign: 'center', fontSize: typeSize.caption, color: t.ink.faint, marginBottom: space.xs },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  badge: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: light.status.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  badgeTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.heavy, color: light.ink.inverse },
+  badge: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: t.status.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  badgeTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.heavy, color: t.ink.inverse },
 
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: space.sm, borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline },
-  modalCancel: { fontSize: typeSize.body, color: light.ink.muted, minWidth: 60 },
-  modalTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
-  modalSave: { fontSize: typeSize.body, fontWeight: fontWeight.bold, color: light.brand.base, textAlign: 'right', minWidth: 60 },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: space.sm, borderBottomWidth: HAIR, borderBottomColor: t.surface.hairline },
+  modalCancel: { fontSize: typeSize.body, color: t.ink.muted, minWidth: 60 },
+  modalTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
+  modalSave: { fontSize: typeSize.body, fontWeight: fontWeight.bold, color: t.brand.base, textAlign: 'right', minWidth: 60 },
   modalBody: { padding: space.edge },
-  modalFieldLabel: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: light.ink.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: space.xs },
+  modalFieldLabel: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 1.1, marginBottom: space.xs },
 
-  pwInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: light.brand.tintBg, borderRadius: radius.md, padding: space.sm, marginBottom: space.edge },
-  pwInfoTxt: { flex: 1, fontSize: typeSize.body, color: light.ink.secondary, lineHeight: 20 },
-  pwInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: light.surface.raised, borderRadius: radius.md, borderWidth: HAIR, borderColor: light.surface.hairline, paddingHorizontal: space.sm, marginBottom: space.xs },
-  pwInput: { flex: 1, fontSize: typeSize.body, color: light.ink.primary, paddingVertical: 12 },
+  pwInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: t.brand.tintBg, borderRadius: radius.md, padding: space.sm, marginBottom: space.edge },
+  pwInfoTxt: { flex: 1, fontSize: typeSize.body, color: t.ink.secondary, lineHeight: 20 },
+  pwInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface.raised, borderRadius: radius.md, borderWidth: HAIR, borderColor: t.surface.hairline, paddingHorizontal: space.sm, marginBottom: space.xs },
+  pwInput: { flex: 1, fontSize: typeSize.body, color: t.ink.primary, paddingVertical: 12 },
   pwEye: { padding: 6 },
   pwStrength: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: space.xs },
   pwCheck: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  pwCheckTxt: { fontSize: typeSize.micro, color: light.ink.faint },
-  pwMismatch: { fontSize: typeSize.caption, color: light.status.danger, marginBottom: space.xs },
-  pwSubmitBtn: { backgroundColor: light.brand.base, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center', marginTop: space.md },
+  pwCheckTxt: { fontSize: typeSize.micro, color: t.ink.faint },
+  pwMismatch: { fontSize: typeSize.caption, color: t.status.danger, marginBottom: space.xs },
+  pwSubmitBtn: { backgroundColor: t.brand.base, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center', marginTop: space.md },
   pwSubmitBtnOff: { opacity: 0.35 },
-  pwSubmitBtnTxt: { color: light.ink.inverse, fontSize: typeSize.subhead, fontWeight: fontWeight.bold },
+  pwSubmitBtnTxt: { color: t.ink.inverse, fontSize: typeSize.subhead, fontWeight: fontWeight.bold },
 
-  privLabel: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: light.ink.primary, marginBottom: 6 },
-  privDesc: { fontSize: typeSize.body, color: light.ink.secondary, lineHeight: 20, marginBottom: space.md },
-  privOption: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md, borderWidth: 1.5, borderColor: light.surface.hairline, marginBottom: space.sm },
-  privOptionActive: { borderColor: light.brand.base, backgroundColor: light.brand.tintBg },
-  privOptionIcon: { width: 44, height: 44, borderRadius: radius.md, backgroundColor: light.surface.raised, alignItems: 'center', justifyContent: 'center' },
+  privLabel: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: t.ink.primary, marginBottom: 6 },
+  privDesc: { fontSize: typeSize.body, color: t.ink.secondary, lineHeight: 20, marginBottom: space.md },
+  privOption: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md, borderWidth: 1.5, borderColor: t.surface.hairline, marginBottom: space.sm },
+  privOptionActive: { borderColor: t.brand.base, backgroundColor: t.brand.tintBg },
+  privOptionIcon: { width: 44, height: 44, borderRadius: radius.md, backgroundColor: t.surface.raised, alignItems: 'center', justifyContent: 'center' },
   privOptionIconActive: { backgroundColor: 'rgba(201,191,176,0.30)' },
-  privOptionTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.bold, color: light.ink.primary, marginBottom: 3 },
-  privOptionDesc: { fontSize: typeSize.caption, color: light.ink.muted, lineHeight: 18 },
-  privNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: light.surface.raised, borderRadius: radius.md, padding: space.sm, marginTop: space.xs },
-  privNoteTxt: { flex: 1, fontSize: typeSize.caption, color: light.ink.muted, lineHeight: 18 },
+  privOptionTitle: { fontSize: typeSize.subhead, fontWeight: fontWeight.bold, color: t.ink.primary, marginBottom: 3 },
+  privOptionDesc: { fontSize: typeSize.caption, color: t.ink.muted, lineHeight: 18 },
+  privNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: t.surface.raised, borderRadius: radius.md, padding: space.sm, marginTop: space.xs },
+  privNoteTxt: { flex: 1, fontSize: typeSize.caption, color: t.ink.muted, lineHeight: 18 },
 
-  deleteWarning: { alignItems: 'center', backgroundColor: light.status.dangerBg, borderRadius: radius.md, padding: space.lg, marginBottom: space.lg, gap: space.xs },
-  deleteWarningTitle: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: light.status.danger },
-  deleteWarningTxt: { fontSize: typeSize.body, color: light.status.danger, textAlign: 'center', lineHeight: 20 },
-  deleteInput: { backgroundColor: light.surface.raised, borderRadius: radius.md, borderWidth: HAIR, borderColor: light.surface.hairline, paddingHorizontal: space.sm, paddingVertical: 13, fontSize: typeSize.subhead, color: light.ink.primary, textAlign: 'center', letterSpacing: 2, marginBottom: space.md },
-  deleteBtn: { backgroundColor: light.status.danger, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center' },
+  deleteWarning: { alignItems: 'center', backgroundColor: t.status.dangerBg, borderRadius: radius.md, padding: space.lg, marginBottom: space.lg, gap: space.xs },
+  deleteWarningTitle: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: t.status.danger },
+  deleteWarningTxt: { fontSize: typeSize.body, color: t.status.danger, textAlign: 'center', lineHeight: 20 },
+  deleteInput: { backgroundColor: t.surface.raised, borderRadius: radius.md, borderWidth: HAIR, borderColor: t.surface.hairline, paddingHorizontal: space.sm, paddingVertical: 13, fontSize: typeSize.subhead, color: t.ink.primary, textAlign: 'center', letterSpacing: 2, marginBottom: space.md },
+  deleteBtn: { backgroundColor: t.status.danger, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center' },
   deleteBtnOff: { opacity: 0.35 },
-  deleteBtnTxt: { color: light.ink.inverse, fontSize: typeSize.subhead, fontWeight: fontWeight.bold },
-});
+  deleteBtnTxt: { color: t.ink.inverse, fontSize: typeSize.subhead, fontWeight: fontWeight.bold },
+}));

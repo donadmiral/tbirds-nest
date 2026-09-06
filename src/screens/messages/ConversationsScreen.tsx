@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
@@ -736,46 +737,46 @@ const swipeActions = (item: Conversation) => (
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
 
-  safe: { flex: 1, backgroundColor: '#FFF' },
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
   title: { fontSize: 30, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.9 },
-  newBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#0B1E3D', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 },
-  newBtnTxt: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  newBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.brand.base, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 },
+  newBtnTxt: { color: t.ink.inverse, fontSize: 13, fontWeight: '700' },
   iconBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
   searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 10, backgroundColor: '#F0F0F2', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9 },
   searchInput: { flex: 1, fontSize: 15, color: '#000', padding: 0 },
   tabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 14, marginBottom: 8 },
-  tab: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(11,30,61,0.05)' },
-  tabActive: { backgroundColor: '#0B1E3D' },
+  tab: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, backgroundColor: t.brand.tintBg },
+  tabActive: { backgroundColor: t.brand.base },
   tabTxt: { fontSize: 13, fontWeight: '700', color: '#4A5568', letterSpacing: -0.1 },
-  tabTxtActive: { color: '#FFF' },
+  tabTxtActive: { color: t.ink.inverse },
   sectionLabel: { fontSize: 11, fontWeight: '700', color: '#8E8E93', letterSpacing: 0.8 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 13, backgroundColor: '#FFFFFF', borderRadius: 0, paddingHorizontal: 16, paddingVertical: 10 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 13, backgroundColor: t.surface.canvas, borderRadius: 0, paddingHorizontal: 16, paddingVertical: 10 },
   cardArchived: { opacity: 0.6 },
   cardAvatarWrap: { position: 'relative', padding: 2.5, borderRadius: 30, borderWidth: 0, borderColor: 'transparent' },
   cardAvatar: { width: 49, height: 49, borderRadius: 24.5 },
-  cardAvatarTxt: { fontSize: 18, fontWeight: '800', color: '#FFF' },
-  pinBadge: { position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
+  cardAvatarTxt: { fontSize: 18, fontWeight: '800', color: t.ink.inverse },
+  pinBadge: { position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center' },
   pinBadgeTxt: { fontSize: 10 },
   cardBody: { flex: 1, gap: 3, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E9E9EB', paddingBottom: 10 },
   cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cardName: { fontSize: 17, fontWeight: '500', color: '#0A0A0A', letterSpacing: -0.3, flex: 1 },
-  cardNameBold: { fontWeight: '700', color: '#0B1E3D' },
+  cardNameBold: { fontWeight: '700', color: t.ink.primary },
   cardTime: { fontSize: 12, color: '#9AA0A6', marginLeft: 8, fontWeight: '500' },
-  cardTimeBold: { color: '#0B1E3D', fontWeight: '600' },
+  cardTimeBold: { color: t.ink.primary, fontWeight: '600' },
   cardPreview: { fontSize: 14.5, color: '#8E8E93', flex: 1, letterSpacing: -0.1 },
-  cardPreviewBold: { color: '#0B1E3D', fontWeight: '500' },
-  badge: { backgroundColor: '#0B1E3D', borderRadius: 11, minWidth: 21, height: 21, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  badgeTxt: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  cardPreviewBold: { color: t.ink.primary, fontWeight: '500' },
+  badge: { backgroundColor: t.brand.base, borderRadius: 11, minWidth: 21, height: 21, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  badgeTxt: { color: t.ink.inverse, fontSize: 12, fontWeight: '700' },
   mutedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D5DB' },
   archivedBadge: { backgroundColor: '#F3F4F6', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   archivedTxt: { fontSize: 10, color: '#6B7280', fontWeight: '600' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 8 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000' },
   emptySub: { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
-  emptyBtn: { marginTop: 10, backgroundColor: '#0B1E3D', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 13 },
-  emptyBtnTxt: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-});
+  emptyBtn: { marginTop: 10, backgroundColor: t.brand.base, borderRadius: 14, paddingHorizontal: 28, paddingVertical: 13 },
+  emptyBtnTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '700' },
+}));

@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -391,7 +392,7 @@ export default function SetupProfileScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: WHITE },
   flex: { flex: 1 },
   stepContainer: {
@@ -426,7 +427,7 @@ const s = StyleSheet.create({
   sectionLabel: { fontSize: 14, fontWeight: '700', color: GRAY_900, marginTop: 16, marginBottom: 10 },
   inputWrap: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FBFBFA', borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)',
+    backgroundColor: '#FBFBFA', borderWidth: 1, borderColor: t.surface.hairline,
     borderRadius: 14, marginBottom: 10, position: 'relative',
   },
   inputReadOnly: { opacity: 0.6 },
@@ -469,4 +470,4 @@ const s = StyleSheet.create({
     gap: 6, marginTop: 14, paddingVertical: 10,
   },
   backStepTxt: { fontSize: 14, color: GRAY_500 },
-});
+}));

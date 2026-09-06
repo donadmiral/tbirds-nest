@@ -7,6 +7,7 @@
  * Username availability is checked as you type and again on the server, because
  * a client check is a race condition rather than a guarantee.
  */
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView,
@@ -85,11 +86,11 @@ export default function CreateBusinessScreen({ navigation }: any) {
 
   const hint = () => {
     switch (avail) {
-      case 'checking': return { txt: 'Checking...', color: light.ink.muted };
-      case 'free':     return { txt: 'Available', color: light.status.success };
-      case 'taken':    return { txt: 'Already taken', color: light.status.danger };
-      case 'invalid':  return { txt: '3 to 30 characters. Lowercase letters, numbers, underscores.', color: light.ink.muted };
-      default:         return { txt: 'This becomes the business @handle.', color: light.ink.faint };
+      case 'checking': return { txt: 'Checking...', color: getTheme().ink.muted };
+      case 'free':     return { txt: 'Available', color: getTheme().status.success };
+      case 'taken':    return { txt: 'Already taken', color: getTheme().status.danger };
+      case 'invalid':  return { txt: '3 to 30 characters. Lowercase letters, numbers, underscores.', color: getTheme().ink.muted };
+      default:         return { txt: 'This becomes the business @handle.', color: getTheme().ink.faint };
     }
   };
   const h = hint();
@@ -103,11 +104,11 @@ export default function CreateBusinessScreen({ navigation }: any) {
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityRole="button" accessibilityLabel="Cancel"
         >
-          <Feather name="chevron-left" size={26} color={light.ink.primary} />
+          <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.title}>New business</Text>
         <TouchableOpacity onPress={create} disabled={!canCreate} style={[s.saveBtn, !canCreate && s.saveBtnOff]}>
-          {creating ? <ActivityIndicator size="small" color={light.ink.inverse} /> : <Text style={s.saveTxt}>Create</Text>}
+          {creating ? <ActivityIndicator size="small" color={getTheme().ink.inverse} /> : <Text style={s.saveTxt}>Create</Text>}
         </TouchableOpacity>
       </View>
 
@@ -126,7 +127,7 @@ export default function CreateBusinessScreen({ navigation }: any) {
             <Text style={s.label}>Business name</Text>
             <TextInput
               value={name} onChangeText={setName} style={s.input}
-              placeholder="Pearl Group" placeholderTextColor={light.ink.faint}
+              placeholder="Pearl Group" placeholderTextColor={getTheme().ink.faint}
               autoCapitalize="words"
             />
           </View>
@@ -139,12 +140,12 @@ export default function CreateBusinessScreen({ navigation }: any) {
                 value={username}
                 onChangeText={v => setUsername(v.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase())}
                 style={s.usernameInput}
-                placeholder="pearlgroup" placeholderTextColor={light.ink.faint}
+                placeholder="pearlgroup" placeholderTextColor={getTheme().ink.faint}
                 autoCapitalize="none" autoCorrect={false}
               />
-              {avail === 'checking' ? <ActivityIndicator size="small" color={light.ink.faint} /> : null}
-              {avail === 'free' ? <Feather name="check" size={16} color={light.status.success} /> : null}
-              {avail === 'taken' ? <Feather name="x" size={16} color={light.status.danger} /> : null}
+              {avail === 'checking' ? <ActivityIndicator size="small" color={getTheme().ink.faint} /> : null}
+              {avail === 'free' ? <Feather name="check" size={16} color={getTheme().status.success} /> : null}
+              {avail === 'taken' ? <Feather name="x" size={16} color={getTheme().status.danger} /> : null}
             </View>
             <Text style={[s.hint, { color: h.color }]}>{h.txt}</Text>
           </View>
@@ -171,7 +172,7 @@ export default function CreateBusinessScreen({ navigation }: any) {
           </View>
 
           <View style={s.note}>
-            <Feather name="info" size={14} color={light.ink.muted} />
+            <Feather name="info" size={14} color={getTheme().ink.muted} />
             <Text style={s.noteTxt}>
               Nobody signs in as a business. Access is managed by adding people to its team, so
               you never share a password.
@@ -185,57 +186,57 @@ export default function CreateBusinessScreen({ navigation }: any) {
 
 const HAIR = StyleSheet.hairlineWidth;
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   flex: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: space.sm,
-    borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline,
+    borderBottomWidth: HAIR, borderBottomColor: t.surface.hairline,
   },
-  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
+  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
   saveBtn: {
     minWidth: 68, alignItems: 'center',
     paddingHorizontal: space.md, paddingVertical: 7,
-    borderRadius: radius.full, backgroundColor: light.brand.base,
+    borderRadius: radius.full, backgroundColor: t.brand.base,
   },
   saveBtnOff: { opacity: 0.4 },
-  saveTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  saveTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
-  lede: { fontSize: typeSize.body, color: light.ink.secondary, lineHeight: 20, marginBottom: space.lg },
+  lede: { fontSize: typeSize.body, color: t.ink.secondary, lineHeight: 20, marginBottom: space.lg },
 
   field: { marginBottom: space.lg, gap: 5 },
   label: {
     fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1,
-    textTransform: 'uppercase', color: light.ink.muted,
+    textTransform: 'uppercase', color: t.ink.muted,
   },
   input: {
-    borderWidth: HAIR, borderColor: light.surface.hairline, borderRadius: radius.md,
+    borderWidth: HAIR, borderColor: t.surface.hairline, borderRadius: radius.md,
     paddingHorizontal: space.sm, paddingVertical: 11,
-    fontSize: typeSize.body, color: light.ink.primary, backgroundColor: light.surface.raised,
+    fontSize: typeSize.body, color: t.ink.primary, backgroundColor: t.surface.raised,
   },
   usernameRow: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    borderWidth: HAIR, borderColor: light.surface.hairline, borderRadius: radius.md,
-    paddingHorizontal: space.sm, backgroundColor: light.surface.raised,
+    borderWidth: HAIR, borderColor: t.surface.hairline, borderRadius: radius.md,
+    paddingHorizontal: space.sm, backgroundColor: t.surface.raised,
   },
-  at: { fontSize: typeSize.body, color: light.ink.faint, fontWeight: fontWeight.semibold },
-  usernameInput: { flex: 1, fontSize: typeSize.body, color: light.ink.primary, paddingVertical: 11 },
+  at: { fontSize: typeSize.body, color: t.ink.faint, fontWeight: fontWeight.semibold },
+  usernameInput: { flex: 1, fontSize: typeSize.body, color: t.ink.primary, paddingVertical: 11 },
   hint: { fontSize: typeSize.micro, lineHeight: 15 },
 
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: 2 },
   chip: {
     paddingHorizontal: space.sm, paddingVertical: 7, borderRadius: radius.full,
-    borderWidth: HAIR, borderColor: light.surface.hairline, backgroundColor: light.surface.canvas,
+    borderWidth: HAIR, borderColor: t.surface.hairline, backgroundColor: t.surface.canvas,
   },
-  chipOn: { backgroundColor: light.brand.base, borderColor: light.brand.base },
-  chipTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.ink.secondary },
-  chipTxtOn: { color: light.ink.inverse },
+  chipOn: { backgroundColor: t.brand.base, borderColor: t.brand.base },
+  chipTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.ink.secondary },
+  chipTxtOn: { color: t.ink.inverse },
 
   note: {
     flexDirection: 'row', gap: space.xs, alignItems: 'flex-start',
-    backgroundColor: light.surface.raised, borderRadius: radius.md, padding: space.sm,
-    borderWidth: HAIR, borderColor: light.surface.hairline,
+    backgroundColor: t.surface.raised, borderRadius: radius.md, padding: space.sm,
+    borderWidth: HAIR, borderColor: t.surface.hairline,
   },
-  noteTxt: { flex: 1, fontSize: typeSize.micro, color: light.ink.muted, lineHeight: 16 },
-});
+  noteTxt: { flex: 1, fontSize: typeSize.micro, color: t.ink.muted, lineHeight: 16 },
+}));

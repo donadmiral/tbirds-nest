@@ -5,6 +5,7 @@
  *   compact  → row: text left, 64px media right (threads, quoted posts)
  *   full     → media hero on top, author row, text (chat bubbles)
  */
+import { themedSheet } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
@@ -76,23 +77,23 @@ export default function SharedPostCard({ post, layout = 'full', width = 240, onP
   );
 }
 
-const c = StyleSheet.create({
-  card: { backgroundColor: '#FFFFFF', borderRadius: 20, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)', shadowColor: '#0B1E3D', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+const c = themedSheet((t) => ({
+  card: { backgroundColor: t.surface.canvas, borderRadius: 20, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
   compact: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 10 },
   authorRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   avatar: { width: 24, height: 24, borderRadius: 12 },
-  name: { fontSize: 13, fontWeight: '800', color: '#0B1E3D', flexShrink: 1 },
+  name: { fontSize: 13, fontWeight: '800', color: t.ink.primary, flexShrink: 1 },
   handle: { fontSize: 12, color: 'rgba(11,30,61,0.5)', flexShrink: 1 },
-  text: { marginTop: 8, fontSize: 14, lineHeight: 19, color: '#0B1E3D' },
+  text: { marginTop: 8, fontSize: 14, lineHeight: 19, color: t.ink.primary },
   textLarge: { fontSize: 16, lineHeight: 22, fontWeight: '500' },
-  textCompact: { marginTop: 6, fontSize: 13.5, lineHeight: 18, color: '#0B1E3D' },
+  textCompact: { marginTop: 6, fontSize: 13.5, lineHeight: 18, color: t.ink.primary },
   hint: { marginTop: 8, fontSize: 13, color: 'rgba(11,30,61,0.5)' },
   thumbWrap: { width: 64, height: 64, borderRadius: 12, overflow: 'hidden', backgroundColor: '#F2F3F5' },
   thumb: { width: '100%', height: '100%' },
   playSmall: { position: 'absolute', left: 22, top: 22, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.7)', alignItems: 'center', justifyContent: 'center' },
   playBig: { position: 'absolute', alignSelf: 'center', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   countPill: { position: 'absolute', right: 8, top: 8, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(11,30,61,0.6)', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 999 },
-  countTxt: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
-  foot: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)', backgroundColor: '#FAFAF9' },
+  countTxt: { color: t.ink.inverse, fontSize: 11, fontWeight: '700' },
+  foot: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline, backgroundColor: t.surface.raised },
   footTxt: { fontSize: 12, fontWeight: '700', color: 'rgba(11,30,61,0.55)' },
-});
+}));

@@ -13,6 +13,7 @@
  * Aligned with warm nocturnal calm temperature.
  */
 
+import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 
@@ -154,7 +155,7 @@ export function ProfileSkeleton() {
   );
 }
 
-const sk = StyleSheet.create({
+const sk = themedSheet((t) => ({
   container: { paddingTop: 8 },
   postCard: { paddingHorizontal: 16, paddingVertical: 14, marginBottom: 6 },
   postHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -164,4 +165,4 @@ const sk = StyleSheet.create({
   convText: { flex: 1 },
   profileHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingHorizontal: 16, paddingTop: 16 },
   profileStats: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, paddingVertical: 16 },
-});
+}));

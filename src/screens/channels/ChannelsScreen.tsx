@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -325,8 +326,8 @@ export default function ChannelsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, textAlign: 'center', fontSize: 16.5, fontWeight: '700', color: '#0F1419' },
@@ -334,7 +335,7 @@ const s = StyleSheet.create({
   tabChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: '#F2F2F7' },
   tabChipOn: { backgroundColor: NAVY },
   tabTxt: { fontSize: 13.5, fontWeight: '700', color: '#5B6B84' },
-  tabTxtOn: { color: '#FFF' },
+  tabTxtOn: { color: t.ink.inverse },
   searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', borderRadius: 12, marginHorizontal: 16, marginTop: 0, marginBottom: 8, paddingHorizontal: 12, paddingVertical: 9 },
   searchInput: { flex: 1, fontSize: 15, color: '#0F1419', padding: 0 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingBottom: 60, paddingHorizontal: 40 },
@@ -343,13 +344,13 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 12 },
   icon: { width: 50, height: 50, borderRadius: 14 },
   iconFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  iconTxt: { fontSize: 17, fontWeight: '800', color: '#FFFFFF' },
+  iconTxt: { fontSize: 17, fontWeight: '800', color: t.ink.inverse },
   name: { fontSize: 15.5, fontWeight: '700', color: '#0F1419' },
   meta: { fontSize: 12.5, color: '#8E8E93', marginTop: 1 },
   desc: { fontSize: 13, color: '#5B6B84', marginTop: 2 },
   joinPill: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 999, backgroundColor: NAVY },
-  joinTxt: { fontSize: 13, fontWeight: '700', color: '#FFF' },
-  joinedPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#D1D5DB' },
+  joinTxt: { fontSize: 13, fontWeight: '700', color: t.ink.inverse },
+  joinedPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, backgroundColor: t.surface.canvas, borderWidth: 1, borderColor: '#D1D5DB' },
   joinedTxt: { fontSize: 13, fontWeight: '700', color: '#0F1419' },
   invitePill: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F2F2F7' },
   inviteTxt: { fontSize: 12, fontWeight: '700', color: '#8E8E93' },
@@ -362,12 +363,12 @@ const s = StyleSheet.create({
   audChip: { flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 12, backgroundColor: '#F5F5F5', borderWidth: 1.5, borderColor: '#E5E5EA' },
   audChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   audTxt: { fontSize: 14, fontWeight: '600', color: '#5B6B84' },
-  audTxtOn: { color: '#FFF' },
+  audTxtOn: { color: t.ink.inverse },
   catChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#E5E5EA' },
   catChipOn: { backgroundColor: NAVY, borderColor: NAVY },
   catTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
-  catTxtOn: { color: '#FFF' },
+  catTxtOn: { color: t.ink.inverse },
   colorDot: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'transparent' },
   colorDotOn: { borderColor: '#0F1419' },
   hint: { fontSize: 12.5, color: '#8E8E93', lineHeight: 18 },
-});
+}));

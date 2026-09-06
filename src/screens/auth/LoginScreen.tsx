@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -430,7 +431,7 @@ export default function LoginScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: NAVY_DEEP },
   gradient: { flex: 1 },
   flex: { flex: 1 },
@@ -450,7 +451,7 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 12,
   },
   sheetTitle: { fontSize: 24, fontWeight: '800', color: NAVY, letterSpacing: -0.4 },
-  sheetSub: { fontSize: 13, color: 'rgba(11,30,61,0.45)', marginTop: 3, marginBottom: 16 },
+  sheetSub: { fontSize: 13, color: t.ink.muted, marginTop: 3, marginBottom: 16 },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -537,4 +538,4 @@ const s = StyleSheet.create({
   },
   resendBtn: { marginTop: 16, paddingVertical: 8 },
   resendTxt: { fontSize: 14, color: WHITE_45, fontWeight: '500' },
-});
+}));

@@ -8,6 +8,7 @@
  * - Hides overflow so only one carousel page is visible at a time.
  * - Forces ScrollView content into a horizontal row so media cannot stack vertically.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
@@ -699,7 +700,7 @@ function PinchInspect({ children }: { children: React.ReactNode }) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   centered: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -732,13 +733,13 @@ const s = StyleSheet.create({
     borderRadius: 12,
   },
   counterTxt: {
-    color: '#FFF',
+    color: t.ink.inverse,
     fontSize: 12,
     fontWeight: '600',
   },
-});
+}));
 
-const z = StyleSheet.create({
+const z = themedSheet((t) => ({
   overlay: {
     flex: 1,
     backgroundColor: '#000',
@@ -757,7 +758,7 @@ const z = StyleSheet.create({
     justifyContent: 'center',
   },
   closeX: {
-    color: '#FFF',
+    color: t.ink.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -777,8 +778,8 @@ const z = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.4)',
   },
   dotActive: {
-    backgroundColor: '#FFF',
+    backgroundColor: t.surface.canvas,
     width: 18,
     borderRadius: 3,
   },
-});
+}));

@@ -4,6 +4,7 @@
  * Adjust, trim strip, mute) and returns a non-destructive PostMediaEdit recipe
  * stored on post_media.edit. The original file is never touched.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, Dimensions, TextInput, Image, FlatList, KeyboardAvoidingView, PanResponder, Platform } from 'react-native';
 import TierName from './TierName';
@@ -285,16 +286,16 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   );
 }
 
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: '#0B0D12' },
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, height: 48 },
   topBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
-  title: { flex: 1, textAlign: 'center', color: '#FFF', fontSize: 16, fontWeight: '800' },
+  title: { flex: 1, textAlign: 'center', color: t.ink.inverse, fontSize: 16, fontWeight: '800' },
   done: { backgroundColor: '#C9BFB0', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 8 },
-  doneTxt: { color: '#0B1E3D', fontSize: 14, fontWeight: '800' },
+  doneTxt: { color: t.ink.primary, fontSize: 14, fontWeight: '800' },
   tools: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 12, paddingHorizontal: 8 },
   tool: { alignItems: 'center', width: 64 },
   toolIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   toolIconOn: { backgroundColor: 'rgba(201,191,176,0.35)' },
   toolLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 11, fontWeight: '600' },
-});
+}));

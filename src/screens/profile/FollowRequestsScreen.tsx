@@ -3,6 +3,7 @@
  * Shows pending follow requests for private account users.
  * Place at: src/screens/profile/FollowRequestsScreen.tsx
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
@@ -211,8 +212,8 @@ export default function FollowRequestsScreen() {
   );
 }
 
-const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF' },
+const st = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -233,14 +234,14 @@ const st = StyleSheet.create({
   name: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY },
   username: { fontSize: 13, color: NAVY, fontWeight: '500', marginTop: 1 },
   program: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
-  time: { fontSize: 11, color: 'rgba(11,30,61,0.24)', marginTop: 2 },
+  time: { fontSize: 11, color: t.ink.faint, marginTop: 2 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   acceptBtn: {
     backgroundColor: NAVY, borderRadius: 10,
     paddingHorizontal: 16, paddingVertical: 8,
     minWidth: 70, alignItems: 'center',
   },
-  acceptTxt: { color: '#FFF', fontSize: 14, fontWeight: '600' },
+  acceptTxt: { color: t.ink.inverse, fontSize: 14, fontWeight: '600' },
   rejectBtn: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center',
@@ -248,4 +249,4 @@ const st = StyleSheet.create({
   empty: { alignItems: 'center', paddingVertical: 80, paddingHorizontal: 32, gap: 8 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: TEXT_PRIMARY },
   emptySub: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
-});
+}));

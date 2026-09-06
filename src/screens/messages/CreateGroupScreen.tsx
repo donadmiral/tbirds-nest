@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, Image,
@@ -323,8 +324,8 @@ export default function CreateGroupScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -345,7 +346,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   createBtnOff: { opacity: 0.35 },
-  createBtnTxt: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  createBtnTxt: { color: t.ink.inverse, fontSize: 14, fontWeight: '700' },
 
   nameWrap: {
     flexDirection: 'row',
@@ -377,7 +378,7 @@ const s = StyleSheet.create({
     paddingVertical: 4,
   },
   chipAvatar: { width: 24, height: 24, borderRadius: 12 },
-  chipAvatarTxt: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },
+  chipAvatarTxt: { fontSize: 11, fontWeight: '700', color: t.ink.inverse },
   chipTxt: { fontSize: 12, fontWeight: '600', color: '#1D4ED8', maxWidth: 80 },
 
   searchWrap: {
@@ -415,7 +416,7 @@ const s = StyleSheet.create({
     paddingVertical: 10,
   },
   candidateAvatar: { width: 44, height: 44, borderRadius: 22 },
-  candidateAvatarTxt: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
+  candidateAvatarTxt: { fontSize: 14, fontWeight: '800', color: t.ink.inverse },
   candidateName: { fontSize: 15, fontWeight: '600', color: '#000' },
   candidateHandle: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
   checkbox: {
@@ -431,4 +432,4 @@ const s = StyleSheet.create({
     backgroundColor: '#000',
     borderColor: '#000',
   },
-});
+}));

@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
@@ -81,9 +82,9 @@ export default function MyApplicationsScreen() {
   );
 }
 
-const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
+const st = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(11,30,61,0.07)', marginLeft: 74 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
@@ -91,4 +92,4 @@ const st = StyleSheet.create({
   emptySub: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', textAlign: 'center', marginTop: 4, lineHeight: 19 },
   chip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   chipTxt: { fontSize: 12, fontWeight: '800' },
-});
+}));

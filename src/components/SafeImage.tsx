@@ -1,4 +1,5 @@
 // src/components/SafeImage.tsx
+import { themedSheet } from '../theme/useTheme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, StyleProp, ImageStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -45,7 +46,7 @@ export default function SafeImage({
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   fallback: { backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', gap: 6 },
   fallbackTxt: { fontSize: 12, color: '#8E8E93', fontWeight: '500' },
-});
+}));

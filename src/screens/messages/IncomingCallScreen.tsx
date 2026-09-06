@@ -5,6 +5,7 @@
  * Auto-dismiss on caller cancel. Vibration pattern.
  * Supports both 1-on-1 and group calls.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
@@ -219,7 +220,7 @@ export default function IncomingCallScreen() {
 }
 
 const AV=108; const RS=160;
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   safe:{flex:1,backgroundColor:'#060A14'},container:{flex:1,backgroundColor:'#060A14',alignItems:'center',justifyContent:'space-between'},
   topSection:{alignItems:'center',paddingTop:8},appPill:{backgroundColor:'#0E1825',borderRadius:20,borderWidth:1,borderColor:'#1F3050',paddingHorizontal:14,paddingVertical:5,marginBottom:10},
   appPillTxt:{fontSize:12,fontWeight:'700',color:'#38BDF8',letterSpacing:0.5},incomingTxt:{fontSize:15,fontWeight:'600',color:'#64748B',letterSpacing:0.3},
@@ -233,4 +234,4 @@ const st = StyleSheet.create({
   btnRow:{flexDirection:'row',justifyContent:'space-between',width:'100%'},btnInner:{width:72,height:72,borderRadius:36,backgroundColor:'#2D1A1A',alignItems:'center',justifyContent:'center',borderWidth:1,borderColor:'#7F1D1D',marginBottom:10},
   acceptBtnInner:{backgroundColor:'#0D2B1A',borderColor:'#14532D'},declineBtn:{alignItems:'center'},declineIcon:{fontSize:28,color:'#F87171'},declineLbl:{fontSize:13,fontWeight:'700',color:'#F87171'},
   acceptBtn:{alignItems:'center'},acceptIcon:{fontSize:28,color:'#4ADE80'},acceptLbl:{fontSize:13,fontWeight:'700',color:'#4ADE80'},
-});
+}));

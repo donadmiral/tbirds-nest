@@ -1,6 +1,7 @@
 /**
  * HelpSupportScreen - how the real app works, briefly and clearly.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -51,8 +52,8 @@ export default function HelpSupportScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
@@ -64,4 +65,4 @@ const s = StyleSheet.create({
   iconWrap: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(11,30,61,0.07)', alignItems: 'center', justifyContent: 'center' },
   q: { flex: 1, fontSize: 14, fontWeight: '700', color: NAVY },
   a: { fontSize: 13, lineHeight: 20, color: 'rgba(11,30,61,0.75)', marginTop: 10, marginLeft: 40 },
-});
+}));

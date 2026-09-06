@@ -10,6 +10,7 @@
  * something nobody looks at closely. They animate with progress, which is the
  * part people actually read.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -128,11 +129,11 @@ export default function VoiceNote({ uri, durationSec, tint, dim, onTint }: Props
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   wrap: { flexDirection: 'row', alignItems: 'center', gap: 10, minWidth: 210, paddingVertical: 2 },
   btn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   middle: { flex: 1, gap: 3 },
   bars: { flexDirection: 'row', alignItems: 'center', gap: 2, height: 24 },
   bar: { flex: 1, borderRadius: 1.5, minWidth: 2 },
   time: { fontSize: 11, fontWeight: '600' },
-});
+}));

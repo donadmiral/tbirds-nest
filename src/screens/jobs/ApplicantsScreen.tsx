@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -349,26 +350,26 @@ export default function ApplicantsScreen() {
   );
 }
 
-const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
+const st = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   headerTitle: { fontSize: 15.5, fontWeight: '800', color: NAVY, textAlign: 'center' },
   headerSub: { fontSize: 12, color: 'rgba(11,30,61,0.5)', textAlign: 'center', marginTop: 1 },
-  filterRow: { paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.06)' },
-  filterPill: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.05)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.10)' },
+  filterRow: { paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.divider },
+  filterPill: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: t.brand.tintBg, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
   filterPillOn: { backgroundColor: NAVY, borderColor: NAVY },
   filterTxt: { fontSize: 13, fontWeight: '700', color: NAVY },
-  filterTxtOn: { color: '#FFFFFF' },
-  row: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.10)', backgroundColor: '#FFFFFF', padding: 13, marginBottom: 12 },
+  filterTxtOn: { color: t.ink.inverse },
+  row: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, backgroundColor: t.surface.canvas, padding: 13, marginBottom: 12 },
   rowHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   av: { width: 42, height: 42, borderRadius: 21 },
   avFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  avTxt: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  avTxt: { color: t.ink.inverse, fontSize: 16, fontWeight: '700' },
   name: { fontSize: 15, fontWeight: '700', color: NAVY },
   sub: { fontSize: 12.5, color: 'rgba(11,30,61,0.5)', marginTop: 1 },
   statusChip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   statusTxt: { fontSize: 12, fontWeight: '800' },
-  note: { fontSize: 13.5, lineHeight: 19, color: 'rgba(11,30,61,0.8)', marginTop: 10, backgroundColor: '#FAFAF9', padding: 10, borderRadius: 10 },
+  note: { fontSize: 13.5, lineHeight: 19, color: 'rgba(11,30,61,0.8)', marginTop: 10, backgroundColor: t.surface.raised, padding: 10, borderRadius: 10 },
   noNote: { fontSize: 12.5, color: 'rgba(11,30,61,0.35)', marginTop: 10, fontStyle: 'italic' },
   actions: { flexDirection: 'row', gap: 10, marginTop: 10 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 13, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.16)' },
@@ -376,36 +377,36 @@ const st = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30 },
   errTxt: { fontSize: 14.5, fontWeight: '600', color: '#DC2626', textAlign: 'center' },
   retry: { marginTop: 12, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 999, backgroundColor: NAVY },
-  retryTxt: { color: '#FFF', fontSize: 13.5, fontWeight: '700' },
+  retryTxt: { color: t.ink.inverse, fontSize: 13.5, fontWeight: '700' },
   emptyTitle: { fontSize: 16, fontWeight: '800', color: NAVY, marginTop: 12 },
   emptySub: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', textAlign: 'center', marginTop: 4 },
-});
+}));
 
-const sh = StyleSheet.create({
-  scrim: { flex: 1, backgroundColor: 'rgba(11,30,61,0.45)', justifyContent: 'flex-end' },
-  card: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '86%', paddingHorizontal: 18, paddingTop: 8 },
+const sh = themedSheet((t) => ({
+  scrim: { flex: 1, backgroundColor: t.ink.muted, justifyContent: 'flex-end' },
+  card: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '86%', paddingHorizontal: 18, paddingTop: 8 },
   grab: { alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.16)', marginBottom: 12 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   av: { width: 54, height: 54, borderRadius: 27 },
   avFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  avTxt: { color: '#FFF', fontSize: 20, fontWeight: '700' },
+  avTxt: { color: t.ink.inverse, fontSize: 20, fontWeight: '700' },
   name: { fontSize: 17.5, fontWeight: '800', color: NAVY, letterSpacing: -0.2 },
   headline: { fontSize: 13, color: 'rgba(11,30,61,0.65)', marginTop: 1 },
   applied: { fontSize: 12, color: 'rgba(11,30,61,0.4)', marginTop: 2 },
   statusChip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999 },
   statusTxt: { fontSize: 12, fontWeight: '800' },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
-  metaChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.05)' },
+  metaChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: t.brand.tintBg },
   metaTxt: { fontSize: 12.5, fontWeight: '600', color: NAVY },
   section: { marginTop: 18 },
   sectionTitle: { fontSize: 13.5, fontWeight: '800', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 6 },
   body: { fontSize: 14.5, lineHeight: 21, color: 'rgba(11,30,61,0.85)' },
   noNote: { fontSize: 13.5, color: 'rgba(11,30,61,0.35)', fontStyle: 'italic' },
   actionsWrap: { marginTop: 18, gap: 9 },
-  bigBtn: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 13, borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', backgroundColor: '#FAFAF9' },
+  bigBtn: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 13, borderWidth: 1, borderColor: t.surface.hairline, backgroundColor: t.surface.raised },
   bigBtnTxt: { flex: 1, fontSize: 14, fontWeight: '700', color: NAVY },
   footerRow: { flexDirection: 'row', gap: 10, marginTop: 20 },
   footBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: NAVY, borderRadius: 999, paddingVertical: 13 },
-  footBtnGhost: { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.18)' },
-  footBtnTxt: { color: '#FFFFFF', fontSize: 14.5, fontWeight: '700' },
-});
+  footBtnGhost: { backgroundColor: t.surface.canvas, borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.18)' },
+  footBtnTxt: { color: t.ink.inverse, fontSize: 14.5, fontWeight: '700' },
+}));

@@ -9,6 +9,7 @@
  * two-finger pan, double-tap like (heart at the finger), single tap pause,
  * vertical paging.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity, Image, PanResponder, Modal } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -234,39 +235,39 @@ export default function VideoFeedModal({ items, startId, startAt = 0, likedMap, 
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   close: { position: 'absolute', left: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   pauseBadge: { position: 'absolute', top: H / 2 - 32, left: W / 2 - 32, width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
   rail: { position: 'absolute', right: 10, alignItems: 'center', gap: 16 },
   railBtn: { alignItems: 'center', minWidth: 44 },
-  railTxt: { color: '#FFFFFF', fontSize: 11.5, fontWeight: '700', marginTop: 3, textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },
+  railTxt: { color: t.ink.inverse, fontSize: 11.5, fontWeight: '700', marginTop: 3, textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },
   meta: { position: 'absolute', left: 14, right: 76 },
-  av: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: '#FFFFFF' },
+  av: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: t.ink.inverse },
   avFb: { backgroundColor: '#1F2A44', alignItems: 'center', justifyContent: 'center' },
-  avTxt: { color: '#FFF', fontWeight: '800' },
-  name: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },
-  follow: { borderWidth: 1.2, borderColor: '#FFFFFF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, marginLeft: 4 },
-  followTxt: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '800' },
-  cap: { color: '#FFFFFF', fontSize: 13.5, marginTop: 8, lineHeight: 18, textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },
+  avTxt: { color: t.ink.inverse, fontWeight: '800' },
+  name: { color: t.ink.inverse, fontSize: 15, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },
+  follow: { borderWidth: 1.2, borderColor: t.ink.inverse, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, marginLeft: 4 },
+  followTxt: { color: t.ink.inverse, fontSize: 12.5, fontWeight: '800' },
+  cap: { color: t.ink.inverse, fontSize: 13.5, marginTop: 8, lineHeight: 18, textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14 },
   trackHit: { height: 24, justifyContent: 'center' },
   track: { height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.32)', overflow: 'hidden' },
-  fill: { height: '100%', backgroundColor: '#FFFFFF' },
-  knob: { position: 'absolute', top: 7, width: 10, height: 10, borderRadius: 5, backgroundColor: '#FFFFFF' },
+  fill: { height: '100%', backgroundColor: t.surface.canvas },
+  knob: { position: 'absolute', top: 7, width: 10, height: 10, borderRadius: 5, backgroundColor: t.surface.canvas },
   knobBig: { top: 3, width: 18, height: 18, borderRadius: 9 },
   timeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
-  time: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  time: { color: t.ink.inverse, fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
   timeDim: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  speed: { color: '#FFFFFF', fontSize: 12, fontWeight: '800', backgroundColor: 'rgba(255,255,255,0.16)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
+  speed: { color: t.ink.inverse, fontSize: 12, fontWeight: '800', backgroundColor: 'rgba(255,255,255,0.16)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
   menuOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
-  menuSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 8 },
+  menuSheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 8 },
   menuHandle: { alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.18)', marginBottom: 8 },
   menuSection: { color: 'rgba(11,30,61,0.55)', fontSize: 11.5, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6 },
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12 },
-  menuTxt: { color: '#0B1E3D', fontSize: 15, fontWeight: '600', flex: 1 },
+  menuTxt: { color: t.ink.primary, fontSize: 15, fontWeight: '600', flex: 1 },
   menuSub: { color: 'rgba(11,30,61,0.55)', fontSize: 12.5, fontWeight: '600', maxWidth: '45%', textAlign: 'right' },
-  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' },
-  chipOn: { backgroundColor: '#0B1E3D' },
-  chipTxt: { color: '#0B1E3D', fontWeight: '800', fontSize: 13 },
-  chipTxtOn: { color: '#FFFFFF' },
-});
+  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, backgroundColor: t.brand.tintBg },
+  chipOn: { backgroundColor: t.brand.base },
+  chipTxt: { color: t.ink.primary, fontWeight: '800', fontSize: 13 },
+  chipTxtOn: { color: t.ink.inverse },
+}));

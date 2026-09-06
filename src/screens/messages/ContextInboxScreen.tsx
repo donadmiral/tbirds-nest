@@ -1,3 +1,4 @@
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -96,17 +97,17 @@ export default function ContextInboxScreen({ route, navigation }: any) {
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Feather name="chevron-left" size={26} color={light.ink.primary} />
+          <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.title}>{title}</Text>
         <View style={{ width: 26 }} />
       </View>
 
       {loading ? (
-        <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
+        <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
       ) : error ? (
         <View style={s.centered}>
-          <Feather name="alert-circle" size={30} color={light.ink.faint} />
+          <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Could not load messages</Text>
           <Text style={s.emptySub}>{error}</Text>
           <TouchableOpacity style={s.cta} onPress={() => { setLoading(true); load(); }}>
@@ -115,7 +116,7 @@ export default function ContextInboxScreen({ route, navigation }: any) {
         </View>
       ) : rows.length === 0 ? (
         <View style={s.centered}>
-          <Feather name={ctx === 'market' ? 'shopping-bag' : 'briefcase'} size={30} color={light.ink.faint} />
+          <Feather name={ctx === 'market' ? 'shopping-bag' : 'briefcase'} size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>{emptyTitle}</Text>
           <Text style={s.emptySub}>{emptySub}</Text>
         </View>
@@ -123,7 +124,7 @@ export default function ContextInboxScreen({ route, navigation }: any) {
         <FlatList ListEmptyComponent={<EmptyState icon="inbox" title="No conversations" line="Chats about your listings and jobs appear here." />}
           data={rows}
           keyExtractor={r => r.conversation_id}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={light.ink.faint} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={getTheme().ink.faint} />}
           contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
           ItemSeparatorComponent={() => <View style={s.sep} />}
           renderItem={({ item }) => {
@@ -160,7 +161,7 @@ export default function ContextInboxScreen({ route, navigation }: any) {
                         <Image source={{ uri: item.ref_image }} style={s.subjectImg} />
                       ) : (
                         <View style={[s.subjectImg, s.subjectImgFb]}>
-                          <Feather name={ctx === 'market' ? 'tag' : 'briefcase'} size={10} color={light.ink.faint} />
+                          <Feather name={ctx === 'market' ? 'tag' : 'briefcase'} size={10} color={getTheme().ink.faint} />
                         </View>
                       )}
                       <Text style={s.subjectTxt} numberOfLines={1}>
@@ -189,47 +190,47 @@ export default function ContextInboxScreen({ route, navigation }: any) {
 
 const HAIR = StyleSheet.hairlineWidth;
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: space.sm,
-    borderBottomWidth: HAIR, borderBottomColor: light.surface.hairline,
+    borderBottomWidth: HAIR, borderBottomColor: t.surface.hairline,
   },
-  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
+  title: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
 
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 36, gap: 6 },
-  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.ink.primary, marginTop: 6 },
-  emptySub: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center', lineHeight: 19 },
-  cta: { marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: light.brand.base },
-  ctaTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: t.ink.primary, marginTop: 6 },
+  emptySub: { fontSize: typeSize.caption, color: t.ink.muted, textAlign: 'center', lineHeight: 19 },
+  cta: { marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: t.brand.base },
+  ctaTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
-  sep: { height: HAIR, backgroundColor: light.surface.divider, marginLeft: 74 },
+  sep: { height: HAIR, backgroundColor: t.surface.divider, marginLeft: 74 },
   row: { flexDirection: 'row', gap: space.sm, paddingHorizontal: 14, paddingVertical: space.sm },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: light.surface.sunken },
-  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.base },
-  avatarTxt: { color: light.ink.inverse, fontSize: typeSize.body, fontWeight: fontWeight.bold },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: t.surface.sunken },
+  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base },
+  avatarTxt: { color: t.ink.inverse, fontSize: typeSize.body, fontWeight: fontWeight.bold },
 
   rowBody: { flex: 1, justifyContent: 'center', gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.xs },
-  name: { flex: 1, fontSize: typeSize.emphasis, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  time: { fontSize: typeSize.micro, color: light.ink.faint },
+  name: { flex: 1, fontSize: typeSize.emphasis, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  time: { fontSize: typeSize.micro, color: t.ink.faint },
 
   subject: {
     flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
     paddingRight: 8, paddingVertical: 2, paddingLeft: 2,
-    borderRadius: radius.sm, backgroundColor: light.brand.tintBg, maxWidth: '100%',
+    borderRadius: radius.sm, backgroundColor: t.brand.tintBg, maxWidth: '100%',
   },
-  subjectImg: { width: 18, height: 18, borderRadius: 3, backgroundColor: light.surface.sunken },
+  subjectImg: { width: 18, height: 18, borderRadius: 3, backgroundColor: t.surface.sunken },
   subjectImgFb: { alignItems: 'center', justifyContent: 'center' },
-  subjectTxt: { flexShrink: 1, fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: light.ink.primary },
+  subjectTxt: { flexShrink: 1, fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: t.ink.primary },
 
   rowBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.xs },
-  preview: { flex: 1, fontSize: typeSize.caption, color: light.ink.muted },
-  previewUnread: { color: light.ink.primary, fontWeight: fontWeight.semibold },
+  preview: { flex: 1, fontSize: typeSize.caption, color: t.ink.muted },
+  previewUnread: { color: t.ink.primary, fontWeight: fontWeight.semibold },
   badge: {
     minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 6,
-    alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.base,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base,
   },
-  badgeTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.heavy, color: light.ink.inverse },
-});
+  badgeTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.heavy, color: t.ink.inverse },
+}));

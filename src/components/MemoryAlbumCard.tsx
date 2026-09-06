@@ -4,6 +4,7 @@
  * New book tile; visitors see only viewable books that hold memories.
  * Each mini book mirrors the real cover: spine, stitched border, clasp.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -113,9 +114,9 @@ export default function MemoryAlbumCard({ ownerId, navigation }: { ownerId?: str
   );
 }
 
-const sc = StyleSheet.create({
+const sc = themedSheet((t) => ({
   wrap: { flex: 1, backgroundColor: 'rgba(11,30,61,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-  card: { alignSelf: 'stretch', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, maxHeight: '82%' },
-  title: { fontSize: 15.5, fontWeight: '800', color: '#0B1E3D', marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: '#0B1E3D', marginBottom: 12 },
-});
+  card: { alignSelf: 'stretch', backgroundColor: t.surface.canvas, borderRadius: 16, padding: 16, maxHeight: '82%' },
+  title: { fontSize: 15.5, fontWeight: '800', color: t.ink.primary, marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: t.ink.primary, marginBottom: 12 },
+}));

@@ -2,6 +2,7 @@
  * TicketScreen - one ticket, the whole conversation. The member reads
  * the operations replies and writes back; writing reopens the ticket.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -95,8 +96,8 @@ export default function TicketScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
@@ -109,8 +110,8 @@ const s = StyleSheet.create({
   theirs: { alignSelf: 'flex-start', backgroundColor: '#F4F5F7' },
   bubbleTxt: { fontSize: 13.5, lineHeight: 19, color: NAVY },
   bubbleWhen: { fontSize: 10, color: 'rgba(11,30,61,0.4)', marginTop: 5 },
-  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(11,30,61,0.08)' },
-  input: { flex: 1, borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: NAVY, maxHeight: 110 },
+  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: t.surface.hairline },
+  input: { flex: 1, borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: NAVY, maxHeight: 110 },
   send: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 11 },
-  sendTxt: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800' },
-});
+  sendTxt: { color: t.ink.inverse, fontSize: 13.5, fontWeight: '800' },
+}));

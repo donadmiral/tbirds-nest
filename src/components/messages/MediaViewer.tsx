@@ -3,6 +3,7 @@
  * Edge-to-edge fullscreen viewer for images, gifs, and videos.
  * Horizontal swipe between items, Save to Photos, Share.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, Modal, StyleSheet, Pressable, FlatList,
@@ -188,7 +189,7 @@ export default function MediaViewer({ visible, items, initialIndex, onClose }: P
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedSheet((t) => ({
   container: { flex: 1, backgroundColor: '#000' },
   slide: {
     width: W, height: H,
@@ -211,5 +212,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center', justifyContent: 'center',
   },
-  counter: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-});
+  counter: { color: t.ink.inverse, fontSize: 15, fontWeight: '600' },
+}));

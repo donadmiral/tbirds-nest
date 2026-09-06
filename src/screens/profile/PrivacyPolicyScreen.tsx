@@ -1,6 +1,7 @@
 /**
  * PrivacyPolicyScreen - what is collected, how it is used, and your controls.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -53,15 +54,15 @@ export default function PrivacyPolicyScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
   backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
-  updated: { fontSize: 12, color: 'rgba(11,30,61,0.45)', marginBottom: 14, marginTop: 4 },
+  updated: { fontSize: 12, color: t.ink.muted, marginBottom: 14, marginTop: 4 },
   sec: { marginBottom: 16 },
   secTitle: { fontSize: 14.5, fontWeight: '800', color: NAVY, marginBottom: 6 },
   body: { fontSize: 13.5, lineHeight: 21, color: 'rgba(11,30,61,0.8)' },
-});
+}));

@@ -4,6 +4,7 @@
  * actAsId, so replies are authored by the business and reads are marked
  * for the business, regardless of which member is typing.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator, StatusBar } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
@@ -129,9 +130,9 @@ export default function BusinessInboxScreen() {
   );
 }
 
-const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.08)' },
+const st = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY, textAlign: 'center' },
   headerSub: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', textAlign: 'center', marginTop: 1 },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(11,30,61,0.07)', marginLeft: 78 },
@@ -143,12 +144,12 @@ const st = StyleSheet.create({
   time: { fontSize: 12, color: 'rgba(11,30,61,0.4)', marginLeft: 8 },
   preview: { fontSize: 13.5, color: 'rgba(11,30,61,0.5)', marginTop: 2 },
   previewUnread: { color: NAVY, fontWeight: '600' },
-  ctxChip: { alignSelf: 'flex-start', marginTop: 5, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.05)' },
+  ctxChip: { alignSelf: 'flex-start', marginTop: 5, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: t.brand.tintBg },
   ctxTxt: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6, color: 'rgba(11,30,61,0.55)' },
   unreadDot: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
-  unreadTxt: { color: '#FFF', fontSize: 11, fontWeight: '800' },
+  unreadTxt: { color: t.ink.inverse, fontSize: 11, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   errTxt: { fontSize: 14.5, fontWeight: '600', color: '#FF3B30', textAlign: 'center' },
   emptyTitle: { fontSize: 16.5, fontWeight: '800', color: NAVY, marginTop: 12 },
   emptySub: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', textAlign: 'center', marginTop: 4, lineHeight: 19 },
-});
+}));

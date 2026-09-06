@@ -1,3 +1,4 @@
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Modal, Alert, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from './SafeArea';
@@ -256,36 +257,36 @@ export default function ChannelSettingsSheet({ visible, onClose, channelId, myRo
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
   headerTitle: { fontSize: 16.5, fontWeight: '700', color: '#0F1419' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   iconWrap: { width: 78, height: 78 },
   icon: { width: 78, height: 78, borderRadius: 39 },
   iconFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  iconBadge: { position: 'absolute', right: -2, bottom: -2, width: 26, height: 26, borderRadius: 13, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
+  iconBadge: { position: 'absolute', right: -2, bottom: -2, width: 26, height: 26, borderRadius: 13, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.ink.inverse },
   iconHint: { fontSize: 12, color: '#8E8E93', marginTop: 8 },
   label: { fontSize: 12, fontWeight: '700', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6, marginTop: 4 },
   input: { backgroundColor: '#F2F2F7', borderRadius: 12, paddingHorizontal: 13, paddingVertical: 10, fontSize: 15, color: '#0F1419', marginBottom: 12 },
   audChip: { flex: 1, borderRadius: 12, borderWidth: 1, borderColor: '#E5E5EA', paddingVertical: 10, alignItems: 'center' },
-  audChipOn: { borderColor: NAVY, backgroundColor: 'rgba(11,30,61,0.05)' },
+  audChipOn: { borderColor: NAVY, backgroundColor: t.brand.tintBg },
   audChipTxt: { fontSize: 13.5, fontWeight: '600', color: '#5B6B84' },
   audChipTxtOn: { color: NAVY, fontWeight: '700' },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
   switchTitle: { fontSize: 14.5, fontWeight: '600', color: '#0F1419' },
   switchSub: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
   saveBtn: { backgroundColor: NAVY, borderRadius: 12, alignItems: 'center', paddingVertical: 12 },
-  saveBtnTxt: { fontSize: 15, fontWeight: '700', color: '#FFF' },
+  saveBtnTxt: { fontSize: 15, fontWeight: '700', color: t.ink.inverse },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E5EA', marginVertical: 16 },
   section: { fontSize: 13, fontWeight: '700', color: '#0F1419', marginBottom: 10 },
   hint: { fontSize: 12, color: '#8E8E93' },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
   memberAvatar: { width: 38, height: 38, borderRadius: 19 },
-  memberAvatarTxt: { fontSize: 14, fontWeight: '700', color: '#FFF' },
+  memberAvatarTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
   memberName: { fontSize: 14.5, fontWeight: '600', color: '#0F1419' },
   memberSub: { fontSize: 12, color: '#8E8E93' },
-  roleChip: { backgroundColor: 'rgba(11,30,61,0.08)', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
+  roleChip: { backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
   roleChipTxt: { fontSize: 10.5, fontWeight: '700', color: NAVY },
   inviteBtn: { backgroundColor: NAVY, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7, minWidth: 62, alignItems: 'center' },
-  inviteBtnTxt: { fontSize: 12.5, fontWeight: '700', color: '#FFF' },
-});
+  inviteBtnTxt: { fontSize: 12.5, fontWeight: '700', color: t.ink.inverse },
+}));

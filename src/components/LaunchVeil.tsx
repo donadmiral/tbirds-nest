@@ -3,6 +3,7 @@
  * veil fades and scales away the moment auth resolves, hard-capped at
  * 2.5 seconds so a trapped launch is structurally impossible.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Image, Animated, StyleSheet } from 'react-native';
 
@@ -34,7 +35,7 @@ export default function LaunchVeil({ busy }: { busy: boolean }) {
   );
 }
 
-const s = StyleSheet.create({
-  wrap: { backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', zIndex: 9999, elevation: 9999 },
+const s = themedSheet((t) => ({
+  wrap: { backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center', zIndex: 9999, elevation: 9999 },
   art: { width: '78%', height: '60%' },
-});
+}));

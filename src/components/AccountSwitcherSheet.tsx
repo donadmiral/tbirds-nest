@@ -8,7 +8,7 @@ import { View, Text, TouchableOpacity, Modal, StyleSheet, Image, ActivityIndicat
 import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useAccountsStore, MAX_ACCOUNTS } from '../stores/accountsStore';
-import { useTheme } from '../theme/useTheme';
+import { useTheme, themedSheet } from '../theme/useTheme';
 
 export default function AccountSwitcherSheet() {
   const insets = useSafeAreaInsets();
@@ -68,7 +68,7 @@ export default function AccountSwitcherSheet() {
   );
 }
 
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   wrap: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 16, paddingTop: 10 },
   handle: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, marginBottom: 10 },
@@ -78,4 +78,4 @@ const st = StyleSheet.create({
   name: { fontSize: 15, fontWeight: '700' },
   handleTxt: { fontSize: 12.5, marginTop: 1 },
   busy: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)' },
-});
+}));

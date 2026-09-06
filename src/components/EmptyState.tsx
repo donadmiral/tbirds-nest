@@ -3,6 +3,7 @@
  * list reads as broken; a sentence reads as calm. Used wherever a list
  * can legitimately be empty.
  */
+import { themedSheet } from '../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -21,12 +22,12 @@ export default function EmptyState({ icon = 'inbox', title, line }: { icon?: any
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   wrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 64, paddingHorizontal: 44 },
   ring: {
     width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.12)', backgroundColor: 'rgba(11,30,61,0.03)', marginBottom: 14,
+    borderWidth: 1.5, borderColor: t.surface.hairline, backgroundColor: 'rgba(11,30,61,0.03)', marginBottom: 14,
   },
   title: { fontSize: 15.5, fontWeight: '700', color: NAVY, textAlign: 'center' },
   line: { fontSize: 13, lineHeight: 19, color: 'rgba(11,30,61,0.5)', textAlign: 'center', marginTop: 6 },
-});
+}));

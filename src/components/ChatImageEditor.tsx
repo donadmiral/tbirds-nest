@@ -6,6 +6,7 @@
  * Step 2, decorate: freehand drawing, draggable text and a caption on the
  * cropped result; Send bakes everything into real pixels via view-shot.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Dimensions, PanResponder, KeyboardAvoidingView, Platform } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -357,10 +358,10 @@ export default function ChatImageEditor({ visible, image, onCancel, onDone }: {
   );
 }
 
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: '#0B0E14' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 54, paddingBottom: 10 },
-  title: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  title: { color: t.ink.inverse, fontSize: 16, fontWeight: '700' },
   stage: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   frame: { overflow: 'hidden', borderRadius: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', alignItems: 'center', justifyContent: 'center' },
   gridV1: { position: 'absolute', left: '33.3%', top: 0, bottom: 0, width: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.35)' },
@@ -370,15 +371,15 @@ const st = StyleSheet.create({
   aspectRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingVertical: 12 },
   aspectChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)' },
   aspectOn: { backgroundColor: '#C9BFB0' },
-  aspectTxt: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '700' },
+  aspectTxt: { color: t.ink.inverse, fontSize: 12.5, fontWeight: '700' },
   toolRow: { flexDirection: 'row', justifyContent: 'center', gap: 34, paddingBottom: 40 },
   tool: { alignItems: 'center', gap: 5 },
   toolTxt: { color: 'rgba(255,255,255,0.7)', fontSize: 11.5, fontWeight: '600' },
-  caption: { marginHorizontal: 16, marginBottom: 10, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, color: '#FFFFFF', fontSize: 14 },
+  caption: { marginHorizontal: 16, marginBottom: 10, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, color: t.ink.inverse, fontSize: 14 },
   paletteRow: { flexDirection: 'row', justifyContent: 'center', gap: 14, paddingBottom: 12 },
   dot: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)' },
   dotOn: { borderColor: '#C9BFB0', borderWidth: 3 },
   promptWrap: { flex: 1, backgroundColor: 'rgba(11,30,61,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-  promptCard: { alignSelf: 'stretch', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16 },
-  promptInput: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 15, color: '#0B1E3D' },
-});
+  promptCard: { alignSelf: 'stretch', backgroundColor: t.surface.canvas, borderRadius: 16, padding: 16 },
+  promptInput: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 15, color: t.ink.primary },
+}));

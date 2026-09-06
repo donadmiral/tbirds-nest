@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { TextInput } from 'react-native';
@@ -249,8 +250,8 @@ export default function StarredMessagesScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#C6C6C8' },
   backBtn: { flexDirection: 'row', alignItems: 'center', minWidth: 90, paddingVertical: 6 },
   backChev: { fontSize: 30, color: '#007AFF', lineHeight: 34, marginLeft: 4, marginRight: 2 },
@@ -272,4 +273,4 @@ const s = StyleSheet.create({
   preview: { fontSize: 14, color: '#3C3C43', marginTop: 4, lineHeight: 19 },
   unstarBtn: { padding: 6 },
   unstarIcon: { fontSize: 22, color: '#FFD60A' },
-});
+}));

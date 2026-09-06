@@ -1,3 +1,4 @@
+import { themedSheet } from '../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
@@ -26,7 +27,7 @@ export default function BuiltInZimbabweStrip() {
   );
 }
 
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   wrap: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 2 },
   eyebrow: {
     fontSize: 10, fontWeight: '700', color: '#8E9BAE',
@@ -44,4 +45,4 @@ const st = StyleSheet.create({
   ribbonBand: { flex: 1 },
   sub: { fontSize: 12.5, color: '#6B7280', marginTop: 6, fontWeight: '500' },
   rule: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E7EB', marginTop: 12 },
-});
+}));

@@ -2,6 +2,7 @@
  * CreateListingScreen - Facebook Marketplace style wizard.
  * Photos -> Details -> Meetup -> Preview, with per-step validation.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView,
@@ -320,7 +321,7 @@ export default function CreateListingScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: BG },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
   headerTitle: { fontSize: 17, fontWeight: '800', color: GRAY_900, letterSpacing: -0.4 },
@@ -347,7 +348,7 @@ const s = StyleSheet.create({
   tileImg: { width: '100%', height: '100%' },
   tileAdd: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#E5E7EB', borderStyle: 'dashed' },
   coverTag: { position: 'absolute', left: 5, bottom: 5, backgroundColor: 'rgba(0,0,0,0.72)', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
-  coverTxt: { color: '#FFF', fontSize: 10, fontWeight: '700' },
+  coverTxt: { color: t.ink.inverse, fontSize: 10, fontWeight: '700' },
   remove: { position: 'absolute', right: 4, top: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   safety: { marginTop: 22, backgroundColor: '#F7F8FA', borderRadius: 14, padding: 14, gap: 6 },
   safetyTitle: { fontSize: 14, fontWeight: '800', color: GRAY_900, marginBottom: 2 },
@@ -363,4 +364,4 @@ const s = StyleSheet.create({
   cta: { height: 50, borderRadius: 14, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   ctaOff: { opacity: 0.45 },
   ctaTxt: { color: BG, fontSize: 16, fontWeight: '700' },
-});
+}));

@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * ApplyVerificationScreen - where the badge is earned, never bought.
@@ -169,8 +170,8 @@ export default function ApplyVerificationScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
@@ -178,24 +179,24 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
   lede: { fontSize: 13, lineHeight: 19, color: 'rgba(11,30,61,0.6)', marginBottom: 16, marginTop: 4 },
   tierRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  tierChip: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', backgroundColor: '#FFFFFF' },
-  tierChipOn: { borderColor: NAVY, backgroundColor: 'rgba(11,30,61,0.05)' },
+  tierChip: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.2, borderColor: t.surface.hairline, backgroundColor: t.surface.canvas },
+  tierChipOn: { borderColor: NAVY, backgroundColor: t.brand.tintBg },
   tierTxt: { fontSize: 12.5, fontWeight: '700', color: 'rgba(11,30,61,0.6)', flexShrink: 1 },
   tierTxtOn: { color: NAVY },
   fieldLabel: { fontSize: 13, fontWeight: '800', color: NAVY, marginBottom: 8, marginTop: 6 },
   catWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  catChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', backgroundColor: '#FFFFFF' },
+  catChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1.2, borderColor: t.surface.hairline, backgroundColor: t.surface.canvas },
   catChipOn: { borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.08)' },
   catTxt: { fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.65)' },
   catTxtOn: { color: '#059669', fontWeight: '800' },
-  input: { borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, marginBottom: 10, backgroundColor: '#FFFFFF' },
+  input: { borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: NAVY, marginBottom: 10, backgroundColor: t.surface.canvas },
   note: { fontSize: 11.5, color: 'rgba(11,30,61,0.5)', marginBottom: 10 },
   submit: { backgroundColor: NAVY, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
-  submitTxt: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
-  statusCard: { borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 16, padding: 16, marginTop: 8, backgroundColor: 'rgba(11,30,61,0.03)' },
+  submitTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '800' },
+  statusCard: { borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 16, padding: 16, marginTop: 8, backgroundColor: 'rgba(11,30,61,0.03)' },
   statusTier: { fontSize: 15, fontWeight: '800', color: NAVY, marginLeft: 4 },
   statusLine: { fontSize: 13.5, lineHeight: 20, color: 'rgba(11,30,61,0.75)', marginTop: 10 },
   statusReason: { fontSize: 13, color: 'rgba(11,30,61,0.6)', marginTop: 6, fontStyle: 'italic' },
   reapply: { marginTop: 12, alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 12, backgroundColor: NAVY },
-  reapplyTxt: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-});
+  reapplyTxt: { color: t.ink.inverse, fontSize: 13, fontWeight: '700' },
+}));

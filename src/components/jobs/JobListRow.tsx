@@ -3,6 +3,7 @@
  * Brand monogram block, title, company · place, and an optional right slot
  * (bookmark toggle, status chip). Whole row taps through to JobDetail.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -29,11 +30,11 @@ export default function JobListRow({ job, subtitle, right, onPress }: {
   );
 }
 
-const st = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, backgroundColor: '#FFFFFF' },
+const st = themedSheet((t) => ({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, backgroundColor: t.surface.canvas },
   logo: { width: 46, height: 46, borderRadius: 12, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(201,191,176,0.7)' },
   logoTxt: { fontSize: 17, fontWeight: '800', color: PLATINUM },
   title: { fontSize: 15.5, fontWeight: '700', color: NAVY, letterSpacing: -0.2 },
   meta: { fontSize: 13, color: 'rgba(11,30,61,0.6)', marginTop: 2 },
-  sub: { fontSize: 12, color: 'rgba(11,30,61,0.42)', marginTop: 2 },
-});
+  sub: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
+}));

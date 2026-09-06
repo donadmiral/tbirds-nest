@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -338,7 +339,7 @@ function StepRow({ number, text }: { number: number; text: string }) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   container: {
     flex: 1, justifyContent: 'center', alignItems: 'center',
     padding: 32, backgroundColor: WHITE,
@@ -415,4 +416,4 @@ const s = StyleSheet.create({
   successBtnTxt: { fontSize: 16, fontWeight: '700', color: NAVY },
   successBtnTxtASU: { color: MAROON },
   successHint: { fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 12 },
-});
+}));

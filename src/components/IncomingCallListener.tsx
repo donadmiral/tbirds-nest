@@ -8,6 +8,7 @@
  * Syncs with shared call navigation guard to prevent duplicate
  * navigation when push tap handler also fires.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { nativeCallService } from '../services/nativeCallService';
@@ -328,11 +329,11 @@ export default function IncomingCallListener() {
   );
 }
 
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   wrap: {
     position: 'absolute', left: 12, right: 12, zIndex: 9998,
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#0B1E3D', borderRadius: 18,
+    backgroundColor: t.brand.base, borderRadius: 18,
     paddingHorizontal: 14, paddingVertical: 12,
     shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 14, shadowOffset: { width: 0, height: 6 },
     elevation: 10,
@@ -340,9 +341,9 @@ const st = StyleSheet.create({
   avatar: { width: 40, height: 40, borderRadius: 20 },
   avatarFb: { backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
   mid: { flex: 1 },
-  name: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  name: { color: t.ink.inverse, fontSize: 15, fontWeight: '700' },
   sub: { color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 1 },
   circle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   decline: { backgroundColor: '#EF4444' },
   accept: { backgroundColor: '#10B981' },
-});
+}));

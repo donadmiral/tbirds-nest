@@ -7,6 +7,7 @@
  * gathered in one place instead of buried in whichever post carried it. That is
  * the thing X cannot do, because its cards only ever point off-platform.
  */
+import { themedSheet, getTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Linking, Alert, TextInput,
@@ -57,10 +58,10 @@ export function BusinessProducts({ businessId, navigation }: { businessId: strin
     if (p.link_url) Linking.openURL(p.link_url).catch(() => {});
   };
 
-  if (loading) return <View style={s.pad}><ActivityIndicator color={light.brand.base} /></View>;
+  if (loading) return <View style={s.pad}><ActivityIndicator color={getTheme().brand.base} /></View>;
   if (error) return (
     <View style={s.empty}>
-      <Feather name="alert-circle" size={26} color={light.ink.faint} />
+      <Feather name="alert-circle" size={26} color={getTheme().ink.faint} />
       <Text style={s.emptyTitle}>Could not load products</Text>
       <Text style={s.emptySub}>{error}</Text>
       <TouchableOpacity onPress={() => { setLoading(true); load(); }}><Text style={s.link}>Try again</Text></TouchableOpacity>
@@ -68,7 +69,7 @@ export function BusinessProducts({ businessId, navigation }: { businessId: strin
   );
   if (rows.length === 0) return (
     <View style={s.empty}>
-      <Feather name="package" size={26} color={light.ink.faint} />
+      <Feather name="package" size={26} color={getTheme().ink.faint} />
       <Text style={s.emptyTitle}>No products yet</Text>
       <Text style={s.emptySub}>Products attached to this business's posts appear here.</Text>
     </View>
@@ -83,13 +84,13 @@ export function BusinessProducts({ businessId, navigation }: { businessId: strin
             {p.image_url ? (
               <Image source={{ uri: p.image_url }} style={s.thumb} resizeMode="cover" />
             ) : (
-              <View style={[s.thumb, s.thumbEmpty]}><Feather name="package" size={22} color={light.ink.faint} /></View>
+              <View style={[s.thumb, s.thumbEmpty]}><Feather name="package" size={22} color={getTheme().ink.faint} /></View>
             )}
             <View style={s.cardBody}>
               <Text style={s.cardTitle} numberOfLines={2}>{p.title}</Text>
               <View style={s.cardFoot}>
                 {priceLabel ? <Text style={s.price}>{priceLabel}</Text> : <View />}
-                {!p.listing_id ? <Feather name="external-link" size={11} color={light.ink.faint} /> : null}
+                {!p.listing_id ? <Feather name="external-link" size={11} color={getTheme().ink.faint} /> : null}
               </View>
             </View>
           </TouchableOpacity>
@@ -110,7 +111,7 @@ function Stars({ value, size = 13, onPick }: { value: number; size?: number; onP
     <View style={s.stars}>
       {[1, 2, 3, 4, 5].map(n => (
         <TouchableOpacity key={n} disabled={!onPick} onPress={() => onPick?.(n)} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}>
-          <Feather name="star" size={size} color={n <= value ? light.brand.warm : light.ink.faint} />
+          <Feather name="star" size={size} color={n <= value ? getTheme().brand.warm : getTheme().ink.faint} />
         </TouchableOpacity>
       ))}
     </View>
@@ -149,7 +150,7 @@ export function BusinessReviews({ businessId, canReview }: { businessId: string;
     load();
   };
 
-  if (loading) return <View style={s.pad}><ActivityIndicator color={light.brand.base} /></View>;
+  if (loading) return <View style={s.pad}><ActivityIndicator color={getTheme().brand.base} /></View>;
 
   return (
     <View style={s.pad}>
@@ -160,10 +161,10 @@ export function BusinessReviews({ businessId, canReview }: { businessId: string;
           <TextInput
             value={body} onChangeText={setBody}
             style={s.writeInput} placeholder="What was it like? (optional)"
-            placeholderTextColor={light.ink.faint} multiline textAlignVertical="top" maxLength={400}
+            placeholderTextColor={getTheme().ink.faint} multiline textAlignVertical="top" maxLength={400}
           />
           <TouchableOpacity style={[s.submit, (rating < 1 || saving) && s.submitOff]} onPress={submit} disabled={rating < 1 || saving}>
-            {saving ? <ActivityIndicator size="small" color={light.ink.inverse} /> : <Text style={s.submitTxt}>Post review</Text>}
+            {saving ? <ActivityIndicator size="small" color={getTheme().ink.inverse} /> : <Text style={s.submitTxt}>Post review</Text>}
           </TouchableOpacity>
         </View>
       ) : null}
@@ -172,7 +173,7 @@ export function BusinessReviews({ businessId, canReview }: { businessId: string;
 
       {rows.length === 0 ? (
         <View style={s.empty}>
-          <Feather name="star" size={26} color={light.ink.faint} />
+          <Feather name="star" size={26} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>No reviews yet</Text>
           <Text style={s.emptySub}>Be the first to say what this business was like.</Text>
         </View>
@@ -225,10 +226,10 @@ export function SellerListings({ sellerId, navigation, isSelf }: { sellerId: str
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <View style={s.pad}><ActivityIndicator color={light.brand.base} /></View>;
+  if (loading) return <View style={s.pad}><ActivityIndicator color={getTheme().brand.base} /></View>;
   if (error) return (
     <View style={s.empty}>
-      <Feather name="alert-circle" size={26} color={light.ink.faint} />
+      <Feather name="alert-circle" size={26} color={getTheme().ink.faint} />
       <Text style={s.emptyTitle}>Could not load listings</Text>
       <Text style={s.emptySub}>{error}</Text>
       <TouchableOpacity onPress={() => { setLoading(true); load(); }}><Text style={s.link}>Try again</Text></TouchableOpacity>
@@ -239,14 +240,14 @@ export function SellerListings({ sellerId, navigation, isSelf }: { sellerId: str
     <View>
       {isSelf ? (
         <TouchableOpacity style={s.soldToggle} onPress={() => { setLoading(true); setShowSold(v => !v); }} activeOpacity={0.7}>
-          <Feather name={showSold ? 'check-square' : 'square'} size={14} color={light.ink.muted} />
+          <Feather name={showSold ? 'check-square' : 'square'} size={14} color={getTheme().ink.muted} />
           <Text style={s.soldTxt}>Show sold items</Text>
         </TouchableOpacity>
       ) : null}
 
       {rows.length === 0 ? (
         <View style={s.empty}>
-          <Feather name="shopping-bag" size={26} color={light.ink.faint} />
+          <Feather name="shopping-bag" size={26} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Nothing for sale</Text>
           <Text style={s.emptySub}>
             {isSelf ? 'Listings you post in Market appear here.' : 'This seller has nothing listed right now.'}
@@ -267,14 +268,14 @@ export function SellerListings({ sellerId, navigation, isSelf }: { sellerId: str
                 {l.images?.[0] ? (
                   <Image source={{ uri: l.images[0] }} style={s.thumb} resizeMode="cover" />
                 ) : (
-                  <View style={[s.thumb, s.thumbEmpty]}><Feather name="image" size={22} color={light.ink.faint} /></View>
+                  <View style={[s.thumb, s.thumbEmpty]}><Feather name="image" size={22} color={getTheme().ink.faint} /></View>
                 )}
                 {sold ? <View style={s.soldBadge}><Text style={s.soldBadgeTxt}>SOLD</Text></View> : null}
                 <View style={s.cardBody}>
                   <Text style={s.cardTitle} numberOfLines={2}>{l.title}</Text>
                   <View style={s.cardFoot}>
                     {priceLabel ? <Text style={s.price}>{priceLabel}</Text> : <View />}
-                    {l.delivery_available ? <Feather name="truck" size={11} color={light.ink.muted} /> : null}
+                    {l.delivery_available ? <Feather name="truck" size={11} color={getTheme().ink.muted} /> : null}
                   </View>
                   {l.location_city ? <Text style={s.cardMeta} numberOfLines={1}>{l.location_city}</Text> : null}
                 </View>
@@ -286,54 +287,54 @@ export function SellerListings({ sellerId, navigation, isSelf }: { sellerId: str
     </View>
   );
 }
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   soldToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingTop: 12 },
-  soldTxt: { fontSize: typeSize.caption, color: light.ink.muted },
+  soldTxt: { fontSize: typeSize.caption, color: t.ink.muted },
   soldBadge: {
     position: 'absolute', top: 8, left: 8,
     paddingHorizontal: 7, paddingVertical: 3, borderRadius: radius.sm,
-    backgroundColor: light.surface.scrim,
+    backgroundColor: t.surface.scrim,
   },
-  soldBadgeTxt: { fontSize: 9, fontWeight: fontWeight.heavy, color: light.ink.inverse, letterSpacing: 0.6 },
-  cardMeta: { fontSize: typeSize.micro, color: light.ink.muted },
+  soldBadgeTxt: { fontSize: 9, fontWeight: fontWeight.heavy, color: t.ink.inverse, letterSpacing: 0.6 },
+  cardMeta: { fontSize: typeSize.micro, color: t.ink.muted },
   pad: { padding: 14 },
   empty: { alignItems: 'center', paddingVertical: 44, paddingHorizontal: 36, gap: 6 },
-  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.ink.primary, marginTop: 4 },
-  emptySub: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center', lineHeight: 18 },
-  link: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: light.brand.base, marginTop: 6 },
+  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: t.ink.primary, marginTop: 4 },
+  emptySub: { fontSize: typeSize.caption, color: t.ink.muted, textAlign: 'center', lineHeight: 18 },
+  link: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.brand.base, marginTop: 6 },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, padding: 14 },
   card: {
     width: '48%', borderRadius: radius.md, overflow: 'hidden',
-    borderWidth: HAIR, borderColor: light.surface.hairline, backgroundColor: light.surface.canvas,
+    borderWidth: HAIR, borderColor: t.surface.hairline, backgroundColor: t.surface.canvas,
   },
-  thumb: { width: '100%', height: 124, backgroundColor: light.surface.sunken },
+  thumb: { width: '100%', height: 124, backgroundColor: t.surface.sunken },
   thumbEmpty: { alignItems: 'center', justifyContent: 'center' },
   cardBody: { paddingHorizontal: 9, paddingTop: 7, paddingBottom: 9, gap: 3 },
-  cardTitle: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.ink.primary, lineHeight: 16 },
+  cardTitle: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.ink.primary, lineHeight: 16 },
   cardFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  price: { fontSize: typeSize.body, fontWeight: fontWeight.heavy, color: light.ink.primary },
+  price: { fontSize: typeSize.body, fontWeight: fontWeight.heavy, color: t.ink.primary },
 
   stars: { flexDirection: 'row', gap: 3 },
   writeBox: {
-    borderWidth: HAIR, borderColor: light.surface.hairline, borderRadius: radius.md,
-    padding: space.sm, marginBottom: space.md, gap: space.xs, backgroundColor: light.surface.raised,
+    borderWidth: HAIR, borderColor: t.surface.hairline, borderRadius: radius.md,
+    padding: space.sm, marginBottom: space.md, gap: space.xs, backgroundColor: t.surface.raised,
   },
-  writeLbl: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1, textTransform: 'uppercase', color: light.ink.muted },
+  writeLbl: { fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.1, textTransform: 'uppercase', color: t.ink.muted },
   writeInput: {
-    minHeight: 68, borderWidth: HAIR, borderColor: light.surface.hairline, borderRadius: radius.sm,
+    minHeight: 68, borderWidth: HAIR, borderColor: t.surface.hairline, borderRadius: radius.sm,
     paddingHorizontal: space.xs, paddingTop: 8, paddingBottom: 8,
-    fontSize: typeSize.body, color: light.ink.primary, backgroundColor: light.surface.canvas,
+    fontSize: typeSize.body, color: t.ink.primary, backgroundColor: t.surface.canvas,
   },
-  submit: { alignSelf: 'flex-start', paddingHorizontal: space.md, paddingVertical: 8, borderRadius: radius.full, backgroundColor: light.brand.base },
+  submit: { alignSelf: 'flex-start', paddingHorizontal: space.md, paddingVertical: 8, borderRadius: radius.full, backgroundColor: t.brand.base },
   submitOff: { opacity: 0.4 },
-  submitTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  submitTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
-  review: { flexDirection: 'row', gap: space.sm, paddingVertical: space.sm, borderTopWidth: HAIR, borderTopColor: light.surface.divider },
-  rAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: light.surface.sunken },
-  rAvatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.base },
-  rAvatarTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  review: { flexDirection: 'row', gap: space.sm, paddingVertical: space.sm, borderTopWidth: HAIR, borderTopColor: t.surface.divider },
+  rAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.surface.sunken },
+  rAvatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base },
+  rAvatarTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
   rHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.xs },
-  rName: { flex: 1, fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  rBody: { fontSize: typeSize.caption, color: light.ink.secondary, lineHeight: 18, marginTop: 3 },
-});
+  rName: { flex: 1, fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  rBody: { fontSize: typeSize.caption, color: t.ink.secondary, lineHeight: 18, marginTop: 3 },
+}));

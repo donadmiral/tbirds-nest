@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import {
@@ -228,8 +229,8 @@ export default function CallLogScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
@@ -237,7 +238,7 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: '#F2F2F7', marginLeft: 76 },
   avatar: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  avatarTxt: { fontSize: 17, fontWeight: '800', color: '#FFF' },
+  avatarTxt: { fontSize: 17, fontWeight: '800', color: t.ink.inverse },
   info: { flex: 1, gap: 3 },
   name: { fontSize: 15, fontWeight: '600', color: '#000' },
   nameMissed: { color: '#EF4444' },
@@ -250,4 +251,4 @@ const s = StyleSheet.create({
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#000' },
   emptySub: { fontSize: 14, color: '#8E8E93' },
-});
+}));

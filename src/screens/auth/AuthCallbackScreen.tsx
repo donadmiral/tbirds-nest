@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { useEffect, useState } from 'react';
 import {
   View,
@@ -407,7 +408,7 @@ export default function AuthCallbackScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -436,7 +437,7 @@ const s = StyleSheet.create({
   resetInput: {
     backgroundColor: '#FBFBFA',
     borderWidth: 1,
-    borderColor: 'rgba(11,30,61,0.12)',
+    borderColor: t.surface.hairline,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 14,
@@ -455,4 +456,4 @@ const s = StyleSheet.create({
   primaryBtnTxt: { color: '#F5F0E8', fontSize: 16, fontWeight: '700', letterSpacing: 0.4 },
   cancelBtn: { alignItems: 'center', paddingVertical: 14, marginTop: 4 },
   cancelTxt: { color: GRAY_500, fontSize: 15 },
-});
+}));

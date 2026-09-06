@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -244,8 +245,8 @@ export default function MessageRequestsScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -281,7 +282,7 @@ const s = StyleSheet.create({
   },
   topRow: { flexDirection: 'row', alignItems: 'center' },
   avatar: { width: 46, height: 46, borderRadius: 23 },
-  avatarTxt: { fontSize: 15, fontWeight: '800', color: '#FFF' },
+  avatarTxt: { fontSize: 15, fontWeight: '800', color: t.ink.inverse },
   name: { fontSize: 15, fontWeight: '700', color: '#000' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
   handle: { fontSize: 12, color: '#8E8E93', maxWidth: 180 },
@@ -303,8 +304,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  btnDecline: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB' },
+  btnDecline: { backgroundColor: t.surface.canvas, borderWidth: 1, borderColor: '#E5E7EB' },
   btnDeclineTxt: { fontSize: 14, fontWeight: '700', color: '#374151' },
   btnAccept: { backgroundColor: '#000' },
-  btnAcceptTxt: { fontSize: 14, fontWeight: '700', color: '#FFF' },
-});
+  btnAcceptTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
+}));
