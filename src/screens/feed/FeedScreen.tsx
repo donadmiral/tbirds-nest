@@ -1537,7 +1537,7 @@ export default function FeedScreen({ navigation }: any) {
 
       const { data: newPost, error } = await supabase
         .from('posts').insert(insertData).select('id').single();
-      if (!pErr && created?.id && collabUsername) { await inviteCollaborator(created.id, collabUsername); }
+      if (!error && newPost?.id && collabUsername) { await inviteCollaborator(newPost.id, collabUsername); }
       if (error) {
         Alert.alert('Post failed', error.message);
         return;
