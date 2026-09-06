@@ -15,7 +15,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle } from 'react-native-svg';
 
-const BOOM_SEC = 2;
+const BOOM_SEC = 1;
 const CAPTURE_SIZE = 78;
 const RING_R = 36;
 const RING_C = 2 * Math.PI * (RING_R + 5);
