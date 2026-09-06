@@ -13,14 +13,6 @@ const PLATINUM_GLOW = "#F5F0E8";
 const PLATINUM_START = "#C9BFB0";
 const PLATINUM_END = "#A89F91";
 
-function hashSpeed(userId: string): number {
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = ((hash << 5) - hash + userId.charCodeAt(i)) | 0;
-  }
-  return 3500 + (Math.abs(hash) % 1500);
-}
-
 function PlatinumRingWeb({ userId, size, active }: { userId: string; size: number; active: boolean }) {
   const center = size / 2;
   const radius = center - 2;
@@ -35,12 +27,7 @@ function PlatinumRingWeb({ userId, size, active }: { userId: string; size: numbe
           <stop offset="100%" stopColor={PLATINUM_END} />
         </linearGradient>
       </defs>
-      <circle cx={center} cy={center} r={radius} fill="none" stroke={"url(#" + gid + ")"} strokeWidth={active ? 2 : 1.5} opacity={active ? 1 : 0.55} />
-      {active ? (
-        <g style={{ transformOrigin: "center", willChange: "transform", animation: "platinumspin " + hashSpeed(userId) + "ms linear infinite" }}>
-          <circle cx={center} cy={center} r={radius} fill="none" stroke={PLATINUM_GLOW} strokeWidth={2.5} strokeLinecap="round" strokeDasharray={arcDash + " " + (circumference - arcDash)} />
-        </g>
-      ) : null}
+      <circle cx={center} cy={center} r={radius} fill="none" stroke={"url(#" + gid + ")"} strokeWidth={active ? 2.5 : 1.5} opacity={active ? 1 : 0.4} />
     </svg>
   );
 }
@@ -87,7 +74,6 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
 
   return (
     <>
-      <style>{"@keyframes platinumspin { to { transform: rotate(360deg); } }"}</style>
       <div className="mb-4 flex gap-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-4 py-4">
         <a href="/story/new" className="flex w-16 shrink-0 flex-col items-center gap-1.5">
           {/* Your own face with a plus on it, rather than an empty dashed
