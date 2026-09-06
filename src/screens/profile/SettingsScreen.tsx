@@ -2,6 +2,7 @@ import { KeyboardAvoidingView, Platform } from 'react-native';
 import { paymentsService } from '../../services/paymentsService';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { useThemeStore } from '../../stores/themeStore';
 import { useLockStore } from '../../stores/lockStore';
 import React, { useCallback, useState } from 'react';
 import {
@@ -222,6 +223,14 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } }] : []),
+      { icon: 'moon', color: '#0B1E3D', label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'dark' ? 'Dark' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
+        Alert.alert('Appearance', 'Light, dark, or whatever your phone is set to', [
+          { text: 'Follow my phone', onPress: () => useThemeStore.getState().setMode('system') },
+          { text: 'Light', onPress: () => useThemeStore.getState().setMode('light') },
+          { text: 'Dark', onPress: () => useThemeStore.getState().setMode('dark') },
+          { text: 'Cancel', style: 'cancel' },
+        ]);
+      } },
       { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: 'Face ID at launch and when you return after being away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
     ] },
     { title: 'IntoBank', rows: [

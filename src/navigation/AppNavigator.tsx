@@ -4,7 +4,10 @@ import MutedStoriesScreen from '../screens/profile/MutedStoriesScreen';
 import ArticleReaderScreen from '../screens/feed/ArticleReaderScreen';
 import React, { useEffect, useRef, useState } from 'react';
 import { AppState, Platform, StyleSheet, Text, View, Animated, Pressable } from 'react-native';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme as NavDarkTheme } from '@react-navigation/native';
+import { StatusBar } from 'react-native';
+import { useTheme } from '../theme/useTheme';
+import { useThemeStore } from '../stores/themeStore';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -457,6 +460,14 @@ function useBadgeClearOnForeground() {
 }
 
 export default function AppNavigator() {
+  const { t, isDark } = useTheme();
+  const initTheme = useThemeStore(s => s.init);
+  React.useEffect(() => { initTheme(); }, [initTheme]);
+  // Navigation chrome follows the palette so screen transitions never flash white in the dark.
+  const navTheme = React.useMemo(() => ({
+    ...(isDark ? NavDarkTheme : DefaultTheme),
+    colors: { ...(isDark ? NavDarkTheme : DefaultTheme).colors, background: t.surface.canvas, card: t.surface.canvas, text: t.ink.primary, border: t.surface.hairline, primary: t.brand.base, notification: t.status.danger },
+  }), [t, isDark]);
   const session = useAuthStore(s => s.session);
   const profile = useAuthStore(s => s.profile);
   const loading = useAuthStore(s => s.loading);
@@ -470,7 +481,8 @@ export default function AppNavigator() {
     return (
       <CallProvider>
         <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
-          theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF', text: '#000000', border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30' } }}>
+          theme={navTheme}>
+          <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <LaunchVeil busy={loading} />
           <OfflineBanner />
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -490,7 +502,8 @@ export default function AppNavigator() {
   return (
     <CallProvider>
       <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
-        theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF', text: '#000000', border: '#F0F0F0', primary: '#0B1E3D', notification: '#FF3B30' } }}>
+        theme={navTheme}>
+          <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <OfflineBanner />
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {isReady ? (
