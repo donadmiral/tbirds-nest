@@ -300,9 +300,9 @@ export default function FeedScreen({ navigation }: any) {
   }, [userId]);
   const hydrateCollabs = useCallback((ids: string[]) => {
     if (!ids.length) return;
-    supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
+    supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url, is_verified, verified_tier)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
       const m: Record<string, { id: string; username: string | null; full_name: string | null }[]> = {};
-      (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null }); });
+      (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null, avatar_url: pr.avatar_url ?? null, is_verified: !!pr.is_verified, verified_tier: pr.verified_tier ?? null } as any); });
       setCollabs(prev => ({ ...prev, ...m }));
     }, () => {});
   }, []);
@@ -1821,15 +1821,18 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               );
             })()}
             <View style={s.postMetaTxt}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
                 <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />
-                {(collabs[post.id] || []).length > 0 ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 }}>
-                    <View style={{ backgroundColor: 'rgba(11,30,61,0.08)', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 }}><Text style={{ fontSize: 10, fontWeight: '800', color: getTheme().ink.primary }}>COLLAB</Text></View>
-                    <Text style={{ fontSize: 12.5, color: getTheme().ink.muted, flexShrink: 1 }} numberOfLines={1}>with {(collabs[post.id] || []).map(x => '@' + (x.username || x.full_name || '')).join(', ')}</Text>
-                  </View>
-                ) : null}
                 {((author as any)?.verified_tier || (author as any)?.is_verified) ? <VerifiedBadge tier={(author as any)?.verified_tier} size={13} /> : null}
+                {(collabs[post.id] || []).map((x: any) => (
+                  <View key={x.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                    <Text style={[s.postSub, { marginTop: 0 }]}>and</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: x.id })} activeOpacity={0.7}>
+                      <TierName tier={x.verified_tier ?? (x.is_verified ? 'business' : null)} baseStyle={s.postAuthor} text={x.full_name || x.username || ''} />
+                    </TouchableOpacity>
+                    {(x.verified_tier || x.is_verified) ? <VerifiedBadge tier={x.verified_tier} size={13} /> : null}
+                  </View>
+                ))}
               </View>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: getTheme().status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
               {(post as any)._promo && (

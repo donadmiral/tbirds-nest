@@ -1,3 +1,4 @@
+import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import { Alert, ScrollView } from 'react-native';
 import { TapTopSectionList } from '../../components/TapTopList';
@@ -330,13 +331,15 @@ export default function NotificationsScreen({ navigation }: any) {
 
   const respondCollab = async (n: Notif, accept: boolean) => {
     const pid = (n as any).post_id || (n as any).data?.post_id; const { data: s } = await supabase.auth.getSession(); const me = s.session?.user.id;
-    if (!pid || !me) return;
+    if (!pid || !me) { Alert.alert('Not available', 'This invitation cannot be found.'); return; }
     setBusy(b => ({ ...b, [n.notification_id]: true }));
-    await supabase.from('post_collaborators').update({ status: accept ? 'accepted' : 'declined' }).eq('post_id', pid).eq('user_id', me);
+    const { data: updated, error } = await supabase.from('post_collaborators').update({ status: accept ? 'accepted' : 'declined' }).eq('post_id', pid).eq('user_id', me).eq('status', 'invited').select('post_id');
+    setBusy(b => ({ ...b, [n.notification_id]: false }));
+    if (error) { Alert.alert('Not saved', error.message); return; }
+    if (!updated || updated.length === 0) { Alert.alert('No longer open', 'This invitation was already answered or withdrawn.'); setRows(prev => prev.filter(r => r.notification_id !== n.notification_id)); return; }
     await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', n.notification_id);
     setRows(prev => prev.filter(r => r.notification_id !== n.notification_id));
-    setBusy(b => ({ ...b, [n.notification_id]: false }));
-    if (accept) navigation.navigate('Post', { postId: pid });
+    showMessage({ message: accept ? "You're now a collaborator" : 'Invitation declined', description: accept ? 'The post is on your profile too.' : undefined, type: 'success', duration: 2000 });
   };
   const respondRequest = async (n: Notif, action: 'accept' | 'reject') => {
     const reqId = n.data?.request_id;
