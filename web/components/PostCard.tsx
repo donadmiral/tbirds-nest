@@ -199,6 +199,7 @@ export function PostCard({ post }: { post: FeedRow }) {
                   {post.author_name}
                 </span>
                 {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
+                {collabNames.length === 1 ? <span className="ml-1 font-semibold text-ink">× {collabNames[0]}</span> : collabNames.length > 1 ? <span className="ml-1 font-semibold text-ink" title={collabNames.join(", ")}>× {collabNames.length} others</span> : null}
               </span>
               <span className="truncate text-[13px] text-ink/50">@{post.author_username}</span>
             </Link>
