@@ -207,6 +207,11 @@ export default function FeedScreen({ navigation }: any) {
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
   const [sharePostTarget, setSharePostTarget] = useState<Post | null>(null);
+  // Last known counts per post. The feed query returns zeros for some of
+  // them; this overlay makes sure a fresh load never draws a zero over a
+  // number the phone already knows.
+  const countCacheRef = useRef<Record<string, { likes_count?: number; reposts_count?: number; bookmarks_count?: number; shares_count?: number }>>({});
+  const overlayCounts = (list: Post[]) => list.map(pp => { const cc = countCacheRef.current[pp.id]; return cc ? { ...pp, ...cc } : pp; });
   const feedListRef = useRef<any>(null);
   const [commentPreviews, setCommentPreviews] = useState<Record<string, CommentPreview>>({});
   const [loading, setLoading] = useState(true);
@@ -566,7 +571,7 @@ export default function FeedScreen({ navigation }: any) {
       setFeedError(null);
 
       const rows = (feedRows ?? []) as any[];
-      const scored = rows.map(mapFeedRow);
+      const scored = overlayCounts(rows.map(mapFeedRow));
       hydrateShares(scored.map(pp => pp.id));
       const seenOnce = new Set<string>();
       setPosts(scored.filter(p => seenOnce.has(p.id) ? false : (seenOnce.add(p.id), true)));
@@ -747,17 +752,15 @@ export default function FeedScreen({ navigation }: any) {
     const countCh = supabase.channel('feed_post_counts')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload) => {
         const r = payload.new as any; if (!r?.id) return;
-        setPosts(prev => prev.map(pp => {
-          if (pp.id !== r.id) return pp;
-          const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
-          return {
-            ...pp,
-            likes_count: pick(r.likes_count, r.like_count, pp.likes_count),
-            reposts_count: pick(r.reposts_count, r.repost_count, pp.reposts_count),
-            bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, pp.bookmarks_count ?? 0),
-            shares_count: pick(r.shares_count, r.share_count, pp.shares_count ?? 0),
-          };
-        }));
+        const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
+        const prevC = countCacheRef.current[r.id] || {};
+        countCacheRef.current[r.id] = {
+          likes_count: pick(r.likes_count, r.like_count, prevC.likes_count ?? 0),
+          reposts_count: pick(r.reposts_count, r.repost_count, prevC.reposts_count ?? 0),
+          bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, prevC.bookmarks_count ?? 0),
+          shares_count: pick(r.shares_count, r.share_count, prevC.shares_count ?? 0),
+        };
+        setPosts(prev => overlayCounts(prev));
       })
       .subscribe();
 
@@ -1203,20 +1206,21 @@ export default function FeedScreen({ navigation }: any) {
     // everyone. That is the number every phone shows, whatever it can or
     // cannot read of the underlying like, repost and bookmark rows.
     supabase.from('posts').select('*').in('id', ids).then(({ data }) => {
+      console.log('[counts] hydrated', (data || []).length, 'of', ids.length, 'posts; bookmarks:', (data || []).map((r: any) => r.bookmarks_count).join(','));
       if (!data || !data.length) return;
       const m: Record<string, any> = {};
       data.forEach((r: any) => { m[r.id] = r; });
-      setPosts(prev => prev.map(pp => {
-        const r = m[pp.id]; if (!r) return pp;
-        const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
-        return {
-          ...pp,
-          likes_count: pick(r.likes_count, r.like_count, pp.likes_count),
-          reposts_count: pick(r.reposts_count, r.repost_count, pp.reposts_count),
-          bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, pp.bookmarks_count ?? 0),
-          shares_count: pick(r.shares_count, r.share_count, pp.shares_count ?? 0),
+      const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
+      Object.keys(m).forEach(id => {
+        const r = m[id];
+        countCacheRef.current[id] = {
+          likes_count: pick(r.likes_count, r.like_count, countCacheRef.current[id]?.likes_count ?? 0),
+          reposts_count: pick(r.reposts_count, r.repost_count, countCacheRef.current[id]?.reposts_count ?? 0),
+          bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, countCacheRef.current[id]?.bookmarks_count ?? 0),
+          shares_count: pick(r.shares_count, r.share_count, countCacheRef.current[id]?.shares_count ?? 0),
         };
-      }));
+      });
+      setPosts(prev => overlayCounts(prev));
     }, () => {});
     // Quotes are posts that point at these ids. Counted here so the repost
     // number means reposts and quotes together, as on X.
@@ -1564,7 +1568,7 @@ export default function FeedScreen({ navigation }: any) {
       if (rows.length < PAGE_SIZE) hasMoreRef.current = false;
       if (rows.length === 0) return;
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
-      const scored = rows.map(mapFeedRow);
+      const scored = overlayCounts(rows.map(mapFeedRow));
       hydrateShares(scored.map(pp => pp.id));
       setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: any[] = []; for (const p of scored) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } return [...prev, ...add]; });
       setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });
