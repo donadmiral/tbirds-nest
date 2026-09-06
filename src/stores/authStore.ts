@@ -44,6 +44,15 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     console.log('[authStore.loadProfile]', error.message);
     return null;
   }
+  // Signing in reactivates a self-deactivated account, as Instagram does.
+  if (data && (data as any).deactivated_at) {
+    try {
+      await supabase.from('profiles').update({ deactivated_at: null }).eq('id', userId);
+      (data as any).deactivated_at = null;
+      setTimeout(() => { try { showMessage({ message: 'Welcome back', description: 'Your account is active again.', type: 'success' }); } catch {} }, 600);
+      console.log('[authStore] account reactivated');
+    } catch {}
+  }
   if (data) { AsyncStorage.setItem('pc-profile-cache', JSON.stringify(data)).catch(() => {}); }
   return (data ?? null) as Profile | null;
 }

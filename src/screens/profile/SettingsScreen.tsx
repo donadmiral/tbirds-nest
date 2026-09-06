@@ -242,7 +242,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'user', color: '#0B1E3D', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
       { icon: 'award', color: '#0B1E3D', label: 'Account type', sub: ((): string => { const t = currentAccountType(); return t === 'business' ? 'Business' : t === 'creator' ? 'Creator' : 'Personal'; })(), onPress: () => setClassModal(true) },
       { icon: 'lock', color: '#0B1E3D', label: 'Change Password', sub: 'Update your account password', onPress: () => setPwModal(true) },
-      { icon: 'eye', color: '#0B1E3D', label: 'Privacy', sub: 'Private account and visibility', onPress: () => navigation.navigate('FollowRequests') },
+      { icon: 'eye', color: '#0B1E3D', label: 'Privacy', sub: 'Public, or private with approved followers', onPress: () => setPrivacyModal(true) },
       { icon: 'user-check', color: '#0B1E3D', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
       { icon: 'volume-x', color: 'rgba(11,30,61,0.42)', label: 'Muted stories', sub: 'People whose stories you hide', onPress: () => navigation.navigate('MutedStories') },
       { icon: 'bookmark', color: '#0B1E3D', label: 'Saved posts', sub: 'Posts you bookmarked', onPress: () => navigation.navigate('SavedPosts') },
@@ -268,8 +268,6 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
         right: sw(appSet.autoplayVideos, v => appSet.set({ autoplayVideos: v })) },
       { icon: 'upload-cloud', color: '#0B1E3D', label: 'Upload quality', sub: appSet.uploadQuality === 'high' ? 'High — best quality' : 'Data saver — smaller uploads', chevron: false,
         right: sw(appSet.uploadQuality === 'high', v => appSet.set({ uploadQuality: v ? 'high' : 'data-saver' })) },
-      { icon: 'moon', color: 'rgba(11,30,61,0.42)', label: 'Dark mode', sub: 'Coming soon', chevron: false,
-        right: sw(appSet.darkMode, v => appSet.set({ darkMode: v })) },
     ]},
     { title: 'Support', rows: [
       { icon: 'help-circle', color: '#0B1E3D', label: 'Help & Support', sub: 'FAQs, submit a ticket', onPress: () => navigation.navigate('HelpSupport') },
