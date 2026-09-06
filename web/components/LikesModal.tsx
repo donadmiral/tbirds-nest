@@ -10,31 +10,33 @@ import { FollowButton } from "@/components/FollowButton";
 
 type Liker = { id: string; full_name: string | null; username: string | null; avatar_url: string | null };
 
-export function LikesModal({ postId, onClose }: { postId: string; onClose: () => void }) {
+export function LikesModal({ postId, onClose, kind = "likes" }: { postId: string; onClose: () => void; kind?: "likes" | "reposts" | "bookmarks" }) {
+  const table = kind === "reposts" ? "post_reposts" : kind === "bookmarks" ? "post_bookmarks" : "post_likes";
+  const title = kind === "reposts" ? "Reposts" : kind === "bookmarks" ? "Bookmarks" : "Likes";
   const supabase = useRef(createClient()).current;
   const [likers, setLikers] = useState<Liker[] | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { data: rows } = await supabase.from("post_likes").select("user_id").eq("post_id", postId).limit(100);
+      const { data: rows } = await supabase.from(table).select("user_id").eq("post_id", postId).limit(100);
       const ids = Array.from(new Set((rows ?? []).map((r) => r.user_id as string)));
       if (ids.length === 0) { setLikers([]); return; }
       const { data: profs } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
       setLikers((profs ?? []) as Liker[]);
     })();
-  }, [supabase, postId]);
+  }, [supabase, postId, table]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="max-h-[70vh] w-full max-w-sm overflow-y-auto rounded-xl border border-ink/10 bg-navy p-4">
         <div className="flex items-center justify-between pb-2">
-          <h2 className="flex items-center gap-1.5 text-[15px] font-semibold text-ink"><Heart size={15} className="text-danger" fill="currentColor" /> Likes</h2>
+          <h2 className="flex items-center gap-1.5 text-[15px] font-semibold text-ink">{kind === "likes" ? <Heart size={15} className="text-danger" fill="currentColor" /> : null} {title}</h2>
           <button onClick={onClose} title="Close" className="rounded-full p-1 text-ink/50 hover:bg-surface hover:text-ink"><X size={16} /></button>
         </div>
         {likers === null ? (
           <p className="py-8 text-center text-sm text-ink/40">Loading</p>
         ) : likers.length === 0 ? (
-          <p className="py-8 text-center text-sm text-ink/40">No likes yet.</p>
+          <p className="py-8 text-center text-sm text-ink/40">{kind === "reposts" ? "No reposts yet." : kind === "bookmarks" ? "No bookmarks yet." : "No likes yet."}</p>
         ) : (
           likers.map((p) => (
             <div key={p.id} className="flex items-center gap-2.5 py-2">

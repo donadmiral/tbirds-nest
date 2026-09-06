@@ -107,6 +107,7 @@ export function PostCard({ post }: { post: FeedRow }) {
   const [heart, setHeart] = useState(false);
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
+  const [listKind, setListKind] = useState<"likes" | "reposts" | "bookmarks">("likes");
   const [expanded, setExpanded] = useState(false);
   const text = post.content ?? post.body ?? "";
   const rbw = post as unknown as { reposted_by_name?: string | null };
@@ -164,7 +165,7 @@ export function PostCard({ post }: { post: FeedRow }) {
           <Repeat2 size={13} /> {rb.reposted_by_name} reposted
         </Link>
       ) : null}
-      {likesOpen ? <LikesModal postId={post.post_id} onClose={() => setLikesOpen(false)} /> : null}
+      {likesOpen ? <LikesModal postId={post.post_id} kind={listKind} onClose={() => setLikesOpen(false)} /> : null}
       {heart ? (
         <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
           <Heart size={84} className="animate-ping text-danger" fill="currentColor" />
@@ -308,7 +309,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             <span className="relative">
               <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (repost.on) { repost.set(false); } else { setRepostMenu((v) => !v); } }} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (repost.on ? "text-success" : "text-ink/50 hover:bg-success/10 hover:text-success")}>
                 <Repeat2 size={18} strokeWidth={1.8} />
-                {count(repost.n)}
+                {repost.n > 0 ? <span role="button" title="See who reposted" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setListKind("reposts"); setLikesOpen(true); }} className="hover:underline">{count(repost.n)}</span> : null}
               </button>
               {repostMenu ? (
                 <span className="absolute bottom-9 left-0 z-20 w-36 overflow-hidden rounded-xl border border-ink/10 bg-navy shadow-2xl">
@@ -322,14 +323,14 @@ export function PostCard({ post }: { post: FeedRow }) {
                 <Heart size={18} strokeWidth={1.8} fill={like.on ? "currentColor" : "none"} />
               </button>
               {like.n > 0 ? (
-                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLikesOpen(true); }} title="See who liked this" className={"-ml-1 text-[13px] transition-colors duration-[140ms] hover:underline " + (like.on ? "text-danger" : "text-ink/50")}>
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setListKind("likes"); setLikesOpen(true); }} title="See who liked this" className={"-ml-1 text-[13px] transition-colors duration-[140ms] hover:underline " + (like.on ? "text-danger" : "text-ink/50")}>
                   {count(like.n)}
                 </button>
               ) : null}
             </span>
             <button onClick={mark.flip} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (mark.on ? "text-pearl" : "text-ink/50 hover:bg-pearl/10 hover:text-pearl")}>
               <Bookmark size={18} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
-              {count(mark.n)}
+              {mark.n > 0 ? <span role="button" title="See who bookmarked" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setListKind("bookmarks"); setLikesOpen(true); }} className="hover:underline">{count(mark.n)}</span> : null}
             </button>
             <span className="ml-auto">
               <ShareMenu postId={post.post_id} sharesCount={(post as unknown as { shares_count?: number }).shares_count ?? 0} />

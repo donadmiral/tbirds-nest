@@ -299,6 +299,8 @@ export default function FeedScreen({ navigation }: any) {
   }, [composerText, exclusivePost, innovationPost]);
   const [likersPost, setLikersPost] = useState<Post | null>(null);
   const [likersList, setLikersList] = useState<any[]>([]);
+  const [likersKind, setLikersKind] = useState<'likes' | 'reposts' | 'bookmarks'>('likes');
+  const [likersLoaded, setLikersLoaded] = useState(false);
   const [wtfSuggestions, setWtfSuggestions] = useState<any[]>([]);
   const [sendPost, setSendPost] = useState<Post | null>(null);
   // Who viewed a video post: owner-only list behind the eye badge.
@@ -999,10 +1001,15 @@ export default function FeedScreen({ navigation }: any) {
     Alert.alert('Reported', 'Thanks. This post has been hidden from your feed.');
   }, [userId, hidePost]);
 
-  const openLikers = useCallback(async (post: Post) => {
+  // One sheet for likes, reposts and bookmarks: who did it, newest first.
+  const openLikers = useCallback(async (post: Post, kind: 'likes' | 'reposts' | 'bookmarks' = 'likes') => {
+    setLikersKind(kind);
+    setLikersLoaded(false);
     setLikersPost(post);
     setLikersList([]);
-    const { data: lk } = await supabase.from('post_likes').select('user_id, created_at').eq('post_id', post.id).order('created_at', { ascending: false }).limit(100);
+    const table = kind === 'reposts' ? 'post_reposts' : kind === 'bookmarks' ? 'post_bookmarks' : 'post_likes';
+    const { data: lk } = await supabase.from(table).select('user_id, created_at').eq('post_id', post.id).order('created_at', { ascending: false }).limit(100);
+    setLikersLoaded(true);
     const uids = Array.from(new Set((lk ?? []).map((r: any) => r.user_id)));
     if (uids.length === 0) return;
     const { data: profs } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
@@ -1883,11 +1890,11 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
           <TouchableOpacity style={s.pill} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
             <Feather name="repeat" size={20} color={isReposted ? light.status.success : light.ink.muted} />
-            <Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{(post.reposts_count + (post.quotes_count ?? 0)) > 0 ? fmtCount(post.reposts_count + (post.quotes_count ?? 0)) : ''}</Text>
+            <TouchableOpacity onPress={() => openLikers(post, 'reposts')} hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }} activeOpacity={0.7}><Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{(post.reposts_count + (post.quotes_count ?? 0)) > 0 ? fmtCount(post.reposts_count + (post.quotes_count ?? 0)) : ''}</Text></TouchableOpacity>
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => toggleBookmark(post.id)} activeOpacity={0.75} disabled={isBusy(`bk-${post.id}`)}>
-            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />{(post.bookmarks_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: isBookmarked ? light.status.link : light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.bookmarks_count)}</Text> : null}
+            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />{(post.bookmarks_count ?? 0) > 0 ? <TouchableOpacity onPress={() => openLikers(post, 'bookmarks')} hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }} activeOpacity={0.7}><Text style={{ fontSize: 13, color: isBookmarked ? light.status.link : light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.bookmarks_count)}</Text></TouchableOpacity> : null}
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => setSharePostTarget(post)} activeOpacity={0.75}>
@@ -2300,8 +2307,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setLikersPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
-            <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Likes</Text>
-            {likersList.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>Loading...</Text>}
+            <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>{likersKind === 'reposts' ? 'Reposts' : likersKind === 'bookmarks' ? 'Bookmarks' : 'Likes'}</Text>
+            {likersList.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>{likersLoaded ? (likersKind === 'reposts' ? 'No reposts yet.' : likersKind === 'bookmarks' ? 'No bookmarks yet.' : 'No likes yet.') : 'Loading...'}</Text>}
             <ScrollView style={{ maxHeight: 380 }}>
               {likersList.map((p: any) => (
                 <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 9, gap: 12 }}>
