@@ -1206,7 +1206,6 @@ export default function FeedScreen({ navigation }: any) {
     // everyone. That is the number every phone shows, whatever it can or
     // cannot read of the underlying like, repost and bookmark rows.
     supabase.from('posts').select('*').in('id', ids).then(({ data }) => {
-      console.log('[counts] hydrated', (data || []).length, 'of', ids.length, 'posts; bookmarks:', (data || []).map((r: any) => r.bookmarks_count).join(','));
       if (!data || !data.length) return;
       const m: Record<string, any> = {};
       data.forEach((r: any) => { m[r.id] = r; });

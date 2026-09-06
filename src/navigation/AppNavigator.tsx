@@ -483,7 +483,8 @@ export default function AppNavigator() {
     return (
       <CallProvider>
         <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
-          theme={navTheme}>
+          theme={navTheme}
+          onUnhandledAction={(action: any) => { if (action?.type === 'GO_BACK') return; console.log('[nav] unhandled action', action?.type); }}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <AccountSwitcherSheet />
           <LaunchVeil busy={loading} />
@@ -505,7 +506,8 @@ export default function AppNavigator() {
   return (
     <CallProvider>
       <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
-        theme={navTheme}>
+        theme={navTheme}
+          onUnhandledAction={(action: any) => { if (action?.type === 'GO_BACK') return; console.log('[nav] unhandled action', action?.type); }}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <AccountSwitcherSheet />
           <OfflineBanner />
