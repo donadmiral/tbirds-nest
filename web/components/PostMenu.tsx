@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3, ShieldAlert, MessageCircle } from "lucide-react";
+import { MoreHorizontal, Copy, EyeOff, Flag, Ban, Trash2, Check, BarChart3, ShieldAlert, MessageCircle, Archive } from "lucide-react";
 import { InsightsModal } from "@/components/InsightsModal";
 import { PromoteModal } from "@/components/PromoteModal";
 import { FactCheckModal } from "@/components/FactCheck";
@@ -156,6 +156,7 @@ export function PostMenu({ postId, authorId, text, onHidden, reason }: {
                 <button onClick={toggleSensitive} className={item}><ShieldAlert size={15} /> Toggle sensitive media</button>
                 <button onClick={togglePin} className={item}><Pin size={15} /> Pin or unpin on profile</button>
                 <button onClick={async () => { setOpen(false); const { data } = await supabase.from("posts").select("comment_policy").eq("id", postId).maybeSingle(); const off = (data as { comment_policy?: string } | null)?.comment_policy === "off"; await supabase.from("posts").update({ comment_policy: off ? "everyone" : "off" }).eq("id", postId); window.dispatchEvent(new CustomEvent("pc-comments-toggled", { detail: { id: postId, off: !off } })); }} className={item}><MessageCircle size={15} /> Turn comments off or on</button>
+                <button onClick={async () => { setOpen(false); if (!window.confirm("Archive this post? It disappears from your profile and every feed. Nothing is deleted; restore it from Settings, Archive.")) return; await supabase.from("posts").update({ archived_at: new Date().toISOString() }).eq("id", postId); window.location.reload(); }} className={item}><Archive size={15} /> Archive post</button>
                 <button onClick={deletePost} className={item + " text-danger"}><Trash2 size={15} /> Delete post</button>
                 </>
               )}

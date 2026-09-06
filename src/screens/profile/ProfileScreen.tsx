@@ -176,7 +176,11 @@ export default function ProfileScreen() {
           const { data } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
           postsData = data || [];
         }
-        setTabPosts(postsData.map(normalizePost));
+        // Archived posts never show; the pinned post leads.
+        postsData = postsData.filter((x: any) => !x.archived_at);
+        const pinnedId = (authProfile as any)?.pinned_post_id ?? null;
+        const pinnedFirst = pinnedId ? [...postsData.filter((x: any) => x.id === pinnedId), ...postsData.filter((x: any) => x.id !== pinnedId)] : postsData;
+        setTabPosts(pinnedFirst.map((x: any) => ({ ...normalizePost(x), is_pinned: x.id === pinnedId })));
         setPostsHasMore(postsData.length >= 50);
         setTabCounts(prev => ({ ...prev, posts: postsData.length }));
       }

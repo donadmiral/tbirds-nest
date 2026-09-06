@@ -13,6 +13,7 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
+import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import { takePendingCapture } from '../../utils/captureBridge';
@@ -2646,6 +2647,37 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               }}>
                 <Feather name="message-circle" size={18} color={getTheme().ink.primary} />
                 <Text style={s.menuOptionTxt}>{(menuPost as any)?.comment_policy === 'off' ? 'Turn on comments' : 'Turn off comments'}</Text>
+              </TouchableOpacity>
+            )}
+
+            {menuPost?.user_id === userId && (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={async () => {
+                const captured = menuPost; setMenuPost(null); if (!captured || !userId) return;
+                const { data: me } = await supabase.from('profiles').select('pinned_post_id').eq('id', userId).maybeSingle();
+                const next = (me as any)?.pinned_post_id === captured.id ? null : captured.id;
+                const { error } = await supabase.from('profiles').update({ pinned_post_id: next }).eq('id', userId);
+                if (error) { Alert.alert('Not saved', error.message); return; }
+                showMessage({ message: next ? 'Pinned to your profile' : 'Unpinned', type: 'success', duration: 1500 });
+              }}>
+                <Feather name="bookmark" size={18} color={getTheme().ink.primary} />
+                <Text style={s.menuOptionTxt}>Pin or unpin on profile</Text>
+              </TouchableOpacity>
+            )}
+
+            {menuPost?.user_id === userId && (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
+                const captured = menuPost; setMenuPost(null); if (!captured) return;
+                Alert.alert('Archive post?', 'It disappears from your profile and every feed. Nothing is deleted; restore it any time from Settings, Archive.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Archive', onPress: async () => {
+                    const { error } = await supabase.from('posts').update({ archived_at: new Date().toISOString() }).eq('id', captured.id);
+                    if (error) { Alert.alert('Not archived', error.message); return; }
+                    setPosts(prev => prev.filter(pp => pp.id !== captured.id));
+                  } },
+                ]);
+              }}>
+                <Feather name="archive" size={18} color={getTheme().ink.primary} />
+                <Text style={s.menuOptionTxt}>Archive post</Text>
               </TouchableOpacity>
             )}
 
