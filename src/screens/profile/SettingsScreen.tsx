@@ -225,6 +225,22 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } }] : []),
+            { icon: 'bell-off', color: '#0B1E3D', label: 'Quiet mode', sub: ((): string => { const q = (pf as any)?.quiet_from; const r = (pf as any)?.quiet_to; return (q != null && r != null) ? ('No notifications ' + q + ':00 to ' + r + ':00') : 'Pause notifications for the hours you choose'; })(), onPress: () => {
+        const set = async (from: number | null, to: number | null) => {
+          if (!profile?.id) return;
+          const off = -new Date().getTimezoneOffset();
+          const { error } = await supabase.from('profiles').update({ quiet_from: from, quiet_to: to, quiet_tz_offset_min: off }).eq('id', profile.id);
+          if (error) { Alert.alert('Not saved', error.message); return; }
+          setLocalProfile((p: any) => ({ ...(p || {}), quiet_from: from, quiet_to: to }));
+        };
+        Alert.alert('Quiet mode', 'No push notifications during these hours. They wait in the app.', [
+          { text: '10 pm to 7 am', onPress: () => set(22, 7) },
+          { text: '11 pm to 8 am', onPress: () => set(23, 8) },
+          { text: 'Midnight to 9 am', onPress: () => set(0, 9) },
+          { text: 'Off', onPress: () => set(null, null) },
+          { text: 'Cancel', style: 'cancel' },
+        ]);
+      } },
       { icon: 'moon', color: '#0B1E3D', label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'dark' ? 'Dark' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
         Alert.alert('Appearance', 'Light, dark, or whatever your phone is set to', [
           { text: 'Follow my phone', onPress: () => useThemeStore.getState().setMode('system') },
@@ -247,7 +263,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'smartphone', color: '#0B1E3D', label: 'Login activity', sub: 'Devices signed in, and log the others out', onPress: () => (navigation as any).navigate('LoginActivity') },
       { icon: 'eye', color: '#0B1E3D', label: 'Privacy', sub: 'Public, or private with approved followers', onPress: () => setPrivacyModal(true) },
       { icon: 'user-check', color: '#0B1E3D', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
-            { icon: 'eye-off', color: '#0B1E3D', label: 'Hidden words', sub: 'Hide comments that contain certain words', onPress: () => (navigation as any).navigate('HiddenWords') },
+                  { icon: 'volume-x', color: '#0B1E3D', label: 'Muted words', sub: 'Keep posts with certain words out of your feed', onPress: () => (navigation as any).navigate('MutedWords') },
       { icon: 'bookmark', color: '#0B1E3D', label: 'Saved posts', sub: 'Posts you bookmarked', onPress: () => navigation.navigate('SavedPosts') },
       { icon: 'slash', color: '#FF3B30', label: 'Blocked accounts', sub: 'See and undo who you blocked', onPress: () => navigation.navigate('BlockedAccounts') },
       { icon: 'briefcase', color: '#0B1E3D', label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages

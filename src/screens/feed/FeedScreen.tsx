@@ -208,6 +208,17 @@ export default function FeedScreen({ navigation }: any) {
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
   const [sharePostTarget, setSharePostTarget] = useState<Post | null>(null);
+  // Muted words: posts containing any of them stay out of every feed here.
+  const [mutedWords, setMutedWords] = useState<string[]>([]);
+  useEffect(() => {
+    if (!userId) return;
+    supabase.from('profiles').select('muted_words').eq('id', userId).maybeSingle().then(({ data }) => setMutedWords((((data as any)?.muted_words as string[]) || []).map((w) => String(w).toLowerCase())), () => {});
+  }, [userId]);
+  const isMuted = useCallback((pp: Post) => {
+    if (!mutedWords.length) return false;
+    const text = ((pp.content || '') + ' ' + ((pp as any).article_title || '')).toLowerCase();
+    return mutedWords.some((w) => w && text.includes(w));
+  }, [mutedWords]);
   // Last known counts per post. The feed query returns zeros for some of
   // them; this overlay makes sure a fresh load never draws a zero over a
   // number the phone already knows.
@@ -588,7 +599,7 @@ export default function FeedScreen({ navigation }: any) {
       setFeedError(null);
 
       const rows = (feedRows ?? []) as any[];
-      const scored = overlayCounts(rows.map(mapFeedRow));
+      const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !isMuted(pp));
       hydrateShares(scored.map(pp => pp.id));
       const seenOnce = new Set<string>();
       setPosts(scored.filter(p => seenOnce.has(p.id) ? false : (seenOnce.add(p.id), true)));
@@ -1586,7 +1597,7 @@ export default function FeedScreen({ navigation }: any) {
       if (rows.length < PAGE_SIZE) hasMoreRef.current = false;
       if (rows.length === 0) return;
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
-      const scored = overlayCounts(rows.map(mapFeedRow));
+      const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !isMuted(pp));
       hydrateShares(scored.map(pp => pp.id));
       setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: any[] = []; for (const p of scored) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } return [...prev, ...add]; });
       setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });

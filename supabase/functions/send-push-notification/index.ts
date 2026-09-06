@@ -40,6 +40,17 @@ serve(async (req) => {
     // Ringing is send-voip-push's job on both platforms (CallKit on iPhone, the
     // call channel on Android). A second push here only doubles the ring.
     if (type === "incoming_call") return json(200, { skipped: true, reason: "rung by send-voip-push" });
+    // Quiet mode: nothing pushes during the person's chosen hours, in their own time zone.
+    {
+      const { data: prof } = await supabase.from("profiles").select("quiet_from, quiet_to, quiet_tz_offset_min").eq("id", record.user_id).maybeSingle();
+      const qf = (prof as any)?.quiet_from, qt = (prof as any)?.quiet_to;
+      if (qf != null && qt != null) {
+        const off = Number((prof as any)?.quiet_tz_offset_min || 0);
+        const hour = ((new Date(Date.now() + off * 60000).getUTCHours()) + 24) % 24;
+        const inWindow = qf <= qt ? (hour >= qf && hour < qt) : (hour >= qf || hour < qt);
+        if (inWindow) return json(200, { skipped: true, reason: "quiet mode" });
+      }
+    }
     const message = record.message || "";
     const bodyPreview = record.body_preview || "";
     const data = record.data || {};
