@@ -10,6 +10,7 @@ import { useTheme, themedSheet } from '../theme/useTheme';
 import { useThemeStore } from '../stores/themeStore';
 import { useAccountsStore } from '../stores/accountsStore';
 import AccountSwitcherSheet from '../components/AccountSwitcherSheet';
+import AddAccountSheet from '../components/AddAccountSheet';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -487,6 +488,7 @@ export default function AppNavigator() {
           onUnhandledAction={(action: any) => { if (action?.type === 'GO_BACK') return; console.log('[nav] unhandled action', action?.type); }}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <AccountSwitcherSheet />
+          <AddAccountSheet />
           <LaunchVeil busy={loading} />
           <OfflineBanner />
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -510,6 +512,7 @@ export default function AppNavigator() {
           onUnhandledAction={(action: any) => { if (action?.type === 'GO_BACK') return; console.log('[nav] unhandled action', action?.type); }}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <AccountSwitcherSheet />
+          <AddAccountSheet />
           <OfflineBanner />
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {isReady ? (

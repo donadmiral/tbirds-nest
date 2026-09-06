@@ -29,7 +29,9 @@ type State = {
   accounts: SavedAccount[];
   currentId: string | null;
   switcherOpen: boolean;
+  addOpen: boolean;
   busy: boolean;
+  closeAdd: () => void;
   init: () => Promise<void>;
   remember: (session: { user: { id: string }; refresh_token: string } | null, info?: { username?: string | null; full_name?: string | null; avatar_url?: string | null }) => Promise<void>;
   forget: (id: string) => Promise<void>;
@@ -55,6 +57,7 @@ export const useAccountsStore = create<State>((set, get) => ({
   accounts: [],
   currentId: null,
   switcherOpen: false,
+  addOpen: false,
   busy: false,
 
   init: async () => {
@@ -104,8 +107,8 @@ export const useAccountsStore = create<State>((set, get) => ({
     if (id === get().currentId) { set({ switcherOpen: false }); return null; }
     set({ busy: true });
     try {
-      // Leave the current session on this device only; its stored token stays valid.
-      await supabase.auth.signOut({ scope: 'local' });
+      // The current account is never signed out: a sign-out revokes its token
+      // on the server. The other account's token simply becomes the session.
       const { data, error } = await supabase.auth.refreshSession({ refresh_token: target.refresh_token });
       if (error || !data.session) {
         await get().forget(id);
@@ -124,10 +127,9 @@ export const useAccountsStore = create<State>((set, get) => ({
 
   startAddAccount: async () => {
     if (get().accounts.length >= MAX_ACCOUNTS) return;
-    try { await SecureStore.setItemAsync(ADDING_KEY, '1'); } catch {}
-    set({ switcherOpen: false });
-    await supabase.auth.signOut({ scope: 'local' });
+    set({ switcherOpen: false, addOpen: true });
   },
+  closeAdd: () => set({ addOpen: false }),
 
   consumeAddingFlag: async () => {
     try { const v = await SecureStore.getItemAsync(ADDING_KEY); if (v) { await SecureStore.deleteItemAsync(ADDING_KEY); return true; } } catch {}
