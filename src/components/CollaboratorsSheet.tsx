@@ -29,7 +29,7 @@ export default function CollaboratorsSheet({ visible, people, onClose }: { visib
                 {p.avatar_url ? <Image source={{ uri: p.avatar_url }} style={st.avatar} /> : <View style={[st.avatar, { backgroundColor: t.brand.tintBg, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ color: t.ink.primary, fontWeight: '800' }}>{(p.full_name || p.username || '?').slice(0, 1).toUpperCase()}</Text></View>}
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text style={[st.name, { color: t.ink.primary }]} numberOfLines={1}><TierName userId={((p) as any)?.id ?? ((p) as any)?.user_id} baseStyle={[st.name, { color: t.ink.primary }]} text={p.full_name || p.username || ''} numberOfLines={1} /> <VerifiedBadge userId={((p) as any)?.id ?? ((p) as any)?.user_id} size={12} /></Text>
+                    <Text style={[st.name, { color: t.ink.primary }]} numberOfLines={1}><TierName userId={((p) as any)?.id ?? ((p) as any)?.user_id} baseStyle={[st.name, { color: t.ink.primary }]} text={p.full_name || p.username || ''} numberOfLines={1} /></Text>
                     {(p.is_verified || p.verified_tier) ? <VerifiedBadge tier={(p.verified_tier as any) || undefined} userId={p.id} size={14} /> : null}
                   </View>
                   {p.username ? <Text style={[st.handleTxt, { color: t.ink.muted }]} numberOfLines={1}>@{p.username}</Text> : null}

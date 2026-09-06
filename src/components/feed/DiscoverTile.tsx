@@ -33,7 +33,7 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
       {author?.avatar_url
         ? <ExpoImage source={{ uri: author.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" />
         : <View style={[s.avatar, s.avatarEmpty]} />}
-      <Text style={s.name} numberOfLines={1}><TierName userId={((author) as any)?.id ?? ((author) as any)?.user_id} baseStyle={s.name} text={author?.full_name || author?.username || 'Member' || ''} numberOfLines={1} /> <VerifiedBadge userId={((author) as any)?.id ?? ((author) as any)?.user_id} size={12} /></Text>
+      <Text style={s.name} numberOfLines={1}><TierName userId={((author) as any)?.id ?? ((author) as any)?.user_id} baseStyle={s.name} text={author?.full_name || author?.username || 'Member' || ''} numberOfLines={1} /></Text>
       <VerifiedBadge userId={post.user_id} size={11} />
     </View>
   );
