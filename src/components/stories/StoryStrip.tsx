@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -453,9 +454,9 @@ function StoryStrip({ mode = 'all' }: Props) {
 
 export default React.memo(StoryStrip);
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     paddingVertical: 12,
   },
   scrollContent: {
@@ -467,9 +468,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   spotDivider: { width: 22, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', gap: 4 },
-  spotLine: { width: 1, flex: 1, backgroundColor: 'rgba(11,30,61,0.12)' },
+  spotLine: { width: 1, flex: 1, backgroundColor: t.surface.hairline },
   spotFlameTxt: { fontSize: 12 },
-  spotFlame: { position: 'absolute', right: -2, bottom: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  spotFlame: { position: 'absolute', right: -2, bottom: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center' },
   ringContainer: {
     width: RING_SIZE,
     height: RING_SIZE,
@@ -484,7 +485,7 @@ const s = StyleSheet.create({
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
   },
   avatarImg: {
     width: AVATAR_SIZE,
@@ -512,7 +513,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: t.ink.inverse,
     zIndex: 2,
   },
   nameTxt: {
@@ -539,4 +540,4 @@ const s = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#F2F2F7',
   },
-});
+}));

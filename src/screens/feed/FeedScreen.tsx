@@ -13,6 +13,7 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import { takePendingCapture } from '../../utils/captureBridge';
 import VideoThumb from '../../components/VideoThumb';
@@ -68,7 +69,7 @@ import VerifiedBadge from '../../components/VerifiedBadge';
 
 const SCREEN_W = Dimensions.get('window').width;
 const TILE_W = Math.floor((SCREEN_W - 12 * 2 - 10) / 2);
-const NAVY = light.brand.base;
+const NAVY = getTheme().brand.base;
 
 type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number; width?: number | null; height?: number | null };
 type Post = {
@@ -1713,21 +1714,21 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       const vis = wtfSuggestions.filter((p: any) => !followingIds.has(p.id)).slice(0, 8);
       if (vis.length === 0) return <View />;
       return (
-        <View style={{ paddingTop: 12, paddingBottom: 14, borderBottomWidth: 6, borderBottomColor: '#F2F3F5', backgroundColor: light.surface.canvas }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, marginBottom: 10, letterSpacing: -0.1 }}>Who to follow</Text>
+        <View style={{ paddingTop: 12, paddingBottom: 14, borderBottomWidth: 6, borderBottomColor: '#F2F3F5', backgroundColor: getTheme().surface.canvas }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, paddingHorizontal: 16, marginBottom: 10, letterSpacing: -0.1 }}>Who to follow</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { mediaTouchRef.current = false; }} onTouchCancel={() => { mediaTouchRef.current = false; }}>
             {vis.map((p: any) => (
-              <View key={p.id} style={{ width: 148, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, borderRadius: 14, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, backgroundColor: light.surface.canvas }}>
+              <View key={p.id} style={{ width: 148, borderWidth: StyleSheet.hairlineWidth, borderColor: getTheme().surface.hairline, borderRadius: 14, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, backgroundColor: getTheme().surface.canvas }}>
                 <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center' }} onPress={() => navigation.navigate('UserProfile', { userId: p.id, user: p })}>
-                  {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: light.status.link }}>{initials(p.full_name || p.username)}</Text></View>}
+                  {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} contentFit="cover" /> : <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: getTheme().status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18, fontWeight: '700', color: getTheme().status.link }}>{initials(p.full_name || p.username)}</Text></View>}
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                    <TierName userId={p.id} baseStyle={{ fontSize: 13.5, fontWeight: '700', color: light.ink.primary, flexShrink: 1 }} text={p.full_name || p.username || 'Member'} />
+                    <TierName userId={p.id} baseStyle={{ fontSize: 13.5, fontWeight: '700', color: getTheme().ink.primary, flexShrink: 1 }} text={p.full_name || p.username || 'Member'} />
                     <VerifiedBadge userId={p.id} size={12} />
                   </View>
-                  <Text style={{ fontSize: 11.5, color: light.ink.muted, marginTop: 2 }} numberOfLines={1}>{p.headline || (p.username ? '@' + p.username : '')}</Text>
+                  <Text style={{ fontSize: 11.5, color: getTheme().ink.muted, marginTop: 2 }} numberOfLines={1}>{p.headline || (p.username ? '@' + p.username : '')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => toggleFollow(p.id)} activeOpacity={0.8} style={{ marginTop: 10, paddingHorizontal: 22, paddingVertical: 7, borderRadius: 16, backgroundColor: NAVY }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: light.ink.inverse }}>Follow</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: getTheme().ink.inverse }}>Follow</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -1768,7 +1769,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />
                 {((author as any)?.verified_tier || (author as any)?.is_verified) ? <VerifiedBadge tier={(author as any)?.verified_tier} size={13} /> : null}
               </View>
-              <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: light.status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
+              <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: getTheme().status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
               {(post as any)._promo && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: '#EEF1F6' }}>
                   <Feather name="briefcase" size={10} color="#64748B" />
@@ -1776,9 +1777,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 </View>
               )}
               {post.is_trending && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: light.status.innovationBg }}>
-                  <Feather name="trending-up" size={10} color={light.status.innovation} />
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: light.status.innovation, letterSpacing: 0.3 }}>TRENDING</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: getTheme().status.innovationBg }}>
+                  <Feather name="trending-up" size={10} color={getTheme().status.innovation} />
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: getTheme().status.innovation, letterSpacing: 0.3 }}>TRENDING</Text>
                 </View>
               )}
             </View>
@@ -1793,7 +1794,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 style={[
                   { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, borderWidth: 1, marginRight: 6 },
                   isFollowing || isRequested
-                    ? { borderColor: light.surface.hairline, backgroundColor: 'transparent' }
+                    ? { borderColor: getTheme().surface.hairline, backgroundColor: 'transparent' }
                     : { borderColor: NAVY, backgroundColor: NAVY },
                 ]}
                 accessibilityLabel={isFollowing ? 'Following' : 'Follow'}
@@ -1806,7 +1807,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           })()}
           {/* followChipOn */}
           <TouchableOpacity style={s.menuBtn} onPress={() => setMenuPost(post)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Feather name="more-horizontal" size={18} color={light.ink.muted} />
+            <Feather name="more-horizontal" size={18} color={getTheme().ink.muted} />
           </TouchableOpacity>
         </View>
 
@@ -1933,9 +1934,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               )}
               {isVidPost && (post.views_count ?? 0) > 0 && (
                 <TouchableOpacity disabled={post.user_id !== userId} onPress={() => openPostViewers(post)} activeOpacity={0.8} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ position:'absolute', bottom:10, left:10, flexDirection:'row', alignItems:'center', gap:4, backgroundColor:'rgba(0,0,0,0.55)', borderRadius:12, paddingHorizontal:8, paddingVertical:4 }}>
-                  <Feather name="eye" size={11} color={light.ink.inverse} />
-                  <Text style={{ color:light.ink.inverse, fontSize:11, fontWeight:'600' }}>{fmtCount(post.views_count ?? 0)}</Text>
-                  {post.user_id === userId ? <Feather name="chevron-right" size={11} color={light.ink.inverse} /> : null}
+                  <Feather name="eye" size={11} color={getTheme().ink.inverse} />
+                  <Text style={{ color:getTheme().ink.inverse, fontSize:11, fontWeight:'600' }}>{fmtCount(post.views_count ?? 0)}</Text>
+                  {post.user_id === userId ? <Feather name="chevron-right" size={11} color={getTheme().ink.inverse} /> : null}
                 </TouchableOpacity>
               )}
             </View>
@@ -1949,26 +1950,26 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         )}
         <View style={s.actions}>
           <TouchableOpacity style={s.pill} onPress={() => toggleLike(post.id)} activeOpacity={0.75} disabled={isBusy(`like-${post.id}`)}>
-            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={22} color={isLiked ? '#FF3040' : light.ink.muted} />
+            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={22} color={isLiked ? '#FF3040' : getTheme().ink.muted} />
             <Text style={[s.pillTxt, isLiked && s.pillTxtLiked]}>{post.likes_count > 0 ? fmtCount(post.likes_count) : ''}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={s.pill} onPress={() => navigation.navigate('Post', { postId: post.id, focusComment: true })} activeOpacity={0.75} disabled={isSharing}>
-            <Feather name="message-circle" size={20} color={light.ink.muted} />
+            <Feather name="message-circle" size={20} color={getTheme().ink.muted} />
             <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : ''}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={s.pill} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
-            <Feather name="repeat" size={20} color={isReposted ? light.status.success : light.ink.muted} />
+            <Feather name="repeat" size={20} color={isReposted ? getTheme().status.success : getTheme().ink.muted} />
             <TouchableOpacity onPress={() => openLikers(post, 'reposts')} hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }} activeOpacity={0.7}><Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{(post.reposts_count + (post.quotes_count ?? 0)) > 0 ? fmtCount(post.reposts_count + (post.quotes_count ?? 0)) : ''}</Text></TouchableOpacity>
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => toggleBookmark(post.id)} activeOpacity={0.75} disabled={isBusy(`bk-${post.id}`)}>
-            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? light.status.link : light.ink.muted} />{(post.bookmarks_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: isBookmarked ? light.status.link : light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.bookmarks_count)}</Text> : null}
+            <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={20} color={isBookmarked ? getTheme().status.link : getTheme().ink.muted} />{(post.bookmarks_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: isBookmarked ? getTheme().status.link : getTheme().ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.bookmarks_count)}</Text> : null}
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.pill, s.pillIcon]} onPress={() => setSharePostTarget(post)} activeOpacity={0.75}>
-            <Feather name="share-2" size={20} color={light.ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: light.ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.shares_count ?? 0)}</Text> : null}
+            <Feather name="share-2" size={20} color={getTheme().ink.muted} />{(post.shares_count ?? 0) > 0 ? <Text style={{ fontSize: 13, color: getTheme().ink.muted, marginLeft: 5, fontWeight: '600' }}>{fmtCount(post.shares_count ?? 0)}</Text> : null}
           </TouchableOpacity>
         </View>
         {post.products && post.products.length > 0 && (/* carousel holds the tab swipe */
@@ -1984,7 +1985,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
         {post.likes_count > 0 && (
           <TouchableOpacity style={{ paddingHorizontal: 16, paddingTop: 4 }} onPress={() => openLikers(post)} activeOpacity={0.8}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: light.ink.primary }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: getTheme().ink.primary }}>
               {(() => {
                 const n = post.likes_count;
                 const names = likerNames[post.id] ?? [];
@@ -1999,7 +2000,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         {preview && (
           <TouchableOpacity style={s.cpWrap} onPress={openPost} activeOpacity={0.8}>
             <Text style={s.cpTxt} numberOfLines={2}>
-              <Text style={s.cpAuthor}>{preview.authorName} </Text>{preview.body}{(preview.likes ?? 0) > 0 ? <Text style={{ color: light.ink.muted }}>{'  ·  ' + fmtCount(preview.likes!) + ((preview.likes === 1) ? ' like' : ' likes')}</Text> : null}
+              <Text style={s.cpAuthor}>{preview.authorName} </Text>{preview.body}{(preview.likes ?? 0) > 0 ? <Text style={{ color: getTheme().ink.muted }}>{'  ·  ' + fmtCount(preview.likes!) + ((preview.likes === 1) ? ' like' : ' likes')}</Text> : null}
             </Text>
             {post.comments_count > 1 && <Text style={s.viewAll}>View all {post.comments_count} comments</Text>}
           </TouchableOpacity>
@@ -2029,7 +2030,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor={light.surface.canvas} />
+      <StatusBar barStyle="dark-content" backgroundColor={getTheme().surface.canvas} />
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} enabled={!composerOpen}>
         <View style={s.container}>
           <View style={s.header}>
@@ -2043,11 +2044,11 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 accessibilityLabel="Search"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Feather name="search" size={20} color={light.ink.primary} />
+                <Feather name="search" size={20} color={getTheme().ink.primary} />
               </TouchableOpacity>
               <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
                 <View>
-                  <Feather name="bell" size={20} color={light.ink.primary} />
+                  <Feather name="bell" size={20} color={getTheme().ink.primary} />
                   {unreadNotifs > 0 && (
                     <View style={[s.bellBadge, { minWidth: 10, width: 10, height: 10, borderRadius: 5, paddingHorizontal: 0 }]}>
                     </View>
@@ -2074,7 +2075,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
           {feedError && posts.length === 0 ? (
             <View style={[s.emptyWrap, { flex: 1, justifyContent: 'center' }]}>
-              <Feather name="alert-circle" size={40} color={light.ink.faint} />
+              <Feather name="alert-circle" size={40} color={getTheme().ink.faint} />
               <Text style={s.emptyTitle}>Could not load your feed</Text>
               <Text style={s.emptySub}>{feedError}</Text>
               <TouchableOpacity
@@ -2137,11 +2138,11 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                       flexDirection: 'row', alignItems: 'center', gap: 8,
                       marginHorizontal: 14, marginTop: 4, marginBottom: 8,
                       paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12,
-                      backgroundColor: light.status.dangerBg,
+                      backgroundColor: getTheme().status.dangerBg,
                     }}>
-                      <Feather name="alert-circle" size={15} color={light.status.danger} />
+                      <Feather name="alert-circle" size={15} color={getTheme().status.danger} />
                       <Text
-                        style={{ flex: 1, fontSize: 12.5, fontWeight: '600', color: light.status.danger }}
+                        style={{ flex: 1, fontSize: 12.5, fontWeight: '600', color: getTheme().status.danger }}
                         numberOfLines={2}
                       >
                         {feedError}
@@ -2152,7 +2153,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                         accessibilityRole="button"
                         accessibilityLabel="Retry loading the feed"
                       >
-                        <Text style={{ fontSize: 12.5, fontWeight: '800', color: light.status.danger }}>Retry</Text>
+                        <Text style={{ fontSize: 12.5, fontWeight: '800', color: getTheme().status.danger }}>Retry</Text>
                       </TouchableOpacity>
                     </View>
                   ) : null}
@@ -2189,18 +2190,18 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           {composerOpen && (
             <View style={[s.composerContainer, { bottom: insets.bottom + 16 + kbH, maxHeight: Dimensions.get('window').height - kbH - insets.top - 48 }]}>
               {threadingPost && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: light.surface.canvas, borderColor: light.surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: light.ink.secondary }}>Adding to your thread</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: getTheme().surface.canvas, borderColor: getTheme().surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: getTheme().ink.secondary }}>Adding to your thread</Text>
                   <TouchableOpacity onPress={() => setThreadingPost(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <Feather name="x" size={13} color={light.ink.muted} />
+                    <Feather name="x" size={13} color={getTheme().ink.muted} />
                   </TouchableOpacity>
                 </View>
               )}
               {quotingPost && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: light.surface.canvas, borderColor: light.surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: light.ink.secondary }}>Quoting {profilesMap[quotingPost.user_id]?.full_name || profilesMap[quotingPost.user_id]?.username || 'post'}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: getTheme().surface.canvas, borderColor: getTheme().surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: getTheme().ink.secondary }}>Quoting {profilesMap[quotingPost.user_id]?.full_name || profilesMap[quotingPost.user_id]?.username || 'post'}</Text>
                   <TouchableOpacity onPress={() => setQuotingPost(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <Feather name="x" size={13} color={light.ink.muted} />
+                    <Feather name="x" size={13} color={getTheme().ink.muted} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -2238,16 +2239,16 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     <Text numberOfLines={1} style={s.kindTxt}>Listing</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={[s.kindChip, s.kindChipGold, innovationPost && s.kindChipGoldOn]} onPress={() => setInnovationPost(true)} accessibilityLabel="Post to Innovation">
-                    <Ionicons name="bulb-outline" size={16} color={light.brand.base} />
-                    <Text numberOfLines={1} style={[s.kindTxt, { color: light.brand.base }, innovationPost && { fontWeight: '800' }]}>Innovation</Text>
+                    <Ionicons name="bulb-outline" size={16} color={getTheme().brand.base} />
+                    <Text numberOfLines={1} style={[s.kindTxt, { color: getTheme().brand.base }, innovationPost && { fontWeight: '800' }]}>Innovation</Text>
                   </TouchableOpacity>
                 </ScrollView>
                 <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
-                <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={light.ink.faint} multiline autoFocus maxLength={2000} />
+                <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={getTheme().ink.faint} multiline autoFocus maxLength={2000} />
                 {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
                 {exclusivePost && (
                   <View style={s.exclusiveBanner}>
-                    <Feather name="shield" size={13} color={light.status.link} />
+                    <Feather name="shield" size={13} color={getTheme().status.link} />
                     <Text style={s.exclusiveBannerTxt}>Only verified members can see this post</Text>
                   </View>
                 )}
@@ -2256,14 +2257,14 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     value={articleTitle}
                     onChangeText={setArticleTitle}
                     placeholder="Article title (optional)"
-                    placeholderTextColor={light.ink.faint}
-                    style={{ fontSize: 21, fontWeight: '800', color: light.ink.primary, letterSpacing: -0.5, paddingVertical: 8, marginBottom: 4 }}
+                    placeholderTextColor={getTheme().ink.faint}
+                    style={{ fontSize: 21, fontWeight: '800', color: getTheme().ink.primary, letterSpacing: -0.5, paddingVertical: 8, marginBottom: 4 }}
                     multiline
                   />
                 )}
                 {innovationPost && (
-                  <View style={[s.exclusiveBanner, { backgroundColor: light.status.innovationBg, borderColor: light.status.innovation }]}>
-                    <Feather name="zap" size={13} color={light.status.innovation} />
+                  <View style={[s.exclusiveBanner, { backgroundColor: getTheme().status.innovationBg, borderColor: getTheme().status.innovation }]}>
+                    <Feather name="zap" size={13} color={getTheme().status.innovation} />
                     <Text style={[s.exclusiveBannerTxt, { color: '#B45309' }]}>Posting to Innovation — showcasing what Zimbabwe is building</Text>
                   </View>
                 )}
@@ -2298,14 +2299,14 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   ))}
                 </ScrollView>
                 {composerPreview && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, padding: 10, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, backgroundColor: light.surface.raised }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, padding: 10, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: getTheme().surface.hairline, backgroundColor: getTheme().surface.raised }}>
                     {composerPreview.image_url ? <Image source={{ uri: composerPreview.image_url }} style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#EFEFF4' }} /> : null}
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, color: light.ink.muted }}>{String(composerPreview.domain || '').toUpperCase()}</Text>
-                      <Text style={{ fontSize: 13.5, fontWeight: '600', color: light.ink.primary }} numberOfLines={2}>{composerPreview.title || composerPreview.url}</Text>
+                      <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, color: getTheme().ink.muted }}>{String(composerPreview.domain || '').toUpperCase()}</Text>
+                      <Text style={{ fontSize: 13.5, fontWeight: '600', color: getTheme().ink.primary }} numberOfLines={2}>{composerPreview.title || composerPreview.url}</Text>
                     </View>
                     <TouchableOpacity onPress={() => setComposerPreview(null)} hitSlop={8}>
-                      <Feather name="x" size={16} color={light.ink.muted} />
+                      <Feather name="x" size={16} color={getTheme().ink.muted} />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -2361,21 +2362,21 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 <View style={s.cToolbar}>
                   <View style={s.cToolbarLeft}>
                     <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={() => pickMedia()} accessibilityLabel="Add photos or videos"><Feather name="image" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <TouchableOpacity style={s.toolBtn} onPress={() => pickMedia()} accessibilityLabel="Add photos or videos"><Feather name="image" size={20} color={getTheme().ink.muted} /></TouchableOpacity>
                       <Text style={s.toolCap}>Photo</Text>
                     </View>
                     <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={() => pickMedia('videos')} accessibilityLabel="Add a video"><Feather name="video" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <TouchableOpacity style={s.toolBtn} onPress={() => pickMedia('videos')} accessibilityLabel="Add a video"><Feather name="video" size={20} color={getTheme().ink.muted} /></TouchableOpacity>
                       <Text style={s.toolCap}>Video</Text>
                     </View>
                     <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={openCamera} accessibilityLabel="Open camera"><Feather name="camera" size={20} color={light.ink.muted} /></TouchableOpacity>
+                      <TouchableOpacity style={s.toolBtn} onPress={openCamera} accessibilityLabel="Open camera"><Feather name="camera" size={20} color={getTheme().ink.muted} /></TouchableOpacity>
                       <Text style={s.toolCap}>Camera</Text>
                     </View>
                     
                     <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)} accessibilityLabel="Attach products from your business"><Feather name="tag" size={20} color={composerProducts.length > 0 ? light.brand.base : light.ink.muted} /></TouchableOpacity>
-                      <Text style={[s.toolCap, composerProducts.length > 0 && { color: light.brand.base, fontWeight: '800' }]}>Products</Text>
+                      <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)} accessibilityLabel="Attach products from your business"><Feather name="tag" size={20} color={composerProducts.length > 0 ? getTheme().brand.base : getTheme().ink.muted} /></TouchableOpacity>
+                      <Text style={[s.toolCap, composerProducts.length > 0 && { color: getTheme().brand.base, fontWeight: '800' }]}>Products</Text>
                     </View>
                     {composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
@@ -2404,19 +2405,19 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setLikersPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
-            <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>{likersKind === 'reposts' ? 'Reposts' : likersKind === 'bookmarks' ? 'Bookmarks' : 'Likes'}</Text>
-            {likersList.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>{likersLoaded ? (likersKind === 'reposts' ? 'No reposts yet.' : likersKind === 'bookmarks' ? 'No bookmarks yet.' : 'No likes yet.') : 'Loading...'}</Text>}
+            <Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>{likersKind === 'reposts' ? 'Reposts' : likersKind === 'bookmarks' ? 'Bookmarks' : 'Likes'}</Text>
+            {likersList.length === 0 && <Text style={{ fontSize: 13, color: getTheme().ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>{likersLoaded ? (likersKind === 'reposts' ? 'No reposts yet.' : likersKind === 'bookmarks' ? 'No bookmarks yet.' : 'No likes yet.') : 'Loading...'}</Text>}
             <ScrollView style={{ maxHeight: 380 }}>
               {likersList.map((p: any) => (
                 <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 9, gap: 12 }}>
                   <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }} activeOpacity={0.8} onPress={() => { setLikersPost(null); navigation.navigate('UserProfile', { userId: p.id, user: p }); }}>
-                    {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.status.link }}>{initials(p.full_name || p.username)}</Text></View>}
+                    {p.avatar_url ? <ExpoImage source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: getTheme().status.linkBg, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: getTheme().status.link }}>{initials(p.full_name || p.username)}</Text></View>}
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <TierName userId={p.id} baseStyle={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flexShrink: 1 }} text={p.full_name || p.username || 'Member'} />
+                        <TierName userId={p.id} baseStyle={{ fontSize: 14, fontWeight: '600', color: getTheme().ink.primary, flexShrink: 1 }} text={p.full_name || p.username || 'Member'} />
                         <VerifiedBadge userId={p.id} size={12} />
                       </View>
-                      {p.username ? <Text style={{ fontSize: 12, color: light.ink.muted }} numberOfLines={1}>@{p.username}</Text> : null}
+                      {p.username ? <Text style={{ fontSize: 12, color: getTheme().ink.muted }} numberOfLines={1}>@{p.username}</Text> : null}
                     </View>
                   </TouchableOpacity>
                   {userId && p.id !== userId && (
@@ -2436,17 +2437,17 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8, gap: 8 }}>
-              <Feather name="eye" size={16} color={light.ink.primary} />
-              <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary }}>{fmtCount(viewersPost?.views_count ?? 0)} {(viewersPost?.views_count ?? 0) === 1 ? 'view' : 'views'}</Text>
+              <Feather name="eye" size={16} color={getTheme().ink.primary} />
+              <Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary }}>{fmtCount(viewersPost?.views_count ?? 0)} {(viewersPost?.views_count ?? 0) === 1 ? 'view' : 'views'}</Text>
             </View>
-            {viewersLoading && <ActivityIndicator size="small" color={light.brand.base} style={{ paddingVertical: 18 }} />}
-            {!viewersLoading && viewersRows.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No viewers yet. Your own views are not counted.</Text>}
+            {viewersLoading && <ActivityIndicator size="small" color={getTheme().brand.base} style={{ paddingVertical: 18 }} />}
+            {!viewersLoading && viewersRows.length === 0 && <Text style={{ fontSize: 13, color: getTheme().ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No viewers yet. Your own views are not counted.</Text>}
             <ScrollView style={{ maxHeight: 360 }}>
               {viewersRows.map((v: any) => (
                 <TouchableOpacity key={v.user_id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => { setViewersPost(null); (navigation as any).navigate('UserProfile', { userId: v.user_id }); }}>
-                  {v.avatar_url ? <ExpoImage source={{ uri: v.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.ink.muted }}>{initials(v.full_name || v.username)}</Text></View>}
-                  <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={v.user_id} baseStyle={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flexShrink: 1 }} text={v.full_name || v.username || 'Member'} /><VerifiedBadge userId={v.user_id} size={13} /></View>{v.username ? <Text style={{ fontSize: 12, color: light.ink.muted }}>@{v.username}</Text> : null}</View>
-                  {v.seen_at ? <Text style={{ fontSize: 11.5, color: light.ink.muted }}>{(() => { const d = (Date.now() - new Date(v.seen_at).getTime()) / 60000; return d < 60 ? Math.max(1, Math.round(d)) + 'm' : d < 1440 ? Math.round(d / 60) + 'h' : Math.round(d / 1440) + 'd'; })()}</Text> : null}
+                  {v.avatar_url ? <ExpoImage source={{ uri: v.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: getTheme().surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: getTheme().ink.muted }}>{initials(v.full_name || v.username)}</Text></View>}
+                  <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={v.user_id} baseStyle={{ fontSize: 14, fontWeight: '600', color: getTheme().ink.primary, flexShrink: 1 }} text={v.full_name || v.username || 'Member'} /><VerifiedBadge userId={v.user_id} size={13} /></View>{v.username ? <Text style={{ fontSize: 12, color: getTheme().ink.muted }}>@{v.username}</Text> : null}</View>
+                  {v.seen_at ? <Text style={{ fontSize: 11.5, color: getTheme().ink.muted }}>{(() => { const d = (Date.now() - new Date(v.seen_at).getTime()) / 60000; return d < 60 ? Math.max(1, Math.round(d)) + 'm' : d < 1440 ? Math.round(d / 60) + 'h' : Math.round(d / 1440) + 'd'; })()}</Text> : null}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -2458,31 +2459,31 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setSharePostTarget(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
-            <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 4, paddingBottom: 6 }}>Share</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, paddingHorizontal: 4, paddingBottom: 6 }}>Share</Text>
             {sharePostTarget && isVideoPost(sharePostTarget) ? (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) reactToVideo(p); }, 350); }}>
-                <Feather name="video" size={18} color={light.ink.primary} />
+                <Feather name="video" size={18} color={getTheme().ink.primary} />
                 <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>React to video</Text><Text style={s.menuOptionSub}>Record your reaction and post it as a reply</Text></View>
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) addPostToStory(p); }, 350); }}>
-              <Feather name="plus-square" size={18} color={light.ink.primary} />
+              <Feather name="plus-square" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Add to your story</Text><Text style={s.menuOptionSub}>Share this post as a card on your story</Text></View>
             </TouchableOpacity>
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); if (p) { setQuotingPost(p); setComposerOpen(true); } }}>
-              <Feather name="corner-down-right" size={18} color={light.ink.primary} />
+              <Feather name="corner-down-right" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Add to thread</Text><Text style={s.menuOptionSub}>Quote this post with your own words</Text></View>
             </TouchableOpacity>
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) openSendSheet(p); }, 350); }}>
-              <Feather name="send" size={18} color={light.ink.primary} />
+              <Feather name="send" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Send to</Text><Text style={s.menuOptionSub}>A message, a group or a community</Text></View>
             </TouchableOpacity>
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={async () => { const p = sharePostTarget; setSharePostTarget(null); if (p) { await Clipboard.setStringAsync(postLink(p)); Alert.alert('Link copied', postLink(p)); } }}>
-              <Feather name="link" size={18} color={light.ink.primary} />
+              <Feather name="link" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Copy link</Text><Text style={s.menuOptionSub} numberOfLines={1}>{sharePostTarget ? postLink(sharePostTarget) : ''}</Text></View>
             </TouchableOpacity>
             <TouchableOpacity style={[s.menuOption, { borderBottomWidth: 0 }]} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); setTimeout(() => { if (p) sharePost(p); }, 350); }}>
-              <Feather name="share" size={18} color={light.ink.primary} />
+              <Feather name="share" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Share via</Text><Text style={s.menuOptionSub}>WhatsApp, Messages and other apps</Text></View>
             </TouchableOpacity>
           </TouchableOpacity>
@@ -2493,36 +2494,36 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setSendPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
             <View style={s.menuHandle} />
-            <Text style={{ fontSize: 15, fontWeight: '700', color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
-            {sendLoading && <ActivityIndicator size="small" color={light.brand.base} style={{ paddingVertical: 18 }} />}
-            {!sendLoading && sendConvs.length === 0 && sendGroups.length === 0 && sendCommunities.length === 0 && <Text style={{ fontSize: 13, color: light.ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
+            <Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
+            {sendLoading && <ActivityIndicator size="small" color={getTheme().brand.base} style={{ paddingVertical: 18 }} />}
+            {!sendLoading && sendConvs.length === 0 && sendGroups.length === 0 && sendCommunities.length === 0 && <Text style={{ fontSize: 13, color: getTheme().ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
             <ScrollView style={{ maxHeight: 320 }}>
               {sendConvs.map((c: any) => (
                 <TouchableOpacity key={c.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(c)} disabled={sendBusy}>
-                  {c.other?.avatar_url ? <ExpoImage source={{ uri: c.other.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: light.ink.muted }}>{initials(c.other?.full_name || c.other?.username)}</Text></View>}
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={c.otherId} baseStyle={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flexShrink: 1 }} text={c.other?.full_name || c.other?.username || 'Member'} /><VerifiedBadge userId={c.otherId} size={13} /></View>
+                  {c.other?.avatar_url ? <ExpoImage source={{ uri: c.other.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: getTheme().surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontWeight: '700', color: getTheme().ink.muted }}>{initials(c.other?.full_name || c.other?.username)}</Text></View>}
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 }}><TierName userId={c.otherId} baseStyle={{ fontSize: 14, fontWeight: '600', color: getTheme().ink.primary, flexShrink: 1 }} text={c.other?.full_name || c.other?.username || 'Member'} /><VerifiedBadge userId={c.otherId} size={13} /></View>
                 </TouchableOpacity>
               ))}
               {sendGroups.length > 0 && (
                 <>
-                  <Text style={{ fontSize: 11.5, fontWeight: '800', letterSpacing: 0.6, color: light.ink.muted, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6, textTransform: 'uppercase' }}>Groups</Text>
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', letterSpacing: 0.6, color: getTheme().ink.muted, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6, textTransform: 'uppercase' }}>Groups</Text>
                   {sendGroups.map((g: any) => (
                     <TouchableOpacity key={g.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(g)} disabled={sendBusy}>
                       <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18 }}>{g.group_emoji || '\uD83D\uDC65'}</Text></View>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary, flex: 1 }} numberOfLines={1}>{g.group_name || 'Group'}</Text>
-                      <Feather name="users" size={15} color={light.ink.muted} />
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: getTheme().ink.primary, flex: 1 }} numberOfLines={1}>{g.group_name || 'Group'}</Text>
+                      <Feather name="users" size={15} color={getTheme().ink.muted} />
                     </TouchableOpacity>
                   ))}
                 </>
               )}
               {sendCommunities.length > 0 && (
                 <>
-                  <Text style={{ fontSize: 11.5, fontWeight: '800', letterSpacing: 0.6, color: light.ink.muted, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6, textTransform: 'uppercase' }}>Communities</Text>
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', letterSpacing: 0.6, color: getTheme().ink.muted, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6, textTransform: 'uppercase' }}>Communities</Text>
                   {sendCommunities.map((cmt: any) => (
                     <TouchableOpacity key={cmt.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostToCommunity(cmt)} disabled={sendBusy}>
                       <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: 'rgba(201,191,176,0.28)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 18 }}>{cmt.emoji || '\uD83C\uDFDB\uFE0F'}</Text></View>
-                      <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: '600', color: light.ink.primary }} numberOfLines={1}>{cmt.name}</Text>{cmt.member_count != null ? <Text style={{ fontSize: 11.5, color: light.ink.muted }}>{cmt.member_count} members</Text> : null}</View>
-                      <Feather name="globe" size={15} color={light.ink.muted} />
+                      <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: '600', color: getTheme().ink.primary }} numberOfLines={1}>{cmt.name}</Text>{cmt.member_count != null ? <Text style={{ fontSize: 11.5, color: getTheme().ink.muted }}>{cmt.member_count} members</Text> : null}</View>
+                      <Feather name="globe" size={15} color={getTheme().ink.muted} />
                     </TouchableOpacity>
                   ))}
                 </>
@@ -2593,7 +2594,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 setMenuPost(null);
                 if (captured) setInsightsPostId(captured.id);
               }}>
-                <Feather name="bar-chart-2" size={18} color={light.ink.primary} />
+                <Feather name="bar-chart-2" size={18} color={getTheme().ink.primary} />
                 <Text style={s.menuOptionTxt}>View insights</Text>
               </TouchableOpacity>
             )}
@@ -2614,8 +2615,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   }},
                 ]);
               }}>
-                <Feather name="trash-2" size={18} color={light.status.danger} />
-                <Text style={[s.menuOptionTxt, { color: light.status.danger }]}>Delete post</Text>
+                <Feather name="trash-2" size={18} color={getTheme().status.danger} />
+                <Text style={[s.menuOptionTxt, { color: getTheme().status.danger }]}>Delete post</Text>
               </TouchableOpacity>
             )}
 
@@ -2627,7 +2628,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 setThreadingPost(captured);
                 setComposerOpen(true);
               }}>
-                <Feather name="corner-down-right" size={18} color={light.ink.primary} />
+                <Feather name="corner-down-right" size={18} color={getTheme().ink.primary} />
                 <Text style={s.menuOptionTxt}>Add to thread</Text>
               </TouchableOpacity>
             )}
@@ -2638,7 +2639,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               setMenuPost(null);
               setTimeout(() => { if (captured) addPostToStory(captured); }, 350);
             }}>
-              <Feather name="plus-square" size={18} color={light.ink.primary} />
+              <Feather name="plus-square" size={18} color={getTheme().ink.primary} />
               <Text style={s.menuOptionTxt}>Add to your story</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
@@ -2650,7 +2651,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${captured.content}\n\nOpen in the app: platinum-circles://post/${captured.id}` });
               }, 400);
             }}>
-              <Feather name="share-2" size={18} color={light.ink.primary} />
+              <Feather name="share-2" size={18} color={getTheme().ink.primary} />
               <Text style={s.menuOptionTxt}>Share post</Text>
             </TouchableOpacity>
 
@@ -2659,7 +2660,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               toggleBookmark(menuPost.id);
               setMenuPost(null);
             }}>
-              <Feather name="bookmark" size={18} color={light.ink.primary} />
+              <Feather name="bookmark" size={18} color={getTheme().ink.primary} />
               <Text style={s.menuOptionTxt}>
                 {menuPost && bookmarkedPosts[menuPost.id] ? 'Remove bookmark' : 'Save post'}
               </Text>
@@ -2671,7 +2672,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               setMenuPost(null);
               Alert.alert('Copied', 'Post text copied to clipboard.');
             }}>
-              <Feather name="copy" size={18} color={light.ink.primary} />
+              <Feather name="copy" size={18} color={getTheme().ink.primary} />
               <Text style={s.menuOptionTxt}>Copy text</Text>
             </TouchableOpacity>
 
@@ -2682,7 +2683,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   setMenuPost(null);
                   if (id) hidePost(id);
                 }}>
-                  <Feather name="eye-off" size={18} color={light.ink.primary} />
+                  <Feather name="eye-off" size={18} color={getTheme().ink.primary} />
                   <Text style={s.menuOptionTxt}>Not interested</Text>
                 </TouchableOpacity>
 
@@ -2700,8 +2701,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     ]);
                   }, 350);
                 }}>
-                  <Feather name="flag" size={18} color={light.status.danger} />
-                  <Text style={[s.menuOptionTxt, { color: light.status.danger }]}>Report post</Text>
+                  <Feather name="flag" size={18} color={getTheme().status.danger} />
+                  <Text style={[s.menuOptionTxt, { color: getTheme().status.danger }]}>Report post</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -2709,8 +2710,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
             {menuPost?.user_id !== userId && (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={blockAuthor}>
-                <Feather name="slash" size={18} color={light.status.danger} />
-                <Text style={[s.menuOptionTxt, { color: light.status.danger }]}>
+                <Feather name="slash" size={18} color={getTheme().status.danger} />
+                <Text style={[s.menuOptionTxt, { color: getTheme().status.danger }]}>
                   Block {menuPost ? profilesMap[menuPost.user_id]?.full_name || 'user' : 'user'}
                 </Text>
               </TouchableOpacity>
@@ -2726,44 +2727,44 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
   );
 }
 
-const s = StyleSheet.create({
-  articleCard: { borderRadius: 18, overflow: 'hidden', marginTop: 8, backgroundColor: light.surface.canvas },
+const s = themedSheet((t) => ({
+  articleCard: { borderRadius: 18, overflow: 'hidden', marginTop: 8, backgroundColor: t.surface.canvas },
   articleCover: { width: '100%', height: 190, backgroundColor: '#EFEFF4' },
   articleBody: { padding: 16 },
-  articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: 'rgba(11,30,61,0.45)' },
-  articleTitle: { fontSize: 20, fontWeight: '800', color: light.ink.primary, letterSpacing: -0.5, lineHeight: 25, marginTop: 6 },
+  articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: t.ink.muted },
+  articleTitle: { fontSize: 20, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.5, lineHeight: 25, marginTop: 6 },
   articleExcerpt: { fontSize: 14.5, color: '#4B5563', lineHeight: 21, marginTop: 7 },
-  articleMeta: { fontSize: 12.5, fontWeight: '600', color: light.ink.muted, marginTop: 11 },
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
+  articleMeta: { fontSize: 12.5, fontWeight: '600', color: t.ink.muted, marginTop: 11 },
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: light.surface.canvas },
-  header: { paddingHorizontal: 16, paddingBottom: 4, backgroundColor: light.surface.canvas, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: light.surface.hairline },
+  container: { flex: 1, backgroundColor: t.surface.canvas },
+  header: { paddingHorizontal: 16, paddingBottom: 4, backgroundColor: t.surface.canvas, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, marginBottom: 12 },
-  logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: light.ink.primary, letterSpacing: -0.5 },
-  iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' },
-  searchInput: { backgroundColor: light.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
-  tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: light.surface.raised, borderRadius: 12, padding: 3 },
+  logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: t.ink.primary, letterSpacing: -0.5 },
+  iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
+  searchInput: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
+  tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: t.surface.raised, borderRadius: 12, padding: 3 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
-  tabActive: { backgroundColor: light.surface.canvas, shadowColor: light.ink.primary, shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
-  tabTxt: { fontSize: 13, fontWeight: '500', color: light.ink.muted },
-  tabTxtActive: { color: light.ink.primary, fontWeight: '600' },
+  tabActive: { backgroundColor: t.surface.canvas, shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
+  tabTxt: { fontSize: 13, fontWeight: '500', color: t.ink.muted },
+  tabTxtActive: { color: t.ink.primary, fontWeight: '600' },
   list: { paddingHorizontal: 0, paddingTop: 8 },
   listEmpty: { flexGrow: 1 },
-  postCard: { backgroundColor: light.surface.canvas, borderBottomWidth: 6, borderBottomColor: '#F2F3F5' },
+  postCard: { backgroundColor: t.surface.canvas, borderBottomWidth: 6, borderBottomColor: '#F2F3F5' },
   postTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 },
   postMeta: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-  avatarFb: { width: 40, height: 40, borderRadius: 20, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  avatarFbTxt: { fontSize: 15, fontWeight: '700', color: light.status.link },
+  avatarFb: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  avatarFbTxt: { fontSize: 15, fontWeight: '700', color: t.status.link },
   postMetaTxt: { flex: 1 },
-  postAuthor: { fontSize: 15, fontWeight: '700', color: light.ink.primary, letterSpacing: -0.1 },
-  postSub: { marginTop: 1, fontSize: 13, color: light.ink.muted },
+  postAuthor: { fontSize: 15, fontWeight: '700', color: t.ink.primary, letterSpacing: -0.1 },
+  postSub: { marginTop: 1, fontSize: 13, color: t.ink.muted },
   menuBtn: { paddingHorizontal: 8, paddingVertical: 6 },
-  menuBtnTxt: { fontSize: 16, color: light.ink.faint, letterSpacing: 1 },
-  content: { fontSize: 15, lineHeight: 21, color: light.ink.primary, paddingHorizontal: 16, paddingBottom: 12 },
-  readMoreBtn: { fontSize: 13.5, fontWeight: '700', color: light.brand.base, paddingHorizontal: 16 },
-  hashTag: { color: light.brand.base, fontWeight: '600' },
-  mention: { color: light.brand.base, fontWeight: '600' },
+  menuBtnTxt: { fontSize: 16, color: t.ink.faint, letterSpacing: 1 },
+  content: { fontSize: 15, lineHeight: 21, color: t.ink.primary, paddingHorizontal: 16, paddingBottom: 12 },
+  readMoreBtn: { fontSize: 13.5, fontWeight: '700', color: t.brand.base, paddingHorizontal: 16 },
+  hashTag: { color: t.brand.base, fontWeight: '600' },
+  mention: { color: t.brand.base, fontWeight: '600' },
   
   
   
@@ -2773,82 +2774,82 @@ const s = StyleSheet.create({
   
   
   pillIcon: { paddingHorizontal: 10 },
-  pillTxt: { fontSize: 13, fontWeight: '600', color: light.ink.muted, fontVariant: ['tabular-nums'] },
+  pillTxt: { fontSize: 13, fontWeight: '600', color: t.ink.muted, fontVariant: ['tabular-nums'] },
   pillTxtLiked: { color: '#FF3040' },
   pillTxtReposted: { color: '#00BA7C' },
   
   
   cpWrap: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 4 },
-  cpAuthor: { fontWeight: '700', color: light.ink.primary, fontSize: 13 },
-  cpTxt: { fontSize: 13, lineHeight: 18, color: light.ink.secondary },
-  viewAll: { fontSize: 12, color: light.ink.muted, marginTop: 3 },
+  cpAuthor: { fontWeight: '700', color: t.ink.primary, fontSize: 13 },
+  cpTxt: { fontSize: 13, lineHeight: 18, color: t.ink.secondary },
+  viewAll: { fontSize: 12, color: t.ink.muted, marginTop: 3 },
   composerContainer: { position: 'absolute', left: 12, right: 12, zIndex: 100, maxHeight: '80%' },
-  mentionDropdown: { backgroundColor: light.surface.canvas, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, marginBottom: 6, overflow: 'hidden' },
+  mentionDropdown: { backgroundColor: t.surface.canvas, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, marginBottom: 6, overflow: 'hidden' },
   mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
   mAvatar: { width: 34, height: 34, borderRadius: 17 },
-  mAvatarFb: { width: 34, height: 34, borderRadius: 17, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' },
-  mAvatarTxt: { fontSize: 12, fontWeight: '700', color: light.status.link },
-  mName: { fontSize: 14, fontWeight: '600', color: light.ink.primary },
-  mUser: { fontSize: 12, color: light.ink.muted },
-  composerCard: { backgroundColor: light.surface.canvas, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, padding: 16, shadowColor: light.ink.primary, shadowOpacity: 0.12, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 10 },
+  mAvatarFb: { width: 34, height: 34, borderRadius: 17, backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
+  mAvatarTxt: { fontSize: 12, fontWeight: '700', color: t.status.link },
+  mName: { fontSize: 14, fontWeight: '600', color: t.ink.primary },
+  mUser: { fontSize: 12, color: t.ink.muted },
+  composerCard: { backgroundColor: t.surface.canvas, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, padding: 16, shadowColor: t.ink.primary, shadowOpacity: 0.12, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 10 },
   cAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   cAvatar: { width: 36, height: 36, borderRadius: 18 },
-  cAvatarFb: { width: 36, height: 36, borderRadius: 18, backgroundColor: light.status.linkBg, alignItems: 'center', justifyContent: 'center' },
-  cAvatarTxt: { fontSize: 13, fontWeight: '700', color: light.status.link },
-  cName: { fontSize: 14, fontWeight: '700', color: light.ink.primary },
-  cInput: { minHeight: 80, maxHeight: 160, fontSize: 15, color: light.ink.primary, textAlignVertical: 'top', lineHeight: 22, marginBottom: 8 },
-  charCount: { fontSize: 12, color: light.status.danger, textAlign: 'right', marginBottom: 4 },
-  exclusiveBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: light.status.linkBg, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 8 },
-  exclusiveBannerTxt: { fontSize: 12, color: light.status.link, fontWeight: '500', flex: 1 },
+  cAvatarFb: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
+  cAvatarTxt: { fontSize: 13, fontWeight: '700', color: t.status.link },
+  cName: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
+  cInput: { minHeight: 80, maxHeight: 160, fontSize: 15, color: t.ink.primary, textAlignVertical: 'top', lineHeight: 22, marginBottom: 8 },
+  charCount: { fontSize: 12, color: t.status.danger, textAlign: 'right', marginBottom: 4 },
+  exclusiveBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.status.linkBg, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 8 },
+  exclusiveBannerTxt: { fontSize: 12, color: t.status.link, fontWeight: '500', flex: 1 },
   cMediaScroll: { marginBottom: 10 },
   cThumb: { width: 80, height: 80, borderRadius: 10, marginRight: 8, overflow: 'hidden' },
   cThumbImg: { width: '100%', height: '100%' },
   cVideoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.25)' },
-  cVideoPlayIcon: { fontSize: 22, color: light.ink.inverse },
+  cVideoPlayIcon: { fontSize: 22, color: t.ink.inverse },
   cRemove: { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   cRemoveTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  cAddMore: { width: 80, height: 80, borderRadius: 10, backgroundColor: light.surface.raised, borderWidth: 1.5, borderColor: light.surface.hairline, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
-  cAddMoreTxt: { fontSize: 28, color: light.ink.faint, fontWeight: '300' },
+  cAddMore: { width: 80, height: 80, borderRadius: 10, backgroundColor: t.surface.raised, borderWidth: 1.5, borderColor: t.surface.hairline, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  cAddMoreTxt: { fontSize: 28, color: t.ink.faint, fontWeight: '300' },
   cToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, gap: 8 },
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0, overflow: 'hidden' },
   kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' },
-  kindChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingHorizontal: 12, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, flexShrink: 0 },
+  kindChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingHorizontal: 12, borderRadius: 12, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, flexShrink: 0 },
   kindChipOn: { backgroundColor: NAVY, borderColor: NAVY },
-  kindChipGold: { backgroundColor: 'rgba(201,191,176,0.30)', borderColor: light.brand.warm },
+  kindChipGold: { backgroundColor: 'rgba(201,191,176,0.30)', borderColor: t.brand.warm },
   kindChipGoldOn: { backgroundColor: 'rgba(201,191,176,0.55)' },
   kindTxt: { fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.7)' },
-  kindTxtOn: { color: '#FFFFFF' },
+  kindTxtOn: { color: t.ink.inverse },
   audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: '#D7DEE9', backgroundColor: '#F4F6FA' },
   audChipTxt: { fontSize: 12, fontWeight: '700', color: NAVY },
   cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
-  toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: light.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline, alignItems: 'center', justifyContent: 'center' },
+  toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   toolCap: { fontSize: 9.5, fontWeight: '600', color: 'rgba(11,30,61,0.5)', marginTop: 3 },
-  toolBtnActive: { backgroundColor: light.status.linkBg, borderColor: '#BFDBFE' },
-  mediaCount: { fontSize: 12, color: light.ink.muted, fontWeight: '600' },
-  cancelBtn: { backgroundColor: light.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
-  cancelTxt: { color: light.ink.secondary, fontSize: 14, fontWeight: '500' },
+  toolBtnActive: { backgroundColor: t.status.linkBg, borderColor: '#BFDBFE' },
+  mediaCount: { fontSize: 12, color: t.ink.muted, fontWeight: '600' },
+  cancelBtn: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
+  cancelTxt: { color: t.ink.secondary, fontSize: 14, fontWeight: '500' },
   postBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 9, minWidth: 64, alignItems: 'center' },
   postBtnOff: { opacity: 0.3 },
-  postBtnTxt: { color: light.ink.inverse, fontSize: 14, fontWeight: '700' },
+  postBtnTxt: { color: t.ink.inverse, fontSize: 14, fontWeight: '700' },
   fabRing: { position: 'absolute', right: 18, width: 62, height: 62, borderRadius: 31, borderWidth: 1.5, borderColor: 'rgba(201,191,176,0.9)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' },
-  fabDisc: { width: 52, height: 52, borderRadius: 26, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: light.ink.primary, shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 9 },
+  fabDisc: { width: 52, height: 52, borderRadius: 26, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: t.ink.primary, shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 9 },
   
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 60 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: light.ink.primary, textAlign: 'center' },
-  emptySub: { marginTop: 8, fontSize: 14, lineHeight: 20, color: light.ink.muted, textAlign: 'center' },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: t.ink.primary, textAlign: 'center' },
+  emptySub: { marginTop: 8, fontSize: 14, lineHeight: 20, color: t.ink.muted, textAlign: 'center' },
   emptyBtn: { marginTop: 20, backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
-  emptyBtnTxt: { color: light.ink.inverse, fontSize: 15, fontWeight: '600' },
+  emptyBtnTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '600' },
   menuOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  menuSheet: { backgroundColor: light.surface.canvas, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, paddingBottom: 32, paddingHorizontal: 16 },
+  menuSheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, paddingBottom: 32, paddingHorizontal: 16 },
   menuHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#E0E0E0', alignSelf: 'center', marginBottom: 14 },
-  menuPreview: { fontSize: 14, color: light.ink.muted, lineHeight: 20, marginBottom: 12, paddingHorizontal: 4 },
-  menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: light.surface.sunken, marginBottom: 8 },
+  menuPreview: { fontSize: 14, color: t.ink.muted, lineHeight: 20, marginBottom: 12, paddingHorizontal: 4 },
+  menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: t.surface.sunken, marginBottom: 8 },
   menuOption: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
-  menuOptionTxt: { fontSize: 16, color: light.ink.primary, fontWeight: '400' },
-  menuOptionSub: { fontSize: 12, color: light.ink.muted, marginTop: 1 },
+  menuOptionTxt: { fontSize: 16, color: t.ink.primary, fontWeight: '400' },
+  menuOptionSub: { fontSize: 12, color: t.ink.muted, marginTop: 1 },
   menuCancel: { justifyContent: 'center', marginTop: 8, borderBottomWidth: 0 },
-  menuCancelTxt: { fontSize: 16, color: light.ink.muted, fontWeight: '500', textAlign: 'center', width: '100%' },
-  bellBadge: { position: 'absolute', top: -6, right: -8, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: light.status.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#FFFFFF' },
-  bellBadgeTxt: { fontSize: 10, fontWeight: '700', color: light.ink.inverse },
-});
+  menuCancelTxt: { fontSize: 16, color: t.ink.muted, fontWeight: '500', textAlign: 'center', width: '100%' },
+  bellBadge: { position: 'absolute', top: -6, right: -8, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: t.status.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: t.ink.inverse },
+  bellBadgeTxt: { fontSize: 10, fontWeight: '700', color: t.ink.inverse },
+}));

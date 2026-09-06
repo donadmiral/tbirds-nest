@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 /**
  * ArticleReaderScreen - Twitter long-form reading view.
@@ -64,8 +65,8 @@ export default function ArticleReaderScreen({ route, navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   bar: { paddingHorizontal: 12, paddingVertical: 8 },
   cover: { width: W, height: W * 0.52, backgroundColor: '#EFEFF4' },
   body: { paddingHorizontal: 20, paddingTop: 18 },
@@ -76,4 +77,4 @@ const s = StyleSheet.create({
   galleryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 20 },
   galleryFull: { width: '100%', height: 260, borderRadius: 14, backgroundColor: '#EFEFF4' },
   galleryHalf: { width: '48%', height: 150, borderRadius: 14, backgroundColor: '#EFEFF4' },
-});
+}));

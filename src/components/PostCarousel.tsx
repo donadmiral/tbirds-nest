@@ -16,6 +16,7 @@
  *  - Single image still uses same 4:5 container
  *  - Identical layout on feed and post screens
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
@@ -396,7 +397,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   );
 }
 
-const st = StyleSheet.create({
+const st = themedSheet((t) => ({
   carouselWrap: {
     marginTop: 10,
     overflow: 'hidden',
@@ -427,7 +428,7 @@ const st = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   controlLabel: {
-    fontSize: 9, fontWeight: '700', color: '#FFF',
+    fontSize: 9, fontWeight: '700', color: t.ink.inverse,
     marginTop: -2,
   },
   expandBtn: {
@@ -448,7 +449,7 @@ const st = StyleSheet.create({
     borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4,
   },
   counterTxt: {
-    fontSize: 12, fontWeight: '700', color: '#FFF',
+    fontSize: 12, fontWeight: '700', color: t.ink.inverse,
   },
   dotsRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -463,4 +464,4 @@ const st = StyleSheet.create({
   dotInactive: {
     backgroundColor: '#D1D1D6',
   },
-});
+}));

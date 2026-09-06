@@ -2,6 +2,7 @@
  * SavedPostsScreen.tsx
  * Shows user's bookmarked posts, matches Clean Premium style.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
@@ -271,12 +272,12 @@ export default function SavedPostsScreen({ navigation }: any) {
   );
 }
 
-const ss = StyleSheet.create({
+const ss = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: '#F7F7F9' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 12, paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
@@ -286,7 +287,7 @@ const ss = StyleSheet.create({
   list: { padding: 12 },
 
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
@@ -295,11 +296,11 @@ const ss = StyleSheet.create({
   authorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   avatar: { width: 40, height: 40, borderRadius: 20 },
   avatarFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  avatarFbTxt: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  avatarFbTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
   authorMeta: { flex: 1 },
   authorName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
   authorSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 1 },
-  unsaveBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' },
+  unsaveBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
 
   content: { fontSize: 14, lineHeight: 20, color: '#1A1A1A', marginBottom: 10 },
   mediaWrap: { borderRadius: 10, overflow: 'hidden', marginBottom: 10 },
@@ -314,4 +315,4 @@ const ss = StyleSheet.create({
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 6 },
   emptySub: { fontSize: 13, lineHeight: 19, color: TEXT_SECONDARY, textAlign: 'center' },
-});
+}));

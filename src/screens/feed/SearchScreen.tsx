@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import VideoThumb from '../../components/VideoThumb';
@@ -399,8 +400,8 @@ export default function SearchScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, gap: 10 },
   title: { fontSize: 28, fontWeight: '800', color: '#000', letterSpacing: -0.5 },
   searchBox: {
@@ -417,7 +418,7 @@ const s = StyleSheet.create({
   tab: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: '#F2F2F7' },
   tabActive: { backgroundColor: '#000' },
   tabTxt: { fontSize: 12, fontWeight: '600', color: '#3C3C43' },
-  tabTxtActive: { color: '#FFF' },
+  tabTxtActive: { color: t.ink.inverse },
 
   recentHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -457,7 +458,7 @@ const s = StyleSheet.create({
   personMeta: { fontSize: 12, color: '#8E8E93', marginTop: 1 },
 
   postRow: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 12, marginBottom: 10,
+    backgroundColor: t.surface.canvas, borderRadius: 14, padding: 12, marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth, borderColor: '#F0F0F0',
   },
   postHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
@@ -471,7 +472,7 @@ const s = StyleSheet.create({
 
   jobRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFF', borderRadius: 14, padding: 12, marginBottom: 8,
+    backgroundColor: t.surface.canvas, borderRadius: 14, padding: 12, marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth, borderColor: '#F0F0F0',
   },
   jobBadge: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
@@ -482,10 +483,10 @@ const s = StyleSheet.create({
 
   eventRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFF', borderRadius: 14, padding: 12, marginBottom: 8,
+    backgroundColor: t.surface.canvas, borderRadius: 14, padding: 12, marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth, borderColor: '#F0F0F0',
   },
   eventImg: { width: 56, height: 56, borderRadius: 10 },
   eventTitle: { fontSize: 15, fontWeight: '700', color: '#000' },
   eventMeta: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
-});
+}));

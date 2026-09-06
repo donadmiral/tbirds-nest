@@ -8,6 +8,7 @@
  * market shows a poster. Engagement rate sits beside it as the interpretation
  * of that reach. Everything below is supporting detail, deliberately quieter.
  */
+import { themedSheet, getTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView,
@@ -112,17 +113,17 @@ export default function PostInsightsSheet({ postId, onClose, onOpenProfile }: Pr
               accessibilityRole="button"
               accessibilityLabel="Close insights"
             >
-              <Feather name="x" size={20} color={light.ink.muted} />
+              <Feather name="x" size={20} color={getTheme().ink.muted} />
             </TouchableOpacity>
           </View>
 
           {loading ? (
             <View style={s.centered}>
-              <ActivityIndicator color={light.brand.base} />
+              <ActivityIndicator color={getTheme().brand.base} />
             </View>
           ) : error ? (
             <View style={s.centered}>
-              <Feather name="alert-circle" size={28} color={light.ink.faint} />
+              <Feather name="alert-circle" size={28} color={getTheme().ink.faint} />
               <Text style={s.errorTitle}>Could not load insights</Text>
               <Text style={s.errorSub}>{error}</Text>
               <TouchableOpacity style={s.retry} onPress={load} accessibilityRole="button">
@@ -197,7 +198,7 @@ export default function PostInsightsSheet({ postId, onClose, onOpenProfile }: Pr
                           <Text style={s.likerHandle} numberOfLines={1}>@{l.username}</Text>
                         ) : null}
                       </View>
-                      <Feather name="chevron-right" size={16} color={light.ink.faint} />
+                      <Feather name="chevron-right" size={16} color={getTheme().ink.faint} />
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -213,7 +214,7 @@ export default function PostInsightsSheet({ postId, onClose, onOpenProfile }: Pr
 function Stat({ icon, label, value }: { icon: any; label: string; value: number }) {
   return (
     <View style={s.statCell}>
-      <Feather name={icon} size={15} color={light.ink.muted} />
+      <Feather name={icon} size={15} color={getTheme().ink.muted} />
       <Text style={s.statVal}>{fmt(value)}</Text>
       <Text style={s.statLbl}>{label}</Text>
     </View>
@@ -229,10 +230,10 @@ function VideoStat({ value, label }: { value: string; label: string }) {
   );
 }
 
-const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: light.surface.scrim, justifyContent: 'flex-end' },
+const s = themedSheet((t) => ({
+  overlay: { flex: 1, backgroundColor: t.surface.scrim, justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: light.surface.canvas,
+    backgroundColor: t.surface.canvas,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     paddingHorizontal: space.lg,
@@ -241,65 +242,65 @@ const s = StyleSheet.create({
   },
   handle: {
     alignSelf: 'center', width: 38, height: 4, borderRadius: 2,
-    backgroundColor: light.surface.hairline, marginBottom: space.md,
+    backgroundColor: t.surface.hairline, marginBottom: space.md,
   },
   headerRow: {
     flexDirection: 'row', alignItems: 'flex-start',
     justifyContent: 'space-between', marginBottom: space.lg,
   },
-  title: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.4 },
-  subtitle: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 2 },
+  title: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.4 },
+  subtitle: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 2 },
 
   centered: { alignItems: 'center', justifyContent: 'center', paddingVertical: 48, gap: space.sm },
-  errorTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.ink.primary },
-  errorSub: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center' },
+  errorTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: t.ink.primary },
+  errorSub: { fontSize: typeSize.caption, color: t.ink.muted, textAlign: 'center' },
   retry: {
     marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm,
-    borderRadius: radius.full, backgroundColor: light.brand.base,
+    borderRadius: radius.full, backgroundColor: t.brand.base,
   },
-  retryTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  retryTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   heroRow: {
     flexDirection: 'row', alignItems: 'stretch',
-    backgroundColor: light.surface.raised,
+    backgroundColor: t.surface.raised,
     borderRadius: radius.lg, paddingVertical: space.lg, marginBottom: space.md,
   },
   hero: { flex: 1, alignItems: 'center', paddingHorizontal: space.sm },
-  heroSep: { width: StyleSheet.hairlineWidth, backgroundColor: light.surface.hairline },
-  heroVal: { fontSize: 34, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -1 },
-  heroValMuted: { color: light.ink.faint },
-  heroLbl: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: light.ink.primary, marginTop: 2 },
-  heroHint: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1, textAlign: 'center' },
+  heroSep: { width: StyleSheet.hairlineWidth, backgroundColor: t.surface.hairline },
+  heroVal: { fontSize: 34, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -1 },
+  heroValMuted: { color: t.ink.faint },
+  heroLbl: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.ink.primary, marginTop: 2 },
+  heroHint: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 1, textAlign: 'center' },
 
   grid: { flexDirection: 'row', gap: space.xs, marginBottom: space.lg },
   statCell: {
     flex: 1, alignItems: 'center', gap: 3,
     paddingVertical: space.md, borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline,
   },
-  statVal: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: light.ink.primary },
-  statLbl: { fontSize: typeSize.micro, color: light.ink.muted },
+  statVal: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary },
+  statLbl: { fontSize: typeSize.micro, color: t.ink.muted },
 
   block: { marginBottom: space.lg },
   blockTitle: {
     fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.2,
-    textTransform: 'uppercase', color: light.ink.muted, marginBottom: space.sm,
+    textTransform: 'uppercase', color: t.ink.muted, marginBottom: space.sm,
   },
-  blockNote: { fontSize: typeSize.micro, color: light.ink.faint, marginTop: space.sm, lineHeight: 15 },
+  blockNote: { fontSize: typeSize.micro, color: t.ink.faint, marginTop: space.sm, lineHeight: 15 },
 
   videoRow: { flexDirection: 'row', gap: space.xs },
   videoStat: {
     flex: 1, alignItems: 'center', paddingVertical: space.md,
-    borderRadius: radius.md, backgroundColor: light.brand.tintBg,
+    borderRadius: radius.md, backgroundColor: t.brand.tintBg,
   },
-  videoVal: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: light.ink.primary },
-  videoLbl: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1 },
+  videoVal: { fontSize: typeSize.heading, fontWeight: fontWeight.heavy, color: t.ink.primary },
+  videoLbl: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 1 },
 
   likerRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm },
-  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: light.surface.sunken },
-  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.base },
-  avatarTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.surface.sunken },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base },
+  avatarTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
   likerText: { flex: 1 },
-  likerName: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  likerHandle: { fontSize: typeSize.caption, color: light.ink.muted },
-});
+  likerName: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  likerHandle: { fontSize: typeSize.caption, color: t.ink.muted },
+}));

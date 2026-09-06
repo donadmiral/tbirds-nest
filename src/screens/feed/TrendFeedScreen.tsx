@@ -1,3 +1,4 @@
+import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -369,8 +370,8 @@ export default function TrendFeedScreen() {
   );
 }
 
-const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const st = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   center: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 8 },
 
   header: {
@@ -493,8 +494,8 @@ const st = StyleSheet.create({
     paddingVertical: 10,
   },
   retryBtnTxt: {
-    color: '#FFFFFF',
+    color: t.ink.inverse,
     fontSize: 14,
     fontWeight: '600',
   },
-});
+}));

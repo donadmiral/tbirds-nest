@@ -3,6 +3,7 @@
  * the piece itself; read minutes computed from the words. Publishes
  * through the posts spine so the article card and reader just work.
  */
+import { themedSheet } from '../../theme/useTheme';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator, Image, Platform, KeyboardAvoidingView, Modal } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -355,8 +356,8 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 70 },
   backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
@@ -364,10 +365,10 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
   publish: { fontSize: 15, fontWeight: '800', color: NAVY },
   title: { fontSize: 24, fontWeight: '800', color: NAVY, paddingVertical: 8, lineHeight: 30 },
-  coverBtn: { borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 14, minHeight: 54, alignItems: 'center', justifyContent: 'center', marginBottom: 10, overflow: 'hidden' },
+  coverBtn: { borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 14, minHeight: 54, alignItems: 'center', justifyContent: 'center', marginBottom: 10, overflow: 'hidden' },
   cover: { width: '100%', height: 180 },
-  coverTxt: { fontSize: 13, color: 'rgba(11,30,61,0.45)', fontWeight: '600', paddingVertical: 16 },
-  meta: { fontSize: 12, color: 'rgba(11,30,61,0.45)', fontWeight: '600', marginBottom: 10 },
+  coverTxt: { fontSize: 13, color: t.ink.muted, fontWeight: '600', paddingVertical: 16 },
+  meta: { fontSize: 12, color: t.ink.muted, fontWeight: '600', marginBottom: 10 },
   body: { fontSize: 16, lineHeight: 25, color: NAVY, minHeight: 320, paddingBottom: 40 },
   toolbar: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 2, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)', borderRadius: 12, paddingHorizontal: 6, paddingVertical: 5, marginBottom: 10 },
   toolBtn: { minWidth: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
@@ -376,7 +377,7 @@ const s = StyleSheet.create({
   previewBtn: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#F2F3F5' },
   previewBtnOn: { backgroundColor: NAVY },
   previewBtnTxt: { fontSize: 12.5, fontWeight: '700', color: 'rgba(11,30,61,0.7)' },
-  previewBtnTxtOn: { color: '#FFFFFF' },
+  previewBtnTxtOn: { color: t.ink.inverse },
   previewWrap: { minHeight: 320, paddingBottom: 40 },
   previewEmpty: { fontSize: 14, color: 'rgba(11,30,61,0.4)' },
   galleryStrip: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
@@ -384,12 +385,12 @@ const s = StyleSheet.create({
   galleryThumb: { width: '100%', height: '100%' },
   galleryRemove: { position: 'absolute', top: 5, right: 5, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.65)', alignItems: 'center', justifyContent: 'center' },
   linkModalOverlay: { flex: 1, backgroundColor: 'rgba(11,30,61,0.4)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  linkModalCard: { width: '100%', maxWidth: 360, backgroundColor: '#FFFFFF', borderRadius: 18, padding: 18 },
+  linkModalCard: { width: '100%', maxWidth: 360, backgroundColor: t.surface.canvas, borderRadius: 18, padding: 18 },
   linkModalTitle: { fontSize: 16, fontWeight: '800', color: NAVY, marginBottom: 12 },
   linkModalInput: { backgroundColor: '#F2F3F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14.5, color: NAVY, marginBottom: 10 },
   linkModalRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   linkModalCancel: { flex: 1, borderRadius: 12, paddingVertical: 11, alignItems: 'center', backgroundColor: '#F2F3F5' },
   linkModalCancelTxt: { fontSize: 14, fontWeight: '700', color: 'rgba(11,30,61,0.6)' },
   linkModalConfirm: { flex: 1, borderRadius: 12, paddingVertical: 11, alignItems: 'center', backgroundColor: NAVY },
-  linkModalConfirmTxt: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
-});
+  linkModalConfirmTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
+}));

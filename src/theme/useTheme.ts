@@ -29,3 +29,19 @@ export function useThemedStyles<T extends StyleSheet.NamedStyles<T>>(factory: (t
 export function getTheme(): Theme {
   return useThemeStore.getState().resolved === 'dark' ? (dark as unknown as Theme) : light;
 }
+/**
+ * A style sheet that follows the theme without changing how screens use it.
+ * Both palettes are built once; every property read resolves to the active
+ * one, so `s.card` is the dark card when the theme is dark. Screens keep
+ * `const s = themedSheet(t => ({ ... }))` at module level exactly as before.
+ */
+export function themedSheet<T extends StyleSheet.NamedStyles<T>>(factory: (t: Theme) => T): T {
+  const lightSheet = StyleSheet.create(factory(light));
+  const darkSheet = StyleSheet.create(factory(dark as unknown as Theme));
+  return new Proxy(lightSheet, {
+    get(_target, key) {
+      const active = useThemeStore.getState().resolved === 'dark' ? darkSheet : lightSheet;
+      return (active as any)[key as any];
+    },
+  }) as T;
+}

@@ -5,6 +5,7 @@
  * hands down a fresher latest timestamp or you tap the pill, so it can
  * never nag about content you are already looking at.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
@@ -65,13 +66,13 @@ export default function NewPostsPill(props: any) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   pill: {
     position: 'absolute', alignSelf: 'center', zIndex: 50,
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#0B1E3D', borderRadius: 999,
+    backgroundColor: t.brand.base, borderRadius: 999,
     paddingHorizontal: 14, paddingVertical: 8,
     shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
   },
-  txt: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-});
+  txt: { color: t.ink.inverse, fontSize: 13, fontWeight: '700' },
+}));

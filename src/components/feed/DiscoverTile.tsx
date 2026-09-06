@@ -4,6 +4,7 @@
 // where it is the point. One tile handles every kind a post can be: photo and
 // video lead with the frame, an article leads with its title, a shared link
 // keeps its preview, and a text post becomes a quote card.
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
@@ -45,7 +46,7 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
             ? <ExpoImage source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
             : isVideo
               ? <VideoThumb uri={first.url} fill chip={false} />
-              : <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="image" size={22} color={light.ink.muted} /></View>}
+              : <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="image" size={22} color={getTheme().ink.muted} /></View>}
           {isVideo ? <View style={s.play}><Feather name="play" size={12} color="#FFF" /></View> : null}
           {media.length > 1 ? <View style={s.count}><Text style={s.countTxt}>1/{media.length}</Text></View> : null}
         </View>
@@ -59,7 +60,7 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
     return (
       <TouchableOpacity style={[s.tile, { width, justifyContent: 'space-between' }]} activeOpacity={0.85} onPress={onPress}>
         <View style={s.pad}>
-          <View style={s.kindRow}><Feather name="file-text" size={11} color={light.brand.base} /><Text style={s.kind}>Article</Text></View>
+          <View style={s.kindRow}><Feather name="file-text" size={11} color={getTheme().brand.base} /><Text style={s.kind}>Article</Text></View>
           <Text style={s.articleTitle} numberOfLines={3}>{post.article_title}</Text>
           {text ? <Text style={s.articleBody} numberOfLines={3}>{text}</Text> : null}
         </View>
@@ -75,7 +76,7 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
           <ExpoImage source={{ uri: link.image_url }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
         </View>
         <View style={s.pad}>
-          <View style={s.kindRow}><Feather name="link" size={11} color={light.ink.muted} /><Text style={[s.kind, { color: light.ink.muted }]} numberOfLines={1}>{link.domain || ''}</Text></View>
+          <View style={s.kindRow}><Feather name="link" size={11} color={getTheme().ink.muted} /><Text style={[s.kind, { color: getTheme().ink.muted }]} numberOfLines={1}>{link.domain || ''}</Text></View>
           <Text style={s.linkTitle} numberOfLines={2}>{link.title || text}</Text>
         </View>
         {byline}
@@ -91,23 +92,23 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
   );
 }
 
-const s = StyleSheet.create({
-  tile: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.12)', backgroundColor: '#FFFFFF', overflow: 'hidden' },
-  frame: { width: '100%', backgroundColor: light.surface.sunken, overflow: 'hidden' },
+const s = themedSheet((t) => ({
+  tile: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, backgroundColor: t.surface.canvas, overflow: 'hidden' },
+  frame: { width: '100%', backgroundColor: t.surface.sunken, overflow: 'hidden' },
   frameEmpty: { alignItems: 'center', justifyContent: 'center' },
   play: { position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingLeft: 2 },
   count: { position: 'absolute', top: 8, left: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 7, paddingVertical: 2 },
-  countTxt: { fontSize: 10.5, fontWeight: '600', color: '#FFFFFF' },
+  countTxt: { fontSize: 10.5, fontWeight: '600', color: t.ink.inverse },
   caption: { fontSize: 13, lineHeight: 17, color: 'rgba(11,30,61,0.8)', paddingHorizontal: 11, paddingTop: 9 },
   pad: { paddingHorizontal: 12, paddingTop: 12 },
   kindRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  kind: { fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', color: light.brand.base },
-  articleTitle: { fontSize: 17, lineHeight: 22, fontWeight: '700', color: light.ink.primary, marginTop: 7 },
+  kind: { fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', color: t.brand.base },
+  articleTitle: { fontSize: 17, lineHeight: 22, fontWeight: '700', color: t.ink.primary, marginTop: 7 },
   articleBody: { fontSize: 12.5, lineHeight: 17, color: 'rgba(11,30,61,0.55)', marginTop: 5 },
-  linkTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: light.ink.primary, marginTop: 4 },
+  linkTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: t.ink.primary, marginTop: 4 },
   quote: { fontSize: 15, lineHeight: 22, color: 'rgba(11,30,61,0.9)' },
   byline: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 11, paddingTop: 9, paddingBottom: 11 },
-  avatar: { width: 22, height: 22, borderRadius: 11, backgroundColor: light.surface.sunken },
+  avatar: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.surface.sunken },
   avatarEmpty: {},
-  name: { fontSize: 12.5, fontWeight: '600', color: light.ink.primary, flexShrink: 1 },
-});
+  name: { fontSize: 12.5, fontWeight: '600', color: t.ink.primary, flexShrink: 1 },
+}));

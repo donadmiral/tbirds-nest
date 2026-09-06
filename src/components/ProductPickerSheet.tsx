@@ -8,6 +8,7 @@
  *
  * A manual card with an external link stays available for anything not listed.
  */
+import { themedSheet, getTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, TextInput,
@@ -151,7 +152,7 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
                   <View key={d.id} style={s.chip}>
                     <Text style={s.chipTxt} numberOfLines={1}>{d.title}</Text>
                     <TouchableOpacity onPress={() => removeCard(d.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      <Feather name="x" size={12} color={light.ink.muted} />
+                      <Feather name="x" size={12} color={getTheme().ink.muted} />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -162,7 +163,7 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
               <Text style={s.sectionLbl}>From your Market listings</Text>
 
               {loading ? (
-                <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
+                <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
               ) : error ? (
                 <View style={s.centered}>
                   <Text style={s.errTxt}>{error}</Text>
@@ -170,7 +171,7 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
                 </View>
               ) : listings.length === 0 ? (
                 <View style={s.centered}>
-                  <Feather name="package" size={26} color={light.ink.faint} />
+                  <Feather name="package" size={26} color={getTheme().ink.faint} />
                   <Text style={s.emptyTxt}>No listings on Market yet. Add a product with its link below.</Text>
                 </View>
               ) : (
@@ -187,7 +188,7 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
                         <Image source={{ uri: l.images[0] }} style={s.thumb} />
                       ) : (
                         <View style={[s.thumb, s.thumbEmpty]}>
-                          <Feather name="image" size={16} color={light.ink.faint} />
+                          <Feather name="image" size={16} color={getTheme().ink.faint} />
                         </View>
                       )}
                       <View style={s.rowText}>
@@ -200,7 +201,7 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
                       <Feather
                         name={picked ? 'check-circle' : 'circle'}
                         size={20}
-                        color={picked ? light.brand.base : light.ink.faint}
+                        color={picked ? getTheme().brand.base : getTheme().ink.faint}
                       />
                     </TouchableOpacity>
                   );
@@ -208,7 +209,7 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
               )}
 
               <TouchableOpacity style={s.linkToggle} onPress={() => setShowLinkForm(v => !v)} activeOpacity={0.7}>
-                <Feather name={showLinkForm ? 'minus' : 'plus'} size={14} color={light.status.link} />
+                <Feather name={showLinkForm ? 'minus' : 'plus'} size={14} color={getTheme().status.link} />
                 <Text style={s.linkToggleTxt}>Add a product by link, from your shop or any site</Text>
               </TouchableOpacity>
 
@@ -216,17 +217,17 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
                 <View style={s.linkForm}>
                   <TextInput
                     value={linkTitle} onChangeText={setLinkTitle}
-                    placeholder="Product name" placeholderTextColor={light.ink.faint}
+                    placeholder="Product name" placeholderTextColor={getTheme().ink.faint}
                     style={s.input}
                   />
                   <TextInput
                     value={linkUrl} onChangeText={setLinkUrl}
-                    placeholder="yourshop.co.zw/product" placeholderTextColor={light.ink.faint}
+                    placeholder="yourshop.co.zw/product" placeholderTextColor={getTheme().ink.faint}
                     style={s.input} autoCapitalize="none" keyboardType="url"
                   />
                   <TextInput
                     value={linkPrice} onChangeText={setLinkPrice}
-                    placeholder="Price (optional)" placeholderTextColor={light.ink.faint}
+                    placeholder="Price (optional)" placeholderTextColor={getTheme().ink.faint}
                     style={s.input} keyboardType="decimal-pad"
                   />
                   <TouchableOpacity
@@ -246,59 +247,59 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
   );
 }
 
-const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: light.surface.scrim, justifyContent: 'flex-end' },
+const s = themedSheet((t) => ({
+  overlay: { flex: 1, backgroundColor: t.surface.scrim, justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: light.surface.canvas,
+    backgroundColor: t.surface.canvas,
     borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
     paddingHorizontal: space.md, paddingTop: space.sm, maxHeight: '88%',
   },
-  handle: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: light.surface.hairline, marginBottom: space.sm },
+  handle: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: t.surface.hairline, marginBottom: space.sm },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm },
-  title: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.4 },
-  subtitle: { fontSize: typeSize.caption, color: light.ink.muted, marginTop: 1 },
-  doneBtn: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: light.brand.base },
-  doneTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  title: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.4 },
+  subtitle: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 1 },
+  doneBtn: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: t.brand.base },
+  doneTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   chipRow: { gap: space.xs, paddingBottom: space.sm },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: 160,
     paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.full,
-    backgroundColor: light.brand.tintBg,
+    backgroundColor: t.brand.tintBg,
   },
-  chipTxt: { flex: 1, fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: light.ink.primary },
+  chipTxt: { flex: 1, fontSize: typeSize.micro, fontWeight: fontWeight.semibold, color: t.ink.primary },
 
   body: { maxHeight: 420 },
   sectionLbl: {
     fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.2,
-    textTransform: 'uppercase', color: light.ink.muted, marginBottom: space.xs,
+    textTransform: 'uppercase', color: t.ink.muted, marginBottom: space.xs,
   },
   centered: { alignItems: 'center', justifyContent: 'center', paddingVertical: 28, gap: 6 },
-  errTxt: { fontSize: typeSize.caption, color: light.status.danger, textAlign: 'center' },
-  retryTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: light.brand.base },
-  emptyTxt: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center', paddingHorizontal: space.lg },
+  errTxt: { fontSize: typeSize.caption, color: t.status.danger, textAlign: 'center' },
+  retryTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.brand.base },
+  emptyTxt: { fontSize: typeSize.caption, color: t.ink.muted, textAlign: 'center', paddingHorizontal: space.lg },
 
   row: {
     flexDirection: 'row', alignItems: 'center', gap: space.sm,
     paddingVertical: space.xs, paddingHorizontal: space.xs,
     borderRadius: radius.md, marginBottom: 2,
   },
-  rowPicked: { backgroundColor: light.brand.tintBg },
-  thumb: { width: 42, height: 42, borderRadius: radius.sm, backgroundColor: light.surface.sunken },
+  rowPicked: { backgroundColor: t.brand.tintBg },
+  thumb: { width: 42, height: 42, borderRadius: radius.sm, backgroundColor: t.surface.sunken },
   thumbEmpty: { alignItems: 'center', justifyContent: 'center' },
   rowText: { flex: 1 },
-  rowTitle: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: light.ink.primary },
-  rowMeta: { fontSize: typeSize.micro, color: light.ink.muted, marginTop: 1 },
+  rowTitle: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
+  rowMeta: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 1 },
 
   linkToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: space.sm },
-  linkToggleTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: light.status.link },
+  linkToggleTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.status.link },
   linkForm: { gap: space.xs, paddingBottom: space.sm },
   input: {
-    borderWidth: StyleSheet.hairlineWidth, borderColor: light.surface.hairline,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline,
     borderRadius: radius.md, paddingHorizontal: space.sm, paddingVertical: 10,
-    fontSize: typeSize.body, color: light.ink.primary, backgroundColor: light.surface.raised,
+    fontSize: typeSize.body, color: t.ink.primary, backgroundColor: t.surface.raised,
   },
-  addBtn: { alignSelf: 'flex-start', paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: light.brand.base },
+  addBtn: { alignSelf: 'flex-start', paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: t.brand.base },
   addBtnOff: { opacity: 0.4 },
-  addBtnTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
-});
+  addBtnTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+}));

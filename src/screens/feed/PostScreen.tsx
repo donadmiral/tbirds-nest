@@ -1,3 +1,4 @@
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -452,9 +453,9 @@ export default function PostScreen({ route, navigation }: any) {
               accessibilityRole="button"
               accessibilityLabel={isDisliked ? 'Remove dislike' : 'Dislike comment'}
             >
-              <Ionicons name={isDisliked ? 'thumbs-down' : 'thumbs-down-outline'} size={14} color={isDisliked ? light.status.danger : light.ink.muted} />
+              <Ionicons name={isDisliked ? 'thumbs-down' : 'thumbs-down-outline'} size={14} color={isDisliked ? getTheme().status.danger : getTheme().ink.muted} />
               {(c.dislikes_count ?? 0) > 0 && (
-                <Text style={[s.commentActionTxt, isDisliked && { color: light.status.danger }]}>
+                <Text style={[s.commentActionTxt, isDisliked && { color: getTheme().status.danger }]}>
                   {c.dislikes_count}
                 </Text>
               )}
@@ -761,15 +762,15 @@ export default function PostScreen({ route, navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  body: { flex: 1, backgroundColor: '#FFFFFF' },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  body: { flex: 1, backgroundColor: t.surface.canvas },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 12, paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
@@ -779,7 +780,7 @@ const s = StyleSheet.create({
   postAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12, paddingHorizontal: 16 },
   postAvatar: { width: 46, height: 46, borderRadius: 23 },
   postAvatarFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  postAvatarFbTxt: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  postAvatarFbTxt: { fontSize: 15, fontWeight: '700', color: t.ink.inverse },
   postAuthorName: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY, letterSpacing: -0.1 },
   postAuthorRole: { fontSize: 12, color: '#3C3C43', marginTop: 1 },
   postAuthorSub: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 1 },
@@ -837,7 +838,7 @@ const s = StyleSheet.create({
   commentAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   commentAvatar: { width: 30, height: 30, borderRadius: 15 },
   commentAvatarFb: { width: 30, height: 30, borderRadius: 15, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  commentAvatarTxt: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },
+  commentAvatarTxt: { fontSize: 11, fontWeight: '700', color: t.ink.inverse },
   commentName: { fontSize: 13, fontWeight: '600', color: TEXT_PRIMARY },
   commentHandle: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 1 },
   commentTime: { fontSize: 11, color: '#C7C7CC' },
@@ -849,7 +850,7 @@ const s = StyleSheet.create({
 
   mentionDrop: {
     marginHorizontal: 12, marginBottom: 2,
-    backgroundColor: '#FFF', borderRadius: 14,
+    backgroundColor: t.surface.canvas, borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE,
     overflow: 'hidden',
     shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: -2 }, elevation: 4,
@@ -857,7 +858,7 @@ const s = StyleSheet.create({
   mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
   mentionAvatar: { width: 30, height: 30, borderRadius: 15 },
   mentionAvatarFb: { width: 30, height: 30, borderRadius: 15, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  mentionAvatarTxt: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },
+  mentionAvatarTxt: { fontSize: 11, fontWeight: '700', color: t.ink.inverse },
   mentionName: { fontSize: 13, fontWeight: '600', color: TEXT_PRIMARY },
   mentionHandle: { fontSize: 12, color: TEXT_SECONDARY },
 
@@ -874,12 +875,12 @@ const s = StyleSheet.create({
   inputBar: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 10,
     paddingHorizontal: 12, paddingTop: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.surface.canvas,
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE,
   },
   inputAvatar: { width: 34, height: 34, borderRadius: 17, marginBottom: 2 },
   inputAvatarFb: { width: 34, height: 34, borderRadius: 17, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  inputAvatarTxt: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
+  inputAvatarTxt: { fontSize: 12, fontWeight: '700', color: t.ink.inverse },
   input: {
     flex: 1, backgroundColor: '#F2F2F7', borderRadius: 22,
     paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10,
@@ -887,4 +888,4 @@ const s = StyleSheet.create({
   },
   sendBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', marginBottom: 1 },
   sendBtnOff: { backgroundColor: '#C7C7CC' },
-});
+}));

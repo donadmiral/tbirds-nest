@@ -1,3 +1,4 @@
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import { Alert, ScrollView } from 'react-native';
 import { TapTopSectionList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
@@ -464,7 +465,7 @@ export default function NotificationsScreen({ navigation }: any) {
             disabled={!!busy[item.notification_id]}
           >
             {busy[item.notification_id] ? (
-              <ActivityIndicator size="small" color={item.viewer_follows ? light.ink.primary : light.ink.inverse} />
+              <ActivityIndicator size="small" color={item.viewer_follows ? getTheme().ink.primary : getTheme().ink.inverse} />
             ) : (
               <Text style={[s.followTxt, item.viewer_follows && s.followingTxt]}>
                 {item.viewer_follows ? 'Following' : 'Follow'}
@@ -489,10 +490,10 @@ export default function NotificationsScreen({ navigation }: any) {
       </View>
 
       {loading ? (
-        <View style={s.centered}><ActivityIndicator color={light.brand.base} /></View>
+        <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
       ) : error ? (
         <View style={s.centered}>
-          <Feather name="alert-circle" size={30} color={light.ink.faint} />
+          <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Could not load your activity</Text>
           <Text style={s.emptySub}>{error}</Text>
           <TouchableOpacity style={s.retry} onPress={() => { setLoading(true); load(); }}>
@@ -501,7 +502,7 @@ export default function NotificationsScreen({ navigation }: any) {
         </View>
       ) : rows.length === 0 ? (
         <View style={s.centered}>
-          <Feather name="bell" size={30} color={light.ink.faint} />
+          <Feather name="bell" size={30} color={getTheme().ink.faint} />
           <Text style={s.emptyTitle}>Nothing yet</Text>
           <Text style={s.emptySub}>
             Likes, comments, follows and mentions show up here. Messages and calls stay in their own tabs.
@@ -523,10 +524,10 @@ export default function NotificationsScreen({ navigation }: any) {
           stickySectionHeadersEnabled={false}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
-          ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={light.ink.faint} style={{ paddingVertical: 16 }} /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={getTheme().ink.faint} style={{ paddingVertical: 16 }} /> : null}
           contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={light.ink.faint} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={getTheme().ink.faint} />
           }
           renderSectionHeader={({ section }: { section: { title: string } }) => (
             <Text style={s.sectionTitle}>{section.title}</Text>
@@ -537,24 +538,24 @@ export default function NotificationsScreen({ navigation }: any) {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: light.surface.canvas },
+const s = themedSheet((t) => ({
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingTop: space.xs, paddingBottom: space.sm,
   },
-  title: { fontSize: typeSize.display, fontWeight: fontWeight.heavy, color: light.ink.primary, letterSpacing: -0.9 },
-  markAll: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: light.status.link },
+  title: { fontSize: typeSize.display, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.9 },
+  markAll: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.status.link },
 
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 42, gap: 6 },
-  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: light.ink.primary, marginTop: 6 },
-  emptySub: { fontSize: typeSize.caption, color: light.ink.muted, textAlign: 'center', lineHeight: 19 },
-  retry: { marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: light.brand.base },
-  retryTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  emptyTitle: { fontSize: typeSize.emphasis, fontWeight: fontWeight.bold, color: t.ink.primary, marginTop: 6 },
+  emptySub: { fontSize: typeSize.caption, color: t.ink.muted, textAlign: 'center', lineHeight: 19 },
+  retry: { marginTop: space.sm, paddingHorizontal: space.lg, paddingVertical: space.xs, borderRadius: radius.full, backgroundColor: t.brand.base },
+  retryTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
 
   sectionTitle: {
     fontSize: typeSize.micro, fontWeight: fontWeight.semibold, letterSpacing: 1.2,
-    textTransform: 'uppercase', color: light.ink.muted,
+    textTransform: 'uppercase', color: t.ink.muted,
     paddingHorizontal: 16, paddingTop: space.md, paddingBottom: space.xs,
   },
 
@@ -564,39 +565,39 @@ const s = StyleSheet.create({
   chipOn: { backgroundColor: '#E8E0D0' },
   chipTxt: { fontSize: 12.5, fontWeight: '700', color: 'rgba(11,30,61,0.55)' },
   chipTxtOn: { color: '#0A0A0A' },
-  rowUnread: { backgroundColor: light.brand.tintBg },
+  rowUnread: { backgroundColor: t.brand.tintBg },
 
   avatarWrap: { position: 'relative' },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: light.surface.sunken },
-  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: light.brand.base },
-  avatarTxt: { color: light.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: t.surface.sunken },
+  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base },
+  avatarTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
   badge: {
     position: 'absolute', right: -2, bottom: -2,
     width: 19, height: 19, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: light.surface.canvas,
+    borderWidth: 2, borderColor: t.surface.canvas,
   },
 
   body: { flex: 1, gap: 2 },
-  line: { fontSize: typeSize.caption, lineHeight: 18, color: light.ink.secondary },
-  lead: { fontWeight: fontWeight.bold, color: light.ink.primary },
-  rest: { color: light.ink.secondary },
+  line: { fontSize: typeSize.caption, lineHeight: 18, color: t.ink.secondary },
+  lead: { fontWeight: fontWeight.bold, color: t.ink.primary },
+  rest: { color: t.ink.secondary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  time: { fontSize: typeSize.micro, color: light.ink.faint },
-  count: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.brand.base },
+  time: { fontSize: typeSize.micro, color: t.ink.faint },
+  count: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.brand.base },
 
   requestRow: { flexDirection: 'row', gap: 8, marginTop: 7 },
-  accept: { paddingHorizontal: 18, paddingVertical: 7, borderRadius: radius.md, backgroundColor: light.brand.base },
-  acceptTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.inverse },
-  decline: { paddingHorizontal: 18, paddingVertical: 7, borderRadius: radius.md, backgroundColor: 'rgba(11,30,61,0.06)' },
-  declineTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.primary },
+  accept: { paddingHorizontal: 18, paddingVertical: 7, borderRadius: radius.md, backgroundColor: t.brand.base },
+  acceptTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.ink.inverse },
+  decline: { paddingHorizontal: 18, paddingVertical: 7, borderRadius: radius.md, backgroundColor: t.brand.tintBg },
+  declineTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.ink.primary },
 
-  thumb: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: light.surface.sunken },
-  thumbText: { padding: 5, justifyContent: 'center', borderWidth: HAIR, borderColor: light.surface.hairline },
-  thumbTxt: { fontSize: 8, lineHeight: 10, color: light.ink.muted },
+  thumb: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: t.surface.sunken },
+  thumbText: { padding: 5, justifyContent: 'center', borderWidth: HAIR, borderColor: t.surface.hairline },
+  thumbTxt: { fontSize: 8, lineHeight: 10, color: t.ink.muted },
 
-  followBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: radius.md, backgroundColor: light.brand.base, minWidth: 80, alignItems: 'center' },
-  followingBtn: { backgroundColor: 'rgba(11,30,61,0.06)' },
-  followTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: light.ink.inverse },
-  followingTxt: { color: light.ink.primary },
-});
+  followBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: radius.md, backgroundColor: t.brand.base, minWidth: 80, alignItems: 'center' },
+  followingBtn: { backgroundColor: t.brand.tintBg },
+  followTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.ink.inverse },
+  followingTxt: { color: t.ink.primary },
+}));

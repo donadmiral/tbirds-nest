@@ -7,6 +7,7 @@
  * -- the composer owns attaching the url to the post and, after the post
  * exists, calling cacheLinkPreview once to warm the shared cache.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
@@ -123,28 +124,28 @@ export default function LinkAttachSheet({ visible, onClose, onAttach, initialUrl
   );
 }
 
-const sh = StyleSheet.create({
+const sh = themedSheet((t) => ({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10, paddingHorizontal: 16 },
+  sheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10, paddingHorizontal: 16 },
   handle: { width: 38, height: 4, borderRadius: 2, backgroundColor: 'rgba(11,30,61,0.15)', alignSelf: 'center', marginBottom: 10 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 },
   title: { fontSize: 16, fontWeight: '800', color: NAVY },
   cancelTxt: { fontSize: 15, color: 'rgba(11,30,61,0.55)' },
   doneBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 7 },
-  doneTxt: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  doneTxt: { fontSize: 14, fontWeight: '700', color: t.ink.inverse },
   inputRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
   input: { flex: 1, backgroundColor: '#F2F3F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14.5, color: NAVY },
   previewBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
-  previewBtnTxt: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
+  previewBtnTxt: { fontSize: 13.5, fontWeight: '700', color: t.ink.inverse },
   hint: { fontSize: 13, color: 'rgba(11,30,61,0.5)', marginTop: 14, marginBottom: 8, textAlign: 'center' },
   card: { flexDirection: 'row', marginTop: 14, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)', overflow: 'hidden' },
   cardImg: { width: 84, height: 84, backgroundColor: '#F2F3F5' },
   cardBody: { flex: 1, padding: 10, justifyContent: 'center' },
-  cardDomain: { fontSize: 10.5, fontWeight: '700', color: 'rgba(11,30,61,0.45)', textTransform: 'uppercase', letterSpacing: 0.4 },
+  cardDomain: { fontSize: 10.5, fontWeight: '700', color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 0.4 },
   cardTitle: { fontSize: 14, fontWeight: '700', color: NAVY, marginTop: 2 },
   cardDesc: { fontSize: 12, color: 'rgba(11,30,61,0.55)', marginTop: 2 },
   plainBtn: { alignSelf: 'center', marginTop: 4, marginBottom: 8 },
   plainBtnTxt: { fontSize: 13, fontWeight: '700', color: NAVY, textDecorationLine: 'underline' },
   removeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 16, paddingVertical: 10 },
   removeTxt: { fontSize: 13.5, fontWeight: '600', color: '#FF453A' },
-});
+}));

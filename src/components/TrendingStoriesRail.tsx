@@ -4,6 +4,7 @@
  * plus double-weighted reactions, floor of 3 views, capped at 8. The flame
  * says why they are here.
  */
+import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -73,27 +74,27 @@ export default function TrendingStoriesRail() {
   );
 }
 
-const s = StyleSheet.create({
+const s = themedSheet((t) => ({
   wrap: { paddingTop: 10, paddingBottom: 4 },
-  title: { fontSize: 13, fontWeight: '800', color: light.ink.primary, letterSpacing: 0.3, paddingHorizontal: 14, marginBottom: 8, textTransform: 'uppercase' },
+  title: { fontSize: 13, fontWeight: '800', color: t.ink.primary, letterSpacing: 0.3, paddingHorizontal: 14, marginBottom: 8, textTransform: 'uppercase' },
   rail: { paddingHorizontal: 12, gap: 14 },
   bubble: { alignItems: 'center', width: 76 },
   ringHolder: { width: 66, height: 66, alignItems: 'center', justifyContent: 'center' },
   ringSvg: { position: 'absolute', top: 0, left: 0 },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: light.surface.sunken },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: t.surface.sunken },
   fallback: { alignItems: 'center', justifyContent: 'center' },
-  fallbackTxt: { fontSize: 20, fontWeight: '700', color: light.ink.muted },
-  flame: { position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: 11, backgroundColor: light.surface.canvas, alignItems: 'center', justifyContent: 'center' },
+  fallbackTxt: { fontSize: 20, fontWeight: '700', color: t.ink.muted },
+  flame: { position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: 11, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center' },
   flameTxt: { fontSize: 12 },
-  name: { fontSize: 11, fontWeight: '600', color: light.ink.primary, marginTop: 5, maxWidth: 74 },
-  views: { fontSize: 10, color: light.ink.muted, marginTop: 1 },
-  tile: { width: 112, height: 176, borderRadius: 16, overflow: 'hidden', backgroundColor: light.surface.sunken },
-  tileFallback: { backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' },
+  name: { fontSize: 11, fontWeight: '600', color: t.ink.primary, marginTop: 5, maxWidth: 74 },
+  views: { fontSize: 10, color: t.ink.muted, marginTop: 1 },
+  tile: { width: 112, height: 176, borderRadius: 16, overflow: 'hidden', backgroundColor: t.surface.sunken },
+  tileFallback: { backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center' },
   tileShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 96 },
   tileFlame: { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   tileFoot: { position: 'absolute', left: 8, right: 8, bottom: 8 },
-  tileAvatarWrap: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: '#FFFFFF', overflow: 'hidden', marginBottom: 4, backgroundColor: light.surface.sunken },
+  tileAvatarWrap: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: t.ink.inverse, overflow: 'hidden', marginBottom: 4, backgroundColor: t.surface.sunken },
   tileAvatar: { width: '100%', height: '100%' },
-  tileName: { fontSize: 11.5, fontWeight: '700', color: '#FFFFFF' },
+  tileName: { fontSize: 11.5, fontWeight: '700', color: t.ink.inverse },
   tileViews: { fontSize: 10, color: 'rgba(255,255,255,0.8)', marginTop: 1 },
-});
+}));
