@@ -8,7 +8,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as FileSystem from 'expo-file-system/legacy';
 import { makeBoomerang } from '../../../modules/boomerang';
-import BoomerangWeb from './BoomerangWeb';
+import BoomerangWeb, { BoomerangEffect } from './BoomerangWeb';
 import { useCameraLife } from '../../hooks/useCameraLife';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -76,6 +76,7 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
   const [recording, setRecording] = useState(false);
   const [progress, setProgress] = useState(0);
   const [bounce, setBounce] = useState<{ input: string; durationSec: number } | null>(null);
+  const [boomEffect, setBoomEffect] = useState<BoomerangEffect>('classic');
   const finishWith = useCallback((uri: string, dur: number) => {
     navigation.navigate('StoryComposer', {
       assets: [{ uri, localUri: uri, type: 'video', mediaType: 'video', durationSec: dur }],
@@ -184,7 +185,7 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
       <StatusBar barStyle="light-content" />
       {bounce ? (
         <>
-          <BoomerangWeb inputUri={bounce.input}
+          <BoomerangWeb inputUri={bounce.input} effect={boomEffect}
             onDone={(uri, dur) => { setBounce(null); finishWith(uri, dur); }}
             onError={(m) => { console.log('[Boomerang] web bounce failed, straight clip:', m); const b = bounce; setBounce(null); if (b) finishWith(b.input, b.durationSec); }} />
           <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', alignItems: 'center', zIndex: 50 }} pointerEvents="none">
@@ -214,6 +215,16 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
         </TouchableOpacity>
       </View>
       <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 18, 32) }]}>
+        {!recording && !bounce ? (
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
+            {([['classic', 'Classic'], ['slomo', 'Slo-Mo'], ['echo', 'Echo'], ['duo', 'Duo']] as [BoomerangEffect, string][]).map(([k, label]) => (
+              <TouchableOpacity key={k} onPress={() => setBoomEffect(k)} activeOpacity={0.8}
+                style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: boomEffect === k ? '#FFFFFF' : 'rgba(255,255,255,0.18)' }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: boomEffect === k ? '#0B1E3D' : '#FFFFFF' }}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
         <Text style={s.hintTxt}>{recording ? 'Capturing' : 'Tap to capture a Boomerang'}</Text>
         <TouchableOpacity activeOpacity={0.9} onPress={onShutter} disabled={recording} style={[s.captureWrap, { transform: [{ scale: recording ? 1.08 : 1 }] }]}>
           <Svg width={ringSize} height={ringSize} style={StyleSheet.absoluteFill as any}>
