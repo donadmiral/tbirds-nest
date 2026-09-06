@@ -112,7 +112,7 @@ export function PostCard({ post }: { post: FeedRow }) {
     let dead = false;
     supabase.from("post_collaborators").select("status, profile:profiles!post_collaborators_user_id_fkey(username, full_name)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
       if (dead) return;
-      const names = ((data ?? []) as { profile?: { username?: string | null; full_name?: string | null } | { username?: string | null; full_name?: string | null }[] }[]).map((r) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; return pr ? "@" + (pr.username || pr.full_name || "") : ""; }).filter(Boolean);
+      const names = ((data ?? []) as { profile?: { username?: string | null; full_name?: string | null } | { username?: string | null; full_name?: string | null }[] }[]).map((r) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; return pr ? (pr.full_name || pr.username || "") : ""; }).filter(Boolean);
       setCollabNames(names);
     });
     return () => { dead = true; };

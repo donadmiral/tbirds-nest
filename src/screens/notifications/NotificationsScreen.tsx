@@ -232,7 +232,7 @@ export default function NotificationsScreen({ navigation }: any) {
     if (!mounted.current) return;
     if (err) { setError(err.message); setLoading(false); setRefreshing(false); return; }
     const batch = (data ?? []) as Notif[];
-    setRows(batch);
+    setRows(invitesFirst(batch));
     hydrateThumbs(batch);
     cursorRef.current = batch.length ? (batch[batch.length - 1] as any).created_at : null;
     setDone(batch.length < 60);
@@ -329,6 +329,7 @@ export default function NotificationsScreen({ navigation }: any) {
       ? { ...r, viewer_follows: !r.viewer_follows } : r));
   };
 
+  const invitesFirst = (list: Notif[]) => { const inv = list.filter(r => r.type === 'collab_invite'); const rest = list.filter(r => r.type !== 'collab_invite'); return [...inv, ...rest]; };
   const respondCollab = async (n: Notif, accept: boolean) => {
     const pid = (n as any).post_id || (n as any).data?.post_id; const { data: s } = await supabase.auth.getSession(); const me = s.session?.user.id;
     if (!pid || !me) { Alert.alert('Not available', 'This invitation cannot be found.'); return; }
