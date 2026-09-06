@@ -104,7 +104,7 @@ export default function StoryDualCaptureScreen() {
     if (recTickRef.current) clearInterval(recTickRef.current);
     try { cameraRef.current?.stopRecording(); } catch {}
     mountedRef.current = false;
-    navigation.goBack();
+    if (navigation.canGoBack()) navigation.goBack();
   }, [navigation]);
 
   // ── SCREEN FLASH ───────────────────────────────────────────

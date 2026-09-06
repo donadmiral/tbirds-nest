@@ -721,6 +721,46 @@ export default function FeedScreen({ navigation }: any) {
       })
       .subscribe();
 
+    // Reposts and bookmarks: every phone bumps the number the moment anyone
+    // acts, the same way likes already do. The actor's own phone changed its
+    // number optimistically, so its own rows are skipped here.
+    const rbCh = supabase.channel('feed_reposts_bookmarks')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_reposts' }, (payload) => {
+        const row = payload.new as any; if (!row?.post_id || row.user_id === userId) return;
+        setPosts(prev => prev.map(p => p.id === row.post_id ? { ...p, reposts_count: (p.reposts_count || 0) + 1 } : p));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_reposts' }, (payload) => {
+        const row = payload.old as any; if (!row?.post_id || row.user_id === userId) return;
+        setPosts(prev => prev.map(p => p.id === row.post_id ? { ...p, reposts_count: Math.max(0, (p.reposts_count || 0) - 1) } : p));
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_bookmarks' }, (payload) => {
+        const row = payload.new as any; if (!row?.post_id) return;
+        setPosts(prev => prev.map(p => p.id === row.post_id ? { ...p, bookmarks_count: (p.bookmarks_count || 0) + 1 } : p));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_bookmarks' }, (payload) => {
+        const row = payload.old as any; if (!row?.post_id) return;
+        setPosts(prev => prev.map(p => p.id === row.post_id ? { ...p, bookmarks_count: Math.max(0, (p.bookmarks_count || 0) - 1) } : p));
+      })
+      .subscribe();
+
+    // Post-row updates carry the counts the triggers just changed.
+    const countCh = supabase.channel('feed_post_counts')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload) => {
+        const r = payload.new as any; if (!r?.id) return;
+        setPosts(prev => prev.map(pp => {
+          if (pp.id !== r.id) return pp;
+          const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
+          return {
+            ...pp,
+            likes_count: pick(r.likes_count, r.like_count, pp.likes_count),
+            reposts_count: pick(r.reposts_count, r.repost_count, pp.reposts_count),
+            bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, pp.bookmarks_count ?? 0),
+            shares_count: pick(r.shares_count, r.share_count, pp.shares_count ?? 0),
+          };
+        }));
+      })
+      .subscribe();
+
     const commentCh = supabase.channel('feed_comments')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_comments' }, async (payload) => {
         const row = payload.new as any;
@@ -796,6 +836,8 @@ export default function FeedScreen({ navigation }: any) {
     return () => {
       supabase.removeChannel(ch);
       supabase.removeChannel(likeCh);
+      supabase.removeChannel(rbCh);
+      supabase.removeChannel(countCh);
       supabase.removeChannel(commentCh);
       supabase.removeChannel(postUpdateCh);
       if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
@@ -1157,14 +1199,37 @@ export default function FeedScreen({ navigation }: any) {
 
   const hydrateShares = useCallback((ids: string[]) => {
     if (!ids.length) return;
-    supabase.from('posts').select('id, shares_count').in('id', ids).then(({ data }) => {
+    // The post row carries the counts the triggers maintain, readable by
+    // everyone. That is the number every phone shows, whatever it can or
+    // cannot read of the underlying like, repost and bookmark rows.
+    supabase.from('posts').select('*').in('id', ids).then(({ data }) => {
       if (!data || !data.length) return;
-      const m: Record<string, number> = {};
-      data.forEach((r: any) => { m[r.id] = r.shares_count ?? 0; });
-      setPosts(prev => prev.map(pp => m[pp.id] != null && (pp.shares_count ?? 0) < m[pp.id] ? { ...pp, shares_count: m[pp.id] } : pp));
+      const m: Record<string, any> = {};
+      data.forEach((r: any) => { m[r.id] = r; });
+      setPosts(prev => prev.map(pp => {
+        const r = m[pp.id]; if (!r) return pp;
+        const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
+        return {
+          ...pp,
+          likes_count: pick(r.likes_count, r.like_count, pp.likes_count),
+          reposts_count: pick(r.reposts_count, r.repost_count, pp.reposts_count),
+          bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, pp.bookmarks_count ?? 0),
+          shares_count: pick(r.shares_count, r.share_count, pp.shares_count ?? 0),
+        };
+      }));
     }, () => {});
     // Quotes are posts that point at these ids. Counted here so the repost
     // number means reposts and quotes together, as on X.
+    // Counts from the rows themselves, so a phone that did not do the acting
+    // still shows the real numbers even before the post row's counter catches up.
+    supabase.from('post_reposts').select('post_id').in('post_id', ids).then(({ data }) => {
+      const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
+      setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.reposts_count || 0) ? { ...pp, reposts_count: m[pp.id] } : pp));
+    }, () => {});
+    supabase.from('post_bookmarks').select('post_id').in('post_id', ids).then(({ data }) => {
+      const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
+      setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.bookmarks_count || 0) ? { ...pp, bookmarks_count: m[pp.id] } : pp));
+    }, () => {});
     supabase.from('posts').select('quoted_post_id').in('quoted_post_id', ids).then(({ data }) => {
       const q: Record<string, number> = {};
       (data || []).forEach((r: any) => { if (r.quoted_post_id) q[r.quoted_post_id] = (q[r.quoted_post_id] || 0) + 1; });

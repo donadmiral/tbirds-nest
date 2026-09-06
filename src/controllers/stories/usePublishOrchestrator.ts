@@ -197,7 +197,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
         Animated.timing(mediaOpacity, { toValue: 0, duration: duration.medium, useNativeDriver: true }),
         Animated.timing(mediaScale, { toValue: 0.96, duration: duration.medium, useNativeDriver: true }),
       ]).start(() => {
-        if (mountedRef.current) { showMessage({ message: 'Story shared', type: 'success', duration: 1800 }); const nav: any = navigation; if (typeof nav.popToTop === 'function') nav.popToTop(); else nav.goBack(); }
+        if (mountedRef.current) { showMessage({ message: 'Story shared', type: 'success', duration: 1800 }); const nav: any = navigation; try { const st = nav.getState?.(); console.log('[Publish] exit from', JSON.stringify((st?.routes || []).map((r: any) => r.name))); if ((st?.routes?.length || 0) > 1 && typeof nav.popToTop === 'function') nav.popToTop(); else if (nav.canGoBack?.()) nav.goBack(); } catch (e: any) { console.log('[Publish] exit failed', e?.message); } }
       });
     } else if (successCount === 0) {
       Alert.alert('Upload failed', 'Could not upload. Please try again.');

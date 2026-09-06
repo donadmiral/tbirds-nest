@@ -136,7 +136,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
       // FeedMain sits inside the Feed tab inside Main, unreachable by name from
       // this stack, so hand the capture over the bridge and pop back to it.
       setPendingCapture('feed', { uri, type, width, height, filterId: fid });
-      navigation.goBack();
+      if (navigation.canGoBack()) navigation.goBack();
       return;
     }
     navigation.navigate('StoryComposer', {
