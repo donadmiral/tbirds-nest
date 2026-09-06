@@ -328,6 +328,16 @@ export default function NotificationsScreen({ navigation }: any) {
       ? { ...r, viewer_follows: !r.viewer_follows } : r));
   };
 
+  const respondCollab = async (n: Notif, accept: boolean) => {
+    const pid = (n as any).post_id || (n as any).data?.post_id; const { data: s } = await supabase.auth.getSession(); const me = s.session?.user.id;
+    if (!pid || !me) return;
+    setBusy(b => ({ ...b, [n.notification_id]: true }));
+    await supabase.from('post_collaborators').update({ status: accept ? 'accepted' : 'declined' }).eq('post_id', pid).eq('user_id', me);
+    await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', n.notification_id);
+    setRows(prev => prev.filter(r => r.notification_id !== n.notification_id));
+    setBusy(b => ({ ...b, [n.notification_id]: false }));
+    if (accept) navigation.navigate('Post', { postId: pid });
+  };
   const respondRequest = async (n: Notif, action: 'accept' | 'reject') => {
     const reqId = n.data?.request_id;
     if (!reqId || busy[n.notification_id]) return;
@@ -438,6 +448,12 @@ export default function NotificationsScreen({ navigation }: any) {
           {(() => { const pid = (item as any).post_id || (item as any).data?.post_id; const sid = (item as any).data?.story_id; const u = (sid && thumbs['s:' + sid]) || (pid && thumbs['p:' + pid]) || null; return u ? <Image source={{ uri: u }} style={s.thumb} /> : null; })()}
           {unread ? <View style={s.unreadDot} /> : null}
 
+          {item.type === 'collab_invite' ? (
+            <View style={s.requestRow}>
+              <TouchableOpacity style={s.accept} onPress={() => respondCollab(item, true)} disabled={!!busy[item.notification_id]}><Text style={s.acceptTxt}>Accept</Text></TouchableOpacity>
+              <TouchableOpacity style={s.decline} onPress={() => respondCollab(item, false)} disabled={!!busy[item.notification_id]}><Text style={s.declineTxt}>Decline</Text></TouchableOpacity>
+            </View>
+          ) : null}
           {showRequest ? (
             <View style={s.requestRow}>
               <TouchableOpacity

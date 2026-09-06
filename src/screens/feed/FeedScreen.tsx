@@ -290,21 +290,19 @@ export default function FeedScreen({ navigation }: any) {
   // Sensitive media, the poster's own mark: readers see it by their own setting.
   const [composerSensitive, setComposerSensitive] = useState(false);
   // Collab: one invited co-author; the post shows on both profiles once they accept.
-  const [collabUsername, setCollabUsername] = useState<string | null>(null);
-  const [collabs, setCollabs] = useState<Record<string, { username: string | null; full_name: string | null }[]>>({});
+  const [collabPicks, setCollabPicks] = useState<{ id: string; username: string | null; full_name: string | null }[]>([]);
+  const [collabs, setCollabs] = useState<Record<string, { id: string; username: string | null; full_name: string | null }[]>>({});
   const [collabPicker, setCollabPicker] = useState<'composer' | { postId: string } | null>(null);
   const askCollaborator = useCallback(() => { setCollabPicker('composer'); }, []);
-  const inviteCollaborator = useCallback(async (postId: string, username: string) => {
-    const { data: who } = await supabase.from('profiles').select('id').ilike('username', username).maybeSingle();
-    if (!who?.id || !userId) { Alert.alert('Not found', '@' + username + ' is not on Platinum Circles.'); return; }
-    const { error } = await supabase.from('post_collaborators').insert({ post_id: postId, user_id: (who as any).id, invited_by: userId });
-    if (error) Alert.alert('Not invited', error.message);
+  const inviteCollaborators = useCallback(async (postId: string, picks: { id: string }[]) => {
+    if (!userId) return;
+    for (const p of picks) { await supabase.from('post_collaborators').insert({ post_id: postId, user_id: p.id, invited_by: userId }).then(() => {}, () => {}); }
   }, [userId]);
   const hydrateCollabs = useCallback((ids: string[]) => {
     if (!ids.length) return;
-    supabase.from('post_collaborators').select('post_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
-      const m: Record<string, { username: string | null; full_name: string | null }[]> = {};
-      (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ username: pr.username ?? null, full_name: pr.full_name ?? null }); });
+    supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
+      const m: Record<string, { id: string; username: string | null; full_name: string | null }[]> = {};
+      (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null }); });
       setCollabs(prev => ({ ...prev, ...m }));
     }, () => {});
   }, []);
@@ -1537,7 +1535,7 @@ export default function FeedScreen({ navigation }: any) {
 
       const { data: newPost, error } = await supabase
         .from('posts').insert(insertData).select('id').single();
-      if (!error && newPost?.id && collabUsername) { await inviteCollaborator(newPost.id, collabUsername); }
+      if (!error && newPost?.id && collabPicks.length) { await inviteCollaborators(newPost.id, collabPicks); }
       if (error) {
         Alert.alert('Post failed', error.message);
         return;
@@ -1594,7 +1592,7 @@ export default function FeedScreen({ navigation }: any) {
       setPostAudience('everyone');
       setCommentPolicy('everyone');
       setComposerSensitive(false);
-      setCollabUsername(null);
+      setCollabPicks([]);
       setQuotingPost(null);
       setThreadingPost(null);
       Keyboard.dismiss();
@@ -1825,6 +1823,12 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <View style={s.postMetaTxt}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />
+                {(collabs[post.id] || []).length > 0 ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 }}>
+                    <View style={{ backgroundColor: 'rgba(11,30,61,0.08)', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 }}><Text style={{ fontSize: 10, fontWeight: '800', color: getTheme().ink.primary }}>COLLAB</Text></View>
+                    <Text style={{ fontSize: 12.5, color: getTheme().ink.muted, flexShrink: 1 }} numberOfLines={1}>with {(collabs[post.id] || []).map(x => '@' + (x.username || x.full_name || '')).join(', ')}</Text>
+                  </View>
+                ) : null}
                 {((author as any)?.verified_tier || (author as any)?.is_verified) ? <VerifiedBadge tier={(author as any)?.verified_tier} size={13} /> : null}
               </View>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: getTheme().status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
@@ -2292,9 +2296,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     <Feather name="alert-triangle" size={12} color={composerSensitive ? '#FFFFFF' : NAVY} />
                     <Text style={[s.audChipTxt, composerSensitive && { color: '#FFFFFF' }]}>{composerSensitive ? 'Sensitive' : 'Mark sensitive'}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={[s.audChip, !!collabUsername && { backgroundColor: '#0B1E3D' }]} onPress={askCollaborator} activeOpacity={0.75}>
-                    <Feather name="users" size={12} color={collabUsername ? '#FFFFFF' : NAVY} />
-                    <Text style={[s.audChipTxt, !!collabUsername && { color: '#FFFFFF' }]}>{collabUsername ? 'With @' + collabUsername : 'Invite collaborator'}</Text>
+                  <TouchableOpacity style={[s.audChip, collabPicks.length > 0 && { backgroundColor: '#0B1E3D' }]} onPress={askCollaborator} activeOpacity={0.75}>
+                    <Feather name="users" size={12} color={collabPicks.length ? '#FFFFFF' : NAVY} />
+                    <Text style={[s.audChipTxt, collabPicks.length > 0 && { color: '#FFFFFF' }]}>{collabPicks.length ? 'With ' + collabPicks.map(x => '@' + (x.username || x.full_name)).join(', ') : 'Invite collaborators'}</Text>
                   </TouchableOpacity>
                   </ScrollView>
                 </View>
@@ -2656,7 +2660,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
       <PeoplePickerSheet visible={!!collabPicker} title="Invite a collaborator" excludeId={userId}
         onClose={() => setCollabPicker(null)}
-        onPick={(p) => { const target = collabPicker; if (target === 'composer') { setCollabUsername(p.username || p.full_name || null); } else if (target && typeof target === 'object' && p.username) { inviteCollaborator(target.postId, p.username); } }} />
+        onPick={(p) => { setCollabPicks(prev => (prev.some(x => x.id === p.id) || prev.length >= 5) ? prev : [...prev, { id: p.id, username: p.username, full_name: p.full_name }]); }} />
       <Modal visible={!!menuPost} transparent animationType="slide" onRequestClose={() => setMenuPost(null)}>
         <TouchableOpacity style={s.menuOverlay} activeOpacity={1} onPress={() => setMenuPost(null)}>
           <TouchableOpacity activeOpacity={1} style={s.menuSheet}>
@@ -2720,15 +2724,33 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               </TouchableOpacity>
             )}
 
-            {menuPost?.user_id === userId && (
+            {menuPost && (collabs[menuPost.id] || []).some(x => x.id === userId) && (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
-                const captured = menuPost; setMenuPost(null); if (!captured) return;
-                setCollabPicker({ postId: captured.id });
+                const captured = menuPost; setMenuPost(null); if (!captured || !userId) return;
+                Alert.alert('Stop sharing?', 'The post leaves your profile and stays on the creator\'s.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Stop sharing', style: 'destructive', onPress: async () => { await supabase.from('post_collaborators').update({ status: 'declined' }).eq('post_id', captured.id).eq('user_id', userId); setCollabs(prev => ({ ...prev, [captured.id]: (prev[captured.id] || []).filter(x => x.id !== userId) })); } },
+                ]);
               }}>
-                <Feather name="users" size={18} color={getTheme().ink.primary} />
-                <Text style={s.menuOptionTxt}>Invite collaborator</Text>
+                <Feather name="user-x" size={18} color={getTheme().ink.primary} />
+                <Text style={s.menuOptionTxt}>Stop sharing this collab</Text>
               </TouchableOpacity>
             )}
+
+            {menuPost?.user_id === userId && (collabs[menuPost.id] || []).length > 0 && (
+              <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
+                const captured = menuPost; setMenuPost(null); if (!captured) return;
+                const list = collabs[captured.id] || [];
+                Alert.alert('Remove a collaborator', 'The post leaves their profile.', [
+                  ...list.map(x => ({ text: '@' + (x.username || x.full_name || ''), style: 'destructive' as const, onPress: async () => { await supabase.from('post_collaborators').delete().eq('post_id', captured.id).eq('user_id', x.id); setCollabs(prev => ({ ...prev, [captured.id]: (prev[captured.id] || []).filter(y => y.id !== x.id) })); } })),
+                  { text: 'Cancel', style: 'cancel' as const },
+                ]);
+              }}>
+                <Feather name="users" size={18} color={getTheme().ink.primary} />
+                <Text style={s.menuOptionTxt}>Remove a collaborator</Text>
+              </TouchableOpacity>
+            )}
+
 
             {menuPost?.user_id === userId && (menuPost?.media?.length ?? 0) > 0 && (
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={async () => {

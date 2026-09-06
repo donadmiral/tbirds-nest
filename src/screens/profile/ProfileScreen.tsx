@@ -180,13 +180,13 @@ export default function ProfileScreen() {
         try {
           const { data: cl } = await supabase.from('post_collaborators').select('post_id').eq('user_id', userId).eq('status', 'accepted');
           const collabIds = (cl || []).map((x: any) => x.post_id).filter((id: string) => !postsData.some((p: any) => p.id === id));
-          if (collabIds.length) { const { data: cp } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', collabIds); postsData = [...postsData, ...((cp as any[]) || [])].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); }
+          if (collabIds.length) { const { data: cp } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order)').in('id', collabIds); const cps = ((cp as any[]) || []); const authorIds = Array.from(new Set(cps.map((x: any) => x.user_id))); const { data: aps } = authorIds.length ? await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds) : { data: [] as any[] }; const am: Record<string, any> = {}; ((aps as any[]) || []).forEach((a: any) => { am[a.id] = { full_name: a.full_name || '', avatar_url: a.avatar_url || null }; }); postsData = [...postsData, ...cps.map((x: any) => ({ ...x, _collabAuthor: am[x.user_id] || null }))].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); }
         } catch {}
         // Archived posts never show; the pinned post leads.
         postsData = postsData.filter((x: any) => !x.archived_at);
         const pinnedId = (authProfile as any)?.pinned_post_id ?? null;
         const pinnedFirst = pinnedId ? [...postsData.filter((x: any) => x.id === pinnedId), ...postsData.filter((x: any) => x.id !== pinnedId)] : postsData;
-        setTabPosts(pinnedFirst.map((x: any) => ({ ...normalizePost(x), is_pinned: x.id === pinnedId })));
+        setTabPosts(pinnedFirst.map((x: any) => ({ ...normalizePost(x), is_pinned: x.id === pinnedId, _originalAuthor: x._collabAuthor || undefined, _repostLabel: x._collabAuthor ? 'Collab' : undefined })));
         setPostsHasMore(postsData.length >= 50);
         setTabCounts(prev => ({ ...prev, posts: postsData.length }));
       }
