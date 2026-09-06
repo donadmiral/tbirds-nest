@@ -13,66 +13,12 @@
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Eye, Heart, PenLine, Users } from "lucide-react";
+import { Eye, Heart, PenLine, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { DiscoveryRail } from "@/components/DiscoveryRail";
 import { Panel } from "@/components/ui";
 
-type EventRow = { id: string; title: string; event_date: string; location: string | null; attendees_count: number | null };
 type Activity = { posts: number; views: number; engagement: number; followers: number };
-
-function UpcomingEvents() {
-  const supabase = useRef(createClient()).current;
-  const [rows, setRows] = useState<EventRow[]>([]);
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("events")
-        .select("id, title, event_date, location, attendees_count")
-        .gte("event_date", new Date().toISOString())
-        .order("event_date")
-        .limit(3);
-      setRows((data ?? []) as EventRow[]);
-    })();
-  }, [supabase]);
-
-  if (rows.length === 0) return null;
-
-  return (
-    <Panel title="Upcoming events" icon={<CalendarDays size={15} />} action="View all" actionHref="/communities">
-      <div className="flex flex-col gap-3">
-        {rows.map((e) => {
-          const d = new Date(e.event_date);
-          return (
-            <div key={e.id} className="flex gap-3">
-              {/* A date block rather than a line of text: the day is the thing
-                  people scan for. */}
-              <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-surface">
-                <span className="text-[9.5px] font-semibold uppercase tracking-wide text-ink/45">
-                  {d.toLocaleDateString(undefined, { month: "short" })}
-                </span>
-                <span className="font-display text-[16px] leading-none text-pearl-muted">{d.getDate()}</span>
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="line-clamp-2 block text-[13.5px] font-semibold leading-snug text-ink">{e.title}</span>
-                <span className="mt-0.5 block truncate text-[12px] text-ink/45">
-                  {d.toLocaleDateString(undefined, { weekday: "short" })} · {d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
-                  {e.location ? " · " + e.location : ""}
-                </span>
-              </span>
-              {e.attendees_count ? (
-                <span className="flex shrink-0 items-center gap-1 text-[11.5px] text-ink/40">
-                  <Users size={11} /> {e.attendees_count}
-                </span>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </Panel>
-  );
-}
 
 function YourActivity() {
   const supabase = useRef(createClient()).current;
@@ -132,7 +78,6 @@ export function HomeRail() {
   return (
     <>
       <DiscoveryRail />
-      <UpcomingEvents />
       <YourActivity />
     </>
   );
@@ -143,9 +88,8 @@ export function DiscoverRail() {
   return (
     <>
       <DiscoveryRail />
-      <UpcomingEvents />
     </>
   );
 }
 
-export { UpcomingEvents, YourActivity };
+export { YourActivity };
