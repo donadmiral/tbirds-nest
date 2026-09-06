@@ -8,6 +8,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as FileSystem from 'expo-file-system/legacy';
 import { makeBoomerang } from '../../../modules/boomerang';
+import BoomerangWeb from './BoomerangWeb';
 import { useCameraLife } from '../../hooks/useCameraLife';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -74,6 +75,13 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
   const [recording, setRecording] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [bounce, setBounce] = useState<{ input: string; durationSec: number } | null>(null);
+  const finishWith = useCallback((uri: string, dur: number) => {
+    navigation.navigate('StoryComposer', {
+      assets: [{ uri, localUri: uri, type: 'video', mediaType: 'video', durationSec: dur }],
+      mode: 'video',
+    });
+  }, [navigation]);
   const pendingRef = useRef(false);
   const recordingRef = useRef(false);
   const recordStartRef = useRef(0);
@@ -125,7 +133,7 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
         await makeBoomerang(video.uri, out, 1);
         uri = out;
         dur = Math.max(1, durationSec * 2);
-      } catch (e: any) { console.log('[Boomerang] straight clip:', e?.message); }
+      } catch (e: any) { console.log('[Boomerang] native encoder absent, bouncing in the web engine:', e?.message); setBounce({ input: video.uri, durationSec }); return; }
       navigation.navigate('StoryComposer', {
         assets: [{ uri, localUri: uri, type: 'video', mediaType: 'video', durationSec: dur }],
         mode: 'video',
@@ -174,6 +182,18 @@ function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" />
+      {bounce ? (
+        <>
+          <BoomerangWeb inputUri={bounce.input}
+            onDone={(uri, dur) => { setBounce(null); finishWith(uri, dur); }}
+            onError={(m) => { console.log('[Boomerang] web bounce failed, straight clip:', m); const b = bounce; setBounce(null); if (b) finishWith(b.input, b.durationSec); }} />
+          <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', alignItems: 'center', zIndex: 50 }} pointerEvents="none">
+            <View style={{ backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 }}>
+              <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>Bouncing</Text>
+            </View>
+          </View>
+        </>
+      ) : null}
       <CameraView
         key={camMode + ':' + cam.epoch}
         active={cam.active}
