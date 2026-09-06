@@ -93,6 +93,7 @@ export default function SettingsPage() {
         <NavRow href="/settings/muted-words" icon={<EyeOff size={16} />} label="Muted words" sub="Keep posts with certain words out of your feed" />
         <NavRow href="/settings/archive" icon={<EyeOff size={16} />} label="Archive" sub="Posts you hid without deleting" />
         <NavRow href="/settings/activity" icon={<EyeOff size={16} />} label="Your activity" sub="Likes, comments, reposts and saves" />
+        <NavRow href="/settings/download" icon={<EyeOff size={16} />} label="Download your data" sub="Everything on your account, as one file" />
         <NavRow href="/settings/two-factor" icon={<EyeOff size={16} />} label="Two-factor authentication" sub="A code from an authenticator app at every sign-in" />
         <NavRow href="/settings/login-activity" icon={<EyeOff size={16} />} label="Login activity" sub="Devices signed in, and log the others out" />
         <NavRow href="/settings/standing" icon={<ShieldAlert size={16} />} label="Account standing" sub="Your record with Platinum Circles" />
