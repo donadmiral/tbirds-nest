@@ -5,7 +5,7 @@
  * with an inline New book creator. Same props as the old highlight sheet.
  */
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { COVER_COLORS } from '../MemoryAlbumCard';
@@ -57,6 +57,7 @@ export default function SaveToMemorySheet({ visible, onClose, storyId, userId }:
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <View style={ms.wrap}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
         <View style={ms.sheet}>
@@ -113,7 +114,8 @@ export default function SaveToMemorySheet({ visible, onClose, storyId, userId }:
           <TouchableOpacity onPress={onClose} style={ms.doneBtn}><Text style={ms.doneBtnTxt}>Done</Text></TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </KeyboardAvoidingView>
+      </Modal>
   );
 }
 

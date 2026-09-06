@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
-  ActivityIndicator, Image, Keyboard,
+  ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -62,6 +62,7 @@ export default function LinkAttachSheet({ visible, onClose, onAttach, initialUrl
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={close}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <TouchableOpacity style={sh.overlay} activeOpacity={1} onPress={close}>
         <TouchableOpacity activeOpacity={1} style={[sh.sheet, { paddingBottom: Math.max(insets.bottom, 14) }]}>
           <View style={sh.handle} />
@@ -117,7 +118,8 @@ export default function LinkAttachSheet({ visible, onClose, onAttach, initialUrl
           ) : null}
         </TouchableOpacity>
       </TouchableOpacity>
-    </Modal>
+    </KeyboardAvoidingView>
+      </Modal>
   );
 }
 

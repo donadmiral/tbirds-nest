@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, FlatList,
   ActivityIndicator, Alert, Dimensions, StatusBar, ScrollView, Animated,
-  Easing, PanResponder,
+  Easing, PanResponder, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -427,6 +427,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
       </Modal>
 
       <Modal visible={settings} transparent animationType="fade" onRequestClose={() => setSettings(false)}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={st.sheetWrap}>
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Album settings</Text>
@@ -454,6 +455,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
             </View>
           </View>
         </View>
+      </KeyboardAvoidingView>
       </Modal>
 
       {playingUrl ? (
@@ -461,6 +463,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
       ) : null}
 
       <Modal visible={!!captionFor} transparent animationType="fade" onRequestClose={() => setCaptionFor(null)}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={st.sheetWrap}>
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Caption</Text>
@@ -471,6 +474,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
             </View>
           </View>
         </View>
+      </KeyboardAvoidingView>
       </Modal>
     </View>
   );

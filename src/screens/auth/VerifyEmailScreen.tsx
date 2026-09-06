@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -32,6 +33,7 @@ const MAROON = '#8C1D40';
 const GOLD = '#FFC627';
 
 export default function VerifyEmailScreen({ route, navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { email } = route.params;
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
@@ -257,7 +259,7 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
 
   // ── WAITING STATE ───────────────────────────────────────────
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <Animated.View style={[s.iconWrap, { transform: [{ scale: pulseAnim }] }]}>
         <Feather name="mail" size={28} color={NAVY} />
       </Animated.View>
