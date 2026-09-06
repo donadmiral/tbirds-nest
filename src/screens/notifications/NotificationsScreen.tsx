@@ -88,6 +88,7 @@ function badgeFor(type: string): { icon: any; bg: string } | null {
     case 'job_referral':     return { icon: 'send', bg: '#0B1E3D' };
     case 'story_mention':    return { icon: 'at-sign', bg: '#7C5CFF' };
     case 'business_member':  return { icon: 'users', bg: '#B08D3F' };
+    case 'collab_invite':   return { icon: 'users', bg: '#0B1E3D' };
     default:                 return null;
   }
 }
@@ -175,6 +176,11 @@ function lineFor(n: Notif): { lead: string; rest: string } {
 
     case 'business_member':
       return { lead: n.message || 'You joined a business', rest: n.body_preview ? ` · ${n.body_preview}` : '' };
+
+    case 'collab_invite':
+
+      return { lead, rest: ' invited you to collaborate on a post' };
+
 
     default: {
       const msg = (n.message || '').trim();
