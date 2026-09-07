@@ -280,7 +280,6 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   const [, bump] = useState(0);
   useEffect(() => { loadSensitiveMode().then(() => bump((n) => n + 1)); }, []);
   const isSensitive = (media || []).some((m: any) => !!m?.is_sensitive || !!m?.edit?.sensitive);
-  if (isSensitive && sensitiveMode === 'hide') return null;
   const veil = isSensitive && sensitiveMode === 'blur' && !revealed;
   const tagMap = useMediaTags((media || []).map((m: any) => m.id).filter(Boolean));
   const [activeIndex, setActiveIndex] = useState(0);
@@ -289,14 +288,6 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   const aspect = (media[0]?.edit as any)?.aspect as ('square' | 'portrait' | 'landscape' | undefined);
   const ratio = aspect === 'square' ? 1 : aspect === 'landscape' ? 1 / 1.91 : HEIGHT_RATIO;
   const slideHeight = Math.round(containerWidth * ratio);
-  if (veil) {
-    return (
-      <TouchableOpacity activeOpacity={0.9} onPress={() => setRevealed(true)} style={{ width: containerWidth, height: slideHeight, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>Sensitive content</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>This photo or video may be sensitive. Tap to view.</Text>
-      </TouchableOpacity>
-    );
-  }
   const total = media.length;
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -373,6 +364,17 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
 
         </View>
       </View>
+    );
+  }
+
+  // After every hook, never before one.
+  if (isSensitive && sensitiveMode === 'hide') return null;
+  if (veil) {
+    return (
+      <TouchableOpacity activeOpacity={0.9} onPress={() => setRevealed(true)} style={{ width: containerWidth, height: slideHeight, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>Sensitive content</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>This photo or video may be sensitive. Tap to view.</Text>
+      </TouchableOpacity>
     );
   }
 
