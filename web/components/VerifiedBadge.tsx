@@ -18,16 +18,8 @@ type Tier = "public_figure" | "business" | "official" | string | null | undefine
 // One source of truth for tier colour, matching mobile src/components/VerifiedBadge.tsx.
 // The seal metal is derived from the name colour, so a gold name always wears a
 // gold seal and a platinum name a platinum one. They cannot drift apart.
-export const TIER_COLORS: Record<string, string> = {
-  public_figure: "#1D7A38",
-  business: "#5B6470",
-  official: "#B08D3F",
-};
-
-export function getTierColor(tier?: string | null): string | null {
-  if (!tier) return null;
-  return TIER_COLORS[tier] ?? null;
-}
+import { TIER_COLORS, getTierColor } from "@/lib/tier";
+export { TIER_COLORS, getTierColor };
 
 function shade(hex: string, amount: number): string {
   const n = parseInt(hex.slice(1), 16);

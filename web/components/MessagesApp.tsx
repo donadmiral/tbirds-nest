@@ -422,7 +422,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   if (compact) {
     return (
-      <div className="flex min-h-[70vh] flex-col px-1">
+      <div className="flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1">
         {!active ? (
           <>
             <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>
@@ -449,7 +449,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               {active && active.is_group ? <GroupCallBar conversationId={active.id} /> : null}
               {refCard}
             </header>
-            <div className="flex-1 space-y-2 overflow-y-auto py-4">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto py-4">
               {loadingMsgs ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : msgs.map((m) => <Bubble key={m.id} m={m} />)}
               <div ref={bottomRef} />
             </div>
@@ -492,7 +492,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         </div>
       </section>
 
-      <section className="flex min-w-0 flex-1 flex-col">
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {!active ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3">
             <span className="flex h-14 w-14 items-center justify-center rounded-full border border-pearl/50" aria-hidden>
@@ -514,7 +514,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               {active && active.is_group ? <GroupCallBar conversationId={active.id} /> : null}
               {refCard}
             </header>
-            <div className="flex-1 space-y-2 overflow-y-auto px-5 py-4">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-5 py-4">
               {loadingMsgs ? (
                 <p className="py-12 text-center text-sm text-ink/40">Loading</p>
               ) : (

@@ -8,7 +8,8 @@ import { DiscoverFeed } from "@/components/DiscoverFeed";
 import { PageHeader, Panel } from "@/components/ui";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
-import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { getTierColor } from "@/lib/tier";
 import { createClient } from "@/lib/supabase/client";
 import { ExploreTopics, FeaturedChannels, TopArticles } from "@/components/DiscoverSections";
 
