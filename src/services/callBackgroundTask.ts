@@ -75,6 +75,8 @@ async function ringFallback(callId: string, callerName: string, isVideo: boolean
 }
 
 if (TaskManager?.defineTask) TaskManager.defineTask(INCOMING_CALL_TASK, async ({ data, error }: any) => {
+  // Android, WhatsApp-style: the full-screen call notification comes first; everything below is the fallback.
+  try { const raw: any = (data as any)?.notification?.data ?? (data as any)?.data ?? (data as any); const body = raw?.body ? (typeof raw.body === 'string' ? JSON.parse(raw.body) : raw.body) : raw; const cp = parseCallPayload(body); if (cp && await showIncomingCall(cp)) return; } catch (e: any) { console.log('[CallTask] full-screen path failed:', e?.message); }
   if (error) {
     console.log('[CallTask] error:', error?.message);
     return;

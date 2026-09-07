@@ -38,7 +38,6 @@ export default function IncomingCallListener() {
       const call: any = await callService.getCall(p.callId);
       if (!call || call.status !== 'ringing') { dismissIncomingCall(p.callId); return; }
       handledCallIdsRef.current.add(p.callId);
-      if (answer) { nativeCallService.answerViaCallKit?.(p.callId); }
       nav.navigate('IncomingCall', { callId: p.callId, callerName: p.callerName, callerAvatar: p.callerAvatar || null, isVideo: !!p.isVideo, conversationId: p.conversationId || call.conversation_id || null, autoAccept: answer });
     };
     (async () => {
