@@ -9,7 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://platinumcircles.com";
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://platinumcircles.app";
   const fixed: MetadataRoute.Sitemap = [
     { url: site, changeFrequency: "daily", priority: 1 },
     { url: site + "/discover", changeFrequency: "hourly", priority: 0.8 },

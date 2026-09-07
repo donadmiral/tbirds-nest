@@ -7,7 +7,7 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"]],
   use: {
-    baseURL: process.env.E2E_BASE_URL || "https://platinumcircles.com",
+    baseURL: process.env.E2E_BASE_URL || "https://platinumcircles.app",
     viewport: { width: 390, height: 844 },
     screenshot: "only-on-failure",
     trace: "retain-on-failure",

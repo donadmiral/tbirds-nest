@@ -1297,7 +1297,7 @@ export default function FeedScreen({ navigation }: any) {
     setPosts(prev => prev.map(x => x.id === p.id ? { ...x, shares_count: (x.shares_count ?? 0) + 1 } : x));
   }, []);
 
-  const postLink = (p: Post) => 'https://platinumcircles.com/post/' + p.id;
+  const postLink = (p: Post) => 'https://platinumcircles.app/post/' + p.id;
   const sharePost = useCallback(async (post: Post) => {
     if (sharingPostRef.current[post.id]) return;
     setSharingPost(p => ({ ...p, [post.id]: true }));

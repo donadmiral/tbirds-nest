@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 // Public pages are indexable; anything personal or transactional is not.
 export default function robots(): MetadataRoute.Robots {
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://platinumcircles.com";
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://platinumcircles.app";
   return {
     rules: {
       userAgent: "*",

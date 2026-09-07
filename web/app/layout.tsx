@@ -15,7 +15,7 @@ const instrument = Instrument_Sans({
   variable: "--font-instrument",
 });
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://platinumcircles.com";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://platinumcircles.app";
 
 export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover' as const };
 export const metadata: Metadata = {

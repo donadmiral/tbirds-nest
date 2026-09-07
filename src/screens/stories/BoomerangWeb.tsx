@@ -115,7 +115,7 @@ export default function BoomerangWeb({ inputUri, onDone, onError, effect = 'clas
   if (!WebViewComp) return null;
   return (
     <View style={{ position: 'absolute', left: 0, top: 0, width: 240, height: 240, opacity: 0.01 }} pointerEvents="none">
-      <WebViewComp ref={ref} source={{ html: ENGINE, baseUrl: 'https://platinumcircles.com/' }} onMessage={onMessage}
+      <WebViewComp ref={ref} source={{ html: ENGINE, baseUrl: 'https://platinumcircles.app/' }} onMessage={onMessage}
         originWhitelist={['*']} allowsInlineMediaPlayback mediaPlaybackRequiresUserAction={false} javaScriptEnabled
         style={{ width: 240, height: 240, backgroundColor: 'transparent' }} />
     </View>
