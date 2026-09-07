@@ -66,6 +66,9 @@ export default async function ContentPage() {
       if (found) mediaByPost[p.id] = [found];
     }
   });
+  // only real pictures and videos become tiles; a link inside a caption is not a picture
+  const renderableMedia = (u: string) => /supabase\.co\/storage\/|\.(jpe?g|png|webp|gif|heic|heif|mp4|mov|m4v|webm)(\?|$)/i.test(u);
+  Object.keys(mediaByPost).forEach(k => { mediaByPost[k] = mediaByPost[k].filter(renderableMedia); if (!mediaByPost[k].length) delete mediaByPost[k]; });
   const urlMap = await resolveMedia(Object.values(mediaByPost).flat());
 
   const uids = Array.from(new Set(posts.map(p => p.user_id)));
