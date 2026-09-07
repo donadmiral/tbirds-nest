@@ -1,110 +1,111 @@
-{
-  "expo": {
-    "name": "PlatinumCircles",
-    "slug": "platinum-circles",
-    "version": "1.1.0",
-    "scheme": "platinum-circles",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "orientation": "portrait",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "app.platinumcircles.mobile",
-      "buildNumber": "1",
-      "infoPlist": {
-        "NSMicrophoneUsageDescription": "PlatinumCircles needs microphone access to let you make voice and video calls with your community.",
-        "NSCameraUsageDescription": "PlatinumCircles needs camera access for video calls, profile photos, and dual camera stories.",
-        "NSFaceIDUsageDescription": "PlatinumCircles uses Face ID to unlock the app and approve payments.",
-        "NSPhotoLibraryUsageDescription": "PlatinumCircles needs photo access to share images in your conversations and stories.",
-        "NSPhotoLibraryAddUsageDescription": "PlatinumCircles needs permission to save photos and videos you receive.",
-        "UIBackgroundModes": [
-          "audio",
-          "voip"
-        ],
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "package": "app.platinumcircles.mobile",
-      "googleServicesFile": "./google-services.json",
-      "versionCode": 1,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#18294C"
-      },
-      "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE",
-        "android.permission.WAKE_LOCK",
-        "android.permission.BLUETOOTH",
-        "android.permission.BLUETOOTH_CONNECT",
-        "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
-        "android.permission.FOREGROUND_SERVICE_PHONE_CALL",
-        "android.permission.MANAGE_OWN_CALLS",
-        "android.permission.READ_PHONE_NUMBERS",
-        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
-        "android.permission.USE_FULL_SCREEN_INTENT",
-        "android.permission.POST_NOTIFICATIONS",
-        "android.permission.READ_PHONE_STATE"
-      ]
-    },
-    "plugins": [
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#0B1E3D",
-          "sounds": [
-            "./assets/callsounds/incallmanager_ringback.mp3",
-            "./assets/callsounds/incallmanager_ringtone.mp3"
-          ]
-        }
-      ],
-      "@config-plugins/react-native-callkeep",
-      "./plugins/withVoipPushKit",
-      "expo-secure-store",
-      "expo-image-picker",
-      "expo-video",
-      [
-        "expo-av",
-        {
-          "microphonePermission": "PlatinumCircles needs microphone access for voice and video calls."
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.1"
-          },
-          "android": {
-            "minSdkVersion": 24,
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 35
-          }
-        }
-      ],
-      "expo-font",
-      "expo-asset",
-      "react-native-compressor"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259"
-      }
-    },
-    "owner": "donadmiral"
-  }
+﻿{
+    "expo":  {
+                 "name":  "PlatinumCircles",
+                 "slug":  "platinum-circles",
+                 "version":  "1.1.0",
+                 "scheme":  "platinum-circles",
+                 "icon":  "./assets/icon.png",
+                 "userInterfaceStyle":  "light",
+                 "orientation":  "portrait",
+                 "splash":  {
+                                "image":  "./assets/splash.png",
+                                "resizeMode":  "cover",
+                                "backgroundColor":  "#F1EEE8"
+                            },
+                 "assetBundlePatterns":  [
+                                             "**/*"
+                                         ],
+                 "ios":  {
+                             "supportsTablet":  true,
+                             "bundleIdentifier":  "app.platinumcircles.mobile",
+                             "buildNumber":  "1",
+                             "infoPlist":  {
+                                               "NSMicrophoneUsageDescription":  "PlatinumCircles needs microphone access to let you make voice and video calls with your community.",
+                                               "NSCameraUsageDescription":  "PlatinumCircles needs camera access for video calls, profile photos, and dual camera stories.",
+                                               "NSFaceIDUsageDescription":  "PlatinumCircles uses Face ID to unlock the app and approve payments.",
+                                               "NSPhotoLibraryUsageDescription":  "PlatinumCircles needs photo access to share images in your conversations and stories.",
+                                               "NSPhotoLibraryAddUsageDescription":  "PlatinumCircles needs permission to save photos and videos you receive.",
+                                               "UIBackgroundModes":  [
+                                                                         "audio",
+                                                                         "voip"
+                                                                     ],
+                                               "ITSAppUsesNonExemptEncryption":  false
+                                           }
+                         },
+                 "android":  {
+                                 "package":  "app.platinumcircles.mobile",
+                                 "googleServicesFile":  "./google-services.json",
+                                 "versionCode":  1,
+                                 "adaptiveIcon":  {
+                                                      "foregroundImage":  "./assets/adaptive-icon.png",
+                                                      "backgroundColor":  "#18294C"
+                                                  },
+                                 "permissions":  [
+                                                     "android.permission.RECORD_AUDIO",
+                                                     "android.permission.CAMERA",
+                                                     "android.permission.MODIFY_AUDIO_SETTINGS",
+                                                     "android.permission.INTERNET",
+                                                     "android.permission.ACCESS_NETWORK_STATE",
+                                                     "android.permission.WAKE_LOCK",
+                                                     "android.permission.BLUETOOTH",
+                                                     "android.permission.BLUETOOTH_CONNECT",
+                                                     "android.permission.FOREGROUND_SERVICE",
+                                                     "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+                                                     "android.permission.FOREGROUND_SERVICE_PHONE_CALL",
+                                                     "android.permission.MANAGE_OWN_CALLS",
+                                                     "android.permission.READ_PHONE_NUMBERS",
+                                                     "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+                                                     "android.permission.USE_FULL_SCREEN_INTENT",
+                                                     "android.permission.POST_NOTIFICATIONS",
+                                                     "android.permission.READ_PHONE_STATE"
+                                                 ]
+                             },
+                 "plugins":  [
+                                 [
+                                     "expo-notifications",
+                                     {
+                                         "icon":  "./assets/notification-icon.png",
+                                         "color":  "#0B1E3D",
+                                         "sounds":  [
+                                                        "./assets/callsounds/incallmanager_ringback.mp3",
+                                                        "./assets/callsounds/incallmanager_ringtone.mp3"
+                                                    ]
+                                     }
+                                 ],
+                                 "@config-plugins/react-native-callkeep",
+                                 "./plugins/withVoipPushKit",
+                                 "expo-secure-store",
+                                 "expo-image-picker",
+                                 "expo-video",
+                                 [
+                                     "expo-av",
+                                     {
+                                         "microphonePermission":  "PlatinumCircles needs microphone access for voice and video calls."
+                                     }
+                                 ],
+                                 [
+                                     "expo-build-properties",
+                                     {
+                                         "ios":  {
+                                                     "deploymentTarget":  "15.1"
+                                                 },
+                                         "android":  {
+                                                         "minSdkVersion":  24,
+                                                         "compileSdkVersion":  35,
+                                                         "targetSdkVersion":  35
+                                                     }
+                                     }
+                                 ],
+                                 "expo-font",
+                                 "expo-asset",
+                                 "react-native-compressor",
+                                 "@sentry/react-native"
+                             ],
+                 "extra":  {
+                               "eas":  {
+                                           "projectId":  "6962a2bb-3ebe-4ff8-8d35-e4fb58271259"
+                                       }
+                           },
+                 "owner":  "donadmiral"
+             }
 }

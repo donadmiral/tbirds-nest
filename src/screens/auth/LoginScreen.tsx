@@ -13,8 +13,7 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  Dimensions,
-} from 'react-native';
+  Dimensions, Image , StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { showMessage } from 'react-native-flash-message';
 import { Feather } from '@expo/vector-icons';
@@ -333,104 +332,74 @@ export default function LoginScreen({ navigation }: any) {
   // ===================== MAIN LOGIN SCREEN =====================
 
   return (
-    <View style={s.root}>
-      <LinearGradient colors={[NAVY_DEEP, NAVY_MID, NAVY]} style={s.gradient}>
-        <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={[s.container, { paddingTop: insets.top }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+    <View style={d.root}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={[d.container, { paddingTop: insets.top + 28, paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-            <Animated.View style={[s.logoWrap, { opacity: fadeAnim, transform: [{ scale: logoScale }] }]}>
-              <PearlMark size={116} />
-            </Animated.View>
+          <Animated.View style={[d.hero, { opacity: fadeAnim, transform: [{ scale: logoScale }] }]}>
+            <Image source={require('../../../assets/brand/mark-light.png')} style={d.mark} resizeMode="contain" />
+            <Image source={require('../../../assets/brand/wordmark-light.png')} style={d.wordmark} resizeMode="contain" accessibilityLabel="Platinum Circles" />
+          </Animated.View>
 
-            <Animated.View style={[s.brandWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-              <Text style={s.brandName}>PLATINUM CIRCLES</Text>
-            </Animated.View>
-
-            <Animated.View style={[s.formWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-              <Text style={s.sheetTitle}>Welcome back</Text>
-              <Text style={s.sheetSub}>Sign in to your circle</Text>
-              <View style={s.inputWrap}>
-                <Feather name="mail" size={16} color={WHITE_45} style={s.inputIcon} />
-                <TextInput
-                  style={s.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Email or username"
-                  placeholderTextColor={WHITE_30}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  returnKeyType="next"
-                  onSubmitEditing={() => passwordRef.current?.focus()}
-                />
-              </View>
-
-              <View style={s.inputWrap}>
-                <Feather name="lock" size={16} color={WHITE_45} style={s.inputIcon} />
-                <TextInput
-                  ref={passwordRef}
-                  style={[s.input, { paddingRight: 44 }]}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Password"
-                  placeholderTextColor={WHITE_30}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="go"
-                  onSubmitEditing={handleLogin}
-                />
-                <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPassword(p => !p)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                  <Feather name={showPassword ? 'eye' : 'eye-off'} size={16} color={WHITE_45} />
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity style={s.forgotBtn} onPress={() => { setForgotMode(true); setForgotEmail(email); }} activeOpacity={0.7}>
-                <Text style={s.forgotTxt}>Forgot password?</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[s.primaryBtn, loading && s.primaryBtnDisabled]}
-                onPress={handleLogin}
-                disabled={loading}
-                activeOpacity={0.85}
-              >
-                {loading ? (
-                  <ActivityIndicator color={WHITE} size={16} />
-                ) : (
-                  <Text style={s.primaryBtnTxt}>Sign In</Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[s.outlineBtn, { marginTop: 12 }]} onPress={() => (navigation as any).navigate('BusinessSignIn')} activeOpacity={0.8}>
-                <Text style={s.outlineBtnTxt}>Business or company? Business sign-in</Text>
-              </TouchableOpacity>
-              <View style={s.dividerRow}>
-                <View style={s.dividerLine} />
-                <Text style={s.dividerTxt}>or</Text>
-                <View style={s.dividerLine} />
-              </View>
-
-              <TouchableOpacity
-                style={s.outlineBtn}
-                onPress={() => navigation.navigate('SignUp')}
-                activeOpacity={0.8}
-              >
-                <Text style={s.outlineBtnTxt}>Create an account</Text>
-              </TouchableOpacity>
-            </Animated.View>
-
-            <View style={s.footer}>
-              <Text style={s.footerTxt}>By signing in you agree to our Terms and Privacy Policy</Text>
+          <Animated.View style={[d.form, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+            <View style={d.field}>
+              <TextInput
+                style={d.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Username or email"
+                placeholderTextColor="#8A93A5"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="username"
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+              />
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </LinearGradient>
+            <View style={d.field}>
+              <TextInput
+                ref={passwordRef}
+                style={[d.input, { paddingRight: 44 }]}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password"
+                placeholderTextColor="#8A93A5"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="current-password"
+                returnKeyType="go"
+                onSubmitEditing={handleLogin}
+              />
+              <TouchableOpacity style={d.eye} onPress={() => setShowPassword(p => !p)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}>
+                <Feather name={showPassword ? 'eye-off' : 'eye'} size={18} color="#8A93A5" />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={d.forgot} onPress={() => { setForgotMode(true); setForgotEmail(email); }} activeOpacity={0.7}>
+              <Text style={d.forgotTxt}>Forgot password</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[d.btn, loading && { opacity: 0.6 }]} onPress={handleLogin} disabled={loading} activeOpacity={0.88}>
+              {loading ? <ActivityIndicator color="#F5F3EF" size="small" /> : <Text style={d.btnTxt}>Sign in</Text>}
+            </TouchableOpacity>
+          </Animated.View>
+
+          <View style={d.footer}>
+            <TouchableOpacity onPress={() => navigation.navigate('SignUp')} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8 }}>
+              <Text style={d.link}>New here? <Text style={d.linkStrong}>Create an account</Text></Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => (navigation as any).navigate('BusinessSignIn')} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8 }}>
+              <Text style={d.linkSmall}>Business sign-in</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
-
 const s = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: NAVY_DEEP },
   gradient: { flex: 1 },
@@ -539,3 +508,23 @@ const s = themedSheet((t) => ({
   resendBtn: { marginTop: 16, paddingVertical: 8 },
   resendTxt: { fontSize: 14, color: WHITE_45, fontWeight: '500' },
 }));
+// The approved sign-in design: white canvas, the real mark with the wordmark, raised fields, navy button.
+const d = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flexGrow: 1, paddingHorizontal: 28 },
+  hero: { alignItems: 'center', marginTop: 8 },
+  mark: { width: 200, height: 146 },
+  wordmark: { width: 236, height: 25, marginTop: 22 },
+  form: { marginTop: 48, gap: 12 },
+  field: { backgroundColor: '#FAFAF9', borderWidth: 1, borderColor: 'rgba(11,30,61,0.10)', borderRadius: 14, height: 54, justifyContent: 'center' },
+  input: { height: 54, paddingHorizontal: 16, fontSize: 15.5, color: '#0B1E3D' },
+  eye: { position: 'absolute', right: 8, top: 0, height: 54, width: 40, alignItems: 'center', justifyContent: 'center' },
+  forgot: { alignSelf: 'flex-end', paddingVertical: 4, paddingHorizontal: 4, marginTop: -2 },
+  forgotTxt: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', fontWeight: '600' },
+  btn: { backgroundColor: '#0B1E3D', borderRadius: 14, height: 54, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  btnTxt: { color: '#F5F3EF', fontSize: 16, fontWeight: '800' },
+  footer: { marginTop: 'auto', alignItems: 'center', gap: 12, paddingTop: 36 },
+  link: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)' },
+  linkStrong: { color: '#0B1E3D', fontWeight: '800' },
+  linkSmall: { fontSize: 12.5, color: 'rgba(11,30,61,0.45)', fontWeight: '600' },
+});
