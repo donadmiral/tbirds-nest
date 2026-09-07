@@ -38,7 +38,7 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("recipient_id", uid)
-        .eq("is_read", false);
+        .is("read_at", null);
       if (alive) setUnread(count ?? 0);
     };
 

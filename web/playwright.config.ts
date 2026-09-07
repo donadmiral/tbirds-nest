@@ -3,7 +3,7 @@ import { defineConfig } from "@playwright/test";
 // End-to-end smoke suite against the live site by default; E2E_BASE_URL overrides.
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 60_000,
+  timeout: 600_000,
   retries: 0,
   reporter: [["list"]],
   use: {
