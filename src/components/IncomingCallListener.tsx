@@ -8,6 +8,7 @@
  * Syncs with shared call navigation guard to prevent duplicate
  * navigation when push tap handler also fires.
  */
+import { consumeInitialCallNotification, listenForegroundCallActions, dismissIncomingCall } from '../services/androidCallNotification';
 import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -30,6 +31,26 @@ export default function IncomingCallListener() {
   const { callState, startCall, endCall } = useCallContext();
   const callStateRef = useRef(callState);
   useEffect(() => { callStateRef.current = callState; }, [callState]);
+  // Android: the app was opened by the call notification, or an action on it was pressed while running.
+  useEffect(() => {
+    let off = () => {};
+    const openFrom = async (p: { callId: string; callerName: string; callerAvatar?: string | null; isVideo?: boolean; conversationId?: string | null }, answer: boolean) => {
+      const call: any = await callService.getCall(p.callId);
+      if (!call || call.status !== 'ringing') { dismissIncomingCall(p.callId); return; }
+      handledCallIdsRef.current.add(p.callId);
+      if (answer) { nativeCallService.answerViaCallKit?.(p.callId); }
+      nav.navigate('IncomingCall', { callId: p.callId, callerName: p.callerName, callerAvatar: p.callerAvatar || null, isVideo: !!p.isVideo, conversationId: p.conversationId || call.conversation_id || null, autoAccept: answer });
+    };
+    (async () => {
+      const initial = await consumeInitialCallNotification();
+      if (initial) openFrom(initial.payload, initial.answer);
+      off = listenForegroundCallActions((p, action) => {
+        if (action === 'decline') { callService.declineCall(p.callId).catch(() => {}); dismissIncomingCall(p.callId); return; }
+        openFrom(p, action === 'answer');
+      });
+    })();
+    return () => { try { off(); } catch {} };
+  }, [nav]);
 
   // Dormant until the CallKit build: the OS lock-screen answer/decline route.
   // BUILD DAY: polish caller display names here; today this never runs.

@@ -13,6 +13,7 @@
  * the same ringing notification the app would otherwise have received. So the
  * worst case is exactly today's behaviour rather than a silent phone.
  */
+import { showIncomingCall, parseCallPayload } from './androidCallNotification';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { nativeCallService } from './nativeCallService';
