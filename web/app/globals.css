@@ -79,6 +79,9 @@ body {
 .fixed.bottom-0 { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .fixed.top-0 { padding-top: env(safe-area-inset-top, 0px); }
 
-/* Native menus follow the site's own scheme, not the operating system's. */
-select, option { color-scheme: light; }
-.dark select, .dark option { color-scheme: dark; }
+/* Drop-down menus are painted by the browser with the operating system's theme;
+   these lines give every select and its options the site's own colours in both modes. */
+select { color-scheme: light; background-color: #FFFFFF; color: #0B1E3D; }
+select option, select optgroup { background-color: #FFFFFF; color: #0B1E3D; }
+.dark select { color-scheme: dark; background-color: #15171B; color: #F5F3EF; }
+.dark select option, .dark select optgroup { background-color: #15171B; color: #F5F3EF; }
