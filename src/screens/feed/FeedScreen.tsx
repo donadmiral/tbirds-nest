@@ -2300,21 +2300,6 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   </TouchableOpacity>
                 </View>
               )}
-              {pollOpts ? (
-                <View style={{ marginTop: 10, gap: 8 }}>
-                  {pollOpts.map((o, i) => (
-                    <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <TextInput value={o} onChangeText={(v) => setPollOpts(p => { const n = [...(p || [])]; n[i] = v; return n; })} placeholder={'Option ' + (i + 1)} placeholderTextColor="#8A93A5" maxLength={40}
-                        style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', backgroundColor: '#FAFAF9', paddingHorizontal: 12, fontSize: 14.5, color: '#0B1E3D' }} />
-                      {pollOpts.length > 2 ? <TouchableOpacity onPress={() => setPollOpts(p => (p || []).filter((_, j) => j !== i))} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={16} color="#8A93A5" /></TouchableOpacity> : null}
-                    </View>
-                  ))}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    {pollOpts.length < 4 ? <TouchableOpacity onPress={() => setPollOpts(p => [...(p || []), ''])}><Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Add option</Text></TouchableOpacity> : null}
-                    <TouchableOpacity onPress={() => setPollDays(d => (d === 1 ? 3 : d === 3 ? 7 : 1))} style={{ marginLeft: 'auto' }}><Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>{pollDays === 1 ? '1 day' : pollDays + ' days'}</Text></TouchableOpacity>
-                  </View>
-                </View>
-              ) : null}
               {mentionActive && mentionResults.length > 0 && (
                 <View style={s.mentionDropdown}>
                   {mentionResults.map(u => (
@@ -2374,7 +2359,22 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 </ScrollView>
                 <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
                 <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={getTheme().ink.faint} multiline autoFocus maxLength={2000} />
-                {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
+                {pollOpts ? (
+                <View style={{ marginTop: 10, gap: 8 }}>
+                {pollOpts.map((o, i) => (
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TextInput value={o} onChangeText={(v) => setPollOpts(p => { const n = [...(p || [])]; n[i] = v; return n; })} placeholder={'Option ' + (i + 1)} placeholderTextColor="#8A93A5" maxLength={40}
+                style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', backgroundColor: '#FAFAF9', paddingHorizontal: 12, fontSize: 14.5, color: '#0B1E3D' }} />
+                {pollOpts.length > 2 ? <TouchableOpacity onPress={() => setPollOpts(p => (p || []).filter((_, j) => j !== i))} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={16} color="#8A93A5" /></TouchableOpacity> : null}
+                </View>
+                ))}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                {pollOpts.length < 4 ? <TouchableOpacity onPress={() => setPollOpts(p => [...(p || []), ''])}><Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Add option</Text></TouchableOpacity> : null}
+                <TouchableOpacity onPress={() => setPollDays(d => (d === 1 ? 3 : d === 3 ? 7 : 1))} style={{ marginLeft: 'auto' }}><Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>{pollDays === 1 ? '1 day' : pollDays + ' days'}</Text></TouchableOpacity>
+                </View>
+                </View>
+                ) : null}
+                                {composerText.length > 1800 && <Text style={s.charCount}>{2000 - composerText.length} left</Text>}
                 {exclusivePost && (
                   <View style={s.exclusiveBanner}>
                     <Feather name="shield" size={13} color={getTheme().status.link} />
@@ -2510,7 +2510,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     {composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
                   </View>
                   <View style={s.cToolbarRight}>
-                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerMedia([]); setComposerProducts([]); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerMedia([]); setComposerProducts([]); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); setComposerText(''); setCollabPicks([]); setPollOpts(null); setComposerSensitive(false); AsyncStorage.removeItem('pc_draft:' + (userId || 'anon')).catch(() => {}); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
                       {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
                     </TouchableOpacity>
