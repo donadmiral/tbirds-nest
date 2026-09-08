@@ -243,7 +243,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
   return (
     <div className="mx-auto max-w-[680px] px-1 pb-20">
       <div className="flex items-center justify-between pb-4">
-        <Link href="/settings" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
+        <button type="button" onClick={() => { if (window.history.length > 1) router.back(); else router.push("/home"); }} className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Back</button>
         <button onClick={publish} disabled={busy} className="rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-bold text-white disabled:opacity-40">{busy ? "Publishing" : "Publish"}</button>
       </div>
 

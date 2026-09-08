@@ -21,8 +21,8 @@ export function GlobalBack() {
   // title block there too.
   if (pathname.startsWith("/studio")) return null;
   return (
-    <button onClick={() => router.back()} aria-label="Go back"
-      className="fixed left-[276px] top-4 z-40 flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/90 px-3 py-1.5 text-[13px] font-semibold text-ink/60 shadow-sm backdrop-blur transition-colors hover:bg-surface hover:text-ink max-lg:left-3"
+    <button onClick={() => { if (window.history.length > 1) router.back(); else router.push("/home"); }} aria-label="Go back"
+      className="fixed left-3 top-[60px] z-40 md:left-[276px] md:top-4 flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/90 px-3 py-1.5 text-[13px] font-semibold text-ink/60 shadow-sm backdrop-blur transition-colors hover:bg-surface hover:text-ink max-lg:left-3"
     >
       <ArrowLeft size={16} /> Back
     </button>

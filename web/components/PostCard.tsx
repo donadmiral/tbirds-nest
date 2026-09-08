@@ -192,8 +192,9 @@ export function PostCard({ post }: { post: FeedRow }) {
           href={profileHref}
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+            <Link href={profileHref} className="flex min-w-0 flex-wrap items-center gap-x-1.5 hover:underline">
               <span className="flex min-w-0 items-center gap-[3px]">
                 <span
                   className="truncate text-[15.5px] font-semibold text-ink"
@@ -204,15 +205,19 @@ export function PostCard({ post }: { post: FeedRow }) {
                 {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
                 {collabNames.length === 1 ? <span className="ml-1 inline-flex items-center gap-1 font-semibold text-ink">× <Link href={"/" + collabNames[0].username} onClick={(e) => e.stopPropagation()} className="hover:underline"><PersonName name={collabNames[0].name} verified={collabNames[0].verified} tier={collabNames[0].tier} badgeSize={14} /></Link></span> : collabNames.length > 1 ? <span className="relative ml-1 font-semibold text-ink"><button type="button" onClick={(e) => { e.stopPropagation(); setCollabsOpen((v) => !v); }} className="hover:underline">× {collabNames.length} others</button>{collabsOpen ? <span className="absolute left-0 top-full z-20 mt-1 flex w-56 flex-col rounded-xl border border-ink/10 bg-white p-2 shadow-lg">{collabNames.map((x) => <Link key={x.username} href={"/" + x.username} onClick={(e) => e.stopPropagation()} className="rounded-lg px-2 py-1.5 text-[13px] hover:bg-surface"><PersonName name={x.name} verified={x.verified} tier={x.tier} badgeSize={13} /><span className="ml-1 text-ink/50">@{x.username}</span></Link>)}</span> : null}</span> : null}
               </span>
-              <span className="truncate text-[13px] text-ink/50">@{post.author_username}</span>
             </Link>
-            <span className="text-[13px] text-ink/30">·</span>
-            <Link href={postHref} className="shrink-0 text-[13px] text-ink/50 hover:underline">
-              {timeAgo(post.created_at)}
-            </Link>
-            {rb.edited_at ? <span className="shrink-0 text-[12px] text-ink/35">· Edited</span> : null}
-            <FollowButton authorId={post.author_id} />
-            <PostMenu postId={post.post_id} authorId={post.author_id} text={text} reason={whyReason} onHidden={() => setHidden(true)} />
+            <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] text-ink/50">
+              <Link href={profileHref} className="truncate hover:underline">@{post.author_username}</Link>
+              <span className="text-ink/30">·</span>
+              <Link href={postHref} className="shrink-0 hover:underline">{timeAgo(post.created_at)}</Link>
+              {rb.edited_at ? <span className="shrink-0 text-[12px] text-ink/35">· Edited</span> : null}
+              {(post as unknown as { promo_label?: string; promo_id?: string }).promo_id ? <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink/50">{(post as unknown as { promo_label?: string }).promo_label || "Sponsored"}</span> : null}
+            </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <FollowButton authorId={post.author_id} />
+              <PostMenu postId={post.post_id} authorId={post.author_id} text={text} reason={whyReason} onHidden={() => setHidden(true)} />
+            </div>
           </div>
 
           {post.article_title ? (

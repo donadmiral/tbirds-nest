@@ -1,5 +1,6 @@
 "use client";
 
+import { PersonName } from "@/components/PersonName";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -222,10 +223,7 @@ export default function ListingPage() {
             </span>
           )}
           <span className="min-w-0">
-            <span className="flex items-center gap-1 text-[15px] font-semibold text-ink">
-              {l.seller.full_name}
-              {l.seller.is_verified ? <VerifiedBadge size={14} /> : null}
-            </span>
+            <PersonName name={l.seller.full_name ?? ""} verified={!!l.seller.is_verified} tier={(l.seller as { verified_tier?: string | null }).verified_tier ?? null} className="text-[15px] font-semibold text-ink" badgeSize={14} />
             <SellerTrust sellerId={l.seller_id} />
           </span>
         </Link>

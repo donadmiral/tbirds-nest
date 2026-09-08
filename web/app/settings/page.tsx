@@ -103,12 +103,12 @@ export default function SettingsPage() {
       <div id="device" className="mb-4 scroll-mt-[88px] rounded-2xl border border-ink/10 bg-white p-4">
         <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Data and appearance</h2>
         <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-ink/10 p-4">
-            <span>
+          <div className="flex flex-col gap-3 rounded-lg border border-ink/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <span className="min-w-0">
               <span className="block text-[14px] font-semibold text-ink">Appearance</span>
               <span className="block text-[12.5px] text-ink/50">Light, dark, or whatever your device uses.</span>
             </span>
-            <ThemeToggle />
+            <div className="shrink-0 self-start sm:self-auto"><ThemeToggle /></div>
           </div>
         <div className={row}>
           <span>

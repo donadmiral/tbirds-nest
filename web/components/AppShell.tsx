@@ -56,16 +56,16 @@ export async function AppShell({
       <div className="ml-0 transition-[margin] duration-200 md:ml-[260px] [.nav-collapsed_&]:md:ml-[76px]">
         <TopBar name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} avatarUrl={profile?.avatar_url} />
         {wide ? (
-          <main className="-mt-[60px] px-3 pb-24 pt-[76px] md:px-6 md:pb-10">{children}</main>
+          <main className="px-3 pb-24 pt-3 md:-mt-[60px] md:px-6 md:pb-10 md:pt-[76px]">{children}</main>
         ) : rail && railContent ? (
-          <main className="-mt-[60px] flex justify-center gap-6 px-3 pb-24 pt-[76px] md:px-6 md:pb-10">
+          <main className="flex justify-center gap-6 px-3 pb-24 pt-3 md:-mt-[60px] md:px-6 md:pb-10 md:pt-[76px]">
             <div className="w-full min-w-0 max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[720px]">{children}</div>
             <aside className="hidden w-[340px] shrink-0 xl:block">
               <div className="sticky top-[88px] flex flex-col gap-4">{railContent}</div>
             </aside>
           </main>
         ) : (
-          <main className="-mt-[60px] flex justify-center px-3 pb-24 pt-[76px] md:px-6 md:pb-10">
+          <main className="flex justify-center px-3 pb-24 pt-3 md:-mt-[60px] md:px-6 md:pb-10 md:pt-[76px]">
             <div className="w-full max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[760px]">{children}</div>
           </main>
         )}

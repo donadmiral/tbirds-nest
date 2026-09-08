@@ -16,7 +16,11 @@ import { timeAgo } from "@/lib/feed";
 type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
 type MiniListing = { id: string; title: string; price: number; currency: string; images: string[]; status: string };
 
-export function MessagesApp({ context = "personal", heading = "Messages", compact = false }: { context?: string; heading?: string; compact?: boolean }) {
+export function MessagesApp({ context = "personal", heading = "Messages", compact: compactProp = false }: { context?: string; heading?: string; compact?: boolean }) {
+  // A phone width uses the one-pane layout on its own.
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => { const mq = window.matchMedia("(max-width: 767px)"); const apply = () => setIsNarrow(mq.matches); apply(); mq.addEventListener("change", apply); return () => mq.removeEventListener("change", apply); }, []);
+  const compact = compactProp || isNarrow;
   const supabase = useRef(createClient()).current;
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);

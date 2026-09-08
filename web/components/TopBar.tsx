@@ -81,7 +81,8 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
     "flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink";
 
   return (
-    <div className="pointer-events-none sticky top-0 z-30 flex justify-end px-6 pt-5">
+    <div className="sticky top-0 z-30 flex items-center justify-between border-b border-ink/10 bg-white/95 px-3 py-2 backdrop-blur md:pointer-events-none md:justify-end md:border-0 md:bg-transparent md:px-6 md:py-0 md:pt-5 md:backdrop-blur-none">
+      <img src="/brand/wordmark-light.png" alt="Platinum Circles" className="h-[16px] w-auto md:hidden" />
       <div className="pointer-events-auto flex items-center gap-2.5">
         <Link href="/write" className={btn} aria-label="Create a post">
           <Plus size={19} />
