@@ -114,6 +114,7 @@ export const useAccountsStore = create<State>((set, get) => ({
       const { data, error } = await supabase.auth.refreshSession({ refresh_token: target.refresh_token });
       if (error || !data.session) {
         console.log('[accounts] switch refused', error?.message);
+        try { const { Alert } = require('react-native'); Alert.alert('Could not switch', String((error as any)?.message || error || 'The saved session for that account is no longer valid.')); } catch {}
         await get().forget(id);
         set({ busy: false });
         return 'That account needs to sign in again.';
