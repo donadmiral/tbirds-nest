@@ -1502,6 +1502,8 @@ const pickAndSendDocument = useCallback(async () => {
     const replyPreview = replySourceMsg ? (replySourceMsg.text || (replySourceMsg.media_type === 'image' ? '📷 Photo' : '🎬 Video')) : null;
     const isSticker = msg.media_type === 'sticker' && msg.media_url;
     const isMediaOnly = (msg.media_type === 'image' || msg.media_type === 'gif' || isSticker) && msg.media_url && !msg.text && !(msg as any).view_limit;
+    // A shared post with no words is the card alone; no empty bubble under it.
+    const isSharedOnly = !!msg.shared_post_id && !msg.text && !msg.media_url;
     const sharedPost = msg.shared_post_id ? sharedPostsMap[msg.shared_post_id] : null;
     // A deleted message leaves a mark rather than vanishing, so the other
     // person sees that something was removed instead of the conversation
@@ -1556,7 +1558,7 @@ const pickAndSendDocument = useCallback(async () => {
               </View>
             </View>
           )}
-          {isMediaOnly ? (
+          {isSharedOnly ? null : isMediaOnly ? (
             <View style={s.imgWrap}>
               <AutoSizeImage
                 uri={msg.media_url!}

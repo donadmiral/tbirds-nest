@@ -1644,7 +1644,7 @@ const st = StyleSheet.create({
   locationErrorTxt: { color: '#C62F1D', fontSize: typeSize.micro, fontWeight: fontWeight.medium, textAlign: 'center', paddingVertical: 12 },
   mentionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11 },
   mentionAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: surface.secondary },
-  mentionName: { color: '#FFF', fontSize: typeSize.caption, fontWeight: fontWeight.semibold },
+  mentionName: { color: '#0B1E3D', fontSize: typeSize.caption, fontWeight: fontWeight.semibold },
   mentionUsername: { color: textColor.secondary, fontSize: typeSize.micro, marginTop: 1 },
   charCount: { color: 'rgba(11,30,61,0.45)', fontSize: typeSize.micro, textAlign: 'right', paddingHorizontal: 4, paddingTop: 4 },
   sliderEmojiRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4, flexWrap: 'wrap' },
