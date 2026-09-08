@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { supabase } from '../services/supabase';
 import { useTheme } from '../theme/useTheme';
+import { Feather } from '@expo/vector-icons';
 
 type Opt = { id: string; label: string; votes: number };
 type Poll = { ends_at: string | null; total: number; my_option_id: string | null; options: Opt[] };
@@ -24,26 +25,38 @@ export default function PollCard({ postId }: { postId: string }) {
   if (!poll) return null;
   const closed = poll.ends_at ? new Date(poll.ends_at).getTime() < Date.now() : false;
   const voted = !!poll.my_option_id;
+  const showResults = voted || closed;
   const vote = async (id: string) => { if (voted || closed) return; await supabase.rpc('vote_poll', { p_post_id: postId, p_option_id: id }); load(); };
   return (
-    <View style={{ marginTop: 10, gap: 8 }}>
+    <View style={{ marginTop: 12, paddingHorizontal: 16, gap: 8 }}>
       {poll.options.map((o) => {
         const pct = poll.total ? Math.round((o.votes / poll.total) * 100) : 0;
         const mine = poll.my_option_id === o.id;
+        const leading = showResults && poll.total > 0 && o.votes === Math.max(...poll.options.map((x) => x.votes));
         return (
-          <TouchableOpacity key={o.id} activeOpacity={0.8} onPress={() => vote(o.id)} disabled={voted || closed}
-            style={{ borderRadius: 12, borderWidth: 1, borderColor: mine ? t.brand.base : t.surface.hairline, overflow: 'hidden', backgroundColor: t.surface.raised }}>
-            {(voted || closed) ? <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: (pct + '%') as any, backgroundColor: mine ? 'rgba(11,30,61,0.16)' : 'rgba(11,30,61,0.07)' }} /> : null}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 11 }}>
-              <Text style={{ fontSize: 14.5, fontWeight: mine ? '800' : '600', color: t.ink.primary, flexShrink: 1 }}>{o.label}</Text>
-              {(voted || closed) ? <Text style={{ fontSize: 13, fontWeight: '800', color: t.ink.primary }}>{pct}%</Text> : null}
+          <TouchableOpacity key={o.id} activeOpacity={0.8} onPress={() => vote(o.id)} disabled={showResults}
+            style={{ height: 44, borderRadius: 12, borderWidth: mine ? 1.5 : 1, borderColor: mine ? t.brand.base : t.surface.hairline, overflow: 'hidden', backgroundColor: t.surface.raised, justifyContent: 'center' }}>
+            {showResults ? <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: (Math.max(pct, 2) + '%') as any, backgroundColor: leading ? 'rgba(201,191,176,0.45)' : 'rgba(11,30,61,0.06)' }} /> : null}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 8 }}>
+              {mine ? <Feather name="check-circle" size={15} color={t.brand.base} /> : null}
+              <Text style={{ flex: 1, fontSize: 15, fontWeight: leading || mine ? '700' : '600', color: t.ink.primary }} numberOfLines={1}>{o.label}</Text>
+              {showResults ? <Text style={{ fontSize: 14, fontWeight: '700', color: leading ? t.ink.primary : t.ink.muted }}>{pct}%</Text> : null}
             </View>
           </TouchableOpacity>
         );
       })}
-      <Text style={{ fontSize: 12, color: t.ink.muted }}>{poll.total} {poll.total === 1 ? 'vote' : 'votes'}{closed ? ' · Final results' : poll.ends_at ? ' · Ends ' + new Date(poll.ends_at).toLocaleDateString() : ''}</Text>
+      <Text style={{ fontSize: 12.5, color: t.ink.muted, marginTop: 2 }}>{poll.total} {poll.total === 1 ? 'vote' : 'votes'} · {closed ? 'Final results' : timeLeft(poll.ends_at)}</Text>
     </View>
   );
 }
 
+function timeLeft(iso: string | null): string {
+  if (!iso) return 'Open';
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return 'Final results';
+  const h = Math.floor(ms / 3600000);
+  if (h >= 48) return Math.floor(h / 24) + 'd left';
+  if (h >= 1) return h + 'h left';
+  return Math.max(1, Math.floor(ms / 60000)) + 'm left';
+}
 const st = StyleSheet.create({});
