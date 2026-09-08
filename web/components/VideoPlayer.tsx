@@ -149,8 +149,11 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
   }
 
   function toggleFullscreen() {
-    if (document.fullscreenElement === wrapRef.current) document.exitFullscreen?.();
-    else wrapRef.current?.requestFullscreen?.();
+    // iPhone Safari only makes the video itself full screen, never its box.
+    const v = ref.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void; webkitDisplayingFullscreen?: boolean }) | null;
+    if (document.fullscreenElement === wrapRef.current) { document.exitFullscreen?.(); return; }
+    if (wrapRef.current?.requestFullscreen) { wrapRef.current.requestFullscreen().catch(() => v?.webkitEnterFullscreen?.()); return; }
+    v?.webkitEnterFullscreen?.();
   }
 
   function pickSpeed(s: number) {
@@ -244,7 +247,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
       {unplayable ? (
         <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/80 px-6 text-center">
           <span className="text-[13px] font-semibold text-white">This video plays in the Platinum Circles app</span>
-          <span className="text-[11px] text-white/50">It was recorded in a format browsers cannot decode. Web playback for these is coming.</span>
+          <span className="text-[11px] text-white/50">This one is still being prepared for the web.</span>
         </span>
       ) : null}
       {typeof viewsCount === "number" && viewsCount > 0 ? (

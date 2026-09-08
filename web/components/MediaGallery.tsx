@@ -438,26 +438,26 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
           onMouseMove={onDragMove} onMouseUp={onDragEnd} onMouseLeave={onDragEnd}
         >
           {/* Top bar, as in the reference: wordmark, author, Fit to screen, close. */}
-          <div onClick={(e) => e.stopPropagation()} className="flex h-[60px] shrink-0 items-center gap-4 border-b border-white/10 px-5">
-            <span className="flex items-center gap-2.5">
+          <div onClick={(e) => e.stopPropagation()} className="flex h-[56px] shrink-0 items-center gap-2 border-b border-white/10 px-3 md:h-[60px] md:gap-4 md:px-5">
+            <span className="hidden items-center gap-2.5 md:flex">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo.png" alt="" className="h-7 w-7 rounded-full" />
               <span className="text-[15px] leading-none text-white"><span className="font-bold">Platinum</span> <span className="font-normal text-white/70">Circles</span></span>
             </span>
             {post ? (
-              <Link href={"/" + (post.author_username ?? "")} className="ml-3 flex items-center gap-2.5 text-white">
+              <Link href={"/" + (post.author_username ?? "")} className="flex min-w-0 items-center gap-2 text-white md:ml-3 md:gap-2.5">
                 {post.author_avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={post.author_avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : null}
-                <span className="flex items-center gap-[3px] text-[15px] font-semibold">{post.author_name}{post.author_verified ? <VerifiedBadge tier={post.author_verified_tier ?? null} size={14} /> : null}</span>
-                <span className="text-[13px] text-white/55">@{post.author_username}</span>
+                <span className="flex min-w-0 items-center gap-[3px] text-[14px] font-semibold md:text-[15px]"><span className="truncate">{post.author_name}</span>{post.author_verified ? <VerifiedBadge tier={post.author_verified_tier ?? null} size={14} /> : null}</span>
+                <span className="hidden text-[13px] text-white/55 sm:inline">@{post.author_username}</span>
               </Link>
             ) : null}
             <span className="ml-auto text-[12px] font-semibold text-white/50">{lightbox + 1} / {media.length}</span>
             {post ? (
-              <button onClick={() => setImmersive((v) => !v)} className="flex items-center gap-2 rounded-full border border-pearl/70 px-3.5 py-1.5 text-[13.5px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-pearl/10">
-                {immersive ? <Minimize2 size={15} /> : <Maximize2 size={15} />} {immersive ? "Show comments" : "Fit to screen"}
+              <button onClick={() => setImmersive((v) => !v)} aria-label={immersive ? "Show comments" : "Fit to screen"} className="flex items-center gap-2 rounded-full border border-pearl/70 px-2.5 py-1.5 text-[13.5px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-pearl/10 sm:px-3.5">
+                {immersive ? <Minimize2 size={15} /> : <Maximize2 size={15} />} <span className="hidden sm:inline">{immersive ? "Show comments" : "Fit to screen"}</span>
               </button>
             ) : null}
             <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white transition-colors duration-[140ms] hover:bg-white/10"><X size={17} /></button>
