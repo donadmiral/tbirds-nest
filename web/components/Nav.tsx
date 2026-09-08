@@ -1,5 +1,6 @@
 "use client";
 
+import { PersonName } from "@/components/PersonName";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -55,7 +56,7 @@ const items: NavItem[] = [
 
 const COLLAPSE_KEY = "pc:nav-collapsed";
 
-export function Nav({ name, username, business = false }: { name: string; username: string; business?: boolean }) {
+export function Nav({ name, username, business = false, avatarUrl = null, verified = false, tier = null }: { name: string; username: string; business?: boolean; avatarUrl?: string | null; verified?: boolean; tier?: string | null }) {
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
     const saved = window.localStorage.getItem(COLLAPSE_KEY) === "1";
@@ -92,7 +93,7 @@ export function Nav({ name, username, business = false }: { name: string; userna
   }
 
   return (
-    <aside className={"fixed inset-y-0 left-0 flex flex-col overflow-visible border-r border-ink/10 py-6 transition-[width] duration-200 " + (collapsed ? "w-[76px] px-2" : "w-[260px] px-4")}>
+    <aside className={"fixed inset-y-0 left-0 hidden flex-col overflow-visible border-r border-ink/10 py-6 transition-[width] duration-200 md:flex " + (collapsed ? "w-[76px] px-2" : "w-[260px] px-4")}>
       <div className={"mb-6 flex items-center " + (collapsed ? "justify-center" : "justify-between px-3")}>
         <Link href="/home" className="flex items-center gap-2.5" aria-label="Platinum Circles home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -148,22 +149,23 @@ export function Nav({ name, username, business = false }: { name: string; userna
         })}
       </nav>
 
-      <div className="mt-4 flex items-center gap-3 border-t border-ink/10 px-3 pt-4">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">
-          {name ? name.charAt(0).toUpperCase() : "?"}
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm text-ink">{name}</span>
-          <span className="truncate text-xs text-ink/50">@{username}</span>
-        </span>
-        <button onClick={signOut}
-          title="Sign out"
-          className="rounded-full p-2 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
-        >
-          <LogOut size={18} />
-        </button>
+      <div className={"mt-4 flex items-center gap-3 border-t border-ink/10 pt-4 " + (collapsed ? "justify-center px-0" : "px-3")}>
+        <Link href={profileHref} title={name} className="shrink-0">
+          {avatarUrl ? <img src={avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" /> : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">{name ? name.charAt(0).toUpperCase() : "?"}</span>}
+        </Link>
+        {!collapsed ? (
+          <span className="flex min-w-0 flex-1 flex-col">
+            <PersonName name={name} verified={verified} tier={tier} className="text-sm font-semibold text-ink" badgeSize={13} />
+            <span className="truncate text-xs text-ink/50">@{username}</span>
+          </span>
+        ) : null}
+        {!collapsed ? (
+          <button onClick={signOut} title="Sign out" className="rounded-full p-2 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
+            <LogOut size={18} />
+          </button>
+        ) : null}
       </div>
-      <p className="px-3 pt-3 text-[11px] text-ink/30">© {new Date().getFullYear()} Platinum Circles</p>
+      {!collapsed ? <p className="px-3 pt-3 text-[11px] text-ink/30">© {new Date().getFullYear()} Platinum Circles</p> : null}
     </aside>
   );
 }

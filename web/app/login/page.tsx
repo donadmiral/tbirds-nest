@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -76,7 +77,7 @@ export default function LoginPage() {
               style={{ background: "#FAFAF9", border: "1px solid rgba(11,30,61,0.10)", color: "#0B1E3D" }}
             />
             {error ? <p className="text-sm" style={{ color: "#B3261E" }}>{error}</p> : null}
-            <a href="/forgot-password" className="self-end px-1 py-1 text-[13.5px] font-semibold" style={{ color: "rgba(11,30,61,0.55)" }}>Forgot password</a>
+            <Link href="/forgot-password" className="self-end px-1 py-1 text-[13.5px] font-semibold" style={{ color: "rgba(11,30,61,0.55)" }}>Forgot password</Link>
             <button
               type="submit"
               disabled={pending || !identifier || !password}
@@ -87,8 +88,8 @@ export default function LoginPage() {
             </button>
           </div>
           <div className="mt-8 flex items-center justify-between text-[13.5px]" style={{ color: "rgba(11,30,61,0.55)" }}>
-            <span>New here? <a href="/signup" className="font-extrabold" style={{ color: "#0B1E3D" }}>Create an account</a></span>
-            <a href="/business-login" className="text-[12.5px] font-semibold">Business sign-in</a>
+            <span>New here? <Link href="/signup" className="font-extrabold" style={{ color: "#0B1E3D" }}>Create an account</Link></span>
+            <Link href="/business-login" className="text-[12.5px] font-semibold">Business sign-in</Link>
           </div>
         </form>
       </section>

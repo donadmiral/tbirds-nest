@@ -1,6 +1,7 @@
 
 "use client";
 
+import { PersonName } from "@/components/PersonName";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -107,12 +108,12 @@ export function PostCard({ post }: { post: FeedRow }) {
   const [heart, setHeart] = useState(false);
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
-  const [collabNames, setCollabNames] = useState<string[]>([]);
+  const [collabNames, setCollabNames] = useState<{ name: string; verified: boolean; tier: string | null }[]>([]);
   useEffect(() => {
     let dead = false;
-    supabase.from("post_collaborators").select("status, profile:profiles!post_collaborators_user_id_fkey(username, full_name)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
+    supabase.from("post_collaborators").select("status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, is_verified, verified_tier)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
       if (dead) return;
-      const names = ((data ?? []) as { profile?: { username?: string | null; full_name?: string | null } | { username?: string | null; full_name?: string | null }[] }[]).map((r) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; return pr ? (pr.full_name || pr.username || "") : ""; }).filter(Boolean);
+      type Pr = { username?: string | null; full_name?: string | null; is_verified?: boolean | null; verified_tier?: string | null }; const names = ((data ?? []) as { profile?: Pr | Pr[] }[]).map((r) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; return pr ? { name: pr.full_name || pr.username || "", verified: !!pr.is_verified, tier: pr.verified_tier ?? null } : null; }).filter((x): x is { name: string; verified: boolean; tier: string | null } => !!x && !!x.name);
       setCollabNames(names);
     });
     return () => { dead = true; };
@@ -200,7 +201,7 @@ export function PostCard({ post }: { post: FeedRow }) {
                   {post.author_name}
                 </span>
                 {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
-                {collabNames.length === 1 ? <span className="ml-1 font-semibold text-ink">× {collabNames[0]}</span> : collabNames.length > 1 ? <span className="ml-1 font-semibold text-ink" title={collabNames.join(", ")}>× {collabNames.length} others</span> : null}
+                {collabNames.length === 1 ? <span className="ml-1 inline-flex items-center gap-1 font-semibold text-ink">× <PersonName name={collabNames[0].name} verified={collabNames[0].verified} tier={collabNames[0].tier} badgeSize={14} /></span> : collabNames.length > 1 ? <span className="ml-1 font-semibold text-ink" title={collabNames.map((x) => x.name).join(", ")}>× {collabNames.length} others</span> : null}
               </span>
               <span className="truncate text-[13px] text-ink/50">@{post.author_username}</span>
             </Link>

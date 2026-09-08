@@ -1,19 +1,12 @@
 import BootSplash from "@/components/BootSplash";
 import type { Metadata } from "next";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
-import { Marcellus, Instrument_Sans } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 
-const marcellus = Marcellus({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-marcellus",
-});
+const marcellus = Manrope({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-marcellus", display: "swap" });
 
-const instrument = Instrument_Sans({
-  subsets: ["latin"],
-  variable: "--font-instrument",
-});
+const instrument = Inter({ subsets: ["latin"], variable: "--font-instrument", display: "swap" });
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://platinumcircles.app";
 

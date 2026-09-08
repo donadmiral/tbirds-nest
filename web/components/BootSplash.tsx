@@ -9,8 +9,8 @@ export default function BootSplash() {
     try { if (sessionStorage.getItem("pc.boot") === "1") return; sessionStorage.setItem("pc.boot", "1"); } catch {}
     setShow(true);
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const t1 = setTimeout(() => setFading(true), reduce ? 300 : 900);
-    const t2 = setTimeout(() => setShow(false), reduce ? 350 : 1500);
+    const t1 = setTimeout(() => setFading(true), reduce ? 200 : 500);
+    const t2 = setTimeout(() => setShow(false), reduce ? 250 : 950);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
   if (!show) return null;

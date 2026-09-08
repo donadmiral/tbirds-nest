@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Nav } from "@/components/Nav";
+import { MobileTabBar } from "@/components/MobileTabBar";
 import { WebCallLayer } from "@/components/WebCallLayer";
 import { GlobalMediaLightbox } from "@/components/GlobalMediaLightbox";
 import { GlobalBack } from "@/components/GlobalBack";
@@ -41,29 +42,30 @@ export async function AppShell({
   }
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, username, account_type, avatar_url")
+    .select("full_name, username, account_type, avatar_url, is_verified, verified_tier")
     .eq("id", data.user.id)
     .maybeSingle();
   return (
     <div className="min-h-screen">
-      <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} business={profile?.account_type === "business"} />
+      <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} business={profile?.account_type === "business"} avatarUrl={profile?.avatar_url ?? null} verified={!!profile?.is_verified} tier={profile?.verified_tier ?? null} />
+      <MobileTabBar username={profile?.username ?? ""} avatarUrl={profile?.avatar_url ?? null} />
       <WebCallLayer />
       <GlobalMediaLightbox />
       <GlobalBack />
       <ScrollMemory />
-      <div className="ml-[260px] transition-[margin] duration-200 [.nav-collapsed_&]:ml-[76px]">
+      <div className="ml-0 transition-[margin] duration-200 md:ml-[260px] [.nav-collapsed_&]:md:ml-[76px]">
         <TopBar name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} avatarUrl={profile?.avatar_url} />
         {wide ? (
-          <main className="-mt-[60px] px-6 pb-10 pt-[76px]">{children}</main>
+          <main className="-mt-[60px] px-3 pb-24 pt-[76px] md:px-6 md:pb-10">{children}</main>
         ) : rail && railContent ? (
-          <main className="-mt-[60px] flex justify-center gap-6 px-6 pb-10 pt-[76px]">
+          <main className="-mt-[60px] flex justify-center gap-6 px-3 pb-24 pt-[76px] md:px-6 md:pb-10">
             <div className="w-full min-w-0 max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[720px]">{children}</div>
             <aside className="hidden w-[340px] shrink-0 xl:block">
               <div className="sticky top-[88px] flex flex-col gap-4">{railContent}</div>
             </aside>
           </main>
         ) : (
-          <main className="-mt-[60px] flex justify-center px-6 pb-10 pt-[76px]">
+          <main className="-mt-[60px] flex justify-center px-3 pb-24 pt-[76px] md:px-6 md:pb-10">
             <div className="w-full max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[760px]">{children}</div>
           </main>
         )}
