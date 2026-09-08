@@ -13,6 +13,7 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
+import PollCard from '../../components/PollCard';
 import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import PeoplePickerSheet from '../../components/PeoplePickerSheet';
 import { showMessage } from 'react-native-flash-message';
@@ -293,6 +294,14 @@ export default function FeedScreen({ navigation }: any) {
   // Collab: one invited co-author; the post shows on both profiles once they accept.
   const [collabPicks, setCollabPicks] = useState<{ id: string; username: string | null; full_name: string | null }[]>([]);
   const [collabSheet, setCollabSheet] = useState<any[] | null>(null);
+  // Polls on posts: options and a duration, saved to the same tables the web uses.
+  const [pollOpts, setPollOpts] = useState<string[] | null>(null);
+  const [pollDays, setPollDays] = useState(1);
+  const [pollPosts, setPollPosts] = useState<Record<string, boolean>>({});
+  const hydratePolls = useCallback((ids: string[]) => {
+    if (!ids.length) return;
+    supabase.from('post_polls').select('post_id').in('post_id', ids).then(({ data }) => { const m: Record<string, boolean> = {}; (data || []).forEach((r: any) => { m[r.post_id] = true; }); setPollPosts(prev => ({ ...prev, ...m })); }, () => {});
+  }, []);
   const [collabs, setCollabs] = useState<Record<string, { id: string; username: string | null; full_name: string | null }[]>>({});
   const [collabPicker, setCollabPicker] = useState<'composer' | { postId: string } | null>(null);
   const askCollaborator = useCallback(() => { setCollabPicker('composer'); }, []);
@@ -625,6 +634,7 @@ export default function FeedScreen({ navigation }: any) {
       const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !isMuted(pp));
       hydrateShares(scored.map(pp => pp.id));
       hydrateCollabs(scored.map(pp => pp.id));
+      hydratePolls(scored.map(pp => pp.id));
       const seenOnce = new Set<string>();
       setPosts(scored.filter(p => seenOnce.has(p.id) ? false : (seenOnce.add(p.id), true)));
       cursorRef.current = rows.length
@@ -1538,6 +1548,15 @@ export default function FeedScreen({ navigation }: any) {
       const { data: newPost, error } = await supabase
         .from('posts').insert(insertData).select('id').single();
       if (!error && newPost?.id && collabPicks.length) { await inviteCollaborators(newPost.id, collabPicks); }
+      if (!error && newPost?.id && pollOpts) {
+        const labels = pollOpts.map(x => x.trim()).filter(Boolean);
+        if (labels.length >= 2) {
+          const { error: plErr } = await supabase.from('post_polls').insert({ post_id: newPost.id, ends_at: new Date(Date.now() + pollDays * 86400000).toISOString() });
+          if (!plErr) await supabase.from('post_poll_options').insert(labels.map((label, i) => ({ post_id: newPost.id, label, sort_order: i })));
+          else Alert.alert('Poll not saved', plErr.message);
+          setPollPosts(prev => ({ ...prev, [newPost.id]: true }));
+        }
+      }
       if (error) {
         Alert.alert('Post failed', error.message);
         return;
@@ -1596,6 +1615,7 @@ export default function FeedScreen({ navigation }: any) {
       setCommentPolicy('everyone');
       setComposerSensitive(false);
       setCollabPicks([]);
+      setPollOpts(null); setPollDays(1);
       setQuotingPost(null);
       setThreadingPost(null);
       Keyboard.dismiss();
@@ -1629,6 +1649,7 @@ export default function FeedScreen({ navigation }: any) {
       const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !isMuted(pp));
       hydrateShares(scored.map(pp => pp.id));
       hydrateCollabs(scored.map(pp => pp.id));
+      hydratePolls(scored.map(pp => pp.id));
       setPosts(prev => { const have = new Set(prev.map(x => x.id)); const add: any[] = []; for (const p of scored) { if (!have.has(p.id)) { have.add(p.id); add.push(p); } } return [...prev, ...add]; });
       setProfilesMap(prev => { const pm = { ...prev }; rows.forEach((r: any) => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; }); return pm; });
       setLikedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_liked) m[r.post_id] = true; }); return m; });
@@ -1997,6 +2018,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 onTouchEnd={() => { mediaTouchRef.current = false; }}
                 onTouchCancel={() => { mediaTouchRef.current = false; }}
               >
+                {pollPosts[post.id] ? <PollCard postId={post.id} /> : null}
                 {media}
               </View>
 
@@ -2278,6 +2300,21 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   </TouchableOpacity>
                 </View>
               )}
+              {pollOpts ? (
+                <View style={{ marginTop: 10, gap: 8 }}>
+                  {pollOpts.map((o, i) => (
+                    <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <TextInput value={o} onChangeText={(v) => setPollOpts(p => { const n = [...(p || [])]; n[i] = v; return n; })} placeholder={'Option ' + (i + 1)} placeholderTextColor="#8A93A5" maxLength={40}
+                        style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', backgroundColor: '#FAFAF9', paddingHorizontal: 12, fontSize: 14.5, color: '#0B1E3D' }} />
+                      {pollOpts.length > 2 ? <TouchableOpacity onPress={() => setPollOpts(p => (p || []).filter((_, j) => j !== i))} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={16} color="#8A93A5" /></TouchableOpacity> : null}
+                    </View>
+                  ))}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    {pollOpts.length < 4 ? <TouchableOpacity onPress={() => setPollOpts(p => [...(p || []), ''])}><Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Add option</Text></TouchableOpacity> : null}
+                    <TouchableOpacity onPress={() => setPollDays(d => (d === 1 ? 3 : d === 3 ? 7 : 1))} style={{ marginLeft: 'auto' }}><Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>{pollDays === 1 ? '1 day' : pollDays + ' days'}</Text></TouchableOpacity>
+                  </View>
+                </View>
+              ) : null}
               {mentionActive && mentionResults.length > 0 && (
                 <View style={s.mentionDropdown}>
                   {mentionResults.map(u => (
@@ -2310,6 +2347,10 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   <TouchableOpacity style={[s.audChip, collabPicks.length > 0 && { backgroundColor: '#0B1E3D' }]} onPress={askCollaborator} activeOpacity={0.75}>
                     <Feather name="users" size={12} color={collabPicks.length ? '#FFFFFF' : NAVY} />
                     <Text style={[s.audChipTxt, collabPicks.length > 0 && { color: '#FFFFFF' }]}>{collabPicks.length ? 'With ' + collabPicks.map(x => '@' + (x.username || x.full_name)).join(', ') : 'Invite collaborators'}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[s.audChip, !!pollOpts && { backgroundColor: '#0B1E3D' }]} onPress={() => setPollOpts(p => p ? null : ['', ''])} activeOpacity={0.75}>
+                    <Feather name="bar-chart-2" size={12} color={pollOpts ? '#FFFFFF' : NAVY} />
+                    <Text style={[s.audChipTxt, !!pollOpts && { color: '#FFFFFF' }]}>{pollOpts ? 'Poll on' : 'Poll'}</Text>
                   </TouchableOpacity>
                   </ScrollView>
                 </View>

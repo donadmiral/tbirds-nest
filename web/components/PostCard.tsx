@@ -1,6 +1,7 @@
 
 "use client";
 
+import { usePollFlag } from "@/lib/pollCheck";
 import { PersonName } from "@/components/PersonName";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -128,6 +129,7 @@ export function PostCard({ post }: { post: FeedRow }) {
     : post.is_trending ? "Trending on Platinum Circles"
     : "Suggested for you";
   const rb = post as unknown as { reposted_by_id?: string | null; reposted_by_name?: string | null; reposted_by_username?: string | null; has_poll?: boolean; edited_at?: string | null };
+  const hasPoll = usePollFlag(post.post_id, rb.has_poll);
   const legacyUrl = (post as unknown as { media_url?: string | null }).media_url || null;
   const media = (post.media && post.media.length) ? post.media : (legacyUrl ? [{ id: "legacy", url: legacyUrl, media_type: /\.(mp4|mov|m4v|webm)(\?|$)/i.test(legacyUrl) ? "video" : "image", width: null, height: null, sort_order: 0 } as unknown as NonNullable<typeof post.media>[number]] : []);
   const products = post.products ?? [];
@@ -284,7 +286,7 @@ export function PostCard({ post }: { post: FeedRow }) {
           <ShieldCheck size={12} /> Fact check added
         </Link>
       ) : null}
-      {rb.has_poll ? <PollCard postId={post.post_id} /> : null}
+      {hasPoll ? <PollCard postId={post.post_id} /> : null}
       {quotedId ? <QuoteCard quotedId={quotedId} /> : null}
 
           {post.link && media.length === 0 ? (
