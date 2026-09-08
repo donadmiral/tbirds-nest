@@ -126,7 +126,8 @@ export function PostCard({ post }: { post: FeedRow }) {
     : post.is_trending ? "Trending on Platinum Circles"
     : "Suggested for you";
   const rb = post as unknown as { reposted_by_id?: string | null; reposted_by_name?: string | null; reposted_by_username?: string | null; has_poll?: boolean; edited_at?: string | null };
-  const media = post.media ?? [];
+  const legacyUrl = (post as unknown as { media_url?: string | null }).media_url || null;
+  const media = (post.media && post.media.length) ? post.media : (legacyUrl ? [{ id: "legacy", url: legacyUrl, media_type: /\.(mp4|mov|m4v|webm)(\?|$)/i.test(legacyUrl) ? "video" : "image", width: null, height: null, sort_order: 0 } as unknown as NonNullable<typeof post.media>[number]] : []);
   const products = post.products ?? [];
   const readMinutes = (post as unknown as { read_minutes?: number | null }).read_minutes ?? null;
   // Only the writer's own gallery block is fetched here - articles are a
