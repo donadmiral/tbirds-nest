@@ -1552,6 +1552,7 @@ export default function FeedScreen({ navigation }: any) {
         }).then(() => {}, () => {});
       }
 
+      if (uploadedMedia.length > 0 && !newPost?.id) { Alert.alert('Media rows skipped', 'The post came back without an id, so its media rows were not written.'); }
       if (newPost?.id && uploadedMedia.length > 0) {
         try {
           const mediaRows = uploadedMedia.map(m => ({
@@ -1566,7 +1567,7 @@ export default function FeedScreen({ navigation }: any) {
           }));
           const { data: inserted, error: mErr } = await supabase.from('post_media').insert(mediaRows).select('id, sort_order');
           if (mErr) {
-            Alert.alert('Warning', 'Post created but media metadata failed to save. Media may not display correctly.');
+            Alert.alert('Media rows not saved', String((mErr as any)?.message || mErr));
           } else {
             // Tagged people: anchor each tag to the media row it was placed on.
             const tagRows: any[] = [];
