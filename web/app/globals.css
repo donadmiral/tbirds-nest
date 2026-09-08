@@ -78,3 +78,7 @@ body {
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .fixed.bottom-0 { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .fixed.top-0 { padding-top: env(safe-area-inset-top, 0px); }
+
+/* Native menus follow the site's own scheme, not the operating system's. */
+select, option { color-scheme: light; }
+.dark select, .dark option { color-scheme: dark; }

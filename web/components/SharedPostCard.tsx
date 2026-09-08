@@ -30,7 +30,7 @@ export function SharedPostCard({ postId }: { postId: string }) {
   if (p === null) return <span className="block text-[12px] text-ink/40">This post is no longer available</span>;
 
   return (
-    <Link href={"/post/" + postId} className="flex w-60 gap-2.5 rounded-lg border border-ink/15 p-2.5 transition-colors hover:bg-surface-elevated">
+    <Link href={"/post/" + postId} className="flex w-60 gap-2.5 rounded-lg border border-ink/15 bg-white p-2.5 text-ink transition-colors hover:bg-surface-elevated">
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-1.5 text-[12px]">
           <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"}</span>{p.author?.id ? <VerifiedBadge userId={p.author.id} size={12} /> : null}
