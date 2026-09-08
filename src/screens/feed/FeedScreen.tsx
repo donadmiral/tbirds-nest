@@ -1995,6 +1995,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           );
         })()}
 
+        {pollPosts[post.id] ? <PollCard postId={post.id} /> : null}
         {(() => {
           const openViewer = (idx?: number, at?: number) => {
             const items: any[] = (post.media && post.media.length > 0) ? post.media : (post.media_url ? [{ url: post.media_url, media_type: 'image' }] : []);
@@ -2018,7 +2019,6 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 onTouchEnd={() => { mediaTouchRef.current = false; }}
                 onTouchCancel={() => { mediaTouchRef.current = false; }}
               >
-                {pollPosts[post.id] ? <PollCard postId={post.id} /> : null}
                 {media}
               </View>
 
