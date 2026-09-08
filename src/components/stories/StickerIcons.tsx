@@ -9,7 +9,8 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 export type StickerIconName =
   | 'poll' | 'question' | 'quiz' | 'slider'
   | 'mention' | 'location' | 'link' | 'emoji' | 'hashtag' | 'music' | 'filter' | 'countdown'
-  | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'draw' | 'adjust' | 'trim' | 'mix' | 'bg' | 'layout' | 'preview' | 'save';
+  | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'draw' | 'adjust' | 'trim' | 'mix' | 'bg' | 'layout' | 'preview' | 'save'
+  | 'addyours' | 'notify' | 'magic' | 'support' | 'frame';
 
 type Props = { name: StickerIconName; size?: number; color?: string; bg?: string };
 
@@ -129,6 +130,44 @@ export default function StickerIcon({ name, size = 22, color = '#FFFFFF', bg = '
     case 'save':
       return (<Svg {...p}><Path d="M12 4v10M12 14l-3.6-3.6M12 14l3.6-3.6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" /><Path d="M5 16.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.5" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" /></Svg>);
     case 'emoji':
+    case 'addyours':
+      return (
+        <Svg {...p}>
+          <Rect x="3" y="4" width="12" height="16" rx="3" fill={color} />
+          <Path d="M9 9v6M6 12h6" stroke={bg} strokeWidth="2.2" strokeLinecap="round" />
+          <Rect x="15" y="7" width="6" height="13" rx="2.5" fill={color} opacity="0.55" />
+        </Svg>
+      );
+    case 'notify':
+      return (
+        <Svg {...p}>
+          <Path d="M12 3.5a6 6 0 0 0-6 6v3.2l-1.8 2.8h15.6L18 12.7V9.5a6 6 0 0 0-6-6z" fill={color} />
+          <Path d="M9.8 18.5a2.3 2.3 0 0 0 4.4 0" stroke={color} strokeWidth="2.2" strokeLinecap="round" fill="none" />
+        </Svg>
+      );
+    case 'magic':
+      return (
+        <Svg {...p}>
+          <Circle cx="12" cy="12" r="9" fill={color} />
+          <Circle cx="12" cy="12" r="4.2" fill={bg} />
+          <Path d="M11 9.6h2l-.4 2.6h-1.2z" fill={color} />
+          <Circle cx="12" cy="13.6" r="0.9" fill={color} />
+        </Svg>
+      );
+    case 'support':
+      return (
+        <Svg {...p}>
+          <Path d="M12 20.5s-7.5-4.6-7.5-10A4.1 4.1 0 0 1 12 8.2a4.1 4.1 0 0 1 7.5 2.3c0 5.4-7.5 10-7.5 10z" fill={color} />
+        </Svg>
+      );
+    case 'frame':
+      return (
+        <Svg {...p}>
+          <Rect x="4" y="3" width="16" height="18" rx="2" fill={color} />
+          <Rect x="6" y="5" width="12" height="10" rx="1" fill={bg} />
+          <Path d="M8 13l2.5-3 2 2 1.5-1.5L16 13z" fill={color} />
+        </Svg>
+      );
     default:
       return (
         <Svg {...p}>

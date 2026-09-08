@@ -4,8 +4,7 @@ import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } 
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated,
   PanResponder, ActivityIndicator, Alert, StatusBar, Modal, FlatList,
-  Platform, TextInput, Keyboard, LayoutChangeEvent,
-} from 'react-native';
+  Platform, TextInput, Keyboard, LayoutChangeEvent } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -444,11 +443,28 @@ export default function StoryViewerScreen() {
   const handleEngagementTap = useCallback((_stickerId: string) => { pauseFor('engagement'); }, [pauseFor]);
   const handleSliderSubmit = useCallback(async (stickerId: string, value: number) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'slider', numberValue: value }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { number_value: value } }); } catch (e) { console.log('[SliderSubmit]', e); } }, [currentStory?.id]);
   const handleQuizSubmit = useCallback(async (stickerId: string, optionId: string) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'quiz', optionId }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { option_id: optionId } }); } catch (e) { console.log('[QuizSubmit]', e); } }, [currentStory?.id]);
+  const handleAddYours = useCallback(async (sticker: any) => {
+    if (!currentStory) return;
+    try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'addyours', textValue: 'joined' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'joined' } }); } catch {}
+    const seed = { id: 'ay_' + Date.now(), text: sticker.addYoursPrompt || sticker.text || 'Add yours', color: '#FFFFFF', nx: 0.5, ny: 0.2, scale: 1, rotation: 0, kind: 'addyours', addYoursPrompt: sticker.addYoursPrompt || sticker.text, addYoursOriginStoryId: sticker.addYoursOriginStoryId || currentStory.id, addYoursOriginStickerId: sticker.addYoursOriginStickerId || sticker.id };
+    saveAndGoBack();
+    setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: [seed] }), 200);
+  }, [currentStory, saveAndGoBack, navigation]);
+  const handleNotifySignUp = useCallback(async (sticker: any) => {
+    if (!currentStory) return;
+    try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'notify', textValue: 'signed' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'signed' } }); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+  }, [currentStory]);
+  const handleNotifySend = useCallback(async (sticker: any) => {
+    if (!currentStory) return;
+    const { data, error } = await supabase.rpc('send_sticker_notify', { p_story_id: currentStory.id, p_sticker_id: sticker.id });
+    if (error) { Alert.alert('Not sent', error.message); return; }
+    Alert.alert('Sent', (Number(data) || 0) + ' people were notified.');
+  }, [currentStory]);
   const handleCountdownRemind = useCallback(async (sticker: any) => { if (!currentStory) return; const targetIso = sticker?.countdownTarget; const when = targetIso ? new Date(targetIso) : null; try { if (when && when.getTime() > Date.now()) { const perm = await Notifications.getPermissionsAsync(); if (!perm.granted) { await Notifications.requestPermissionsAsync(); } await Notifications.scheduleNotificationAsync({ content: { title: (sticker.countdownTitle || sticker.text || 'Countdown'), body: 'The countdown just ended.' }, trigger: when as any }); } await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'countdown', textValue: 'remind' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'remind' } }); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch (e) { console.log('[CountdownRemind]', e); } }, [currentStory?.id]);
   const handleViewResponses = useCallback((stickerId: string, responseType: 'question' | 'slider' | 'quiz') => { const stickerList = (storiesRef.current[storyIndexRef.current]?.stickers_json || []) as StoryTextSticker[]; const sticker = stickerList.find(s => s.id === stickerId); pauseFor('responsesSheet'); dispatchResponsesSheet({ type: 'OPEN', stickerId, responseType, title: sticker?.questionPrompt || sticker?.sliderLabel || sticker?.quizQuestion || sticker?.text || '', quizOptions: sticker?.quizOptions }); }, [pauseFor]);
 
   const isOwn = currentStory?.user_id === myId;
-  const engagementProps = useMemo(() => ({ isOwn: isOwn ?? false, storyId: currentStory?.id ?? '', myResponses: engagement.responses, responseCounts: engagement.counts, responseAverages: engagement.averages, quizResponseCounts: engagement.quizCounts, onTapQuestionAnswer: handleEngagementTap, onSubmitSlider: handleSliderSubmit, onCountdownRemind: handleCountdownRemind, onSelectQuizOption: handleQuizSubmit, onViewResponses: handleViewResponses, onSliderDragStart: () => pauseFor('sliderDrag'), onSliderDragEnd: () => resumeFrom('sliderDrag') }), [isOwn, currentStory?.id, engagement, handleEngagementTap, handleSliderSubmit, handleQuizSubmit, handleCountdownRemind, handleViewResponses, pauseFor, resumeFrom]);
+  const engagementProps = useMemo(() => ({ isOwn: isOwn ?? false, storyId: currentStory?.id ?? '', myResponses: engagement.responses, responseCounts: engagement.counts, responseAverages: engagement.averages, quizResponseCounts: engagement.quizCounts, onTapQuestionAnswer: handleEngagementTap, onSubmitSlider: handleSliderSubmit, onCountdownRemind: handleCountdownRemind, onAddYours: handleAddYours, onNotifySignUp: handleNotifySignUp, onNotifySend: handleNotifySend, onSelectQuizOption: handleQuizSubmit, onViewResponses: handleViewResponses, onSliderDragStart: () => pauseFor('sliderDrag'), onSliderDragEnd: () => resumeFrom('sliderDrag') }), [isOwn, currentStory?.id, engagement, handleEngagementTap, handleSliderSubmit, handleQuizSubmit, handleCountdownRemind, handleAddYours, handleNotifySignUp, handleNotifySend, handleViewResponses, pauseFor, resumeFrom]);
   const handleMediaLayout = useCallback((e: LayoutChangeEvent) => { const { width, height } = e.nativeEvent.layout; setMediaSize(prev => { if (prev.w === width && prev.h === height) return prev; return { w: width, h: height }; }); }, []);
 
   // Dual reconstruction

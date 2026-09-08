@@ -811,11 +811,31 @@ export default function StoryComposerScreen() {
   const removeQuizOption = useCallback((i: number) => { if (quizOptions.length <= 2) return; setQuizOptions(p => p.filter((_, idx) => idx !== i)); }, [quizOptions.length]);
   const saveQuiz = useCallback(() => { const q = quizQuestion.trim(); if (!q || q.length > 120) { Alert.alert(q ? 'Too long' : 'Required', q ? 'Under 120.' : 'Enter a question.'); return; } const vo = quizOptions.map(o => ({ ...o, label: o.label.trim() })).filter(o => o.label.length > 0); if (vo.length < 2) { Alert.alert('Not enough', 'At least 2 options.'); return; } if (vo.filter(o => o.isCorrect).length !== 1) { Alert.alert('Select answer', 'Mark exactly one correct.'); return; } const ls = new Set<string>(); for (const o of vo) { const l = o.label.toLowerCase(); if (ls.has(l)) { Alert.alert('Duplicate', `"${o.label}" twice.`); return; } ls.add(l); } if (editingQuizId) { updateStickers((active?.stickers || []).map(s => s.id === editingQuizId ? { ...s, text: q, quizQuestion: q, quizOptions: vo } : s)); } else { updateStickers([...(active?.stickers || []), { id: newStickerId(), text: q, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.35, scale: 1, rotation: 0, kind: 'quiz', quizQuestion: q, quizOptions: vo }]); } setQuizModalOpen(false); setQuizQuestion(''); setQuizOptions([]); setEditingQuizId(null); }, [quizQuestion, quizOptions, editingQuizId, active, updateStickers]);
 
+  // ── Add Yours, Notify, Magic ball, Support, Frame ──
+  const [stickerForm, setStickerForm] = useState<null | { kind: 'addyours' | 'notify' | 'magic' | 'support'; a: string; b: string; days: number }>(null);
+  const AY_TEMPLATES = ['A photo from this week', 'My morning view', 'Something that made me smile', 'My workspace right now', 'Last thing I cooked', 'A song on repeat'];
+  const saveStickerForm = useCallback(() => {
+    if (!stickerForm) return;
+    const a = stickerForm.a.trim(); const b = stickerForm.b.trim();
+    if (!a) { Alert.alert('Required', 'Give it a title.'); return; }
+    if (stickerForm.kind === 'addyours') addSimpleSticker({ kind: 'addyours', text: a, addYoursPrompt: a, addYoursOriginStoryId: null, addYoursOriginStickerId: null }, 0.25);
+    if (stickerForm.kind === 'notify') addSimpleSticker({ kind: 'notify', text: a, notifyTitle: a, notifyWhen: stickerForm.days > 0 ? new Date(Date.now() + stickerForm.days * 86400000).toISOString() : null }, 0.35);
+    if (stickerForm.kind === 'magic') addSimpleSticker({ kind: 'magic', text: a, magicQuestion: a }, 0.4);
+    if (stickerForm.kind === 'support') { if (!b) { Alert.alert('Required', 'Add the link people should open.'); return; } addSimpleSticker({ kind: 'support', text: a, supportTitle: a, supportUrl: b }, 0.6); }
+    setStickerForm(null);
+  }, [stickerForm, addSimpleSticker]);
+  const addFrameSticker = useCallback(async () => {
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] as any, quality: 0.8, allowsMultipleSelection: false });
+      const a = res?.assets?.[0]; if (!a?.uri) return;
+      addSimpleSticker({ kind: 'frame', text: '', photoUri: a.uri, frameCaption: '' }, 0.45);
+    } catch {}
+  }, [addSimpleSticker]);
   // ── Derived state ──
   const canPublish = drafts.length > 0 && !publish.publishing;
   const hasPoll = !!active?.pollData;
   const isTextStory = active?.mediaType === 'text';
-  const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, hashtag: st.filter(s => s.kind === 'hashtag').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length, countdown: st.filter(s => s.kind === 'countdown').length, entity: st.filter(s => (s as any).kind === 'entity').length, gif: st.filter(s => (s as any).kind === 'gif').length, photo: st.filter(s => (s as any).kind === 'photo').length, time: st.filter(s => (s as any).kind === 'time').length, date: st.filter(s => (s as any).kind === 'date').length, weather: st.filter(s => (s as any).kind === 'weather').length }; }, [active?.stickers]);
+  const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { addyours: st.filter(s => s.kind === 'addyours').length, notify: st.filter(s => s.kind === 'notify').length, magic: st.filter(s => s.kind === 'magic').length, support: st.filter(s => s.kind === 'support').length, frame: st.filter(s => s.kind === 'frame').length, text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, hashtag: st.filter(s => s.kind === 'hashtag').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length, countdown: st.filter(s => s.kind === 'countdown').length, entity: st.filter(s => (s as any).kind === 'entity').length, gif: st.filter(s => (s as any).kind === 'gif').length, photo: st.filter(s => (s as any).kind === 'photo').length, time: st.filter(s => (s as any).kind === 'time').length, date: st.filter(s => (s as any).kind === 'date').length, weather: st.filter(s => (s as any).kind === 'weather').length }; }, [active?.stickers]);
 
   // ── Empty state ──
   if (drafts.length === 0) {
@@ -853,6 +873,11 @@ export default function StoryComposerScreen() {
     { id: 'question', cat: 'interactive', tint: '#38BDF8', icon: 'help-circle', label: 'Question', on: stickerCounts.question > 0, run: () => openQuestionModal() },
     { id: 'quiz', cat: 'interactive', tint: '#34D399', icon: 'check-square', label: 'Quiz', on: stickerCounts.quiz > 0, run: () => openQuizModal() },
     { id: 'slider', cat: 'interactive', tint: '#FB923C', icon: 'sliders', label: 'Slider', on: stickerCounts.slider > 0, run: () => openSliderModal() },
+    { id: 'addyours', cat: 'interactive', tint: '#C9BFB0', icon: 'addyours', label: 'Add yours', on: stickerCounts.addyours > 0, run: () => setStickerForm({ kind: 'addyours', a: '', b: '', days: 0 }) },
+    { id: 'notify', cat: 'interactive', tint: '#7DB1FF', icon: 'notify', label: 'Notify', on: stickerCounts.notify > 0, run: () => setStickerForm({ kind: 'notify', a: '', b: '', days: 0 }) },
+    { id: 'magic', cat: 'fun', tint: '#A78BFA', icon: 'magic', label: 'Magic ball', on: stickerCounts.magic > 0, run: () => setStickerForm({ kind: 'magic', a: '', b: '', days: 0 }) },
+    { id: 'support', cat: 'sharing', tint: '#FF7A90', icon: 'support', label: 'Support', on: stickerCounts.support > 0, run: () => setStickerForm({ kind: 'support', a: '', b: '', days: 0 }) },
+    { id: 'frame', cat: 'fun', tint: '#F5F3EF', icon: 'frame', label: 'Frame', on: stickerCounts.frame > 0, run: addFrameSticker },
     { id: 'countdown', cat: 'interactive', tint: '#F59E0B', icon: 'countdown', label: 'Countdown', on: stickerCounts.countdown > 0, run: openCountdownModal },
     { id: 'mention', cat: 'sharing', tint: '#60A5FA', icon: 'at-sign', label: 'Mention', on: stickerCounts.mention > 0, run: openMentionModal },
     { id: 'hashtag', cat: 'sharing', tint: '#A78BFA', icon: 'hash', label: 'Hashtag', on: stickerCounts.hashtag > 0, run: openHashtagModal },
@@ -1338,6 +1363,28 @@ export default function StoryComposerScreen() {
       </Modal>
 
       {/* Countdown Modal */}
+      <Modal visible={!!stickerForm} transparent animationType="slide" onRequestClose={() => setStickerForm(null)}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setStickerForm(null)} />
+          <View style={{ backgroundColor: '#15161A', borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: Math.max(insets.bottom, 14) + 8 }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', textAlign: 'center', marginBottom: 12 }}>{stickerForm?.kind === 'addyours' ? 'Add yours' : stickerForm?.kind === 'notify' ? 'Notify me' : stickerForm?.kind === 'magic' ? 'Magic ball' : 'Support'}</Text>
+            {stickerForm?.kind === 'addyours' ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }} contentContainerStyle={{ gap: 8 }}>
+                {AY_TEMPLATES.map((tpl) => <TouchableOpacity key={tpl} onPress={() => setStickerForm(f => f ? { ...f, a: tpl } : f)} style={{ borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', paddingHorizontal: 12, paddingVertical: 7 }}><Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700' }}>{tpl}</Text></TouchableOpacity>)}
+              </ScrollView>
+            ) : null}
+            <TextInput value={stickerForm?.a || ''} onChangeText={(v) => setStickerForm(f => f ? { ...f, a: v } : f)} placeholder={stickerForm?.kind === 'addyours' ? 'Your prompt, e.g. A photo from this week' : stickerForm?.kind === 'notify' ? 'What is happening, e.g. Album drops' : stickerForm?.kind === 'magic' ? 'Ask the ball a question' : 'The cause or business'} placeholderTextColor="rgba(255,255,255,0.4)" maxLength={80} autoFocus
+              style={{ height: 46, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', paddingHorizontal: 14, fontSize: 15 }} />
+            {stickerForm?.kind === 'support' ? <TextInput value={stickerForm?.b || ''} onChangeText={(v) => setStickerForm(f => f ? { ...f, b: v } : f)} placeholder="Link, e.g. example.org/donate" placeholderTextColor="rgba(255,255,255,0.4)" autoCapitalize="none" keyboardType="url" style={{ height: 46, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', paddingHorizontal: 14, fontSize: 15, marginTop: 8 }} /> : null}
+            {stickerForm?.kind === 'notify' ? (
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+                {[[0, 'No date'], [1, 'Tomorrow'], [3, 'In 3 days'], [7, 'In a week']].map(([d, l]) => <TouchableOpacity key={String(d)} onPress={() => setStickerForm(f => f ? { ...f, days: Number(d) } : f)} style={{ borderRadius: 999, borderWidth: 1, borderColor: stickerForm?.days === d ? '#7DB1FF' : 'rgba(255,255,255,0.25)', backgroundColor: stickerForm?.days === d ? 'rgba(125,177,255,0.2)' : 'transparent', paddingHorizontal: 12, paddingVertical: 7 }}><Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700' }}>{String(l)}</Text></TouchableOpacity>)}
+              </View>
+            ) : null}
+            <TouchableOpacity onPress={saveStickerForm} activeOpacity={0.85} style={{ marginTop: 14, height: 48, borderRadius: 14, backgroundColor: '#C9BFB0', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#0B1E3D', fontSize: 15, fontWeight: '800' }}>Add to story</Text></TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
       <Modal visible={countdownModalOpen} transparent animationType="slide" onRequestClose={() => setCountdownModalOpen(false)}>
         <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setCountdownModalOpen(false)}><View style={{ width: '100%', paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }}><TouchableOpacity activeOpacity={1} onPress={() => {}}>
           <View style={[st.sheetModal, { paddingBottom: Math.max(insets.bottom, 16) }]}>

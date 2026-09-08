@@ -16,7 +16,7 @@ export type StoryTextSticker = {
   scale: number;
   rotation: number;
   bgEnabled?: boolean;
-  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post' | 'story' | 'countdown' | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'drawing';
+  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post' | 'story' | 'countdown' | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'drawing' | 'addyours' | 'notify' | 'magic' | 'support' | 'frame';
   // Creative engine (all optional, JSON-stored)
   gifUrl?: string;
   photoUri?: string | null;
@@ -74,6 +74,20 @@ export type StoryTextSticker = {
   countdownTarget?: string;
   quizQuestion?: string;
   quizOptions?: { id: string; label: string; isCorrect: boolean }[];
+  /** Add Yours: the prompt, and where the chain started. */
+  addYoursPrompt?: string;
+  addYoursOriginStoryId?: string | null;
+  addYoursOriginStickerId?: string | null;
+  /** Notify: what people opt in to hear about, and when it is. */
+  notifyTitle?: string;
+  notifyWhen?: string | null;
+  /** Magic ball: the question asked. */
+  magicQuestion?: string;
+  /** Support: a cause with a link. */
+  supportTitle?: string;
+  supportUrl?: string;
+  /** Frame: a Polaroid caption; the photo rides photoUri and photoUrl. */
+  frameCaption?: string;
 };
 
 export type StoryTextBackground =
@@ -535,7 +549,7 @@ export async function uploadAndCreateStory(params: {
     // An empty layout cell is a composer placeholder, never part of the story.
     for (let ci = stickersJson.length - 1; ci >= 0; ci--) { const cs: any = stickersJson[ci]; if (cs && cs.kind === 'photo' && cs.photoShape === 'cell' && !cs.photoUri && !cs.photoUrl) stickersJson.splice(ci, 1); }
     for (const stAny of stickersJson as any[]) {
-      if (stAny && stAny.kind === 'photo' && stAny.photoUri && !stAny.photoUrl) {
+      if (stAny && (stAny.kind === 'photo' || stAny.kind === 'frame') && stAny.photoUri && !stAny.photoUrl) {
         try {
           let pm = resolveMediaMeta('image', stAny.photoUri);
           const pt = await resolveTrueMeta(stAny.photoUri, 'image', pm.ext, pm.mimeType);
@@ -944,7 +958,7 @@ export const storiesService = {
   async submitStickerResponse(params: {
     storyId: string;
     stickerId: string;
-    responseType: 'question' | 'slider' | 'quiz' | 'countdown';
+    responseType: 'question' | 'slider' | 'quiz' | 'countdown' | 'addyours' | 'notify';
     textValue?: string | null;
     numberValue?: number | null;
     optionId?: string | null;

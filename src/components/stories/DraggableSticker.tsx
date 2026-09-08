@@ -36,6 +36,11 @@ import StickerPill from './StickerPill';
 import PostStoryCard from './PostStoryCard';
 import StoryReshareCard, { STORY_CARD_W, STORY_CARD_H } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
+import AddYoursStickerCard from './AddYoursStickerCard';
+import NotifyStickerCard from './NotifyStickerCard';
+import MagicBallStickerCard from './MagicBallStickerCard';
+import SupportStickerCard from './SupportStickerCard';
+import FrameStickerCard from './FrameStickerCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
@@ -162,7 +167,7 @@ function getProfile(kind?: string): PhysicsProfile {
   if (kind === 'emoji') return PROFILES.emoji;
   if (kind === 'poll' || kind === 'quiz') return PROFILES.poll;
   if (kind === 'question') return PROFILES.question;
-  if (kind === 'location' || kind === 'mention' || kind === 'hashtag' || kind === 'link' || kind === 'post' || kind === 'countdown' || kind === 'entity' || kind === 'photo' || kind === 'gif' || kind === 'time' || kind === 'date' || kind === 'weather') return PROFILES.location;
+  if (kind === 'location' || kind === 'mention' || kind === 'hashtag' || kind === 'link' || kind === 'post' || kind === 'countdown' || kind === 'entity' || kind === 'photo' || kind === 'gif' || kind === 'time' || kind === 'date' || kind === 'weather' || kind === 'addyours' || kind === 'notify' || kind === 'magic' || kind === 'support' || kind === 'frame') return PROFILES.location;
   if (kind === 'slider') return PROFILES.slider;
   return DEFAULT_PROFILE;
 }
@@ -744,8 +749,17 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
               <EntityStickerCard sticker={sticker} />
             ) : sticker.kind === 'countdown' ? (
               <CountdownStickerCard title={sticker.countdownTitle || sticker.text} target={sticker.countdownTarget || null} />
-            ) : sticker.kind === 'story' ? (
-              <StoryReshareCard sticker={sticker} />
+            ) : sticker.kind === 'addyours' ? (
+              <AddYoursStickerCard prompt={sticker.addYoursPrompt || sticker.text} interactive={false} />
+            ) : sticker.kind === 'notify' ? (
+              <NotifyStickerCard title={sticker.notifyTitle || sticker.text} when={sticker.notifyWhen || null} interactive={false} />
+            ) : sticker.kind === 'magic' ? (
+              <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={false} />
+            ) : sticker.kind === 'support' ? (
+              <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={false} />
+            ) : sticker.kind === 'frame' ? (
+              <FrameStickerCard uri={(sticker as any).photoUrl || (sticker as any).photoUri} caption={sticker.frameCaption} interactive={false} />
+            ) : sticker.kind === 'story' ? (              <StoryReshareCard sticker={sticker} />
             ) : sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />
             ) : sticker.kind === 'question' ? (

@@ -5,6 +5,11 @@ import StickerPill from './StickerPill';
 import PostStoryCard, { POST_CARD_W, POST_CARD_EST_H } from './PostStoryCard';
 import StoryReshareCard, { STORY_CARD_W } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
+import AddYoursStickerCard from './AddYoursStickerCard';
+import NotifyStickerCard from './NotifyStickerCard';
+import MagicBallStickerCard from './MagicBallStickerCard';
+import SupportStickerCard from './SupportStickerCard';
+import FrameStickerCard from './FrameStickerCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
@@ -45,6 +50,9 @@ type StickerOverlayProps = {
     onSelectQuizOption?: (stickerId: string, optionId: string) => void;
     onViewResponses?: (stickerId: string, responseType: 'question' | 'slider' | 'quiz') => void;
     onCountdownRemind?: (sticker: StoryTextSticker) => void;
+    onAddYours?: (sticker: StoryTextSticker) => void;
+    onNotifySignUp?: (sticker: StoryTextSticker) => void;
+    onNotifySend?: (sticker: StoryTextSticker) => void;
   };
 };
 
@@ -56,6 +64,8 @@ function getWidthForKind(kind?: string): number {
   if (kind === 'gif') return 180;
   if (kind === 'time' || kind === 'date' || kind === 'weather') return 170;
   if (kind === 'countdown') return 236;
+  if (kind === 'addyours' || kind === 'notify' || kind === 'support') return 236;
+  if (kind === 'magic' || kind === 'frame') return 200;
   if (kind === 'question') return 240;
   if (kind === 'slider') return 240;
   if (kind === 'quiz') return 260;
@@ -92,8 +102,19 @@ export function renderStickerContent(
   const isSlider = sticker.kind === 'slider';
   const isQuiz = sticker.kind === 'quiz';
 
-  if (sticker.kind === 'countdown') {
+  if (sticker.kind === 'addyours') {
     const ep = engagementProps;
+    return <AddYoursStickerCard prompt={sticker.addYoursPrompt || sticker.text} interactive={interactive && !!ep} isOwn={ep?.isOwn ?? false} joined={!!ep?.myResponses[sticker.id]} joinedCount={ep?.responseCounts[sticker.id] ?? 0} onJoin={() => ep?.onAddYours?.(sticker)} onViewJoined={() => ep?.onViewResponses?.(sticker.id, 'question')} />;
+  }
+  if (sticker.kind === 'notify') {
+    const ep = engagementProps;
+    return <NotifyStickerCard title={sticker.notifyTitle || sticker.text} when={sticker.notifyWhen || null} interactive={interactive && !!ep} isOwn={ep?.isOwn ?? false} signed={!!ep?.myResponses[sticker.id]} signupCount={ep?.responseCounts[sticker.id] ?? 0} onSignUp={() => ep?.onNotifySignUp?.(sticker)} onSend={() => ep?.onNotifySend?.(sticker)} />;
+  }
+  if (sticker.kind === 'magic') return <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={interactive} />;
+  if (sticker.kind === 'support') return <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={interactive} />;
+  if (sticker.kind === 'frame') return <FrameStickerCard uri={(sticker as any).photoUrl || (sticker as any).photoUri} caption={sticker.frameCaption} interactive={interactive} />;
+
+  if (sticker.kind === 'countdown') {    const ep = engagementProps;
     return (
       <CountdownStickerCard
         title={sticker.countdownTitle || sticker.text}
