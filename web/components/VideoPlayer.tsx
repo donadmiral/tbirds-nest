@@ -257,7 +257,7 @@ export function VideoPlayer({ src, postId, viewsCount, width, height, onDims, im
       ) : null}
       <div className={(fs || immersive)
         ? "relative flex shrink-0 flex-col gap-3 bg-[#0b0b0d] px-6 pb-4 pt-4"
-        : "absolute inset-x-0 bottom-0 flex flex-col gap-1.5 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"}>
+        : "absolute inset-x-0 bottom-0 flex flex-col gap-1.5 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-100 transition-opacity focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100"} onClick={(e) => e.stopPropagation()}>
         <div onClick={scrub} className={"relative w-full cursor-pointer rounded-full bg-white/20 " + ((fs || immersive) ? "h-1" : "h-1.5 overflow-hidden")}>
           <div className="h-full rounded-full bg-pearl" style={{ width: progress * 100 + "%" }} />
           {(fs || immersive) ? <span className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-pearl shadow" style={{ left: "calc(" + progress * 100 + "% - 7px)" }} aria-hidden /> : null}
