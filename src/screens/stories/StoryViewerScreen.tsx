@@ -1,3 +1,4 @@
+import AddYoursThreadSheet from '../../components/stories/AddYoursThreadSheet';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
@@ -443,6 +444,21 @@ export default function StoryViewerScreen() {
   const handleEngagementTap = useCallback((_stickerId: string) => { pauseFor('engagement'); }, [pauseFor]);
   const handleSliderSubmit = useCallback(async (stickerId: string, value: number) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'slider', numberValue: value }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { number_value: value } }); } catch (e) { console.log('[SliderSubmit]', e); } }, [currentStory?.id]);
   const handleQuizSubmit = useCallback(async (stickerId: string, optionId: string) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'quiz', optionId }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { option_id: optionId } }); } catch (e) { console.log('[QuizSubmit]', e); } }, [currentStory?.id]);
+  const [addYoursThread, setAddYoursThread] = useState<{ prompt: string; originStoryId: string | null; originStickerId: string | null } | null>(null);
+  const handleAddYoursThread = useCallback((sticker: any) => { if (!currentStory) return; pauseFor('thread'); setAddYoursThread({ prompt: sticker.addYoursPrompt || sticker.text || 'Add yours', originStoryId: sticker.addYoursOriginStoryId || currentStory.id, originStickerId: sticker.addYoursOriginStickerId || sticker.id }); }, [currentStory, pauseFor]);
+  const handleCountdownShare = useCallback((sticker: any) => {
+    const seed = { id: 'cd_' + Date.now(), text: sticker.countdownTitle || sticker.text || 'Countdown', style: 'classic', color: '#FFFFFF', nx: 0.5, ny: 0.4, scale: 1, rotation: 0, kind: 'countdown', countdownTitle: sticker.countdownTitle || sticker.text, countdownTarget: sticker.countdownTarget };
+    saveAndGoBack();
+    setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: [seed] }), 200);
+  }, [saveAndGoBack, navigation]);
+  const handleShareResponse = useCallback((text: string) => {
+    const title = responsesSheet.title || 'Question';
+    const q = { id: 'qs_' + Date.now(), text: title, style: 'classic', color: '#FFFFFF', nx: 0.5, ny: 0.34, scale: 1, rotation: 0, kind: 'question', questionPrompt: title };
+    const a = { id: 'qa_' + Date.now(), text: text, style: 'classic', color: '#FFFFFF', nx: 0.5, ny: 0.58, scale: 1, rotation: 0, kind: 'text' };
+    dispatchResponsesSheet({ type: 'CLOSE' });
+    saveAndGoBack();
+    setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: [q, a] }), 200);
+  }, [responsesSheet.title, saveAndGoBack, navigation]);
   const handleAddYours = useCallback(async (sticker: any) => {
     if (!currentStory) return;
     try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'addyours', textValue: 'joined' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'joined' } }); } catch {}
@@ -464,7 +480,7 @@ export default function StoryViewerScreen() {
   const handleViewResponses = useCallback((stickerId: string, responseType: 'question' | 'slider' | 'quiz') => { const stickerList = (storiesRef.current[storyIndexRef.current]?.stickers_json || []) as StoryTextSticker[]; const sticker = stickerList.find(s => s.id === stickerId); pauseFor('responsesSheet'); dispatchResponsesSheet({ type: 'OPEN', stickerId, responseType, title: sticker?.questionPrompt || sticker?.sliderLabel || sticker?.quizQuestion || sticker?.text || '', quizOptions: sticker?.quizOptions }); }, [pauseFor]);
 
   const isOwn = currentStory?.user_id === myId;
-  const engagementProps = useMemo(() => ({ isOwn: isOwn ?? false, storyId: currentStory?.id ?? '', myResponses: engagement.responses, responseCounts: engagement.counts, responseAverages: engagement.averages, quizResponseCounts: engagement.quizCounts, onTapQuestionAnswer: handleEngagementTap, onSubmitSlider: handleSliderSubmit, onCountdownRemind: handleCountdownRemind, onAddYours: handleAddYours, onNotifySignUp: handleNotifySignUp, onNotifySend: handleNotifySend, onSelectQuizOption: handleQuizSubmit, onViewResponses: handleViewResponses, onSliderDragStart: () => pauseFor('sliderDrag'), onSliderDragEnd: () => resumeFrom('sliderDrag') }), [isOwn, currentStory?.id, engagement, handleEngagementTap, handleSliderSubmit, handleQuizSubmit, handleCountdownRemind, handleAddYours, handleNotifySignUp, handleNotifySend, handleViewResponses, pauseFor, resumeFrom]);
+  const engagementProps = useMemo(() => ({ isOwn: isOwn ?? false, storyId: currentStory?.id ?? '', myResponses: engagement.responses, responseCounts: engagement.counts, responseAverages: engagement.averages, quizResponseCounts: engagement.quizCounts, onTapQuestionAnswer: handleEngagementTap, onSubmitSlider: handleSliderSubmit, onCountdownRemind: handleCountdownRemind, onAddYours: handleAddYours, onAddYoursThread: handleAddYoursThread, onCountdownShare: handleCountdownShare, onNotifySignUp: handleNotifySignUp, onNotifySend: handleNotifySend, onSelectQuizOption: handleQuizSubmit, onViewResponses: handleViewResponses, onSliderDragStart: () => pauseFor('sliderDrag'), onSliderDragEnd: () => resumeFrom('sliderDrag') }), [isOwn, currentStory?.id, engagement, handleEngagementTap, handleSliderSubmit, handleQuizSubmit, handleCountdownRemind, handleAddYours, handleAddYoursThread, handleCountdownShare, handleNotifySignUp, handleNotifySend, handleViewResponses, pauseFor, resumeFrom]);
   const handleMediaLayout = useCallback((e: LayoutChangeEvent) => { const { width, height } = e.nativeEvent.layout; setMediaSize(prev => { if (prev.w === width && prev.h === height) return prev; return { w: width, h: height }; }); }, []);
 
   // Dual reconstruction
@@ -667,7 +683,8 @@ export default function StoryViewerScreen() {
 
       {isOwn && myId && currentStory && (<SaveToMemorySheet visible={highlightSheetOpen} onClose={() => { setHighlightSheetOpen(false); resumeFrom('highlight'); }} storyId={currentStory.id} userId={myId} />)}
       {isOwn && currentStory && (<ManageMentionsSheet visible={mentionsOpen} onClose={() => { setMentionsOpen(false); resumeFrom('mentions'); }} storyId={currentStory.id} />)}
-      {responsesSheet.open && (<StickerResponsesSheet visible={responsesSheet.open} onClose={() => { dispatchResponsesSheet({ type: 'CLOSE' }); resumeFrom('responsesSheet'); }} storyId={currentStory.id} stickerId={responsesSheet.stickerId} responseType={responsesSheet.type} title={responsesSheet.title} quizOptions={responsesSheet.quizOptions} />)}
+      <AddYoursThreadSheet visible={!!addYoursThread} prompt={addYoursThread?.prompt || ''} originStoryId={addYoursThread?.originStoryId || null} originStickerId={addYoursThread?.originStickerId || null} onClose={() => { setAddYoursThread(null); resumeFrom('thread'); }} onOpen={(uid) => { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('StoryViewer', { userId: uid }), 200); }} />
+      {responsesSheet.open && (<StickerResponsesSheet visible={responsesSheet.open} onShareResponse={handleShareResponse} onClose={() => { dispatchResponsesSheet({ type: 'CLOSE' }); resumeFrom('responsesSheet'); }} storyId={currentStory.id} stickerId={responsesSheet.stickerId} responseType={responsesSheet.type} title={responsesSheet.title} quizOptions={responsesSheet.quizOptions} />)}
     </Animated.View>
   );
 }

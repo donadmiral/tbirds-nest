@@ -828,7 +828,7 @@ export default function StoryComposerScreen() {
     try {
       const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] as any, quality: 0.8, allowsMultipleSelection: false });
       const a = res?.assets?.[0]; if (!a?.uri) return;
-      addSimpleSticker({ kind: 'frame', text: '', photoUri: a.uri, frameCaption: '' }, 0.45);
+      addSimpleSticker({ kind: 'frame', text: '', photoUri: a.uri, frameCaption: '', frameTakenAt: new Date().toISOString() }, 0.45);
     } catch {}
   }, [addSimpleSticker]);
   // ── Derived state ──

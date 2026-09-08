@@ -6,11 +6,11 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 const PEARL = '#C9BFB0';
-export default function AddYoursStickerCard({ prompt, interactive, isOwn, joined, joinedCount = 0, onJoin, onViewJoined }: { prompt: string; interactive?: boolean; isOwn?: boolean; joined?: boolean; joinedCount?: number; onJoin?: () => void; onViewJoined?: () => void }) {
+export default function AddYoursStickerCard({ prompt, interactive, isOwn, joined, joinedCount = 0, onJoin, onViewJoined, onOpenThread }: { prompt: string; interactive?: boolean; isOwn?: boolean; joined?: boolean; joinedCount?: number; onJoin?: () => void; onViewJoined?: () => void; onOpenThread?: () => void }) {
   return (
     <View style={cs.card}>
       <View style={cs.headRow}><Feather name="layers" size={12} color={PEARL} /><Text style={cs.kicker}>ADD YOURS</Text></View>
-      <Text style={cs.prompt} numberOfLines={3}>{prompt || 'Add yours'}</Text>
+      <TouchableOpacity onPress={onOpenThread} disabled={!interactive || !onOpenThread} activeOpacity={0.8}><Text style={cs.prompt} numberOfLines={3}>{prompt || 'Add yours'}</Text></TouchableOpacity>
       {interactive && !isOwn ? (
         <TouchableOpacity onPress={onJoin} activeOpacity={0.85} style={[cs.btn, joined && cs.btnOn]} disabled={joined}>
           <Feather name={joined ? 'check' : 'plus'} size={13} color={joined ? '#0B1E3D' : PEARL} />
@@ -18,8 +18,8 @@ export default function AddYoursStickerCard({ prompt, interactive, isOwn, joined
         </TouchableOpacity>
       ) : null}
       {interactive && isOwn ? (
-        <TouchableOpacity onPress={onViewJoined} activeOpacity={0.8}><Text style={cs.count}>{joinedCount} {joinedCount === 1 ? 'person joined' : 'people joined'}</Text></TouchableOpacity>
-      ) : !interactive ? <Text style={cs.count}>Others can add theirs</Text> : <Text style={cs.count}>{joinedCount} joined</Text>}
+        <TouchableOpacity onPress={onOpenThread || onViewJoined} activeOpacity={0.8}><Text style={cs.count}>{joinedCount} {joinedCount === 1 ? 'person joined' : 'people joined'} · See all</Text></TouchableOpacity>
+      ) : !interactive ? <Text style={cs.count}>Others can add theirs</Text> : <TouchableOpacity onPress={onOpenThread} activeOpacity={0.8}><Text style={cs.count}>{joinedCount} joined · See all</Text></TouchableOpacity>}
     </View>
   );
 }

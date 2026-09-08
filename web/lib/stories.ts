@@ -260,7 +260,7 @@ export async function voteStoryPoll(pollId: string, optionId: string): Promise<S
 
 export type StickerResponseValue = { text_value?: string | null; number_value?: number | null; option_id?: string | null };
 
-export async function submitStickerResponse(storyId: string, stickerId: string, responseType: "question" | "slider" | "quiz", value: StickerResponseValue): Promise<boolean> {
+export async function submitStickerResponse(storyId: string, stickerId: string, responseType: "question" | "slider" | "quiz" | "countdown" | "addyours" | "notify", value: StickerResponseValue): Promise<boolean> {
   const supabase = createClient();
   const { error } = await supabase.rpc("submit_sticker_response", {
     p_story_id: storyId,

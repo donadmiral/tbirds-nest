@@ -758,7 +758,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
             ) : sticker.kind === 'support' ? (
               <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={false} />
             ) : sticker.kind === 'frame' ? (
-              <FrameStickerCard uri={(sticker as any).photoUrl || (sticker as any).photoUri} caption={sticker.frameCaption} interactive={false} />
+              <FrameStickerCard uri={(sticker as any).photoUrl || (sticker as any).photoUri} caption={sticker.frameCaption} takenAt={sticker.frameTakenAt || null} interactive={false} />
             ) : sticker.kind === 'story' ? (              <StoryReshareCard sticker={sticker} />
             ) : sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />

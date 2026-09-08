@@ -86,8 +86,9 @@ export type StoryTextSticker = {
   /** Support: a cause with a link. */
   supportTitle?: string;
   supportUrl?: string;
-  /** Frame: a Polaroid caption; the photo rides photoUri and photoUrl. */
+  /** Frame: a Polaroid caption and the moment it was taken; the photo rides photoUri and photoUrl. */
   frameCaption?: string;
+  frameTakenAt?: string | null;
 };
 
 export type StoryTextBackground =

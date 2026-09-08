@@ -32,7 +32,7 @@ function Cell({ v, l }: { v: number; l: string }) {
   );
 }
 
-export default function CountdownStickerCard({ title, target, interactive, isOwn, reminded, reminderCount, onRemind }: {
+export default function CountdownStickerCard({ title, target, interactive, isOwn, reminded, reminderCount, onRemind, onShare }: {
   title: string;
   target: string | null;
   interactive?: boolean;
@@ -40,6 +40,7 @@ export default function CountdownStickerCard({ title, target, interactive, isOwn
   reminded?: boolean;
   reminderCount?: number;
   onRemind?: () => void;
+  onShare?: () => void;
 }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -78,6 +79,9 @@ export default function CountdownStickerCard({ title, target, interactive, isOwn
             <Text style={cs.remindTxt}>Remind me</Text>
           </TouchableOpacity>
         )
+      ) : null}
+      {interactive && !isOwn && onShare ? (
+        <TouchableOpacity onPress={onShare} activeOpacity={0.8} style={{ marginTop: 8 }}><Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11.5, fontWeight: '800' }}>Add to your story</Text></TouchableOpacity>
       ) : null}
       {isOwn && (reminderCount ?? 0) > 0 ? (
         <Text style={cs.ownCount}>{reminderCount} {reminderCount === 1 ? 'reminder' : 'reminders'} set</Text>

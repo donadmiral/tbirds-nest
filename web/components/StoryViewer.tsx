@@ -5,7 +5,7 @@ import { displayImageUrl } from "@/lib/media";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
-import { QuestionCard, QuizCard, SliderCard, CountdownCard } from "@/components/StoryEngageCards";
+import { QuestionCard, QuizCard, SliderCard, CountdownCard, AddYoursCard, NotifyCard, MagicBallCard, SupportCard, FrameCard } from "@/components/StoryEngageCards";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
@@ -171,6 +171,11 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
         if (kind === "quiz") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><QuizCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
         if (kind === "slider") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><SliderCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
         if (kind === "countdown") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><CountdownCard st={st} /></div>;
+        if (kind === "addyours") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><AddYoursCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
+        if (kind === "notify") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><NotifyCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
+        if (kind === "magic") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><MagicBallCard st={st} /></div>;
+        if (kind === "support") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><SupportCard st={st} /></div>;
+        if (kind === "frame") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><FrameCard st={st} /></div>;
         return null;
       })}
     </div>

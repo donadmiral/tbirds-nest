@@ -37,6 +37,7 @@ type StickerResponsesSheetProps = {
   responseType: 'question' | 'slider' | 'quiz';
   title: string;
   quizOptions?: { id: string; label: string; isCorrect: boolean }[];
+  onShareResponse?: (text: string) => void;
 };
 
 export default function StickerResponsesSheet({
@@ -46,6 +47,7 @@ export default function StickerResponsesSheet({
   stickerId,
   responseType,
   title,
+  onShareResponse,
   quizOptions,
 }: StickerResponsesSheetProps) {
   const insets = useSafeAreaInsets();
@@ -81,7 +83,10 @@ export default function StickerResponsesSheet({
         <View style={s.responseInfo}>
           <Text style={s.responseName} numberOfLines={1}><TierName userId={((item) as any)?.id ?? ((item) as any)?.user_id} baseStyle={s.responseName} text={item.full_name || 'User' || ''} numberOfLines={1} /> <VerifiedBadge userId={((item) as any)?.id ?? ((item) as any)?.user_id} size={12} /></Text>
           {responseType === 'question' && item.text_value && (
-            <Text style={s.responseValue} numberOfLines={2}>{item.text_value}</Text>
+            <View>
+              <Text style={s.responseValue} numberOfLines={2}>{item.text_value}</Text>
+              {onShareResponse ? <TouchableOpacity onPress={() => onShareResponse(item.text_value || '')} activeOpacity={0.8} style={{ alignSelf: 'flex-start', marginTop: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.2)', paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ fontSize: 12, fontWeight: '800', color: '#0B1E3D' }}>Share to story</Text></TouchableOpacity> : null}
+            </View>
           )}
           {responseType === 'slider' && item.number_value != null && (
             <View style={s.sliderRow}>

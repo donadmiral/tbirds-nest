@@ -120,3 +120,65 @@ export function CountdownCard({ st }: { st: StoryTextSticker }) {
     </div>
   );
 }
+
+export function AddYoursCard({ st, storyId, isOwn }: { st: StoryTextSticker; storyId: string; isOwn: boolean }) {
+  const { all } = useMine(storyId, st, true);
+  return (
+    <div className="pointer-events-auto" style={{ ...CARD, width: 236 }}>
+      <div style={{ color: "#8A7F70", fontSize: 10, fontWeight: 800, letterSpacing: 1, textAlign: "center", marginBottom: 4 }}>ADD YOURS</div>
+      <div style={{ ...TITLE, marginBottom: 6 }}>{(st as { addYoursPrompt?: string }).addYoursPrompt || st.text || "Add yours"}</div>
+      <div style={HINT}>{all.length === 1 ? "1 person joined" : all.length + " people joined"}{isOwn ? "" : " · join from the app"}</div>
+    </div>
+  );
+}
+export function NotifyCard({ st, storyId, isOwn }: { st: StoryTextSticker; storyId: string; isOwn: boolean }) {
+  const { mine, setMine, all } = useMine(storyId, st, isOwn);
+  const [busy, setBusy] = useState(false);
+  const optIn = async () => { if (busy) return; setBusy(true); try { if (await submitStickerResponse(storyId, st.id, "notify" as never, { text_value: "signed" })) setMine({ text_value: "signed" }); } finally { setBusy(false); } };
+  const when = (st as { notifyWhen?: string | null }).notifyWhen;
+  return (
+    <div className="pointer-events-auto" style={{ ...CARD, width: 236 }}>
+      <div style={{ color: "#3C7DFF", fontSize: 10, fontWeight: 800, letterSpacing: 1, textAlign: "center", marginBottom: 4 }}>NOTIFY ME</div>
+      <div style={{ ...TITLE, marginBottom: 6 }}>{(st as { notifyTitle?: string }).notifyTitle || st.text || "Notify"}</div>
+      {when ? <div style={HINT}>{new Date(when).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</div> : null}
+      {isOwn ? <div style={HINT}>{all.length} signed up</div> : mine ? <div style={{ ...HINT, color: "#0B1E3D", fontWeight: 800 }}>You will be notified</div> : <button type="button" onClick={optIn} disabled={busy} style={{ marginTop: 8, width: "100%", border: 0, borderRadius: 999, padding: "8px 0", background: "#0B1E3D", color: "#FFF", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>Notify me</button>}
+    </div>
+  );
+}
+export function MagicBallCard({ st }: { st: StoryTextSticker }) {
+  const ANSWERS = ["Yes", "No", "Absolutely", "Not today", "Ask again later", "Without a doubt", "Very doubtful", "Signs point to yes", "Better not", "Count on it", "Cannot predict now", "Most likely"];
+  const [answer, setAnswer] = useState<string | null>(null);
+  return (
+    <div className="pointer-events-auto" style={{ width: 200, textAlign: "center" }}>
+      <div style={{ color: "#FFF", fontSize: 15, fontWeight: 800, textShadow: "0 1px 6px rgba(0,0,0,0.6)", marginBottom: 10 }}>{(st as { magicQuestion?: string }).magicQuestion || st.text}</div>
+      <button type="button" onClick={() => setAnswer(ANSWERS[Math.floor(Math.random() * ANSWERS.length)])} style={{ width: 132, height: 132, borderRadius: 66, background: "#0B0B0F", border: "2px solid rgba(255,255,255,0.25)", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+        <span style={{ width: 74, height: 74, borderRadius: 37, background: "#1B2A6B", color: "#FFF", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: answer ? 12 : 34, padding: 6, textAlign: "center" }}>{answer || "8"}</span>
+      </button>
+      <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, fontWeight: 700, marginTop: 8 }}>{answer ? "Click to ask again" : "Click the ball"}</div>
+    </div>
+  );
+}
+export function SupportCard({ st }: { st: StoryTextSticker }) {
+  const s = st as { supportTitle?: string; supportUrl?: string };
+  const href = s.supportUrl ? (s.supportUrl.startsWith("http") ? s.supportUrl : "https://" + s.supportUrl) : undefined;
+  return (
+    <a className="pointer-events-auto" href={href} target="_blank" rel="noopener noreferrer" style={{ ...CARD, width: 236, display: "flex", alignItems: "center", gap: 10, textDecoration: "none", padding: "10px 12px" }}>
+      <span style={{ width: 34, height: 34, borderRadius: 17, background: "#FF7A90", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#FFF", fontWeight: 800 }}>♥</span>
+      <span style={{ minWidth: 0 }}><span style={{ display: "block", color: "#FF7A90", fontSize: 9.5, fontWeight: 800, letterSpacing: 1 }}>SUPPORT</span><span style={{ display: "block", fontSize: 14.5, fontWeight: 800 }}>{s.supportTitle || st.text}</span>{href ? <span style={{ display: "block", color: "rgba(11,30,61,0.55)", fontSize: 11.5, fontWeight: 600 }}>{href.replace(/^https?:\/\//, "")}</span> : null}</span>
+    </a>
+  );
+}
+export function FrameCard({ st }: { st: StoryTextSticker }) {
+  const s = st as { photoUrl?: string | null; frameCaption?: string; frameTakenAt?: string | null };
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <button type="button" className="pointer-events-auto" onClick={() => setRevealed(true)} style={{ width: 200, background: "#FFF", padding: "10px 10px 12px", borderRadius: 4, boxShadow: "0 8px 24px rgba(0,0,0,0.3)", border: 0, cursor: "pointer", textAlign: "center" }}>
+      <div style={{ width: 180, height: 180, background: "#111", overflow: "hidden", position: "relative" }}>
+        {s.photoUrl ? <img src={s.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", filter: revealed ? "none" : "blur(14px) brightness(0.6)", transition: "filter 900ms ease" }} /> : null}
+        {!revealed ? <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#FFF", fontWeight: 800, fontSize: 12.5, textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>Click to reveal</span> : null}
+      </div>
+      <div style={{ color: "#0B1E3D", fontSize: 14, fontWeight: 700, fontStyle: "italic", marginTop: 10 }}>{s.frameCaption || " "}</div>
+      {s.frameTakenAt ? <div style={{ color: "rgba(11,30,61,0.5)", fontSize: 10.5, fontWeight: 700, marginTop: 2 }}>{new Date(s.frameTakenAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</div> : null}
+    </button>
+  );
+}
