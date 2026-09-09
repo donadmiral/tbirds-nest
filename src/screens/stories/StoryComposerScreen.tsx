@@ -377,7 +377,7 @@ export default function StoryComposerScreen() {
           id: newDraftId(), localUri: uri, thumbnailUri: null, mediaType: isVideo ? 'video' as const : 'image' as const,
           caption: '', scope: 'global' as const, audience, reach, uploadState: 'idle' as const,
           durationSec: isVideo ? (asset.duration || asset.durationSec ? Math.round((asset.duration || asset.durationSec * 1000) / 1000) : null) : null,
-          pollData: null, stickers: [], imageW: asset.width || 0, imageH: asset.height || 0,
+          pollData: null, stickers: idx === 0 ? seedStickers : [], imageW: asset.width || 0, imageH: asset.height || 0,
           mediaFit: 'cover' as MediaFit,
           mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
           category: null, textBgId: 'navy', textBackground: null,
