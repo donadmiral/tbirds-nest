@@ -272,7 +272,7 @@ export function renderStickerContent(
   );
 }
 
-export default function StickerOverlay({
+function StickerOverlay({
   stickers,
   containerW,
   containerH,
@@ -344,3 +344,6 @@ export default function StickerOverlay({
     </View>
   );
 }
+
+// The layer repaints only when its stickers, its box or the engagement it shows actually change.
+export default React.memo(StickerOverlay);

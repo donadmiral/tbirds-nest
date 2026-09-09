@@ -140,12 +140,15 @@ function ComposerStickerOverlay({
   const guideYStyle = useAnimatedStyle(() => { 'worklet'; return { opacity: guideYOp.value }; });
   const [dragZone, setDragZone] = useState<{ draggingId: string | null; inDeleteZone: boolean }>({ draggingId: null, inDeleteZone: false });
   const deleteHotSV = useSharedValue(0);
+  const alignXPos = useSharedValue(0); const alignYPos = useSharedValue(0); const alignXOp = useSharedValue(0); const alignYOp = useSharedValue(0);
+  const alignXStyle = useAnimatedStyle(() => { 'worklet'; return { opacity: alignXOp.value, transform: [{ translateX: alignXPos.value }] }; });
+  const alignYStyle = useAnimatedStyle(() => { 'worklet'; return { opacity: alignYOp.value, transform: [{ translateY: alignYPos.value }] }; });
   const deleteHotStyle = useAnimatedStyle(() => { 'worklet'; return { backgroundColor: deleteHotSV.value ? 'rgba(255,59,48,0.28)' : 'rgba(0,0,0,0.35)', transform: [{ scale: deleteHotSV.value ? 1.08 : 1 }] }; });
   const [smartGuides, setSmartGuides] = useState<SmartGuidesState>({ x: null, y: null, stickerId: null });
   const onSmartGuideChange = useCallback((id: string, x: SmartGuideEntry, y: SmartGuideEntry) => { setSmartGuides(p => (x === null && y === null) ? (p.stickerId === id ? { x: null, y: null, stickerId: null } : p) : { x, y, stickerId: id }); }, []);
   const onDragStart = useCallback((id: string) => { setDragZone({ draggingId: id, inDeleteZone: false }); }, []);
   const onDeleteZoneChange = useCallback((id: string, inZone: boolean) => { setDragZone(p => p.draggingId !== id ? p : (p.inDeleteZone === inZone ? p : { ...p, inDeleteZone: inZone })); }, []);
-  const clearDrag = useCallback(() => { setDragZone({ draggingId: null, inDeleteZone: false }); deleteHotSV.value = 0; guideXOp.value = 0; guideYOp.value = 0; setSmartGuides({ x: null, y: null, stickerId: null }); }, []);
+  const clearDrag = useCallback(() => { setDragZone({ draggingId: null, inDeleteZone: false }); deleteHotSV.value = 0; alignXOp.value = 0; alignYOp.value = 0; guideXOp.value = 0; guideYOp.value = 0; setSmartGuides({ x: null, y: null, stickerId: null }); }, []);
   const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { clearDrag(); onDragEnd(id, nx, ny); }, [clearDrag, onDragEnd]);
   const handleDeleteDrop = useCallback((id: string) => { clearDrag(); onDeleteDrop(id); }, [clearDrag, onDeleteDrop]);
   // Stable per-sticker neighbour lists so React.memo on DraggableSticker holds during drags.
@@ -163,6 +166,8 @@ function ComposerStickerOverlay({
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <ReAnimated.View style={[snapStyles.guideVertical, guideXStyle]} pointerEvents="none" />
       <ReAnimated.View style={[snapStyles.guideHorizontal, guideYStyle]} pointerEvents="none" />
+      <ReAnimated.View style={[{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(201,191,176,0.9)', zIndex: 5 }, alignXStyle]} pointerEvents="none" />
+      <ReAnimated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(201,191,176,0.9)', zIndex: 5 }, alignYStyle]} pointerEvents="none" />
       {smartGuides.x !== null && <View style={[snapStyles.smartGuideVertical, { left: smartGuides.x.position * containerW }]} pointerEvents="none" />}
       {smartGuides.y !== null && <View style={[snapStyles.smartGuideHorizontal, { top: smartGuides.y.position * containerH }]} pointerEvents="none" />}
       <Animated.View style={[snapStyles.deleteZone, { opacity: deleteZoneOpacity }]} pointerEvents="none">
@@ -176,7 +181,7 @@ function ComposerStickerOverlay({
       {visibleStickers.map(st => (
         <DraggableSticker key={st.id} sticker={st} containerW={containerW} containerH={containerH}
           onDragEnd={handleDragEnd} onTap={onTapSticker} onScaleEnd={onScaleEnd} onRotateEnd={onRotateEnd}
-          guideXOp={guideXOp} guideYOp={guideYOp} onDragStart={onDragStart} onDeleteZoneChange={onDeleteZoneChange} deleteHotSV={deleteHotSV}
+          guideXOp={guideXOp} guideYOp={guideYOp} onDragStart={onDragStart} onDeleteZoneChange={onDeleteZoneChange} deleteHotSV={deleteHotSV} alignXPos={alignXPos} alignYPos={alignYPos} alignXOp={alignXOp} alignYOp={alignYOp}
           onDeleteDrop={handleDeleteDrop} deleteZoneNy={deleteZoneNy} safeTopNy={safeTopNy}
           safeBottomNy={safeBottomNy} otherStickers={othersById[st.id] || []}
           onSmartGuideChange={onSmartGuideChange} />

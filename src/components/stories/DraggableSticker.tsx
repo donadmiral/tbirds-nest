@@ -193,6 +193,8 @@ export interface DraggableStickerProps {
   onDeleteZoneChange: (id: string, inZone: boolean) => void;
   /** When given, the delete-zone flag is written here on the UI thread instead of crossing to React. */
   deleteHotSV?: { value: number };
+  /** Neighbour alignment guide lines, drawn by the composer, written here on the UI thread. */
+  alignXPos?: { value: number }; alignYPos?: { value: number }; alignXOp?: { value: number }; alignYOp?: { value: number };
   onDeleteDrop: (id: string) => void;
   deleteZoneNy: number;
   safeTopNy: number;
@@ -249,7 +251,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   const {
     sticker, containerW, containerH,
     onDragEnd, onTap, onScaleEnd, onRotateEnd,
-    onSnapChange, onDragStart, onDeleteZoneChange, onDeleteDrop, deleteHotSV,
+    onSnapChange, onDragStart, onDeleteZoneChange, onDeleteDrop, deleteHotSV, alignXPos, alignYPos, alignXOp, alignYOp,
     deleteZoneNy, safeTopNy, safeBottomNy,
     otherStickers, onSmartGuideChange,
     guideXOp, guideYOp,
@@ -307,6 +309,10 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   const pinchBase = useSharedValue(sticker.scale);
   const rotationBase = useSharedValue(sticker.rotation);
   const inDeleteZone = useSharedValue(false);
+  const alignedX = useSharedValue(false);
+  const alignedY = useSharedValue(false);
+  // Centres of the other stickers, plain numbers the worklet can read.
+  const otherCenters = useMemo(() => otherStickers.map((s) => ({ x: s.nx, y: s.ny })), [otherStickers]);
   const hapticFiredCenter = useSharedValue(false);
   const hapticFiredDelete = useSharedValue(false);
   const isSnappedX = useSharedValue(false);
@@ -496,6 +502,21 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
         finalNy = finalNy + attraction / containerH;
       }
 
+      // Alignment with neighbours: a soft lock when this sticker's centre lines
+      // up with another's, a guide line through both, one tick per lock.
+      if (!magnetX && otherCenters.length > 0) {
+        let bestX = -1; let bestDX = 0.016;
+        for (let i = 0; i < otherCenters.length; i++) { const d = Math.abs(finalNx - otherCenters[i].x); if (d < bestDX) { bestDX = d; bestX = otherCenters[i].x; } }
+        if (bestX >= 0) { finalNx = bestX; if (alignXPos) alignXPos.value = bestX * containerW; if (alignXOp) alignXOp.value = 1; if (!alignedX.value) { alignedX.value = true; runOnJS(fireHapticLight)(); } }
+        else { if (alignXOp) alignXOp.value = 0; alignedX.value = false; }
+      } else { if (alignXOp) alignXOp.value = 0; alignedX.value = false; }
+      if (!magnetY && !inZone && otherCenters.length > 0) {
+        let bestY = -1; let bestDY = 0.012;
+        for (let i = 0; i < otherCenters.length; i++) { const d = Math.abs(finalNy - otherCenters[i].y); if (d < bestDY) { bestDY = d; bestY = otherCenters[i].y; } }
+        if (bestY >= 0) { finalNy = bestY; if (alignYPos) alignYPos.value = bestY * containerH; if (alignYOp) alignYOp.value = 1; if (!alignedY.value) { alignedY.value = true; runOnJS(fireHapticLight)(); } }
+        else { if (alignYOp) alignYOp.value = 0; alignedY.value = false; }
+      } else { if (alignYOp) alignYOp.value = 0; alignedY.value = false; }
+
       translateX.value = (finalNx - startNx.value) * containerW;
       translateY.value = (finalNy - startNy.value) * containerH;
 
@@ -512,6 +533,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
     })
     .onEnd((e) => {
       'worklet';
+      if (alignXOp) alignXOp.value = 0; if (alignYOp) alignYOp.value = 0; alignedX.value = false; alignedY.value = false;
       if (containerW === 0 || containerH === 0) return;
 
       // Release pickup pulse
@@ -575,7 +597,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       translateY.value = withSpring(0, SPRING_LAND);
       runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
     }),
-    [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, deleteHotSV, jsDeleteDrop, jsSmartGuideChange, guideXOp, guideYOp]
+    [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, deleteHotSV, alignXPos, alignYPos, alignXOp, alignYOp, otherCenters, jsDeleteDrop, jsSmartGuideChange, guideXOp, guideYOp]
   );
 
   // ── Pinch gesture ──
