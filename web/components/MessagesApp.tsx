@@ -74,9 +74,10 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       .from("messages")
       .select("*")
       .eq("conversation_id", c.id)
-      .order("created_at", { ascending: true })
+      .order("created_at", { ascending: false })
       .limit(200);
-    const rows = await signChatMedia(((data ?? []) as Msg[]));
+    // The latest two hundred, oldest first on screen; a long conversation opens at its end, not its start.
+    const rows = await signChatMedia((((data ?? []) as Msg[]).slice().reverse()));
     setMsgs(rows);
     setLoadingMsgs(false);
     hydrateOffers(rows);
@@ -340,8 +341,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           {m.media_type === "video" && m.media_url ? (
             <video src={m.media_url} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />
           ) : null}
-          {m.media_type === "audio" && m.media_url ? (
-            <audio src={m.media_url} controls className="mb-1" />
+          {(m.media_type === "audio" || m.media_type === "voice") && m.media_url ? (
+            <audio src={m.media_url} controls preload="metadata" className="mb-1 w-[240px] max-w-full" />
           ) : null}
           {m.media_type === "document" && m.media_url ? (
             <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="mb-1 flex items-center gap-1.5 text-[13px] underline">
