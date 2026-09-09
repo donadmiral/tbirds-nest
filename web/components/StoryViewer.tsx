@@ -249,16 +249,13 @@ export function StoryViewer({ users, startIndex, onClose }: {
   // seconds; using that time is the difference between instant and a stall at
   // every tap.
   useEffect(() => {
-    const next = stories[itemIdx + 1];
-    if (!next?.media_url) return;
-    if (next.media_type === "video") {
-      const v = document.createElement("video");
-      v.preload = "auto";
-      v.src = next.media_url;
-    } else {
-      const img = new Image();
-      img.src = next.media_url;
-    }
+    [stories[itemIdx + 1], stories[itemIdx + 2]].forEach((next, i) => {
+      if (!next?.media_url) return;
+      const poster = (next as { thumbnail_url?: string | null }).thumbnail_url;
+      if (poster) { const pi = new Image(); pi.src = poster; }
+      if (next.media_type === "video") { if (i === 0) { const v = document.createElement("video"); v.preload = "auto"; v.src = next.media_url; } }
+      else { const img = new Image(); img.src = next.media_url; }
+    });
   }, [stories, itemIdx]);
   const storyAudioUrl = story && story.media_type !== "video" ? (story.audio_url ?? null) : null;
   const isOwn = !!(uid && story && uid === story.user_id);

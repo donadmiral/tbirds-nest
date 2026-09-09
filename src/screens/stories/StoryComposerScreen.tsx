@@ -139,11 +139,13 @@ function ComposerStickerOverlay({
   const guideXStyle = useAnimatedStyle(() => { 'worklet'; return { opacity: guideXOp.value }; });
   const guideYStyle = useAnimatedStyle(() => { 'worklet'; return { opacity: guideYOp.value }; });
   const [dragZone, setDragZone] = useState<{ draggingId: string | null; inDeleteZone: boolean }>({ draggingId: null, inDeleteZone: false });
+  const deleteHotSV = useSharedValue(0);
+  const deleteHotStyle = useAnimatedStyle(() => { 'worklet'; return { backgroundColor: deleteHotSV.value ? 'rgba(255,59,48,0.28)' : 'rgba(0,0,0,0.35)', transform: [{ scale: deleteHotSV.value ? 1.08 : 1 }] }; });
   const [smartGuides, setSmartGuides] = useState<SmartGuidesState>({ x: null, y: null, stickerId: null });
   const onSmartGuideChange = useCallback((id: string, x: SmartGuideEntry, y: SmartGuideEntry) => { setSmartGuides(p => (x === null && y === null) ? (p.stickerId === id ? { x: null, y: null, stickerId: null } : p) : { x, y, stickerId: id }); }, []);
   const onDragStart = useCallback((id: string) => { setDragZone({ draggingId: id, inDeleteZone: false }); }, []);
   const onDeleteZoneChange = useCallback((id: string, inZone: boolean) => { setDragZone(p => p.draggingId !== id ? p : (p.inDeleteZone === inZone ? p : { ...p, inDeleteZone: inZone })); }, []);
-  const clearDrag = useCallback(() => { setDragZone({ draggingId: null, inDeleteZone: false }); guideXOp.value = 0; guideYOp.value = 0; setSmartGuides({ x: null, y: null, stickerId: null }); }, []);
+  const clearDrag = useCallback(() => { setDragZone({ draggingId: null, inDeleteZone: false }); deleteHotSV.value = 0; guideXOp.value = 0; guideYOp.value = 0; setSmartGuides({ x: null, y: null, stickerId: null }); }, []);
   const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { clearDrag(); onDragEnd(id, nx, ny); }, [clearDrag, onDragEnd]);
   const handleDeleteDrop = useCallback((id: string) => { clearDrag(); onDeleteDrop(id); }, [clearDrag, onDeleteDrop]);
   // Stable per-sticker neighbour lists so React.memo on DraggableSticker holds during drags.
@@ -163,16 +165,18 @@ function ComposerStickerOverlay({
       <ReAnimated.View style={[snapStyles.guideHorizontal, guideYStyle]} pointerEvents="none" />
       {smartGuides.x !== null && <View style={[snapStyles.smartGuideVertical, { left: smartGuides.x.position * containerW }]} pointerEvents="none" />}
       {smartGuides.y !== null && <View style={[snapStyles.smartGuideHorizontal, { top: smartGuides.y.position * containerH }]} pointerEvents="none" />}
-      <Animated.View style={[snapStyles.deleteZone, dragZone.inDeleteZone && snapStyles.deleteZoneActive, { opacity: deleteZoneOpacity }]} pointerEvents="none">
-        <Feather name="trash-2" size={20} color={dragZone.inDeleteZone ? '#FF3B30' : 'rgba(255,255,255,0.7)'} />
-        <Text style={[snapStyles.deleteZoneText, dragZone.inDeleteZone && snapStyles.deleteZoneTextActive]}>
-          {dragZone.inDeleteZone ? 'Release to delete' : 'Drag here to delete'}
+      <Animated.View style={[snapStyles.deleteZone, { opacity: deleteZoneOpacity }]} pointerEvents="none">
+        <ReAnimated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 }, deleteHotStyle]}>
+        <Feather name="trash-2" size={20} color={'#FFFFFF'} />
+        <Text style={snapStyles.deleteZoneText}>
+          {'Drag here to delete'}
         </Text>
+        </ReAnimated.View>
       </Animated.View>
       {visibleStickers.map(st => (
         <DraggableSticker key={st.id} sticker={st} containerW={containerW} containerH={containerH}
           onDragEnd={handleDragEnd} onTap={onTapSticker} onScaleEnd={onScaleEnd} onRotateEnd={onRotateEnd}
-          guideXOp={guideXOp} guideYOp={guideYOp} onDragStart={onDragStart} onDeleteZoneChange={onDeleteZoneChange}
+          guideXOp={guideXOp} guideYOp={guideYOp} onDragStart={onDragStart} onDeleteZoneChange={onDeleteZoneChange} deleteHotSV={deleteHotSV}
           onDeleteDrop={handleDeleteDrop} deleteZoneNy={deleteZoneNy} safeTopNy={safeTopNy}
           safeBottomNy={safeBottomNy} otherStickers={othersById[st.id] || []}
           onSmartGuideChange={onSmartGuideChange} />

@@ -1,3 +1,4 @@
+import ResultsStickerCard from './ResultsStickerCard';
 import React from 'react';
 import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
 import { stickerTextStyle } from '../../utils/stickerStyles';

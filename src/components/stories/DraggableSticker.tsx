@@ -191,6 +191,8 @@ export interface DraggableStickerProps {
   guideYOp?: SharedValue<number>;
   onDragStart: (id: string) => void;
   onDeleteZoneChange: (id: string, inZone: boolean) => void;
+  /** When given, the delete-zone flag is written here on the UI thread instead of crossing to React. */
+  deleteHotSV?: { value: number };
   onDeleteDrop: (id: string) => void;
   deleteZoneNy: number;
   safeTopNy: number;
@@ -247,7 +249,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   const {
     sticker, containerW, containerH,
     onDragEnd, onTap, onScaleEnd, onRotateEnd,
-    onSnapChange, onDragStart, onDeleteZoneChange, onDeleteDrop,
+    onSnapChange, onDragStart, onDeleteZoneChange, onDeleteDrop, deleteHotSV,
     deleteZoneNy, safeTopNy, safeBottomNy,
     otherStickers, onSmartGuideChange,
     guideXOp, guideYOp,
@@ -451,7 +453,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       const inZone = rawNy > deleteZoneNy;
       if (inZone !== inDeleteZone.value) {
         inDeleteZone.value = inZone;
-        runOnJS(jsDeleteZoneChange)(stickerId, inZone);
+        if (deleteHotSV) deleteHotSV.value = inZone ? 1 : 0; else runOnJS(jsDeleteZoneChange)(stickerId, inZone);
         if (inZone && !hapticFiredDelete.value) {
           hapticFiredDelete.value = true;
           runOnJS(fireHapticLight)();
@@ -573,7 +575,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       translateY.value = withSpring(0, SPRING_LAND);
       runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
     }),
-    [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, jsDeleteDrop, jsSmartGuideChange, guideXOp, guideYOp]
+    [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, deleteHotSV, jsDeleteDrop, jsSmartGuideChange, guideXOp, guideYOp]
   );
 
   // ── Pinch gesture ──
@@ -786,7 +788,6 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
 }, (prev, next) => {
   if (prev.sticker !== next.sticker) return false;
   if (prev.containerW !== next.containerW || prev.containerH !== next.containerH) return false;
-  if (prev.otherStickers !== next.otherStickers) return false;
   if (prev.deleteZoneNy !== next.deleteZoneNy) return false;
   if (prev.safeTopNy !== next.safeTopNy || prev.safeBottomNy !== next.safeBottomNy) return false;
   return true;
