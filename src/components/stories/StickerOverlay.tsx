@@ -56,6 +56,7 @@ type StickerOverlayProps = {
     onNotifySignUp?: (sticker: StoryTextSticker) => void;
     onNotifySend?: (sticker: StoryTextSticker) => void;
     onMagicAnswer?: (sticker: StoryTextSticker, answer: string) => void;
+    onMagicHold?: (holding: boolean) => void;
   };
 };
 
@@ -114,7 +115,7 @@ export function renderStickerContent(
     const ep = engagementProps;
     return <NotifyStickerCard title={sticker.notifyTitle || sticker.text} when={sticker.notifyWhen || null} interactive={interactive && !!ep} isOwn={ep?.isOwn ?? false} signed={!!ep?.myResponses[sticker.id]} signupCount={ep?.responseCounts[sticker.id] ?? 0} onSignUp={() => ep?.onNotifySignUp?.(sticker)} onSend={() => ep?.onNotifySend?.(sticker)} />;
   }
-  if (sticker.kind === 'magic') { const ep = engagementProps; return <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={interactive} fixedAnswer={sticker.magicAnswer || null} isOwn={ep?.isOwn ?? false} shakeCount={ep?.responseCounts[sticker.id] ?? 0} onAnswer={(a) => ep?.onMagicAnswer?.(sticker, a)} onViewShakes={() => ep?.onViewResponses?.(sticker.id, 'magic' as any)} />; }
+  if (sticker.kind === 'magic') { const ep = engagementProps; return <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={interactive} fixedAnswer={sticker.magicAnswer || null} isOwn={ep?.isOwn ?? false} shakeCount={ep?.responseCounts[sticker.id] ?? 0} onAnswer={(a) => ep?.onMagicAnswer?.(sticker, a)} onHold={(h) => ep?.onMagicHold?.(h)} onViewShakes={() => ep?.onViewResponses?.(sticker.id, 'magic' as any)} />; }
   if (sticker.kind === 'results') return <ResultsStickerCard title={sticker.resultsTitle || sticker.text} rows={sticker.resultsRows || []} total={sticker.resultsTotal} />;
   if (sticker.kind === 'support') return <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={interactive} />;
   if (sticker.kind === 'frame') return <FrameStickerCard uri={(sticker as any).photoUrl || (sticker as any).photoUri} caption={sticker.frameCaption} takenAt={sticker.frameTakenAt || null} interactive={interactive} />;

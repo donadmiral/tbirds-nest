@@ -5,12 +5,13 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 const ANSWERS = ['Yes', 'No', 'Absolutely', 'Not today', 'Ask again later', 'Without a doubt', 'Very doubtful', 'Signs point to yes', 'Better not', 'Count on it', 'Cannot predict now', 'Most likely'];
-export default function MagicBallStickerCard({ question, interactive, fixedAnswer, onAnswer, isOwn, shakeCount = 0, onViewShakes }: { question: string; interactive?: boolean; fixedAnswer?: string | null; onAnswer?: (answer: string) => void; isOwn?: boolean; shakeCount?: number; onViewShakes?: () => void }) {
+export default function MagicBallStickerCard({ question, interactive, fixedAnswer, onAnswer, isOwn, shakeCount = 0, onViewShakes }: { question: string; interactive?: boolean; fixedAnswer?: string | null; onAnswer?: (answer: string) => void; onHold?: (holding: boolean) => void; isOwn?: boolean; shakeCount?: number; onViewShakes?: () => void }) {
   const [answer, setAnswer] = useState<string | null>(fixedAnswer || null);
   const shake = useRef(new Animated.Value(0)).current;
   const ask = () => {
     if (!interactive || fixedAnswer) return;
     if (isOwn) { onViewShakes?.(); return; }
+    onHold?.(true); setTimeout(() => onHold?.(false), 6000);
     setAnswer(null);
     Animated.sequence([0, 1, -1, 1, -1, 0].map((v) => Animated.timing(shake, { toValue: v * 6, duration: 55, useNativeDriver: true }))).start(() => { const a = ANSWERS[Math.floor(Math.random() * ANSWERS.length)]; setAnswer(a); onAnswer?.(a); });
   };

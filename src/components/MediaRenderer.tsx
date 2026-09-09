@@ -32,6 +32,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { FilterLayer } from './stories/StoryFilters';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../services/supabase';
+const looksLikeUuid = (v: any) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 import TierName from './TierName';
 import VerifiedBadge from './VerifiedBadge';
 import { AdjustLayer } from './stories/storyPanels';
@@ -105,7 +106,8 @@ export function useMediaTags(mediaIds: string[]): Record<string, MediaTag[]> {
     let dead = false;
     (async () => {
       try {
-        const { data } = await supabase.from('post_media_tags').select('media_id, user_id, nx, ny, profile:profiles!post_media_tags_user_id_fkey(full_name, username, avatar_url)').in('media_id', need);
+        const realIds = (need as any[]).filter((v: any) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)); if (!realIds.length) return;
+        const { data } = await supabase.from('post_media_tags').select('media_id, user_id, nx, ny, profile:profiles!post_media_tags_user_id_fkey(full_name, username, avatar_url)').in('media_id', realIds);
         const next: Record<string, MediaTag[]> = {}; need.forEach(id => { next[id] = []; });
         ((data ?? []) as any[]).forEach((row: any) => { const p = row.profile || {}; (next[row.media_id] ||= []).push({ user_id: row.user_id, nx: Number(row.nx) || 0.5, ny: Number(row.ny) || 0.5, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null }); });
         Object.entries(next).forEach(([id, t]) => tagCache.set(id, t));

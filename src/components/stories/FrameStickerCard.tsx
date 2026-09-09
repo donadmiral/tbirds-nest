@@ -14,7 +14,7 @@ export default function FrameStickerCard({ uri, caption, takenAt, interactive }:
     let sub: any = null;
     try {
       const sensors = require('expo-sensors');
-      if (sensors?.Accelerometer) { sensors.Accelerometer.setUpdateInterval(120); sub = sensors.Accelerometer.addListener((a: any) => { const g = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z); if (g > 2.2) reveal(); }); }
+      if (sensors?.Accelerometer) { sensors.Accelerometer.isAvailableAsync().then((ok: boolean) => { if (!ok || revealed) return; try { sensors.Accelerometer.setUpdateInterval(120); sub = sensors.Accelerometer.addListener((a: any) => { const g = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z); if (g > 2.2) reveal(); }); } catch {} }).catch(() => {}); }
     } catch {}
     return () => { try { sub?.remove?.(); } catch {} };
   }, [interactive, revealed]);

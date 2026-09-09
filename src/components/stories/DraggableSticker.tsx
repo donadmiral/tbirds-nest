@@ -754,6 +754,8 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
               <AddYoursStickerCard prompt={sticker.addYoursPrompt || sticker.text} interactive={false} />
             ) : sticker.kind === 'notify' ? (
               <NotifyStickerCard title={sticker.notifyTitle || sticker.text} when={sticker.notifyWhen || null} interactive={false} />
+            ) : sticker.kind === 'results' ? (
+              <ResultsStickerCard title={sticker.resultsTitle || sticker.text} rows={sticker.resultsRows || []} total={sticker.resultsTotal} />
             ) : sticker.kind === 'magic' ? (
               <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={false} />
             ) : sticker.kind === 'support' ? (
