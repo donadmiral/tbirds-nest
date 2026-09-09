@@ -20,6 +20,7 @@ type Props = {
   myValue?: number | null;
   averageValue?: number | null;
   responseCount?: number;
+  onTapViewResponses?: () => void;
   onSubmit?: (value: number) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
@@ -36,7 +37,7 @@ const SOFT = { duration: 420, easing: Easing.bezier(0.16, 1, 0.3, 1) };
 function tap() { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
 
 export default function SliderStickerCard({
-  label, emoji, interactive, isOwn, myValue, averageValue, responseCount = 0,
+  label, emoji, interactive, isOwn, myValue, averageValue, responseCount = 0, onTapViewResponses,
   onSubmit, onDragStart, onDragEnd,
 }: Props) {
   const answered = myValue !== null && myValue !== undefined;
@@ -44,6 +45,8 @@ export default function SliderStickerCard({
 
   const value = useSharedValue(startValue);
   const dragging = useSharedValue(0);
+  // The owner's card follows the average as responses arrive, instead of sitting where it started.
+  useEffect(() => { if (isOwn && averageValue != null) value.value = withTiming(averageValue, SOFT); }, [isOwn, averageValue, value]);
 
   useEffect(() => {
     value.value = withTiming(startValue, SOFT);
@@ -101,10 +104,10 @@ export default function SliderStickerCard({
       </GestureDetector>
 
       {(isOwn || answered) && (
-        <Text style={s.meta}>
+        <Text style={s.meta} onPress={isOwn && responseCount > 0 ? onTapViewResponses : undefined}>
           {responseCount > 0
             ? `${responseCount} ${responseCount === 1 ? 'response' : 'responses'}`
-            : 'No responses yet'}
+            : 'No responses yet'}{isOwn && responseCount > 0 ? ' · See' : ''}
         </Text>
       )}
     </View>

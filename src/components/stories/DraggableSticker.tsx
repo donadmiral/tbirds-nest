@@ -37,10 +37,7 @@ import PostStoryCard from './PostStoryCard';
 import StoryReshareCard, { STORY_CARD_W, STORY_CARD_H } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
 import AddYoursStickerCard from './AddYoursStickerCard';
-import NotifyStickerCard from './NotifyStickerCard';
-import MagicBallStickerCard from './MagicBallStickerCard';
 import SupportStickerCard from './SupportStickerCard';
-import FrameStickerCard from './FrameStickerCard';
 import ResultsStickerCard from './ResultsStickerCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
@@ -776,16 +773,10 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
               <CountdownStickerCard title={sticker.countdownTitle || sticker.text} target={sticker.countdownTarget || null} />
             ) : sticker.kind === 'addyours' ? (
               <AddYoursStickerCard prompt={sticker.addYoursPrompt || sticker.text} interactive={false} />
-            ) : sticker.kind === 'notify' ? (
-              <NotifyStickerCard title={sticker.notifyTitle || sticker.text} when={sticker.notifyWhen || null} interactive={false} />
             ) : sticker.kind === 'results' ? (
               <ResultsStickerCard title={sticker.resultsTitle || sticker.text} rows={sticker.resultsRows || []} total={sticker.resultsTotal} />
-            ) : sticker.kind === 'magic' ? (
-              <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={false} />
             ) : sticker.kind === 'support' ? (
               <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={false} />
-            ) : sticker.kind === 'frame' ? (
-              <FrameStickerCard uri={(sticker as any).photoUrl || (sticker as any).photoUri} caption={sticker.frameCaption} takenAt={sticker.frameTakenAt || null} interactive={false} />
             ) : sticker.kind === 'story' ? (              <StoryReshareCard sticker={sticker} />
             ) : sticker.kind === 'post' ? (
               <PostStoryCard sticker={sticker} />

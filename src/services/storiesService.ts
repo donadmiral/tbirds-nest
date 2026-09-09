@@ -556,7 +556,7 @@ export async function uploadAndCreateStory(params: {
     // An empty layout cell is a composer placeholder, never part of the story.
     for (let ci = stickersJson.length - 1; ci >= 0; ci--) { const cs: any = stickersJson[ci]; if (cs && cs.kind === 'photo' && cs.photoShape === 'cell' && !cs.photoUri && !cs.photoUrl) stickersJson.splice(ci, 1); }
     for (const stAny of stickersJson as any[]) {
-      if (stAny && (stAny.kind === 'photo' || stAny.kind === 'frame') && stAny.photoUri && !stAny.photoUrl) {
+      if (stAny && stAny.photoUri && !stAny.photoUrl) {
         try {
           let pm = resolveMediaMeta('image', stAny.photoUri);
           const pt = await resolveTrueMeta(stAny.photoUri, 'image', pm.ext, pm.mimeType);

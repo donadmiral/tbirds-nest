@@ -42,16 +42,18 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const bottomRef = useRef<HTMLDivElement | null>(null);
   // The list stays at its end while you're there, through every height change; scrolling up releases it.
   const listRef = useRef<HTMLDivElement | null>(null);
+  const scrollToEnd = () => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; window.scrollTo({ top: document.documentElement.scrollHeight }); };
   const pinnedRef = useRef(true);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
-    const onScroll = () => { pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
+    const onScroll = () => { const pageBottom = document.documentElement.scrollHeight - window.scrollY - window.innerHeight < 80; const listBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80; pinnedRef.current = pageBottom && listBottom; };
+    window.addEventListener('scroll', onScroll, { passive: true });
     el.addEventListener('scroll', onScroll, { passive: true });
-    const ro = new ResizeObserver(() => { if (pinnedRef.current) el.scrollTop = el.scrollHeight; });
+    const ro = new ResizeObserver(() => { if (pinnedRef.current) scrollToEnd(); });
     ro.observe(el); Array.from(el.children).forEach((ch) => ro.observe(ch));
-    const mo = new MutationObserver(() => { Array.from(el.children).forEach((ch) => ro.observe(ch)); if (pinnedRef.current) el.scrollTop = el.scrollHeight; });
+    const mo = new MutationObserver(() => { Array.from(el.children).forEach((ch) => ro.observe(ch)); if (pinnedRef.current) scrollToEnd(); });
     mo.observe(el, { childList: true });
-    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); };
+    return () => { el.removeEventListener('scroll', onScroll); window.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); };
   }, [active?.id]);
   const activeRef = useRef<Conv | null>(null);
   const typingSentAt = useRef(0);
@@ -105,7 +107,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     supabase.rpc("mark_conversation_read_v2", { p_conversation_id: c.id }).then(() => {
       setConvs((l) => l.map((x) => (x.id === c.id ? { ...x, unread: 0 } : x)));
     }, () => {});
-    pinnedRef.current = true; setTimeout(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, 60);
+    pinnedRef.current = true; [60, 400, 1200].forEach((ms) => setTimeout(scrollToEnd, ms));
   }, [supabase, hydrateOffers]);
 
   useEffect(() => {
@@ -136,7 +138,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if (incoming.sender_id !== uid) {
           supabase.rpc("mark_conversation_read_v2", { p_conversation_id: incoming.conversation_id }).then(() => {}, () => {});
         }
-        setTimeout(() => { const el = listRef.current; if (el && pinnedRef.current) el.scrollTop = el.scrollHeight; }, 40);
+        setTimeout(() => { if (pinnedRef.current) scrollToEnd(); }, 40);
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: "conversation_id=eq." + active.id }, async (p) => {
         let upd = p.new as Msg;
@@ -191,7 +193,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       reply_to_id: null, created_at: new Date().toISOString(),
     };
     setMsgs((l) => [...l, temp]);
-    pinnedRef.current = true; setTimeout(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, 30);
+    pinnedRef.current = true; setTimeout(scrollToEnd, 30);
     const { data, error } = await supabase.from("messages").insert([{
       conversation_id: active.id, text, sender_id: uid,
       receiver_id: active.other_id, media_url: mediaUrl, media_type: mediaType, reply_to_id: null,

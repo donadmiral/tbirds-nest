@@ -7,10 +7,7 @@ import PostStoryCard, { POST_CARD_W, POST_CARD_EST_H } from './PostStoryCard';
 import StoryReshareCard, { STORY_CARD_W } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
 import AddYoursStickerCard from './AddYoursStickerCard';
-import NotifyStickerCard from './NotifyStickerCard';
-import MagicBallStickerCard from './MagicBallStickerCard';
 import SupportStickerCard from './SupportStickerCard';
-import FrameStickerCard from './FrameStickerCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
@@ -69,8 +66,7 @@ function getWidthForKind(kind?: string): number {
   if (kind === 'gif') return 180;
   if (kind === 'time' || kind === 'date' || kind === 'weather') return 170;
   if (kind === 'countdown') return 236;
-  if (kind === 'addyours' || kind === 'notify' || kind === 'support') return 236;
-  if (kind === 'magic' || kind === 'frame') return 200;
+  if (kind === 'addyours' || kind === 'support') return 236;
   if (kind === 'results') return 250;
   if (kind === 'question') return 240;
   if (kind === 'slider') return 240;
@@ -112,14 +108,8 @@ export function renderStickerContent(
     const ep = engagementProps;
     return <AddYoursStickerCard prompt={sticker.addYoursPrompt || sticker.text} interactive={interactive && !!ep} isOwn={ep?.isOwn ?? false} joined={!!ep?.myResponses[sticker.id]} joinedCount={ep?.responseCounts[sticker.id] ?? 0} onJoin={() => ep?.onAddYours?.(sticker)} onViewJoined={() => ep?.onViewResponses?.(sticker.id, 'question')} onOpenThread={() => ep?.onAddYoursThread?.(sticker)} />;
   }
-  if (sticker.kind === 'notify') {
-    const ep = engagementProps;
-    return <NotifyStickerCard title={sticker.notifyTitle || sticker.text} when={sticker.notifyWhen || null} interactive={interactive && !!ep} isOwn={ep?.isOwn ?? false} signed={!!ep?.myResponses[sticker.id]} signupCount={ep?.responseCounts[sticker.id] ?? 0} onSignUp={() => ep?.onNotifySignUp?.(sticker)} onSend={() => ep?.onNotifySend?.(sticker)} />;
-  }
-  if (sticker.kind === 'magic') { const ep = engagementProps; return <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={interactive} fixedAnswer={sticker.magicAnswer || null} isOwn={ep?.isOwn ?? false} shakeCount={ep?.responseCounts[sticker.id] ?? 0} onAnswer={(a) => ep?.onMagicAnswer?.(sticker, a)} onHold={(h) => ep?.onMagicHold?.(h)} onViewShakes={() => ep?.onViewResponses?.(sticker.id, 'magic' as any)} />; }
   if (sticker.kind === 'results') return <ResultsStickerCard title={sticker.resultsTitle || sticker.text} rows={sticker.resultsRows || []} total={sticker.resultsTotal} />;
   if (sticker.kind === 'support') return <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={interactive} />;
-  if (sticker.kind === 'frame') return <FrameStickerCard uri={(sticker as any).photoUrl || (sticker as any).photoUri} caption={sticker.frameCaption} takenAt={sticker.frameTakenAt || null} interactive={interactive} />;
 
   if (sticker.kind === 'countdown') {    const ep = engagementProps;
     return (
@@ -186,6 +176,7 @@ export function renderStickerContent(
         averageValue={avg}
         responseCount={count}
         onSubmit={(val) => ep?.onSubmitSlider?.(sticker.id, val)}
+        onTapViewResponses={() => ep?.onViewResponses?.(sticker.id, 'slider')}
       />
     );
   }
@@ -304,7 +295,7 @@ function StickerOverlay({
         }
         const isEmoji = st.kind === 'emoji';
         const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag' || st.kind === 'post' || st.kind === 'entity';
-        const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown' || st.kind === 'addyours' || st.kind === 'notify' || st.kind === 'magic' || st.kind === 'support' || st.kind === 'frame' || st.kind === 'results';
+        const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown' || st.kind === 'addyours' || st.kind === 'support' || st.kind === 'results';
         const containerAlign = isEmoji || isPill ? 'center' as const
           : st.textAlign === 'left' ? 'flex-start' as const
           : st.textAlign === 'right' ? 'flex-end' as const

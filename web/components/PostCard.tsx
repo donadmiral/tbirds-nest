@@ -199,13 +199,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             <div className="flex min-w-0 flex-wrap items-center gap-x-1.5">
             <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
               <span className="flex min-w-0 items-center gap-[3px]">
-                <span
-                  className="truncate text-[15.5px] font-semibold text-ink"
-                  style={post.author_verified ? { color: getTierColor(post.author_verified_tier) ?? undefined } : undefined}
-                >
-                  {post.author_name}
-                </span>
-                {post.author_verified ? <VerifiedBadge tier={post.author_verified_tier} size={15} /> : null}
+                <PersonName name={post.author_name ?? ""} verified={post.author_verified} tier={post.author_verified_tier ?? undefined} userId={post.author_id} className="text-[15.5px] font-semibold text-ink" badgeSize={15} />
               </span>
             </Link>
             {collabNames.length === 1 ? <span className="ml-1 inline-flex items-center gap-1 font-semibold text-ink">× <Link href={"/" + collabNames[0].username} onClick={(e) => e.stopPropagation()} className="hover:underline"><PersonName name={collabNames[0].name} verified={collabNames[0].verified} tier={collabNames[0].tier} badgeSize={14} /></Link></span> : collabNames.length > 1 ? <span className="relative ml-1 font-semibold text-ink"><button type="button" onClick={(e) => { e.stopPropagation(); setCollabsOpen((v) => !v); }} className="hover:underline">× {collabNames.length} others</button>{collabsOpen ? <span className="absolute left-0 top-full z-20 mt-1 flex w-56 flex-col rounded-xl border border-ink/10 bg-white p-2 shadow-lg">{collabNames.map((x) => <Link key={x.username} href={"/" + x.username} onClick={(e) => e.stopPropagation()} className="rounded-lg px-2 py-1.5 text-[13px] hover:bg-surface"><PersonName name={x.name} verified={x.verified} tier={x.tier} badgeSize={13} /><span className="ml-1 text-ink/50">@{x.username}</span></Link>)}</span> : null}</span> : null}
