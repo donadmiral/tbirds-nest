@@ -128,6 +128,7 @@ export async function registerForPushNotifications(userId: string) {
     finalStatus = status;
   }
 
+  console.log('[push] permission', finalStatus);
   if (finalStatus !== 'granted') {
     console.log('Permission not granted for notifications');
     return null;
@@ -137,9 +138,11 @@ export async function registerForPushNotifications(userId: string) {
     Constants.expoConfig?.extra?.eas?.projectId ??
     Constants.easConfig?.projectId;
 
-  const tokenResponse = await Notifications.getExpoPushTokenAsync({
-    projectId,
-  });
+  console.log('[push] asking Expo for a token, project', projectId ? String(projectId).slice(0, 8) : 'MISSING');
+  const tokenResponse = await Promise.race([
+    Notifications.getExpoPushTokenAsync({ projectId }),
+    new Promise<never>((_, rej) => setTimeout(() => rej(new Error('Expo push token request hung for 15s')), 15000)),
+  ]);
 
   const token = tokenResponse.data;
 
@@ -150,6 +153,7 @@ export async function registerForPushNotifications(userId: string) {
       Device.deviceName ?? undefined,
     );
     lastPushToken = token;
+    console.log('[push] token saved for', userId.slice(0, 8), 'ending', token.slice(-8));
   } catch (error) {
     console.log('TOKEN_SAVE_ERROR', error);
   }
