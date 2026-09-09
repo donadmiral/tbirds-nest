@@ -50,9 +50,10 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     if (!compact || !active) return;
     const vv = window.visualViewport; const el = surfaceRef.current; if (!vv || !el) return;
     const prevOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
-    const apply = () => { el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; window.scrollTo(0, 0); if (pinnedRef.current) scrollToEnd(); };
-    apply(); vv.addEventListener('resize', apply); vv.addEventListener('scroll', apply);
-    return () => { vv.removeEventListener('resize', apply); vv.removeEventListener('scroll', apply); document.body.style.overflow = prevOverflow; el.style.height = ''; el.style.top = ''; };
+    let raf = 0;
+    const apply = () => { el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (pinnedRef.current) scrollToEnd(); }); };
+    apply(); vv.addEventListener('resize', apply);
+    return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); document.body.style.overflow = prevOverflow; el.style.height = ''; el.style.top = ''; };
   }, [compact, active?.id]);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
@@ -441,7 +442,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         onBlur={() => setTyping(false)}
         placeholder={sendingFile ? "Sending attachment" : "Message"}
         rows={1}
-        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[16px] sm:text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
       />
       <button onClick={send} disabled={!draft.trim()} className="rounded-md bg-pearl p-2.5 text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30" title="Send">
         <Send size={18} />
