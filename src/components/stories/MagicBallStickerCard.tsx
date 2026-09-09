@@ -5,13 +5,14 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 const ANSWERS = ['Yes', 'No', 'Absolutely', 'Not today', 'Ask again later', 'Without a doubt', 'Very doubtful', 'Signs point to yes', 'Better not', 'Count on it', 'Cannot predict now', 'Most likely'];
-export default function MagicBallStickerCard({ question, interactive }: { question: string; interactive?: boolean }) {
-  const [answer, setAnswer] = useState<string | null>(null);
+export default function MagicBallStickerCard({ question, interactive, fixedAnswer, onAnswer, isOwn, shakeCount = 0, onViewShakes }: { question: string; interactive?: boolean; fixedAnswer?: string | null; onAnswer?: (answer: string) => void; isOwn?: boolean; shakeCount?: number; onViewShakes?: () => void }) {
+  const [answer, setAnswer] = useState<string | null>(fixedAnswer || null);
   const shake = useRef(new Animated.Value(0)).current;
   const ask = () => {
-    if (!interactive) return;
+    if (!interactive || fixedAnswer) return;
+    if (isOwn) { onViewShakes?.(); return; }
     setAnswer(null);
-    Animated.sequence([0, 1, -1, 1, -1, 0].map((v) => Animated.timing(shake, { toValue: v * 6, duration: 55, useNativeDriver: true }))).start(() => setAnswer(ANSWERS[Math.floor(Math.random() * ANSWERS.length)]));
+    Animated.sequence([0, 1, -1, 1, -1, 0].map((v) => Animated.timing(shake, { toValue: v * 6, duration: 55, useNativeDriver: true }))).start(() => { const a = ANSWERS[Math.floor(Math.random() * ANSWERS.length)]; setAnswer(a); onAnswer?.(a); });
   };
   return (
     <View style={cs.card}>
@@ -21,7 +22,7 @@ export default function MagicBallStickerCard({ question, interactive }: { questi
           <View style={cs.window}>{answer ? <Text style={cs.answer} numberOfLines={3}>{answer}</Text> : <Text style={cs.eight}>8</Text>}</View>
         </Animated.View>
       </TouchableOpacity>
-      <Text style={cs.hint}>{answer ? 'Tap to ask again' : interactive ? 'Tap the ball' : 'Viewers tap to ask'}</Text>
+      <Text style={cs.hint}>{fixedAnswer ? 'The ball has spoken' : isOwn && interactive ? shakeCount + (shakeCount === 1 ? ' shake · See' : ' shakes · See') : answer ? 'Tap to ask again' : interactive ? 'Tap the ball' : 'Viewers tap to ask'}</Text>
     </View>
   );
 }

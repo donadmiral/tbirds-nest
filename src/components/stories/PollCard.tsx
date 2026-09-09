@@ -32,6 +32,7 @@ type PollCardProps = {
   isOwn: boolean;
   onVote: (optionId: string) => void;
   onOpenVoters: (optionId: string) => void;
+  onShareResults?: () => void;
 };
 
 const BAR_EASE = { duration: 520, easing: Easing.bezier(0.16, 1, 0.3, 1) };
@@ -89,7 +90,7 @@ function OptionRow({
   );
 }
 
-export default function PollCard({ poll, isOwn, onVote, onOpenVoters }: PollCardProps) {
+export default function PollCard({ poll, isOwn, onVote, onOpenVoters, onShareResults }: PollCardProps) {
   const [myVote, setMyVote] = useState<string | null>(poll.my_vote);
   const [optimistic, setOptimistic] = useState<Record<string, number>>({});
 
@@ -153,6 +154,9 @@ export default function PollCard({ poll, isOwn, onVote, onOpenVoters }: PollCard
           {total} {total === 1 ? 'vote' : 'votes'}
         </Text>
       )}
+      {isOwn && onShareResults && total > 0 ? (
+        <TouchableOpacity onPress={onShareResults} activeOpacity={0.85} style={{ alignSelf: 'center', marginTop: 6, borderRadius: 999, backgroundColor: '#0B1E3D', paddingHorizontal: 14, paddingVertical: 6 }}><Text style={{ color: '#FFF', fontSize: 12, fontWeight: '800' }}>Share results</Text></TouchableOpacity>
+      ) : null}
     </View>
   );
 }

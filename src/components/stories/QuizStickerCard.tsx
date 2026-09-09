@@ -3,6 +3,7 @@
  * Light card, black type, full-width rows.
  * On answer: correct row fills green, a wrong pick fills red, counts reveal.
  */
+import ConfettiBurst from './ConfettiBurst';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -73,17 +74,21 @@ export default function QuizStickerCard({
 
   const total = useMemo(() => Object.values(counts).reduce((a, b) => a + b, 0) || totalResponses, [counts, totalResponses]);
 
+  const [burst, setBurst] = useState(false);
+
   const handle = useCallback((id: string) => {
     if (isOwn) { onTapViewResponses?.(); return; }
     if (!interactive || picked) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPicked(id);
     setOptimistic(p => ({ ...p, [id]: (p[id] || 0) + 1 }));
+    if (options.find(o => o.id === id)?.isCorrect) setBurst(true);
     onSelectOption?.(id);
   }, [isOwn, interactive, picked, onSelectOption, onTapViewResponses]);
 
   return (
     <View style={s.card}>
+      <ConfettiBurst play={burst} />
       <Text style={s.question} numberOfLines={3}>{question}</Text>
       <View style={s.rows}>
         {options.map((o, i) => (

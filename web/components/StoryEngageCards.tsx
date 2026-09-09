@@ -182,3 +182,25 @@ export function FrameCard({ st }: { st: StoryTextSticker }) {
     </button>
   );
 }
+
+export function ResultsCard({ st }: { st: StoryTextSticker }) {
+  const s = st as { resultsTitle?: string; resultsRows?: { label: string; pct: number; correct?: boolean }[]; resultsTotal?: number };
+  return (
+    <div className="pointer-events-auto" style={{ ...CARD, width: 250 }}>
+      <div style={{ color: "rgba(11,30,61,0.5)", fontSize: 9.5, fontWeight: 800, letterSpacing: 1, textAlign: "center" }}>RESULTS</div>
+      <div style={{ ...TITLE, marginBottom: 8, marginTop: 3 }}>{s.resultsTitle || st.text}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {(s.resultsRows || []).map((r, i) => (
+          <div key={i} style={{ position: "relative", height: 36, borderRadius: 10, background: "rgba(11,30,61,0.05)", overflow: "hidden", display: "flex", alignItems: "center" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: Math.max(4, Math.round(r.pct)) + "%", background: r.correct ? "rgba(52,199,89,0.28)" : "rgba(11,30,61,0.12)" }} />
+            <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6, padding: "0 10px", width: "100%" }}>
+              <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: r.correct ? "#1D7A38" : "#0B1E3D" }}>{r.correct ? "✓ " : ""}{r.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 800 }}>{Math.round(r.pct)}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {typeof s.resultsTotal === "number" ? <div style={{ ...HINT, marginTop: 8 }}>{s.resultsTotal} {s.resultsTotal === 1 ? "response" : "responses"}</div> : null}
+    </div>
+  );
+}

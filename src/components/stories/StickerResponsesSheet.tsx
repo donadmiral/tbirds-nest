@@ -1,3 +1,4 @@
+import { supabase } from '../../services/supabase';
 import VerifiedBadge from '../VerifiedBadge';
 import TierName from '../TierName';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -34,10 +35,12 @@ type StickerResponsesSheetProps = {
   onClose: () => void;
   storyId: string;
   stickerId: string;
-  responseType: 'question' | 'slider' | 'quiz';
+  responseType: 'question' | 'slider' | 'quiz' | 'magic';
   title: string;
   quizOptions?: { id: string; label: string; isCorrect: boolean }[];
-  onShareResponse?: (text: string) => void;
+  onShareResponse?: (text: string, responder: { id: string; username: string | null; full_name: string | null }) => void;
+  onMessageResponder?: (userId: string, text: string) => void;
+  onShareResults?: (rows: { label: string; pct: number; correct?: boolean }[], total: number) => void;
 };
 
 export default function StickerResponsesSheet({
@@ -48,6 +51,8 @@ export default function StickerResponsesSheet({
   responseType,
   title,
   onShareResponse,
+  onMessageResponder,
+  onShareResults,
   quizOptions,
 }: StickerResponsesSheetProps) {
   const insets = useSafeAreaInsets();
@@ -85,7 +90,10 @@ export default function StickerResponsesSheet({
           {responseType === 'question' && item.text_value && (
             <View>
               <Text style={s.responseValue} numberOfLines={2}>{item.text_value}</Text>
-              {onShareResponse ? <TouchableOpacity onPress={() => onShareResponse(item.text_value || '')} activeOpacity={0.8} style={{ alignSelf: 'flex-start', marginTop: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.2)', paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ fontSize: 12, fontWeight: '800', color: '#0B1E3D' }}>Share to story</Text></TouchableOpacity> : null}
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+                {onMessageResponder ? <TouchableOpacity onPress={() => onMessageResponder(item.user_id, item.text_value || '')} activeOpacity={0.8} style={{ borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.2)', paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ fontSize: 12, fontWeight: '800', color: '#0B1E3D' }}>Reply</Text></TouchableOpacity> : null}
+                {onShareResponse ? <TouchableOpacity onPress={() => onShareResponse(item.text_value || '', { id: item.user_id, username: item.username ?? null, full_name: item.full_name ?? null })} activeOpacity={0.8} style={{ borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.2)', paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ fontSize: 12, fontWeight: '800', color: '#0B1E3D' }}>Share to story</Text></TouchableOpacity> : null}
+              </View>
             </View>
           )}
           {responseType === 'slider' && item.number_value != null && (
@@ -96,6 +104,12 @@ export default function StickerResponsesSheet({
               <Text style={s.sliderPct}>{Math.round(item.number_value * 100)}%</Text>
             </View>
           )}
+          {responseType === 'magic' && item.text_value ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
+              <Text style={s.responseValue} numberOfLines={1}>Got: {item.text_value}</Text>
+              {onShareResponse ? <TouchableOpacity onPress={() => onShareResponse(item.text_value || '', { id: item.user_id, username: item.username ?? null, full_name: item.full_name ?? null })} activeOpacity={0.8} style={{ borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.2)', paddingHorizontal: 10, paddingVertical: 3 }}><Text style={{ fontSize: 12, fontWeight: '800', color: '#0B1E3D' }}>Share result</Text></TouchableOpacity> : null}
+            </View>
+          ) : null}
           {responseType === 'quiz' && item.option_id && (() => {
             const opt = quizOptions?.find(o => o.id === item.option_id);
             const isCorrect = opt?.isCorrect ?? false;
@@ -114,7 +128,13 @@ export default function StickerResponsesSheet({
     );
   }, [responseType, quizOptions]);
 
-  const typeLabel = responseType === 'question' ? 'Answers' : responseType === 'slider' ? 'Ratings' : 'Responses';
+  const typeLabel = responseType === 'question' ? 'Answers' : responseType === 'slider' ? 'Ratings' : responseType === 'magic' ? 'Shakes' : 'Responses';
+  // Hidden words from the owner's profile keep matching answers out of the list.
+  const [hiddenWords, setHiddenWords] = useState<string[]>([]);
+  useEffect(() => { (async () => { try { const { data: a } = await supabase.auth.getUser(); const id = a.user?.id; if (!id) return; const { data } = await supabase.from('profiles').select('hidden_words').eq('id', id).maybeSingle(); setHiddenWords((((data as any)?.hidden_words) || []).map((w: string) => String(w).toLowerCase())); } catch {} })(); }, []);
+  const visibleResponses = responses.filter((r) => { if (!hiddenWords.length || !r.text_value) return true; const low = r.text_value.toLowerCase(); return !hiddenWords.some((w) => w && low.includes(w)); });
+  const hiddenCount = responses.length - visibleResponses.length;
+  const quizRows = (() => { if (responseType !== 'quiz' || !quizOptions?.length) return null; const total = responses.filter((r) => r.option_id).length; return { total, rows: quizOptions.map((o) => ({ label: o.label, pct: total ? (responses.filter((r) => r.option_id === o.id).length / total) * 100 : 0, correct: o.isCorrect })) }; })();
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -133,6 +153,8 @@ export default function StickerResponsesSheet({
           </View>
 
           <Text style={s.promptText} numberOfLines={2}>{title}</Text>
+          {quizRows && onShareResults ? <TouchableOpacity onPress={() => onShareResults(quizRows.rows, quizRows.total)} activeOpacity={0.85} style={{ alignSelf: 'flex-start', marginBottom: 8, borderRadius: 999, backgroundColor: '#0B1E3D', paddingHorizontal: 14, paddingVertical: 7 }}><Text style={{ color: '#FFF', fontSize: 12.5, fontWeight: '800' }}>Share results</Text></TouchableOpacity> : null}
+          {hiddenCount > 0 ? <Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginBottom: 6 }}>{hiddenCount} hidden by your hidden words</Text> : null}
 
           {loading ? (
             <View style={s.loader}>
@@ -145,7 +167,7 @@ export default function StickerResponsesSheet({
             </View>
           ) : (
             <FlatList
-              data={responses}
+              data={visibleResponses}
               keyExtractor={r => r.id}
               renderItem={renderResponse}
               keyboardShouldPersistTaps="handled"

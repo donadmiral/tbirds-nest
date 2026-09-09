@@ -16,7 +16,7 @@ export type StoryTextSticker = {
   scale: number;
   rotation: number;
   bgEnabled?: boolean;
-  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post' | 'story' | 'countdown' | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'drawing' | 'addyours' | 'notify' | 'magic' | 'support' | 'frame';
+  kind?: 'text' | 'emoji' | 'link' | 'location' | 'mention' | 'question' | 'slider' | 'quiz' | 'hashtag' | 'post' | 'story' | 'countdown' | 'gif' | 'photo' | 'time' | 'date' | 'weather' | 'entity' | 'drawing' | 'addyours' | 'notify' | 'magic' | 'support' | 'frame' | 'results';
   // Creative engine (all optional, JSON-stored)
   gifUrl?: string;
   photoUri?: string | null;
@@ -89,6 +89,12 @@ export type StoryTextSticker = {
   /** Frame: a Polaroid caption and the moment it was taken; the photo rides photoUri and photoUrl. */
   frameCaption?: string;
   frameTakenAt?: string | null;
+  /** Magic ball: an answer fixed on a shared result. */
+  magicAnswer?: string;
+  /** Results card: final numbers from a quiz or a poll, shared as a story. */
+  resultsTitle?: string;
+  resultsRows?: { label: string; pct: number; correct?: boolean }[];
+  resultsTotal?: number;
 };
 
 export type StoryTextBackground =
@@ -959,7 +965,7 @@ export const storiesService = {
   async submitStickerResponse(params: {
     storyId: string;
     stickerId: string;
-    responseType: 'question' | 'slider' | 'quiz' | 'countdown' | 'addyours' | 'notify';
+    responseType: 'question' | 'slider' | 'quiz' | 'countdown' | 'addyours' | 'notify' | 'magic';
     textValue?: string | null;
     numberValue?: number | null;
     optionId?: string | null;

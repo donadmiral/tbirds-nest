@@ -55,6 +55,7 @@ type StickerOverlayProps = {
     onCountdownShare?: (sticker: StoryTextSticker) => void;
     onNotifySignUp?: (sticker: StoryTextSticker) => void;
     onNotifySend?: (sticker: StoryTextSticker) => void;
+    onMagicAnswer?: (sticker: StoryTextSticker, answer: string) => void;
   };
 };
 
@@ -68,6 +69,7 @@ function getWidthForKind(kind?: string): number {
   if (kind === 'countdown') return 236;
   if (kind === 'addyours' || kind === 'notify' || kind === 'support') return 236;
   if (kind === 'magic' || kind === 'frame') return 200;
+  if (kind === 'results') return 250;
   if (kind === 'question') return 240;
   if (kind === 'slider') return 240;
   if (kind === 'quiz') return 260;
@@ -112,7 +114,8 @@ export function renderStickerContent(
     const ep = engagementProps;
     return <NotifyStickerCard title={sticker.notifyTitle || sticker.text} when={sticker.notifyWhen || null} interactive={interactive && !!ep} isOwn={ep?.isOwn ?? false} signed={!!ep?.myResponses[sticker.id]} signupCount={ep?.responseCounts[sticker.id] ?? 0} onSignUp={() => ep?.onNotifySignUp?.(sticker)} onSend={() => ep?.onNotifySend?.(sticker)} />;
   }
-  if (sticker.kind === 'magic') return <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={interactive} />;
+  if (sticker.kind === 'magic') { const ep = engagementProps; return <MagicBallStickerCard question={sticker.magicQuestion || sticker.text} interactive={interactive} fixedAnswer={sticker.magicAnswer || null} isOwn={ep?.isOwn ?? false} shakeCount={ep?.responseCounts[sticker.id] ?? 0} onAnswer={(a) => ep?.onMagicAnswer?.(sticker, a)} onViewShakes={() => ep?.onViewResponses?.(sticker.id, 'magic' as any)} />; }
+  if (sticker.kind === 'results') return <ResultsStickerCard title={sticker.resultsTitle || sticker.text} rows={sticker.resultsRows || []} total={sticker.resultsTotal} />;
   if (sticker.kind === 'support') return <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={interactive} />;
   if (sticker.kind === 'frame') return <FrameStickerCard uri={(sticker as any).photoUrl || (sticker as any).photoUri} caption={sticker.frameCaption} takenAt={sticker.frameTakenAt || null} interactive={interactive} />;
 
@@ -299,7 +302,7 @@ export default function StickerOverlay({
         }
         const isEmoji = st.kind === 'emoji';
         const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag' || st.kind === 'post' || st.kind === 'entity';
-        const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown' || st.kind === 'addyours' || st.kind === 'notify' || st.kind === 'magic' || st.kind === 'support' || st.kind === 'frame';
+        const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown' || st.kind === 'addyours' || st.kind === 'notify' || st.kind === 'magic' || st.kind === 'support' || st.kind === 'frame' || st.kind === 'results';
         const containerAlign = isEmoji || isPill ? 'center' as const
           : st.textAlign === 'left' ? 'flex-start' as const
           : st.textAlign === 'right' ? 'flex-end' as const

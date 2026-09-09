@@ -41,6 +41,7 @@ import NotifyStickerCard from './NotifyStickerCard';
 import MagicBallStickerCard from './MagicBallStickerCard';
 import SupportStickerCard from './SupportStickerCard';
 import FrameStickerCard from './FrameStickerCard';
+import ResultsStickerCard from './ResultsStickerCard';
 import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
@@ -167,7 +168,7 @@ function getProfile(kind?: string): PhysicsProfile {
   if (kind === 'emoji') return PROFILES.emoji;
   if (kind === 'poll' || kind === 'quiz') return PROFILES.poll;
   if (kind === 'question') return PROFILES.question;
-  if (kind === 'location' || kind === 'mention' || kind === 'hashtag' || kind === 'link' || kind === 'post' || kind === 'countdown' || kind === 'entity' || kind === 'photo' || kind === 'gif' || kind === 'time' || kind === 'date' || kind === 'weather' || kind === 'addyours' || kind === 'notify' || kind === 'magic' || kind === 'support' || kind === 'frame') return PROFILES.location;
+  if (kind === 'location' || kind === 'mention' || kind === 'hashtag' || kind === 'link' || kind === 'post' || kind === 'countdown' || kind === 'entity' || kind === 'photo' || kind === 'gif' || kind === 'time' || kind === 'date' || kind === 'weather' || kind === 'addyours' || kind === 'notify' || kind === 'magic' || kind === 'support' || kind === 'frame' || kind === 'results') return PROFILES.location;
   if (kind === 'slider') return PROFILES.slider;
   return DEFAULT_PROFILE;
 }

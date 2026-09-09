@@ -5,7 +5,7 @@ import { displayImageUrl } from "@/lib/media";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
-import { QuestionCard, QuizCard, SliderCard, CountdownCard, AddYoursCard, NotifyCard, MagicBallCard, SupportCard, FrameCard } from "@/components/StoryEngageCards";
+import { QuestionCard, QuizCard, SliderCard, CountdownCard, AddYoursCard, NotifyCard, MagicBallCard, SupportCard, FrameCard, ResultsCard } from "@/components/StoryEngageCards";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
@@ -176,6 +176,7 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
         if (kind === "magic") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><MagicBallCard st={st} /></div>;
         if (kind === "support") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><SupportCard st={st} /></div>;
         if (kind === "frame") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><FrameCard st={st} /></div>;
+        if (kind === "results") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><ResultsCard st={st} /></div>;
         return null;
       })}
     </div>
