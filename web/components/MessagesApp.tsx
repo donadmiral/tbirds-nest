@@ -49,11 +49,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   // ?debug=1 draws a live readout of everything that can move the chat, for measuring on a real phone.
   const debugRef = useRef<HTMLPreElement | null>(null);
   const debugCounts = useRef({ resize: 0, ro: 0, mo: 0, scroll: 0, msgs: 0 });
+  const [debugOn, setDebugOn] = useState(false);
+  useEffect(() => { setDebugOn(window.location.search.includes('debug=1')); }, []);
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.location.search.includes('debug=1')) return;
+    if (!debugOn) return;
     const vv = window.visualViewport; const t = setInterval(() => { const el = listRef.current; const d = debugCounts.current; if (debugRef.current) debugRef.current.textContent = ['vv h ' + (vv ? Math.round(vv.height) : '-') + ' top ' + (vv ? Math.round(vv.offsetTop) : '-') + ' inner ' + window.innerHeight, 'pageY ' + Math.round(window.scrollY) + ' body ' + document.body.style.position + ' ' + document.body.style.top, 'list top ' + (el ? Math.round(el.scrollTop) : '-') + ' / ' + (el ? el.scrollHeight : '-') + ' client ' + (el ? el.clientHeight : '-') + ' pinned ' + pinnedRef.current, 'events resize ' + d.resize + ' ro ' + d.ro + ' mo ' + d.mo + ' scroll ' + d.scroll + ' msgs ' + d.msgs].join('\n'); }, 250);
     return () => clearInterval(t);
-  }, []);
+  }, [debugOn]);
   useEffect(() => {
     if (!compact || !active) return;
     const vv = window.visualViewport; const el = surfaceRef.current; if (!vv || !el) return;
@@ -494,7 +496,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               <div ref={bottomRef} />
             </div>
             <footer className="border-t border-ink/10 pt-3">{composer}</footer>
-            {typeof window !== 'undefined' && window.location.search.includes('debug=1') ? <pre ref={debugRef} className="pointer-events-none fixed left-2 top-2 z-[90] rounded bg-black/80 p-2 text-[11px] leading-tight text-white" /> : null}
+            {debugOn ? <pre ref={debugRef} className="pointer-events-none fixed left-2 top-2 z-[90] rounded bg-black/80 p-2 text-[11px] leading-tight text-white" /> : null}
           </>
         )}
       </div>
