@@ -70,6 +70,13 @@ export const audioService = {
     }
   },
 
+  /** Caller side, after something else has taken the audio session: stop and start again, whatever the player believes. */
+  async restartRingback(): Promise<void> {
+    if (!ready()) return;
+    try { ICM.stopRingback(); } catch {}
+    try { ICM.startRingback('_BUNDLE_'); currentType = 'ringback'; console.log('[RING] ringback restarted'); } catch (e) { console.log('[RING] ringback restart error:', e); }
+  },
+
   /** Ring sounds off, session untouched - Daily takes over next. */
   async stopAndSwitchToVoiceChat(): Promise<void> {
     if (!ICM) return;
