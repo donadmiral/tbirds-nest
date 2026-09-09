@@ -274,7 +274,7 @@ export default function IncomingCallListener() {
     const directSub = callService.subscribeToIncomingCalls(userId, handleIncoming);
 
     const inviteSub = supabase.channel(`gcall_invites_${userId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: "receiver_id=eq.${userId}" }, async (p) => { try { const m: any = p.new; if (m?.id && m.sender_id !== userId) { await supabase.from('messages').update({ delivered_at: new Date().toISOString() }).eq('id', m.id).is('delivered_at', null); } } catch {} })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: "receiver_id=eq." + userId }, async (p) => { try { const m: any = p.new; if (m?.id && m.sender_id !== userId) { await supabase.from('messages').update({ delivered_at: new Date().toISOString() }).eq('id', m.id).is('delivered_at', null); } } catch {} })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'call_participants', filter: `user_id=eq.${userId}` }, async (p) => {
         const row = p.new as any;
         if (row?.status !== 'invited') return;

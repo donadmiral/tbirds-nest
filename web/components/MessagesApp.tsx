@@ -44,6 +44,16 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const listRef = useRef<HTMLDivElement | null>(null);
   const scrollToEnd = () => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; };
   const pinnedRef = useRef(true);
+  // iOS keyboard: Safari scrolls the layout instead of shrinking a fixed surface, so the surface tracks the visual viewport itself and the page stays locked.
+  const surfaceRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!compact || !active) return;
+    const vv = window.visualViewport; const el = surfaceRef.current; if (!vv || !el) return;
+    const prevOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    const apply = () => { el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; window.scrollTo(0, 0); if (pinnedRef.current) scrollToEnd(); };
+    apply(); vv.addEventListener('resize', apply); vv.addEventListener('scroll', apply);
+    return () => { vv.removeEventListener('resize', apply); vv.removeEventListener('scroll', apply); document.body.style.overflow = prevOverflow; el.style.height = ''; el.style.top = ''; };
+  }, [compact, active?.id]);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
     const onScroll = () => { pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
@@ -441,7 +451,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   if (compact) {
     return (
-      <div className={active ? "fixed inset-0 z-[70] flex flex-col bg-white px-3 pt-[max(env(safe-area-inset-top),8px)] pb-[env(safe-area-inset-bottom)]" : "flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1"}>
+      <div ref={surfaceRef} className={active ? "fixed left-0 top-0 z-[70] flex h-[100dvh] w-full flex-col overflow-hidden bg-white px-3 pt-[max(env(safe-area-inset-top),8px)]" : "flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1"}>
         {!active ? (
           <>
             <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>
