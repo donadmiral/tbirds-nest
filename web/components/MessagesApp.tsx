@@ -49,11 +49,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   useEffect(() => {
     if (!compact || !active) return;
     const vv = window.visualViewport; const el = surfaceRef.current; if (!vv || !el) return;
-    const prevOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    // iOS ignores overflow hidden; the only lock it honours is pinning the body in place, restored exactly on close.
+    const body = document.body; const y = window.scrollY; const prev = { position: body.style.position, top: body.style.top, width: body.style.width, overflow: body.style.overflow, overscroll: (body.style as any).overscrollBehavior };
+    body.style.position = 'fixed'; body.style.top = (-y) + 'px'; body.style.width = '100%'; body.style.overflow = 'hidden'; (body.style as any).overscrollBehavior = 'none';
     let raf = 0;
     const apply = () => { el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (pinnedRef.current) scrollToEnd(); }); };
     apply(); vv.addEventListener('resize', apply);
-    return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); document.body.style.overflow = prevOverflow; el.style.height = ''; el.style.top = ''; };
+    return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); body.style.position = prev.position; body.style.top = prev.top; body.style.width = prev.width; body.style.overflow = prev.overflow; (body.style as any).overscrollBehavior = prev.overscroll; window.scrollTo(0, y); el.style.height = ''; el.style.top = ''; };
   }, [compact, active?.id]);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
@@ -452,7 +454,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   if (compact) {
     return (
-      <div ref={surfaceRef} className={active ? "fixed left-0 top-0 z-[70] flex h-[100dvh] w-full flex-col overflow-hidden bg-white px-3 pt-[max(env(safe-area-inset-top),8px)]" : "flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1"}>
+      <div ref={surfaceRef} className={active ? "fixed left-0 top-0 z-[70] flex h-[100dvh] w-full touch-none flex-col overflow-hidden bg-white px-3 pt-[max(env(safe-area-inset-top),8px)]" : "flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1"}>
         {!active ? (
           <>
             <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>
@@ -479,7 +481,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               {active && active.is_group ? <GroupCallBar conversationId={active.id} /> : null}
               {refCard}
             </header>
-            <div ref={listRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto py-4">
+            <div ref={listRef} className="min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-auto overscroll-contain py-4">
               {loadingMsgs ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : msgs.map((m) => <Bubble key={m.id} m={m} />)}
               <div ref={bottomRef} />
             </div>
