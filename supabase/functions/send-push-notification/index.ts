@@ -43,7 +43,8 @@ serve(async (req) => {
     if (type === "incoming_call") return json(200, { skipped: true, reason: "rung by send-voip-push" });
     // Quiet mode: nothing pushes during the person's chosen hours, in their own time zone.
     {
-      const { data: prof } = await supabase.from("profiles").select("quiet_from, quiet_to, quiet_tz_offset_min").eq("id", record.recipient_id || record.user_id).maybeSingle();
+    const admin = createClient(SB_URL, SB_SERVICE);
+      const { data: prof } = await admin.from("profiles").select("quiet_from, quiet_to, quiet_tz_offset_min").eq("id", record.recipient_id || record.user_id).maybeSingle();
       const qf = (prof as any)?.quiet_from, qt = (prof as any)?.quiet_to;
       if (qf != null && qt != null) {
         const off = Number((prof as any)?.quiet_tz_offset_min || 0);
@@ -61,13 +62,14 @@ serve(async (req) => {
       return json(200, { skipped: true, reason: "no recipient" });
     }
 
-    const admin = createClient(SB_URL, SB_SERVICE);
+
 
     // Get recipient's push tokens
     const { data: tokens, error: tokenErr } = await admin
       .from("user_push_tokens")
       .select("expo_push_token")
-      .eq("user_id", recipientId);
+      .eq("user_id", recipientId)
+      .like("expo_push_token", "ExponentPushToken[%");
 
     if (tokenErr) {
       console.error("Token lookup error:", tokenErr.message);
