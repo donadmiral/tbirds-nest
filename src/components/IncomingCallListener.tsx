@@ -234,10 +234,11 @@ export default function IncomingCallListener() {
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'call_sessions', filter: `id=eq.${call.id}` },
           (payload) => {
             const st = (payload.new as any).status;
+            console.log('[CALL_END] status', st, 'for', call.id.slice(0, 8));
             if (st === 'ended' || st === 'declined' || st === 'missed' || (st === 'active' && !call.is_group_call)) {
               if (bannerRef.current?.callId === call.id) clearBanner();
               // The phone's own call screen rings on its own; tell it the call is over.
-              if (st !== 'active') { try { const { nativeCallService } = require('../services/nativeCallService'); nativeCallService.endNativeCall(call.id); nativeCallService.endAllNativeCalls(); } catch {} }
+              if (st !== 'active') { try { const { nativeCallService } = require('../services/nativeCallService'); console.log('[CALL_END] ending native call', call.id.slice(0, 8)); nativeCallService.endNativeCall(call.id); nativeCallService.endAllNativeCalls(); } catch (e) { console.log('[CALL_END] native end failed', (e as any)?.message); } }
               activeCallIdRef.current = null;
               clearCallNavGuard();
               statusSub.unsubscribe();

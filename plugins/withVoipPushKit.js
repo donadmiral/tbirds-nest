@@ -20,6 +20,13 @@ extension AppDelegate: PKPushRegistryDelegate {
     let handle = (d["handle"] as? String) ?? "PlatinumCircles"
     let hasVideo = (d["hasVideo"] as? Bool) ?? false
     RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue)
+    if ((d["action"] as? String) == "cancel" {
+      // The caller hung up: report the call once (Apple requires a report per push) and end it at once, remote ended.
+      RNCallKeep.reportNewIncomingCall(uuid, handle: handle, handleType: "generic", hasVideo: false, localizedCallerName: callerName, supportsHolding: false, supportsDTMF: false, supportsGrouping: false, supportsUngrouping: false, fromPushKit: true, payload: d, withCompletionHandler: {})
+      RNCallKeep.endCall(withUUID: uuid, reason: 2)
+      completion()
+      return
+    }
     RNCallKeep.reportNewIncomingCall(uuid, handle: handle, handleType: "generic", hasVideo: hasVideo,
       localizedCallerName: name, supportsHolding: false, supportsDTMF: false,
       supportsGrouping: false, supportsUngrouping: false, fromPushKit: true,
