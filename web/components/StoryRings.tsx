@@ -37,6 +37,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   const [spot, setSpot] = useState<CatchupUser[]>([]);
   const [openAt, setOpenAt] = useState<number | null>(null);
   const [myAvatar, setMyAvatar] = useState<string | null>(null);
+  const [myId, setMyId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -65,27 +66,33 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user.id;
       if (!uid) return;
+      setMyId(uid);
       const { data } = await supabase.from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
       setMyAvatar(data?.avatar_url ?? null);
     })();
   }, []);
 
   if (!ready) return null;
+  // Your own stories live under Your story, not as a second person in the row.
+  const mineIdx = myId ? users.findIndex((u) => u.user_id === myId) : -1;
+  const mine = mineIdx >= 0 ? users[mineIdx] : null;
+  const others = users.map((u, i) => ({ u, i })).filter((x) => x.u.user_id !== myId);
 
   return (
     <>
       <div className="mb-4 flex gap-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-4 py-4">
-        <a href="/story/new" className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+        <a href={mine ? undefined : "/story/new"} onClick={mine ? (e) => { e.preventDefault(); setOpenAt(mineIdx); } : undefined} className="flex w-16 shrink-0 flex-col items-center gap-1.5 cursor-pointer">
           {/* Your own face with a plus on it, rather than an empty dashed
               circle: it reads as "add to your story" instead of as a gap. */}
           <span className="relative block h-[62px] w-[62px]">
+            {mine && myId ? <PlatinumRingWeb userId={myId} size={62} active={false} /> : null}
             {myAvatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={myAvatar} alt="" className="h-full w-full rounded-full border border-ink/10 object-cover" />
             ) : (
               <span className="flex h-full w-full items-center justify-center rounded-full bg-surface text-ink/40">+</span>
             )}
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-ink">+</span>
+            <a href="/story/new" onClick={(e) => e.stopPropagation()} className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-ink">+</a>
           </span>
           <span className="w-full truncate text-center text-[11px] text-ink/60">Your story</span>
         </a>

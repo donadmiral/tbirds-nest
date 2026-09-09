@@ -1,3 +1,4 @@
+import PollCard from '../../components/PollCard';
 import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
@@ -658,6 +659,7 @@ export default function PostScreen({ route, navigation }: any) {
                         <ArticleBody text={post.content} onMention={handleMentionTap} onHashtag={handleHashtagTap} />
                       </View>
                     )}
+                    {post?.id ? <View style={{ paddingHorizontal: 16 }}><PollCard postId={post.id} /></View> : null}
                     {mediaItems.length > 0 && (
                       <View style={s.mediaEdgeWrap}>
                         <PostCarousel
