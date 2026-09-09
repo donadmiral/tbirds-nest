@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } 
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated,
   PanResponder, ActivityIndicator, Alert, StatusBar, Modal, FlatList,
-  Platform, TextInput, Keyboard, LayoutChangeEvent } from 'react-native';
+  Platform, TextInput, Keyboard, LayoutChangeEvent , KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -442,7 +442,25 @@ export default function StoryViewerScreen() {
   const openViewersList = async () => { if (!currentStory) return; if (pollVotersOpen) closePollVoters(); pauseFor('viewers'); setViewersOpen(true); setLoadingViewers(true); try { const isOwnStory = currentStory.user_id === myId; const [list, reactions] = await Promise.all([storiesService.getViewers(currentStory.id), isOwnStory ? storiesService.getReactions(currentStory.id) : Promise.resolve([])]); setViewers(list); const rMap = new Map<string, string[]>(); (reactions || []).forEach((r: StoryReaction) => { const existing = rMap.get(r.user_id) || []; existing.push(r.emoji); rMap.set(r.user_id, existing); }); setViewerReactions(rMap); setReactionsCount(rMap.size); } catch (e) { console.log('[getViewers]', e); } finally { setLoadingViewers(false); } };
   const openViewerProfile = (userId: string) => { closeViewersList(); setTimeout(() => { navigation.navigate('UserProfile', { userId }); }, 300); };
 
-  const handleEngagementTap = useCallback((_stickerId: string) => { pauseFor('engagement'); }, [pauseFor]);
+  // Questions box: the answer sheet. The field on the card opens it; Send records the answer.
+  const [questionAnswer, setQuestionAnswer] = useState<{ stickerId: string; prompt: string } | null>(null);
+  const [answerText, setAnswerText] = useState('');
+  const handleEngagementTap = useCallback((stickerId: string) => {
+    pauseFor('engagement');
+    const list = (storiesRef.current[storyIndexRef.current]?.stickers_json || []) as any[];
+    const st = list.find((x) => x.id === stickerId);
+    setAnswerText('');
+    setQuestionAnswer({ stickerId, prompt: st?.questionPrompt || st?.text || 'Question' });
+  }, [pauseFor]);
+  const sendQuestionAnswer = useCallback(async () => {
+    const v = answerText.trim(); if (!v || !questionAnswer || !currentStory) return;
+    try {
+      await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: questionAnswer.stickerId, responseType: 'question', textValue: v });
+      dispatchEngagement({ type: 'SET_RESPONSE', stickerId: questionAnswer.stickerId, value: { text_value: v } });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (e: any) { Alert.alert('Not sent', e?.message || 'Try again.'); }
+    setQuestionAnswer(null); setAnswerText(''); resumeFrom('engagement');
+  }, [answerText, questionAnswer, currentStory, resumeFrom]);
   const handleSliderSubmit = useCallback(async (stickerId: string, value: number) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'slider', numberValue: value }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { number_value: value } }); } catch (e) { console.log('[SliderSubmit]', e); } }, [currentStory?.id]);
   const handleQuizSubmit = useCallback(async (stickerId: string, optionId: string) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'quiz', optionId }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { option_id: optionId } }); } catch (e) { console.log('[QuizSubmit]', e); } }, [currentStory?.id]);
   const [addYoursThread, setAddYoursThread] = useState<{ prompt: string; originStoryId: string | null; originStickerId: string | null } | null>(null);
@@ -689,6 +707,18 @@ export default function StoryViewerScreen() {
 
       {isOwn && myId && currentStory && (<SaveToMemorySheet visible={highlightSheetOpen} onClose={() => { setHighlightSheetOpen(false); resumeFrom('highlight'); }} storyId={currentStory.id} userId={myId} />)}
       {isOwn && currentStory && (<ManageMentionsSheet visible={mentionsOpen} onClose={() => { setMentionsOpen(false); resumeFrom('mentions'); }} storyId={currentStory.id} />)}
+      <Modal visible={!!questionAnswer} transparent animationType="slide" onRequestClose={() => { setQuestionAnswer(null); resumeFrom('engagement'); }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => { setQuestionAnswer(null); resumeFrom('engagement'); }} />
+          <View style={{ backgroundColor: '#15161A', borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: Math.max(insets.bottom, 14) + 8 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '800', letterSpacing: 1, textAlign: 'center' }}>QUESTION</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', textAlign: 'center', marginTop: 4, marginBottom: 12 }}>{questionAnswer?.prompt}</Text>
+            <TextInput value={answerText} onChangeText={setAnswerText} placeholder="Type your answer" placeholderTextColor="rgba(255,255,255,0.4)" autoFocus maxLength={200} multiline
+              style={{ minHeight: 48, maxHeight: 120, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 }} />
+            <TouchableOpacity onPress={sendQuestionAnswer} disabled={!answerText.trim()} activeOpacity={0.85} style={{ marginTop: 12, height: 48, borderRadius: 14, backgroundColor: answerText.trim() ? '#C9BFB0' : 'rgba(201,191,176,0.35)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#0B1E3D', fontSize: 15, fontWeight: '800' }}>Send</Text></TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
       <AddYoursThreadSheet visible={!!addYoursThread} prompt={addYoursThread?.prompt || ''} originStoryId={addYoursThread?.originStoryId || null} originStickerId={addYoursThread?.originStickerId || null} onClose={() => { setAddYoursThread(null); resumeFrom('thread'); }} onOpen={(uid) => { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('StoryViewer', { userId: uid }), 200); }} />
       {responsesSheet.open && (<StickerResponsesSheet visible={responsesSheet.open} onShareResponse={handleShareResponse} onClose={() => { dispatchResponsesSheet({ type: 'CLOSE' }); resumeFrom('responsesSheet'); }} storyId={currentStory.id} stickerId={responsesSheet.stickerId} responseType={responsesSheet.type} title={responsesSheet.title} quizOptions={responsesSheet.quizOptions} />)}
     </Animated.View>
