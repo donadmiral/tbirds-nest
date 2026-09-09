@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -71,11 +71,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const el = listRef.current; if (!el) return;
     const onScroll = () => { debugCounts.current.scroll++; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
     el.addEventListener('scroll', onScroll, { passive: true });
-    const ro = new ResizeObserver(() => { debugCounts.current.ro++; if (pinnedRef.current) scrollToEnd(); });
+    let settle: ReturnType<typeof setTimeout> | null = null;
+    const settleThenScroll = () => { if (settle) clearTimeout(settle); settle = setTimeout(() => { settle = null; if (pinnedRef.current) requestAnimationFrame(scrollToEnd); }, 80); };
+    const ro = new ResizeObserver(() => { debugCounts.current.ro++; settleThenScroll(); });
     ro.observe(el); Array.from(el.children).forEach((ch) => ro.observe(ch));
-    const mo = new MutationObserver(() => { debugCounts.current.mo++; Array.from(el.children).forEach((ch) => ro.observe(ch)); if (pinnedRef.current) scrollToEnd(); });
+    const mo = new MutationObserver(() => { debugCounts.current.mo++; Array.from(el.children).forEach((ch) => ro.observe(ch)); settleThenScroll(); });
     mo.observe(el, { childList: true });
-    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); };
+    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); if (settle) clearTimeout(settle); };
   }, [active?.id]);
   const activeRef = useRef<Conv | null>(null);
   const typingSentAt = useRef(0);
@@ -323,75 +325,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     return convs.filter((c) => (c.title + " " + (c.username ?? "")).toLowerCase().includes(t));
   }, [convs, query]);
 
-  function OfferCard({ m }: { m: Msg }) {
-    let j: { offer_id?: string; amount?: number; currency?: string; status?: string } = {};
-    try { j = JSON.parse(m.media_url || "{}"); } catch { return null; }
-    if (!j.offer_id) return null;
-    const live = offers[j.offer_id];
-    const status = live?.status || j.status || "pending";
-    const amount = live?.amount ?? j.amount ?? 0;
-    const currency = live?.currency ?? j.currency ?? "";
-    const proposer = live?.proposer_id ?? m.sender_id;
-    const canRespond = status === "pending" && uid !== null && uid !== proposer;
-    const color = status === "accepted" ? "text-success" : status === "pending" ? "text-pearl" : "text-ink/40";
-    return (
-      <div className="min-w-48 rounded-lg border border-ink/15 bg-white p-3">
-        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40"><Tag size={12} /> Offer</p>
-        <p className="mt-0.5 text-[18px] font-semibold text-ink">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
-        <p className={"text-[12px] font-semibold capitalize " + color}>{status}</p>
-        {canRespond ? (
-          countering === j.offer_id ? (
-            <div className="mt-2 flex flex-col gap-1.5">
-              <input value={counterAmt} onChange={(e) => setCounterAmt(e.target.value)} inputMode="numeric" placeholder="Counter amount" className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink/30 outline-none" />
-              <div className="flex gap-1.5">
-                <button onClick={() => { const n = Number(counterAmt.replace(/,/g, "")); if (n > 0) respondOffer(j.offer_id!, "countered", n); }} className="rounded-md bg-pearl px-2.5 py-1.5 text-[12px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">Send counter</button>
-                <button onClick={() => setCountering(null)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface">Cancel</button>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-2 flex gap-1.5">
-              <button onClick={() => respondOffer(j.offer_id!, "accepted")} className="rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success transition-opacity duration-[140ms] hover:opacity-80">Accept</button>
-              <button onClick={() => setCountering(j.offer_id!)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface">Counter</button>
-              <button onClick={() => respondOffer(j.offer_id!, "declined")} className="rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger transition-opacity duration-[140ms] hover:opacity-80">Decline</button>
-            </div>
-          )
-        ) : null}
-      </div>
-    );
-  }
-
-  function Bubble({ m }: { m: Msg }) {
-    const mine = m.sender_id === uid;
-    if (m.deleted_at) return null;
-    return (
-      <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
-        <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-white shadow-sm" : "bg-surface text-ink")}>
-          {m.media_type === "payment" || m.payment_id ? (
-            <span className={"flex items-center gap-1.5 text-[13px] " + (mine ? "text-white/75" : "text-ink/70")}><Wallet size={14} /> Payment · open the Platinum Circles app</span>
-          ) : null}
-          {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
-          {m.media_type === "offer" && m.media_url ? <OfferCard m={m} /> : null}
-          {(m.media_type === "image" || m.media_type === "gif") && m.media_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={m.media_url} alt="Shared image" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } }))} onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } })); }} className="mb-1 max-h-72 cursor-zoom-in rounded-lg object-contain" />
-          ) : null}
-          {m.media_type === "video" && m.media_url ? (
-            <video src={m.media_url} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />
-          ) : null}
-          {(m.media_type === "audio" || m.media_type === "voice") && m.media_url ? (
-            <audio controls preload="metadata" className="mb-1 w-[240px] max-w-full"><source src={m.media_url} type={/\.(m4a|mp4)(\?|$)/i.test(m.media_url) ? "audio/mp4" : /\.webm(\?|$)/i.test(m.media_url) ? "audio/webm" : undefined} /><a href={m.media_url} target="_blank" rel="noopener noreferrer" className="underline">Voice message</a></audio>
-          ) : null}
-          {m.media_type === "document" && m.media_url ? (
-            <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="mb-1 flex items-center gap-1.5 text-[13px] underline">
-              <FileText size={14} /> {m.text?.replace("📄 ", "") || "Document"}
-            </a>
-          ) : null}
-          {m.text && m.media_type !== "document" ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
-          <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/55" : "text-ink/40")}>{timeAgo(m.created_at)}</p>
-        </div>
-      </div>
-    );
-  }
+  const offerProps: OfferProps = { uid, offers, countering, counterAmt, setCountering, setCounterAmt, respondOffer };
 
   const refCard = refListing ? (
     <Link href={"/market/" + refListing.id} className="mt-2 flex items-center gap-3 rounded-lg border border-ink/10 p-2.5 transition-colors duration-[140ms] hover:bg-surface">
@@ -492,7 +426,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               {refCard}
             </header>
             <div ref={listRef} className="min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-auto overscroll-contain py-4">
-              {loadingMsgs ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : msgs.map((m) => <Bubble key={m.id} m={m} />)}
+              {loadingMsgs ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : msgs.map((m) => <BubbleView key={m.id} m={m} uid={uid} offer={offerProps} />)}
               <div ref={bottomRef} />
             </div>
             <footer className="border-t border-ink/10 pt-3">{composer}</footer>
@@ -561,7 +495,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               {loadingMsgs ? (
                 <p className="py-12 text-center text-sm text-ink/40">Loading</p>
               ) : (
-                msgs.map((m) => <Bubble key={m.id} m={m} />)
+                msgs.map((m) => <BubbleView key={m.id} m={m} uid={uid} offer={offerProps} />)
               )}
               <div ref={bottomRef} />
             </div>
@@ -572,3 +506,75 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     </div>
   );
 }
+
+// Declared once, outside the component: a render updates these, it never rebuilds them.
+type OfferProps = { uid: string | null; offers: Record<string, OfferLive>; countering: string | null; counterAmt: string; setCountering: (v: string | null) => void; setCounterAmt: (v: string) => void; respondOffer: (offerId: string, action: string, counterAmount?: number) => void };
+function OfferCardView({ m, uid, offers, countering, counterAmt, setCountering, setCounterAmt, respondOffer }: { m: Msg } & OfferProps) {
+    let j: { offer_id?: string; amount?: number; currency?: string; status?: string } = {};
+    try { j = JSON.parse(m.media_url || "{}"); } catch { return null; }
+    if (!j.offer_id) return null;
+    const live = offers[j.offer_id];
+    const status = live?.status || j.status || "pending";
+    const amount = live?.amount ?? j.amount ?? 0;
+    const currency = live?.currency ?? j.currency ?? "";
+    const proposer = live?.proposer_id ?? m.sender_id;
+    const canRespond = status === "pending" && uid !== null && uid !== proposer;
+    const color = status === "accepted" ? "text-success" : status === "pending" ? "text-pearl" : "text-ink/40";
+    return (
+      <div className="min-w-48 rounded-lg border border-ink/15 bg-white p-3">
+        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40"><Tag size={12} /> Offer</p>
+        <p className="mt-0.5 text-[18px] font-semibold text-ink">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
+        <p className={"text-[12px] font-semibold capitalize " + color}>{status}</p>
+        {canRespond ? (
+          countering === j.offer_id ? (
+            <div className="mt-2 flex flex-col gap-1.5">
+              <input value={counterAmt} onChange={(e) => setCounterAmt(e.target.value)} inputMode="numeric" placeholder="Counter amount" className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink/30 outline-none" />
+              <div className="flex gap-1.5">
+                <button onClick={() => { const n = Number(counterAmt.replace(/,/g, "")); if (n > 0) respondOffer(j.offer_id!, "countered", n); }} className="rounded-md bg-pearl px-2.5 py-1.5 text-[12px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">Send counter</button>
+                <button onClick={() => setCountering(null)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface">Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2 flex gap-1.5">
+              <button onClick={() => respondOffer(j.offer_id!, "accepted")} className="rounded-md bg-success/20 px-2.5 py-1.5 text-[12px] font-semibold text-success transition-opacity duration-[140ms] hover:opacity-80">Accept</button>
+              <button onClick={() => setCountering(j.offer_id!)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface">Counter</button>
+              <button onClick={() => respondOffer(j.offer_id!, "declined")} className="rounded-md bg-danger/15 px-2.5 py-1.5 text-[12px] font-semibold text-danger transition-opacity duration-[140ms] hover:opacity-80">Decline</button>
+            </div>
+          )
+        ) : null}
+      </div>
+    );
+  }
+
+const BubbleView = memo(function BubbleView({ m, uid, offer }: { m: Msg; uid: string | null; offer: OfferProps }) {
+    const mine = m.sender_id === uid;
+    if (m.deleted_at) return null;
+    return (
+      <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
+        <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-white shadow-sm" : "bg-surface text-ink")}>
+          {m.media_type === "payment" || m.payment_id ? (
+            <span className={"flex items-center gap-1.5 text-[13px] " + (mine ? "text-white/75" : "text-ink/70")}><Wallet size={14} /> Payment · open the Platinum Circles app</span>
+          ) : null}
+          {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
+          {m.media_type === "offer" && m.media_url ? <OfferCardView m={m} {...offer} /> : null}
+          {(m.media_type === "image" || m.media_type === "gif") && m.media_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={m.media_url} alt="Shared image" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } }))} onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } })); }} className="mb-1 max-h-72 cursor-zoom-in rounded-lg object-contain" />
+          ) : null}
+          {m.media_type === "video" && m.media_url ? (
+            <video src={m.media_url} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />
+          ) : null}
+          {(m.media_type === "audio" || m.media_type === "voice") && m.media_url ? (
+            <audio controls preload="metadata" className="mb-1 w-[240px] max-w-full"><source src={m.media_url} type={/\.(m4a|mp4)(\?|$)/i.test(m.media_url) ? "audio/mp4" : /\.webm(\?|$)/i.test(m.media_url) ? "audio/webm" : undefined} /><a href={m.media_url} target="_blank" rel="noopener noreferrer" className="underline">Voice message</a></audio>
+          ) : null}
+          {m.media_type === "document" && m.media_url ? (
+            <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="mb-1 flex items-center gap-1.5 text-[13px] underline">
+              <FileText size={14} /> {m.text?.replace("📄 ", "") || "Document"}
+            </a>
+          ) : null}
+          {m.text && m.media_type !== "document" ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
+          <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/55" : "text-ink/40")}>{timeAgo(m.created_at)}</p>
+        </div>
+      </div>
+    );
+});
