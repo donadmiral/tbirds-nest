@@ -236,6 +236,8 @@ export default function IncomingCallListener() {
             const st = (payload.new as any).status;
             if (st === 'ended' || st === 'declined' || st === 'missed' || (st === 'active' && !call.is_group_call)) {
               if (bannerRef.current?.callId === call.id) clearBanner();
+              // The phone's own call screen rings on its own; tell it the call is over.
+              if (st !== 'active') { try { const { nativeCallService } = require('../services/nativeCallService'); nativeCallService.endNativeCall(call.id); } catch {} }
               activeCallIdRef.current = null;
               clearCallNavGuard();
               statusSub.unsubscribe();

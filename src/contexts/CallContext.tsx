@@ -558,6 +558,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         try {
           (call as any).setNativeInCallAudioMode(params.isVideo ? 'video' : 'voice');
           console.log('[Audio] inCallAudioMode engaged:', params.isVideo ? 'video' : 'voice');
+          // Engaging the audio mode silences the ringback; ringback survives by restarting while the call is still ringing.
+          setTimeout(() => { try { const { audioService } = require('../services/audioService'); if (audioService.getPlayingSound() === 'ringback' || (stateRef.current && String(stateRef.current).includes('ringing'))) { audioService.playRingback(); } } catch {} }, 250);
         } catch (e: any) { console.log('[Audio] inCallAudioMode error:', e?.message); }
         if (params.isGroupCall && callIdRef.current) {
           const stamp = async () => {
