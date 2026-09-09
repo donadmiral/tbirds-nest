@@ -223,7 +223,7 @@ export default function ListingPage() {
             </span>
           )}
           <span className="min-w-0">
-            <PersonName name={l.seller.full_name ?? ""} verified={!!l.seller.is_verified} tier={(l.seller as { verified_tier?: string | null }).verified_tier ?? null} className="text-[15px] font-semibold text-ink" badgeSize={14} />
+            <PersonName name={l.seller.full_name ?? ""} userId={l.seller_id} className="text-[15px] font-semibold text-ink" badgeSize={14} />
             <SellerTrust sellerId={l.seller_id} />
           </span>
         </Link>

@@ -469,7 +469,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               {active && active.is_group ? <GroupCallBar conversationId={active.id} /> : null}
               {refCard}
             </header>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto py-4">
+            <div ref={listRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto py-4">
               {loadingMsgs ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : msgs.map((m) => <Bubble key={m.id} m={m} />)}
               <div ref={bottomRef} />
             </div>

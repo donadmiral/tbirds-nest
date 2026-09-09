@@ -96,7 +96,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
           </span>
           <span className="w-full truncate text-center text-[11px] text-ink/60">Your story</span>
         </a>
-        {[...users, ...spot].map((u, i) => (
+        {[...users, ...spot].map((u, i) => (u.user_id === myId ? null : (
           <Fragment key={u.user_id}>
           {i === users.length && spot.length > 0 ? <span className="my-2 w-px shrink-0 self-stretch bg-ink/10" title="Spotlight: public stories from people you don't follow" aria-hidden /> : null}
           <button onClick={() => setOpenAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
@@ -119,7 +119,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
             </span>
           </button>
           </Fragment>
-        ))}
+        )))}
       </div>
       {openAt !== null ? (
         <StoryViewer users={[...users, ...spot]} startIndex={openAt} onClose={() => { setOpenAt(null); getCatchupFeed(30, mode).then(setUsers); }} />
