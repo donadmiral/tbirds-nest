@@ -1,3 +1,4 @@
+import * as ImagePicker from 'expo-image-picker';
 import AddYoursThreadSheet from '../../components/stories/AddYoursThreadSheet';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -463,8 +464,13 @@ export default function StoryViewerScreen() {
     if (!currentStory) return;
     try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'addyours', textValue: 'joined' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'joined' } }); } catch {}
     const seed = { id: 'ay_' + Date.now(), text: sticker.addYoursPrompt || sticker.text || 'Add yours', color: '#FFFFFF', nx: 0.5, ny: 0.2, scale: 1, rotation: 0, kind: 'addyours', addYoursPrompt: sticker.addYoursPrompt || sticker.text, addYoursOriginStoryId: sticker.addYoursOriginStoryId || currentStory.id, addYoursOriginStickerId: sticker.addYoursOriginStickerId || sticker.id };
+    // Instagram's flow: pick the photo first, then the composer opens with it and the prompt already on it.
+    let picked: any = null;
+    try { const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'] as any, quality: 0.9, allowsMultipleSelection: false }); picked = res?.assets?.[0] || null; } catch {}
+    if (!picked) return;
+    const asset = { uri: picked.uri, width: picked.width, height: picked.height, type: picked.type === 'video' ? 'video' : 'image', rearType: picked.type === 'video' ? 'video' : 'image', duration: picked.duration ?? null };
     saveAndGoBack();
-    setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: [seed] }), 200);
+    setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: picked.type === 'video' ? 'video' : 'image', assets: [asset], seedStickers: [seed] }), 200);
   }, [currentStory, saveAndGoBack, navigation]);
   const handleNotifySignUp = useCallback(async (sticker: any) => {
     if (!currentStory) return;
