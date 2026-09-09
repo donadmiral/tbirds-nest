@@ -40,6 +40,19 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [recording, setRecording] = useState(false);
   const [recSecs, setRecSecs] = useState(0);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  // The list stays at its end while you're there, through every height change; scrolling up releases it.
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const pinnedRef = useRef(true);
+  useEffect(() => {
+    const el = listRef.current; if (!el) return;
+    const onScroll = () => { pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    const ro = new ResizeObserver(() => { if (pinnedRef.current) el.scrollTop = el.scrollHeight; });
+    ro.observe(el); Array.from(el.children).forEach((ch) => ro.observe(ch));
+    const mo = new MutationObserver(() => { Array.from(el.children).forEach((ch) => ro.observe(ch)); if (pinnedRef.current) el.scrollTop = el.scrollHeight; });
+    mo.observe(el, { childList: true });
+    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); };
+  }, [active?.id]);
   const activeRef = useRef<Conv | null>(null);
   const typingSentAt = useRef(0);
   const recRef = useRef<MediaRecorder | null>(null);
@@ -92,7 +105,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     supabase.rpc("mark_conversation_read_v2", { p_conversation_id: c.id }).then(() => {
       setConvs((l) => l.map((x) => (x.id === c.id ? { ...x, unread: 0 } : x)));
     }, () => {});
-    setTimeout(() => bottomRef.current?.scrollIntoView({ block: "end" }), 60);
+    pinnedRef.current = true; setTimeout(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, 60);
   }, [supabase, hydrateOffers]);
 
   useEffect(() => {
@@ -123,7 +136,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if (incoming.sender_id !== uid) {
           supabase.rpc("mark_conversation_read_v2", { p_conversation_id: incoming.conversation_id }).then(() => {}, () => {});
         }
-        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 40);
+        setTimeout(() => { const el = listRef.current; if (el && pinnedRef.current) el.scrollTop = el.scrollHeight; }, 40);
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: "conversation_id=eq." + active.id }, async (p) => {
         let upd = p.new as Msg;
@@ -178,7 +191,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       reply_to_id: null, created_at: new Date().toISOString(),
     };
     setMsgs((l) => [...l, temp]);
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 30);
+    pinnedRef.current = true; setTimeout(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, 30);
     const { data, error } = await supabase.from("messages").insert([{
       conversation_id: active.id, text, sender_id: uid,
       receiver_id: active.other_id, media_url: mediaUrl, media_type: mediaType, reply_to_id: null,
@@ -342,7 +355,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             <video src={m.media_url} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />
           ) : null}
           {(m.media_type === "audio" || m.media_type === "voice") && m.media_url ? (
-            <audio src={m.media_url} controls preload="metadata" className="mb-1 w-[240px] max-w-full" />
+            <audio controls preload="metadata" className="mb-1 w-[240px] max-w-full"><source src={m.media_url} type={/\.(m4a|mp4)(\?|$)/i.test(m.media_url) ? "audio/mp4" : /\.webm(\?|$)/i.test(m.media_url) ? "audio/webm" : undefined} /><a href={m.media_url} target="_blank" rel="noopener noreferrer" className="underline">Voice message</a></audio>
           ) : null}
           {m.media_type === "document" && m.media_url ? (
             <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="mb-1 flex items-center gap-1.5 text-[13px] underline">
