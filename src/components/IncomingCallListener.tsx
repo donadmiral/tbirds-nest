@@ -121,6 +121,14 @@ export default function IncomingCallListener() {
   const [banner, setBanner] = useState<{ callId: string; navParams: any; name: string; avatar: string | null; isGroup: boolean; isVideo: boolean } | null>(null);
   const bannerRef = useRef<any>(null);
   useEffect(() => { bannerRef.current = banner; }, [banner]);
+  // Every ring off: ours, the vibration and the phone's own screen, whatever was showing.
+  const killRinging = useCallback((why: string) => {
+    console.log('[CALL_END] kill ringing:', why);
+    try { audioService.stopAll(); } catch {}
+    try { Vibration.cancel(); } catch {}
+    try { const { nativeCallService } = require('../services/nativeCallService'); nativeCallService.endAllNativeCalls(); } catch {}
+    setBanner(null);
+  }, []);
   const clearBanner = useCallback(() => {
     setBanner(null);
     try { audioService.stopAll(); } catch {}
@@ -236,7 +244,7 @@ export default function IncomingCallListener() {
             const st = (payload.new as any).status;
             console.log('[CALL_END] status', st, 'for', call.id.slice(0, 8));
             if (st === 'ended' || st === 'declined' || st === 'missed' || (st === 'active' && !call.is_group_call)) {
-              if (bannerRef.current?.callId === call.id) clearBanner();
+              killRinging('status ' + st);
               // The phone's own call screen rings on its own; tell it the call is over.
               if (st !== 'active') { try { const { nativeCallService } = require('../services/nativeCallService'); console.log('[CALL_END] ending native call', call.id.slice(0, 8)); nativeCallService.endNativeCall(call.id); nativeCallService.endAllNativeCalls(); } catch (e) { console.log('[CALL_END] native end failed', (e as any)?.message); } }
               activeCallIdRef.current = null;
