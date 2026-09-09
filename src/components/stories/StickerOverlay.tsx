@@ -299,7 +299,7 @@ export default function StickerOverlay({
         }
         const isEmoji = st.kind === 'emoji';
         const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag' || st.kind === 'post' || st.kind === 'entity';
-        const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown';
+        const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown' || st.kind === 'addyours' || st.kind === 'notify' || st.kind === 'magic' || st.kind === 'support' || st.kind === 'frame';
         const containerAlign = isEmoji || isPill ? 'center' as const
           : st.textAlign === 'left' ? 'flex-start' as const
           : st.textAlign === 'right' ? 'flex-end' as const
@@ -307,12 +307,14 @@ export default function StickerOverlay({
 
         const stickerWidth = getWidthForKind(st.kind);
         const halfW = stickerWidth / 2;
+        // An estimated rectangle from the sticker's own position, registered before layout, so a tap during the entrance animation still reaches the card.
+        if (interactive && (isPill || isEngagement) && onStickerLayout) { const ex = st.nx * containerW; const ey = st.ny * containerH; const eh = isPill ? 44 : 150; const key = st.id; const hasMeasured = (onStickerLayout as any).__measured?.has?.(key); if (!hasMeasured) onStickerLayout(key, { left: ex - halfW, top: ey - eh / 2, right: ex + halfW, bottom: ey + eh / 2 }); }
 
         return (
           <View
             key={st.id}
             pointerEvents={interactive ? ((isPill || isEngagement) ? 'auto' : 'none') : 'none'}
-            onLayout={interactive && (isPill || isEngagement) && onStickerLayout ? (e: any) => { const t: any = e.currentTarget || e.target; t?.measureInWindow?.((x: number, y: number, w: number, h: number) => { if (w && h) onStickerLayout(st.id, { left: x, right: x + w, top: y, bottom: y + h }); }); } : undefined}
+            onLayout={interactive && (isPill || isEngagement) && onStickerLayout ? (e: any) => { const t: any = e.currentTarget || e.target; const registerLive = () => t?.measureInWindow?.((x: number, y: number, w: number, h: number) => { if (w && h) onStickerLayout(st.id, { left: x, top: y, right: x + w, bottom: y + h }); }); registerLive(); setTimeout(registerLive, 350); setTimeout(registerLive, 900); } : undefined}
             style={{
               position: 'absolute',
               left: st.nx * containerW,
