@@ -42,18 +42,17 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const bottomRef = useRef<HTMLDivElement | null>(null);
   // The list stays at its end while you're there, through every height change; scrolling up releases it.
   const listRef = useRef<HTMLDivElement | null>(null);
-  const scrollToEnd = () => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; window.scrollTo({ top: document.documentElement.scrollHeight }); };
+  const scrollToEnd = () => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; };
   const pinnedRef = useRef(true);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
-    const onScroll = () => { const pageBottom = document.documentElement.scrollHeight - window.scrollY - window.innerHeight < 80; const listBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80; pinnedRef.current = pageBottom && listBottom; };
-    window.addEventListener('scroll', onScroll, { passive: true });
+    const onScroll = () => { pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
     el.addEventListener('scroll', onScroll, { passive: true });
     const ro = new ResizeObserver(() => { if (pinnedRef.current) scrollToEnd(); });
     ro.observe(el); Array.from(el.children).forEach((ch) => ro.observe(ch));
     const mo = new MutationObserver(() => { Array.from(el.children).forEach((ch) => ro.observe(ch)); if (pinnedRef.current) scrollToEnd(); });
     mo.observe(el, { childList: true });
-    return () => { el.removeEventListener('scroll', onScroll); window.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); };
+    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); };
   }, [active?.id]);
   const activeRef = useRef<Conv | null>(null);
   const typingSentAt = useRef(0);
@@ -442,7 +441,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   if (compact) {
     return (
-      <div className="flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1">
+      <div className={active ? "fixed inset-0 z-[70] flex flex-col bg-white px-3 pt-[max(env(safe-area-inset-top),8px)] pb-[env(safe-area-inset-bottom)]" : "flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1"}>
         {!active ? (
           <>
             <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>

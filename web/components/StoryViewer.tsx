@@ -471,7 +471,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
       <style>{"@keyframes heartpop { 0% { transform: scale(0.3); opacity: 0; } 30% { transform: scale(1.18); opacity: 1; } 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.05); opacity: 0; } }"}</style>
-      <button onClick={onClose} className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" title="Close">
+      <button onClick={onClose} className="absolute right-4 top-4 z-30 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" title="Close">
         <X size={20} />
       </button>
       {userIdx > 0 || itemIdx > 0 ? (
@@ -630,7 +630,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
           <span className="absolute inset-x-0 bottom-20 z-30 mx-auto w-fit rounded-full bg-white px-4 py-1.5 text-[12px] font-semibold text-ink">Reply sent</span>
         ) : null}
 
-        <div className="absolute right-2 top-12 z-20 flex flex-col gap-2">
+        <div className="absolute right-2 top-[68px] z-20 flex flex-col gap-2">
           {story?.media_type === "video" || storyAudioUrl ? (
             <button onClick={() => setMuted(!muted)} className="rounded-full bg-black/40 p-2 text-white" aria-label="Mute">
               {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}

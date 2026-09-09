@@ -635,6 +635,7 @@ export default function ChatScreen() {
   const markRead = useCallback(async () => {
     if (!conversationId || !currentUserId) return;
     try {
+      if (currentUserId) messageStatusService.markConversationDelivered(conversationId, currentUserId).catch(() => {});
       supabase.rpc('mark_conversation_read_v2', { p_conversation_id: conversationId }).then(() => {}, () => {});
       await supabase.rpc('mark_conversation_read', {
         p_conv_id: conversationId,
