@@ -46,6 +46,14 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const pinnedRef = useRef(true);
   // iOS keyboard: Safari scrolls the layout instead of shrinking a fixed surface, so the surface tracks the visual viewport itself and the page stays locked.
   const surfaceRef = useRef<HTMLDivElement | null>(null);
+  // ?debug=1 draws a live readout of everything that can move the chat, for measuring on a real phone.
+  const debugRef = useRef<HTMLPreElement | null>(null);
+  const debugCounts = useRef({ resize: 0, ro: 0, mo: 0, scroll: 0, msgs: 0 });
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.location.search.includes('debug=1')) return;
+    const vv = window.visualViewport; const t = setInterval(() => { const el = listRef.current; const d = debugCounts.current; if (debugRef.current) debugRef.current.textContent = ['vv h ' + (vv ? Math.round(vv.height) : '-') + ' top ' + (vv ? Math.round(vv.offsetTop) : '-') + ' inner ' + window.innerHeight, 'pageY ' + Math.round(window.scrollY) + ' body ' + document.body.style.position + ' ' + document.body.style.top, 'list top ' + (el ? Math.round(el.scrollTop) : '-') + ' / ' + (el ? el.scrollHeight : '-') + ' client ' + (el ? el.clientHeight : '-') + ' pinned ' + pinnedRef.current, 'events resize ' + d.resize + ' ro ' + d.ro + ' mo ' + d.mo + ' scroll ' + d.scroll + ' msgs ' + d.msgs].join('\n'); }, 250);
+    return () => clearInterval(t);
+  }, []);
   useEffect(() => {
     if (!compact || !active) return;
     const vv = window.visualViewport; const el = surfaceRef.current; if (!vv || !el) return;
@@ -53,17 +61,17 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const body = document.body; const y = window.scrollY; const prev = { position: body.style.position, top: body.style.top, width: body.style.width, overflow: body.style.overflow, overscroll: (body.style as any).overscrollBehavior };
     body.style.position = 'fixed'; body.style.top = (-y) + 'px'; body.style.width = '100%'; body.style.overflow = 'hidden'; (body.style as any).overscrollBehavior = 'none';
     let raf = 0;
-    const apply = () => { el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (pinnedRef.current) scrollToEnd(); }); };
+    const apply = () => { debugCounts.current.resize++; el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (pinnedRef.current) scrollToEnd(); }); };
     apply(); vv.addEventListener('resize', apply);
     return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); body.style.position = prev.position; body.style.top = prev.top; body.style.width = prev.width; body.style.overflow = prev.overflow; (body.style as any).overscrollBehavior = prev.overscroll; window.scrollTo(0, y); el.style.height = ''; el.style.top = ''; };
   }, [compact, active?.id]);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
-    const onScroll = () => { pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
+    const onScroll = () => { debugCounts.current.scroll++; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
     el.addEventListener('scroll', onScroll, { passive: true });
-    const ro = new ResizeObserver(() => { if (pinnedRef.current) scrollToEnd(); });
+    const ro = new ResizeObserver(() => { debugCounts.current.ro++; if (pinnedRef.current) scrollToEnd(); });
     ro.observe(el); Array.from(el.children).forEach((ch) => ro.observe(ch));
-    const mo = new MutationObserver(() => { Array.from(el.children).forEach((ch) => ro.observe(ch)); if (pinnedRef.current) scrollToEnd(); });
+    const mo = new MutationObserver(() => { debugCounts.current.mo++; Array.from(el.children).forEach((ch) => ro.observe(ch)); if (pinnedRef.current) scrollToEnd(); });
     mo.observe(el, { childList: true });
     return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); };
   }, [active?.id]);
@@ -486,6 +494,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               <div ref={bottomRef} />
             </div>
             <footer className="border-t border-ink/10 pt-3">{composer}</footer>
+            {typeof window !== 'undefined' && window.location.search.includes('debug=1') ? <pre ref={debugRef} className="pointer-events-none fixed left-2 top-2 z-[90] rounded bg-black/80 p-2 text-[11px] leading-tight text-white" /> : null}
           </>
         )}
       </div>
