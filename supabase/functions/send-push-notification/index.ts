@@ -41,9 +41,9 @@ serve(async (req) => {
     // Ringing is send-voip-push's job on both platforms (CallKit on iPhone, the
     // call channel on Android). A second push here only doubles the ring.
     if (type === "incoming_call") return json(200, { skipped: true, reason: "rung by send-voip-push" });
+    const admin = createClient(SB_URL, SB_SERVICE);
     // Quiet mode: nothing pushes during the person's chosen hours, in their own time zone.
     {
-    const admin = createClient(SB_URL, SB_SERVICE);
       const { data: prof } = await admin.from("profiles").select("quiet_from, quiet_to, quiet_tz_offset_min").eq("id", record.recipient_id || record.user_id).maybeSingle();
       const qf = (prof as any)?.quiet_from, qt = (prof as any)?.quiet_to;
       if (qf != null && qt != null) {
