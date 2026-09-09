@@ -13,6 +13,8 @@ export default function FrameStickerCard({ uri, caption, takenAt, interactive }:
     if (!interactive || revealed) return;
     let sub: any = null;
     try {
+      // Only load the sensor library when the app on this phone was built with it.
+      const mods = (globalThis as any).expo?.modules; if (!mods || !mods.ExponentAccelerometer) return;
       const sensors = require('expo-sensors');
       if (sensors?.Accelerometer) { sensors.Accelerometer.isAvailableAsync().then((ok: boolean) => { if (!ok || revealed) return; try { sensors.Accelerometer.setUpdateInterval(120); sub = sensors.Accelerometer.addListener((a: any) => { const g = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z); if (g > 2.2) reveal(); }); } catch {} }).catch(() => {}); }
     } catch {}

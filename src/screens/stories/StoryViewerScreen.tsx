@@ -470,13 +470,21 @@ export default function StoryViewerScreen() {
     saveAndGoBack();
     setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: [seed] }), 200);
   }, [saveAndGoBack, navigation]);
-  const pickBackgroundThen = useCallback(async (seeds: any[]) => {
-    let picked: any = null;
-    try { const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] as any, quality: 0.9, allowsMultipleSelection: false }); picked = res?.assets?.[0] || null; } catch {}
-    saveAndGoBack();
-    if (picked) { const asset = { uri: picked.uri, width: picked.width, height: picked.height, type: 'image', rearType: 'image' }; setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'image', assets: [asset], seedStickers: seeds }), 200); }
-    else setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: seeds }), 200);
-  }, [saveAndGoBack, navigation]);
+  // Every share to a story asks how first: on a colour, on a photo from the library, or with a photo taken now.
+  const pickBackgroundThen = useCallback((seeds: any[]) => {
+    const openWith = (picked: any | null) => {
+      saveAndGoBack();
+      if (picked) { const asset = { uri: picked.uri, width: picked.width, height: picked.height, type: 'image', rearType: 'image' }; setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'image', assets: [asset], seedStickers: seeds }), 200); }
+      else setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: seeds }), 200);
+    };
+    pauseFor('share');
+    Alert.alert('Share to your story', 'Choose a background', [
+      { text: 'Text on a colour', onPress: () => openWith(null) },
+      { text: 'Choose a photo', onPress: async () => { let picked: any = null; try { const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] as any, quality: 0.9, allowsMultipleSelection: false }); picked = res?.assets?.[0] || null; } catch {} if (picked) openWith(picked); else resumeFrom('share'); } },
+      { text: 'Take a photo', onPress: async () => { let picked: any = null; try { const perm = await ImagePicker.requestCameraPermissionsAsync(); if (perm.granted) { const res = await ImagePicker.launchCameraAsync({ quality: 0.9 }); picked = res?.assets?.[0] || null; } } catch {} if (picked) openWith(picked); else resumeFrom('share'); } },
+      { text: 'Cancel', style: 'cancel', onPress: () => resumeFrom('share') },
+    ]);
+  }, [saveAndGoBack, navigation, pauseFor, resumeFrom]);
   const handleShareResults = useCallback((rows: { label: string; pct: number; correct?: boolean }[], total: number) => {
     const title = responsesSheet.title || 'Results';
     dispatchResponsesSheet({ type: 'CLOSE' });
@@ -503,9 +511,8 @@ export default function StoryViewerScreen() {
     const seeds: any[] = responsesSheet.type === 'magic' ? [{ id: 'mg_' + Date.now(), text: title, style: 'classic', color: '#FFFFFF', nx: 0.5, ny: 0.42, scale: 1, rotation: 0, kind: 'magic', magicQuestion: title, magicAnswer: text }] : [q, a];
     if (responder?.username) seeds.push({ id: 'mn_' + Date.now(), text: '@' + responder.username, style: 'classic', color: '#FFFFFF', nx: 0.5, ny: 0.74, scale: 1, rotation: 0, kind: 'mention', mentionUserId: responder.id, mentionUsername: responder.username });
     dispatchResponsesSheet({ type: 'CLOSE' });
-    saveAndGoBack();
-    setTimeout(() => (navigation as any).navigate('StoryComposer', { mode: 'text', assets: [], seedStickers: seeds }), 200);
-  }, [responsesSheet.title, responsesSheet.type, saveAndGoBack, navigation]);
+    pickBackgroundThen(seeds);
+  }, [responsesSheet.title, responsesSheet.type, pickBackgroundThen]);
   const handleAddYours = useCallback(async (sticker: any) => {
     if (!currentStory) return;
     try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'addyours', textValue: 'joined' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'joined' } }); } catch (e: any) { Alert.alert('Not saved', String(e?.message || e)); }
