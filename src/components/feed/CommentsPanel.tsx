@@ -40,6 +40,8 @@ type Comment = {
   media_url?: string | null;
   media_type?: string | null;
   hidden?: boolean;
+  spam?: boolean;
+  spam_reason?: string | null;
   replies: Comment[];
   author: { id: string; full_name?: string | null; username?: string | null; avatar_url?: string | null } | null;
 };
@@ -114,6 +116,8 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
   const inputRef = useRef<TextInput>(null);
   const listRef = useRef<FlatList<any>>(null);
   const [refreshing, setRefreshing] = useState(false);
+  // Comments that look like spam sit folded at the end; their writer sees their own inline, the post author reviews them.
+  const [showSpam, setShowSpam] = useState(false);
   useImperativeHandle(ref, () => ({ focusInput: () => inputRef.current?.focus() }), []);
   const onCountRef = useRef(onCount); onCountRef.current = onCount;
 
@@ -131,7 +135,7 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
 
       const { data: rows, error: cErr } = await supabase
         .from('post_comments')
-        .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, media_url, media_type, hidden_at')
+        .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, media_url, media_type, hidden_at, is_spam, spam_reason')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
       if (cErr) console.log('COMMENTS_ERROR', JSON.stringify(cErr));
@@ -139,7 +143,7 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
       // A hidden comment is seen by its writer and by the post's author only.
       let allRows = off ? [] : (rows ?? [])
         .filter((r: any) => !r.hidden_at || r.user_id === userId || authorIdNow === userId)
-        .map((r: any) => ({ ...r, body: r.body || r.content || '', hidden: !!r.hidden_at }));
+        .map((r: any) => ({ ...r, body: r.body || r.content || '', hidden: !!r.hidden_at, spam: !!r.is_spam && r.user_id !== userId, spam_reason: r.spam_reason ?? null }));
       if (userId) {
         try {
           const { data: blk } = await supabase.from('blocked_users').select('blocker_id, blocked_id').or('blocker_id.eq.' + userId + ',blocked_id.eq.' + userId);
@@ -171,7 +175,7 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
       }
       setItems(hydrated);
       setReactions(reacts);
-      onCountRef.current?.(hydrated.reduce((acc, c) => acc + (c.hidden ? 0 : 1 + c.replies.length), 0));
+      onCountRef.current?.(hydrated.reduce((acc, c) => acc + ((c.hidden || c.spam) ? 0 : 1 + c.replies.length), 0));
     } catch (e) {
       console.log('COMMENTS_PANEL_LOAD', e);
     } finally {
@@ -258,6 +262,26 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
     finally { setSubmitting(false); }
   };
 
+  // Long-press on a comment: the post author moderates from here (hide, spam, restrict); a writer can delete their own.
+  const commentMenu = (c: Comment) => {
+    const isOwn = c.user_id === userId;
+    const isPostAuthor = !!ownerId && ownerId === userId;
+    const who = c.author?.full_name || (c.author?.username ? '@' + c.author.username : 'this person');
+    const buttons: any[] = [];
+    if (isPostAuthor && !isOwn) {
+      buttons.push({ text: c.hidden ? 'Unhide comment' : 'Hide comment', onPress: () => supabase.rpc('set_comment_hidden', { p_comment_id: c.id, p_hidden: !c.hidden }).then(() => load(), () => {}) });
+      buttons.push({ text: c.spam ? 'Not spam' : 'Mark as spam', onPress: () => supabase.rpc('set_comment_spam', { p_comment_id: c.id, p_spam: !c.spam }).then(() => load(), () => {}) });
+      buttons.push({ text: 'Restrict ' + who, onPress: () => Alert.alert('Restrict ' + who + '?', 'Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Restrict', style: 'destructive', onPress: () => supabase.rpc('set_restriction', { p_user: c.user_id, p_on: true }).then(({ error }) => { if (error) Alert.alert('Could not restrict', error.message); else Alert.alert('Restricted', who + ' is restricted. Undo it in Settings, under Restricted accounts.'); }) },
+      ]) });
+    }
+    if (isOwn) buttons.push({ text: 'Delete comment', style: 'destructive', onPress: async () => { await supabase.from('post_comments').delete().eq('id', c.id); load(); } });
+    if (!buttons.length) return;
+    buttons.push({ text: 'Cancel', style: 'cancel' });
+    Alert.alert(who, c.spam ? 'Folded as possible spam' + (c.spam_reason ? ' (' + c.spam_reason + ')' : '') : undefined, buttons);
+  };
+
   const renderComment = (c: Comment, isReply = false, parentId?: string): React.ReactElement | null => {
     const myReaction = reactions[c.id] ?? 0;
     const isLiked = myReaction === 1;
@@ -269,7 +293,7 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
     return (
       <View key={c.id} style={[s.commentWrap, isReply && s.replyWrap]}>
         {isReply && <View style={s.threadLine} />}
-        <View style={[s.commentCard, c.hidden && { opacity: 0.55 }]}>
+        <TouchableOpacity activeOpacity={1} delayLongPress={350} onLongPress={() => commentMenu(c)} style={[s.commentCard, c.hidden && { opacity: 0.55 }]}>
           <View style={s.commentTop}>
             <TouchableOpacity style={s.commentAuthorRow} onPress={() => a?.id && navigation.navigate('UserProfile', { userId: a.id })} activeOpacity={0.8}>
               {a?.avatar_url
@@ -314,6 +338,11 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
                 <Text style={s.commentActionTxt}>{c.hidden ? 'Unhide' : 'Hide'}</Text>
               </TouchableOpacity>
             )}
+            {isPostAuthor && !isOwn && (
+              <TouchableOpacity style={s.commentAction} activeOpacity={0.75} onPress={() => supabase.rpc('set_comment_spam', { p_comment_id: c.id, p_spam: !c.spam }).then(() => load(), () => {})} accessibilityRole="button" accessibilityLabel={c.spam ? 'Not spam' : 'Mark as spam'}>
+                <Text style={s.commentActionTxt}>{c.spam ? 'Not spam' : 'Spam'}</Text>
+              </TouchableOpacity>
+            )}
             {isOwn && (
               <TouchableOpacity
                 style={s.commentAction}
@@ -327,7 +356,7 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
               </TouchableOpacity>
             )}
           </View>
-        </View>
+        </TouchableOpacity>
         {c.replies.length > 0 && !isReply && !expandedReplies.has(c.id) ? (
           <TouchableOpacity style={s.repliesToggle} onPress={() => setExpandedReplies((prev) => new Set(prev).add(c.id))} activeOpacity={0.7}>
             <View style={s.repliesRule} />
@@ -424,10 +453,23 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
     <View style={s.root}>
       <FlatList
         ref={listRef}
-        data={items}
+        data={items.filter((c) => !c.spam)}
         keyExtractor={(c) => c.id}
         renderItem={({ item }) => renderComment(item)}
         ListHeaderComponent={header ? <>{header}</> : null}
+        ListFooterComponent={(() => {
+          const spam = items.filter((c) => c.spam && (!c.hidden || c.user_id === userId || (!!ownerId && ownerId === userId)));
+          if (!spam.length) return null;
+          return (
+            <View style={{ paddingTop: 6 }}>
+              <TouchableOpacity style={s.spamToggle} onPress={() => setShowSpam((v) => !v)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={showSpam ? 'Hide possible spam' : 'Show possible spam'}>
+                <Feather name={showSpam ? 'chevron-up' : 'chevron-down'} size={14} color={TEXT_SECONDARY} />
+                <Text style={s.repliesTxt}>{spam.length} {spam.length === 1 ? 'comment' : 'comments'} may be spam</Text>
+              </TouchableOpacity>
+              {showSpam ? spam.map((c) => renderComment(c)) : null}
+            </View>
+          );
+        })()}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets={onScreen && Platform.OS === 'ios'}
@@ -485,6 +527,7 @@ const s = themedSheet((t) => ({
   deleteTxt: { fontSize: 12, color: '#FF3B30', fontWeight: '500' },
   repliesToggle: { marginLeft: 44, marginTop: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
   repliesRule: { width: 24, height: 1, backgroundColor: '#C7CDD6' },
+  spamToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 16 },
   repliesTxt: { fontSize: 12.5, fontWeight: '600', color: TEXT_SECONDARY },
   mentionDrop: {
     marginHorizontal: 12, marginBottom: 2,

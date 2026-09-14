@@ -88,6 +88,7 @@ import CommunityScreen           from '../screens/channels/CommunityScreen';
 import StudioScreen              from '../screens/studio/StudioScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import BlockedAccountsScreen from '../screens/profile/BlockedAccountsScreen';
+import RestrictedAccountsScreen from '../screens/profile/RestrictedAccountsScreen';
 import CreateBusinessScreen from '../screens/profile/CreateBusinessScreen';
 import BusinessesScreen from '../screens/profile/BusinessesScreen';
 import ContextInboxScreen from '../screens/messages/ContextInboxScreen';
@@ -201,6 +202,7 @@ function ProfileStackNav() {
       <ProfStack.Screen name="AccountStanding" component={AccountStandingScreen} />
       <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
       <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
+      <ProfStack.Screen name="RestrictedAccounts" component={RestrictedAccountsScreen} />
       <ProfStack.Screen name="CreateBusiness"  component={CreateBusinessScreen} />
       <ProfStack.Screen name="Businesses"      component={BusinessesScreen} />
       <ProfStack.Screen name="BusinessManage"  component={BusinessManageScreen} />

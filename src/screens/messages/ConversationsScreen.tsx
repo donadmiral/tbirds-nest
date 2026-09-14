@@ -38,6 +38,7 @@ type Conversation = {
   group_avatar_url?: string | null;
   group_type?: string | null;
   group_ref_id?: string | null;
+  request_pending?: boolean;
   is_pinned: boolean;
   is_muted: boolean;
   is_archived: boolean;
@@ -232,6 +233,7 @@ useEffect(() => {
             last_message: c.last_message || '', last_message_time: c.last_message_time,
             unread_count: unreadMap[c.id] || 0,
             context: c.context || 'personal', is_group: false, group_emoji: null, group_avatar_url: null,
+            request_pending: c.request_status === 'pending' && !!c.request_sender_id && c.request_sender_id === otherId,
             is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived, manually_unread: !!(s as any).manually_unread,
           };
         });
@@ -491,6 +493,7 @@ const setConvSetting = useCallback(async (conv: Conversation, patch: Record<stri
     const ctx = (c as any).context || 'personal';
     // A community's chat belongs to its community: it lives under Groups, never among people.
     if (c.group_type === 'community') return false; // a community's chat opens from the community, not from here
+    if (c.request_pending) return false; // waiting in Message requests until accepted there
     const matchTab = tab === 'all'
       ? ctx === 'personal'
       : tab === 'unread' ? c.unread_count > 0

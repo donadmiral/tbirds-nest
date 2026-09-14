@@ -89,6 +89,33 @@ export default function UserProfileScreen() {
   const afterSlide = useAfterTransition();
   const [refreshing, setRefreshing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
+  // Restrict (Instagram's model): quieter than a block, and the person is not told.
+  const [restricted, setRestricted] = useState(false);
+  useEffect(() => {
+    if (!myId || !targetId || myId === targetId) return;
+    let alive = true;
+    supabase.from('user_restrictions').select('restricted_id').eq('restrictor_id', myId).eq('restricted_id', targetId).maybeSingle()
+      .then(({ data }) => { if (alive) setRestricted(!!data); }, () => {});
+    return () => { alive = false; };
+  }, [myId, targetId]);
+  const toggleRestrict = () => {
+    const who = profile?.full_name || (profile?.username ? '@' + profile.username : 'this person');
+    if (restricted) {
+      supabase.rpc('set_restriction', { p_user: targetId, p_on: false }).then(({ error }) => { if (error) Alert.alert('Could not update', error.message); else setRestricted(false); });
+      return;
+    }
+    Alert.alert('Restrict ' + who + '?', 'Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Restrict', style: 'destructive', onPress: () => supabase.rpc('set_restriction', { p_user: targetId, p_on: true }).then(({ error }) => { if (error) Alert.alert('Could not restrict', error.message); else setRestricted(true); }) },
+    ]);
+  };
+  const moreMenu = () => {
+    Alert.alert(profile?.full_name || 'Options', undefined, [
+      { text: restricted ? 'Unrestrict' : 'Restrict', onPress: toggleRestrict },
+      { text: 'Block', style: 'destructive', onPress: confirmBlock },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
 
   const load = useCallback(async () => {
     if (!targetId) return;
@@ -292,7 +319,7 @@ export default function UserProfileScreen() {
           onEdit={isOwnProfile ? () => navigation.navigate('Profile', { screen: 'EditProfile' }) : undefined}
           actions={isOwnProfile ? undefined : (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <TouchableOpacity onPress={confirmBlock} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="More options" style={{ width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="more-horizontal" size={16} color={NAVY} /></TouchableOpacity>
+              <TouchableOpacity onPress={moreMenu} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="More options" style={{ width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="more-horizontal" size={16} color={NAVY} /></TouchableOpacity>
               <TouchableOpacity
                 onPress={openMessage}
                 activeOpacity={0.8}

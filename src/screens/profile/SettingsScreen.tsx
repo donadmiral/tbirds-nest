@@ -300,6 +300,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
         } catch (e: any) { Alert.alert('Could not export', e?.message || 'Try again.'); }
       } },
       { icon: 'slash', color: '#FF3B30', label: 'Blocked accounts', sub: 'See and undo who you blocked', onPress: () => navigation.navigate('BlockedAccounts') },
+      { icon: 'user-minus', color: '#0B1E3D', label: 'Restricted accounts', sub: 'Their comments wait for your approval and their messages go to requests', onPress: () => navigation.navigate('RestrictedAccounts') },
       { icon: 'briefcase', color: '#0B1E3D', label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages
       { icon: 'mail', color: '#0B1E3D', label: 'Message requests', sub: 'Messages from people you do not follow', onPress: () => (navigation as any).navigate('MessageRequests') },
       { icon: 'award', color: '#0B1E3D', label: 'Verification', sub: 'Apply for the badge - earned, never bought', onPress: () => (navigation as any).navigate('ApplyVerification') },

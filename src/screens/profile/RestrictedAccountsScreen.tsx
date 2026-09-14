@@ -1,13 +1,10 @@
-import VerifiedBadge from '../../components/VerifiedBadge';
-import TierName from '../../components/TierName';
-import { themedSheet, getTheme } from '../../theme/useTheme';
-import EmptyState from '../../components/EmptyState';
 /**
- * BlockedAccountsScreen
+ * RestrictedAccountsScreen
  *
- * Blocking was one-way. The post menu wrote to blocked_users and no screen
- * anywhere listed or removed a block, so a user who blocked by accident was
- * stuck permanently. This is the missing half.
+ * Restrict is the quiet alternative to a block: a restricted person's comments on
+ * your posts stay hidden until you approve them, their messages wait in Message
+ * requests, and nothing they do notifies you. They are never told. This screen
+ * lists them and undoes it.
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -18,11 +15,13 @@ import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
-import { useAuthStore } from '../../stores/authStore';
-import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import VerifiedBadge from '../../components/VerifiedBadge';
+import TierName from '../../components/TierName';
+import { themedSheet, getTheme } from '../../theme/useTheme';
 
-type Blocked = {
-  blocked_id: string;
+type Restricted = {
+  user_id: string;
   created_at: string | null;
   full_name: string | null;
   username: string | null;
@@ -35,72 +34,42 @@ function initials(name?: string | null) {
   return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase();
 }
 
-export default function BlockedAccountsScreen({ navigation }: any) {
+export default function RestrictedAccountsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { profile } = useAuthStore();
-  const userId = (profile as any)?.id ?? null;
-
-  const [rows, setRows] = useState<Blocked[]>([]);
+  const [rows, setRows] = useState<Restricted[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
   const load = useCallback(async () => {
-    if (!userId) { setLoading(false); return; }
     setError(null);
-    const { data, error: err } = await supabase
-      .from('blocked_users')
-      .select('blocked_id, created_at')
-      .eq('blocker_id', userId)
-      .order('created_at', { ascending: false });
-
+    const { data, error: err } = await supabase.rpc('get_restricted_accounts');
     if (err) { setError(err.message); setLoading(false); return; }
-
-    const ids = (data ?? []).map((r: any) => r.blocked_id);
-    if (ids.length === 0) { setRows([]); setLoading(false); return; }
-
-    const { data: people, error: pErr } = await supabase
-      .from('profiles')
-      .select('id, full_name, username, avatar_url')
-      .in('id', ids);
-    if (pErr) { setError(pErr.message); setLoading(false); return; }
-
-    const byId = new Map((people ?? []).map((p: any) => [p.id, p]));
-    setRows((data ?? []).map((r: any) => ({
-      blocked_id: r.blocked_id,
-      created_at: r.created_at,
-      full_name: byId.get(r.blocked_id)?.full_name ?? null,
-      username: byId.get(r.blocked_id)?.username ?? null,
-      avatar_url: byId.get(r.blocked_id)?.avatar_url ?? null,
+    setRows(((data ?? []) as any[]).map((r) => ({
+      user_id: r.user_id, created_at: r.created_at ?? null,
+      full_name: r.full_name ?? null, username: r.username ?? null, avatar_url: r.avatar_url ?? null,
     })));
     setLoading(false);
-  }, [userId]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const unblock = (row: Blocked) => {
+  const unrestrict = (row: Restricted) => {
     const name = row.full_name || (row.username ? `@${row.username}` : 'this person');
     Alert.alert(
-      'Unblock?',
-      `${name} will be able to see your posts and message you again.`,
+      'Unrestrict?',
+      `${name}'s comments will show on your posts as usual and their messages will come straight to your chats.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Unblock',
+          text: 'Unrestrict',
           onPress: async () => {
-            setBusy(b => ({ ...b, [row.blocked_id]: true }));
+            setBusy(b => ({ ...b, [row.user_id]: true }));
             const before = rows;
-            setRows(r => r.filter(x => x.blocked_id !== row.blocked_id));
-            const { error: err } = await supabase
-              .from('blocked_users')
-              .delete()
-              .eq('blocker_id', userId)
-              .eq('blocked_id', row.blocked_id);
-            setBusy(b => { const n = { ...b }; delete n[row.blocked_id]; return n; });
-            if (err) {
-              setRows(before);
-              Alert.alert('Could not unblock', err.message);
-            }
+            setRows(r => r.filter(x => x.user_id !== row.user_id));
+            const { error: err } = await supabase.rpc('set_restriction', { p_user: row.user_id, p_on: false });
+            setBusy(b => { const n = { ...b }; delete n[row.user_id]; return n; });
+            if (err) { setRows(before); Alert.alert('Could not unrestrict', err.message); }
           },
         },
       ],
@@ -118,7 +87,7 @@ export default function BlockedAccountsScreen({ navigation }: any) {
         >
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
-        <Text style={s.title}>Blocked accounts</Text>
+        <Text style={s.title}>Restricted accounts</Text>
         <View style={{ width: 26 }} />
       </View>
 
@@ -127,7 +96,7 @@ export default function BlockedAccountsScreen({ navigation }: any) {
       ) : error ? (
         <View style={s.centered}>
           <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />
-          <Text style={s.emptyTitle}>Could not load blocked accounts</Text>
+          <Text style={s.emptyTitle}>Could not load restricted accounts</Text>
           <Text style={s.emptySub}>{error}</Text>
           <TouchableOpacity style={s.retry} onPress={() => { setLoading(true); load(); }}>
             <Text style={s.retryTxt}>Try again</Text>
@@ -135,41 +104,46 @@ export default function BlockedAccountsScreen({ navigation }: any) {
         </View>
       ) : rows.length === 0 ? (
         <View style={s.centered}>
-          <Feather name="slash" size={30} color={getTheme().ink.faint} />
-          <Text style={s.emptyTitle}>Nobody is blocked</Text>
+          <Feather name="user-minus" size={30} color={getTheme().ink.faint} />
+          <Text style={s.emptyTitle}>Nobody is restricted</Text>
           <Text style={s.emptySub}>
-            When you block someone they cannot see your posts or message you. You can undo it here.
+            Restrict someone from their profile or from one of their comments. Their comments on your posts then wait for your approval, their messages go to Message requests, and they are not told.
           </Text>
         </View>
       ) : (
-        <FlatList ListEmptyComponent={<EmptyState icon="slash" title="Nobody blocked" line="Accounts you block appear here." />}
+        <FlatList
           data={rows}
-          keyExtractor={r => r.blocked_id}
+          keyExtractor={r => r.user_id}
           contentContainerStyle={{ paddingHorizontal: 14, paddingTop: space.sm, paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
           renderItem={({ item }) => (
             <View style={s.row}>
-              {item.avatar_url ? (
-                <Image source={{ uri: item.avatar_url }} style={s.avatar} />
-              ) : (
-                <View style={[s.avatar, s.avatarFallback]}>
-                  <Text style={s.avatarTxt}>{initials(item.full_name)}</Text>
-                </View>
-              )}
+              <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item.user_id })} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={`Open ${item.full_name || 'profile'}`}>
+                {item.avatar_url ? (
+                  <Image source={{ uri: item.avatar_url }} style={s.avatar} />
+                ) : (
+                  <View style={[s.avatar, s.avatarFallback]}>
+                    <Text style={s.avatarTxt}>{initials(item.full_name)}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
               <View style={s.rowText}>
-                <Text style={s.name} numberOfLines={1}><TierName userId={item.blocked_id} baseStyle={s.name} text={item.full_name || 'User'} numberOfLines={1} /><VerifiedBadge userId={item.blocked_id} size={12} /> <VerifiedBadge userId={((item) as any)?.id ?? ((item) as any)?.user_id} size={12} /></Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  <TierName userId={item.user_id} baseStyle={s.name} text={item.full_name || 'User'} numberOfLines={1} />
+                  <VerifiedBadge userId={item.user_id} size={12} />
+                </View>
                 {item.username ? <Text style={s.handle} numberOfLines={1}>@{item.username}</Text> : null}
               </View>
               <TouchableOpacity
-                style={s.unblockBtn}
-                onPress={() => unblock(item)}
-                disabled={!!busy[item.blocked_id]}
+                style={s.undoBtn}
+                onPress={() => unrestrict(item)}
+                disabled={!!busy[item.user_id]}
                 activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel={`Unblock ${item.full_name || 'user'}`}
+                accessibilityLabel={`Unrestrict ${item.full_name || 'user'}`}
               >
-                {busy[item.blocked_id]
+                {busy[item.user_id]
                   ? <ActivityIndicator size="small" color={getTheme().ink.primary} />
-                  : <Text style={s.unblockTxt}>Unblock</Text>}
+                  : <Text style={s.undoTxt}>Unrestrict</Text>}
               </TouchableOpacity>
             </View>
           )}
@@ -195,7 +169,6 @@ const s = themedSheet((t) => ({
     borderRadius: radius.full, backgroundColor: t.brand.base,
   },
   retryTxt: { color: t.ink.inverse, fontSize: typeSize.caption, fontWeight: fontWeight.bold },
-
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm },
   avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.surface.sunken },
   avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base },
@@ -203,11 +176,11 @@ const s = themedSheet((t) => ({
   rowText: { flex: 1 },
   name: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary },
   handle: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 1 },
-  unblockBtn: {
-    minWidth: 78, alignItems: 'center',
+  undoBtn: {
+    minWidth: 92, alignItems: 'center',
     paddingHorizontal: space.sm, paddingVertical: 7,
     borderRadius: radius.full,
     borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline,
   },
-  unblockTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.ink.primary },
+  undoTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.bold, color: t.ink.primary },
 }));
