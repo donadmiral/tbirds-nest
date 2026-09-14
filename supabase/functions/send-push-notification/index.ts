@@ -37,6 +37,21 @@ serve(async (req) => {
     const recipientId = record.recipient_id || null;
     const actorId = record.actor_id || null;
     const type = record.type || "notification";
+    // Instagram's categories: what happened decides the category; the category decides the Android channel and the person's preference.
+    const CATEGORY: Record<string, string> = {
+      like: "likes", comment_like: "likes", story_reaction: "likes", repost: "likes",
+      comment: "comments", reply: "comments",
+      mention: "mentions", story_mention: "mentions",
+      message: "messages", message_request: "messages",
+      message_reaction: "message_reactions",
+      follow: "followers", follow_request: "followers", follow_accepted: "followers", connection_request: "followers", connection_accepted: "followers",
+      incoming_call: "calls", missed_call: "calls",
+      community_invite: "updates", collab_invite: "updates", business_member: "updates", channel_post: "updates",
+      job_application: "jobs", job_referral: "jobs",
+      payment_received: "payments",
+      system: "account", login_alert: "account", verification: "account",
+    };
+    const category = CATEGORY[type] || "updates";
     const isCollab = type === "collab_invite"; // pushed with high priority and its own title
     // Ringing is send-voip-push's job on both platforms (CallKit on iPhone, the
     // call channel on Android). A second push here only doubles the ring.
@@ -106,8 +121,8 @@ serve(async (req) => {
       // ONE rule for every type: an explicit false in notif_prefs silences it;
       // a missing key means enabled. Legacy booleans below remain as fallback.
       const prefs = (profile as any).notif_prefs || {};
-      if (prefs[type] === false) {
-        return json(200, { skipped: "preference" });
+      if (prefs[type] === false || prefs[category] === false) {
+        return json(200, { skipped: "preference", category });
       }
       const msgTypes = ["message"];
       const connTypes = ["connection_request", "connection_accepted", "follow"];
@@ -180,8 +195,11 @@ serve(async (req) => {
       body: notifBody,
       sound: "default",
       badge: unreadCount,
+      channelId: category,
+      priority: (category === "messages" || category === "calls") ? "high" : "default",
       data: {
         type,
+        category,
         notificationId: record.id || null,
         ...data,
       },
