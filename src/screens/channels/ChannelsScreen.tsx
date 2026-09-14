@@ -47,8 +47,17 @@ export default function ChannelsScreen() {
         const { data, error } = await supabase.rpc('get_channels', { p_query: q || null, p_limit: 40 });
         if (!error) setRows(data || []);
       } else {
-        const { data, error } = await supabase.rpc('get_communities', { p_query: q || null, p_limit: 40 });
-        if (!error) setCommRows(data || []);
+        const [{ data, error }, { data: inv }] = await Promise.all([
+          supabase.rpc('get_communities', { p_query: q || null, p_limit: 40 }),
+          supabase.rpc('get_my_community_invites'),
+        ]);
+        if (!error) {
+          // Invitations sit at the top of the directory; accepting one admits you even to an invite-only community.
+          const invited = new Set(((inv || []) as any[]).map((i: any) => i.id));
+          const base = ((data || []) as any[]).map((r: any) => ({ ...r, has_invite: invited.has(r.id) }));
+          const extra = ((inv || []) as any[]).filter((i: any) => !base.some((r: any) => r.id === i.id)).map((i: any) => ({ id: i.id, name: i.name, icon_url: i.icon_url, cover_color: i.cover_color, member_count: i.member_count, join_mode: 'invite', is_member: false, has_pending: false, has_invite: true, description: 'Invited by ' + (i.invited_by_name || i.invited_by_username || 'a moderator') }));
+          setCommRows([...extra, ...base].sort((x: any, y: any) => (y.has_invite ? 1 : 0) - (x.has_invite ? 1 : 0)));
+        }
       }
     } finally { setLoading(false); }
   }, []);
@@ -169,6 +178,10 @@ export default function ChannelsScreen() {
       </View>
       {item.is_member ? (
         <View style={s.joinedPill}><Text style={s.joinedTxt}>Joined</Text></View>
+      ) : item.has_invite ? (
+        <TouchableOpacity style={s.joinPill} activeOpacity={0.85} onPress={() => joinCommunity(item)}>
+          <Text style={s.joinTxt}>Accept invite</Text>
+        </TouchableOpacity>
       ) : item.has_pending ? (
         <View style={s.joinedPill}><Text style={s.joinedTxt}>Requested</Text></View>
       ) : item.join_mode === 'invite' ? (

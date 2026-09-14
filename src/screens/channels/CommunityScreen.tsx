@@ -2,7 +2,7 @@ import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView, Share } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -13,6 +13,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { uploadMedia } from '../../services/mediaService';
 import { CATEGORIES } from '../../constants/categories';
 import { COMM_COLORS } from './ChannelsScreen';
+import PeoplePickerSheet from '../../components/PeoplePickerSheet';
 
 const NAVY = '#0B1E3D';
 
@@ -53,6 +54,21 @@ export default function CommunityScreen() {
   const [eCat, setECat] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [iconBusy, setIconBusy] = useState(false);
+  // Membership machine: invitations, announcements, sub-groups, limited and removed members.
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [annOpen, setAnnOpen] = useState(false);
+  const [annDraft, setAnnDraft] = useState('');
+  const [subs, setSubs] = useState<any[]>([]);
+  const [subOpen, setSubOpen] = useState(false);
+  const [subName, setSubName] = useState('');
+  const [subDesc, setSubDesc] = useState('');
+  const [subMode, setSubMode] = useState<'open' | 'approval' | 'invite'>('open');
+  const [subBusy, setSubBusy] = useState(false);
+  const [bansOpen, setBansOpen] = useState(false);
+  const [bans, setBans] = useState<any[]>([]);
+  const [invitesOpen, setInvitesOpen] = useState(false);
+  const [invites, setInvites] = useState<any[]>([]);
 
   const isMember = !!info.is_member;
   const myRole = info.my_role as string | null;
@@ -89,6 +105,110 @@ export default function CommunityScreen() {
   }, [loadInfo]);
 
   useEffect(() => { if (isMember) void loadPosts(null); }, [isMember, loadPosts]);
+
+  const loadExtras = useCallback(async () => {
+    const [{ data: an }, { data: sb }] = await Promise.all([
+      supabase.rpc('get_community_announcements', { p_community: communityId, p_limit: 20 }),
+      supabase.rpc('get_sub_communities', { p_community: communityId, p_limit: 30 }),
+    ]);
+    setAnnouncements(an || []); setSubs(sb || []);
+  }, [communityId]);
+  useEffect(() => { if (isMember) void loadExtras(); }, [isMember, loadExtras]);
+
+  const respondInvite = async (accept: boolean) => {
+    try {
+      const { data, error } = await supabase.rpc('respond_community_invite', { p_community: communityId, p_accept: accept });
+      if (error) throw error;
+      if (data === 'joined') setInfo((p: any) => ({ ...p, is_member: true, my_role: p.my_role || 'member', my_status: 'active', has_invite: false, member_count: (p.member_count || 0) + 1 }));
+      else setInfo((p: any) => ({ ...p, has_invite: false }));
+    } catch (e: any) { Alert.alert('Could not respond', e?.message || 'Please try again.'); }
+  };
+  const invitePerson = async (p: { id: string; full_name: string | null; username: string | null }) => {
+    const { error } = await supabase.rpc('invite_to_community', { p_community: communityId, p_user: p.id });
+    if (error) { Alert.alert('Could not invite', error.message); return; }
+    Alert.alert('Invitation sent', (p.full_name || p.username || 'They') + ' will see it in their notifications.');
+  };
+  const shareInviteLink = async (fresh = false) => {
+    try {
+      let token: string | null = null;
+      if (!fresh) {
+        const { data } = await supabase.rpc('get_community_invite_link', { p_community: communityId });
+        const row = Array.isArray(data) ? data[0] : data;
+        token = row?.token || null;
+      }
+      if (!token) {
+        const { data, error } = await supabase.rpc('create_community_invite_link', { p_community: communityId, p_expires_days: 7, p_max_uses: null });
+        if (error) throw error;
+        token = String(data);
+      }
+      const url = 'https://platinumcircles.app/communities/join/' + token;
+      await Share.share({ message: 'Join ' + (info.name || 'my community') + ' on Platinum Circles: ' + url, url });
+    } catch (e: any) { Alert.alert('Could not make a link', e?.message || 'Please try again.'); }
+  };
+  const openInvites = async () => {
+    setInvitesOpen(true);
+    const { data } = await supabase.rpc('get_community_invites', { p_community: communityId, p_limit: 60 });
+    setInvites(data || []);
+  };
+  const inviteMenu = () => {
+    Alert.alert('Invite people', 'An invitation always admits, even when the community is invite only.', [
+      { text: 'Pick people', onPress: () => setInviteOpen(true) },
+      { text: 'Share invite link', onPress: () => void shareInviteLink(false) },
+      { text: 'New invite link (the old one stops working)', onPress: () => void shareInviteLink(true) },
+      { text: 'Pending invitations', onPress: () => void openInvites() },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+  const revokeInvite = async (r: any) => {
+    const { error } = await supabase.rpc('revoke_community_invite', { p_community: communityId, p_user: r.user_id });
+    if (error) { Alert.alert('Failed', error.message); return; }
+    setInvites(prev => prev.filter(x => x.user_id !== r.user_id));
+  };
+  const postAnnouncement = async () => {
+    const body = annDraft.trim(); if (!body) return;
+    const { error } = await supabase.rpc('post_community_announcement', { p_community: communityId, p_body: body });
+    if (error) { Alert.alert('Could not post', error.message); return; }
+    setAnnDraft(''); setAnnOpen(false); void loadExtras();
+  };
+  const deleteAnnouncement = (a: any) => {
+    Alert.alert('Remove this announcement?', undefined, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: async () => { await supabase.rpc('delete_community_announcement', { p_id: a.id }); setAnnouncements(prev => prev.filter(x => x.id !== a.id)); } },
+    ]);
+  };
+  const createSub = async () => {
+    const nm = subName.trim(); if (nm.length < 3 || subBusy) return;
+    setSubBusy(true);
+    try {
+      const { data, error } = await supabase.rpc('create_sub_community', { p_parent: communityId, p_name: nm, p_description: subDesc.trim() || null, p_join_mode: subMode, p_cover_color: info.cover_color || 'sky' });
+      if (error) throw error;
+      setSubOpen(false); setSubName(''); setSubDesc(''); setSubMode('open');
+      await loadExtras();
+      navigation.navigate('Community', { communityId: data, name: nm, coverColor: info.cover_color, isMember: true, myRole: 'owner' });
+    } catch (e: any) { Alert.alert('Could not create', e?.message || 'Please try again.'); }
+    finally { setSubBusy(false); }
+  };
+  const openBans = async () => {
+    setBansOpen(true);
+    const { data } = await supabase.rpc('get_community_bans', { p_community: communityId, p_limit: 60 });
+    setBans(data || []);
+  };
+  const unban = async (b: any) => {
+    const { error } = await supabase.rpc('unban_community_member', { p_community: communityId, p_user: b.user_id });
+    if (error) { Alert.alert('Failed', error.message); return; }
+    setBans(prev => prev.filter(x => x.user_id !== b.user_id));
+  };
+  const applyStatus = async (m: any, status: 'active' | 'limited') => {
+    const { error } = await supabase.rpc('set_community_member_status', { p_community: communityId, p_user: m.user_id, p_status: status });
+    if (error) { Alert.alert('Could not update', error.message); return; }
+    setMembers(prev => prev.map(x => x.user_id === m.user_id ? { ...x, status } : x));
+  };
+  const removeMember = async (m: any, ban: boolean) => {
+    const { error } = await supabase.rpc('remove_community_member', { p_community: communityId, p_user: m.user_id, p_ban: ban, p_reason: null });
+    if (error) { Alert.alert('Could not remove', error.message); return; }
+    setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
+    setInfo((p: any) => ({ ...p, member_count: Math.max((p.member_count || 1) - 1, 0) }));
+  };
 
   const join = async () => {
     try {
@@ -193,13 +313,15 @@ export default function CommunityScreen() {
   };
 
   const memberRole = (m: any) => {
-    if (myRole !== 'owner' || m.role === 'owner' || m.user_id === me?.id) return;
-    Alert.alert(m.full_name || 'Member', 'Change what this member can do.', [
-      { text: 'Make moderator', onPress: () => applyRole(m, 'moderator') },
-      { text: 'Make member', onPress: () => applyRole(m, 'member') },
-      { text: 'Remove from community', style: 'destructive', onPress: () => applyRole(m, 'remove') },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    if (!isMod || m.role === 'owner' || m.user_id === me?.id) return;
+    if (m.role === 'moderator' && myRole !== 'owner') return;
+    const buttons: any[] = [];
+    if (myRole === 'owner') buttons.push({ text: m.role === 'moderator' ? 'Make member' : 'Make moderator', onPress: () => applyRole(m, m.role === 'moderator' ? 'member' : 'moderator') });
+    buttons.push({ text: m.status === 'limited' ? 'Allow posting again' : 'Limit to viewing only', onPress: () => applyStatus(m, m.status === 'limited' ? 'active' : 'limited') });
+    buttons.push({ text: 'Remove from community', style: 'destructive', onPress: () => removeMember(m, false) });
+    buttons.push({ text: 'Remove and block from rejoining', style: 'destructive', onPress: () => removeMember(m, true) });
+    buttons.push({ text: 'Cancel', style: 'cancel' });
+    Alert.alert(m.full_name || 'Member', 'Change what this member can do.', buttons);
   };
 
   const applyRole = async (m: any, role: string) => {
@@ -322,6 +444,9 @@ export default function CommunityScreen() {
           {isMember && info.join_mode === 'approval' && isMod ? (
             <TouchableOpacity onPress={openRequests} style={s.bandBtn}><Feather name="inbox" size={19} color="#1F2937" /></TouchableOpacity>
           ) : null}
+          {isMember && isMod ? (
+            <TouchableOpacity onPress={inviteMenu} style={s.bandBtn}><Feather name="user-plus" size={19} color="#1F2937" /></TouchableOpacity>
+          ) : null}
           {isMember ? (
             <TouchableOpacity onPress={openMembers} style={s.bandBtn}><Feather name="users" size={19} color="#1F2937" /></TouchableOpacity>
           ) : null}
@@ -344,9 +469,17 @@ export default function CommunityScreen() {
             <Text style={s.commMeta} numberOfLines={1}>
               {info.member_count === 1 ? '1 member' : String(info.member_count || 0) + ' members'}{catLabel ? ' · ' + catLabel : ''}
             </Text>
+            {info.parent_id ? <TouchableOpacity onPress={() => navigation.navigate('Community', { communityId: info.parent_id, name: info.parent_name })} activeOpacity={0.7}><Text style={s.commMeta} numberOfLines={1}>Part of {info.parent_name}</Text></TouchableOpacity> : null}
           </View>
           {!isMember ? (
-            info.has_pending ? (
+            info.has_invite ? (
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <TouchableOpacity style={s.joinDark} onPress={() => respondInvite(true)} activeOpacity={0.85}><Text style={s.joinDarkTxt}>Accept</Text></TouchableOpacity>
+                <TouchableOpacity style={s.joinLight} onPress={() => respondInvite(false)} activeOpacity={0.85}><Text style={s.joinLightTxt}>Decline</Text></TouchableOpacity>
+              </View>
+            ) : info.is_banned ? (
+              <View style={s.joinLight}><Text style={s.joinLightTxt}>Removed</Text></View>
+            ) : info.has_pending ? (
               <TouchableOpacity style={s.joinLight} onPress={cancelRequest} activeOpacity={0.85}><Text style={s.joinLightTxt}>Requested</Text></TouchableOpacity>
             ) : info.join_mode === 'invite' ? (
               <View style={s.joinLight}><Text style={s.joinLightTxt}>Invite only</Text></View>
@@ -371,6 +504,44 @@ export default function CommunityScreen() {
         </TouchableOpacity>
       ) : null}
 
+      {isMember && (announcements.length > 0 || subs.length > 0 || isMod) ? (
+        <View style={s.strip}>
+          {announcements.length > 0 || isMod ? (
+            <View style={s.annCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Feather name="volume-2" size={13} color={NAVY} />
+                <Text style={s.rulesTitle}>Announcements</Text>
+                <View style={{ flex: 1 }} />
+                {isMod ? <TouchableOpacity onPress={() => setAnnOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Post an announcement"><Feather name="plus-circle" size={16} color={NAVY} /></TouchableOpacity> : null}
+              </View>
+              {announcements.length === 0 ? <Text style={s.rulesBody}>Nothing announced yet. Only moderators post here; every member sees it.</Text> : announcements.slice(0, 2).map((a) => (
+                <TouchableOpacity key={a.id} activeOpacity={isMod ? 0.7 : 1} onLongPress={() => { if (isMod) deleteAnnouncement(a); }} style={{ marginTop: 6 }}>
+                  <Text style={s.rulesBody}>{a.body}</Text>
+                  <Text style={s.annMeta}>{(a.full_name || a.username || 'Moderator') + ' · ' + relTime(a.created_at)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
+          {subs.length > 0 || isMod ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 6 }}>
+              {subs.map((c: any) => (
+                <TouchableOpacity key={c.id} style={s.subChip} activeOpacity={0.85} onPress={() => navigation.navigate('Community', { communityId: c.id, name: c.name, coverColor: c.cover_color, iconUrl: c.icon_url, memberCount: c.member_count, myRole: c.my_role, isMember: c.is_member })}>
+                  <Feather name="hash" size={12} color={NAVY} />
+                  <Text style={s.subChipTxt} numberOfLines={1}>{c.name}</Text>
+                  {c.join_mode === 'invite' && !c.is_member ? <Feather name="lock" size={11} color="#8E8E93" /> : null}
+                </TouchableOpacity>
+              ))}
+              {isMod ? (
+                <TouchableOpacity style={[s.subChip, { borderStyle: 'dashed' }]} activeOpacity={0.85} onPress={() => setSubOpen(true)}>
+                  <Feather name="plus" size={12} color={NAVY} />
+                  <Text style={s.subChipTxt}>Sub-group</Text>
+                </TouchableOpacity>
+              ) : null}
+            </ScrollView>
+          ) : null}
+        </View>
+      ) : null}
+
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         {loading ? (
           <View style={s.center}><ActivityIndicator color={NAVY} /></View>
@@ -378,7 +549,7 @@ export default function CommunityScreen() {
           <View style={s.center}>
             <Feather name="lock" size={34} color="#E5E5EA" />
             <Text style={s.emptyTitle}>Members only</Text>
-            <Text style={s.emptySub}>{info.join_mode === 'invite' ? 'Ask a moderator for an invite to see the posts.' : 'Join to see and share posts inside this community.'}</Text>
+            <Text style={s.emptySub}>{info.has_invite ? 'Accept the invitation above to see the posts.' : info.is_banned ? 'You were removed from this community.' : info.join_mode === 'invite' ? 'Ask a moderator for an invite to see the posts.' : 'Join to see and share posts inside this community.'}</Text>
           </View>
         ) : posts.length === 0 ? (
           <View style={s.center}>
@@ -393,7 +564,9 @@ export default function CommunityScreen() {
             onEndReachedThreshold={0.4}
             onEndReached={() => { const last = posts[posts.length - 1]; if (last) void loadPosts(last.created_at); }} />
         )}
-        {isMember ? (
+        {isMember && info.my_status === 'limited' ? (
+          <View style={[s.limitedBar, { paddingBottom: Math.max(insets.bottom, 10) }]}><Feather name="eye" size={13} color="#8E8E93" /><Text style={s.limitedTxt}>You can view this community but not post in it</Text></View>
+        ) : isMember ? (
           <View style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E5EA', backgroundColor: '#FFF' }}>
             {attach ? (
               <View style={s.attachRow}>
@@ -417,19 +590,20 @@ export default function CommunityScreen() {
       <Modal visible={membersOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setMembersOpen(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
           <View style={s.modalHeader}>
-            <View style={{ width: 60 }} />
+            {isMod ? <TouchableOpacity onPress={openBans} style={{ width: 60 }}><Text style={{ fontSize: 14, color: NAVY, fontWeight: '600' }}>Blocked</Text></TouchableOpacity> : <View style={{ width: 60 }} />}
             <Text style={s.modalTitle}>Members</Text>
             <TouchableOpacity onPress={() => setMembersOpen(false)} style={{ width: 60, alignItems: 'flex-end' }}><Feather name="x" size={22} color="#000" /></TouchableOpacity>
           </View>
           <FlatList data={members} keyExtractor={m => m.user_id}
             contentContainerStyle={{ padding: 16 }}
             renderItem={({ item: m }) => (
-              <TouchableOpacity style={s.memberRow} activeOpacity={myRole === 'owner' && m.role !== 'owner' && m.user_id !== me?.id ? 0.7 : 1} onPress={() => memberRole(m)}>
+              <TouchableOpacity style={s.memberRow} activeOpacity={isMod && m.role !== 'owner' && m.user_id !== me?.id ? 0.7 : 1} onPress={() => memberRole(m)}>
                 {m.avatar_url ? <ExpoImage source={{ uri: m.avatar_url }} style={s.memberAvatar} contentFit="cover" /> : <View style={[s.memberAvatar, s.avatarFb]}><Text style={s.avatarTxt}>{(m.full_name || '?')[0]}</Text></View>}
                 <View style={{ flex: 1 }}>
                   <Text style={s.authorName} numberOfLines={1}>{m.full_name || 'Member'}{m.user_id === me?.id ? ' (you)' : ''}</Text>
                   {m.username ? <Text style={s.authorMeta}>@{m.username}</Text> : null}
                 </View>
+                {m.status === 'limited' ? <View style={[s.roleChip, { backgroundColor: '#F2F2F7' }]}><Text style={[s.roleChipTxt, { color: '#8E8E93' }]}>Limited</Text></View> : null}
                 {m.role !== 'member' ? <View style={s.roleChip}><Text style={s.roleChipTxt}>{m.role === 'owner' ? 'Owner' : 'Moderator'}</Text></View> : null}
               </TouchableOpacity>
             )} />
@@ -507,6 +681,96 @@ export default function CommunityScreen() {
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
+
+      <PeoplePickerSheet visible={inviteOpen} title="Invite to the community" excludeId={me?.id ?? null} onPick={(p) => { setInviteOpen(false); void invitePerson(p); }} onClose={() => setInviteOpen(false)} />
+
+      <Modal visible={annOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAnnOpen(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setAnnOpen(false)} style={{ width: 60 }}><Text style={{ fontSize: 16, color: '#8E8E93' }}>Cancel</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>Announcement</Text>
+              <TouchableOpacity onPress={postAnnouncement} disabled={!annDraft.trim()} style={{ width: 60, alignItems: 'flex-end' }}><Text style={{ fontSize: 16, fontWeight: '700', color: NAVY, opacity: annDraft.trim() ? 1 : 0.35 }}>Post</Text></TouchableOpacity>
+            </View>
+            <View style={{ padding: 16 }}>
+              <Text style={s.rulesBody}>Announcements go one way: every member sees them, only moderators write them.</Text>
+              <TextInput style={[s.input, { minHeight: 120, paddingTop: 12, textAlignVertical: 'top', marginTop: 12 }]} placeholder="What should everyone know?" placeholderTextColor="#8E8E93" value={annDraft} onChangeText={setAnnDraft} multiline maxLength={2000} autoFocus />
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+
+      <Modal visible={subOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setSubOpen(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSubOpen(false)} style={{ width: 60 }}><Text style={{ fontSize: 16, color: '#8E8E93' }}>Cancel</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>New sub-group</Text>
+              <TouchableOpacity onPress={createSub} disabled={subName.trim().length < 3 || subBusy} style={{ width: 60, alignItems: 'flex-end' }}>
+                {subBusy ? <ActivityIndicator size="small" color={NAVY} /> : <Text style={{ fontSize: 16, fontWeight: '700', color: NAVY, opacity: subName.trim().length >= 3 ? 1 : 0.35 }}>Create</Text>}
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
+              <Text style={s.rulesBody}>A sub-group lives inside {info.name}. Only its members can join, and leaving {info.name} leaves the sub-group too.</Text>
+              <TextInput style={s.input} placeholder="Name" placeholderTextColor="#8E8E93" value={subName} onChangeText={setSubName} maxLength={60} autoFocus />
+              <TextInput style={[s.input, { minHeight: 72, paddingTop: 12, textAlignVertical: 'top' }]} placeholder="What is it for?" placeholderTextColor="#8E8E93" value={subDesc} onChangeText={setSubDesc} multiline maxLength={300} />
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {(['open', 'approval', 'invite'] as const).map((k) => (
+                  <TouchableOpacity key={k} onPress={() => setSubMode(k)} style={[s.audChip, subMode === k && s.audChipOn]} activeOpacity={0.85}>
+                    <Text style={[s.audTxt, subMode === k && s.audTxtOn]}>{k === 'open' ? 'Open' : k === 'approval' ? 'Approval' : 'Invite only'}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+
+      <Modal visible={invitesOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setInvitesOpen(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+          <View style={s.modalHeader}>
+            <View style={{ width: 60 }} />
+            <Text style={s.modalTitle}>Pending invitations</Text>
+            <TouchableOpacity onPress={() => setInvitesOpen(false)} style={{ width: 60, alignItems: 'flex-end' }}><Feather name="x" size={22} color="#000" /></TouchableOpacity>
+          </View>
+          <FlatList data={invites} keyExtractor={r => r.user_id}
+            contentContainerStyle={{ padding: 16 }}
+            ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#8E8E93', marginTop: 30, fontSize: 13.5 }}>No one is waiting on an invitation.</Text>}
+            renderItem={({ item: r }) => (
+              <View style={s.memberRow}>
+                {r.avatar_url ? <ExpoImage source={{ uri: r.avatar_url }} style={s.memberAvatar} contentFit="cover" /> : <View style={[s.memberAvatar, s.avatarFb]}><Text style={s.avatarTxt}>{(r.full_name || '?')[0]}</Text></View>}
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><TierName userId={r.user_id} baseStyle={s.authorName} text={r.full_name || 'Member'} numberOfLines={1} /><VerifiedBadge userId={r.user_id} size={12} /></View>
+                  <Text style={s.authorMeta}>{r.username ? '@' + r.username + ' · ' : ''}invited {relTime(r.created_at)}</Text>
+                </View>
+                <TouchableOpacity style={s.denyBtn} onPress={() => revokeInvite(r)} accessibilityRole="button" accessibilityLabel="Withdraw invitation"><Feather name="x" size={15} color="#5B6B84" /></TouchableOpacity>
+              </View>
+            )} />
+        </SafeAreaView>
+      </Modal>
+
+      <Modal visible={bansOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setBansOpen(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+          <View style={s.modalHeader}>
+            <View style={{ width: 60 }} />
+            <Text style={s.modalTitle}>Blocked from rejoining</Text>
+            <TouchableOpacity onPress={() => setBansOpen(false)} style={{ width: 60, alignItems: 'flex-end' }}><Feather name="x" size={22} color="#000" /></TouchableOpacity>
+          </View>
+          <FlatList data={bans} keyExtractor={b => b.user_id}
+            contentContainerStyle={{ padding: 16 }}
+            ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#8E8E93', marginTop: 30, fontSize: 13.5 }}>No one is blocked.</Text>}
+            renderItem={({ item: b }) => (
+              <View style={s.memberRow}>
+                {b.avatar_url ? <ExpoImage source={{ uri: b.avatar_url }} style={s.memberAvatar} contentFit="cover" /> : <View style={[s.memberAvatar, s.avatarFb]}><Text style={s.avatarTxt}>{(b.full_name || '?')[0]}</Text></View>}
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><TierName userId={b.user_id} baseStyle={s.authorName} text={b.full_name || 'Member'} numberOfLines={1} /><VerifiedBadge userId={b.user_id} size={12} /></View>
+                  <Text style={s.authorMeta}>{b.username ? '@' + b.username + ' · ' : ''}blocked {relTime(b.created_at)}</Text>
+                </View>
+                <TouchableOpacity style={s.joinLight} onPress={() => unban(b)} accessibilityRole="button" accessibilityLabel="Allow back in"><Text style={s.joinLightTxt}>Allow back</Text></TouchableOpacity>
+              </View>
+            )} />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -573,4 +837,11 @@ const s = themedSheet((t) => ({
   catTxtOn: { color: t.ink.inverse },
   colorDot: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'transparent' },
   colorDotOn: { borderColor: '#0F1419' },
+  strip: { paddingHorizontal: 14, paddingTop: 8, gap: 4 },
+  annCard: { borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.14)', backgroundColor: 'rgba(201,191,176,0.14)', padding: 12 },
+  annMeta: { fontSize: 11.5, color: '#8E8E93', marginTop: 3 },
+  subChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.16)', backgroundColor: '#FFFFFF', maxWidth: 200 },
+  subChipTxt: { fontSize: 13, fontWeight: '600', color: '#0B1E3D', flexShrink: 1 },
+  limitedBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E5EA', backgroundColor: '#FFF' },
+  limitedTxt: { fontSize: 13, color: '#8E8E93', fontWeight: '600' },
 }));
