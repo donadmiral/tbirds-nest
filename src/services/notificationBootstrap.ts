@@ -61,6 +61,38 @@ export async function ensureCallCategory(): Promise<void> {
   }
 }
 
+// One Android channel per category, so the phone's own settings can shape sound and visibility per kind of notification.
+export const NOTIFICATION_CATEGORIES: { id: string; name: string; description: string; importance: 'high' | 'default' | 'low' }[] = [
+  { id: 'messages', name: 'Messages', description: 'Direct messages, group messages and message requests', importance: 'high' },
+  { id: 'message_reactions', name: 'Message reactions', description: 'Reactions to your messages', importance: 'default' },
+  { id: 'likes', name: 'Likes', description: 'Likes on your posts, stories and comments, and reposts', importance: 'low' },
+  { id: 'comments', name: 'Comments', description: 'Comments on your posts and replies to your comments', importance: 'default' },
+  { id: 'mentions', name: 'Mentions and tags', description: 'When someone mentions or tags you', importance: 'high' },
+  { id: 'followers', name: 'Followers', description: 'New followers, follow requests and accepted requests', importance: 'default' },
+  { id: 'updates', name: 'Content updates', description: 'Community and collab invitations, channel posts and business pages', importance: 'default' },
+  { id: 'jobs', name: 'Jobs', description: 'Applications and referrals on your job posts', importance: 'default' },
+  { id: 'payments', name: 'Payments', description: 'Money received in chat', importance: 'high' },
+  { id: 'account', name: 'Account notices', description: 'Security alerts, sign-ins and system notices', importance: 'high' },
+];
+let categoryChannelsReady = false;
+export async function ensureCategoryChannels(): Promise<void> {
+  if (Platform.OS !== 'android' || categoryChannelsReady) return;
+  const imp = { high: Notifications.AndroidImportance.HIGH, default: Notifications.AndroidImportance.DEFAULT, low: Notifications.AndroidImportance.LOW };
+  for (const c of NOTIFICATION_CATEGORIES) {
+    try {
+      await Notifications.setNotificationChannelAsync(c.id, {
+        name: c.name,
+        description: c.description,
+        importance: imp[c.importance],
+        sound: c.importance === 'low' ? undefined : 'default',
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+        showBadge: c.id === 'messages',
+      });
+    } catch (e) { console.log('CHANNEL_ERROR', c.id, (e as any)?.message); }
+  }
+  categoryChannelsReady = true;
+}
+
 let callChannelReady = false;
 export async function ensureCallChannel(): Promise<void> {
   if (Platform.OS !== 'android' || callChannelReady) return;
@@ -117,6 +149,7 @@ export async function registerForPushNotifications(userId: string) {
   }
 
   await ensureCallChannel();
+  await ensureCategoryChannels();
   await ensureCallCategory();
   await registerIncomingCallTask();
 

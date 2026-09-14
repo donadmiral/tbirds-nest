@@ -154,20 +154,19 @@ export default function SettingsScreen() {
 const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
   const [settingsQuery, setSettingsQuery] = useState('');
   const appSet = useSettingsStore();
-  const NOTIF_TYPES: { key: string; label: string; sub: string }[] = [
-    { key: 'message', label: 'Messages', sub: 'New messages' },
-    { key: 'message_reaction', label: 'Message reactions', sub: 'Reactions to your messages' },
-    { key: 'mention', label: 'Mentions', sub: 'When someone @mentions you' },
-    { key: 'incoming_call', label: 'Calls', sub: 'Voice and video calls' },
-    { key: 'like', label: 'Likes', sub: 'Likes on your posts' },
-    { key: 'comment', label: 'Comments', sub: 'Comments on your posts' },
-    { key: 'reply', label: 'Replies', sub: 'Replies to your comments' },
-    { key: 'comment_like', label: 'Comment likes', sub: 'Likes on your comments' },
-    { key: 'repost', label: 'Reposts', sub: 'When your post is reshared' },
-    { key: 'story_reaction', label: 'Story reactions', sub: 'Reactions to your stories' },
-    { key: 'follow', label: 'Follows', sub: 'New followers' },
-    { key: 'connection_request', label: 'Follow requests', sub: 'Requests on a private account' },
-    { key: 'job_application', label: 'Job applications', sub: 'Applicants to your job posts' },
+  // Instagram's categories, one switch each; the server maps every notification type to one of these.
+  const NOTIF_TYPES: { key: string; icon: string; label: string; sub: string }[] = [
+    { key: 'messages', icon: 'message-circle', label: 'Messages', sub: 'Direct messages, group messages and message requests' },
+    { key: 'message_reactions', icon: 'smile', label: 'Message reactions', sub: 'Reactions to your messages' },
+    { key: 'calls', icon: 'phone', label: 'Calls', sub: 'Incoming and missed voice and video calls' },
+    { key: 'likes', icon: 'heart', label: 'Likes', sub: 'Likes on your posts, stories and comments, and reposts' },
+    { key: 'comments', icon: 'message-square', label: 'Comments', sub: 'Comments on your posts and replies to your comments' },
+    { key: 'mentions', icon: 'at-sign', label: 'Mentions and tags', sub: 'When someone mentions or tags you in a post or story' },
+    { key: 'followers', icon: 'user-plus', label: 'Followers', sub: 'New followers, follow requests and accepted requests' },
+    { key: 'updates', icon: 'radio', label: 'Content updates', sub: 'Community and collab invitations, channel posts and business pages' },
+    { key: 'jobs', icon: 'briefcase', label: 'Jobs', sub: 'Applications and referrals on your job posts' },
+    { key: 'payments', icon: 'credit-card', label: 'Payments', sub: 'Money received in chat' },
+    { key: 'account', icon: 'shield', label: 'Account notices', sub: 'Security alerts, sign-ins and system notices' },
   ];
   const setTypePref = async (key: string, enabled: boolean) => {
     if (!profile?.id) return;
@@ -314,7 +313,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     ]},
     { title: 'Notifications', rows: [
       { icon: 'bell', color: '#FF3B30', label: 'Push Notifications', sub: 'Master toggle for all alerts', chevron: false, right: sw(pushEnabled, togglePush) },
-      ...NOTIF_TYPES.map(t => ({ icon: 'bell' as const, color: '#0B1E3D', label: t.label, sub: t.sub, chevron: false,
+      ...NOTIF_TYPES.map(t => ({ icon: t.icon, color: '#0B1E3D', label: t.label, sub: t.sub, chevron: false,
         right: sw(notifPrefs[t.key] !== false && pushEnabled, (v: boolean) => setTypePref(t.key, v), !pushEnabled) })),
     ]},
     { title: 'Data & appearance', rows: [
