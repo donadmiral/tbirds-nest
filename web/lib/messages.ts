@@ -13,6 +13,8 @@ export type Conv = {
   unread: number;
   context: string;
   context_ref_id: string | null;
+  group_type: string | null;
+  group_ref_id: string | null;
 };
 
 export type Msg = {
@@ -93,6 +95,8 @@ export async function loadConversations(userId: string, context: string = "perso
       unread: unreadMap[c.id as string] ?? 0,
       context: (c.context as string) || "personal",
       context_ref_id: (c.context_ref_id as string) ?? null,
+      group_type: null,
+      group_ref_id: null,
     };
   });
   const groups: Conv[] = groupConvs.filter(keep).map((c) => ({
@@ -107,6 +111,8 @@ export async function loadConversations(userId: string, context: string = "perso
     unread: unreadMap[c.id as string] ?? 0,
     context: (c.context as string) || "personal",
     context_ref_id: (c.context_ref_id as string) ?? null,
+    group_type: (c.group_type as string) ?? null,
+    group_ref_id: (c.group_ref_id as string) ?? null,
   }));
 
   return [...dms, ...groups].sort((a, b) =>

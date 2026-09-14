@@ -31,6 +31,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [loadingMsgs, setLoadingMsgs] = useState(false);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
+  // Chats holds people and plain groups; a community's chat lives under Groups, labelled, the same as on the phone.
+  const [tab, setTab] = useState<"chats" | "groups" | "unread">("chats");
   const [offers, setOffers] = useState<Record<string, OfferLive>>({});
   const [refListing, setRefListing] = useState<MiniListing | null>(null);
   const [countering, setCountering] = useState<string | null>(null);
@@ -321,9 +323,10 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   const shownConvs = useMemo(() => {
     const t = query.trim().toLowerCase();
-    if (!t) return convs;
-    return convs.filter((c) => (c.title + " " + (c.username ?? "")).toLowerCase().includes(t));
-  }, [convs, query]);
+    const base = convs.filter((c) => tab === "groups" ? c.is_group : tab === "unread" ? c.unread > 0 : !(c.is_group && c.group_type === "community"));
+    if (!t) return base;
+    return base.filter((c) => (c.title + " " + (c.username ?? "")).toLowerCase().includes(t));
+  }, [convs, query, tab]);
 
   const offerProps: OfferProps = { uid, offers, countering, counterAmt, setCountering, setCounterAmt, respondOffer };
 
@@ -354,7 +357,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-baseline gap-1.5">
-            <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>{!c.is_group && c.other_id ? <VerifiedBadge userId={c.other_id} size={13} /> : null}
+            <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>{!c.is_group && c.other_id ? <VerifiedBadge userId={c.other_id} size={13} /> : null}{c.is_group && c.group_type === "community" ? <span className="shrink-0 rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/60">Community</span> : null}
             {c.unread > 0 ? <span className="h-[6px] w-[6px] shrink-0 rounded-full bg-pearl" aria-hidden /> : null}
           </span>
           {c.last_message_time ? <span className="shrink-0 text-[11px] text-ink/40">{timeAgo(c.last_message_time)}</span> : null}
@@ -419,6 +422,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>
                   {typingLine}
+                  {active.is_group && active.group_type === "community" && active.group_ref_id ? <Link href={"/communities/" + active.group_ref_id} className="text-[12px] text-pearl hover:underline">Community chat · open the community</Link> : null}
                 </div>
               </div>
               {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
@@ -457,6 +461,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               className="w-full rounded-md bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
             />
           </div>
+          {context === "personal" ? (
+            <div className="mt-3 flex gap-1.5">
+              {(["chats", "groups", "unread"] as const).map((k) => (
+                <button key={k} onClick={() => setTab(k)} className={"rounded-full px-3 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (tab === k ? "bg-ink text-white" : "bg-surface text-ink/60 hover:text-ink")}>{k === "chats" ? "Chats" : k === "groups" ? "Groups" : "Unread"}</button>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="flex-1 overflow-y-auto">
           {loadingConvs ? (
@@ -485,6 +496,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>
                   {typingLine ?? (active.username ? <p className="text-[12px] text-ink/40">@{active.username}</p> : null)}
+                  {active.is_group && active.group_type === "community" && active.group_ref_id ? <Link href={"/communities/" + active.group_ref_id} className="text-[12px] text-pearl hover:underline">Community chat · open the community</Link> : null}
                 </div>
               </div>
               {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
