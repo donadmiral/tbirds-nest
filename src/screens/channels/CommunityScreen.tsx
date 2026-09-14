@@ -2,7 +2,7 @@ import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView, Share, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -14,6 +14,7 @@ import { uploadMedia } from '../../services/mediaService';
 import { CATEGORIES } from '../../constants/categories';
 import { COMM_COLORS } from './ChannelsScreen';
 import PeoplePickerSheet from '../../components/PeoplePickerSheet';
+import CommentsSheet from '../../components/feed/CommentsSheet';
 
 const NAVY = '#0B1E3D';
 
@@ -69,6 +70,9 @@ export default function CommunityScreen() {
   const [bans, setBans] = useState<any[]>([]);
   const [invitesOpen, setInvitesOpen] = useState(false);
   const [invites, setInvites] = useState<any[]>([]);
+  // Comments open in the same sheet the feed uses, right here; pull down refreshes; counts move live.
+  const [commentsFor, setCommentsFor] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const isMember = !!info.is_member;
   const myRole = info.my_role as string | null;
@@ -114,6 +118,29 @@ export default function CommunityScreen() {
     setAnnouncements(an || []); setSubs(sb || []);
   }, [communityId]);
   useEffect(() => { if (isMember) void loadExtras(); }, [isMember, loadExtras]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try { await Promise.all([loadInfo(), isMember ? loadPosts(null) : Promise.resolve(), isMember ? loadExtras() : Promise.resolve()]); }
+    finally { setRefreshing(false); }
+  }, [loadInfo, loadPosts, loadExtras, isMember]);
+
+  useEffect(() => {
+    if (!isMember) return;
+    const ch = supabase.channel('community-' + communityId)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts', filter: 'community_id=eq.' + communityId }, (payload) => {
+        const row: any = payload.new; if (!row?.id) return;
+        setPosts(prev => prev.map(p => p.post_id === row.id ? { ...p, likes_count: row.likes_count ?? p.likes_count, comments_count: row.comments_count ?? p.comments_count, is_pinned: row.is_pinned ?? p.is_pinned } : p));
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts', filter: 'community_id=eq.' + communityId }, (payload) => {
+        const row: any = payload.new; if (row?.user_id && row.user_id !== me?.id) void loadPosts(null);
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, (payload) => {
+        const old: any = payload.old; if (old?.id) setPosts(prev => prev.filter(p => p.post_id !== old.id));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [communityId, isMember, loadPosts, me?.id]);
 
   const respondInvite = async (accept: boolean) => {
     try {
@@ -293,9 +320,16 @@ export default function CommunityScreen() {
     finally { setPosting(false); }
   };
 
-  const toggleLike = (p: any) => {
-    setPosts(prev => prev.map(x => x.post_id === p.post_id ? { ...x, viewer_liked: !x.viewer_liked, likes_count: (x.likes_count || 0) + (x.viewer_liked ? -1 : 1) } : x));
-    void supabase.rpc('toggle_post_like', { p_post_id: p.post_id });
+  const toggleLike = async (p: any) => {
+    setPosts(prev => prev.map(x => x.post_id === p.post_id ? { ...x, viewer_liked: !x.viewer_liked, likes_count: Math.max(0, (x.likes_count || 0) + (x.viewer_liked ? -1 : 1)) } : x));
+    const { data, error } = await supabase.rpc('toggle_post_like', { p_post_id: p.post_id });
+    if (error) {
+      setPosts(prev => prev.map(x => x.post_id === p.post_id ? { ...x, viewer_liked: !!p.viewer_liked, likes_count: p.likes_count || 0 } : x));
+      Alert.alert('Could not like', error.message);
+      return;
+    }
+    const r: any = data || {};
+    if (typeof r.liked === 'boolean' && typeof r.likes_count === 'number') setPosts(prev => prev.map(x => x.post_id === p.post_id ? { ...x, viewer_liked: r.liked, likes_count: r.likes_count } : x));
   };
 
   const postActions = (p: any) => {
@@ -402,7 +436,7 @@ export default function CommunityScreen() {
     const firstMedia = mediaArr.length > 0 ? mediaArr[0] : null;
     return (
       <TouchableOpacity style={s.card} activeOpacity={0.9}
-        onPress={() => navigation.navigate('Post', { postId: item.post_id })}
+        onPress={() => setCommentsFor(item)}
         onLongPress={() => postActions(item)}>
         {item.is_pinned ? (
           <View style={s.pinRow}><Feather name="bookmark" size={11} color={NAVY} /><Text style={s.pinTxt}>Pinned</Text></View>
@@ -435,11 +469,11 @@ export default function CommunityScreen() {
           </View>
         ) : null}
         <View style={s.cardActions}>
-          <TouchableOpacity style={s.actionBtn} onPress={() => toggleLike(item)} hitSlop={{ top: 6, bottom: 6 }}>
+          <TouchableOpacity style={s.actionBtn} onPress={() => toggleLike(item)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={item.viewer_liked ? 'Unlike' : 'Like'}>
             <Feather name="heart" size={16} color={item.viewer_liked ? '#E0245E' : '#5B6B84'} />
             <Text style={[s.actionTxt, item.viewer_liked && { color: '#E0245E' }]}>{item.likes_count || 0}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.actionBtn} onPress={() => navigation.navigate('Post', { postId: item.post_id })} hitSlop={{ top: 6, bottom: 6 }}>
+          <TouchableOpacity style={s.actionBtn} onPress={() => setCommentsFor(item)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel="Comments">
             <Feather name="message-circle" size={16} color="#5B6B84" />
             <Text style={s.actionTxt}>{item.comments_count || 0}</Text>
           </TouchableOpacity>
@@ -513,74 +547,80 @@ export default function CommunityScreen() {
         {info.description ? <Text style={s.commDesc} numberOfLines={2}>{info.description}</Text> : null}
       </View>
 
-      {info.rules ? (
-        <TouchableOpacity style={s.rulesCard} onPress={() => setRulesOpen(o => !o)} activeOpacity={0.85}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Feather name="shield" size={13} color={NAVY} />
-            <Text style={s.rulesTitle}>Community rules</Text>
-            <Feather name={rulesOpen ? 'chevron-up' : 'chevron-down'} size={14} color="#8E8E93" style={{ marginLeft: 'auto' }} />
-          </View>
-          <Text style={s.rulesBody} numberOfLines={rulesOpen ? undefined : 2}>{info.rules}</Text>
-        </TouchableOpacity>
-      ) : null}
-
-      {isMember && (announcements.length > 0 || subs.length > 0 || isMod) ? (
-        <View style={s.strip}>
-          {announcements.length > 0 || isMod ? (
-            <View style={s.annCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Feather name="volume-2" size={13} color={NAVY} />
-                <Text style={s.rulesTitle}>Announcements</Text>
-                <View style={{ flex: 1 }} />
-                {isMod ? <TouchableOpacity onPress={() => setAnnOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Post an announcement"><Feather name="plus-circle" size={16} color={NAVY} /></TouchableOpacity> : null}
-              </View>
-              {announcements.length === 0 ? <Text style={s.rulesBody}>Nothing announced yet. Only moderators post here; every member sees it.</Text> : announcements.slice(0, 2).map((a) => (
-                <TouchableOpacity key={a.id} activeOpacity={isMod ? 0.7 : 1} onLongPress={() => { if (isMod) deleteAnnouncement(a); }} style={{ marginTop: 6 }}>
-                  <Text style={s.rulesBody}>{a.body}</Text>
-                  <Text style={s.annMeta}>{(a.full_name || a.username || 'Moderator') + ' · ' + relTime(a.created_at)}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ) : null}
-          {subs.length > 0 || isMod ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 6 }}>
-              {subs.map((c: any) => (
-                <TouchableOpacity key={c.id} style={s.subChip} activeOpacity={0.85} onPress={() => navigation.navigate('Community', { communityId: c.id, name: c.name, coverColor: c.cover_color, iconUrl: c.icon_url, memberCount: c.member_count, myRole: c.my_role, isMember: c.is_member })}>
-                  <Feather name="hash" size={12} color={NAVY} />
-                  <Text style={s.subChipTxt} numberOfLines={1}>{c.name}</Text>
-                  {c.join_mode === 'invite' && !c.is_member ? <Feather name="lock" size={11} color="#8E8E93" /> : null}
-                </TouchableOpacity>
-              ))}
-              {isMod ? (
-                <TouchableOpacity style={[s.subChip, { borderStyle: 'dashed' }]} activeOpacity={0.85} onPress={() => setSubOpen(true)}>
-                  <Feather name="plus" size={12} color={NAVY} />
-                  <Text style={s.subChipTxt}>Sub-group</Text>
-                </TouchableOpacity>
-              ) : null}
-            </ScrollView>
-          ) : null}
-        </View>
-      ) : null}
-
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         {loading ? (
           <View style={s.center}><ActivityIndicator color={NAVY} /></View>
-        ) : !isMember ? (
-          <View style={s.center}>
-            <Feather name="lock" size={34} color="#E5E5EA" />
-            <Text style={s.emptyTitle}>Members only</Text>
-            <Text style={s.emptySub}>{info.has_invite ? 'Accept the invitation above to see the posts.' : info.is_banned ? 'You were removed from this community.' : info.join_mode === 'invite' ? 'Ask a moderator for an invite to see the posts.' : 'Join to see and share posts inside this community.'}</Text>
-          </View>
-        ) : posts.length === 0 ? (
-          <View style={s.center}>
-            <Feather name="users" size={34} color="#E5E5EA" />
-            <Text style={s.emptyTitle}>Quiet in here</Text>
-            <Text style={s.emptySub}>Be the first to post something.</Text>
-          </View>
         ) : (
-          <FlatList data={posts} keyExtractor={p => p.post_id} renderItem={renderPost}
-            contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 16 }}
+          <FlatList data={isMember ? posts : []} keyExtractor={p => p.post_id} renderItem={renderPost}
+            ListHeaderComponent={
+              <View style={{ marginHorizontal: -14, marginTop: -10, marginBottom: 10 }}>
+                {info.rules ? (
+                  <TouchableOpacity style={s.rulesCard} onPress={() => setRulesOpen(o => !o)} activeOpacity={0.85}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Feather name="shield" size={13} color={NAVY} />
+                      <Text style={s.rulesTitle}>Community rules</Text>
+                      <Feather name={rulesOpen ? 'chevron-up' : 'chevron-down'} size={14} color="#8E8E93" style={{ marginLeft: 'auto' }} />
+                    </View>
+                    <Text style={s.rulesBody} numberOfLines={rulesOpen ? undefined : 2}>{info.rules}</Text>
+                  </TouchableOpacity>
+                ) : null}
+
+                {isMember && (announcements.length > 0 || subs.length > 0 || isMod) ? (
+                  <View style={s.strip}>
+                    {announcements.length > 0 || isMod ? (
+                      <View style={s.annCard}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Feather name="volume-2" size={13} color={NAVY} />
+                          <Text style={s.rulesTitle}>Announcements</Text>
+                          <View style={{ flex: 1 }} />
+                          {isMod ? <TouchableOpacity onPress={() => setAnnOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Post an announcement"><Feather name="plus-circle" size={16} color={NAVY} /></TouchableOpacity> : null}
+                        </View>
+                        {announcements.length === 0 ? <Text style={s.rulesBody}>Nothing announced yet. Only moderators post here; every member sees it.</Text> : announcements.slice(0, 2).map((a) => (
+                          <TouchableOpacity key={a.id} activeOpacity={isMod ? 0.7 : 1} onLongPress={() => { if (isMod) deleteAnnouncement(a); }} style={{ marginTop: 6 }}>
+                            <Text style={s.rulesBody}>{a.body}</Text>
+                            <Text style={s.annMeta}>{(a.full_name || a.username || 'Moderator') + ' · ' + relTime(a.created_at)}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    ) : null}
+                    {subs.length > 0 || isMod ? (
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 6 }}>
+                        {subs.map((c: any) => (
+                          <TouchableOpacity key={c.id} style={s.subChip} activeOpacity={0.85} onPress={() => navigation.navigate('Community', { communityId: c.id, name: c.name, coverColor: c.cover_color, iconUrl: c.icon_url, memberCount: c.member_count, myRole: c.my_role, isMember: c.is_member })}>
+                            <Feather name="hash" size={12} color={NAVY} />
+                            <Text style={s.subChipTxt} numberOfLines={1}>{c.name}</Text>
+                            {c.join_mode === 'invite' && !c.is_member ? <Feather name="lock" size={11} color="#8E8E93" /> : null}
+                          </TouchableOpacity>
+                        ))}
+                        {isMod ? (
+                          <TouchableOpacity style={[s.subChip, { borderStyle: 'dashed' }]} activeOpacity={0.85} onPress={() => setSubOpen(true)}>
+                            <Feather name="plus" size={12} color={NAVY} />
+                            <Text style={s.subChipTxt}>Sub-group</Text>
+                          </TouchableOpacity>
+                        ) : null}
+                      </ScrollView>
+                    ) : null}
+                  </View>
+                ) : null}
+                {!isMember ? (
+                  <View style={[s.center, { paddingVertical: 48 }]}>
+                    <Feather name="lock" size={34} color="#E5E5EA" />
+                    <Text style={s.emptyTitle}>Members only</Text>
+                    <Text style={s.emptySub}>{info.has_invite ? 'Accept the invitation above to see the posts.' : info.is_banned ? 'You were removed from this community.' : info.join_mode === 'invite' ? 'Ask a moderator for an invite to see the posts.' : 'Join to see and share posts inside this community.'}</Text>
+                  </View>
+                ) : posts.length === 0 ? (
+                  <View style={[s.center, { paddingVertical: 48 }]}>
+                    <Feather name="users" size={34} color="#E5E5EA" />
+                    <Text style={s.emptyTitle}>Quiet in here</Text>
+                    <Text style={s.emptySub}>Be the first to post something.</Text>
+                  </View>
+                ) : null}
+              </View>
+            }
+            contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 24 }}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}
             onEndReachedThreshold={0.4}
             onEndReached={() => { const last = posts[posts.length - 1]; if (last) void loadPosts(last.created_at); }} />
         )}
@@ -705,6 +745,19 @@ export default function CommunityScreen() {
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
+
+      <CommentsSheet
+        visible={!!commentsFor}
+        postId={commentsFor?.post_id ?? ''}
+        postAuthorId={commentsFor?.author_id ?? null}
+        count={commentsFor?.comments_count ?? 0}
+        onCount={(n) => { const id = commentsFor?.post_id; if (id) setPosts(prev => prev.map(p => p.post_id === id ? { ...p, comments_count: n } : p)); }}
+        onClose={() => {
+          const id = commentsFor?.post_id;
+          setCommentsFor(null);
+          if (id) supabase.from('posts').select('comments_count').eq('id', id).maybeSingle().then(({ data }) => { const n = (data as any)?.comments_count; if (typeof n === 'number') setPosts(prev => prev.map(p => p.post_id === id ? { ...p, comments_count: n } : p)); }, () => {});
+        }}
+      />
 
       <PeoplePickerSheet visible={inviteOpen} title="Invite to the community" excludeId={me?.id ?? null} onPick={(p) => { setInviteOpen(false); void invitePerson(p); }} onClose={() => setInviteOpen(false)} />
 
