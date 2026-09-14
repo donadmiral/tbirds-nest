@@ -1,11 +1,12 @@
-// Keep credentials on the server. User identity is verified in the handler.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.103.0";
-import { createBridgeHandler } from "./handler.ts";
+import { createRecoveryHandler } from "./handler.ts";
 
-Deno.serve(createBridgeHandler({
-  db: createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+Deno.serve(createRecoveryHandler({
+  db: createClient(Deno.env.get("SUPABASE_URL")!, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   }),
+  serviceKey,
   crispUrl: Deno.env.get("CRISP_API_URL") || "",
   crispKey: Deno.env.get("CRISP_API_KEY") || "",
   fetcher: fetch,
