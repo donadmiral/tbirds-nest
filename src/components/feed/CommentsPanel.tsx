@@ -1,16 +1,16 @@
 /**
- * CommentsPanel - one comment thread for every surface that hosts comments
- * without leaving where you are: the feed's comments sheet and the expanded
- * video viewer's sheet. Same data, rules and look as the post screen's thread:
+ * CommentsPanel - the one comment thread for every surface that hosts comments:
+ * the post screen, the feed's comments sheet and the expanded video viewer's
+ * sheet. Same data, rules and look everywhere:
  * replies target the top-level comment (Instagram's one-level model), like and
  * dislike through set_comment_reaction, GIFs, @mention typeahead, the author's
  * hide/unhide, hidden comments folded, blocked people filtered, comment policy
  * honoured, live updates through realtime.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image, TextInput,
-  ActivityIndicator, Alert, Platform,
+  ActivityIndicator, Alert, Platform, KeyboardAvoidingView, RefreshControl,
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -51,11 +51,19 @@ export type CommentsPanelProps = {
   autoFocus?: boolean;
   /** Fires with the number of visible top-level comments whenever the thread loads. */
   onCount?: (n: number) => void;
-  /** The comment field gaining or losing focus, so a host can follow the keyboard even when the OS is quiet about it. */
-  onFocusChange?: (focused: boolean) => void;
   /** Padding under the input bar (the safe area when the panel sits at the bottom of the window). */
   bottomInset?: number;
+  /** The comment field gaining or losing focus, so a host can follow the keyboard even when the OS is quiet about it. */
+  onFocusChange?: (focused: boolean) => void;
+  /** Content drawn above the thread inside the same list (the post screen's post banner). */
+  header?: React.ReactNode;
+  /** Pull to refresh reloads the thread and calls this, so a host can reload its own post too. */
+  onRefresh?: () => Promise<unknown> | void;
+  /** Hosted on a screen rather than in a sheet: the input rides the keyboard itself. Pass the window y of the panel's parent. */
+  keyboardOffset?: number;
 };
+
+export type CommentsPanelHandle = { focusInput: () => void };
 
 function relTime(d?: string | null) {
   if (!d) return '';
@@ -84,7 +92,7 @@ function RichText({ text, onMention, onHashtag, style }: { text: string; onMenti
   );
 }
 
-export default function CommentsPanel({ postId, postAuthorId, autoFocus, onCount, bottomInset = 0, onFocusChange }: CommentsPanelProps) {
+const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(function CommentsPanel({ postId, postAuthorId, autoFocus, onCount, bottomInset = 0, onFocusChange, header, onRefresh, keyboardOffset }, ref) {
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
@@ -105,6 +113,8 @@ export default function CommentsPanel({ postId, postAuthorId, autoFocus, onCount
   const [showGifs, setShowGifs] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const listRef = useRef<FlatList<any>>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  useImperativeHandle(ref, () => ({ focusInput: () => inputRef.current?.focus() }), []);
   const onCountRef = useRef(onCount); onCountRef.current = onCount;
 
   const load = useCallback(async () => {
@@ -337,31 +347,11 @@ export default function CommentsPanel({ postId, postAuthorId, autoFocus, onCount
   };
 
   const canSend = input.trim().length > 0 || !!pendingGif;
+  const onScreen = keyboardOffset != null;
+  const refresh = async () => { setRefreshing(true); try { await Promise.all([load(), Promise.resolve(onRefresh?.())]); } finally { setRefreshing(false); } };
 
-  return (
-    <View style={s.root}>
-      <FlatList
-        ref={listRef}
-        data={items}
-        keyExtractor={(c) => c.id}
-        renderItem={({ item }) => renderComment(item)}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 12, paddingTop: 4 }}
-        ListEmptyComponent={
-          !loaded ? <View style={{ paddingVertical: 36, alignItems: 'center' }}><ActivityIndicator color={NAVY} /></View>
-          : policyOff ? <View style={s.emptyComments}><Feather name="message-circle" size={28} color="#E5E5EA" /><Text style={s.emptyCommentsTxt}>Comments are turned off</Text></View>
-          : (
-            <View style={s.emptyComments}>
-              <Feather name="message-circle" size={28} color="#E5E5EA" />
-              <Text style={s.emptyCommentsTxt}>No comments yet</Text>
-              <Text style={s.emptyCommentsHint}>Start the conversation</Text>
-            </View>
-          )
-        }
-      />
-
+  const composer = (
+    <>
       {mentionOn && mentions.length > 0 && (
         <View style={s.mentionDrop}>
           {mentions.map((u) => (
@@ -388,8 +378,6 @@ export default function CommentsPanel({ postId, postAuthorId, autoFocus, onCount
           </TouchableOpacity>
         </View>
       )}
-
-      <GifPickerLite visible={showGifs} onClose={() => setShowGifs(false)} onSelect={(u) => { setPendingGif(u); setShowGifs(false); }} />
 
       {pendingGif && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingTop: 8 }}>
@@ -429,9 +417,47 @@ export default function CommentsPanel({ postId, postAuthorId, autoFocus, onCount
           </TouchableOpacity>
         </View>
       )}
+    </>
+  );
+
+  return (
+    <View style={s.root}>
+      <FlatList
+        ref={listRef}
+        data={items}
+        keyExtractor={(c) => c.id}
+        renderItem={({ item }) => renderComment(item)}
+        ListHeaderComponent={header ? <>{header}</> : null}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={onScreen && Platform.OS === 'ios'}
+        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={NAVY} /> : undefined}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 12, paddingTop: 4 }}
+        ListEmptyComponent={
+          !loaded ? <View style={{ paddingVertical: 36, alignItems: 'center' }}><ActivityIndicator color={NAVY} /></View>
+          : policyOff ? <View style={s.emptyComments}><Feather name="message-circle" size={28} color="#E5E5EA" /><Text style={s.emptyCommentsTxt}>Comments are turned off</Text></View>
+          : (
+            <View style={s.emptyComments}>
+              <Feather name="message-circle" size={28} color="#E5E5EA" />
+              <Text style={s.emptyCommentsTxt}>No comments yet</Text>
+              <Text style={s.emptyCommentsHint}>Start the conversation</Text>
+            </View>
+          )
+        }
+      />
+
+      <GifPickerLite visible={showGifs} onClose={() => setShowGifs(false)} onSelect={(u) => { setPendingGif(u); setShowGifs(false); }} />
+      {onScreen ? (
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={keyboardOffset}>
+          {composer}
+        </KeyboardAvoidingView>
+      ) : composer}
     </View>
   );
-}
+});
+
+export default CommentsPanel;
 
 const s = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: t.surface.canvas },
