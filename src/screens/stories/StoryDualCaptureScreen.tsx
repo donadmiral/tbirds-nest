@@ -8,7 +8,6 @@
  * Premium motion, freeze-frame confirmation, atmospheric countdown,
  * spring-animated bubble reveal, cancel at any phase.
  */
-import { ListRowSkeleton } from '../../components/skeletons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useCameraLife } from '../../hooks/useCameraLife';
 import {
@@ -360,7 +359,7 @@ export default function StoryDualCaptureScreen() {
   );
 
   // ── PERMISSION SCREENS ─────────────────────────────────────
-  if (!permission) return <ListRowSkeleton />;
+  if (!permission) return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color="#FFFFFF" size="large" /></View>;
   if (!permission.granted) {
     return (
       <View style={s.loading}>
