@@ -9,6 +9,7 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { BusinessProfile } from "@/components/BusinessProfile";
 import { MemoryAlbumBook } from "@/components/MemoryAlbumBook";
 import { MessageButton } from "@/components/MessageButton";
+import { ProfileMoreMenu } from "@/components/ProfileMoreMenu";
 import { ProfileContext } from "@/components/ProfileContext";
 
 type Params = { params: Promise<{ username: string }> };
@@ -157,7 +158,10 @@ export default async function ProfilePage({ params }: Params) {
         </div>
       </header>
       <div className="mb-6 flex flex-col items-center gap-2 px-1">
-        <MessageButton profileId={p.id} />
+        <div className="flex items-center gap-2">
+          <MessageButton profileId={p.id} />
+          <ProfileMoreMenu profileId={p.id} name={p.full_name ?? null} />
+        </div>
         <ProfileContext profileId={p.id} username={p.username ?? ""} />
       </div>
       <MemoryAlbumBook profileId={p.id} />

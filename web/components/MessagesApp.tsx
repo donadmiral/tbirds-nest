@@ -324,7 +324,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const shownConvs = useMemo(() => {
     const t = query.trim().toLowerCase();
     // A community's chat never lists here; it opens from the community page and lives there.
-    const base = convs.filter((c) => !(c.is_group && c.group_type === "community") && (tab === "groups" ? c.is_group : tab === "unread" ? c.unread > 0 : true));
+    const base = convs.filter((c) => !(c.is_group && c.group_type === "community") && !c.request_pending && (tab === "groups" ? c.is_group : tab === "unread" ? c.unread > 0 : true));
     if (!t) return base;
     return base.filter((c) => (c.title + " " + (c.username ?? "")).toLowerCase().includes(t));
   }, [convs, query, tab]);

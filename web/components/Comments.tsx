@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ThumbsUp, ThumbsDown, Reply, Trash2, Copy, MoreHorizontal, ChevronDown, ChevronUp } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Reply, Trash2, Copy, MoreHorizontal, ChevronDown, ChevronUp, EyeOff, ShieldAlert, UserMinus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { PersonName } from "@/components/PersonName";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { RichText } from "@/components/RichText";
 import { timeAgo } from "@/lib/feed";
@@ -18,6 +18,9 @@ type CommentRow = {
   likes_count: number;
   dislikes_count: number;
   created_at: string;
+  hidden?: boolean;
+  spam?: boolean;
+  spam_reason?: string | null;
   author?: { full_name: string | null; username: string | null; avatar_url: string | null } | null;
   replies: CommentRow[];
 };
@@ -36,21 +39,25 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
   const [busy, setBusy] = useState(false);
+  const [postAuthor, setPostAuthor] = useState<string | null>(null);
+  const [showSpam, setShowSpam] = useState(false);
 
   const load = useCallback(async () => {
     const { data: sess } = await supabase.auth.getSession();
     const userId = sess.session?.user.id ?? null;
     setUid(userId);
     if (userId) { const { data: ci } = await supabase.from("post_collaborators").select("status").eq("post_id", postId).eq("user_id", userId).maybeSingle(); setCollabInvite((ci as { status?: string } | null)?.status === "invited"); }
-    const { data: pol } = await supabase.from("posts").select("comment_policy").eq("id", postId).maybeSingle();
+    const { data: pol } = await supabase.from("posts").select("comment_policy, user_id").eq("id", postId).maybeSingle();
+    const authorId = (pol as { user_id?: string } | null)?.user_id ?? null;
+    setPostAuthor(authorId);
     if ((pol as { comment_policy?: string } | null)?.comment_policy === "off") { setOff(true); setItems([]); return; }
     setOff(false);
     const { data: rows } = await supabase
       .from("post_comments")
-      .select("id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, hidden_at")
+      .select("id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, hidden_at, is_spam, spam_reason")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
-    const all = ((rows ?? []) as (CommentRow & { content: string | null; hidden_at?: string | null })[]).filter((r) => !r.hidden_at || r.user_id === userId).map((r) => ({ ...r, body: r.body || r.content || "", replies: [] as CommentRow[] }));
+    const all = ((rows ?? []) as (CommentRow & { content: string | null; hidden_at?: string | null; is_spam?: boolean })[]).filter((r) => !r.hidden_at || r.user_id === userId || authorId === userId).map((r) => ({ ...r, body: r.body || r.content || "", hidden: !!r.hidden_at, spam: !!r.is_spam && r.user_id !== userId, replies: [] as CommentRow[] }));
     const ids = Array.from(new Set(all.map((c) => c.user_id)));
     if (ids.length > 0) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
@@ -147,7 +154,9 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
           <StoryAvatar userId={c.user_id} name={c.author?.full_name} avatarUrl={c.author?.avatar_url} size={depth > 0 ? 30 : 36} href={c.author?.username ? "/" + c.author.username : null} />
           <div className="min-w-0 flex-1">
             <p className="flex items-baseline gap-1.5 text-[13px]">
-              <Link href={c.author?.username ? "/" + c.author.username : "#"} className="font-semibold text-ink hover:underline">{c.author?.full_name ?? "Member"}</Link> <VerifiedBadge userId={c.user_id} size={13} />
+              <Link href={c.author?.username ? "/" + c.author.username : "#"} className="font-semibold text-ink hover:underline"><PersonName name={c.author?.full_name ?? "Member"} userId={c.user_id} badgeSize={13} /></Link>
+              {c.hidden ? <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/50">Hidden</span> : null}
+              {c.spam ? <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/50">May be spam</span> : null}
               <span className="text-ink/40">{timeAgo(c.created_at)}</span>
             </p>
             <p className="whitespace-pre-wrap text-[14px] text-ink/90"><RichText text={c.body} /></p>
@@ -168,6 +177,13 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
                 {menuFor === c.id ? (
                   <span className="absolute left-0 top-9 z-20 w-40 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
                     <button onClick={() => copyText(c)} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-white/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><Copy size={13} /> Copy text</button>
+                    {postAuthor && uid === postAuthor && uid !== c.user_id ? (
+                      <>
+                        <button onClick={() => { void supabase.rpc("set_comment_hidden", { p_comment_id: c.id, p_hidden: !c.hidden }).then(() => { setMenuFor(null); void load(); }); }} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-white/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><EyeOff size={13} /> {c.hidden ? "Unhide" : "Hide"}</button>
+                        <button onClick={() => { void supabase.rpc("set_comment_spam", { p_comment_id: c.id, p_spam: !c.spam }).then(() => { setMenuFor(null); void load(); }); }} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-white/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><ShieldAlert size={13} /> {c.spam ? "Not spam" : "Mark as spam"}</button>
+                        <button onClick={() => { const who = c.author?.full_name || "this person"; if (!confirm("Restrict " + who + "? Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.")) return; void supabase.rpc("set_restriction", { p_user: c.user_id, p_on: true }).then(({ error }) => { setMenuFor(null); if (error) alert(error.message); else alert(who + " is restricted. Undo it in Settings, under Restricted accounts."); }); }} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-white/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><UserMinus size={13} /> Restrict</button>
+                      </>
+                    ) : null}
                     {uid === c.user_id ? (
                       <button onClick={() => remove(c)} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-danger transition-colors duration-[140ms] hover:bg-surface-elevated"><Trash2 size={13} /> Delete</button>
                     ) : null}
@@ -193,7 +209,16 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
   return (
     <section className="mt-6 border-t border-ink/10 pt-4">
       <h2 className="text-[15px] font-semibold text-ink">{items.length > 0 ? "Comments" : "No comments yet"}</h2>
-      {!loaded ? <p className="py-6 text-center text-sm text-ink/40">Loading</p> : items.map((c) => <Row key={c.id} c={c} depth={0} />)}
+      {!loaded ? <p className="py-6 text-center text-sm text-ink/40">Loading</p> : items.filter((c) => !c.spam).map((c) => <Row key={c.id} c={c} depth={0} />)}
+      {loaded && items.some((c) => c.spam) ? (
+        <div className="mt-4">
+          <button onClick={() => setShowSpam((v) => !v)} className="flex items-center gap-1 text-[12.5px] font-semibold text-ink/50 hover:text-ink">
+            {showSpam ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            {items.filter((c) => c.spam).length} {items.filter((c) => c.spam).length === 1 ? "comment" : "comments"} may be spam
+          </button>
+          {showSpam ? items.filter((c) => c.spam).map((c) => <Row key={c.id} c={c} depth={0} />) : null}
+        </div>
+      ) : null}
       <div className="mt-5">
         {replyTo ? (
           <p className="mb-1 flex items-center gap-2 text-[12px] text-ink/50">

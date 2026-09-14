@@ -15,6 +15,7 @@ export type Conv = {
   context_ref_id: string | null;
   group_type: string | null;
   group_ref_id: string | null;
+  request_pending?: boolean;
 };
 
 export type Msg = {
@@ -97,6 +98,7 @@ export async function loadConversations(userId: string, context: string = "perso
       context_ref_id: (c.context_ref_id as string) ?? null,
       group_type: null,
       group_ref_id: null,
+      request_pending: c.request_status === "pending" && !!c.request_sender_id && c.request_sender_id === otherId,
     };
   });
   const groups: Conv[] = groupConvs.filter(keep).map((c) => ({

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AtSign, Briefcase, ChevronRight, Edit3, EyeOff, FileText, HelpCircle, Info, LifeBuoy, Settings as SettingsIcon, Shield, ShieldAlert, ShieldOff, UserCheck } from "lucide-react";
+import { AtSign, Briefcase, ChevronRight, Edit3, EyeOff, FileText, HelpCircle, Info, LifeBuoy, Settings as SettingsIcon, Shield, ShieldAlert, ShieldOff, UserCheck, UserMinus } from "lucide-react";
 import { autoplayEnabled, dataSaverEnabled, setAutoplay, setDataSaver } from "@/lib/mediaPrefs";
 import { PageHeader } from "@/components/ui";
 import { AccountStatus } from "@/components/AccountStatus";
@@ -88,6 +88,7 @@ export default function SettingsPage() {
         <NavRow href="/settings/account-type" icon={<UserCheck size={16} />} label="Account type" sub="Personal, Creator, Organization or Automated" />
         <NavRow href="/settings/follow-requests" icon={<UserCheck size={16} />} label="Follow requests" sub="Approve who follows your private account" />
         <NavRow href="/settings/blocked" icon={<ShieldOff size={16} />} label="Blocked accounts" sub="Manage who you have blocked" />
+        <NavRow href="/settings/restricted" icon={<UserMinus size={16} />} label="Restricted accounts" sub="Their comments wait for your approval and their messages go to requests" />
         <NavRow href="/settings/muted" icon={<EyeOff size={16} />} label="Muted stories" sub="Manage who you have muted" />
         <NavRow href="/settings/hidden-words" icon={<EyeOff size={16} />} label="Hidden words" sub="Hide comments that contain certain words" />
         <NavRow href="/settings/muted-words" icon={<EyeOff size={16} />} label="Muted words" sub="Keep posts with certain words out of your feed" />
