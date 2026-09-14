@@ -79,6 +79,7 @@ function lineFor(n: Notif): { lead: string; rest: string } {
     case "job_referral": return { lead, rest: n.body_preview ? " referred you for " + n.body_preview : " referred you for a job" };
     case "story_mention": return { lead, rest: n.body_preview ? " mentioned you in their story " + quote(n.body_preview) : " mentioned you in their story" };
     case "business_member": return { lead: n.message || "You joined a business", rest: n.body_preview ? " · " + n.body_preview : "" };
+    case "community_invite": return { lead, rest: " invited you to join " + (((n.data as { community_name?: string } | null)?.community_name) || "a community") };
     default: {
       const msg = (n.message || "").trim();
       const stripped = msg.toLowerCase().startsWith(name.toLowerCase()) ? msg.slice(name.length) : (msg ? " " + msg : "");
@@ -99,6 +100,7 @@ function sectionOf(created: string): string {
 
 function hrefFor(n: Notif): string {
   if (n.type === "market_alert" && (n.data as { listing_id?: string } | null)?.listing_id) return "/market/" + (n.data as { listing_id?: string }).listing_id;
+  if (n.type === "community_invite" && (n.data as { community_id?: string } | null)?.community_id) return "/communities/" + (n.data as { community_id?: string }).community_id;
   if (n.post_id) return "/post/" + n.post_id;
   if (n.actor_username) return "/" + n.actor_username;
   return "/notifications";
@@ -275,6 +277,20 @@ export default function NotificationsPage() {
                         const { error } = await supabase.rpc("respond_follow_request", { p_request_id: reqId, p_action: "reject" });
                         if (!error) setRows((prev) => prev.filter((r) => r.notification_id !== n.notification_id));
                       }} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Delete</button>
+                    </span>
+                  ) : null}
+                  {n.type === "community_invite" && (n.data as { community_id?: string } | null)?.community_id ? (
+                    <span className="flex shrink-0 gap-1.5" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                      <button onClick={async () => {
+                        const cid = (n.data as { community_id?: string }).community_id!;
+                        const { data, error } = await supabase.rpc("respond_community_invite", { p_community: cid, p_accept: true });
+                        if (!error) { setRows((prev) => prev.filter((r) => r.notification_id !== n.notification_id)); if (data === "joined") window.location.href = "/communities/" + cid; }
+                      }} className="rounded-md bg-pearl px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">Accept</button>
+                      <button onClick={async () => {
+                        const cid = (n.data as { community_id?: string }).community_id!;
+                        const { error } = await supabase.rpc("respond_community_invite", { p_community: cid, p_accept: false });
+                        if (!error) setRows((prev) => prev.filter((r) => r.notification_id !== n.notification_id));
+                      }} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Decline</button>
                     </span>
                   ) : null}
                   {n.type === "follow" && n.actor_id && !n.viewer_follows ? (

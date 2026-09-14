@@ -11,6 +11,7 @@ type Comm = {
   id: string; name: string; description: string | null; icon_url: string | null;
   cover_color: string; category: string | null; join_mode: string;
   member_count: number; is_member: boolean; my_role: string | null; has_pending: boolean;
+  has_invite?: boolean;
 };
 
 export default function CommunitiesPage() {
@@ -35,8 +36,15 @@ export default function CommunitiesPage() {
   const load = useCallback(async (query: string) => {
     setLoading(true);
     try {
-      const { data } = await supabase.rpc("get_communities", { p_query: query.trim() || null, p_limit: 40 });
-      setRows((data as Comm[]) ?? []);
+      const [{ data }, { data: inv }] = await Promise.all([
+        supabase.rpc("get_communities", { p_query: query.trim() || null, p_limit: 40 }),
+        supabase.rpc("get_my_community_invites"),
+      ]);
+      // Invitations sit first; accepting one admits you even to an invite-only community.
+      const invited = new Set(((inv as any[]) ?? []).map(i => i.id));
+      const base = ((data as Comm[]) ?? []).map(r => ({ ...r, has_invite: invited.has(r.id) }));
+      const extra: Comm[] = ((inv as any[]) ?? []).filter(i => !base.some(r => r.id === i.id)).map(i => ({ id: i.id, name: i.name, description: "Invited by " + (i.invited_by_name || i.invited_by_username || "a moderator"), icon_url: i.icon_url, cover_color: i.cover_color, category: null, join_mode: "invite", member_count: i.member_count, is_member: false, my_role: null, has_pending: false, has_invite: true }));
+      setRows([...extra, ...base].sort((x, y) => (y.has_invite ? 1 : 0) - (x.has_invite ? 1 : 0)));
     } finally { setLoading(false); }
   }, [supabase]);
 
@@ -116,6 +124,8 @@ export default function CommunitiesPage() {
               </Link>
               {c.is_member ? (
                 <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/50">Joined</span>
+              ) : c.has_invite ? (
+                <button onClick={() => join(c)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">Accept invite</button>
               ) : c.has_pending ? (
                 <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/50">Requested</span>
               ) : c.join_mode === "invite" ? (
