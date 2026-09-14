@@ -490,8 +490,9 @@ const setConvSetting = useCallback(async (conv: Conversation, patch: Record<stri
     const matchSearch = !search || c.other_name.toLowerCase().includes(search.toLowerCase());
     const ctx = (c as any).context || 'personal';
     // A community's chat belongs to its community: it lives under Groups, never among people.
+    if (c.group_type === 'community') return false; // a community's chat opens from the community, not from here
     const matchTab = tab === 'all'
-      ? ctx === 'personal' && c.group_type !== 'community'
+      ? ctx === 'personal'
       : tab === 'unread' ? c.unread_count > 0
       : tab === 'groups' ? c.is_group
       : true;
