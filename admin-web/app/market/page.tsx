@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemoveListing } from '@/lib/actions';
 import Shell from '@/components/Shell';
@@ -30,8 +30,7 @@ function title(s: string) { return (s || '').replace(/_/g, ' ').replace(/\b\w/g,
 function money(n: number) { return '$' + n.toLocaleString(undefined, { maximumFractionDigits: 2 }); }
 
 export default async function MarketPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/market');
   const svc = serviceClient();
 
   const now = Date.now();
@@ -106,7 +105,7 @@ export default async function MarketPage() {
     const sid = String(l.seller_id || '');
     const s = people[sid] || { full_name: null, username: null, avatar_url: null, location: null, is_verified: false };
     const raw = pickMedia(l);
-    const url = raw ? urlMap[raw] || raw : null;
+    const url = raw ? urlMap[raw] || null : null;
     const video = isVideoUrl(raw);
     const status = statusOf(l);
     const rep = reportsByListing[id];

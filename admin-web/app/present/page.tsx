@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import PresentBuilder from '@/components/PresentBuilder';
 
 /**
@@ -7,7 +7,6 @@ import PresentBuilder from '@/components/PresentBuilder';
  * the slides own the screen, and it still refuses anyone without a seat.
  */
 export default async function PresentPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/signin');
+  const admin = await requireDesk('/dashboard');
   return <PresentBuilder by={admin.email} role={admin.role} env="Production" />;
 }

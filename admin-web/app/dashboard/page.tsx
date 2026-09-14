@@ -1,6 +1,8 @@
+import { completeRead } from '@/lib/completeRead';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
+import { allowedDesks, hasFullOverview } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import Seal from '@/components/Seal';
@@ -48,8 +50,16 @@ function pctDelta(now: number, before: number): { text: string; fg: string } {
 }
 
 export default async function DashboardPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/dashboard');
+  if (!hasFullOverview(admin.role)) {
+    return <Shell admin={admin} active="/dashboard" title="Your workspace" sub="Open a desk assigned to your role.">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {[...allowedDesks(admin.role)].filter(d => d !== '/dashboard').map(d => (
+          <Link key={d} href={d} className="rounded-xl border p-5 capitalize">{d.slice(1)}</Link>
+        ))}
+      </div>
+    </Shell>;
+  }
   const svc = serviceClient();
 
   const now = Date.now();
@@ -68,22 +78,22 @@ export default async function DashboardPage() {
     svc.from('profiles').select('id', { count: 'exact', head: true }),
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('is_verified', true),
     svc.from('profiles').select('id', { count: 'exact', head: true }).gte('last_seen', activeSince),
-    svc.from('verification_applications').select('id, applicant_id, tier, category, created_at').in('status', ['submitted', 'under_review']).order('created_at', { ascending: true }).limit(6),
-    svc.from('post_reports').select('id, reason, created_at').eq('status', 'open').order('created_at', { ascending: true }).limit(4),
-    svc.from('listing_reports').select('id, reason, created_at').eq('status', 'open').order('created_at', { ascending: true }).limit(4),
-    svc.from('user_reports').select('id, reason, created_at').eq('status', 'open').order('created_at', { ascending: true }).limit(4),
+    svc.from('verification_applications').select('id, applicant_id, tier, category, created_at', { count: 'exact' }).in('status', ['submitted', 'under_review']).order('created_at', { ascending: true }).limit(6),
+    svc.from('post_reports').select('id, reason, created_at', { count: 'exact' }).eq('status', 'open').order('created_at', { ascending: true }).limit(4),
+    svc.from('listing_reports').select('id, reason, created_at', { count: 'exact' }).eq('status', 'open').order('created_at', { ascending: true }).limit(4),
+    svc.from('user_reports').select('id, reason, created_at', { count: 'exact' }).eq('status', 'open').order('created_at', { ascending: true }).limit(4),
     svc.from('admin_audit_log').select('action, reason, created_at').order('created_at', { ascending: false }).limit(8),
     svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     svc.from('business_applications').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
     svc.from('feature_flags').select('key, enabled, note').order('key'),
-    svc.from('daily_stats').select('day, dau, new_signups, posts, comments, likes, messages, stories, listings, jobs').order('day', { ascending: true }).limit(30),
-    svc.from('post_reports').select('created_at').gte('created_at', from30).limit(2000),
-    svc.from('listing_reports').select('created_at').gte('created_at', from30).limit(2000),
-    svc.from('user_reports').select('created_at').gte('created_at', from30).limit(2000),
-    svc.from('verification_applications').select('created_at').gte('created_at', from30).limit(2000),
+    svc.from('daily_stats').select('day, dau, new_signups, posts, comments, likes, messages, stories, listings, jobs').order('day', { ascending: false }).limit(30),
+    svc.from('post_reports').select('created_at', { count: 'exact' }).gte('created_at', from30).limit(2000),
+    svc.from('listing_reports').select('created_at', { count: 'exact' }).gte('created_at', from30).limit(2000),
+    svc.from('user_reports').select('created_at', { count: 'exact' }).gte('created_at', from30).limit(2000),
+    svc.from('verification_applications').select('created_at', { count: 'exact' }).gte('created_at', from30).limit(2000),
     svc.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier, location, account_type, created_at').order('created_at', { ascending: false }).limit(6),
     svc.from('posts').select('*').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
-    svc.from('profiles').select('location').not('location', 'is', null).limit(5000),
+    svc.from('profiles').select('location', { count: 'exact' }).not('location', 'is', null).limit(5000),
     svc.from('client_errors').select('id', { count: 'exact', head: true }).gte('created_at', from24h),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['under_review', 'approved', 'rejected']),
@@ -91,6 +101,7 @@ export default async function DashboardPage() {
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
   ]);
 
+  for (const result of [prAll, lrAll, urAll, appAll, locRes]) completeRead(result, 'Dashboard aggregate');
   const members = users.count ?? 0;
   const appRows = apps.data ?? [];
   const names: Record<string, { full_name: string | null; username: string | null }> = {};
@@ -104,18 +115,12 @@ export default async function DashboardPage() {
     ...(ur.data ?? []).map(r => ({ ...r, kind: 'Account' })),
   ].sort((a, b) => a.created_at.localeCompare(b.created_at)).slice(0, 6);
 
-  const daysRows = (daily.data ?? []) as Record<string, number | string>[];
+  const daysRows = [...(daily.data ?? [])].reverse() as Record<string, number | string>[];
   const dauSeries = daysRows.map(r => Number(r.dau) || 0);
   const signupSeries = daysRows.map(r => Number(r.new_signups) || 0);
   const signups7 = signupSeries.slice(-7).reduce((a, b) => a + b, 0);
   const signupsPrev7 = signupSeries.slice(-14, -7).reduce((a, b) => a + b, 0);
   const avgDau7 = dauSeries.length ? Math.round(dauSeries.slice(-7).reduce((a, b) => a + b, 0) / Math.min(7, dauSeries.length)) : 0;
-
-  // membership curve, walked backwards from today's real count using real signups
-  const memberCurve: number[] = [];
-  let running = members;
-  for (let i = signupSeries.length - 1; i >= 0; i--) { memberCurve.unshift(running); running -= signupSeries[i]; }
-  if (!memberCurve.length) memberCurve.push(members, members);
 
   const reportRows = [...(prAll.data ?? []), ...(lrAll.data ?? []), ...(urAll.data ?? [])] as { created_at: string }[];
   const reportSeries = bucketByDay(reportRows, days30);
@@ -125,17 +130,17 @@ export default async function DashboardPage() {
   const apps7 = ((appAll.data ?? []) as { created_at: string }[]).filter(r => r.created_at >= from7).length;
   const appsPrev7 = ((appAll.data ?? []) as { created_at: string }[]).filter(r => r.created_at >= from14 && r.created_at < from7).length;
 
-  const [prOpen, lrOpen, urOpen] = [(pr.data ?? []).length, (lr.data ?? []).length, (ur.data ?? []).length];
+  const [prOpen, lrOpen, urOpen] = [pr.count ?? 0, lr.count ?? 0, ur.count ?? 0];
 
   const cards = [
-    { label: 'Total members', value: members, icon: IC.users, color: 'var(--c1)', spark: memberCurve, delta: pctDelta(signups7, signupsPrev7), note: 'signups this week against last', href: '/users' },
-    { label: 'Active now', value: active.count ?? 0, icon: IC.pulse, color: 'var(--c2)', spark: dauSeries, delta: pctDelta(active.count ?? 0, avgDau7), note: 'against the 7 day average of ' + avgDau7, href: '/users' },
+    { label: 'Total members', value: members, icon: IC.users, color: 'var(--c1)', spark: signupSeries, delta: pctDelta(signups7, signupsPrev7), note: 'signups this week against last', href: '/users' },
+    { label: 'Active now', value: active.count ?? 0, icon: IC.pulse, color: 'var(--c2)', spark: dauSeries, delta: {text: '', fg: 'var(--txt)'}, note: 'seen during the last 5 minutes', href: '/users' },
     { label: 'Open reports', value: prOpen + lrOpen + urOpen, icon: IC.flag, color: 'var(--c5)', spark: reportSeries, delta: pctDelta(reports7, reportsPrev7), note: 'opened this week against last', href: '/reports' },
-    { label: 'Pending verifications', value: appRows.length, icon: IC.seal, color: 'var(--c3)', spark: appSeries, delta: pctDelta(apps7, appsPrev7), note: 'applied this week against last', href: '/queue' },
+    { label: 'Pending verifications', value: apps.count ?? 0, icon: IC.seal, color: 'var(--c3)', spark: appSeries, delta: pctDelta(apps7, appsPrev7), note: 'applied this week against last', href: '/queue' },
   ];
 
   const needs = [
-    { label: 'Verification applications', sub: 'submitted and under review', count: appRows.length, href: '/queue', icon: IC.seal, color: 'var(--c3)' },
+    { label: 'Verification applications', sub: 'submitted and under review', count: apps.count ?? 0, href: '/queue', icon: IC.seal, color: 'var(--c3)' },
     { label: 'Open reports', sub: 'posts, listings and accounts', count: prOpen + lrOpen + urOpen, href: '/reports', icon: IC.flag, color: 'var(--c5)' },
     { label: 'Support tickets', sub: 'open conversations', count: tickets.count ?? 0, href: '/support', icon: IC.ticket, color: 'var(--c1)' },
     { label: 'Business applications', sub: 'awaiting review', count: bizApps.count ?? 0, href: '/businesses', icon: IC.build, color: 'var(--c2)' },
@@ -295,7 +300,7 @@ export default async function DashboardPage() {
           </div>
           {topContent.length === 0 ? <Empty note="No post has drawn engagement yet." /> : topContent.map(p => {
             const rawUrl = postMedia[p.id];
-            const url = rawUrl ? postUrls[rawUrl] || rawUrl : null;
+            const url = rawUrl ? postUrls[rawUrl] || null : null;
             const video = isVideoUrl(rawUrl);
             return (
             <Link key={p.id} href={'/p/' + p.id} className="pc-nav" style={ROW}>

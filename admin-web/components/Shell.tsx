@@ -8,7 +8,8 @@
 import Link from 'next/link';
 import { signOut } from '@/lib/actions';
 import { serviceClient } from '@/lib/supabaseAdmin';
-import { allowedDesks } from '@/lib/adminAuth';
+import { allowedDesks, canOpen, canPerform } from '@/lib/permissions';
+import { notFound } from 'next/navigation';
 import ThemeControls from '@/components/ThemeControls';
 import SideRail from '@/components/SideRail';
 import CommandPalette from '@/components/CommandPalette';
@@ -62,13 +63,16 @@ const ACTIONS: { href: string; label: string }[] = [
 export default async function Shell({ admin, active, title, crumb, sub, children }: {
   admin: { email: string; role: string }; active: string; title: React.ReactNode; crumb?: string; sub?: string; children: React.ReactNode;
 }) {
+  if (!canOpen(admin.role, active)) notFound();
+  const allow = allowedDesks(admin.role);
+  const none = { count: null };
   const svc = serviceClient();
   const [apps, p1, p2, p3, tk] = await Promise.all([
-    svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['submitted', 'under_review']),
-    svc.from('post_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-    svc.from('listing_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-    svc.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-    svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+    allow.has('/queue') ? svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['submitted', 'under_review']) : none,
+    canPerform(admin.role, 'report_post') ? svc.from('post_reports').select('id', { count: 'exact', head: true }).eq('status', 'open') : none,
+    canPerform(admin.role, 'report_listing') ? svc.from('listing_reports').select('id', { count: 'exact', head: true }).eq('status', 'open') : none,
+    canPerform(admin.role, 'report_user') ? svc.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', 'open') : none,
+    allow.has('/support') ? svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open') : none,
   ]);
   const queueCount = apps.count || 0;
   const reportCount = (p1.count || 0) + (p2.count || 0) + (p3.count || 0);
@@ -76,7 +80,6 @@ export default async function Shell({ admin, active, title, crumb, sub, children
   const alerts = queueCount + reportCount + supportCount;
   const counts: Record<string, number> = { '/queue': queueCount, '/reports': reportCount, '/support': supportCount };
 
-  const allow = allowedDesks(admin.role);
   const groups = GROUPS.map(g => ({ ...g, items: g.items.filter(d => allow.has(d.href)) })).filter(g => g.items.length > 0);
   const paletteItems = groups.flatMap(g => g.items.map(d => ({ href: d.href, label: d.label, group: g.label, key: d.key })));
   const actions = ACTIONS.filter(a => allow.has(a.href));
@@ -113,7 +116,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
               <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ok)', letterSpacing: '0.02em' }}>Production</span>
             </div>
 
-            <Link href="/queue" title="Work waiting" className="pc-icon-btn" style={{ position: 'relative', width: 33, height: 33, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(var(--on),0.10)' }}>
+            <Link href={['/queue', '/reports', '/support'].find(d => allow.has(d)) || '/dashboard'} title="Work waiting" className="pc-icon-btn" style={{ position: 'relative', width: 33, height: 33, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(var(--on),0.10)' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.6)' }}><path d="M12 22a2.5 2.5 0 002.4-2h-4.8a2.5 2.5 0 002.4 2zm7-5v-1l-1.5-1.7V10a5.5 5.5 0 00-4-5.3V4a1.5 1.5 0 00-3 0v.7a5.5 5.5 0 00-4 5.3v4.3L5 16v1h14z" /></svg>
               {alerts > 0 ? (
                 <span className="pc-num" style={{ position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16, padding: '0 3.5px', borderRadius: 999, background: 'var(--alert)', color: '#fff', fontSize: 9.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>{alerts}</span>

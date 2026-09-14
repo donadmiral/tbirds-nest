@@ -1,6 +1,9 @@
+import CommandForm from '@/components/CommandForm';
+import PermissionGate from '@/components/PermissionGate';
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
+import { canOpen, canPerform } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { suspendUser, restoreUser, revokeVerification, adminRemovePost, adminRemoveListing, issueStrike, liftRestriction } from '@/lib/actions';
 import Shell from '@/components/Shell';
@@ -13,11 +16,16 @@ const TABS = ['overview', 'strikes', 'posts', 'listings', 'jobs', 'reports', 'su
 export default async function MemberRecordPage({ params, searchParams }: {
   params: Promise<{ uid: string }>; searchParams: Promise<{ tab?: string }>;
 }) {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/users');
   const { uid } = await params;
   const { tab: rawTab } = await searchParams;
   const tab = (TABS as readonly string[]).includes(rawTab || '') ? (rawTab as string) : 'overview';
+  const tabAllowed = (name: string): boolean => {
+    const desks: Record<string, string> = { posts: '/content', listings: '/market', jobs: '/jobs', support: '/support', audit: '/audit' };
+    if (name === 'reports') return canPerform(admin.role, 'report_user');
+    return !desks[name] || canOpen(admin.role, desks[name]);
+  };
+  if (!tabAllowed(tab)) notFound();
   const svc = serviceClient();
   const { data: u } = await svc.from('profiles')
     .select('id, full_name, username, email, avatar_url, account_type, bio, location, is_verified, verified_tier, verified_category, created_at, deactivated_at, suspended_reason, restricted_until')
@@ -29,10 +37,10 @@ export default async function MemberRecordPage({ params, searchParams }: {
   let body: React.ReactNode = null;
   if (tab === 'overview') {
     const [pc, lc, jc, tk] = await Promise.all([
-      svc.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', uid),
-      svc.from('marketplace_listings').select('id', { count: 'exact', head: true }).eq('seller_id', uid),
-      svc.from('jobs').select('id', { count: 'exact', head: true }).eq('posted_by', uid),
-      svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('user_id', uid),
+      canOpen(admin.role, '/content') ? svc.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', uid) : { count: null },
+      canOpen(admin.role, '/market') ? svc.from('marketplace_listings').select('id', { count: 'exact', head: true }).eq('seller_id', uid) : { count: null },
+      canOpen(admin.role, '/jobs') ? svc.from('jobs').select('id', { count: 'exact', head: true }).eq('posted_by', uid) : { count: null },
+      canOpen(admin.role, '/support') ? svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('user_id', uid) : { count: null },
     ]);
     body = (
       <div className="grid gap-4 lg:grid-cols-3">
@@ -44,7 +52,7 @@ export default async function MemberRecordPage({ params, searchParams }: {
             <p className="text-[#7A7D84]">Joined</p><p className="font-medium tabular-nums">{new Date(u.created_at).toLocaleDateString()}</p>
             <p className="text-[#7A7D84]">Location</p><p className="font-medium">{u.location || '-'}</p>
             <p className="text-[#7A7D84]">Verification</p><p className="font-medium">{u.verified_tier ? (u.verified_tier + (u.verified_category ? ' - ' + u.verified_category : '')) : 'none'}</p>
-            <p className="text-[#7A7D84]">Activity</p><p className="font-medium tabular-nums">{pc.count ?? 0} posts - {lc.count ?? 0} listings - {jc.count ?? 0} jobs - {tk.count ?? 0} tickets</p>
+            <p className="text-[#7A7D84]">Activity</p><p className="font-medium tabular-nums">{[[pc.count, 'posts'], [lc.count, 'listings'], [jc.count, 'jobs'], [tk.count, 'tickets']].filter(([count]) => count !== null).map(([count, label]) => `${count} ${label}`).join(' - ') || 'Open an assigned desk for activity details'}</p>
           </div>
           {u.bio ? <p className="mt-4 rounded-[10px] bg-[#F8F8F7] p-3 text-[13px] text-[#43454B]">{u.bio}</p> : null}
         </div>
@@ -53,14 +61,14 @@ export default async function MemberRecordPage({ params, searchParams }: {
           {restricted ? (
             <div className="mb-3 rounded-[10px] border border-[#F3E3C5] bg-[#FBF4E4] p-2.5">
               <p className="text-[11.5px] font-bold text-[#B45309]">Restricted until {new Date(u.restricted_until).toLocaleDateString()}</p>
-              <form action={liftRestriction} className="mt-1.5">
+              <PermissionGate role={admin.role} permission="user_moderate"><CommandForm scope="liftRestriction" action={liftRestriction} className="mt-1.5">
                 <input type="hidden" name="uid" value={u.id} />
                 <button className="text-[11px] font-semibold text-[#B45309] underline">Lift early</button>
-              </form>
+              </CommandForm></PermissionGate>
             </div>
           ) : null}
           {!suspended ? (
-            <form action={issueStrike} className="space-y-2">
+            <PermissionGate role={admin.role} permission="user_moderate"><CommandForm scope="issueStrike" action={issueStrike} className="space-y-2">
               <input type="hidden" name="uid" value={u.id} />
               <select name="level" className="w-full rounded-[10px] border border-[#E5E4E0] bg-white px-3 py-2 text-[12.5px] outline-none">
                 <option value="warn">Warn - recorded strike only</option>
@@ -72,18 +80,18 @@ export default async function MemberRecordPage({ params, searchParams }: {
               <input name="reason" required placeholder="Reason - the member may see this"
                 className="w-full rounded-[10px] border border-[#E5E4E0] px-3 py-2 text-[12.5px] outline-none focus:border-[#B9BCC2]" />
               <button className="w-full rounded-[10px] border border-[#F0DEDE] bg-[#FBF2F2] py-2 text-[12px] font-bold text-[#B03A3A] hover:bg-[#F6E4E4]">Issue</button>
-            </form>
+            </CommandForm></PermissionGate>
           ) : (
-            <form action={restoreUser}>
+            <PermissionGate role={admin.role} permission="user_moderate"><CommandForm scope="restoreUser" action={restoreUser}>
               <input type="hidden" name="id" value={u.id} />
               <button className="w-full rounded-[10px] bg-[#0B1E3D] py-2 text-[12px] font-bold text-white hover:opacity-90">Restore account</button>
-            </form>
+            </CommandForm></PermissionGate>
           )}
           {(u.verified_tier || u.is_verified) ? (
-            <form action={revokeVerification} className="mt-2">
+            <PermissionGate role={admin.role} permission="verification"><CommandForm scope="revokeVerification" action={revokeVerification} className="mt-2">
               <input type="hidden" name="id" value={u.id} />
               <button className="w-full rounded-[10px] border border-[#E5E4E0] py-2 text-[12px] font-bold text-[#5A5D64] hover:bg-[#F0EFEC]">Revoke badge</button>
-            </form>
+            </CommandForm></PermissionGate>
           ) : null}
         </div>
       </div>
@@ -124,10 +132,10 @@ export default async function MemberRecordPage({ params, searchParams }: {
             <p className="line-clamp-2 whitespace-pre-wrap text-[13px] text-[#43454B]">{p.content || p.body || (p.media_url ? '(media post)' : '(empty)')}</p>
             <div className="mt-1.5 flex items-center gap-3">
               <p className="text-[11.5px] tabular-nums text-[#9A9DA4]">{p.likes_count} likes - {p.comments_count} comments - {new Date(p.created_at).toLocaleString()}</p>
-              <form action={adminRemovePost} className="ml-auto">
+              <PermissionGate role={admin.role} permission="post_moderate"><CommandForm scope="adminRemovePost" action={adminRemovePost} className="ml-auto">
                 <input type="hidden" name="pid" value={p.id} />
                 <button className="rounded-[8px] border border-[#F0DEDE] bg-[#FBF2F2] px-3 py-1 text-[11px] font-bold text-[#B03A3A] hover:bg-[#F6E4E4]">Remove</button>
-              </form>
+              </CommandForm></PermissionGate>
             </div>
           </div>
         ))}
@@ -146,10 +154,10 @@ export default async function MemberRecordPage({ params, searchParams }: {
             <p className="tabular-nums">${l.price}</p>
             <p className="text-[#7A7D84]">{l.status}</p>
             <p className="tabular-nums text-[#9A9DA4]">{new Date(l.created_at).toLocaleDateString()}</p>
-            <form action={adminRemoveListing}>
+            <PermissionGate role={admin.role} permission="market_moderate"><CommandForm scope="adminRemoveListing" action={adminRemoveListing}>
               <input type="hidden" name="lid" value={l.id} />
               <button className="rounded-[8px] border border-[#F0DEDE] bg-[#FBF2F2] px-3 py-1 text-[11px] font-bold text-[#B03A3A] hover:bg-[#F6E4E4]">Remove</button>
-            </form>
+            </CommandForm></PermissionGate>
           </div>
         ))}
       </div>
@@ -239,7 +247,7 @@ export default async function MemberRecordPage({ params, searchParams }: {
         </div>
       </div>
       <div className="mb-4 flex flex-wrap gap-1 border-b border-[#E5E4E0]">
-        {TABS.map(t => (
+        {TABS.filter(tabAllowed).map(t => (
           <Link key={t} href={'/users/' + u.id + '?tab=' + t}
             className={'rounded-t-[8px] px-3.5 py-2 text-[12.5px] font-semibold capitalize transition-colors duration-150 ' + (tab === t ? 'border-b-2 border-[#0B1E3D] text-[#17181C]' : 'text-[#7A7D84] hover:text-[#17181C]')}>{t}</Link>
         ))}

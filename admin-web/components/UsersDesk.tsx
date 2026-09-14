@@ -1,4 +1,7 @@
 'use client';
+import CommandForm from '@/components/CommandForm';
+import PermissionGate from '@/components/PermissionGate';
+import { canPerform } from '@/lib/permissions';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -19,7 +22,7 @@ function standing(u: Row): { label: string; cls: string } {
   return { label: 'Active', cls: 'bg-[#EFF8F1] text-[#1D7A38]' };
 }
 
-export default function UsersDesk({ rows, appeals }: { rows: Row[]; appeals: { id: string; user_id: string; subject: string; created_at: string }[] }) {
+export default function UsersDesk({ rows, appeals, role }: { role: string; rows: Row[]; appeals: { id: string; user_id: string; subject: string; created_at: string }[] }) {
   const [tab, setTab] = useState<'all' | 'verified' | 'restricted' | 'suspended' | 'appeals'>('all');
   const [selected, setSelected] = useState<Row | null>(rows[0] ?? null);
   const [strikeOpen, setStrikeOpen] = useState(false);
@@ -121,23 +124,23 @@ export default function UsersDesk({ rows, appeals }: { rows: Row[]; appeals: { i
 
             <div className="mt-4 flex flex-wrap gap-2 border-t border-[#F0EFEC] pt-4">
               {selected.deactivated_at ? (
-                <form action={restoreUser}>
+                <PermissionGate role={role} permission="user_moderate"><CommandForm scope="restoreUser" action={restoreUser}>
                   <input type="hidden" name="id" value={selected.id} />
                   <button className="rounded-[9px] bg-[#17181C] px-3.5 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Restore account</button>
-                </form>
+                </CommandForm></PermissionGate>
               ) : (
-                <button onClick={() => setStrikeOpen(v => !v)} className="rounded-[9px] border border-[#E5E4E0] px-3.5 py-2 text-[12px] font-semibold text-[#17181C] transition-colors duration-150 hover:bg-[#FAFAF9]">Issue strike</button>
+                <button hidden={!canPerform(role, 'user_moderate')} onClick={() => setStrikeOpen(v => !v)} className="rounded-[9px] border border-[#E5E4E0] px-3.5 py-2 text-[12px] font-semibold text-[#17181C] transition-colors duration-150 hover:bg-[#FAFAF9]">Issue strike</button>
               )}
               {(selected.verified_tier || selected.is_verified) ? (
-                <form action={revokeVerification}>
+                <PermissionGate role={role} permission="verification"><CommandForm scope="revokeVerification" action={revokeVerification}>
                   <input type="hidden" name="id" value={selected.id} />
                   <button className="rounded-[9px] border border-[#E5E4E0] px-3.5 py-2 text-[12px] font-semibold text-[#7A7D84] transition-colors duration-150 hover:bg-[#FAFAF9]">Revoke badge</button>
-                </form>
+                </CommandForm></PermissionGate>
               ) : null}
             </div>
 
             {strikeOpen && !selected.deactivated_at ? (
-              <form action={issueStrike} className="mt-3 flex flex-col gap-2 rounded-[10px] border border-[#E5E4E0] p-3">
+              <PermissionGate role={role} permission="user_moderate"><CommandForm scope="issueStrike" action={issueStrike} className="mt-3 flex flex-col gap-2 rounded-[10px] border border-[#E5E4E0] p-3">
                 <input type="hidden" name="uid" value={selected.id} />
                 <select name="level" required className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] text-[#17181C] outline-none">
                   <option value="warn">Warn</option>
@@ -148,26 +151,26 @@ export default function UsersDesk({ rows, appeals }: { rows: Row[]; appeals: { i
                 <input name="days" type="number" min="1" placeholder="Days (restrict only)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
                 <input name="reason" required placeholder="Reason (required)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
                 <button className="rounded-[8px] bg-[#B03A3A] px-3 py-1.5 text-[12.5px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Confirm strike</button>
-              </form>
+              </CommandForm></PermissionGate>
             ) : null}
 
             {!selected.deactivated_at && !strikeOpen ? (
               <>
-              <details className="mt-4 rounded-[10px] border border-[#F3C9C9] bg-[#FFF7F7] p-3">
+              <details hidden={!canPerform(role, 'account_delete')} className="mt-4 rounded-[10px] border border-[#F3C9C9] bg-[#FFF7F7] p-3">
                 <summary className="cursor-pointer text-[12.5px] font-bold text-[#B03A3A]">Delete this account permanently</summary>
                 <p className="mt-2 text-[12px] text-[#6B6E76]">Removes every post, story, message, listing, follow and membership this person owns, then the login itself. There is no undo. Prefer suspension unless deletion is required.</p>
-                <form action={adminDeleteAccount} className="mt-2 flex flex-col gap-2">
+                <PermissionGate role={role} permission="account_delete"><CommandForm scope="adminDeleteAccount" action={adminDeleteAccount} className="mt-2 flex flex-col gap-2">
                   <input type="hidden" name="id" value={selected.id} />
                   <input name="reason" required placeholder="Reason (required, kept in the audit log)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
                   <input name="confirm" required placeholder="Type DELETE to confirm" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
                   <button className="self-start rounded-[9px] bg-[#B03A3A] px-3.5 py-2 text-[12px] font-bold text-white transition-colors duration-150 hover:bg-[#8F2E2E]">Delete permanently</button>
-                </form>
+                </CommandForm></PermissionGate>
               </details>
-              <form action={suspendUser} className="mt-3 flex flex-col gap-2">
+              <PermissionGate role={role} permission="user_moderate"><CommandForm scope="suspendUser" action={suspendUser} className="mt-3 flex flex-col gap-2">
                 <input type="hidden" name="id" value={selected.id} />
                 <input name="reason" required placeholder="Suspension reason (required)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
                 <button className="self-start rounded-[9px] border border-[#F3C9C9] bg-[#FBF0F0] px-3.5 py-2 text-[12px] font-bold text-[#B03A3A] transition-colors duration-150 hover:bg-[#F8E4E4]">Suspend account</button>
-              </form>
+              </CommandForm></PermissionGate>
               </>
             ) : null}
           </div>

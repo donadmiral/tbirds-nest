@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
@@ -27,8 +27,7 @@ const SERIES = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)',
 function title(s: string) { return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 
 export default async function SupportPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/signin');
+  const admin = await requireDesk('/support');
   const svc = serviceClient();
 
   const now = Date.now();

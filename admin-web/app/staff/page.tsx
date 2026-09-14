@@ -1,5 +1,8 @@
+import { completeRead } from '@/lib/completeRead';
+import CommandForm from '@/components/CommandForm';
+import PermissionGate from '@/components/PermissionGate';
 import { redirect } from 'next/navigation';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { inviteStaff, setStaffRole, deactivateStaff } from '@/lib/actions';
 import Shell from '@/components/Shell';
@@ -32,21 +35,26 @@ const SERIES = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)',
 function title(s: string) { return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 
 export default async function StaffPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
-  if (admin.role !== 'super_admin') redirect('/dashboard');
+  const admin = await requireDesk('/staff');
   const svc = serviceClient();
 
-  const [{ data: staff }, { data: authList }, { data: recentActions }] = await Promise.all([
-    svc.from('admin_users').select('user_id, role, active, created_at').order('created_at', { ascending: true }),
-    svc.auth.admin.listUsers({ page: 1, perPage: 200 }),
+  const [staffResult, { data: recentActions }] = await Promise.all([
+    svc.from('admin_users').select('user_id, role, active, created_at', { count: 'exact' }).order('created_at', { ascending: true }),
     svc.from('admin_audit_log').select('admin_id, action, created_at').order('created_at', { ascending: false }).limit(500),
   ]);
 
+  completeRead(staffResult, 'Staff directory');
+  const staff = staffResult.data;
+  const authUsers = [];
+  for (const row of staff ?? []) {
+    const found = await svc.auth.admin.getUserById(row.user_id);
+    if (found.error) throw new Error('Staff identity lookup failed.');
+    authUsers.push(found.data.user);
+  }
   const rowsRaw = (staff ?? []) as { user_id: string; role: string; active: boolean; created_at: string }[];
   const emails: Record<string, string> = {};
   const lastSignIn: Record<string, string | null> = {};
-  ((authList?.users ?? []) as { id: string; email?: string | null; last_sign_in_at?: string | null }[]).forEach(u => {
+  (authUsers as { id: string; email?: string | null; last_sign_in_at?: string | null }[]).forEach(u => {
     emails[u.id] = u.email || '';
     lastSignIn[u.id] = u.last_sign_in_at || null;
   });
@@ -135,14 +143,14 @@ export default async function StaffPage() {
           <div style={H_TITLE}>Invite an administrator</div>
           <div style={H_SUB}>A deactivated shell profile is created automatically, so staff never appear in the social graph</div>
         </div>
-        <form action={inviteStaff} style={{ display: 'flex', flexWrap: 'wrap', gap: 9, padding: 16 }}>
+        <PermissionGate role={admin.role} permission="staff_manage"><CommandForm scope="inviteStaff" action={inviteStaff} style={{ display: 'flex', flexWrap: 'wrap', gap: 9, padding: 16 }}>
           <input name="email" type="email" required placeholder="Email" style={{ ...FIELD, flex: '1 1 220px', minWidth: 200 }} />
-          <input name="password" type="text" required minLength={10} placeholder="Temporary password, 10 characters or more" style={{ ...FIELD, flex: '1 1 240px', minWidth: 220 }} />
+          <input name="password" type="text" required minLength={12} placeholder="Temporary password, 10 characters or more" style={{ ...FIELD, flex: '1 1 240px', minWidth: 220 }} />
           <select name="role" style={{ ...FIELD, cursor: 'pointer' }}>
             {ROLES.map(r => <option key={r} value={r}>{title(r)}</option>)}
           </select>
           <button type="submit" style={{ padding: '9px 16px', borderRadius: 9, cursor: 'pointer', fontSize: 12.3, fontWeight: 600, background: 'var(--accent)', color: 'var(--accent-ink)', border: 'none' }}>Invite</button>
-        </form>
+        </CommandForm></PermissionGate>
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_320px]">

@@ -1,4 +1,5 @@
 'use client';
+import CommandForm from '@/components/CommandForm';
 
 import { useState } from 'react';
 import Seal from '@/components/Seal';
@@ -106,15 +107,15 @@ export default function VerificationDesk({ apps }: { apps: App[] }) {
               <div><p className="text-[15px] font-bold tabular-nums text-[#17181C]">{selected.strikes}</p><p className="text-[10px] text-[#9A9DA4]">Strikes</p></div>
             </div>
             <div className="mt-3 flex flex-col gap-2">
-              <form action={approveApplication}>
+              <CommandForm scope="approveApplication" action={approveApplication}>
                 <input type="hidden" name="id" value={selected.id} />
                 <button className="w-full rounded-[9px] bg-[#17181C] px-3 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Approve \u2014 {(TIER_LABEL[selected.tier] || selected.tier).toLowerCase()}</button>
-              </form>
-              <form action={rejectApplication} className="flex flex-col gap-1.5">
+              </CommandForm>
+              <CommandForm scope="rejectApplication" action={rejectApplication} className="flex flex-col gap-1.5">
                 <input type="hidden" name="id" value={selected.id} />
                 <input name="reason" placeholder="Reason if rejecting" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12px] outline-none" />
                 <button className="rounded-[9px] border border-[#F3C9C9] bg-[#FBF0F0] px-3 py-2 text-[12px] font-bold text-[#B03A3A] transition-colors duration-150 hover:bg-[#F8E4E4]">Reject</button>
-              </form>
+              </CommandForm>
             </div>
           </>
         ) : null}

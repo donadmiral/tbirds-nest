@@ -1,23 +1,28 @@
-import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
-
-// Public face of a post: what WhatsApp, iMessage and the open web see
-// when someone shares out of the app. Server-rendered, service-backed,
-// read-only.
-
-const svc = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
+import { serviceClient } from '@/lib/supabaseAdmin';
+import { resolveMedia } from '@/lib/media';
+export const dynamic = 'force-dynamic';
 
 async function loadPost(id: string) {
-  const s = svc();
-  const { data: post } = await s.from('posts').select('id, content, user_id, created_at, likes_count, comments_count, shares_count').eq('id', id).maybeSingle();
-  if (!post) return null;
-  const { data: author } = await s.from('profiles').select('full_name, username, avatar_url, is_verified').eq('id', post.user_id).maybeSingle();
+  if (!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) return null;
+  const s = serviceClient();
+  const { data: post, error } = await s.from('posts')
+    .select('id, content, user_id, created_at, likes_count, comments_count, shares_count, scope, audience, is_exclusive, community_id, archived_at')
+    .eq('id', id).eq('scope', 'global').eq('audience', 'everyone').eq('is_exclusive', false)
+    .is('community_id', null).is('archived_at', null).maybeSingle();
+  if (error || !post) return null;
+  const { data: author, error: authorError } = await s.from('profiles')
+    .select('full_name, username, is_verified').eq('id', post.user_id)
+    .eq('profile_visibility', 'public').is('deactivated_at', null).maybeSingle();
+  if (authorError || !author) return null;
   const { data: media } = await s.from('post_media').select('url, media_type').eq('post_id', id).order('sort_order').limit(1);
-  return { post, author, media: media && media.length ? media[0] : null };
+  const first = media?.[0];
+  const urls = first?.url ? await resolveMedia([first.url]) : {};
+  return { post, author, media: first && urls[first.url] ? { ...first, url: urls[first.url] } : null };
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const d = await loadPost(params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const d = await loadPost((await params).id);
   if (!d) return { title: 'Platinum Circles' };
   const name = d.author?.full_name || ('@' + (d.author?.username || 'member'));
   const desc = (d.post.content || 'A post on Platinum Circles').slice(0, 160);
@@ -27,13 +32,13 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     openGraph: {
       title: name + ' on Platinum Circles',
       description: desc,
-      images: d.media && d.media.media_type === 'image' ? [{ url: d.media.url }] : [{ url: 'https://platinum-admin.vercel.app/brand/pc-icon.png' }],
+      images: d.media && d.media.media_type === 'image' ? [{ url: d.media.url }] : [],
     },
   };
 }
 
-export default async function PublicPost({ params }: { params: { id: string } }) {
-  const d = await loadPost(params.id);
+export default async function PublicPost({ params }: { params: Promise<{ id: string }> }) {
+  const d = await loadPost((await params).id);
   if (!d) notFound();
   const name = d!.author?.full_name || ('@' + (d!.author?.username || 'member'));
   return (

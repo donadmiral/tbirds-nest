@@ -1,4 +1,5 @@
 'use client';
+import CommandForm from '@/components/CommandForm';
 
 /**
  * The operations desk kit. One master-detail table used by every desk:
@@ -357,7 +358,7 @@ export function Desk({
             {actions.filter(a => (selected.actions || []).includes(a.key)).map(a => {
               const tn = TONE[a.tone || 'neutral'];
               return (
-                <form key={a.key} action={a.action} style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <CommandForm scope={a.key} key={a.key} action={a.action} style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <input type="hidden" name={a.idName} value={selected.actionId || selected.id} />
                   {(a.inputs || []).map(inp => inp.options ? (
                     <select key={inp.name} name={inp.name} defaultValue={inp.defaultValue}
@@ -370,7 +371,7 @@ export function Desk({
                   ))}
                   <button type="submit"
                     style={{ padding: '9px 13px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 600, background: tn.bg, color: tn.fg, border: '1px solid ' + tn.bd }}>{a.label}</button>
-                </form>
+                </CommandForm>
               );
             })}
 

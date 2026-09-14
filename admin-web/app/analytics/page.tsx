@@ -1,6 +1,7 @@
+import { completeRead } from '@/lib/completeRead';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { SeriesChart, Donut, Bars, StackBars, Spark, Empty, type Slice } from '@/components/Viz';
@@ -33,8 +34,7 @@ function weekStart(iso: string) {
 }
 
 export default async function AnalyticsPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/analytics');
   const svc = serviceClient();
 
   const cohortFrom = new Date(Date.now() - 70 * 86400000).toISOString();
@@ -45,12 +45,13 @@ export default async function AnalyticsPage() {
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('account_type', 'business'),
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('is_verified', true),
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('account_type', 'business').eq('is_verified', true),
-    svc.from('profiles').select('verified_tier').eq('is_verified', true).limit(2000),
+    svc.from('profiles').select('verified_tier', { count: 'exact' }).eq('is_verified', true).limit(2000),
     svc.from('posts').select('*').order('likes_count', { ascending: false, nullsFirst: false }).limit(12),
-    svc.from('profiles').select('created_at, last_seen').gte('created_at', cohortFrom).limit(5000),
-    svc.from('profiles').select('location').not('location', 'is', null).limit(5000),
+    svc.from('profiles').select('created_at, last_seen', { count: 'exact' }).gte('created_at', cohortFrom).limit(5000),
+    svc.from('profiles').select('location', { count: 'exact' }).not('location', 'is', null).limit(5000),
   ]);
 
+  for (const result of [tierRes, cohortRes, locRes]) completeRead(result, 'Analytics aggregate');
   const desc = (daysRes.data ?? []) as Day[];
   const rows = [...desc].reverse();
   const last30 = rows.slice(-30);
@@ -66,11 +67,11 @@ export default async function AnalyticsPage() {
   const series30 = (key: string) => last30.map(r => Number(r[key]) || 0);
   const kpis = [
     { label: 'Daily actives, 7 day average', value: last7.length ? Math.round(sum(last7, 'dau') / last7.length) : 0, prev: prev7.length ? Math.round(sum(prev7, 'dau') / prev7.length) : 0, key: 'dau', color: 'var(--c1)' },
-    { label: 'Signups this week', value: sum(last7, 'new_signups'), prev: sum(prev7, 'new_signups'), key: 'new_signups', color: 'var(--c2)' },
-    { label: 'Posts this week', value: sum(last7, 'posts'), prev: sum(prev7, 'posts'), key: 'posts', color: 'var(--c3)' },
-    { label: 'Stories this week', value: sum(last7, 'stories'), prev: sum(prev7, 'stories'), key: 'stories', color: 'var(--c4)' },
-    { label: 'Messages this week', value: sum(last7, 'messages'), prev: sum(prev7, 'messages'), key: 'messages', color: 'var(--c6)' },
-    { label: 'Likes this week', value: sum(last7, 'likes'), prev: sum(prev7, 'likes'), key: 'likes', color: 'var(--c5)' },
+    { label: 'Signups in latest 7 recorded days', value: sum(last7, 'new_signups'), prev: sum(prev7, 'new_signups'), key: 'new_signups', color: 'var(--c2)' },
+    { label: 'Posts in latest 7 recorded days', value: sum(last7, 'posts'), prev: sum(prev7, 'posts'), key: 'posts', color: 'var(--c3)' },
+    { label: 'Stories in latest 7 recorded days', value: sum(last7, 'stories'), prev: sum(prev7, 'stories'), key: 'stories', color: 'var(--c4)' },
+    { label: 'Messages in latest 7 recorded days', value: sum(last7, 'messages'), prev: sum(prev7, 'messages'), key: 'messages', color: 'var(--c6)' },
+    { label: 'Likes in latest 7 recorded days', value: sum(last7, 'likes'), prev: sum(prev7, 'likes'), key: 'likes', color: 'var(--c5)' },
   ];
 
   const MIX: { key: string; label: string; color: string }[] = [
@@ -159,7 +160,7 @@ export default async function AnalyticsPage() {
     }
   });
   const cohorts = Object.keys(cohortMap).sort().reverse().map(w => {
-    const ageDays = (Date.now() - new Date(w).getTime()) / 86400000;
+    const ageDays = (Date.now() - new Date(w).getTime()) / 86400000 - 7;
     return { week: w, size: cohortMap[w].size, kept: cohortMap[w].kept, ageDays };
   });
 
@@ -179,8 +180,9 @@ export default async function AnalyticsPage() {
   const maxDau = Math.max(1, ...desc.map(r => Number(r.dau) || 0));
 
   return (
-    <Shell admin={admin} active="/analytics" title="Analytics" sub="Every figure below is computed from daily_stats, profiles and posts. Nothing on this desk is estimated or filled in.">
+    <Shell admin={admin} active="/analytics" title="Analytics" sub="Every figure below is computed from daily_stats, profiles and posts. Daily charts use recorded statistics; their latest date is shown below.">
 
+      <p className="mb-4 text-sm">Latest daily statistics: {desc.length ? String(desc[0].day) : "unavailable"}. Date ranges use the latest recorded days. Content ranking is limited to the twelve most-liked posts.</p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
         {kpis.map(k => {
           const d = delta(k.value, k.prev);
@@ -336,7 +338,7 @@ export default async function AnalyticsPage() {
           {topPosts.length === 0 ? <Empty note="No post has drawn engagement yet." /> : topPosts.map(p => {
             const a = authors[p.user_id];
             const rawUrl = mediaByPost[p.id];
-            const url = rawUrl ? postUrlMap[rawUrl] || rawUrl : null;
+            const url = rawUrl ? postUrlMap[rawUrl] || null : null;
             const video = isVideoUrl(rawUrl);
             return (
               <Link key={p.id} href={'/p/' + p.id} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' }}>
@@ -371,13 +373,13 @@ export default async function AnalyticsPage() {
         <div style={PANEL}>
           <div style={HEAD}>
             <div style={H_TITLE}>Do they stay</div>
-            <div style={H_SUB}>Each signup week, and the share still being seen a week, two, three and four weeks later. Blank means that cohort is not old enough to answer yet.</div>
+            <div style={H_SUB}>Share whose latest recorded activity was at least the stated time after signup. This does not measure activity within each particular week. Blank means the full signup group has not reached that age.</div>
           </div>
           {cohorts.length === 0 ? <Empty note="No signups in the last ten weeks." /> : (
             <div style={{ overflowX: 'auto' }}>
               <div style={{ minWidth: 430 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '128px 62px 1fr 1fr 1fr 1fr', padding: '0 16px', borderBottom: '1px solid rgba(var(--on),0.10)', background: 'rgba(var(--on),0.015)' }}>
-                  {['Signup week', 'Joined', 'Week 1', 'Week 2', 'Week 3', 'Week 4'].map((c, i) => (
+                  {['Signup week', 'Joined', 'At least 1 week', 'At least 2 weeks', 'At least 3 weeks', 'At least 4 weeks'].map((c, i) => (
                     <div key={c} style={{ padding: '9px 6px', fontSize: 10.3, fontWeight: 700, color: 'rgba(var(--on),0.36)', textAlign: i > 1 ? 'right' : 'left', whiteSpace: 'nowrap' }}>{c}</div>
                   ))}
                 </div>

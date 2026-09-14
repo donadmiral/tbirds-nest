@@ -1,5 +1,7 @@
+import CommandForm from '@/components/CommandForm';
+import PermissionGate from '@/components/PermissionGate';
 import Shell from '@/components/Shell';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { sendTicketReply, setTicketStatus } from '@/lib/actions';
 import { redirect } from 'next/navigation';
@@ -15,8 +17,7 @@ const PILL: Record<string, string> = {
 
 export default async function TicketPage({ params }: { params: Promise<{ tid: string }> }) {
   const { tid } = await params;
-  const admin = await getAdmin();
-  if (!admin) redirect('/signin');
+  const admin = await requireDesk('/support');
   const svc = serviceClient();
   const { data: t } = await svc.from('support_tickets').select('*').eq('id', tid).maybeSingle();
   if (!t) redirect('/support');
@@ -59,15 +60,15 @@ export default async function TicketPage({ params }: { params: Promise<{ tid: st
 
       <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
         <p className="mb-2 text-[10.5px] font-bold uppercase tracking-wider text-[#9A9DA4]">Reply to the member</p>
-        <form action={sendTicketReply}>
+        <PermissionGate role={admin.role} permission="support"><CommandForm scope="sendTicketReply" action={sendTicketReply}>
           <input type="hidden" name="tid" value={t.id} />
           <textarea name="body" required rows={3} placeholder="Write to the member - sending marks the ticket Pending until they answer"
             className="mb-2.5 w-full resize-y rounded-[10px] border border-[#E5E4E0] px-3.5 py-2.5 text-[13px] outline-none transition-colors duration-100 focus:border-[#B9BCC2]" />
           <div className="flex flex-wrap items-center gap-2">
             <button className="rounded-[10px] bg-[#0B1E3D] px-4 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Send reply</button>
           </div>
-        </form>
-        <form action={setTicketStatus} className="mt-2.5 flex flex-wrap items-center gap-2">
+        </CommandForm></PermissionGate>
+        <PermissionGate role={admin.role} permission="support"><CommandForm scope="setTicketStatus" action={setTicketStatus} className="mt-2.5 flex flex-wrap items-center gap-2">
           <input type="hidden" name="tid" value={t.id} />
           <input type="hidden" name="status" value={t.status !== 'solved' ? 'solved' : 'open'} />
           <button className={t.status !== 'solved'
@@ -75,7 +76,7 @@ export default async function TicketPage({ params }: { params: Promise<{ tid: st
             : 'rounded-[10px] border border-[#E5E4E0] bg-white px-3.5 py-2 text-[11.5px] font-bold text-[#43454B] hover:bg-[#FAFAF9]'}>
             {t.status !== 'solved' ? 'Mark solved' : 'Reopen'}
           </button>
-        </form>
+        </CommandForm></PermissionGate>
       </div>
     </Shell>
   );

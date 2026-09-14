@@ -1,6 +1,9 @@
+import { completeRead } from '@/lib/completeRead';
+import CommandForm from '@/components/CommandForm';
+import PermissionGate from '@/components/PermissionGate';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { archiveOrganization, restoreOrganization, adminTransferOwnership } from '@/lib/actions';
@@ -21,20 +24,21 @@ type Delegation = { principal_org_id: string; client_org_id: string; scopes: str
 type Audit = { org_id: string; actor_id: string | null; action: string; target_id: string | null; created_at: string };
 
 export default async function OrganizationsPage({ searchParams }: { searchParams: Promise<{ q?: string; show?: string }> }) {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/organizations');
   const svc = serviceClient();
   const sp = await searchParams;
   const q = (sp.q ?? '').trim().toLowerCase();
   const showArchived = sp.show === 'archived';
 
-  const [{ data: orgs }, { data: members }, { data: delegations }, { data: audit }] = await Promise.all([
-    svc.from('organizations').select('id, parent_id, kind, name, slug, profile_id, created_at, archived_at').order('created_at'),
-    svc.from('org_memberships').select('org_id, user_id, role, expires_at'),
-    svc.from('org_delegations').select('principal_org_id, client_org_id, scopes, expires_at'),
+  const [orgResult, memberResult, delegationResult, { data: audit }] = await Promise.all([
+    svc.from('organizations').select('id, parent_id, kind, name, slug, profile_id, created_at, archived_at', {count:'exact'}).order('created_at'),
+    svc.from('org_memberships').select('org_id, user_id, role, expires_at', {count:'exact'}),
+    svc.from('org_delegations').select('principal_org_id, client_org_id, scopes, expires_at', {count:'exact'}),
     svc.from('org_audit_log').select('org_id, actor_id, action, target_id, created_at').order('created_at', { ascending: false }).limit(40),
   ]);
 
+  for (const result of [orgResult, memberResult, delegationResult]) completeRead(result, 'Organization directory');
+  const orgs=orgResult.data, members=memberResult.data, delegations=delegationResult.data;
   const all = (orgs ?? []) as Org[];
   const userIds = Array.from(new Set([...(members ?? []).map((m: Membership) => m.user_id), ...(audit ?? []).map((a: Audit) => a.actor_id).filter(Boolean) as string[]]));
   const { data: people } = userIds.length ? await svc.from('profiles').select('id, full_name, username').in('id', userIds) : { data: [] };
@@ -45,8 +49,10 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
   const children = new Map<string | null, Org[]>();
   for (const o of all) { const arr = children.get(o.parent_id) ?? []; arr.push(o); children.set(o.parent_id, arr); }
   const ordered: { org: Org; depth: number }[] = [];
-  const walk = (parent: string | null, depth: number) => { for (const o of children.get(parent) ?? []) { ordered.push({ org: o, depth }); walk(o.id, depth + 1); } };
+  const seen = new Set<string>();
+  const walk = (parent: string | null, depth: number) => { for (const o of children.get(parent) ?? []) { if(seen.has(o.id)) throw new Error('Organization hierarchy contains a cycle.'); seen.add(o.id); ordered.push({ org: o, depth }); walk(o.id, depth + 1); } };
   walk(null, 0);
+  if (seen.size !== all.length) throw new Error('Organization hierarchy has missing or cyclic parents.');
 
   const visible = ordered.filter(({ org }) => (showArchived ? true : !org.archived_at) && (!q || org.name.toLowerCase().includes(q) || (org.slug ?? '').toLowerCase().includes(q)));
   const memberOf = (id: string) => ((members ?? []) as Membership[]).filter((m) => m.org_id === id);
@@ -96,15 +102,15 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
               <div className="flex shrink-0 flex-col gap-1.5">
                 {org.profile_id ? <Link href={'/p/' + org.profile_id} className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-center text-[12px] font-semibold text-[#4B4E56]">Profile</Link> : null}
                 {org.archived_at ? (
-                  <form action={restoreOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] bg-[#1B1C1F] px-2.5 py-1 text-[12px] font-semibold text-white">Restore</button></form>
+                  <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="restoreOrganization" action={restoreOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] bg-[#1B1C1F] px-2.5 py-1 text-[12px] font-semibold text-white">Restore</button></CommandForm></PermissionGate>
                 ) : (
-                  <form action={archiveOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-[12px] font-semibold text-[#B42318]">Archive</button></form>
+                  <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="archiveOrganization" action={archiveOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-[12px] font-semibold text-[#B42318]">Archive</button></CommandForm></PermissionGate>
                 )}
-                <form action={adminTransferOwnership} className="flex gap-1">
+                <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="adminTransferOwnership" action={adminTransferOwnership} className="flex gap-1">
                   <input type="hidden" name="id" value={org.id} />
                   <input name="username" placeholder="@new owner" className="w-[120px] rounded-[8px] border border-[#E5E4E0] px-2 py-1 text-[11.5px] outline-none" />
                   <button className="rounded-[8px] border border-[#E5E4E0] px-2 py-1 text-[11.5px] font-semibold text-[#4B4E56]">Set</button>
-                </form>
+                </CommandForm></PermissionGate>
               </div>
             </div>
           );

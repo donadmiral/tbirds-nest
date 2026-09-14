@@ -1,6 +1,8 @@
+import CommandForm from '@/components/CommandForm';
+import PermissionGate from '@/components/PermissionGate';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { approveBusinessApplication, rejectBusinessApplication } from '@/lib/actions';
@@ -9,8 +11,7 @@ import Seal from '@/components/Seal';
 export const dynamic = 'force-dynamic';
 
 export default async function BusinessesPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/businesses');
   const svc = serviceClient();
   const { data: pendingApps } = await svc.from('business_applications')
     .select('*').eq('status', 'submitted').order('created_at', { ascending: true });
@@ -56,19 +57,19 @@ export default async function BusinessesPage() {
                   {a.applicant_id ? (
                     <p className="col-span-2">Applied by <a href={'/users/' + a.applicant_id} className="font-semibold text-[#17181C] hover:underline">{p.full_name || '@' + (p.username || '?')}</a></p>
                   ) : (
-                    <p className="col-span-2">Public application - no personal account attached; the business will own itself</p>
+                    <p className="col-span-2">A signed-in applicant must be linked before this business can be approved.</p>
                   )}
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <form action={approveBusinessApplication}>
+                  <PermissionGate role={admin.role} permission="business_manage"><CommandForm scope="approveBusinessApplication" action={approveBusinessApplication}>
                     <input type="hidden" name="id" value={a.id} />
                     <button className="rounded-[10px] bg-[#17181C] px-4 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Approve - create @{a.desired_username} with space grey</button>
-                  </form>
-                  <form action={rejectBusinessApplication} className="flex flex-1 min-w-[260px] items-center gap-2">
+                  </CommandForm></PermissionGate>
+                  <PermissionGate role={admin.role} permission="business_manage"><CommandForm scope="rejectBusinessApplication" action={rejectBusinessApplication} className="flex flex-1 min-w-[260px] items-center gap-2">
                     <input type="hidden" name="id" value={a.id} />
                     <input name="reason" required placeholder="Reason if declining - the applicant sees this" className="flex-1 rounded-[10px] border border-[#E5E4E0] px-3 py-2 text-[12px] outline-none focus:border-[#B9BCC2]" />
                     <button className="rounded-[10px] border border-[#F0DEDE] bg-[#FBF2F2] px-3 py-2 text-[11px] font-bold text-[#B03A3A] hover:bg-[#F6E4E4]">Decline</button>
-                  </form>
+                  </CommandForm></PermissionGate>
                 </div>
               </div>
             );
@@ -85,7 +86,7 @@ export default async function BusinessesPage() {
                 <span className={a.status === 'approved' ? 'rounded-full bg-[#EBF3EE] px-2 py-0.5 text-[10.5px] font-bold text-[#1D7A38]' : 'rounded-full bg-[#FBF2F2] px-2 py-0.5 text-[10.5px] font-bold text-[#B03A3A]'}>{a.status === 'approved' ? 'Approved' : 'Declined'}</span>
                 <p className="shrink-0 text-[11px] tabular-nums text-[#9A9DA4]">{a.decided_at ? new Date(a.decided_at).toLocaleString() : ''}</p>
               </div>
-              {a.decision_reason ? <p className="mt-2 whitespace-pre-wrap rounded-[8px] bg-[#F8F8F7] p-2.5 text-[12px] text-[#43454B]">{a.decision_reason}</p> : null}
+              {a.status === 'rejected' && a.decision_reason ? <p className="mt-2 whitespace-pre-wrap rounded-[8px] bg-[#F8F8F7] p-2.5 text-[12px] text-[#43454B]">{a.decision_reason}</p> : null}
             </div>
           ))}
         </div>

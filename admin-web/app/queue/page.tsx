@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAdmin, VERIFICATION_ROLES } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { approveApplication, rejectApplication } from '@/lib/actions';
 import Shell from '@/components/Shell';
@@ -33,9 +33,7 @@ function medianHours(pairs: { created_at: string; decided_at: string }[]): numbe
 }
 
 export default async function QueuePage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
-  if (!VERIFICATION_ROLES.has(admin.role)) redirect('/');
+  const admin = await requireDesk('/queue');
   const svc = serviceClient();
 
   const from30 = new Date(Date.now() - 30 * 86400000).toISOString();

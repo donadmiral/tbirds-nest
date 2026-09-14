@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
@@ -33,8 +33,7 @@ function dur(s: number | null | undefined) {
 }
 
 export default async function CallsPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/calls');
   const svc = serviceClient();
 
   const now = Date.now();

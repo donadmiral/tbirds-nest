@@ -1,5 +1,7 @@
+import CommandForm from '@/components/CommandForm';
+import PermissionGate from '@/components/PermissionGate';
 import { redirect } from 'next/navigation';
-import { getAdmin, ADS_ROLES } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { approveCampaign, rejectCampaign, adminEndCampaign } from '@/lib/actions';
 import Seal from '@/components/Seal';
@@ -25,9 +27,7 @@ function money(amounts: Record<string, number>) {
 }
 
 export default async function AdsPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
-  if (!ADS_ROLES.has(admin.role)) redirect('/');
+  const admin = await requireDesk('/ads');
   const svc = serviceClient();
 
   const [{ data: submittedRaw }, { data: liveRaw }, { data: historyRaw }] = await Promise.all([
@@ -167,17 +167,17 @@ export default async function AdsPage() {
             {adsStrip(c.id)}
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <form action={approveCampaign} className="flex flex-wrap items-center gap-2">
+            <PermissionGate role={admin.role} permission="ads"><CommandForm scope="approveCampaign" action={approveCampaign} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="id" value={c.id} />
               <input name="paid_amount" placeholder={'Amount received (' + c.currency + ')'} className="w-48 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
               <input name="payment_ref" placeholder="Payment reference" className="w-44 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
               <button className="rounded-[12px] bg-[#17181C] px-5 py-2 text-xs font-extrabold text-white transition-opacity duration-150 hover:opacity-90">Approve</button>
-            </form>
-            <form action={rejectCampaign} className="flex flex-1 min-w-[260px] items-center gap-2">
+            </CommandForm></PermissionGate>
+            <PermissionGate role={admin.role} permission="ads"><CommandForm scope="rejectCampaign" action={rejectCampaign} className="flex flex-1 min-w-[260px] items-center gap-2">
               <input type="hidden" name="id" value={c.id} />
               <input name="reason" placeholder="Reason if rejecting" className="flex-1 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
               <button className="rounded-[12px] border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">Reject</button>
-            </form>
+            </CommandForm></PermissionGate>
           </div>
         </div>
       ))}
@@ -195,10 +195,10 @@ export default async function AdsPage() {
                 {statusPill(c.status)}
                 <p className="shrink-0 text-[11.5px] tabular-nums text-[#9A9DA4]">{c.currency} {Number(c.budget).toLocaleString()}</p>
                 {c.status !== 'approved' || (promoByCampaign[c.id] || []).length ? (
-                  <form action={adminEndCampaign}>
+                  <PermissionGate role={admin.role} permission="ads"><CommandForm scope="adminEndCampaign" action={adminEndCampaign}>
                     <input type="hidden" name="id" value={c.id} />
                     <button className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">End</button>
-                  </form>
+                  </CommandForm></PermissionGate>
                 ) : null}
               </div>
               {adsStrip(c.id)}

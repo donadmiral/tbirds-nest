@@ -1,6 +1,9 @@
 'use client';
+import CommandForm from '@/components/CommandForm';
+import PermissionGate from '@/components/PermissionGate';
 
 import { useState } from 'react';
+import { canOpen } from '@/lib/permissions';
 import Link from 'next/link';
 import { dismissReport, removeReportedPost, removeReportedListing, resolveUserReport } from '@/lib/actions';
 
@@ -10,7 +13,7 @@ type Report = {
   postId?: string; listingId?: string; reportedId?: string; reportedUsername?: string | null;
 };
 
-export default function ReportsDesk({ reports }: { reports: Report[] }) {
+export default function ReportsDesk({ reports, role }: { reports: Report[]; role: string }) {
   const [tab, setTab] = useState<'all' | 'Post' | 'Listing' | 'Account'>('all');
   const [selected, setSelected] = useState<Report | null>(reports[0] ?? null);
 
@@ -62,36 +65,36 @@ export default function ReportsDesk({ reports }: { reports: Report[] }) {
 
             <div className="mt-4 flex flex-wrap gap-2 border-t border-[#F0EFEC] pt-4">
               {selected.kind === 'Post' && !selected.targetGone ? (
-                <form action={removeReportedPost}>
+                <PermissionGate role={role} permission="report_post"><CommandForm scope="removeReportedPost" action={removeReportedPost}>
                   <input type="hidden" name="rid" value={selected.id} /><input type="hidden" name="pid" value={selected.postId} />
                   <button className="rounded-[9px] border border-[#F3C9C9] bg-[#FBF0F0] px-3.5 py-2 text-[12px] font-bold text-[#B03A3A] transition-colors duration-150 hover:bg-[#F8E4E4]">Remove post</button>
-                </form>
+                </CommandForm></PermissionGate>
               ) : null}
               {selected.kind === 'Listing' && !selected.targetGone ? (
-                <form action={removeReportedListing}>
+                <PermissionGate role={role} permission="report_listing"><CommandForm scope="removeReportedListing" action={removeReportedListing}>
                   <input type="hidden" name="rid" value={selected.id} /><input type="hidden" name="lid" value={selected.listingId} />
                   <button className="rounded-[9px] border border-[#F3C9C9] bg-[#FBF0F0] px-3.5 py-2 text-[12px] font-bold text-[#B03A3A] transition-colors duration-150 hover:bg-[#F8E4E4]">Remove listing</button>
-                </form>
+                </CommandForm></PermissionGate>
               ) : null}
               {selected.kind === 'Post' || selected.kind === 'Listing' ? (
-                <form action={dismissReport}>
+                <CommandForm scope="dismissReport" action={dismissReport}>
                   <input type="hidden" name="rid" value={selected.id} /><input type="hidden" name="table" value={selected.kind === 'Post' ? 'post_reports' : 'listing_reports'} />
                   <button className="rounded-[9px] border border-[#E5E4E0] px-3.5 py-2 text-[12px] font-semibold text-[#7A7D84] transition-colors duration-150 hover:bg-[#FAFAF9]">No violation</button>
-                </form>
+                </CommandForm>
               ) : null}
               {selected.kind === 'Account' ? (
                 <>
-                  <form action={resolveUserReport}>
+                  <PermissionGate role={role} permission="report_user"><CommandForm scope="resolveUserReport" action={resolveUserReport}>
                     <input type="hidden" name="rid" value={selected.id} /><input type="hidden" name="outcome" value="actioned" />
                     <button className="rounded-[9px] border border-[#F3C9C9] bg-[#FBF0F0] px-3.5 py-2 text-[12px] font-bold text-[#B03A3A] transition-colors duration-150 hover:bg-[#F8E4E4]">Mark actioned</button>
-                  </form>
-                  <form action={resolveUserReport}>
+                  </CommandForm></PermissionGate>
+                  <PermissionGate role={role} permission="report_user"><CommandForm scope="resolveUserReport" action={resolveUserReport}>
                     <input type="hidden" name="rid" value={selected.id} /><input type="hidden" name="outcome" value="dismissed" />
                     <button className="rounded-[9px] border border-[#E5E4E0] px-3.5 py-2 text-[12px] font-semibold text-[#7A7D84] transition-colors duration-150 hover:bg-[#FAFAF9]">No violation</button>
-                  </form>
+                  </CommandForm></PermissionGate>
                 </>
               ) : null}
-              {(selected.kind === 'Post' && selected.reportedUsername) || selected.kind === 'Account' ? (
+              {canOpen(role, '/users') && ((selected.kind === 'Post' && selected.reportedUsername) || selected.kind === 'Account') ? (
                 <Link href={'/users?q=' + encodeURIComponent(selected.reportedUsername || '')} className="ml-auto rounded-[9px] bg-[#17181C] px-3.5 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Open author</Link>
               ) : null}
             </div>

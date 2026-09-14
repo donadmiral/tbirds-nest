@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
@@ -28,8 +28,7 @@ function title(s: string) { return (s || '').replace(/[._]/g, ' ').replace(/\b\w
 function isHeavy(action: string) { return HEAVY.some(h => action.toLowerCase().includes(h)); }
 
 export default async function AuditPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/audit');
   const svc = serviceClient();
 
   const now = Date.now();
@@ -37,11 +36,12 @@ export default async function AuditPage() {
   const today = new Date(now).toISOString().slice(0, 10);
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
-  const [{ data: rowsData, count }, { data: staff }, { data: authList }] = await Promise.all([
-    svc.from('admin_audit_log').select('id, admin_id, action, target_kind, target_id, reason, before, after, created_at', { count: 'exact' })
-      .order('created_at', { ascending: false }).limit(400),
-    svc.from('admin_users').select('user_id, role'),
-    svc.auth.admin.listUsers({ page: 1, perPage: 200 }),
+  const fullAudit = ['super_admin', 'platform_admin', 'auditor_readonly'].includes(admin.role);
+  let auditQuery = svc.from('admin_audit_log').select('id, admin_id, action, target_kind, target_id, reason, before, after, created_at', { count: 'exact' });
+  if (!fullAudit) auditQuery = auditQuery.eq('admin_id', admin.id);
+  const [{ data: rowsData, count }, { data: staff }] = await Promise.all([
+    auditQuery.order('created_at', { ascending: false }).order('id').limit(400),
+    fullAudit ? svc.from('admin_users').select('user_id, role') : svc.from('admin_users').select('user_id, role').eq('user_id', admin.id),
   ]);
 
   const rowsRaw = (rowsData ?? []) as {
@@ -51,8 +51,10 @@ export default async function AuditPage() {
 
   const roleOf: Record<string, string> = {};
   ((staff ?? []) as { user_id: string; role: string }[]).forEach(s => { roleOf[s.user_id] = s.role; });
+  const actorIds = Array.from(new Set(rowsRaw.map(r => r.admin_id).filter(Boolean)));
+  const people = actorIds.length ? await svc.from('profiles').select('id, full_name, username').in('id', actorIds) : {data: []};
   const emails: Record<string, string> = {};
-  ((authList?.users ?? []) as { id: string; email?: string | null }[]).forEach(u => { emails[u.id] = u.email || ''; });
+  for (const p of people.data ?? []) emails[p.id] = p.full_name || p.username || p.id.slice(0,8);
   const who = (id: string) => emails[id] || (id ? id.slice(0, 8) : 'system');
 
   const actionCount: Record<string, number> = {};
@@ -139,6 +141,7 @@ export default async function AuditPage() {
 
   return (
     <Shell admin={admin} active="/audit" title="Audit log" sub="Every administrative action, immutable, newest first. Nothing on this desk can be edited or deleted, including by the person who did it.">
+      <p className="mb-4 text-sm">{fullAudit ? "All staff" : "Your actions"}: showing the latest {rowsRaw.length} of {count ?? 0} events. Charts, filters and exports cover these displayed events.</p>
       <StatStrip cards={cards} />
 
       <div className="mt-4" style={PANEL}>

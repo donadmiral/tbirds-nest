@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemovePost } from '@/lib/actions';
 import Shell from '@/components/Shell';
@@ -26,8 +26,7 @@ const IC = {
 const isVideo = isVideoUrl;
 
 export default async function ContentPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/content');
   const svc = serviceClient();
 
   const now = Date.now();
@@ -127,7 +126,7 @@ export default async function ContentPage() {
 
   const rows: DeskRow[] = posts.map(p => {
     const a = people[p.user_id] || { full_name: null, username: null, avatar_url: null, is_verified: false };
-    const urls = (mediaByPost[p.id] || []).map(u => urlMap[u] || u);
+    const urls = (mediaByPost[p.id] || []).map(u => urlMap[u]).filter(Boolean);
     const first = urls[0] || null;
     const video = isVideo(first);
     const rep = reportsByPost[p.id];

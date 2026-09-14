@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAdmin } from '@/lib/adminAuth';
+import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemoveStory } from '@/lib/actions';
 import Shell from '@/components/Shell';
@@ -28,8 +28,7 @@ const SERIES = ['var(--c1)', 'var(--c4)', 'var(--c3)', 'var(--c2)', 'var(--c6)',
 function title(s: string) { return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 
 export default async function StoriesPage() {
-  const admin = await getAdmin();
-  if (!admin) redirect('/');
+  const admin = await requireDesk('/stories');
   const svc = serviceClient();
 
   const now = Date.now();
@@ -90,7 +89,7 @@ export default async function StoriesPage() {
     const uid = String(s.user_id || '');
     const a = people[uid] || { full_name: null, username: null, avatar_url: null, is_verified: false };
     const raw = pickMedia(s);
-    const url = raw ? urlMap[raw] || raw : null;
+    const url = raw ? urlMap[raw] || null : null;
     const video = isVideoUrl(raw) || String(s.media_type || '').toLowerCase().includes('video');
     const caption = String(s.caption || '').trim();
     const expires = String(s.expires_at || '');
