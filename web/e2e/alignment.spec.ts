@@ -99,11 +99,14 @@ test("every page holds at four widths, idle and while typing", async ({ browser 
   page.on("response", (r) => { const u = r.url(); if (r.status() >= 400 && !/googleapis|gstatic|vercel|analytics/.test(u) && u.startsWith(page.url().split("/").slice(0, 3).join("/"))) failed.push(r.status() + " " + u.slice(0, 160)); });
 
   // Sign in once.
-  await page.goto("/login");
-  await page.getByPlaceholder("Username or email").fill(email!);
-  await page.getByPlaceholder("Password").fill(password!);
-  await page.getByPlaceholder("Password").press("Enter");
-  await page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 30_000 });
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
+  const pass = page.locator('input[type="password"]').first();
+  await pass.waitFor({ state: "visible", timeout: 60_000 });
+  const user = page.locator('input[type="email"], input[name="email"], input[name="username"], input[autocomplete="username"], input[autocomplete="email"], input[type="text"]').first();
+  await user.fill(email!);
+  await pass.fill(password!);
+  await pass.press("Enter");
+  await page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 60_000 });
 
   // Discover one id-route per listing.
   const routes = [...STATIC_ROUTES];
