@@ -2031,7 +2031,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           };
           // An article's picture is its cover, drawn inside the article block; the media strip would show it twice.
           if ((post as any).article_title) return null;
-          const media = renderMedia(post, screenFocused && !fsVideo && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
+          const media = renderMedia(post, screenFocused && !fsVideo && !commentsFor && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
@@ -2128,6 +2128,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     activePostId,
     screenFocused,
     fsVideo,
+    commentsFor,
     profilesMap,
     likerNames,
     quotedMap,
@@ -2144,7 +2145,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     openComments,
   ]);
 
-  const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused) + '|' + String(!!fsVideo);
+  const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused) + '|' + String(!!fsVideo) + '|' + String(!!commentsFor);
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
@@ -2699,6 +2700,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         postId={commentsFor?.id ?? ''}
         postAuthorId={commentsFor?.user_id ?? null}
         count={commentsFor?.comments_count ?? 0}
+        media={commentsFor && !(commentsFor as any).article_title ? (Array.isArray((commentsFor as any).media) && (commentsFor as any).media.length > 0 ? (commentsFor as any).media : (commentsFor.media_url ? [{ id: '0', url: commentsFor.media_url, media_type: isVideoUrl(commentsFor.media_url) ? 'video' : 'image', sort_order: 0 }] : null)) : null}
         onClose={() => {
           const id = commentsFor?.id;
           setCommentsFor(null);

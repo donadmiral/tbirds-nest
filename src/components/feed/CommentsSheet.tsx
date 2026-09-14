@@ -1,23 +1,30 @@
 /**
- * CommentsSheet - comments without leaving where you are. The sheet slides over
- * the feed or the expanded video viewer; the post stays put and its video keeps
- * playing above the sheet. Opens at half height, drags between half and full,
- * the keyboard lifts it, drag down or tap outside to close. Hosts report the
- * sheet's height through onSnap so they can shrink what sits above it.
+ * CommentsSheet - comments without leaving where you are. Over the feed a post
+ * with media gets a stage: the media sits in a black stage above the sheet, at a
+ * size that keeps the whole frame in view, and the sheet slides up beneath it
+ * (Instagram's reel comments). The stage keeps a strip for the media even with
+ * the sheet fully open or the keyboard up, so the video is always in view while
+ * you read and while you type. Text posts keep the plain sheet over the feed.
+ * Inside the expanded video viewer the sheet is inline and reports how much of
+ * the screen it covers, so the viewer shrinks the reel into the space above.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, TouchableWithoutFeedback, StyleSheet, Animated,
-  PanResponder, Modal, Keyboard, Platform, Dimensions,
+  PanResponder, Modal, Keyboard, Platform, Dimensions, StatusBar,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from '../SafeArea';
 import { themedSheet } from '../../theme/useTheme';
+import PostCarousel, { CarouselMedia } from '../PostCarousel';
 import CommentsPanel from './CommentsPanel';
 
 const H = Dimensions.get('window').height;
+const W = Dimensions.get('window').width;
 const HALF = Math.round(H * 0.54);
 const FULL = Math.round(H * 0.9);
+// The strip the media keeps above a fully open sheet or above the keyboard.
+const MIN_STAGE = 150;
 
 type Props = {
   visible: boolean;
@@ -27,40 +34,54 @@ type Props = {
   count?: number;
   onClose: () => void;
   onCount?: (n: number) => void;
-  /** The sheet's height on each snap (0 when closing), so the host can shrink what sits above it. */
-  onSnap?: (height: number) => void;
+  /** How much of the screen the sheet covers from the bottom (sheet plus keyboard, 0 when closing). */
+  onSnap?: (covered: number) => void;
   /** Render inside the host's own full-screen view instead of a Modal (the expanded video viewer). */
   inline?: boolean;
   autoFocus?: boolean;
-  /** Dim what lies behind the sheet. Off over the video viewer, where the picture is the point. */
+  /** Dim what lies behind the plain sheet. Off over the video viewer, where the picture is the point. */
   dim?: boolean;
+  /** The post's media: when given, it plays in a stage above the sheet and stays in view. */
+  media?: CarouselMedia[] | null;
 };
 
-export default function CommentsSheet({ visible, postId, postAuthorId, count, onClose, onCount, onSnap, inline, autoFocus, dim = true }: Props) {
+export default function CommentsSheet({ visible, postId, postAuthorId, count, onClose, onCount, onSnap, inline, autoFocus, dim = true, media }: Props) {
   const insets = useSafeAreaInsets();
+  const stage = !inline && !!(media && media.length > 0);
   const height = useRef(new Animated.Value(0)).current;
   const lift = useRef(new Animated.Value(0)).current;
+  const total = useRef(new Animated.Value(H)).current;
   const snapRef = useRef(HALF);
   const kbRef = useRef(0);
   const dragStart = useRef(HALF);
   const closingRef = useRef(false);
+  const stageRef = useRef(stage); stageRef.current = stage;
   const [mounted, setMounted] = useState(visible);
   const mountedRef = useRef(visible); mountedRef.current = mounted;
   const [kbUp, setKbUp] = useState(false);
   const [n, setN] = useState<number | null>(null);
+  const [stageH, setStageH] = useState(0);
   const onCloseRef = useRef(onClose); onCloseRef.current = onClose;
   const onSnapRef = useRef(onSnap); onSnapRef.current = onSnap;
   const onCountRef = useRef(onCount); onCountRef.current = onCount;
   const topRef = useRef(insets.top); topRef.current = insets.top;
 
-  // The tallest the sheet can be right now: never under the status bar, never behind the keyboard.
-  const fit = useCallback((snap: number) => Math.max(200, Math.min(snap, H - kbRef.current - topRef.current - 6)), []);
+  // The open snap: a plain sheet goes to 90%; a stage keeps its media strip.
+  const fullSnap = useCallback(() => (stageRef.current ? H - topRef.current - MIN_STAGE : FULL), []);
+  // The tallest the sheet can be right now: never under the status bar, never behind the keyboard, never over the media strip.
+  const fit = useCallback((snap: number) => Math.max(200, Math.min(snap, H - kbRef.current - topRef.current - (stageRef.current ? MIN_STAGE : 6))), []);
+  // Tell the host how much is covered and size the stage to what is left.
+  const settle = useCallback((sheetH: number) => {
+    onSnapRef.current?.(sheetH + kbRef.current);
+    setStageH(Math.max(0, H - kbRef.current - sheetH - topRef.current));
+  }, []);
 
   const animateTo = useCallback((snap: number, duration = 240) => {
     snapRef.current = snap;
-    onSnapRef.current?.(snap);
-    Animated.timing(height, { toValue: fit(snap), duration, useNativeDriver: false }).start();
-  }, [height, fit]);
+    const h = fit(snap);
+    settle(h);
+    Animated.timing(height, { toValue: h, duration, useNativeDriver: false }).start();
+  }, [height, fit, settle]);
 
   const close = useCallback(() => {
     if (closingRef.current) return;
@@ -80,6 +101,7 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
       setMounted(true);
       setN(null);
       height.setValue(0);
+      settle(fit(HALF));
       // A Modal takes a moment to present; the slide starts once it is on screen.
       const t = setTimeout(() => animateTo(HALF), inline ? 16 : 40);
       return () => clearTimeout(t);
@@ -87,7 +109,7 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
       height.setValue(0);
       setMounted(false);
     }
-  }, [visible, height, animateTo, inline]);
+  }, [visible, height, animateTo, inline, fit, settle]);
 
   useEffect(() => {
     const showEv = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -100,7 +122,7 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
       setKbUp(true);
       // iOS keeps the window size and the sheet rides up on the keyboard; Android resizes the window itself.
       Animated.timing(lift, { toValue: Platform.OS === 'ios' ? h : 0, duration: d, useNativeDriver: false }).start();
-      animateTo(FULL, d);
+      animateTo(fullSnap(), d);
     });
     const s2 = Keyboard.addListener(hideEv as any, (e: any) => {
       if (!mountedRef.current || closingRef.current) return;
@@ -111,17 +133,18 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
       animateTo(snapRef.current, d);
     });
     return () => { s1.remove(); s2.remove(); };
-  }, [animateTo, lift]);
+  }, [animateTo, lift, fullSnap]);
 
   const pan = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dy) > 4,
     onPanResponderGrant: () => { height.stopAnimation((v: number) => { dragStart.current = v; }); },
-    onPanResponderMove: (_e, g) => { height.setValue(Math.max(0, Math.min(fit(FULL), dragStart.current - g.dy))); },
+    onPanResponderMove: (_e, g) => { height.setValue(Math.max(0, Math.min(fit(fullSnap()), dragStart.current - g.dy))); },
     onPanResponderRelease: (_e, g) => {
       const v = dragStart.current - g.dy;
+      const full = fullSnap();
       if (g.vy > 0.9 || v < HALF * 0.55) { close(); return; }
-      if (g.vy < -0.6 || v > (HALF + FULL) / 2) animateTo(FULL); else animateTo(HALF);
+      if (g.vy < -0.6 || v > (HALF + full) / 2) animateTo(full); else animateTo(HALF);
     },
     onPanResponderTerminate: () => animateTo(snapRef.current),
   })).current;
@@ -129,11 +152,27 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
   if (!mounted) return null;
 
   const shown = n ?? count ?? 0;
+  const aspect = (media?.[0]?.edit as any)?.aspect as string | undefined;
+  const ratio = aspect === 'square' ? 1 : aspect === 'landscape' ? 1 / 1.91 : 1.25;
+  const boxW = Math.max(60, Math.min(W, Math.floor(stageH / ratio)));
+
   const body = (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <TouchableWithoutFeedback onPress={close} accessibilityRole="button" accessibilityLabel="Close comments">
-        <Animated.View style={[StyleSheet.absoluteFill, dim ? { backgroundColor: 'rgba(0,0,0,0.32)' } : null, { opacity: height.interpolate({ inputRange: [0, HALF], outputRange: [0, 1], extrapolate: 'clamp' }) }]} />
-      </TouchableWithoutFeedback>
+      {stage ? (
+        <Animated.View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: 0, height: Animated.subtract(total, Animated.add(height, lift)), backgroundColor: '#000', overflow: 'hidden' }}>
+          <StatusBar barStyle="light-content" />
+          <TouchableWithoutFeedback onPress={close} accessibilityRole="button" accessibilityLabel="Close comments">
+            <View style={StyleSheet.absoluteFill} />
+          </TouchableWithoutFeedback>
+          <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+            {stageH > 40 ? <PostCarousel media={media as CarouselMedia[]} containerWidth={boxW} isActive postId={postId} flush /> : null}
+          </View>
+        </Animated.View>
+      ) : (
+        <TouchableWithoutFeedback onPress={close} accessibilityRole="button" accessibilityLabel="Close comments">
+          <Animated.View style={[StyleSheet.absoluteFill, dim ? { backgroundColor: 'rgba(0,0,0,0.32)' } : null, { opacity: height.interpolate({ inputRange: [0, HALF], outputRange: [0, 1], extrapolate: 'clamp' }) }]} />
+        </TouchableWithoutFeedback>
+      )}
       <Animated.View style={[st.sheet, { height, bottom: lift }]}>
         <View {...pan.panHandlers} style={st.grip}>
           <View style={st.handle} />
