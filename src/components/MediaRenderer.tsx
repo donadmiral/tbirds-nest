@@ -31,6 +31,8 @@ import {
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { FilterLayer } from './stories/StoryFilters';
 import { useNavigation } from '@react-navigation/native';
+import { Feather } from '@expo/vector-icons';
+import { Animated as RNAnimated } from 'react-native';
 import { supabase } from '../services/supabase';
 const looksLikeUuid = (v: any) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 import TierName from './TierName';
@@ -119,52 +121,87 @@ export function useMediaTags(mediaIds: string[]): Record<string, MediaTag[]> {
   return map;
 }
 
-export function TagLayer({ tags, width, height }: { tags?: MediaTag[]; width: number; height: number }) {
+export function TagLayer({ tags, width, height, mode = 'pins' }: { tags?: MediaTag[]; width: number; height: number; mode?: 'pins' | 'list' }) {
+  // Instagram's model. A small round person badge sits on the picture; tapping it shows white pills, each with a
+  // pointer aimed at the person, the name in its tier colour and the seal; tap a pill to open the profile, tap the
+  // badge again to hide. On a video the pills make no sense, so the badge opens an "In this video" sheet instead.
   const [open, setOpen] = useState(false);
+  const [sheet, setSheet] = useState(false);
+  const fade = React.useRef(new RNAnimated.Value(0)).current;
   const nav = useNavigation<any>();
+  useEffect(() => { RNAnimated.timing(fade, { toValue: open ? 1 : 0, duration: 160, useNativeDriver: true }).start(); }, [open, fade]);
   if (!tags || tags.length === 0) return null;
-  // Tidy layout: the pearl dot stays exactly where the person is; the pills are
-  // laid out top to bottom and nudged so they never overlap each other or leave
-  // the picture, with a hairline connector when a pill had to move.
-  const PILL_H = 30; const GAP = 6; const EST = (t: MediaTag) => Math.min(width * 0.7, 46 + (t.full_name || t.username || 'Member').length * 7.2);
-  const placed: { t: MediaTag; dx: number; dy: number; x: number; y: number; w: number }[] = [];
+  const openProfile = (id: string) => { setSheet(false); nav.navigate('UserProfile', { userId: id }); };
+  const PAD = 8, PILL_H = 30, GAP = 6, TIP = 6;
+  const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+  const est = (t: MediaTag) => Math.min(width - 2 * PAD, 42 + (t.full_name || t.username || 'Member').length * 7.4);
+  const placed: { t: MediaTag; ax: number; ay: number; x: number; y: number; w: number; below: boolean }[] = [];
   [...tags].sort((a, b) => a.ny - b.ny || a.nx - b.nx).forEach(t => {
-    const dx = Math.max(6, Math.min(width - 6, t.nx * width)); const dy = Math.max(6, Math.min(height - 6, t.ny * height));
-    const w = EST(t);
-    let x = dx - 10; if (x + w > width - 6) x = width - 6 - w; if (x < 6) x = 6;
-    let y = dy + 10; if (y + PILL_H > height - 6) y = dy - 10 - PILL_H;
+    const ax = clamp(t.nx * width, PAD, width - PAD); const ay = clamp(t.ny * height, PAD, height - PAD);
+    const w = est(t); const x = clamp(ax - w / 2, PAD, width - PAD - w);
+    const below = ay + TIP + 4 + PILL_H <= height - PAD;
+    let y = below ? ay + TIP + 4 : ay - TIP - 4 - PILL_H;
     for (let guard = 0; guard < 12; guard++) {
       const hit = placed.find(p => !(x + w < p.x || p.x + p.w < x) && Math.abs(y - p.y) < PILL_H + GAP);
       if (!hit) break;
-      y = hit.y + PILL_H + GAP;
-      if (y + PILL_H > height - 6) { y = Math.max(6, hit.y - PILL_H - GAP); }
+      y = below ? hit.y + PILL_H + GAP : hit.y - PILL_H - GAP;
+      if (y < PAD || y + PILL_H > height - PAD) break;
     }
-    placed.push({ t, dx, dy, x, y, w });
+    placed.push({ t, ax, ay, x, y, w, below });
   });
-  // The count mark keeps the bottom-left corner unless a tag lives there; then it moves to the bottom-right.
-  const markRight = placed.some(p => p.y + PILL_H > height - 44 && p.x < 130) || tags.some(t => t.ny > 0.82 && t.nx < 0.35);
+  const badgeRight = placed.some(p => p.y + PILL_H > height - 48 && p.x < 60) || tags.some(t => t.ny > 0.84 && t.nx < 0.22);
+  const badge = (
+    <TouchableOpacity onPress={() => (mode === 'list' ? setSheet(true) : setOpen(o => !o))} activeOpacity={0.85} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      accessibilityRole="button" accessibilityLabel={mode === 'list' ? 'People in this video' : (open ? 'Hide tagged people' : 'Show tagged people')}
+      style={{ position: 'absolute', bottom: 10, left: badgeRight ? undefined : 10, right: badgeRight ? 10 : undefined, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: open ? '#FFFFFF' : 'rgba(0,0,0,0.55)' }}>
+      <Feather name="user" size={14} color={open ? '#0B1E3D' : '#FFFFFF'} />
+    </TouchableOpacity>
+  );
+  if (mode === 'list') {
+    return (
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+        {badge}
+        <Modal visible={sheet} transparent animationType="fade" onRequestClose={() => setSheet(false)}>
+          <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }} activeOpacity={1} onPress={() => setSheet(false)}>
+            <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, paddingBottom: Platform.OS === 'ios' ? 30 : 16 }} onStartShouldSetResponder={() => true}>
+              <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: '#E5E5EA', alignSelf: 'center', marginBottom: 10 }} />
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#0B1E3D', textAlign: 'center', marginBottom: 6 }}>In this video</Text>
+              {tags.map(t => (
+                <TouchableOpacity key={t.user_id} onPress={() => openProfile(t.user_id)} activeOpacity={0.75} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingVertical: 10 }} accessibilityRole="button" accessibilityLabel={'Open ' + (t.full_name || t.username || 'profile')}>
+                  {t.avatar_url ? <Image source={{ uri: t.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F2F2F7' }} /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#C9BFB0' }} />}
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                      <TierName userId={t.user_id} baseStyle={{ color: '#0B1E3D', fontSize: 14, fontWeight: '700', flexShrink: 1 }} text={t.full_name || t.username || 'Member'} numberOfLines={1} />
+                      <VerifiedBadge userId={t.user_id} size={13} />
+                    </View>
+                    {t.username ? <Text style={{ fontSize: 12.5, color: '#8E8E93', marginTop: 1 }}>@{t.username}</Text> : null}
+                  </View>
+                  <Feather name="chevron-right" size={18} color="#C7CDD6" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      </View>
+    );
+  }
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {open ? placed.map(({ t, dx, dy, x, y, w }) => {
-        const moved = Math.abs((y - 10) - dy) > 14 || Math.abs((x + 10) - dx) > 14;
-        return (
-          <React.Fragment key={t.user_id}>
-            {moved ? <View pointerEvents="none" style={{ position: 'absolute', left: dx - 1, top: Math.min(dy, y + PILL_H / 2), width: 2, height: Math.abs((y + PILL_H / 2) - dy), backgroundColor: 'rgba(255,255,255,0.55)' }} /> : null}
-            <View pointerEvents="none" style={{ position: 'absolute', left: dx - 5, top: dy - 5, width: 10, height: 10, borderRadius: 5, backgroundColor: '#C9BFB0', borderWidth: 1.5, borderColor: '#FFFFFF' }} />
-            <TouchableOpacity onPress={() => nav.navigate('UserProfile', { userId: t.user_id })} activeOpacity={0.85}
-              style={{ position: 'absolute', left: x, top: y, height: PILL_H, maxWidth: width * 0.7, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(11,30,61,0.88)', borderRadius: 15, paddingLeft: 4, paddingRight: 10 }}>
-              {t.avatar_url ? <Image source={{ uri: t.avatar_url }} style={{ width: 22, height: 22, borderRadius: 11 }} /> : <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#C9BFB0' }} />}
-              <TierName userId={t.user_id} baseStyle={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', flexShrink: 1 }} text={t.full_name || t.username || 'Member'} />
-              <VerifiedBadge userId={t.user_id} size={12} />
-            </TouchableOpacity>
-          </React.Fragment>
-        );
-      }) : null}
-      <TouchableOpacity onPress={() => setOpen(o => !o)} activeOpacity={0.85} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        style={{ position: 'absolute', left: markRight ? undefined : 10, right: markRight ? 10 : undefined, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: open ? '#C9BFB0' : 'rgba(0,0,0,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 }}>
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: open ? '#0B1E3D' : '#C9BFB0' }} />
-        <Text style={{ color: open ? '#0B1E3D' : '#FFFFFF', fontSize: 11, fontWeight: '800' }}>{tags.length}</Text>
-      </TouchableOpacity>
+      {open ? (
+        <RNAnimated.View pointerEvents="box-none" style={[StyleSheet.absoluteFill, { opacity: fade }]}>
+          {placed.map(({ t, ax, x, y, w, below }) => (
+            <React.Fragment key={t.user_id}>
+              <View pointerEvents="none" style={[{ position: 'absolute', left: ax - TIP, width: 0, height: 0, borderLeftWidth: TIP, borderRightWidth: TIP, borderLeftColor: 'transparent', borderRightColor: 'transparent' }, below ? { top: y - TIP, borderBottomWidth: TIP, borderBottomColor: '#FFFFFF' } : { top: y + PILL_H, borderTopWidth: TIP, borderTopColor: '#FFFFFF' }]} />
+              <TouchableOpacity onPress={() => openProfile(t.user_id)} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={'Open ' + (t.full_name || t.username || 'profile')}
+                style={{ position: 'absolute', left: x, top: y, width: w, height: PILL_H, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingHorizontal: 10, backgroundColor: '#FFFFFF', borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 3 }}>
+                <TierName userId={t.user_id} baseStyle={{ color: '#0B1E3D', fontSize: 12.5, fontWeight: '700', flexShrink: 1 }} text={t.full_name || t.username || 'Member'} numberOfLines={1} />
+                <VerifiedBadge userId={t.user_id} size={12} />
+              </TouchableOpacity>
+            </React.Fragment>
+          ))}
+        </RNAnimated.View>
+      ) : null}
+      {badge}
     </View>
   );
 }

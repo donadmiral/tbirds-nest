@@ -678,13 +678,34 @@ export default function StoryComposerScreen() {
     setEditingStickerId(null); setStickerText(''); setStickerStyle('classic'); setStickerColor(active?.mediaType === 'text' ? getDefaultStickerColor(active.textBgId) : '#FFFFFF'); setStickerBgEnabled(false); setStickerFontSize(0); setStickerOpacity(1.0); setStickerTextAlign('center'); setStickerAnim('none'); setStickerStartSec(null); setStickerEndSec(null); setTextEditorOpen(true); setTimeout(() => stickerInputRef.current?.focus(), 200);
   }, [active]);
   const closeTextEditor = useCallback(() => { setTextEditorOpen(false); setStickerText(''); setEditingStickerId(null); }, []);
+  // A typed @handle inside a text sticker is a real mention: the person is notified and can add the story to theirs
+  // (through the hidden-mention path the composer already has), and the handle opens their profile in the viewer.
+  const resolveTextMentions = useCallback(async (stickerId: string, text: string) => {
+    const handles = Array.from(new Set((text.match(/@([A-Za-z0-9_.]{2,30})/g) || []).map(h => h.slice(1).toLowerCase())));
+    let found: { id: string; username: string }[] = [];
+    if (handles.length) {
+      try {
+        const { data } = await supabase.from('profiles').select('id, username').in('username', handles);
+        found = ((data || []) as any[]).filter(p => p.username).map(p => ({ id: p.id, username: String(p.username) }));
+      } catch {}
+    }
+    if (!mountedRef.current) return;
+    setDrafts(prev => prev.map((d, i) => {
+      if (i !== activeIndex) return d;
+      const stickers = (d.stickers || []).map(s => (s.id === stickerId ? ({ ...s, mentions: found.length ? found : undefined } as any) : s));
+      const cur = (((d as any).hiddenMentions || []) as { id: string; username: string }[]);
+      const onStickers = new Set(stickers.filter((s: any) => s.kind === 'mention' && s.mentionUserId).map((s: any) => s.mentionUserId));
+      const add = found.filter(u => !cur.some(h => h.id === u.id) && !onStickers.has(u.id));
+      return { ...d, stickers, hiddenMentions: add.length ? [...cur, ...add] : cur } as any;
+    }));
+  }, [activeIndex]);
   const saveSticker = useCallback(() => {
     const tr = stickerText.trim(); if (!tr) { if (editingStickerId) updateStickers((active?.stickers || []).filter(s => s.id !== editingStickerId)); closeTextEditor(); return; }
     const extra: any = { bgEnabled: stickerBgEnabled, fontSizeOverride: stickerFontSize > 0 ? stickerFontSize : undefined, opacity: stickerOpacity < 1.0 ? stickerOpacity : undefined, textAlign: stickerTextAlign !== 'center' ? stickerTextAlign : undefined, anim: stickerAnim !== 'none' ? stickerAnim : undefined, startSec: stickerStartSec != null ? stickerStartSec : undefined, endSec: stickerEndSec != null ? stickerEndSec : undefined };
-    if (editingStickerId) { updateStickers((active?.stickers || []).map(s => s.id === editingStickerId ? { ...s, text: tr, style: stickerStyle, color: stickerColor, ...extra } : s)); }
-    else { updateStickers([...(active?.stickers || []), { id: newStickerId(), text: tr, style: stickerStyle, color: stickerColor, nx: 0.5, ny: nextStickerNy(0.4), scale: 1, rotation: 0, ...extra }]); }
+    if (editingStickerId) { updateStickers((active?.stickers || []).map(s => s.id === editingStickerId ? { ...s, text: tr, style: stickerStyle, color: stickerColor, ...extra } : s)); void resolveTextMentions(editingStickerId, tr); }
+    else { const nid = newStickerId(); updateStickers([...(active?.stickers || []), { id: nid, text: tr, style: stickerStyle, color: stickerColor, nx: 0.5, ny: nextStickerNy(0.4), scale: 1, rotation: 0, ...extra }]); void resolveTextMentions(nid, tr); }
     closeTextEditor();
-  }, [stickerText, stickerStyle, stickerColor, stickerBgEnabled, stickerFontSize, stickerOpacity, stickerTextAlign, stickerAnim, stickerStartSec, stickerEndSec, editingStickerId, active, updateStickers, closeTextEditor, nextStickerNy]);
+  }, [stickerText, stickerStyle, stickerColor, stickerBgEnabled, stickerFontSize, stickerOpacity, stickerTextAlign, stickerAnim, stickerStartSec, stickerEndSec, editingStickerId, active, updateStickers, closeTextEditor, nextStickerNy, resolveTextMentions]);
   const deleteEditingSticker = useCallback(() => { if (!editingStickerId) return; updateStickers((active?.stickers || []).filter(s => s.id !== editingStickerId)); closeTextEditor(); }, [editingStickerId, active, updateStickers, closeTextEditor]);
 
   // ── Emoji ──

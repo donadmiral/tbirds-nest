@@ -256,9 +256,19 @@ export function renderStickerContent(
   const opacityStyle = (sticker.opacity !== undefined && sticker.opacity < 1)
     ? { opacity: sticker.opacity } : undefined;
 
+  // Typed @handles that resolved to people are drawn as mentions and open the profile.
+  const mentionList: { id: string; username: string }[] = Array.isArray((sticker as any).mentions) ? (sticker as any).mentions : [];
+  const body = mentionList.length
+    ? String(sticker.text).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => {
+        const m = part.startsWith('@') ? mentionList.find(x => x.username.toLowerCase() === part.slice(1).toLowerCase()) : null;
+        return m
+          ? <Text key={i} style={{ fontWeight: '800', textDecorationLine: 'underline' }} onPress={interactive && onMentionTap ? () => onMentionTap(m.id) : undefined}>{part}</Text>
+          : <Text key={i}>{part}</Text>;
+      })
+    : sticker.text;
   return (
     <View style={[wrapperStyle, opacityStyle]}>
-      <Text style={[textStyle, { maxWidth: TEXT_STICKER_MAX_W }]}>{sticker.text}</Text>
+      <Text style={[textStyle, { maxWidth: TEXT_STICKER_MAX_W }]}>{body}</Text>
     </View>
   );
 }
@@ -296,6 +306,7 @@ function StickerOverlay({
         const isEmoji = st.kind === 'emoji';
         const isPill = st.kind === 'link' || st.kind === 'location' || st.kind === 'mention' || st.kind === 'hashtag' || st.kind === 'post' || st.kind === 'entity';
         const isEngagement = st.kind === 'question' || st.kind === 'slider' || st.kind === 'quiz' || st.kind === 'countdown' || st.kind === 'addyours' || st.kind === 'support' || st.kind === 'results';
+        const hasMentions = Array.isArray((st as any).mentions) && (st as any).mentions.length > 0; // a text sticker with typed @handles takes taps too
         const containerAlign = isEmoji || isPill ? 'center' as const
           : st.textAlign === 'left' ? 'flex-start' as const
           : st.textAlign === 'right' ? 'flex-end' as const
@@ -304,12 +315,12 @@ function StickerOverlay({
         const stickerWidth = getWidthForKind(st.kind);
         const halfW = stickerWidth / 2;
         // An estimated rectangle from the sticker's own position, registered before layout, so a tap during the entrance animation still reaches the card.
-        if (interactive && (isPill || isEngagement) && onStickerLayout) { const ex = st.nx * containerW; const ey = st.ny * containerH; const eh = isPill ? 44 : 150; const key = st.id; const hasMeasured = (onStickerLayout as any).__measured?.has?.(key); if (!hasMeasured) onStickerLayout(key, { left: ex - halfW, top: ey - eh / 2, right: ex + halfW, bottom: ey + eh / 2 }); }
+        if (interactive && (isPill || isEngagement || hasMentions) && onStickerLayout) { const ex = st.nx * containerW; const ey = st.ny * containerH; const eh = isPill ? 44 : 150; const key = st.id; const hasMeasured = (onStickerLayout as any).__measured?.has?.(key); if (!hasMeasured) onStickerLayout(key, { left: ex - halfW, top: ey - eh / 2, right: ex + halfW, bottom: ey + eh / 2 }); }
 
         return (
           <View
             key={st.id}
-            pointerEvents={interactive ? ((isPill || isEngagement) ? 'auto' : 'none') : 'none'}
+            pointerEvents={interactive ? ((isPill || isEngagement || hasMentions) ? 'auto' : 'none') : 'none'}
             onLayout={interactive && (isPill || isEngagement) && onStickerLayout ? (e: any) => { const t: any = e.currentTarget || e.target; const registerLive = () => t?.measureInWindow?.((x: number, y: number, w: number, h: number) => { if (w && h) onStickerLayout(st.id, { left: x, top: y, right: x + w, bottom: y + h }); }); registerLive(); setTimeout(registerLive, 350); setTimeout(registerLive, 900); } : undefined}
             style={{
               position: 'absolute',

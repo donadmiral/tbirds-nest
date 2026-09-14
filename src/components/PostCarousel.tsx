@@ -301,17 +301,20 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   const renderItem = useCallback(({ item, index }: { item: CarouselMedia; index: number }) => {
     if (item.media_type === 'video') {
       return (
-        <CarouselVideo
-          uri={item.url}
-          postId={postId ?? null}
-          holdView={!!holdView}
-          poster={(item as any).edit?.coverUrl || null}
-          width={containerWidth}
-          height={slideHeight}
-          isVisible={index === activeIndex}
-          isScreenActive={isActive}
-          onTapOverride={onMediaPress ? (at?: number) => onMediaPress(index, at) : undefined}
-        />
+        <View>
+          <CarouselVideo
+            uri={item.url}
+            postId={postId ?? null}
+            holdView={!!holdView}
+            poster={(item as any).edit?.coverUrl || null}
+            width={containerWidth}
+            height={slideHeight}
+            isVisible={index === activeIndex}
+            isScreenActive={isActive}
+            onTapOverride={onMediaPress ? (at?: number) => onMediaPress(index, at) : undefined}
+          />
+          <TagLayer mode="list" tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
+        </View>
       );
     }
     return (
@@ -339,17 +342,20 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
       <View style={[st.carouselWrap, flush && { marginTop: 0, width: containerWidth }]}>
         <View style={{ width: containerWidth, height: slideHeight, overflow: 'hidden' }}>
           {item.media_type === 'video' ? (
-            <CarouselVideo
-              uri={item.url}
-              postId={postId ?? null}
-              holdView={!!holdView}
-              poster={(item as any).edit?.coverUrl || null}
-              width={containerWidth}
-              height={slideHeight}
-              isVisible={true}
-              isScreenActive={isActive}
-              onExpand={onMediaPress ? (at?: number) => onMediaPress(0, at) : undefined}
-            />
+            <View>
+              <CarouselVideo
+                uri={item.url}
+                postId={postId ?? null}
+                holdView={!!holdView}
+                poster={(item as any).edit?.coverUrl || null}
+                width={containerWidth}
+                height={slideHeight}
+                isVisible={true}
+                isScreenActive={isActive}
+                onExpand={onMediaPress ? (at?: number) => onMediaPress(0, at) : undefined}
+              />
+              <TagLayer mode="list" tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
+            </View>
           ) : (
             <View>
               <TouchableOpacity activeOpacity={0.97} onPress={() => onMediaPress && onMediaPress(0)} disabled={!onMediaPress}>
