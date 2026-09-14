@@ -92,6 +92,7 @@ function badgeFor(type: string): { icon: any; bg: string } | null {
     case 'business_member':  return { icon: 'users', bg: '#B08D3F' };
     case 'collab_invite':   return { icon: 'users', bg: '#0B1E3D' };
     case 'community_invite': return { icon: 'users', bg: '#2F9E63' };
+    case 'system':          return { icon: 'activity', bg: '#0B1E3D' };
     default:                 return null;
   }
 }
@@ -109,6 +110,7 @@ function quote(s?: string | null): string {
 }
 
 function lineFor(n: Notif): { lead: string; rest: string } {
+  if (n.type === 'system') return { lead: 'System', rest: ' · ' + (n.message || 'System alert') };
   const name = n.actor_name || 'Someone';
   const others = n.others_count;
   const lead = !n.actor_name && others > 0 ? String(others + 1) + ' people' : others > 0
@@ -455,7 +457,7 @@ export default function NotificationsScreen({ navigation }: any) {
             <Image source={{ uri: (item.actor_avatar || item.other_avatars?.[0]) as string }} style={s.avatar} />
           ) : (
             <View style={[s.avatar, s.avatarFb]}>
-              <Text style={s.avatarTxt}>{item.actor_name ? initials(item.actor_name) : item.others_count > 0 ? String(item.others_count + 1) : 'U'}</Text>
+              {item.type === 'system' ? <Feather name="shield" size={20} color="#FFFFFF" /> : <Text style={s.avatarTxt}>{item.actor_name ? initials(item.actor_name) : item.others_count > 0 ? String(item.others_count + 1) : 'U'}</Text>}
             </View>
           )}
           {badge ? (
