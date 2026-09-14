@@ -1,3 +1,4 @@
+import { prefetch } from '../../lib/screenTransition';
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
@@ -105,7 +106,7 @@ export default function MarketScreen({ navigation }: any) {
     <TouchableOpacity
       style={s.card}
       activeOpacity={0.85}
-      onPress={() => navigation.navigate('ListingDetail', { listingId: item.id })}
+      onPress={() => { prefetch('listing:' + item.id, () => marketService.getListing(item.id)); navigation.navigate('ListingDetail', { listingId: item.id }); }}
     >
       {item.images?.[0] ? (
         <ExpoImage

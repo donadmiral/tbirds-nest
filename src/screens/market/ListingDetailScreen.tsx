@@ -1,3 +1,4 @@
+import { takePrefetched } from '../../lib/screenTransition';
 import { useAfterTransition } from '../../lib/screenTransition';
 import { ListingSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
@@ -54,7 +55,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   useFocusEffect(useCallback(() => {
     let cancelled = false;
     (async () => {
-      const row = await marketService.getListing(listingId);
+      const row = takePrefetched<any>('listing:' + listingId) ?? await marketService.getListing(listingId);
       if (!cancelled) { setListing(row); setLoading(false); }
     })();
     return () => { cancelled = true; };

@@ -1,3 +1,4 @@
+import { takePrefetched } from '../../lib/screenTransition';
 import { useAfterTransition } from '../../lib/screenTransition';
 import { ProfileSkeleton } from '../../components/skeletons';
 import TierName from '../../components/TierName';
@@ -92,7 +93,9 @@ export default function UserProfileScreen() {
   const load = useCallback(async () => {
     if (!targetId) return;
     try {
-      const { data: pj, error: pErr } = await supabase.rpc('get_profile', { p_profile_id: targetId });
+      // The tap that brought us here may have started this call already; use its result when it has landed.
+    const pre = takePrefetched<any>('profile:' + targetId);
+    const { data: pj, error: pErr } = pre ? { data: pre, error: null as any } : await supabase.rpc('get_profile', { p_profile_id: targetId });
       if (pErr) { console.log('USER_PROFILE_LOAD', pErr.message); setLoadError(pErr.message); return; }
       setLoadError(null);
       const pd: any = pj || {};
