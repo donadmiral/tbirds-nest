@@ -117,6 +117,15 @@ function ComposerInner() {
     if (audience === "only_with" && people.length) {
       await supabase.from("story_shared_with").insert(people.map((p) => ({ story_id: row.id, user_id: p.id })));
     }
+    // A typed @handle in the caption is a mention: the person is recorded so they are notified and can add the story to theirs.
+    const handles = Array.from(new Set((caption.match(/@([A-Za-z0-9_.]{2,30})/g) || []).map((h) => h.slice(1).toLowerCase())));
+    if (handles.length) {
+      try {
+        const { data: ppl } = await supabase.from("profiles").select("id").in("username", handles).neq("id", uid);
+        const rows = ((ppl ?? []) as { id: string }[]).map((p) => ({ story_id: row.id, mentioned_user_id: p.id, visible: true }));
+        if (rows.length) await supabase.from("story_mentions").insert(rows);
+      } catch { /* a mention that cannot be written must not stop the story */ }
+    }
     if (draftId) await supabase.from("story_drafts").delete().eq("id", draftId);
     router.push("/home");
   }

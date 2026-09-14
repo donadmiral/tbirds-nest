@@ -79,7 +79,13 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
           if (clock < t0 - 0.05 || clock > t1 + 0.05) return null;
         }
         if (kind === "text" || kind === "emoji") {
-          return <div key={st.id} style={{ ...pos, ...stickerCss(st), ...extraFontCss(st.style), ...animStyle(st.anim) }}>{st.text}</div>;
+          // Typed @handles that resolved to people open the profile.
+          const ms = Array.isArray((st as { mentions?: { id: string; username: string }[] }).mentions) ? (st as { mentions?: { id: string; username: string }[] }).mentions! : [];
+          const body = ms.length ? String(st.text).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => {
+            const m = part.startsWith("@") ? ms.find((x) => x.username.toLowerCase() === part.slice(1).toLowerCase()) : null;
+            return m ? <a key={i} href={"/" + m.username} onClick={(e) => e.stopPropagation()} className="pointer-events-auto font-extrabold underline">{part}</a> : <span key={i}>{part}</span>;
+          }) : st.text;
+          return <div key={st.id} style={{ ...pos, ...stickerCss(st), ...extraFontCss(st.style), ...animStyle(st.anim) }}>{body}</div>;
         }
         if (kind === "gif" || kind === "photo" || kind === "time" || kind === "date" || kind === "weather" || kind === "entity") {
           const cell = kind === "photo" && (st as any).photoShape === "cell" && typeof (st as any).photoFw === "number" ? { width: ((st as any).photoFw * 100) + "%", height: ((st as any).photoFh * 100) + "%" } : null;
@@ -570,7 +576,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
               <StickerLayer stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} />
             ) : null}
             {story.caption ? (
-              <p className="absolute inset-x-0 bottom-20 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow">{story.caption}</p>
+              <p className="absolute inset-x-0 bottom-20 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow">{String(story.caption).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => part.startsWith("@") ? <a key={i} href={"/" + part.slice(1)} onClick={(e) => e.stopPropagation()} className="font-extrabold underline">{part}</a> : <span key={i}>{part}</span>)}</p>
             ) : null}
             {heartBurst ? (
               <span key={heartBurst} className="pointer-events-none absolute inset-0 z-[6] flex items-center justify-center">

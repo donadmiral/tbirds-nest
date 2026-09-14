@@ -32,55 +32,58 @@ function editStyle(e: PostMediaEditRecipe | null | undefined): React.CSSProperti
 // navy pills anchored where each person is, each linking to the profile.
 type MediaTag = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null; verified_tier: string | null };
 const tagCache = new Map<string, MediaTag[]>();
-function TagLayer({ tags, w, h }: { tags: MediaTag[]; w?: number; h?: number }) {
+function TagLayer({ tags, w, h, mode = "pins" }: { tags: MediaTag[]; w?: number; h?: number; mode?: "pins" | "list" }) {
+  // Instagram's model: a round person badge on the picture; tapping it shows white pills with a pointer aimed at the
+  // person, the name in its tier colour and the seal, each linking to the profile. On a video the badge opens a list.
   const [open, setOpen] = useState(false);
   if (!tags.length) return null;
-  // Tidy layout, same rules as the phone: the pearl dot stays on the person, pills
-  // stack top to bottom without overlapping or leaving the picture, and a thin
-  // connector runs from the dot to a pill that had to move. Needs the box size;
-  // until it is measured the pills sit at their anchors.
-  const W = w || 0, H = h || 0; const PILL = 30, GAP = 6;
-  const est = (t: MediaTag) => Math.min(W * 0.7, 46 + (t.full_name || t.username || "Member").length * 7.2);
-  const placed: { t: MediaTag; dx: number; dy: number; x: number; y: number; wpx: number }[] = [];
+  const W = w || 0, H = h || 0; const PAD = 8, PILL = 30, GAP = 6, TIP = 6;
+  const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+  const est = (t: MediaTag) => Math.min(Math.max(W - 2 * PAD, 60), 42 + (t.full_name || t.username || "Member").length * 7.4);
+  const placed: { t: MediaTag; ax: number; ay: number; x: number; y: number; wpx: number; below: boolean }[] = [];
   if (W && H) {
     [...tags].sort((a, b) => a.ny - b.ny || a.nx - b.nx).forEach((t) => {
-      const dx = Math.max(6, Math.min(W - 6, t.nx * W)); const dy = Math.max(6, Math.min(H - 6, t.ny * H)); const wpx = est(t);
-      let x = dx - 10; if (x + wpx > W - 6) x = W - 6 - wpx; if (x < 6) x = 6;
-      let y = dy + 10; if (y + PILL > H - 6) y = dy - 10 - PILL;
+      const ax = clamp(t.nx * W, PAD, W - PAD); const ay = clamp(t.ny * H, PAD, H - PAD); const wpx = est(t);
+      const x = clamp(ax - wpx / 2, PAD, W - PAD - wpx);
+      const below = ay + TIP + 4 + PILL <= H - PAD;
+      let y = below ? ay + TIP + 4 : ay - TIP - 4 - PILL;
       for (let guard = 0; guard < 12; guard++) {
         const hit = placed.find((p) => !(x + wpx < p.x || p.x + p.wpx < x) && Math.abs(y - p.y) < PILL + GAP);
-        if (!hit) break; y = hit.y + PILL + GAP; if (y + PILL > H - 6) y = Math.max(6, hit.y - PILL - GAP);
+        if (!hit) break; y = below ? hit.y + PILL + GAP : hit.y - PILL - GAP; if (y < PAD || y + PILL > H - PAD) break;
       }
-      placed.push({ t, dx, dy, x, y, wpx });
+      placed.push({ t, ax, ay, x, y, wpx, below });
     });
   }
-  const pill = (t: MediaTag, style: React.CSSProperties) => {
+  const name = (t: MediaTag) => {
     const tier = getTierColor(t.verified_tier);
-    return (
-      <Link key={t.user_id} href={"/" + (t.username || "")} onClick={(e) => e.stopPropagation()}
-        className="pointer-events-auto absolute flex h-[30px] max-w-[70%] items-center gap-1.5 rounded-[15px] bg-[#0B1E3D]/90 pl-1 pr-2.5 text-[12.5px] font-bold text-white shadow-lg" style={style}>
-        {t.avatar_url ? <img src={t.avatar_url} alt="" className="h-[22px] w-[22px] rounded-full object-cover" /> : <span className="h-[22px] w-[22px] rounded-full bg-[#C9BFB0]" />}
-        <span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>
-        {t.verified_tier ? <VerifiedBadge tier={t.verified_tier as any} size={12} /> : null}
-      </Link>
-    );
+    return (<><span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>{t.verified_tier ? <VerifiedBadge tier={t.verified_tier as any} size={12} /> : null}</>);
   };
-  const markRight = placed.some((p) => p.y + PILL > H - 44 && p.x < 130) || tags.some((t) => t.ny > 0.82 && t.nx < 0.35);
+  const badgeRight = placed.some((p) => p.y + PILL > H - 48 && p.x < 60) || tags.some((t) => t.ny > 0.84 && t.nx < 0.22);
   return (
     <div className="pointer-events-none absolute inset-0">
-      {open ? (W && H ? placed.map(({ t, dx, dy, x, y }) => {
-        const moved = Math.abs((y - 10) - dy) > 14 || Math.abs((x + 10) - dx) > 14;
-        return (
-          <span key={t.user_id}>
-            {moved ? <span className="absolute w-[2px] bg-white/55" style={{ left: dx - 1, top: Math.min(dy, y + PILL / 2), height: Math.abs((y + PILL / 2) - dy) }} /> : null}
-            <span className="absolute h-2.5 w-2.5 rounded-full border-[1.5px] border-white bg-[#C9BFB0]" style={{ left: dx - 5, top: dy - 5 }} />
-            {pill(t, { left: x, top: y })}
-          </span>
-        );
-      }) : tags.map((t) => pill(t, { top: "calc(" + (t.ny * 100) + "% + 8px)", left: t.nx > 0.6 ? undefined : "calc(" + (t.nx * 100) + "% - 10px)", right: t.nx > 0.6 ? "calc(" + ((1 - t.nx) * 100) + "% - 10px)" : undefined }))) : null}
-      <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} aria-label={open ? "Hide tagged people" : "Show tagged people"}
-        className={"pointer-events-auto absolute bottom-2.5 flex items-center gap-1.5 rounded-xl px-2 py-1 text-[11px] font-extrabold " + (markRight ? "right-2.5 " : "left-2.5 ") + (open ? "bg-[#C9BFB0] text-[#0B1E3D]" : "bg-black/50 text-white")}>
-        <span className={"h-2 w-2 rounded-full " + (open ? "bg-[#0B1E3D]" : "bg-[#C9BFB0]")} />{tags.length}
+      {open && mode === "pins" && W && H ? placed.map(({ t, ax, x, y, wpx, below }) => (
+        <span key={t.user_id}>
+          <span className="absolute h-0 w-0 border-x-[6px] border-x-transparent" style={below ? { left: ax - TIP, top: y - TIP, borderBottom: "6px solid #fff" } : { left: ax - TIP, top: y + PILL, borderTop: "6px solid #fff" }} />
+          <Link href={"/" + (t.username || "")} onClick={(e) => e.stopPropagation()} title={t.full_name || t.username || undefined}
+            className="pointer-events-auto absolute flex h-[30px] items-center justify-center gap-1 rounded-lg bg-white px-2.5 text-[12.5px] font-bold text-[#0B1E3D] shadow-lg" style={{ left: x, top: y, width: wpx }}>
+            {name(t)}
+          </Link>
+        </span>
+      )) : null}
+      {open && mode === "list" ? (
+        <span className={"pointer-events-auto absolute bottom-12 z-10 w-56 overflow-hidden rounded-xl bg-white p-1.5 shadow-2xl " + (badgeRight ? "right-2.5" : "left-2.5")}>
+          <span className="block px-2 pb-1 pt-0.5 text-[11px] font-bold uppercase tracking-wide text-[#0B1E3D]/50">In this video</span>
+          {tags.map((t) => (
+            <Link key={t.user_id} href={"/" + (t.username || "")} onClick={(e) => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-semibold text-[#0B1E3D] hover:bg-black/[0.04]">
+              {t.avatar_url ? <img src={t.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" /> : <span className="h-7 w-7 rounded-full bg-[#C9BFB0]" />}
+              <span className="flex min-w-0 flex-1 items-center gap-1">{name(t)}</span>
+            </Link>
+          ))}
+        </span>
+      ) : null}
+      <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} aria-label={mode === "list" ? "People in this video" : (open ? "Hide tagged people" : "Show tagged people")}
+        className={"pointer-events-auto absolute bottom-2.5 flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-[140ms] " + (badgeRight ? "right-2.5 " : "left-2.5 ") + (open ? "bg-white text-[#0B1E3D]" : "bg-black/55 text-white hover:bg-black/70")}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
       </button>
     </div>
   );
@@ -377,7 +380,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
                 edit={editOf(item)}
-              /><EditPlanes e={editOf(item)} /></div>
+              /><EditPlanes e={editOf(item)} /><TagLayer mode="list" tags={tags[item.id] || []} w={dims?.w} h={dims?.h} /></div>
             </div>
           ) : (
             <div className="relative">
