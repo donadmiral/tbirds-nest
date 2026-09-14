@@ -50,6 +50,8 @@ type Props = {
   postId?: string | null;
   /** Drop the top margin (the pinned video box on the post screen). */
   flush?: boolean;
+  /** Keep the video view attached even without owning the engine (the comments stage during its handoff). */
+  holdView?: boolean;
 };
 
 // 4:5 portrait = height is 1.25x width (same as Instagram)
@@ -89,9 +91,9 @@ function CarouselImage({ uri, width, height, edit }: { uri: string; width: numbe
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId,
+  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, holdView,
 }: {
-  uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null;
+  uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null; holdView?: boolean;
   isVisible: boolean; isScreenActive: boolean;
   onTapOverride?: (at?: number) => void;
   onExpand?: (at?: number) => void;
@@ -198,8 +200,8 @@ function CarouselVideo({
       activeOpacity={1}
       onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
-      {owns ? <VideoView style={{ width: '100%', height: '100%' }} player={player} contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
-      {poster && !owns ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height }} contentFit="cover" /> : null}
+      {owns || holdView ? <VideoView style={{ width: '100%', height: '100%' }} player={player} contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
+      {poster && !owns && !holdView ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height }} contentFit="cover" /> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
 
@@ -271,7 +273,7 @@ async function loadSensitiveMode() {
   } catch {}
 }
 
-export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress, postId, flush }: Props) {
+export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress, postId, flush, holdView }: Props) {
   const [revealed, setRevealed] = useState(false);
   const [, bump] = useState(0);
   useEffect(() => { loadSensitiveMode().then(() => bump((n) => n + 1)); }, []);
@@ -302,6 +304,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
         <CarouselVideo
           uri={item.url}
           postId={postId ?? null}
+          holdView={!!holdView}
           poster={(item as any).edit?.coverUrl || null}
           width={containerWidth}
           height={slideHeight}
@@ -339,6 +342,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             <CarouselVideo
               uri={item.url}
               postId={postId ?? null}
+              holdView={!!holdView}
               poster={(item as any).edit?.coverUrl || null}
               width={containerWidth}
               height={slideHeight}

@@ -349,6 +349,9 @@ export default function FeedScreen({ navigation }: any) {
   const [commentsFor, setCommentsFor] = useState<Post | null>(null);
   const commentsForRef = useRef<Post | null>(null); commentsForRef.current = commentsFor;
   const mediaYRef = useRef<Record<string, number>>({});
+  const mediaNodeRef = useRef<Record<string, any>>({});
+  // While the sheet holds the media in its stage the card stays idle; the sheet hands the player back just before it leaves.
+  const [commentsHold, setCommentsHold] = useState(false);
   useEffect(() => {
     AsyncStorage.getItem(('pc_draft:' + (userId || 'anon'))).then(v => {
       if (!v) return;
@@ -1793,18 +1796,12 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
   }, [navigation]);
 
   const openComments = useCallback((post: Post) => {
-    const list: any[] = displayPosts as any[];
-    const idx = list.findIndex((p: any) => p.id === post.id);
-    const hasMedia = (Array.isArray((post as any).media) && (post as any).media.length > 0) || !!post.media_url;
-    // Bring the card's media to the top of the screen first, so it sits above the sheet and keeps playing.
-    if (idx >= 0 && hasMedia && feedModeRef.current !== 'discover') {
-      const y = mediaYRef.current[post.id] ?? 0;
-      try { feedListRef.current?.scrollToIndex({ index: idx, viewPosition: 0, viewOffset: -y, animated: true }); } catch {}
-    }
+    // The card stays where it is; the sheet lifts its media into the stage and settles it back on close.
     commentsForRef.current = post;
     setActivePostId(post.id);
+    setCommentsHold(true);
     setCommentsFor(post);
-  }, [displayPosts]);
+  }, []);
   const renderPost = useCallback(({ item: post }: { item: Post }) => {
     // Discover is a grid of tiles, the web Discover's twin, not a feed.
     if (feedModeRef.current === 'discover' && !(post as any).__suggestions && !(post as any)._promo && !String(post.id).startsWith('__')) {
@@ -2031,11 +2028,11 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           };
           // An article's picture is its cover, drawn inside the article block; the media strip would show it twice.
           if ((post as any).article_title) return null;
-          const media = renderMedia(post, screenFocused && !fsVideo && !commentsFor && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
+          const media = renderMedia(post, screenFocused && !fsVideo && !commentsHold && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
-            <View style={{ position: 'relative' }} onLayout={(e) => { mediaYRef.current[post.id] = e.nativeEvent.layout.y; }}>
+            <View style={{ position: 'relative' }} ref={(node) => { if (node) mediaNodeRef.current[post.id] = node; }} onLayout={(e) => { mediaYRef.current[post.id] = e.nativeEvent.layout.y; }}>
               <View
                 onTouchStart={() => { mediaTouchRef.current = true; }}
                 onTouchEnd={() => { mediaTouchRef.current = false; }}
@@ -2128,7 +2125,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     activePostId,
     screenFocused,
     fsVideo,
-    commentsFor,
+    commentsHold,
     profilesMap,
     likerNames,
     quotedMap,
@@ -2145,7 +2142,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     openComments,
   ]);
 
-  const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused) + '|' + String(!!fsVideo) + '|' + String(!!commentsFor);
+  const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused) + '|' + String(!!fsVideo) + '|' + String(commentsHold);
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
@@ -2700,8 +2697,10 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         postId={commentsFor?.id ?? ''}
         postAuthorId={commentsFor?.user_id ?? null}
         count={commentsFor?.comments_count ?? 0}
+        onHandoff={() => setCommentsHold(false)}
+        measureFrame={(id: string) => new Promise((resolve) => { const node = mediaNodeRef.current[id]; if (!node || typeof node.measureInWindow !== 'function') { resolve(null); return; } node.measureInWindow((x: number, y: number, w: number, h: number) => resolve(w > 0 && h > 0 ? { x, y, width: w, height: h } : null)); })}
         media={commentsFor && !(commentsFor as any).article_title ? (Array.isArray((commentsFor as any).media) && (commentsFor as any).media.length > 0 ? (commentsFor as any).media : (commentsFor.media_url ? [{ id: '0', url: commentsFor.media_url, media_type: isVideoUrl(commentsFor.media_url) ? 'video' : 'image', sort_order: 0 }] : null)) : null}
-        actions={commentsFor ? { liked: !!likedPosts[commentsFor.id], saved: !!bookmarkedPosts[commentsFor.id], reposted: !!repostedPosts[commentsFor.id], likes: (posts.find((p) => p.id === commentsFor.id) ?? commentsFor).likes_count ?? 0, onLike: () => toggleLike(commentsFor.id), onSave: () => toggleBookmark(commentsFor.id), onRepost: () => toggleRepost(commentsFor.id), onShare: () => { const p = commentsFor; setCommentsFor(null); setTimeout(() => openSendSheet(p as any), 350); } } : null}
+        actions={commentsFor ? { liked: !!likedPosts[commentsFor.id], saved: !!bookmarkedPosts[commentsFor.id], reposted: !!repostedPosts[commentsFor.id], likes: (posts.find((p) => p.id === commentsFor.id) ?? commentsFor).likes_count ?? 0, onLike: () => toggleLike(commentsFor.id), onSave: () => toggleBookmark(commentsFor.id), onRepost: () => toggleRepost(commentsFor.id), onShare: () => { const p = commentsFor; setCommentsHold(false); setCommentsFor(null); setTimeout(() => openSendSheet(p as any), 350); } } : null}
         onClose={() => {
           const id = commentsFor?.id;
           setCommentsFor(null);
