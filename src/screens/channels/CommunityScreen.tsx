@@ -209,6 +209,23 @@ export default function CommunityScreen() {
     setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
     setInfo((p: any) => ({ ...p, member_count: Math.max((p.member_count || 1) - 1, 0) }));
   };
+  // Every community keeps one group chat in Messages; this opens it from the community itself.
+  const openChat = async () => {
+    const { data, error } = await supabase.rpc('get_community_conversation', { p_community: communityId });
+    if (error || !data) { Alert.alert('Could not open the chat', error?.message || 'Please try again.'); return; }
+    navigation.navigate('Chat', { conversationId: data });
+  };
+  const deleteCommunity = () => {
+    Alert.alert('Delete this community?', 'Members lose access, the posts stop showing and the chat closes. This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        const { error } = await supabase.rpc('delete_community', { p_community: communityId });
+        if (error) { Alert.alert('Could not delete', error.message); return; }
+        setSettingsOpen(false);
+        navigation.goBack();
+      } },
+    ]);
+  };
 
   const join = async () => {
     try {
@@ -397,7 +414,7 @@ export default function CommunityScreen() {
             <View style={[s.avatar, s.avatarFb]}><Text style={s.avatarTxt}>{(item.author_name || 'M')[0]}</Text></View>
           )}
           <View style={{ flex: 1 }}>
-            <Text style={s.authorName} numberOfLines={1}>{item.author_name || 'Member'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><TierName userId={item.author_id} baseStyle={s.authorName} text={item.author_name || 'Member'} numberOfLines={1} /><VerifiedBadge userId={item.author_id} size={12} /></View>
             <Text style={s.authorMeta} numberOfLines={1}>{item.author_username ? '@' + item.author_username + ' · ' : ''}{relTime(item.created_at)}</Text>
           </View>
           {(isMod || item.author_id === me?.id) ? (
@@ -443,6 +460,9 @@ export default function CommunityScreen() {
           <View style={{ flex: 1 }} />
           {isMember && info.join_mode === 'approval' && isMod ? (
             <TouchableOpacity onPress={openRequests} style={s.bandBtn}><Feather name="inbox" size={19} color="#1F2937" /></TouchableOpacity>
+          ) : null}
+          {isMember ? (
+            <TouchableOpacity onPress={openChat} style={s.bandBtn} accessibilityRole="button" accessibilityLabel="Open the community chat"><Feather name="message-circle" size={19} color="#1F2937" /></TouchableOpacity>
           ) : null}
           {isMember && isMod ? (
             <TouchableOpacity onPress={inviteMenu} style={s.bandBtn}><Feather name="user-plus" size={19} color="#1F2937" /></TouchableOpacity>
@@ -600,7 +620,7 @@ export default function CommunityScreen() {
               <TouchableOpacity style={s.memberRow} activeOpacity={isMod && m.role !== 'owner' && m.user_id !== me?.id ? 0.7 : 1} onPress={() => memberRole(m)}>
                 {m.avatar_url ? <ExpoImage source={{ uri: m.avatar_url }} style={s.memberAvatar} contentFit="cover" /> : <View style={[s.memberAvatar, s.avatarFb]}><Text style={s.avatarTxt}>{(m.full_name || '?')[0]}</Text></View>}
                 <View style={{ flex: 1 }}>
-                  <Text style={s.authorName} numberOfLines={1}>{m.full_name || 'Member'}{m.user_id === me?.id ? ' (you)' : ''}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><TierName userId={m.user_id} baseStyle={s.authorName} text={m.full_name || 'Member'} numberOfLines={1} /><VerifiedBadge userId={m.user_id} size={12} />{m.user_id === me?.id ? <Text style={s.authorMeta}>(you)</Text> : null}</View>
                   {m.username ? <Text style={s.authorMeta}>@{m.username}</Text> : null}
                 </View>
                 {m.status === 'limited' ? <View style={[s.roleChip, { backgroundColor: '#F2F2F7' }]}><Text style={[s.roleChipTxt, { color: '#8E8E93' }]}>Limited</Text></View> : null}
@@ -677,7 +697,11 @@ export default function CommunityScreen() {
                 ))}
               </View>
               <TextInput style={[s.input, { minHeight: 84, paddingTop: 12, textAlignVertical: 'top' }]} placeholder="Rules shown to people when they join" placeholderTextColor="#C7C7CC" value={eRules} onChangeText={setERules} multiline maxLength={600} />
-            </ScrollView>
+              {myRole === 'owner' ? (
+                <TouchableOpacity onPress={deleteCommunity} activeOpacity={0.8} style={{ marginTop: 28, alignSelf: 'center', paddingHorizontal: 18, paddingVertical: 11, borderRadius: 999, borderWidth: 1, borderColor: '#E0245E' }}>
+                  <Text style={{ color: '#E0245E', fontWeight: '700', fontSize: 14 }}>Delete community</Text>
+                </TouchableOpacity>
+              ) : null}            </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
