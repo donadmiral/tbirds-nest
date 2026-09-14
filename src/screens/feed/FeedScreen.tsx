@@ -66,6 +66,8 @@ import { useActorStore, authorId as currentAuthorId } from '../../stores/actorSt
 import ImageView from 'react-native-image-viewing';
 import FullscreenVideo from '../../components/FullscreenVideo';
 import VideoFeedModal from '../../components/VideoFeedModal';
+import CommentsSheet from '../../components/feed/CommentsSheet';
+import { seekWhenClaimed } from '../../lib/videoEngine';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CATEGORIES } from '../../constants/categories';
 import { FeedSkeleton } from '../../components/Skeleton';
@@ -343,6 +345,10 @@ export default function FeedScreen({ navigation }: any) {
   const [insightsPostId, setInsightsPostId] = useState<string | null>(null);
   const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
   const [fsVideo, setFsVideo] = useState<{ id?: string; url: string } | null>(null);
+  // Comments open in a sheet over the feed: the post stays put and its video keeps playing above the sheet.
+  const [commentsFor, setCommentsFor] = useState<Post | null>(null);
+  const commentsForRef = useRef<Post | null>(null); commentsForRef.current = commentsFor;
+  const mediaYRef = useRef<Record<string, number>>({});
   useEffect(() => {
     AsyncStorage.getItem(('pc_draft:' + (userId || 'anon'))).then(v => {
       if (!v) return;
@@ -451,6 +457,7 @@ export default function FeedScreen({ navigation }: any) {
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 55 }).current;
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
+    if (commentsForRef.current) return; // the sheet's post stays the active one until the sheet closes
     const first = viewableItems.find((v: any) => v.isViewable);
     setActivePostId(first?.item?.id ?? null);
     // Queue anything that scrolled into view. Flushed in batches below so a
@@ -1785,6 +1792,19 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     if (data?.id) { prefetch('profile:' + data.id, async () => (await supabase.rpc('get_profile', { p_profile_id: data.id })).data); navigation.navigate('UserProfile', { userId: data.id, user: data }); }
   }, [navigation]);
 
+  const openComments = useCallback((post: Post) => {
+    const list: any[] = displayPosts as any[];
+    const idx = list.findIndex((p: any) => p.id === post.id);
+    const hasMedia = (Array.isArray((post as any).media) && (post as any).media.length > 0) || !!post.media_url;
+    // Bring the card's media to the top of the screen first, so it sits above the sheet and keeps playing.
+    if (idx >= 0 && hasMedia && feedModeRef.current !== 'discover') {
+      const y = mediaYRef.current[post.id] ?? 0;
+      try { feedListRef.current?.scrollToIndex({ index: idx, viewPosition: 0, viewOffset: -y, animated: true }); } catch {}
+    }
+    commentsForRef.current = post;
+    setActivePostId(post.id);
+    setCommentsFor(post);
+  }, [displayPosts]);
   const renderPost = useCallback(({ item: post }: { item: Post }) => {
     // Discover is a grid of tiles, the web Discover's twin, not a feed.
     if (feedModeRef.current === 'discover' && !(post as any).__suggestions && !(post as any)._promo && !String(post.id).startsWith('__')) {
@@ -1824,7 +1844,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     const isReposted = !!repostedPostsRef.current[post.id];
     const preview = commentPreviewsRef.current[post.id];
     const isSharing = !!sharingPostRef.current[post.id];
-    const openPost = () => { if (isSharing) return; try { ((post as any).media || []).slice(0, 4).forEach((m: any) => { if (m?.url && m.media_type !== 'video') ExpoImagePrefetch.prefetch(m.url).catch(() => {}); }); } catch {} navigation.navigate('Post', { postId: post.id }); };
+    const openPost = () => { if (isSharing) return; try { ((post as any).media || []).slice(0, 4).forEach((m: any) => { if (m?.url && m.media_type !== 'video') ExpoImagePrefetch.prefetch(m.url).catch(() => {}); }); } catch {} navigation.navigate('Post', { postId: post.id, media: Array.isArray((post as any).media) && (post as any).media.length > 0 ? (post as any).media : undefined }); };
 
     return (
       <View style={s.postCard}>
@@ -2015,7 +2035,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
-            <View style={{ position: 'relative' }}>
+            <View style={{ position: 'relative' }} onLayout={(e) => { mediaYRef.current[post.id] = e.nativeEvent.layout.y; }}>
               <View
                 onTouchStart={() => { mediaTouchRef.current = true; }}
                 onTouchEnd={() => { mediaTouchRef.current = false; }}
@@ -2051,7 +2071,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <Text style={[s.pillTxt, isLiked && s.pillTxtLiked]}>{post.likes_count > 0 ? fmtCount(post.likes_count) : ''}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={s.pill} onPress={() => navigation.navigate('Post', { postId: post.id, focusComment: true })} activeOpacity={0.75} disabled={isSharing}>
+          <TouchableOpacity style={s.pill} onPress={() => openComments(post)} activeOpacity={0.75} disabled={isSharing}>
             <Feather name="message-circle" size={20} color={getTheme().ink.muted} />
             <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : ''}</Text>
           </TouchableOpacity>
@@ -2121,6 +2141,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     toggleBookmark,
     toggleRepost,
     sharePost,
+    openComments,
   ]);
 
   const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused) + '|' + String(!!fsVideo);
@@ -2673,6 +2694,17 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         doubleTapToZoomEnabled
       />
 
+      <CommentsSheet
+        visible={!!commentsFor}
+        postId={commentsFor?.id ?? ''}
+        postAuthorId={commentsFor?.user_id ?? null}
+        count={commentsFor?.comments_count ?? 0}
+        onClose={() => {
+          const id = commentsFor?.id;
+          setCommentsFor(null);
+          if (id) supabase.from('posts').select('comments_count').eq('id', id).maybeSingle().then(({ data }) => { const n = (data as any)?.comments_count; if (typeof n === 'number') setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, comments_count: n } : p))); }, () => {});
+        }}
+      />
       <Modal visible={!!fsVideo} animationType="fade" onRequestClose={() => setFsVideo(null)}>
         <View style={{ flex: 1, backgroundColor: '#000' }}>
           {fsVideo && videoPosts.some(v => v.id === fsVideo.id) ? (
@@ -2685,7 +2717,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               followingIds={followingIds}
               myId={userId}
               startAt={(fsVideo as any).at || 0}
-              onClose={() => setFsVideo(null)}
+              onClose={(resume?: { url: string; at: number }) => { if (resume?.url) seekWhenClaimed(resume.url, resume.at); setFsVideo(null); }}
               onToggleLike={(id: string) => toggleLike(id)}
               onToggleSave={(id: string) => toggleBookmark(id)}
               onToggleRepost={(id: string) => toggleRepost(id)}
@@ -2694,7 +2726,6 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               onFollow={async (uid: string) => { try { await supabase.rpc('handle_follow_action', { p_target_id: uid }); setFollowingIds(prev => { const n = new Set(prev); n.add(uid); return n; }); } catch {} }}
               onNotInterested={(id: string) => { setFsVideo(null); hidePost(id); }}
               onReport={(id: string) => { setFsVideo(null); reportPost(id, 'other'); }}
-              onOpenComments={(id: string) => { setFsVideo(null); navigation.navigate('Post', { postId: id, focusComment: true }); }}
               onViewed={(id: string) => { if (userId) supabase.rpc('record_video_view', { p_post_id: id, p_viewer_id: userId, p_session: viewSessionRef.current, p_duration: 5 }).then(() => {}, () => {}); }}
             />
           ) : fsVideo ? (

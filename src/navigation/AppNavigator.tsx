@@ -119,7 +119,6 @@ import MemoryArrangementScreen   from '../screens/stories/MemoryArrangementScree
 
 
 import IncomingCallListener         from '../components/IncomingCallListener';
-import FloatingVideo from '../components/FloatingVideo';
 import MiniCallBar                  from '../components/MiniCallBar';
 import AppLockGate                  from '../components/AppLockGate';
 
@@ -530,7 +529,6 @@ export default function AppNavigator() {
           <AddAccountSheet />
           <MfaGate />
           <OfflineBanner />
-          <FloatingVideo onOpen={(postId) => { if (postId) { try { navigationRef.current?.navigate('Post', { postId }); } catch {} } }} />
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {isReady ? (
             <>

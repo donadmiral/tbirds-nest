@@ -25,7 +25,6 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { PostMedia } from '../../components/MediaRenderer';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import { useFocusEffect } from '@react-navigation/native';
-import { stopFloating } from '../../lib/videoEngine';
 import { light } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
 import GifPickerLite from '../../components/GifPickerLite';
@@ -113,7 +112,7 @@ function RichText({
 }
 
 export default function PostScreen({ route, navigation }: any) {
-  const { postId, focusComment } = route.params ?? {};
+  const { postId, focusComment, media: seedMedia } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
@@ -163,8 +162,6 @@ export default function PostScreen({ route, navigation }: any) {
   const inputRef = useRef<TextInput>(null);
   const listRef = useRef<FlatList<any>>(null);
 
-  // Leaving the post stops the docked player; the engine is free for the next surface.
-  useFocusEffect(useCallback(() => () => { stopFloating(); }, []));
   const load = useCallback(async () => {
     try {
       const { data: vis } = await supabase.rpc('can_view_post', { p_post_id: postId });
@@ -176,7 +173,7 @@ export default function PostScreen({ route, navigation }: any) {
     try {
       const { data: pd } = await supabase
         .from('posts')
-        .select('*, post_media(id, url, media_type, width, height, sort_order)')
+        .select('*, post_media(id, url, media_type, width, height, sort_order, edit, is_sensitive)')
         .eq('id', postId).single();
 
       if (pd) {
@@ -562,6 +559,20 @@ export default function PostScreen({ route, navigation }: any) {
     }
   }
 
+  // A video post pins its media above the thread, so the video and the comments stay in view together (X and Instagram).
+  // The feed hands its media in through route.params so the video carries over before the post itself has loaded.
+  const mediaItems: CarouselMedia[] = post?.post_media?.length
+    ? [...(post.post_media as CarouselMedia[])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    : post?.media_url
+      ? [{ id: '0', url: post.media_url, media_type: /\.(mp4|mov|m4v|webm|quicktime)(\?|#|$)/i.test(post.media_url) ? 'video' as const : 'image' as const, sort_order: 0 }]
+      : (!post && Array.isArray(seedMedia) ? (seedMedia as CarouselMedia[]) : []);
+  const pinned = !post?.article_title && mediaItems.some((m) => m.media_type === 'video');
+  const pinAspect = (mediaItems[0]?.edit as any)?.aspect as string | undefined;
+  const pinRatio = pinAspect === 'square' ? 1 : pinAspect === 'landscape' ? 1 / 1.91 : 1.25;
+  const pinH = Math.min(Math.round(SCREEN_W * pinRatio), Math.round(Dimensions.get('window').height * 0.42));
+  const pinW = Math.min(SCREEN_W, Math.round(pinH / pinRatio));
+  const pinBoxH = pinH + (mediaItems.length > 1 ? 22 : 0); // room for the page dots under a carousel
+
   const [pendingGif, setPendingGif] = useState<string | null>(null);
   const [showGifs, setShowGifs] = useState(false);
   const canSend = input.trim().length > 0 || !!pendingGif;
@@ -578,6 +589,11 @@ export default function PostScreen({ route, navigation }: any) {
         <View style={{ width: 40 }} />
       </View>
 
+      {pinned ? (
+        <View style={{ width: SCREEN_W, height: pinBoxH, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <PostCarousel media={mediaItems} containerWidth={pinW} isActive={screenFocused} postId={postId} flush />
+        </View>
+      ) : null}
       {loading || !afterSlide ? (
         <PostSkeleton />
       ) : notFound ? (
@@ -609,11 +625,7 @@ export default function PostScreen({ route, navigation }: any) {
                 const a = post.author;
                 const roleLine = null; // the school-era degree line is retired; the handle shows instead
 
-                const mediaItems: CarouselMedia[] = post.post_media?.length
-                  ? (post.post_media as CarouselMedia[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-                  : post.media_url
-                    ? [{ id: '0', url: post.media_url, media_type: 'image' as const, sort_order: 0 }]
-                    : [];
+                const rowMedia: CarouselMedia[] = pinned ? [] : mediaItems; // a pinned video is drawn above the thread, not inside it
 
                 return (
                   <View style={s.postBanner}>
@@ -666,10 +678,10 @@ export default function PostScreen({ route, navigation }: any) {
                       </View>
                     )}
                     {post?.id ? <View style={{ paddingHorizontal: 16 }}><PollCard postId={post.id} /></View> : null}
-                    {mediaItems.length > 0 && (
+                    {rowMedia.length > 0 && (
                       <View style={s.mediaEdgeWrap}>
-                        <PostCarousel postId={postId} floatWhenScrolled
-                          media={mediaItems}
+                        <PostCarousel postId={postId}
+                          media={rowMedia}
                           containerWidth={SCREEN_W}
                           isActive={screenFocused}
                         />
@@ -758,7 +770,7 @@ export default function PostScreen({ route, navigation }: any) {
           )}
 
           <GifPickerLite visible={showGifs} onClose={() => setShowGifs(false)} onSelect={(u) => { setPendingGif(u); setShowGifs(false); }} />
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={insets.top + 52}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={insets.top + 52 + (pinned ? pinBoxH : 0)}>
             {pendingGif && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingTop: 8 }}>
                 <Image source={{ uri: pendingGif }} style={{ width: 74, height: 56, borderRadius: 8 }} />

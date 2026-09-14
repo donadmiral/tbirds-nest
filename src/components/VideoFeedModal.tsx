@@ -19,6 +19,7 @@ import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handl
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming, withSequence, runOnJS } from 'react-native-reanimated';
 import VerifiedBadge from './VerifiedBadge';
 import TierName from './TierName';
+import CommentsSheet from './feed/CommentsSheet';
 
 const { height: H, width: W } = Dimensions.get('window');
 const SPEEDS = [0.5, 1, 1.5, 2];
@@ -28,7 +29,6 @@ function count(n: number) { if (!n) return ''; if (n >= 1e6) return (n / 1e6).to
 
 export type VideoFeedActions = {
   onToggleLike: (id: string) => void;
-  onOpenComments: (id: string) => void;
   onViewed?: (id: string) => void;
   onToggleSave?: (id: string) => void;
   onToggleRepost?: (id: string) => void;
@@ -40,7 +40,7 @@ export type VideoFeedActions = {
   onCopyLink?: (id: string) => void;
 };
 
-function VideoCell({ item, active, liked, saved, reposted, following, isOwn, startAt, actions, insetTop, insetBottom, speed, onSpeed }: any) {
+function VideoCell({ item, active, liked, saved, reposted, following, isOwn, startAt, actions, insetTop, insetBottom, speed, onSpeed, onComments, reportTime, shrunk }: any) {
   const player = useVideoPlayer(item.url, (p: any) => {
     p.loop = true; p.muted = false; p.timeUpdateEventInterval = 0.1;
     if (startAt && startAt > 0.2) { try { p.currentTime = startAt; } catch {} }
@@ -61,7 +61,7 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
   useEffect(() => () => { try { player.pause(); } catch {} }, [player]);
   useEffect(() => { try { (player as any).playbackRate = speed; } catch {} }, [speed, player]);
   useEffect(() => {
-    const t = player.addListener('timeUpdate', (e: any) => { const d = player.duration; const c = e?.currentTime ?? player.currentTime; if (!scrubbing) setCur(c); if (d > 0) setDur(d); });
+    const t = player.addListener('timeUpdate', (e: any) => { const d = player.duration; const c = e?.currentTime ?? player.currentTime; if (!scrubbing) setCur(c); if (d > 0) setDur(d); reportTime?.(item.id, c); });
     return () => t.remove();
   }, [player, scrubbing]);
 
@@ -124,12 +124,12 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
       {paused ? <View style={s.pauseBadge} pointerEvents="none"><Feather name="play" size={30} color="#FFF" /></View> : null}
 
       {/* Rail */}
-      {!clean ? <View style={[s.rail, { bottom: railBottom }]} pointerEvents="box-none">
+      {shrunk ? null : !clean ? <View style={[s.rail, { bottom: railBottom }]} pointerEvents="box-none">
         <TouchableOpacity style={s.railBtn} onPress={() => actions.onToggleLike(item.id)} activeOpacity={0.8}>
           <Ionicons name={liked ? 'heart' : 'heart-outline'} size={31} color={liked ? '#FF3040' : '#FFFFFF'} />
           <Text style={s.railTxt}>{count(item.likes)}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.railBtn} onPress={() => actions.onOpenComments(item.id)} activeOpacity={0.8}>
+        <TouchableOpacity style={s.railBtn} onPress={() => onComments?.(item)} activeOpacity={0.8}>
           <Ionicons name="chatbubble-outline" size={27} color="#FFFFFF" /><Text style={s.railTxt}>{count(item.comments)}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.railBtn} onPress={() => actions.onToggleRepost?.(item.id)} activeOpacity={0.8}>
@@ -155,7 +155,7 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
       )}
 
       {/* Creator + caption */}
-      {!clean ? <View style={[s.meta, { bottom: Math.max(insetBottom, 12) + 46 }]} pointerEvents="box-none">
+      {!clean && !shrunk ? <View style={[s.meta, { bottom: Math.max(insetBottom, 12) + 46 }]} pointerEvents="box-none">
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity onPress={() => item.authorId && actions.onOpenProfile?.(item.authorId)} activeOpacity={0.8}>
             {item.authorAvatar ? <Image source={{ uri: item.authorAvatar }} style={s.av} /> : <View style={[s.av, s.avFb]}><Text style={s.avTxt}>{String(item.authorName || '?').slice(0, 1).toUpperCase()}</Text></View>}
@@ -172,7 +172,7 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
       </View> : null}
 
       {/* Scrubber inside the safe area */}
-      {!clean ? <View style={[s.bottom, { paddingBottom: Math.max(insetBottom, 12) }]} pointerEvents="box-none">
+      {shrunk ? null : !clean ? <View style={[s.bottom, { paddingBottom: Math.max(insetBottom, 12) }]} pointerEvents="box-none">
         <View {...scrub.panHandlers} style={s.trackHit} onLayout={e => { trackW.current = Math.max(1, e.nativeEvent.layout.width); }}>
           <View style={[s.track, scrubbing && { height: 5 }]}><View style={[s.fill, { width: `${pct * 100}%` }]} /></View>
           <View style={[s.knob, scrubbing && s.knobBig, { left: Math.max(0, pct * trackW.current - (scrubbing ? 9 : 5)) }]} />
@@ -205,32 +205,51 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
   );
 }
 
-export default function VideoFeedModal({ items, startId, startAt = 0, likedMap, savedMap, repostedMap, followingIds, myId, onClose, onToggleLike, onOpenComments, onViewed, onToggleSave, onToggleRepost, onShare, onOpenProfile, onFollow, onNotInterested, onReport, onCopyLink }: any) {
+export default function VideoFeedModal({ items, startId, startAt = 0, likedMap, savedMap, repostedMap, followingIds, myId, onClose, onToggleLike, onViewed, onToggleSave, onToggleRepost, onShare, onOpenProfile, onFollow, onNotInterested, onReport, onCopyLink }: any) {
   const insets = useSafeAreaInsets();
   const startIdx = Math.max(0, items.findIndex((i: any) => i.id === startId));
   const [activeIdx, setActiveIdx] = useState(startIdx);
   const [speed, setSpeed] = useState(1);
   const onViewable = useRef(({ viewableItems }: any) => { if (viewableItems && viewableItems.length > 0) setActiveIdx(viewableItems[0].index ?? 0); }).current;
   const cfg = useRef({ itemVisiblePercentThreshold: 60 }).current;
-  const actions: VideoFeedActions = { onToggleLike, onOpenComments, onViewed, onToggleSave, onToggleRepost, onShare, onOpenProfile, onFollow, onNotInterested, onReport, onCopyLink };
+  const actions: VideoFeedActions = { onToggleLike, onViewed, onToggleSave, onToggleRepost, onShare, onOpenProfile, onFollow, onNotInterested, onReport, onCopyLink };
+  // Comments open in a sheet inside the viewer: the reel shrinks into the space above it and keeps playing.
+  const [commentsFor, setCommentsFor] = useState<any | null>(null);
+  const timesRef = useRef<Record<string, number>>({});
+  const shrink = useSharedValue(0);
+  const stageStyle = useAnimatedStyle(() => { const k = Math.max(0.2, (H - shrink.value) / H); return { transform: [{ translateY: -(H * (1 - k)) / 2 }, { scale: k }] }; });
+  const closeViewer = () => { const it: any = items[activeIdx]; onClose(it ? { url: it.url, at: timesRef.current[it.id] || 0 } : undefined); };
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <Animated.View style={[{ flex: 1 }, stageStyle]}>
       <FlatList
         data={items}
         keyExtractor={(i: any) => i.id}
         renderItem={({ item, index }) => (
           <VideoCell item={item} active={index === activeIdx} liked={!!likedMap?.[item.id]} saved={!!savedMap?.[item.id]} reposted={!!repostedMap?.[item.id]}
             following={!!(followingIds && item.authorId && followingIds.has(item.authorId))} isOwn={!!(myId && item.authorId === myId)}
-            startAt={item.id === startId ? startAt : 0} actions={actions} insetTop={insets.top} insetBottom={insets.bottom} speed={speed} onSpeed={setSpeed} />
+            startAt={item.id === startId ? startAt : 0} actions={actions} insetTop={insets.top} insetBottom={insets.bottom} speed={speed} onSpeed={setSpeed}
+            onComments={(it: any) => setCommentsFor(it)} reportTime={(id: string, t: number) => { timesRef.current[id] = t; }} shrunk={!!commentsFor && index === activeIdx} />
         )}
-        pagingEnabled showsVerticalScrollIndicator={false} initialScrollIndex={startIdx}
+        pagingEnabled showsVerticalScrollIndicator={false} initialScrollIndex={startIdx} scrollEnabled={!commentsFor}
         getItemLayout={(_: any, i: number) => ({ length: H, offset: H * i, index: i })}
         windowSize={3} maxToRenderPerBatch={2} removeClippedSubviews
         onViewableItemsChanged={onViewable} viewabilityConfig={cfg}
       />
-      <TouchableOpacity style={[s.close, { top: insets.top + 22 }]} onPress={onClose} activeOpacity={0.8} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+      </Animated.View>
+      <TouchableOpacity style={[s.close, { top: insets.top + 22 }]} onPress={() => { if (commentsFor) { setCommentsFor(null); shrink.value = withTiming(0, { duration: 220 }); } else closeViewer(); }} activeOpacity={0.8} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
         <Feather name="x" size={20} color="#FFFFFF" />
       </TouchableOpacity>
+      <CommentsSheet
+        inline
+        dim={false}
+        visible={!!commentsFor}
+        postId={commentsFor?.id ?? ''}
+        postAuthorId={commentsFor?.authorId ?? null}
+        count={commentsFor?.comments ?? 0}
+        onSnap={(h) => { shrink.value = withTiming(h, { duration: 240 }); }}
+        onClose={() => { setCommentsFor(null); shrink.value = withTiming(0, { duration: 220 }); }}
+      />
     </View>
   );
 }
