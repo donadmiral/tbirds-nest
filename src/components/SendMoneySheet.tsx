@@ -4,14 +4,14 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { paymentsService } from '../services/paymentsService';
+import type { PaymentIntent, PaymentOutcome } from '../services/paymentIntent';
 import { flagsService } from '../services/flagsService';
 import { useAuthStore } from '../stores/authStore';
 
 const NAVY = '#0B1E3D';
-const GREEN = '#2F9E63';
 
 type Props = {
   visible: boolean;
@@ -32,38 +32,90 @@ const KEYS = ['1','2','3','4','5','6','7','8','9','.','0','del'];
 export default function SendMoneySheet({
   visible, onClose, recipientId, recipientName, conversationId, onSent, onRequested, listingId, initialAmount,
 }: Props) {
+  const ownerId = useAuthStore(st => st.session?.user?.id || '');
   const [checking, setChecking] = useState(true);
   const [linked, setLinked] = useState(false);
   const [peerHasBank, setPeerHasBank] = useState(false);
-  useEffect(() => { if (visible && recipientId) { paymentsService.peerLinked(recipientId).then(setPeerHasBank, () => setPeerHasBank(false)); } else { setPeerHasBank(false); } }, [visible, recipientId]);
-  const myEmail = useAuthStore(st => st.session?.user?.email || '');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+  const [code, setCode] = useState('');
   const [wallet, setWallet] = useState<any>(null);
   const [raw, setRaw] = useState('0');
   const [busy, setBusy] = useState(false);
-  // One key per intent, not per tap. A retry after a timeout reuses it, which is
-  // what stops the bridge charging twice.
-  const idemKeyRef = useRef<string>("");
+  const [pendingIntent, setPendingIntent] = useState<PaymentIntent | null>(null);
+  const [retryAllowed, setRetryAllowed] = useState(false);
+  const [recoveryMessage, setRecoveryMessage] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const operationRef = useRef(false);
+  const context = [ownerId, conversationId, recipientId].join(':');
+  const activeContextRef = useRef('');
+  activeContextRef.current = visible ? context : '';
 
+  const showOutcome = useCallback(async (intent: PaymentIntent, outcome: PaymentOutcome) => {
+    if (outcome.status === 'completed' && outcome.tx_id) {
+      await paymentsService.clearIntent(intent);
+      if (activeContextRef.current !== context) return;
+      setPendingIntent(null);
+      onSent?.(intent.amount, outcome.currency || intent.currency, outcome.tx_id);
+      onClose();
+      return;
+    }
+    if (outcome.status === 'failed') {
+      await paymentsService.clearIntent(intent);
+      if (activeContextRef.current !== context) return;
+      setPendingIntent(null);
+      setRetryAllowed(false);
+      setRaw('0');
+      setRecoveryMessage(outcome.error || 'The payment was declined. No new payment has been sent.');
+      return;
+    }
+    if (activeContextRef.current !== context) return;
+    setPendingIntent(intent);
+    setRaw(String(intent.amount));
+    setRetryAllowed(outcome.status === 'not_found');
+    setRecoveryMessage(outcome.status === 'not_found'
+      ? 'No payment record was found. You may confirm a retry of this same payment. Its reference and amount will stay the same.'
+      : outcome.status === 'not_submitted'
+        ? outcome.error || 'Confirmation was cancelled. Check the saved payment before retrying.'
+        : 'Payment outcome unconfirmed. Check its status before making another payment. Closing this sheet keeps the original reference.');
+  }, [context, onSent, onClose]);
+
+  // Reopening a sheet only reads status. It never sends or creates a new key.
   useEffect(() => {
     if (!visible) return;
-    flagsService.isEnabled('payments').then(on => {
-      if (!on) {
-        Alert.alert('Payments unavailable', 'In-chat payments are temporarily switched off by Platinum Circles operations.');
-        onClose();
-      }
-    }).catch(() => {});
-    setChecking(true); setEmail(myEmail); setOtp(''); setOtpSent(false);
+    let cancelled = false;
+    const current = () => !cancelled && activeContextRef.current === context;
+    setChecking(true); setCode(''); setLoadError(''); setRecoveryMessage('');
+    setPendingIntent(null); setRetryAllowed(false); setWallet(null); setLinked(false); setPeerHasBank(false);
     setRaw(initialAmount && initialAmount > 0 ? String(initialAmount) : '0');
-    idemKeyRef.current =
-      Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-    paymentsService.getBalance()
-      .then(r => { setLinked(!!r?.linked); setWallet(r?.linked ? r : null); })
-      .catch(() => { setLinked(false); setWallet(null); })
-      .finally(() => setChecking(false));
-  }, [visible, myEmail]);
+    (async () => {
+      try {
+        if (!ownerId) throw new Error('Sign in before opening a payment.');
+        const intent = await paymentsService.getPendingIntent({ ownerId, recipientId, conversationId });
+        if (!current()) return;
+        if (intent) {
+          setPendingIntent(intent); setRaw(String(intent.amount));
+          try {
+            const result = await paymentsService.getPaymentStatus(intent);
+            if (!current()) return;
+            await showOutcome(intent, result);
+          } catch {
+            if (current()) setRecoveryMessage('Payment outcome unconfirmed. Reconnect and check its status. The original payment reference is saved.');
+          }
+        }
+        const [balance, peer] = await Promise.all([
+          paymentsService.getBalance(), paymentsService.peerLinked(recipientId),
+        ]);
+        if (!current()) return;
+        setLinked(!!balance?.linked); setWallet(balance?.linked ? balance : null); setPeerHasBank(peer);
+        const enabled = await flagsService.isEnabled('payments');
+        if (current() && !enabled) setLoadError('New chat payments are temporarily unavailable. You can still check a saved payment.');
+      } catch (e: any) {
+        if (current()) setLoadError(e?.message || 'Could not load payment details. Close this sheet and try again.');
+      } finally { if (current()) setChecking(false); }
+    })();
+    return () => { cancelled = true; };
+    // Callback identity changes from the parent must not reset an open payment.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, ownerId, recipientId, conversationId]);
 
   const amount = useMemo(() => Number(raw) || 0, [raw]);
   const fontSize = useMemo(() => {
@@ -75,6 +127,7 @@ export default function SendMoneySheet({
   }, [raw]);
 
   const press = useCallback((k: string) => {
+    if (pendingIntent || busy) return;
     setRaw(prev => {
       if (k === 'del') { const n = prev.slice(0, -1); return n === '' ? '0' : n; }
       if (k === '.') { return prev.includes('.') ? prev : prev + '.'; }
@@ -83,97 +136,107 @@ export default function SendMoneySheet({
       if (prev.replace('.', '').length >= 8) return prev;
       return prev + k;
     });
-  }, []);
+  }, [pendingIntent, busy]);
 
   const adjust = useCallback((d: number) => {
+    if (pendingIntent || busy) return;
     setRaw(prev => {
       const next = Math.max(0, (Number(prev) || 0) + d);
       return String(Number(next.toFixed(2)));
     });
-  }, []);
+  }, [pendingIntent, busy]);
 
   const doLink = useCallback(async () => {
-    setBusy(true);
+    if (operationRef.current) return;
+    if (!code.trim()) { Alert.alert('Approval code needed', 'Approve Platinum Circles in IntoBank, then enter the connection code.'); return; }
+    operationRef.current = true; setBusy(true);
     try {
-      if (!otpSent) {
-        if (!email.trim()) { Alert.alert('Sign in', 'Enter your IntoBank email.'); return; }
-        const r = await paymentsService.sendOtp(email.trim());
-        if (r?.success) setOtpSent(true);
-        else Alert.alert('Could not send code', r?.error || 'Check the email and try again.');
-      } else {
-        if (!otp.trim()) { Alert.alert('Enter the code', 'Check your email for the code.'); return; }
-        const r = await paymentsService.verifyOtp(email.trim(), otp.trim());
-        if (r?.success) { setLinked(true); setEmail(''); setOtp(''); setOtpSent(false); }
-        else Alert.alert('Could not connect', r?.error || 'Check the code and try again.');
-      }
+      await paymentsService.linkAccount(code, ownerId);
+      const balance = await paymentsService.getBalance();
+      if (activeContextRef.current !== context) return;
+      setLinked(!!balance?.linked); setWallet(balance?.linked ? balance : null); setCode('');
     } catch (e: any) {
-      Alert.alert(otpSent ? 'Could not connect' : 'Could not send code', e?.message || 'Please try again.');
-    } finally { setBusy(false); }
-  }, [email, otp, otpSent]);
+      if (activeContextRef.current === context) Alert.alert('Could not connect', e?.message || 'Check your approval code and try again.');
+    } finally { operationRef.current = false; setBusy(false); }
+  }, [code, context, ownerId]);
+
+  const checkPayment = useCallback(async () => {
+    if (!pendingIntent || operationRef.current) return;
+    operationRef.current = true; setBusy(true); setRetryAllowed(false);
+    try {
+      await showOutcome(pendingIntent, await paymentsService.getPaymentStatus(pendingIntent));
+    } catch (e: any) {
+      if (activeContextRef.current === context) setRecoveryMessage('Payment outcome unconfirmed. ' + (e?.message || 'Reconnect and check again.'));
+    } finally { operationRef.current = false; setBusy(false); }
+  }, [pendingIntent, showOutcome, context]);
 
   const doPay = useCallback(async () => {
-    if (amount <= 0) return;
-    if (!peerHasBank) {
-      Alert.alert("No IntoBank linked", recipientName + " hasn't connected IntoBank yet, so this transfer would be declined. Ask them to link it from any payment sheet.");
+    if (operationRef.current || loadError || amount <= 0) return;
+    if (!peerHasBank && !pendingIntent) {
+      Alert.alert('IntoBank connection needed', recipientName + ' needs to connect IntoBank before receiving this payment.');
       return;
     }
-    setBusy(true);
+    operationRef.current = true; setBusy(true); setRetryAllowed(false);
+    let intent: PaymentIntent | null = null;
     try {
-      const r = await paymentsService.sendMoney({
-        recipientId, amount, conversationId,
-        listingId: listingId ?? null,
-        idempotencyKey: idemKeyRef.current,
+      intent = await paymentsService.prepareIntent({
+        ownerId, recipientId, amount, conversationId, currency: 'USD', listingId: listingId ?? null,
       });
-      if (r?.success) { onSent?.(amount, r.currency || 'USD', r.tx_id); onClose(); }
-      else Alert.alert('Not sent', r?.error || 'Please try again.');
+      if (activeContextRef.current !== context) return;
+      setPendingIntent(intent); setRaw(String(intent.amount));
+      // Even an explicit retry first checks the authoritative server status.
+      const status = await paymentsService.getPaymentStatus(intent);
+      if (status.status !== 'not_found') { await showOutcome(intent, status); return; }
+      if (activeContextRef.current !== context) return;
+      const result = await paymentsService.sendMoney(intent);
+      await showOutcome(intent, result);
     } catch (e: any) {
-      Alert.alert('Not sent', e?.message || 'Please try again.');
-    } finally { setBusy(false); }
-  }, [amount, recipientId, recipientName, conversationId, onSent, onClose, peerHasBank]);
+      if (activeContextRef.current === context) {
+        if (!intent) setLoadError('Could not prepare this payment. ' + (e?.message || 'Close this sheet and try again.'));
+        else setRecoveryMessage('Payment outcome unconfirmed. ' + (e?.message || 'Reconnect and check its status.'));
+      }
+    } finally { operationRef.current = false; setBusy(false); }
+  }, [loadError, amount, peerHasBank, pendingIntent, recipientName, ownerId, recipientId, conversationId, listingId, context, showOutcome]);
 
   const doRequest = useCallback(() => {
-    if (amount <= 0) return;
+    if (amount <= 0 || busy || pendingIntent || loadError) return;
     onRequested?.(amount, 'USD');
     onClose();
-  }, [amount, onRequested, onClose]);
+  }, [amount, busy, pendingIntent, loadError, onRequested, onClose]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { if (!busy) onClose(); }}>
       <KeyboardAvoidingView style={s.overlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <TouchableOpacity style={s.dismiss} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity style={s.dismiss} activeOpacity={1} onPress={onClose} disabled={busy} />
         <View style={s.sheet}>
           <View style={s.handle} />
 
           {checking ? (
             <View style={s.center}><ActivityIndicator color={NAVY} /></View>
-          ) : !linked ? (
+          ) : loadError && !pendingIntent ? (
+            <View style={s.pad}>
+              <Text style={s.linkTitle}>Payment details unavailable</Text>
+              <Text style={s.linkSub}>{loadError}</Text>
+              <TouchableOpacity style={s.cta} onPress={onClose}><Text style={s.ctaTxt}>Close</Text></TouchableOpacity>
+            </View>
+          ) : !linked && !pendingIntent ? (
             <View style={s.pad}>
               <View style={s.linkIcon}><Feather name="link" size={22} color={NAVY} /></View>
               <Text style={s.linkTitle}>Connect IntoBank</Text>
-              <Text style={s.linkSub}>Enter your IntoBank email and we will send you a code. This happens once.</Text>
+              <Text style={s.linkSub}>In IntoBank, open Profile, Connected apps, then Platinum Circles. Review the wallet access and payment permissions. Generate a connection code and paste it here.</Text>
               <TextInput
                 style={s.field}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="IntoBank email"
+                value={code}
+                onChangeText={setCode}
+                placeholder="8-character approval code"
                 placeholderTextColor="#B0B0B5"
-                autoCapitalize="none"
-                keyboardType="email-address"
+                autoCapitalize="characters"
                 autoCorrect={false}
+                editable={!busy}
+                accessibilityLabel="IntoBank approval code"
               />
-              {otpSent && (
-                <TextInput
-                  style={s.field}
-                  value={otp}
-                  onChangeText={setOtp}
-                  placeholder="8-digit code"
-                  placeholderTextColor="#B0B0B5"
-                  keyboardType="number-pad"
-                  maxLength={8}
-                />
-              )}
               <TouchableOpacity style={[s.cta, busy && s.off]} onPress={doLink} disabled={busy} activeOpacity={0.85}>
-                {busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.ctaTxt}>{otpSent ? 'Verify and connect' : 'Send code'}</Text>}
+                {busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.ctaTxt}>Connect approved account</Text>}
               </TouchableOpacity>
             </View>
           ) : (
@@ -189,8 +252,11 @@ export default function SendMoneySheet({
               )}
 
 
+              {!!recoveryMessage && <Text style={s.linkSub} accessibilityLiveRegion="polite">{recoveryMessage}</Text>}
+              {!!loadError && <Text style={s.linkSub}>{loadError}</Text>}
+              {pendingIntent && <Text style={s.fundTxt}>Reference: {pendingIntent.idempotencyKey}</Text>}
               <View style={s.amountRow}>
-                <TouchableOpacity style={s.step} onPress={() => adjust(-1)} activeOpacity={0.7}>
+                <TouchableOpacity style={s.step} onPress={() => adjust(-1)} disabled={busy || !!pendingIntent} activeOpacity={0.7}>
                   <Feather name="minus" size={18} color="#3C3C43" />
                 </TouchableOpacity>
                 <View style={s.amountWrap}>
@@ -198,14 +264,14 @@ export default function SendMoneySheet({
                     ${raw}
                   </Text>
                 </View>
-                <TouchableOpacity style={s.step} onPress={() => adjust(1)} activeOpacity={0.7}>
+                <TouchableOpacity style={s.step} onPress={() => adjust(1)} disabled={busy || !!pendingIntent} activeOpacity={0.7}>
                   <Feather name="plus" size={18} color="#3C3C43" />
                 </TouchableOpacity>
               </View>
 
               <View style={s.keypad}>
                 {KEYS.map(k => (
-                  <TouchableOpacity key={k} style={s.key} onPress={() => press(k)} activeOpacity={0.6}>
+                  <TouchableOpacity key={k} style={s.key} onPress={() => press(k)} disabled={busy || !!pendingIntent} activeOpacity={0.6}>
                     {k === 'del'
                       ? <Feather name="delete" size={22} color={NAVY} />
                       : <Text style={s.keyTxt}>{k}</Text>}
@@ -215,23 +281,23 @@ export default function SendMoneySheet({
 
               <View style={s.actions}>
                 <TouchableOpacity
-                  style={[s.request, amount <= 0 && s.off]}
+                  style={[s.request, (amount <= 0 || busy || !!pendingIntent || !!loadError) && s.off]}
                   onPress={doRequest}
-                  disabled={amount <= 0 || busy}
+                  disabled={amount <= 0 || busy || !!pendingIntent || !!loadError}
                   activeOpacity={0.85}
                 >
                   <Text style={s.requestTxt}>Request</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[s.pay, (amount <= 0 || busy) && s.off]}
-                  onPress={doPay}
-                  disabled={amount <= 0 || busy || (!!wallet && (amount > Number(wallet.available ?? 0) || (wallet.per_tx_max != null && amount > Number(wallet.per_tx_max))))}
+                  onPress={pendingIntent && !retryAllowed ? checkPayment : doPay}
+                  disabled={busy || (!pendingIntent && (amount <= 0 || !!loadError || (!!wallet && (amount > Number(wallet.available ?? 0) || (wallet.per_tx_max != null && amount > Number(wallet.per_tx_max)))))) || (!!pendingIntent && retryAllowed && !!loadError)}
                   activeOpacity={0.85}
                 >
                   {busy ? <ActivityIndicator color="#FFF" /> : (
                     <>
                       <Feather name="lock" size={14} color="#FFF" />
-                      <Text style={s.payTxt}>Pay</Text>
+                      <Text style={s.payTxt}>{pendingIntent ? (retryAllowed ? 'Retry same payment' : 'Check status') : 'Pay'}</Text>
                     </>
                   )}
                 </TouchableOpacity>

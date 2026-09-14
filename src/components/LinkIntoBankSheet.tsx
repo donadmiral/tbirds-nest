@@ -1,7 +1,7 @@
 import { themedSheet } from '../theme/useTheme';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
+  View, Text, TouchableOpacity, Modal, TextInput,
   ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { paymentsService } from '../services/paymentsService';
@@ -16,39 +16,33 @@ type Props = {
 };
 
 export default function LinkIntoBankSheet({ visible, onClose, onLinked }: Props) {
-  const myEmail = useAuthStore(st => st.session?.user?.email || '');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+  const ownerId = useAuthStore(st => st.session?.user?.id || '');
+  const operationRef = useRef(false);
+  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (visible) { setEmail(myEmail); setOtp(''); setOtpSent(false); setBusy(false); }
-  }, [visible, myEmail]);
+    if (visible) setCode('');
+  }, [visible, ownerId]);
 
   const submit = useCallback(async () => {
-    const addr = email.trim().toLowerCase();
-    if (!addr) { Alert.alert('Email needed', 'Enter your IntoBank email.'); return; }
-    setBusy(true);
+    if (operationRef.current) return;
+    if (!code.trim()) { Alert.alert('Approval code needed', 'Approve Platinum Circles in IntoBank, then enter the connection code.'); return; }
+    operationRef.current = true; setBusy(true);
     try {
-      if (!otpSent) {
-        await paymentsService.sendOtp(addr);
-        setOtpSent(true);
-        Alert.alert('Code sent', 'Check your IntoBank email for the 8-digit code.');
-      } else {
-        if (!otp.trim()) { Alert.alert('Code needed', 'Enter the 8-digit code.'); setBusy(false); return; }
-        await paymentsService.verifyOtp(addr, otp.trim());
-        Alert.alert('Connected', 'Your IntoBank account is linked. Chat payments are ready.');
-        onLinked?.();
-        onClose();
-      }
+      await paymentsService.linkAccount(code, ownerId);
+      if (useAuthStore.getState().session?.user?.id !== ownerId) return;
+      setCode('');
+      onLinked?.();
+      onClose();
+      Alert.alert('Connected', 'Your IntoBank account is linked.');
     } catch (e: any) {
-      Alert.alert(otpSent ? 'Could not connect' : 'Could not send code', e?.message || 'Please try again.');
-    } finally { setBusy(false); }
-  }, [email, otp, otpSent, onLinked, onClose]);
+      Alert.alert('Could not connect', e?.message || 'Check the approval code and try again.');
+    } finally { operationRef.current = false; setBusy(false); }
+  }, [code, ownerId, onLinked, onClose]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { if (!busy) onClose(); }}>
       <View style={s.backdrop}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={s.sheet}>
@@ -58,40 +52,22 @@ export default function LinkIntoBankSheet({ visible, onClose, onLinked }: Props)
               <Text style={s.title}>Link IntoBank</Text>
             </View>
             <Text style={s.sub}>
-              {otpSent
-                ? 'Enter the 8-digit code we emailed you.'
-                : 'Connect your IntoBank account to send and receive money in chats.'}
+              In IntoBank, open Profile, Connected apps, then Platinum Circles. Review the wallet access and payment permissions. Generate a connection code and paste it here.
             </Text>
             <TextInput
               style={s.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="IntoBank email"
+              value={code}
+              onChangeText={setCode}
+              placeholder="8-character approval code"
               placeholderTextColor="#9A9AA0"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              editable={!otpSent && !busy}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!busy}
+              accessibilityLabel="IntoBank approval code"
             />
-            {otpSent && (
-              <TextInput
-                style={s.input}
-                value={otp}
-                onChangeText={setOtp}
-                placeholder="8-digit code"
-                placeholderTextColor="#9A9AA0"
-                keyboardType="number-pad"
-                maxLength={8}
-                autoFocus
-              />
-            )}
             <TouchableOpacity style={[s.cta, busy && s.off]} onPress={submit} disabled={busy} activeOpacity={0.85}>
-              {busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.ctaTxt}>{otpSent ? 'Verify and connect' : 'Send code'}</Text>}
+              {busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.ctaTxt}>Connect approved account</Text>}
             </TouchableOpacity>
-            {otpSent && !busy ? (
-              <TouchableOpacity onPress={() => { setOtpSent(false); setOtp(''); }} activeOpacity={0.7}>
-                <Text style={s.alt}>Use a different email</Text>
-              </TouchableOpacity>
-            ) : null}
             <TouchableOpacity onPress={onClose} disabled={busy} activeOpacity={0.7}>
               <Text style={s.cancel}>Cancel</Text>
             </TouchableOpacity>

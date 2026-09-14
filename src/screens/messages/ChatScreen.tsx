@@ -1,9 +1,11 @@
+import { ChatSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import { flagsService } from '../../services/flagsService';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import SharedPostCard from '../../components/feed/SharedPostCard';
 import SendMoneySheet from '../../components/SendMoneySheet';
+import { loadConfirmedPaymentReceipt } from '../../services/paymentReceipt';
 /**
  * ChatScreen.tsx
  * Unified DM + group chat.
@@ -91,6 +93,7 @@ type MessageItem = {
   reply_to_id?: string | null;
   shared_post_id?: string | null;
   payment_id?: string | null;
+  payment_receipt_verified?: boolean;
   _optimistic?: boolean;
   _reactions?: Reaction[];
 };
@@ -379,6 +382,8 @@ export default function ChatScreen() {
 
   const actAsId: string | null = route.params?.actAsId ?? null;  const currentUserId = actAsId ?? profile?.id ?? null;
   const [conversationId, setConversationId] = useState<string | null>(route.params?.conversationId ?? null);
+  const paymentChatRef = useRef('');
+  paymentChatRef.current = [currentUserId, conversationId].join(':');
   const passedUser = route.params?.otherUser ?? null;
   const passedUserId: string | null = route.params?.userId ?? null;
   const isGroup: boolean = route.params?.isGroup ?? false;
@@ -1391,7 +1396,8 @@ const pickAndSendDocument = useCallback(async () => {
     } catch (e: any) { Alert.alert('Offer', e?.message || 'Could not respond.'); }
   }, []);
   useEffect(() => {
-    const ids = Array.from(new Set(messages.map(m => m.payment_id).filter(Boolean))) as string[];
+    const ids = Array.from(new Set(messages.filter(m => m.payment_receipt_verified === true)
+      .map(m => m.payment_id).filter(Boolean))) as string[];
     const missing = ids.filter(id => !paymentsMap[id]);
     if (missing.length === 0) return;
     (async () => {
@@ -1611,12 +1617,15 @@ const pickAndSendDocument = useCallback(async () => {
                   {msg.media_type === 'gif' ? <View style={s.gifBadge}><Text style={s.gifBadgeTxt}>GIF</Text></View> : null}
                 </View>
               ) : null}
-              {msg.payment_id && paymentsMap[msg.payment_id] ? (
+              {msg.payment_receipt_verified === true && msg.payment_id && paymentsMap[msg.payment_id]?.status === 'completed' ? (
                 <PaymentBubble
                   payment={paymentsMap[msg.payment_id]}
                   isMine={isMe}
                   otherName={otherUser?.full_name}
                 />
+              ) : null}
+              {(msg.payment_id || msg.media_type === 'payment') && msg.payment_receipt_verified !== true ? (
+                <Text style={{ color: isMe ? '#FFFFFF' : '#0B1E3D', fontSize: 12 }}>This message is not a verified payment receipt.</Text>
               ) : null}
               {msg.media_type === 'offer' && msg.media_url ? (() => {
                 let j: any = null; try { j = JSON.parse(msg.media_url); } catch {}
@@ -1925,20 +1934,23 @@ const pickAndSendDocument = useCallback(async () => {
               });
             } catch (e) { console.log('[PaymentRequest]', e); }
           }}
-          onSent={async (amt, cur, txId) => {
+          onSent={async (_amt, _cur, txId) => {
+            const ownerId = useAuthStore.getState().session?.user?.id;
+            if (!ownerId || !conversationId || ownerId !== currentUserId) return;
+            const context = [ownerId, conversationId].join(':');
             try {
-              await supabase.from('messages').insert({
-                conversation_id: conversationId,
-                sender_id: currentUserId,
-                receiver_id: passedUserId,
-                text: 'Sent ' + cur + ' ' + amt.toFixed(2),
-                is_system_message: true,
-              });
-              await supabase.from('conversations').update({
-                last_message: 'Sent ' + cur + ' ' + amt.toFixed(2),
-                last_message_time: new Date().toISOString(),
-              }).eq('id', conversationId);
-            } catch (e) { console.log('[PaymentMessage]', e); }
+              // The database trigger creates one canonical payment message.
+              // Reading and merging its id also deduplicates a realtime arrival.
+              const receipt = await loadConfirmedPaymentReceipt(supabase, { ownerId, conversationId, txId });
+              if (!mountedRef.current || paymentChatRef.current !== context ||
+                  useAuthStore.getState().session?.user?.id !== ownerId) return;
+              await mergeMsg(receipt as MessageItem);
+            } catch {
+              if (mountedRef.current && paymentChatRef.current === context &&
+                  useAuthStore.getState().session?.user?.id === ownerId) {
+                Alert.alert('Payment completed', 'The chat receipt is still loading. Reopen this conversation to refresh it. Do not send the payment again.');
+              }
+            }
           }}
         />
       )}
@@ -1972,7 +1984,7 @@ const pickAndSendDocument = useCallback(async () => {
       ) : null}
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}>
         {loading ? (
-          <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
+          <ChatSkeleton />
         ) : (
           <FlatList ref={flatListRef} data={listData} inverted
             ListHeaderComponent={isGroup && seenByNames.length > 0 ? (

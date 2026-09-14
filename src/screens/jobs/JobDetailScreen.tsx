@@ -1,3 +1,5 @@
+import { useAfterTransition } from '../../lib/screenTransition';
+import { JobSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -72,6 +74,7 @@ export default function JobDetailScreen() {
 
   const job = route.params?.job;
   const [saved, setSaved] = useState(false);
+  const afterSlide = useAfterTransition();
   const [appStatus, setAppStatus] = useState<string | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
   const [coverNote, setCoverNote] = useState('');
@@ -159,7 +162,7 @@ export default function JobDetailScreen() {
   if (!job) {
     return (
       <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-        <View style={st.loader}><Text style={st.missing}>This job is no longer available.</Text></View>
+        {afterSlide ? <View style={st.loader}><Text style={st.missing}>This job is no longer available.</Text></View> : <JobSkeleton />}
       </SafeAreaView>
     );
   }

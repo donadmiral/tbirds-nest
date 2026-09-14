@@ -28,10 +28,11 @@ export default function BusinessAccessScreen() {
   const load = useCallback(async () => {
     if (!profile?.id || !isBusiness) return;
     const [m, d, l] = await Promise.all([
-      supabase.from('business_access_members').select('*').eq('business_id', profile.id).order('created_at'),
+      supabase.from('business_access_members').select('id,display_name,role,active,created_at,last_sign_in_at').eq('business_id', profile.id).order('created_at'),
       supabase.from('business_devices').select('*').eq('business_id', profile.id).order('created_at'),
       supabase.from('business_signin_log').select('*').eq('business_id', profile.id).order('created_at', { ascending: false }).limit(10),
     ]);
+    if (m.error || d.error || l.error) { Alert.alert('Access unavailable', 'Access records could not be loaded. Try again.'); return; }
     setMembers(m.data ?? []); setDevices(d.data ?? []); setSignins(l.data ?? []);
   }, [profile?.id, isBusiness]);
   useEffect(() => { load(); }, [load]);
@@ -53,24 +54,27 @@ export default function BusinessAccessScreen() {
   };
 
   const revoke = (m: any) => {
-    Alert.alert('Revoke ' + m.display_name + '?', 'Their code stops working immediately on every device.', [
+    Alert.alert('Revoke ' + m.display_name + '?', 'Their code will be refused for new sign-ins. Existing signed-in sessions require separate revocation.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Revoke', style: 'destructive', onPress: async () => {
-        await supabase.from('business_access_members').update({ active: false }).eq('id', m.id);
+        const r = await supabase.from('business_access_members').update({ active: false }).eq('id', m.id).eq('business_id', profile!.id).select('id').single();
+        if (r.error || !r.data) { Alert.alert('Not confirmed', 'Credential revocation was not confirmed. Retry.'); return; }
         load();
       } },
     ]);
   };
 
   const approveDevice = async (d: any) => {
-    await supabase.from('business_devices').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', d.id);
+    const r = await supabase.from('business_devices').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', d.id).eq('business_id', profile!.id).select('id').single();
+    if (r.error || !r.data) { Alert.alert('Not confirmed', 'Device approval was not confirmed. Retry.'); return; }
     load();
   };
   const removeDevice = (d: any) => {
     Alert.alert('Remove this device?', 'Sign-ins from it will be refused.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Remove', style: 'destructive', onPress: async () => {
-        await supabase.from('business_devices').delete().eq('id', d.id);
+        const r = await supabase.from('business_devices').update({status:'pending',approved_at:null}).eq('id', d.id).eq('business_id', profile!.id).select('id').single();
+        if (r.error || !r.data) { Alert.alert('Not confirmed', 'Device removal was not confirmed. Retry.'); return; }
         load();
       } },
     ]);

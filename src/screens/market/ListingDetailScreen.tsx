@@ -1,3 +1,5 @@
+import { useAfterTransition } from '../../lib/screenTransition';
+import { ListingSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -45,6 +47,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
 
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
+  const afterSlide = useAfterTransition();
   const [imgIndex, setImgIndex] = useState(0);
   const [busy, setBusy] = useState(false);
 
@@ -157,8 +160,8 @@ export default function ListingDetailScreen({ navigation, route }: any) {
     ]);
   };
 
-  if (loading) {
-    return <View style={s.center}><ActivityIndicator color={NAVY} size="large" /></View>;
+  if (loading || !afterSlide) {
+    return <SafeAreaView style={s.safe} edges={['top']}><ListingSkeleton /></SafeAreaView>;
   }
   if (!listing) {
     return (

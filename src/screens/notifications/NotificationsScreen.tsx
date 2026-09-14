@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme } from '../../theme/useTheme';
 import { Alert, ScrollView } from 'react-native';
@@ -532,7 +533,7 @@ export default function NotificationsScreen({ navigation }: any) {
       </View>
 
       {loading ? (
-        <View style={s.centered}><ActivityIndicator color={getTheme().brand.base} /></View>
+            <ListRowSkeleton rows={9} />
       ) : error ? (
         <View style={s.centered}>
           <Feather name="alert-circle" size={30} color={getTheme().ink.faint} />

@@ -1,3 +1,5 @@
+import { useAfterTransition } from '../../lib/screenTransition';
+import { ProfileSkeleton } from '../../components/skeletons';
 import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
@@ -83,6 +85,7 @@ export default function UserProfileScreen() {
   const [bizTab, setBizTab] = useState('posts');
   const [listingCount, setListingCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const afterSlide = useAfterTransition();
   const [refreshing, setRefreshing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
 
@@ -227,9 +230,9 @@ export default function UserProfileScreen() {
   const isPrivate = profile?.profile_visibility === 'private';
   const canViewContent = isOwnProfile || !isPrivate || following;
 
-  if (loading) return (
+  if (loading || !afterSlide) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
-      <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
+      <ProfileSkeleton />
     </SafeAreaView>
   );
 

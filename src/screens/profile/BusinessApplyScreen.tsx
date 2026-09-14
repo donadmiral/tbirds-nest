@@ -20,6 +20,18 @@ export default function BusinessApplyScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
 
+  const [openingBusiness, setOpeningBusiness] = useState(false);
+  const openBusiness = async (applicationId: string) => {
+    if (openingBusiness) return;
+    setOpeningBusiness(true);
+    try {
+      const {data,error} = await supabase.functions.invoke('business-owner-access',{body:{application_id:applicationId}});
+      if(error||!data?.token_hash)throw new Error('Business owner access could not be confirmed.');
+      const verified=await supabase.auth.verifyOtp({type:'magiclink',token_hash:data.token_hash});
+      if(verified.error)throw verified.error;
+    }catch(e:any){Alert.alert('Business access',e.message||'Try again.');}
+    finally{setOpeningBusiness(false);}
+  };
   const [companyName, setCompanyName] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
@@ -57,6 +69,7 @@ export default function BusinessApplyScreen() {
 
   const submit = async () => {
     if (busy) return;
+    if (!profile?.id) { Alert.alert('Sign in required', 'Sign in to your personal account before applying. It will become the verified owner of your business.'); return; }
     if (!companyName.trim() || !description.trim() || !email.trim() || !handle) {
       Alert.alert('Missing details', 'Company name, what you do, a contact email and a desired @ are required.');
       return;
@@ -67,20 +80,6 @@ export default function BusinessApplyScreen() {
     }
     setBusy(true);
     try {
-      if (!profile?.id) {
-        const { data, error } = await supabase.functions.invoke('business-apply', {
-          body: {
-            company_name: companyName.trim(), category: category.trim(), description: description.trim(),
-            contact_email: email.trim(), contact_phone: phone.trim(), website: website.trim(),
-            registration_info: regInfo.trim(), desired_username: handle,
-          },
-        });
-        if (error) throw new Error((data as any)?.error || 'Could not send the application.');
-        if ((data as any)?.error) throw new Error((data as any).error);
-        setCompanyName(''); setCategory(''); setDescription(''); setEmail(''); setPhone(''); setWebsite(''); setRegInfo(''); setHandle(''); setHandleState('idle');
-        Alert.alert('Application sent', 'The Platinum Circles operations team reviews every business application. On approval your business account is created with its own @, the space-grey seal, and a setup code sent to your contact email.');
-        return;
-      }
       const { error } = await supabase.from('business_applications').insert({
         applicant_id: profile.id,
         company_name: companyName.trim(),
@@ -138,7 +137,8 @@ export default function BusinessApplyScreen() {
                 <Text style={[s.pillTxt, a.status === 'approved' ? s.pillTxtDone : a.status === 'rejected' ? s.pillTxtBad : s.pillTxtOpen]}>{a.status === 'approved' ? 'Approved' : a.status === 'rejected' ? 'Declined' : 'Under review'}</Text>
               </View>
             </View>
-            {a.decision_reason ? <Text style={s.reply}>{a.decision_reason}</Text> : null}
+            {a.decision_reason ? <Text style={s.reply}>{a.status === 'approved' ? 'Approved. Open your business to manage access.' : a.decision_reason}</Text> : null}
+            {a.status === 'approved' && <TouchableOpacity disabled={openingBusiness} onPress={() => openBusiness(a.id)}><Text style={s.ticketSubject}>Open business</Text></TouchableOpacity>}
             <Text style={s.when}>{new Date(a.created_at).toLocaleDateString()}</Text>
           </View>
         ))}

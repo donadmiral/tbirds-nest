@@ -6,6 +6,16 @@
 let LocalAuthentication: any = null;
 try { LocalAuthentication = require('expo-local-authentication'); } catch { LocalAuthentication = null; }
 import { supabase } from './supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import 'react-native-get-random-values';
+import { createPaymentIntentStore, paymentOutcome } from './paymentIntent';
+import type { PaymentIntent, PaymentOutcome, PaymentScope } from './paymentIntent';
+
+const intentStore = createPaymentIntentStore(AsyncStorage, () => {
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+});
 
 export type LinkStatus = { linked: boolean; linked_at: string | null };
 
@@ -22,12 +32,14 @@ type BridgeErrorKind =
 export class BridgeError extends Error {
   status: number;
   kind: BridgeErrorKind;
+  code: string | null;
 
-  constructor(status: number, message: string, kind: BridgeErrorKind = 'http') {
+  constructor(status: number, message: string, kind: BridgeErrorKind = 'http', code: string | null = null) {
     super(message);
     this.name = 'BridgeError';
     this.status = status;
     this.kind = kind;
+    this.code = code;
 
     // Preserve instanceof BridgeError after transpilation.
     Object.setPrototypeOf(this, BridgeError.prototype);
@@ -118,7 +130,7 @@ function getResponseMessage(body: any, fallback: string): string {
   return candidate?.trim() || fallback;
 }
 
-async function call(path: string, init: RequestInit = {}) {
+async function call(path: string, init: RequestInit = {}, expectedUserId?: string) {
   const callerSignal = init.signal ?? undefined;
 
   // Session retrieval has its own short UI deadline.
@@ -145,6 +157,10 @@ async function call(path: string, init: RequestInit = {}) {
     );
   }
 
+  if (expectedUserId && session.user?.id !== expectedUserId) {
+    throw new BridgeError(401, 'Your account changed. Reopen this payment from the correct account.', 'auth');
+  }
+
   const configuredUrl =
     process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() || '';
 
@@ -156,9 +172,8 @@ async function call(path: string, init: RequestInit = {}) {
     );
   }
 
-  const base = configuredUrl
-    .replace(/\/+$/, '')
-    .replace('.supabase.co', '.functions.supabase.co');
+  // The canonical path works with hosted projects and the local Supabase CLI.
+  const base = configuredUrl.replace(/\/+$/, '') + '/functions/v1';
 
   // Mutations receive more time than status and balance reads.
   // Payment retries remain protected by the existing idempotency key.
@@ -200,6 +215,7 @@ async function call(path: string, init: RequestInit = {}) {
         headers: {
           'Content-Type': 'application/json',
           ...(init.headers || {}),
+          ...(process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? { apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY } : {}),
           // The phone cannot override the authenticated session token.
           Authorization: 'Bearer ' + session.access_token,
         },
@@ -237,7 +253,8 @@ async function call(path: string, init: RequestInit = {}) {
           body,
           'IntoBank returned ' + response.status
         ),
-        'http'
+        'http',
+        typeof body?.code === 'string' ? body.code : null
       );
     }
 
@@ -320,39 +337,39 @@ export const paymentsService = {
     });
   },
 
-  async linkWithSignIn(
-    email: string,
-    password: string
-  ) {
-    return call('?action=link-signin', {
+  async linkAccount(code: string, ownerId: string) {
+    const connectionCode = code.trim().toUpperCase();
+    if (!ownerId) throw new BridgeError(401, 'Sign in before linking IntoBank.', 'auth');
+    if (!/^[A-F0-9]{8}$/.test(connectionCode)) throw new BridgeError(400, 'Enter the 8-character connection code from IntoBank.', 'configuration');
+    const r = await call('?action=link', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+      body: JSON.stringify({ code: connectionCode }),
+    }, ownerId);
+    if (r?.success !== true) throw new BridgeError(200, getResponseMessage(r, 'IntoBank did not confirm the connection.'), 'invalid-response');
+    return r;
   },
 
-  async sendOtp(email: string) {
-    return call('?action=otp-send', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
+  getPendingIntent(scope: PaymentScope) { return intentStore.load(scope); },
+  prepareIntent(params: PaymentScope & { amount: number; currency?: string; listingId?: string | null }) {
+    return intentStore.prepare(params);
   },
+  clearIntent(intent: PaymentIntent) { return intentStore.clear(intent); },
 
-  async verifyOtp(email: string, token: string) {
-    return call('?action=otp-verify', {
-      method: 'POST',
-      body: JSON.stringify({ email, token }),
-    });
-  },
-
-  async linkAccount(code: string) {
-    return call('?action=link', {
-      method: 'POST',
-      body: JSON.stringify({ code }),
-    });
+  async getPaymentStatus(intent: PaymentIntent): Promise<PaymentOutcome> {
+    try {
+      const r = await call('?action=payment-status&idempotency_key=' + encodeURIComponent(intent.idempotencyKey), {}, intent.ownerId);
+      return paymentOutcome(r);
+    } catch (e) {
+      if (e instanceof BridgeError && e.status === 404 && e.code === 'PAYMENT_NOT_FOUND') {
+        return { success: false, status: 'not_found', pending: false };
+      }
+      throw e;
+    }
   },
 
   /** Biometric gate, then transfer. Never call the bridge without this. */
   async sendMoney(params: {
+    ownerId: string;
     recipientId: string;
     amount: number;
     conversationId: string;
@@ -360,19 +377,14 @@ export const paymentsService = {
     note?: string;
     listingId?: string | null;
     idempotencyKey: string;
-  }) {
-    // Native module is absent until the dev client is rebuilt. Allowed in dev only.
+  }): Promise<PaymentOutcome> {
     if (!LocalAuthentication?.hasHardwareAsync) {
-      if (!__DEV__) {
-        return {
-          success: false,
-          error: 'Secure confirmation is unavailable on this build.',
-        };
-      }
-
-      console.warn(
-        '[payments] Biometrics unavailable - skipping confirmation in dev.'
-      );
+      return {
+        success: false,
+        status: 'not_submitted' as const,
+        pending: false,
+        error: 'Secure confirmation is unavailable on this build.',
+      };
     } else {
       const hasHardware =
         await LocalAuthentication.hasHardwareAsync();
@@ -382,8 +394,10 @@ export const paymentsService = {
       if (!hasHardware || !enrolled) {
         return {
           success: false,
+          status: 'not_submitted',
+          pending: false,
           error:
-            'Set up Face ID or a passcode on this device to send money.',
+            'Set up device biometrics to send money.',
         };
       }
 
@@ -401,12 +415,14 @@ export const paymentsService = {
       if (!auth.success) {
         return {
           success: false,
+          status: 'not_submitted',
+          pending: false,
           error: 'Confirmation cancelled',
         };
       }
     }
 
-    return call('?action=pay', {
+    const result = await call('?action=pay', {
       method: 'POST',
       body: JSON.stringify({
         recipient_id: params.recipientId,
@@ -417,6 +433,7 @@ export const paymentsService = {
         listing_id: params.listingId ?? null,
         idempotency_key: params.idempotencyKey,
       }),
-    });
+    }, params.ownerId);
+    return paymentOutcome(result);
   },
 };

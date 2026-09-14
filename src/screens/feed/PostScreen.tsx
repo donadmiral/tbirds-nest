@@ -1,3 +1,5 @@
+import { useAfterTransition } from '../../lib/screenTransition';
+import { PostSkeleton } from '../../components/skeletons';
 import PollCard from '../../components/PollCard';
 import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import { themedSheet, getTheme } from '../../theme/useTheme';
@@ -133,6 +135,7 @@ export default function PostScreen({ route, navigation }: any) {
   }>({ items: [], reactions: {}, loaded: false });
 
   const [loading, setLoading] = useState(true);
+  const afterSlide = useAfterTransition();
   const [screenFocused, setScreenFocused] = useState(false);
 
   useFocusEffect(
@@ -572,8 +575,8 @@ export default function PostScreen({ route, navigation }: any) {
         <View style={{ width: 40 }} />
       </View>
 
-      {loading ? (
-        <View style={s.loader}><ActivityIndicator color={NAVY} size="large" /></View>
+      {loading || !afterSlide ? (
+        <PostSkeleton />
       ) : notFound ? (
         <View style={s.loader}><Feather name="eye-off" size={34} color="#9CA3AF" /><Text style={{ marginTop: 10, fontSize: 15, fontWeight: '600', color: '#6B7280' }}>This post isn't available</Text></View>
       ) : (
