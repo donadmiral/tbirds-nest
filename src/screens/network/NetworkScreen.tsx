@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import { KeyboardAvoidingView } from 'react-native';
 import TierName from '../../components/TierName';
@@ -413,7 +414,7 @@ export default function NetworkScreen({ navigation }: any) {
 
         {loading ? (
           <View style={s.loader}>
-            <ActivityIndicator size="large" color="#0B1E3D" />
+            <ListRowSkeleton />
             <Text style={s.loaderTxt}>Loading network...</Text>
           </View>
         ) : showGroupList ? (

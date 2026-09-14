@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import { Image as ExpoImage } from 'expo-image';
 import { TapTopFlatList } from '../../components/TapTopList';
@@ -531,7 +532,7 @@ export default function JobsScreen({ navigation }: any) {
           </View>
         </View>
         {loading ? (
-          <View style={s.loader}><ActivityIndicator size="large" color="#2563EB" /><Text style={s.loaderTxt}>Loading jobs...</Text></View>
+          <ListRowSkeleton />
         ) : (
           <TapTopFlatList
             data={displayJobs}
@@ -639,7 +640,7 @@ export default function JobsScreen({ navigation }: any) {
             <Text style={s.recPrivacyTxt}>🔒 Only you can see these recommendations.</Text>
           </View>
           {loadingRecs
-            ? <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color="#2563EB" size="large" /></View>
+            ? <ListRowSkeleton />
             : (
               <FlatList
                 data={jobRecs}

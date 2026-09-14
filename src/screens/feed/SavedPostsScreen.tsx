@@ -2,6 +2,7 @@
  * SavedPostsScreen.tsx
  * Shows user's bookmarked posts, matches Clean Premium style.
  */
+import { ListRowSkeleton } from '../../components/skeletons';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
@@ -240,7 +241,7 @@ export default function SavedPostsScreen({ navigation }: any) {
       </View>
 
       {loading ? (
-        <View style={ss.loader}><ActivityIndicator color={NAVY} size="large" /></View>
+        <ListRowSkeleton />
       ) : (
         <FlatList
           data={posts}

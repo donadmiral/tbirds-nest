@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -372,7 +373,7 @@ export default function SearchScreen({ navigation }: any) {
         />
       ) : loading && currentData.length === 0 ? (
         <View style={s.loader}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ListRowSkeleton rows={6} />
           <Text style={s.loaderTxt}>Searching...</Text>
         </View>
       ) : (
