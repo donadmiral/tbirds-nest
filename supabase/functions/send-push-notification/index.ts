@@ -53,6 +53,19 @@ serve(async (req) => {
         if (inWindow) return json(200, { skipped: true, reason: "quiet mode" });
       }
     }
+    // Collapse: a burst of likes, reposts or follows on one thing becomes one push at milestones, never a push per tap.
+    let rollupOthers = 0;
+    if (recipientId && ["like", "comment_like", "repost", "story_reaction", "follow", "follow_accepted"].includes(type)) {
+      const d = record.data || {};
+      const key = d.post_id ? "post_id" : d.story_id ? "story_id" : d.comment_id ? "comment_id" : null;
+      const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      let q = admin.from("notifications").select("id", { count: "exact", head: true }).eq("recipient_id", recipientId).eq("type", type).gte("created_at", since);
+      if (key) q = q.filter("data->>" + key, "eq", String(d[key]));
+      const { count } = await q;
+      const n = Number(count || 0);
+      if (n > 1 && ![5, 10, 25, 50, 100, 250, 500, 1000].includes(n)) return json(200, { skipped: true, reason: "collapsed", n });
+      if (n > 1) rollupOthers = n - 1;
+    }
     const message = record.message || "";
     const bodyPreview = record.body_preview || "";
     const data = record.data || {};
@@ -126,7 +139,9 @@ serve(async (req) => {
     }
 
     // Build notification title based on type
-    const title = buildTitle(type, actorName, data);
+    const title = rollupOthers > 0
+      ? (type === "follow" ? String(rollupOthers + 1) + " new followers" : buildTitle(type, actorName + " and " + rollupOthers + " others", data))
+      : buildTitle(type, actorName, data);
     const notifBody = bodyPreview || message || "";
 
     // Icon badge policy (2026-07-28): the number means unread MESSAGES only.
@@ -220,6 +235,16 @@ function buildTitle(type, actorName, data) {
       return "Mentorship request";
     case "mentorship_accepted":
       return "Mentorship accepted";
+    case "comment_like":
+      return actorName + " liked your comment";
+    case "story_reaction":
+      return actorName + " reacted to your story";
+    case "follow_request":
+      return actorName + " requested to follow you";
+    case "follow_accepted":
+      return actorName + " accepted your follow request";
+    case "community_invite":
+      return actorName + " invited you to a community";
     default:
       return "PlatinumCircles";
   }
