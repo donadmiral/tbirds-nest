@@ -114,7 +114,7 @@ export default function JobsPage() {
         />
       </div>
 
-      <div className="mt-3 flex gap-2 px-1">
+      <div className="mt-3 flex flex-wrap gap-2 px-1">
         {SCOPE_TABS.map((t) => (
           <button key={t.id}
             onClick={() => setScope(t.id)}

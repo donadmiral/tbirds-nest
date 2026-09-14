@@ -32,7 +32,7 @@ export default function ActivityPage() {
       <div className="mt-4 flex gap-2">{TABS.map((x) => <button key={x.key} type="button" onClick={() => setKind(x.key)} className={"rounded-full border px-3.5 py-1.5 text-[13px] font-semibold " + (kind === x.key ? "border-ink bg-ink text-white" : "border-ink/15 text-ink/70 hover:border-ink/40")}>{x.label}</button>)}</div>
       <ul className="mt-4 divide-y divide-ink/8">
         {items.map((it) => (
-          <li key={it.key}><Link href={"/p/" + it.post_id} className="flex items-center gap-3 py-3 hover:bg-surface/60">
+          <li key={it.key}><Link href={"/post/" + it.post_id} className="flex items-center gap-3 py-3 hover:bg-surface/60">
             {it.image ? <img src={it.image} alt="" className="h-12 w-12 rounded-lg object-cover" /> : <div className="h-12 w-12 rounded-lg bg-surface" />}
             <div className="min-w-0 flex-1">{it.note ? <p className="line-clamp-2 text-[14px] font-semibold text-ink">{it.note}</p> : null}<p className={"line-clamp-1 text-[14px] " + (it.note ? "text-ink/55" : "font-semibold text-ink")}>{it.text}</p></div>
             <span className="text-[12px] text-ink/45">{new Date(it.when).toLocaleDateString()}</span>
