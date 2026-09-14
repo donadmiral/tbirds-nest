@@ -42,7 +42,13 @@ type Row = {
   consoleErrors: string[]; failedRequests: string[]; diffRatio: number | null;
 };
 
-function safeName(route: string) { return route.replace(/^\//, "").replace(/[^a-z0-9]+/gi, "_") || "root"; }
+// File names stay short: a long discovered route is cut and tagged with a hash so Windows path limits never bite.
+function safeName(route: string) {
+  const base = route.split("?")[0].split("#")[0].replace(/^\//, "").replace(/[^a-z0-9]+/gi, "_") || "root";
+  if (base.length <= 60) return base;
+  let h = 0; for (const ch of base) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return base.slice(0, 48) + "_" + h.toString(16);
+}
 
 // A signed-in page never goes network-idle (the realtime link keeps talking), so wait for load and settle briefly.
 async function open(page: Page, route: string) {
@@ -51,6 +57,8 @@ async function open(page: Page, route: string) {
   await page.waitForTimeout(1200);
 }
 
+// Horizontal overflow of the document, naming the elements that push past the edge. Children of a horizontal
+// scroller that itself fits are not offenders: they are meant to scroll.
 async function measure(page: Page) {
   return page.evaluate(() => {
     const vw = window.innerWidth;
@@ -60,12 +68,18 @@ async function measure(page: Page) {
       const all = Array.from(document.querySelectorAll<HTMLElement>("body *"));
       for (const el of all) {
         const r = el.getBoundingClientRect();
-        if (r.width > 0 && r.right > vw + 1 && getComputedStyle(el).position !== "fixed") {
-          const id = el.id ? "#" + el.id : "";
-          const cls = typeof el.className === "string" && el.className ? "." + el.className.trim().split(/\s+/).slice(0, 3).join(".") : "";
-          offenders.push(el.tagName.toLowerCase() + id + cls + " (right " + Math.round(r.right) + "px)");
-          if (offenders.length >= 6) break;
+        if (!(r.width > 0 && r.right > vw + 1) || getComputedStyle(el).position === "fixed") continue;
+        let clipped = false; let p = el.parentElement;
+        while (p && p !== document.body) {
+          const ox = getComputedStyle(p).overflowX;
+          if ((ox === "auto" || ox === "scroll" || ox === "hidden" || ox === "clip") && p.getBoundingClientRect().right <= vw + 1) { clipped = true; break; }
+          p = p.parentElement;
         }
+        if (clipped) continue;
+        const id = el.id ? "#" + el.id : "";
+        const cls = typeof el.className === "string" && el.className ? "." + el.className.trim().split(/\s+/).slice(0, 3).join(".") : "";
+        offenders.push(el.tagName.toLowerCase() + id + cls + " (right " + Math.round(r.right) + "px)");
+        if (offenders.length >= 6) break;
       }
     }
     return { overflowPx, offenders };
@@ -97,8 +111,10 @@ function writeReport(rows: Row[], done: boolean, total: number) {
 <style>body{font:14px system-ui;margin:20px;color:#0B1E3D}h1{font-size:20px}h2{font-size:15px;margin:28px 0 8px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.cell{border:1px solid #e5e5ea;border-radius:10px;padding:8px;background:#fafaf9}
 .cell img{width:100%;height:auto;border:1px solid #e5e5ea;background:#fff}.bad{border-color:#e0245e;background:#fff3f6}
-.flag{color:#e0245e;font-size:12px;white-space:pre-wrap}.ok{color:#2f9e63;font-size:12px}.sum{padding:10px 12px;border-radius:10px;background:#f2f2f7;margin-bottom:12px}</style>
+.flag{color:#e0245e;font-size:12px;white-space:pre-wrap;word-break:break-all}.ok{color:#2f9e63;font-size:12px}.sum{padding:10px 12px;border-radius:10px;background:#f2f2f7;margin-bottom:12px}
+.list{font-size:12.5px;white-space:pre-wrap;word-break:break-all;background:#fff3f6;border:1px solid #e0245e;border-radius:10px;padding:10px 12px;margin-bottom:16px}</style>
 <h1>Alignment proof</h1><div class="sum">${done ? "Complete" : "In progress"}: ${byRoute.size} of ${total} pages, ${rows.length} screenshots, ${SIZES.length} sizes. ${flagged.length ? '<b style="color:#e0245e">' + flagged.length + " flagged</b>" : '<b style="color:#2f9e63">Nothing flagged</b>'}. ${fs.existsSync(PREV) ? "Diffed against the previous run." : "First run: no previous shots to diff against."}</div>`;
+  if (flagged.length) html += `<div class="list">${esc(summary(flagged).join("\n"))}</div>`;
   for (const [route, list] of byRoute) {
     html += `<h2>${esc(route)}</h2>`;
     for (const state of ["idle", "typing"] as const) {
@@ -111,7 +127,7 @@ function writeReport(rows: Row[], done: boolean, total: number) {
         html += `<div class="cell${bad ? " bad" : ""}"><div><b>${r.size}</b> · ${state}${r.diffRatio !== null ? " · changed " + (r.diffRatio * 100).toFixed(1) + "%" : ""}</div><a href="${rel}" target="_blank"><img src="${rel}" loading="lazy"></a>`;
         if (r.overflowPx > 1) html += `<div class="flag">Horizontal overflow ${r.overflowPx}px\n${esc(r.offenders.join("\n"))}</div>`;
         if (r.consoleErrors.length) html += `<div class="flag">Console: ${esc(r.consoleErrors.slice(0, 3).join("\n"))}</div>`;
-        if (r.failedRequests.length) html += `<div class="flag">Requests: ${esc(r.failedRequests.slice(0, 3).join("\n"))}</div>`;
+        if (r.failedRequests.length) html += `<div class="flag">Requests: ${esc(r.failedRequests.slice(0, 4).join("\n"))}</div>`;
         if (!bad) html += `<div class="ok">Clean</div>`;
         html += `</div>`;
       }
@@ -122,6 +138,18 @@ function writeReport(rows: Row[], done: boolean, total: number) {
   fs.writeFileSync(path.join(REPORT, "index.html"), html);
   fs.writeFileSync(path.join(REPORT, "report.json"), JSON.stringify({ generatedAt: new Date().toISOString(), done, rows }, null, 2));
   return flagged;
+}
+
+// One line per flagged shot, with the reason, so the list can be pasted and acted on.
+function summary(flagged: Row[]) {
+  return flagged.map((r) => {
+    const why: string[] = [];
+    if (r.overflowPx > 1) why.push("overflow " + r.overflowPx + "px: " + r.offenders.slice(0, 2).join(" | "));
+    if (r.failedRequests.length) why.push("requests: " + r.failedRequests.slice(0, 2).join(" | "));
+    else if (r.consoleErrors.length) why.push("console: " + r.consoleErrors.slice(0, 2).join(" | "));
+    if (r.diffRatio !== null && r.diffRatio > 0.02) why.push("changed " + (r.diffRatio * 100).toFixed(1) + "%");
+    return `${r.route} @ ${r.size} (${r.state}): ${why.join("; ")}`;
+  });
 }
 
 test.describe.configure({ mode: "serial" });
@@ -142,7 +170,8 @@ test("every page holds at four widths, idle and while typing", async ({ browser 
   const failed: string[] = [];
   page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text().slice(0, 200)); });
   page.on("pageerror", (e) => consoleErrors.push("pageerror: " + String(e.message).slice(0, 200)));
-  page.on("response", (r) => { const u = r.url(); if (r.status() >= 400 && !/googleapis|gstatic|vercel|analytics/.test(u) && u.startsWith(page.url().split("/").slice(0, 3).join("/"))) failed.push(r.status() + " " + u.slice(0, 160)); });
+  // Every failed request, with its address, so a broken query names itself; images, fonts and analytics are noise.
+  page.on("response", (r) => { const u = r.url(); if (r.status() >= 400 && !/googleapis|gstatic|vercel-insights|analytics|\.(png|jpe?g|webp|gif|svg|woff2?|ttf|ico)(\?|$)/i.test(u)) failed.push(r.status() + " " + u.replace(/^https?:\/\//, "").slice(0, 220)); });
 
   // Sign in once.
   await page.goto("/login", { waitUntil: "domcontentloaded" });
@@ -154,12 +183,13 @@ test("every page holds at four widths, idle and while typing", async ({ browser 
   await pass.press("Enter");
   await page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 60_000 });
 
-  // Discover one id-route per listing.
+  // Discover one id-route per listing (query strings dropped: the id is the page).
   const routes = [...STATIC_ROUTES];
   for (const d of DISCOVER) {
     await open(page, d.from);
     const href = await page.locator(`a[href^="${d.prefix}"]`).first().getAttribute("href", { timeout: 3_000 }).catch(() => null);
-    if (href && !routes.includes(href)) routes.push(href);
+    const clean = href ? href.split("?")[0].split("#")[0] : null;
+    if (clean && !routes.includes(clean)) routes.push(clean);
   }
   const me = await page.locator('a[href^="/"][aria-label*="rofile"], a[href^="/"]:has-text("Profile")').first().getAttribute("href", { timeout: 3_000 }).catch(() => null);
   if (me && /^\/[a-z0-9_.]+$/i.test(me) && !routes.includes(me)) routes.push(me);
@@ -196,6 +226,6 @@ test("every page holds at four widths, idle and while typing", async ({ browser 
   const flagged = writeReport(rows, true, routes.length);
   await context.close();
 
-  // The proof is the report; a flagged page fails the run so it cannot be missed.
-  expect(flagged.map((r) => `${r.route} @ ${r.size} (${r.state})`), "flagged pages, open e2e/report/index.html").toEqual([]);
+  // The proof is the report; a flagged page fails the run so it cannot be missed, and the list prints here.
+  expect(summary(flagged), "flagged shots, open e2e/report/index.html").toEqual([]);
 });
