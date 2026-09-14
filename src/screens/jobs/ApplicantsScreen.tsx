@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
@@ -217,7 +218,7 @@ export default function ApplicantsScreen() {
       </View>
 
       {loading ? (
-        <View style={st.center}><ActivityIndicator size="large" color={NAVY} /></View>
+        <ListRowSkeleton />
       ) : err ? (
         <View style={st.center}>
           <Text style={st.errTxt}>{err}</Text>

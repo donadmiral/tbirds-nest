@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
@@ -201,7 +202,7 @@ export default function CallLogScreen() {
       </View>
 
       {loading ? (
-        <View style={s.center}><ActivityIndicator color="#0B1E3D" size="large" /></View>
+        <ListRowSkeleton />
       ) : calls.length === 0 ? (
         <View style={s.empty}>
           <Feather name="phone" size={48} color="#E5E5EA" />

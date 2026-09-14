@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -323,9 +324,7 @@ export default function TrendFeedScreen() {
       </View>
 
       {loading && !refreshing ? (
-        <View style={st.center}>
-          <ActivityIndicator color={NAVY} size="large" />
-        </View>
+        <ListRowSkeleton />
       ) : error ? (
         <ScrollView
           contentContainerStyle={st.center}

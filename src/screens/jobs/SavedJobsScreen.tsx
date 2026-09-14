@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
@@ -47,7 +48,7 @@ export default function SavedJobsScreen() {
         <View style={{ width: 26 }} />
       </View>
       {loading ? (
-        <View style={st.center}><ActivityIndicator size="large" color={NAVY} /></View>
+        <ListRowSkeleton />
       ) : jobs.length === 0 ? (
         <View style={st.center}>
           <Ionicons name="bookmark-outline" size={38} color="#C7CDD6" />

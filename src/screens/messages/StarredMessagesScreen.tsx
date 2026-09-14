@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -228,7 +229,7 @@ export default function StarredMessagesScreen() {
       </View>
 
       {loading ? (
-        <View style={s.center}><ActivityIndicator color="#007AFF" size="large" /></View>
+        <ListRowSkeleton />
       ) : rows.length === 0 ? (
         <View style={s.empty}>
           <Text style={s.emptyStar}>★</Text>

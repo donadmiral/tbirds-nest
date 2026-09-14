@@ -4,6 +4,7 @@
  * actAsId, so replies are authored by the business and reads are marked
  * for the business, regardless of which member is typing.
  */
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator, StatusBar } from 'react-native';
@@ -75,7 +76,7 @@ export default function BusinessInboxScreen() {
       </View>
 
       {loading ? (
-        <View style={st.center}><ActivityIndicator size="large" color={NAVY} /></View>
+        <ListRowSkeleton />
       ) : err ? (
         <View style={st.center}><Text style={st.errTxt}>{err}</Text></View>
       ) : rows.length === 0 ? (

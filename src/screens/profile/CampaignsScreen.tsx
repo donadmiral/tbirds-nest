@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 /**
@@ -126,7 +127,7 @@ export default function CampaignsScreen() {
       </View>
 
       {loading ? (
-        <View style={st.center}><ActivityIndicator size="large" color={NAVY} /></View>
+        <ListRowSkeleton />
       ) : rows.length === 0 ? (
         <View style={st.center}>
           <Feather name="trending-up" size={38} color="rgba(11,30,61,0.24)" />

@@ -1,3 +1,4 @@
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
@@ -244,7 +245,7 @@ export default function MarketScreen({ navigation }: any) {
       </View>
 
       {loading ? (
-        <View style={s.center}><ActivityIndicator color={NAVY} size="large" /></View>
+        <ListRowSkeleton />
       ) : listings.length === 0 ? (
         <View style={s.center}>
           <Feather name="shopping-bag" size={40} color="#E5E5EA" />

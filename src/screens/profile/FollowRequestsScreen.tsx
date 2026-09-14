@@ -3,6 +3,7 @@
  * Shows pending follow requests for private account users.
  * Place at: src/screens/profile/FollowRequestsScreen.tsx
  */
+import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -189,7 +190,7 @@ export default function FollowRequestsScreen() {
       </View>
 
       {loading ? (
-        <View style={st.center}><ActivityIndicator color={NAVY} size="large" /></View>
+        <ListRowSkeleton />
       ) : (
         <FlatList
           data={requests}
