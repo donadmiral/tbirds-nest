@@ -233,6 +233,8 @@ function buildTitle(type, actorName, data) {
       return "Missed call";
     case "mentorship_request":
       return "Mentorship request";
+    case "system":
+      return (data && data.title) || "System alert";
     case "mentorship_accepted":
       return "Mentorship accepted";
     case "comment_like":
