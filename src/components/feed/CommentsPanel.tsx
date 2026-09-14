@@ -51,6 +51,8 @@ export type CommentsPanelProps = {
   autoFocus?: boolean;
   /** Fires with the number of visible top-level comments whenever the thread loads. */
   onCount?: (n: number) => void;
+  /** The comment field gaining or losing focus, so a host can follow the keyboard even when the OS is quiet about it. */
+  onFocusChange?: (focused: boolean) => void;
   /** Padding under the input bar (the safe area when the panel sits at the bottom of the window). */
   bottomInset?: number;
 };
@@ -82,7 +84,7 @@ function RichText({ text, onMention, onHashtag, style }: { text: string; onMenti
   );
 }
 
-export default function CommentsPanel({ postId, postAuthorId, autoFocus, onCount, bottomInset = 0 }: CommentsPanelProps) {
+export default function CommentsPanel({ postId, postAuthorId, autoFocus, onCount, bottomInset = 0, onFocusChange }: CommentsPanelProps) {
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
@@ -419,6 +421,8 @@ export default function CommentsPanel({ postId, postAuthorId, autoFocus, onCount
             maxLength={500}
             returnKeyType="default"
             blurOnSubmit={false}
+            onFocus={() => onFocusChange?.(true)}
+            onBlur={() => onFocusChange?.(false)}
           />
           <TouchableOpacity style={[s.sendBtn, !canSend && s.sendBtnOff]} onPress={submitComment} disabled={!canSend || submitting} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="Post comment">
             {submitting ? <ActivityIndicator color="#fff" size={14} /> : <Feather name="arrow-up" size={18} color="#FFF" />}

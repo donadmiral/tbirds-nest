@@ -11,9 +11,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, TouchableWithoutFeedback, StyleSheet, Animated,
-  PanResponder, Modal, Keyboard, Platform, Dimensions, StatusBar,
+  PanResponder, Modal, Keyboard, Platform, Dimensions, StatusBar, Easing,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from '../SafeArea';
 import { themedSheet } from '../../theme/useTheme';
 import PostCarousel, { CarouselMedia } from '../PostCarousel';
@@ -43,9 +43,14 @@ type Props = {
   dim?: boolean;
   /** The post's media: when given, it plays in a stage above the sheet and stays in view. */
   media?: CarouselMedia[] | null;
+  /** The post's own actions, drawn under the media in the stage so you can like, save, repost and share without leaving. */
+  actions?: { liked: boolean; saved: boolean; reposted: boolean; likes: number; onLike: () => void; onSave: () => void; onRepost: () => void; onShare: () => void } | null;
 };
+// The action row under the stage media; hidden when the stage is only a strip.
+const ACTIONS_H = 44;
+const KB_EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 
-export default function CommentsSheet({ visible, postId, postAuthorId, count, onClose, onCount, onSnap, inline, autoFocus, dim = true, media }: Props) {
+export default function CommentsSheet({ visible, postId, postAuthorId, count, onClose, onCount, onSnap, inline, autoFocus, dim = true, media, actions }: Props) {
   const insets = useSafeAreaInsets();
   const stage = !inline && !!(media && media.length > 0);
   const height = useRef(new Animated.Value(0)).current;
@@ -80,26 +85,47 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
     snapRef.current = snap;
     const h = fit(snap);
     settle(h);
-    Animated.timing(height, { toValue: h, duration, useNativeDriver: false }).start();
+    Animated.timing(height, { toValue: h, duration, easing: KB_EASE, useNativeDriver: false }).start();
   }, [height, fit, settle]);
+
+  // One path for every keyboard signal: the same height applied twice is a no-op, so
+  // will/did/change-frame events and the input's own blur can all report freely.
+  const applyKeyboard = useCallback((kb: number, duration = 250) => {
+    const h = Math.max(0, Math.round(kb));
+    if (kbRef.current === h) return;
+    kbRef.current = h;
+    setKbUp(h > 0);
+    // iOS keeps the window size and the sheet rides up on the keyboard; Android resizes the window itself, so only the fit changes.
+    Animated.timing(lift, { toValue: Platform.OS === 'ios' ? h : 0, duration, easing: KB_EASE, useNativeDriver: false }).start();
+    animateTo(h > 0 ? fullSnap() : snapRef.current, duration);
+  }, [lift, animateTo, fullSnap]);
 
   const close = useCallback(() => {
     if (closingRef.current) return;
     closingRef.current = true;
     Keyboard.dismiss();
     onSnapRef.current?.(0);
-    Animated.timing(height, { toValue: 0, duration: 200, useNativeDriver: false }).start(() => {
+    kbRef.current = 0;
+    Animated.parallel([
+      Animated.timing(height, { toValue: 0, duration: 200, easing: KB_EASE, useNativeDriver: false }),
+      Animated.timing(lift, { toValue: 0, duration: 200, easing: KB_EASE, useNativeDriver: false }),
+    ]).start(() => {
       closingRef.current = false;
+      setKbUp(false);
       setMounted(false);
       onCloseRef.current();
     });
-  }, [height]);
+  }, [height, lift]);
 
   useEffect(() => {
     if (visible) {
       closingRef.current = false;
       setMounted(true);
       setN(null);
+      // Every opening starts from a clean keyboard state; a close while typing must not leave the next sheet lifted.
+      kbRef.current = 0;
+      lift.setValue(0);
+      setKbUp(false);
       height.setValue(0);
       settle(fit(HALF));
       // A Modal takes a moment to present; the slide starts once it is on screen.
@@ -109,31 +135,23 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
       height.setValue(0);
       setMounted(false);
     }
-  }, [visible, height, animateTo, inline, fit, settle]);
+  }, [visible, height, lift, animateTo, inline, fit, settle]);
 
   useEffect(() => {
-    const showEv = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEv = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const s1 = Keyboard.addListener(showEv as any, (e: any) => {
-      if (!mountedRef.current || closingRef.current) return;
-      const h = e?.endCoordinates?.height ?? 0;
-      const d = e?.duration || 250;
-      kbRef.current = h;
-      setKbUp(true);
-      // iOS keeps the window size and the sheet rides up on the keyboard; Android resizes the window itself.
-      Animated.timing(lift, { toValue: Platform.OS === 'ios' ? h : 0, duration: d, useNativeDriver: false }).start();
-      animateTo(fullSnap(), d);
-    });
-    const s2 = Keyboard.addListener(hideEv as any, (e: any) => {
-      if (!mountedRef.current || closingRef.current) return;
-      const d = e?.duration || 250;
-      kbRef.current = 0;
-      setKbUp(false);
-      Animated.timing(lift, { toValue: 0, duration: d, useNativeDriver: false }).start();
-      animateTo(snapRef.current, d);
-    });
-    return () => { s1.remove(); s2.remove(); };
-  }, [animateTo, lift, fullSnap]);
+    const subs: { remove: () => void }[] = [];
+    const guard = (fn: (e: any) => void) => (e: any) => { if (mountedRef.current && !closingRef.current) fn(e); };
+    if (Platform.OS === 'ios') {
+      // The frame event also covers an interactive swipe-down dismiss, which will-hide alone can miss.
+      subs.push(Keyboard.addListener('keyboardWillChangeFrame', guard((e: any) => { const y = e?.endCoordinates?.screenY; const kb = typeof y === 'number' ? Math.max(0, H - y) : (e?.endCoordinates?.height ?? 0); applyKeyboard(kb, e?.duration || 250); })));
+      subs.push(Keyboard.addListener('keyboardWillShow', guard((e: any) => applyKeyboard(e?.endCoordinates?.height ?? 0, e?.duration || 250))));
+      subs.push(Keyboard.addListener('keyboardWillHide', guard((e: any) => applyKeyboard(0, e?.duration || 250))));
+      subs.push(Keyboard.addListener('keyboardDidHide', guard(() => applyKeyboard(0, 180))));
+    } else {
+      subs.push(Keyboard.addListener('keyboardDidShow', guard((e: any) => applyKeyboard(e?.endCoordinates?.height ?? 0, 200))));
+      subs.push(Keyboard.addListener('keyboardDidHide', guard(() => applyKeyboard(0, 200))));
+    }
+    return () => { subs.forEach((s) => s.remove()); };
+  }, [applyKeyboard]);
 
   const pan = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -154,7 +172,9 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
   const shown = n ?? count ?? 0;
   const aspect = (media?.[0]?.edit as any)?.aspect as string | undefined;
   const ratio = aspect === 'square' ? 1 : aspect === 'landscape' ? 1 / 1.91 : 1.25;
-  const boxW = Math.max(60, Math.min(W, Math.floor(stageH / ratio)));
+  const showActions = !!actions && stageH >= 260;
+  const videoH = showActions ? stageH - ACTIONS_H : stageH;
+  const boxW = Math.max(60, Math.min(W, Math.floor(videoH / ratio)));
 
   const body = (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -164,9 +184,26 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
           <TouchableWithoutFeedback onPress={close} accessibilityRole="button" accessibilityLabel="Close comments">
             <View style={StyleSheet.absoluteFill} />
           </TouchableWithoutFeedback>
-          <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+          <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top, bottom: showActions ? ACTIONS_H : 0, alignItems: 'center', justifyContent: 'center' }}>
             {stageH > 40 ? <PostCarousel media={media as CarouselMedia[]} containerWidth={boxW} isActive postId={postId} flush /> : null}
           </View>
+          {showActions && actions ? (
+            <View pointerEvents="box-none" style={st.actionRow}>
+              <TouchableOpacity onPress={actions.onLike} style={st.actionBtn} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={actions.liked ? 'Unlike' : 'Like'}>
+                <Ionicons name={actions.liked ? 'heart' : 'heart-outline'} size={22} color={actions.liked ? '#FF3040' : '#FFFFFF'} />
+                {actions.likes > 0 ? <Text style={[st.actionTxt, actions.liked && { color: '#FF3040' }]}>{actions.likes}</Text> : null}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={actions.onRepost} style={st.actionBtn} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={actions.reposted ? 'Undo repost' : 'Repost'}>
+                <Feather name="repeat" size={20} color={actions.reposted ? '#C9BFB0' : '#FFFFFF'} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={actions.onSave} style={st.actionBtn} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={actions.saved ? 'Remove from saved' : 'Save'}>
+                <Ionicons name={actions.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={actions.saved ? '#C9BFB0' : '#FFFFFF'} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={actions.onShare} style={st.actionBtn} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="Share">
+                <Feather name="send" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          ) : null}
         </Animated.View>
       ) : (
         <TouchableWithoutFeedback onPress={close} accessibilityRole="button" accessibilityLabel="Close comments">
@@ -191,6 +228,7 @@ export default function CommentsSheet({ visible, postId, postAuthorId, count, on
           autoFocus={autoFocus}
           bottomInset={kbUp ? 6 : Math.max(insets.bottom, 8)}
           onCount={(k) => { setN(k); onCountRef.current?.(k); }}
+          onFocusChange={(focused) => { if (!focused) setTimeout(() => { if (mountedRef.current && !closingRef.current) applyKeyboard(0, 200); }, 60); }}
         />
       </Animated.View>
     </View>
@@ -219,4 +257,7 @@ const st = themedSheet((t) => ({
   badge: { backgroundColor: t.brand.tintBg, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
   badgeTxt: { fontSize: 11.5, fontWeight: '800', color: t.ink.primary },
   closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(11,30,61,0.06)' },
+  actionRow: { position: 'absolute', left: 0, right: 0, bottom: 0, height: ACTIONS_H, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 28 },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 6, paddingVertical: 6 },
+  actionTxt: { color: t.ink.inverse, fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
 }));

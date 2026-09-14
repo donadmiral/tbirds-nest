@@ -2701,6 +2701,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         postAuthorId={commentsFor?.user_id ?? null}
         count={commentsFor?.comments_count ?? 0}
         media={commentsFor && !(commentsFor as any).article_title ? (Array.isArray((commentsFor as any).media) && (commentsFor as any).media.length > 0 ? (commentsFor as any).media : (commentsFor.media_url ? [{ id: '0', url: commentsFor.media_url, media_type: isVideoUrl(commentsFor.media_url) ? 'video' : 'image', sort_order: 0 }] : null)) : null}
+        actions={commentsFor ? { liked: !!likedPosts[commentsFor.id], saved: !!bookmarkedPosts[commentsFor.id], reposted: !!repostedPosts[commentsFor.id], likes: (posts.find((p) => p.id === commentsFor.id) ?? commentsFor).likes_count ?? 0, onLike: () => toggleLike(commentsFor.id), onSave: () => toggleBookmark(commentsFor.id), onRepost: () => toggleRepost(commentsFor.id), onShare: () => { const p = commentsFor; setCommentsFor(null); setTimeout(() => openSendSheet(p as any), 350); } } : null}
         onClose={() => {
           const id = commentsFor?.id;
           setCommentsFor(null);
