@@ -1,15 +1,23 @@
 import { defineConfig } from "@playwright/test";
 
-// End-to-end smoke suite against the live site by default; E2E_BASE_URL overrides.
+// Alignment proof for the web app: every page at four widths, with and without an input focused.
+// Runs against the local dev server by default; set E2E_BASE_URL to point it at a deployment.
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 600_000,
+  timeout: 120_000,
   retries: 0,
+  workers: 1,
   reporter: [["list"]],
   use: {
-    baseURL: process.env.E2E_BASE_URL || "https://platinumcircles.app",
-    viewport: { width: 390, height: 844 },
-    screenshot: "only-on-failure",
-    trace: "retain-on-failure",
+    baseURL: process.env.E2E_BASE_URL || "http://localhost:3000",
+    screenshot: "off",
+    video: "off",
+    actionTimeout: 15_000,
+  },
+  webServer: process.env.E2E_BASE_URL ? undefined : {
+    command: "npm run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: true,
+    timeout: 180_000,
   },
 });
