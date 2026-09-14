@@ -12,6 +12,7 @@
     "supabase/functions/**",
     "admin-web",
     "web",
-    "android"
+    "android",
+    "supabase/tests/**"
   ]
 }
