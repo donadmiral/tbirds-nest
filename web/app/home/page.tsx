@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
@@ -85,6 +86,11 @@ export default function HomeFeed() {
   const seenSentRef = useRef<Set<string>>(new Set());
   const seenObserverRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  // Only the cards near the viewport exist in the DOM; the rest are a measured gap, so a long session never gets heavier.
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [listTop, setListTop] = useState(0);
+  useEffect(() => { setListTop(listRef.current?.offsetTop ?? 0); }, [posts.length]);
+  const rowVirtualizer = useWindowVirtualizer({ count: posts.length, estimateSize: () => 560, overscan: 5, scrollMargin: listTop });
   const loadingMoreRef = useRef(false);
   const hasMoreRef = useRef(false);
   const newDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -293,17 +299,22 @@ export default function HomeFeed() {
         </div>
       ) : (
         <div>
-          {posts.map((p, i) => {
-            const slot = i === 1 ? promos[0] : (i > 1 && (i - 1) % 6 === 0 ? promos[Math.floor((i - 1) / 6)] : null);
-            return (
-              <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")}>
-                <div data-pid={p.post_id} data-aid={p.author_id} ref={observeSeen}>
-                  <PostCard post={p} />
+          <div ref={listRef} style={{ height: rowVirtualizer.getTotalSize(), position: "relative" }}>
+            {rowVirtualizer.getVirtualItems().map((v) => {
+              const p = posts[v.index];
+              const i = v.index;
+              const slot = i === 1 ? promos[0] : (i > 1 && (i - 1) % 6 === 0 ? promos[Math.floor((i - 1) / 6)] : null);
+              return (
+                <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")} data-index={v.index} ref={rowVirtualizer.measureElement}
+                  style={{ position: "absolute", top: v.start - rowVirtualizer.options.scrollMargin, left: 0, width: "100%" }}>
+                  <div data-pid={p.post_id} data-aid={p.author_id} ref={observeSeen}>
+                    <PostCard post={p} />
+                  </div>
+                  {slot && slot.post_id !== p.post_id ? <SponsoredCard promo={slot} /> : null}
                 </div>
-                {slot && slot.post_id !== p.post_id ? <SponsoredCard promo={slot} /> : null}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
           <div ref={sentinelRef} />
           {loadingMore ? <Skeleton /> : null}
           {!hasMore ? <p className="py-8 text-center text-xs text-ink/30">You are all caught up.</p> : null}

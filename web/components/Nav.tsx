@@ -84,7 +84,31 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
     document.documentElement.classList.toggle("nav-collapsed", next);
   }, [inStudio]);
   const supabase = createClient();
-  const allItems: NavItem[] = [...items, ...(business ? [{ href: "/studio", label: "Studio", icon: LayoutDashboard }] : []), { href: profileHref, label: "Profile", icon: User }];
+  // One unread count from the server, live: the bell carries a dot and the number, and clears as rows are read anywhere.
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+  useEffect(() => {
+    let uid: string | null = null;
+    let ch: ReturnType<typeof supabase.channel> | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const load = async () => {
+      if (!uid) return;
+      const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("recipient_id", uid).is("read_at", null);
+      setUnreadNotifs(count || 0);
+    };
+    const bump = () => { if (timer) clearTimeout(timer); timer = setTimeout(load, 300); };
+    supabase.auth.getUser().then(({ data }) => {
+      uid = data.user?.id ?? null;
+      if (!uid) return;
+      void load();
+      ch = supabase.channel("nav-notifs-" + uid)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: "recipient_id=eq." + uid }, bump)
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications", filter: "recipient_id=eq." + uid }, bump)
+        .subscribe();
+    });
+    return () => { if (timer) clearTimeout(timer); if (ch) supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const allItems: NavItem[] = [...items.map((it) => it.href === "/notifications" ? { ...it, dot: unreadNotifs > 0, badge: unreadNotifs > 0 ? unreadNotifs : undefined } : it), ...(business ? [{ href: "/studio", label: "Studio", icon: LayoutDashboard }] : []), { href: profileHref, label: "Profile", icon: User }];
 
   async function signOut() {
     await supabase.auth.signOut();
