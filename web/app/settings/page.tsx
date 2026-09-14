@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AtSign, Briefcase, ChevronRight, Edit3, EyeOff, FileText, HelpCircle, Info, LifeBuoy, Settings as SettingsIcon, Shield, ShieldAlert, ShieldOff, UserCheck, UserMinus } from "lucide-react";
+import { AtSign, Briefcase, ChevronRight, Edit3, EyeOff, FileText, HelpCircle, Info, LifeBuoy, Settings as SettingsIcon, Shield, ShieldAlert, ShieldOff, UserCheck, UserMinus, Bell } from "lucide-react";
 import { autoplayEnabled, dataSaverEnabled, setAutoplay, setDataSaver } from "@/lib/mediaPrefs";
 import { PageHeader } from "@/components/ui";
 import { AccountStatus } from "@/components/AccountStatus";
@@ -95,6 +95,7 @@ export default function SettingsPage() {
         <NavRow href="/settings/archive" icon={<EyeOff size={16} />} label="Archive" sub="Posts you hid without deleting" />
         <NavRow href="/settings/activity" icon={<EyeOff size={16} />} label="Your activity" sub="Likes, comments, reposts and saves" />
         <NavRow href="/settings/download" icon={<EyeOff size={16} />} label="Download your data" sub="Everything on your account, as one file" />
+        <NavRow href="/settings/notifications" icon={<Bell size={16} />} label="Notifications" sub="Which kinds of activity reach your phone" />
         <NavRow href="/settings/two-factor" icon={<EyeOff size={16} />} label="Two-factor authentication" sub="A code from an authenticator app at every sign-in" />
         <NavRow href="/settings/login-activity" icon={<EyeOff size={16} />} label="Login activity" sub="Devices signed in, and log the others out" />
         <NavRow href="/settings/standing" icon={<ShieldAlert size={16} />} label="Account standing" sub="Your record with Platinum Circles" />
