@@ -164,6 +164,8 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   const [idx, setIdx] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [immersive, setImmersive] = useState(false);
+  // On phones and tablets the viewer has no side panel; comments open in a drawer under the picture instead.
+  const [mobileComments, setMobileComments] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [reduced, setReduced] = useState(false);
@@ -456,6 +458,11 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
             ) : null}
             <span className="ml-auto text-[12px] font-semibold text-white/50">{lightbox + 1} / {media.length}</span>
             {post ? (
+              <button onClick={() => setMobileComments((v) => !v)} aria-label={mobileComments ? "Hide comments" : "Show comments"} aria-expanded={mobileComments} className={"flex h-9 items-center gap-1.5 rounded-full border px-2.5 text-[13px] font-semibold transition-colors duration-[140ms] lg:hidden " + (mobileComments ? "border-pearl bg-pearl/15 text-pearl" : "border-white/25 text-white hover:bg-white/10")}>
+                <MessageCircle size={15} /> {count(post.comments_count)}
+              </button>
+            ) : null}
+            {post ? (
               <button onClick={() => setImmersive((v) => !v)} aria-label={immersive ? "Show comments" : "Fit to screen"} className="flex items-center gap-2 rounded-full border border-pearl/70 px-2.5 py-1.5 text-[13.5px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-pearl/10 sm:px-3.5">
                 {immersive ? <Minimize2 size={15} /> : <Maximize2 size={15} />} <span className="hidden sm:inline">{immersive ? "Show comments" : "Fit to screen"}</span>
               </button>
@@ -463,8 +470,8 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
             <button ref={closeRef} onClick={() => setLightbox(null)} aria-label="Close viewer" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white transition-colors duration-[140ms] hover:bg-white/10"><X size={17} /></button>
           </div>
 
-          <div className="flex min-h-0 flex-1">
-          <div data-media-pane className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden">
+          <div className={"flex min-h-0 flex-1" + (mobileComments ? " max-lg:flex-col" : "")}>
+          <div data-media-pane className={"relative flex min-w-0 flex-1 items-center justify-center overflow-hidden" + (mobileComments ? " max-lg:flex-none" : "")}>
             {lightbox > 0 ? (
               <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><ChevronLeft size={20} /></button>
             ) : null}
@@ -472,7 +479,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               <button onClick={(e) => { e.stopPropagation(); goTo(lightbox + 1); }} aria-label="Next media" className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><ChevronRight size={20} /></button>
             ) : null}
             {media[lightbox].media_type === "video" ? (
-              <div className="h-[94vh] w-full px-2" onClick={(e) => e.stopPropagation()}>
+              <div className={"h-[94vh] w-full px-2" + (mobileComments ? " max-lg:h-[40vh]" : "")} onClick={(e) => e.stopPropagation()}>
                 <VideoPlayer src={media[lightbox].url} postId={postId} viewsCount={viewsCount} immersive
                   width={trueDims[media[lightbox].id]?.w ?? media[lightbox].width ?? undefined}
                   height={trueDims[media[lightbox].id]?.h ?? media[lightbox].height ?? undefined}
@@ -489,7 +496,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 onMouseDown={onDragStart}
                 draggable={false}
                 style={{ transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ")", transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
-                className="max-h-[94vh] max-w-full select-none object-contain [touch-action:none]"
+                className={"max-h-[94vh] max-w-full select-none object-contain [touch-action:none]" + (mobileComments ? " max-lg:max-h-[40vh]" : "")}
               />
             )}
             {media[lightbox].media_type === "image" ? <EditPlanes e={editOf(media[lightbox])} /> : null}
@@ -547,6 +554,13 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 Open the full post
               </Link>
             </aside>
+          ) : null}
+          {post && mobileComments ? (
+            <div onClick={(e) => e.stopPropagation()} className="flex min-h-0 flex-1 flex-col border-t border-white/10 bg-navy lg:hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-3 [&_*]:text-white [&_input]:bg-white/10 [&_textarea]:bg-white/10">
+                <Comments postId={post.post_id} />
+              </div>
+            </div>
           ) : null}
           </div>
         </div>

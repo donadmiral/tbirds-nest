@@ -18,6 +18,7 @@ import { MediaGallery } from "@/components/MediaGallery";
 import { ArticleBody } from "@/components/ArticleBody";
 import { LikesModal } from "@/components/LikesModal";
 import { ShareMenu } from "@/components/ShareMenu";
+import { Comments } from "@/components/Comments";
 import { displayImageUrl } from "@/lib/media";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
@@ -101,7 +102,7 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
   );
 }
 
-export function PostCard({ post }: { post: FeedRow }) {
+export function PostCard({ post, hideMedia, inlineComments = true }: { post: FeedRow; hideMedia?: boolean; inlineComments?: boolean }) {
   const router = useRouter();
   const supabase = useRef(createClient()).current;
   const [hidden, setHidden] = useState(false);
@@ -122,6 +123,8 @@ export function PostCard({ post }: { post: FeedRow }) {
   }, [supabase, post.post_id]);
   const [listKind, setListKind] = useState<"likes" | "reposts" | "bookmarks">("likes");
   const [expanded, setExpanded] = useState(false);
+  // Comments open right under the card, so the post and its video stay in view while you read and reply.
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const text = post.content ?? post.body ?? "";
   const rbw = post as unknown as { reposted_by_name?: string | null };
   const whyReason = rbw.reposted_by_name ? rbw.reposted_by_name + " reposted this"
@@ -265,7 +268,7 @@ export function PostCard({ post }: { post: FeedRow }) {
             </div>
           ) : null}
 
-          {media.length > 0 && !post.article_title ? (
+          {media.length > 0 && !post.article_title && !hideMedia ? (
             <MediaGallery media={media}
               postId={post.post_id}
               viewsCount={(post as unknown as { views_count?: number | null }).views_count ?? null}
@@ -319,10 +322,17 @@ export function PostCard({ post }: { post: FeedRow }) {
           ) : null}
 
           <div className="-ml-2.5 mt-3 flex items-center gap-1">
-            <Link href={postHref} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-ink/50 transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
-              <MessageCircle size={18} strokeWidth={1.8} />
-              {count(post.comments_count)}
-            </Link>
+            {inlineComments ? (
+              <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCommentsOpen((v) => !v); }} aria-expanded={commentsOpen} aria-label={commentsOpen ? "Hide comments" : "Show comments"} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink " + (commentsOpen ? "text-ink" : "text-ink/50")}>
+                <MessageCircle size={18} strokeWidth={1.8} fill={commentsOpen ? "currentColor" : "none"} />
+                {count(post.comments_count)}
+              </button>
+            ) : (
+              <Link href={postHref} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-ink/50 transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
+                <MessageCircle size={18} strokeWidth={1.8} />
+                {count(post.comments_count)}
+              </Link>
+            )}
             <span className="relative">
               <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (repost.on) { repost.set(false); } else { setRepostMenu((v) => !v); } }} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (repost.on ? "text-success" : "text-ink/50 hover:bg-success/10 hover:text-success")}>
                 <Repeat2 size={18} strokeWidth={1.8} />
@@ -353,6 +363,11 @@ export function PostCard({ post }: { post: FeedRow }) {
               <ShareMenu postId={post.post_id} sharesCount={(post as unknown as { shares_count?: number }).shares_count ?? 0} />
             </span>
           </div>
+          {commentsOpen && inlineComments ? (
+            <div onClick={(e) => e.stopPropagation()} className="mt-2 border-t border-ink/10 pt-3">
+              <Comments postId={post.post_id} autoFocus />
+            </div>
+          ) : null}
         </div>
       </div>
     </article>

@@ -22,7 +22,7 @@ type CommentRow = {
   replies: CommentRow[];
 };
 
-export function Comments({ postId }: { postId: string }) {
+export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: boolean }) {
   const [off, setOff] = useState(false);
   const [collabInvite, setCollabInvite] = useState(false);
   const supabase = useRef(createClient()).current;
@@ -74,6 +74,7 @@ export function Comments({ postId }: { postId: string }) {
   }, [supabase, postId]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (autoFocus) { const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 80); return () => clearTimeout(t); } }, [autoFocus]);
 
   async function react(commentId: string, value: 1 | -1) {
     if (!uid) return;

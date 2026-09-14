@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Comments } from "@/components/Comments";
+import { PinnedMedia } from "@/components/PinnedMedia";
 import { PostCard } from "@/components/PostCard";
 import { FactCheckBanner } from "@/components/FactCheck";
 import { timeAgo, type FeedRow } from "@/lib/feed";
@@ -122,16 +123,39 @@ export default async function PostPage({ params }: Params) {
 
   // Comments moved to the interactive <Comments /> component.
 
-  return (
-    <main className="mx-auto min-h-screen w-full max-w-[640px] px-4 py-6">
-      <Link href={viewerId ? "/home" : "/"} aria-label="Back to Platinum Circles" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
-        <ArrowLeft size={19} />
-      </Link>
-      <PostCard post={row} />
+  // A video post pins its media: on phones it sticks to the top while the thread scrolls, on desktop it holds the left column.
+  const hasVideo = !data.post.article_title && data.media.some((m) => m.media_type === "video");
+  const lead = data.media.find((m) => m.media_type === "video") ?? data.media[0];
+  const pinAspect = lead?.width && lead?.height ? Math.min(1.25, lead.height / lead.width) : 1.25;
+  const viewerPost = {
+    post_id: data.post.id,
+    author_name: data.author.full_name, author_username: data.author.username, author_avatar: data.author.avatar_url,
+    author_verified: !!data.author.is_verified, author_verified_tier: data.author.verified_tier,
+    content: data.post.content ?? data.post.body ?? null,
+    likes_count: data.post.likes_count ?? 0, comments_count: data.post.comments_count ?? 0, reposts_count: data.post.reposts_count ?? 0,
+    viewer_liked: viewer.liked, viewer_bookmarked: viewer.bookmarked,
+  };
+  const thread = (
+    <>
+      <PostCard post={row} hideMedia={hasVideo} inlineComments={false} />
       <FactCheckBanner postId={id} />
       <section className="mt-2">
         <Comments postId={id} />
       </section>
+    </>
+  );
+
+  return (
+    <main className={"mx-auto min-h-screen w-full px-4 py-6 " + (hasVideo ? "max-w-[640px] lg:max-w-[1120px]" : "max-w-[640px]")}>
+      <Link href={viewerId ? "/home" : "/"} aria-label="Back to Platinum Circles" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
+        <ArrowLeft size={19} />
+      </Link>
+      {hasVideo ? (
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_440px] lg:items-start lg:gap-6">
+          <PinnedMedia media={data.media as Parameters<typeof PinnedMedia>[0]["media"]} postId={id} viewsCount={data.post.views_count ?? null} aspect={pinAspect} post={viewerPost} topOffset={viewerId ? 0 : 56} />
+          <div className="min-w-0 pt-3 lg:pt-0">{thread}</div>
+        </div>
+      ) : thread}
     </main>
   );
 }
