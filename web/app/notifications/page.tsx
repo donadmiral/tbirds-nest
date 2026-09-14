@@ -79,6 +79,7 @@ function lineFor(n: Notif): { lead: string; rest: string } {
     case "job_referral": return { lead, rest: n.body_preview ? " referred you for " + n.body_preview : " referred you for a job" };
     case "story_mention": return { lead, rest: n.body_preview ? " mentioned you in their story " + quote(n.body_preview) : " mentioned you in their story" };
     case "business_member": return { lead: n.message || "You joined a business", rest: n.body_preview ? " · " + n.body_preview : "" };
+    case "system": return { lead: "System", rest: " · " + (n.message || "System alert") };
     case "community_invite": return { lead, rest: " invited you to join " + (((n.data as { community_name?: string } | null)?.community_name) || "a community") };
     default: {
       const msg = (n.message || "").trim();
