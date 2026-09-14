@@ -129,6 +129,7 @@ export default async function PostPage({ params }: Params) {
   const pinAspect = lead?.width && lead?.height ? Math.min(1.25, lead.height / lead.width) : 1.25;
   const viewerPost = {
     post_id: data.post.id,
+    author_id: data.post.user_id,
     author_name: data.author.full_name, author_username: data.author.username, author_avatar: data.author.avatar_url,
     author_verified: !!data.author.is_verified, author_verified_tier: data.author.verified_tier,
     content: data.post.content ?? data.post.body ?? null,

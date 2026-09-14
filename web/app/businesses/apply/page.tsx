@@ -42,6 +42,17 @@ export default function BusinessApplyPage() {
     })();
   }, [supabase, load]);
 
+  const openBusiness = async (applicationId:string) => {
+    if(busy)return;setBusy(true);
+    try{
+      const result=await supabase.functions.invoke('business-owner-access',{body:{application_id:applicationId}});
+      if(result.error||!result.data?.token_hash)throw new Error('Business owner access could not be confirmed.');
+      const verified=await supabase.auth.verifyOtp({type:'magiclink',token_hash:result.data.token_hash});
+      if(verified.error)throw verified.error;
+      window.location.assign('/home');
+    }catch(e){alert(e instanceof Error?e.message:'Business access failed.');}
+    finally{setBusy(false);}
+  };
   const checkHandle = (v: string) => {
     const clean = v.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
     setHandle(clean);
@@ -58,6 +69,7 @@ export default function BusinessApplyPage() {
 
   const submit = async () => {
     if (busy) return;
+    if (!uid) { alert("Sign in to your personal account before applying. It will become the verified owner of your business."); return; }
     if (!companyName.trim() || !description.trim() || !email.trim() || !handle) {
       alert("Company name, what you do, a contact email and a desired @ are required.");
       return;
@@ -72,15 +84,6 @@ export default function BusinessApplyPage() {
       contact_email: email.trim(), contact_phone: phone.trim() || null, website: website.trim() || null,
       registration_info: regInfo.trim() || null, desired_username: handle,
     };
-    if (!uid) {
-      const { data, error } = await supabase.functions.invoke("business-apply", { body: payload });
-      setBusy(false);
-      const errMsg = error ? ((data as { error?: string } | null)?.error || "Could not send the application.") : (data as { error?: string } | null)?.error;
-      if (errMsg) { alert(errMsg); return; }
-      setCompanyName(""); setCategory(""); setDescription(""); setEmail(""); setPhone(""); setWebsite(""); setRegInfo(""); setHandle(""); setHandleState("idle");
-      alert("Application sent. The Platinum Circles operations team reviews every business application. On approval your business account is created with its own @, the space-grey seal, and a setup code sent to your contact email.");
-      return;
-    }
     const { error } = await supabase.from("business_applications").insert({ applicant_id: uid, ...payload });
     setBusy(false);
     if (error) { alert("Could not send: " + error.message); return; }
@@ -122,7 +125,8 @@ export default function BusinessApplyPage() {
             <span className="min-w-0 flex-1 truncate text-[13.5px] font-bold text-ink">{a.company_name}</span>
             <span className={"shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold " + pillCls(a.status)}>{pillLabel(a.status)}</span>
           </span>
-          {a.decision_reason ? <p className="mt-2 text-[12.5px] leading-relaxed text-ink/70">{a.decision_reason}</p> : null}
+          {a.status === "approved" && <button disabled={busy} onClick={() => openBusiness(a.id)}>Open business</button>}
+          {a.decision_reason ? <p className="mt-2 text-[12.5px] leading-relaxed text-ink/70">{a.status === "approved" ? "Approved. Open your business to manage access." : a.decision_reason}</p> : null}
         </div>
       ))}
     </div>
