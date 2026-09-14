@@ -91,6 +91,7 @@ function badgeFor(type: string): { icon: any; bg: string } | null {
     case 'story_mention':    return { icon: 'at-sign', bg: '#7C5CFF' };
     case 'business_member':  return { icon: 'users', bg: '#B08D3F' };
     case 'collab_invite':   return { icon: 'users', bg: '#0B1E3D' };
+    case 'community_invite': return { icon: 'users', bg: '#2F9E63' };
     default:                 return null;
   }
 }
@@ -182,6 +183,8 @@ function lineFor(n: Notif): { lead: string; rest: string } {
     case 'collab_invite':
 
       return { lead, rest: ' invited you to collaborate on a post' };
+    case 'community_invite':
+      return { lead, rest: ' invited you to join ' + ((n.data && n.data.community_name) || 'a community') };
 
 
     default: {
@@ -313,6 +316,8 @@ export default function NotificationsScreen({ navigation }: any) {
       navigation.navigate('Messages', { screen: 'Chat', params: { conversationId: d.conversation_id } });
     } else if (n.type === 'job_application' && d.job_id) {
       navigation.navigate('Jobs');
+    } else if (n.type === 'community_invite' && d.community_id) {
+      navigation.navigate('Community', { communityId: d.community_id, name: d.community_name || 'Community' });
     } else if (n.type === 'business_member' && d.business_id) {
       navigation.navigate('Profile', { screen: 'BusinessManage', params: { businessId: d.business_id } });
     } else if (n.actor_id) {
@@ -343,7 +348,7 @@ export default function NotificationsScreen({ navigation }: any) {
     supabase.from('notifications').delete().in('id', stale.map(r => r.notification_id)).then(() => {}, () => {});
   }, []);
   useEffect(() => { pruneAnsweredInvites(rows); }, [rows.length, pruneAnsweredInvites]);
-  const invitesFirst = (list: Notif[]) => { const inv = list.filter(r => r.type === 'collab_invite'); const rest = list.filter(r => r.type !== 'collab_invite'); return [...inv, ...rest]; };
+  const invitesFirst = (list: Notif[]) => { const isInv = (r: Notif) => r.type === 'collab_invite' || r.type === 'community_invite'; const inv = list.filter(isInv); const rest = list.filter(r => !isInv(r)); return [...inv, ...rest]; };
   const respondCollab = async (n: Notif, accept: boolean) => {
     const pid = (n as any).post_id || (n as any).data?.post_id; const { data: s } = await supabase.auth.getSession(); const me = s.session?.user.id;
     if (!pid || !me) { Alert.alert('Not available', 'This invitation cannot be found.'); return; }
@@ -355,6 +360,19 @@ export default function NotificationsScreen({ navigation }: any) {
     await supabase.from('notifications').delete().eq('id', n.notification_id);
     setRows(prev => prev.filter(r => r.notification_id !== n.notification_id));
     showMessage({ message: accept ? "You're now a collaborator" : 'Invitation declined', description: accept ? 'The post is on your profile too.' : undefined, type: 'success', duration: 2000 });
+  };
+  const respondCommunity = async (n: Notif, accept: boolean) => {
+    const cid = (n as any).data?.community_id;
+    if (!cid || busy[n.notification_id]) return;
+    setBusy(b => ({ ...b, [n.notification_id]: true }));
+    const { data, error } = await supabase.rpc('respond_community_invite', { p_community: cid, p_accept: accept });
+    setBusy(b => ({ ...b, [n.notification_id]: false }));
+    if (error) { Alert.alert('Not saved', error.message); return; }
+    setRows(prev => prev.filter(r => r.notification_id !== n.notification_id));
+    if (data === 'joined') {
+      showMessage({ message: "You're in", description: 'The community is on your Communities list.', type: 'success', duration: 2000 });
+      navigation.navigate('Community', { communityId: cid, name: (n as any).data?.community_name || 'Community', isMember: true, myRole: 'member' });
+    } else showMessage({ message: 'Invitation declined', type: 'success', duration: 2000 });
   };
   const respondRequest = async (n: Notif, action: 'accept' | 'reject') => {
     const reqId = n.data?.request_id;
@@ -393,7 +411,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
   const sections = useMemo(() => {
     // Things that want an ACTION from you sit pinned on top, out of the stream.
-    const NEEDS = new Set(['collab_invite', 'follow_request', 'job_application', 'payment_received']);
+    const NEEDS = new Set(['collab_invite', 'community_invite', 'follow_request', 'job_application', 'payment_received']);
     const needs: Notif[] = [];
     const order = ['Today', 'This week', 'This month', 'Earlier'];
     const buckets: Record<string, Notif[]> = {};
@@ -402,7 +420,7 @@ export default function NotificationsScreen({ navigation }: any) {
       comments: ['comment', 'reply'],
       follows: ['follow', 'follow_request', 'follow_accepted'],
       mentions: ['mention', 'story_mention'],
-      collabs: ['collab_invite'],
+      collabs: ['collab_invite', 'community_invite'],
     };
     const visible = filt === 'all' ? rows : rows.filter(r => (FILTS[filt] || []).includes(r.type));
     visible.forEach(r => {
@@ -412,7 +430,7 @@ export default function NotificationsScreen({ navigation }: any) {
     });
     const out = order.filter(k => buckets[k]?.length).map(k => ({ title: k, data: buckets[k] }));
     // Invitations first inside the pinned section, then the rest of what needs you.
-    needs.sort((a, b) => (a.type === 'collab_invite' ? 0 : 1) - (b.type === 'collab_invite' ? 0 : 1));
+    needs.sort((a, b) => ((a.type === 'collab_invite' || a.type === 'community_invite') ? 0 : 1) - ((b.type === 'collab_invite' || b.type === 'community_invite') ? 0 : 1));
     return needs.length ? [{ title: 'Needs you', data: needs }, ...out] : out;
   }, [rows, filt]);
 
@@ -473,6 +491,12 @@ export default function NotificationsScreen({ navigation }: any) {
             <View style={s.requestRow}>
               <TouchableOpacity style={s.accept} onPress={() => respondCollab(item, true)} disabled={!!busy[item.notification_id]}><Text style={s.acceptTxt}>Accept</Text></TouchableOpacity>
               <TouchableOpacity style={s.decline} onPress={() => respondCollab(item, false)} disabled={!!busy[item.notification_id]}><Text style={s.declineTxt}>Decline</Text></TouchableOpacity>
+            </View>
+          ) : null}
+          {item.type === 'community_invite' ? (
+            <View style={s.requestRow}>
+              <TouchableOpacity style={s.accept} onPress={() => respondCommunity(item, true)} disabled={!!busy[item.notification_id]}><Text style={s.acceptTxt}>Accept</Text></TouchableOpacity>
+              <TouchableOpacity style={s.decline} onPress={() => respondCommunity(item, false)} disabled={!!busy[item.notification_id]}><Text style={s.declineTxt}>Decline</Text></TouchableOpacity>
             </View>
           ) : null}
           {showRequest ? (
@@ -554,7 +578,7 @@ export default function NotificationsScreen({ navigation }: any) {
       ) : (
         <TapTopSectionList ListHeaderComponent={<>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 2, gap: 6 }}>
-              {([['all', 'All'], ['collabs', 'Collabs'], ['likes', 'Likes'], ['comments', 'Comments'], ['follows', 'Follows'], ['mentions', 'Mentions']] as const).map(([k, lbl]) => (
+              {([['all', 'All'], ['collabs', 'Invites'], ['likes', 'Likes'], ['comments', 'Comments'], ['follows', 'Follows'], ['mentions', 'Mentions']] as const).map(([k, lbl]) => (
                 <TouchableOpacity key={k} onPress={() => setFilt(k)} style={[s.chip, filt === k && s.chipOn]}>
                   <Text style={[s.chipTxt, filt === k && s.chipTxtOn]}>{lbl}</Text>
                 </TouchableOpacity>

@@ -386,10 +386,21 @@ export default function ChatScreen() {
   paymentChatRef.current = [currentUserId, conversationId].join(':');
   const passedUser = route.params?.otherUser ?? null;
   const passedUserId: string | null = route.params?.userId ?? null;
-  const isGroup: boolean = route.params?.isGroup ?? false;
-  const groupName: string = route.params?.groupName ?? '';
-  const groupEmoji: string = route.params?.groupEmoji ?? '💬';
-  const groupAvatarUrl: string | null = route.params?.groupAvatarUrl ?? null;
+  // The conversation row fills in whatever the params left out (a notification or the community's Chat button pass only the id).
+  const [convMeta, setConvMeta] = useState<any>(null);
+  useEffect(() => {
+    if (!conversationId) return;
+    supabase.from('conversations').select('is_group, group_name, group_emoji, group_avatar_url, group_type, group_ref_id').eq('id', conversationId).maybeSingle().then(({ data }) => { if (data) setConvMeta(data); }, () => {});
+  }, [conversationId]);
+  const isGroup: boolean = route.params?.isGroup ?? !!convMeta?.is_group;
+  const groupName: string = route.params?.groupName ?? (convMeta?.group_name || '');
+  const groupEmoji: string = route.params?.groupEmoji ?? (convMeta?.group_emoji || '');
+  const groupAvatarUrl: string | null = route.params?.groupAvatarUrl ?? (convMeta?.group_avatar_url || null);
+  // A community's chat: the community is its home, so the header says so and the info sheet opens it.
+  const groupType: string | null = route.params?.groupType ?? (convMeta?.group_type || null);
+  const groupRefId: string | null = route.params?.groupRefId ?? (convMeta?.group_ref_id || null);
+  const isCommunityChat = isGroup && groupType === 'community' && !!groupRefId;
+  const openCommunity = () => { if (groupRefId) navigation.navigate('Community', { communityId: groupRefId, name: groupName, iconUrl: groupAvatarUrl, isMember: true }); };
 
   const [otherUser, setOtherUser] = useState<any>(passedUser);
 
@@ -1884,7 +1895,7 @@ const pickAndSendDocument = useCallback(async () => {
               : !isGroup && otherTyping ? <Text style={[s.hSub, { color: '#34C759' }]}>typing...</Text>
               : !isGroup && otherOnline ? <Text style={[s.hSub, { color: '#34C759' }]}>online</Text>
               : !isGroup && otherUser?.username ? <Text style={s.hSub}>@{otherUser.username}</Text>
-              : isGroup ? <Text style={s.hSub}>Tap for info</Text> : null}
+              : isGroup ? <Text style={s.hSub}>{isCommunityChat ? 'Community chat · tap for info' : 'Tap for info'}</Text> : null}
           </View>
         </TouchableOpacity>
         <View style={s.headerActions}>
@@ -2266,8 +2277,10 @@ const pickAndSendDocument = useCallback(async () => {
                     ? <ExpoImage source={{ uri: otherUser.avatar_url }} style={s.infoAvatar} contentFit="cover" />
                     : <View style={s.infoAvatarFb}><Text style={s.infoAvatarTxt}>{otherInits}</Text></View>}
               <Text style={[s.infoName, { fontSize: 23, fontWeight: '800' }]}>{chatTitle}</Text>
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 14 }}>
+              {isCommunityChat ? <Text style={s.infoHandle}>Community chat · posts and announcements live on the community page</Text> : null}
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
                 {[
+                  ...(isCommunityChat ? [{ icon: 'people', label: 'Community', act: () => { setShowInfoModal(false); openCommunity(); } }] : []),
                   { icon: 'call', label: 'Audio', act: () => { setShowInfoModal(false); startCall(false); } },
                   { icon: 'videocam', label: 'Video', act: () => { setShowInfoModal(false); startCall(true); } },
                   { icon: 'search', label: 'Search', act: () => { setShowInfoModal(false); setSearchActive(true); } },

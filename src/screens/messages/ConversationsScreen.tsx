@@ -36,6 +36,8 @@ type Conversation = {
   is_group: boolean;
   group_emoji?: string | null;
   group_avatar_url?: string | null;
+  group_type?: string | null;
+  group_ref_id?: string | null;
   is_pinned: boolean;
   is_muted: boolean;
   is_archived: boolean;
@@ -216,6 +218,7 @@ useEffect(() => {
               unread_count: unreadMap[c.id] || 0,
               context: c.context || 'personal', is_group: true, group_emoji: c.group_emoji || '💬',
               group_avatar_url: c.group_avatar_url,
+              group_type: c.group_type || null, group_ref_id: c.group_ref_id || null,
               is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived, manually_unread: !!(s as any).manually_unread,
             };
           }
@@ -471,6 +474,8 @@ const setConvSetting = useCallback(async (conv: Conversation, patch: Record<stri
       groupName: conv.is_group ? conv.other_name : undefined,
       groupEmoji: conv.is_group ? (conv.group_emoji || '💬') : undefined,
       groupAvatarUrl: conv.is_group ? conv.group_avatar_url : undefined,
+      groupType: conv.is_group ? (conv.group_type || null) : undefined,
+      groupRefId: conv.is_group ? (conv.group_ref_id || null) : undefined,
     });
   };
 
@@ -484,8 +489,9 @@ const setConvSetting = useCallback(async (conv: Conversation, patch: Record<stri
     if (c.is_archived) return false; // archived chats live behind the Archived row
     const matchSearch = !search || c.other_name.toLowerCase().includes(search.toLowerCase());
     const ctx = (c as any).context || 'personal';
+    // A community's chat belongs to its community: it lives under Groups, never among people.
     const matchTab = tab === 'all'
-      ? ctx === 'personal'
+      ? ctx === 'personal' && c.group_type !== 'community'
       : tab === 'unread' ? c.unread_count > 0
       : tab === 'groups' ? c.is_group
       : true;
@@ -598,6 +604,7 @@ const swipeActions = (item: Conversation) => (
               </View>
               {item.is_muted && <Text style={{ fontSize: 11 }}>🔕</Text>}
               {item.is_archived && <View style={s.archivedBadge}><Text style={s.archivedTxt}>Archived</Text></View>}
+              {item.group_type === 'community' && <View style={s.archivedBadge}><Text style={s.archivedTxt}>Community</Text></View>}
             </View>
             <Text style={[s.cardTime, hasUnread && s.cardTimeBold]}>{relTime(item.last_message_time)}</Text>
           </View>

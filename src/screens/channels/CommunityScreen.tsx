@@ -213,7 +213,7 @@ export default function CommunityScreen() {
   const openChat = async () => {
     const { data, error } = await supabase.rpc('get_community_conversation', { p_community: communityId });
     if (error || !data) { Alert.alert('Could not open the chat', error?.message || 'Please try again.'); return; }
-    navigation.navigate('Chat', { conversationId: data });
+    navigation.navigate('Chat', { conversationId: data, isGroup: true, groupName: info.name, groupAvatarUrl: info.icon_url || null, groupType: 'community', groupRefId: communityId });
   };
   const deleteCommunity = () => {
     Alert.alert('Delete this community?', 'Members lose access, the posts stop showing and the chat closes. This cannot be undone.', [
