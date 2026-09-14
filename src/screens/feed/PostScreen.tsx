@@ -25,6 +25,7 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { PostMedia } from '../../components/MediaRenderer';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import { useFocusEffect } from '@react-navigation/native';
+import { stopFloating } from '../../lib/videoEngine';
 import { light } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
 import GifPickerLite from '../../components/GifPickerLite';
@@ -162,6 +163,8 @@ export default function PostScreen({ route, navigation }: any) {
   const inputRef = useRef<TextInput>(null);
   const listRef = useRef<FlatList<any>>(null);
 
+  // Leaving the post stops the docked player; the engine is free for the next surface.
+  useFocusEffect(useCallback(() => () => { stopFloating(); }, []));
   const load = useCallback(async () => {
     try {
       const { data: vis } = await supabase.rpc('can_view_post', { p_post_id: postId });
@@ -665,7 +668,7 @@ export default function PostScreen({ route, navigation }: any) {
                     {post?.id ? <View style={{ paddingHorizontal: 16 }}><PollCard postId={post.id} /></View> : null}
                     {mediaItems.length > 0 && (
                       <View style={s.mediaEdgeWrap}>
-                        <PostCarousel
+                        <PostCarousel postId={postId} floatWhenScrolled
                           media={mediaItems}
                           containerWidth={SCREEN_W}
                           isActive={screenFocused}

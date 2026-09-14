@@ -23,7 +23,8 @@ import {
   ActivityIndicator, ViewToken, Animated,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { VideoView } from 'expo-video';
+import { useSharedVideo } from '../lib/videoEngine';
 import { useMediaTags, TagLayer } from './MediaRenderer';
 import { FilterLayer } from './stories/StoryFilters';
 import { AdjustLayer } from './stories/storyPanels';
@@ -46,6 +47,8 @@ type Props = {
   containerWidth: number;
   isActive?: boolean;
   onMediaPress?: (index?: number, at?: number) => void;
+  postId?: string | null;
+  floatWhenScrolled?: boolean;
 };
 
 // 4:5 portrait = height is 1.25x width (same as Instagram)
@@ -85,21 +88,17 @@ function CarouselImage({ uri, width, height, edit }: { uri: string; width: numbe
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit,
+  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, floatWhenScrolled,
 }: {
-  uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit'];
+  uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null; floatWhenScrolled?: boolean;
   isVisible: boolean; isScreenActive: boolean;
   onTapOverride?: (at?: number) => void;
   onExpand?: (at?: number) => void;
 }) {
 // expo-video hands you a player object rather than a component ref, so
   // seeking and muting are property writes instead of async calls.
-  const player = useVideoPlayer(uri, p => {
-    p.loop = true;
-    p.muted = sessionMuted || !!(edit as any)?.muted;
-    p.playbackRate = (edit as any)?.speed || 1;
-    p.timeUpdateEventInterval = 0.25;
-  });
+  // One engine for the app: this surface owns it while it is on screen and in front.
+  const { player, owns } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive, poster: poster ?? null, postId: postId ?? null, rate: (edit as any)?.speed || 1, muted: sessionMuted || !!(edit as any)?.muted, floatWhenScrolled: !!floatWhenScrolled });
   // Data saver: with autoplay off, videos hold at their poster until tapped.
   const [paused, setPaused] = useState(false);
   // Data saver: reactive — flipping the setting applies to every card at once.
@@ -126,7 +125,7 @@ function CarouselVideo({
       if (d > 0) setProgress((e?.currentTime ?? player.currentTime) / d);
     });
     return () => { sub.remove(); };
-  }, [player]);
+  }, [owns, player]);
 
   // Auto-hide controls after 3 seconds
   const scheduleHide = useCallback(() => {
@@ -196,14 +195,8 @@ function CarouselVideo({
       activeOpacity={1}
       onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
-      <VideoView
-        style={{ width: '100%', height: '100%' }}
-        player={player}
-        contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'}
-        nativeControls={false}
-        fullscreenOptions={{ enable: false }}
-      />
-      {poster && !isVisible ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height }} contentFit="cover" /> : null}
+      {owns ? <VideoView style={{ width: '100%', height: '100%' }} player={player} contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
+      {poster && !owns ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height }} contentFit="cover" /> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
 
@@ -275,7 +268,7 @@ async function loadSensitiveMode() {
   } catch {}
 }
 
-export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress }: Props) {
+export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress, postId, floatWhenScrolled }: Props) {
   const [revealed, setRevealed] = useState(false);
   const [, bump] = useState(0);
   useEffect(() => { loadSensitiveMode().then(() => bump((n) => n + 1)); }, []);
@@ -305,6 +298,8 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
       return (
         <CarouselVideo
           uri={item.url}
+          postId={postId ?? null}
+          floatWhenScrolled={!!floatWhenScrolled}
           poster={(item as any).edit?.coverUrl || null}
           width={containerWidth}
           height={slideHeight}
@@ -341,6 +336,8 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
           {item.media_type === 'video' ? (
             <CarouselVideo
               uri={item.url}
+              postId={postId ?? null}
+              floatWhenScrolled={!!floatWhenScrolled}
               poster={(item as any).edit?.coverUrl || null}
               width={containerWidth}
               height={slideHeight}
