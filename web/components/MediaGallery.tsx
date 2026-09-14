@@ -8,6 +8,7 @@ import { STORY_FILTERS, filterCss } from "@/lib/stories";
 import { AdjustOverlay } from "@/components/StoryEngine";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { Comments } from "@/components/Comments";
+import { PostMenu } from "@/components/PostMenu";
 import { RichText } from "@/components/RichText";
 import { displayImageUrl, srcSetFor } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
@@ -16,6 +17,8 @@ import { createClient } from "@/lib/supabase/client";
 type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null };
 
 // post_media.edit recipes come from a small side query (the feed RPC predates the column); cached per media id.
+// Legacy media carries a placeholder id; only real media ids are ever sent to the media tables.
+const UUID_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const editCache = new Map<string, PostMediaEditRecipe | null>();
 function editStyle(e: PostMediaEditRecipe | null | undefined): React.CSSProperties {
   if (!e) return {};
@@ -96,6 +99,7 @@ function EditPlanes({ e }: { e: PostMediaEditRecipe | null | undefined }) {
 }
 type Dims = { w: number; h: number };
 export type ViewerPost = {
+  author_id?: string | null;
   post_id: string;
   author_name?: string | null;
   author_username?: string | null;
@@ -119,7 +123,7 @@ function fitted(w: number | null | undefined, h: number | null | undefined, avai
 export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; onDoubleClick?: (e: React.MouseEvent) => void }) {
   const [edits, setEdits] = useState<Record<string, PostMediaEditRecipe | null>>({});
   useEffect(() => {
-    const need = media.filter((m) => m.edit === undefined && !editCache.has(m.id)).map((m) => m.id);
+    const need = media.filter((m) => m.edit === undefined && !editCache.has(m.id) && UUID_ID.test(m.id)).map((m) => m.id);
     const seed: Record<string, PostMediaEditRecipe | null> = {};
     media.forEach((m) => { if (m.edit !== undefined) seed[m.id] = m.edit ?? null; else if (editCache.has(m.id)) seed[m.id] = editCache.get(m.id) ?? null; });
     setEdits(seed);
@@ -138,7 +142,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   const [tags, setTags] = useState<Record<string, MediaTag[]>>({});
   useEffect(() => {
     const seed: Record<string, MediaTag[]> = {}; const need: string[] = [];
-    media.forEach((m) => { if (tagCache.has(m.id)) seed[m.id] = tagCache.get(m.id)!; else need.push(m.id); });
+    media.forEach((m) => { if (tagCache.has(m.id)) seed[m.id] = tagCache.get(m.id)!; else if (UUID_ID.test(m.id)) need.push(m.id); });
     setTags(seed);
     if (!need.length) return;
     let dead = false;
@@ -546,6 +550,9 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 <button onClick={toggleMark} title={marked ? "Saved" : "Save"} className={"ml-auto rounded-full p-2 transition-colors duration-[140ms] " + (marked ? "text-pearl" : "text-white/55 hover:bg-white/10 hover:text-pearl")}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill={marked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" aria-hidden><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
                 </button>
+                <span className="[&>div>button:first-of-type]:text-white/60 [&>div>button:first-of-type:hover]:bg-white/10 [&>div>button:first-of-type:hover]:text-white">
+                  <PostMenu postId={post!.post_id} authorId={post!.author_id ?? ""} text={post!.content ?? ""} onHidden={() => setLightbox(null)} />
+                </span>
               </div>
               <div className="mt-4 min-h-0 flex-1 overflow-y-auto border-t border-white/10 pt-4 [&_*]:text-white [&_input]:bg-white/10 [&_textarea]:bg-white/10">
                 <Comments postId={post!.post_id} />

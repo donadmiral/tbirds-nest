@@ -30,9 +30,9 @@ export default function MyApplicationsPage() {
       if (!uid) { setLoading(false); return; }
       const { data: rows } = await supabase
         .from("job_applications")
-        .select("id, job_id, status, applied_at, created_at")
+        .select("id, job_id, status, applied_at")
         .eq("applicant_id", uid)
-        .order("created_at", { ascending: false });
+        .order("applied_at", { ascending: false });
       const list = (rows ?? []) as AppRow[];
       const ids = Array.from(new Set(list.map((a) => a.job_id)));
       if (ids.length > 0) {

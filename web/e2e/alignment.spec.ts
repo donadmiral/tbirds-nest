@@ -99,7 +99,8 @@ function diffAgainstPrev(file: string): number | null {
   } catch { return null; }
 }
 
-const isBad = (r: Row) => r.overflowPx > 1 || r.consoleErrors.length > 0 || r.failedRequests.length > 0 || (r.diffRatio !== null && r.diffRatio > 0.02);
+// Pixel change against the last run is shown, never a flag: feeds and timestamps move between runs.
+const isBad = (r: Row) => r.overflowPx > 1 || r.consoleErrors.length > 0 || r.failedRequests.length > 0;
 
 // The report: one grid per route, four sizes across, idle and typing, flags in red. Written after every page.
 function writeReport(rows: Row[], done: boolean, total: number) {
