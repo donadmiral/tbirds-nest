@@ -60,6 +60,11 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
   const [linkUrl, setLinkUrl] = useState('');
   const [linkPrice, setLinkPrice] = useState('');
   const [showLinkForm, setShowLinkForm] = useState(false);
+  const [showFeedForm, setShowFeedForm] = useState(false);
+  const [feedUrl, setFeedUrl] = useState('');
+  const [feedItems, setFeedItems] = useState<PostProduct[] | null>(null);
+  const [feedBusy, setFeedBusy] = useState(false);
+  const [feedError, setFeedError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!sellerId) return;
@@ -124,6 +129,42 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
   };
 
   const removeCard = (id: string) => setDraft(d => d.filter(x => x.id !== id));
+
+  // Import a shop's catalog feed (shops on IntoBank publish one at /feed.json) in the post-product shape.
+  const importFeed = async () => {
+    const raw = feedUrl.trim();
+    if (!raw) return;
+    let address = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    if (!/\.json(\?|$)/i.test(address)) address = address.replace(/\/+$/, '') + '/feed.json';
+    setFeedBusy(true); setFeedError(null);
+    try {
+      const res = await fetch(address, { headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error(`The shop answered ${res.status}`);
+      const json = await res.json();
+      const list: any[] = Array.isArray(json) ? json : Array.isArray(json?.products) ? json.products : [];
+      if (list.length === 0) throw new Error('No products in that feed');
+      setFeedItems(list.slice(0, 40).map((p: any, i: number) => ({
+        id: `feed-${i}-${String(p.link_url || p.title || i).replace(/[^a-z0-9]/gi, '').slice(-24)}`,
+        title: String(p.title || p.name || 'Product'),
+        subtitle: p.subtitle ?? null,
+        price: p.price == null || p.price === '' ? null : Number(p.price),
+        currency: p.currency || 'USD',
+        image_url: p.image_url ?? null,
+        listing_id: null,
+        link_url: p.link_url ? String(p.link_url) : null,
+        cta_label: p.cta_label || 'Shop',
+        sort_order: i,
+      })));
+    } catch (e: any) {
+      setFeedItems(null); setFeedError(e?.message || 'Could not read that feed');
+    } finally { setFeedBusy(false); }
+  };
+  const isFeedPicked = (id: string) => draft.some(d => d.id === id);
+  const toggleFeedItem = (p: PostProduct) => {
+    if (isFeedPicked(p.id)) { setDraft(d => d.filter(x => x.id !== p.id)); return; }
+    if (draft.length >= MAX_CARDS) return;
+    setDraft(d => [...d, { ...p, sort_order: d.length }]);
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -237,6 +278,56 @@ export default function ProductPickerSheet({ visible, sellerId, selected, onClos
                   >
                     <Text style={s.addBtnTxt}>Add product</Text>
                   </TouchableOpacity>
+                </View>
+              )}
+
+              <TouchableOpacity style={s.linkToggle} onPress={() => setShowFeedForm(v => !v)} activeOpacity={0.7}>
+                <Feather name={showFeedForm ? 'minus' : 'download'} size={14} color={getTheme().status.link} />
+                <Text style={s.linkToggleTxt}>Import from your shop feed</Text>
+              </TouchableOpacity>
+
+              {showFeedForm && (
+                <View style={s.linkForm}>
+                  <TextInput
+                    value={feedUrl} onChangeText={setFeedUrl}
+                    placeholder="shop.intobank.app" placeholderTextColor={getTheme().ink.faint}
+                    style={s.input} autoCapitalize="none" autoCorrect={false} keyboardType="url"
+                    returnKeyType="go" onSubmitEditing={importFeed}
+                  />
+                  <TouchableOpacity
+                    style={[s.addBtn, (!feedUrl.trim() || feedBusy) && s.addBtnOff]}
+                    onPress={importFeed}
+                    disabled={!feedUrl.trim() || feedBusy}
+                  >
+                    <Text style={s.addBtnTxt}>{feedBusy ? 'Reading the feed…' : 'Import'}</Text>
+                  </TouchableOpacity>
+                  {feedError ? <Text style={s.errTxt}>{feedError}</Text> : null}
+                  {feedItems && feedItems.map(p => {
+                    const picked = isFeedPicked(p.id);
+                    return (
+                      <TouchableOpacity key={p.id} style={[s.row, picked && s.rowPicked]} activeOpacity={0.75} onPress={() => toggleFeedItem(p)}>
+                        {p.image_url ? (
+                          <Image source={{ uri: p.image_url }} style={s.thumb} />
+                        ) : (
+                          <View style={[s.thumb, s.thumbEmpty]}>
+                            <Feather name="image" size={16} color={getTheme().ink.faint} />
+                          </View>
+                        )}
+                        <View style={s.rowText}>
+                          <Text style={s.rowTitle} numberOfLines={1}>{p.title}</Text>
+                          <Text style={s.rowMeta} numberOfLines={1}>
+                            {p.price != null ? `${(p.currency || 'USD') === 'USD' ? '$' : `${p.currency} `}${p.price}` : 'No price'}
+                            {p.subtitle ? ` · ${p.subtitle}` : ''}
+                          </Text>
+                        </View>
+                        <Feather
+                          name={picked ? 'check-circle' : 'circle'}
+                          size={20}
+                          color={picked ? getTheme().brand.base : getTheme().ink.faint}
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               )}
             </ScrollView>

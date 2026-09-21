@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Check, Link2 } from "lucide-react";
+import { X, Check, Link2, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { priceLabel, type Listing } from "@/lib/market";
 
@@ -31,6 +31,11 @@ export function ProductPicker({ selected, onChange, onClose }: {
   const [extCurrency, setExtCurrency] = useState<"USD" | "ZWG">("USD");
   const [extUrl, setExtUrl] = useState("");
   const [extImage, setExtImage] = useState("");
+  const [feedOpen, setFeedOpen] = useState(false);
+  const [feedUrl, setFeedUrl] = useState("");
+  const [feedItems, setFeedItems] = useState<ProductCard[] | null>(null);
+  const [feedBusy, setFeedBusy] = useState(false);
+  const [feedErr, setFeedErr] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -91,6 +96,45 @@ export function ProductPicker({ selected, onChange, onClose }: {
     setExtOpen(false);
   }
 
+  // Import a shop's catalog feed (shops on IntoBank publish one at /feed.json) in the product-card shape.
+  async function importFeed() {
+    const raw = feedUrl.trim();
+    if (!raw) return;
+    let address = /^https?:\/\//i.test(raw) ? raw : "https://" + raw;
+    if (!/\.json(\?|$)/i.test(address)) address = address.replace(/\/+$/, "") + "/feed.json";
+    setFeedBusy(true); setFeedErr(null);
+    try {
+      const res = await fetch(address, { headers: { Accept: "application/json" } });
+      if (!res.ok) throw new Error("The shop answered " + res.status);
+      const json = await res.json();
+      const list: any[] = Array.isArray(json) ? json : Array.isArray(json?.products) ? json.products : [];
+      if (list.length === 0) throw new Error("No products in that feed");
+      setFeedItems(list.slice(0, 40).map((p: any, i: number) => ({
+        id: "feed-" + i + "-" + String(p.link_url || p.title || i).replace(/[^a-z0-9]/gi, "").slice(-24),
+        title: String(p.title || p.name || "Product"),
+        subtitle: p.subtitle ?? null,
+        price: p.price == null || p.price === "" ? Number.NaN : Number(p.price),
+        currency: p.currency || "USD",
+        image_url: p.image_url ?? null,
+        listing_id: null,
+        link_url: p.link_url ? String(p.link_url) : null,
+        cta_label: p.cta_label || "Shop",
+        sort_order: i,
+      })).map((c: ProductCard) => ({ ...c, price: Number.isNaN(c.price as number) ? null : c.price })));
+    } catch (e: any) {
+      setFeedItems(null); setFeedErr(e?.message || "Could not read that feed");
+    } finally { setFeedBusy(false); }
+  }
+  function toggleFeedItem(p: ProductCard) {
+    if (selected.some((c) => c.id === p.id)) { onChange(selected.filter((c) => c.id !== p.id)); return; }
+    onChange([...selected, { ...p, sort_order: selected.length }]);
+  }
+  function addAllFeed() {
+    if (!feedItems) return;
+    const fresh = feedItems.filter((p) => !selected.some((c) => c.id === p.id));
+    onChange([...selected, ...fresh.map((p, i) => ({ ...p, sort_order: selected.length + i }))]);
+  }
+
   const inputCls = "rounded-md bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink/30 outline-none";
 
   return (
@@ -142,6 +186,47 @@ export function ProductPicker({ selected, onChange, onClose }: {
       ) : (
         <button onClick={() => setExtOpen(true)} className="mt-2 flex items-center gap-1.5 text-[12px] text-pearl hover:underline">
           <Link2 size={13} /> Add an external product
+        </button>
+      )}
+      {feedOpen ? (
+        <div className="mt-2 flex flex-col gap-2 border-t border-ink/10 pt-2">
+          <p className="text-[12px] text-ink/60">Paste your shop&apos;s address. Shops on IntoBank publish their catalog at /feed.json.</p>
+          <div className="flex gap-2">
+            <input className={inputCls + " flex-1"} value={feedUrl} onChange={(e) => setFeedUrl(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") importFeed(); }} placeholder="shop.intobank.app" />
+            <button onClick={importFeed} disabled={!feedUrl.trim() || feedBusy} className="rounded-md bg-pearl px-3.5 py-1.5 text-[12px] font-semibold text-ink disabled:opacity-40">{feedBusy ? "Reading…" : "Import"}</button>
+            <button onClick={() => { setFeedOpen(false); setFeedItems(null); setFeedErr(null); }} className="rounded-md bg-surface px-3.5 py-1.5 text-[12px] text-ink">Close</button>
+          </div>
+          {feedErr ? <p className="text-[12px] text-red-600">{feedErr}</p> : null}
+          {feedItems ? (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-[12px] text-ink/60">{feedItems.length} products in the feed. Click to add or remove.</p>
+                <button onClick={addAllFeed} className="text-[12px] text-pearl hover:underline">Add all</button>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {feedItems.map((p) => {
+                  const on = selected.some((c) => c.id === p.id);
+                  return (
+                    <button key={p.id} onClick={() => toggleFeedItem(p)} className={"relative w-28 shrink-0 overflow-hidden rounded-lg border text-left transition-colors " + (on ? "border-pearl" : "border-ink/10 hover:border-ink/25")}>
+                      {on ? <span className="absolute right-1 top-1 z-10 rounded-full bg-pearl p-0.5 text-ink"><Check size={11} /></span> : null}
+                      {p.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.image_url} alt="" className="h-20 w-full bg-surface object-cover" />
+                      ) : <span className="block h-20 w-full bg-surface" />}
+                      <span className="block px-2 py-1.5">
+                        <span className="block truncate text-[11px] font-semibold text-ink">{p.title}</span>
+                        <span className="block text-[11px] text-pearl">{p.price != null ? ((p.currency === "USD" || !p.currency) ? "$" : p.currency + " ") + p.price : ""}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : null}
+        </div>
+      ) : (
+        <button onClick={() => setFeedOpen(true)} className="mt-2 flex items-center gap-1.5 text-[12px] text-pearl hover:underline">
+          <Download size={13} /> Import from your shop feed
         </button>
       )}
     </div>
