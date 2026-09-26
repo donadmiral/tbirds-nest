@@ -2090,6 +2090,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           <View onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { mediaTouchRef.current = false; }} onTouchCancel={() => { mediaTouchRef.current = false; }}>
             <ProductCarousel
               products={post.products}
+              onOpenLink={() => { const pr = (post as any)._promo; if (pr?.id) supabase.rpc('record_ad_event', { p_promo_id: pr.id, p_kind: 'click' }).then(() => {}, () => {}); }}
               onOpenListing={(listingId) =>
                 navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId } })
               }

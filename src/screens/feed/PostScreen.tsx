@@ -25,6 +25,7 @@ import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { PostMedia } from '../../components/MediaRenderer';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
+import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -44,6 +45,7 @@ type Post = {
   link_url?: string | null;
   article_title?: string | null; read_minutes?: number | null;
   post_media?: PostMedia[];
+  post_products?: PostProduct[];
   author: { id?: string; full_name?: string | null; username?: string | null; avatar_url?: string | null; degree_program?: string | null } | null;
 };
 
@@ -103,7 +105,7 @@ export default function PostScreen({ route, navigation }: any) {
     try {
       const { data: pd } = await supabase
         .from('posts')
-        .select('*, post_media(id, url, media_type, width, height, sort_order, edit, is_sensitive)')
+        .select('*, post_media(id, url, media_type, width, height, sort_order, edit, is_sensitive), post_products(id, title, subtitle, price, currency, image_url, listing_id, link_url, cta_label, sort_order)')
         .eq('id', postId).single();
 
       if (pd) {
@@ -118,6 +120,7 @@ export default function PostScreen({ route, navigation }: any) {
           reposts_count: pd.reposts_count ?? 0,
           bookmarks_count: pd.bookmarks_count ?? 0,
           post_media: Array.isArray(pd.post_media) ? pd.post_media : [],
+          post_products: Array.isArray(pd.post_products) ? pd.post_products : [],
         });
         if (pd.link_url) {
           supabase.from('link_previews').select('url, title, description, image_url, domain').eq('url', pd.link_url).maybeSingle()
@@ -307,6 +310,12 @@ export default function PostScreen({ route, navigation }: any) {
               <Text style={s.linkCardTitle} numberOfLines={2}>{linkPreview.title || post.link_url}</Text>
             </View>
           </TouchableOpacity>
+        ) : null}
+        {post.post_products && post.post_products.length > 0 ? (
+          <ProductCarousel
+            products={post.post_products}
+            onOpenListing={(listingId) => navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId } })}
+          />
         ) : null}
         {(post.likes_count > 0 || post.comments_count > 0 || post.reposts_count > 0) && (
           <View style={s.postCounts}>

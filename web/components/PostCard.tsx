@@ -6,7 +6,16 @@ import { PersonName } from "@/components/PersonName";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, FileText, Heart, MessageCircle, Pin, Repeat2, ShieldCheck } from "lucide-react";
+import { Bookmark, ExternalLink, FileText, Heart, MessageCircle, Pin, Repeat2, ShieldCheck } from "lucide-react";
+
+// Same figure the phone prints on its product cards: $28, $18.50, ZWG 40.
+function money(price: number | string | null | undefined, currency?: string | null) {
+  if (price === null || price === undefined || price === "") return null;
+  const n = typeof price === "string" ? Number(price) : price;
+  if (Number.isNaN(n)) return null;
+  const body = n % 1 === 0 ? n.toFixed(0) : n.toFixed(2);
+  return (currency || "USD") === "USD" ? "$" + body : "ZWG " + body;
+}
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
@@ -302,22 +311,41 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
           ) : null}
 
           {products.length > 0 ? (
-            <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1">
-              {products.map((p) => (
-                <div key={p.id} className="relative w-52 shrink-0 overflow-hidden rounded-xl border border-ink/10">
-                  {p.listing_status && p.listing_status !== "available" ? (
-                    <span className="absolute inset-0 z-10 flex items-center justify-center bg-ink/60 text-[12px] font-bold uppercase tracking-widest text-white">{p.listing_status === "sold" ? "Sold" : "Unavailable"}</span>
-                  ) : null}
-                  {p.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={displayImageUrl(p.image_url, 320)!} onError={(e) => { if (p.image_url && e.currentTarget.src !== p.image_url) e.currentTarget.src = p.image_url; }} alt="" loading="lazy" decoding="async" className="h-28 w-full bg-surface object-cover" />
-                  ) : null}
-                  <div className="px-3 py-2.5">
-                    <p className="truncate text-[13px] font-medium text-ink">{p.title}</p>
-                    {p.price != null ? <p className="text-[13px] font-semibold text-pearl">{p.currency ?? ""} {p.price}</p> : null}
-                  </div>
-                </div>
-              ))}
+            <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1" data-product-cards>
+              {products.map((p) => {
+                const price = money(p.price, p.currency);
+                const internal = !!p.listing_id;
+                const href = internal ? "/market/" + p.listing_id : (p.link_url && /^https?:\/\//i.test(p.link_url) ? p.link_url : "");
+                const cls = "relative block w-44 shrink-0 overflow-hidden rounded-xl border border-ink/10 bg-white text-left transition-colors duration-[140ms] hover:border-ink/25";
+                const body = (
+                  <>
+                    {p.listing_status && p.listing_status !== "available" ? (
+                      <span className="absolute inset-0 z-10 flex items-center justify-center bg-ink/60 text-[12px] font-bold uppercase tracking-widest text-white">{p.listing_status === "sold" ? "Sold" : "Unavailable"}</span>
+                    ) : null}
+                    <span className="relative block aspect-square w-full bg-surface">
+                      {p.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={displayImageUrl(p.image_url, 420)!} onError={(e) => { if (p.image_url && e.currentTarget.src !== p.image_url) e.currentTarget.src = p.image_url; }} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                      ) : null}
+                      {!internal ? <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-ink/55 text-white"><ExternalLink size={11} /></span> : null}
+                    </span>
+                    <span className="block px-3 pb-3 pt-2.5">
+                      <span className="line-clamp-2 text-[13px] font-semibold leading-4 text-ink">{p.title}</span>
+                      {p.subtitle ? <span className="mt-0.5 block truncate text-[11px] text-ink/50">{p.subtitle}</span> : null}
+                      <span className="mt-1.5 flex items-center justify-between gap-2">
+                        {price ? <span className="text-[14px] font-bold text-ink">{price}</span> : <span />}
+                        <span className="shrink-0 text-[12px] font-bold text-pearl-muted">{p.cta_label || (internal ? "View" : "Shop")}</span>
+                      </span>
+                    </span>
+                  </>
+                );
+                if (!href) return <div key={p.id} className={cls}>{body}</div>;
+                return internal ? (
+                  <Link key={p.id} href={href} onClick={(e) => e.stopPropagation()} className={cls} aria-label={p.title ?? "Product"}>{body}</Link>
+                ) : (
+                  <a key={p.id} href={href} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className={cls} aria-label={p.title ?? "Product"}>{body}</a>
+                );
+              })}
             </div>
           ) : null}
 

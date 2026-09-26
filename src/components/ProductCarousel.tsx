@@ -5,12 +5,16 @@
  * carousel, with one difference that matters: a card can point at an internal
  * marketplace listing instead of an external site, so the product opens inside
  * the app with the seller attached rather than dumping the buyer on a website.
+ *
+ * External cards (a business's own shop) open in an in-app browser sheet, the
+ * way Instagram and X do it: the shop loads over the feed, one tap comes back.
  */
 import { themedSheet, getTheme } from '../theme/useTheme';
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Linking } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../constants/tokens';
+import InAppBrowser from './InAppBrowser';
 
 export type PostProduct = {
   id: string;
@@ -29,11 +33,13 @@ export type PostProduct = {
 type Props = {
   products: PostProduct[];
   onOpenListing?: (listingId: string) => void;
+  /** Called with the shop address just before an external card opens (ad click counting). */
+  onOpenLink?: (url: string) => void;
 };
 
 const CARD_W = 168;
 
-function money(price?: number | string | null, currency?: string | null) {
+export function money(price?: number | string | null, currency?: string | null) {
   if (price === null || price === undefined || price === '') return null;
   const n = typeof price === 'string' ? Number(price) : price;
   if (Number.isNaN(n)) return null;
@@ -42,13 +48,17 @@ function money(price?: number | string | null, currency?: string | null) {
   return symbol === '$' ? `$${body}` : `${symbol}${body}`;
 }
 
-export default function ProductCarousel({ products, onOpenListing }: Props) {
+export default function ProductCarousel({ products, onOpenListing, onOpenLink }: Props) {
+  const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   if (!products?.length) return null;
   const ordered = [...products].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
   const open = (p: PostProduct) => {
     if (p.listing_id && onOpenListing) { onOpenListing(p.listing_id); return; }
-    if (p.link_url) Linking.openURL(p.link_url).catch(() => {});
+    if (p.link_url && /^https?:\/\//i.test(p.link_url)) {
+      onOpenLink?.(p.link_url);
+      setSheetUrl(p.link_url);
+    }
   };
 
   return (
@@ -97,13 +107,14 @@ export default function ProductCarousel({ products, onOpenListing }: Props) {
                 {p.subtitle ? <Text style={s.subtitle} numberOfLines={1}>{p.subtitle}</Text> : null}
                 <View style={s.footer}>
                   {priceLabel ? <Text style={s.price}>{priceLabel}</Text> : <View />}
-                  <Text style={s.cta} numberOfLines={1}>{p.cta_label || 'View'}</Text>
+                  <Text style={s.cta} numberOfLines={1}>{p.cta_label || (internal ? 'View' : 'Shop')}</Text>
                 </View>
               </View>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
+      {sheetUrl ? <InAppBrowser url={sheetUrl} onClose={() => setSheetUrl(null)} /> : null}
     </View>
   );
 }
@@ -120,7 +131,8 @@ const s = themedSheet((t) => ({
     overflow: 'hidden',
   },
   thumbWrap: { position: 'relative' },
-  thumb: { width: '100%', height: 118, backgroundColor: t.surface.sunken },
+  // Square, like the shop's own product tiles, so a product photo is never cropped to a strip.
+  thumb: { width: '100%', height: CARD_W, backgroundColor: t.surface.sunken },
   thumbEmpty: { alignItems: 'center', justifyContent: 'center' },
   extBadge: {
     position: 'absolute', top: 6, right: 6,
