@@ -46,7 +46,7 @@ export function useSharedVideo(o: { uri: string; visible: boolean; screenActive:
     if (!active) return;
     const p = getVideoPlayer();
     const st = useVideoEngine.getState();
-    if (st.uri !== o.uri) { try { p.replace(o.uri); } catch {} }
+    if (st.uri !== o.uri) { try { p.replaceAsync(o.uri).catch(() => {}); } catch {} }
     if (pendingSeek && pendingSeek.uri === o.uri) { try { p.currentTime = pendingSeek.at; } catch {} pendingSeek = null; }
     p.loop = o.loop ?? true; p.muted = !!o.muted; p.playbackRate = o.rate || 1;
     st.set({ owner: id, uri: o.uri, postId: o.postId ?? null });
