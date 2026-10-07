@@ -4,9 +4,10 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "dev": "expo start --dev-client --tunnel",
-    "dev-lan": "expo start --dev-client --lan",
-    "dev-clear": "expo start --dev-client --tunnel --clear",
+    "dev": "node tools/dev-start.js",
+    "dev-tunnel": "node tools/dev-start.js --tunnel",
+    "dev-lan": "node tools/dev-start.js",
+    "dev-clear": "node tools/dev-start.js --clear",
     "dev-offline": "expo start --dev-client --offline",
     "preview-build": "eas build --profile preview --platform ios",
     "dev-build": "eas build --profile development --platform ios",
