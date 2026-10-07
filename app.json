@@ -98,8 +98,7 @@
                                  ],
                                  "expo-font",
                                  "expo-asset",
-                                 "react-native-compressor",
-                                 "@sentry/react-native"
+                                 "react-native-compressor"
                              ],
                  "extra":  {
                                "eas":  {

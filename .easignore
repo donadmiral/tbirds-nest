@@ -20,3 +20,11 @@ docs/
 *.apk
 .vscode/
 .idea/
+# native folders are generated on EAS from app.json, a stale local copy must never ship
+/ios/
+/android/
+# local junk from .gitignore (EAS reads this file instead of .gitignore)
+_audit/
+_export/
+.ffmpeg/
+*.bak
