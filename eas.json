@@ -42,6 +42,6 @@
                                  }
               },
     "submit":  {
-                   "production":  { "ios": { "ascAppId": "6764038613", "appleTeamId": "6PHMSMFKSF" } }
+                   "production":  { "ios": { "ascAppId": "6764038613", "appleTeamId": "6PHMSMFKSF" }, "android": { "track": "internal", "releaseStatus": "completed" } }
                }
 }
