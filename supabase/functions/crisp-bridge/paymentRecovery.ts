@@ -18,18 +18,40 @@ export function outcome(payment: Payment, code?: string) {
     ...(code ? { code } : {}),
   };
 }
+export class CrispHopError extends Error {
+  code: string;
+  constructor(code: string, message: string) { super(message); this.code = code; this.name = "CrispHopError"; }
+}
+const isTimeout = (e: unknown) => { const n = (e as { name?: string } | null)?.name; return n === "TimeoutError" || n === "AbortError"; };
 export async function requestCrisp(deps: Dependencies, params: Record<string, string>, body?: unknown) {
-  if (!deps.crispKey || !deps.crispUrl) throw new Error("CRISP_UNAVAILABLE");
-  const url = new URL(deps.crispUrl);
-  if (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "127.0.0.1", "host.docker.internal"].includes(url.hostname))) throw new Error("CRISP_URL_NOT_SECURE");
+  // Every failure on the hop to IntoBank's payment service names itself, so an outage is never
+  // mistaken for an unlinked account and the cause is readable in the logs and on the phone.
+  if (!deps.crispKey || !deps.crispUrl) throw new CrispHopError("CRISP_NOT_CONFIGURED", "IntoBank's payment service is not configured on this server.");
+  let url: URL;
+  try { url = new URL(deps.crispUrl); } catch { throw new CrispHopError("CRISP_NOT_CONFIGURED", "IntoBank's payment service address is not valid on this server."); }
+  if (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "127.0.0.1", "host.docker.internal"].includes(url.hostname))) throw new CrispHopError("CRISP_NOT_CONFIGURED", "IntoBank's payment service address is not secure.");
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
-  const response = await deps.fetcher(url, {
-    method: body === undefined ? "GET" : "POST",
+  const isRead = body === undefined;
+  const attempt = () => deps.fetcher(url, {
+    method: isRead ? "GET" : "POST",
     headers: { Authorization: `Bearer ${deps.crispKey}`, "Content-Type": "application/json" },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    signal: AbortSignal.timeout(7000),
+    ...(isRead ? {} : { body: JSON.stringify(body) }),
+    signal: AbortSignal.timeout(isRead ? 12000 : 7000),
   });
-  return { response, data: await response.json() };
+  let response: Response;
+  try {
+    response = await attempt();
+  } catch (first) {
+    // A read is safe to ask again: a cold start on the IntoBank side can outlast the first deadline. A payment is not retried here.
+    if (!isRead) throw new CrispHopError(isTimeout(first) ? "CRISP_TIMEOUT" : "CRISP_UNREACHABLE", "IntoBank's payment service did not answer.");
+    try { response = await attempt(); }
+    catch (second) { throw new CrispHopError(isTimeout(second) ? "CRISP_TIMEOUT" : "CRISP_UNREACHABLE", isTimeout(second) ? `IntoBank's payment service at ${url.host} did not answer in time.` : `IntoBank's payment service at ${url.host} could not be reached.`); }
+  }
+  const text = await response.text();
+  let data: unknown;
+  try { data = text ? JSON.parse(text) : {}; }
+  catch { throw new CrispHopError("CRISP_BAD_RESPONSE", `IntoBank's payment service at ${url.host} answered status ${response.status} without a readable body.`); }
+  return { response, data: data as any };
 }
 export function matchesReceipt(payment: Payment, data: any): boolean {
   return data?.success === true && typeof data.tx_id === "string" &&

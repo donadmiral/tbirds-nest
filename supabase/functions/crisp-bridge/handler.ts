@@ -1,4 +1,4 @@
-import { PAYMENT_FIELDS, matchesReceipt, outcome, persistOutcome, recoverPayment, requestCrisp } from "./paymentRecovery.ts";
+import { CrispHopError, PAYMENT_FIELDS, matchesReceipt, outcome, persistOutcome, recoverPayment, requestCrisp } from "./paymentRecovery.ts";
 import type { Dependencies, Payment } from "./paymentRecovery.ts";
 
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, GET, OPTIONS", "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type" };
@@ -122,9 +122,13 @@ export function createBridgeHandler(deps: Dependencies) {
         return json(outcome(updated.payment, updated.persistenceError ? "RECEIPT_UPDATE_PENDING" : undefined), updated.payment.status === "pending" ? 202 : 200);
       }
       return json(outcome(inFlight!, "PAYMENT_OUTCOME_UNCONFIRMED"), 202);
-    } catch {
+    } catch (e) {
       if (inFlight) return json(outcome(inFlight, "PAYMENT_OUTCOME_UNCONFIRMED"), 202);
-      return json({ success: false, code: "SERVICE_UNAVAILABLE", error: "Service temporarily unavailable" }, 503);
+      // The cause is logged and named: an outage on the way to IntoBank must never read as "not linked".
+      const hop = e instanceof CrispHopError ? e : null;
+      let action = ""; try { action = new URL(req.url).searchParams.get("action") || ""; } catch { /* no url */ }
+      console.error("[crisp-bridge]", action, hop?.code || (e as Error)?.name || "Error", (e as Error)?.message || String(e));
+      return json({ success: false, code: hop?.code || "SERVICE_UNAVAILABLE", error: hop?.message || "Service temporarily unavailable" }, 503);
     }
   };
 }

@@ -13,7 +13,7 @@ const json = (status: number, body: unknown) => new Response(JSON.stringify(body
 const BUDGET_MS: Record<string, number> = {
   sign_in: 4000, feed: 3500, notifications: 3500, profile: 2500,
   post_write: 3000, post_read: 2500, post_delete: 2500,
-  storage_asset: 2500, push_function: 2500, realtime_endpoint: 2500,
+  storage_asset: 2500, push_function: 2500, realtime_endpoint: 2500, payments_bridge: 6000,
 };
 const SUSTAINED_RUNS = 3;      // slow in this many consecutive runs before it counts
 const REPEAT_QUIET_MIN = 60;   // the same incident is not re-raised inside this window
@@ -50,6 +50,14 @@ Deno.serve(async (req) => {
   await run("storage_asset", async () => { const r = await fetch(url + "/storage/v1/object/public/post-media/", { method: "HEAD" }); if (r.status >= 500) throw new Error("storage " + r.status); return "status " + r.status; });
   await run("push_function", async () => { const r = await fetch(url + "/functions/v1/send-push-notification", { method: "OPTIONS" }); if (!r.ok) throw new Error("status " + r.status); });
   await run("realtime_endpoint", async () => { const r = await fetch(url + "/realtime/v1/", { method: "GET" }); if (r.status >= 500) throw new Error("realtime " + r.status); });
+  await run("payments_bridge", async () => {
+    // The hop to IntoBank's payment service, made exactly as the phone makes it: an outage here rings before a customer taps Pay.
+    const { data } = await user.auth.getSession(); const token = data.session?.access_token; if (!token) throw new Error("no session");
+    const r = await fetch(url + "/functions/v1/crisp-bridge?action=status", { headers: { Authorization: "Bearer " + token, apikey: anon } });
+    const body = await r.json().catch(() => ({})) as { code?: string; error?: string; linked?: boolean };
+    if (!r.ok) throw new Error((body.code || "status " + r.status) + (body.error ? ": " + body.error : ""));
+    return "linked " + String(body.linked === true);
+  });
   try { await user.auth.signOut({ scope: "local" }); } catch {}
 
   const failed = steps.filter((s) => !s.ok);
