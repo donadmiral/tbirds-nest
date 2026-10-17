@@ -5,12 +5,14 @@
   "scripts": {
     "e2e": "playwright test --reporter=list",
     "dev": "next dev",
+    "prebuild": "node scripts/check-build-env.cjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.91.0",
+    "@next/env": "16.3.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "@tanstack/react-virtual": "^3.14.13",
