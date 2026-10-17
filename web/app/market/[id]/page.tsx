@@ -7,7 +7,6 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Bookmark, Share2, MessageCircle, Check, Tag, CircleCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getListing, getSavedListingIds, toggleSaved, priceLabel, type Listing } from "@/lib/market";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SellerTrust } from "@/components/SellerTrust";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { SellerReviews } from "@/components/SellerReviews";
@@ -15,7 +14,7 @@ import { timeAgo } from "@/lib/feed";
 
 export default function ListingPage() {
   const { id } = useParams<{ id: string }>();
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const [l, setL] = useState<Listing | null | undefined>(undefined);
   const [uid, setUid] = useState<string | null>(null);
@@ -25,25 +24,41 @@ export default function ListingPage() {
   const [offerOpen, setOfferOpen] = useState(false);
   const [offerAmt, setOfferAmt] = useState("");
   const [busy, setBusy] = useState(false);
+  const saving = useRef(false);
+  const messaging = useRef(false);
+  const [savePending, setSavePending] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const [{ data: sess }, listing, savedIds] = await Promise.all([
-        supabase.auth.getSession(),
-        getListing(id),
-        getSavedListingIds(),
-      ]);
-      setUid(sess.session?.user.id ?? null);
-      setL(listing ?? null);
-      if (listing) setSaved(savedIds.has(listing.id));
+      try {
+        const [{ data: sess, error: sessionError }, listing, savedIds] = await Promise.all([
+          supabase.auth.getSession(), getListing(id), getSavedListingIds(),
+        ]);
+        if (sessionError) throw sessionError;
+        if (cancelled) return;
+        setLoadedId(id); setLoadError(false); setImg(0);
+        setUid(sess.session?.user.id ?? null);
+        setL(listing ?? null);
+        setSaved(!!listing && savedIds.has(listing.id));
+      } catch { if (!cancelled) { setLoadedId(id); setLoadError(true); } }
     })();
-  }, [supabase, id]);
+    return () => { cancelled = true; };
+  }, [supabase, id, retry]);
 
   async function onSave() {
     if (!uid || !l) { router.push("/login"); return; }
+    if (saving.current) return;
+    saving.current = true;
+    setSavePending(true);
     const next = !saved;
     setSaved(next);
-    try { await toggleSaved(l.id, next); } catch { setSaved(!next); }
+    try { await toggleSaved(l.id, next); }
+    catch { setSaved(!next); alert("Could not save listing. Please try again."); }
+    finally { saving.current = false; setSavePending(false); }
   }
 
   async function onShare() {
@@ -58,8 +73,14 @@ export default function ListingPage() {
 
   async function messageSeller(): Promise<void> {
     if (!uid || !l) { router.push("/login"); return; }
-    const { data } = await supabase.rpc("start_dm_ctx", { p_receiver_id: l.seller_id, p_context: "market", p_ref_id: l.id });
-    router.push(data ? "/market/messages?c=" + data : "/market/messages");
+    if (messaging.current) return;
+    messaging.current = true;
+    try {
+      const { data, error } = await supabase.rpc("start_dm_ctx", { p_receiver_id: l.seller_id, p_context: "market", p_ref_id: l.id });
+      if (error || !data) throw error || new Error("Could not start conversation");
+      router.push("/market/messages?c=" + data);
+    } catch { alert("Could not open the conversation. Please try again."); }
+    finally { messaging.current = false; }
   }
 
   async function sendOffer() {
@@ -104,7 +125,8 @@ export default function ListingPage() {
     router.push("/market");
   }
 
-  if (l === undefined) return <p className="py-16 text-center text-sm text-ink/40">Loading</p>;
+  if (loadError && loadedId === id) return <p role="alert" className="py-16 text-center text-sm text-danger">Could not load listing. <button onClick={() => { setL(undefined); setLoadError(false); setRetry((n) => n + 1); }} className="underline">Retry</button></p>;
+  if (l === undefined || loadedId !== id) return <p className="py-16 text-center text-sm text-ink/40">Loading</p>;
   if (l === null) {
     return (
       <div className="flex flex-col items-center gap-3 px-1 py-24 text-center">
@@ -164,7 +186,7 @@ export default function ListingPage() {
           ) : (
             <span className="rounded-md bg-surface px-4 py-2 text-[13px] text-ink/60">This listing is marked {l.status}.</span>
           )}
-          <button onClick={onSave} className={btn + (saved ? " text-pearl" : "")}>
+          <button onClick={onSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-pearl" : "")}>
             <Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}
           </button>
           <button onClick={onShare} className={btn}>
@@ -183,7 +205,7 @@ export default function ListingPage() {
               </button>
             </>
           ) : null}
-          <button onClick={onSave} className={btn + (saved ? " text-pearl" : "")}>
+          <button onClick={onSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-pearl" : "")}>
             <Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}
           </button>
           <button onClick={onShare} className={btn}>
@@ -215,7 +237,6 @@ export default function ListingPage() {
       {l.seller ? (
         <Link href={l.seller.username ? "/" + l.seller.username : "#"} className="mt-6 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
           {l.seller.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <StoryAvatar userId={l.seller_id} name={l.seller.full_name} avatarUrl={l.seller.avatar_url} size={56} />
           ) : (
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">

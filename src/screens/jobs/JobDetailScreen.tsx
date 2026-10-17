@@ -9,7 +9,7 @@ import VerifiedBadge from '../../components/VerifiedBadge';
  * checks application status and saved state on focus. Apply, message the
  * poster, and open external application all live here with a pinned bar.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput,
   Alert, Linking, Modal, ActivityIndicator, Image, StatusBar, KeyboardAvoidingView, Platform, Share,
@@ -19,7 +19,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { jobsService } from '../../services/jobsService';
+import { jobsService, isJobDeadlinePassed } from '../../services/jobsService';
 import { uploadMedia } from '../../services/mediaService';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -74,6 +74,8 @@ export default function JobDetailScreen() {
 
   const job = route.params?.job;
   const [saved, setSaved] = useState(false);
+  const saving = useRef(false);
+  const applyingRef = useRef(false);
   const afterSlide = useAfterTransition();
   const [appStatus, setAppStatus] = useState<string | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
@@ -96,13 +98,15 @@ export default function JobDetailScreen() {
   }, [job?.id, userId]);
 
   const toggleSave = useCallback(async () => {
-    if (!userId || !job) return;
+    if (!userId || !job || saving.current) return;
+    saving.current = true;
     const next = !saved;
     setSaved(next);
     try {
       if (next) await jobsService.saveJob(userId, job.id);
       else await jobsService.unsaveJob(userId, job.id);
-    } catch { setSaved(!next); }
+    } catch { setSaved(!next); Alert.alert('Could not save job', 'Please try again.'); }
+    finally { saving.current = false; }
   }, [saved, userId, job]);
 
   const messagePoster = useCallback(async () => {
@@ -137,7 +141,9 @@ export default function JobDetailScreen() {
   }, []);
 
   const submitApply = useCallback(async () => {
-    if (!userId || !job || applying) return;
+    if (!userId || !job || applyingRef.current) return;
+    if (!appStatus && isJobDeadlinePassed(job.deadline)) { Alert.alert('Applications closed', 'The application deadline has passed.'); return; }
+    applyingRef.current = true;
     setApplying(true);
     try {
       let cvUrl: string | null = null;
@@ -151,13 +157,13 @@ export default function JobDetailScreen() {
       }
       const res = await jobsService.applyToJob(userId, job.id, coverNote, cvUrl, cvName, phone, portfolio);
       if (res.updated) Alert.alert('Application updated', 'Your application details were updated.');
-      setAppStatus('applied');
+      setAppStatus(res.app.status);
       setApplyOpen(false);
       setCoverNote(''); setCvAsset(null); setPhone(''); setPortfolio('');
     } catch (e: any) {
       Alert.alert('Could not apply', e?.message || 'Unknown error');
-    } finally { setApplying(false); }
-  }, [userId, job, coverNote, applying, cvAsset, phone, portfolio]);
+    } finally { applyingRef.current = false; setApplying(false); }
+  }, [userId, job, appStatus, coverNote, cvAsset, phone, portfolio]);
 
   if (!job) {
     return (
@@ -170,6 +176,7 @@ export default function JobDetailScreen() {
   const isOwn = job.posted_by === userId;
   const logo = String(job.company || '?').trim().charAt(0).toUpperCase();
   const dLeft = daysLeft(job.deadline);
+  const deadlinePassed = isJobDeadlinePassed(job.deadline);
   const place = job.remote_type === 'remote' ? 'Remote'
     : job.remote_type === 'hybrid' ? [job.location, 'Hybrid'].filter(Boolean).join(' · ')
     : (job.location || 'On site');
@@ -205,7 +212,7 @@ export default function JobDetailScreen() {
             {expLabel ? <View style={st.chip}><Text style={st.chipTxt}>{expLabel}</Text></View> : null}
             {job.salary_range ? <View style={[st.chip, st.chipMoney]}><Text style={[st.chipTxt, { color: '#065F46' }]}>{job.salary_range}</Text></View> : null}
             {job.urgent ? <View style={[st.chip, st.chipUrgent]}><Text style={[st.chipTxt, { color: '#B45309' }]}>URGENT</Text></View> : null}
-            {dLeft !== null && dLeft >= 0 ? <View style={st.chip}><Text style={st.chipTxt}>{dLeft === 0 ? 'Closes today' : 'Closes in ' + dLeft + 'd'}</Text></View> : null}
+            {dLeft !== null && !deadlinePassed ? <View style={st.chip}><Text style={st.chipTxt}>{dLeft === 0 ? 'Closes today' : 'Closes in ' + dLeft + 'd'}</Text></View> : null}
           </View>
         </View>
 
@@ -286,6 +293,8 @@ export default function JobDetailScreen() {
             <Ionicons name="checkmark-circle" size={18} color="#059669" />
             <Text style={st.statusTxt}>Application {appStatus}</Text>
           </View>
+        ) : deadlinePassed ? (
+          <View style={st.statusRow}><Text style={st.statusTxt}>The application deadline has passed.</Text></View>
         ) : job.apply_url ? (
           <TouchableOpacity style={st.applyBtn} activeOpacity={0.9}
             onPress={() => Linking.openURL(job.apply_url).catch(() => Alert.alert('Could not open link'))}>

@@ -3,7 +3,7 @@ import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { type JobRow } from "@/lib/jobs";
+import { type JobRow, isJobDeadlinePassed } from "@/lib/jobs";
 import { ApplyPanel } from "@/components/ApplyPanel";
 import { JobActions } from "@/components/JobActions";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -70,7 +70,7 @@ export default async function JobPage({ params }: Params) {
   const poster = posterRes.data;
 
   const dLeft = daysLeft(j.deadline);
-  const deadlinePassed = dLeft !== null && dLeft < 0;
+  const deadlinePassed = isJobDeadlinePassed(j.deadline);
   const place = j.remote_type === "remote" ? "Remote"
     : j.remote_type === "hybrid" ? [j.location, "Hybrid"].filter(Boolean).join(" · ")
     : (j.location || "On site");
@@ -119,7 +119,7 @@ export default async function JobPage({ params }: Params) {
           {deadlinePassed ? (
             <p className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink/60">The application deadline has passed.</p>
           ) : (
-            <ApplyPanel jobId={j.id} applyUrl={j.apply_url} />
+            <ApplyPanel key={j.id} jobId={j.id} applyUrl={j.apply_url} deadline={j.deadline} />
           )}
         </div>
       )}

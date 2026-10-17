@@ -7,10 +7,9 @@ import VerifiedBadge from '../../components/VerifiedBadge';
  * ApplicantsScreen — the poster's side of a job.
  * Handshake model: every applicant with profile, note and applied time,
  * filterable by status. Changing a status writes job_applications.status,
- * which fires the job_application notification trigger, so applicants are
- * told without any extra client code.
+ * so applicants can follow their progress in My applications.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
   Alert, ActivityIndicator, StatusBar, Linking, Modal, ScrollView, TextInput,
@@ -20,19 +19,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { jobsService, JobApplication, ApplicationStatus } from '../../services/jobsService';
+import { jobsService, JobApplication, ApplicationStatus, STATUS_META, APPLICATION_STATUS_ORDER } from '../../services/jobsService';
 
 const NAVY = '#0B1E3D';
 
-const STATUS_META: Record<ApplicationStatus, { label: string; color: string; bg: string }> = {
-  applied:     { label: 'Applied',     color: '#2563EB', bg: '#EFF6FF' },
-  viewed:      { label: 'Viewed',      color: '#7C3AED', bg: '#F5F3FF' },
-  shortlisted: { label: 'Shortlisted', color: '#059669', bg: '#ECFDF5' },
-  interview:   { label: 'Interview',   color: '#D97706', bg: '#FFFBEB' },
-  rejected:    { label: 'Rejected',    color: '#DC2626', bg: '#FEF2F2' },
-  accepted:    { label: 'Accepted',    color: '#059669', bg: '#ECFDF5' },
-};
-const STATUS_ORDER: ApplicationStatus[] = ['applied', 'viewed', 'shortlisted', 'interview', 'accepted', 'rejected'];
+const STATUS_ORDER = APPLICATION_STATUS_ORDER;
 
 function relTime(d?: string | null) {
   if (!d) return '';
@@ -58,6 +49,8 @@ export default function ApplicantsScreen() {
   const [ivAt, setIvAt] = useState('');
   const [ivLoc, setIvLoc] = useState('');
   const [sheetProfile, setSheetProfile] = useState<any>(null);
+  const pendingStatuses = useRef(new Set<string>());
+  const [statusApp, setStatusApp] = useState<JobApplication | null>(null);
 
   const load = useCallback(async () => {
     if (!job?.id) return;
@@ -95,20 +88,21 @@ export default function ApplicantsScreen() {
   }, []);
 
   const setStatus = useCallback((app: JobApplication) => {
-    const name = app.applicant?.full_name || 'this applicant';
-    Alert.alert('Update ' + name, 'They will be notified of the change.',
-      STATUS_ORDER.filter(st => st !== app.status).map(st => ({
-        text: STATUS_META[st].label,
-        onPress: async () => {
-          const prev = app.status;
-          setApps(list => list.map(x => x.id === app.id ? { ...x, status: st } : x));
-          try { await jobsService.updateApplicationStatus(app.id, st); }
-          catch (e: any) {
-            setApps(list => list.map(x => x.id === app.id ? { ...x, status: prev } : x));
-            Alert.alert('Could not update', e?.message || 'Unknown error');
-          }
-        },
-      })).concat([{ text: 'Cancel', style: 'cancel' } as any]));
+    if (app.status === 'withdrawn' || pendingStatuses.current.has(app.id)) return;
+    setStatusApp(app);
+  }, []);
+
+  const updateStatus = useCallback(async (app: JobApplication, status: ApplicationStatus) => {
+    if (app.status === 'withdrawn' || status === 'withdrawn' || pendingStatuses.current.has(app.id)) return;
+    pendingStatuses.current.add(app.id);
+    setStatusApp(null);
+    const previous = app.status;
+    setApps(list => list.map(row => row.id === app.id ? { ...row, status } : row));
+    try { await jobsService.updateApplicationStatus(app.id, status); }
+    catch (e: any) {
+      setApps(list => list.map(row => row.id === app.id ? { ...row, status: previous } : row));
+      Alert.alert('Could not update', e?.message || 'Please try again.');
+    } finally { pendingStatuses.current.delete(app.id); }
   }, []);
 
   const messageApplicant = useCallback(async (app: JobApplication) => {
@@ -149,7 +143,7 @@ export default function ApplicantsScreen() {
             </View>
             <Text style={st.sub} numberOfLines={1}>{a.username ? '@' + a.username + ' · ' : ''}applied {relTime(item.applied_at)}</Text>
           </View>
-          <TouchableOpacity style={[st.statusChip, { backgroundColor: meta.bg }]} onPress={() => setStatus(item)} activeOpacity={0.8}>
+          <TouchableOpacity style={[st.statusChip, { backgroundColor: meta.bg }]} disabled={item.status === 'withdrawn'} onPress={() => setStatus(item)} activeOpacity={0.8}>
             <Text style={[st.statusTxt, { color: meta.color }]}>{meta.label}</Text>
             <Feather name="chevron-down" size={12} color={meta.color} />
           </TouchableOpacity>
@@ -239,6 +233,31 @@ export default function ApplicantsScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
+      <Modal visible={!!statusApp} animationType="slide" transparent onRequestClose={() => setStatusApp(null)}>
+        <TouchableOpacity style={sh.scrim} activeOpacity={1} onPress={() => setStatusApp(null)}>
+          <TouchableOpacity style={sh.card} activeOpacity={1} onPress={() => {}}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 26 }}>
+              <View style={sh.grab} />
+              <Text style={sh.name}>Update application status</Text>
+              <Text style={sh.applied}>{statusApp?.applicant?.full_name || 'Applicant'}</Text>
+              <View style={sh.actionsWrap}>
+                {STATUS_ORDER.filter(status => status !== 'withdrawn').map(status => (
+                  <TouchableOpacity key={status} style={sh.bigBtn} accessibilityRole="button"
+                    accessibilityState={{ selected: statusApp?.status === status }}
+                    disabled={!statusApp || statusApp.status === status || statusApp.status === 'withdrawn'}
+                    onPress={() => { if (statusApp) void updateStatus(statusApp, status); }}>
+                    <Text style={[sh.bigBtnTxt, { color: STATUS_META[status].color }]}>{STATUS_META[status].label}</Text>
+                    {statusApp?.status === status ? <Feather name="check" size={16} color={STATUS_META[status].color} /> : null}
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TouchableOpacity style={[sh.bigBtn, { marginTop: 14 }]} onPress={() => setStatusApp(null)} accessibilityRole="button">
+                <Text style={sh.bigBtnTxt}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 <Modal visible={!!sheetApp} animationType="slide" transparent onRequestClose={() => setSheetApp(null)}>
         <TouchableOpacity style={sh.scrim} activeOpacity={1} onPress={() => setSheetApp(null)}>
           <TouchableOpacity activeOpacity={1} style={sh.card} onPress={() => {}}>
@@ -259,7 +278,7 @@ export default function ApplicantsScreen() {
                       {p.headline ? <Text style={sh.headline} numberOfLines={2}>{p.headline}</Text> : null}
                       <Text style={sh.applied}>Applied {relTime(sheetApp.applied_at)}</Text>
                     </View>
-                    <TouchableOpacity style={[sh.statusChip, { backgroundColor: meta.bg }]} onPress={() => { const cur = sheetApp; setSheetApp(null); setTimeout(() => setStatus(cur), 350); }} activeOpacity={0.8}>
+                    <TouchableOpacity style={[sh.statusChip, { backgroundColor: meta.bg }]} disabled={sheetApp.status === 'withdrawn'} onPress={() => { const cur = sheetApp; setSheetApp(null); setTimeout(() => setStatus(cur), 350); }} activeOpacity={0.8}>
                       <Text style={[sh.statusTxt, { color: meta.color }]}>{meta.label}</Text>
                       <Feather name="chevron-down" size={12} color={meta.color} />
                     </TouchableOpacity>
@@ -316,14 +335,18 @@ export default function ApplicantsScreen() {
                     <TextInput value={ivAt} onChangeText={setIvAt} placeholder="Date and time, e.g. 2026-08-04 14:00" placeholderTextColor="#9CA3AF" style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, color: '#0B1E3D', marginBottom: 8 }} />
                     <TextInput value={ivLoc} onChangeText={setIvLoc} placeholder="Location or call link (optional)" placeholderTextColor="#9CA3AF" style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, color: '#0B1E3D', marginBottom: 8 }} />
                     <TouchableOpacity style={{ backgroundColor: '#0B1E3D', borderRadius: 10, paddingVertical: 10, alignItems: 'center' }} activeOpacity={0.85}
-                      onPress={async () => {
+                      disabled={sheetApp.status === 'withdrawn'} onPress={async () => {
+                        if (sheetApp.status === 'withdrawn' || pendingStatuses.current.has(sheetApp.id)) return;
                         const d = new Date(ivAt.trim().replace(' ', 'T'));
-                        if (!ivAt.trim() || isNaN(d.getTime())) { Alert.alert('Date needed', 'Use a format like 2026-08-04 14:00'); return; }
+                        if (!ivAt.trim() || isNaN(d.getTime()) || d.getTime() <= Date.now()) { Alert.alert('Date needed', 'Choose a future date and time using YYYY-MM-DD HH:MM.'); return; }
+                        pendingStatuses.current.add(sheetApp.id);
+                        const schedulingId = sheetApp.id;
                         try {
                           await jobsService.scheduleInterview(sheetApp!.id, d.toISOString(), ivLoc.trim() || null);
                           setSheetApp({ ...(sheetApp as any), interview_at: d.toISOString(), interview_location: ivLoc.trim() || null });
                           setIvAt(''); setIvLoc('');
                         } catch (e: any) { Alert.alert('Could not schedule', e?.message || ''); }
+                        finally { pendingStatuses.current.delete(schedulingId); }
                       }}>
                       <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '800' }}>{(sheetApp as any)?.interview_at ? 'Reschedule' : 'Schedule interview'}</Text>
                     </TouchableOpacity>

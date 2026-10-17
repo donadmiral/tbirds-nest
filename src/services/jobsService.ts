@@ -22,7 +22,11 @@ export type ApplicationStatus =
   | 'applied'
   | 'viewed'
   | 'shortlisted'
+  | 'screening'
   | 'interview'
+  | 'offer'
+  | 'hired'
+  | 'withdrawn'
   | 'rejected'
   | 'accepted';
 
@@ -41,10 +45,24 @@ export const STATUS_META: Record<ApplicationStatus, { label: string; color: stri
   applied:     { label: 'Applied',     color: '#2563EB', bg: '#EFF6FF' },
   viewed:      { label: 'Viewed',      color: '#7C3AED', bg: '#F5F3FF' },
   shortlisted: { label: 'Shortlisted', color: '#059669', bg: '#ECFDF5' },
+  screening:   { label: 'Screening',   color: '#7C3AED', bg: '#F5F3FF' },
+  offer:       { label: 'Offer',       color: '#059669', bg: '#ECFDF5' },
+  hired:       { label: 'Hired',       color: '#059669', bg: '#ECFDF5' },
+  withdrawn:   { label: 'Withdrawn',   color: '#6B7280', bg: '#F3F4F6' },
   interview:   { label: 'Interview',   color: '#D97706', bg: '#FFFBEB' },
   rejected:    { label: 'Rejected',    color: '#DC2626', bg: '#FEF2F2' },
   accepted:    { label: 'Accepted',    color: '#059669', bg: '#ECFDF5' },
 };
+
+export const APPLICATION_STATUS_ORDER: ApplicationStatus[] = [
+  'applied', 'viewed', 'shortlisted', 'screening', 'interview', 'offer', 'hired', 'accepted', 'rejected', 'withdrawn',
+];
+
+export function isJobDeadlinePassed(deadline?: string | null, now = Date.now()): boolean {
+  if (!deadline) return false;
+  const expiresAt = Date.parse(deadline);
+  return Number.isFinite(expiresAt) && expiresAt <= now;
+}
 
 export type Job = {
   id: string;
@@ -390,14 +408,15 @@ export const jobsService = {
       .order('applied_at', { ascending: false });
     if (error) {
       console.log('[jobsService.getApplicationsForJob]', error.message);
-      return [];
+      throw error;
     }
     if (!data || data.length === 0) return [];
     const applicantIds = Array.from(new Set(data.map((a: any) => a.applicant_id)));
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, full_name, username, avatar_url, degree_program')
       .in('id', applicantIds);
+    if (profilesError) throw profilesError;
     const pm: Record<string, any> = {};
     (profiles || []).forEach((p: any) => { pm[p.id] = p; });
     return data.map((a: any) => ({
@@ -413,7 +432,10 @@ export const jobsService = {
     const { error } = await supabase
       .from('job_applications')
       .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', applicationId);
+      .eq('id', applicationId)
+      .neq('status', 'withdrawn')
+      .select('id')
+      .single();
     if (error) {
       console.log('[jobsService.updateApplicationStatus]', error.message);
       throw error;
@@ -424,7 +446,10 @@ export const jobsService = {
     const { error } = await supabase
       .from('job_applications')
       .update({ interview_at: at, interview_location: location, updated_at: new Date().toISOString() })
-      .eq('id', applicationId);
+      .eq('id', applicationId)
+      .neq('status', 'withdrawn')
+      .select('id')
+      .single();
     if (error) throw error;
   },
 

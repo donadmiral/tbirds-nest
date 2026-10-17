@@ -16,7 +16,7 @@ import { useUnreadStore } from '../../stores/unreadStore';
 import { supabase } from '../../services/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { authorId as currentAuthorId } from '../../stores/actorStore';
-import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope } from '../../services/jobsService';
+import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope, STATUS_META as APPLICATION_STATUS_META } from '../../services/jobsService';
 import { useAuthStore } from '../../stores/authStore';
 
 const CATEGORY_TABS = [
@@ -64,6 +64,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const STATUS_META: Record<ApplicationStatus, { label: string; color: string; bg: string }> = {
+  ...APPLICATION_STATUS_META,
   applied:     { label: 'Applied',      color: '#2563EB', bg: '#EFF6FF' },
   viewed:      { label: 'Viewed',       color: '#7C3AED', bg: '#F5F3FF' },
   shortlisted: { label: 'Shortlisted',  color: '#059669', bg: '#ECFDF5' },

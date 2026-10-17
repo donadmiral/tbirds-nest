@@ -9,7 +9,7 @@ import MarketFilterSheet, { MarketFilters, EMPTY_FILTERS } from '../../component
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator, Dimensions, FlatList, RefreshControl, StyleSheet,
-  Text, TextInput, TouchableOpacity, View,
+  Text, TextInput, TouchableOpacity, View, Alert,
 } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
@@ -52,55 +52,64 @@ export default function MarketScreen({ navigation }: any) {
   useFocusEffect(React.useCallback(() => { useUnreadStore.getState().refresh(); }, []));
   const { profile: meProfile } = useAuthStore();
   const [filterOpen, setFilterOpen] = useState(false);
-  const searchTimer = useRef<any>(null);
+  const request = useRef(0);
+  const pendingSaves = useRef(new Set<string>());
 
   const load = useCallback(async (opts?: { silent?: boolean }) => {
+    const token = ++request.current;
     if (!opts?.silent) setLoading(true);
     setLoadFailed(false);
     try {
-    if (marketTab === 'saved') {
-      const saved = await marketService.getSavedListings();
-      setListings(saved); setLoading(false); setRefreshing(false); return;
+      let rows: Listing[];
+      if (marketTab === 'saved') {
+        rows = await marketService.getSavedListings();
+      } else if (marketTab === 'selling') {
+        rows = meProfile?.id ? await marketService.myListings(meProfile.id) : [];
+      } else {
+        const noExplicitFilters = !filters.minPrice && !filters.maxPrice && !filters.condition && !filters.city && (!filters.sort || filters.sort === 'recent');
+        rows = noExplicitFilters
+          ? await marketService.getMarketFeed({ search, category, city: (meProfile as any)?.location || null })
+          : await marketService.listListings({ search, category,
+              minPrice: filters.minPrice ? Number(filters.minPrice) : null,
+              maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
+              condition: filters.condition, city: filters.city || null, sort: filters.sort });
+      }
+      const ids = await marketService.getSavedIds();
+      if (token !== request.current) return;
+      setListings(rows);
+      setSavedIds(new Set(ids));
+    } catch (e) {
+      if (token === request.current) setLoadFailed(true);
+      console.log('[market] load failed', (e as any)?.message);
+    } finally {
+      if (token === request.current) { setLoading(false); setRefreshing(false); }
     }
-    if (marketTab === 'selling') {
-      const mine = meProfile?.id ? await marketService.myListings(meProfile.id) : [];
-      setListings(mine); setLoading(false); setRefreshing(false); return;
-    }
-    const noExplicitFilters = !filters.minPrice && !filters.maxPrice && !filters.condition && !filters.city && (!filters.sort || filters.sort === 'recent');
-    const rows = noExplicitFilters
-      ? await marketService.getMarketFeed({
-          search, category: category === 'All' ? null : category,
-          city: (meProfile as any)?.location || null,
-        })
-      : await marketService.listListings({ search, category,
-          minPrice: filters.minPrice ? Number(filters.minPrice) : null,
-          maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
-          condition: filters.condition, city: filters.city || null, sort: filters.sort });
-    setListings(rows);
-    try { const ids = await marketService.getSavedIds(); setSavedIds(new Set(ids)); } catch {}
-    } catch (e) { setLoadFailed(true); console.log('[market] load failed', (e as any)?.message); } finally { setLoading(false); setRefreshing(false); }
-    setRefreshing(false);
-  }, [search, category, filters, marketTab, meProfile?.id]);
+  }, [search, category, filters, marketTab, meProfile?.id, meProfile?.location]);
 
-  useEffect(() => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => { load(); }, 350);
-    return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
-  }, [search, category, filters, load]);
-
-  useFocusEffect(useCallback(() => { load({ silent: true }); }, [load]));
+  // One debounced request per focused query. Invalidate older results on filter changes or blur.
+  useFocusEffect(useCallback(() => {
+    const timer = setTimeout(() => { void load(); }, 350);
+    return () => { clearTimeout(timer); request.current += 1; };
+  }, [load]));
 
   const onRefresh = () => { setRefreshing(true); load({ silent: true }); };
 
   const categories = useMemo(() => ['All', ...MARKET_CATEGORIES], []);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const toggleSave = useCallback(async (id: string) => {
-    const next = !savedIds.has(id);
-    setSavedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-    try { await marketService.toggleSaved(id, next); } catch {
-      setSavedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-    }
-  }, [savedIds]);
+    if (pendingSaves.current.has(id)) return;
+    pendingSaves.current.add(id);
+    const wasSaved = savedIds.has(id);
+    const next = !wasSaved;
+    setSavedIds(prev => { const n = new Set(prev); next ? n.add(id) : n.delete(id); return n; });
+    try {
+      await marketService.toggleSaved(id, next);
+      if (!next && marketTab === 'saved') setListings(rows => rows.filter(row => row.id !== id));
+    } catch {
+      setSavedIds(prev => { const n = new Set(prev); wasSaved ? n.add(id) : n.delete(id); return n; });
+      Alert.alert('Could not save listing', 'Please try again.');
+    } finally { pendingSaves.current.delete(id); }
+  }, [savedIds, marketTab]);
 
   const renderItem = ({ item }: { item: Listing }) => (
     <TouchableOpacity
@@ -245,9 +254,14 @@ export default function MarketScreen({ navigation }: any) {
         />
       </View>
 
+      {loadFailed ? (
+        <TouchableOpacity onPress={() => void load()} style={{ padding: 14 }} accessibilityRole="button">
+          <Text style={s.emptyTxt}>Could not load listings. Tap to retry.</Text>
+        </TouchableOpacity>
+      ) : null}
       {loading ? (
         <ListRowSkeleton />
-      ) : listings.length === 0 ? (
+      ) : listings.length === 0 && !loadFailed ? (
         <View style={s.center}>
           <Feather name="shopping-bag" size={40} color="#E5E5EA" />
           <Text style={s.emptyTitle}>Nothing here yet</Text>

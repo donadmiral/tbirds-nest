@@ -9,7 +9,7 @@ import ReportListingSheet from '../../components/market/ReportListingSheet';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import SellerReviews from '../../components/market/SellerReviews';
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet,
   Text, TouchableOpacity, View, Modal, TextInput , KeyboardAvoidingView, Platform } from 'react-native';
@@ -51,15 +51,22 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   const afterSlide = useAfterTransition();
   const [imgIndex, setImgIndex] = useState(0);
   const [busy, setBusy] = useState(false);
+  const saving = useRef(false);
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
 
   useFocusEffect(useCallback(() => {
     let cancelled = false;
+    setLoading(true); setLoadError(false);
     (async () => {
-      const row = takePrefetched<any>('listing:' + listingId) ?? await marketService.getListing(listingId);
-      if (!cancelled) { setListing(row); setLoading(false); }
+      try {
+        const row = await (takePrefetched<any>('listing:' + listingId) ?? marketService.getListing(listingId));
+        if (!cancelled) setListing(row);
+      } catch { if (!cancelled) setLoadError(true); }
+      finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [listingId]));
+  }, [listingId, retry]));
 
   const insets = useSafeAreaInsets();
   const [reportOpen, setReportOpen] = useState(false);
@@ -78,11 +85,13 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   }, [listing?.id]);
 
   const toggleSaved = useCallback(async () => {
-    if (!listing?.id) return;
+    if (!listing?.id || saving.current) return;
+    saving.current = true;
     const next = !savedListing;
     setSavedListing(next);
     try { await marketService.toggleSaved(listing.id, next); }
     catch (e: any) { setSavedListing(!next); Alert.alert('Could not save', e?.message || 'Try again.'); }
+    finally { saving.current = false; }
   }, [listing?.id, savedListing]);
 
   const blockSeller = () => {
@@ -160,6 +169,8 @@ export default function ListingDetailScreen({ navigation, route }: any) {
       },
     ]);
   };
+
+  if (loadError && !loading) return <SafeAreaView style={s.safe}><View style={s.center}><Text>Could not load listing.</Text><TouchableOpacity onPress={() => setRetry(n => n + 1)}><Text>Try again</Text></TouchableOpacity></View></SafeAreaView>;
 
   if (loading || !afterSlide) {
     return <SafeAreaView style={s.safe} edges={['top']}><ListingSkeleton /></SafeAreaView>;

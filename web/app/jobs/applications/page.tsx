@@ -1,25 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { type JobRow } from "@/lib/jobs";
+import { type JobRow, STATUS_META } from "@/lib/jobs";
 import { timeAgo } from "@/lib/feed";
-
-// Mirrors STATUS_META in src/services/jobsService.ts (labels and colors).
-const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  applied:     { label: "Applied",     color: "#2563EB", bg: "#EFF6FF" },
-  viewed:      { label: "Viewed",      color: "#7C3AED", bg: "#F5F3FF" },
-  shortlisted: { label: "Shortlisted", color: "#059669", bg: "#ECFDF5" },
-  interview:   { label: "Interview",   color: "#D97706", bg: "#FFFBEB" },
-  rejected:    { label: "Rejected",    color: "#DC2626", bg: "#FEF2F2" },
-  accepted:    { label: "Accepted",    color: "#059669", bg: "#ECFDF5" },
-};
 
 type AppRow = { id: string; job_id: string; status: string; applied_at?: string | null; created_at?: string | null; job?: JobRow | null };
 
 export default function MyApplicationsPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [apps, setApps] = useState<AppRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +48,7 @@ export default function MyApplicationsPage() {
       ) : (
         <div className="border-t border-ink/10">
           {apps.map((a) => {
-            const meta = STATUS_META[a.status] || STATUS_META.applied;
+            const meta = STATUS_META[a.status as keyof typeof STATUS_META] || { label: a.status, color: "#6B7280", bg: "#F3F4F6" };
             return (
               <Link key={a.id} href={"/jobs/" + a.job_id} className="flex items-center gap-4 border-b border-ink/10 px-1 py-4 transition-colors hover:bg-surface">
                 <span className="min-w-0 flex-1">
