@@ -56,7 +56,13 @@ export function createBridgeHandler(deps: Dependencies) {
           if (!["USD", "ZWG"].includes(params.currency)) return json({ success: false, error: "Unsupported currency" }, 400);
         }
         const { data, response } = await requestCrisp(deps, params);
-        if (action === "peer-status") return json({ linked: response.ok && data?.linked === true }, response.status);
+        if (action === "peer-status") {
+          if (!response.ok) return json({ success: false, error: "Recipient connection status unavailable" }, response.status);
+          if (data?.success !== true || typeof data.linked !== "boolean") {
+            return json({ success: false, code: "CRISP_BAD_RESPONSE", error: "Recipient connection status was not confirmed" }, 502);
+          }
+          return json({ linked: data.linked });
+        }
         return json(data, response.status);
       }
       if (req.method === "POST" && ["link", "unlink"].includes(action)) {

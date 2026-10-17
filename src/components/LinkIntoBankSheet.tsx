@@ -1,5 +1,5 @@
 import { themedSheet } from '../theme/useTheme';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, Modal, TextInput,
   ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
@@ -20,26 +20,34 @@ export default function LinkIntoBankSheet({ visible, onClose, onLinked }: Props)
   const operationRef = useRef(false);
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
+  const context = useMemo(() => ({ ownerId, visible }), [ownerId, visible]);
+  const currentContextRef = useRef<typeof context | null>(context);
+  currentContextRef.current = context;
 
   useEffect(() => {
+    currentContextRef.current = context;
+    operationRef.current = false;
+    setBusy(false);
     if (visible) setCode('');
-  }, [visible, ownerId]);
+    return () => { if (currentContextRef.current === context) currentContextRef.current = null; };
+  }, [context]);
 
   const submit = useCallback(async () => {
     if (operationRef.current) return;
     if (!code.trim()) { Alert.alert('Approval code needed', 'Approve Platinum Circles in IntoBank, then enter the connection code.'); return; }
     operationRef.current = true; setBusy(true);
+    const isCurrent = () => currentContextRef.current === context && context.visible && useAuthStore.getState().session?.user?.id === ownerId;
     try {
       await paymentsService.linkAccount(code, ownerId);
-      if (useAuthStore.getState().session?.user?.id !== ownerId) return;
+      if (!isCurrent()) return;
       setCode('');
       onLinked?.();
       onClose();
       Alert.alert('Connected', 'Your IntoBank account is linked.');
     } catch (e: any) {
-      Alert.alert('Could not connect', e?.message || 'Check the approval code and try again.');
-    } finally { operationRef.current = false; setBusy(false); }
-  }, [code, ownerId, onLinked, onClose]);
+      if (isCurrent()) Alert.alert('Could not connect', e?.message || 'Check the approval code and try again.');
+    } finally { if (isCurrent()) { operationRef.current = false; setBusy(false); } }
+  }, [code, ownerId, context, onLinked, onClose]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { if (!busy) onClose(); }}>

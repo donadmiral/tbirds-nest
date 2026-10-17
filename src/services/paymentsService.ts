@@ -157,7 +157,7 @@ async function call(path: string, init: RequestInit = {}, expectedUserId?: strin
     );
   }
 
-  if (expectedUserId && session.user?.id !== expectedUserId) {
+  if (expectedUserId !== undefined && (!expectedUserId || session.user?.id !== expectedUserId)) {
     throw new BridgeError(401, 'Your account changed. Reopen this payment from the correct account.', 'auth');
   }
 
@@ -308,33 +308,43 @@ async function call(path: string, init: RequestInit = {}, expectedUserId?: strin
 }
 
 export const paymentsService = {
-  async getBalance(currency = 'USD') {
-    return call('?action=balance&currency=' + currency);
+  async getBalance(ownerId: string, currency = 'USD') {
+    const r = await call('?action=balance&currency=' + encodeURIComponent(currency), {}, ownerId);
+    if (r?.success !== true || typeof r.linked !== 'boolean' ||
+      (r.linked && (r.currency !== currency || typeof r.balance !== 'number' ||
+        !Number.isFinite(r.balance) || typeof r.available !== 'number' || !Number.isFinite(r.available)))) {
+      throw new BridgeError(200, 'IntoBank did not confirm the wallet balance. Please try again.', 'invalid-response');
+    }
+    return r;
   },
 
-  async getLinkStatus(): Promise<LinkStatus> {
-    const r = await call('?action=status');
+  async getLinkStatus(ownerId: string): Promise<LinkStatus> {
+    const r = await call('?action=status', {}, ownerId);
+    if (r?.success !== true || typeof r.linked !== 'boolean') {
+      throw new BridgeError(200, 'IntoBank did not confirm the connection status. Please try again.', 'invalid-response');
+    }
     return {
-      linked: !!r?.linked,
-      linked_at: r?.linked_at ?? null,
+      linked: r.linked,
+      linked_at: typeof r.linked_at === 'string' ? r.linked_at : null,
     };
   },
 
-  async peerLinked(userId: string): Promise<boolean> {
-    try {
-      const r = await call(
-        '?action=peer-status&user=' + userId
-      );
-      return !!r?.linked;
-    } catch {
-      return false;
+  async peerLinked(userId: string, ownerId: string): Promise<boolean> {
+    const r = await call('?action=peer-status&user=' + encodeURIComponent(userId), {}, ownerId);
+    if (typeof r?.linked !== 'boolean' || r?.success === false) {
+      throw new BridgeError(200, 'IntoBank did not confirm the recipient connection. Please try again.', 'invalid-response');
     }
+    return r.linked;
   },
 
-  async unlink() {
-    return call('?action=unlink', {
+  async unlink(ownerId: string) {
+    const r = await call('?action=unlink', {
       method: 'POST',
-    });
+    }, ownerId);
+    if (r?.success !== true) {
+      throw new BridgeError(200, getResponseMessage(r, 'IntoBank did not confirm the disconnection. Please try again.'), 'invalid-response');
+    }
+    return r;
   },
 
   async linkAccount(code: string, ownerId: string) {

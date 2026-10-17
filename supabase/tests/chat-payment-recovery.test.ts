@@ -243,6 +243,32 @@ test("missing explicit Crisp URL stops before recording or submitting a new paym
   assert.equal((await createBridgeHandler(deps)(request("pay", body))).status, 503);
   assert.equal(db.payments.length, 0); assert.equal(calls.length, 0);
 });
+
+test("peer connection status does not turn malformed successful responses into disconnected accounts", async () => {
+  for (const answer of [{}, { success: false }, { success: true }, { success: true, linked: "false" }]) {
+    const { handler } = setup(() => Response.json(answer));
+    const response = await handler(request(`peer-status&user=${recipient}`));
+    assert.equal(response.status, 502);
+    const result = await response.json();
+    assert.equal(result.code, "CRISP_BAD_RESPONSE");
+    assert.equal(result.linked, undefined);
+  }
+});
+
+test("peer connection returns only confirmed status and preserves provider outages", async () => {
+  for (const linked of [false, true]) {
+    const { handler } = setup(() => Response.json({ success: true, linked, linked_at: "private-metadata" }));
+    const response = await handler(request(`peer-status&user=${recipient}`));
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { linked });
+  }
+  const { handler } = setup(() => Response.json({ error: "private-internals" }, { status: 503 }));
+  const response = await handler(request(`peer-status&user=${recipient}`));
+  assert.equal(response.status, 503);
+  const result = await response.json();
+  assert.equal(result.linked, undefined);
+  assert.equal(JSON.stringify(result).includes("private-internals"), false);
+});
 test("new non-USD chat payments reject before insert and send while old records remain recoverable", async () => {
   const { handler, db, calls } = setup((url: URL, init: any) => canonical(url, init, { currency: "ZWG" }));
   const rejected = await handler(request("pay", { ...body, currency: "ZWG" }));

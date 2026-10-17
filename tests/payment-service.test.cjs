@@ -70,6 +70,10 @@ test('switching the signed-in account prevents payment and status requests', asy
   await assert.rejects(harness.paymentsService.getPaymentStatus(intent), /account changed/);
   await assert.rejects(harness.paymentsService.sendMoney(intent), /account changed/);
   await assert.rejects(harness.paymentsService.linkAccount('ABCDEF12', intent.ownerId), /account changed/);
+  await assert.rejects(harness.paymentsService.getLinkStatus(intent.ownerId), /account changed/);
+  await assert.rejects(harness.paymentsService.getBalance(intent.ownerId), /account changed/);
+  await assert.rejects(harness.paymentsService.peerLinked('receiver-a', intent.ownerId), /account changed/);
+  await assert.rejects(harness.paymentsService.unlink(intent.ownerId), /account changed/);
   assert.equal(harness.requests.length, 0);
 });
 
@@ -101,4 +105,44 @@ test('linking redeems an approval code and rejects an unconfirmed response', asy
   assert.equal(harness.paymentsService.linkWithSignIn, undefined);
   const rejected = serviceHarness({ body: { success: false, error: 'Expired code' } });
   await assert.rejects(rejected.paymentsService.linkAccount('ABCDEF12', 'sender-a'), /Expired code/);
+});
+
+test('connection status accepts only an explicit successful boolean answer', async () => {
+  for (const body of [{}, { success: false }, { success: true }, { success: true, linked: 'false' }]) {
+    await assert.rejects(serviceHarness({ body }).paymentsService.getLinkStatus('sender-a'), { kind: 'invalid-response' });
+  }
+  for (const linked of [true, false]) {
+    const result = await serviceHarness({ body: { success: true, linked } }).paymentsService.getLinkStatus('sender-a');
+    assert.equal(result.linked, linked);
+  }
+});
+
+test('recipient status distinguishes a confirmed disconnection from an outage', async () => {
+  assert.equal(await serviceHarness({ body: { linked: false } }).paymentsService.peerLinked('receiver-a', 'sender-a'), false);
+  await assert.rejects(serviceHarness({ status: 503, body: { error: 'Unavailable' } }).paymentsService.peerLinked('receiver-a', 'sender-a'), { status: 503 });
+  for (const body of [{}, { linked: 'false' }, { success: false, linked: false }]) {
+    await assert.rejects(serviceHarness({ body }).paymentsService.peerLinked('receiver-a', 'sender-a'), { kind: 'invalid-response' });
+  }
+});
+
+test('unlink requires confirmed success and preserves the authenticated account boundary', async () => {
+  for (const body of [{}, { success: false }, { success: 'true' }]) {
+    await assert.rejects(serviceHarness({ body }).paymentsService.unlink('sender-a'), { kind: 'invalid-response' });
+  }
+  const confirmed = serviceHarness({ body: { success: true } });
+  await confirmed.paymentsService.unlink('sender-a');
+  assert.equal(confirmed.requests[0].init.method, 'POST');
+  assert.equal(confirmed.requests[0].url.endsWith('?action=unlink'), true);
+  const emptyOwner = serviceHarness({ body: { success: true } });
+  await assert.rejects(emptyOwner.paymentsService.unlink(''), { kind: 'auth' });
+  assert.equal(emptyOwner.requests.length, 0);
+});
+
+test('wallet reads never invent zero balance or a disconnected account from incomplete data', async () => {
+  for (const body of [{}, { success: true }, { success: true, linked: true }, { success: true, linked: true, currency: 'ZWG', balance: 10, available: 10 }, { success: true, linked: true, currency: 'USD', balance: 10, available: null }]) {
+    await assert.rejects(serviceHarness({ body }).paymentsService.getBalance('sender-a'), { kind: 'invalid-response' });
+  }
+  assert.equal((await serviceHarness({ body: { success: true, linked: false } }).paymentsService.getBalance('sender-a')).linked, false);
+  const confirmed = serviceHarness({ body: { success: true, linked: true, currency: 'USD', balance: 10, available: 8 } });
+  assert.equal((await confirmed.paymentsService.getBalance('sender-a')).available, 8);
 });

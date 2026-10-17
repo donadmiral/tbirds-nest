@@ -102,7 +102,7 @@ export default function SendMoneySheet({
           }
         }
         const [balance, peer] = await Promise.all([
-          paymentsService.getBalance(), paymentsService.peerLinked(recipientId),
+          paymentsService.getBalance(ownerId), paymentsService.peerLinked(recipientId, ownerId),
         ]);
         if (!current()) return;
         setLinked(!!balance?.linked); setWallet(balance?.linked ? balance : null); setPeerHasBank(peer);
@@ -152,7 +152,7 @@ export default function SendMoneySheet({
     operationRef.current = true; setBusy(true);
     try {
       await paymentsService.linkAccount(code, ownerId);
-      const balance = await paymentsService.getBalance();
+      const balance = await paymentsService.getBalance(ownerId);
       if (activeContextRef.current !== context) return;
       setLinked(!!balance?.linked); setWallet(balance?.linked ? balance : null); setCode('');
     } catch (e: any) {

@@ -3,8 +3,9 @@ import TierName from '../../components/TierName';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme } from '../../theme/useTheme';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { AppState, KeyboardAvoidingView, Platform } from 'react-native';
 import { paymentsService } from '../../services/paymentsService';
+import { createIntoBankLinkState } from '../../services/intoBankLinkState';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useAccountsStore } from '../../stores/accountsStore';
@@ -185,12 +186,15 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   const sw = (value: boolean, onChange: (v: boolean) => void, disabled = false) => (
     <Switch value={value} onValueChange={onChange} trackColor={{ false: 'rgba(11,30,61,0.08)', true: '#059669' }} thumbColor="#FFF" disabled={disabled} />
   );
-  const [ibLinked, setIbLinked] = React.useState<boolean | null>(null);
+  const ibOwnerId = useAuthStore(st => st.session?.user?.id || '');
+  const [ibState, setIbState] = React.useState<{ ownerId: string; linked: boolean | null; issue: string | null }>({ ownerId: '', linked: null, issue: null });
+  const ibLinked = ibState.ownerId === ibOwnerId ? ibState.linked : null;
+  const ibIssue = ibState.ownerId === ibOwnerId ? ibState.issue : null;
   const [showLinkSheet, setShowLinkSheet] = React.useState(false);
-  const [ibIssue, setIbIssue] = React.useState<string | null>(null);
+  const ibStateRef = React.useRef<ReturnType<typeof createIntoBankLinkState> | null>(null);
   // An outage on the way to IntoBank is shown as an outage. The link itself changes only on a definite answer or the person's own unlink.
   const refreshIbStatus = React.useCallback(() => {
-    paymentsService.getLinkStatus().then(r => { setIbLinked(!!r.linked); setIbIssue(null); AsyncStorage.setItem('pc.ib.linked', r.linked ? '1' : '0').catch(() => {}); }, (e: any) => { setIbIssue(e?.message || 'IntoBank could not be reached.'); AsyncStorage.getItem('pc.ib.linked').then(v => { if (v != null) setIbLinked(v === '1'); }).catch(() => {}); });
+    void ibStateRef.current?.refresh();
   }, []);
   const lockEnabled = useLockStore(st => st.enabled);
   const toggleAppLock = async () => {
@@ -213,18 +217,36 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   };
   // The last known IntoBank state shows at once; the server's answer refreshes it quietly.
   React.useEffect(() => {
-    let alive = true;
-    AsyncStorage.getItem('pc.ib.linked').then(v => { if (alive && v != null && ibLinked === null) setIbLinked(v === '1'); }).catch(() => {});
+    setShowLinkSheet(false);
+    setIbState({ ownerId: ibOwnerId, linked: null, issue: null });
+    const controller = createIntoBankLinkState({
+      ownerId: ibOwnerId,
+      isCurrentOwner: () => useAuthStore.getState().session?.user?.id === ibOwnerId,
+      storage: AsyncStorage,
+      readStatus: paymentsService.getLinkStatus,
+      onState: state => setIbState({ ownerId: ibOwnerId, ...state }),
+    });
+    ibStateRef.current = controller;
+    return () => { controller.dispose(); if (ibStateRef.current === controller) ibStateRef.current = null; };
+  }, [ibOwnerId]);
+  useFocusEffect(React.useCallback(() => {
     refreshIbStatus();
-    return () => { alive = false; };
-  }, []);
+    const subscription = AppState.addEventListener('change', state => { if (state === 'active') refreshIbStatus(); });
+    return () => subscription.remove();
+  }, [ibOwnerId, refreshIbStatus]));
   const confirmUnlink = () => {
+    const controller = ibStateRef.current;
+    const isCurrentOwner = () => !!controller && ibStateRef.current === controller && !!ibOwnerId && useAuthStore.getState().session?.user?.id === ibOwnerId;
     Alert.alert('Unlink IntoBank?', 'Payments in chats stop until you link an account again, from Settings or from any pay sheet. Nothing about your IntoBank account itself changes.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Unlink', style: 'destructive', onPress: async () => { try {
+        if (!isCurrentOwner()) return;
         // Disconnecting a bank is confirmed the same way sending money is.
         if (LocalAuthentication?.authenticateAsync) { const ok = await LocalAuthentication.authenticateAsync({ promptMessage: 'Confirm to unlink IntoBank', fallbackLabel: 'Use passcode' }); if (!ok?.success) return; }
-        await paymentsService.unlink(); setIbLinked(false); setIbIssue(null); AsyncStorage.setItem('pc.ib.linked', '0').catch(() => {}); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch (e: any) { Alert.alert('Could not deactivate', e?.message || 'Please try again.'); } } },
+        if (!isCurrentOwner()) return;
+        await paymentsService.unlink(ibOwnerId);
+        if (!isCurrentOwner()) return;
+        controller?.confirm(false); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch (e: any) { if (isCurrentOwner()) Alert.alert('Could not deactivate', e?.message || 'Please try again.'); } } },
     ]);
   };
 
@@ -266,7 +288,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: 'Face ID at launch and when you return after being away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
     ] },
     { title: 'IntoBank', rows: [
-      { icon: 'credit-card', color: '#0B1E3D', label: ibLinked === null ? 'IntoBank' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibIssue ? ibIssue + ' Tap to try again.' : ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibIssue) { setIbIssue(null); refreshIbStatus(); return; } if (ibLinked === false) setShowLinkSheet(true); } },
+      { icon: 'credit-card', color: '#0B1E3D', label: ibLinked === null ? 'IntoBank' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibIssue ? ibIssue + ' Tap to try again.' : ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibIssue) { refreshIbStatus(); return; } if (ibLinked === false) setShowLinkSheet(true); } },
       ...(ibLinked ? [{ icon: 'x-circle', color: '#FF3B30', label: 'Unlink IntoBank', sub: 'Disconnect this bank account, or unlink to connect a different one', onPress: confirmUnlink }] : []),
       ...(ibLinked === false && !ibIssue ? [{ icon: 'link', color: '#0B1E3D', label: 'Link IntoBank', sub: 'Approve Platinum Circles in the IntoBank app, then enter the connection code', onPress: () => setShowLinkSheet(true) }] : []),
     ] },
@@ -690,7 +712,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
         </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
-      <LinkIntoBankSheet visible={showLinkSheet} onClose={() => setShowLinkSheet(false)} onLinked={() => { setIbLinked(true); setIbIssue(null); AsyncStorage.setItem('pc.ib.linked', '1').catch(() => {}); }} />
+      <LinkIntoBankSheet visible={showLinkSheet} onClose={() => setShowLinkSheet(false)} onLinked={() => ibStateRef.current?.confirm(true)} />
     </SafeAreaView>
   );
 }
