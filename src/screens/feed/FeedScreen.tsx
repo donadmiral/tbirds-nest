@@ -697,16 +697,8 @@ export default function FeedScreen({ navigation }: any) {
             .in('post_id', ids)
             .order('created_at', { ascending: false });
 
-          const countMap: Record<string, number> = {};
-          (cData || []).forEach((c: any) => {
-            countMap[c.post_id] = (countMap[c.post_id] || 0) + 1;
-          });
-
-          setPosts(prev => prev.map(post => ({
-            ...post,
-            comments_count: countMap[post.id] ?? post.comments_count ?? 0,
-          })));
-
+          // These rows are previews, and the API may return only a prefix.
+          // Keep the authoritative comments_count returned by get_feed.
           const cpMap: Record<string, CommentPreview> = {};
           const topLevelComments = (cData || []).filter((c: any) => !c.parent_comment_id);
           const aIds = Array.from(new Set(topLevelComments.map((c: any) => c.user_id).filter(Boolean)));
@@ -759,6 +751,10 @@ export default function FeedScreen({ navigation }: any) {
   }, [userId]);
 
   useEffect(() => {
+    let feedLive = true;
+    const hasFeedPost = (postId: string) => feedLive
+      && useAuthStore.getState().profile?.id === userId
+      && postsRef.current.some(post => post.id === postId);
     loadFeed(true);
 
     // Order is decided by get_feed on the server. Never re-sort under the
@@ -841,7 +837,7 @@ export default function FeedScreen({ navigation }: any) {
     const commentCh = supabase.channel('feed_comments')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_comments' }, async (payload) => {
         const row = payload.new as any;
-        if (!row?.post_id) return;
+        if (!row?.post_id || !hasFeedPost(row.post_id)) return;
         setPosts(prev => sortPosts(prev.map(p => {
           if (p.id !== row.post_id) return p;
           const next = { ...p, comments_count: p.comments_count + 1 };
@@ -854,6 +850,7 @@ export default function FeedScreen({ navigation }: any) {
               .from('profiles').select('full_name, username').eq('id', row.user_id).maybeSingle();
             authorName = author?.full_name || author?.username || 'User';
           }
+          if (!hasFeedPost(row.post_id)) return;
           setCommentPreviews(prev => ({
             ...prev,
             [row.post_id]: { body: row.body || row.text || '', authorName },
@@ -862,7 +859,7 @@ export default function FeedScreen({ navigation }: any) {
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_comments' }, async (payload) => {
         const row = payload.old as any;
-        if (!row?.post_id) return;
+        if (!row?.post_id || !hasFeedPost(row.post_id)) return;
         setPosts(prev => sortPosts(prev.map(p => {
           if (p.id !== row.post_id) return p;
           const next = { ...p, comments_count: Math.max(0, p.comments_count - 1) };
@@ -877,12 +874,14 @@ export default function FeedScreen({ navigation }: any) {
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
+          if (!hasFeedPost(row.post_id)) return;
           if (latestComment) {
             let aName = 'User';
             if (latestComment.user_id) {
               const { data: a } = await supabase.from('profiles').select('full_name, username').eq('id', latestComment.user_id).maybeSingle();
               aName = a?.full_name || a?.username || 'User';
             }
+            if (!hasFeedPost(row.post_id)) return;
             setCommentPreviews(prev => ({ ...prev, [row.post_id]: { body: latestComment.body, authorName: aName } }));
           } else {
             setCommentPreviews(prev => { const n = { ...prev }; delete n[row.post_id]; return n; });
@@ -911,6 +910,7 @@ export default function FeedScreen({ navigation }: any) {
       .subscribe();
 
     return () => {
+      feedLive = false;
       supabase.removeChannel(ch);
       supabase.removeChannel(likeCh);
       supabase.removeChannel(rbCh);
@@ -1689,9 +1689,7 @@ export default function FeedScreen({ navigation }: any) {
         .in('post_id', ids)
         .order('created_at', { ascending: false });
       if (cData && cData.length > 0) {
-        const countMap: Record<string, number> = {};
-        cData.forEach((c: any) => { countMap[c.post_id] = (countMap[c.post_id] || 0) + 1; });
-        setPosts(prev => prev.map(post => countMap[post.id] != null ? { ...post, comments_count: countMap[post.id] } : post));
+        // Preview rows can be capped independently of the total comment count.
         const topC = cData.filter((c: any) => !c.parent_comment_id);
         const aIds2 = Array.from(new Set(topC.map((c: any) => c.user_id).filter(Boolean)));
         const authors2: Record<string, any> = {};
