@@ -16,53 +16,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, LogOut, Plus, Sparkles, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
 
 export function TopBar({ name, username, avatarUrl }: { name: string; username: string; avatarUrl?: string | null }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const router = useRouter();
-  const [unread, setUnread] = useState(0);
+  const unread = useUnreadNotifications() ?? 0;
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    // Held out here so the effect's own cleanup can remove it. Returning a
-    // cleanup from inside the async body does nothing: React never sees it,
-    // which is why StrictMode's second mount hit an already-subscribed
-    // channel. The name carries a per-mount suffix for the same reason, since
-    // supabase-js hands back the existing channel for a repeated topic.
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    const readCount = async (uid: string) => {
-      const { count } = await supabase
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("recipient_id", uid)
-        .is("read_at", null);
-      if (alive) setUnread(count ?? 0);
-    };
-
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
-      if (!uid || !alive) return;
-      await readCount(uid);
-      if (!alive) return;
-      channel = supabase
-        .channel("topbar-notifications-" + uid + "-" + Math.random().toString(36).slice(2, 8))
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "notifications", filter: "recipient_id=eq." + uid },
-          () => { void readCount(uid); },
-        )
-        .subscribe();
-    })();
-
-    return () => {
-      alive = false;
-      if (channel) void supabase.removeChannel(channel);
-    };
-  }, [supabase]);
 
   // A menu that traps nothing and closes on any outside click, which is what
   // people expect from an avatar menu.

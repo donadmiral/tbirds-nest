@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Search, Briefcase, ShoppingBag, ArrowLeft, FileText, MapPin, Play, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -11,6 +11,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { RichText } from "@/components/RichText";
 import { timeAgo } from "@/lib/feed";
 import { displayImageUrl } from "@/lib/media";
+import { ErrorState } from "@/components/ErrorState";
 
 type Person = { id: string; full_name: string | null; username: string | null; avatar_url: string | null; headline: string | null };
 type PostHit = { id: string; user_id: string; content: string | null; created_at: string; author?: Person | null };
@@ -25,30 +26,46 @@ const RECENT_KEY = "tbn_recent_searches_v1";
 const MAX_RECENT = 8;
 const CHIPS: [string, string][] = [["all", "All"], ["people", "People"], ["posts", "Posts"], ["media", "Media"], ["articles", "Articles"], ["jobs", "Jobs"], ["market", "Market"], ["places", "Places"]];
 
+type Results = { key: string; people: Person[]; posts: PostHit[]; jobs: JobHit[]; listings: ListingHit[]; media: MediaHit[]; articles: ArticleHit[]; places: PlaceHit[]; error: boolean };
+const EMPTY_RESULTS = { people: [], posts: [], jobs: [], listings: [], media: [], articles: [], places: [] };
+
 export default function SearchPage() {
-  const supabase = useRef(createClient()).current;
+  return <Suspense fallback={<p className="py-14 text-center text-sm text-ink/40">Loading</p>}><SearchFromUrl /></Suspense>;
+}
+
+function SearchFromUrl() {
+  const params = useSearchParams();
+  const query = params.get("q") ?? "";
+  return <SearchResults key={query} initialQuery={query} />;
+}
+
+function SearchResults({ initialQuery }: { initialQuery: string }) {
+  const [supabase] = useState(createClient);
   const router = useRouter();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
   const [filter, setFilter] = useState("all");
-  const [people, setPeople] = useState<Person[]>([]);
-  const [posts, setPosts] = useState<PostHit[]>([]);
-  const [jobs, setJobs] = useState<JobHit[]>([]);
-  const [listings, setListings] = useState<ListingHit[]>([]);
-  const [media, setMedia] = useState<MediaHit[]>([]);
-  const [articles, setArticles] = useState<ArticleHit[]>([]);
-  const [places, setPlaces] = useState<PlaceHit[]>([]);
+  const [result, setResult] = useState<Results | null>(null);
+  const [retry, setRetry] = useState(0);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
-  const [searching, setSearching] = useState(false);
   const [postMode, setPostMode] = useState<"top" | "latest">("top");
-  const [searched, setSearched] = useState(false);
+  const queryKey = q.trim() + "\0" + postMode;
+  const searched = result?.key === queryKey;
+  const searching = q.trim().length >= 2 && !searched;
+  const searchError = searched && result.error;
+  const { people, posts, jobs, listings, media, articles, places } = searched && !result.error ? result : EMPTY_RESULTS;
 
   useEffect(() => {
     supabase.rpc("get_trending_topics", { p_limit: 8 }).then(({ data }) => setTopics((data ?? []) as Topic[]));
-    try {
-      const raw = window.localStorage.getItem(RECENT_KEY);
-      if (raw) setRecent(JSON.parse(raw) as string[]);
-    } catch { /* ignore */ }
+    let alive = true;
+    queueMicrotask(() => {
+      if (!alive) return;
+      try {
+        const raw = window.localStorage.getItem(RECENT_KEY);
+        if (raw) { const values: unknown = JSON.parse(raw); if (Array.isArray(values)) setRecent(values.filter((value): value is string => typeof value === "string").slice(0, MAX_RECENT)); }
+      } catch { /* Storage may be unavailable. */ }
+    });
+    return () => { alive = false; };
   }, [supabase]);
 
   const saveRecent = useCallback((term: string) => {
@@ -76,43 +93,60 @@ export default function SearchPage() {
 
   useEffect(() => {
     const query = q.trim();
-    if (query.length < 2) { setSearched(false); setPeople([]); setPosts([]); setJobs([]); setListings([]); setMedia([]); setArticles([]); setPlaces([]); return; }
+    if (query.length < 2) return;
+    let cancelled = false;
     const t = setTimeout(async () => {
-      setSearching(true);
-      const like = "%" + query + "%";
-      const { data: sess } = await supabase.auth.getSession();
-      const myId = sess.session?.user.id ?? null;
-      const { data: blk } = await supabase.from("blocked_users").select("blocker_id, blocked_id").or("blocker_id.eq." + (myId ?? "") + ",blocked_id.eq." + (myId ?? ""));
-      const blocked = new Set<string>((blk ?? []).map((b) => (b.blocker_id === myId ? b.blocked_id : b.blocker_id)));
-      const [pplRes, postRes, jobRes, mktRes, mediaRes, artRes, placeRes] = await Promise.all([
-        supabase.rpc("search_people", { p_q: query, p_limit: 25 }),
-        supabase.rpc("search_posts", { p_q: query, p_mode: postMode, p_limit: 20 }),
-        supabase.rpc("search_jobs_fts", { p_q: query, p_limit: 10 }),
-        supabase.rpc("search_listings_fts", { p_q: query, p_limit: 10 }),
-        supabase.rpc("search_media", { p_q: query, p_limit: 18 }),
-        supabase.rpc("search_articles", { p_q: query, p_limit: 6 }),
-        supabase.rpc("search_places", { p_q: query }),
-      ]);
-      setPeople(((pplRes.data ?? []) as Person[]).filter((p) => !blocked.has(p.id)).slice(0, 10));
-      const postRaw = ((postRes.data ?? []) as any[]); postRaw.forEach((p: any) => { if (p.post_id && !p.id) { p.id = p.post_id; p.user_id = p.author_id; p.author = { id: p.author_id, full_name: p.author_name, username: p.author_username, avatar_url: p.author_avatar, headline: null }; } }); const postList = (postRaw as PostHit[]).filter((p) => !blocked.has(p.user_id)).slice(0, 10);
-      const authorIds = Array.from(new Set(postList.map((p) => p.user_id)));
-      if (authorIds.length > 0) {
-        const { data: authors } = await supabase.from("profiles").select("id, full_name, username, avatar_url, headline").in("id", authorIds);
-        const map = new Map(((authors ?? []) as Person[]).map((a) => [a.id, a]));
-        postList.forEach((p) => { p.author = map.get(p.user_id) ?? null; });
+      try {
+        const { data: sess, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (cancelled) return;
+        const myId = sess.session?.user.id;
+        const blocked = new Set<string>();
+        if (myId) {
+          const { data, error } = await supabase.from("blocked_users").select("blocker_id, blocked_id").or("blocker_id.eq." + myId + ",blocked_id.eq." + myId);
+          if (error) throw error;
+          for (const row of data ?? []) blocked.add(row.blocker_id === myId ? row.blocked_id : row.blocker_id);
+        }
+        if (cancelled) return;
+        const responses = await Promise.all([
+          supabase.rpc("search_people", { p_q: query, p_limit: 25 }),
+          supabase.rpc("search_posts", { p_q: query, p_mode: postMode, p_limit: 20 }),
+          supabase.rpc("search_jobs_fts", { p_q: query, p_limit: 10 }),
+          supabase.rpc("search_listings_fts", { p_q: query, p_limit: 10 }),
+          supabase.rpc("search_media", { p_q: query, p_limit: 18 }),
+          supabase.rpc("search_articles", { p_q: query, p_limit: 6 }),
+          supabase.rpc("search_places", { p_q: query }),
+        ]);
+        if (cancelled) return;
+        const failure = responses.find((response) => response.error)?.error;
+        if (failure) throw failure;
+        const [pplRes, postRes, jobRes, mktRes, mediaRes, artRes, placeRes] = responses;
+        type RawPost = PostHit & { post_id?: string; author_id?: string; author_name?: string; author_username?: string; author_avatar?: string };
+        const postList = ((postRes.data ?? []) as RawPost[]).map((p): PostHit => ({
+          ...p, id: p.id || p.post_id!, user_id: p.user_id || p.author_id!,
+          author: p.author ?? (p.author_id ? { id: p.author_id, full_name: p.author_name ?? null, username: p.author_username ?? null, avatar_url: p.author_avatar ?? null, headline: null } : null),
+        })).filter((p) => !blocked.has(p.user_id)).slice(0, 10);
+        const authorIds = Array.from(new Set(postList.filter((p) => !p.author).map((p) => p.user_id)));
+        if (authorIds.length) {
+          const { data: authors, error } = await supabase.from("profiles").select("id, full_name, username, avatar_url, headline").in("id", authorIds);
+          if (error) throw error;
+          const map = new Map(((authors ?? []) as Person[]).map((author) => [author.id, author]));
+          postList.forEach((p) => { p.author = p.author ?? map.get(p.user_id) ?? null; });
+        }
+        if (cancelled) return;
+        setResult({ key: queryKey, error: false,
+          people: ((pplRes.data ?? []) as Person[]).filter((p) => !blocked.has(p.id)).slice(0, 10),
+          posts: postList, jobs: (jobRes.data ?? []) as JobHit[],
+          listings: ((mktRes.data ?? []) as ListingHit[]).filter((l) => !blocked.has(l.seller_id)),
+          media: (mediaRes.data ?? []) as MediaHit[], articles: (artRes.data ?? []) as ArticleHit[], places: (placeRes.data ?? []) as PlaceHit[],
+        });
+        void supabase.rpc("log_search_event", { p_query: query, p_vertical: "all" }).then(() => {}, () => {});
+      } catch {
+        if (!cancelled) setResult({ key: queryKey, error: true, ...EMPTY_RESULTS });
       }
-      setPosts(postList);
-      void supabase.rpc("log_search_event", { p_query: query, p_vertical: "all" });
-      setJobs((jobRes.data ?? []) as JobHit[]);
-      setListings(((mktRes.data ?? []) as ListingHit[]).filter((l) => !blocked.has(l.seller_id)));
-      setMedia((mediaRes.data ?? []) as MediaHit[]);
-      setArticles((artRes.data ?? []) as ArticleHit[]);
-      setPlaces((placeRes.data ?? []) as PlaceHit[]);
-      setSearching(false);
-      setSearched(true);
     }, 350);
-    return () => clearTimeout(t);
-  }, [q, supabase, postMode]);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [q, queryKey, supabase, postMode, retry]);
 
   const show = (k: string) => filter === "all" || filter === k;
   const openPlace = (p: PlaceHit) => {
@@ -187,6 +221,8 @@ export default function SearchPage() {
             </div>
           ) : null}
         </>
+      ) : searchError ? (
+        <ErrorState title="Could not complete your search" onRetry={() => { setResult(null); setRetry((value) => value + 1); }} />
       ) : searching && !searched ? (
         <p className="py-14 text-center text-sm text-ink/40">Searching</p>
       ) : nothing ? (

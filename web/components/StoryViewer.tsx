@@ -211,13 +211,15 @@ function FilterOverlay({ filterId, amt }: { filterId: string | null | undefined;
   );
 }
 
-export function StoryViewer({ users, startIndex, onClose }: {
+export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   users: CatchupUser[];
   startIndex: number;
+  initialStoryId?: string;
   onClose: () => void;
 }) {
   const [userIdx, setUserIdx] = useState(startIndex);
   const [stories, setStories] = useState<StoryRow[]>([]);
+  const [storyLoadFinished, setStoryLoadFinished] = useState(false);
   const [itemIdx, setItemIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -401,13 +403,18 @@ export function StoryViewer({ users, startIndex, onClose }: {
   useEffect(() => {
     if (!user) return;
     let off = false;
+    setStories([]);
+    setStoryLoadFinished(false);
     getUserStories(user.user_id).then((rows) => {
       if (off) return;
-      setStories(rows);
-      setItemIdx(0);
-    });
+      const target = userIdx === startIndex && initialStoryId ? rows.findIndex((row) => row.id === initialStoryId) : 0;
+      // An expired notification must not open an unrelated story instead.
+      setStories(target < 0 ? [] : rows);
+      setItemIdx(Math.max(0, target));
+      setStoryLoadFinished(true);
+    }, () => { if (!off) { setStories([]); setStoryLoadFinished(true); } });
     return () => { off = true; };
-  }, [user]);
+  }, [user, userIdx, startIndex, initialStoryId]);
 
   useEffect(() => {
     setEmojiOpen(false);
@@ -587,7 +594,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
             ) : null}
           </>
         ) : (
-          <p className="flex h-full items-center justify-center text-sm text-white/50">Loading</p>
+          <p className="flex h-full items-center justify-center text-sm text-white/50">{storyLoadFinished ? "This story could not be loaded." : "Loading"}</p>
         )}
 
         {story ? <SaveToMemory story={story} /> : null}

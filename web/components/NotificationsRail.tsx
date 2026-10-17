@@ -1,33 +1,25 @@
 "use client";
 
-/**
- * The Notifications rail: where the unread actually is, and the switches that
- * change what arrives.
- *
- * It reads the same rows the list already loaded rather than issuing its own
- * count queries, so the number in the rail can never disagree with the number
- * on the pills.
- */
 import Link from "next/link";
 import { Bell, Mail, Moon, SlidersHorizontal } from "lucide-react";
 import { Panel } from "@/components/ui";
 
-export function UnreadSummary({ total, rows }: { total: number; rows: { label: string; n: number }[] }) {
+export function UnreadSummary({ total, rows }: { total: number | null; rows: { label: string; n: number }[] }) {
   const shown = rows.filter((r) => r.n > 0);
   return (
     <Panel title="Unread summary">
       <div className="flex items-center gap-4">
         <span className="min-w-0 flex-1">
-          <span className="block font-display text-[30px] leading-none text-porcelain">{total}</span>
-          <span className="mt-1 block text-[12.5px] text-ink/45">{total === 1 ? "new notification" : "new notifications"}</span>
+          <span className="block font-display text-[30px] leading-none text-porcelain">{total ?? "—"}</span>
+          <span className="mt-1 block text-[12.5px] text-ink/45">{total === null ? "Unread count unavailable" : "unread across all activity"}</span>
         </span>
         {/* A ring rather than a bar: it reads at a glance and needs no axis. */}
         <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden>
           <circle cx="28" cy="28" r="23" fill="none" stroke="var(--color-surface-elevated)" strokeWidth="6" />
-          {total > 0 ? (
+          {(total ?? 0) > 0 ? (
             <circle
               cx="28" cy="28" r="23" fill="none" stroke="var(--color-pearl)" strokeWidth="6" strokeLinecap="round"
-              strokeDasharray={(Math.min(total, 20) / 20) * 144.5 + " 144.5"}
+              strokeDasharray={(Math.min(total ?? 0, 20) / 20) * 144.5 + " 144.5"}
               transform="rotate(-90 28 28)"
             />
           ) : null}
@@ -35,6 +27,7 @@ export function UnreadSummary({ total, rows }: { total: number; rows: { label: s
       </div>
       {shown.length > 0 ? (
         <div className="mt-3 flex flex-col gap-1.5 border-t border-ink/8 pt-3">
+          <p className="text-[11px] text-ink/45">Unread groups in recent activity</p>
           {shown.map((r) => (
             <div key={r.label} className="flex items-baseline justify-between text-[13px]">
               <span className="text-ink/70">{r.label}</span>
