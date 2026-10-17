@@ -1,0 +1,11 @@
+{
+  "name": "platinum-rpc-authorization-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node run-all.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.10"
+  }
+}

@@ -1,0 +1,2 @@
+# Keep the recorded SQL byte-identical to its deployed and tested seal.
+20261017231245_harden_push_and_group_rpc_authorization.sql -text
