@@ -120,4 +120,3 @@ $anonymous_tests$;
 RESET ROLE;
 
 SELECT 'Eight INSERT identity enforcement checks passed on temporary probes using deployed expressions and real roles' AS result;
-

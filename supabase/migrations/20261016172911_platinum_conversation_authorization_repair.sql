@@ -157,4 +157,3 @@ END;
 $tests$;
 
 SELECT '7 negative authorization/argument checks and ACL checks passed' AS result;
-
