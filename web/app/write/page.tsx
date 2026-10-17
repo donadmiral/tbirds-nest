@@ -8,9 +8,10 @@ import { ArrowLeft, ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ArticleBody } from "@/components/ArticleBody";
 import { CATEGORIES } from "@/lib/categories";
+import { PublicationAttempt, publicationError } from "@/lib/publication";
 
 export default function WriteArticlePage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(() => createClient());
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [title, setTitle] = useState("");
@@ -27,16 +28,22 @@ export default function WriteArticlePage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const preparingImage = useRef(false);
+  const [imageBusy, setImageBusy] = useState(false);
+  const publishedRef = useRef(false);
+  const [publicationStatus, setPublicationStatus] = useState<{ postId: string | null; uncertain: boolean; locked: boolean; published: boolean }>({ postId: null, uncertain: false, locked: false, published: false });
+  const publication = useRef<{ progress: PublicationAttempt; run: () => Promise<string> } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     void (async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return;
       const { data } = await supabase.from("profiles").select("full_name").eq("id", auth.user.id).single();
       setName(data?.full_name ?? null);
-    })();
-  });
+    })().catch(() => { /* Name is optional; publication still verifies authentication. */ });
+  }, [supabase]);
 
   const minutes = useMemo(() => {
     const words = body.trim().split(/\s+/).filter(Boolean).length;
@@ -112,12 +119,15 @@ export default function WriteArticlePage() {
 
   async function insertImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || busyRef.current || publication.current || preparingImage.current) return;
+    preparingImage.current = true;
+    setImageBusy(true);
+    try {
     const { data: sess } = await supabase.auth.getSession();
     const uid = sess.session?.user.id;
     if (!uid) return;
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const path = uid + "/article-" + Date.now() + "." + ext;
+    const path = uid + "/article-" + crypto.randomUUID() + "." + ext;
     const bad = await checkUploadableBytes(file);
     if (bad) { setError(bad); return; }
     const { error: upErr } = await supabase.storage.from("post-media").upload(path, file, { contentType: file.type });
@@ -125,13 +135,11 @@ export default function WriteArticlePage() {
     const { data } = supabase.storage.from("post-media").getPublicUrl(path);
     const el = bodyRef.current;
     const pos = el?.selectionStart ?? body.length;
-    const { next, newPos } = insertBlockAt(body, pos, "![](" + data.publicUrl + ")");
-    setBody(next);
-    requestAnimationFrame(() => {
-      el?.focus();
-      el?.setSelectionRange(newPos, newPos);
-    });
+    setBody((current) => insertBlockAt(current, pos, "![](" + data.publicUrl + ")").next);
+    requestAnimationFrame(() => { el?.focus(); });
     e.target.value = "";
+    } catch (failure) { setError(publicationError(failure)); }
+    finally { preparingImage.current = false; setImageBusy(false); }
   }
 
   // The draft outlives the tab: closing it by accident no longer loses the piece.
@@ -143,7 +151,11 @@ export default function WriteArticlePage() {
   }, []);
   useEffect(() => {
     const t = setTimeout(() => {
-      if (title || body) window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body }));
+      if (publishedRef.current) return;
+      try {
+        if (title || body) window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body }));
+        else window.localStorage.removeItem(DRAFT_KEY);
+      } catch { /* Keep the in-memory draft if browser storage is unavailable. */ }
     }, 500);
     return () => clearTimeout(t);
   }, [title, body]);
@@ -191,62 +203,96 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
 }
 
   const publish = async () => {
-    if (busy) return;
+    if (busyRef.current || preparingImage.current || publication.current?.progress.uncertain) return;
     if (!title.trim() || body.trim().length < 100) {
       setError("An article needs a title and at least a real opening — write a little more.");
       return;
     }
-    setError(null);
+    busyRef.current = true;
     setBusy(true);
-    const { data: auth } = await supabase.auth.getUser();
-    const uid = auth.user?.id;
-    if (!uid) { setError("Sign in to publish."); setBusy(false); return; }
+    setError(null);
+    if (!publication.current) {
+      let author: string | null = null;
+      const progress = new PublicationAttempt(async () => {
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !author || data.session?.user.id !== author) throw new Error("Return to the account that started this article to finish it.");
+      });
+      let coverUrl: string | null = null;
+      const run = async (): Promise<string> => {
+        const { data: auth } = await supabase.auth.getUser();
+        const uid = auth.user?.id;
+        if (!uid) throw new Error("Sign in to publish.");
+        if (author && author !== uid) throw new Error("Return to the account that started this article to finish it.");
+        author = uid;
 
-    let coverUrl: string | null = null;
-    let coverWidth: number | null = null;
-    let coverHeight: number | null = null;
-    if (cover) {
-      const ext = (cover.name.split(".").pop() || "jpg").toLowerCase();
-      const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
-      const badCover = await checkUploadableBytes(cover);
-      if (badCover) { setError(badCover); setBusy(false); return; }
-      const { error: upErr } = await supabase.storage.from("post-media").upload(path, cover, { contentType: cover.type });
-      if (upErr) { setError("The cover did not upload: " + upErr.message); setBusy(false); return; }
-      const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
-      coverUrl = pub.publicUrl;
-      // Real width/height need decoding the file; the composer preview already
-      // does this via the browser for display, but doesn't currently keep the
-      // numbers around to send here. Left null for now rather than guessed.
+        const coverWidth: number | null = null;
+        const coverHeight: number | null = null;
+        if (cover && !coverUrl) {
+          const ext = (cover.name.split(".").pop() || "jpg").toLowerCase();
+          const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+          const badCover = await checkUploadableBytes(cover);
+          if (badCover) throw new Error(badCover);
+          const { error: upErr } = await supabase.storage.from("post-media").upload(path, cover, { contentType: cover.type });
+          if (upErr) throw new Error("The cover did not upload: " + upErr.message);
+          const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
+          coverUrl = pub.publicUrl;
+          // Real width/height need decoding the file; the composer preview already
+          // does this via the browser for display, but doesn't currently keep the
+          // numbers around to send here. Left null for now rather than guessed.
+        }
+
+        // One server call, one transaction: the post and its cover post_media row
+        // are created or fail together, instead of two separate client inserts
+        // where the second one could silently fail.
+        const newPostId = await progress.write("article", () => supabase.rpc("publish_article", {
+          p_user_id: uid,
+          p_title: title.trim(),
+          p_body: body.trim(),
+          p_read_minutes: minutes,
+          p_cover_url: coverUrl,
+          p_cover_width: coverWidth,
+          p_cover_height: coverHeight,
+          p_blocks: bodyToBlocks(body.trim()),
+        }));
+        if (!newPostId) { progress.uncertain = true; throw new Error("Could not confirm the article."); }
+        progress.postId = newPostId;
+        if (category) await progress.write("category", () => supabase.from("posts").update({ category }).eq("id", newPostId).select("id").single());
+        await progress.check();
+        return newPostId;
+
+      };
+      publication.current = { progress, run };
+      setPublicationStatus({ postId: null, uncertain: false, locked: true, published: false });
     }
-
-    window.localStorage.removeItem(DRAFT_KEY);
-    // One server call, one transaction: the post and its cover post_media row
-    // are created or fail together, instead of two separate client inserts
-    // where the second one could silently fail.
-    const { data: newPostId, error: insErr } = await supabase.rpc("publish_article", {
-      p_user_id: uid,
-      p_title: title.trim(),
-      p_body: body.trim(),
-      p_read_minutes: minutes,
-      p_cover_url: coverUrl,
-      p_cover_width: coverWidth,
-      p_cover_height: coverHeight,
-      p_blocks: bodyToBlocks(body.trim()),
-    });
-
-    setBusy(false);
-    if (insErr || !newPostId) { setError(insErr?.message || "Could not publish."); return; }
-    if (category) { await supabase.from("posts").update({ category }).eq("id", newPostId); }
-    router.push("/post/" + newPostId);
+    try {
+      const postId = await publication.current.run();
+      publishedRef.current = true;
+      setPublicationStatus({ postId, uncertain: false, locked: true, published: true });
+      try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* Published successfully even if storage is unavailable. */ }
+      try { router.push("/post/" + postId); } catch { setError("Your article was published. Use View article to open it."); }
+    } catch (failure) {
+      const progress = publication.current?.progress;
+      setPublicationStatus({ postId: progress?.postId ?? null, uncertain: progress?.uncertain ?? false, locked: !!progress?.postId || !!progress?.uncertain, published: false });
+      setError((progress?.uncertain
+        ? "We could not confirm the last save. Check your profile before publishing again. Your draft remains open here; keep this page open. "
+        : progress?.postId
+          ? "Your article is published, but its category did not save. Retry updates this same article. Your draft remains open here; keep this page open. "
+          : "Your draft remains open here; keep this page open. ") + publicationError(failure));
+      if (!progress?.postId && !progress?.uncertain) publication.current = null;
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
   };
 
   return (
     <div className="mx-auto max-w-[680px] px-1 pb-20">
       <div className="flex items-center justify-between pb-4">
         <button type="button" onClick={() => { if (window.history.length > 1) router.back(); else router.push("/home"); }} className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Back</button>
-        <button onClick={publish} disabled={busy} className="rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-bold text-white disabled:opacity-40">{busy ? "Publishing" : "Publish"}</button>
+        <button onClick={publish} disabled={busy || imageBusy || publicationStatus.published || publicationStatus.uncertain} className="rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-bold text-white disabled:opacity-40">{busy ? "Publishing" : publicationStatus.postId ? "Retry" : "Publish"}</button>
       </div>
 
+      <fieldset disabled={publicationStatus.locked} className="contents">
       <textarea value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" rows={1}
         onInput={e => { const el = e.currentTarget; el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }}
         className="w-full resize-none overflow-hidden border-0 font-display text-[26px] font-bold leading-tight text-ink outline-none placeholder:text-ink/30" />
@@ -305,7 +351,8 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
           className="min-h-[420px] w-full resize-none border-0 text-[16px] leading-relaxed text-ink outline-none placeholder:text-ink/30" />
       )}
 
-      {error ? <p className="mt-2 text-[13px] text-red-500">{error}</p> : null}
+      </fieldset>
+      {error ? <p role="alert" className="mt-2 text-[13px] text-red-500">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View article</Link></> : null}</p> : null}
 
       {linkModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-6" onClick={() => setLinkModalOpen(false)}>

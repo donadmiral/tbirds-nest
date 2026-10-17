@@ -853,7 +853,7 @@ export default function StoryComposerScreen() {
     setStickerForm(null);
   }, [stickerForm, addSimpleSticker]);
   // ── Derived state ──
-  const canPublish = drafts.length > 0 && !publish.publishing;
+  const canPublish = publish.canPublish;
   const hasPoll = !!active?.pollData;
   const isTextStory = active?.mediaType === 'text';
   const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { addyours: st.filter(s => s.kind === 'addyours').length, support: st.filter(s => s.kind === 'support').length, text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, hashtag: st.filter(s => s.kind === 'hashtag').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length, countdown: st.filter(s => s.kind === 'countdown').length, entity: st.filter(s => (s as any).kind === 'entity').length, gif: st.filter(s => (s as any).kind === 'gif').length, photo: st.filter(s => (s as any).kind === 'photo').length, time: st.filter(s => (s as any).kind === 'time').length, date: st.filter(s => (s as any).kind === 'date').length, weather: st.filter(s => (s as any).kind === 'weather').length }; }, [active?.stickers]);

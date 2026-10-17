@@ -13,6 +13,7 @@ import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { STORY_FILTERS, filterCss } from "@/lib/stories";
 import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
 import { AdjustOverlay } from "@/components/StoryEngine";
+import { PublicationAttempt, publicationError } from "@/lib/publication";
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null };
 type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null };
@@ -49,9 +50,16 @@ const AUDIENCES = [
 ] as const;
 
 export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(() => createClient());
   const fileRef = useRef<HTMLInputElement | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
+  const [pending, setPending] = useState(false);
+  const publishing = useRef(false);
+  const preparingFiles = useRef(false);
+  const [preparing, setPreparing] = useState(false);
+  const publication = useRef<{ progress: PublicationAttempt; run: () => Promise<string> } | null>(null);
+  const [publicationLocked, setPublicationLocked] = useState(false);
+  const [publicationStatus, setPublicationStatus] = useState<{ postId: string | null; uncertain: boolean }>({ postId: null, uncertain: false });
   const [open, setOpen] = useState(false);
   const [myAvatar, setMyAvatar] = useState<string | null>(null);
   const [text, setText] = useState("");
@@ -95,6 +103,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   // truth: picking one sets the flags, so every downstream check still works.
   const [kind, setKindState] = useState<PostKind>("post");
   const setKind = (k: PostKind) => {
+    if (publicationLocked) return;
     setKindState(k);
     setPollOn(k === "poll");
     setInno(k === "innovation");
@@ -139,7 +148,6 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
   const [mentions, setMentions] = useState<MentionHit[]>([]);
-  const [pending, setPending] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -165,7 +173,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
 
   useEffect(() => {
     if (!open) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") { setOpen(false); setError(null); onQuoteDone?.(); } }
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape" && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onQuoteDone]);
@@ -189,9 +197,12 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   }
 
   async function addFiles(list: FileList | File[] | null) {
-    if (pollOn) return;
+    if (pollOn || publication.current || publishing.current || preparingFiles.current) return;
     if (!list) return;
+    preparingFiles.current = true;
+    setPreparing(true);
     const next = [...items];
+    try {
     for (const f of Array.from(list).slice(0, MAX_MEDIA - next.length)) {
       const isVideo = f.type.startsWith("video/");
       if (!f.type.startsWith("image/") && !isVideo) continue;
@@ -208,6 +219,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
     }
     setItems(next);
     setOpen(true);
+    } finally { preparingFiles.current = false; setPreparing(false); }
   }
 
   function onPaste(e: React.ClipboardEvent) {
@@ -223,115 +235,154 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
 
   async function post() {
     const content = text.trim();
-    if (pending || (!content && items.length === 0)) return;
+    if (publishing.current || preparingFiles.current || publication.current?.progress.uncertain || (!content && items.length === 0)) return;
+    if (pollOn && pollOpts.map((x) => x.trim()).filter(Boolean).length < 2) {
+      setError("Add at least two poll options before posting.");
+      return;
+    }
+    publishing.current = true;
     setPending(true);
     setError(null);
-    const { data: sess } = await supabase.auth.getSession();
-    const uid = sess.session?.user.id;
-    if (!uid) { setError("Sign in to post."); setPending(false); return; }
-
-    const media: { url: string; media_type: string; sort_order: number; width?: number; height?: number }[] = [];
-    for (let i = 0; i < items.length; i++) {
-      const p = items[i];
-      const ext = (p.file.name.split(".").pop() || (p.isVideo ? "mp4" : "jpg")).toLowerCase();
-      const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
-      const bad = await checkUploadableBytes(p.file);
-      if (bad) { setError(bad); setPending(false); return; }
-      const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type });
-      if (upErr) {
-        setError("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message + ". Nothing was posted.");
-        setPending(false);
-        return;
-      }
-      const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
-      media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.edit && Object.keys(p.edit).length ? { edit: p.edit } : {}), ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
-    }
-
-    const insertData: Record<string, unknown> = {
-      user_id: uid,
-      content: content || null,
-      audience,
-      comment_policy: commentPolicy,
-      is_exclusive: false,
-      channel: inno ? "innovation" : null,
-    };
-    if (inno && innoField) insertData.innovation_field = innoField;
-    if (inno && innoStage) insertData.innovation_stage = innoStage;
-    // A title makes it an article, whether or not it is also an innovation
-    // post. This used to be gated on inno, so an article written without that
-    // toggle silently lost its title on save.
-    if (articleTitle.trim()) {
-      insertData.article_title = articleTitle.trim();
-      insertData.read_minutes = Math.max(1, Math.round((content.split(/\s+/).length || 0) / 200));
-    }
-    if (quote) insertData.quoted_post_id = quote.id;
-    if (threadTo) insertData.thread_parent_id = threadTo;
-    if (postCategory) insertData.category = postCategory;
-    if (preview?.url) insertData.link_url = preview.url;
-
-    const { data: newPost, error: insErr } = await supabase.from("posts").insert(insertData).select("id").single();
-    if (insErr || !newPost) { setError(insErr?.message || "Could not post."); setPending(false); return; }
-    if (preview?.url) {
-      supabase.rpc("upsert_link_preview", {
-        p_url: preview.url,
-        p_title: preview.title ?? null,
-        p_description: preview.description ?? null,
-        p_image_url: preview.image_url ?? null,
-        p_domain: preview.domain ?? null,
-      }).then(() => {});
-    }
-
-    if (products.length > 0) {
-      const { error: prodErr } = await supabase.rpc("set_post_products", {
-        p_post_id: newPost.id,
-        p_products: products.map((c, i) => ({ ...c, sort_order: i })),
+    if (!publication.current) {
+      let author: string | null = null;
+      const progress = new PublicationAttempt(async () => {
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !author || data.session?.user.id !== author) throw new Error("Return to the account that started this post to finish it.");
       });
-      if (prodErr) setError("Posted, but the product cards did not save: " + prodErr.message);
-    }
+      const media: { url: string; media_type: string; sort_order: number; width?: number; height?: number }[] = [];
+      // Retain this exact draft and each confirmed step for a retry.
+      const run = async (): Promise<string> => {
+        const { data: sess } = await supabase.auth.getSession();
+        const uid = sess.session?.user.id;
+        if (!uid) throw new Error("Sign in to post.");
+        if (author && author !== uid) throw new Error("Return to the account that started this post to finish it.");
+        author = uid;
 
-    if (pollOn) {
-      const labels = pollOpts.map((x) => x.trim()).filter(Boolean);
-      if (labels.length >= 2) {
-        const ends = new Date(Date.now() + pollDays * 86400000).toISOString();
-        const { error: plErr } = await supabase.from("post_polls").insert({ post_id: newPost.id, ends_at: ends });
-        if (!plErr) await supabase.from("post_poll_options").insert(labels.map((label, i) => ({ post_id: newPost.id, label, sort_order: i })));
-        else setError("Posted, but the poll did not save: " + plErr.message);
-      }
-    }
-    if (media.length > 0) {
-      const rows = media.map((m) => ({ post_id: newPost.id, ...m }));
-      const { data: inserted, error: mErr } = await supabase.from("post_media").insert(rows).select("id, sort_order");
-      if (mErr) setError("Posted, but media did not attach: " + mErr.message);
-      else {
-        // Tagged people, anchored to the media row each tag was placed on.
-        const tagRows: any[] = [];
-        items.forEach((it, i) => { const row = (inserted || []).find((r: any) => r.sort_order === i); (it.tags || []).forEach((t) => { if (row) tagRows.push({ post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
-        if (tagRows.length) await supabase.from("post_media_tags").insert(tagRows);
-      }
-    }
+        for (let i = media.length; i < items.length; i++) {
+          const p = items[i];
+          const ext = (p.file.name.split(".").pop() || (p.isVideo ? "mp4" : "jpg")).toLowerCase();
+          const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+          const bad = await checkUploadableBytes(p.file);
+          if (bad) throw new Error(bad);
+          const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type });
+          if (upErr) {
+            throw new Error("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message);
+          }
+          const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
+          media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.edit && Object.keys(p.edit).length ? { edit: p.edit } : {}), ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
+        }
 
-    items.forEach((p) => URL.revokeObjectURL(p.preview));
-    try { localStorage.removeItem(DRAFT_KEY); } catch { /* fine */ }
-    setText("");
-    setItems([]);
-    setAudience("everyone");
-    setProducts([]);
-    setPickerOpen(false);
-    setInno(false);
-    setInnoField(null);
-    setInnoStage(null);
-    setArticleTitle("");
-    setOpen(false);
-    setPending(false);
-    setThreadTo(null);
-    setPreview(null);
-    previewOff.current = null;
-    setPollOn(false);
-    setPollOpts(["", ""]);
-    setPollDays(1);
-    setPostCategory("");
-    onQuoteDone?.();
-    onPosted(newPost.id);
+        const insertData: Record<string, unknown> = {
+          user_id: uid,
+          content: content || null,
+          audience,
+          comment_policy: commentPolicy,
+          is_exclusive: false,
+          channel: inno ? "innovation" : null,
+        };
+        if (inno && innoField) insertData.innovation_field = innoField;
+        if (inno && innoStage) insertData.innovation_stage = innoStage;
+        // A title makes it an article, whether or not it is also an innovation
+        // post. This used to be gated on inno, so an article written without that
+        // toggle silently lost its title on save.
+        if (articleTitle.trim()) {
+          insertData.article_title = articleTitle.trim();
+          insertData.read_minutes = Math.max(1, Math.round((content.split(/\s+/).length || 0) / 200));
+        }
+        if (quote) insertData.quoted_post_id = quote.id;
+        if (threadTo) insertData.thread_parent_id = threadTo;
+        if (postCategory) insertData.category = postCategory;
+        if (preview?.url) insertData.link_url = preview.url;
+
+        const newPost = await progress.write("post", () => supabase.from("posts").insert(insertData).select("id").single());
+        if (!newPost) { progress.uncertain = true; throw new Error("Could not confirm the post."); }
+        progress.postId = newPost.id;
+        if (preview?.url) {
+          supabase.rpc("upsert_link_preview", {
+            p_url: preview.url,
+            p_title: preview.title ?? null,
+            p_description: preview.description ?? null,
+            p_image_url: preview.image_url ?? null,
+            p_domain: preview.domain ?? null,
+          }).then(() => {});
+        }
+
+        if (products.length > 0) {
+          await progress.write("products", () => supabase.rpc("set_post_products", {
+            p_post_id: newPost.id,
+            p_products: products.map((c, i) => ({ ...c, sort_order: i })),
+          }));
+        }
+
+        if (pollOn) {
+          const labels = pollOpts.map((x) => x.trim()).filter(Boolean);
+          if (labels.length >= 2) {
+            const ends = new Date(Date.now() + pollDays * 86400000).toISOString();
+            await progress.write("poll", () => supabase.from("post_polls").insert({ post_id: newPost.id, ends_at: ends }));
+            await progress.write("poll-options", () => supabase.from("post_poll_options").insert(labels.map((label, i) => ({ post_id: newPost.id, label, sort_order: i }))));
+          }
+        }
+        if (media.length > 0) {
+          const rows = media.map((m) => ({ post_id: newPost.id, ...m }));
+          const inserted = await progress.write("media", () => supabase.from("post_media").insert(rows).select("id, sort_order"));
+          if (!inserted || inserted.length !== media.length) { progress.uncertain = true; throw new Error("Could not confirm every media attachment."); }
+          {
+            // Tagged people, anchored to the media row each tag was placed on.
+            const tagRows: any[] = [];
+            items.forEach((it, i) => { const row = (inserted || []).find((r: any) => r.sort_order === i); (it.tags || []).forEach((t) => { if (row) tagRows.push({ post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
+            if (tagRows.length) await progress.write("media-tags", () => supabase.from("post_media_tags").insert(tagRows));
+          }
+        }
+
+        await progress.check();
+        return newPost.id;
+      };
+      publication.current = { progress, run };
+      setPublicationLocked(true);
+    }
+    try {
+      const postId = await publication.current.run();
+      publication.current = null;
+      setPublicationLocked(false);
+      setPublicationStatus({ postId: null, uncertain: false });
+      items.forEach((p) => URL.revokeObjectURL(p.preview));
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* fine */ }
+      setText("");
+      setItems([]);
+      setAudience("everyone");
+      setProducts([]);
+      setPickerOpen(false);
+      setInno(false);
+      setInnoField(null);
+      setInnoStage(null);
+      setArticleTitle("");
+      setOpen(false);
+      setThreadTo(null);
+      setPreview(null);
+      previewOff.current = null;
+      setPollOn(false);
+      setPollOpts(["", ""]);
+      setPollDays(1);
+      setPostCategory("");
+      try { onQuoteDone?.(); } catch { /* The post is already confirmed. */ }
+      try { onPosted(postId); } catch { /* Parent refresh failure must not report a failed publication. */ }
+    } catch (failure) {
+      const progress = publication.current?.progress;
+      setPublicationStatus({ postId: progress?.postId ?? null, uncertain: progress?.uncertain ?? false });
+      const prefix = progress?.uncertain
+        ? "We could not confirm the last save. Check your profile before posting again. Your draft remains open here; keep this page open. "
+        : progress?.postId
+          ? "Your post exists, but some attachments did not save. Keep this page open; retry finishes this same post. "
+          : "Your draft remains open here; keep this page open. ";
+      setError(prefix + publicationError(failure));
+      if (!progress?.postId && !progress?.uncertain) {
+        publication.current = null;
+        setPublicationLocked(false);
+      }
+    } finally {
+      publishing.current = false;
+      setPending(false);
+    }
   }
 
   // A page can open the composer already set to a kind: the ads wizard's
@@ -375,12 +426,13 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 px-4 py-[6vh]" onClick={(e) => { if (e.target === e.currentTarget) { setOpen(false); setError(null); onQuoteDone?.(); } }}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 px-4 py-[6vh]" onClick={(e) => { if (e.target === e.currentTarget && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }}>
       <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
         className={"relative flex max-h-[86vh] w-full max-w-[560px] flex-col rounded-2xl border bg-white p-5 shadow-2xl transition-colors duration-[140ms] " + (dragOver ? "border-pearl bg-surface" : "border-ink/10")}
       >
+      <fieldset disabled={publicationLocked} className="contents">
       {/* What am I making? The kinds used to be icon-only toggles in the footer,
           so nothing named them and nothing showed which one was active. Naming
           them here means the answer is visible before you start typing, and
@@ -607,7 +659,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           ))}
         </div>
       ) : null}
-      {error ? <p className="ml-14 mt-3 text-[13px] text-danger">{error}</p> : null}
+      {error ? <p role="alert" className="ml-14 mt-3 text-[13px] text-danger">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View post</Link></> : null}</p> : null}
       </div>
       <div className="mt-4 flex shrink-0 flex-wrap items-center gap-1 border-t border-ink/10 pt-4">
         <button onClick={() => fileRef.current?.click()} disabled={items.length >= MAX_MEDIA} title="Add photos or videos" className="rounded-full p-2.5 text-pearl transition-colors duration-[140ms] hover:bg-pearl/10 disabled:opacity-30">
@@ -631,14 +683,15 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           ) : null}
         </div>
       </div>
+      </fieldset>
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-3">
-        <select value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+        <select disabled={publicationLocked} value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="" className="bg-navy">Category</option>
           {CATEGORIES.filter((c) => c.key !== "innovation").map((c) => (
             <option key={c.key} value={c.key} className="bg-navy">{c.label}</option>
           ))}
         </select>
-        <select value={audience}
+        <select disabled={publicationLocked} value={audience}
           onChange={(e) => setAudience(e.target.value as typeof audience)}
           className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none"
         >
@@ -646,16 +699,16 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             <option key={a.key} value={a.key} className="bg-navy">{a.label}</option>
           ))}
         </select>
-        <select value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} title="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+        <select disabled={publicationLocked} value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} title="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="everyone" className="bg-navy">Comments: everyone</option>
           <option value="following" className="bg-navy">Comments: people I follow</option>
           <option value="followers" className="bg-navy">Comments: my followers</option>
           <option value="mentioned" className="bg-navy">Comments: mentioned only</option>
           <option value="off" className="bg-navy">Comments off</option>
         </select>        <div className="ml-auto flex gap-2">
-          <button onClick={() => { setOpen(false); setError(null); onQuoteDone?.(); }} className="rounded-full bg-surface px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Cancel</button>
-          <button onClick={post} disabled={pending || (!text.trim() && items.length === 0)} className="rounded-full bg-pearl px-6 py-2 text-[13.5px] font-bold text-ink shadow-sm transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
-            {pending ? "Posting" : "Post"}
+          <button disabled={pending} onClick={() => { setOpen(false); onQuoteDone?.(); }} className="rounded-full bg-surface px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Cancel</button>
+          <button onClick={post} disabled={pending || preparing || publicationStatus.uncertain || (!text.trim() && items.length === 0)} className="rounded-full bg-pearl px-6 py-2 text-[13.5px] font-bold text-ink shadow-sm transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
+            {pending ? "Posting" : publicationStatus.postId ? "Retry" : "Post"}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { PublicationAttempt } from '../utils/publication';
 import { authorId as currentAuthorId } from '../stores/actorStore';
 
 export type StoryMediaType = 'image' | 'video' | 'text';
@@ -327,6 +328,8 @@ export async function uploadAndCreateStory(params: {
   filterId?: string | null;
   preUploadedUrl?: string | null;
   preUploadedThumb?: string | null;
+  publication?: PublicationAttempt;
+  expectedAuthorId?: string;
 }): Promise<StoryRow> {
   const {
     userId,
@@ -355,6 +358,18 @@ export async function uploadAndCreateStory(params: {
   const preUploadedThumb = (params as any).preUploadedThumb ?? null;
 
   if (!userId) throw new Error('userId required');
+  if (audience === 'only_with' && !sharedWith?.length) throw new Error('Choose at least one person to share with.');
+  const expectedAuthor = params.expectedAuthorId ?? currentAuthorId(userId) ?? userId;
+  const publication = params.publication ?? new PublicationAttempt(async () => {
+    const { data, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || data.session?.user.id !== userId || (currentAuthorId(userId) ?? userId) !== expectedAuthor) throw new Error('Return to the account that started this story to finish it.');
+  });
+  await publication.check();
+  const existing = publication.get<StoryRow>('story');
+  if (existing) {
+    await finishStoryRecipients(existing.id, audience, sharedWith, publication);
+    return existing;
+  }
   if (mediaType !== 'text' && !localUri) throw new Error('localUri required for image/video');
 
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
@@ -582,7 +597,7 @@ export async function uploadAndCreateStory(params: {
   }
 
   const insertPayload: any = {
-    user_id: currentAuthorId(userId) ?? userId,
+    user_id: expectedAuthor,
     media_url: mediaPublicUrl,
     media_type: effectiveMediaType,
     thumbnail_url: thumbnailUrl,
@@ -623,24 +638,11 @@ export async function uploadAndCreateStory(params: {
     insertPayload.filter_id = filterId;
   }
 
-  console.log('[storiesService] Inserting story row:', JSON.stringify(insertPayload).slice(0, 300));
-
-  let data: any = null; let error: any = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await supabase.from('stories').insert(insertPayload).select().single();
-    data = res.data; error = res.error;
-    if (data && !error) break;
-    const msg = String(error?.message || error || '');
-    const retryable = msg.includes('Abort') || msg.includes('abort') || msg.includes('Network') || msg.includes('Failed to fetch');
-    if (!retryable) break;
-    console.log('[storiesService] Insert retry', attempt + 1, msg);
-    await new Promise(r => setTimeout(r, 900 * (attempt + 1)));
-  }
-
-  if (error || !data) {
-    console.log('[storiesService] Insert error:', error?.message);
-    throw error || new Error('Story insert failed');
-  }
+  // A lost response must never trigger a fresh server-generated story ID.
+  // The caller retains this checkpoint for the draft and current author.
+  const data = await publication.write('story', () => supabase.from('stories').insert(insertPayload).select().single());
+  if (!data) { publication.uncertain = true; throw new Error('Could not confirm the story. Check your stories before trying again.'); }
+  publication.postId = data.id;
 
   const postStickers = ((insertPayload.stickers_json || []) as any[]).filter((s: any) => s?.kind === 'post' && s?.postId);
   Array.from(new Set(postStickers.map((s: any) => s.postId))).forEach((pid: any) => {
@@ -654,12 +656,16 @@ export async function uploadAndCreateStory(params: {
     supabase.rpc('increment_sound_use', { p_sound_id: audio.soundId }).then(() => {}, () => {});
   }
 
-  if (audience === 'only_with' && sharedWith && sharedWith.length > 0) {
-    const rows = sharedWith.map((uid: string) => ({ story_id: data.id, user_id: uid }));
-    const { error: shareErr } = await supabase.from('story_shared_with').insert(rows);
-    if (shareErr) console.log('[storiesService] shared_with error:', shareErr.message);
-  }  console.log('[storiesService] Story created:', data.id);
+  await finishStoryRecipients(data.id, audience, sharedWith, publication);
   return data as StoryRow;
+}
+
+async function finishStoryRecipients(storyId: string, audience: string | null | undefined, sharedWith: string[] | null | undefined, publication: PublicationAttempt) {
+  if (audience === 'only_with') {
+    const rows = Array.from(new Set(sharedWith ?? [])).map((uid) => ({ story_id: storyId, user_id: uid }));
+    if (!rows.length) throw new Error('Choose at least one person to share with.');
+    await publication.write('recipients', () => supabase.from('story_shared_with').insert(rows));
+  }
 }
 
 export const storiesService = {
@@ -795,6 +801,7 @@ export const storiesService = {
     question: string,
     options: string[],
     pos?: { nx?: number; ny?: number; scale?: number },
+    publication = new PublicationAttempt(),
   ): Promise<StoryPoll> {
     if (options.length < 2 || options.length > 4) {
       throw new Error('Poll requires 2 to 4 options');
@@ -822,7 +829,7 @@ export const storiesService = {
     }
 
     // Insert poll
-    const { data: poll, error: pollErr } = await supabase
+    const poll = await publication.write('poll', () => supabase
       .from('story_polls')
       .insert({
         story_id: storyId,
@@ -832,12 +839,9 @@ export const storiesService = {
         ...(pos && typeof pos.scale === 'number' ? { scale: pos.scale } : {}),
       })
       .select('id')
-      .single();
+      .single());
 
-    if (pollErr || !poll) {
-      console.log('[storiesService.createStoryPoll] poll insert error:', pollErr?.message);
-      throw pollErr || new Error('Poll insert failed');
-    }
+    if (!poll) { publication.uncertain = true; throw new Error('Could not confirm the story poll.'); }
 
     // Insert options
     const optionRows = trimmedOptions.map((label, i) => ({
@@ -846,16 +850,7 @@ export const storiesService = {
       position: i,
     }));
 
-    const { error: optErr } = await supabase
-      .from('story_poll_options')
-      .insert(optionRows);
-
-    if (optErr) {
-      console.log('[storiesService.createStoryPoll] options insert error:', optErr.message);
-      // Rollback: delete the poll (cascades options if any partial insert)
-      await supabase.from('story_polls').delete().eq('id', poll.id);
-      throw optErr;
-    }
+    await publication.write('poll-options', () => supabase.from('story_poll_options').insert(optionRows));
 
     // Return fresh poll data via RPC
     const result = await this.getStoryPoll(storyId);
