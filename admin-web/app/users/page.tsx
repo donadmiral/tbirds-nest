@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { requireDesk } from '@/lib/adminAuth';
 import { canOpen } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
+import { USER_DIRECTORY_SELECT, withDirectoryCounts } from '@/lib/userDirectory';
 import Shell from '@/components/Shell';
 import UsersDesk from '@/components/UsersDesk';
 
@@ -14,9 +14,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   const page = /^\d{1,6}$/.test(rawPage || '') ? Math.max(1, Number(rawPage)) : 1;
   const start = (page - 1) * 25;
   const svc = serviceClient();
-  const cols = 'id, full_name, username, email, avatar_url, account_type, is_verified, verified_tier, verified_category, created_at, deactivated_at, suspended_reason, restricted_until';
-
-  let profilesQuery = svc.from('profiles').select(cols, {count: 'exact'});
+  let profilesQuery = svc.from('profiles').select(USER_DIRECTORY_SELECT, {count: 'exact'});
   if (q?.trim()) {
     const term = '%' + q.trim().slice(0, 160).replace(/[\\%_]/g, '\\$&') + '%';
     const literal = JSON.stringify(term);
@@ -34,25 +32,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     canOpen(admin.role, '/support') ? svc.from('support_tickets').select('id, user_id, subject, created_at').eq('kind', 'appeal').eq('status', 'open').order('created_at', { ascending: true }).limit(20) : { data: [] },
   ]);
 
-  const baseRows = profilesRes.data ?? [];
-  const ids = baseRows.map(u => u.id);
-
-  const perUser = await Promise.all(ids.map(async id => {
-    const [followers, following, strikes] = await Promise.all([
-      svc.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', id),
-      svc.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', id),
-      svc.from('member_strikes').select('id', { count: 'exact', head: true }).eq('user_id', id),
-    ]);
-    return { id, followers: followers.count ?? 0, following: following.count ?? 0, strikes: strikes.count ?? 0 };
-  }));
-  const perUserMap = new Map(perUser.map(p => [p.id, p]));
-
-  const rows = baseRows.map(u => ({
-    ...u,
-    followers: perUserMap.get(u.id)?.followers ?? 0,
-    following: perUserMap.get(u.id)?.following ?? 0,
-    strikes: perUserMap.get(u.id)?.strikes ?? 0,
-  }));
+  const rows = (profilesRes.data ?? []).map(withDirectoryCounts);
 
   const stats = [
     { label: 'Total members', value: totalRes.count ?? 0 },
