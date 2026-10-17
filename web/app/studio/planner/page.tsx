@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { Panel } from "@/components/ui";
 
@@ -23,6 +25,8 @@ export default function PlannerPage() {
   const editor = can(me?.role ?? null, "publish");
   const [rows, setRows] = useState<ScheduledPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [tab, setTab] = useState<"upcoming" | "drafts" | "published">("upcoming");
   const [open, setOpen] = useState(false);
   const [d, setD] = useState<Draft>(empty());
@@ -36,7 +40,9 @@ export default function PlannerPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setRows(await listScheduled()); } finally { setLoading(false); }
+    try { setRows(await listScheduled()); setLoaded(true); setLoadError(null); }
+    catch { setLoadError("The planner could not be refreshed. Please try again."); }
+    finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
@@ -258,7 +264,9 @@ export default function PlannerPage() {
         ))}
       </div>
 
-      {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      {loading && !loaded ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
+      : !loaded ? null
       : shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">{tab === "upcoming" ? "Nothing scheduled. Tap a day above to plan one." : tab === "drafts" ? "No drafts." : "Nothing published from the Planner yet."}</p>
       : shown.map(r => (
         <div key={r.id} className="mt-2.5 flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-white p-3.5">

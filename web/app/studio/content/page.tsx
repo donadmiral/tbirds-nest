@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 /**
  * The Content desk.
  *
@@ -41,6 +43,8 @@ export default function ContentPage() {
   const [rows, setRows] = useState<ScheduledPost[]>([]);
   const [home, setHome] = useState<StudioHome | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("all");
   const [q, setQ] = useState("");
   const mounted = useRef(true);
@@ -51,7 +55,9 @@ export default function ContentPage() {
       const [posts, h] = await Promise.all([listScheduled(), studioHome()]);
       if (!mounted.current) return;
       setRows(posts);
-      setHome(h);
+      setHome(h); setLoaded(true); setLoadError(null);
+    } catch {
+      if (mounted.current) setLoadError("Content could not be refreshed. Please try again.");
     } finally {
       if (mounted.current) setLoading(false);
     }
@@ -146,9 +152,10 @@ export default function ContentPage() {
         </label>
       </div>
 
-      {loading ? (
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      {loading && !loaded ? (
         <p className="py-14 text-center text-sm text-ink/40">Loading</p>
-      ) : shown.length === 0 ? (
+      ) : !loaded ? null : shown.length === 0 ? (
         <div className="mt-4">
           <EmptyState
             icon={<FileText size={19} />}

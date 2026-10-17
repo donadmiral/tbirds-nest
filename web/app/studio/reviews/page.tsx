@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
@@ -13,21 +15,31 @@ export default function ReviewsPage() {
   const supabase = useRef(createClient()).current;
   const [d, setD] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
   const [filter, setFilter] = useState<"all" | "unanswered" | "low">("all");
   const [replyFor, setReplyFor] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
-    try { const { data } = await supabase.rpc("studio_reviews"); setD(data as Data); } finally { setLoading(false); }
+    try {
+      const { data, error } = await supabase.rpc("studio_reviews");
+      if (error || !data) throw error || new Error("Reviews unavailable");
+      if (version !== loadVersion.current) return;
+      setD(data as Data); setLoadError(null);
+    } catch {
+      if (version === loadVersion.current) setLoadError("Reviews could not be refreshed. Please try again.");
+    } finally { if (version === loadVersion.current) setLoading(false); }
   }, [supabase]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); return () => { loadVersion.current += 1; }; }, [load]);
 
-  const save = async (r: Review) => {
+  const save = async (r: Review, body = text) => {
     if (busy) return;
     setBusy(true);
-    try { const { error } = await supabase.rpc("studio_reply_review", { p_review: r.id, p_body: text }); if (error) throw error; setReplyFor(null); setText(""); await load(); }
+    try { const { error } = await supabase.rpc("studio_reply_review", { p_review: r.id, p_body: body }); if (error) throw error; setReplyFor(null); setText(""); await load(); }
     catch (e: any) { alert(e?.message || "Could not save the reply."); }
     finally { setBusy(false); }
   };
@@ -40,7 +52,8 @@ export default function ReviewsPage() {
       <h1 className="font-display text-[21px] leading-tight text-porcelain">Reviews</h1>
       <p className="mt-1 text-[13px] text-ink/50">Reply in public. A calm answer to a bad review is read by more people than the review itself.</p>
 
-      {loading || !d ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : (
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      {loading && !d ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : !d ? null : (
         <>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-[200px_1fr]">
             <div className="rounded-xl border border-ink/10 px-4 py-4 text-center">
@@ -84,7 +97,7 @@ export default function ReviewsPage() {
                       <textarea value={text} onChange={e => setText(e.target.value)} maxLength={600} placeholder="Thank them, address the point, say what happens next." className="h-20 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" autoFocus />
                       <div className="mt-1.5 flex gap-2">
                         <button onClick={() => save(r)} disabled={busy} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">{r.reply ? "Update reply" : "Post reply"}</button>
-                        {r.reply ? <button onClick={() => { setText(""); void save(r); }} disabled={busy} className="rounded-md bg-red-500/10 px-3 py-1.5 text-[12px] text-red-400">Remove reply</button> : null}
+                        {r.reply ? <button onClick={() => { void save(r, ""); }} disabled={busy} className="rounded-md bg-red-500/10 px-3 py-1.5 text-[12px] text-red-400">Remove reply</button> : null}
                         <button onClick={() => setReplyFor(null)} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink/60">Cancel</button>
                       </div>
                     </div>

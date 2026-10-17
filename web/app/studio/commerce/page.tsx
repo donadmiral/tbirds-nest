@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 import { CommerceOverview, CommerceRail } from "@/components/CommerceOverview";
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 
@@ -23,6 +25,9 @@ export default function CommercePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [sf, setSf] = useState<Storefront | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [priceFor, setPriceFor] = useState<string | null>(null);
   const [priceText, setPriceText] = useState("");
@@ -30,32 +35,39 @@ export default function CommercePage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "available" | "sold">("all");
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
     try {
       const [c, o, s] = await Promise.all([supabase.rpc("studio_catalog"), supabase.rpc("studio_orders", { p_limit: 300 }), supabase.rpc("studio_get_storefront")]);
+      if (c.error || o.error || s.error) throw c.error || o.error || s.error;
+      if (version !== loadVersion.current) return;
       setListings((c.data as Listing[]) ?? []);
       setOrders((o.data as Order[]) ?? []);
       const raw = s.data as any;
       setSf(raw ? { tagline: raw.tagline ?? "", featured_listing_ids: Array.isArray(raw.featured_listing_ids) ? raw.featured_listing_ids : [], delivery_default: !!raw.delivery_default, delivery_fee_default: raw.delivery_fee_default ?? null, delivery_note_default: raw.delivery_note_default ?? "" } : null);
-    } finally { setLoading(false); }
+      setLoaded(true); setLoadError(null);
+    } catch {
+      if (version === loadVersion.current) setLoadError("Commerce could not be refreshed. Your last loaded data is unchanged.");
+    } finally { if (version === loadVersion.current) setLoading(false); }
   }, [supabase]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); return () => { loadVersion.current += 1; }; }, [load]);
 
   const setListing = async (l: Listing, patch: { status?: string; price?: number; delivery_available?: boolean; delivery_fee?: number | null }) => {
+    if (busyId) return false;
     setBusyId(l.id);
     try {
       const { error } = await supabase.rpc("studio_set_listing", { p_id: l.id, p_status: patch.status ?? null, p_price: patch.price ?? null, p_delivery_available: patch.delivery_available ?? null, p_delivery_fee: patch.delivery_fee ?? null, p_delivery_note: null });
       if (error) throw error;
       setListings(prev => prev.map(x => x.id === l.id ? { ...x, ...patch } as Listing : x));
-    } catch (e: any) { alert(e?.message || "Could not update."); }
+      return true;
+    } catch (e: any) { alert(e?.message || "Could not update."); return false; }
     finally { setBusyId(null); }
   };
 
   const savePrice = async (l: Listing) => {
     const v = Number(priceText);
     if (!isFinite(v) || v < 0) { alert("Enter a valid price."); return; }
-    await setListing(l, { price: v });
-    setPriceFor(null);
+    if (await setListing(l, { price: v })) setPriceFor(null);
   };
 
   const shareToFeed = async (l: Listing) => {
@@ -93,12 +105,12 @@ export default function CommercePage() {
     const rows = [["date", "payer", "username", "amount", "currency", "status", "listing", "note", "tx_id"], ...orders.map(o => [o.created_at, o.payer_name, o.payer_username || "", String(o.amount), o.currency, o.status, o.listing_title || "", o.note || "", o.tx_id || ""])];
     const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    const a = document.createElement("a"); a.href = url; a.download = "orders.csv"; a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement("a"); a.href = url; a.download = "orders-loaded.csv"; a.click(); URL.revokeObjectURL(url);
   };
 
   const totals = useMemo(() => {
     const m: Record<string, { total: number; n: number }> = {};
-    orders.filter(o => o.completed_at).forEach(o => { (m[o.currency] ||= { total: 0, n: 0 }); m[o.currency].total += Number(o.amount); m[o.currency].n += 1; });
+    orders.filter(o => o.status === "completed").forEach(o => { (m[o.currency] ||= { total: 0, n: 0 }); m[o.currency].total += Number(o.amount); m[o.currency].n += 1; });
     return Object.entries(m);
   }, [orders]);
   const shownListings = listings.filter(l => statusFilter === "all" || l.status === statusFilter);
@@ -106,6 +118,7 @@ export default function CommercePage() {
 
   return (
     <div>
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Commerce</h1>
@@ -120,10 +133,11 @@ export default function CommercePage() {
         </div>
       </div>
 
-      {!loading ? <StudioRailPortal><CommerceRail orders={orders} listings={listings} /></StudioRailPortal> : null}
-      {!loading ? <CommerceOverview orders={orders} listings={listings} /> : null}
+      {loaded ? <StudioRailPortal><CommerceRail orders={orders} listings={listings} /></StudioRailPortal> : null}
+      {loaded ? <p className="mt-3 text-[12px] text-ink/45">Order totals and exports cover the latest {orders.length} loaded orders, up to 300. They are not your bank balance.</p> : null}
+      {loaded ? <CommerceOverview orders={orders} listings={listings} /> : null}
 
-      {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : view === "catalog" ? (
+      {loading && !loaded ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : !loaded ? null : view === "catalog" ? (
         <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {(["all", "available", "sold"] as const).map(f => (
@@ -174,7 +188,7 @@ export default function CommercePage() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             {totals.length === 0 ? <p className="text-[13px] text-ink/50">No completed payments yet.</p>
               : totals.map(([cur, t]) => <span key={cur} className="rounded-2xl border border-ink/10 bg-white px-3.5 py-2 text-[13px] text-ink"><span className="font-display text-[18px] text-porcelain">{cur} {t.total.toLocaleString()}</span> <span className="text-ink/45">across {t.n} payment{t.n === 1 ? "" : "s"}</span></span>)}
-            {orders.length ? <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Download size={13} /> Export CSV</button> : null}
+            {orders.length ? <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Download size={13} /> Export loaded orders</button> : null}
           </div>
           {orders.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">Payments customers send you in chat appear here with what they bought.</p>
           : orders.map(o => (

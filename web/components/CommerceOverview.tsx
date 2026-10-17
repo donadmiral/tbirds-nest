@@ -41,8 +41,8 @@ const DAYS = 30;
 export function CommerceOverview({ orders, listings }: { orders: Order[]; listings: Listing[] }) {
   const stats = useMemo(() => {
     const since = Date.now() - DAYS * 86400000;
-    const paid = orders.filter((o) => o.status === "completed" || o.status === "paid");
-    const recent = paid.filter((o) => new Date(o.created_at).getTime() >= since);
+    const paid = orders.filter((o) => o.status === "completed");
+    const recent = paid.filter((o) => new Date(o.completed_at || o.created_at).getTime() >= since);
 
     // Grouped by currency. Adding USD to ZWG would produce a number that means
     // nothing, however tidy it looks in a card.
@@ -58,15 +58,16 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
     for (let i = DAYS - 1; i >= 0; i--) {
       buckets.set(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), 0);
     }
-    const primary = [...byCurrency.entries()].sort((a, b) => b[1].total - a[1].total)[0]?.[0] ?? null;
+    const currencies = [...byCurrency.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const primary = currencies[0]?.[0] ?? null;
     for (const o of recent) {
       if (primary && o.currency !== primary) continue;
-      const k = o.created_at.slice(0, 10);
+      const k = (o.completed_at || o.created_at).slice(0, 10);
       if (buckets.has(k)) buckets.set(k, (buckets.get(k) ?? 0) + Number(o.amount || 0));
     }
 
     return {
-      byCurrency: [...byCurrency.entries()],
+      byCurrency: currencies,
       primary,
       series: [...buckets.entries()],
       pending: orders.filter((o) => o.status === "pending").length,
@@ -87,16 +88,16 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
     <div className="mb-5">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.byCurrency.length > 0 ? (
-          stats.byCurrency.slice(0, 2).map(([cur, v]) => (
+          stats.byCurrency.map(([cur, v]) => (
             <div key={cur} className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-              <p className="text-[11.5px] text-ink/45">Revenue, {DAYS} days</p>
+              <p className="text-[11.5px] text-ink/45">Loaded sales, {DAYS} days</p>
               <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">{money(v.total, cur)}</p>
               <p className="mt-0.5 text-[11.5px] text-ink/40">{v.count} {v.count === 1 ? "order" : "orders"}</p>
             </div>
           ))
         ) : (
           <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-            <p className="text-[11.5px] text-ink/45">Revenue, {DAYS} days</p>
+            <p className="text-[11.5px] text-ink/45">Loaded sales, {DAYS} days</p>
             <Metric value={0} size={24} />
             <p className="mt-0.5 text-[11.5px] text-ink/40">no paid orders yet</p>
           </div>
@@ -126,13 +127,13 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
         <div className="rounded-2xl border border-ink/10 bg-white px-5 py-4">
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="text-[15px] font-semibold text-ink">
-              Revenue over time{stats.primary ? ", " + stats.primary : ""}
+              Loaded sales over time{stats.primary ? ", " + stats.primary : ""}
             </h2>
-            <span className="text-[11.5px] text-ink/40">last {DAYS} days</span>
+            <span className="text-[11.5px] text-ink/40">last {DAYS} days · UTC</span>
           </div>
           <TrendChart
-            series={[{ name: "Revenue", points: stats.series.map(([, v]) => v) }]}
-            labels={stats.series.map(([d]) => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" }))}
+            series={[{ name: "Completed sales", points: stats.series.map(([, v]) => v) }]}
+            labels={stats.series.map(([d]) => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" }))}
             height={200}
             emptyLabel="No paid orders in this period"
           />
@@ -181,29 +182,23 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
 }
 
 /**
- * The Commerce rail: money you are owed, and orders that need a human.
- *
- * "Available" here means orders marked completed. Anything still pending is
- * shown separately rather than folded into the balance, because money that has
- * not cleared is not money you can spend.
+ * Completed receipts in the loaded order history. This is not a bank balance
+ * or the amount available for withdrawal.
  */
 export function CommerceRail({ orders, listings }: { orders: Order[]; listings: Listing[] }) {
   const m = useMemo(() => {
     const cleared = new Map<string, number>();
-    let pendingTotal = 0;
     let pendingCount = 0;
     for (const o of orders) {
       if (o.status === "completed") {
         cleared.set(o.currency, (cleared.get(o.currency) ?? 0) + Number(o.amount || 0));
       } else if (o.status === "pending") {
-        pendingTotal += Number(o.amount || 0);
         pendingCount += 1;
       }
     }
     return {
-      cleared: [...cleared.entries()].sort((a, b) => b[1] - a[1]),
+      cleared: [...cleared.entries()].sort(([a], [b]) => a.localeCompare(b)),
       pendingCount,
-      pendingTotal,
       offers: listings.filter((l) => (l.pending_offers || 0) > 0),
     };
   }, [orders, listings]);
@@ -213,13 +208,13 @@ export function CommerceRail({ orders, listings }: { orders: Order[]; listings: 
 
   return (
     <>
-      <Panel title="Balance">
+      <Panel title="Loaded completed sales">
         {m.cleared.length === 0 ? (
-          <p className="text-[13px] text-ink/45">Nothing cleared yet. Completed orders add up here.</p>
+          <p className="text-[13px] text-ink/45">No completed payments in the loaded orders.</p>
         ) : (
           m.cleared.map(([cur, total]) => (
             <div key={cur} className="mb-1 last:mb-0">
-              <p className="text-[11.5px] text-ink/45">Cleared, {cur}</p>
+              <p className="text-[11.5px] text-ink/45">Completed, {cur}</p>
               <p className="font-display text-[24px] leading-tight text-porcelain">{money(total, cur)}</p>
             </div>
           ))

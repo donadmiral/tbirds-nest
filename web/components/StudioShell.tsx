@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Briefcase, FileText, Home, Inbox, KeyRound, LayoutDashboard, Megaphone, Settings, ShoppingBag, Star, Users, CalendarClock } from "lucide-react";
@@ -9,6 +9,7 @@ import { GROUPS, ROOMS, bindMember, studioMe, type StudioMe } from "@/lib/studio
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StudioSideRail } from "@/components/StudioSideRail";
 import { STUDIO_RAIL_SLOT } from "@/components/StudioRailPortal";
+import { StudioLoadError } from "@/app/studio/LoadError";
 import { createClient } from "@/lib/supabase/client";
 
 const StudioCtx = createContext<{ me: StudioMe | null; refresh: () => Promise<void> }>({ me: null, refresh: async () => {} });
@@ -33,7 +34,12 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const refresh = async () => { setMe(await studioMe()); };
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const refresh = useCallback(async () => {
+    try { setMe(await studioMe()); setLoadError(null); }
+    catch { setLoadError("Studio could not verify this session. Please try again."); }
+    finally { setLoading(false); }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -45,9 +51,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
       setTier(data?.verified_tier ?? (data?.is_verified ? "business" : null));
       const { data: sf } = await supabase.rpc("studio_surfaces");
       if (Array.isArray(sf)) setSurfaces(sf as string[]);
-    })();
+    })().catch(() => { /* Verification decoration is optional; Studio access is checked separately. */ });
   }, []);
-  useEffect(() => { (async () => { await refresh(); setLoading(false); })(); }, []);
+  useEffect(() => { void refresh(); }, [refresh]);
 
   const bind = async () => {
     if (!code.trim() || busy) return;
@@ -58,6 +64,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   };
 
   if (loading) return <p className="py-20 text-center text-sm text-ink/40">Opening Studio</p>;
+
+  if (!me && loadError) return <div className="mx-auto max-w-[520px] px-6 py-16"><StudioLoadError message={loadError} retry={() => { void refresh(); }} /></div>;
 
   if (!me || !me.is_business) {
     return (
@@ -73,6 +81,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="mx-auto max-w-[460px] px-6 py-16">
         <h1 className="font-display text-2xl text-porcelain">Who is working?</h1>
+        <StudioLoadError message={loadError} retry={() => { void refresh(); }} />
         <p className="mt-3 text-[14px] leading-6 text-ink/60">Enter your personal access code once for this session. It sets what you can do in Studio for {me.business_name || "this business"}.</p>
         <input value={code} onChange={e => setCode(e.target.value.toUpperCase())} onKeyDown={e => { if (e.key === "Enter") void bind(); }} placeholder="ACCESS CODE" autoFocus
           className="mt-5 w-full rounded-lg border border-ink/15 bg-transparent px-3 py-2.5 font-mono text-[15px] tracking-widest text-ink outline-none transition-colors duration-[140ms] focus:border-pearl" />
@@ -89,6 +98,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
             already sits inside the app's left rail, and a second vertical nav
             beside it left the desks about 700px wide, which is not enough for
             a table and a chart side by side. */}
+        <StudioLoadError message={loadError} retry={() => { void refresh(); }} />
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <h1 className="font-display text-[26px] leading-tight text-porcelain">Studio</h1>

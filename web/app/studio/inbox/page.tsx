@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { displayImageUrl } from "@/lib/media";
 import { Panel } from "@/components/ui";
@@ -30,6 +32,9 @@ export default function InboxPage() {
   const [filter, setFilter] = useState<"all" | "dm" | "offer" | "applicant" | "review">("all");
   const [showDone, setShowDone] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
   const [view, setView] = useState<"queue" | "replies" | "automations">("queue");
   const [replies, setReplies] = useState<SavedReply[]>([]);
   const [auto, setAuto] = useState<AutoReplies | null>(null);
@@ -39,24 +44,55 @@ export default function InboxPage() {
   const [noteText, setNoteText] = useState("");
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
     try {
-      const { data } = await supabase.rpc("studio_inbox", { p_filter: filter, p_limit: 120 });
+      const { data, error } = await supabase.rpc("studio_inbox", { p_filter: filter, p_limit: 120 });
+      if (error) throw error;
+      if (version !== loadVersion.current) return;
       setItems((data as Item[]) ?? []);
-    } finally { setLoading(false); }
+      setLoaded(true); setLoadError(null);
+    } catch {
+      if (version === loadVersion.current) setLoadError("Inbox could not be refreshed. Your last loaded data is unchanged.");
+    } finally { if (version === loadVersion.current) setLoading(false); }
   }, [supabase, filter]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); return () => { loadVersion.current += 1; }; }, [load]);
   useStudioLive(load);
-  useEffect(() => {
-    supabase.rpc("studio_team").then(({ data }) => setTeam((data as Member[]) ?? []));
-    listReplies().then(setReplies).catch(() => {});
-    getAutoReplies().then(setAuto).catch(() => {});
+  const [toolsError, setToolsError] = useState<string | null>(null);
+  const [toolsLoading, setToolsLoading] = useState(false);
+  const failedTools = useRef(new Set(["team", "replies", "automations"]));
+  const toolsPending = useRef(false);
+  const loadTools = useCallback(async () => {
+    if (toolsPending.current) return;
+    toolsPending.current = true;
+    setToolsLoading(true);
+    try {
+      // Retry only failed sections so a team-directory error cannot hide saved
+      // replies or overwrite an automation draft the user is already editing.
+      await Promise.allSettled([
+        failedTools.current.has("team") ? (async () => {
+          const members = await supabase.rpc("studio_team");
+          if (members.error) throw members.error;
+          setTeam((members.data as Member[]) ?? []); failedTools.current.delete("team");
+        })() : Promise.resolve(),
+        failedTools.current.has("replies") ? listReplies().then(saved => { setReplies(saved); failedTools.current.delete("replies"); }) : Promise.resolve(),
+        failedTools.current.has("automations") ? getAutoReplies().then(automation => { setAuto(automation); failedTools.current.delete("automations"); }) : Promise.resolve(),
+      ]);
+      setToolsError(failedTools.current.size ? "Some inbox tools could not be loaded. Please try again." : null);
+    } finally { toolsPending.current = false; setToolsLoading(false); }
   }, [supabase]);
+  useEffect(() => { void loadTools(); }, [loadTools]);
+  const pendingThreads = useRef(new Set<string>());
 
   const setState = async (it: Item, patch: { label?: string | null; assignee?: string | null; done?: boolean; note?: string | null }) => {
-    setItems(prev => prev.map(x => x.id === it.id ? { ...x, ...patch } : x));
-    const { error } = await supabase.rpc("studio_set_thread", { p_conversation: it.id, p_label: patch.label ?? null, p_assignee: patch.assignee ?? null, p_done: patch.done ?? null, p_note: patch.note ?? null });
-    if (error) { alert(error.message); void load(); }
+    if (pendingThreads.current.has(it.id)) return;
+    pendingThreads.current.add(it.id);
+    try {
+      const { error } = await supabase.rpc("studio_set_thread", { p_conversation: it.id, p_label: patch.label ?? null, p_assignee: patch.assignee ?? null, p_done: patch.done ?? null, p_note: patch.note ?? null });
+      if (error) throw error;
+      setItems(prev => prev.map(x => x.id === it.id ? { ...x, ...patch } : x));
+    } catch { alert("This conversation could not be updated. Please try again."); }
+    finally { pendingThreads.current.delete(it.id); }
   };
 
   const respondOffer = async (it: Item, action: "accepted" | "declined") => {
@@ -72,7 +108,7 @@ export default function InboxPage() {
     catch (e: any) { alert(e?.message || "Could not save."); }
     finally { setSaving(false); }
   };
-  const removeReply = async (r: SavedReply) => { await deleteReply(r.id); setReplies(prev => prev.filter(x => x.id !== r.id)); };
+  const removeReply = async (r: SavedReply) => { try { await deleteReply(r.id); setReplies(prev => prev.filter(x => x.id !== r.id)); } catch { alert("The reply could not be deleted. Please try again."); } };
   const saveAuto = async () => {
     if (!auto || saving) return;
     setSaving(true);
@@ -84,6 +120,8 @@ export default function InboxPage() {
 
   return (
     <div className="max-w-[960px]">
+      <StudioLoadError message={toolsError} retry={() => { void loadTools(); }} busy={toolsLoading} />
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
       <StudioRailPortal>
         <>
           {items.length > 0 ? (
@@ -149,8 +187,8 @@ export default function InboxPage() {
             ))}
             <label className="ml-auto flex items-center gap-1.5 text-[12.5px] text-ink/50"><input type="checkbox" checked={showDone} onChange={e => setShowDone(e.target.checked)} /> Show done</label>
           </div>
-          {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
-          : shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">Queue is clear.</p>
+          {loading && !loaded ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
+          : !loaded ? null : shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">Queue is clear.</p>
           : shown.map(it => {
             const Icon = KIND_ICON[it.kind];
             const href = it.kind === "dm" ? "/messages" : it.kind === "offer" ? "/market/" + it.ref : it.kind === "applicant" ? "/jobs" : (me?.username ? "/" + me.username : "/studio");

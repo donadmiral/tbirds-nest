@@ -8,7 +8,7 @@
  * for a table that has not been built. And a panel with nothing to say hides
  * itself, so a quiet week produces a short rail rather than a column of zeroes.
  */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   BarChart3,
@@ -20,6 +20,7 @@ import {
   Star,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { StudioLoadError } from "@/app/studio/LoadError";
 import { studioHome, type StudioHome } from "@/lib/studio";
 import { Panel } from "@/components/ui";
 
@@ -37,15 +38,21 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
   const [home, setHome] = useState<StudioHome | null>(null);
   const [reviews, setReviews] = useState<{ n: number; avg: number } | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      setHome(await studioHome());
-      // studio_reviews returns a summary object, not a list of rows.
-      const { data } = await supabase.rpc("studio_reviews");
-      const d = data as { average?: number; count?: number } | null;
-      if (d && (d.count ?? 0) > 0) setReviews({ n: d.count ?? 0, avg: d.average ?? 0 });
-    })();
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [summary, result] = await Promise.all([studioHome(), supabase.rpc("studio_reviews")]);
+      if (result.error) throw result.error;
+      setHome(summary);
+      const d = result.data as { average?: number; count?: number } | null;
+      setReviews(d && (d.count ?? 0) > 0 ? { n: d.count ?? 0, avg: d.average ?? 0 } : null);
+      setLoadError(null);
+    } catch { setLoadError("Studio summaries could not be refreshed."); }
+    finally { setLoading(false); }
   }, [supabase]);
+  useEffect(() => { void load(); }, [load]);
 
   const todos = home
     ? [
@@ -60,6 +67,7 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
 
   return (
     <>
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
       {todos.length > 0 ? (
         <Panel title="Needs you">
           <div className="flex flex-col gap-2">

@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { displayImageUrl } from "@/lib/media";
 import { Panel } from "@/components/ui";
@@ -28,25 +30,40 @@ export default function AudiencePage() {
   const [q, setQ] = useState("");
   const [label, setLabel] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
   const [form, setForm] = useState<{ id: string | null; name: string; phone: string; email: string; source: string; note: string; status: string; contact_id: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
     try {
       const [a, l, s] = await Promise.all([
         supabase.rpc("studio_audience", { p_q: q.trim() || null, p_label: label || null, p_limit: 300 }),
         supabase.rpc("studio_leads"), supabase.rpc("studio_audience_summary"),
       ]);
+      if (a.error || l.error || s.error) throw a.error || l.error || s.error;
+      if (version !== loadVersion.current) return;
       setPeople((a.data as Person[]) ?? []); setLeads((l.data as Lead[]) ?? []); setSum(s.data as Summary);
-    } finally { setLoading(false); }
+      setLoaded(true); setLoadError(null);
+    } catch {
+      if (version === loadVersion.current) setLoadError("Audience could not be refreshed. Your last loaded data is unchanged.");
+    } finally { if (version === loadVersion.current) setLoading(false); }
   }, [supabase, q, label]);
-  useEffect(() => { const t = setTimeout(() => { void load(); }, 250); return () => clearTimeout(t); }, [load]);
+  useEffect(() => { const t = setTimeout(() => { void load(); }, 250); return () => { clearTimeout(t); loadVersion.current += 1; }; }, [load]);
 
+  const pendingContacts = useRef(new Set<string>());
   const setPersonLabel = async (p: Person, l: string) => {
-    setPeople(prev => prev.map(x => x.id === p.id ? { ...x, label: l || null } : x));
-    const { error } = await supabase.rpc("studio_set_contact_label", { p_contact: p.id, p_label: l || null, p_note: null });
-    if (error) { alert(error.message); void load(); }
+    if (pendingContacts.current.has(p.id)) return;
+    pendingContacts.current.add(p.id);
+    try {
+      const { error } = await supabase.rpc("studio_set_contact_label", { p_contact: p.id, p_label: l || null, p_note: null });
+      if (error) throw error;
+      setPeople(prev => prev.map(x => x.id === p.id ? { ...x, label: l || null } : x));
+    } catch { alert("The label could not be saved. Please try again."); }
+    finally { pendingContacts.current.delete(p.id); }
   };
   const saveLead = async () => {
     if (!form || busy) return;
@@ -58,24 +75,38 @@ export default function AudiencePage() {
     } catch (e: any) { alert(e?.message || "Could not save."); }
     finally { setBusy(false); }
   };
-  const deleteLead = async (l: Lead) => { if (!confirm("Delete this lead?")) return; await supabase.rpc("studio_delete_lead", { p_id: l.id }); await load(); };
-  const setLeadStatus = async (l: Lead, status: string) => {
-    setLeads(prev => prev.map(x => x.id === l.id ? { ...x, status } : x));
-    const { error } = await supabase.rpc("studio_upsert_lead", { p_id: l.id, p_name: l.name, p_phone: l.phone, p_email: l.email, p_source: l.source, p_note: l.note, p_status: status, p_contact: l.contact_id });
-    if (error) { alert(error.message); void load(); }
+  const deleteLead = async (l: Lead) => {
+    if (!confirm("Delete this lead?")) return;
+    try {
+      const { error } = await supabase.rpc("studio_delete_lead", { p_id: l.id });
+      if (error) throw error;
+      setLeads(prev => prev.filter(x => x.id !== l.id));
+    } catch { alert("The lead could not be deleted. Please try again."); }
   };
+  const setLeadStatus = async (l: Lead, status: string) => {
+    if (pendingContacts.current.has(l.id)) return;
+    pendingContacts.current.add(l.id);
+    try {
+      const { error } = await supabase.rpc("studio_upsert_lead", { p_id: l.id, p_name: l.name, p_phone: l.phone, p_email: l.email, p_source: l.source, p_note: l.note, p_status: status, p_contact: l.contact_id });
+      if (error) throw error;
+      setLeads(prev => prev.map(x => x.id === l.id ? { ...x, status } : x));
+    } catch { alert("The lead status could not be saved. Please try again."); }
+    finally { pendingContacts.current.delete(l.id); }
+  };
+
   const exportCsv = () => {
     const rows = view === "followers"
       ? [["name", "username", "location", "label", "followed", "paid", "messages"], ...people.map(p => [p.name, p.username || "", p.location || "", p.label || "", p.followed_at, String(p.paid), String(p.messages)])]
       : [["name", "phone", "email", "source", "status", "note", "created"], ...leads.map(l => [l.name, l.phone || "", l.email || "", l.source || "", l.status, l.note || "", l.created_at])];
     const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    const a = document.createElement("a"); a.href = url; a.download = view + ".csv"; a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement("a"); a.href = url; a.download = view + "-loaded.csv"; a.click(); URL.revokeObjectURL(url);
   };
   const chip = (s: string) => s === "converted" ? "bg-success/15 text-success" : s === "lost" ? "bg-surface text-ink/40" : s === "contacted" ? "bg-pearl/15 text-pearl" : "bg-navy/20 text-ink";
 
   return (
     <div className="max-w-[960px]">
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Audience</h1>
@@ -144,10 +175,11 @@ export default function AudiencePage() {
             <select value={label} onChange={e => setLabel(e.target.value)} className="rounded-md bg-surface px-2 py-2 text-[12.5px] text-ink/70 outline-none"><option value="">All labels</option>{LABELS.map(l => <option key={l} value={l}>{l}</option>)}</select>
           </>
         ) : <button onClick={() => setForm({ id: null, name: "", phone: "", email: "", source: "", note: "", status: "new", contact_id: null })} className="inline-flex items-center gap-1.5 rounded-md bg-pearl px-3.5 py-2 text-[13px] font-semibold text-ink"><Plus size={14} /> New lead</button>}
-        <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 hover:text-ink"><Download size={13} /> Export CSV</button>
+        <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 hover:text-ink"><Download size={13} /> Export loaded rows</button>
       </div>
 
-      {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : view === "followers" ? (
+      {loaded && view === "followers" ? <p className="mt-2 text-[12px] text-ink/45">Showing up to 300 matching followers. Export includes the loaded rows.</p> : null}
+      {loading && !loaded ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : !loaded ? null : view === "followers" ? (
         people.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">No followers match.</p> : people.map(p => (
           <div key={p.id} className="mt-2 flex items-center gap-3 rounded-xl border border-ink/10 px-3 py-2.5">
             {p.avatar_url ? (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { StudioLoadError } from "./LoadError";
 import Link from "next/link";
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Briefcase, CalendarClock, Megaphone, MessageCircle, Star, Tag } from "lucide-react";
 import { pct, studioHome, type StudioHome } from "@/lib/studio";
@@ -22,14 +23,17 @@ export default function StudioHomePage() {
   const [thumbs, setThumbs] = useState<Record<string, { url: string; media_type: string }>>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
       const supabase = createClient();
       const [home, ins] = await Promise.all([
         studioHome(),
         supabase.rpc("studio_insights", { p_days: 30 }),
       ]);
-      setH(home);
+      if (ins.error || !home) throw ins.error || new Error("Overview unavailable");
+      setH(home); setLoadError(null);
       setSeries(((ins.data as { series?: Day[] } | null)?.series) ?? []);
       setLoading(false);
 
@@ -47,11 +51,13 @@ export default function StudioHomePage() {
         if (!first[m.post_id]) first[m.post_id] = { url: m.url, media_type: m.media_type };
       }
       setThumbs(first);
-    })();
+    } catch { setLoadError("The overview could not be refreshed. Please try again."); }
+    finally { setLoading(false); }
   }, []);
+  useEffect(() => { void load(); }, [load]);
 
-  if (loading) return <p className="py-16 text-center text-sm text-ink/40">Loading</p>;
-  if (!h) return <p className="py-16 text-center text-sm text-ink/40">Could not load the overview.</p>;
+  if (loading && !h) return <p className="py-16 text-center text-sm text-ink/40">Loading</p>;
+  if (!h) return <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />;
 
   const todos = [
     { n: h.todos.unanswered, label: "unanswered messages", href: "/messages", icon: MessageCircle },
@@ -86,17 +92,13 @@ export default function StudioHomePage() {
 
   return (
     <div>
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
       {/* The greeting lives in the Studio header now, so the page opens on the
           work rather than repeating the name. */}
       {!loading && series.length < 2 ? (
         <div className="mb-5 rounded-2xl border border-pearl/40 bg-pearl/8 px-4 py-3.5">
-          <p className="text-[13.5px] font-semibold text-ink">Charts need the nightly rollup</p>
-          <p className="mt-1 text-[13px] leading-6 text-ink/60">
-            Totals below are live, but the trend lines read from a nightly job that has not recorded a day for this
-            business yet. It runs at 22:20 and needs two days before a line can be drawn. To fill history from posts
-            that already exist, run <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[12px]">select studio_rollup(95);</code> once
-            in the SQL editor while signed in as this business.
-          </p>
+          <p className="text-[13.5px] font-semibold text-ink">Trend data is not ready yet</p>
+          <p className="mt-1 text-[13px] leading-6 text-ink/60">Your totals are available below. Trend lines appear after enough daily activity has been recorded.</p>
         </div>
       ) : null}
 
