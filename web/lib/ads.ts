@@ -21,13 +21,42 @@ export type PromoRow = FeedRow & { promo_id: string; promo_label: string };
 
 export async function getActivePromos(limit = 3): Promise<PromoRow[]> {
   const supabase = createClient();
-  const { data, error } = await supabase.rpc("get_active_promos", { p_limit: limit });
-  if (error) return [];
-  return ((data ?? []) as (PromoRow & { author_id: string })[]).map((r) => ({
-    ...r,
-    viewer_liked: false, viewer_reposted: false, viewer_bookmarked: false,
-    sort_key: 0,
-  })) as PromoRow[];
+  try {
+    const [{ data, error }, { data: session, error: sessionError }] = await Promise.all([
+      supabase.rpc("get_active_promos", { p_limit: limit }),
+      supabase.auth.getSession(),
+    ]);
+    if (error || sessionError) return [];
+    const rows = (data ?? []) as PromoRow[];
+    if (!rows.length) return [];
+    const viewer = session.session?.user.id;
+    const ids = [...new Set(rows.map((r) => r.post_id))];
+    const authors = [...new Set(rows.map((r) => r.author_id))];
+    const [likes, reposts, bookmarks, follows] = viewer ? await Promise.all([
+      supabase.from("post_likes").select("post_id").eq("user_id", viewer).in("post_id", ids),
+      supabase.from("post_reposts").select("post_id").eq("user_id", viewer).in("post_id", ids),
+      supabase.from("post_bookmarks").select("post_id").eq("user_id", viewer).in("post_id", ids),
+      supabase.from("follows").select("following_id").eq("follower_id", viewer).in("following_id", authors),
+    ]) : [];
+    // Don't render invented viewer state when a relationship read failed.
+    if ([likes, reposts, bookmarks, follows].some((result) => result?.error)) return [];
+    const { data: current, error: currentError } = await supabase.auth.getSession();
+    if (currentError || current.session?.user.id !== viewer) return [];
+    const liked = new Set((likes?.data ?? []).map((r) => r.post_id));
+    const reposted = new Set((reposts?.data ?? []).map((r) => r.post_id));
+    const saved = new Set((bookmarks?.data ?? []).map((r) => r.post_id));
+    const followed = new Set((follows?.data ?? []).map((r) => r.following_id));
+    return rows.map((r) => ({
+      ...r,
+      viewer_liked: liked.has(r.post_id),
+      viewer_reposted: reposted.has(r.post_id),
+      viewer_bookmarked: saved.has(r.post_id),
+      viewer_follows: followed.has(r.author_id),
+      sort_key: 0,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 const seen = new Set<string>();

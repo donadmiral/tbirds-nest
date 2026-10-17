@@ -42,18 +42,20 @@ function count(n: number): string {
 function useToggle(initialOn: boolean, initialCount: number, action: (id: string, on: boolean) => Promise<boolean>, postId: string) {
   const [on, setOn] = useState(initialOn);
   const [n, setN] = useState(initialCount);
-  const [busy, setBusy] = useState(false);
+  const busy = useRef(false);
   async function set(next: boolean) {
-    if (busy || next === on) return;
-    setBusy(true);
+    if (busy.current || next === on) return;
+    busy.current = true;
     setOn(next);
     setN((v) => Math.max(0, v + (next ? 1 : -1)));
-    const ok = await action(postId, next);
-    if (!ok) {
+    try {
+      if (!await action(postId, next)) throw new Error("Interaction was not saved");
+    } catch {
       setOn(!next);
-      setN((v) => Math.max(0, v + (next ? -1 : 1)));
+      setN(n);
+    } finally {
+      busy.current = false;
     }
-    setBusy(false);
   }
   async function flip(e: React.MouseEvent) {
     e.preventDefault();
