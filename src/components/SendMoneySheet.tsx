@@ -44,15 +44,24 @@ export default function SendMoneySheet({
   const [retryAllowed, setRetryAllowed] = useState(false);
   const [recoveryMessage, setRecoveryMessage] = useState('');
   const [loadError, setLoadError] = useState('');
-  const operationRef = useRef(false);
-  const context = [ownerId, conversationId, recipientId].join(':');
-  const activeContextRef = useRef('');
-  activeContextRef.current = visible ? context : '';
+  // Each opening and account/conversation change owns a different identity,
+  // including A-to-B-to-A changes that return to the same payment details.
+  const context = useMemo(() => ({ ownerId, conversationId, recipientId, listingId, currency: 'USD', visible }),
+    [ownerId, conversationId, recipientId, listingId, visible]);
+  const activeContextRef = useRef<typeof context | null>(context);
+  activeContextRef.current = context;
+  const operationRef = useRef<symbol | null>(null);
+  const isCurrent = useCallback(() => activeContextRef.current === context && context.visible
+    && (useAuthStore.getState().session?.user?.id || '') === ownerId, [context, ownerId]);
+  const finishOperation = useCallback((operation: symbol) => {
+    if (!isCurrent() || operationRef.current !== operation) return;
+    operationRef.current = null; setBusy(false);
+  }, [isCurrent]);
 
   const showOutcome = useCallback(async (intent: PaymentIntent, outcome: PaymentOutcome) => {
     if (outcome.status === 'completed' && outcome.tx_id) {
       await paymentsService.clearIntent(intent);
-      if (activeContextRef.current !== context) return;
+      if (!isCurrent()) return;
       setPendingIntent(null);
       onSent?.(intent.amount, outcome.currency || intent.currency, outcome.tx_id);
       onClose();
@@ -60,14 +69,14 @@ export default function SendMoneySheet({
     }
     if (outcome.status === 'failed') {
       await paymentsService.clearIntent(intent);
-      if (activeContextRef.current !== context) return;
+      if (!isCurrent()) return;
       setPendingIntent(null);
       setRetryAllowed(false);
       setRaw('0');
       setRecoveryMessage(outcome.error || 'The payment was declined. No new payment has been sent.');
       return;
     }
-    if (activeContextRef.current !== context) return;
+    if (!isCurrent()) return;
     setPendingIntent(intent);
     setRaw(String(intent.amount));
     setRetryAllowed(outcome.status === 'not_found');
@@ -76,13 +85,19 @@ export default function SendMoneySheet({
       : outcome.status === 'not_submitted'
         ? outcome.error || 'Confirmation was cancelled. Check the saved payment before retrying.'
         : 'Payment outcome unconfirmed. Check its status before making another payment. Closing this sheet keeps the original reference.');
-  }, [context, onSent, onClose]);
+  }, [isCurrent, onSent, onClose]);
 
   // Reopening a sheet only reads status. It never sends or creates a new key.
   useEffect(() => {
-    if (!visible) return;
+    activeContextRef.current = context;
+    operationRef.current = null; setBusy(false);
     let cancelled = false;
-    const current = () => !cancelled && activeContextRef.current === context;
+    const cleanup = () => {
+      cancelled = true;
+      if (activeContextRef.current === context) activeContextRef.current = null;
+    };
+    if (!visible) return cleanup;
+    const current = () => !cancelled && isCurrent();
     setChecking(true); setCode(''); setLoadError(''); setRecoveryMessage('');
     setPendingIntent(null); setRetryAllowed(false); setWallet(null); setLinked(false); setPeerHasBank(false);
     setRaw(initialAmount && initialAmount > 0 ? String(initialAmount) : '0');
@@ -112,10 +127,10 @@ export default function SendMoneySheet({
         if (current()) setLoadError(e?.message || 'Could not load payment details. Close this sheet and try again.');
       } finally { if (current()) setChecking(false); }
     })();
-    return () => { cancelled = true; };
+    return cleanup;
     // Callback identity changes from the parent must not reset an open payment.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, ownerId, recipientId, conversationId]);
+  }, [context]);
 
   const amount = useMemo(() => Number(raw) || 0, [raw]);
   const fontSize = useMemo(() => {
@@ -147,62 +162,63 @@ export default function SendMoneySheet({
   }, [pendingIntent, busy]);
 
   const doLink = useCallback(async () => {
-    if (operationRef.current) return;
+    if (!ownerId || !isCurrent() || operationRef.current) return;
     if (!code.trim()) { Alert.alert('Approval code needed', 'Approve Platinum Circles in IntoBank, then enter the connection code.'); return; }
-    operationRef.current = true; setBusy(true);
+    const operation = Symbol(); operationRef.current = operation; setBusy(true);
     try {
       await paymentsService.linkAccount(code, ownerId);
+      if (!isCurrent()) return;
       const balance = await paymentsService.getBalance(ownerId);
-      if (activeContextRef.current !== context) return;
+      if (!isCurrent()) return;
       setLinked(!!balance?.linked); setWallet(balance?.linked ? balance : null); setCode('');
     } catch (e: any) {
-      if (activeContextRef.current === context) Alert.alert('Could not connect', e?.message || 'Check your approval code and try again.');
-    } finally { operationRef.current = false; setBusy(false); }
-  }, [code, context, ownerId]);
+      if (isCurrent()) Alert.alert('Could not connect', e?.message || 'Check your approval code and try again.');
+    } finally { finishOperation(operation); }
+  }, [code, ownerId, isCurrent, finishOperation]);
 
   const checkPayment = useCallback(async () => {
-    if (!pendingIntent || operationRef.current) return;
-    operationRef.current = true; setBusy(true); setRetryAllowed(false);
+    if (!ownerId || !isCurrent() || !pendingIntent || operationRef.current) return;
+    const operation = Symbol(); operationRef.current = operation; setBusy(true); setRetryAllowed(false);
     try {
       await showOutcome(pendingIntent, await paymentsService.getPaymentStatus(pendingIntent));
     } catch (e: any) {
-      if (activeContextRef.current === context) setRecoveryMessage('Payment outcome unconfirmed. ' + (e?.message || 'Reconnect and check again.'));
-    } finally { operationRef.current = false; setBusy(false); }
-  }, [pendingIntent, showOutcome, context]);
+      if (isCurrent()) setRecoveryMessage('Payment outcome unconfirmed. ' + (e?.message || 'Reconnect and check again.'));
+    } finally { finishOperation(operation); }
+  }, [ownerId, pendingIntent, showOutcome, isCurrent, finishOperation]);
 
   const doPay = useCallback(async () => {
-    if (operationRef.current || loadError || amount <= 0) return;
+    if (!ownerId || !isCurrent() || operationRef.current || loadError || amount <= 0) return;
     if (!peerHasBank && !pendingIntent) {
       Alert.alert('IntoBank connection needed', recipientName + ' needs to connect IntoBank before receiving this payment.');
       return;
     }
-    operationRef.current = true; setBusy(true); setRetryAllowed(false);
+    const operation = Symbol(); operationRef.current = operation; setBusy(true); setRetryAllowed(false);
     let intent: PaymentIntent | null = null;
     try {
       intent = await paymentsService.prepareIntent({
         ownerId, recipientId, amount, conversationId, currency: 'USD', listingId: listingId ?? null,
       });
-      if (activeContextRef.current !== context) return;
+      if (!isCurrent()) return;
       setPendingIntent(intent); setRaw(String(intent.amount));
       // Even an explicit retry first checks the authoritative server status.
       const status = await paymentsService.getPaymentStatus(intent);
       if (status.status !== 'not_found') { await showOutcome(intent, status); return; }
-      if (activeContextRef.current !== context) return;
+      if (!isCurrent()) return;
       const result = await paymentsService.sendMoney(intent);
       await showOutcome(intent, result);
     } catch (e: any) {
-      if (activeContextRef.current === context) {
+      if (isCurrent()) {
         if (!intent) setLoadError('Could not prepare this payment. ' + (e?.message || 'Close this sheet and try again.'));
         else setRecoveryMessage('Payment outcome unconfirmed. ' + (e?.message || 'Reconnect and check its status.'));
       }
-    } finally { operationRef.current = false; setBusy(false); }
-  }, [loadError, amount, peerHasBank, pendingIntent, recipientName, ownerId, recipientId, conversationId, listingId, context, showOutcome]);
+    } finally { finishOperation(operation); }
+  }, [loadError, amount, peerHasBank, pendingIntent, recipientName, ownerId, recipientId, conversationId, listingId, isCurrent, showOutcome, finishOperation]);
 
   const doRequest = useCallback(() => {
-    if (amount <= 0 || busy || pendingIntent || loadError) return;
+    if (!ownerId || !isCurrent() || amount <= 0 || busy || pendingIntent || loadError) return;
     onRequested?.(amount, 'USD');
     onClose();
-  }, [amount, busy, pendingIntent, loadError, onRequested, onClose]);
+  }, [ownerId, amount, busy, pendingIntent, loadError, onRequested, onClose, isCurrent]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { if (!busy) onClose(); }}>
