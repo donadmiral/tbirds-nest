@@ -237,13 +237,17 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
     if (gap > 0) document.body.style.paddingRight = gap + "px";
     closeRef.current?.focus();
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setLightbox(null);
-      else if (e.key === "ArrowRight") { resetZoom(); setLightbox((v) => (v === null ? v : Math.min(v + 1, media.length - 1))); }
-      else if (e.key === "ArrowLeft") { resetZoom(); setLightbox((v) => (v === null ? v : Math.max(v - 1, 0))); }
+      if (e.defaultPrevented) return;
+      const target = e.target as HTMLElement | null;
+      const editing = target?.closest("input, textarea, select, [contenteditable='true']");
+      if (e.key === "Escape" && !document.fullscreenElement) setLightbox(null);
+      else if (e.key === "ArrowRight" && !editing && !e.altKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); resetZoom(); setLightbox((v) => (v === null ? v : Math.min(v + 1, media.length - 1))); }
+      else if (e.key === "ArrowLeft" && !editing && !e.altKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); resetZoom(); setLightbox((v) => (v === null ? v : Math.max(v - 1, 0))); }
       else if (e.key === "Tab") {
-        const focusables = modalRef.current?.querySelectorAll<HTMLElement>("button, a, video, [tabindex]");
+        const focusables = modalRef.current?.querySelectorAll<HTMLElement>("button, a[href], input, select, textarea, [tabindex]");
         if (!focusables || focusables.length === 0) return;
-        const list = Array.from(focusables);
+        const list = Array.from(focusables).filter((el) => !el.hasAttribute("disabled") && el.tabIndex >= 0 && el.getClientRects().length > 0);
+        if (!list.length) return;
         const first = list[0], last = list[list.length - 1];
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
@@ -380,6 +384,8 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
                 edit={editOf(item)}
+                allowPlayback={!item.is_sensitive || !!revealed[item.id]}
+                onExpand={() => setLightbox(idx)}
               /><EditPlanes e={editOf(item)} /><TagLayer mode="list" tags={tags[item.id] || []} w={dims?.w} h={dims?.h} /></div>
             </div>
           ) : (
@@ -486,10 +492,12 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               <button onClick={(e) => { e.stopPropagation(); goTo(lightbox + 1); }} aria-label="Next media" className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><ChevronRight size={20} /></button>
             ) : null}
             {media[lightbox].media_type === "video" ? (
-              <div className={"h-[94vh] w-full px-2" + (mobileComments ? " max-lg:h-[40vh]" : "")} onClick={(e) => e.stopPropagation()}>
+              <div className={"h-full min-h-0 w-full px-2" + (mobileComments ? " max-lg:h-[40vh]" : "")} onClick={(e) => e.stopPropagation()}>
                 <VideoPlayer src={media[lightbox].url} postId={postId} viewsCount={viewsCount} immersive
                   width={trueDims[media[lightbox].id]?.w ?? media[lightbox].width ?? undefined}
                   height={trueDims[media[lightbox].id]?.h ?? media[lightbox].height ?? undefined}
+                  edit={editOf(media[lightbox])}
+                  allowPlayback={!media[lightbox].is_sensitive || !!revealed[media[lightbox].id]}
                 />
               </div>
             ) : (
@@ -503,9 +511,15 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 onMouseDown={onDragStart}
                 draggable={false}
                 style={{ transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ")", transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
-                className={"max-h-[94vh] max-w-full select-none object-contain [touch-action:none]" + (mobileComments ? " max-lg:max-h-[40vh]" : "")}
+                className={"max-h-full max-w-full select-none object-contain [touch-action:none]" + (mobileComments ? " max-lg:max-h-[40vh]" : "")}
               />
             )}
+            {media[lightbox].is_sensitive && !revealed[media[lightbox].id] ? (
+              <button type="button" onClick={(e) => { e.stopPropagation(); setRevealed((r) => ({ ...r, [media[lightbox].id]: true })); }} className="absolute inset-0 z-[6] flex flex-col items-center justify-center gap-2 bg-ink text-white">
+                <span className="text-sm font-semibold">Sensitive content</span>
+                <span className="text-xs text-white/60">The author flagged this media. Tap to show.</span>
+              </button>
+            ) : null}
             {media[lightbox].media_type === "image" ? <EditPlanes e={editOf(media[lightbox])} /> : null}
             {media[lightbox].media_type === "image" ? (
               <span className="absolute bottom-4 right-4 z-10 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
