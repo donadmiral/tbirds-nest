@@ -28,6 +28,7 @@ import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
+import { matchesUsername, usernameLookupPattern } from '../../utils/profileLookup';
 import { useAuthStore } from '../../stores/authStore';
 import * as Haptics from 'expo-haptics';
 
@@ -203,8 +204,8 @@ export default function PostScreen({ route, navigation }: any) {
 
   const handleMentionTap = async (username: string) => {
     const { data } = await supabase.from('profiles')
-      .select('id, full_name, username, avatar_url').ilike('username', username).maybeSingle();
-    if (data) navigation.navigate('UserProfile', { userId: data.id, user: data });
+      .select('id, full_name, username, avatar_url').ilike('username', usernameLookupPattern(username)).maybeSingle();
+    if (data && matchesUsername(data, username)) navigation.navigate('UserProfile', { userId: data.id, user: data });
     else Alert.alert('Not found', `@${username} is not on PlatinumCircles yet.`);
   };
   const handleHashtagTap = (tag: string) => navigation.navigate('Search', { query: `#${tag}` });
