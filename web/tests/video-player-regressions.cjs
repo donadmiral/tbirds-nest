@@ -230,3 +230,10 @@ test('Escape exits native fullscreen without closing the underlying gallery', ()
   const screen = s.mount({ media }, 'gallery'); screen.find(n => n.type === 'NestedVideoPlayer').props.onExpand(); screen.render();
   s.document.fullscreenElement = {}; s.dispatch(event('Escape')); screen.render(); assert.ok(screen.label('Media viewer'));
 });
+test('late-loading edit recipes constrain ongoing playback to the saved trim start', () => {
+  const screen = scenario().mount(); screen.videoEvent('onLoadedMetadata');
+  screen.element.currentTime = 3;
+  screen.update({ edit: { trimStart: 20, trimEnd: 50 } });
+  screen.videoEvent('onTimeUpdate');
+  assert.equal(screen.element.currentTime, 20);
+});

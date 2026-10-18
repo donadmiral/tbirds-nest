@@ -241,6 +241,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
           const v = ref.current;
           if (!v) return;
           const bounds = playbackWindow(v.duration, trimStart, trimEnd);
+          if (bounds.duration && v.currentTime < bounds.start) v.currentTime = bounds.start;
           if (trimEnd && bounds.duration && v.currentTime >= bounds.end && !v.paused) v.currentTime = bounds.start;
           setTime(v.currentTime); remember(src, v.currentTime);
         }}
