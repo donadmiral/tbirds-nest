@@ -32,7 +32,14 @@ export default function PlannerPage() {
   const [d, setD] = useState<Draft>(empty());
   const [busy, setBusy] = useState(false);
   const [listings, setListings] = useState<{ id: string; title: string; price: number; currency: string; images: string[] }[]>([]);
+  const [listingsLoaded, setListingsLoaded] = useState(false);
+  const [listingsLoading, setListingsLoading] = useState(true);
+  const [listingsError, setListingsError] = useState<string | null>(null);
+  const listingsRequest = useRef(0);
   const [communities, setCommunities] = useState<{ id: string; name: string }[]>([]);
+  const [communitiesLoading, setCommunitiesLoading] = useState(true);
+  const [communitiesError, setCommunitiesError] = useState<string | null>(null);
+  const communitiesRequest = useRef(0);
   const [pickOpen, setPickOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [span, setSpan] = useState<"week" | "month">("month");
@@ -45,12 +52,40 @@ export default function PlannerPage() {
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
-  useEffect(() => {
-    myListings().then(setListings).catch(() => {});
-    supabase.rpc("get_communities", { p_query: null, p_limit: 60 }).then(({ data }) => {
-      setCommunities(((data as any[]) ?? []).filter(c => c.my_role === "owner" || c.my_role === "moderator").map(c => ({ id: c.id, name: c.name })));
-    });
+  const loadListings = useCallback(async () => {
+    const request = ++listingsRequest.current;
+    try {
+      const data = await myListings();
+      if (request !== listingsRequest.current) return;
+      setListings(data); setListingsLoaded(true); setListingsError(null);
+    } catch {
+      if (request === listingsRequest.current) setListingsError("Products could not be loaded. Please try again.");
+    } finally {
+      if (request === listingsRequest.current) setListingsLoading(false);
+    }
+  }, []);
+  const loadCommunities = useCallback(async () => {
+    const request = ++communitiesRequest.current;
+    try {
+      const { data, error } = await supabase.rpc("get_communities", { p_query: null, p_limit: 60 });
+      if (error) throw error;
+      if (request !== communitiesRequest.current) return;
+      setCommunities(((data as { id: string; name: string; my_role: string | null }[]) ?? [])
+        .filter(c => c.my_role === "owner" || c.my_role === "moderator").map(c => ({ id: c.id, name: c.name })));
+      setCommunitiesError(null);
+    } catch {
+      if (request === communitiesRequest.current) setCommunitiesError("Communities could not be loaded. Please try again.");
+    } finally {
+      if (request === communitiesRequest.current) setCommunitiesLoading(false);
+    }
   }, [supabase]);
+  useEffect(() => {
+    const pendingListings = listingsRequest;
+    const pendingCommunities = communitiesRequest;
+    void loadListings();
+    void loadCommunities();
+    return () => { ++pendingListings.current; ++pendingCommunities.current; };
+  }, [loadListings, loadCommunities]);
 
   const shown = useMemo(() => rows.filter(r =>
     tab === "upcoming" ? ["scheduled", "publishing", "failed"].includes(r.status)
@@ -323,16 +358,21 @@ export default function PlannerPage() {
                 <button onClick={() => fileRef.current?.click()} disabled={d.media.length >= 4 || busy} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10 disabled:opacity-40"><ImageIcon size={14} /> Media</button>
                 <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={e => { void attach(e.target.files); e.target.value = ""; }} />
                 <button onClick={() => setPickOpen(o => !o)} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10"><Tag size={14} /> Products {d.products.length ? "(" + d.products.length + ")" : ""}</button>
-                {communities.length ? (
+                {communities.length || d.community ? (
                   <select value={d.community || ""} onChange={e => setD(x => ({ ...x, community: e.target.value || null }))} className="rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 outline-none">
                     <option value="">Main feed</option>
+                    {d.community && !communities.some(c => c.id === d.community) ? <option value={d.community}>Current community (not in this list)</option> : null}
                     {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 ) : null}
               </div>
+              <StudioLoadError message={communitiesError} retry={() => { setCommunitiesLoading(true); void loadCommunities(); }} busy={communitiesLoading} />
               {pickOpen ? (
                 <div className="mt-2 max-h-40 overflow-y-auto rounded-2xl border border-ink/10 bg-white p-2">
-                  {listings.length === 0 ? <p className="text-[12.5px] text-ink/50">No active listings. Create one in Market to attach product cards.</p>
+                  <StudioLoadError message={listingsError} retry={() => { setListingsLoading(true); void loadListings(); }} busy={listingsLoading} />
+                  {listingsLoading && !listingsLoaded ? <p className="text-[12.5px] text-ink/50">Loading products</p>
+                  : !listingsLoaded ? null
+                  : listings.length === 0 ? <p className="text-[12.5px] text-ink/50">No active listings. Create one in Market to attach product cards.</p>
                   : listings.map(l => {
                     const on = d.products.some(p => p.listing_id === l.id);
                     return (
