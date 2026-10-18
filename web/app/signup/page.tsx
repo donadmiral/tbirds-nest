@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
 const input = "rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated";
@@ -33,9 +34,20 @@ export default function SignUpPage() {
       },
     });
     if (err && /already/i.test(err.message)) {
-      await supabase.auth.resend({ type: "signup", email: cleanEmail, options: { emailRedirectTo: window.location.origin + "/login" } });
-      setSent(true);
-      setPending(false);
+      try {
+        const { error: resendError } = await supabase.auth.resend({ type: "signup", email: cleanEmail, options: { emailRedirectTo: window.location.origin + "/login" } });
+        if (resendError) {
+          setError(isAuthRetryableFetchError(resendError)
+            ? "We couldn't confirm that the verification email was resent. Check your inbox, then try again if needed."
+            : `We couldn't resend the verification email. ${resendError.message} Please try again shortly, or sign in if you've already verified your email.`);
+          return;
+        }
+        setSent(true);
+      } catch {
+        setError("We couldn't confirm that the verification email was resent. Check your inbox, then try again if needed.");
+      } finally {
+        setPending(false);
+      }
       return;
     }
     if (err) { setError(err.message); setPending(false); return; }
