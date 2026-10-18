@@ -8,6 +8,7 @@ import { ArrowLeft, Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { FollowButton } from "@/components/FollowButton";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { matchesUsername, usernameLookupPattern } from "@/lib/profileLookup";
 
 type Person = { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified?: boolean | null; verified_tier?: string | null };
 const PAGE = 40;
@@ -34,9 +35,10 @@ export default function FollowsPage() {
     (async () => {
       const { data: sess } = await supabase.auth.getSession();
       setMe(sess.session?.user.id ?? null);
-      const { data } = await supabase.from("profiles").select("id, full_name, username, avatar_url").ilike("username", username).limit(1).maybeSingle();
-      setTarget((data as Person) ?? null);
-      if (!data) setLoading(false);
+      const { data } = await supabase.from("profiles").select("id, full_name, username, avatar_url").ilike("username", usernameLookupPattern(username)).limit(1).maybeSingle();
+      const profile = matchesUsername(data, username) ? (data as Person) : null;
+      setTarget(profile);
+      if (!profile) setLoading(false);
     })();
   }, [username, supabase]);
 

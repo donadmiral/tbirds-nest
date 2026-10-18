@@ -11,6 +11,7 @@ import { MemoryAlbumBook } from "@/components/MemoryAlbumBook";
 import { MessageButton } from "@/components/MessageButton";
 import { ProfileMoreMenu } from "@/components/ProfileMoreMenu";
 import { ProfileContext } from "@/components/ProfileContext";
+import { matchesUsername, usernameLookupPattern } from "@/lib/profileLookup";
 
 type Params = { params: Promise<{ username: string }> };
 
@@ -19,10 +20,10 @@ async function loadProfile(username: string) {
   const { data } = await supabase
     .from("profiles")
     .select("id, full_name, username, avatar_url, banner_url, bio, links, is_verified, verified_tier, account_type, account_class, account_labels")
-    .ilike("username", username)
+    .ilike("username", usernameLookupPattern(username))
     .limit(1)
     .maybeSingle();
-  return data;
+  return matchesUsername(data, username) ? data : null;
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
