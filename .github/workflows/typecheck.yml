@@ -44,6 +44,15 @@ jobs:
         working-directory: web
       - run: npx tsc --noEmit
         working-directory: web
+      - name: Test web quality regressions
+        run: >-
+          node --test
+          tests/video-player-regressions.cjs
+          tests/recruiter-workflow-regressions.cjs
+          tests/applications-tracker-regressions.cjs
+          tests/ads-quality-regressions.cjs
+          tests/username-regressions.cjs
+        working-directory: web
 
   phone:
     name: Phone app
@@ -57,3 +66,11 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci || npm install
       - run: npx tsc --noEmit
+      - name: Test phone and call quality regressions
+        run: >-
+          node --test
+          tests/call-media.test.cjs
+          tests/fullscreen-video-accessibility.test.cjs
+          tests/group-call-service.test.cjs
+          tests/daily-call-access.test.cjs
+          tests/navigation-accessibility.test.cjs
