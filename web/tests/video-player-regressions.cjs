@@ -175,6 +175,7 @@ test('ordinary offscreen video pauses and late play events cannot restart it', (
 });
 test('play rejection and load errors display truthful recovery actions', async () => {
   const screen = scenario().mount(); screen.element.playResult = Promise.reject(new Error('blocked'));
+  screen.element.playResult.catch(() => {}); // Baseline may fail before reaching the play handler.
   screen.click('Play video'); await flush(screen); assert.match(screen.text, /Playback could not start/);
   screen.element.playResult = null; screen.videoEvent('onError');
   assert.match(screen.text, /could not load/); assert.doesNotMatch(screen.text, /still being prepared|plays in the Platinum/);
