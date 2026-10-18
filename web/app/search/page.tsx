@@ -171,6 +171,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") saveRecent(q); }}
           placeholder="Search Platinum Circles"
+          aria-label="Search Platinum Circles"
           autoFocus
           className="w-full rounded-lg bg-surface py-3 pl-11 pr-4 text-[15px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
         />

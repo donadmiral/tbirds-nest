@@ -96,6 +96,7 @@ export default function DiscoverPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search people, topics, channels, articles and more"
+          aria-label="Search Discover"
           className="min-w-0 flex-1 bg-transparent text-[14.5px] text-ink outline-none placeholder:text-ink/35"
         />
       </form>

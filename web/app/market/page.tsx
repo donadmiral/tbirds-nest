@@ -114,6 +114,7 @@ export default function MarketPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { if (applied !== search.trim()) setLoading(true); setApplied(search.trim()); } }}
                 placeholder="Search the market"
+                aria-label="Search the market"
                 className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
               />
             </div>
@@ -130,9 +131,9 @@ export default function MarketPage() {
           {filtersOpen ? (
             <div className="mx-1 mt-3 flex flex-col gap-3 rounded-lg border border-ink/10 p-4">
               <div className="flex gap-2">
-                <input className={inputCls + " w-28"} inputMode="numeric" placeholder="Min price" defaultValue={draft.minPrice ?? ""} onChange={(e) => setDraft((d) => ({ ...d, minPrice: num(e.target.value) }))} />
-                <input className={inputCls + " w-28"} inputMode="numeric" placeholder="Max price" defaultValue={draft.maxPrice ?? ""} onChange={(e) => setDraft((d) => ({ ...d, maxPrice: num(e.target.value) }))} />
-                <input className={inputCls + " flex-1"} placeholder="City" defaultValue={draft.city ?? ""} onChange={(e) => setDraft((d) => ({ ...d, city: e.target.value || null }))} />
+                <input className={inputCls + " w-28"} inputMode="numeric" placeholder="Min price" aria-label="Minimum price" defaultValue={draft.minPrice ?? ""} onChange={(e) => setDraft((d) => ({ ...d, minPrice: num(e.target.value) }))} />
+                <input className={inputCls + " w-28"} inputMode="numeric" placeholder="Max price" aria-label="Maximum price" defaultValue={draft.maxPrice ?? ""} onChange={(e) => setDraft((d) => ({ ...d, maxPrice: num(e.target.value) }))} />
+                <input className={inputCls + " flex-1"} placeholder="City" aria-label="City" defaultValue={draft.city ?? ""} onChange={(e) => setDraft((d) => ({ ...d, city: e.target.value || null }))} />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {MARKET_CONDITIONS.map((c) => (
@@ -144,6 +145,7 @@ export default function MarketPage() {
                   </button>
                 ))}
                 <select value={draft.sort ?? "recent"}
+                  aria-label="Sort listings"
                   onChange={(e) => setDraft((d) => ({ ...d, sort: e.target.value as MarketFilters["sort"] }))}
                   className="ml-auto rounded-full bg-surface px-3 py-1.5 text-[13px] text-ink/80 outline-none"
                 >

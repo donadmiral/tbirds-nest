@@ -110,6 +110,7 @@ export default function JobsPage() {
         <input value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search jobs by title, keyword, or company"
+          aria-label="Search jobs"
           className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
         />
       </div>

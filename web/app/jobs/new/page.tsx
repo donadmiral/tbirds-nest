@@ -80,30 +80,30 @@ export default function PostJobPage() {
         <h1 className="font-display text-xl text-porcelain">Post a job</h1>
       </div>
       <div className="flex flex-col gap-3 px-1">
-        <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Job title" />
-        <input className={inputCls} value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" />
-        <input className={inputCls} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location (city)" />
-        <textarea className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the role, requirements and how to stand out" rows={7} />
+        <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Job title" aria-label="Job title" />
+        <input className={inputCls} value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" aria-label="Company" />
+        <input className={inputCls} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location (city)" aria-label="Location (city)" />
+        <textarea className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the role, requirements and how to stand out" aria-label="Job description" rows={7} />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
+          <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Job type">
             {CATEGORIES.map(([v, l]) => <option key={v} value={v} className="bg-navy">{l}</option>)}
           </select>
-          <select className={inputCls} value={remoteType} onChange={(e) => setRemoteType(e.target.value)}>
+          <select className={inputCls} value={remoteType} onChange={(e) => setRemoteType(e.target.value)} aria-label="Work mode">
             <option value="on_site" className="bg-navy">On site</option>
             <option value="hybrid" className="bg-navy">Hybrid</option>
             <option value="remote" className="bg-navy">Remote</option>
           </select>
-          <select className={inputCls} value={experience} onChange={(e) => setExperience(e.target.value)}>
+          <select className={inputCls} value={experience} onChange={(e) => setExperience(e.target.value)} aria-label="Experience level">
             <option value="entry" className="bg-navy">Entry</option>
             <option value="mid" className="bg-navy">Mid</option>
             <option value="senior" className="bg-navy">Senior</option>
             <option value="executive" className="bg-navy">Executive</option>
           </select>
         </div>
-        <input className={inputCls} value={salary} onChange={(e) => setSalary(e.target.value)} placeholder="Salary range, e.g. $800 - $1,200 per month" />
-        <input className={inputCls} value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="Industry (optional)" />
-        <input className={inputCls} value={benefits} onChange={(e) => setBenefits(e.target.value)} placeholder="Benefits (optional)" />
-        <input className={inputCls} value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="External apply URL (optional)" />
+        <input className={inputCls} value={salary} onChange={(e) => setSalary(e.target.value)} placeholder="Salary range, e.g. $800 - $1,200 per month" aria-label="Salary range" />
+        <input className={inputCls} value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="Industry (optional)" aria-label="Industry (optional)" />
+        <input className={inputCls} value={benefits} onChange={(e) => setBenefits(e.target.value)} placeholder="Benefits (optional)" aria-label="Benefits (optional)" />
+        <input className={inputCls} value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="External apply URL (optional)" aria-label="External apply URL (optional)" />
         <label className="flex items-center gap-2 text-[14px] text-ink/70">
           Deadline
           <input type="date" className={inputCls} value={deadline} onChange={(e) => setDeadline(e.target.value)} />
