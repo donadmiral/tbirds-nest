@@ -75,10 +75,10 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
             <div className="absolute right-0 top-12 w-56 overflow-hidden rounded-2xl border border-ink/10 bg-white py-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.10)]">
               <div className="px-4 py-2">
                 <p className="truncate text-[14px] font-semibold text-ink">{name}</p>
-                <p className="truncate text-[12px] text-ink/45">@{username}</p>
+                <p className="truncate text-[12px] text-ink/45">{username ? "@" + username : "Set username"}</p>
               </div>
               <div className="my-1 h-px bg-ink/8" />
-              <Link href={username ? "/" + username : "/home"} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface">
+              <Link href={username ? "/" + encodeURIComponent(username) : "/settings/username"} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface">
                 <User size={16} className="text-ink/50" /> Your profile
               </Link>
               <button

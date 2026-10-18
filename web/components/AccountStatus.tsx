@@ -7,7 +7,7 @@
  * for the sake of a number: each line is a fact the app already knows, and the
  * ones that are not yet true read as an action rather than a failure.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BadgeCheck, Check, ShieldAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -24,7 +24,7 @@ type Me = {
 };
 
 export function AccountStatus() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [me, setMe] = useState<Me | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -55,8 +55,8 @@ export function AccountStatus() {
   const checks = [
     { label: "Email confirmed", ok: confirmed, href: "/settings" },
     { label: "Username set", ok: !!me.username, href: "/settings/username" },
-    { label: "Profile photo", ok: !!me.avatar_url, href: me.username ? "/" + me.username : "/settings" },
-    { label: "Headline written", ok: !!me.headline, href: me.username ? "/" + me.username : "/settings" },
+    { label: "Profile photo", ok: !!me.avatar_url, href: me.username ? "/" + encodeURIComponent(me.username) : "/settings/username" },
+    { label: "Headline written", ok: !!me.headline, href: me.username ? "/" + encodeURIComponent(me.username) : "/settings/username" },
   ];
 
   return (

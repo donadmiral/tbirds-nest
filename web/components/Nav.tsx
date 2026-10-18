@@ -72,7 +72,7 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
       return next;
     });
   };
-  const profileHref = username ? "/" + username : "/home";
+  const profileHref = username ? "/" + encodeURIComponent(username) : "/settings/username";
   const pathname = usePathname();
   const router = useRouter();
   // Inside Studio the grouped rail takes the left column, so the consumer nav
@@ -159,7 +159,7 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
         {!collapsed ? (
           <span className="flex min-w-0 flex-1 flex-col">
             <PersonName name={name} verified={verified} tier={tier} className="text-sm font-semibold text-ink" badgeSize={13} />
-            <span className="truncate text-xs text-ink/50">@{username}</span>
+            <span className="truncate text-xs text-ink/50">{username ? "@" + username : "Set username"}</span>
           </span>
         ) : null}
         {!collapsed ? (
