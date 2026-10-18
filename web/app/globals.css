@@ -8,6 +8,7 @@
   --color-navy: #16181c;
   --color-pearl: #c9bfb0;
   --color-pearl-muted: #8f8477;
+  --color-on-pearl: #16181c;
   --color-porcelain: #16181c;
   --color-surface: rgba(0, 0, 0, 0.05);
   --color-surface-elevated: rgba(0, 0, 0, 0.08);
@@ -27,6 +28,18 @@
   --font-sans: var(--font-instrument);
 }
 
+:root {
+  --chrome-solid: #faf9f7;
+  --chrome-glass: rgba(250, 249, 247, 0.94);
+  --chrome-border: rgba(22, 24, 28, 0.16);
+  --chrome-highlight: rgba(255, 255, 255, 0.85);
+  --chrome-secondary: #535761;
+  --chrome-shadow: 0 8px 28px rgba(22, 24, 28, 0.08);
+  --focus-ring: #625548;
+  --wordmark-primary: #12213d;
+  --wordmark-secondary: #667084;
+}
+
 body {
   background: #ffffff;
   color: var(--color-ink);
@@ -40,8 +53,8 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-pearl);
-  outline-offset: 2px;
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -49,7 +62,9 @@ body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -67,11 +82,24 @@ body {
   --color-surface: rgba(255, 255, 255, 0.06);
   --color-surface-elevated: rgba(255, 255, 255, 0.10);
   --color-surface-active: rgba(255, 255, 255, 0.14);
+  --chrome-solid: #202126;
+  --chrome-glass: rgba(32, 33, 38, 0.94);
+  --chrome-border: rgba(236, 232, 223, 0.22);
+  --chrome-highlight: rgba(236, 232, 223, 0.08);
+  --chrome-secondary: #c3c0b9;
+  --chrome-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+  --focus-ring: #d7c8b2;
+  --wordmark-primary: #ece8df;
+  --wordmark-secondary: #b8bdc9;
   color-scheme: dark;
 }
 .dark body { background: #0f1013; }
 .dark .theater { --color-white: #ffffff; }
 .dark img[src$=".svg"] { filter: none; }
+
+@media (forced-colors: active) {
+  :focus-visible { outline-color: Highlight; }
+}
 
 /* Safe areas for phones in the browser: the notch and the home indicator. */
 .pt-safe { padding-top: env(safe-area-inset-top, 0px); }

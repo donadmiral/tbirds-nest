@@ -27,6 +27,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
+import chrome from "./NavigationChrome.module.css";
 
 type NavItem = {
   href: string;
@@ -96,8 +97,8 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
   }
 
   return (
-    <aside className={"fixed inset-y-0 left-0 hidden flex-col overflow-visible border-r border-ink/10 py-6 transition-[width] duration-200 md:flex " + (collapsed ? "w-[76px] px-2" : "w-[260px] px-4")}>
-      <div className={"mb-6 flex items-center " + (collapsed ? "justify-center" : "justify-between px-3")}>
+    <aside className={chrome.surface + " fixed inset-y-0 left-0 z-30 hidden min-h-0 flex-col overflow-visible border-r py-5 transition-[width] duration-200 md:flex " + (collapsed ? "w-[76px] px-2" : "w-[260px] px-4")}>
+      <div className={"mb-5 flex shrink-0 items-center " + (collapsed ? "justify-center" : "justify-between px-3")}>
         <Link href="/home" className="flex items-center gap-2.5" aria-label="Platinum Circles home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl" />
@@ -109,35 +110,39 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
       <button
         onClick={toggle}
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-expanded={!collapsed}
+        aria-controls="desktop-navigation"
         title={collapsed ? "Expand" : "Collapse"}
-        className="absolute -right-3 top-7 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 bg-white text-ink/60 shadow-sm transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
+        className={chrome.control + " absolute -right-6 top-5 z-10 border border-ink/15 bg-white shadow-sm"}
       >
         {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
       </button>
-      <nav className="flex flex-1 flex-col gap-0.5">
+      <nav id="desktop-navigation" aria-label="Primary" className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain p-1 [scrollbar-width:thin]">
         {allItems.map(({ href, label, icon: Icon, badge, dot, tag }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link key={label}
               href={href}
+              aria-label={badge ? `${label}, ${badge} unread` : label}
+              aria-current={pathname === href ? "page" : undefined}
               title={collapsed ? label : undefined}
               onClick={(e) => {
                 // Tapping the item you are already on scrolls to the top rather
                 // than re-navigating, which is what every app of this shape
                 // does and what people reach for after a long scroll.
-                if (!active) return;
+                if (pathname !== href || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 e.preventDefault();
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
               }}
               className={
-                "flex items-center gap-3.5 rounded-full px-4 py-2.5 text-[15px] transition-colors duration-[140ms] " +
+                chrome.navItem + " flex items-center gap-3.5 rounded-full px-3 py-2.5 text-[15px] transition-colors duration-[140ms] " +
                 (active
                   ? "bg-pearl/18 font-semibold text-ink"
-                  : "text-ink/70 hover:bg-surface hover:text-ink")
+                  : "hover:bg-surface hover:text-ink")
               }
             >
               <span className="relative flex shrink-0 items-center">
-                <Icon size={20} strokeWidth={active ? 2.2 : 1.8} className={active ? "text-pearl-muted" : undefined} />
+                <Icon size={20} strokeWidth={active ? 2.2 : 1.8} aria-hidden />
                 {dot ? <span className="absolute -right-0.5 -top-0.5 h-[7px] w-[7px] rounded-full bg-danger ring-2 ring-white" aria-hidden /> : null}
               </span>
               {!collapsed ? <span className="min-w-0 flex-1 truncate">{label}</span> : null}
@@ -152,23 +157,23 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
         })}
       </nav>
 
-      <div className={"mt-4 flex items-center gap-3 border-t border-ink/10 pt-4 " + (collapsed ? "justify-center px-0" : "px-3")}>
-        <Link href={profileHref} title={name} className="shrink-0">
+      <div className={"mt-3 flex shrink-0 items-center gap-2 border-t border-ink/10 pt-3 " + (collapsed ? "justify-center px-0" : "px-1")}>
+        <Link href={profileHref} title={name} aria-label="Your profile" className={chrome.control + " shrink-0"}>
           {avatarUrl ? <img src={avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" /> : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">{name ? name.charAt(0).toUpperCase() : "?"}</span>}
         </Link>
         {!collapsed ? (
           <span className="flex min-w-0 flex-1 flex-col">
             <PersonName name={name} verified={verified} tier={tier} className="text-sm font-semibold text-ink" badgeSize={13} />
-            <span className="truncate text-xs text-ink/50">{username ? "@" + username : "Set username"}</span>
+            <span className={chrome.secondary + " truncate text-xs"}>{username ? "@" + username : "Set username"}</span>
           </span>
         ) : null}
         {!collapsed ? (
-          <button onClick={signOut} title="Sign out" className="rounded-full p-2 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
-            <LogOut size={18} />
+          <button onClick={signOut} title="Sign out" aria-label="Sign out" className={chrome.control + " shrink-0"}>
+            <LogOut size={18} aria-hidden />
           </button>
         ) : null}
       </div>
-      {!collapsed ? <p className="px-3 pt-3 text-[11px] text-ink/30">© {new Date().getFullYear()} Platinum Circles</p> : null}
+      {!collapsed ? <p className={chrome.secondary + " shrink-0 px-3 pt-3 text-[11px]"}>© {new Date().getFullYear()} Platinum Circles</p> : null}
     </aside>
   );
 }

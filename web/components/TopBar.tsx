@@ -17,6 +17,8 @@ import { useRouter } from "next/navigation";
 import { Bell, LogOut, Plus, Sparkles, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
+import { Wordmark } from "@/components/Wordmark";
+import chrome from "./NavigationChrome.module.css";
 
 export function TopBar({ name, username, avatarUrl }: { name: string; username: string; avatarUrl?: string | null }) {
   const [supabase] = useState(createClient);
@@ -24,6 +26,7 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
   const unread = useUnreadNotifications() ?? 0;
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   // A menu that traps nothing and closes on any outside click, which is what
   // people expect from an avatar menu.
@@ -32,19 +35,32 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
     const onDown = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", onDown);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setOpen(false); triggerRef.current?.focus(); }
+    };
+    const onFocus = (e: FocusEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
     document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+    document.addEventListener("focusin", onFocus);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocus);
+    };
   }, [open]);
 
-  const btn =
-    "flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink";
+  const btn = chrome.control;
 
   return (
-    <div className="sticky top-0 z-30 flex items-center justify-between border-b border-ink/10 bg-white/95 px-3 py-2 backdrop-blur md:pointer-events-none md:justify-end md:border-0 md:bg-transparent md:px-6 md:py-0 md:pt-5 md:backdrop-blur-none">
-      <img src="/brand/wordmark-light.png" alt="Platinum Circles" className="h-[16px] w-auto md:hidden" />
-      <div className="pointer-events-auto flex items-center gap-2.5">
+    <div className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-white px-3 py-2 md:pointer-events-none md:justify-end md:bg-transparent md:px-6 md:py-0 md:pt-3">
+      <div className="md:hidden"><Link href="/home" aria-label="Platinum Circles home" className={chrome.control}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl min-[480px]:hidden" />
+        <Wordmark size={18} className="hidden min-[480px]:inline" />
+      </Link></div>
+      <div className={chrome.surface + " pointer-events-auto flex shrink-0 items-center gap-1 rounded-full border p-1"}>
         <Link href="/write" className={btn} aria-label="Create a post">
           <Plus size={19} />
         </Link>
@@ -54,14 +70,14 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
         <Link href="/notifications" className={btn + " relative"} aria-label={unread > 0 ? unread + " unread notifications" : "Notifications"}>
           <Bell size={18} />
           {unread > 0 ? (
-            <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-pearl px-1 text-[10.5px] font-bold tabular-nums text-ink">
+            <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-pearl px-1 text-[10.5px] font-bold tabular-nums text-on-pearl">
               {unread > 99 ? "99+" : unread}
             </span>
           ) : null}
         </Link>
 
         <div ref={menuRef} className="relative">
-          <button onClick={() => setOpen((v) => !v)} aria-label="Account menu" className="block">
+          <button ref={triggerRef} onClick={() => setOpen((v) => !v)} aria-label="Account menu" aria-expanded={open} aria-controls={open ? "account-navigation" : undefined} className={btn}>
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={avatarUrl} alt="" className="h-10 w-10 rounded-full border border-ink/10 object-cover" />
@@ -72,18 +88,18 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
             )}
           </button>
           {open ? (
-            <div className="absolute right-0 top-12 w-56 overflow-hidden rounded-2xl border border-ink/10 bg-white py-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.10)]">
+            <div id="account-navigation" className="absolute right-0 top-[calc(100%+12px)] w-56 max-w-[calc(100vw-24px)] overflow-hidden rounded-2xl border border-ink/15 bg-white py-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.10)]">
               <div className="px-4 py-2">
                 <p className="truncate text-[14px] font-semibold text-ink">{name}</p>
-                <p className="truncate text-[12px] text-ink/45">{username ? "@" + username : "Set username"}</p>
+                <p className={chrome.secondary + " truncate text-[12px]"}>{username ? "@" + username : "Set username"}</p>
               </div>
               <div className="my-1 h-px bg-ink/8" />
-              <Link href={username ? "/" + encodeURIComponent(username) : "/settings/username"} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface">
+              <Link href={username ? "/" + encodeURIComponent(username) : "/settings/username"} onClick={() => setOpen(false)} className={chrome.menuItem + " flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface"}>
                 <User size={16} className="text-ink/50" /> Your profile
               </Link>
               <button
                 onClick={async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); }}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface"
+                className={chrome.menuItem + " flex w-full items-center gap-3 px-4 py-2.5 text-left text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface"}
               >
                 <LogOut size={16} className="text-ink/50" /> Sign out
               </button>

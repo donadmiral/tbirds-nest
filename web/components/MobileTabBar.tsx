@@ -3,19 +3,30 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Compass, MessageCircle, Store, Briefcase } from "lucide-react";
+import chrome from "./NavigationChrome.module.css";
 
-export function MobileTabBar({ username, avatarUrl }: { username: string; avatarUrl?: string | null }) {
+const tabs = [
+  { href: "/home", label: "Home", icon: Home },
+  { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/messages", label: "Messages", icon: MessageCircle },
+  { href: "/market", label: "Market", icon: Store },
+  { href: "/jobs", label: "Jobs", icon: Briefcase },
+];
+
+export function MobileTabBar() {
   const path = usePathname() || "";
   const is = (h: string) => path === h || path.startsWith(h + "/");
-  const item = "flex flex-1 flex-col items-center justify-center py-2 text-ink/55";
-  const on = " text-ink";
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-ink/10 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Primary">
-      <Link href="/home" className={item + (is("/home") ? on : "")} aria-label="Home"><Home size={24} strokeWidth={is("/home") ? 2.4 : 1.8} /></Link>
-      <Link href="/discover" className={item + (is("/discover") || is("/search") ? on : "")} aria-label="Discover"><Compass size={24} strokeWidth={is("/discover") ? 2.4 : 1.8} /></Link>
-      <Link href="/messages" className={item + (is("/messages") ? on : "")} aria-label="Messages"><MessageCircle size={24} strokeWidth={is("/messages") ? 2.4 : 1.8} /></Link>
-      <Link href="/market" className={item + (is("/market") ? on : "")} aria-label="Market"><Store size={24} strokeWidth={is("/market") ? 2.4 : 1.8} /></Link>
-      <Link href="/jobs" className={item + (is("/jobs") ? on : "")} aria-label="Jobs"><Briefcase size={24} strokeWidth={is("/jobs") ? 2.4 : 1.8} /></Link>
+    <nav className={chrome.surface + " fixed inset-x-3 bottom-[max(8px,env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-[32px] border p-1 md:hidden"} aria-label="Primary">
+      {tabs.map(({ href, label, icon: Icon }) => {
+        const active = is(href) || (href === "/discover" && is("/search"));
+        return (
+          <Link key={href} href={href} className={chrome.navItem + " " + chrome.tab + " flex flex-1 flex-col items-center justify-center"} aria-current={active ? "page" : undefined}>
+            <Icon size={22} strokeWidth={active ? 2.4 : 1.8} aria-hidden />
+            <span className="text-[10px] font-semibold leading-none">{label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
