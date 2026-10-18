@@ -8,6 +8,7 @@ import { PersonName } from "@/components/PersonName";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { RichText } from "@/components/RichText";
 import { timeAgo } from "@/lib/feed";
+import { refreshCommentCount } from "@/lib/commentCounts";
 
 type CommentRow = {
   id: string;
@@ -47,16 +48,18 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
     const userId = sess.session?.user.id ?? null;
     setUid(userId);
     if (userId) { const { data: ci } = await supabase.from("post_collaborators").select("status").eq("post_id", postId).eq("user_id", userId).maybeSingle(); setCollabInvite((ci as { status?: string } | null)?.status === "invited"); }
-    const { data: pol } = await supabase.from("posts").select("comment_policy, user_id").eq("id", postId).maybeSingle();
+    const { data: pol, error: policyError } = await supabase.from("posts").select("comment_policy, user_id").eq("id", postId).maybeSingle();
+    if (policyError) return;
     const authorId = (pol as { user_id?: string } | null)?.user_id ?? null;
     setPostAuthor(authorId);
     if ((pol as { comment_policy?: string } | null)?.comment_policy === "off") { setOff(true); setItems([]); return; }
     setOff(false);
-    const { data: rows } = await supabase
+    const { data: rows, error: commentsError } = await supabase
       .from("post_comments")
       .select("id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, hidden_at, is_spam, spam_reason")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
+    if (commentsError) return;
     const all = ((rows ?? []) as (CommentRow & { content: string | null; hidden_at?: string | null; is_spam?: boolean })[]).filter((r) => !r.hidden_at || r.user_id === userId || authorId === userId).map((r) => ({ ...r, body: r.body || r.content || "", hidden: !!r.hidden_at, spam: !!r.is_spam && r.user_id !== userId, replies: [] as CommentRow[] }));
     const ids = Array.from(new Set(all.map((c) => c.user_id)));
     if (ids.length > 0) {
@@ -105,11 +108,16 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
     if (!uid || c.user_id !== uid) return;
     if (!window.confirm("Delete this comment?")) return;
     setMenuFor(null);
-    const strip = (list: CommentRow[]): CommentRow[] =>
-      list.filter((x) => x.id !== c.id).map((x) => ({ ...x, replies: strip(x.replies) }));
-    setItems((l) => strip(l));
-    const { error } = await supabase.from("post_comments").delete().eq("id", c.id);
-    if (error) { alert("Could not delete: " + error.message); load(); }
+    try {
+      const { error, status } = await supabase.from("post_comments").delete().eq("id", c.id);
+      if (error && (status === 0 || status >= 500)) throw error;
+      if (error) alert("Could not delete: " + error.message);
+    } catch {
+      alert("Could not confirm whether the comment was deleted. Check the thread before trying again.");
+    } finally {
+      void refreshCommentCount(supabase, postId);
+      void load().catch(() => { /* Keep the last thread when reconciliation is unavailable. */ });
+    }
   }
 
   async function copyText(c: CommentRow) {
@@ -126,16 +134,23 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
     const body = draft.trim();
     if (!body || busy || !uid) return;
     setBusy(true);
-    const { error } = await supabase.from("post_comments").insert({
-      post_id: postId, user_id: uid, body, content: body,
-      parent_comment_id: replyTo?.id ?? null, media_url: null, media_type: null,
-    });
-    setBusy(false);
-    if (error) { alert("Could not comment: " + error.message); return; }
-    if (replyTo) setExpanded((s) => new Set(s).add(replyTo.parent_comment_id ?? replyTo.id));
-    setDraft("");
-    setReplyTo(null);
-    load();
+    try {
+      const { error, status } = await supabase.from("post_comments").insert({
+        post_id: postId, user_id: uid, body, content: body,
+        parent_comment_id: replyTo?.id ?? null, media_url: null, media_type: null,
+      });
+      if (error && (status === 0 || status >= 500)) throw error;
+      if (error) { alert("Could not comment: " + error.message); return; }
+      if (replyTo) setExpanded((s) => new Set(s).add(replyTo.parent_comment_id ?? replyTo.id));
+      setDraft(current => current === draft ? "" : current);
+      setReplyTo(current => current?.id === replyTo?.id ? null : current);
+    } catch {
+      alert("Could not confirm whether your comment was sent. Check the thread before trying again.");
+    } finally {
+      setBusy(false);
+      void refreshCommentCount(supabase, postId);
+      void load().catch(() => { /* The draft survives uncertain writes and failed reconciliation. */ });
+    }
   }
 
   function countAll(c: CommentRow): number {

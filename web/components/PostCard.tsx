@@ -28,6 +28,7 @@ import { ArticleBody } from "@/components/ArticleBody";
 import { LikesModal } from "@/components/LikesModal";
 import { ShareMenu } from "@/components/ShareMenu";
 import { Comments } from "@/components/Comments";
+import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
 import { displayImageUrl } from "@/lib/media";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
@@ -115,7 +116,7 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
 
 export function PostCard({ post, hideMedia, inlineComments = true }: { post: FeedRow; hideMedia?: boolean; inlineComments?: boolean }) {
   const router = useRouter();
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [hidden, setHidden] = useState(false);
   const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
   const [heart, setHeart] = useState(false);
@@ -136,6 +137,24 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   const [expanded, setExpanded] = useState(false);
   // Comments open right under the card, so the post and its video stay in view while you read and reply.
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentUpdate, setCommentUpdate] = useState<CommentCountUpdate | null>(null);
+  const latestCommentUpdate = useRef<CommentCountUpdate | null>(null);
+  const commentsCount = commentUpdate?.postId === post.post_id ? commentUpdate.count : post.comments_count;
+  useEffect(() => {
+    const update = (event: Event) => {
+      const detail = (event as CustomEvent<CommentCountUpdate>).detail;
+      if (detail?.postId !== post.post_id || !Number.isSafeInteger(detail.count) || detail.count < 0) return;
+      latestCommentUpdate.current = detail;
+      setCommentUpdate(detail);
+    };
+    window.addEventListener(COMMENT_COUNT_UPDATED, update);
+    return () => window.removeEventListener(COMMENT_COUNT_UPDATED, update);
+  }, [post.post_id]);
+  useEffect(() => {
+    // A late feed response may predate a confirmed mutation. Reconcile changed
+    // seed props instead of overwriting the live total with an older value.
+    if (latestCommentUpdate.current?.postId === post.post_id) void refreshCommentCount(supabase, post.post_id);
+  }, [post.post_id, post.comments_count, supabase]);
   const text = post.content ?? post.body ?? "";
   const rbw = post as unknown as { reposted_by_name?: string | null };
   const whyReason = rbw.reposted_by_name ? rbw.reposted_by_name + " reposted this"
@@ -283,7 +302,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
             <MediaGallery media={media}
               postId={post.post_id}
               viewsCount={(post as unknown as { views_count?: number | null }).views_count ?? null}
-              onDoubleClick={doubleLike} post={{ post_id: post.post_id, author_id: post.author_id, author_name: post.author_name, author_username: post.author_username, author_avatar: post.author_avatar, author_verified: post.author_verified, author_verified_tier: post.author_verified_tier, content: post.content ?? post.body, likes_count: post.likes_count, comments_count: post.comments_count, reposts_count: post.reposts_count, viewer_liked: post.viewer_liked, viewer_bookmarked: post.viewer_bookmarked }} />
+              onDoubleClick={doubleLike} post={{ post_id: post.post_id, author_id: post.author_id, author_name: post.author_name, author_username: post.author_username, author_avatar: post.author_avatar, author_verified: post.author_verified, author_verified_tier: post.author_verified_tier, content: post.content ?? post.body, likes_count: post.likes_count, comments_count: commentsCount, reposts_count: post.reposts_count, viewer_liked: post.viewer_liked, viewer_bookmarked: post.viewer_bookmarked }} />
           ) : null}
 
           {(post as unknown as { thread_parent_id?: string | null }).thread_parent_id ? (
@@ -355,12 +374,12 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
             {inlineComments ? (
               <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCommentsOpen((v) => !v); }} aria-expanded={commentsOpen} aria-label={commentsOpen ? "Hide comments" : "Show comments"} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink " + (commentsOpen ? "text-ink" : "text-ink/50")}>
                 <MessageCircle size={18} strokeWidth={1.8} fill={commentsOpen ? "currentColor" : "none"} />
-                {count(post.comments_count)}
+                {count(commentsCount)}
               </button>
             ) : (
               <Link href={postHref} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-ink/50 transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
                 <MessageCircle size={18} strokeWidth={1.8} />
-                {count(post.comments_count)}
+                {count(commentsCount)}
               </Link>
             )}
             <span className="relative">
