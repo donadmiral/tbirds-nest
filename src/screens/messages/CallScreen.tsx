@@ -107,12 +107,6 @@ export default function CallScreen() {
     });
   }, [fromContext, callState, callerId, channelId, isGroupCall]);
 
-  useEffect(() => {
-    if (!isGroupCall || !params?.callId) return;
-    supabase.rpc('join_group_call', { p_session_id: params.callId }).then(() => {}, (e: any) => console.log('[JOIN] join_group_call failed:', e?.message));
-    // leave_group_call moved to CallContext.endCall teardown: leaving the SCREEN
-    // must not leave the CALL (the mini bar keeps it alive).
-  }, []);
 
   useEffect(() => {
     if (callState === 'idle' && wasEverActive) {

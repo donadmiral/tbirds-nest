@@ -460,7 +460,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
       // For incoming group calls, join as participant
       if (params.isGroupCall && params.isIncoming && callId && myIdRef.current) {
-        await callService.joinGroupCall(callId, myIdRef.current);
+        const joined = await callService.joinGroupCall(callId, myIdRef.current);
+        if (!joined) throw new Error('Could not join this group call.');
       }
 
       // For incoming 1-on-1 calls, accept (update DB status)
