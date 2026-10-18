@@ -161,10 +161,10 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
             </p>
             <p className="whitespace-pre-wrap text-[14px] text-ink/90"><RichText text={c.body} /></p>
             <div className="-ml-2.5 mt-1 flex items-center gap-0.5">
-              <button onClick={() => react(c.id, 1)} className={vb + " " + (mine === 1 ? "text-success" : "text-ink/45 hover:bg-success/10 hover:text-success")}>
+              <button aria-label="Like comment" aria-pressed={mine === 1} onClick={() => react(c.id, 1)} className={vb + " " + (mine === 1 ? "text-success" : "text-ink/45 hover:bg-success/10 hover:text-success")}>
                 <ThumbsUp size={13} fill={mine === 1 ? "currentColor" : "none"} /> {c.likes_count > 0 ? c.likes_count : ""}
               </button>
-              <button onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-ink/45 hover:bg-danger/10 hover:text-danger")}>
+              <button aria-label="Dislike comment" aria-pressed={mine === -1} onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-ink/45 hover:bg-danger/10 hover:text-danger")}>
                 <ThumbsDown size={13} fill={mine === -1 ? "currentColor" : "none"} /> {c.dislikes_count > 0 ? c.dislikes_count : ""}
               </button>
               <button onClick={() => startReply(c)} className={vb + " text-ink/45 hover:bg-ink/[0.06] hover:text-ink"}>

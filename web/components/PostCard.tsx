@@ -364,7 +364,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
               </Link>
             )}
             <span className="relative">
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (repost.on) { repost.set(false); } else { setRepostMenu((v) => !v); } }} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (repost.on ? "text-success" : "text-ink/50 hover:bg-success/10 hover:text-success")}>
+              <button aria-label={repost.on ? "Undo repost" : "Repost or quote"} aria-expanded={repost.on ? undefined : repostMenu} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (repost.on) { repost.set(false); } else { setRepostMenu((v) => !v); } }} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (repost.on ? "text-success" : "text-ink/50 hover:bg-success/10 hover:text-success")}>
                 <Repeat2 size={18} strokeWidth={1.8} />
                 {repost.n > 0 ? <span role="button" title="See who reposted" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setListKind("reposts"); setLikesOpen(true); }} className="hover:underline">{count(repost.n)}</span> : null}
               </button>
@@ -385,7 +385,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
                 </button>
               ) : null}
             </span>
-            <button onClick={mark.flip} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (mark.on ? "text-pearl" : "text-ink/50 hover:bg-pearl/10 hover:text-pearl")}>
+            <button aria-label="Save post" aria-pressed={mark.on} onClick={mark.flip} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (mark.on ? "text-pearl" : "text-ink/50 hover:bg-pearl/10 hover:text-pearl")}>
               <Bookmark size={18} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
               {count(mark.n)}
             </button>
