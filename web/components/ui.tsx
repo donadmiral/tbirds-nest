@@ -119,7 +119,7 @@ export function EmptyState({
       {action && actionHref ? (
         <Link
           href={actionHref}
-          className="mt-4 rounded-full bg-pearl px-5 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"
+          className="mt-4 rounded-full bg-pearl px-5 py-2 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"
         >
           {action}
         </Link>
@@ -159,11 +159,11 @@ export function PillTabs({
             onClick={() => onSelect(t.key)}
             className={
               "rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors duration-[140ms] " +
-              (on ? "bg-pearl text-ink" : "border border-ink/10 text-ink/60 hover:bg-surface hover:text-ink")
+              (on ? "bg-pearl text-on-pearl" : "border border-ink/10 text-ink/60 hover:bg-surface hover:text-ink")
             }
           >
             {t.label}
-            {typeof t.count === "number" ? <span className={"ml-1.5 " + (on ? "text-ink/60" : "text-ink/35")}>{t.count}</span> : null}
+            {typeof t.count === "number" ? <span className={"ml-1.5 " + (on ? "text-on-pearl/80" : "text-ink/35")}>{t.count}</span> : null}
           </button>
         );
       })}

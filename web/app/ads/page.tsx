@@ -186,7 +186,7 @@ export default function AdsPage() {
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" onClick={refresh} disabled={loading || chartLoading || busyIds.length > 0} className="rounded-full border border-ink/15 px-4 py-2 text-[13px] font-semibold text-ink/70 disabled:opacity-40">{loading || chartLoading ? "Refreshing" : "Refresh"}</button>
-          <Link href="/ads/new" className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">
+          <Link href="/ads/new" className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-2 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">
             <Plus size={14} /> Create an ad
           </Link>
           <Link href="/studio/ads" className="rounded-full border border-ink/15 px-4 py-2 text-[13px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink">
@@ -200,7 +200,7 @@ export default function AdsPage() {
         <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-pearl" /> Ads</h1>
       </div>
       <p className="pb-3 text-[13px] text-ink/50">Promotions place your content as Sponsored in eligible feeds.</p>
-      <Link href="/ads/new" className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-pearl px-4 py-2.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> Create a promotion</Link>
+      <Link href="/ads/new" className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-pearl px-4 py-2.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> Create a promotion</Link>
 
       {loadError ? <p role="alert" className="mb-3 text-[13px] text-red-600">{loadError} <button type="button" disabled={loading} onClick={refresh} className="font-semibold underline">Try again</button></p> : null}
       {actionError ? <p role="alert" className="mb-3 text-[13px] text-red-600">{actionError}</p> : null}
