@@ -32,7 +32,8 @@ import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } f
 import { displayImageUrl } from "@/lib/media";
 import type { FeedRow } from "@/lib/feed";
 import { timeAgo } from "@/lib/feed";
-import { toggleLike, toggleBookmark, toggleRepost } from "@/lib/interactions";
+import { toggleRepost } from "@/lib/interactions";
+import { usePostInteractions } from "@/lib/usePostInteractions";
 
 function count(n: number): string {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
@@ -186,9 +187,13 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   }, [post.article_title, post.post_id, supabase]);
   // Long enough that it would crowd out the next post in the feed.
   const isLong = text.length > 600 || text.split("\n").length > 12;
-  const like = useToggle(post.viewer_liked, post.likes_count, toggleLike, post.post_id);
+  const social = usePostInteractions(post.post_id, { liked: post.viewer_liked, bookmarked: post.viewer_bookmarked,
+    likesCount: post.likes_count, bookmarksCount: post.bookmarks_count });
+  const like = { on: social.liked, n: social.likesCount, set: social.setLike,
+    flip: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); void social.setLike(!social.liked); } };
   const repost = useToggle(post.viewer_reposted, post.reposts_count, toggleRepost, post.post_id);
-  const mark = useToggle(post.viewer_bookmarked, post.bookmarks_count, toggleBookmark, post.post_id);
+  const mark = { on: social.bookmarked, n: social.bookmarksCount,
+    flip: (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); void social.setBookmark(!social.bookmarked); } };
   const profileHref = post.author_username ? "/" + post.author_username : "#";
   const postHref = "/post/" + post.post_id;
   const quotedId = (post as unknown as { quoted_post_id?: string | null }).quoted_post_id ?? null;
@@ -198,6 +203,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   function doubleLike(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    if (social.pending || social.uncertain) return;
     if (!like.on) like.set(true);
     setHeart(true);
     setTimeout(() => setHeart(false), 700);
@@ -302,7 +308,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
             <MediaGallery media={media}
               postId={post.post_id}
               viewsCount={(post as unknown as { views_count?: number | null }).views_count ?? null}
-              onDoubleClick={doubleLike} post={{ post_id: post.post_id, author_id: post.author_id, author_name: post.author_name, author_username: post.author_username, author_avatar: post.author_avatar, author_verified: post.author_verified, author_verified_tier: post.author_verified_tier, content: post.content ?? post.body, likes_count: post.likes_count, comments_count: commentsCount, reposts_count: post.reposts_count, viewer_liked: post.viewer_liked, viewer_bookmarked: post.viewer_bookmarked }} />
+              onDoubleClick={doubleLike} post={{ post_id: post.post_id, author_id: post.author_id, author_name: post.author_name, author_username: post.author_username, author_avatar: post.author_avatar, author_verified: post.author_verified, author_verified_tier: post.author_verified_tier, content: post.content ?? post.body, likes_count: post.likes_count, bookmarks_count: post.bookmarks_count, comments_count: commentsCount, reposts_count: repost.n, viewer_liked: post.viewer_liked, viewer_bookmarked: post.viewer_bookmarked }} />
           ) : null}
 
           {(post as unknown as { thread_parent_id?: string | null }).thread_parent_id ? (
@@ -395,7 +401,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
               ) : null}
             </span>
             <span className="flex items-center">
-              <button onClick={like.flip} title={like.on ? "Unlike" : "Like"} className={"rounded-full p-2 transition-colors duration-[140ms] " + (like.on ? "text-danger" : "text-ink/50 hover:bg-danger/10 hover:text-danger")}>
+              <button onClick={like.flip} title={like.on ? "Unlike" : "Like"} aria-label={like.on ? "Unlike" : "Like"} aria-pressed={like.on} disabled={social.pending || social.uncertain} aria-busy={social.pending} className={"rounded-full p-2 transition-colors duration-[140ms] " + (like.on ? "text-danger" : "text-ink/50 hover:bg-danger/10 hover:text-danger")}>
                 <Heart size={18} strokeWidth={1.8} fill={like.on ? "currentColor" : "none"} />
               </button>
               {like.n > 0 ? (
@@ -404,7 +410,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
                 </button>
               ) : null}
             </span>
-            <button aria-label="Save post" aria-pressed={mark.on} onClick={mark.flip} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (mark.on ? "text-pearl" : "text-ink/50 hover:bg-pearl/10 hover:text-pearl")}>
+            <button aria-label={mark.on ? "Unsave post" : "Save post"} aria-pressed={mark.on} onClick={mark.flip} disabled={social.pending || social.uncertain} aria-busy={social.pending} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] " + (mark.on ? "text-pearl" : "text-ink/50 hover:bg-pearl/10 hover:text-pearl")}>
               <Bookmark size={18} strokeWidth={1.8} fill={mark.on ? "currentColor" : "none"} />
               {count(mark.n)}
             </button>
@@ -412,6 +418,8 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
               <ShareMenu postId={post.post_id} sharesCount={(post as unknown as { shares_count?: number }).shares_count ?? 0} />
             </span>
           </div>
+          {social.pending ? <span role="status" className="sr-only">Updating post interactions</span> : null}
+          {social.error ? <p role="alert" className="mt-2 text-sm text-ink">{social.error} <button type="button" disabled={social.pending} onClick={(e) => { e.stopPropagation(); void social.retry(); }} className="underline">Check status</button></p> : null}
           {commentsOpen && inlineComments ? (
             <div onClick={(e) => e.stopPropagation()} className="mt-2 border-t border-ink/10 pt-3">
               <Comments postId={post.post_id} autoFocus />

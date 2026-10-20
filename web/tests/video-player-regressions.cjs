@@ -47,6 +47,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === 'react/jsx-runtime') return runtime;
     if (name === '@/lib/videoPlayback') return helper;
     if (name === '@/lib/mediaPrefs') return { dataSaverEnabled: () => saver, autoplayEnabled: () => autoplay };
+    if (name === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };
     if (name === '@/lib/supabase/client') return { createClient: () => client };
     if (name === '@/components/VideoPlayer') return { VideoPlayer: 'NestedVideoPlayer' };
     if (name === '@/lib/media') return { displayImageUrl: value => value, srcSetFor: () => ({}) };

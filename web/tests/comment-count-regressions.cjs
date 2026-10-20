@@ -88,6 +88,7 @@ function scenario(initialCount = 0) {
         if (id === '@/lib/commentCounts') return helper;
         if (id === '@/lib/supabase/client') return { createClient: () => client };
         if (id === '@/lib/pollCheck') return { usePollFlag: () => false };
+        if (id === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };
         if (id === '@/lib/feed') return { timeAgo: () => 'now' };
         if (id === 'next/navigation') return { useRouter: () => ({ push() {} }) };
         if (id === 'next/link') return { default: 'Link' };

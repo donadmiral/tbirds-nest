@@ -49,6 +49,8 @@ jobs:
           node --test
           tests/video-player-regressions.cjs
           tests/theater-contrast-regressions.cjs
+          tests/media-social-regressions.cjs
+          tests/media-social-components.cjs
           tests/recruiter-workflow-regressions.cjs
           tests/applications-tracker-regressions.cjs
           tests/ads-quality-regressions.cjs
