@@ -508,10 +508,10 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
           <div className={"flex min-h-0 flex-1" + (mobileComments ? " max-lg:flex-col" : "")}>
           <div data-media-pane className={"relative flex min-w-0 flex-1 items-center justify-center overflow-hidden" + (mobileComments ? " max-lg:flex-none" : "")}>
             {lightbox > 0 ? (
-              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><ChevronLeft size={20} /></button>
+              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-ink/60 p-2 text-white transition-colors duration-[140ms] hover:bg-ink/80"><ChevronLeft size={20} /></button>
             ) : null}
             {lightbox < media.length - 1 ? (
-              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox + 1); }} aria-label="Next media" className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors duration-[140ms] hover:bg-white/20"><ChevronRight size={20} /></button>
+              <button onClick={(e) => { e.stopPropagation(); goTo(lightbox + 1); }} aria-label="Next media" className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-ink/60 p-2 text-white transition-colors duration-[140ms] hover:bg-ink/80"><ChevronRight size={20} /></button>
             ) : null}
             {media[lightbox].media_type === "video" ? (
               <div className={"h-full min-h-0 w-full px-2" + (mobileComments ? " max-lg:h-[40vh]" : "")} onClick={(e) => e.stopPropagation()}>
@@ -545,9 +545,9 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
             {media[lightbox].media_type === "image" ? <EditPlanes e={editOf(media[lightbox])} /> : null}
             {media[lightbox].media_type === "image" ? (
               <span className="absolute bottom-4 right-4 z-10 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => setZoomClamped(zoom - 0.5)} aria-label="Zoom out" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white transition-colors duration-[140ms] hover:bg-white/20">-</button>
-                <button onClick={() => resetZoom()} aria-label="Reset zoom" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-white transition-colors duration-[140ms] hover:bg-white/20">{Math.round(zoom * 100)}%</button>
-                <button onClick={() => setZoomClamped(zoom + 0.5)} aria-label="Zoom in" className="rounded-md bg-white/10 px-2.5 py-1.5 text-[13px] font-bold text-white transition-colors duration-[140ms] hover:bg-white/20">+</button>
+                <button onClick={() => setZoomClamped(zoom - 0.5)} aria-label="Zoom out" className="rounded-md bg-ink/60 px-2.5 py-1.5 text-[13px] font-bold text-white transition-colors duration-[140ms] hover:bg-ink/80">-</button>
+                <button onClick={() => resetZoom()} aria-label="Reset zoom" className="rounded-md bg-ink/60 px-2.5 py-1.5 text-[11px] font-semibold text-white transition-colors duration-[140ms] hover:bg-ink/80">{Math.round(zoom * 100)}%</button>
+                <button onClick={() => setZoomClamped(zoom + 0.5)} aria-label="Zoom in" className="rounded-md bg-ink/60 px-2.5 py-1.5 text-[13px] font-bold text-white transition-colors duration-[140ms] hover:bg-ink/80">+</button>
               </span>
             ) : null}
           </div>
@@ -572,7 +572,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 )}
                 <span className="min-w-0">
                   <span className="block truncate text-[14px] font-semibold text-white">{post!.author_name}</span>
-                  <span className="block truncate text-[12px] text-white/45">@{post!.author_username}</span>
+                  <span className="block truncate text-[12px] text-white/55">@{post!.author_username}</span>
                 </span>
               </div>
               {post!.content ? (
@@ -589,21 +589,21 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 <button onClick={toggleMark} title={marked ? "Saved" : "Save"} className={"ml-auto rounded-full p-2 transition-colors duration-[140ms] " + (marked ? "text-pearl" : "text-white/55 hover:bg-white/10 hover:text-pearl")}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill={marked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" aria-hidden><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
                 </button>
-                <span className="[&>div>button:first-of-type]:text-white/60 [&>div>button:first-of-type:hover]:bg-white/10 [&>div>button:first-of-type:hover]:text-white">
+                <span className="theater-menu [&>div>button:first-of-type]:text-white/60 [&>div>button:first-of-type:hover]:bg-white/10 [&>div>button:first-of-type:hover]:text-white">
                   <PostMenu postId={post!.post_id} authorId={post!.author_id ?? ""} text={post!.content ?? ""} onHidden={() => setLightbox(null)} />
                 </span>
               </div>
-              <div className="mt-4 min-h-0 flex-1 overflow-y-auto border-t border-white/10 pt-4 [&_*]:text-white [&_input]:bg-white/10 [&_textarea]:bg-white/10">
+              <div className="theater-comments mt-4 min-h-0 flex-1 overflow-y-auto border-t border-white/10 pt-4 [&_*]:text-white [&_input]:bg-white/10 [&_textarea]:bg-white/10">
                 <Comments postId={post!.post_id} />
               </div>
-              <Link href={"/post/" + post!.post_id} className="mt-3 text-center text-[12px] text-white/45 hover:text-white/70">
+              <Link href={"/post/" + post!.post_id} className="mt-3 text-center text-[12px] text-white/55 hover:text-white/70">
                 Open the full post
               </Link>
             </aside>
           ) : null}
           {post && mobileComments ? (
             <div onClick={(e) => e.stopPropagation()} className="flex min-h-0 flex-1 flex-col border-t border-white/10 bg-navy lg:hidden">
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-3 [&_*]:text-white [&_input]:bg-white/10 [&_textarea]:bg-white/10">
+              <div className="theater-comments min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-3 [&_*]:text-white [&_input]:bg-white/10 [&_textarea]:bg-white/10">
                 <Comments postId={post.post_id} />
               </div>
             </div>

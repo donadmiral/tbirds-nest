@@ -215,7 +215,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   return (
     <div ref={wrapRef} role="group" aria-label="Video player" tabIndex={0} onKeyDown={onKey}
       style={!expanded && width && height ? { aspectRatio: width + " / " + height } : undefined}
-      className={"group relative overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl " + (expanded ? "flex h-full w-full flex-col items-stretch bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}>
+      className={"video-player group relative overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl " + (expanded ? "flex h-full w-full flex-col items-stretch bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}>
       <video ref={ref} src={src} playsInline muted={edit?.muted || muted} preload={allowPlayback && !dataSaverEnabled() ? "metadata" : "none"}
         onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
         onDoubleClick={(e) => { e.stopPropagation(); void toggleFullscreen(); }}

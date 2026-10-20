@@ -48,6 +48,7 @@ jobs:
         run: >-
           node --test
           tests/video-player-regressions.cjs
+          tests/theater-contrast-regressions.cjs
           tests/recruiter-workflow-regressions.cjs
           tests/applications-tracker-regressions.cjs
           tests/ads-quality-regressions.cjs
