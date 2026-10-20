@@ -36,6 +36,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
   const document = { hidden: false, pictureInPictureEnabled: pip, pictureInPictureElement: null, fullscreenElement: null,
     addEventListener: add, removeEventListener: remove, body: { style: {} }, documentElement: { clientWidth: 1200 }, activeElement: { focus() {} },
     exitPictureInPicture: async () => { document.pictureInPictureElement = null; }, exitFullscreen: async () => { document.fullscreenElement = null; } };
+  document.body.focus = () => { document.activeElement = document.body; };
   const storage = new Map([['pc:video-prefs', JSON.stringify(prefs)]]);
   const window = { document, innerWidth: 1200, innerHeight: 900, matchMedia: () => ({ matches: false }), addEventListener: add, removeEventListener: remove,
     localStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) } };
@@ -67,7 +68,17 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
       pause() { this.pauseCalls++; this.paused = true; }, load() { this.loadCalls++; },
       requestPictureInPicture() { this.pipCalls++; document.pictureInPictureElement = this; return Promise.resolve(); },
       addEventListener: add, removeEventListener: remove };
-    const wrapper = { focus() {}, getBoundingClientRect: () => ({ width: 600 }), querySelectorAll: () => [], requestFullscreen: async () => { document.fullscreenElement = wrapper; } };
+    const focusNode = () => ({ isConnected: true, tabIndex: 0, hasAttribute: () => false, getClientRects: () => [{}],
+      focusCalls: 0, focus(options) { this.focusCalls++; this.focusOptions = options; document.activeElement = this; } });
+    const disconnect = node => { node.isConnected = false; if (document.activeElement === node) document.activeElement = document.body; };
+    let inlineOpener = null;
+    const navigation = new Map();
+    const modal = { ...focusNode(), contains: target => target === modal || target === closeButton || [...navigation.values()].includes(target),
+      querySelectorAll: () => [closeButton, ...navigation.values()] };
+    const closeButton = focusNode();
+    const wrapper = { ...focusNode(), contains: target => target === inlineOpener || modal.contains(target),
+      getBoundingClientRect: () => ({ width: 600 }), querySelectorAll: () => [], querySelector: () => inlineOpener,
+      requestFullscreen: async () => { document.fullscreenElement = wrapper; } };
     const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
     const hooks = {
       useState(initial) { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial;
@@ -77,12 +88,30 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
       useEffect(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) {
         const previous = slots[i]; slots[i] = { deps }; effects.push(() => { previous?.cleanup?.(); slots[i].cleanup = fn(); }); } },
     };
-    const screen = { element, wrapper,
+    const screen = { element, wrapper, modal, closeButton, navigation, get inlineOpener() { return inlineOpener; },
       render() {
         currentHooks = hooks; cursor = 0;
         if (kind === 'gallery') tree = gallery.MediaGallery(props);
         else { const outer = module.VideoPlayer(props); tree = typeof outer.type === 'function' ? outer.type(outer.props) : outer; }
-        for (const node of allNodes(tree)) if (node.props?.ref) node.props.ref.current = node.type === 'video' ? element : wrapper;
+        const nodes = allNodes(tree);
+        if (kind === 'gallery') {
+          const hasInline = nodes.some(node => (node.type === 'NestedVideoPlayer' && !node.props.immersive) || (node.type === 'img' && node.props.role === 'button'));
+          if (!hasInline && inlineOpener) {
+            disconnect(inlineOpener);
+            inlineOpener = null;
+          } else if (hasInline && !inlineOpener) inlineOpener = focusNode();
+          const dialog = nodes.find(node => node.props?.role === 'dialog');
+          const dialogNodes = allNodes(dialog);
+          for (const label of ['Previous media', 'Next media']) {
+            if (dialogNodes.some(node => node.props?.['aria-label'] === label)) {
+              if (!navigation.has(label)) navigation.set(label, focusNode());
+            } else if (navigation.has(label)) { disconnect(navigation.get(label)); navigation.delete(label); }
+          }
+          modal.isConnected = !!dialog;
+          closeButton.isConnected = modal.isConnected;
+        }
+        for (const node of nodes) if (node.props?.ref) node.props.ref.current = node.type === 'video' ? element
+          : node.props.role === 'dialog' ? modal : node.props['aria-label'] === 'Close viewer' ? closeButton : wrapper;
         const video = allNodes(tree).find(node => node.type === 'video'); if (video?.props.muted !== undefined) element.muted = video.props.muted;
         const pending = effects; effects = []; pending.forEach(fn => fn());
       },
@@ -91,7 +120,10 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
       click(label) { const node = this.label(label) || this.find(n => n.type === 'button' && nodeText(n) === label); assert.ok(node, 'Missing control: ' + label); const result = node.props.onClick({ stopPropagation() {} }); this.render(); return result; },
       videoEvent(name) { this.find(node => node.type === 'video').props[name]?.(); this.render(); },
       key(value, selector = '') { const e = event(value, selector); this.find(node => node.props?.onKeyDown).props.onKeyDown(e); this.render(); return e; },
-      unmount() { slots.forEach(slot => slot?.cleanup?.()); },
+      unmount() {
+        for (const node of [wrapper, modal, closeButton, inlineOpener, ...navigation.values()]) if (node) disconnect(node);
+        slots.forEach(slot => slot?.cleanup?.());
+      },
       update(value) { props = { ...props, ...value }; this.render(); },
       get text() { return nodeText(tree); },
     };
@@ -237,4 +269,86 @@ test('late-loading edit recipes constrain ongoing playback to the saved trim sta
   screen.update({ edit: { trimStart: 20, trimEnd: 50 } });
   screen.videoEvent('onTimeUpdate');
   assert.equal(screen.element.currentTime, 20);
+});
+test('closing video theater restores focus to the remounted inline opener', () => {
+  const s = scenario(), screen = s.mount({ media: [{ id: 'one', url: 'one.mp4', media_type: 'video' }] }, 'gallery');
+  const original = screen.inlineOpener;
+  original.focus();
+  screen.find(n => n.type === 'NestedVideoPlayer').props.onExpand(); screen.render();
+  assert.equal(original.isConnected, false);
+  assert.equal(s.document.activeElement, screen.closeButton);
+  screen.click('Close viewer');
+  assert.notEqual(screen.inlineOpener, original);
+  assert.equal(s.document.activeElement, screen.inlineOpener);
+  assert.equal(screen.inlineOpener.focusOptions.preventScroll, true);
+  assert.equal(original.focusCalls, 1);
+});
+test('an image opened with a pointer restores its replacement opener on Escape', () => {
+  const s = scenario(), screen = s.mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image' }] }, 'gallery');
+  const original = screen.inlineOpener;
+  s.document.activeElement = s.document.body;
+  screen.find(n => n.type === 'img' && n.props.role === 'button').props.onClick({ currentTarget: original, preventDefault() {}, stopPropagation() {} });
+  screen.render();
+  assert.equal(original.isConnected, false);
+  s.dispatch(event('Escape')); screen.render();
+  assert.equal(s.document.activeElement, screen.inlineOpener);
+  assert.notEqual(screen.inlineOpener, original);
+});
+test('changing viewer media preserves immersive mode and the focused live control', () => {
+  const media = [{ id: 'one', url: 'one.mp4', media_type: 'video' }, { id: 'two', url: 'two.mp4', media_type: 'video' }];
+  const s = scenario(), screen = s.mount({ media, post: { post_id: 'post' } }, 'gallery');
+  screen.inlineOpener.focus();
+  screen.find(n => n.type === 'NestedVideoPlayer').props.onExpand(); screen.render();
+  screen.click('Fit to screen');
+  const focusCalls = screen.closeButton.focusCalls;
+  s.dispatch(event('ArrowRight')); screen.render(); screen.render();
+  assert.ok(screen.text.includes('2 / 2'));
+  assert.ok(screen.label('Show comments'));
+  assert.equal(screen.label('Fit to screen'), undefined);
+  assert.equal(screen.closeButton.focusCalls, focusCalls);
+  assert.equal(s.document.body.style.overflow, 'hidden');
+});
+test('removed media navigation control returns focus inside the open viewer', () => {
+  const media = [{ id: 'one', url: 'one.mp4', media_type: 'video' }, { id: 'two', url: 'two.mp4', media_type: 'video' }];
+  const s = scenario(), screen = s.mount({ media }, 'gallery');
+  screen.find(n => n.type === 'NestedVideoPlayer').props.onExpand(); screen.render();
+  const next = screen.navigation.get('Next media');
+  next.focus();
+  const dialog = screen.find(n => n.props?.role === 'dialog');
+  allNodes(dialog).find(n => n.props?.['aria-label'] === 'Next media').props.onClick({ stopPropagation() {} });
+  screen.render();
+  assert.equal(next.isConnected, false);
+  assert.equal(screen.navigation.has('Next media'), false);
+  assert.equal(s.document.activeElement, screen.closeButton);
+  const shiftTab = event('Tab'); shiftTab.shiftKey = true; s.dispatch(shiftTab);
+  assert.equal(shiftTab.defaultPrevented, true);
+  assert.equal(s.document.activeElement, screen.navigation.get('Previous media'));
+  const tab = event('Tab'); s.dispatch(tab);
+  assert.equal(tab.defaultPrevented, true);
+  assert.equal(s.document.activeElement, screen.closeButton);
+});
+test('closing viewer falls back to its focusable media wrapper when no opener remains', () => {
+  const s = scenario(), screen = s.mount({ media: [{ id: 'one', url: 'one.mp4', media_type: 'video' }] }, 'gallery');
+  screen.find(n => n.type === 'NestedVideoPlayer').props.onExpand(); screen.render();
+  screen.wrapper.querySelector = () => null;
+  screen.click('Close viewer');
+  assert.equal(s.document.activeElement, screen.wrapper);
+  assert.equal(screen.find(n => n.props?.ref?.current === screen.wrapper).props.tabIndex, -1);
+  assert.equal(screen.find(n => n.props?.ref?.current === screen.wrapper).props['aria-label'], 'Post media');
+});
+test('unmounting an open viewer releases the page without focusing disconnected media', () => {
+  const s = scenario(), screen = s.mount({ media: [{ id: 'one', url: 'one.mp4', media_type: 'video' }] }, 'gallery');
+  s.document.body.style.overflow = 'auto';
+  s.document.body.style.paddingRight = '4px';
+  screen.inlineOpener.focus();
+  screen.find(n => n.type === 'NestedVideoPlayer').props.onExpand(); screen.render();
+  const destination = { focus() { s.document.activeElement = this; } };
+  destination.focus();
+  screen.unmount();
+  assert.equal(s.document.activeElement, destination);
+  assert.equal(screen.wrapper.focusCalls, 0);
+  assert.equal(s.document.body.style.overflow, 'auto');
+  assert.equal(s.document.body.style.paddingRight, '4px');
+  const tab = event('Tab'); s.dispatch(tab);
+  assert.equal(tab.defaultPrevented, false);
 });

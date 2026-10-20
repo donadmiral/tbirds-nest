@@ -170,6 +170,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   const [trueDims, setTrueDims] = useState<Record<string, Dims>>({});
   const [idx, setIdx] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const viewerOpen = lightbox !== null;
   const [immersive, setImmersive] = useState(false);
   // On phones and tablets the viewer has no side panel; comments open in a drawer under the picture instead.
   const [mobileComments, setMobileComments] = useState(false);
@@ -228,14 +229,28 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   }, [lightbox]);
 
   useEffect(() => {
-    if (lightbox === null) return;
-    openerRef.current = document.activeElement as HTMLElement;
+    if (!viewerOpen) return;
+    const mediaRoot = wrapRef.current;
     const prevOverflow = document.body.style.overflow;
     const prevPad = document.body.style.paddingRight;
     const gap = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
     if (gap > 0) document.body.style.paddingRight = gap + "px";
     closeRef.current?.focus();
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPad;
+      // Inline media unmounts while the viewer is open. Restore its newly
+      // mounted control, rather than trying to focus the disconnected opener.
+      if (!mediaRoot?.isConnected) return;
+      const opener = openerRef.current;
+      const target = opener?.isConnected ? opener : mediaRoot.querySelector<HTMLElement>("[data-media-opener], button[aria-label='Open theater view']");
+      (target ?? mediaRoot).focus({ preventScroll: true });
+    };
+  }, [viewerOpen]);
+
+  useEffect(() => {
+    if (!viewerOpen) return;
     function onKey(e: KeyboardEvent) {
       if (e.defaultPrevented) return;
       const target = e.target as HTMLElement | null;
@@ -254,15 +269,21 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
       }
     }
     window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.paddingRight = prevPad;
-      window.removeEventListener("keydown", onKey);
-      resetZoom();
-      setImmersive(false);
-      openerRef.current?.focus();
-    };
-  }, [lightbox, media.length, resetZoom]);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [viewerOpen, media.length, resetZoom]);
+
+  useEffect(() => {
+    // Moving to the last/first item can remove the focused arrow. Keep focus
+    // inside the dialog, without resetting controls that remain mounted.
+    if (viewerOpen && !modalRef.current?.contains(document.activeElement)) closeRef.current?.focus();
+  }, [viewerOpen, lightbox]);
+
+  function openViewer(next: number, opener = document.activeElement as HTMLElement | null) {
+    openerRef.current = opener && wrapRef.current?.contains(opener) ? opener : null;
+    resetZoom();
+    setImmersive(false);
+    setLightbox(next);
+  }
 
   const measure = useCallback((id: string, w: number, h: number) => {
     if (w > 0 && h > 0) setTrueDims((r) => (r[id] && r[id].w === w && r[id].h === h ? r : { ...r, [id]: { w, h } }));
@@ -370,7 +391,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   const count = (n?: number) => (n ?? 0) >= 1000 ? ((n ?? 0) / 1000).toFixed(1).replace(/\.0$/, "") + "K" : String(n ?? 0);
 
   return (
-    <div ref={wrapRef} className="mt-3" onDoubleClick={onFeedDoubleClick}>
+    <div ref={wrapRef} role="group" aria-label="Post media" tabIndex={-1} className="mt-3" onDoubleClick={onFeedDoubleClick}>
       <div style={dims ? { width: dims.w + "px" } : undefined} className="relative mx-auto max-w-full overflow-hidden rounded-xl bg-black" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd}>
         {lightbox !== null ? (
           <div style={dims ? { height: dims.h + "px" } : undefined} className="w-full" />
@@ -385,7 +406,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 onDims={(w, h) => measure(item.id, w, h)}
                 edit={editOf(item)}
                 allowPlayback={!item.is_sensitive || !!revealed[item.id]}
-                onExpand={() => setLightbox(idx)}
+                onExpand={() => openViewer(idx)}
               /><EditPlanes e={editOf(item)} /><TagLayer mode="list" tags={tags[item.id] || []} w={dims?.w} h={dims?.h} /></div>
             </div>
           ) : (
@@ -395,8 +416,9 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               {...(dataSaverEnabled() ? {} : srcSetFor(item.url))}
               onError={(e) => { if (e.currentTarget.src !== item.url) { e.currentTarget.removeAttribute("srcset"); e.currentTarget.src = item.url; } }}
               onLoad={(e) => measure(item.id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox(idx); }}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setLightbox(idx); } }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openViewer(idx, e.currentTarget); }}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); openViewer(idx, e.currentTarget); } }}
+              data-media-opener
               role="button"
               tabIndex={0}
               aria-label={"Open " + altOf(item, idx)}
