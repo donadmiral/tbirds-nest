@@ -54,9 +54,9 @@ test('buffering or paused video follows its media clock rather than wall time', 
 });
 test('resuming a paused video does not fall back to wall time or leak another timer', () => {
   const h = playback('video'); h.ready.current = 'story-1'; let tick, stopped = 0;
-  const start = viewer.indexOf('  const resumeNow = useCallback('), end = viewer.indexOf('  const holdStart', start);
+  const start = viewer.indexOf('  const resumeNow = useCallback('), end = viewer.indexOf('  const togglePlayback', start);
   execute(viewer.slice(start, end) + '\nresumeNow();', { ...h.globals,
-    useCallback: fn => fn, heldRef: { current: true }, pausedAtRef: { current: 0.2 }, resumeDelayRef: { current: null },
+    useCallback: fn => fn, playbackPausedRef: { current: true }, manualPauseRef: { current: false }, document: { hidden: false }, setPlaybackPaused() {}, heldRef: { current: true }, pausedAtRef: { current: 0.2 }, resumeDelayRef: { current: null },
     stopTimer: () => stopped++, setInterval: fn => { tick = fn; return 1; }, setTimeout: () => 1, clearTimeout() {},
     videoRef: { current: { ...h.player, play: async () => {} } },
   });
@@ -157,7 +157,7 @@ test('Back on the first story does not stop its playback timer', () => {
 test('advancing a story clears its private reply and viewer sheet', () => {
   let reply = 'Reply intended for A', sheet = true, toast = true;
   execute(effect(viewer, '    readyStoryRef.current = null;', '  }, [story?.id]);'), {
-    useEffect: fn => fn(), story: { id: 'story-b' }, readyStoryRef: { current: 'story-a' }, heldRef: { current: true },
+    useEffect: fn => fn(), playbackPausedRef: { current: true }, manualPauseRef: { current: true }, holdPausedRef: { current: true }, holdConsumedClickRef: { current: false }, setPlaybackPaused() {}, story: { id: 'story-b' }, readyStoryRef: { current: 'story-a' }, heldRef: { current: true },
     holdRef: { current: null }, resumeDelayRef: { current: null }, setLoadedStoryId() {}, setFailedStoryId() {}, setActionError() {},
     setReplyText: value => reply = value, setReplyToast: value => toast = value, setViewersOpen: value => sheet = value, setHeartBurst() {},
   });

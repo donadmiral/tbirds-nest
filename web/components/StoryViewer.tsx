@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
-import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark, Play, Pause } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
 import { QuestionCard, QuizCard, SliderCard, CountdownCard, AddYoursCard, SupportCard, ResultsCard } from "@/components/StoryEngageCards";
@@ -234,7 +234,11 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const [viewersOpen, setViewersOpen] = useState(false);
   const [storyMentions, setStoryMentions] = useState<{ id: string; mentioned_user_id: string; visible: boolean; username?: string | null }[]>([]);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heldRef = useRef(false);
+  const playbackPausedRef = useRef(false);
+  const manualPauseRef = useRef(false);
+  const holdPausedRef = useRef(false);
+  const holdConsumedClickRef = useRef(false);
+  const [playbackPaused, setPlaybackPaused] = useState(false);
   const pausedAtRef = useRef(0);
   const [myReactions, setMyReactions] = useState<Set<string>>(new Set());
   const reactionRequests = useRef(new Set<string>());
@@ -247,7 +251,6 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const [mediaRetry, setMediaRetry] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
   const deletingRef = useRef(false);
-  const resumeDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
   const sendingReplyRef = useRef(false);
@@ -269,12 +272,14 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     setReplyToast(false);
     setViewersOpen(false);
     setHeartBurst(0);
-    heldRef.current = false;
+    playbackPausedRef.current = false;
+    manualPauseRef.current = false;
+    holdPausedRef.current = false;
+    holdConsumedClickRef.current = false;
+    setPlaybackPaused(false);
     if (holdRef.current) clearTimeout(holdRef.current);
-    if (resumeDelayRef.current) clearTimeout(resumeDelayRef.current);
     return () => {
       if (holdRef.current) clearTimeout(holdRef.current);
-      if (resumeDelayRef.current) clearTimeout(resumeDelayRef.current);
     };
   }, [story?.id]);
   const onMediaReady = () => {
@@ -344,8 +349,9 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [itemIdx, userIdx, stopTimer]);
 
   const pauseNow = useCallback(() => {
-    if (heldRef.current) return;
-    heldRef.current = true;
+    if (playbackPausedRef.current) return;
+    playbackPausedRef.current = true;
+    setPlaybackPaused(true);
     pausedAtRef.current = (Date.now() - startedAt.current) / durRef.current;
     stopTimer();
     videoRef.current?.pause();
@@ -353,9 +359,10 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [stopTimer]);
 
   const resumeNow = useCallback(() => {
-    if (!heldRef.current) return;
+    if (!playbackPausedRef.current || manualPauseRef.current || document.hidden) return;
+    playbackPausedRef.current = false;
+    setPlaybackPaused(false);
     stopTimer();
-    if (resumeDelayRef.current) clearTimeout(resumeDelayRef.current);
     startedAt.current = Date.now() - pausedAtRef.current * durRef.current;
     timerRef.current = setInterval(() => {
       if (story?.media_url && readyStoryRef.current !== story.id) { startedAt.current = Date.now(); return; }
@@ -372,16 +379,32 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     }, 50);
     videoRef.current?.play().catch(() => {});
     audioRef.current?.play().catch(() => {});
-    resumeDelayRef.current = setTimeout(() => { heldRef.current = false; }, 60);
   }, [advance, story, stopTimer]);
 
+  const togglePlayback = useCallback(() => {
+    if (playbackPausedRef.current) {
+      manualPauseRef.current = false;
+      resumeNow();
+    } else {
+      manualPauseRef.current = true;
+      pauseNow();
+    }
+  }, [pauseNow, resumeNow]);
+
   const holdStart = useCallback(() => {
-    holdRef.current = setTimeout(() => { pauseNow(); }, 200);
+    if (holdRef.current) clearTimeout(holdRef.current);
+    holdPausedRef.current = false;
+    holdConsumedClickRef.current = false;
+    holdRef.current = setTimeout(() => {
+      holdConsumedClickRef.current = true;
+      if (!playbackPausedRef.current) { holdPausedRef.current = true; pauseNow(); }
+    }, 200);
   }, [pauseNow]);
 
   const holdEnd = useCallback(() => {
     if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; }
-    if (!heldRef.current) return;
+    if (!holdPausedRef.current) return;
+    holdPausedRef.current = false;
     resumeNow();
   }, [resumeNow]);
 
@@ -550,7 +573,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     let pausedByVisibility = false;
     const onVisibility = () => {
       if (document.hidden) {
-        pausedByVisibility = !heldRef.current;
+        pausedByVisibility = !playbackPausedRef.current;
         if (pausedByVisibility) pauseNow();
       } else if (pausedByVisibility) {
         pausedByVisibility = false;
@@ -682,7 +705,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
               <StickerLayer stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} />
             ) : null}
             {story.caption ? (
-              <p className="absolute inset-x-0 bottom-20 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow">{String(story.caption).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => part.startsWith("@") ? <a key={i} href={"/" + part.slice(1)} onClick={(e) => e.stopPropagation()} className="font-extrabold underline">{part}</a> : <span key={i}>{part}</span>)}</p>
+              <p className={"absolute inset-x-0 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow " + (isOwn ? "bottom-28" : "bottom-20")}>{String(story.caption).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => part.startsWith("@") ? <a key={i} href={"/" + part.slice(1)} onClick={(e) => e.stopPropagation()} className="font-extrabold underline">{part}</a> : <span key={i}>{part}</span>)}</p>
             ) : null}
             {heartBurst ? (
               <span key={heartBurst} className="pointer-events-none absolute inset-0 z-[6] flex items-center justify-center">
@@ -697,9 +720,9 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         )}
 
         {story ? <SaveToMemory story={story} /> : null}
-        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onClick={() => { if (!heldRef.current) back(); }} className="absolute inset-y-0 left-0 z-[3] w-1/3" aria-label="Previous" />
-        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onDoubleClick={() => react(REACTION_EMOJIS[0])} className="absolute inset-y-0 left-1/3 z-[3] w-1/3" aria-label="Pause" />
-        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onClick={() => { if (!heldRef.current) advance(); }} className="absolute inset-y-0 right-0 z-[3] w-1/3" aria-label="Next" />
+        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onClick={(event) => { const consumed = holdConsumedClickRef.current; holdConsumedClickRef.current = false; if (event.detail === 0 || !consumed) back(); }} className="absolute inset-y-0 left-0 z-[3] w-1/3" aria-label="Previous" />
+        <div onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onDoubleClick={() => react(REACTION_EMOJIS[0])} className="absolute inset-y-0 left-1/3 z-[3] w-1/3" aria-hidden="true" />
+        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onClick={(event) => { const consumed = holdConsumedClickRef.current; holdConsumedClickRef.current = false; if (event.detail === 0 || !consumed) advance(); }} className="absolute inset-y-0 right-0 z-[3] w-1/3" aria-label="Next" />
 
         {canReply || canReact ? (
           <div className="absolute inset-x-0 bottom-0 z-20 flex items-center gap-2 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
@@ -743,6 +766,9 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         ) : null}
 
         <div className="absolute right-2 top-[68px] z-20 flex flex-col gap-2">
+          {story ? <button type="button" onClick={togglePlayback} className="flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" aria-label={playbackPaused ? "Play story" : "Pause story"} title={playbackPaused ? "Play story" : "Pause story"}>
+            {playbackPaused ? <Play size={18} /> : <Pause size={18} />}
+          </button> : null}
           {story?.media_type === "video" || storyAudioUrl ? (
             <button onClick={() => setMuted(!muted)} className="rounded-full bg-black/40 p-2 text-white" aria-label="Mute">
               {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
