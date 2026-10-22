@@ -64,12 +64,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            admin-web/package-lock.json
+            supabase/tests/rpc-authorization/package-lock.json
       - run: npm ci
       - run: npx tsc --noEmit
+      - name: Install dependencies for cross-app and database regressions
+        run: |
+          npm ci --prefix web
+          npm ci --prefix admin-web
+          npm ci --prefix supabase/tests/rpc-authorization
       - name: Test phone and call quality regressions
         run: node --test tests/*.cjs tests/quality/*.cjs
-      - run: npm ci --prefix supabase/tests/rpc-authorization
       - name: Test payment recovery and database boundaries
         env:
           PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.cjs
