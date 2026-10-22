@@ -23,9 +23,10 @@ const fixtures = [
   ['decoy', 'musaXtest'], ['exact', 'musa_test'], ['case', 'Legacy_Name'],
   ['missing-decoy', 'missingXuser'], ['percent-decoy', 'rateANYvalue'], ['percent', 'rate%value'],
   ['slash-decoy', 'slash_name'], ['slash', 'slash\\_name'], ['ordinary', 'ordinary'],
+  ['12345678-1234-1234-1234-123456789abc', null],
 ];
 before(async () => {
-  await db.exec('create table profiles (ordinal serial primary key, id text not null, username text not null, full_name text not null)');
+  await db.exec('create table profiles (ordinal serial primary key, id text not null, username text, full_name text not null)');
   for (const [id, username] of fixtures) await db.query('insert into profiles (id, username, full_name) values ($1, $2, $3)', [id, username, id + ' name']);
 });
 after(() => db.close());
@@ -52,6 +53,11 @@ function harness(username) {
       assert.equal(url.pathname, '/rest/v1/profiles');
       assert.equal(url.searchParams.get('limit'), '1');
       const filter = url.searchParams.get('username');
+      if (url.searchParams.has('id')) {
+        pending = db.query('select id, username, full_name from profiles where id = $1 limit 1', [url.searchParams.get('id').slice(3)]);
+        const { rows } = await pending;
+        return new Response(JSON.stringify(rows), {status:200,headers:{'Content-Type':'application/json'}});
+      }
       assert.ok(filter.startsWith('ilike.'));
       // PostgREST documents '*' as an alias for '%' in like/ilike filters.
       const pattern = filter.slice(6).replace(/\*/g, '%');
@@ -63,7 +69,7 @@ function harness(username) {
   client.auth.getSession = async () => ({ data: { session: null }, error: null });
   const react = {
     useState(initial) { const key = slot++; state[key] = typeof initial === 'function' ? initial() : initial; return [state[key], value => { state[key] = typeof value === 'function' ? value(state[key]) : value; }]; },
-    useEffect(fn) { effects.push(fn); }, useCallback(fn) { return fn; }, useMemo(fn) { return fn(); },
+    useEffect(fn) { effects.push(fn); }, useCallback(fn) { return fn; }, useMemo(fn) { return fn(); }, useRef(value) { return {current:value}; },
   };
   const jsx = (type, props) => ({ type, props });
   const imports = {
@@ -94,6 +100,7 @@ for (const [input, expected] of [
   ['musa_test', 'exact'], ['MUSA_TEST', 'exact'], ['legacy_name', 'case'],
   ['missing_user', null], ['rate%value', 'percent'], ['slash\\_name', 'slash'],
   ['ordinary', 'ordinary'], ['*', null], ['%', null],
+  ['12345678-1234-1234-1234-123456789abc', '12345678-1234-1234-1234-123456789abc'],
 ]) {
   for (const route of ['profile', 'followsTarget']) {
     test(`${route}: ${JSON.stringify(input)} resolves only ${expected || 'no account'}`, async () => {
@@ -110,4 +117,13 @@ test('profile metadata uses the intended account with an underscore', async () =
 test('Supabase transmits escaped underscore and backslash as literal query data', async () => {
   const h = harness('slash\\_name'); await h.profile();
   assert.equal(h.urls[0].searchParams.get('username'), 'ilike.slash\\\\\\_name');
+});
+
+test('handleless profile links use its stable identity and omit empty handles in metadata', async () => {
+  const id = '12345678-1234-1234-1234-123456789abc';
+  assert.equal(lookup.profilePath(null, id), '/' + id);
+  assert.equal(lookup.profilePath('musa_test', id), '/musa_test');
+  assert.equal(lookup.profilePath(null, null), '/search');
+  const meta = await harness(id).metadata();
+  assert.ok(!meta.title.includes('@'));
 });

@@ -10,7 +10,7 @@ const ts = require('typescript');
 // and confirmed comment-count publisher together through their real handlers.
 const sources = new Map();
 for (const file of ['components/PostCard.tsx', 'components/MediaGallery.tsx', 'lib/usePostInteractions.ts',
-  'lib/postInteractionState.ts', 'lib/interactions.ts', 'lib/commentCounts.ts']) {
+  'lib/postInteractionState.ts', 'lib/interactions.ts', 'lib/commentCounts.ts', 'lib/profileLookup.ts']) {
   sources.set('@/' + file.replace(/\.tsx?$/, ''), ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2020, esModuleInterop: true },
   }).outputText);

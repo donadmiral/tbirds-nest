@@ -1,5 +1,6 @@
 "use client";
 
+import { profilePath } from "@/lib/profileLookup";
 import { PersonName } from "@/components/PersonName";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -68,15 +69,15 @@ export function DiscoveryRail() {
       ) : null}
 
       {people.length > 0 ? (
-        <Panel title="Suggested for you" icon={<UserPlus size={15} />} action={people.length > 4 ? (showAll ? "Show less" : "View all") : undefined} actionHref={people.length > 4 ? "#" : undefined}>
+        <Panel title="Suggested for you" icon={<UserPlus size={15} />} action="Find people" actionHref="/search">
           <div className="flex flex-col gap-3">
             {(showAll ? people : people.slice(0, 4)).map((p) => (
               <div key={p.id} className="flex items-center gap-3">
-                <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={40} href={p.username ? "/" + p.username : null} />
-                <Link href={p.username ? "/" + p.username : "#"} className="min-w-0 flex-1">
+                <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={40} href={profilePath(p.username, p.id)} />
+                <Link href={profilePath(p.username, p.id)} className="min-w-0 flex-1">
                   <PersonName name={p.full_name ?? ""} userId={p.id} className="text-[14px] font-semibold leading-tight text-ink" badgeSize={13} />
-                  <span className="mt-0.5 block truncate text-[12px] leading-tight text-ink/45">
-                    {p.headline || "@" + (p.username ?? "")}
+                  <span className="mt-0.5 block truncate text-[12px] leading-tight text-muted">
+                    {p.headline || (p.username ? "@" + p.username : "Member")}
                   </span>
                 </Link>
                 <FollowButton authorId={p.id} />

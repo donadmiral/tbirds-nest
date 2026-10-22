@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
 const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
   money: 'M12 2a10 10 0 100 20 10 10 0 000-20zm1 15.9V19h-2v-1.1c-1.6-.3-2.8-1.3-2.9-2.9h2c.1.7.8 1.2 1.9 1.2 1.2 0 1.8-.5 1.8-1.2 0-.6-.5-1-1.8-1.3-2.2-.5-3.7-1.2-3.7-3 0-1.5 1.2-2.5 2.7-2.8V7h2v1c1.5.3 2.6 1.2 2.7 2.7h-2c-.1-.7-.6-1.1-1.6-1.1-1.1 0-1.7.4-1.7 1.1 0 .6.6.9 2 1.2 2.2.5 3.5 1.2 3.5 3.1 0 1.6-1.2 2.6-2.9 2.9z',

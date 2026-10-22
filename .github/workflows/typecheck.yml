@@ -14,6 +14,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   admin-web:
     name: Operations app
@@ -22,12 +25,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: admin-web/package-lock.json
-      - run: npm ci || npm install
+      - run: npm ci
         working-directory: admin-web
       - run: npx tsc --noEmit
+        working-directory: admin-web
+      - name: Test operations quality regressions
+        run: node --test tests/*.cjs
         working-directory: admin-web
 
   web:
@@ -37,24 +43,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - run: npm ci || npm install
+      - run: npm ci
         working-directory: web
       - run: npx tsc --noEmit
         working-directory: web
+      - run: npm ci --prefix supabase/tests/rpc-authorization
       - name: Test web quality regressions
-        run: >-
-          node --test
-          tests/video-player-regressions.cjs
-          tests/theater-contrast-regressions.cjs
-          tests/media-social-regressions.cjs
-          tests/media-social-components.cjs
-          tests/recruiter-workflow-regressions.cjs
-          tests/applications-tracker-regressions.cjs
-          tests/ads-quality-regressions.cjs
-          tests/username-regressions.cjs
+        run: node --test tests/*.cjs tests/quality/*.cjs
         working-directory: web
 
   phone:
@@ -64,16 +62,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
-      - run: npm ci || npm install
+      - run: npm ci
       - run: npx tsc --noEmit
       - name: Test phone and call quality regressions
-        run: >-
-          node --test
-          tests/call-media.test.cjs
-          tests/fullscreen-video-accessibility.test.cjs
-          tests/group-call-service.test.cjs
-          tests/daily-call-access.test.cjs
-          tests/navigation-accessibility.test.cjs
+        run: node --test tests/*.cjs tests/quality/*.cjs
+      - run: npm ci --prefix supabase/tests/rpc-authorization
+      - name: Test payment recovery and database boundaries
+        env:
+          PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.cjs
+          TRINITI_PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.js
+        run: node --experimental-strip-types --test supabase/tests/*.test.*
+      - name: Test RPC authorization
+        run: npm test --prefix supabase/tests/rpc-authorization

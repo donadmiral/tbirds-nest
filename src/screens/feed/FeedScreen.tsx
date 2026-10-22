@@ -2378,19 +2378,19 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                   </TouchableOpacity>
                 </ScrollView>
                 <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
-                <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={getTheme().ink.faint} multiline autoFocus maxLength={2000} />
+                <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={getTheme().ink.secondary} multiline autoFocus maxLength={2000} />
                 {pollOpts ? (
                 <View style={{ marginTop: 10, gap: 8 }}>
                 {pollOpts.map((o, i) => (
                 <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <TextInput value={o} onChangeText={(v) => setPollOpts(p => { const n = [...(p || [])]; n[i] = v; return n; })} placeholder={'Option ' + (i + 1)} placeholderTextColor="#8A93A5" maxLength={40}
-                style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', backgroundColor: '#FAFAF9', paddingHorizontal: 12, fontSize: 14.5, color: '#0B1E3D' }} />
-                {pollOpts.length > 2 ? <TouchableOpacity onPress={() => setPollOpts(p => (p || []).filter((_, j) => j !== i))} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={16} color="#8A93A5" /></TouchableOpacity> : null}
+                <TextInput value={o} onChangeText={(v) => setPollOpts(p => { const n = [...(p || [])]; n[i] = v; return n; })} accessibilityLabel={'Poll option ' + (i + 1)} placeholder={'Option ' + (i + 1)} placeholderTextColor={getTheme().ink.secondary} maxLength={40}
+                style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: getTheme().surface.hairline, backgroundColor: getTheme().surface.raised, paddingHorizontal: 12, fontSize: 14.5, color: getTheme().ink.primary }} />
+                {pollOpts.length > 2 ? <TouchableOpacity accessibilityRole="button" accessibilityLabel={'Remove poll option ' + (i + 1)} onPress={() => setPollOpts(p => (p || []).filter((_, j) => j !== i))} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={16} color={getTheme().ink.secondary} /></TouchableOpacity> : null}
                 </View>
                 ))}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                {pollOpts.length < 4 ? <TouchableOpacity onPress={() => setPollOpts(p => [...(p || []), ''])}><Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Add option</Text></TouchableOpacity> : null}
-                <TouchableOpacity onPress={() => setPollDays(d => (d === 1 ? 3 : d === 3 ? 7 : 1))} style={{ marginLeft: 'auto' }}><Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>{pollDays === 1 ? '1 day' : pollDays + ' days'}</Text></TouchableOpacity>
+                {pollOpts.length < 4 ? <TouchableOpacity accessibilityRole="button" onPress={() => setPollOpts(p => [...(p || []), ''])}><Text style={{ fontSize: 13, fontWeight: '700', color: getTheme().ink.primary }}>Add option</Text></TouchableOpacity> : null}
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={'Poll duration, ' + pollDays + (pollDays === 1 ? ' day' : ' days')} onPress={() => setPollDays(d => (d === 1 ? 3 : d === 3 ? 7 : 1))} style={{ marginLeft: 'auto' }}><Text style={{ fontSize: 13, fontWeight: '700', color: getTheme().ink.primary }}>{pollDays === 1 ? '1 day' : pollDays + ' days'}</Text></TouchableOpacity>
                 </View>
                 </View>
                 ) : null}
@@ -2406,7 +2406,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     value={articleTitle}
                     onChangeText={setArticleTitle}
                     placeholder="Article title (optional)"
-                    placeholderTextColor={getTheme().ink.faint}
+                    placeholderTextColor={getTheme().ink.secondary}
                     style={{ fontSize: 21, fontWeight: '800', color: getTheme().ink.primary, letterSpacing: -0.5, paddingVertical: 8, marginBottom: 4 }}
                     multiline
                   />
@@ -3014,7 +3014,7 @@ const s = themedSheet((t) => ({
   postAuthor: { fontSize: 15, fontWeight: '700', color: t.ink.primary, letterSpacing: -0.1 },
   postSub: { marginTop: 1, fontSize: 13, color: t.ink.muted },
   menuBtn: { paddingHorizontal: 8, paddingVertical: 6 },
-  menuBtnTxt: { fontSize: 16, color: t.ink.faint, letterSpacing: 1 },
+  menuBtnTxt: { fontSize: 16, color: t.ink.primary, letterSpacing: 1 },
   content: { fontSize: 15, lineHeight: 21, color: t.ink.primary, paddingHorizontal: 16, paddingBottom: 12 },
   readMoreBtn: { fontSize: 13.5, fontWeight: '700', color: t.brand.base, paddingHorizontal: 16 },
   hashTag: { color: t.brand.base, fontWeight: '600' },
@@ -3064,7 +3064,7 @@ const s = themedSheet((t) => ({
   cRemove: { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   cRemoveTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
   cAddMore: { width: 80, height: 80, borderRadius: 10, backgroundColor: t.surface.raised, borderWidth: 1.5, borderColor: t.surface.hairline, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
-  cAddMoreTxt: { fontSize: 28, color: t.ink.faint, fontWeight: '300' },
+  cAddMoreTxt: { fontSize: 28, color: t.ink.primary, fontWeight: '300' },
   cToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, gap: 8 },
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0, overflow: 'hidden' },
   kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' },

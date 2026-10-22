@@ -131,16 +131,16 @@ export default function OrganizationPage() {
     }
   }
 
-  if (loading) return <p className="py-14 text-center text-sm text-ink/40">Loading</p>;
+  if (loading) return <p className="py-14 text-center text-sm text-muted">Loading</p>;
   if (failed || !org) return <ErrorState title="Could not load your organization" line={failed || "No organization found for this account."} onRetry={() => void load()} />;
 
   return (
     <div>
       <div className="mb-4 flex items-start gap-3">
-        <Link href="/studio/settings" className="mt-1 rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink" aria-label="Back to settings"><ArrowLeft size={18} /></Link>
+        <Link href="/studio/settings" className="mt-1 rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink" aria-label="Back to settings"><ArrowLeft size={18} /></Link>
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-[21px] leading-tight text-porcelain">{org.name}</h1>
-          <p className="mt-1 text-[13px] text-ink/50">
+          <p className="mt-1 text-[13px] text-muted">
             {org.kind} {org.slug ? "· @" + org.slug : ""} · your role: <span className="font-semibold text-ink">{myRole ? ROLE_LABEL[myRole] : "member"}</span>
           </p>
         </div>
@@ -165,12 +165,12 @@ export default function OrganizationPage() {
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-1.5 text-[13.5px] font-semibold text-ink">
                         {m.profile?.full_name ?? m.profile?.username ?? "Member"}
-                        {m.role === "owner" ? <Crown size={13} className="text-pearl" /> : null}
-                        {m.user_id === uid ? <span className="text-[11px] font-normal text-ink/40">you</span> : null}
+                        {m.role === "owner" ? <Crown size={13} className="text-accent" /> : null}
+                        {m.user_id === uid ? <span className="text-[11px] font-normal text-muted">you</span> : null}
                       </span>
-                      <span className="block text-[12px] text-ink/45">
+                      <span className="block text-[12px] text-muted">
                         {ROLE_LABEL[m.role]}
-                        {m.expires_at ? <span className={expired ? " text-red-400" : ""}> · {expired ? "expired" : "until"} {when(m.expires_at)}</span> : null}
+                        {m.expires_at ? <span className={expired ? " text-danger" : ""}> · {expired ? "expired" : "until"} {when(m.expires_at)}</span> : null}
                       </span>
                     </span>
                     {canManage && m.user_id !== uid ? (
@@ -180,7 +180,7 @@ export default function OrganizationPage() {
                             className="rounded-full border border-ink/15 px-2.5 py-1 text-[12px] font-semibold text-ink/60 transition-colors hover:bg-surface hover:text-ink">Make owner</button>
                         ) : null}
                         <button disabled={busy} onClick={() => { if (window.confirm("Remove " + (m.profile?.full_name ?? "this person") + " from " + org.name + "?")) void run("Removed", () => removeMember(org.id, m.user_id)); }}
-                          className="rounded-full p-1.5 text-ink/40 transition-colors hover:bg-danger/10 hover:text-danger" aria-label="Remove"><Trash2 size={14} /></button>
+                          className="rounded-full p-1.5 text-muted transition-colors hover:bg-danger/10 hover:text-danger" aria-label="Remove"><Trash2 size={14} /></button>
                       </>
                     ) : null}
                   </div>
@@ -201,7 +201,7 @@ export default function OrganizationPage() {
                   <button disabled={busy || !newUser.trim()} onClick={() => void run("Added", async () => { const r = await addMember(org.id, newUser.replace(/^@/, ""), newRole, newExpiry ? new Date(newExpiry).toISOString() : null); if (r.ok) { setNewUser(""); setNewExpiry(""); } return r; })}
                     className="rounded-full bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40">Add</button>
                 </div>
-                <p className="mt-2 text-[12px] text-ink/45">A date makes it temporary: a contractor loses access on that day without anyone remembering.</p>
+                <p className="mt-2 text-[12px] text-muted">A date makes it temporary: a contractor loses access on that day without anyone remembering.</p>
               </Panel>
             </div>
           ) : null}
@@ -212,14 +212,14 @@ export default function OrganizationPage() {
         <>
           <Panel title="Brands and locations" icon={<Building2 size={15} />}>
             {tree.length <= 1 ? (
-              <p className="text-[13px] text-ink/45">Just this organization so far. Add a brand or a location beneath it and members here manage it too.</p>
+              <p className="text-[13px] text-muted">Just this organization so far. Add a brand or a location beneath it and members here manage it too.</p>
             ) : (
               <div className="flex flex-col gap-1">
                 {tree.map((n) => (
                   <div key={n.id} className="flex items-center gap-2.5 py-1.5" style={{ paddingLeft: n.depth * 20 }}>
-                    {n.kind === "location" ? <MapPin size={14} className="shrink-0 text-ink/40" /> : <Building2 size={14} className="shrink-0 text-ink/40" />}
+                    {n.kind === "location" ? <MapPin size={14} className="shrink-0 text-muted" /> : <Building2 size={14} className="shrink-0 text-muted" />}
                     <span className="text-[13.5px] text-ink">{n.name}</span>
-                    <span className="text-[11.5px] uppercase tracking-wide text-ink/35">{n.kind}</span>
+                    <span className="text-[11.5px] uppercase tracking-wide text-muted">{n.kind}</span>
                     {n.profile_id ? <span className="text-[11.5px] text-pearl-muted">has its own page</span> : null}
                   </div>
                 ))}
@@ -238,7 +238,7 @@ export default function OrganizationPage() {
                   <button disabled={busy || !childName.trim()} onClick={() => void run("Added", async () => { const id = await createChild(org.id, childKind, childName.trim()); if (id) setChildName(""); return !!id; })}
                     className="rounded-full bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40">Add</button>
                 </div>
-                <p className="mt-2 text-[12px] text-ink/45">A brand or location has no page of its own until you ask for one, so nothing empty appears in the app.</p>
+                <p className="mt-2 text-[12px] text-muted">A brand or location has no page of its own until you ask for one, so nothing empty appears in the app.</p>
               </Panel>
             </div>
           ) : null}
@@ -258,7 +258,7 @@ export default function OrganizationPage() {
               );
             })}
           </div>
-          <p className="mt-3 text-[12px] text-ink/45">A desk switched off disappears from Studio's tabs for everyone in this organization. Settings cannot be switched off.</p>
+          <p className="mt-3 text-[12px] text-muted">A desk switched off disappears from Studio's tabs for everyone in this organization. Settings cannot be switched off.</p>
         </Panel>
       ) : null}
 
@@ -266,14 +266,14 @@ export default function OrganizationPage() {
         <>
           <Panel title="Working for this organization" icon={<Shield size={15} />}>
             {delegations.filter((d) => d.client_org_id === org.id).length === 0 ? (
-              <p className="text-[13px] text-ink/45">No agency acts for you. Grant one below and it can work inside the desks you choose without owning anything.</p>
+              <p className="text-[13px] text-muted">No agency acts for you. Grant one below and it can work inside the desks you choose without owning anything.</p>
             ) : (
               <div className="flex flex-col">
                 {delegations.filter((d) => d.client_org_id === org.id).map((d) => (
                   <div key={d.id} className="flex items-center gap-3 border-b border-ink/8 py-2.5 last:border-0">
                     <span className="min-w-0 flex-1">
                       <span className="block text-[13.5px] font-semibold text-ink">{d.principal?.name ?? "Agency"}</span>
-                      <span className="block text-[12px] text-ink/45">{d.scopes.map((s) => SURFACE_LABEL[s as Surface] ?? s).join(", ") || "no desks"}{d.expires_at ? " · until " + when(d.expires_at) : ""}</span>
+                      <span className="block text-[12px] text-muted">{d.scopes.map((s) => SURFACE_LABEL[s as Surface] ?? s).join(", ") || "no desks"}{d.expires_at ? " · until " + when(d.expires_at) : ""}</span>
                     </span>
                     {canManage ? <button disabled={busy} onClick={() => { if (window.confirm("Revoke this agency's access?")) void run("Revoked", () => revokeDelegation(org.id, d.principal_org_id)); }} className="rounded-full border border-ink/15 px-2.5 py-1 text-[12px] font-semibold text-ink/60 hover:bg-surface hover:text-ink">Revoke</button> : null}
                   </div>
@@ -288,7 +288,7 @@ export default function OrganizationPage() {
                 {delegations.filter((d) => d.principal_org_id === org.id).map((d) => (
                   <div key={d.id} className="border-b border-ink/8 py-2.5 last:border-0">
                     <span className="block text-[13.5px] font-semibold text-ink">{d.client?.name ?? "Client"}</span>
-                    <span className="block text-[12px] text-ink/45">{d.scopes.map((s) => SURFACE_LABEL[s as Surface] ?? s).join(", ")}{d.expires_at ? " · until " + when(d.expires_at) : ""}</span>
+                    <span className="block text-[12px] text-muted">{d.scopes.map((s) => SURFACE_LABEL[s as Surface] ?? s).join(", ")}{d.expires_at ? " · until " + when(d.expires_at) : ""}</span>
                   </div>
                 ))}
               </Panel>
@@ -305,7 +305,7 @@ export default function OrganizationPage() {
                       const on = agencyScopes.includes(s);
                       return (
                         <button key={s} type="button" onClick={() => setAgencyScopes((cur) => on ? cur.filter((x) => x !== s) : [...cur, s])}
-                          className={"rounded-full px-3 py-1 text-[12px] font-semibold transition-colors " + (on ? "bg-pearl text-ink" : "bg-surface text-ink/55 hover:text-ink")}>{SURFACE_LABEL[s]}</button>
+                          className={"rounded-full px-3 py-1 text-[12px] font-semibold transition-colors " + (on ? "bg-pearl text-on-pearl" : "bg-surface text-muted hover:text-ink")}>{SURFACE_LABEL[s]}</button>
                       );
                     })}
                   </div>
@@ -324,15 +324,15 @@ export default function OrganizationPage() {
       {tab === "history" ? (
         <Panel title="What changed, and who did it">
           {audit.length === 0 ? (
-            <p className="text-[13px] text-ink/45">{canManage ? "Nothing recorded yet." : "Owners and admins can read the history."}</p>
+            <p className="text-[13px] text-muted">{canManage ? "Nothing recorded yet." : "Owners and admins can read the history."}</p>
           ) : (
             <div className="flex flex-col">
               {audit.map((a) => (
                 <div key={a.id} className="flex items-baseline gap-3 border-b border-ink/8 py-2 last:border-0 text-[13px]">
-                  <span className="w-[92px] shrink-0 text-[11.5px] text-ink/40">{new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                  <span className="w-[92px] shrink-0 text-[11.5px] text-muted">{new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
                   <span className="min-w-0 flex-1 text-ink/75">
                     <span className="font-semibold text-ink">{a.actor?.full_name ?? a.actor?.username ?? "Someone"}</span> · {a.action.replace(/_/g, " ")}
-                    {a.meta && Object.keys(a.meta).length ? <span className="text-ink/45"> · {Object.entries(a.meta).filter(([, v]) => v !== null).map(([k, v]) => k + " " + String(v)).join(", ")}</span> : null}
+                    {a.meta && Object.keys(a.meta).length ? <span className="text-muted"> · {Object.entries(a.meta).filter(([, v]) => v !== null).map(([k, v]) => k + " " + String(v)).join(", ")}</span> : null}
                   </span>
                 </div>
               ))}

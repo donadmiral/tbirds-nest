@@ -90,21 +90,21 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
         {stats.byCurrency.length > 0 ? (
           stats.byCurrency.map(([cur, v]) => (
             <div key={cur} className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-              <p className="text-[11.5px] text-ink/45">Loaded sales, {DAYS} days</p>
+              <p className="text-[11.5px] text-muted">Loaded sales, {DAYS} days</p>
               <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">{money(v.total, cur)}</p>
-              <p className="mt-0.5 text-[11.5px] text-ink/40">{v.count} {v.count === 1 ? "order" : "orders"}</p>
+              <p className="mt-0.5 text-[11.5px] text-muted">{v.count} {v.count === 1 ? "order" : "orders"}</p>
             </div>
           ))
         ) : (
           <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-            <p className="text-[11.5px] text-ink/45">Loaded sales, {DAYS} days</p>
+            <p className="text-[11.5px] text-muted">Loaded sales, {DAYS} days</p>
             <Metric value={0} size={24} />
-            <p className="mt-0.5 text-[11.5px] text-ink/40">no paid orders yet</p>
+            <p className="mt-0.5 text-[11.5px] text-muted">no paid orders yet</p>
           </div>
         )}
 
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Average order</p>
+          <p className="text-[11.5px] text-muted">Average order</p>
           {stats.byCurrency.length > 0 ? (
             <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">
               {money(stats.byCurrency[0][1].total / Math.max(1, stats.byCurrency[0][1].count), stats.byCurrency[0][0])}
@@ -115,9 +115,9 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
         </div>
 
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Live listings</p>
+          <p className="text-[11.5px] text-muted">Live listings</p>
           <Metric value={stats.live} size={24} />
-          <p className="mt-0.5 text-[11.5px] text-ink/40">
+          <p className="mt-0.5 text-[11.5px] text-muted">
             {stats.awaiting > 0 ? stats.awaiting + " with offers waiting" : "no offers waiting"}
           </p>
         </div>
@@ -129,7 +129,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
             <h2 className="text-[15px] font-semibold text-ink">
               Loaded sales over time{stats.primary ? ", " + stats.primary : ""}
             </h2>
-            <span className="text-[11.5px] text-ink/40">last {DAYS} days · UTC</span>
+            <span className="text-[11.5px] text-muted">last {DAYS} days · UTC</span>
           </div>
           <TrendChart
             series={[{ name: "Completed sales", points: stats.series.map(([, v]) => v) }]}
@@ -141,25 +141,25 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
 
         <Panel title="Best sellers" icon={<TrendingUp size={15} />}>
           {bestSellers.length === 0 ? (
-            <p className="text-[13px] text-ink/45">Nothing has sold yet. Sales appear here as orders complete.</p>
+            <p className="text-[13px] text-muted">Nothing has sold yet. Sales appear here as orders complete.</p>
           ) : (
             <div className="flex flex-col gap-3">
               {bestSellers.map((l, i) => (
                 <div key={l.id} className="flex items-center gap-3">
-                  <span className="w-4 shrink-0 text-center font-display text-[15px] text-ink/35">{i + 1}</span>
+                  <span className="w-4 shrink-0 text-center font-display text-[15px] text-muted">{i + 1}</span>
                   {l.images?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={l.images[0]} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
                   ) : (
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-ink/30">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-muted">
                       <Package size={15} />
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-medium text-ink">{l.title}</span>
-                    <span className="block text-[11.5px] text-ink/45">{money(Number(l.price || 0), l.currency)}</span>
+                    <span className="block text-[11.5px] text-muted">{money(Number(l.price || 0), l.currency)}</span>
                   </span>
-                  <span className="shrink-0 text-[12px] text-ink/45">{l.sold_count} sold</span>
+                  <span className="shrink-0 text-[12px] text-muted">{l.sold_count} sold</span>
                 </div>
               ))}
             </div>
@@ -172,7 +172,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
           href="#orders"
           className="mt-3 flex items-center gap-2.5 rounded-2xl border border-pearl/40 bg-pearl/8 px-4 py-3 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-pearl/12"
         >
-          <Clock size={15} className="shrink-0 text-pearl" />
+          <Clock size={15} className="shrink-0 text-accent" />
           <span className="font-semibold">{stats.pending}</span> {stats.pending === 1 ? "order is" : "orders are"} still
           pending payment
         </Link>
@@ -210,17 +210,17 @@ export function CommerceRail({ orders, listings }: { orders: Order[]; listings: 
     <>
       <Panel title="Loaded completed sales">
         {m.cleared.length === 0 ? (
-          <p className="text-[13px] text-ink/45">No completed payments in the loaded orders.</p>
+          <p className="text-[13px] text-muted">No completed payments in the loaded orders.</p>
         ) : (
           m.cleared.map(([cur, total]) => (
             <div key={cur} className="mb-1 last:mb-0">
-              <p className="text-[11.5px] text-ink/45">Completed, {cur}</p>
+              <p className="text-[11.5px] text-muted">Completed, {cur}</p>
               <p className="font-display text-[24px] leading-tight text-porcelain">{money(total, cur)}</p>
             </div>
           ))
         )}
         {m.pendingCount > 0 ? (
-          <p className="mt-2 border-t border-ink/8 pt-2 text-[12.5px] text-ink/55">
+          <p className="mt-2 border-t border-ink/8 pt-2 text-[12.5px] text-muted">
             <span className="font-semibold text-ink">{m.pendingCount}</span>{" "}
             {m.pendingCount === 1 ? "order" : "orders"} still pending
           </p>

@@ -4,7 +4,7 @@
 // (studio_reviews / studio_reply_review, studio_audience / studio_audience_summary /
 // studio_set_contact_label, studio_orders / studio_catalog / studio_set_listing).
 // Every screen is keyboard-safe, safe-area-aware and clears the tab bar.
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
@@ -29,7 +29,7 @@ function money(n: any, cur?: string | null) { return (cur || 'USD') + ' ' + Numb
 
 function Avatar({ uri, name, size = 38 }: { uri?: string | null; name?: string | null; size?: number }) {
   if (uri) return <ExpoImage source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} contentFit="cover" />;
-  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFF', fontWeight: '700' }}>{(name || '?').trim()[0]?.toUpperCase() || '?'}</Text></View>;
+  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: getTheme().brand.base, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: getTheme().ink.inverse, fontWeight: '700' }}>{(name || '?').trim()[0]?.toUpperCase() || '?'}</Text></View>;
 }
 function Stars({ n }: { n: number }) {
   return <View style={{ flexDirection: 'row', gap: 2 }}>{[1, 2, 3, 4, 5].map(i => <Feather key={i} name="star" size={12} color={i <= n ? '#C9A227' : '#D9D9DE'} />)}</View>;
@@ -39,17 +39,17 @@ function BackRow({ title, onBack, sub }: { title: string; onBack: () => void; su
     <>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingTop: 12 }}>
       <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-        <Feather name="chevron-left" size={20} color={NAVY} /><Text style={{ fontSize: 14, fontWeight: '700', color: NAVY }}>More</Text>
+        <Feather name="chevron-left" size={20} color={getTheme().ink.primary} /><Text style={{ fontSize: 14, fontWeight: '700', color: getTheme().ink.primary }}>More</Text>
       </TouchableOpacity>
       <Text style={[s.h1, { marginLeft: 6 }]}>{title}</Text>
     </View>
-    {sub ? <Text style={{ fontSize: 12.5, color: '#8E8E93', paddingHorizontal: 16, marginTop: 4, lineHeight: 17 }}>{sub}</Text> : null}
+    {sub ? <Text style={{ fontSize: 12.5, color: getTheme().ink.secondary, paddingHorizontal: 16, marginTop: 4, lineHeight: 17 }}>{sub}</Text> : null}
     </>
   );
 }
 
 // ── More grid ──────────────────────────────────────────────────────────────
-export function MoreSeg({ go }: { go: (k: MoreKey) => void }) {
+export function MoreSeg({ go, onMonetization }: { go: (k: MoreKey) => void; onMonetization?: () => void }) {
   const items: { k: MoreKey; label: string; sub: string; icon: string }[] = [
     { k: 'reviews', label: 'Reviews', sub: 'Ratings and replies', icon: 'star' },
     { k: 'audience', label: 'Audience', sub: 'Followers, customers, labels', icon: 'users' },
@@ -62,10 +62,11 @@ export function MoreSeg({ go }: { go: (k: MoreKey) => void }) {
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}>
       <Text style={s.h1}>More desks</Text>
       <Text style={s.sub}>Every web desk, on the phone.</Text>
+      {onMonetization ? <TouchableOpacity accessibilityRole="button" onPress={onMonetization} style={[s.card, { marginTop: 14, minHeight: 48 }]}><Text style={s.cardTxt}>Monetization</Text><Text style={s.cardMuted}>Eligibility, earnings and payout status</Text></TouchableOpacity> : null}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
         {items.map(it => (
           <TouchableOpacity key={it.k} style={[s.card, { width: '48%', marginBottom: 0, minHeight: 96 }]} onPress={() => go(it.k)} activeOpacity={0.85}>
-            <View style={s.iconBox}><Feather name={it.icon as any} size={16} color={NAVY} /></View>
+            <View style={s.iconBox}><Feather name={it.icon as any} size={16} color={getTheme().ink.primary} /></View>
             <Text style={[s.cardTxt, { fontWeight: '800', marginTop: 10 }]}>{it.label}</Text>
             <Text style={s.cardMeta}>{it.sub}</Text>
           </TouchableOpacity>
@@ -99,7 +100,7 @@ export function ReviewsSeg({ role, onBack }: { role: string | null; onBack: () =
     finally { setBusy(false); }
   };
 
-  if (!data) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>;
+  if (!data) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
   const dist = [5, 4, 3, 2, 1].map(r => ({ r, n: Number((data.distribution || {})[String(r)] || 0) }));
   const max = Math.max(1, ...dist.map(d => d.n));
   return (
@@ -137,35 +138,35 @@ export function ReviewsSeg({ role, onBack }: { role: string | null; onBack: () =
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Avatar uri={r.avatar_url} name={r.name} />
               <View style={{ flex: 1 }}>
-                <Text style={[s.cardTxt, { fontWeight: '700' }]} numberOfLines={1}>{r.name}{r.username ? <Text style={{ color: '#8E8E93', fontWeight: '400' }}> @{r.username}</Text> : null}</Text>
+                <Text style={[s.cardTxt, { fontWeight: '700' }]} numberOfLines={1}>{r.name}{r.username ? <Text style={{ color: getTheme().ink.secondary, fontWeight: '400' }}> @{r.username}</Text> : null}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}><Stars n={r.rating} /><Text style={[s.cardMeta, { marginTop: 0 }]}>{whenLabel(r.created_at)}</Text></View>
               </View>
             </View>
             {r.body ? <Text style={[s.cardTxt, { marginTop: 8 }]}>{r.body}</Text> : null}
             {r.reply ? (
               <View style={s.replyBox}>
-                <Text style={[s.cardMeta, { marginTop: 0, fontWeight: '700', color: NAVY }]}>Your reply · {whenLabel(r.replied_at)}</Text>
+                <Text style={[s.cardMeta, { marginTop: 0, fontWeight: '700', color: getTheme().ink.primary }]}>Your reply · {whenLabel(r.replied_at)}</Text>
                 <Text style={[s.cardTxt, { marginTop: 3 }]}>{r.reply}</Text>
               </View>
             ) : null}
             {canReply ? (
               <TouchableOpacity style={s.linkBtn} onPress={() => { setEditing(r); setDraft(r.reply || ''); }}>
-                <Feather name="corner-down-right" size={13} color={NAVY} /><Text style={s.linkTxt}>{r.reply ? 'Edit reply' : 'Reply'}</Text>
+                <Feather name="corner-down-right" size={13} color={getTheme().ink.primary} /><Text style={s.linkTxt}>{r.reply ? 'Edit reply' : 'Reply'}</Text>
               </TouchableOpacity>
             ) : null}
           </View>
         )}
       />
       <Modal visible={!!editing} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setEditing(null)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#FFF' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: getTheme().surface.canvas }}>
           <View style={[s.modalHeader, { paddingTop: Platform.OS === 'ios' ? 14 : insets.top + 8 }]}>
-            <TouchableOpacity onPress={() => setEditing(null)} style={{ width: 70 }}><Text style={{ fontSize: 16, color: '#8E8E93' }}>Cancel</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => setEditing(null)} style={{ width: 70 }}><Text style={{ fontSize: 16, color: getTheme().ink.secondary }}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Reply to {editing?.name || 'review'}</Text>
-            <TouchableOpacity onPress={() => send(false)} disabled={busy || !draft.trim()} style={{ width: 70, alignItems: 'flex-end' }}><Text style={{ fontSize: 15, fontWeight: '700', color: NAVY, opacity: busy || !draft.trim() ? 0.4 : 1 }}>Send</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => send(false)} disabled={busy || !draft.trim()} style={{ width: 70, alignItems: 'flex-end' }}><Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, opacity: busy || !draft.trim() ? 0.4 : 1 }}>Send</Text></TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 24 }} keyboardShouldPersistTaps="handled">
             {editing ? <View style={s.card}><Stars n={editing.rating} />{editing.body ? <Text style={[s.cardMuted, { marginTop: 6 }]}>{editing.body}</Text> : null}</View> : null}
-            <TextInput value={draft} onChangeText={setDraft} placeholder="Write a public reply" placeholderTextColor="#9AA0A6" multiline autoFocus style={s.textArea} />
+            <TextInput value={draft} onChangeText={setDraft} placeholder="Write a public reply" placeholderTextColor={getTheme().ink.secondary} multiline autoFocus style={s.textArea} />
             {editing?.reply ? <TouchableOpacity style={[s.secondaryBtn, { marginTop: 12, justifyContent: 'center' }]} onPress={() => send(true)} disabled={busy}><Text style={[s.secondaryTxt, { color: '#D64545' }]}>Remove reply</Text></TouchableOpacity> : null}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -226,9 +227,9 @@ export function AudienceSeg({ role, navigation, onBack }: { role: string | null;
             ) : null}
             {Array.isArray(summary?.top_cities) && summary.top_cities.length > 0 ? <Text style={[s.sub, { marginTop: 10 }]}>Top places: {summary.top_cities.map((c: any) => c.city + ' (' + c.n + ')').join(' · ')}</Text> : null}
             <View style={[s.input, { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14, paddingVertical: 9 }]}>
-              <Feather name="search" size={15} color="#8E8E93" />
-              <TextInput value={q} onChangeText={setQ} placeholder="Search followers" placeholderTextColor="#9AA0A6" style={{ flex: 1, fontSize: 15, color: '#0F1419', padding: 0 }} autoCorrect={false} returnKeyType="search" />
-              {q ? <TouchableOpacity onPress={() => setQ('')}><Feather name="x" size={15} color="#8E8E93" /></TouchableOpacity> : null}
+              <Feather name="search" size={15} color={getTheme().ink.secondary} />
+              <TextInput value={q} onChangeText={setQ} placeholder="Search followers" placeholderTextColor={getTheme().ink.secondary} style={{ flex: 1, fontSize: 15, color: getTheme().ink.primary, padding: 0 }} autoCorrect={false} returnKeyType="search" />
+              {q ? <TouchableOpacity onPress={() => setQ('')}><Feather name="x" size={15} color={getTheme().ink.secondary} /></TouchableOpacity> : null}
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 10 }} style={{ flexGrow: 0 }}>
               <TouchableOpacity style={[s.filterChip, !label && s.filterChipOn]} onPress={() => setLabel(null)}><Text style={[s.filterTxt, !label && s.filterTxtOn]}>All</Text></TouchableOpacity>
@@ -240,7 +241,7 @@ export function AudienceSeg({ role, navigation, onBack }: { role: string | null;
             </ScrollView>
           </View>
         }
-        ListEmptyComponent={loading ? <View style={[s.center, { paddingTop: 30 }]}><ActivityIndicator color={NAVY} /></View> : <View style={s.card}><Text style={s.cardMuted}>{q || label ? 'Nobody matches.' : 'No followers yet.'}</Text></View>}
+        ListEmptyComponent={loading ? <View style={[s.center, { paddingTop: 30 }]}><ActivityIndicator color={getTheme().ink.primary} /></View> : <View style={s.card}><Text style={s.cardMuted}>{q || label ? 'Nobody matches.' : 'No followers yet.'}</Text></View>}
         renderItem={({ item: p }) => (
           <TouchableOpacity style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} onPress={() => navigation.navigate('UserProfile', { userId: p.id })} onLongPress={() => setPersonLabel(p)} activeOpacity={0.85}>
             <Avatar uri={p.avatar_url} name={p.name} />
@@ -252,7 +253,7 @@ export function AudienceSeg({ role, navigation, onBack }: { role: string | null;
               <Text style={s.cardMeta} numberOfLines={1}>{p.username ? '@' + p.username : ''}{p.location ? ' · ' + p.location : ''}{p.paid > 0 ? ' · ' + p.paid + ' order' + (p.paid === 1 ? '' : 's') : ''}{p.messages > 0 ? ' · ' + p.messages + ' msg' : ''}</Text>
               {p.note ? <Text style={[s.cardMeta, { fontStyle: 'italic' }]} numberOfLines={1}>{p.note}</Text> : null}
             </View>
-            {canLabel ? <TouchableOpacity onPress={() => setPersonLabel(p)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="tag" size={16} color="#8E8E93" /></TouchableOpacity> : null}
+            {canLabel ? <TouchableOpacity onPress={() => setPersonLabel(p)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="tag" size={16} color={getTheme().ink.secondary} /></TouchableOpacity> : null}
           </TouchableOpacity>
         )}
       />
@@ -315,7 +316,7 @@ export function CommerceSeg({ role, navigation, onBack }: { role: string | null;
           <TouchableOpacity key={t} style={[s.filterChip, tab === t && s.filterChipOn]} onPress={() => setTab(t)}><Text style={[s.filterTxt, tab === t && s.filterTxtOn]}>{t === 'orders' ? 'Orders · ' + orders.length : 'Catalog · ' + catalog.length}</Text></TouchableOpacity>
         ))}
       </View>
-      {loading && orders.length === 0 && catalog.length === 0 ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>
+      {loading && orders.length === 0 && catalog.length === 0 ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
       : tab === 'orders' ? (
         <FlatList
           data={orders}
@@ -335,7 +336,7 @@ export function CommerceSeg({ role, navigation, onBack }: { role: string | null;
                 <Text style={s.cardTxt} numberOfLines={1}>{money(o.amount, o.currency)}{o.listing_title ? ' · ' + o.listing_title : ''}</Text>
                 <Text style={s.cardMeta} numberOfLines={1}>{whenLabel(o.completed_at || o.created_at)}{o.note ? ' · ' + o.note : ''}</Text>
               </View>
-              {o.conversation_id ? <Feather name="chevron-right" size={16} color="#8E8E93" /> : null}
+              {o.conversation_id ? <Feather name="chevron-right" size={16} color={getTheme().ink.secondary} /> : null}
             </TouchableOpacity>
           )}
         />
@@ -348,13 +349,13 @@ export function CommerceSeg({ role, navigation, onBack }: { role: string | null;
           ListEmptyComponent={<View style={s.card}><Text style={s.cardMuted}>No listings. Post products from the Market tab and they show here.</Text></View>}
           renderItem={({ item: l }) => (
             <TouchableOpacity style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }, l.status !== 'available' && { opacity: 0.6 }]} onPress={() => listingActions(l)} activeOpacity={0.85}>
-              {l.images && l.images[0] ? <ExpoImage source={{ uri: l.images[0] }} style={s.thumb} contentFit="cover" /> : <View style={[s.thumb, { backgroundColor: '#E5E5EA' }]} />}
+              {l.images && l.images[0] ? <ExpoImage source={{ uri: l.images[0] }} style={s.thumb} contentFit="cover" /> : <View style={[s.thumb, { backgroundColor: getTheme().surface.raised }]} />}
               <View style={{ flex: 1 }}>
                 <Text style={[s.cardTxt, { fontWeight: '700' }]} numberOfLines={1}>{l.title}</Text>
-                <Text style={s.cardTxt}>{money(l.price, l.currency)}<Text style={{ color: '#8E8E93' }}> · {l.status}{l.hidden ? ' · hidden' : ''}</Text></Text>
+                <Text style={s.cardTxt}>{money(l.price, l.currency)}<Text style={{ color: getTheme().ink.secondary }}> · {l.status}{l.hidden ? ' · hidden' : ''}</Text></Text>
                 <Text style={s.cardMeta} numberOfLines={1}>{l.pending_offers > 0 ? l.pending_offers + ' offer' + (l.pending_offers === 1 ? '' : 's') + ' waiting · ' : ''}{l.sold_count} sold · in {l.in_posts} post{l.in_posts === 1 ? '' : 's'}</Text>
               </View>
-              <Feather name="more-horizontal" size={18} color="#8E8E93" />
+              <Feather name="more-horizontal" size={18} color={getTheme().ink.secondary} />
             </TouchableOpacity>
           )}
         />
@@ -365,32 +366,32 @@ export function CommerceSeg({ role, navigation, onBack }: { role: string | null;
 
 const s = themedSheet((t) => ({
   center: { alignItems: 'center', justifyContent: 'center', gap: 8 },
-  h1: { fontSize: 20, fontWeight: '800', color: '#0F1419' },
-  sub: { fontSize: 12.5, color: '#8E8E93', marginTop: 2 },
-  section: { fontSize: 11.5, fontWeight: '800', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 18, marginBottom: 8 },
-  card: { backgroundColor: '#F8F9FB', borderRadius: 14, padding: 12, marginBottom: 8 },
-  cardTxt: { fontSize: 14, color: '#0F1419', lineHeight: 19 },
-  cardMuted: { fontSize: 13, color: '#8E8E93', lineHeight: 18 },
-  cardMeta: { fontSize: 11.5, color: '#8E8E93', marginTop: 3 },
-  statLabel: { fontSize: 11.5, color: '#8E8E93' },
-  statNum: { fontSize: 22, fontWeight: '800', color: '#0F1419', marginTop: 2 },
+  h1: { fontSize: 20, fontWeight: '800', color: t.ink.primary },
+  sub: { fontSize: 12.5, color: t.ink.secondary, marginTop: 2 },
+  section: { fontSize: 11.5, fontWeight: '800', color: t.ink.secondary, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 18, marginBottom: 8 },
+  card: { backgroundColor: t.surface.raised, borderRadius: 14, padding: 12, marginBottom: 8 },
+  cardTxt: { fontSize: 14, color: t.ink.primary, lineHeight: 19 },
+  cardMuted: { fontSize: 13, color: t.ink.secondary, lineHeight: 18 },
+  cardMeta: { fontSize: 11.5, color: t.ink.secondary, marginTop: 3 },
+  statLabel: { fontSize: 11.5, color: t.ink.secondary },
+  statNum: { fontSize: 22, fontWeight: '800', color: t.ink.primary, marginTop: 2 },
   iconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
-  filterChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F2F2F7' },
-  filterChipOn: { backgroundColor: NAVY },
-  filterTxt: { fontSize: 12.5, fontWeight: '700', color: '#5B6B84' },
+  filterChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: t.surface.raised },
+  filterChipOn: { backgroundColor: t.brand.base },
+  filterTxt: { fontSize: 12.5, fontWeight: '700', color: t.ink.secondary },
   filterTxtOn: { color: t.ink.inverse },
-  labelPill: { fontSize: 10.5, fontWeight: '700', color: NAVY, backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
+  labelPill: { fontSize: 10.5, fontWeight: '700', color: t.ink.primary, backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
   thumb: { width: 52, height: 52, borderRadius: 10 },
   statusPill: { fontSize: 10.5, fontWeight: '800' },
-  barTrack: { height: 6, borderRadius: 3, backgroundColor: '#E5E5EA', marginTop: 4 },
-  barFill: { height: 6, borderRadius: 3, backgroundColor: NAVY },
-  replyBox: { marginTop: 8, backgroundColor: t.surface.canvas, borderRadius: 10, padding: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E5EA' },
+  barTrack: { height: 6, borderRadius: 3, backgroundColor: t.surface.raised, marginTop: 4 },
+  barFill: { height: 6, borderRadius: 3, backgroundColor: t.brand.base },
+  replyBox: { marginTop: 8, backgroundColor: t.surface.canvas, borderRadius: 10, padding: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
   linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8, alignSelf: 'flex-start' },
-  linkTxt: { fontSize: 12.5, fontWeight: '700', color: NAVY },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
-  modalTitle: { fontSize: 16.5, fontWeight: '700', color: '#0F1419' },
-  textArea: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15.5, color: '#0F1419', minHeight: 110, textAlignVertical: 'top' },
-  input: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0F1419' },
-  secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F2F2F7', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
-  secondaryTxt: { color: NAVY, fontWeight: '700', fontSize: 15 },
+  linkTxt: { fontSize: 12.5, fontWeight: '700', color: t.ink.primary },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
+  modalTitle: { fontSize: 16.5, fontWeight: '700', color: t.ink.primary },
+  textArea: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15.5, color: t.ink.primary, minHeight: 110, textAlignVertical: 'top' },
+  input: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: t.ink.primary },
+  secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.surface.raised, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
+  secondaryTxt: { color: t.ink.primary, fontWeight: '700', fontSize: 15 },
 }));

@@ -150,11 +150,11 @@ export default function SavedPage() {
   return (
     <div>
       <Card className="mb-4 flex items-center gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-pearl">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-accent">
           <Bookmark size={20} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[12.5px] text-ink/45">Your saved hub</span>
+          <span className="block text-[12.5px] text-muted">Your saved hub</span>
           <span className="block font-display text-[24px] leading-tight text-porcelain">
             {total === null ? "\u2014" : total + (total === 1 ? " item saved" : " items saved")}
           </span>
@@ -164,16 +164,16 @@ export default function SavedPage() {
         </button>
       </Card>
       <div className="mb-4 flex gap-1.5 overflow-x-auto">
-        <button onClick={() => setColSel("all")} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === "all" ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>All</button>
+        <button onClick={() => setColSel("all")} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === "all" ? "bg-pearl text-on-pearl" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>All</button>
         {cols.map((c) => (
-          <button key={c.id} onClick={() => setColSel(c.id)} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === c.id ? "bg-pearl text-ink" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>{c.name}</button>
+          <button key={c.id} onClick={() => setColSel(c.id)} className={"shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-[140ms] " + (colSel === c.id ? "bg-pearl text-on-pearl" : "bg-surface text-ink/60 hover:bg-surface-elevated")}>{c.name}</button>
         ))}
       </div>
       {actionError ? <p role="alert" className="mb-3 text-sm text-danger">{actionError}</p> : null}
       {failed ? (
         <ErrorState title="Could not load your saved items" onRetry={() => { setFailed(false); setTick(t => t + 1); }} />
       ) : posts === null ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
+        <p className="py-16 text-center text-sm text-muted">Loading</p>
       ) : posts.length === 0 ? (
         <EmptyState
           icon={<Bookmark size={19} />}
@@ -213,12 +213,12 @@ export default function SavedPage() {
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5 text-[14px]">
                   <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"} <VerifiedBadge userId={p.user_id} size={13} /></span>
-                  <span className="truncate text-ink/50">@{p.author?.username}</span>
-                  <span className="text-ink/30">·</span>
-                  <span className="shrink-0 text-ink/50">{timeAgo(p.created_at)}</span>
+                  <span className="truncate text-muted">@{p.author?.username}</span>
+                  <span className="text-muted">·</span>
+                  <span className="shrink-0 text-muted">{timeAgo(p.created_at)}</span>
                 </span>
                 {text ? <span className="mt-0.5 line-clamp-3 block whitespace-pre-wrap text-[14px] text-ink/85">{text}</span> : null}
-                <span className="mt-1 block text-[12px] text-ink/40">
+                <span className="mt-1 block text-[12px] text-muted">
                   {(p.likes_count ?? 0) + " likes · " + (p.comments_count ?? 0) + " comments"}
                 </span>
               </span>
@@ -227,7 +227,7 @@ export default function SavedPage() {
                   <option value="" className="bg-navy">No folder</option>
                   {cols.map((c) => <option key={c.id} value={c.id} className="bg-navy">{c.name}</option>)}
                 </select>
-                <button disabled={busy.has(p.id)} onClick={onUnsave} className="text-[11px] text-ink/40 transition-colors duration-[140ms] hover:text-danger">Unsave</button>
+                <button disabled={busy.has(p.id)} onClick={onUnsave} className="text-[11px] text-muted transition-colors duration-[140ms] hover:text-danger">Unsave</button>
               </span>
               {first ? (
                 // eslint-disable-next-line @next/next/no-img-element

@@ -93,7 +93,7 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
               href={a.href}
               className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface"
             >
-              <a.icon size={15} className="shrink-0 text-ink/45" />
+              <a.icon size={15} className="shrink-0 text-muted" />
               <span className="min-w-0 flex-1 truncate">{a.label}</span>
             </Link>
           ))}
@@ -104,8 +104,8 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
         <Panel title="Reviews" action="View all" actionHref="/studio/reviews">
           <div className="flex items-baseline gap-2">
             <span className="font-display text-[26px] leading-none text-porcelain">{reviews.avg.toFixed(1)}</span>
-            <span className="flex items-center gap-1 text-[12.5px] text-ink/45">
-              <Star size={12} className="text-pearl" /> from {reviews.n} {reviews.n === 1 ? "review" : "reviews"}
+            <span className="flex items-center gap-1 text-[12.5px] text-muted">
+              <Star size={12} className="text-accent" /> from {reviews.n} {reviews.n === 1 ? "review" : "reviews"}
             </span>
           </div>
         </Panel>
@@ -113,13 +113,13 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
 
       <Panel title="This workspace">
         <div className="flex items-center justify-between text-[13px]">
-          <span className="text-ink/55">Your role</span>
+          <span className="text-muted">Your role</span>
           <span className="font-semibold capitalize text-ink">{role ?? "member"}</span>
         </div>
         {username ? (
           <div className="mt-2 flex items-center justify-between gap-3 text-[13px]">
-            <span className="shrink-0 text-ink/55">Public page</span>
-            <Link href={"/" + username} className="min-w-0 truncate text-pearl transition-opacity duration-[140ms] hover:opacity-70">
+            <span className="shrink-0 text-muted">Public page</span>
+            <Link href={"/" + username} className="min-w-0 truncate text-accent transition-opacity duration-[140ms] hover:opacity-70">
               @{username}
             </Link>
           </div>

@@ -88,7 +88,7 @@ export default function MyApplicationsPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3 px-1 pb-4">
-        <Link href="/jobs" className="text-sm text-ink/50 hover:text-ink">← Jobs</Link>
+        <Link href="/jobs" className="text-sm text-muted hover:text-ink">← Jobs</Link>
         <h1 className="font-display text-xl text-porcelain">My applications</h1>
         <select aria-label="Filter applications by status" value={filter} onChange={e => { request.current++; setApps([]); setHasMore(false); setFilter(e.target.value); }} className="ml-auto rounded-md border border-ink/15 bg-surface px-3 py-2 text-sm text-ink">
           <option value="all">All statuses</option>
@@ -97,9 +97,9 @@ export default function MyApplicationsPage() {
         <button onClick={() => { void load(); }} disabled={loading} className="text-sm text-ink/60 underline disabled:opacity-40">Refresh</button>
       </div>
       {error ? <p role="alert" className="py-3 text-sm text-danger">{error} <button disabled={loading} onClick={() => { void load(retryAppend.current); }} className="underline">Retry</button></p> : null}
-      {signedOut ? <p className="py-16 text-center text-sm text-ink/50"><Link href="/login" className="underline">Sign in</Link> to see your applications.</p>
-        : loading && apps.length === 0 ? <p role="status" className="py-16 text-center text-sm text-ink/40">Loading</p>
-        : apps.length === 0 && !error ? <p className="py-16 text-center text-sm text-ink/40">{filter === "all" ? "Roles you apply for show up here with their status." : "No applications with this status."}</p>
+      {signedOut ? <p className="py-16 text-center text-sm text-muted"><Link href="/login" className="underline">Sign in</Link> to see your applications.</p>
+        : loading && apps.length === 0 ? <p role="status" className="py-16 text-center text-sm text-muted">Loading</p>
+        : apps.length === 0 && !error ? <p className="py-16 text-center text-sm text-muted">{filter === "all" ? "Roles you apply for show up here with their status." : "No applications with this status."}</p>
         : <div className="border-t border-ink/10">
           {apps.map(a => {
             const meta = STATUS_META[a.status as keyof typeof STATUS_META] || { label: a.status, color: "#6B7280", bg: "#F3F4F6" };
@@ -109,7 +109,7 @@ export default function MyApplicationsPage() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[15px] font-semibold text-ink">{a.job?.title ?? "Job no longer available"}</span>
                   {a.job ? <span className="block truncate text-[13px] text-ink/60">{[a.job.company, a.job.location].filter(Boolean).join(" · ")}</span> : null}
-                  <span className="block text-[12px] text-ink/40">Applied {date}</span>
+                  <span className="block text-[12px] text-muted">Applied {date}</span>
                   {a.status === "interview" && a.interview_at && Number.isFinite(Date.parse(a.interview_at)) ? <span className="mt-1 block text-[12px] text-ink/60">Interview {new Date(a.interview_at).toLocaleString()}{a.interview_location ? " · " + a.interview_location : ""}</span> : null}
                 </span>
                 <span className="shrink-0 rounded-full px-3 py-1 text-[12px] font-semibold" style={{ color: meta.color, backgroundColor: meta.bg }}>{meta.label}</span>

@@ -63,28 +63,28 @@ export function AccountStatus() {
     <>
       <Panel title="Account status">
         <div className="flex items-center justify-between">
-          <span className="text-[13px] text-ink/55">Account type</span>
+          <span className="text-[13px] text-muted">Account type</span>
           <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
-            {me.is_verified ? <BadgeCheck size={14} className="text-pearl" /> : null}
+            {me.is_verified ? <BadgeCheck size={14} className="text-accent" /> : null}
             {me.account_type === "business" ? "Business" : me.is_verified ? "Verified" : "Member"}
           </span>
         </div>
         {since ? (
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-[13px] text-ink/55">Member since</span>
+            <span className="text-[13px] text-muted">Member since</span>
             <span className="text-[13px] text-ink">{since.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</span>
           </div>
         ) : null}
         {email ? (
           <div className="mt-2 flex items-center justify-between gap-3">
-            <span className="shrink-0 text-[13px] text-ink/55">Email</span>
+            <span className="shrink-0 text-[13px] text-muted">Email</span>
             <span className="min-w-0 truncate text-[13px] text-ink">{email}</span>
           </div>
         ) : null}
         {!me.is_verified ? (
           <Link
             href="/settings/verification"
-            className="mt-3 block rounded-full bg-pearl py-2 text-center text-[12.5px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"
+            className="mt-3 block rounded-full bg-pearl py-2 text-center text-[12.5px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"
           >
             Apply for verification
           </Link>
@@ -94,7 +94,7 @@ export function AccountStatus() {
       <Panel title="Profile completeness">
         <div className="flex items-baseline justify-between">
           <span className="font-display text-[24px] leading-none text-porcelain">{done} of {checks.length}</span>
-          <span className="text-[12px] text-ink/45">complete</span>
+          <span className="text-[12px] text-muted">complete</span>
         </div>
         <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-surface">
           <div className="h-full rounded-full bg-pearl" style={{ width: (done / checks.length) * 100 + "%" }} />

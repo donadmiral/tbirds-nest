@@ -53,11 +53,11 @@ export function Panel({
     <Card className={className}>
       <header className="mb-3 flex items-baseline justify-between gap-3">
         <h2 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
-          {icon ? <span className="text-pearl">{icon}</span> : null}
+          {icon ? <span className="text-accent">{icon}</span> : null}
           {title}
         </h2>
         {action && actionHref ? (
-          <Link href={actionHref} className="shrink-0 text-[12.5px] text-pearl transition-opacity duration-[140ms] hover:opacity-70">
+          <Link href={actionHref} className="shrink-0 text-[12.5px] text-accent transition-opacity duration-[140ms] hover:opacity-70">
             {action}
           </Link>
         ) : null}
@@ -71,9 +71,9 @@ export function Panel({
 export function SectionTitle({ children, action, actionHref }: { children: ReactNode; action?: string; actionHref?: string }) {
   return (
     <div className="mb-2.5 flex items-baseline justify-between gap-3">
-      <h2 className="text-[12px] font-semibold uppercase tracking-wide text-ink/40">{children}</h2>
+      <h2 className="text-[12px] font-semibold uppercase tracking-wide text-muted">{children}</h2>
       {action && actionHref ? (
-        <Link href={actionHref} className="text-[12.5px] text-pearl transition-opacity duration-[140ms] hover:opacity-70">
+        <Link href={actionHref} className="text-[12.5px] text-accent transition-opacity duration-[140ms] hover:opacity-70">
           {action}
         </Link>
       ) : null}
@@ -87,7 +87,7 @@ export function PageHeader({ title, subtitle, children }: { title: string; subti
     <div className="mb-5 flex items-start justify-between gap-4">
       <div className="min-w-0">
         <h1 className="font-display text-[26px] leading-tight text-porcelain">{title}</h1>
-        {subtitle ? <p className="mt-1 text-[13.5px] text-ink/50">{subtitle}</p> : null}
+        {subtitle ? <p className="mt-1 text-[13.5px] text-muted">{subtitle}</p> : null}
       </div>
       {children ? <div className="flex shrink-0 items-center gap-2">{children}</div> : null}
     </div>
@@ -113,9 +113,9 @@ export function EmptyState({
 }) {
   return (
     <Card className="flex flex-col items-center px-6 py-10 text-center">
-      {icon ? <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-pearl/12 text-pearl">{icon}</span> : null}
+      {icon ? <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-pearl/12 text-accent">{icon}</span> : null}
       <p className="text-[15px] font-semibold text-ink">{title}</p>
-      {line ? <p className="mt-1 max-w-[380px] text-[13.5px] leading-6 text-ink/50">{line}</p> : null}
+      {line ? <p className="mt-1 max-w-[380px] text-[13.5px] leading-6 text-muted">{line}</p> : null}
       {action && actionHref ? (
         <Link
           href={actionHref}
@@ -132,9 +132,9 @@ export function EmptyState({
 export function RankRow({ rank, label, meta, href }: { rank: number; label: string; meta?: string; href: string }) {
   return (
     <Link href={href} className="-mx-2 flex items-baseline gap-3 rounded-lg px-2 py-1.5 transition-colors duration-[140ms] hover:bg-surface">
-      <span className="w-3 shrink-0 text-[12.5px] tabular-nums text-ink/35">{rank}</span>
+      <span className="w-3 shrink-0 text-[12.5px] tabular-nums text-muted">{rank}</span>
       <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-ink">{label}</span>
-      {meta ? <span className="shrink-0 text-[12px] text-ink/40">{meta}</span> : null}
+      {meta ? <span className="shrink-0 text-[12px] text-muted">{meta}</span> : null}
     </Link>
   );
 }
@@ -156,6 +156,7 @@ export function PillTabs({
         return (
           <button
             key={t.key}
+            aria-pressed={on}
             onClick={() => onSelect(t.key)}
             className={
               "rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors duration-[140ms] " +
@@ -163,7 +164,7 @@ export function PillTabs({
             }
           >
             {t.label}
-            {typeof t.count === "number" ? <span className={"ml-1.5 " + (on ? "text-on-pearl/80" : "text-ink/35")}>{t.count}</span> : null}
+            {typeof t.count === "number" ? <span className={"ml-1.5 " + (on ? "text-on-pearl/80" : "text-muted")}>{t.count}</span> : null}
           </button>
         );
       })}

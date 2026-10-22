@@ -54,12 +54,12 @@ export default function TwoFactorPage() {
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
       <Link href="/settings" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
-      <h1 className="mt-4 flex items-center gap-2 font-display text-[24px] font-bold text-ink"><ShieldCheck size={22} className="text-pearl" /> Two-factor authentication</h1>
+      <h1 className="mt-4 flex items-center gap-2 font-display text-[24px] font-bold text-ink"><ShieldCheck size={22} className="text-accent" /> Two-factor authentication</h1>
       {enrolling ? (
         <div className="mt-5">
           <p className="text-[13.5px] text-ink/60">Scan this with Google Authenticator, Authy or any authenticator app, then enter the six-digit code it shows.</p>
           {enrolling.qr ? <div className="mt-4 inline-block rounded-2xl bg-white p-3" dangerouslySetInnerHTML={{ __html: enrolling.qr }} /> : null}
-          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-ink/50">Can't scan? Enter this key by hand</p>
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted">Can't scan? Enter this key by hand</p>
           <p className="mt-1 select-all text-[14px] font-bold tracking-wider text-ink">{enrolling.secret}</p>
           <div className="mt-4 flex gap-2">
             <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="6-digit code" inputMode="numeric" maxLength={6} className="w-40 rounded-xl border border-ink/12 bg-white px-3 py-2.5 text-center text-[16px] tracking-[0.3em] text-ink outline-none focus:border-pearl" />
@@ -71,7 +71,7 @@ export default function TwoFactorPage() {
         <div className="mt-5 rounded-2xl border border-ink/10 bg-surface p-4">
           <p className="text-[15px] font-bold text-ink">{on ? "On" : "Off"}</p>
           <p className="mt-1 text-[13.5px] text-ink/60">{on ? "Every sign-in asks for a code from your authenticator app after your password." : "Add a second step to signing in: a code from an authenticator app on your phone."}</p>
-          <div className="mt-3">{on ? factors.map((f) => <button key={f.id} type="button" onClick={() => turnOff(f)} className="rounded-full bg-red-50 px-5 py-2.5 text-[14px] font-bold text-red-600 hover:opacity-90">Turn off</button>) : <button type="button" onClick={start} className={btn}>Turn on</button>}</div>
+          <div className="mt-3">{on ? factors.map((f) => <button key={f.id} type="button" onClick={() => turnOff(f)} className="rounded-full bg-red-50 px-5 py-2.5 text-[14px] font-bold text-danger hover:opacity-90">Turn off</button>) : <button type="button" onClick={start} className={btn}>Turn on</button>}</div>
         </div>
       )}
       {msg ? <p className="mt-3 text-[13px] text-ink/70">{msg}</p> : null}

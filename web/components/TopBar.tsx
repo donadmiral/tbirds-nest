@@ -95,13 +95,13 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
               </div>
               <div className="my-1 h-px bg-ink/8" />
               <Link href={username ? "/" + encodeURIComponent(username) : "/settings/username"} onClick={() => setOpen(false)} className={chrome.menuItem + " flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface"}>
-                <User size={16} className="text-ink/50" /> Your profile
+                <User size={16} className="text-muted" /> Your profile
               </Link>
               <button
                 onClick={async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); }}
                 className={chrome.menuItem + " flex w-full items-center gap-3 px-4 py-2.5 text-left text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface"}
               >
-                <LogOut size={16} className="text-ink/50" /> Sign out
+                <LogOut size={16} className="text-muted" /> Sign out
               </button>
             </div>
           ) : null}

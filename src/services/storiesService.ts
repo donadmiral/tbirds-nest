@@ -304,6 +304,8 @@ function resolveMediaMeta(
   return { ext: 'jpg', mimeType: 'image/jpeg' };
 }
 
+export type StoryUploadCache = Map<string, { url: string; kind: StoryMediaType }>;
+
 export async function uploadAndCreateStory(params: {
   userId: string;
   localUri: string | null;
@@ -330,6 +332,8 @@ export async function uploadAndCreateStory(params: {
   preUploadedThumb?: string | null;
   publication?: PublicationAttempt;
   expectedAuthorId?: string;
+  /** Successful immutable assets survive a retry within this composer. */
+  uploadCache?: StoryUploadCache;
 }): Promise<StoryRow> {
   const {
     userId,
@@ -374,227 +378,112 @@ export async function uploadAndCreateStory(params: {
 
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
   const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData?.session?.access_token || supabaseKey;
+  const cache = params.uploadCache ?? new Map();
+  const jobs: Array<() => Promise<void>> = [];
+  // Never mutate the draft. Local URIs remain available for preview/retry, but
+  // only remote URLs are written to the published story.
+  const publishedStickers = (stickersJson ?? [])
+    .filter((s) => !(s.kind === 'photo' && s.photoShape === 'cell' && !s.photoUri && !s.photoUrl))
+    .map((s) => ({ ...s }));
 
-  let mediaPublicUrl: string | null = null;
-  let thumbnailUrl: string | null = null;
+  const performUpload = async (role: string, uri: string, kind: 'image' | 'video' | 'audio') => {
+    await publication.check();
+    const cacheKey = JSON.stringify([userId, expectedAuthor, kind, uri]);
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+    let uploadUri = uri;
+    let ext = uri.toLowerCase().endsWith('.caf') ? 'caf' : 'm4a';
+    let mime = ext === 'caf' ? 'audio/x-caf' : 'audio/mp4';
+    let actualKind: StoryMediaType = kind === 'audio' ? 'text' : kind;
+    if (kind !== 'audio') {
+      const meta = resolveMediaMeta(kind, uri, role === 'media' ? hintMimeType : null, role === 'media' ? hintFileName : null);
+      const trueMeta = await resolveTrueMeta(uri, kind, meta.ext, meta.mimeType);
+      const safe = await ensureUploadSafe(uri, trueMeta.kind, trueMeta.ext);
+      uploadUri = safe.uri; ext = safe.ext; mime = safe.mime;
+      actualKind = safe.kind ?? trueMeta.kind;
+    }
+    await publication.check();
+    const { data, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || data.session?.user.id !== userId || !data.session?.access_token) throw new Error('Sign in again to upload this story. Your draft is kept.');
+    const name = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${role}.${ext}`;
+    const form = new FormData();
+    form.append('file', { uri: uploadUri, type: mime, name: `${role}.${ext}` } as any);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 120000);
+    try {
+      const response = await fetch(`${supabaseUrl}/storage/v1/object/story-media/${name}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${data.session.access_token}`, apikey: supabaseKey, 'x-upsert': 'false' },
+        body: form,
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`Could not upload ${role.replace(/_/g, ' ')} (${response.status}). Retry to finish sharing your story.`);
+      const asset = { url: `${supabaseUrl}/storage/v1/object/public/story-media/${name}`, kind: actualKind };
+      cache.set(cacheKey, asset);
+      return asset;
+    } catch (error: any) {
+      if (controller.signal.aborted) throw new Error(`Uploading ${role.replace(/_/g, ' ')} timed out. Your draft is kept. Please retry.`);
+      throw error;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  const inFlight = new Map<string, Promise<{ url: string; kind: StoryMediaType }>>();
+  const uploadAsset = (role: string, uri: string, kind: 'image' | 'video' | 'audio') => {
+    const key = JSON.stringify([kind, uri]);
+    const current = inFlight.get(key);
+    if (current) return current;
+    const work = performUpload(role, uri, kind);
+    inFlight.set(key, work);
+    return work;
+  };
+
+  let mediaPublicUrl: string | null = preUploadedUrl;
+  let thumbnailUrl: string | null = preUploadedThumb;
   let dualFrontPublicUrl: string | null = null;
   let effectiveMediaType: StoryMediaType = mediaType;
-  let uploadUri: string = localUri || '';
-
-  if (preUploadedUrl) {
-    // Split publish: siblings reuse the already-uploaded source file.
-    mediaPublicUrl = preUploadedUrl;
-    if (preUploadedThumb) thumbnailUrl = preUploadedThumb;
-  } else if (mediaType !== 'text' && localUri) {
-    let { ext, mimeType } = resolveMediaMeta(mediaType, localUri, hintMimeType, hintFileName);
-    // Bytes over names: the picker's label and the extension both lie sometimes.
-    const trueMeta = await resolveTrueMeta(localUri, mediaType === 'video' ? 'video' : 'image', ext, mimeType);
-    ext = trueMeta.ext; mimeType = trueMeta.mime;
-    if (trueMeta.corrected && trueMeta.kind !== mediaType) {
-      console.log('[storiesService] media_type corrected by bytes:', mediaType, '->', trueMeta.kind);
-      effectiveMediaType = trueMeta.kind;
-    }
-    const safe = await ensureUploadSafe(localUri, effectiveMediaType === 'video' ? 'video' : 'image', ext);
-    ext = safe.ext; mimeType = safe.mime; uploadUri = safe.uri;
-    const fileName = `${userId}/${Date.now()}.${ext}`;
-
-    console.log('[storiesService] Uploading:', { mediaType, ext, mimeType, fileName, uriTail: localUri.slice(-50), hintMimeType, hintFileName });
-
-    const formData = new FormData();
-    formData.append('file', {
-      uri: uploadUri,
-      type: mimeType,
-      name: `story.${ext}`,
-    } as any);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000);
-
-    const uploadRes = await fetch(
-      `${supabaseUrl}/storage/v1/object/story-media/${fileName}`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          apikey: supabaseKey,
-          'x-upsert': 'true',
-        },
-        body: formData,
-        signal: controller.signal,
-      }
-    );
-
-    clearTimeout(timeoutId);
-
-    if (!uploadRes.ok) {
-      const errBody = await uploadRes.text().catch(() => '');
-      console.log('[storiesService] Upload failed:', uploadRes.status, errBody);
-      throw new Error(`Upload failed: ${uploadRes.status} ${errBody}`);
-    }
-
-    mediaPublicUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${fileName}`;
-    console.log('[storiesService] Upload success:', mediaPublicUrl);
-
-    // ── Dual front photo upload (with retry + exponential backoff) ──
-    if (dualFrontLocalUri) {
-      let frontMeta = resolveMediaMeta('image', dualFrontLocalUri);
-      const frontTrue = await resolveTrueMeta(dualFrontLocalUri, 'image', frontMeta.ext, frontMeta.mimeType);
-      frontMeta = { ext: frontTrue.ext, mimeType: frontTrue.mime };
-      const frontRand = Math.random().toString(36).slice(2, 8);
-      const frontFileName = `${userId}/${Date.now()}_${frontRand}_front.${frontMeta.ext}`;
-      const MAX_FRONT_RETRIES = 2;
-
-      for (let attempt = 0; attempt <= MAX_FRONT_RETRIES; attempt++) {
-        let frontTimeoutId: ReturnType<typeof setTimeout> | null = null;
-        try {
-          if (attempt > 0) {
-            const backoffMs = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
-            console.log(`[storiesService] Dual front retry ${attempt}/${MAX_FRONT_RETRIES} (${backoffMs}ms backoff)`);
-            await new Promise(r => setTimeout(r, backoffMs));
-          }
-
-          console.log('[storiesService] Uploading dual front:', { frontFileName, attempt, uriTail: dualFrontLocalUri.slice(-50) });
-
-          const frontForm = new FormData();
-          frontForm.append('file', {
-            uri: dualFrontLocalUri,
-            type: frontMeta.mimeType,
-            name: `story_front.${frontMeta.ext}`,
-          } as any);
-
-          const frontController = new AbortController();
-          frontTimeoutId = setTimeout(() => frontController.abort(), 120000);
-
-          const frontRes = await fetch(
-            `${supabaseUrl}/storage/v1/object/story-media/${frontFileName}`,
-            {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${token}`,
-                apikey: supabaseKey,
-                'x-upsert': 'true',
-              },
-              body: frontForm,
-              signal: frontController.signal,
-            }
-          );
-
-          if (frontRes.ok) {
-            dualFrontPublicUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${frontFileName}`;
-            console.log('[storiesService] Dual front upload success:', dualFrontPublicUrl);
-            break; // success, exit retry loop
-          } else {
-            const frontErr = await frontRes.text().catch(() => '');
-            console.log('[storiesService] Dual front upload failed:', frontRes.status, frontErr);
-            if (attempt === MAX_FRONT_RETRIES) {
-              console.log('[storiesService] Dual front upload exhausted retries. Story publishes with rear only.');
-            }
-          }
-        } catch (frontUploadErr: any) {
-          console.log('[storiesService] Dual front upload error:', frontUploadErr?.message);
-          if (attempt === MAX_FRONT_RETRIES) {
-            console.log('[storiesService] Dual front upload exhausted retries. Story publishes with rear only.');
-          }
-        } finally {
-          if (frontTimeoutId !== null) clearTimeout(frontTimeoutId);
-        }
-      }
-    }
-
-    if (thumbnailLocalUri) {
-      try {
-        const thumbName = `${userId}/${Date.now()}_thumb.jpg`;
-        const thumbForm = new FormData();
-        thumbForm.append('file', {
-          uri: thumbnailLocalUri,
-          type: 'image/jpeg',
-          name: 'thumb.jpg',
-        } as any);
-
-        const thumbRes = await fetch(
-          `${supabaseUrl}/storage/v1/object/story-media/${thumbName}`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              apikey: supabaseKey,
-              'x-upsert': 'true',
-            },
-            body: thumbForm,
-          }
-        );
-        if (thumbRes.ok) {
-          thumbnailUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${thumbName}`;
-        } else {
-          console.log('[storiesService] Thumb upload failed:', thumbRes.status);
-        }
-      } catch (e: any) {
-        console.log('[storiesService] Thumb upload error:', e?.message);
-      }
-    }
-  }
-
   let audioFinalUrl: string | null = null;
   let audioMeta: { title: string | null; source: string; durationSec: number | null } | null = null;
-  if (audio) {
-    if (audio.kind === 'voiceover' && audio.localUri) {
-      try {
-        const aRand = Math.random().toString(36).slice(2, 8);
-        const aExt = audio.localUri.toLowerCase().endsWith('.caf') ? 'caf' : 'm4a';
-        const aName = `${userId}/${Date.now()}_${aRand}_audio.${aExt}`;
-        const aForm = new FormData();
-        aForm.append('file', { uri: audio.localUri, type: 'audio/mp4', name: `story_audio.${aExt}` } as any);
-        const aRes = await fetch(`${supabaseUrl}/storage/v1/object/story-media/${aName}`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, apikey: supabaseKey, 'x-upsert': 'true' },
-          body: aForm,
-        });
-        if (aRes.ok) {
-          audioFinalUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${aName}`;
-        } else {
-          console.log('[storiesService] Audio upload failed:', aRes.status);
-        }
-      } catch (e: any) {
-        console.log('[storiesService] Audio upload error:', e?.message);
-      }
-      if (audioFinalUrl) audioMeta = { title: audio.title || 'Voiceover', source: 'voiceover', durationSec: audio.durationSec ?? null };
-    } else if (audio.kind === 'sound' && audio.url) {
-      audioFinalUrl = audio.url;
-      audioMeta = { title: audio.title || null, source: audio.source || 'original', durationSec: audio.durationSec ?? null };
+  if (!mediaPublicUrl && mediaType !== 'text' && localUri) {
+    jobs.push(async () => { const asset = await uploadAsset('media', localUri, mediaType); mediaPublicUrl = asset.url; effectiveMediaType = asset.kind; });
+  }
+  if (thumbnailLocalUri && !thumbnailUrl) {
+    jobs.push(async () => { thumbnailUrl = (await uploadAsset('thumbnail', thumbnailLocalUri, 'image')).url; });
+  }
+  if (dualFrontLocalUri) {
+    jobs.push(async () => { dualFrontPublicUrl = (await uploadAsset('front_photo', dualFrontLocalUri, 'image')).url; });
+  }
+  if (audio?.kind === 'voiceover' && audio.localUri) {
+    audioMeta = { title: audio.title || 'Voiceover', source: 'voiceover', durationSec: audio.durationSec ?? null };
+    jobs.push(async () => { audioFinalUrl = (await uploadAsset('voiceover', audio.localUri!, 'audio')).url; });
+  } else if (audio?.kind === 'sound' && audio.url) {
+    audioFinalUrl = audio.url;
+    audioMeta = { title: audio.title || null, source: audio.source || 'original', durationSec: audio.durationSec ?? null };
+  }
+  for (const sticker of publishedStickers) {
+    if (sticker.photoUri && !sticker.photoUrl) {
+      jobs.push(async () => {
+        sticker.photoUrl = (await uploadAsset('photo_sticker', sticker.photoUri!, 'image')).url;
+        delete sticker.photoUri;
+      });
+    } else if (sticker.photoUrl) {
+      delete sticker.photoUri;
     }
   }
-
-  // ── Photo stickers: upload any local photo sticker to storage first ──
-  if (Array.isArray(stickersJson)) {
-    // An empty layout cell is a composer placeholder, never part of the story.
-    for (let ci = stickersJson.length - 1; ci >= 0; ci--) { const cs: any = stickersJson[ci]; if (cs && cs.kind === 'photo' && cs.photoShape === 'cell' && !cs.photoUri && !cs.photoUrl) stickersJson.splice(ci, 1); }
-    for (const stAny of stickersJson as any[]) {
-      if (stAny && stAny.photoUri && !stAny.photoUrl) {
-        try {
-          let pm = resolveMediaMeta('image', stAny.photoUri);
-          const pt = await resolveTrueMeta(stAny.photoUri, 'image', pm.ext, pm.mimeType);
-          const pName = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}_stk.${pt.ext}`;
-          const pf = new FormData();
-          pf.append('file', { uri: stAny.photoUri, type: pt.mime, name: `stk.${pt.ext}` } as any);
-          const pRes = await fetch(`${supabaseUrl}/storage/v1/object/story-media/${pName}`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}`, apikey: supabaseKey, 'x-upsert': 'true' },
-            body: pf,
-          });
-          if (pRes.ok) {
-            stAny.photoUrl = `${supabaseUrl}/storage/v1/object/public/story-media/${pName}`;
-            delete stAny.photoUri;
-          } else {
-            console.log('[storiesService] photo sticker upload failed:', pRes.status);
-          }
-        } catch (e: any) {
-          console.log('[storiesService] photo sticker upload error:', e?.message);
-        }
-      }
+  // A few independent assets can upload together without overwhelming a
+  // phone's radio or decoding several large videos at once. Wait for in-flight
+  // work before exposing Retry so successful assets can be reused safely.
+  let nextJob = 0;
+  let uploadError: unknown;
+  await Promise.all(Array.from({ length: Math.min(3, jobs.length) }, async () => {
+    while (!uploadError && nextJob < jobs.length) {
+      const job = jobs[nextJob++];
+      try { await job(); } catch (error) { uploadError ??= error; }
     }
-  }
+  }));
+  if (uploadError) throw uploadError;
+  await publication.check();
 
   const insertPayload: any = {
     user_id: expectedAuthor,
@@ -609,8 +498,8 @@ export async function uploadAndCreateStory(params: {
     affiliation_id: affiliationId || null,
   };
 
-  if (stickersJson && stickersJson.length > 0) {
-    insertPayload.stickers_json = stickersJson;
+  if (publishedStickers.length > 0) {
+    insertPayload.stickers_json = publishedStickers;
   }
   if (textBackground) {
     insertPayload.text_background = textBackground;

@@ -20,11 +20,14 @@ A canonical `not_found` remains pending because the original call may be delayed
 No schedule, hosted credentials, deployment or external payment delivery is
 created by this change. An authorised operator can invoke POST after isolated
 validation. The default batch is 20 records, the maximum is 50, and the handler
-stops beginning new checks after 20 seconds. Each provider request has a 7-second
-timeout. Work less than 60 seconds old or checked in the last 60 seconds is skipped.
+stops beginning new checks after 20 seconds. A provider read and its single
+transport retry share a 12-second deadline, bounded by the remaining batch time.
+Work less than 60 seconds old or checked in the last 60 seconds is skipped.
+An atomic timestamp claim prevents concurrent workers and user status requests
+from polling the same pending payment during that interval.
 
 Results contain counts only: `checked`, `completed`, `pending`, `errors` and
-`remaining_in_batch`. Nonzero errors mean lookup or persistence could not be
+`skipped` and `remaining_in_batch`. Nonzero errors mean lookup or persistence could not be
 verified. They do not prove the underlying payment failed. Inspect pending work
 through authorised operations tools. Never replace its original payment identity
 or resend money to resolve an uncertain outcome.

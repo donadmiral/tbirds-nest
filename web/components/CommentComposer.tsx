@@ -43,9 +43,9 @@ export function CommentComposer({ postId }: { postId: string }) {
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
           placeholder="Add a comment"
           rows={1}
-          className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+          className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated"
         />
-        <button onClick={submit} disabled={pending || !text.trim()} className="rounded-md bg-pearl p-2.5 text-ink transition-opacity hover:opacity-90 disabled:opacity-30" title="Comment">
+        <button onClick={submit} disabled={pending || !text.trim()} className="rounded-md bg-pearl p-2.5 text-on-pearl transition-opacity hover:opacity-90 disabled:opacity-30" title="Comment">
           <Send size={17} />
         </button>
       </div>

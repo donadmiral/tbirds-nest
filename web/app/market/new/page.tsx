@@ -8,7 +8,7 @@ import { ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { MARKET_CATEGORIES, MARKET_CONDITIONS } from "@/lib/market";
 
-const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated";
+const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated";
 
 type Photo = { file: File; preview: string };
 
@@ -133,7 +133,7 @@ export default function CreateListingPage() {
     return (
       <div className="flex flex-col items-center gap-3 px-1 py-24 text-center">
         <p className="text-[15px] text-ink/70">The market is temporarily switched off by Platinum Circles operations.</p>
-        <Link href="/market" className="mt-2 rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-ink">Back to Market</Link>
+        <Link href="/market" className="mt-2 rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-on-pearl">Back to Market</Link>
       </div>
     );
   }
@@ -141,7 +141,7 @@ export default function CreateListingPage() {
   return (
     <div className="px-1">
       <div className="flex items-center gap-3 pb-4">
-        <Link href="/market" className="text-sm text-ink/50 hover:text-ink">← Market</Link>
+        <Link href="/market" className="text-sm text-muted hover:text-ink">← Market</Link>
         <h1 className="font-display text-xl text-porcelain">New listing</h1>
       </div>
 
@@ -156,7 +156,7 @@ export default function CreateListingPage() {
           </span>
         ))}
         {photos.length < 8 ? (
-          <button onClick={() => fileRef.current?.click()} className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-ink/20 text-ink/40 hover:border-pearl hover:text-pearl">
+          <button onClick={() => fileRef.current?.click()} className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-ink/20 text-muted hover:border-pearl hover:text-accent">
             <ImagePlus size={20} />
             <span className="text-[11px]">Add photos</span>
           </button>
@@ -168,7 +168,7 @@ export default function CreateListingPage() {
         <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
         <textarea className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the item, its condition, what is included" rows={4} />
         <div className="flex gap-2">
-          <button onClick={() => setCurrency(currency === "USD" ? "ZWG" : "USD")} className="rounded-md bg-surface px-4 py-3 text-[14px] font-semibold text-pearl hover:bg-surface-elevated">
+          <button onClick={() => setCurrency(currency === "USD" ? "ZWG" : "USD")} className="rounded-md bg-surface px-4 py-3 text-[14px] font-semibold text-accent hover:bg-surface-elevated">
             {currency}
           </button>
           <input className={inputCls + " flex-1"} inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Price. Use 0 for free" />
@@ -205,7 +205,7 @@ export default function CreateListingPage() {
         </label>
 
         {error ? <p className="text-[13px] text-danger">{error}</p> : null}
-        <button onClick={submit} disabled={pending} className="mt-1 self-start rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
+        <button onClick={submit} disabled={pending} className="mt-1 self-start rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-on-pearl transition-opacity hover:opacity-90 disabled:opacity-40">
           {pending ? "Publishing" : "Publish listing"}
         </button>
       </div>

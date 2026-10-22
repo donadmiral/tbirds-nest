@@ -11,18 +11,21 @@ export const dynamic = 'force-dynamic';
 export default async function SystemPage() {
   const admin = await requireDesk('/system');
   const svc = serviceClient();
-  const { data: flags } = await svc.from('feature_flags').select('*').order('key');
-  const { data: notes } = await svc.from('announcements').select('*').order('created_at', { ascending: false }).limit(10);
-  const { data: cerrs } = await svc.from('client_errors')
+  const { data: flags, error: flagsError } = await svc.from('feature_flags').select('*').order('key');
+  const { data: notes, error: notesError } = await svc.from('announcements').select('*').order('created_at', { ascending: false }).limit(10);
+  const { data: cerrs, error: errorsError } = await svc.from('client_errors')
     .select('id, user_id, message, stack, platform, app_version, context, created_at')
     .order('created_at', { ascending: false }).limit(15);
+  if (flagsError || notesError || errorsError) throw new Error('Platform controls could not be loaded.');
   const eids = Array.from(new Set((cerrs ?? []).map(e => e.user_id).filter(Boolean)));
   const epeople: Record<string, any> = {};
   if (eids.length) {
-    const { data } = await svc.from('profiles').select('id, username, full_name').in('id', eids as string[]);
+    const { data, error } = await svc.from('profiles').select('id, username, full_name').in('id', eids as string[]);
+    if (error) throw new Error('Error-report participants could not be loaded.');
     (data ?? []).forEach(p => { epeople[p.id] = p; });
   }
-  const { data: words } = await svc.from('blocked_words').select('*').order('word');
+  const { data: words, error: wordsError } = await svc.from('blocked_words').select('*').order('word');
+  if (wordsError) throw new Error('Blocked-word controls could not be loaded.');
   return (
     <Shell admin={admin} active="/system" title="Controls" sub="Kill switches and the platform's voice - use both sparingly">
       <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Feature flags</p>
@@ -91,10 +94,10 @@ export default async function SystemPage() {
         ) : <p className="mt-3 text-[12px] text-[#9A9DA4]">Nothing blocked yet. The database refuses matching posts and comments the moment a word lands here.</p>}
       </div>
       <div className="mt-6">
-        <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Client errors - the app reporting on itself</p>
+        <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Latest 15 received client error reports</p>
         <div className="overflow-hidden rounded-[12px] border border-[#E5E4E0] bg-white">
           {(cerrs ?? []).length === 0 ? (
-            <p className="px-5 py-6 text-[12.5px] text-[#9A9DA4]">No errors reported. The phones write here the moment anything breaks.</p>
+            <p className="px-5 py-6 text-[12.5px] text-[#9A9DA4]">No client error reports were returned. This does not confirm every device is error-free.</p>
           ) : (cerrs ?? []).map(e => {
             const p = e.user_id ? epeople[e.user_id] : null;
             const fatal = (e.context as any)?.fatal === true;

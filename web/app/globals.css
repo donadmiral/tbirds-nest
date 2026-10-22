@@ -7,16 +7,19 @@
   --color-ink: #16181c;
   --color-navy: #16181c;
   --color-pearl: #c9bfb0;
-  --color-pearl-muted: #8f8477;
+  --color-pearl-muted: #625548;
+  --color-accent: #625548;
+  --color-secondary: #535761;
+  --color-muted: #646870;
   --color-on-pearl: #16181c;
   --color-porcelain: #16181c;
   --color-surface: rgba(0, 0, 0, 0.05);
   --color-surface-elevated: rgba(0, 0, 0, 0.08);
   --color-surface-active: rgba(0, 0, 0, 0.12);
-  --color-danger: #ff3b30;
-  --color-success: #059669;
-  --color-info: #8f8477;
-  --color-warn: #ff9500;
+  --color-danger: #b3261e;
+  --color-success: #066344;
+  --color-info: #235fad;
+  --color-warn: #8a5200;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -49,7 +52,7 @@ body {
 
 ::selection {
   background: var(--color-pearl);
-  color: var(--color-ink);
+  color: var(--color-on-pearl);
 }
 
 :focus-visible {
@@ -79,6 +82,13 @@ body {
   --color-porcelain: #f6f2ea;
   --color-white: #17191d;
   --color-pearl-muted: #b9ae9e;
+  --color-accent: #c9bfb0;
+  --color-secondary: #c3c0b9;
+  --color-muted: #aaa9a5;
+  --color-danger: #ff938a;
+  --color-success: #62dfa0;
+  --color-info: #8abcff;
+  --color-warn: #ffc36a;
   --color-surface: rgba(255, 255, 255, 0.06);
   --color-surface-elevated: rgba(255, 255, 255, 0.10);
   --color-surface-active: rgba(255, 255, 255, 0.14);
@@ -103,6 +113,13 @@ body {
   --color-navy: #16181c;
   --color-white: #ffffff;
   --color-porcelain: #f6f2ea;
+  --color-secondary: #dedbd5;
+  --color-muted: #b9b7b2;
+  --color-accent: #c9bfb0;
+  --color-danger: #ff938a;
+  --color-success: #62dfa0;
+  --color-info: #8abcff;
+  --color-warn: #ffc36a;
   --focus-ring: #c9bfb0;
   color-scheme: dark;
 }
@@ -123,6 +140,13 @@ body {
    sidebar, so the two surfaces need different focus indicators. */
 .theater-menu {
   --color-porcelain: #16181c;
+  --color-secondary: #535761;
+  --color-muted: #646870;
+  --color-accent: #625548;
+  --color-danger: #b3261e;
+  --color-success: #066344;
+  --color-info: #235fad;
+  --color-warn: #8a5200;
   --color-surface: rgba(0, 0, 0, 0.05);
   --color-surface-elevated: rgba(0, 0, 0, 0.08);
   --color-surface-active: rgba(0, 0, 0, 0.12);

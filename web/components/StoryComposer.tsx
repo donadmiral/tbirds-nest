@@ -12,7 +12,7 @@ import { PublicationAttempt, publicationError } from "@/lib/publication";
 import { checkUploadableBytes } from "@/lib/media";
 
 type Draft = {
-  id: string; media_url: string | null; media_type: string; caption: string | null;
+  id: string; user_id: string; media_url: string | null; media_type: string; caption: string | null;
   audience: string; shared_with: string[]; duration_sec: number | null; created_at: string;
 };
 
@@ -46,62 +46,168 @@ function ComposerInner() {
   const publication = useRef<{ progress: PublicationAttempt; run: () => Promise<void> } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const draftRequest = useRef(0);
+  const appliedRouteDraft = useRef<string | null>(null);
+
+  const mountedRef = useRef(true);
+  const ownerRef = useRef<string | null>(null);
+  const ownerVersion = useRef(0);
+  const authEventVersion = useRef(0);
+  const cancellations = useRef(new Set<() => void>());
+  const metadataCleanup = useRef<(() => void) | null>(null);
+
+  const isCurrent = (owner: string, version: number) => mountedRef.current && ownerRef.current === owner && ownerVersion.current === version;
+  const assertOwner = (owner: string, version: number) => {
+    if (!isCurrent(owner, version)) throw new Error("The account changed. Open this story from its original account.");
+  };
+  const runBounded = <T,>(work: PromiseLike<T>, timeout = 15000): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout>;
+    let cancel: () => void;
+    return new Promise<T>((resolve, reject) => {
+      cancel = () => reject(new Error("This story operation was cancelled."));
+      cancellations.current.add(cancel);
+      timer = setTimeout(() => reject(new Error("The request took too long. Please try again.")), timeout);
+      Promise.resolve(work).then(resolve, reject);
+    }).finally(() => { clearTimeout(timer); cancellations.current.delete(cancel); });
+  };
+  const checkOwner = async (owner: string, version: number) => {
+    assertOwner(owner, version);
+    const { data, error: sessionError } = await runBounded(supabase.auth.getSession());
+    assertOwner(owner, version);
+    if (sessionError || data.session?.user.id !== owner) throw new Error("Return to the account that started this story to finish it.");
+  };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const u = data.session?.user.id ?? null;
-      setUid(u);
-      if (!u) router.push("/login");
+    mountedRef.current = true;
+    const cancelPending = () => {
+      cancellations.current.forEach(cancel => cancel());
+      cancellations.current.clear();
+      metadataCleanup.current?.();
+      metadataCleanup.current = null;
+    };
+    const setOwner = (next: string | null) => {
+      if (!mountedRef.current) return;
+      if (ownerRef.current !== next) {
+        const previous = ownerRef.current;
+        ownerVersion.current += 1;
+        ownerRef.current = next;
+        draftRequest.current += 1;
+        cancelPending();
+        busyRef.current = false;
+        publication.current = null;
+        publishedRef.current = false;
+        appliedRouteDraft.current = null;
+        setDrafts([]); setDraftId(null); setMediaUrl(null); setMediaType("image");
+        setCaption(""); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null);
+        setQ(""); setResults([]); setBusy(null);
+        setPublicationStatus({ postId: null, uncertain: false, locked: false, published: false });
+        setError(previous && next ? "Account changed. Choose a story for this account." : null);
+      }
+      setUid(next);
+      if (!next) router.push("/login");
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      authEventVersion.current += 1;
+      setOwner(session?.user.id ?? null);
     });
+    const initialVersion = authEventVersion.current;
+    runBounded(supabase.auth.getSession()).then(({ data, error: sessionError }) => {
+      if (!mountedRef.current || authEventVersion.current !== initialVersion) return;
+      if (sessionError) throw sessionError;
+      setOwner(data.session?.user.id ?? null);
+    }).catch(() => {
+      if (!mountedRef.current || authEventVersion.current !== initialVersion) return;
+      setError("Your account could not be loaded. Refresh to try again.");
+    });
+    return () => {
+      mountedRef.current = false;
+      ownerVersion.current += 1;
+      authEventVersion.current += 1;
+      cancelPending();
+      subscription.unsubscribe();
+    };
   }, [supabase, router]);
 
-  const loadDrafts = async (u: string) => {
-    const { data, error: draftError } = await supabase.from("story_drafts").select("*")
-      .eq("user_id", u).order("created_at", { ascending: false }).limit(12);
+  const loadDrafts = async (owner: string, version: number) => {
+    assertOwner(owner, version);
+    const { data, error: draftError } = await runBounded(supabase.from("story_drafts").select("*")
+      .eq("user_id", owner).order("created_at", { ascending: false }).limit(12));
+    assertOwner(owner, version);
     if (draftError) throw draftError;
+    if ((data ?? []).some(row => row.user_id !== owner)) throw new Error("The draft owner could not be confirmed.");
     setDrafts((data ?? []) as Draft[]);
   };
-  useEffect(() => { if (uid) void loadDrafts(uid).catch((failure) => setError("Could not load drafts. " + publicationError(failure))); }, [uid]);
+  useEffect(() => {
+    if (!uid) return;
+    const version = ownerVersion.current;
+    void loadDrafts(uid, version).catch((failure) => { if (isCurrent(uid, version)) setError("Could not load drafts. " + publicationError(failure)); });
+  }, [uid]);
 
   useEffect(() => {
     const d = params.get("draft");
-    if (d && drafts.length) {
+    if (d && d !== appliedRouteDraft.current && drafts.length) {
       const row = drafts.find((x) => x.id === d);
-      if (row) applyDraft(row);
+      if (row) { appliedRouteDraft.current = d; void applyDraft(row); }
     }
-  }, [params, drafts.length]);
+  }, [params, drafts]);
 
   useEffect(() => {
-    const t = setTimeout(() => { searchPeople(q).then(setResults); }, 250);
-    return () => clearTimeout(t);
-  }, [q]);
+    let cancelled = false;
+    const version = ownerVersion.current;
+    setResults([]);
+    if (!q.trim() || !uid) return;
+    const t = setTimeout(() => {
+      runBounded(searchPeople(q)).then(rows => { if (!cancelled && isCurrent(uid, version)) setResults(rows); })
+        .catch(() => { if (!cancelled && isCurrent(uid, version)) setError("People could not be loaded. Try searching again."); });
+    }, 250);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [q, uid]);
 
-  function applyDraft(d: Draft) {
+  async function applyDraft(d: Draft) {
+    if (!uid || busyRef.current || publication.current || !isCurrent(uid, ownerVersion.current) || d.user_id !== uid) return;
+    const owner = uid, version = ownerVersion.current;
+    const request = ++draftRequest.current;
+    busyRef.current = true;
+    setBusy("draft-load");
+    setError(null);
+    setPeople([]);
+    setFilterId(null);
     setDraftId(d.id);
     setMediaUrl(d.media_url);
     setMediaType(d.media_type === "video" ? "video" : "image");
     setDurationSec(d.duration_sec);
     setCaption(d.caption ?? "");
     setAudience(d.audience);
-    if (d.shared_with.length) {
-      supabase.from("profiles").select("id, full_name, username, avatar_url")
-        .in("id", d.shared_with).then(({ data }) => setPeople((data ?? []) as AccessPerson[]));
-    } else setPeople([]);
+    try {
+      if (d.shared_with?.length) {
+        const { data, error: peopleError } = await runBounded(supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", d.shared_with));
+        assertOwner(owner, version);
+        if (peopleError) throw peopleError;
+        const requested = new Set(d.shared_with);
+        const found = new Set((data ?? []).map(person => person.id));
+        if (requested.size !== found.size || [...requested].some(id => !found.has(id))) throw new Error("Some selected recipients are no longer available.");
+        if (isCurrent(owner, version) && draftRequest.current === request) setPeople((data ?? []) as AccessPerson[]);
+      }
+    } catch (failure) { if (isCurrent(owner, version) && draftRequest.current === request) setError("Could not load this draft’s recipients. Choose them again before sharing. " + publicationError(failure)); }
+    finally { if (isCurrent(owner, version) && draftRequest.current === request) { busyRef.current = false; setBusy(null); } }
   }
 
   async function pickFile(f: File) {
-    if (!uid || busyRef.current || publication.current) return;
+    if (!uid || busyRef.current || publication.current || !isCurrent(uid, ownerVersion.current)) return;
+    const owner = uid, version = ownerVersion.current;
     busyRef.current = true;
     setBusy("upload");
     setError(null);
     try {
       if (!f.type.startsWith("image/") && !f.type.startsWith("video/")) throw new Error("Choose a photo or video.");
-      const bad = await checkUploadableBytes(f);
+      const bad = await runBounded(checkUploadableBytes(f));
       if (bad) throw new Error(bad);
+      await checkOwner(owner, version);
       const isVideo = f.type.startsWith("video/");
       const ext = (f.name.split(".").pop() || (isVideo ? "mp4" : "jpg")).toLowerCase();
       const path = uid + "/" + crypto.randomUUID() + "." + ext;
-      const { error: upErr } = await supabase.storage.from("story-media").upload(path, f, { contentType: f.type, upsert: false });
+      const { error: upErr } = await runBounded(supabase.storage.from("story-media").upload(path, f, { contentType: f.type, upsert: false }), 120000);
+      assertOwner(owner, version);
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("story-media").getPublicUrl(path);
       setMediaUrl(pub.publicUrl);
@@ -111,64 +217,71 @@ function ComposerInner() {
         const duration = await new Promise<number | null>((resolve) => {
           const video = document.createElement("video");
           const url = URL.createObjectURL(f);
-          const finish = (value: number | null) => { clearTimeout(timer); video.onloadedmetadata = null; video.onerror = null; video.removeAttribute("src"); video.load(); URL.revokeObjectURL(url); resolve(value); };
+          let finished = false;
+          const finish = (value: number | null) => { if (finished) return; finished = true; clearTimeout(timer); video.onloadedmetadata = null; video.onerror = null; video.removeAttribute("src"); video.load(); URL.revokeObjectURL(url); metadataCleanup.current = null; resolve(value); };
           const timer = setTimeout(() => finish(null), 5000);
+          metadataCleanup.current = () => finish(null);
           video.preload = "metadata";
           video.onloadedmetadata = () => finish(Number.isFinite(video.duration) ? Math.min(60, Math.max(1, Math.round(video.duration))) : null);
           video.onerror = () => finish(null);
           video.src = url;
         });
+        assertOwner(owner, version);
         setDurationSec(duration);
       }
-    } catch (failure) { setError(publicationError(failure)); }
-    finally { busyRef.current = false; setBusy(null); }
+    } catch (failure) { if (isCurrent(owner, version)) setError(publicationError(failure)); }
+    finally { if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); } }
   }
 
   async function publish() {
-    if (!uid || !mediaUrl || busyRef.current || publishedRef.current || publication.current?.progress.uncertain) return;
+    if (!uid || !mediaUrl || busyRef.current || publishedRef.current || publication.current?.progress.uncertain || !isCurrent(uid, ownerVersion.current)) return;
+    const owner = uid, version = ownerVersion.current;
     if (audience === "only_with" && people.length === 0) { setError("Choose at least one person to share with."); return; }
     busyRef.current = true;
     setBusy("publish");
     setError(null);
     if (!publication.current) {
-      const progress = new PublicationAttempt(async () => {
-        const { data, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || data.session?.user.id !== uid) throw new Error("Return to the account that started this story to finish it.");
-      });
+      const progress = new PublicationAttempt(() => checkOwner(owner, version));
       const run = async () => {
-        const { data: auth, error: authError } = await supabase.auth.getUser();
+        assertOwner(owner, version);
+        const { data: auth, error: authError } = await runBounded(supabase.auth.getUser());
+        assertOwner(owner, version);
         if (authError || auth.user?.id !== uid) throw new Error("Sign in to the account that started this story to finish it.");
-        const row = await progress.write("story", () => supabase.from("stories").insert({
+        const row = await progress.write("story", () => runBounded(supabase.from("stories").insert({
           user_id: uid, media_url: mediaUrl, media_type: mediaType,
           caption: caption.trim() || null, audience, filter_id: filterId,
           duration_sec: mediaType === "video" ? durationSec ?? 10 : null,
-        }).select("id").single());
+        }).select("id").single()));
         if (!row) { progress.uncertain = true; throw new Error("Could not confirm the story."); }
         progress.postId = row.id;
         if (audience === "only_with") {
-          await progress.write("recipients", () => supabase.from("story_shared_with").insert(
-            Array.from(new Set(people.map((p) => p.id))).map((id) => ({ story_id: row.id, user_id: id }))));
+          await progress.write("recipients", () => runBounded(supabase.from("story_shared_with").insert(
+            Array.from(new Set(people.map((p) => p.id))).map((id) => ({ story_id: row.id, user_id: id })))));
         }
         const handles = Array.from(new Set((caption.match(/@([A-Za-z0-9_.]{2,30})/g) || []).map((h) => h.slice(1).toLowerCase())));
         if (handles.length) {
-          const { data: ppl, error: lookupError } = await supabase.from("profiles").select("id").in("username", handles).neq("id", uid);
+          const { data: ppl, error: lookupError } = await runBounded(supabase.from("profiles").select("id").in("username", handles).neq("id", uid));
+          assertOwner(owner, version);
           if (lookupError) throw lookupError;
           const rows = ((ppl ?? []) as { id: string }[]).map((p) => ({ story_id: row.id, mentioned_user_id: p.id, visible: true }));
-          if (rows.length) await progress.write("mentions", () => supabase.from("story_mentions").insert(rows));
+          if (rows.length) await progress.write("mentions", () => runBounded(supabase.from("story_mentions").insert(rows)));
         }
-        if (draftId) await progress.write("delete-draft", () => supabase.from("story_drafts").delete().eq("id", draftId));
+        if (draftId) await progress.write("delete-draft", () => runBounded(supabase.from("story_drafts").delete().eq("id", draftId).eq("user_id", owner)));
         await progress.check();
       };
       publication.current = { progress, run };
       setPublicationStatus({ postId: null, uncertain: false, locked: true, published: false });
     }
+    const attempt = publication.current;
     try {
-      await publication.current.run();
+      await attempt.run();
+      assertOwner(owner, version);
       publishedRef.current = true;
-      setPublicationStatus({ postId: publication.current.progress.postId, uncertain: false, locked: true, published: true });
+      setPublicationStatus({ postId: attempt.progress.postId, uncertain: false, locked: true, published: true });
       try { router.push("/home"); } catch { setError("Your story was shared. Open Home to view it."); }
     } catch (failure) {
-      const progress = publication.current?.progress;
+      if (!isCurrent(owner, version)) return;
+      const progress = attempt.progress;
       setPublicationStatus({ postId: progress?.postId ?? null, uncertain: progress?.uncertain ?? false, locked: !!progress?.postId || !!progress?.uncertain, published: false });
       setError((progress?.uncertain
         ? "We could not confirm the last save. Check your stories before sharing again. Your draft remains open here; keep this page open. "
@@ -177,46 +290,62 @@ function ComposerInner() {
           : "Your draft remains open here; keep this page open. ") + publicationError(failure));
       if (!progress?.postId && !progress?.uncertain) publication.current = null;
     } finally {
-      busyRef.current = false;
-      setBusy(null);
+      if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); }
     }
   }
 
   async function saveDraft() {
-    if (!uid || !mediaUrl || busyRef.current || publication.current) return;
+    if (!uid || !mediaUrl || busyRef.current || publication.current || !isCurrent(uid, ownerVersion.current)) return;
+    const owner = uid, version = ownerVersion.current;
     busyRef.current = true;
     setBusy("draft");
     setError(null);
     let saved = false;
     try {
+      await checkOwner(owner, version);
       const payload = {
         user_id: uid, media_url: mediaUrl, media_type: mediaType,
         caption: caption.trim() || null, audience,
         shared_with: people.map((p) => p.id), duration_sec: durationSec,
       };
       const r = draftId
-        ? await supabase.from("story_drafts").update(payload).eq("id", draftId).select("id").single()
-        : await supabase.from("story_drafts").insert(payload).select("id").single();
+        ? await runBounded(supabase.from("story_drafts").update(payload).eq("id", draftId).eq("user_id", owner).select("id").single())
+        : await runBounded(supabase.from("story_drafts").insert(payload).select("id").single());
+      assertOwner(owner, version);
       if (r.error || !r.data) throw r.error || new Error("Could not confirm the saved draft.");
       saved = true;
-      setDraftId(null); setMediaUrl(null); setCaption(""); setPeople([]); setAudience("everyone");
-      await loadDrafts(uid);
-    } catch (failure) { setError((saved ? "Draft saved, but the draft list could not reload. " : "Your draft remains open here; keep this page open. ") + publicationError(failure)); }
-    finally { busyRef.current = false; setBusy(null); }
+      setDraftId(null); setMediaUrl(null); setCaption(""); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null);
+      await loadDrafts(owner, version);
+    } catch (failure) { if (isCurrent(owner, version)) setError((saved ? "Draft saved, but the draft list could not reload. " : "Your draft remains open here; keep this page open. ") + publicationError(failure)); }
+    finally { if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); } }
+  }
+
+  async function deleteDraft(d: Draft) {
+    if (!uid || busyRef.current || d.user_id !== uid || !isCurrent(uid, ownerVersion.current)) return;
+    const owner = uid, version = ownerVersion.current;
+    busyRef.current = true; setBusy("delete"); setError(null);
+    try {
+      await checkOwner(owner, version);
+      const { data, error: deleteError } = await runBounded(supabase.from("story_drafts").delete().eq("id", d.id).eq("user_id", owner).select("id").maybeSingle());
+      assertOwner(owner, version);
+      if (deleteError || !data) throw deleteError || new Error("The draft deletion could not be confirmed.");
+      await loadDrafts(owner, version);
+    } catch (failure) { if (isCurrent(owner, version)) setError("Could not confirm the draft list. " + publicationError(failure)); }
+    finally { if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); } }
   }
 
   return (
     <div className="mx-auto w-full max-w-[560px] px-4 pb-16">
       <div className="sticky top-0 z-20 -mx-4 mb-4 flex items-center gap-2 border-b border-ink/10 bg-white/75 px-4 py-2.5 backdrop-blur-md">
-        <Link href="/home" className="rounded-full p-2 text-ink/60 hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></Link>
+        <Link href="/home" className="rounded-full p-2 text-muted hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></Link>
         <p className="flex-1 font-display text-[17px] text-ink">New story</p>
-        <Link href="/archive" className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-ink/70">Archive</Link>
+        <Link href="/archive" className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-secondary">Archive</Link>
       </div>
 
-      <fieldset disabled={!!busy || publicationStatus.locked} className="contents">
+      <fieldset disabled={!uid || !!busy || publicationStatus.locked} className="contents">
       {drafts.length > 0 && !mediaUrl ? (
         <div className="mb-5">
-          <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Drafts</p>
+          <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Drafts</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {drafts.map((d) => (
               <div key={d.id} className="relative w-20 shrink-0">
@@ -226,17 +355,8 @@ function ComposerInner() {
                     d.media_type === "video" ? <video src={d.media_url} muted className="h-full w-full object-cover" /> : <img src={d.media_url} alt="" className="h-full w-full object-cover" />
                   ) : null}
                 </button>
-                <button onClick={async () => {
-                  if (busyRef.current) return;
-                  busyRef.current = true; setBusy("delete"); setError(null);
-                  try {
-                    const { error: deleteError } = await supabase.from("story_drafts").delete().eq("id", d.id);
-                    if (deleteError) throw deleteError;
-                    if (uid) await loadDrafts(uid);
-                  } catch (failure) { setError("Could not confirm the draft list. " + publicationError(failure)); }
-                  finally { busyRef.current = false; setBusy(null); }
-                }}
-                  className="absolute -right-1 -top-1 rounded-full bg-white p-1 text-ink/50 shadow" aria-label="Delete draft"><X size={11} /></button>
+                <button onClick={() => deleteDraft(d)}
+                  className="absolute -right-1 -top-1 rounded-full bg-white p-1 text-muted shadow" aria-label="Delete draft"><X size={11} /></button>
               </div>
             ))}
           </div>
@@ -269,7 +389,7 @@ function ComposerInner() {
           <div className="mt-3">
             {STORY_FILTER_FAMILIES.map((fam) => (
               <div key={fam.key} className="mb-2">
-                <p className="mb-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-ink/40">{fam.label}</p>
+                <p className="mb-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-muted">{fam.label}</p>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {(fam.key === "classic" ? [{ id: null as string | null, label: "None", layers: [] as { color: string; opacity: number }[], css: undefined as string | undefined }, ...STORY_FILTERS.filter((f) => f.family === fam.key)] : STORY_FILTERS.filter((f) => f.family === fam.key)).map((f) => {
                     const on = filterId === f.id;
@@ -280,7 +400,7 @@ function ComposerInner() {
                           <img src={mediaUrl} alt="" className="h-full w-full object-cover" style={{ filter: filterCss(f.id) }} />
                           {f.layers.map((l, i) => <span key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />)}
                         </span>
-                        <span className={"text-[11px] " + (on ? "font-semibold text-ink" : "text-ink/50")}>{f.label}</span>
+                        <span className={"text-[11px] " + (on ? "font-semibold text-ink" : "text-muted")}>{f.label}</span>
                       </button>
                     );
                   })}
@@ -297,11 +417,11 @@ function ComposerInner() {
       <input value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={120} placeholder="Write a caption"
         className="mt-4 w-full rounded-lg border border-ink/15 px-3 py-2.5 text-[14px] text-ink outline-none focus:border-ink/40" />
 
-      <p className="mb-1.5 mt-4 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Audience</p>
+      <p className="mb-1.5 mt-4 text-[12px] font-semibold uppercase tracking-wide text-muted">Audience</p>
       <div className="grid grid-cols-2 gap-1.5">
         {AUD.map((a) => (
           <button key={a.key} onClick={() => setAudience(a.key)}
-            className={"flex items-center justify-between rounded-lg border px-3 py-2.5 text-left text-[13px] " + (audience === a.key ? "border-ink bg-black/[0.03] font-semibold text-ink" : "border-ink/10 text-ink/70")}>
+            className={"flex items-center justify-between rounded-lg border px-3 py-2.5 text-left text-[13px] " + (audience === a.key ? "border-ink bg-black/[0.03] font-semibold text-ink" : "border-ink/10 text-secondary")}>
             {a.label}{audience === a.key ? <Check size={14} /> : null}
           </button>
         ))}
@@ -309,14 +429,14 @@ function ComposerInner() {
 
       {audience === "only_with" ? (
         <div className="mt-3">
-          <div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink/40"><Users size={13} /> Share with</div>
+          <div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted"><Users size={13} /> Share with</div>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people"
             className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none focus:border-ink/40" />
           {results.map((r) => (
-            <button key={r.id} onClick={() => { if (!people.some((p) => p.id === r.id)) setPeople([...people, r]); setQ(""); setResults([]); }}
+            <button key={r.id} onClick={() => { setPeople(current => current.some(p => p.id === r.id) ? current : [...current, r]); setQ(""); setResults([]); }}
               className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-black/5">
-              <span className="text-[13px] text-ink">{r.full_name} <VerifiedBadge userId={r.id} size={12} /> <span className="text-ink/40">@{r.username}</span></span>
-              <Plus size={13} className="ml-auto text-ink/40" />
+              <span className="text-[13px] text-ink">{r.full_name} <VerifiedBadge userId={r.id} size={12} /> <span className="text-muted">@{r.username}</span></span>
+              <Plus size={13} className="ml-auto text-muted" />
             </button>
           ))}
           <div className="flex flex-wrap gap-1.5 pt-1">
@@ -324,7 +444,7 @@ function ComposerInner() {
               <span key={p.id} className="flex items-center gap-1 rounded-full bg-black/5 px-2.5 py-1 text-[12px] text-ink">
                 {p.full_name}
                 <VerifiedBadge userId={p.id} size={11} />
-                <button onClick={() => setPeople(people.filter((x) => x.id !== p.id))} aria-label="Remove"><X size={11} /></button>
+                <button onClick={() => setPeople(current => current.filter((x) => x.id !== p.id))} aria-label="Remove"><X size={11} /></button>
               </span>
             ))}
           </div>
@@ -334,12 +454,12 @@ function ComposerInner() {
       </fieldset>
       {error ? <p role="alert" className="mt-3 text-[13px] text-red-700">{error}</p> : null}
       <div className="mt-5 flex gap-2">
-        <button onClick={saveDraft} disabled={!mediaUrl || !!busy || publicationStatus.locked}
-          className="flex-1 rounded-md border border-ink/15 py-2.5 text-sm font-semibold text-ink/70 disabled:opacity-40">
+        <button onClick={saveDraft} disabled={!uid || !mediaUrl || !!busy || publicationStatus.locked}
+          className="flex-1 rounded-md border border-ink/15 py-2.5 text-sm font-semibold text-secondary disabled:opacity-40">
           {busy === "draft" ? "Saving" : draftId ? "Update draft" : "Save as draft"}
         </button>
-        <button onClick={publish} disabled={!mediaUrl || audience === "only_with" && people.length === 0 || !!busy || publicationStatus.published || publicationStatus.uncertain}
-          className="flex-1 rounded-md bg-pearl py-2.5 text-sm font-semibold text-ink disabled:opacity-40">
+        <button onClick={publish} disabled={!uid || !mediaUrl || audience === "only_with" && people.length === 0 || !!busy || publicationStatus.published || publicationStatus.uncertain}
+          className="flex-1 rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl disabled:opacity-40">
           {busy === "publish" ? "Posting" : publicationStatus.postId ? "Retry" : "Share to story"}
         </button>
       </div>
@@ -349,7 +469,7 @@ function ComposerInner() {
 
 export function StoryComposer() {
   return (
-    <Suspense fallback={<p className="py-24 text-center text-sm text-ink/40">Opening</p>}>
+    <Suspense fallback={<p className="py-24 text-center text-sm text-muted">Opening</p>}>
       <ComposerInner />
     </Suspense>
   );

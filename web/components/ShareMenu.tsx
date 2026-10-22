@@ -117,7 +117,7 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
     <div ref={boxRef} className="relative">
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
         title="Share"
-        className="flex items-center gap-1.5 text-[13px] text-ink/50 transition-colors hover:text-pearl"
+        className="flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-accent"
       >
         <Share2 size={16} strokeWidth={1.8} />
         {n > 0 ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "K" : n) : ""}
@@ -126,7 +126,7 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
         <div className="absolute bottom-7 right-0 z-20 w-60 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-2xl">
           {sendMode ? (
             convs.length === 0 && groups.length === 0 && communities.length === 0 ? (
-              <p className="px-3.5 py-3 text-[12px] text-ink/40">No conversations yet.</p>
+              <p className="px-3.5 py-3 text-[12px] text-muted">No conversations yet.</p>
             ) : (
               <>
                 {convs.map((c) => (
@@ -135,14 +135,14 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
                     <span className="truncate">{c.title}</span>
                   </button>
                 ))}
-                {groups.length ? <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-extrabold uppercase tracking-wider text-ink/45">Groups</p> : null}
+                {groups.length ? <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-extrabold uppercase tracking-wider text-muted">Groups</p> : null}
                 {groups.map((g) => (
                   <button key={g.id} onClick={(e) => { e.stopPropagation(); sendToConversation(g.id, null); }} className={item}>
                     {sent === g.id ? <Check size={15} className="text-success" /> : <span className="w-[15px] text-center text-[13px]">{g.emoji || "\u{1F465}"}</span>}
                     <span className="truncate">{g.name}</span>
                   </button>
                 ))}
-                {communities.length ? <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-extrabold uppercase tracking-wider text-ink/45">Communities</p> : null}
+                {communities.length ? <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-extrabold uppercase tracking-wider text-muted">Communities</p> : null}
                 {communities.map((c) => (
                   <button key={c.id} onClick={(e) => { e.stopPropagation(); sendToCommunity(c.id); }} className={item}>
                     <span className="w-[15px] text-center text-[13px]">{c.emoji || "\u{1F3DB}\uFE0F"}</span>

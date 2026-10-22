@@ -101,17 +101,17 @@ export default function JobsPage() {
           <Link href="/jobs/messages" title="Job messages" className="rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><MessageCircle size={19} /></Link>
           <Link href="/jobs/applications" title="My applications" className="rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><Send size={19} /></Link>
           <Link href="/jobs/saved" title="Saved jobs" className="rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><Bookmark size={19} /></Link>
-          <Link href="/jobs/new" className="ml-1 flex items-center gap-1.5 rounded-full bg-pearl px-3.5 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"><Plus size={16} /> Post a job</Link>
+          <Link href="/jobs/new" className="ml-1 flex items-center gap-1.5 rounded-full bg-pearl px-3.5 py-2 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"><Plus size={16} /> Post a job</Link>
         </div>
       </div>
 
       <div className="relative px-1">
-        <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
+        <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
         <input value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search jobs by title, keyword, or company"
           aria-label="Search jobs"
-          className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+          className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
         />
       </div>
 
@@ -119,7 +119,7 @@ export default function JobsPage() {
         {SCOPE_TABS.map((t) => (
           <button key={t.id}
             onClick={() => setScope(t.id)}
-            className={"rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (scope === t.id ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
+            className={"rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (scope === t.id ? "bg-pearl font-semibold text-on-pearl" : "bg-surface text-ink/70 hover:text-ink")}
           >
             {t.label}
           </button>
@@ -146,9 +146,9 @@ export default function JobsPage() {
       </div>
 
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading jobs</p>
+        <p className="py-16 text-center text-sm text-muted">Loading jobs</p>
       ) : shown.length === 0 ? (
-        <p className="py-16 text-center text-sm text-ink/40">No jobs match. Try clearing the filters.</p>
+        <p className="py-16 text-center text-sm text-muted">No jobs match. Try clearing the filters.</p>
       ) : (
         <div className="border-t border-ink/10">
           {shown.map((j) => (

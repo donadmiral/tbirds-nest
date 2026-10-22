@@ -319,7 +319,7 @@ export default function CommunityPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={info.icon_url} alt="" className="h-[52px] w-[52px] rounded-2xl object-cover" />
           ) : (
-            <span className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-white/60 text-[#1F2937]"><Users size={22} /></span>
+            <span className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-[#FFFFFF]/60 text-[#1F2937]"><Users size={22} /></span>
           )}
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-[18px] font-extrabold text-[#1F2937]">{info?.name || "Community"}</h1>
@@ -331,17 +331,17 @@ export default function CommunityPage() {
           {info && !isMember ? (
             info.has_invite ? (
               <span className="flex gap-1.5">
-                <button onClick={() => respondInvite(true)} className="rounded-full bg-[#0F1419] px-4 py-1.5 text-[13px] font-bold text-white">Accept</button>
-                <button onClick={() => respondInvite(false)} className="rounded-full bg-white/70 px-3.5 py-1.5 text-[12.5px] font-bold text-[#1F2937]">Decline</button>
+                <button onClick={() => respondInvite(true)} className="rounded-full bg-ink px-4 py-1.5 text-[13px] font-bold text-white">Accept</button>
+                <button onClick={() => respondInvite(false)} className="rounded-full bg-[#FFFFFF]/70 px-3.5 py-1.5 text-[12.5px] font-bold text-[#1F2937]">Decline</button>
               </span>
             ) : info.is_banned ? (
-              <span className="rounded-full bg-white/70 px-3 py-1.5 text-[12px] font-bold text-[#1F2937]/70">Removed</span>
+              <span className="rounded-full bg-[#FFFFFF]/70 px-3 py-1.5 text-[12px] font-bold text-[#1F2937]/70">Removed</span>
             ) : info.has_pending ? (
-              <button onClick={cancelRequest} className="rounded-full bg-white/70 px-3.5 py-1.5 text-[12.5px] font-bold text-[#1F2937]">Requested</button>
+              <button onClick={cancelRequest} className="rounded-full bg-[#FFFFFF]/70 px-3.5 py-1.5 text-[12.5px] font-bold text-[#1F2937]">Requested</button>
             ) : info.join_mode === "invite" ? (
-              <span className="rounded-full bg-white/70 px-3 py-1.5 text-[12px] font-bold text-[#1F2937]/70">Invite only</span>
+              <span className="rounded-full bg-[#FFFFFF]/70 px-3 py-1.5 text-[12px] font-bold text-[#1F2937]/70">Invite only</span>
             ) : me ? (
-              <button onClick={join} className="rounded-full bg-[#0F1419] px-4 py-1.5 text-[13px] font-bold text-white">{info.join_mode === "approval" ? "Request" : "Join"}</button>
+              <button onClick={join} className="rounded-full bg-ink px-4 py-1.5 text-[13px] font-bold text-white">{info.join_mode === "approval" ? "Request" : "Join"}</button>
             ) : null
           ) : null}
         </div>
@@ -350,35 +350,35 @@ export default function CommunityPage() {
 
       {info?.rules ? (
         <button onClick={() => setRulesOpen(o => !o)} className="mt-3 w-full rounded-xl border border-ink/10 p-3 text-left">
-          <span className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-[#0B1E3D]"><Shield size={13} /> Community rules</span>
+          <span className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-ink"><Shield size={13} /> Community rules</span>
           <span className={"mt-1 block whitespace-pre-wrap text-[12.5px] text-ink/60" + (rulesOpen ? "" : " line-clamp-2")}>{info.rules}</span>
         </button>
       ) : null}
 
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading&hellip;</p>
+        <p className="py-16 text-center text-sm text-muted">Loading&hellip;</p>
       ) : !isMember ? (
-        <p className="py-16 text-center text-sm text-ink/40">{info?.has_invite ? "Accept the invitation above to see the posts." : info?.is_banned ? "You were removed from this community." : info?.join_mode === "invite" ? "Ask a moderator for an invite to see the posts." : "Join to see and share posts inside this community."}</p>
+        <p className="py-16 text-center text-sm text-muted">{info?.has_invite ? "Accept the invitation above to see the posts." : info?.is_banned ? "You were removed from this community." : info?.join_mode === "invite" ? "Ask a moderator for an invite to see the posts." : "Join to see and share posts inside this community."}</p>
       ) : (
         <div className="mt-3">
           {(announcements.length > 0 || isMod) ? (
-            <div className="mb-3 rounded-2xl border border-[#0B1E3D]/15 bg-[#C9BFB0]/15 p-3">
-              <div className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-[#0B1E3D]">
+            <div className="mb-3 rounded-2xl border border-ink/15 bg-[#C9BFB0]/15 p-3">
+              <div className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-ink">
                 <Megaphone size={13} /> Announcements
                 <span className="flex-1" />
-                {isMod ? <button onClick={() => setAnnOpen(o => !o)} className="rounded-full p-1 text-[#0B1E3D] hover:bg-black/5" aria-label="Post an announcement"><Plus size={15} /></button> : null}
+                {isMod ? <button onClick={() => setAnnOpen(o => !o)} className="rounded-full p-1 text-ink hover:bg-black/5" aria-label="Post an announcement"><Plus size={15} /></button> : null}
               </div>
               {annOpen ? (
                 <div className="mt-2 flex gap-2">
                   <input value={annDraft} onChange={e => setAnnDraft(e.target.value)} maxLength={2000} placeholder="What should everyone know?" onKeyDown={e => { if (e.key === "Enter") void postAnnouncement(); }}
-                    className="w-full rounded-full bg-white px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-ink/40" />
+                    className="w-full rounded-full bg-white px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-muted" />
                   <button onClick={postAnnouncement} disabled={!annDraft.trim()} className="rounded-full bg-ink px-4 text-[13px] font-semibold text-white disabled:opacity-30">Post</button>
                 </div>
               ) : null}
               {announcements.length === 0 ? <p className="mt-1 text-[12.5px] text-ink/60">Nothing announced yet. Only moderators post here; every member sees it.</p> : announcements.slice(0, 3).map((a: any) => (
                 <div key={a.id} className="group mt-2">
                   <p className="whitespace-pre-wrap text-[13px] text-ink">{a.body}</p>
-                  <p className="text-[11.5px] text-ink/45">{(a.full_name || a.username || "Moderator")}{isMod ? <button onClick={() => deleteAnnouncement(a)} className="ml-2 hidden text-red-600 group-hover:inline">Remove</button> : null}</p>
+                  <p className="text-[11.5px] text-muted">{(a.full_name || a.username || "Moderator")}{isMod ? <button onClick={() => deleteAnnouncement(a)} className="ml-2 hidden text-danger group-hover:inline">Remove</button> : null}</p>
                 </div>
               ))}
             </div>
@@ -386,12 +386,12 @@ export default function CommunityPage() {
           {(subs.length > 0 || isMod) ? (
             <div className="mb-3 flex flex-wrap gap-2">
               {subs.map((s: any) => (
-                <Link key={s.id} href={"/communities/" + s.id} className="flex items-center gap-1 rounded-full border border-[#0B1E3D]/20 bg-white px-3 py-1.5 text-[13px] font-semibold text-[#0B1E3D] hover:bg-black/[0.03]">
-                  <Hash size={12} /> {s.name}{s.join_mode === "invite" && !s.is_member ? <span className="text-ink/40"> · invite only</span> : null}
+                <Link key={s.id} href={"/communities/" + s.id} className="flex items-center gap-1 rounded-full border border-ink/20 bg-white px-3 py-1.5 text-[13px] font-semibold text-ink hover:bg-black/[0.03]">
+                  <Hash size={12} /> {s.name}{s.join_mode === "invite" && !s.is_member ? <span className="text-muted"> · invite only</span> : null}
                 </Link>
               ))}
               {isMod ? (
-                <button onClick={() => setSubOpen(o => !o)} className="flex items-center gap-1 rounded-full border border-dashed border-[#0B1E3D]/30 px-3 py-1.5 text-[13px] font-semibold text-[#0B1E3D] hover:bg-black/[0.03]"><Plus size={12} /> Sub-group</button>
+                <button onClick={() => setSubOpen(o => !o)} className="flex items-center gap-1 rounded-full border border-dashed border-ink/30 px-3 py-1.5 text-[13px] font-semibold text-ink hover:bg-black/[0.03]"><Plus size={12} /> Sub-group</button>
               ) : null}
             </div>
           ) : null}
@@ -409,36 +409,36 @@ export default function CommunityPage() {
             </div>
           ) : null}
           {info?.my_status === "limited" ? (
-            <p className="mb-3 rounded-2xl border border-ink/10 px-3 py-2.5 text-center text-[13px] font-semibold text-ink/50">You can view this community but not post in it</p>
+            <p className="mb-3 rounded-2xl border border-ink/10 px-3 py-2.5 text-center text-[13px] font-semibold text-muted">You can view this community but not post in it</p>
           ) : (
           <div className="mb-3 rounded-2xl border border-ink/10 p-3">
             {file ? (
               <p className="mb-2 flex items-center gap-2 text-[12.5px] text-ink/60">
                 <ImageIcon size={13} /> {file.name}
-                <button onClick={() => setFile(null)} className="text-ink/40 hover:text-ink" aria-label="Remove attachment"><X size={13} /></button>
+                <button onClick={() => setFile(null)} className="text-muted hover:text-ink" aria-label="Remove attachment"><X size={13} /></button>
               </p>
             ) : null}
             <div className="flex items-end gap-2">
-              <button onClick={() => fileRef.current?.click()} className="rounded-full p-2 text-ink/45 hover:bg-black/5" aria-label="Attach a photo"><ImageIcon size={18} /></button>
+              <button onClick={() => fileRef.current?.click()} className="rounded-full p-2 text-muted hover:bg-black/5" aria-label="Attach a photo"><ImageIcon size={18} /></button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { setFile(e.target.files?.[0] || null); e.target.value = ""; }} />
               <input value={draft} onChange={e => setDraft(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") void submitPost(); }}
                 placeholder="Share with the community"
-                className="w-full rounded-full bg-ink/5 px-4 py-2.5 text-[14px] text-ink outline-none placeholder:text-ink/40" />
+                className="w-full rounded-full bg-ink/5 px-4 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted" />
               <button onClick={submitPost} disabled={(!draft.trim() && !file) || posting} className="rounded-full bg-ink p-2.5 text-white disabled:opacity-30" aria-label="Post"><Send size={15} /></button>
             </div>
           </div>
           )}
           {posts.length === 0 ? (
-            <p className="py-12 text-center text-sm text-ink/40">Quiet in here. Be the first to post.</p>
+            <p className="py-12 text-center text-sm text-muted">Quiet in here. Be the first to post.</p>
           ) : (
             posts.map(p => (
               <div key={p.post_id} className="relative mb-1">
                 {(p.is_pinned || isMod || p.author_id === me) ? (
                   <div className="flex items-center justify-between px-1 pt-2">
-                    <span className="text-[11px] font-extrabold text-[#0B1E3D]">{p.is_pinned ? "Pinned" : ""}</span>
+                    <span className="text-[11px] font-extrabold text-ink">{p.is_pinned ? "Pinned" : ""}</span>
                     {(isMod || p.author_id === me) ? (
-                      <button onClick={() => setMenuFor(menuFor === p.post_id ? null : p.post_id)} className="rounded-full p-1 text-ink/40 hover:bg-black/5" aria-label="Post actions"><MoreHorizontal size={15} /></button>
+                      <button onClick={() => setMenuFor(menuFor === p.post_id ? null : p.post_id)} className="rounded-full p-1 text-muted hover:bg-black/5" aria-label="Post actions"><MoreHorizontal size={15} /></button>
                     ) : null}
                   </div>
                 ) : null}
@@ -447,7 +447,7 @@ export default function CommunityPage() {
                     {isMod ? (
                       <button onClick={() => pin(p)} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-ink hover:bg-black/5">{p.is_pinned ? "Unpin from top" : "Pin to top"}</button>
                     ) : null}
-                    <button onClick={() => removePost(p)} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-red-600 hover:bg-black/5">{p.author_id === me ? "Delete post" : "Remove post"}</button>
+                    <button onClick={() => removePost(p)} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-danger hover:bg-black/5">{p.author_id === me ? "Delete post" : "Remove post"}</button>
                   </div>
                 ) : null}
                 <PostCard post={p} />
@@ -465,21 +465,21 @@ export default function CommunityPage() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setMembersOpen(false)}>
           <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">Members{isMod ? <button onClick={openBans} className="ml-3 text-[12.5px] font-semibold text-[#0B1E3D] hover:underline">Blocked</button> : null}</p>
-              <button onClick={() => setMembersOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <p className="text-[15px] font-semibold text-ink">Members{isMod ? <button onClick={openBans} className="ml-3 text-[12.5px] font-semibold text-ink hover:underline">Blocked</button> : null}</p>
+              <button onClick={() => setMembersOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             {members.map(m => (
               <div key={m.user_id} className="flex items-center gap-2 py-1.5">
                 {m.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(m.avatar_url, 200) ?? m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(m.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(m.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={m.full_name || "Member"} userId={m.user_id} badgeSize={12} />{m.user_id === me ? " (you)" : ""}</span>
-                  {m.username ? <span className="block text-[12px] text-ink/45">@{m.username}</span> : null}
+                  {m.username ? <span className="block text-[12px] text-muted">@{m.username}</span> : null}
                 </span>
-                {m.status === "limited" ? <span className="rounded-full bg-ink/5 px-2 py-0.5 text-[10.5px] font-bold text-ink/50">Limited</span> : null}
-                {m.role !== "member" ? <span className="rounded-full bg-[#0B1E3D]/10 px-2 py-0.5 text-[10.5px] font-bold text-[#0B1E3D]">{m.role === "owner" ? "Owner" : "Moderator"}</span> : null}
+                {m.status === "limited" ? <span className="rounded-full bg-ink/5 px-2 py-0.5 text-[10.5px] font-bold text-muted">Limited</span> : null}
+                {m.role !== "member" ? <span className="rounded-full bg-ink/10 px-2 py-0.5 text-[10.5px] font-bold text-ink">{m.role === "owner" ? "Owner" : "Moderator"}</span> : null}
                 {isMod && m.role !== "owner" && m.user_id !== me && (m.role !== "moderator" || myRole === "owner") ? (
                   <select value="" onChange={e => { memberAction(m, e.target.value); e.target.value = ""; }} aria-label="Member actions"
                     className="rounded-md border border-ink/15 bg-white px-1.5 py-1 text-[12px] text-ink outline-none">
@@ -501,19 +501,19 @@ export default function CommunityPage() {
           <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">Join requests</p>
-              <button onClick={() => setRequestsOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setRequestsOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
-            {requests.length === 0 ? <p className="py-8 text-center text-sm text-ink/40">No pending requests.</p> : requests.map(r => (
+            {requests.length === 0 ? <p className="py-8 text-center text-sm text-muted">No pending requests.</p> : requests.map(r => (
               <div key={r.user_id} className="flex items-center gap-2 py-1.5">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={r.full_name || "Member"} userId={r.user_id} badgeSize={12} /></span>
-                  {r.username ? <span className="block text-[12px] text-ink/45">@{r.username}</span> : null}
+                  {r.username ? <span className="block text-[12px] text-muted">@{r.username}</span> : null}
                 </span>
-                <button onClick={() => resolveReq(r, true)} className="rounded-full bg-[#0B1E3D] p-1.5 text-white" aria-label="Approve"><Check size={14} /></button>
+                <button onClick={() => resolveReq(r, true)} className="rounded-full bg-ink p-1.5 text-white" aria-label="Approve"><Check size={14} /></button>
                 <button onClick={() => resolveReq(r, false)} className="rounded-full bg-ink/5 p-1.5 text-ink/60" aria-label="Deny"><X size={14} /></button>
               </div>
             ))}
@@ -526,7 +526,7 @@ export default function CommunityPage() {
           <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">Invite people</p>
-              <button onClick={() => setInviteOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setInviteOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <p className="mb-2 text-[12.5px] text-ink/60">An invitation always admits, even when the community is invite only.</p>
             <div className="mb-3 flex gap-2">
@@ -535,32 +535,32 @@ export default function CommunityPage() {
             </div>
             {linkNote ? <p className="mb-3 break-all rounded-lg bg-ink/5 px-3 py-2 text-[12px] text-ink/70">{linkNote}</p> : null}
             <input value={inviteQ} onChange={e => setInviteQ(e.target.value)} placeholder="Search people" autoFocus
-              className="mb-2 w-full rounded-full bg-ink/5 px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-ink/40" />
+              className="mb-2 w-full rounded-full bg-ink/5 px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-muted" />
             {inviteHits.filter(h => h.id !== me && !invites.some(i => i.user_id === h.id)).map(h => (
               <div key={h.id} className="flex items-center gap-2 py-1.5">
                 {h.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(h.avatar_url, 200) ?? h.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(h.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(h.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={h.full_name || "Member"} userId={h.id} badgeSize={12} /></span>
-                  {h.username ? <span className="block text-[12px] text-ink/45">@{h.username}</span> : null}
+                  {h.username ? <span className="block text-[12px] text-muted">@{h.username}</span> : null}
                 </span>
-                <button onClick={() => invitePerson(h)} className="rounded-full bg-[#0B1E3D] px-3 py-1 text-[12px] font-bold text-white">Invite</button>
+                <button onClick={() => invitePerson(h)} className="rounded-full bg-ink px-3 py-1 text-[12px] font-bold text-white">Invite</button>
               </div>
             ))}
-            {invites.length > 0 ? <p className="mb-1 mt-3 text-[12px] font-bold uppercase tracking-wide text-ink/40">Pending</p> : null}
+            {invites.length > 0 ? <p className="mb-1 mt-3 text-[12px] font-bold uppercase tracking-wide text-muted">Pending</p> : null}
             {invites.map(r => (
               <div key={r.user_id} className="flex items-center gap-2 py-1.5">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={r.full_name || "Member"} userId={r.user_id} badgeSize={12} /></span>
-                  {r.username ? <span className="block text-[12px] text-ink/45">@{r.username}</span> : null}
+                  {r.username ? <span className="block text-[12px] text-muted">@{r.username}</span> : null}
                 </span>
-                <button onClick={() => revokeInvite(r)} className="rounded-full p-1.5 text-ink/40 hover:bg-black/5" aria-label="Withdraw invitation"><X size={14} /></button>
+                <button onClick={() => revokeInvite(r)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Withdraw invitation"><X size={14} /></button>
               </div>
             ))}
           </div>
@@ -572,17 +572,17 @@ export default function CommunityPage() {
           <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">Blocked from rejoining</p>
-              <button onClick={() => setBansOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setBansOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
-            {bans.length === 0 ? <p className="py-8 text-center text-sm text-ink/40">No one is blocked.</p> : bans.map(b => (
+            {bans.length === 0 ? <p className="py-8 text-center text-sm text-muted">No one is blocked.</p> : bans.map(b => (
               <div key={b.user_id} className="flex items-center gap-2 py-1.5">
                 {b.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(b.avatar_url, 200) ?? b.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(b.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(b.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={b.full_name || "Member"} userId={b.user_id} badgeSize={12} /></span>
-                  {b.username ? <span className="block text-[12px] text-ink/45">@{b.username}</span> : null}
+                  {b.username ? <span className="block text-[12px] text-muted">@{b.username}</span> : null}
                 </span>
                 <button onClick={() => unban(b)} className="rounded-full bg-ink/5 px-3 py-1 text-[12px] font-bold text-ink">Allow back</button>
               </div>
@@ -649,7 +649,7 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
       <div className="max-h-[88vh] w-full max-w-[460px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[15px] font-semibold text-ink">Community settings</p>
-          <button onClick={onClose} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+          <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
         </div>
         <div className="mb-4 flex flex-col items-center">
           <button onClick={() => iconRef.current?.click()} className="relative" aria-label="Change the community icon">
@@ -659,7 +659,7 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
             ) : (
               <span className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl text-[#1F2937]" style={{ background: COMM_COLORS[eColor] || COMM_COLORS.sky }}><Users size={24} /></span>
             )}
-            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#0B1E3D] text-white">
+            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-ink text-white">
               {iconBusy ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <Camera size={12} />}
             </span>
           </button>
@@ -702,7 +702,7 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
           const { error } = await supabase.rpc("delete_community", { p_community: info.id });
           if (error) { alert(error.message); return; }
           window.location.href = "/communities";
-        }} className="mt-3 w-full rounded-md border border-red-600 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50">Delete community</button>
+        }} className="mt-3 w-full rounded-md border border-red-600 py-2.5 text-sm font-semibold text-danger hover:bg-red-50">Delete community</button>
       </div>
     </div>
   );

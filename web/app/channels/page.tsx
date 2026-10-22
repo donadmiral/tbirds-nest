@@ -72,15 +72,15 @@ export default function ChannelsPage() {
         <Link href="/communities" className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/60 transition-colors duration-[140ms] hover:text-ink"><Users size={13} /> Communities</Link>
       </div>
       <div className="mb-4 flex items-center gap-2 rounded-lg bg-ink/5 px-3 py-2 transition-colors duration-[140ms] focus-within:bg-ink/[0.07]">
-        <Search size={15} className="text-ink/40" />
+        <Search size={15} className="text-muted" />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search channels"
-          className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-ink/40" />
-        {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-ink/40" /></button> : null}
+          className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-muted" />
+        {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-muted" /></button> : null}
       </div>
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading…</p>
+        <p className="py-16 text-center text-sm text-muted">Loading…</p>
       ) : rows.length === 0 ? (
-        <p className="py-16 text-center text-sm text-ink/40">{q ? "No channels match." : "No channels yet. Create the first one."}</p>
+        <p className="py-16 text-center text-sm text-muted">{q ? "No channels match." : "No channels yet. Create the first one."}</p>
       ) : (
         <ul>
           {rows.map(ch => (
@@ -94,7 +94,7 @@ export default function ChannelsPage() {
                 )}
                 <span className="min-w-0">
                   <span className="block truncate text-[14.5px] font-semibold text-ink">{ch.name}</span>
-                  <span className="block truncate text-[12.5px] text-ink/45">
+                  <span className="block truncate text-[12.5px] text-muted">
                     {String(ch.member_count || 0)} {ch.member_count === 1 ? "member" : "members"}
                     {ch.description ? " · " + ch.description : ""}
                   </span>
@@ -103,7 +103,7 @@ export default function ChannelsPage() {
               {me && !ch.is_member ? (
                 <button onClick={() => join(ch)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">Join</button>
               ) : ch.is_member ? (
-                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/50">Joined</span>
+                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-muted">Joined</span>
               ) : null}
             </li>
           ))}
@@ -114,7 +114,7 @@ export default function ChannelsPage() {
           <div className="w-full max-w-[440px] rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">New channel</p>
-              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <input value={cName} onChange={e => setCName(e.target.value)} maxLength={60} placeholder="Channel name"
               className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />

@@ -243,21 +243,22 @@ export default function HomeFeed() {
           feeds never scrolls out of reach. The gold underline marks the active
           feed; the dot-in-a-ring read as decoration at this size. */}
       <div className="sticky top-[72px] z-10 mb-4 rounded-2xl border border-ink/10 bg-white/95 px-2 backdrop-blur">
-        <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="flex items-center gap-1 overflow-x-auto overflow-y-hidden">
           {MODES.map((m) => {
             const active = mode === m.key;
             return (
               <button key={m.key}
+                aria-pressed={active}
                 onClick={() => setMode(m.key)}
                 className={
                   "relative shrink-0 px-3.5 py-3 text-[14.5px] transition-colors duration-[180ms] " +
-                  (active ? "font-semibold text-ink" : "text-ink/50 hover:text-ink/80")
+                  (active ? "font-semibold text-ink" : "text-muted hover:text-ink/80")
                 }
               >
                 {m.label}
                 <span
                   className={
-                    "absolute inset-x-3 -bottom-px h-[2px] rounded-full bg-pearl transition-opacity duration-[180ms] " +
+                    "absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-pearl transition-opacity duration-[180ms] " +
                     (active ? "opacity-100" : "opacity-0")
                   }
                   aria-hidden
@@ -271,7 +272,7 @@ export default function HomeFeed() {
       {mode === "trending" ? <div className="pt-3"><StoryRings mode="global" /></div> : null}
       {pendingNew > 0 && !loading ? (
         <div className="sticky top-16 z-10 flex justify-center py-2">
-          <button onClick={showNewPosts} className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-1.5 text-[13px] font-semibold text-ink shadow-lg transition-opacity duration-[140ms] hover:opacity-90">
+          <button onClick={showNewPosts} className="flex items-center gap-1.5 rounded-full bg-pearl px-4 py-1.5 text-[13px] font-semibold text-on-pearl shadow-lg transition-opacity duration-[140ms] hover:opacity-90">
             <ArrowUp size={14} /> {pendingNew === 1 ? "New post" : pendingNew + " new posts"}
           </button>
         </div>
@@ -287,7 +288,7 @@ export default function HomeFeed() {
       ) : error ? (
         <div className="flex flex-col items-center gap-3 px-6 py-20 text-center">
           <p className="text-[17px] font-semibold text-ink">The feed could not load.</p>
-          <p className="text-[13.5px] text-ink/50">{error}</p>
+          <p className="text-[13.5px] text-muted">{error}</p>
           <button onClick={() => load(false)} className="mt-1 rounded-md bg-surface px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">
             Try again
           </button>
@@ -295,7 +296,7 @@ export default function HomeFeed() {
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center gap-2 px-6 py-20 text-center">
           <p className="text-[17px] font-semibold text-ink">{EMPTY_COPY[mode].title}</p>
-          <p className="text-[13.5px] text-ink/50">{EMPTY_COPY[mode].sub}</p>
+          <p className="text-[13.5px] text-muted">{EMPTY_COPY[mode].sub}</p>
         </div>
       ) : (
         <div>
@@ -317,7 +318,7 @@ export default function HomeFeed() {
           </div>
           <div ref={sentinelRef} />
           {loadingMore ? <Skeleton /> : null}
-          {!hasMore ? <p className="py-8 text-center text-xs text-ink/30">You are all caught up.</p> : null}
+          {!hasMore ? <p className="py-8 text-center text-xs text-muted">You are all caught up.</p> : null}
         </div>
       )}
     </div>

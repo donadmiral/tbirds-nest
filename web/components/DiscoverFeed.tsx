@@ -137,12 +137,13 @@ export function DiscoverFeed() {
 
   return (
     <div>
-      <div className="sticky top-[72px] z-10 flex gap-1.5 overflow-x-auto rounded-2xl border border-ink/10 bg-white/95 px-3 py-2.5 backdrop-blur">
+      <div className="sticky top-[72px] z-10 flex gap-1.5 overflow-x-auto overflow-y-hidden rounded-2xl border border-ink/10 bg-white/95 px-3 py-2.5 backdrop-blur">
         {CHIPS.map((c) => (
           <button
             key={c.key}
+            aria-pressed={c.key === chip}
             onClick={() => setChip(c.key)}
-            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (c.key === chip ? "bg-pearl text-ink" : "text-ink/55 hover:bg-surface hover:text-ink")}
+            className={"shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (c.key === chip ? "bg-pearl text-on-pearl" : "text-muted hover:bg-surface hover:text-ink")}
           >
             {c.label}
           </button>

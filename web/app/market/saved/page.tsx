@@ -37,14 +37,14 @@ export default function SavedListingsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 px-1 pb-4">
-        <Link href="/market" className="text-sm text-ink/50 hover:text-ink">← Market</Link>
+        <Link href="/market" className="text-sm text-muted hover:text-ink">← Market</Link>
         <h1 className="font-display text-xl text-porcelain">Saved listings</h1>
       </div>
       {error ? <p role="alert" className="py-3 text-sm text-danger">Could not load saved listings. <button onClick={() => { setLoading(true); setError(false); setRetry((n) => n + 1); }} className="underline">Retry</button></p> : null}
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
+        <p className="py-16 text-center text-sm text-muted">Loading</p>
       ) : listings.length === 0 && !error ? (
-        <p className="py-16 text-center text-sm text-ink/40">Listings you save will appear here.</p>
+        <p className="py-16 text-center text-sm text-muted">Listings you save will appear here.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 px-1 sm:grid-cols-3">
           {listings.map((l) => (

@@ -395,7 +395,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   }, [initialKind]);
 
   const remaining = MAX_CHARS - text.length;
-  const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/55 hover:text-ink");
+  const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-muted hover:text-ink");
 
   if (!open) {
     // The collapsed state is a card, not a text field: the prompt line opens
@@ -413,13 +413,13 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             // eslint-disable-next-line @next/next/no-img-element
             <img src={myAvatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
           ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
-          <span className="text-[16px] text-ink/40">What&apos;s on your mind?</span>
+          <span className="text-[16px] text-muted">What&apos;s on your mind?</span>
         </button>
         <div className="mt-3 flex items-center gap-1 border-t border-ink/8 pt-2.5">
           <button onClick={start("media")} className={action}><ImageIcon size={16} className="text-pearl-muted" /> Photo</button>
           <button onClick={start("article")} className={action}><FileText size={16} className="text-pearl-muted" /> Article</button>
           <button onClick={start("poll")} className={action}><BarChart3 size={16} className="text-pearl-muted" /> Poll</button>
-          <button onClick={start()} className="ml-auto rounded-full bg-pearl px-5 py-1.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Post</button>
+          <button onClick={start()} className="ml-auto rounded-full bg-pearl px-5 py-1.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Post</button>
         </div>
       </div>
     );
@@ -444,7 +444,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             const gold = k.key === "innovation";
             const cls = "flex h-[34px] items-center gap-1.5 rounded-xl border px-3 text-[12.5px] font-semibold transition-colors duration-[140ms] " +
               (gold
-                ? (on ? "border-pearl bg-pearl/55 text-navy" : "border-pearl bg-pearl/30 text-navy hover:bg-pearl/40")
+                ? (on ? "border-pearl bg-pearl text-on-pearl" : "border-pearl bg-pearl/15 text-accent hover:bg-pearl/20")
                 : (on ? "border-navy bg-navy text-white" : "border-ink/10 bg-surface text-ink/70 hover:text-ink"));
             if (k.href) return <a key={k.key} href={k.href} className={cls}><k.icon size={14} />{k.label}</a>;
             return (
@@ -457,13 +457,13 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           <span className="mx-1 h-5 w-px bg-ink/10" aria-hidden />
           {TOOLS.map((t) => (
             <button key={t.key} onClick={() => setKind(t.key)} title={t.label} aria-label={t.label}
-              className={"flex h-9 w-9 items-center justify-center rounded-xl border transition-colors duration-[140ms] " + (kind === t.key ? "border-[#BFDBFE] bg-[#EFF6FF] text-ink" : "border-ink/10 bg-surface text-ink/45 hover:text-ink")}>
+              className={"flex h-9 w-9 items-center justify-center rounded-xl border transition-colors duration-[140ms] " + (kind === t.key ? "border-[#BFDBFE] bg-[#EFF6FF] text-ink" : "border-ink/10 bg-surface text-muted hover:text-ink")}>
               <t.icon size={17} />
             </button>
           ))}
           <Link
             href="/market/new"
-            className="ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-ink/55 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
+            className="ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
           >
             <Tag size={14} /> Sell an item
           </Link>
@@ -473,7 +473,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
       {quote ? (
         <div className="mb-3 rounded-lg border border-ink/10 p-3">
-          <p className="text-[11px] uppercase tracking-wide text-ink/40">Quoting {quote.author}</p>
+          <p className="text-[11px] uppercase tracking-wide text-muted">Quoting {quote.author}</p>
           <p className="mt-0.5 line-clamp-2 text-[13px] text-ink/70">{quote.text}</p>
         </div>
       ) : null}
@@ -487,7 +487,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             <input value={articleTitle}
               onChange={(e) => setArticleTitle(e.target.value)}
               placeholder={kind === "article" ? "Article title" : "Article title (optional)"}
-              className="mb-2 w-full rounded-md bg-surface px-3 py-2 text-[16px] font-semibold text-ink placeholder:text-ink/30 outline-none"
+              className="mb-2 w-full rounded-md bg-surface px-3 py-2 text-[16px] font-semibold text-ink placeholder:text-muted outline-none"
             />
           ) : null}
           <textarea ref={taRef}
@@ -497,7 +497,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             placeholder={inno ? "Share your innovation" : "What is happening?"}
             rows={4}
             autoFocus
-            className="w-full resize-none bg-transparent text-[18px] leading-relaxed text-ink placeholder:text-ink/30 outline-none"
+            className="w-full resize-none bg-transparent text-[18px] leading-relaxed text-ink placeholder:text-muted outline-none"
           />
         </div>
       </div>
@@ -513,19 +513,19 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
               )}
               <span className="min-w-0">
                 <span className="block truncate text-[13px] font-semibold text-ink">{u.full_name}</span>
-                <span className="block truncate text-[12px] text-ink/50">@{u.username}</span>
+                <span className="block truncate text-[12px] text-muted">@{u.username}</span>
               </span>
             </button>
           ))}
         </div>
       ) : null}
-      {dragOver ? <p className="ml-14 text-[12px] text-pearl">Drop photos or videos to attach</p> : null}
+      {dragOver ? <p className="ml-14 text-[12px] text-accent">Drop photos or videos to attach</p> : null}
       {inno ? (
         <div className="ml-14 mt-2 flex flex-wrap items-center gap-1.5">
           {INNO_FIELDS.map((f) => (
             <button key={f} onClick={() => setInnoField(innoField === f ? null : f)} className={chip(innoField === f)}>{f}</button>
           ))}
-          <span className="mx-1 text-ink/20">|</span>
+          <span className="mx-1 text-muted">|</span>
           {INNO_STAGES.map((g) => (
             <button key={g} onClick={() => setInnoStage(innoStage === g ? null : g)} className={chip(innoStage === g)}>{g}</button>
           ))}
@@ -580,7 +580,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
                   {tagHits.map((p) => (
                     <button key={p.id} type="button" onClick={() => addTag(p)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-ink/5">
                       {p.avatar_url ? <img src={p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" /> : <span className="h-8 w-8 rounded-full bg-ink/10" />}
-                      <span className="min-w-0"><span className="flex items-center gap-1 text-[14px] font-bold text-ink"><span className="truncate" style={p.is_verified && getTierColor(p.verified_tier) ? { color: getTierColor(p.verified_tier) as string } : undefined}>{p.full_name || p.username}</span>{p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={13} /> : null}</span>{p.username ? <span className="block text-[12px] text-ink/55">@{p.username}</span> : null}</span>
+                      <span className="min-w-0"><span className="flex items-center gap-1 text-[14px] font-bold text-ink"><span className="truncate" style={p.is_verified && getTierColor(p.verified_tier) ? { color: getTierColor(p.verified_tier) as string } : undefined}>{p.full_name || p.username}</span>{p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={13} /> : null}</span>{p.username ? <span className="block text-[12px] text-muted">@{p.username}</span> : null}</span>
                     </button>
                   ))}
                 </div>
@@ -600,7 +600,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
                 onChange={(e) => setItems((list) => list.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))}
                 placeholder="Describe this image, helps people using screen readers"
                 maxLength={500}
-                className="min-w-0 flex-1 rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink placeholder:text-ink/25 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+                className="min-w-0 flex-1 rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
               />
             </span>
           ))}
@@ -613,7 +613,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
               onChange={(e) => setPollOpts((l) => l.map((x, j) => (j === i ? e.target.value : x)))}
               placeholder={"Option " + (i + 1) + (i > 1 ? ", optional" : "")}
               maxLength={60}
-              className="w-full rounded-md bg-surface px-3 py-2 text-[13.5px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+              className="w-full rounded-md bg-surface px-3 py-2 text-[13.5px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
             />
           ))}
           <span className="flex items-center gap-2 pt-1">
@@ -625,14 +625,14 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
               <option value={3} className="bg-navy">3 days</option>
               <option value={7} className="bg-navy">7 days</option>
             </select>
-            <button onClick={() => { setPollOn(false); setPollOpts(["", ""]); }} className="text-[12px] text-ink/45 hover:underline">Remove poll</button>
+            <button onClick={() => { setPollOn(false); setPollOpts(["", ""]); }} className="text-[12px] text-muted hover:underline">Remove poll</button>
           </span>
         </div>
       ) : null}
       {threadTo ? (
         <p className="ml-14 mt-3 flex items-center gap-2 rounded-md bg-surface px-3 py-2 text-[12px] text-ink/70">
           Adding to your thread
-          <button onClick={() => setThreadTo(null)} className="ml-auto text-pearl hover:underline">Cancel</button>
+          <button onClick={() => setThreadTo(null)} className="ml-auto text-accent hover:underline">Cancel</button>
         </p>
       ) : null}
       {preview ? (
@@ -642,10 +642,10 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             <img src={preview.image_url} alt="" className="h-12 w-12 shrink-0 rounded-md bg-surface object-cover" />
           ) : null}
           <span className="min-w-0 flex-1">
-            <span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{preview.domain ?? ""}</span>
+            <span className="block text-[10px] font-bold uppercase tracking-wide text-muted">{preview.domain ?? ""}</span>
             <span className="line-clamp-2 block text-[13px] font-semibold text-ink">{preview.title ?? preview.url}</span>
           </span>
-          <button onClick={() => { previewOff.current = preview.url; setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-ink/40 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><X size={14} /></button>
+          <button onClick={() => { previewOff.current = preview.url; setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><X size={14} /></button>
         </span>
       ) : null}
       {pickerOpen ? <div className="ml-14 mt-3"><ProductPicker selected={products} onChange={setProducts} onClose={() => setPickerOpen(false)} /></div> : null}
@@ -653,8 +653,8 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         <div className="ml-14 mt-3 flex flex-wrap gap-1.5">
           {products.map((c) => (
             <span key={c.id} className="flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-ink/80">
-              <Tag size={10} className="text-pearl" /> {c.title}
-              <button onClick={() => setProducts(products.filter((x) => x.id !== c.id))} className="text-ink/40 hover:text-ink"><X size={11} /></button>
+              <Tag size={10} className="text-accent" /> {c.title}
+              <button onClick={() => setProducts(products.filter((x) => x.id !== c.id))} className="text-muted hover:text-ink"><X size={11} /></button>
             </span>
           ))}
         </div>
@@ -662,24 +662,24 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       {error ? <p role="alert" className="ml-14 mt-3 text-[13px] text-danger">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View post</Link></> : null}</p> : null}
       </div>
       <div className="mt-4 flex shrink-0 flex-wrap items-center gap-1 border-t border-ink/10 pt-4">
-        <button onClick={() => fileRef.current?.click()} disabled={items.length >= MAX_MEDIA} title="Add photos or videos" className="rounded-full p-2.5 text-pearl transition-colors duration-[140ms] hover:bg-pearl/10 disabled:opacity-30">
+        <button onClick={() => fileRef.current?.click()} disabled={items.length >= MAX_MEDIA} title="Add photos or videos" className="rounded-full p-2.5 text-accent transition-colors duration-[140ms] hover:bg-pearl/10 disabled:opacity-30">
           <ImagePlus size={20} />
         </button>
         <input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
-        <button onClick={() => setPickerOpen((v) => !v)} title="Attach products" className={"relative flex items-center rounded-full p-2.5 transition-colors duration-[140ms] " + (products.length > 0 ? "bg-pearl/10 text-pearl" : "text-pearl hover:bg-pearl/10")}>
+        <button onClick={() => setPickerOpen((v) => !v)} title="Attach products" className={"relative flex items-center rounded-full p-2.5 transition-colors duration-[140ms] " + (products.length > 0 ? "bg-pearl/10 text-accent" : "text-accent hover:bg-pearl/10")}>
           <Tag size={18} />
-          {products.length > 0 ? <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pearl px-1 text-[9px] font-bold text-ink">{products.length}</span> : null}
+          {products.length > 0 ? <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pearl px-1 text-[9px] font-bold text-on-pearl">{products.length}</span> : null}
         </button>
-        <button onClick={() => { if (items.length === 0) setPollOn((v) => !v); }} disabled={items.length > 0} title="Add a poll" className={"rounded-full p-2.5 transition-colors duration-[140ms] disabled:opacity-30 " + (pollOn ? "bg-pearl/10 text-pearl" : "text-pearl hover:bg-pearl/10")}>
+        <button onClick={() => { if (items.length === 0) setPollOn((v) => !v); }} disabled={items.length > 0} title="Add a poll" className={"rounded-full p-2.5 transition-colors duration-[140ms] disabled:opacity-30 " + (pollOn ? "bg-pearl/10 text-accent" : "text-accent hover:bg-pearl/10")}>
           <BarChart3 size={18} />
         </button>
-        <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-full px-3 py-2 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (inno ? "bg-pearl/10 text-pearl" : "text-ink/50 hover:bg-surface hover:text-ink")}>
+        <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-full px-3 py-2 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (inno ? "bg-pearl/10 text-accent" : "text-muted hover:bg-surface hover:text-ink")}>
           <Lightbulb size={16} /> Innovation
         </button>
         <div className="ml-auto flex items-center gap-2">
-          {items.length > 0 ? <span className="text-[12px] text-ink/40">{items.length}/{MAX_MEDIA}</span> : null}
+          {items.length > 0 ? <span className="text-[12px] text-muted">{items.length}/{MAX_MEDIA}</span> : null}
           {remaining <= 200 ? (
-            <span className={"text-[12px] font-semibold " + (remaining <= 20 ? "text-danger" : "text-ink/50")}>{remaining} left</span>
+            <span className={"text-[12px] font-semibold " + (remaining <= 20 ? "text-danger" : "text-muted")}>{remaining} left</span>
           ) : null}
         </div>
       </div>
@@ -707,7 +707,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           <option value="off" className="bg-navy">Comments off</option>
         </select>        <div className="ml-auto flex gap-2">
           <button disabled={pending} onClick={() => { setOpen(false); onQuoteDone?.(); }} className="rounded-full bg-surface px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Cancel</button>
-          <button onClick={post} disabled={pending || preparing || publicationStatus.uncertain || (!text.trim() && items.length === 0)} className="rounded-full bg-pearl px-6 py-2 text-[13.5px] font-bold text-ink shadow-sm transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
+          <button onClick={post} disabled={pending || preparing || publicationStatus.uncertain || (!text.trim() && items.length === 0)} className="rounded-full bg-pearl px-6 py-2 text-[13.5px] font-bold text-on-pearl shadow-sm transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
             {pending ? "Posting" : publicationStatus.postId ? "Retry" : "Post"}
           </button>
         </div>
@@ -740,7 +740,7 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
   const slider = (label: string, key: string, min = -100, max = 100) => (
     <label className="flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">{label}</span>
       <input type="range" min={min} max={max} value={(adj as any)[key] || 0} onChange={(ev) => setAdj(key, Number(ev.target.value))} className="flex-1 accent-[#0B1E3D]" />
-      <span className="w-8 text-right tabular-nums text-ink/50">{(adj as any)[key] || 0}</span></label>
+      <span className="w-8 text-right tabular-nums text-muted">{(adj as any)[key] || 0}</span></label>
   );
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
@@ -757,15 +757,15 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
         </div>
         <div className="flex w-full flex-col gap-4 md:w-[320px]">
           <div>
-            <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Filter</p>
+            <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-muted">Filter</p>
             <div className="flex flex-wrap gap-1.5">
               <button type="button" onClick={() => setE((p) => ({ ...p, filterId: null }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (!e.filterId ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>None</button>
               {STORY_FILTERS.map((f) => <button key={f.id} type="button" onClick={() => setE((p) => ({ ...p, filterId: f.id }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (e.filterId === f.id ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>{f.label}</button>)}
             </div>
-            {e.filterId ? <label className="mt-2 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Strength</span><input type="range" min={0} max={100} value={e.filterAmt ?? 100} onChange={(ev) => setE((p) => ({ ...p, filterAmt: Number(ev.target.value) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-8 text-right tabular-nums text-ink/50">{e.filterAmt ?? 100}</span></label> : null}
+            {e.filterId ? <label className="mt-2 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Strength</span><input type="range" min={0} max={100} value={e.filterAmt ?? 100} onChange={(ev) => setE((p) => ({ ...p, filterAmt: Number(ev.target.value) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-8 text-right tabular-nums text-muted">{e.filterAmt ?? 100}</span></label> : null}
           </div>
           <div>
-            <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Adjust</p>
+            <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-muted">Adjust</p>
             <div className="flex flex-col gap-1.5">{slider("Brightness", "bri")}{slider("Saturation", "sat")}{slider("Warmth", "warm")}{slider("Fade", "fade", 0, 100)}{slider("Vignette", "vig", 0, 100)}</div>
           </div>
           <div className="flex items-center gap-2">
@@ -774,9 +774,9 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
           </div>
           {item.isVideo && dur > 0 ? (
             <div>
-              <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Trim</p>
-              <label className="flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Start</span><input type="range" min={0} max={dur} step={0.1} value={e.trimStart ?? 0} onChange={(ev) => setE((p) => ({ ...p, trimStart: Math.min(Number(ev.target.value), (p.trimEnd ?? dur) - 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-ink/50">{(e.trimStart ?? 0).toFixed(1)}s</span></label>
-              <label className="mt-1.5 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">End</span><input type="range" min={0} max={dur} step={0.1} value={e.trimEnd ?? dur} onChange={(ev) => setE((p) => ({ ...p, trimEnd: Math.max(Number(ev.target.value), (p.trimStart ?? 0) + 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-ink/50">{(e.trimEnd ?? dur).toFixed(1)}s</span></label>
+              <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-muted">Trim</p>
+              <label className="flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Start</span><input type="range" min={0} max={dur} step={0.1} value={e.trimStart ?? 0} onChange={(ev) => setE((p) => ({ ...p, trimStart: Math.min(Number(ev.target.value), (p.trimEnd ?? dur) - 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-muted">{(e.trimStart ?? 0).toFixed(1)}s</span></label>
+              <label className="mt-1.5 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">End</span><input type="range" min={0} max={dur} step={0.1} value={e.trimEnd ?? dur} onChange={(ev) => setE((p) => ({ ...p, trimEnd: Math.max(Number(ev.target.value), (p.trimStart ?? 0) + 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-muted">{(e.trimEnd ?? dur).toFixed(1)}s</span></label>
             </div>
           ) : null}
           <div className="mt-auto flex items-center justify-between pt-2">

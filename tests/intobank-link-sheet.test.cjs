@@ -42,7 +42,7 @@ function harness() {
   const context = { exports: {}, require(name) {
     if (name === 'react') return { __esModule: true, default: React, ...React };
     if (name === 'react-native') return { ...Object.fromEntries(['View', 'Text', 'TouchableOpacity', 'Modal', 'TextInput', 'ActivityIndicator', 'KeyboardAvoidingView'].map(name => [name, name])), Platform: { OS: 'ios' }, Alert: { alert: (...args) => alerts.push(args) } };
-    if (name === '../theme/useTheme') return { themedSheet: factory => factory({ surface: { canvas: '' }, ink: { inverse: '' } }) };
+    if (name === '../theme/useTheme') return { themedSheet: factory => factory({ surface: { canvas: '', raised: '', hairline: '' }, ink: { inverse: '', primary: '', secondary: '' }, brand: { base: '' } }), useTheme: () => ({}), getTheme: () => ({ ink: { inverse: '', primary: '', secondary: '' } }) };
     if (name === '../stores/authStore') return { useAuthStore };
     if (name === '../services/paymentsService') return { paymentsService: { linkAccount(code, owner) {
       let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; });

@@ -104,10 +104,10 @@ export function ProfilePosts({ profileId, authorName, authorUsername, authorAvat
   }, [load]);
 
   if (loading) {
-    return <p className="py-12 text-center text-sm text-ink/40">Loading posts</p>;
+    return <p className="py-12 text-center text-sm text-muted">Loading posts</p>;
   }
   if (posts.length === 0) {
-    return <p className="py-12 text-center text-sm text-ink/40">No posts yet.</p>;
+    return <p className="py-12 text-center text-sm text-muted">No posts yet.</p>;
   }
   return (
     <div>

@@ -138,7 +138,7 @@ export default function AdsPage() {
     }
   }
 
-  const chip = (s: string) => s === "active" ? "bg-success/15 text-success" : s === "paused" ? "bg-pearl/15 text-pearl" : "bg-surface text-ink/40";
+  const chip = (s: string) => s === "active" ? "bg-success/15 text-success" : s === "paused" ? "bg-pearl/15 text-accent" : "bg-surface text-muted";
 
   return (
     <div>
@@ -152,7 +152,7 @@ export default function AdsPage() {
               { label: "Active campaigns", v: String(totals.active) },
             ].map((c) => (
               <div key={c.label} className="rounded-2xl border border-ink/10 bg-white px-4 py-3.5">
-                <p className="text-[11.5px] text-ink/45">{c.label}</p>
+                <p className="text-[11.5px] text-muted">{c.label}</p>
                 <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">{c.v}</p>
               </div>
             ))}
@@ -160,14 +160,14 @@ export default function AdsPage() {
 
           <div className="mb-4">
             <Panel title="Performance, last 30 days (UTC)">
-              {chartError ? <p role="alert" className="text-[13px] text-red-600">{chartError} <button disabled={chartLoading} onClick={() => account.current && void loadChart(account.current)} className="font-semibold underline">Try again</button></p> : chartLoading ? <p className="text-sm text-ink/50">Loading performance</p> : series ? <TrendChart
+              {chartError ? <p role="alert" className="text-[13px] text-danger">{chartError} <button disabled={chartLoading} onClick={() => account.current && void loadChart(account.current)} className="font-semibold underline">Try again</button></p> : chartLoading ? <p className="text-sm text-muted">Loading performance</p> : series ? <TrendChart
                 series={[
                   { name: "Impressions", points: series.map((d) => d.impressions) },
                   { name: "Clicks", points: series.map((d) => d.clicks), tone: "ink" },
                 ]}
                 labels={series.map((d) => new Date(d.day + "T12:00:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" }))}
               /> : null}
-              <p className="mt-2 text-[11.5px] text-ink/45">Each signed-in viewer counts once per promotion for impressions and once for clicks. Figures update when you refresh.</p>
+              <p className="mt-2 text-[11.5px] text-muted">Each signed-in viewer counts once per promotion for impressions and once for clicks. Figures update when you refresh.</p>
             </Panel>
           </div>
         </>
@@ -196,16 +196,16 @@ export default function AdsPage() {
       </div>
 
       <div className="hidden">
-        <Link href="/home" title="Back to the feed" className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={18} /></Link>
-        <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-pearl" /> Ads</h1>
+        <Link href="/home" title="Back to the feed" className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={18} /></Link>
+        <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-accent" /> Ads</h1>
       </div>
-      <p className="pb-3 text-[13px] text-ink/50">Promotions place your content as Sponsored in eligible feeds.</p>
+      <p className="pb-3 text-[13px] text-muted">Promotions place your content as Sponsored in eligible feeds.</p>
       <Link href="/ads/new" className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-pearl px-4 py-2.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> Create a promotion</Link>
 
-      {loadError ? <p role="alert" className="mb-3 text-[13px] text-red-600">{loadError} <button type="button" disabled={loading} onClick={refresh} className="font-semibold underline">Try again</button></p> : null}
-      {actionError ? <p role="alert" className="mb-3 text-[13px] text-red-600">{actionError}</p> : null}
+      {loadError ? <p role="alert" className="mb-3 text-[13px] text-danger">{loadError} <button type="button" disabled={loading} onClick={refresh} className="font-semibold underline">Try again</button></p> : null}
+      {actionError ? <p role="alert" className="mb-3 text-[13px] text-danger">{actionError}</p> : null}
       {promos === null && loading ? (
-        <p className="py-14 text-center text-sm text-ink/40">Loading</p>
+        <p className="py-14 text-center text-sm text-muted">Loading</p>
       ) : promos === null ? null : promos.length === 0 ? (
         <EmptyState
           icon={<Megaphone size={19} />}
@@ -222,27 +222,27 @@ export default function AdsPage() {
             <div key={p.id} className="mb-3 rounded-2xl border border-ink/10 bg-white p-4">
               <div className="flex items-center gap-2">
                 <span className={"rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase " + chip(delivery.toLowerCase())}>{delivery}</span>
-                <span className="text-[12px] text-ink/40">{p.label}</span>
-                <span className="ml-auto text-[12px] text-ink/40">
+                <span className="text-[12px] text-muted">{p.label}</span>
+                <span className="ml-auto text-[12px] text-muted">
                   {new Date(p.starts_at).toLocaleDateString()}{p.ends_at ? " – " + new Date(p.ends_at).toLocaleDateString() : ""}
                 </span>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2">
                 <div className="rounded-lg bg-surface px-3 py-2.5 text-center">
                   <p className="text-[16px] font-semibold text-ink">{p.impressions_count.toLocaleString()}</p>
-                  <p className="text-[11px] text-ink/45">Impressions{p.total_cap ? " / " + p.total_cap.toLocaleString() : ""}</p>
+                  <p className="text-[11px] text-muted">Impressions{p.total_cap ? " / " + p.total_cap.toLocaleString() : ""}</p>
                 </div>
                 <div className="rounded-lg bg-surface px-3 py-2.5 text-center">
                   <p className="text-[16px] font-semibold text-ink">{p.clicks_count.toLocaleString()}</p>
-                  <p className="text-[11px] text-ink/45">Clicks</p>
+                  <p className="text-[11px] text-muted">Clicks</p>
                 </div>
                 <div className="rounded-lg bg-surface px-3 py-2.5 text-center">
-                  <p className="text-[16px] font-semibold text-pearl">{ctr}</p>
-                  <p className="text-[11px] text-ink/45">CTR</p>
+                  <p className="text-[16px] font-semibold text-accent">{ctr}</p>
+                  <p className="text-[11px] text-muted">CTR</p>
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-2">
-                <Link href={"/post/" + p.post_id} className="flex items-center gap-1 text-[12.5px] font-semibold text-pearl hover:underline">
+                <Link href={"/post/" + p.post_id} className="flex items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline">
                   <ExternalLink size={12} /> Open the promoted post
                 </Link>
                 <span className="ml-auto flex gap-1.5">

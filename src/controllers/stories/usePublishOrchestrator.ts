@@ -15,7 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { showMessage } from 'react-native-flash-message';
-import { storiesService } from '../../services/storiesService';
+import { storiesService, type StoryUploadCache } from '../../services/storiesService';
 import { supabase } from '../../services/supabase';
 import { duration } from '../../constants/tokens';
 import { PublicationAttempt } from '../../utils/publication';
@@ -79,6 +79,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
   const [publishing, setPublishing] = useState(false);
   const mountedRef = useRef(true);
   const publishingRef = useRef(false);
+  const uploadCache = useRef<StoryUploadCache>(new Map());
   const latestDrafts = useRef(drafts);
   latestDrafts.current = drafts;
   const attempts = useRef(new Map<string, { userId: string; authorId: string; draft: Draft; progress: PublicationAttempt }>());
@@ -146,6 +147,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           userId: myId,
           publication: attempt.progress,
           expectedAuthorId: attempt.authorId,
+          uploadCache: uploadCache.current,
           localUri: d.localUri,
           mediaType: d.mediaType,
           caption: d.caption || null,
@@ -229,7 +231,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
     setPublishing(false);
 
     if (failCount === 0) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       Animated.parallel([
         Animated.timing(mediaOpacity, { toValue: 0, duration: duration.medium, useNativeDriver: true }),
         Animated.timing(mediaScale, { toValue: 0.96, duration: duration.medium, useNativeDriver: true }),

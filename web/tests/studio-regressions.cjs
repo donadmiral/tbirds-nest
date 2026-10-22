@@ -26,6 +26,11 @@ function harness(file, rpc) {
     if (id === '@/lib/supabase/client') return { createClient: () => client };
     if (id === '@/components/StudioShell') return { useStudio: () => ({ me: { role: 'owner' } }) };
     if (id === '@/lib/studio') return { can: () => true };
+    if (id === '@/lib/profileLookup') {
+      const mod={exports:{}};
+      vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/profileLookup.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{module:mod,exports:mod.exports});
+      return mod.exports;
+    }
     if (id === '@/lib/media') return { displayImageUrl: x => x };
     if (id.endsWith('/LoadError')) return { StudioLoadError: 'StudioLoadError' };
     if (id === 'next/link') return { default: 'Link' };
@@ -105,5 +110,23 @@ const text = node => typeof node === 'string' || typeof node === 'number' ? Stri
   releaseOld(); await audience.flush();
   assert.ok(text(audience.tree).includes('Current result'), 'late old filter result cannot replace the current result');
   assert.equal(text(audience.tree).includes('Stale result'), false);
-  console.log('Studio regression checks: 17 assertions passed, including resolved RPC errors, retry, data retention, review removal and out-of-order search results.');
+  let campaignsFail=true, postsFail=true;
+  const campaign={id:'campaign',name:'Retained campaign',budget:10,currency:'USD',status:'draft',ads:[],impressions:0,clicks:0};
+  const ads=harness('app/studio/ads/page.tsx', async name => {
+    if(name==='studio_campaigns') { if(campaignsFail) throw new Error('offline'); return {data:[campaign],error:null}; }
+    if(name==='studio_my_posts_for_ads') return postsFail ? {data:null,error:{message:'offline'}} : {data:[],error:null};
+    return {data:null,error:null};
+  });
+  ads.render();await ads.flush();
+  assert.ok(ads.find(n=>n.type==='StudioLoadError').props.message);
+  assert.equal(text(ads.tree).includes('No campaigns yet'),false);
+  campaignsFail=false;ads.find(n=>n.type==='StudioLoadError').props.retry();await ads.flush();
+  assert.ok(text(ads.tree).includes('Retained campaign'));
+  campaignsFail=true;ads.find(n=>n.type==='StudioLoadError').props.retry();await ads.flush();
+  assert.ok(text(ads.tree).includes('Retained campaign'),'a failed refresh retains loaded campaigns');
+  ads.find(n=>n.type==='button'&&text(n).includes('Add ad')).props.onClick();await ads.flush();
+  assert.equal(text(ads.tree).includes('No posts yet'),false,'failed post picker is not an empty list');
+  const pickerError=ads.nodes().filter(n=>n.type==='StudioLoadError').at(-1);assert.ok(pickerError.props.message);
+  postsFail=false;pickerError.props.retry();await ads.flush();assert.ok(text(ads.tree).includes('No posts yet'));
+  console.log('Studio regression checks passed, including RPC errors, retries, retained data, review removal, out-of-order results, and campaign/post picker failures.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

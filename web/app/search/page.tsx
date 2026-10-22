@@ -1,5 +1,6 @@
 "use client";
 
+import { profilePath } from "@/lib/profileLookup";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -30,7 +31,7 @@ type Results = { key: string; people: Person[]; posts: PostHit[]; jobs: JobHit[]
 const EMPTY_RESULTS = { people: [], posts: [], jobs: [], listings: [], media: [], articles: [], places: [] };
 
 export default function SearchPage() {
-  return <Suspense fallback={<p className="py-14 text-center text-sm text-ink/40">Loading</p>}><SearchFromUrl /></Suspense>;
+  return <Suspense fallback={<p className="py-14 text-center text-sm text-muted">Loading</p>}><SearchFromUrl /></Suspense>;
 }
 
 function SearchFromUrl() {
@@ -156,7 +157,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
     setQ(p.name);
   };
 
-  const head = "pb-1 pt-5 text-[12px] font-semibold uppercase tracking-wide text-ink/40";
+  const head = "pb-1 pt-5 text-[12px] font-semibold uppercase tracking-wide text-muted";
   const nothing = searched && !searching && people.length === 0 && posts.length === 0 && jobs.length === 0 && listings.length === 0 && media.length === 0 && articles.length === 0 && places.length === 0;
   const counts: Record<string, number> = { people: people.length, posts: posts.length, media: media.length, articles: articles.length, jobs: jobs.length, market: listings.length, places: places.length };
   const filterEmpty = searched && !searching && !nothing && filter !== "all" && (counts[filter] ?? 0) === 0;
@@ -166,14 +167,14 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
       <div className="flex items-center gap-2">
         <button onClick={() => router.back()} title="Back" className="shrink-0 rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></button>
       <div className="relative flex-1">
-        <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
+        <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
         <input value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") saveRecent(q); }}
           placeholder="Search Platinum Circles"
           aria-label="Search Platinum Circles"
           autoFocus
-          className="w-full rounded-lg bg-surface py-3 pl-11 pr-4 text-[15px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+          className="w-full rounded-lg bg-surface py-3 pl-11 pr-4 text-[15px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
         />
       </div>
       </div>
@@ -182,7 +183,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
         <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
           {CHIPS.map((c) => (
             <button key={c[0]} onClick={() => setFilter(c[0])}
-              className={(filter === c[0] ? "bg-pearl text-ink" : "bg-surface text-ink/70 hover:bg-surface-elevated hover:text-ink") + " shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors duration-[140ms]"}>
+              className={(filter === c[0] ? "bg-pearl text-on-pearl" : "bg-surface text-ink/70 hover:bg-surface-elevated hover:text-ink") + " shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors duration-[140ms]"}>
               {c[1]}
             </button>
           ))}
@@ -199,7 +200,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
                   const tag = t.topic.startsWith("#") ? t.topic : "#" + t.topic;
                   return (
                     <Link key={t.topic} href={"/topic/" + encodeURIComponent(tag.slice(1))} className="rounded-full bg-surface px-3.5 py-1.5 text-[13px] text-ink/80 transition-colors duration-[140ms] hover:bg-surface-elevated hover:text-ink">
-                      {tag} <span className="text-ink/40">· {t.post_count}</span>
+                      {tag} <span className="text-muted">· {t.post_count}</span>
                     </Link>
                   );
                 })}
@@ -210,13 +211,13 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
             <div className="pt-1">
               <div className="flex items-center justify-between">
                 <p className={head}>Recent</p>
-                <button onClick={clearRecent} className="pt-4 text-[12px] font-medium text-ink/50 transition-colors duration-[140ms] hover:text-ink">Clear</button>
+                <button onClick={clearRecent} className="pt-4 text-[12px] font-medium text-muted transition-colors duration-[140ms] hover:text-ink">Clear</button>
               </div>
               {recent.map((r) => (
                 <div key={r} className="flex items-center gap-3 rounded-md px-1 py-2 transition-colors duration-[140ms] hover:bg-surface">
-                  <Search size={15} className="shrink-0 text-ink/30" />
+                  <Search size={15} className="shrink-0 text-muted" />
                   <button onClick={() => setQ(r)} className="min-w-0 flex-1 truncate text-left text-[14px] text-ink">{r}</button>
-                  <button onClick={() => removeRecent(r)} title="Remove" className="shrink-0 rounded-full p-1 text-ink/30 transition-colors duration-[140ms] hover:bg-surface-elevated hover:text-ink"><X size={14} /></button>
+                  <button onClick={() => removeRecent(r)} title="Remove" className="shrink-0 rounded-full p-1 text-muted transition-colors duration-[140ms] hover:bg-surface-elevated hover:text-ink"><X size={14} /></button>
                 </div>
               ))}
             </div>
@@ -225,13 +226,13 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
       ) : searchError ? (
         <ErrorState title="Could not complete your search" onRetry={() => { setResult(null); setRetry((value) => value + 1); }} />
       ) : searching && !searched ? (
-        <p className="py-14 text-center text-sm text-ink/40">Searching</p>
+        <p className="py-14 text-center text-sm text-muted">Searching</p>
       ) : nothing ? (
-        <p className="py-14 text-center text-sm text-ink/40">Nothing found for &ldquo;{q.trim()}&rdquo;.</p>
+        <p className="py-14 text-center text-sm text-muted">Nothing found for &ldquo;{q.trim()}&rdquo;.</p>
       ) : (
         <>
           {filterEmpty ? (
-            <p className="py-14 text-center text-sm text-ink/40">No results here for &ldquo;{q.trim()}&rdquo;. Try another tab.</p>
+            <p className="py-14 text-center text-sm text-muted">No results here for &ldquo;{q.trim()}&rdquo;. Try another tab.</p>
           ) : null}
 
           {show("people") && people.length > 0 ? (
@@ -240,9 +241,9 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
               {people.map((p) => (
                 <div key={p.id} className="flex items-center gap-3 rounded-md px-1 py-2 transition-colors duration-[140ms] hover:bg-surface">
                   <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={42} href={p.username ? "/" + p.username : null} />
-                  <Link href={p.username ? "/" + p.username : "#"} onClick={() => saveRecent(q)} className="min-w-0 flex-1">
+                  <Link href={profilePath(p.username, p.id)} onClick={() => saveRecent(q)} className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-semibold text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={13} /></span>
-                    <span className="block truncate text-[12px] text-ink/45">{p.headline || "@" + (p.username ?? "")}</span>
+                    <span className="block truncate text-[12px] text-muted">{p.headline || "@" + (p.username ?? "")}</span>
                   </Link>
                   <FollowButton authorId={p.id} />
                 </div>
@@ -260,7 +261,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline gap-1.5 text-[13px]">
                       <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"} <VerifiedBadge userId={p.user_id} size={13} /></span>
-                      <span className="shrink-0 text-ink/40">{timeAgo(p.created_at)}</span>
+                      <span className="shrink-0 text-muted">{timeAgo(p.created_at)}</span>
                     </span>
                     <span className="line-clamp-2 block text-[13px] text-ink/80"><RichText text={p.content ?? ""} /></span>
                   </span>
@@ -292,10 +293,10 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
               <p className={head}>Articles</p>
               {articles.map((a) => (
                 <Link key={a.post_id} href={"/post/" + a.post_id} onClick={() => saveRecent(q)} className="flex items-center gap-3 rounded-md px-1 py-2.5 transition-colors duration-[140ms] hover:bg-surface">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-pearl"><FileText size={16} /></span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-accent"><FileText size={16} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-semibold text-ink">{a.article_title || "Article"}</span>
-                    <span className="block truncate text-[12px] text-ink/45">{[a.author_name, a.read_minutes ? a.read_minutes + " min read" : null, timeAgo(a.created_at)].filter(Boolean).join(" · ")}</span>
+                    <span className="block truncate text-[12px] text-muted">{[a.author_name, a.read_minutes ? a.read_minutes + " min read" : null, timeAgo(a.created_at)].filter(Boolean).join(" · ")}</span>
                   </span>
                 </Link>
               ))}
@@ -307,10 +308,10 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
               <p className={head}>Jobs</p>
               {jobs.map((j) => (
                 <Link key={j.id} href={"/jobs/" + j.id} onClick={() => saveRecent(q)} className="flex items-center gap-3 rounded-md px-1 py-2.5 transition-colors duration-[140ms] hover:bg-surface">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-pearl"><Briefcase size={16} /></span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-accent"><Briefcase size={16} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-semibold text-ink">{j.title}</span>
-                    <span className="block truncate text-[12px] text-ink/45">{[j.company, j.location, j.salary_range].filter(Boolean).join(" · ")}</span>
+                    <span className="block truncate text-[12px] text-muted">{[j.company, j.location, j.salary_range].filter(Boolean).join(" · ")}</span>
                   </span>
                 </Link>
               ))}
@@ -326,11 +327,11 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={displayImageUrl(l.images[0], 200)!} onError={(e) => { if (l.images?.[0] && e.currentTarget.src !== l.images[0]) e.currentTarget.src = l.images[0]; }} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
                   ) : (
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-surface text-pearl"><ShoppingBag size={16} /></span>
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-surface text-accent"><ShoppingBag size={16} /></span>
                   )}
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-semibold text-ink">{l.title}</span>
-                    <span className="block text-[13px] text-pearl">{(l.currency === "USD" ? "$" : l.currency + " ") + Number(l.price).toLocaleString()}</span>
+                    <span className="block text-[13px] text-accent">{(l.currency === "USD" ? "$" : l.currency + " ") + Number(l.price).toLocaleString()}</span>
                   </span>
                 </Link>
               ))}
@@ -342,10 +343,10 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
               <p className={head}>Places</p>
               {places.map((p) => (
                 <button key={p.name + "-" + p.kind} onClick={() => openPlace(p)} className="flex w-full items-center gap-3 rounded-md px-1 py-2.5 text-left transition-colors duration-[140ms] hover:bg-surface">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-pearl"><MapPin size={16} /></span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-accent"><MapPin size={16} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-semibold text-ink">{p.name}</span>
-                    <span className="block truncate text-[12px] text-ink/45">{p.hits + (p.hits === 1 ? " result" : " results") + " in " + (p.kind === "jobs" ? "Jobs" : p.kind === "market" ? "Market" : "People")}</span>
+                    <span className="block truncate text-[12px] text-muted">{p.hits + (p.hits === 1 ? " result" : " results") + " in " + (p.kind === "jobs" ? "Jobs" : p.kind === "market" ? "Market" : "People")}</span>
                   </span>
                 </button>
               ))}

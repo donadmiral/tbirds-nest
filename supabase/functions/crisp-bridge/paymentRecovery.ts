@@ -8,7 +8,7 @@ export type Payment = {
 export const PAYMENT_FIELDS = "id,sender_id,recipient_id,conversation_id,idempotency_key,amount,currency,listing_id,note,status,tx_id,error";
 // SDK injection allows offline tests of the actual production handler.
 export type Dependencies = {
-  db: any; crispUrl: string; crispKey: string; fetcher: typeof fetch; now?: () => Date;
+  db: any; crispUrl: string; crispKey: string; fetcher: typeof fetch; now?: () => Date; deadlineAt?: number;
 };
 export function outcome(payment: Payment, code?: string) {
   return {
@@ -32,18 +32,23 @@ export async function requestCrisp(deps: Dependencies, params: Record<string, st
   if (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "127.0.0.1", "host.docker.internal"].includes(url.hostname))) throw new CrispHopError("CRISP_NOT_CONFIGURED", "IntoBank's payment service address is not secure.");
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   const isRead = body === undefined;
+  // One total deadline covers retries and the response body. A worker can pass
+  // its remaining budget so a final request cannot outlive the batch deadline.
+  const budget = Math.min(isRead ? 12000 : 7000, (deps.deadlineAt ?? Infinity) - Date.now());
+  if (budget <= 0) throw new CrispHopError("CRISP_TIMEOUT", "IntoBank's payment service did not answer in time.");
+  const signal = AbortSignal.timeout(Math.ceil(budget));
   const attempt = () => deps.fetcher(url, {
     method: isRead ? "GET" : "POST",
     headers: { Authorization: `Bearer ${deps.crispKey}`, "Content-Type": "application/json" },
     ...(isRead ? {} : { body: JSON.stringify(body) }),
-    signal: AbortSignal.timeout(isRead ? 12000 : 7000),
+    signal,
   });
   let response: Response;
   try {
     response = await attempt();
   } catch (first) {
     // A read is safe to ask again: a cold start on the IntoBank side can outlast the first deadline. A payment is not retried here.
-    if (!isRead) throw new CrispHopError(isTimeout(first) ? "CRISP_TIMEOUT" : "CRISP_UNREACHABLE", "IntoBank's payment service did not answer.");
+    if (!isRead || signal.aborted) throw new CrispHopError(isTimeout(first) || signal.aborted ? "CRISP_TIMEOUT" : "CRISP_UNREACHABLE", "IntoBank's payment service did not answer.");
     try { response = await attempt(); }
     catch (second) { throw new CrispHopError(isTimeout(second) ? "CRISP_TIMEOUT" : "CRISP_UNREACHABLE", isTimeout(second) ? `IntoBank's payment service at ${url.host} did not answer in time.` : `IntoBank's payment service at ${url.host} could not be reached.`); }
   }
@@ -75,19 +80,29 @@ export async function persistOutcome(deps: Dependencies, payment: Payment,
   return { payment: latest.data as Payment, persistenceError: false };
 }
 export async function recoverPayment(deps: Dependencies, payment: Payment) {
-  if (payment.status !== "pending") return { payment, persistenceError: false, lookupError: false };
-  // Rotate old unresolved work fairly. Timestamp errors are reported, not ignored.
+  if (payment.status !== "pending") return { payment, persistenceError: false, lookupError: false, lookupAttempted: false };
+  // Atomically claim one minute of recovery ownership. Concurrent workers and
+  // status requests cannot all poll the provider for the same pending payment.
+  const now = deps.now?.() || new Date();
+  const cutoff = new Date(now.getTime() - 60000).toISOString();
   const touched = await deps.db.from("chat_payments").update({
-    last_status_check_at: (deps.now?.() || new Date()).toISOString(),
-  }).eq("id", payment.id).eq("status", "pending");
+    last_status_check_at: now.toISOString(),
+  }).eq("id", payment.id).eq("status", "pending")
+    .or(`last_status_check_at.is.null,last_status_check_at.lte.${cutoff}`)
+    .select(PAYMENT_FIELDS).maybeSingle();
+  if (touched.error) return { payment, persistenceError: true, lookupError: false, lookupAttempted: false };
+  if (!touched.data) {
+    const latest = await deps.db.from("chat_payments").select(PAYMENT_FIELDS).eq("id", payment.id).maybeSingle();
+    return { payment: latest.data || payment, persistenceError: Boolean(latest.error), lookupError: false, lookupAttempted: false };
+  }
   try {
     const { response, data } = await requestCrisp(deps, { endpoint: "p2p-status", partner_reference: payment.id });
     if (response.ok && data?.status === "completed" && matchesReceipt(payment, data)) {
-      return await persistOutcome(deps, payment, { status: "completed", tx_id: data.tx_id, error: null });
+      return { ...await persistOutcome(deps, payment, { status: "completed", tx_id: data.tx_id, error: null }), lookupAttempted: true };
     }
     // A missing transaction can be delayed or still in flight. It is not failure.
-    return { payment, persistenceError: Boolean(touched.error), lookupError: !response.ok || data?.success !== true || data?.status !== "not_found" };
+    return { payment, persistenceError: false, lookupError: !response.ok || data?.success !== true || data?.status !== "not_found", lookupAttempted: true };
   } catch {
-    return { payment, persistenceError: Boolean(touched.error), lookupError: true };
+    return { payment, persistenceError: false, lookupError: true, lookupAttempted: true };
   }
 }

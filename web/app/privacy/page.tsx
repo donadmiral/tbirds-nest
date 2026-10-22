@@ -17,7 +17,7 @@ export default function PrivacyPage() {
     <div className="mx-auto max-w-[640px] px-1">
       <Link href="/settings" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
       <h1 className="pb-1 font-display text-xl text-porcelain">Privacy Policy</h1>
-      <p className="mb-4 text-[12px] text-ink/45">Effective 28 July 2026</p>
+      <p className="mb-4 text-[12px] text-muted">Effective 28 July 2026</p>
 
       <Sec title="1. What we collect">Your account and profile details — name, username, photo, headline, and anything you add. The content you create: posts, stories, comments, messages, media, listings, job posts, and applications including a CV, phone number, or portfolio you choose to attach. Usage signals such as which posts appear on your screen, and technical basics like device type and a push notification token.</Sec>
       <Sec title="2. How it is used">To run the service: delivering your messages and calls, showing your posts to the audiences you chose, and sending the notifications you enable. To rank honestly: signals like unique real engagement decide feeds and Trending — never paid placement disguised as ranking. Your Reached number counts distinct people who saw your posts and is shown only to you. And to keep people safe: enforcing the rules and acting on reports and blocks.</Sec>

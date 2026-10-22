@@ -37,7 +37,7 @@ function mockClient({ rows = [], error = null, rpcError = null, user = { id: 'vi
     auth: { getUser: async () => ({ data: { user }, error: authError }) },
     rpc: async (name, args) => { calls.push({ name, args }); return { data: ranked ?? rows.map(({ id }) => ({ id })), error: rpcError }; },
     from(table) {
-      const query = { table, operations: [], orders: [], filters: [], limit: Infinity };
+      const query = { table, operations: [], orders: [], filters: [], limit: Infinity, offset: 0 };
       queries.push(query);
       const builder = new Proxy({}, {
         get(_, method) {
@@ -50,13 +50,14 @@ function mockClient({ rows = [], error = null, rpcError = null, user = { id: 'vi
               }
               return 0;
             });
-            return Promise.resolve({ data: result.slice(0, query.limit), error }).then(resolve, reject);
+            return Promise.resolve({ data: result.slice(query.offset, query.offset + query.limit), error }).then(resolve, reject);
           };
           return (...args) => {
             query.operations.push([method, ...args]);
             if (method === 'order') query.orders.push([args[0], args[1].ascending]);
             if (method === 'eq') query.filters.push(args);
             if (method === 'limit') query.limit = args[0];
+            if (method === 'range') { query.offset = args[0]; query.limit = args[1] - args[0] + 1; }
             return builder;
           };
         },
@@ -88,6 +89,10 @@ for (const [platform, file, serviceKey] of [
     const rows = fixtures.map((r) => ({ ...r, created_at: r.id === 'old-cheap' ? '2026-10-10' : r.created_at }));
     const results = await listings(service(mockClient({ rows })), { sort: 'price_high' });
     assert.deepEqual(Array.from(results, (r) => r.id), ['new-expensive', 'middle', 'old-cheap']);
+  });
+  if (platform === 'native') test('native: later price-sorted pages continue after the first page', async () => {
+    const results = await listings(service(mockClient({ rows: fixtures })), { sort: 'price_low', limit: 2, offset: 2 });
+    assert.deepEqual(Array.from(results, (r) => r.id), ['new-expensive']);
   });
   test(`${platform}: the All category does not exclude every listing`, async () => {
     const results = await listings(service(mockClient({ rows: fixtures })), { category: 'All' });

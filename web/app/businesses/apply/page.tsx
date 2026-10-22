@@ -92,19 +92,19 @@ export default function BusinessApplyPage() {
     alert("Application sent. The outcome will appear here, and on approval your business account is created with its own @ and the space-grey seal.");
   };
 
-  const hint = handleState === "checking" ? ["Checking...", "text-ink/45"] : handleState === "free" ? ["Available", "text-success"] : handleState === "taken" ? ["That handle is taken", "text-red-500"] : handleState === "invalid" ? ["3 to 30 characters. Lowercase letters, numbers, underscores.", "text-red-500"] : ["", ""];
+  const hint = handleState === "checking" ? ["Checking...", "text-muted"] : handleState === "free" ? ["Available", "text-success"] : handleState === "taken" ? ["That handle is taken", "text-danger"] : handleState === "invalid" ? ["3 to 30 characters. Lowercase letters, numbers, underscores.", "text-danger"] : ["", ""];
 
   const input = "mb-2.5 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-ink/40";
-  const pillCls = (status: string) => status === "approved" ? "bg-success/10 text-success" : status === "rejected" ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-700";
+  const pillCls = (status: string) => status === "approved" ? "bg-success/10 text-success" : status === "rejected" ? "bg-danger/10 text-danger" : "bg-warn/10 text-warn";
   const pillLabel = (status: string) => status === "approved" ? "Approved" : status === "rejected" ? "Declined" : "Under review";
 
-  if (!ready) return <div className="mx-auto max-w-[560px] px-1"><p className="py-10 text-center text-sm text-ink/40">Loading</p></div>;
+  if (!ready) return <div className="mx-auto max-w-[560px] px-1"><p className="py-10 text-center text-sm text-muted">Loading</p></div>;
 
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <Link href="/settings" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
-      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Briefcase size={19} className="text-pearl" /> Business account</h1>
-      <p className="pb-5 text-[13px] leading-relaxed text-ink/50">A business gets its own separate account with its own @ and the space-grey seal. Tell us who you are — a person on the operations team reviews every application. You will be the first owner and can add your team after approval.</p>
+      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Briefcase size={19} className="text-accent" /> Business account</h1>
+      <p className="pb-5 text-[13px] leading-relaxed text-muted">A business gets its own separate account with its own @ and the space-grey seal. Tell us who you are — a person on the operations team reviews every application. You will be the first owner and can add your team after approval.</p>
 
       <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Company or business name" className={input} />
       <input value={category} onChange={e => setCategory(e.target.value)} placeholder="What industry (e.g. Fintech, Retail, Media)" className={input} />
@@ -118,7 +118,7 @@ export default function BusinessApplyPage() {
 
       <button onClick={submit} disabled={busy} className="w-full rounded-xl bg-ink py-3 text-[14px] font-bold text-white disabled:opacity-40">{busy ? "Sending" : "Send application"}</button>
 
-      {apps.length ? <p className="mb-2 mt-7 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Your applications</p> : null}
+      {apps.length ? <p className="mb-2 mt-7 text-[11px] font-semibold uppercase tracking-wide text-muted">Your applications</p> : null}
       {apps.map(a => (
         <div key={a.id} className="mb-2 rounded-xl border border-ink/10 p-3">
           <span className="flex items-center gap-2">

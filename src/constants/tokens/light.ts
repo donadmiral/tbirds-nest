@@ -25,8 +25,8 @@ export const light = {
   },
   ink: {
     primary:   NAVY,
-    secondary: 'rgba(11,30,61,0.62)',
-    muted:     'rgba(11,30,61,0.42)',
+    secondary: 'rgba(11,30,61,0.74)',
+    muted:     'rgba(11,30,61,0.62)',
     faint:     'rgba(11,30,61,0.24)',
     inverse:   '#FFFFFF',
   },

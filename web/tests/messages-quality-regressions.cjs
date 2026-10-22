@@ -1,0 +1,205 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const { test } = require('node:test');
+const ts = require('typescript');
+const root = path.join(__dirname, '..');
+const compile = file => ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
+const sources = {
+  '@/components/MessagesApp': compile(path.join(root, 'components/MessagesApp.tsx')),
+  '@/lib/messageActions': compile(path.join(root, 'lib/messageActions.ts')),
+  '../../shared/messageContent': compile(path.join(root, '../shared/messageContent.ts')),
+  '../../shared/messageHistory': compile(path.join(root, '../shared/messageHistory.ts')),
+};
+function moduleFor(code) { const module = { exports: {} }; vm.runInNewContext(code, { module, exports: module.exports, require: name => sources[name] ? moduleFor(sources[name]) : ({}) }); return module.exports; }
+const history = moduleFor(sources['../../shared/messageHistory']);
+const actions = moduleFor(sources['@/lib/messageActions']);
+const id = n => '00000000-0000-4000-8000-' + String(n).padStart(12, '0');
+const row = (n, props = {}) => ({ id: id(n), conversation_id: 'a', sender_id: 'me', receiver_id: 'other', text: 'Message ' + n, media_url: null, media_type: null, reply_to_id: null, created_at: '2026-10-20T10:00:00.123456+00:00', ...props });
+const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
+const text = node => typeof node === 'string' || typeof node === 'number' ? String(node) : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
+function nodes(tree) { const out = []; const walk = node => { if (Array.isArray(node)) return node.forEach(walk); if (!node || typeof node !== 'object') return; out.push(node); if (typeof node.type === 'function') walk(node.type(node.props)); else walk(node.props?.children); }; walk(tree); return out; }
+
+function scenario(initial = [row(1)], options = {}) {
+  let rows = [...initial], reactions = [], pins = {}, tree, dirty = true, effects = [], cursor = 0;
+  const slots = [], writes = [], reads = [], rpcs = [], listeners = [], timers = new Set();
+  const convs = ['a', 'b'].map(value => ({ id: value, title: 'Conversation ' + value, other_id: 'other', context: 'personal', is_group: false, unread: 0, last_message: '', last_message_time: null }));
+  let readOverride, writeOverride, rpcFailure = false;
+  let authUser = 'me', authListener;
+  const execute = async call => {
+    const { table, op, filters, input, limit, filter } = call;
+    if (op !== 'select') {
+      writes.push(call); if (writeOverride) { const result = await writeOverride(call); if (result) return result; }
+      if (table === 'messages') {
+        if (op === 'insert') { const saved = row(100 + writes.length, { ...(Array.isArray(input) ? input[0] : input), created_at: '2026-10-20T11:00:00Z' }); rows.push(saved); return { data: saved, error: null }; }
+        const found = rows.find(item => Object.entries(filters).every(([key, value]) => item[key] == value));
+        if (found) Object.assign(found, input); return { data: found || null, error: found ? null : { message: 'denied' } };
+      }
+      if (table === 'message_reactions') {
+        if (op === 'insert') reactions.push({ id: 'reaction', ...input });
+        if (op === 'delete') reactions = reactions.filter(item => item.id !== filters.id);
+        if (op === 'update') reactions.forEach(item => { if (item.id === filters.id) Object.assign(item, input); });
+      }
+      return { data: null, error: null };
+    }
+    reads.push(call); if (readOverride) { const result = await readOverride(call); if (result) return result; }
+    if (table === 'conversations') return { data: { pinned_message_id: pins[filters.id] || null }, error: null };
+    let data = table === 'messages' ? rows : table === 'message_reactions' ? reactions : [];
+    data = data.filter(item => Object.entries(filters).every(([key, value]) => Array.isArray(value) ? value.includes(item[key]) : item[key] == value));
+    if (filter) { const beforeId = filter.match(/id\.lt\.([^,)]+)/)?.[1]; data = data.filter(item => item.id < beforeId); }
+    if (table === 'messages') data = history.mergeMessagePage([], data);
+    if (limit) data = data.slice(0, limit);
+    return { data: call.single ? data[0] || null : data, error: null };
+  };
+  const client = {
+    auth: { getSession: async () => ({ data: { session: authUser ? { user: { id: authUser } } : null }, error: null }), onAuthStateChange: callback => { authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; } },
+    from(table) { const call = { table, op: 'select', filters: {} }; const chain = {
+      select(value) { call.select = value; return chain; }, eq(k,v) { call.filters[k] = v; return chain; }, is(k,v) { call.filters[k] = v; return chain; }, in(k,v) { call.filters[k] = v; return chain; },
+      order() { return chain; }, limit(value) { call.limit = value; return chain; }, or(value) { call.filter = value; return chain; }, maybeSingle() { call.single = true; return chain; }, single() { call.single = true; return chain; },
+      insert(input) { call.op = 'insert'; call.input = input; return chain; }, update(input) { call.op = 'update'; call.input = input; return chain; }, upsert(input) { call.op = 'upsert'; call.input = input; return chain; }, delete() { call.op = 'delete'; return chain; },
+      then(ok,bad) { return Promise.resolve().then(() => execute(call)).then(ok,bad); },
+    }; return chain; },
+    rpc: async (name, args) => { rpcs.push({ name, args }); if (rpcFailure) return { error: { message: 'denied' } }; if (name === 'set_pinned_message') pins[args.p_conversation_id] = args.p_message_id; return { data: null, error: null }; },
+    channel() { const chain = { on(event, filter, callback) { listeners.push({ filter, callback }); return chain; }, subscribe() { return chain; } }; return chain; }, removeChannel() {},
+    storage: { from() { return { upload: async () => options.uploadResponse ? options.uploadResponse() : ({ error: options.uploadFailure ? { message: 'offline' } : null }), getPublicUrl: () => ({ data: { publicUrl: 'https://media.test/file' } }) }; } },
+  };
+  const same = (a,b) => a && b && a.length === b.length && a.every((v,i) => Object.is(v,b[i]));
+  const hooks = {
+    memo: fn => fn,
+    useState(initial) { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial; return [slots[i], next => { const value = typeof next === 'function' ? next(slots[i]) : next; if (!Object.is(value,slots[i])) { slots[i] = value; dirty = true; } }]; },
+    useRef(initial) { const i = cursor++; return slots[i] ??= { current: initial }; },
+    useCallback(fn,deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps,deps)) slots[i] = { value: fn, deps }; return slots[i].value; },
+    useMemo(fn,deps) { return hooks.useCallback(fn,deps)(); },
+    useEffect(fn,deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps,deps)) { const previous = slots[i]; slots[i] = { deps }; effects.push(() => { previous?.cleanup?.(); slots[i].cleanup = fn(); }); } },
+  };
+  const runtime = { jsx: (type,props,key) => ({ type,props,key }), jsxs: (type,props,key) => ({ type,props,key }), Fragment: 'Fragment' };
+  const cache = new Map();
+  const load = name => {
+    if (cache.has(name)) return cache.get(name).exports;
+    if (name === 'react') return hooks;
+    if (name === 'react/jsx-runtime') return runtime;
+    if (name === '@/lib/supabase/client') return { createClient: () => client };
+    if (name === '@/lib/messages') return { loadConversations: async () => convs };
+    if (name === '@/lib/chatMedia') return { signChatMedia: async rows => rows, isChatMediaUrl: () => false };
+    if (name === '@/lib/feed') return { timeAgo: () => 'now' };
+    if (name === 'next/link') return { __esModule: true, default: 'Link' };
+    if (!sources[name]) return new Proxy({}, { get: (_,key) => String(key) });
+    const module = { exports: {} }; cache.set(name,module);
+    vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, Error, URLSearchParams, crypto: { randomUUID: () => 'temporary' },
+      window: { location: { search: '' }, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: { body: { style: {} } },
+      navigator: options.navigator || {}, MediaRecorder: options.MediaRecorder, Blob,
+      setTimeout, clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
+      ResizeObserver: class { observe() {} disconnect() {} }, MutationObserver: class { observe() {} disconnect() {} },
+    }); return module.exports;
+  };
+  const Component = load('@/components/MessagesApp').MessagesApp;
+  const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener() {}, removeEventListener() {} };
+  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
+  render();
+  return { client, rows: () => rows, writes, reads, rpcs, dom,
+    find: predicate => nodes(tree).find(predicate), all: predicate => nodes(tree).filter(predicate),
+    get text() { return nodes(tree).filter(node => typeof node.type !== 'function').map(text).join(' '); },
+    click(label) { const n = nodes(tree).find(node => (node.type==='button' || node.props?.role==='button') && (text(node).trim()===label || node.props?.['aria-label']===label || node.props?.title===label)); assert.ok(n,'missing button '+label); assert.ok(!n.props.disabled,'button disabled '+label); const result=n.props.onClick(); render(); return result; },
+    open(name) { const n=nodes(tree).find(node => node.props?.role==='button' && text(node).includes('Conversation '+name)); assert.ok(n); const result=n.props.onClick(); render(); return result; },
+    draft(value) { const n=nodes(tree).find(node => node.type==='textarea'); n.props.onChange({target:{value}}); render(); },
+    changeUser(value) { authUser = value; authListener('SIGNED_IN', value ? { user: { id: value } } : null); render(); },
+    setRead(fn) { readOverride=fn; }, setWrite(fn) { writeOverride=fn; }, setRpcFailure(value) { rpcFailure=value; },
+    async flush() { for(let i=0;i<8;i++){ await new Promise(resolve=>setImmediate(resolve)); render(); } },
+    unmount() { slots.forEach(slot=>slot?.cleanup?.()); timers.forEach(clearTimeout); },
+  };
+}
+
+test('cursor is stable at timestamp ties and retains microsecond ordering', () => {
+  const a=row(1), b=row(2), c=row(9,{created_at:'2026-10-20T10:00:00.123455+00:00'});
+  assert.match(history.olderMessageFilter(a), /and\(created_at.eq.*id.lt/);
+  assert.deepEqual(Array.from(history.mergeMessagePage([a,c],[b,a]),x=>x.id),[b.id,a.id,c.id]);
+  assert.throws(()=>history.olderMessageFilter({...a,id:'bad,filter'}));
+  assert.throws(()=>history.olderMessageFilter({...a,created_at:null}));
+});
+test('web loads only latest page then older equal-timestamp rows without duplicates', async () => {
+  const app=scenario(Array.from({length:55},(_,i)=>row(i+1))); await app.flush(); await app.open('a'); await app.flush();
+  assert.equal(app.all(n=>n.type==='p' && /^Message \d+$/.test(text(n))).length,50);
+  assert.equal(app.reads.find(c=>c.table==='messages').limit,50);
+  await app.click('Load older messages'); await app.flush();
+  assert.equal(app.all(n=>n.type==='p' && /^Message \d+$/.test(text(n))).length,55);
+  assert.ok(app.reads.some(c=>c.table==='messages' && c.filter?.includes('id.lt.'))); app.unmount();
+});
+test('out-of-order history response cannot overwrite the newly opened conversation', async () => {
+  const app=scenario([row(1),row(2,{conversation_id:'b',text:'Conversation B content'})]); await app.flush();
+  const wait=deferred(); app.setRead(call=>call.table==='messages' && call.filters.conversation_id==='a' ? wait.promise : null);
+  const first=app.open('a'); await app.flush(); await app.open('b'); await app.flush();
+  wait.resolve({data:[row(1)],error:null}); await first; await app.flush();
+  assert.ok(app.text.includes('Conversation B content')); assert.ok(!app.text.includes('Message 1')); app.unmount();
+});
+test('history failure is visible and can be retried', async () => {
+  const app=scenario(); await app.flush(); app.setRead(call=>call.table==='messages'?{data:null,error:{message:'offline'}}:null);
+  await app.open('a'); await app.flush(); assert.ok(app.text.includes('Messages could not be loaded.'));
+  app.setRead(null); await app.click('Try again'); await app.flush(); assert.ok(app.text.includes('Message 1')); app.unmount();
+});
+test('reply and confirmed edit execute through real composer handlers', async () => {
+  const app=scenario(); await app.flush(); await app.open('a'); await app.flush();
+  app.click('Reply'); app.draft('Answer'); await app.click('Send'); await app.flush();
+  const insertion=app.writes.find(c=>c.table==='messages'&&c.op==='insert'); assert.equal(insertion.input[0].reply_to_id,id(1));
+  app.click('Edit'); app.draft('Revised'); await app.click('Send'); await app.flush();
+  assert.ok(app.rows().some(m=>m.text==='Revised'&&m.edited_at)); app.unmount();
+});
+test('failed edits retain the draft and reaction removal clears its visible count', async () => {
+  const app=scenario(); await app.flush(); await app.open('a'); await app.flush();
+  app.click('Edit'); app.draft('Keep this draft'); app.setWrite(call=>call.op==='update'?{error:{message:'offline'}}:null);
+  await app.click('Send'); await app.flush(); assert.equal(app.find(n=>n.type==='textarea').props.value,'Keep this draft'); assert.ok(app.text.includes('Your edit could not be saved.'));
+  app.setWrite(null); app.click('Cancel'); app.click('React ❤️'); await app.flush();
+  assert.ok(app.all(n=>n.type==='button'&&n.props['aria-label']==='React ❤️').some(n=>n.props['aria-pressed']===true));
+  app.click('React ❤️'); await app.flush(); assert.ok(!app.all(n=>n.type==='button'&&n.props['aria-label']==='React ❤️').some(n=>n.props['aria-pressed']===true)); app.unmount();
+});
+test('pin failure reports error without success; confirmed pin is visible and removable', async () => {
+  const app=scenario(); await app.flush(); await app.open('a'); await app.flush(); app.setRpcFailure(true);
+  app.click('Pin'); await app.flush(); assert.ok(app.text.includes('could not be pinned')); assert.ok(!app.text.includes('Pinned ·'));
+  app.setRpcFailure(false); app.click('Pin'); await app.flush(); assert.ok(app.text.includes('Pinned · Message 1'));
+  app.click('Unpin'); await app.flush(); assert.ok(!app.text.includes('Pinned ·')); app.unmount();
+});
+test('forwarding fetches canonical media reference and rejects limited-view/payment rows', async () => {
+  const original=row(1,{media_type:'image',media_url:'https://media.test/canonical'}), app=scenario([original]);
+  await actions.forwardMessage(app.client,{...original,media_url:'https://media.test/expired-signed'}, {id:'b',is_group:true},'me');
+  const write=app.writes.find(c=>c.op==='insert'); assert.equal(write.input.media_url,original.media_url); assert.equal(write.input.receiver_id,null); assert.equal(write.input.forwarded_from_id,original.id);
+  assert.equal(actions.canForwardMessage({...original,view_limit:1}),false); assert.equal(actions.canForwardMessage({...original,payment_id:'p'}),false); app.unmount();
+});
+test('failed attachment preserves selection and shows recoverable error', async () => {
+  const app=scenario(undefined,{uploadFailure:true}); await app.flush(); await app.open('a'); await app.flush();
+  const input=app.find(n=>n.type==='input'&&n.props.type==='file'); await input.props.onChange({target:{files:[{name:'test.jpg',type:'image/jpeg'}]}}); await app.flush();
+  assert.ok(app.text.includes('Upload failed.')); assert.equal(app.dom.value,'selected-file'); app.unmount();
+});
+test('limited-view attachments never render a direct media URL on web', async()=>{
+  const app=scenario([row(1,{media_type:'image',media_url:'https://media.test/private',view_limit:1})]);await app.flush();await app.open('a');await app.flush();
+  assert.ok(app.text.includes('Limited-view attachment'));assert.equal(app.all(n=>['img','video','audio'].includes(n.type)).length,0);assert.equal(app.all(n=>n.type==='button'&&text(n)==='Forward').length,0);app.unmount();
+});
+test('draft is preserved per conversation and delayed send remains in original conversation',async()=>{
+  const app=scenario([row(1),row(2,{conversation_id:'b'})]);await app.flush();await app.open('a');await app.flush();app.draft('Keep in A');await app.open('b');await app.flush();assert.equal(app.find(n=>n.type==='textarea').props.value,'');await app.open('a');await app.flush();assert.equal(app.find(n=>n.type==='textarea').props.value,'Keep in A');
+  const wait=deferred();app.setWrite(call=>call.table==='messages'&&call.op==='insert'?wait.promise:null);const send=app.click('Send');await app.flush();await app.open('b');await app.flush();wait.resolve({data:row(10,{text:'Keep in A'}),error:null});await send;await app.flush();
+  // The inbox should show A's confirmed preview, but B must not gain A's bubble.
+  assert.equal(app.all(n=>n.type==='p'&&text(n)==='Keep in A').length,0);
+  assert.equal(app.find(n=>n.type==='textarea').props.value,'');
+  assert.ok(app.text.includes('Keep in A'));assert.equal(app.writes.find(c=>c.table==='messages').input[0].conversation_id,'a');app.unmount();
+});
+test('account changes discard private drafts and ignore a previous account send completion',async()=>{
+  const app=scenario();await app.flush();await app.open('a');await app.flush();app.draft('Private old draft');
+  const wait=deferred();app.setWrite(call=>call.table==='messages'&&call.op==='insert'?wait.promise:null);const send=app.click('Send');await app.flush();
+  app.changeUser('new-user');await new Promise(resolve=>setTimeout(resolve,1));await app.flush();await app.open('a');await app.flush();
+  assert.equal(app.find(n=>n.type==='textarea').props.value,'');
+  wait.resolve({data:row(10,{text:'Private old draft'}),error:null});await send;await app.flush();
+  assert.ok(!app.text.includes('Private old draft'));app.unmount();
+});
+test('voice upload finishing after a chat switch releases the upload lock',async()=>{
+  const wait=deferred();let uploads=0;
+  class Recorder { static isTypeSupported(){return true;} constructor(){this.state='inactive';this.mimeType='audio/webm';} start(){this.state='recording';} stop(){this.state='inactive';this.ondataavailable?.({data:new Blob(['voice'])});this.onstop?.();} }
+  const app=scenario([row(1),row(2,{conversation_id:'b'})],{navigator:{mediaDevices:{getUserMedia:async()=>({getTracks:()=>[{stop(){}}]})}},MediaRecorder:Recorder,uploadResponse:()=>++uploads===1?wait.promise:{error:null}});
+  await app.flush();await app.open('a');await app.flush();await app.click('Record a voice message');await app.flush();
+  const sending=app.click('Send voice note');await app.flush();assert.equal(uploads,1);await app.open('b');await app.flush();
+  wait.resolve({error:null});await sending;await app.flush();
+  const file=app.find(n=>n.type==='input'&&n.props.type==='file');await file.props.onChange({target:{files:[{name:'after.jpg',type:'image/jpeg'}]}});await app.flush();
+  assert.equal(uploads,2);assert.ok(app.writes.some(c=>c.table==='messages'&&c.input[0]?.conversation_id==='b'));app.unmount();
+});
+test('late microphone permission after leaving chat releases tracks without starting recorder',async()=>{
+  const wait=deferred();let stopped=0,started=0;class Recorder{static isTypeSupported(){return true;}constructor(){started++;}}
+  const app=scenario([row(1),row(2,{conversation_id:'b'})],{navigator:{mediaDevices:{getUserMedia:()=>wait.promise}},MediaRecorder:Recorder});await app.flush();await app.open('a');await app.flush();const request=app.click('Record a voice message');await app.open('b');await app.flush();wait.resolve({getTracks:()=>[{stop(){stopped++;}}]});await request;await app.flush();assert.equal(stopped,1);assert.equal(started,0);app.unmount();
+});

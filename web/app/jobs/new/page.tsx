@@ -11,7 +11,7 @@ const CATEGORIES = [
   ["contract", "Contract"], ["temporary", "Temporary"],
 ] as const;
 
-const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated";
+const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated";
 
 export default function PostJobPage() {
   const supabase = createClient();
@@ -76,7 +76,7 @@ export default function PostJobPage() {
   return (
     <div>
       <div className="flex items-center gap-3 px-1 pb-4">
-        <Link href="/jobs" className="text-sm text-ink/50 hover:text-ink">← Jobs</Link>
+        <Link href="/jobs" className="text-sm text-muted hover:text-ink">← Jobs</Link>
         <h1 className="font-display text-xl text-porcelain">Post a job</h1>
       </div>
       <div className="flex flex-col gap-3 px-1">
@@ -117,7 +117,7 @@ export default function PostJobPage() {
           </label>
         </div>
         {error ? <p className="text-[13px] text-danger">{error}</p> : null}
-        <button onClick={submit} disabled={pending} className="mt-2 self-start rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
+        <button onClick={submit} disabled={pending} className="mt-2 self-start rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-on-pearl transition-opacity hover:opacity-90 disabled:opacity-40">
           {pending ? "Publishing" : "Publish job"}
         </button>
       </div>

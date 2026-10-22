@@ -63,7 +63,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
     finally { setBusy(false); }
   };
 
-  if (loading) return <p className="py-20 text-center text-sm text-ink/40">Opening Studio</p>;
+  if (loading) return <p className="py-20 text-center text-sm text-muted">Opening Studio</p>;
 
   if (!me && loadError) return <div className="mx-auto max-w-[520px] px-6 py-16"><StudioLoadError message={loadError} retry={() => { void refresh(); }} /></div>;
 
@@ -72,7 +72,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
       <div className="mx-auto max-w-[520px] px-6 py-16">
         <h1 className="font-display text-2xl text-porcelain">Business Studio</h1>
         <p className="mt-3 text-[14px] leading-6 text-ink/60">Studio opens for business sessions. Sign in through the business door with your access code, or ask the business owner for one.</p>
-        <Link href="/business-login" className="mt-6 inline-flex items-center gap-2 rounded-full bg-pearl px-5 py-2.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"><KeyRound size={15} /> Business sign in</Link>
+        <Link href="/business-login" className="mt-6 inline-flex items-center gap-2 rounded-full bg-pearl px-5 py-2.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"><KeyRound size={15} /> Business sign in</Link>
       </div>
     );
   }
@@ -85,8 +85,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         <p className="mt-3 text-[14px] leading-6 text-ink/60">Enter your personal access code once for this session. It sets what you can do in Studio for {me.business_name || "this business"}.</p>
         <input value={code} onChange={e => setCode(e.target.value.toUpperCase())} onKeyDown={e => { if (e.key === "Enter") void bind(); }} placeholder="ACCESS CODE" autoFocus
           className="mt-5 w-full rounded-lg border border-ink/15 bg-transparent px-3 py-2.5 font-mono text-[15px] tracking-widest text-ink outline-none transition-colors duration-[140ms] focus:border-pearl" />
-        {err ? <p className="mt-2 text-[12.5px] text-red-400">{err}</p> : null}
-        <button onClick={bind} disabled={!code.trim() || busy} className="mt-4 w-full rounded-full bg-pearl py-2.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{busy ? "Checking" : "Continue"}</button>
+        {err ? <p className="mt-2 text-[12.5px] text-danger">{err}</p> : null}
+        <button onClick={bind} disabled={!code.trim() || busy} className="mt-4 w-full rounded-full bg-pearl py-2.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{busy ? "Checking" : "Continue"}</button>
       </div>
     );
   }
@@ -106,7 +106,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
               {greeting()}, {me.business_name || me.display_name || "team"}
               {tier ? <VerifiedBadge tier={tier} size={15} /> : null}
             </p>
-            <p className="mt-0.5 text-[13px] text-ink/50">Build your brand. Inspire your audience. Grow your business.</p>
+            <p className="mt-0.5 text-[13px] text-muted">Build your brand. Inspire your audience. Grow your business.</p>
           </div>
           {me.username ? (
             <Link
@@ -129,10 +129,10 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                 aria-disabled={!r.ready}
                 className={
                   "relative flex shrink-0 items-center gap-2 px-3.5 py-3 text-[13.5px] transition-colors duration-[140ms] " +
-                  (active ? "font-semibold text-ink" : r.ready ? "text-ink/55 hover:text-ink" : "cursor-default text-ink/25")
+                  (active ? "font-semibold text-ink" : r.ready ? "text-muted hover:text-ink" : "cursor-default text-muted")
                 }
               >
-                <Icon size={15} className={active ? "text-pearl" : undefined} />
+                <Icon size={15} className={active ? "text-accent" : undefined} />
                 {r.label}
                 <span
                   className={"absolute inset-x-2 -bottom-px h-[2px] rounded-full bg-pearl transition-opacity duration-[160ms] " + (active ? "opacity-100" : "opacity-0")}
@@ -154,7 +154,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                 if (rooms.length === 0) return null;
                 return (
                   <div key={g.label || "home"} className="flex flex-col gap-0.5">
-                    {g.label ? <p className="mb-1 px-2 text-[10.5px] font-semibold uppercase tracking-wide text-ink/40">{g.label}</p> : null}
+                    {g.label ? <p className="mb-1 px-2 text-[10.5px] font-semibold uppercase tracking-wide text-muted">{g.label}</p> : null}
                     {rooms.map((r) => {
                       const Icon = ICONS[r.key];
                       const active = r.href === "/studio" ? pathname === "/studio" : pathname.startsWith(r.href);
@@ -164,7 +164,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                           href={r.href}
                           className={"flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13.5px] transition-colors duration-[140ms] " + (active ? "bg-pearl/10 font-semibold text-ink" : "text-ink/60 hover:bg-surface hover:text-ink")}
                         >
-                          <Icon size={15} className={active ? "text-pearl" : "text-ink/45"} />
+                          <Icon size={15} className={active ? "text-accent" : "text-muted"} />
                           {r.label}
                         </Link>
                       );

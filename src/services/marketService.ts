@@ -37,13 +37,13 @@ export const MARKET_CONDITIONS = ['New', 'Like New', 'Good', 'Fair'] as const;
 const SELLER_SELECT = 'seller:profiles!marketplace_listings_seller_id_fkey(id, full_name, username, avatar_url, is_verified)';
 
 export const marketService = {
-async getMarketFeed(opts: { search?: string | null; category?: string | null; city?: string | null; limit?: number }): Promise<Listing[]> {
+async getMarketFeed(opts: { search?: string | null; category?: string | null; city?: string | null; limit?: number; offset?: number }): Promise<Listing[]> {
     const { data: ranked, error } = await supabase.rpc('get_market_feed', {
       p_category: opts.category && opts.category !== 'All' ? opts.category : null,
       p_search: opts.search?.trim() || null,
       p_city: opts.city?.trim() || null,
       p_limit: opts.limit ?? 30,
-      p_offset: 0,
+      p_offset: opts.offset ?? 0,
     });
     if (error) throw error;
     if (!ranked?.length) return [];
@@ -62,6 +62,7 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
     search?: string;
     category?: string | null;
     limit?: number;
+    offset?: number;
     before?: string | null;
     minPrice?: number | null;
     maxPrice?: number | null;
@@ -73,7 +74,7 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
       .from('marketplace_listings')
       .select(`*, ${SELLER_SELECT}`)
       .eq('status', 'available')
-      .limit(opts?.limit ?? 30);
+      .range(opts?.offset ?? 0, (opts?.offset ?? 0) + (opts?.limit ?? 30) - 1);
 
     if (opts?.category && opts.category !== 'All') q = q.eq('category', opts.category);
     if (opts?.search && opts.search.trim().length > 0) {

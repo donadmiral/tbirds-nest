@@ -93,15 +93,15 @@ export default function CommunitiesPage() {
         <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white"><Users size={13} /> Communities</span>
       </div>
       <div className="mb-4 flex items-center gap-2 rounded-lg bg-ink/5 px-3 py-2 transition-colors duration-[140ms] focus-within:bg-ink/[0.07]">
-        <Search size={15} className="text-ink/40" />
+        <Search size={15} className="text-muted" />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search communities"
-          className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-ink/40" />
-        {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-ink/40" /></button> : null}
+          className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-muted" />
+        {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-muted" /></button> : null}
       </div>
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading&hellip;</p>
+        <p className="py-16 text-center text-sm text-muted">Loading&hellip;</p>
       ) : rows.length === 0 ? (
-        <p className="py-16 text-center text-sm text-ink/40">{q ? "No communities match." : "No communities yet. Create the first one."}</p>
+        <p className="py-16 text-center text-sm text-muted">{q ? "No communities match." : "No communities yet. Create the first one."}</p>
       ) : (
         <ul>
           {rows.map(c => (
@@ -115,7 +115,7 @@ export default function CommunitiesPage() {
                 )}
                 <span className="min-w-0">
                   <span className="block truncate text-[14.5px] font-semibold text-ink">{c.name}</span>
-                  <span className="block truncate text-[12.5px] text-ink/45">
+                  <span className="block truncate text-[12.5px] text-muted">
                     {String(c.member_count || 0)} {c.member_count === 1 ? "member" : "members"}
                     {catLabel(c.category) ? " · " + catLabel(c.category) : ""}
                     {c.description ? " · " + c.description : ""}
@@ -123,13 +123,13 @@ export default function CommunitiesPage() {
                 </span>
               </Link>
               {c.is_member ? (
-                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/50">Joined</span>
+                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-muted">Joined</span>
               ) : c.has_invite ? (
                 <button onClick={() => join(c)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">Accept invite</button>
               ) : c.has_pending ? (
-                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/50">Requested</span>
+                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-muted">Requested</span>
               ) : c.join_mode === "invite" ? (
-                <span className="rounded-full bg-ink/5 px-3 py-1.5 text-[12px] font-semibold text-ink/40">Invite only</span>
+                <span className="rounded-full bg-ink/5 px-3 py-1.5 text-[12px] font-semibold text-muted">Invite only</span>
               ) : me ? (
                 <button onClick={() => join(c)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">{c.join_mode === "approval" ? "Request" : "Join"}</button>
               ) : null}
@@ -142,13 +142,13 @@ export default function CommunitiesPage() {
           <div className="max-h-[88vh] w-full max-w-[460px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">New community</p>
-              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <input value={gName} onChange={e => setGName(e.target.value)} maxLength={60} placeholder="Community name"
               className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             <input value={gDesc} onChange={e => setGDesc(e.target.value)} maxLength={200} placeholder="What is it about? (optional)"
               className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Who can join</p>
+            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Who can join</p>
             <div className="mb-3 flex gap-2">
               {(["open", "approval", "invite"] as const).map(k => (
                 <button key={k} onClick={() => setGMode(k)}
@@ -157,7 +157,7 @@ export default function CommunitiesPage() {
                 </button>
               ))}
             </div>
-            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Category</p>
+            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Category</p>
             <div className="mb-3 flex flex-wrap gap-1.5">
               {CATEGORIES.map(c => (
                 <button key={c.key} onClick={() => setGCat(gCat === c.key ? null : c.key)}
@@ -166,7 +166,7 @@ export default function CommunitiesPage() {
                 </button>
               ))}
             </div>
-            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Cover color</p>
+            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Cover color</p>
             <div className="mb-3 flex flex-wrap gap-2">
               {Object.entries(COMM_COLORS).map(([k, v]) => (
                 <button key={k} onClick={() => setGColor(k)} aria-label={k}

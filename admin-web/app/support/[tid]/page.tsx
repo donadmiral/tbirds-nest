@@ -6,6 +6,7 @@ import { serviceClient } from '@/lib/supabaseAdmin';
 import { sendTicketReply, setTicketStatus } from '@/lib/actions';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { supportPage, SUPPORT_MESSAGE_PAGE_SIZE } from '@/lib/supportReporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,16 +16,22 @@ const PILL: Record<string, string> = {
   solved: 'bg-[#EBF3EE] text-[#1D7A38]',
 };
 
-export default async function TicketPage({ params }: { params: Promise<{ tid: string }> }) {
+export default async function TicketPage({ params, searchParams }: { params: Promise<{ tid: string }>; searchParams: Promise<{ page?: string | string[] }> }) {
   const { tid } = await params;
+  const page = supportPage((await searchParams).page);
+  const start = (page - 1) * SUPPORT_MESSAGE_PAGE_SIZE;
   const admin = await requireDesk('/support');
   const svc = serviceClient();
-  const { data: t } = await svc.from('support_tickets').select('*').eq('id', tid).maybeSingle();
+  const { data: t, error: ticketError } = await svc.from('support_tickets').select('*').eq('id', tid).maybeSingle();
+  if (ticketError) throw new Error('Support ticket could not be loaded.');
   if (!t) redirect('/support');
-  const [{ data: msgs }, { data: p }] = await Promise.all([
-    svc.from('support_messages').select('*').eq('ticket_id', t.id).order('created_at', { ascending: true }),
+  const [messages, profile] = await Promise.all([
+    svc.from('support_messages').select('*', { count: 'exact' }).eq('ticket_id', t.id).order('created_at', { ascending: false }).order('id', { ascending: false }).range(start, start + SUPPORT_MESSAGE_PAGE_SIZE - 1),
     svc.from('profiles').select('id, full_name, username').eq('id', t.user_id).maybeSingle(),
   ]);
+  if (messages.error || messages.count === null || profile.error) throw new Error('Support conversation could not be loaded.');
+  const msgs = [...(messages.data ?? [])].reverse();
+  const p = profile.data;
   return (
     <Shell admin={admin} active="/support" title="Ticket" sub={t.kind === 'appeal' ? 'Suspension appeal' : 'Support conversation'}>
       <div className="mb-4"><Link href="/support" className="text-[12.5px] font-semibold text-[#0B1E3D] hover:underline">&larr; All tickets</Link></div>
@@ -45,7 +52,13 @@ export default async function TicketPage({ params }: { params: Promise<{ tid: st
 
       <div className="mb-4 rounded-[12px] border border-[#E5E4E0] bg-white p-5">
         <p className="mb-3 text-[10.5px] font-bold uppercase tracking-wider text-[#9A9DA4]">Conversation</p>
-        {(msgs ?? []).length === 0 ? <p className="text-[12.5px] text-[#9A9DA4]">No messages on this ticket.</p> : null}
+        <nav aria-label="Conversation pages" className="mb-3 flex flex-wrap gap-4 text-sm">
+          <span>{msgs.length} of {messages.count} messages · {page === 1 ? 'Latest messages' : `Page ${page}`}</span>
+          {page > 1 ? <Link href={'/support/' + tid}>Latest</Link> : null}
+          {page > 1 ? <Link href={'/support/' + tid + '?page=' + (page - 1)}>Newer</Link> : null}
+          {messages.count > start + SUPPORT_MESSAGE_PAGE_SIZE ? <Link href={'/support/' + tid + '?page=' + (page + 1)}>Older</Link> : null}
+        </nav>
+        {msgs.length === 0 ? <p className="text-[12.5px] text-[#9A9DA4]">{messages.count === 0 ? 'No messages on this ticket.' : 'No messages on this page. Return to Latest.'}</p> : null}
         {(msgs ?? []).map(m => (
           <div key={m.id} className={'mb-2.5 flex ' + (m.sender === 'ops' ? 'justify-end' : 'justify-start')}>
             <div className={'max-w-[72%] rounded-[13px] px-3.5 py-2.5 ' + (m.sender === 'ops' ? 'bg-[#0B1E3D] text-white' : 'bg-[#F4F5F7] text-[#26282E]')}>
@@ -62,7 +75,7 @@ export default async function TicketPage({ params }: { params: Promise<{ tid: st
         <p className="mb-2 text-[10.5px] font-bold uppercase tracking-wider text-[#9A9DA4]">Reply to the member</p>
         <PermissionGate role={admin.role} permission="support"><CommandForm scope="sendTicketReply" action={sendTicketReply}>
           <input type="hidden" name="tid" value={t.id} />
-          <textarea name="body" required rows={3} placeholder="Write to the member - sending marks the ticket Pending until they answer"
+          <textarea name="body" aria-label="Reply to the member" required rows={3} placeholder="Write to the member - sending marks the ticket Pending until they answer"
             className="mb-2.5 w-full resize-y rounded-[10px] border border-[#E5E4E0] px-3.5 py-2.5 text-[13px] outline-none transition-colors duration-100 focus:border-[#B9BCC2]" />
           <div className="flex flex-wrap items-center gap-2">
             <button className="rounded-[10px] bg-[#0B1E3D] px-4 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Send reply</button>

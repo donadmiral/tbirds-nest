@@ -36,6 +36,6 @@ export default function CommandForm({ action, scope, children, ...props }: Props
     } finally { pending.current = false; setBusy(false); }
   }}>
     <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'contents' }}>{children}</fieldset>
-    {error && <p role="alert" style={{ color: '#b42318', fontSize: 13 }}>{error}</p>}
+    {error && <p role="alert" style={{ color: 'var(--bad)', fontSize: 13 }}>{error}</p>}
   </form>;
 }

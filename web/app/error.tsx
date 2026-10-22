@@ -25,11 +25,11 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-6 py-16">
       <div className="w-full max-w-[420px] text-center">
-        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pearl/15 text-pearl">
+        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pearl/15 text-accent">
           <AlertTriangle size={22} />
         </span>
         <h1 className="font-display text-[22px] leading-tight text-porcelain">Something went wrong</h1>
-        <p className="mt-2 text-[13.5px] leading-6 text-ink/55">
+        <p className="mt-2 text-[13.5px] leading-6 text-muted">
           This page failed to load. It is usually temporary, so trying again often works.
         </p>
         <div className="mt-5 flex items-center justify-center gap-2.5">
@@ -47,7 +47,7 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
           </Link>
         </div>
         {error.digest ? (
-          <p className="mt-4 text-[11.5px] text-ink/30">Reference {error.digest}</p>
+          <p className="mt-4 text-[11.5px] text-muted">Reference {error.digest}</p>
         ) : null}
       </div>
     </div>

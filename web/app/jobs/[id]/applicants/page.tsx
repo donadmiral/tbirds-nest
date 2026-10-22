@@ -1,5 +1,7 @@
 "use client";
 
+import { ApplicationCvLink } from "@/components/ApplicationCvLink";
+import { profilePath } from "@/lib/profileLookup";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
@@ -125,14 +127,14 @@ export default function ApplicantsPage() {
     return (
       <div className="px-1 py-16 text-center">
         <p className="text-[15px] text-ink/70">Only the poster of this job can view its applicants.</p>
-        <Link href="/jobs" className="mt-3 inline-block rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-ink">Back to jobs</Link>
+        <Link href="/jobs" className="mt-3 inline-block rounded-md bg-pearl px-5 py-2.5 text-sm font-semibold text-on-pearl">Back to jobs</Link>
       </div>
     );
   }
 
   return (
     <div className="px-1">
-      <Link href={"/jobs/" + jobId} className="mb-4 inline-block text-sm text-ink/50 hover:text-ink">← {jobTitle || "Job"}</Link>
+      <Link href={"/jobs/" + jobId} className="mb-4 inline-block text-sm text-muted hover:text-ink">← {jobTitle || "Job"}</Link>
       <h1 className="font-display text-xl text-porcelain">Applicants</h1>
 
       <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
@@ -148,9 +150,9 @@ export default function ApplicantsPage() {
 
       {error ? <p role="alert" className="py-3 text-sm text-danger">{error} <button onClick={() => { setLoading(true); void load(); }} className="underline">Retry</button></p> : null}
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
+        <p className="py-16 text-center text-sm text-muted">Loading</p>
       ) : shown.length === 0 && !error ? (
-        <p className="py-16 text-center text-sm text-ink/40">{filter === "all" ? "Applications will appear here as they come in." : "Move applicants here from their status menu."}</p>
+        <p className="py-16 text-center text-sm text-muted">{filter === "all" ? "Applications will appear here as they come in." : "Move applicants here from their status menu."}</p>
       ) : (
         <div className="mt-2 flex flex-col gap-3">
           {shown.map((a) => {
@@ -158,7 +160,7 @@ export default function ApplicantsPage() {
             return (
               <div key={a.id} className="rounded-lg border border-ink/10 p-4">
                 <div className="flex items-center gap-3">
-                  <Link href={a.profile?.username ? "/" + a.profile.username : "#"} className="shrink-0">
+                  <Link href={profilePath(a.profile?.username, a.applicant_id)} className="shrink-0">
                     {a.profile?.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={displayImageUrl(a.profile.avatar_url, 200) ?? a.profile.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
@@ -169,10 +171,10 @@ export default function ApplicantsPage() {
                     )}
                   </Link>
                   <div className="min-w-0 flex-1">
-                    <Link href={a.profile?.username ? "/" + a.profile.username : "#"} className="block truncate text-[15px] font-semibold text-ink hover:underline">
+                    <Link href={profilePath(a.profile?.username, a.applicant_id)} className="block truncate text-[15px] font-semibold text-ink hover:underline">
                       {a.profile?.full_name ?? "Member"} <VerifiedBadge userId={a.profile?.id} size={13} />
                     </Link>
-                    <p className="text-[12px] text-ink/40">{a.profile?.username ? "@" + a.profile.username + " · " : ""}{timeAgo(a.applied_at)}</p>
+                    <p className="text-[12px] text-muted">{a.profile?.username ? "@" + a.profile.username + " · " : ""}{timeAgo(a.applied_at)}</p>
                   </div>
                   <select value={a.status} disabled={a.status === "withdrawn" || pendingIds.has(a.id)}
                     onChange={(e) => {
@@ -191,13 +193,11 @@ export default function ApplicantsPage() {
                 {a.cover_note ? <p className="mt-3 whitespace-pre-wrap text-[14px] text-ink/80">{a.cover_note}</p> : null}
 
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button onClick={async () => { const { data, error } = await supabase.rpc("start_dm_ctx", { p_receiver_id: a.applicant_id, p_context: "jobs", p_ref_id: jobId }); if (error || !data) { alert("Could not open the conversation. Please try again."); return; } router.push("/jobs/messages?c=" + data); }} className="flex items-center gap-1.5 rounded-md bg-pearl/15 px-3 py-1.5 text-[13px] font-semibold text-pearl hover:bg-pearl/25">
+                  <button onClick={async () => { const { data, error } = await supabase.rpc("start_dm_ctx", { p_receiver_id: a.applicant_id, p_context: "jobs", p_ref_id: jobId }); if (error || !data) { alert("Could not open the conversation. Please try again."); return; } router.push("/jobs/messages?c=" + data); }} className="flex items-center gap-1.5 rounded-md bg-pearl/15 px-3 py-1.5 text-[13px] font-semibold text-accent hover:bg-pearl/25">
                     <MessageCircle size={14} /> Message
                   </button>
                   {a.cv_url ? (
-                    <a href={a.cv_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[13px] text-ink/80 hover:bg-surface-elevated">
-                      <FileText size={14} /> {a.cv_name || "CV"}
-                    </a>
+                    <ApplicationCvLink reference={a.cv_url} name={a.cv_name} />
                   ) : null}
                   {a.applicant_phone ? (
                     <span className="flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[13px] text-ink/70"><Phone size={14} /> {a.applicant_phone}</span>
@@ -218,14 +218,14 @@ export default function ApplicantsPage() {
                 {scheduling === a.id ? (
                   <div className="mt-3 flex flex-col gap-2 rounded-md bg-surface p-3">
                     <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="rounded-md bg-surface-elevated px-3 py-2 text-[13px] text-ink outline-none" />
-                    <input value={where} onChange={(e) => setWhere(e.target.value)} placeholder="Location or link" className="rounded-md bg-surface-elevated px-3 py-2 text-[13px] text-ink placeholder:text-ink/30 outline-none" />
+                    <input value={where} onChange={(e) => setWhere(e.target.value)} placeholder="Location or link" className="rounded-md bg-surface-elevated px-3 py-2 text-[13px] text-ink placeholder:text-muted outline-none" />
                     <div className="flex gap-2">
                       <button disabled={pendingIds.has(a.id)} onClick={async () => {
                           const interviewAt = new Date(when);
                           if (!when || !Number.isFinite(interviewAt.getTime()) || interviewAt.getTime() <= Date.now()) { alert("Choose a future interview time."); return; }
                           if (await setStatus(a, "interview", { interview_at: interviewAt.toISOString(), interview_location: where.trim() || null })) setScheduling(null);
                         }}
-                        className="rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-ink"
+                        className="rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-on-pearl"
                       >
                         Schedule interview
                       </button>

@@ -63,7 +63,7 @@ function YourActivity() {
       <div className="grid grid-cols-2 gap-3">
         {cells.map((c) => (
           <div key={c.label} className="rounded-xl bg-surface px-3 py-2.5">
-            <span className="flex items-center gap-1.5 text-[11.5px] text-ink/45">
+            <span className="flex items-center gap-1.5 text-[11.5px] text-muted">
               <c.icon size={12} /> {c.label}
             </span>
             <span className="mt-0.5 block font-display text-[20px] leading-tight text-porcelain">{c.n.toLocaleString()}</span>

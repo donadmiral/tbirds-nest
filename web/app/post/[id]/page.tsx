@@ -67,8 +67,8 @@ export default async function PostPage({ params }: Params) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 px-6 text-center">
         <h1 className="font-display text-2xl text-porcelain">This post is not available</h1>
-        <p className="text-sm text-ink/50">It may be private, deleted, or you may need to sign in.</p>
-        <Link href="/" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">
+        <p className="text-sm text-muted">It may be private, deleted, or you may need to sign in.</p>
+        <Link href="/" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">
           Open Platinum Circles
         </Link>
       </main>

@@ -13,6 +13,8 @@ const compiled = file => ts.transpileModule(fs.readFileSync(path.join(root, file
 }).outputText;
 const commentSource = compiled('components/Comments.tsx');
 const cardSource = compiled('components/PostCard.tsx');
+const profileModule = { exports: {} };
+vm.runInNewContext(compiled('lib/profileLookup.ts'), { module: profileModule, exports: profileModule.exports });
 // Keep the new test helper available when running original component sources.
 const helperSource = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/commentCounts.ts'), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
@@ -86,6 +88,7 @@ function scenario(initialCount = 0) {
         if (id === 'react') return hooks;
         if (id === 'react/jsx-runtime') return runtime;
         if (id === '@/lib/commentCounts') return helper;
+        if (id === '@/lib/profileLookup') return profileModule.exports;
         if (id === '@/lib/supabase/client') return { createClient: () => client };
         if (id === '@/lib/pollCheck') return { usePollFlag: () => false };
         if (id === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };

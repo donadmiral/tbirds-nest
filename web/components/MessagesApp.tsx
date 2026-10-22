@@ -12,6 +12,8 @@ import { CallButtons } from "@/components/CallButtons";
 import { GroupCallBar } from "@/components/GroupCallBar";
 import { SharedPostCard } from "@/components/SharedPostCard";
 import { timeAgo } from "@/lib/feed";
+import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from "../../shared/messageHistory";
+import { editMessage, reactToMessage, pinMessage, forwardMessage, canForwardMessage } from "@/lib/messageActions";
 
 type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
 type MiniListing = { id: string; title: string; price: number; currency: string; images: string[]; status: string };
@@ -29,6 +31,36 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [active, setActive] = useState<Conv | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [conversationError, setConversationError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [hasOlder, setHasOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [replyTo, setReplyTo] = useState<Msg | null>(null);
+  const [editing, setEditing] = useState<Msg | null>(null);
+  const [forwarding, setForwarding] = useState<Msg | null>(null);
+  const [pinnedMessage, setPinnedMessage] = useState<Msg | null>(null);
+  const [busyMessage, setBusyMessage] = useState<string | null>(null);
+  const messageActionPending = useRef(false);
+  const sendPending = useRef(false);
+  const uploadPending = useRef(false);
+  const uploadGeneration = useRef(0);
+  const accountGeneration = useRef(0);
+  const recorderPending = useRef(false);
+  const recordingGeneration = useRef(0);
+  const inboxGeneration = useRef(0);
+  const componentLive = useRef(true);
+  const historyCursor = useRef<MessageCursor | null>(null);
+  const historyGeneration = useRef(0);
+  const olderPending = useRef(false);
+  const msgsRef = useRef<Msg[]>([]);
+  msgsRef.current = msgs;
+  const uidRef = useRef(uid);
+  uidRef.current = uid;
+  const drafts = useRef(new Map<string, string>());
+  const [attachmentDraft, setAttachmentDraft] = useState<File | null>(null);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
   // Chats holds people and plain groups; a community's chat lives under Groups, labelled, the same as on the phone.
@@ -90,6 +122,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   activeRef.current = active;
 
   const hydrateOffers = useCallback(async (rows: Msg[]) => {
+    const generation = accountGeneration.current;
     const ids: string[] = [];
     rows.forEach((m) => {
       if (m.media_type === "offer" && m.media_url) {
@@ -98,6 +131,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     });
     if (ids.length === 0) return;
     const { data } = await supabase.from("listing_offers").select("id, status, proposer_id, amount, currency").in("id", ids);
+    if (!componentLive.current || generation !== accountGeneration.current) return;
     setOffers((prev) => {
       const next = { ...prev };
       ((data ?? []) as OfferLive[]).forEach((o) => { next[o.id] = o; });
@@ -105,51 +139,125 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     });
   }, [supabase]);
 
+  const loadReactions = useCallback(async (rows: Msg[], conversationId: string) => {
+    if (!rows.length) return;
+    const generation = accountGeneration.current;
+    const ids = rows.map(row => row.id).filter(id => !id.startsWith('temp-'));
+    const { data, error } = await supabase.from('message_reactions').select('message_id, user_id, emoji').in('message_id', ids);
+    if (error || !componentLive.current || generation !== accountGeneration.current || activeRef.current?.id !== conversationId) return;
+    const byId = new Map<string, { user_id: string; emoji: string }[]>();
+    for (const row of data || []) byId.set(row.message_id, [...(byId.get(row.message_id) || []), row]);
+    setMsgs(prev => prev.map(row => ids.includes(row.id) ? { ...row, _reactions: byId.get(row.id) || [] } : row));
+  }, [supabase]);
+
+  const loadPin = useCallback(async (conversationId: string) => {
+    const generation = accountGeneration.current;
+    const { data, error } = await supabase.from('conversations').select('pinned_message_id').eq('id', conversationId).maybeSingle();
+    if (error || !componentLive.current || generation !== accountGeneration.current || activeRef.current?.id !== conversationId) return;
+    if (!data?.pinned_message_id) { setPinnedMessage(null); return; }
+    const { data: row } = await supabase.from('messages').select('*').eq('id', data.pinned_message_id).eq('conversation_id', conversationId).maybeSingle();
+    if (componentLive.current && generation === accountGeneration.current && activeRef.current?.id === conversationId) setPinnedMessage(row && !row.deleted_at ? row as Msg : null);
+  }, [supabase]);
+
   const openConv = useCallback(async (c: Conv) => {
+    const generation = ++historyGeneration.current;
+    activeRef.current = c;
     setActive(c);
-    setLoadingMsgs(true);
-    setMsgs([]);
-    setRefListing(null);
-    setOtherTyping(false);
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", c.id)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    // The latest two hundred, oldest first on screen; a long conversation opens at its end, not its start.
-    const rows = await signChatMedia((((data ?? []) as Msg[]).slice().reverse()));
-    setMsgs(rows);
-    setLoadingMsgs(false);
-    hydrateOffers(rows);
-    if (c.context === "market" && c.context_ref_id) {
-      const { data: lst } = await supabase
-        .from("marketplace_listings")
-        .select("id, title, price, currency, images, status")
-        .eq("id", c.context_ref_id)
-        .maybeSingle();
-      if (lst) setRefListing(lst as MiniListing);
-    }
-    supabase.rpc("mark_conversation_read_v2", { p_conversation_id: c.id }).then(() => {
-      setConvs((l) => l.map((x) => (x.id === c.id ? { ...x, unread: 0 } : x)));
-    }, () => {});
-    pinnedRef.current = true; [60, 400, 1200].forEach((ms) => setTimeout(scrollToEnd, ms));
-  }, [supabase, hydrateOffers]);
+    setLoadingMsgs(true); setHistoryError(null); setActionError(null); setNotice(null);
+    setMsgs([]); setDraft(drafts.current.get(c.id) || ''); setAttachmentDraft(null); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
+    historyCursor.current = null; olderPending.current = false; setHasOlder(false); setLoadingOlder(false);
+    setRefListing(null); setOtherTyping(false);
+    const current = () => historyGeneration.current === generation && activeRef.current?.id === c.id;
+    try {
+      const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', c.id)
+        .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE);
+      if (error) throw error;
+      const raw = (data || []) as Msg[];
+      const rows = await signChatMedia(raw);
+      if (!current()) return;
+      historyCursor.current = raw[raw.length - 1] || null;
+      setHasOlder(raw.length === MESSAGE_PAGE_SIZE);
+      setMsgs(prev => mergeMessagePage(rows, prev, true));
+      void hydrateOffers(rows); void loadReactions(rows, c.id); void loadPin(c.id);
+      const { error: readError } = await supabase.rpc('mark_conversation_read_v2', { p_conversation_id: c.id });
+      if (!readError) setConvs(list => list.map(item => item.id === c.id ? { ...item, unread: 0 } : item));
+      if (c.context === 'market' && c.context_ref_id) {
+        const { data: listing } = await supabase.from('marketplace_listings').select('id, title, price, currency, images, status').eq('id', c.context_ref_id).maybeSingle();
+        if (current() && listing) setRefListing(listing as MiniListing);
+      }
+      if (current()) { pinnedRef.current = true; requestAnimationFrame(() => { if (current()) scrollToEnd(); }); }
+    } catch {
+      if (current()) setHistoryError('Messages could not be loaded. Please try again.');
+    } finally { if (current()) setLoadingMsgs(false); }
+  }, [supabase, hydrateOffers, loadReactions, loadPin]);
+
+  const loadOlder = useCallback(async () => {
+    const c = activeRef.current;
+    const cursor = historyCursor.current;
+    if (!c || !cursor || !hasOlder || olderPending.current) return;
+    const generation = historyGeneration.current;
+    const current = () => historyGeneration.current === generation && activeRef.current?.id === c.id;
+    olderPending.current = true; setLoadingOlder(true); setHistoryError(null);
+    try {
+      const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', c.id)
+        .or(olderMessageFilter(cursor)).order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE);
+      if (error) throw error;
+      const raw = (data || []) as Msg[];
+      const rows = await signChatMedia(raw);
+      if (!current()) return;
+      const el = listRef.current; const oldHeight = el?.scrollHeight || 0; const oldTop = el?.scrollTop || 0;
+      pinnedRef.current = false;
+      setMsgs(prev => mergeMessagePage(rows, prev, true));
+      if (raw.length) historyCursor.current = raw[raw.length - 1];
+      setHasOlder(raw.length === MESSAGE_PAGE_SIZE);
+      void hydrateOffers(rows); void loadReactions(rows, c.id);
+      requestAnimationFrame(() => { if (current() && el) el.scrollTop = oldTop + el.scrollHeight - oldHeight; });
+    } catch { if (current()) setHistoryError('Older messages could not be loaded. Please try again.'); }
+    finally { if (current()) { olderPending.current = false; setLoadingOlder(false); } }
+  }, [supabase, hasOlder, hydrateOffers, loadReactions]);
+
+  const loadInbox = useCallback(async () => {
+    const generation = ++inboxGeneration.current;
+    const current = () => componentLive.current && inboxGeneration.current === generation;
+    setLoadingConvs(true); setConversationError(null);
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      if (!current()) return;
+      const id = data.session?.user.id ?? null;
+      uidRef.current = id; setUid(id);
+      if (!id) { setConvs([]); return; }
+      const list = await loadConversations(id, context);
+      if (!current() || uidRef.current !== id) return;
+      setConvs(list);
+      const target = new URLSearchParams(window.location.search).get('c');
+      const selected = target ? list.find(item => item.id === target) : null;
+      if (selected && !activeRef.current) void openConv(selected);
+    } catch { if (current()) setConversationError('Conversations could not be loaded. Please try again.'); }
+    finally { if (current()) setLoadingConvs(false); }
+  }, [supabase, context, openConv]);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      const id = data.session?.user.id ?? null;
-      setUid(id);
-      if (!id) { setLoadingConvs(false); return; }
-      const list = await loadConversations(id, context);
-      setConvs(list);
-      setLoadingConvs(false);
-      const target = new URLSearchParams(window.location.search).get("c");
-      const t = target ? list.find((x) => x.id === target) : null;
-      if (t) openConv(t);
-    })();
-  }, [supabase, context, openConv]);
+    componentLive.current = true;
+    let authReload: ReturnType<typeof setTimeout> | undefined;
+    void loadInbox();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextId = session?.user.id ?? null;
+      if (uidRef.current !== nextId) {
+        ++accountGeneration.current;
+        ++uploadGeneration.current;
+        uploadPending.current = false;
+        drafts.current.clear();
+        uidRef.current = nextId; setUid(nextId); activeRef.current = null; ++historyGeneration.current;
+        setActive(null); setMsgs([]); setConvs([]); setDraft('');
+        setAttachmentDraft(null); setSendingFile(false); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null); setOffers({});
+        setActionError(null); setNotice(null);
+        ++inboxGeneration.current;
+        if (nextId) authReload = setTimeout(() => { if (componentLive.current) void loadInbox(); }, 0);
+      }
+    });
+    return () => { componentLive.current = false; clearTimeout(authReload); subscription.unsubscribe(); ++inboxGeneration.current; ++historyGeneration.current; activeRef.current = null; };
+  }, [supabase, loadInbox]);
 
   useEffect(() => {
     if (!active || !uid) return;
@@ -159,7 +267,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         let incoming = p.new as Msg;
         if (activeRef.current?.id !== incoming.conversation_id) return;
         if (isChatMediaUrl(incoming.media_url)) incoming = (await signChatMedia([incoming]))[0];
-        setMsgs((l) => (l.some((m) => m.id === incoming.id) ? l.map((m) => (m.id === incoming.id ? incoming : m)) : [...l, incoming]));
+        if (activeRef.current?.id !== incoming.conversation_id) return;
+        setMsgs(list => mergeMessagePage(list, [incoming], true));
         hydrateOffers([incoming]);
         if (incoming.sender_id !== uid) {
           supabase.rpc("mark_conversation_read_v2", { p_conversation_id: incoming.conversation_id }).then(() => {}, () => {});
@@ -168,8 +277,14 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: "conversation_id=eq." + active.id }, async (p) => {
         let upd = p.new as Msg;
+        if (activeRef.current?.id !== upd.conversation_id) return;
         if (isChatMediaUrl(upd.media_url)) upd = (await signChatMedia([upd]))[0];
+        if (activeRef.current?.id !== upd.conversation_id) return;
         setMsgs((l) => l.map((m) => (m.id === upd.id ? { ...m, ...upd, media_url: upd.media_url ?? m.media_url } : m)));
+        void loadPin(upd.conversation_id);
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages", filter: "conversation_id=eq." + active.id }, (payload) => {
+        if (activeRef.current?.id === active.id) setMsgs(list => list.filter(message => message.id !== (payload.old as { id?: string }).id));
       })
       .subscribe();
 
@@ -177,20 +292,26 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       const { data } = await supabase.from("conversation_typing").select("*").eq("conversation_id", active.id);
       const fresh = ((data ?? []) as { user_id: string; is_typing: boolean; updated_at: string }[])
         .filter((r) => r.user_id !== uid && r.is_typing && Date.now() - new Date(r.updated_at).getTime() < 7000);
-      setOtherTyping(fresh.length > 0);
+      if (activeRef.current?.id === active.id) setOtherTyping(fresh.length > 0);
     };
     const typeCh = supabase
       .channel("web_typing_" + active.id)
       .on("postgres_changes", { event: "*", schema: "public", table: "conversation_typing", filter: "conversation_id=eq." + active.id }, fetchTyping)
       .subscribe();
-    const typePoll = setInterval(fetchTyping, 3000);
+    const typePoll = setInterval(fetchTyping, 10000);
+    void fetchTyping();
+    const reactionChannel = supabase.channel('web_reactions_' + active.id)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, (payload) => { const messageId = (payload.new as { message_id?: string }).message_id || (payload.old as { message_id?: string }).message_id; const rows = messageId ? msgsRef.current.filter(row => row.id === messageId) : msgsRef.current; for (let i = 0; i < rows.length; i += MESSAGE_PAGE_SIZE) void loadReactions(rows.slice(i, i + MESSAGE_PAGE_SIZE), active.id); })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations', filter: 'id=eq.' + active.id }, () => { void loadPin(active.id); })
+      .subscribe();
 
     return () => {
       supabase.removeChannel(ch);
       supabase.removeChannel(typeCh);
       clearInterval(typePoll);
+      supabase.removeChannel(reactionChannel);
     };
-  }, [supabase, active, uid, hydrateOffers]);
+  }, [supabase, active, uid, hydrateOffers, loadReactions, loadPin]);
 
   const setTyping = useCallback(async (isTyping: boolean) => {
     if (!active || !uid) return;
@@ -204,6 +325,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   function onDraftChange(v: string) {
     setDraft(v);
+    if (active && !editing) drafts.current.set(active.id, v);
     const now = Date.now();
     if (now - typingSentAt.current > 2000) {
       typingSentAt.current = now;
@@ -211,106 +333,172 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     }
   }
 
-  async function insertMessage(text: string | null, mediaUrl: string | null, mediaType: string | null) {
-    if (!active || !uid) return false;
+  async function insertMessage(text: string | null, mediaUrl: string | null, mediaType: string | null, target = activeRef.current, replyId = replyTo?.id ?? null) {
+    const senderId = uidRef.current;
+    const generation = accountGeneration.current;
+    if (!target || !senderId) return false;
+    const sameAccount = () => componentLive.current && generation === accountGeneration.current && uidRef.current === senderId;
+    const current = () => sameAccount() && activeRef.current?.id === target.id;
     const temp: Msg = {
-      id: "temp-" + Date.now(), conversation_id: active.id, sender_id: uid,
-      receiver_id: active.other_id, text, media_url: mediaUrl, media_type: mediaType,
-      reply_to_id: null, created_at: new Date().toISOString(),
+      id: 'temp-' + crypto.randomUUID(), conversation_id: target.id, sender_id: senderId,
+      receiver_id: target.is_group ? null : target.other_id, text, media_url: mediaUrl, media_type: mediaType,
+      reply_to_id: replyId, created_at: new Date().toISOString(),
     };
-    setMsgs((l) => [...l, temp]);
-    pinnedRef.current = true; setTimeout(scrollToEnd, 30);
-    const { data, error } = await supabase.from("messages").insert([{
-      conversation_id: active.id, text, sender_id: uid,
-      receiver_id: active.other_id, media_url: mediaUrl, media_type: mediaType, reply_to_id: null,
-    }]).select().single();
-    if (error) {
-      setMsgs((l) => l.filter((m) => m.id !== temp.id));
+    if (current()) { setMsgs(list => mergeMessagePage(list, [temp], true)); pinnedRef.current = true; }
+    try {
+      const { id: _temporaryId, created_at: _createdAt, ...payload } = temp;
+      const { data, error } = await supabase.from('messages').insert([payload]).select().single();
+      if (error || !data) throw error;
+      const saved = data as Msg;
+      if (current()) setMsgs(list => mergeMessagePage(list.filter(item => item.id !== temp.id), [saved], true));
+      if (sameAccount()) setConvs(list => list.map(c => c.id === target.id ? { ...c, last_message: text || 'Attachment', last_message_time: saved.created_at } : c));
+      return true;
+    } catch {
+      if (current()) { setMsgs(list => list.filter(item => item.id !== temp.id)); setActionError('Message not sent. Please try again.'); }
       return false;
     }
-    let saved = data as Msg;
-    if (isChatMediaUrl(saved.media_url)) saved = { ...saved, media_url: mediaUrl };
-    setMsgs((l) => l.map((m) => (m.id === temp.id ? saved : m)));
-    setConvs((l) => l.map((c) => (c.id === active.id ? { ...c, last_message: text || "Attachment", last_message_time: data.created_at } : c)));
-    return true;
   }
 
   async function send() {
-    const text = draft.trim();
-    if (!text || !active || !uid) return;
-    setDraft("");
-    setTyping(false);
-    const ok = await insertMessage(text, null, null);
-    if (!ok) setDraft(text);
+    const text = draft.trim(); const target = activeRef.current;
+    if (!text || !target || !uid || sendPending.current) return;
+    const generation = accountGeneration.current;
+    const current = () => componentLive.current && generation === accountGeneration.current;
+    sendPending.current = true; setSending(true); setActionError(null); setNotice(null);
+    try {
+      if (editing) {
+        const saved = await editMessage(supabase, editing, uid, text);
+        if (current() && activeRef.current?.id === target.id) { setMsgs(list => mergeMessagePage(list, [saved], true)); setEditing(null); setDraft(drafts.current.get(target.id) || ''); }
+      } else {
+        const ok = await insertMessage(text, null, null, target);
+        if (ok && current()) drafts.current.delete(target.id);
+        if (ok && current() && activeRef.current?.id === target.id) { setDraft(''); setReplyTo(null); void setTyping(false); }
+      }
+    } catch (error) { if (current() && activeRef.current?.id === target.id) setActionError(error instanceof Error ? error.message : 'Message not saved. Please try again.'); }
+    finally { sendPending.current = false; setSending(false); }
   }
 
-  async function attach(list: FileList | null) {
-    if (!list || !active || !uid || sendingFile) return;
+  async function runMessageAction(message: Msg, action: () => Promise<void>) {
+    if (messageActionPending.current || message.id.startsWith('temp-')) return;
+    const conversationId = activeRef.current?.id;
+    messageActionPending.current = true; setBusyMessage(message.id); setActionError(null); setNotice(null);
+    try { await action(); }
+    catch (error) { if (activeRef.current?.id === conversationId) setActionError(error instanceof Error ? error.message : 'The action could not be completed. Please try again.'); }
+    finally { messageActionPending.current = false; setBusyMessage(null); }
+  }
+
+  const messageActions: MessageActions = {
+    busy: busyMessage, pinnedId: pinnedMessage?.id ?? null,
+    reply: message => { setReplyTo(message); setEditing(null); setActionError(null); },
+    edit: message => { setEditing(message); setReplyTo(null); setDraft(message.text || ''); setActionError(null); },
+    forward: message => { setForwarding(message); setActionError(null); },
+    react: (message, emoji) => { if (uid) void runMessageAction(message, async () => { await reactToMessage(supabase, message.id, uid, emoji); await loadReactions([message], message.conversation_id); }); },
+    pin: message => { void runMessageAction(message, async () => { await pinMessage(supabase, message.conversation_id, pinnedMessage?.id === message.id ? null : message.id); await loadPin(message.conversation_id); }); },
+  };
+
+  async function attach(list: FileList | readonly File[] | null) {
+    if (!list || !active || !uid || uploadPending.current || recording || recorderPending.current) return;
+    const target = activeRef.current; const senderId = uidRef.current;
     const f = list[0];
-    if (!f) return;
-    setSendingFile(true);
+    if (!f || !target || !senderId) return;
+    const generation = accountGeneration.current;
+    const uploadId = ++uploadGeneration.current;
+    uploadPending.current = true; setAttachmentDraft(f);
+    setSendingFile(true); setActionError(null);
+    try {
     const isImage = f.type.startsWith("image/");
     const isVideo = f.type.startsWith("video/");
     const bucket = isImage || isVideo ? "chat-media" : "chat-files";
     const safeName = f.name.replace(/[^a-zA-Z0-9/_.\-]/g, "_");
-    const path = uid + "/" + Date.now() + "_" + safeName;
+    const path = senderId + "/" + crypto.randomUUID() + "_" + safeName;
     const { error: upErr } = await supabase.storage.from(bucket).upload(path, f, { contentType: f.type || "application/octet-stream" });
-    if (upErr) { alert("Upload failed: " + upErr.message); setSendingFile(false); return; }
+    if (upErr) throw new Error("Upload failed. Please try again.");
     const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
-    if (isImage) await insertMessage(null, pub.publicUrl, "image");
-    else if (isVideo) await insertMessage(null, pub.publicUrl, "video");
-    else await insertMessage("📄 " + f.name, pub.publicUrl, "document");
-    setSendingFile(false);
-    if (fileRef.current) fileRef.current.value = "";
+    if (!componentLive.current || generation !== accountGeneration.current || uidRef.current !== senderId) return;
+    const sent = await insertMessage(isImage || isVideo ? null : '📄 ' + f.name, pub.publicUrl, isImage ? 'image' : isVideo ? 'video' : 'document', target);
+    if (sent && activeRef.current?.id === target.id) { setAttachmentDraft(null); if (fileRef.current) fileRef.current.value = ''; }
+    } catch (error) { if (componentLive.current && generation === accountGeneration.current && activeRef.current?.id === target.id) setActionError(error instanceof Error ? error.message : 'Attachment not sent. Please try again.'); }
+    finally { if (uploadId === uploadGeneration.current) { uploadPending.current = false; setSendingFile(false); } }
   }
 
+  useEffect(() => {
+    return () => {
+      ++recordingGeneration.current;
+      const rec = recRef.current;
+      if (rec?.state === 'recording') { try { rec.stop(); } catch { /* already stopped */ } }
+      streamRef.current?.getTracks().forEach(track => track.stop());
+      streamRef.current = null; recRef.current = null;
+      if (recTimerRef.current) clearInterval(recTimerRef.current);
+      recTimerRef.current = null; recorderPending.current = false;
+      setRecording(false); setRecSecs(0);
+    };
+  }, [active?.id]);
+
   async function startRecording() {
-    if (recording || !active || !uid) return;
+    const target = activeRef.current;
+    if (recording || !target || !uid || recorderPending.current || uploadPending.current || sendPending.current) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      setActionError('Voice recording is not supported in this browser. You can attach an audio file instead.'); return;
+    }
+    const generation = recordingGeneration.current;
+    recorderPending.current = true; setActionError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (generation !== recordingGeneration.current || activeRef.current?.id !== target.id) { stream.getTracks().forEach(track => track.stop()); return; }
       streamRef.current = stream;
-      const mime = MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "audio/webm";
-      const rec = new MediaRecorder(stream, { mimeType: mime });
-      chunksRef.current = [];
-      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      rec.start();
-      recRef.current = rec;
-      setRecSecs(0);
-      setRecording(true);
-      recTimerRef.current = setInterval(() => setRecSecs((s) => s + 1), 1000);
+      const mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(type => MediaRecorder.isTypeSupported(type));
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const chunks: Blob[] = [];
+      chunksRef.current = chunks;
+      rec.ondataavailable = event => { if (event.data.size > 0) chunks.push(event.data); };
+      rec.start(); recRef.current = rec;
+      setRecSecs(0); setRecording(true);
+      recTimerRef.current = setInterval(() => setRecSecs(seconds => seconds + 1), 1000);
     } catch {
-      alert("Microphone access is needed for voice messages.");
-    }
+      streamRef.current?.getTracks().forEach(track => track.stop()); streamRef.current = null;
+      if (activeRef.current?.id === target.id) setActionError('Microphone access is needed for voice messages. Please allow it and try again.');
+    } finally { if (generation === recordingGeneration.current) recorderPending.current = false; }
   }
 
   function teardownRecording() {
     if (recTimerRef.current) { clearInterval(recTimerRef.current); recTimerRef.current = null; }
-    streamRef.current?.getTracks().forEach((tr) => tr.stop());
-    streamRef.current = null;
-    recRef.current = null;
-    setRecording(false);
-    setRecSecs(0);
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current = null; recRef.current = null;
+    setRecording(false); setRecSecs(0);
   }
 
   async function stopRecording(sendIt: boolean) {
-    const rec = recRef.current;
-    if (!rec) { teardownRecording(); return; }
-    const mime = rec.mimeType || "audio/webm";
-    await new Promise<void>((resolve) => {
-      rec.onstop = () => resolve();
-      try { rec.stop(); } catch { resolve(); }
-    });
-    const blob = new Blob(chunksRef.current, { type: mime });
-    teardownRecording();
-    if (!sendIt || blob.size === 0 || !active || !uid) return;
-    setSendingFile(true);
-    const ext = mime.includes("mp4") ? "m4a" : "webm";
-    const path = uid + "/" + Date.now() + "_voice." + ext;
-    const { error: upErr } = await supabase.storage.from("chat-media").upload(path, blob, { contentType: mime });
-    if (upErr) { alert("Could not send the voice note: " + upErr.message); setSendingFile(false); return; }
-    const { data: pub } = supabase.storage.from("chat-media").getPublicUrl(path);
-    await insertMessage(null, pub.publicUrl, "audio");
-    setSendingFile(false);
+    const rec = recRef.current; const target = activeRef.current; const senderId = uidRef.current;
+    if (!rec || recorderPending.current) return;
+    recorderPending.current = true;
+    const generation = recordingGeneration.current;
+    const account = accountGeneration.current;
+    let uploadId: number | undefined;
+    const mime = rec.mimeType || 'audio/webm';
+    try {
+      await new Promise<void>((resolve, reject) => {
+        rec.onstop = () => resolve(); rec.onerror = () => reject(new Error('Recording failed. Please try again.'));
+        try { if (rec.state === 'inactive') resolve(); else rec.stop(); } catch (error) { reject(error); }
+      });
+      if (generation !== recordingGeneration.current) return;
+      const blob = new Blob(chunksRef.current, { type: mime });
+      teardownRecording();
+      if (!sendIt || !blob.size || !target || !senderId || generation !== recordingGeneration.current || uidRef.current !== senderId) return;
+      uploadPending.current = true; setSendingFile(true);
+      uploadId = ++uploadGeneration.current;
+      const ext = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
+      const path = senderId + '/' + crypto.randomUUID() + '_voice.' + ext;
+      const { error } = await supabase.storage.from('chat-media').upload(path, blob, { contentType: mime });
+      if (error) throw new Error('Voice message not sent. Please try again.');
+      const { data } = supabase.storage.from('chat-media').getPublicUrl(path);
+      if (componentLive.current && account === accountGeneration.current && uidRef.current === senderId) await insertMessage(null, data.publicUrl, 'audio', target);
+    } catch (error) {
+      if (generation === recordingGeneration.current) teardownRecording();
+      if (componentLive.current && account === accountGeneration.current && activeRef.current?.id === target?.id) setActionError(error instanceof Error ? error.message : 'Voice message not sent.');
+    } finally {
+      if (generation === recordingGeneration.current) recorderPending.current = false;
+      if (uploadId !== undefined && uploadId === uploadGeneration.current) { uploadPending.current = false; setSendingFile(false); }
+    }
   }
 
   async function respondOffer(offerId: string, action: string, counterAmount?: number) {
@@ -339,18 +527,18 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       ) : null}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[13px] font-semibold text-ink">{refListing.title}</span>
-        <span className="block text-[13px] text-pearl">{(refListing.currency === "USD" ? "$" : refListing.currency + " ") + Number(refListing.price).toLocaleString()}</span>
+        <span className="block text-[13px] text-accent">{(refListing.currency === "USD" ? "$" : refListing.currency + " ") + Number(refListing.price).toLocaleString()}</span>
       </span>
       {refListing.status !== "available" ? (
-        <span className="shrink-0 rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/60">{refListing.status}</span>
+        <span className="shrink-0 rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-secondary">{refListing.status}</span>
       ) : null}
     </Link>
   ) : null;
 
-  const typingLine = otherTyping ? <p className="text-[12px] text-pearl">typing…</p> : null;
+  const typingLine = otherTyping ? <p className="text-[12px] text-accent">typing…</p> : null;
 
   const convButton = (c: Conv) => (
-    <div key={c.id} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") openConv(c); }}
+    <div key={c.id} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); void openConv(c); } }}
       onClick={() => openConv(c)}
       className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-[140ms] " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
     >
@@ -358,22 +546,27 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-baseline gap-1.5">
-            <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>{!c.is_group && c.other_id ? <VerifiedBadge userId={c.other_id} size={13} /> : null}{c.is_group && c.group_type === "community" ? <span className="shrink-0 rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/60">Community</span> : null}
+            <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>{!c.is_group && c.other_id ? <VerifiedBadge userId={c.other_id} size={13} /> : null}{c.is_group && c.group_type === "community" ? <span className="shrink-0 rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-secondary">Community</span> : null}
             {c.unread > 0 ? <span className="h-[6px] w-[6px] shrink-0 rounded-full bg-pearl" aria-hidden /> : null}
           </span>
-          {c.last_message_time ? <span className="shrink-0 text-[11px] text-ink/40">{timeAgo(c.last_message_time)}</span> : null}
+          {c.last_message_time ? <span className="shrink-0 text-[11px] text-muted">{timeAgo(c.last_message_time)}</span> : null}
         </span>
         <span className="flex items-center justify-between gap-2">
-          <span className={"truncate text-[13px] " + (c.unread > 0 ? "font-medium text-ink/75" : "text-ink/50")}>{c.last_message || "Say hello"}</span>
-          {c.unread > 0 ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-ink">{c.unread}</span> : null}
+          <span className={"truncate text-[13px] " + (c.unread > 0 ? "font-medium text-secondary" : "text-muted")}>{c.last_message || "Say hello"}</span>
+          {c.unread > 0 ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-on-pearl">{c.unread}</span> : null}
         </span>
       </span>
     </div>
   );
 
   const composer = (
+    <div>
+      {actionError ? <div role="alert" className="mb-2 text-sm text-danger"><p>{actionError}</p>{attachmentDraft ? <button type="button" disabled={sendingFile} className="mt-1 underline" onClick={() => void attach([attachmentDraft])}>Retry attachment</button> : null}</div> : null}
+      {notice ? <p role="status" className="mb-2 text-sm text-ink">{notice}</p> : null}
+      {editing || replyTo ? <div className="mb-2 flex items-center justify-between gap-3 rounded-md bg-surface p-2 text-sm text-ink"><span className="truncate">{editing ? 'Editing message' : 'Replying to: ' + (replyTo?.text || 'Attachment')}</span><button type="button" onClick={() => { if (editing) setDraft(active ? drafts.current.get(active.id) || '' : ''); setEditing(null); setReplyTo(null); }}>Cancel</button></div> : null}
+      {forwarding ? <div className="mb-2 rounded-md bg-surface p-3 text-sm text-ink"><div className="flex justify-between"><strong>Forward to</strong><button type="button" disabled={!!busyMessage} onClick={() => setForwarding(null)}>Cancel</button></div><div className="mt-2 max-h-40 overflow-y-auto">{convs.filter(c => c.id !== active?.id && !c.request_pending).map(c => <button type="button" key={c.id} disabled={!!busyMessage} className="block w-full rounded px-2 py-2 text-left hover:bg-surface-elevated" onClick={() => { if (uid) void runMessageAction(forwarding, async () => { await forwardMessage(supabase, forwarding, c, uid); if (activeRef.current?.id === forwarding.conversation_id) { setForwarding(null); setNotice('Forwarded to ' + c.title + '.'); } }); }}>{c.title}</button>)}{convs.filter(c => c.id !== active?.id && !c.request_pending).length === 0 ? <p>No other conversations available.</p> : null}</div></div> : null}
     <div className="flex items-end gap-2">
-      <button onClick={() => fileRef.current?.click()} disabled={sendingFile} title="Attach" className="rounded-md p-2.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-pearl disabled:opacity-40">
+      <button onClick={() => fileRef.current?.click()} disabled={sendingFile || sending || !!editing} title="Attach" aria-label="Attach a file" className="rounded-md p-2.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-accent disabled:opacity-40">
         <Paperclip size={18} />
       </button>
       <input ref={fileRef} type="file" hidden onChange={(e) => attach(e.target.files)} />
@@ -384,21 +577,26 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           <button onClick={() => stopRecording(true)} title="Send voice note" className="rounded-md bg-danger p-2.5 text-white transition-opacity duration-[140ms] hover:opacity-90"><Square size={16} /></button>
         </span>
       ) : (
-        <button onClick={startRecording} disabled={sendingFile} title="Voice message" className="rounded-md p-2.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-pearl disabled:opacity-40"><Mic size={18} /></button>
+        <button onClick={startRecording} disabled={sendingFile || sending || !!editing} title="Voice message" aria-label="Record a voice message" className="rounded-md p-2.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-accent disabled:opacity-40"><Mic size={18} /></button>
       )}
-      <textarea value={draft}
+      <textarea aria-label={editing ? "Edit message" : "Message"} disabled={sending} value={draft}
         onChange={(e) => onDraftChange(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
         onBlur={() => setTyping(false)}
         placeholder={sendingFile ? "Sending attachment" : "Message"}
         rows={1}
-        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[16px] sm:text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[16px] sm:text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
       />
-      <button onClick={send} disabled={!draft.trim()} className="rounded-md bg-pearl p-2.5 text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30" title="Send">
+      <button onClick={send} disabled={!draft.trim() || sending} className="rounded-md bg-pearl p-2.5 text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30" title="Send">
         <Send size={18} />
       </button>
     </div>
+    </div>
   );
+
+  const historyControl = historyError || hasOlder ? <div className="py-2 text-center text-sm text-ink">{historyError ? <p role="alert">{historyError}</p> : null}<button type="button" disabled={loadingOlder || loadingMsgs} className="rounded-md bg-surface px-3 py-2" onClick={() => { if (historyCursor.current) void loadOlder(); else if (active) void openConv(active); }}>{loadingOlder ? "Loading older messages…" : historyError ? "Try again" : "Load older messages"}</button></div> : null;
+  const pinnedBanner = pinnedMessage ? <div className="mt-2 flex items-center gap-2 rounded-md bg-surface p-2 text-sm text-ink"><span className="min-w-0 flex-1 truncate">Pinned · {pinnedMessage.text || "Attachment"}</span><button type="button" disabled={!!busyMessage} onClick={() => messageActions.pin(pinnedMessage)}>Unpin</button></div> : null;
+  const inboxError = conversationError ? <div role="alert" className="p-4 text-sm text-ink">{conversationError}<button type="button" className="ml-2 underline" onClick={() => void loadInbox()}>Try again</button></div> : null;
 
   if (compact) {
     return (
@@ -406,10 +604,11 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         {!active ? (
           <>
             <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>
+            {inboxError}
             {loadingConvs ? (
-              <p className="py-12 text-center text-sm text-ink/40">Loading</p>
+              <p className="py-12 text-center text-sm text-muted">Loading</p>
             ) : shownConvs.length === 0 ? (
-              <p className="py-12 text-center text-sm text-ink/40">No conversations here yet.</p>
+              <p className="py-12 text-center text-sm text-muted">No conversations here yet.</p>
             ) : (
               shownConvs.map(convButton)
             )}
@@ -418,20 +617,22 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           <>
             <header className="border-b border-ink/10 pb-3">
               <div className="flex items-center gap-3">
-                <button onClick={() => setActive(null)} className="rounded-md p-1.5 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back">←</button>
+                <button onClick={() => { activeRef.current = null; ++historyGeneration.current; setActive(null); }} className="rounded-md p-1.5 text-secondary transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back">←</button>
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={36} />
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>
                   {typingLine}
-                  {active.is_group && active.group_type === "community" && active.group_ref_id ? <Link href={"/communities/" + active.group_ref_id} className="text-[12px] text-pearl hover:underline">Community chat · open the community</Link> : null}
+                  {active.is_group && active.group_type === "community" && active.group_ref_id ? <Link href={"/communities/" + active.group_ref_id} className="text-[12px] text-accent hover:underline">Community chat · open the community</Link> : null}
                 </div>
               </div>
               {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
               {active && active.is_group ? <GroupCallBar conversationId={active.id} /> : null}
               {refCard}
+              {pinnedBanner}
             </header>
             <div ref={listRef} className="min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-auto overscroll-contain py-4">
-              {loadingMsgs ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : msgs.map((m) => <BubbleView key={m.id} m={m} uid={uid} offer={offerProps} />)}
+              {historyControl}
+              {loadingMsgs ? <p className="py-12 text-center text-sm text-muted">Loading</p> : msgs.map((m) => <BubbleView key={m.id} m={m} uid={uid} offer={offerProps} actions={messageActions} replySource={msgs.find(row => row.id === m.reply_to_id)} />)}
               <div ref={bottomRef} />
             </div>
             <footer className="border-t border-ink/10 pt-3">{composer}</footer>
@@ -449,32 +650,33 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           <h1 className="font-display text-xl text-porcelain">{heading}</h1>
           {context === "personal" ? (
             <p className="mt-1 flex items-center gap-1.5 text-[12px] font-semibold">
-              <Link href="/messages/requests" className="text-pearl hover:underline">Message requests</Link>
-              <span className="text-ink/25">·</span>
-              <Link href="/calls" className="flex items-center gap-1 text-pearl hover:underline"><Phone size={11} /> Calls</Link>
+              <Link href="/messages/requests" className="text-accent hover:underline">Message requests</Link>
+              <span className="text-muted">·</span>
+              <Link href="/calls" className="flex items-center gap-1 text-accent hover:underline"><Phone size={11} /> Calls</Link>
             </p>
           ) : null}
           <div className="relative mt-3">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" />
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search"
-              className="w-full rounded-md bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+              className="w-full rounded-md bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
             />
           </div>
           {context === "personal" ? (
             <div className="mt-3 flex gap-1.5">
               {(["chats", "groups", "unread"] as const).map((k) => (
-                <button key={k} onClick={() => setTab(k)} className={"rounded-full px-3 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (tab === k ? "bg-ink text-white" : "bg-surface text-ink/60 hover:text-ink")}>{k === "chats" ? "Chats" : k === "groups" ? "Groups" : "Unread"}</button>
+                <button key={k} onClick={() => setTab(k)} className={"rounded-full px-3 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (tab === k ? "bg-ink text-white" : "bg-surface text-secondary hover:text-ink")}>{k === "chats" ? "Chats" : k === "groups" ? "Groups" : "Unread"}</button>
               ))}
             </div>
           ) : null}
         </div>
         <div className="flex-1 overflow-y-auto">
-          {loadingConvs ? (
-            <p className="py-12 text-center text-sm text-ink/40">Loading</p>
+          {inboxError}
+            {loadingConvs ? (
+            <p className="py-12 text-center text-sm text-muted">Loading</p>
           ) : shownConvs.length === 0 ? (
-            <p className="px-4 py-12 text-center text-sm text-ink/40">No conversations yet.</p>
+            <p className="px-4 py-12 text-center text-sm text-muted">No conversations yet.</p>
           ) : (
             shownConvs.map(convButton)
           )}
@@ -487,7 +689,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             <span className="flex h-14 w-14 items-center justify-center rounded-full border border-pearl/50" aria-hidden>
               <span className="h-2.5 w-2.5 rounded-full bg-pearl" />
             </span>
-            <p className="text-[14px] text-ink/45">Pick a conversation</p>
+            <p className="text-[14px] text-muted">Pick a conversation</p>
           </div>
         ) : (
           <>
@@ -496,19 +698,21 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={38} />
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>
-                  {typingLine ?? (active.username ? <p className="text-[12px] text-ink/40">@{active.username}</p> : null)}
-                  {active.is_group && active.group_type === "community" && active.group_ref_id ? <Link href={"/communities/" + active.group_ref_id} className="text-[12px] text-pearl hover:underline">Community chat · open the community</Link> : null}
+                  {typingLine ?? (active.username ? <p className="text-[12px] text-muted">@{active.username}</p> : null)}
+                  {active.is_group && active.group_type === "community" && active.group_ref_id ? <Link href={"/communities/" + active.group_ref_id} className="text-[12px] text-accent hover:underline">Community chat · open the community</Link> : null}
                 </div>
               </div>
               {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
               {active && active.is_group ? <GroupCallBar conversationId={active.id} /> : null}
               {refCard}
+              {pinnedBanner}
             </header>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-5 py-4">
+            <div ref={listRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto px-5 py-4">
+              {historyControl}
               {loadingMsgs ? (
-                <p className="py-12 text-center text-sm text-ink/40">Loading</p>
+                <p className="py-12 text-center text-sm text-muted">Loading</p>
               ) : (
-                msgs.map((m) => <BubbleView key={m.id} m={m} uid={uid} offer={offerProps} />)
+                msgs.map((m) => <BubbleView key={m.id} m={m} uid={uid} offer={offerProps} actions={messageActions} replySource={msgs.find(row => row.id === m.reply_to_id)} />)
               )}
               <div ref={bottomRef} />
             </div>
@@ -532,18 +736,18 @@ function OfferCardView({ m, uid, offers, countering, counterAmt, setCountering, 
     const currency = live?.currency ?? j.currency ?? "";
     const proposer = live?.proposer_id ?? m.sender_id;
     const canRespond = status === "pending" && uid !== null && uid !== proposer;
-    const color = status === "accepted" ? "text-success" : status === "pending" ? "text-pearl" : "text-ink/40";
+    const color = status === "accepted" ? "text-success" : status === "pending" ? "text-accent" : "text-muted";
     return (
       <div className="min-w-48 rounded-lg border border-ink/15 bg-white p-3">
-        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40"><Tag size={12} /> Offer</p>
+        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted"><Tag size={12} /> Offer</p>
         <p className="mt-0.5 text-[18px] font-semibold text-ink">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
         <p className={"text-[12px] font-semibold capitalize " + color}>{status}</p>
         {canRespond ? (
           countering === j.offer_id ? (
             <div className="mt-2 flex flex-col gap-1.5">
-              <input value={counterAmt} onChange={(e) => setCounterAmt(e.target.value)} inputMode="numeric" placeholder="Counter amount" className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[13px] text-ink placeholder:text-ink/30 outline-none" />
+              <input value={counterAmt} onChange={(e) => setCounterAmt(e.target.value)} inputMode="numeric" placeholder="Counter amount" className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[13px] text-ink placeholder:text-muted outline-none" />
               <div className="flex gap-1.5">
-                <button onClick={() => { const n = Number(counterAmt.replace(/,/g, "")); if (n > 0) respondOffer(j.offer_id!, "countered", n); }} className="rounded-md bg-pearl px-2.5 py-1.5 text-[12px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">Send counter</button>
+                <button onClick={() => { const n = Number(counterAmt.replace(/,/g, "")); if (n > 0) respondOffer(j.offer_id!, "countered", n); }} className="rounded-md bg-pearl px-2.5 py-1.5 text-[12px] font-semibold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Send counter</button>
                 <button onClick={() => setCountering(null)} className="rounded-md bg-surface-elevated px-2.5 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface">Cancel</button>
               </div>
             </div>
@@ -559,34 +763,47 @@ function OfferCardView({ m, uid, offers, countering, counterAmt, setCountering, 
     );
   }
 
-const BubbleView = memo(function BubbleView({ m, uid, offer }: { m: Msg; uid: string | null; offer: OfferProps }) {
+type MessageActions = { busy: string | null; pinnedId: string | null; reply: (message: Msg) => void; edit: (message: Msg) => void; forward: (message: Msg) => void; react: (message: Msg, emoji: string) => void; pin: (message: Msg) => void };
+const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySource }: { m: Msg; uid: string | null; offer: OfferProps; actions: MessageActions; replySource?: Msg }) {
     const mine = m.sender_id === uid;
     if (m.deleted_at) return null;
+    const pending = m.id.startsWith('temp-');
+    const reactions = [...new Set((m._reactions || []).map(row => row.emoji))];
     return (
       <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
         <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-white shadow-sm" : "bg-surface text-ink")}>
+          {m.forwarded_from_id ? <p className="mb-1 text-xs opacity-80">Forwarded</p> : null}
+          {m.reply_to_id ? <blockquote className="mb-2 border-l-2 border-current pl-2 text-xs opacity-80">{replySource?.deleted_at ? 'Message removed' : replySource?.text || (replySource ? 'Attachment' : 'Reply to an earlier message')}</blockquote> : null}
           {m.media_type === "payment" || m.payment_id ? (
-            <span className={"flex items-center gap-1.5 text-[13px] " + (mine ? "text-white/75" : "text-ink/70")}><Wallet size={14} /> Payment · open the Platinum Circles app</span>
+            <span className={"flex items-center gap-1.5 text-[13px] " + (mine ? "text-white/75" : "text-secondary")}><Wallet size={14} /> Payment · open the Platinum Circles app</span>
           ) : null}
+          {m.view_limit ? <p className="text-sm">Limited-view attachment · open the Platinum Circles app</p> : null}
           {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
           {m.media_type === "offer" && m.media_url ? <OfferCardView m={m} {...offer} /> : null}
-          {(m.media_type === "image" || m.media_type === "gif") && m.media_url ? (
+          {!m.view_limit && (m.media_type === "image" || m.media_type === "gif" || m.media_type === "sticker") && m.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={m.media_url} alt="Shared image" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } }))} onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } })); }} className="mb-1 max-h-72 cursor-zoom-in rounded-lg object-contain" />
           ) : null}
-          {m.media_type === "video" && m.media_url ? (
+          {!m.view_limit && m.media_type === "video" && m.media_url ? (
             <video src={m.media_url} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />
           ) : null}
-          {(m.media_type === "audio" || m.media_type === "voice") && m.media_url ? (
+          {!m.view_limit && (m.media_type === "audio" || m.media_type === "voice") && m.media_url ? (
             <audio controls preload="metadata" className="mb-1 w-[240px] max-w-full"><source src={m.media_url} type={/\.(m4a|mp4)(\?|$)/i.test(m.media_url) ? "audio/mp4" : /\.webm(\?|$)/i.test(m.media_url) ? "audio/webm" : undefined} /><a href={m.media_url} target="_blank" rel="noopener noreferrer" className="underline">Voice message</a></audio>
           ) : null}
-          {m.media_type === "document" && m.media_url ? (
+          {!m.view_limit && m.media_type === "document" && m.media_url ? (
             <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="mb-1 flex items-center gap-1.5 text-[13px] underline">
               <FileText size={14} /> {m.text?.replace("📄 ", "") || "Document"}
             </a>
           ) : null}
           {m.text && m.media_type !== "document" ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
-          <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/55" : "text-ink/40")}>{timeAgo(m.created_at)}</p>
+          <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/80" : "text-secondary")}>{timeAgo(m.created_at)}{m.edited_at ? ' · edited' : ''}{mine ? pending ? ' · Sending…' : m.read_at ? ' · Read' : m.delivered_at ? ' · Delivered' : ' · Sent' : ''}</p>
+          {reactions.length ? <div className="mt-1 flex flex-wrap gap-1">{reactions.map(emoji => <button type="button" key={emoji} disabled={!!actions.busy} aria-pressed={m._reactions?.some(row => row.emoji === emoji && row.user_id === uid)} aria-label={'React ' + emoji} onClick={() => actions.react(m, emoji)} className="rounded border border-current/30 px-1.5 py-0.5 text-xs">{emoji} {m._reactions?.filter(row => row.emoji === emoji).length}</button>)}</div> : null}
+          {!pending && !m.is_system_message ? <details className="mt-1 text-xs"><summary className="cursor-pointer py-1" aria-label="Message actions">More</summary><div className="flex flex-wrap gap-2 py-1">
+            <button type="button" disabled={!!actions.busy} onClick={() => actions.reply(m)}>Reply</button>
+            {mine && !m.media_type && !m.shared_post_id && !m.payment_id ? <button type="button" disabled={!!actions.busy} onClick={() => actions.edit(m)}>Edit</button> : null}
+            <button type="button" disabled={!!actions.busy} onClick={() => actions.pin(m)}>{actions.pinnedId === m.id ? 'Unpin' : 'Pin'}</button>
+            {canForwardMessage(m) ? <button type="button" disabled={!!actions.busy} onClick={() => actions.forward(m)}>Forward</button> : null}
+          </div><div className="flex flex-wrap gap-1">{['❤️', '😂', '👍', '😮', '😢', '🔥'].map(emoji => <button type="button" key={emoji} aria-label={'React ' + emoji} aria-pressed={m._reactions?.some(row => row.emoji === emoji && row.user_id === uid) ?? false} disabled={!!actions.busy} onClick={() => actions.react(m, emoji)} className="p-1.5">{emoji}</button>)}</div></details> : null}
         </div>
       </div>
     );

@@ -20,10 +20,10 @@ function iconFor(type: string) {
   if (type === "like") return <Heart size={15} className="text-danger" />;
   if (type === "repost" || type === "quote") return <Repeat2 size={15} className="text-success" />;
   if (type === "comment" || type === "reply") return <MessageCircle size={15} className="text-info" />;
-  if (type === "follow") return <UserPlus size={15} className="text-pearl" />;
-  if (type === "follow_request") return <ShieldQuestion size={15} className="text-pearl" />;
-  if (type === "mention") return <AtSign size={15} className="text-pearl" />;
-  return <Bell size={15} className="text-ink/45" />;
+  if (type === "follow") return <UserPlus size={15} className="text-accent" />;
+  if (type === "follow_request") return <ShieldQuestion size={15} className="text-accent" />;
+  if (type === "mention") return <AtSign size={15} className="text-accent" />;
+  return <Bell size={15} className="text-muted" />;
 }
 import { timeAgo } from "@/lib/feed";
 
@@ -290,10 +290,10 @@ export default function NotificationsPage() {
           const n = unreadBy[k] ?? 0;
           return (
             <button key={k} onClick={() => setFilt(k)} title={k === "all" ? "Unread notifications across all activity" : "Unread groups in the recent activity below"}
-              className={"flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (filt === k ? "bg-pearl text-ink" : "text-ink/55 hover:bg-surface hover:text-ink")}>
+              className={"flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (filt === k ? "bg-pearl text-on-pearl" : "text-muted hover:bg-surface hover:text-ink")}>
               {lbl}
               {n > 0 ? (
-                <span className={"rounded-full px-1.5 text-[10.5px] tabular-nums " + (filt === k ? "bg-ink/15 text-ink" : "bg-pearl/20 text-pearl-muted")}>{n}</span>
+                <span className={"rounded-full px-1.5 text-[10.5px] tabular-nums " + (filt === k ? "bg-on-pearl/15 text-on-pearl" : "bg-pearl/20 text-accent")}>{n}</span>
               ) : null}
             </button>
           );
@@ -310,7 +310,7 @@ export default function NotificationsPage() {
       {failed ? (
         <ErrorState title="Could not load notifications" onRetry={() => void load()} />
       ) : loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
+        <p className="py-16 text-center text-sm text-muted">Loading</p>
       ) : visibleRows.length === 0 ? (
         <EmptyState
           icon={<Bell size={19} />}
@@ -320,7 +320,7 @@ export default function NotificationsPage() {
       ) : (
         sections.map((s) => (
           <section key={s.title} className="mb-4 overflow-hidden rounded-2xl border border-ink/10 bg-white">
-            <h2 className="border-b border-ink/8 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/35">{s.title}</h2>
+            <h2 className="border-b border-ink/8 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{s.title}</h2>
             {s.items.map((n) => {
               const { lead, rest } = lineFor(n);
               const unread = !n.read_at || n.unread_in_group > 0;
@@ -347,20 +347,20 @@ export default function NotificationsPage() {
                       <span className="font-semibold text-ink">{lead}</span>{n.actor_id && n.actor_name && !(n.others_count || 0) ? <VerifiedBadge userId={n.actor_id} size={12} /> : null}
                       {rest}
                     </span>
-                    <span className="mt-0.5 flex items-center gap-2 text-[12px] text-ink/40">
+                    <span className="mt-0.5 flex items-center gap-2 text-[12px] text-muted">
                       {timeAgo(n.created_at)}
-                      {n.unread_in_group > 0 ? <span className="rounded-full bg-pearl px-1.5 py-px text-[10px] font-bold text-ink">{n.unread_in_group} new</span> : null}
+                      {n.unread_in_group > 0 ? <span className="rounded-full bg-pearl px-1.5 py-px text-[10px] font-bold text-on-pearl">{n.unread_in_group} new</span> : null}
                     </span>
                   </span>
                   {n.type === "follow_request" && (n.data as { request_id?: string } | null)?.request_id ? (
                     <span className="flex shrink-0 gap-1.5" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                      <button disabled={pendingActions.has(n.notification_id)} onClick={onAccept} className="rounded-md bg-pearl px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">Confirm</button>
+                      <button disabled={pendingActions.has(n.notification_id)} onClick={onAccept} className="rounded-md bg-pearl px-3 py-1.5 text-[12px] font-semibold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Confirm</button>
                       <button disabled={pendingActions.has(n.notification_id)} onClick={onDecline} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Delete</button>
                     </span>
                   ) : null}
                   {n.type === "community_invite" && notificationValue(n, "community_id") ? (
                     <span className="flex shrink-0 gap-1.5" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                      <button disabled={pendingActions.has(n.notification_id)} onClick={onAccept} className="rounded-md bg-pearl px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">Accept</button>
+                      <button disabled={pendingActions.has(n.notification_id)} onClick={onAccept} className="rounded-md bg-pearl px-3 py-1.5 text-[12px] font-semibold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Accept</button>
                       <button disabled={pendingActions.has(n.notification_id)} onClick={onDecline} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Decline</button>
                     </span>
                   ) : null}

@@ -60,9 +60,9 @@ export default function CallsPage() {
 
   const icon = (row: Row) => {
     const outgoing = row.initiator_id === uid;
-    if (row.status === "missed") return <PhoneMissed size={13} className="text-red-500" />;
-    if (row.status === "declined") return <PhoneOff size={13} className="text-amber-500" />;
-    return outgoing ? <PhoneOutgoing size={13} className="text-success" /> : <PhoneIncoming size={13} className="text-pearl" />;
+    if (row.status === "missed") return <PhoneMissed size={13} className="text-danger" />;
+    if (row.status === "declined") return <PhoneOff size={13} className="text-warn" />;
+    return outgoing ? <PhoneOutgoing size={13} className="text-success" /> : <PhoneIncoming size={13} className="text-accent" />;
   };
   const label = (row: Row) => {
     const outgoing = row.initiator_id === uid;
@@ -75,15 +75,15 @@ export default function CallsPage() {
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <Link href="/messages" aria-label="Back to Messages" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
-      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Phone size={19} className="text-pearl" /> Calls</h1>
-      <p className="pb-5 text-[13px] text-ink/50">Your call history.</p>
+      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Phone size={19} className="text-accent" /> Calls</h1>
+      <p className="pb-5 text-[13px] text-muted">Your call history.</p>
 
-      {rows === null ? <p className="py-10 text-center text-sm text-ink/40">Loading</p>
+      {rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-16 text-center">
-          <Phone size={28} className="text-ink/25" />
+          <Phone size={28} className="text-muted" />
           <p className="text-[14px] font-semibold text-ink">No calls yet</p>
-          <p className="text-[12.5px] text-ink/45">Your call history will appear here.</p>
+          <p className="text-[12.5px] text-muted">Your call history will appear here.</p>
         </div>
       ) : rows.map(r => {
         const missed = r.status === "missed";
@@ -94,11 +94,11 @@ export default function CallsPage() {
               <img src={displayImageUrl(r.other.avatar_url, 200) ?? r.other.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
             ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-navy text-[13px] font-semibold text-white">{(r.other?.full_name || "U").charAt(0)}</span>}
             <div className="min-w-0 flex-1">
-              <p className={"truncate text-[14px] font-semibold " + (missed ? "text-red-500" : "text-ink")}>{r.other?.full_name || "Unknown"} <VerifiedBadge userId={r.other?.id} size={13} /></p>
-              <p className={"flex items-center gap-1.5 text-[12.5px] " + (missed ? "text-red-500" : "text-ink/45")}>
+              <p className={"truncate text-[14px] font-semibold " + (missed ? "text-danger" : "text-ink")}>{r.other?.full_name || "Unknown"} <VerifiedBadge userId={r.other?.id} size={13} /></p>
+              <p className={"flex items-center gap-1.5 text-[12.5px] " + (missed ? "text-danger" : "text-muted")}>
                 {icon(r)} {label(r)}{r.is_video ? " · Video" : " · Audio"}{r.duration_sec ? " · " + fmtDuration(r.duration_sec) : ""}
               </p>
-              <p className="text-[11px] text-ink/35">{fmtTime(r.created_at)}</p>
+              <p className="text-[11px] text-muted">{fmtTime(r.created_at)}</p>
             </div>
             <div className="flex shrink-0 gap-1.5">
               <button onClick={() => redial(r, false)} className="flex h-9 w-9 items-center justify-center rounded-full bg-ink/5 text-ink transition-colors duration-[140ms] hover:bg-ink/10" aria-label="Voice call"><Phone size={15} /></button>

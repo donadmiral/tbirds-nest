@@ -50,9 +50,9 @@ export function ListingCard({ l, saved: initiallySaved = false, viewerId = null,
         ) : null}
       </span>
       <span className="block px-3 py-2.5">
-        <span className="block text-[15px] font-semibold text-pearl">{priceLabel(l)}</span>
+        <span className="block text-[15px] font-semibold text-accent">{priceLabel(l)}</span>
         <span className="block truncate text-[13px] text-ink">{l.title}</span>
-        <span className="block truncate text-[12px] text-ink/40">
+        <span className="block truncate text-[12px] text-muted">
           {[l.location_city, l.delivery_available ? "Delivers" : null, timeAgo(l.created_at)].filter(Boolean).join(" · ")}
         </span>
       </span>

@@ -26,11 +26,11 @@ export function FollowButton({ authorId, size = "sm" }: { authorId: string | nul
   }
 
   const label = error && state === "unknown" ? "Retry" : state === "following" ? "Following" : state === "requested" ? "Requested" : "Follow";
-  const cls = size === "md" ? "px-4 py-2 text-[13px]" : "px-3 py-1 text-[12px]";
+  const cls = size === "md" ? "px-4 py-2 text-[13px]" : "min-h-9 px-3 py-1 text-[12px]";
   return (
     <button onClick={toggle} disabled={pending} aria-busy={pending} title={error ?? undefined}
       className={"shrink-0 rounded-full font-semibold transition-colors " + cls + " " +
-        (state === "none" ? "bg-pearl text-ink hover:opacity-90" : "bg-surface text-ink/70 hover:bg-surface-elevated")}
+        (state === "none" ? "bg-pearl text-on-pearl hover:opacity-90" : "bg-surface text-ink/70 hover:bg-surface-elevated")}
     >
       {label}
     </button>

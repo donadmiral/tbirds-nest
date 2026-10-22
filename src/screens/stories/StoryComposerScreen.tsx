@@ -1,4 +1,5 @@
 import StoryAudienceSheet from '../../components/stories/StoryAudienceSheet';
+import { updateDraftStickers, type StickerChange } from '../../controllers/stories/stickerDraftUpdates';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList,
@@ -226,9 +227,12 @@ export default function StoryComposerScreen() {
   const active = drafts[activeIndex];
   const mountedRef = useRef(true);
 
-  const updateActive = useCallback((patch: Partial<Draft>) => {
-    setDrafts(prev => prev.map((d, i) => (i === activeIndex ? { ...d, ...patch } : d)));
-  }, [activeIndex]);
+  const updateActive = useCallback((patch: Partial<Draft> | ((current: Draft) => Partial<Draft>)) => {
+    const draftId = active?.id;
+    if (!draftId) return;
+    setDrafts(prev => prev.map(d => d.id === draftId && d.uploadState !== 'uploading' && d.uploadState !== 'done'
+      ? { ...d, ...(typeof patch === 'function' ? patch(d) : patch) } : d));
+  }, [active?.id]);
 
   // ── Accessibility ──
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -512,13 +516,15 @@ export default function StoryComposerScreen() {
     let dead = false;
     VideoThumbnails.getThumbnailAsync(d.localUri, { time: 0, quality: 0.6 }).then(t => {
       if (dead) return;
-      setDrafts(prev => prev.map(x => x.id === d.id ? { ...x, imageW: x.imageW || t.width || 0, imageH: x.imageH || t.height || 0, thumbnailUri: x.thumbnailUri || t.uri } : x));
+      setDrafts(prev => prev.map(x => x.id === d.id && x.uploadState !== 'uploading' && x.uploadState !== 'done' ? { ...x, imageW: x.imageW || t.width || 0, imageH: x.imageH || t.height || 0, thumbnailUri: x.thumbnailUri || t.uri } : x));
     }).catch(() => {});
     return () => { dead = true; };
   }, [active?.id, active?.localUri, active?.mediaType, active?.imageW, active?.thumbnailUri, setDrafts]);
   const autoTrimSetRef = useRef<Set<string>>(new Set());
   const getTx = useCallback((): MediaTransform => (active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (active?.mediaFit || 'cover') as MediaFit }), [active]);
-  const setTx = useCallback((patch: Partial<MediaTransform>) => { const cur = active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (active?.mediaFit || 'cover') as MediaFit }; updateActive({ mediaTransform: { ...cur, ...patch } as MediaTransform }); }, [active, updateActive]);
+  const setTx = useCallback((patch: Partial<MediaTransform>) => {
+    updateActive(current => ({ mediaTransform: { ...(current.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (current.mediaFit || 'cover') as MediaFit }), ...patch } }));
+  }, [updateActive]);
   // Backdrop: cut the subject out with the background-removal model behind the
   // Replicate proxy, then let the background layer show through behind them.
   const cutoutSubject = useCallback(async () => {
@@ -543,7 +549,11 @@ export default function StoryComposerScreen() {
     } finally { setCutBusy(false); }
   }, [active, cutBusy, updateActive, getTx, setTx]);
   const pushHistory = useCallback(() => { const cur = active?.stickers || []; undoStackRef.current.push(cur.map(s => ({ ...s }))); if (undoStackRef.current.length > MAX_HISTORY) undoStackRef.current.shift(); redoStackRef.current = []; setUndoCount(undoStackRef.current.length); setRedoCount(0); }, [active]);
-  const updateStickers = useCallback((ns: StoryTextSticker[]) => { pushHistory(); updateActive({ stickers: ns }); }, [pushHistory, updateActive]);
+  const updateStickers = useCallback((change: StickerChange) => {
+    if (!active?.id) return;
+    pushHistory();
+    setDrafts(prev => updateDraftStickers(prev, active.id, change));
+  }, [active?.id, pushHistory]);
   const drawStrokes: DrawStroke[] = ((active?.stickers || []).find(sx => (sx as any).kind === 'drawing') as any)?.strokes || [];
   const setDrawStrokes = useCallback((strokes: DrawStroke[]) => {
     const cur = active?.stickers || [];
@@ -555,7 +565,7 @@ export default function StoryComposerScreen() {
   }, [active, updateStickers]);
   const addSimpleSticker = useCallback((extra: any, nyStart = 0.4) => {
     const st: any = { id: newStickerId(), text: '', color: '#FFFFFF', nx: 0.5, ny: nyStart, scale: 1, rotation: 0, ...extra };
-    updateStickers([...(active?.stickers || []), st]);
+    updateStickers(current => [...current, st]);
   }, [active, updateStickers]);
   const addPhotoSticker = useCallback(async () => {
     try {
@@ -580,7 +590,7 @@ export default function StoryComposerScreen() {
     updateStickers([...(active?.stickers || []), ...made] as any);
   }, [active, updateStickers]);
   const setCellPhoto = useCallback((id: string, uri: string | null) => {
-    updateStickers(((active?.stickers || []) as any[]).map(s => s.id === id ? { ...s, photoUri: uri, photoUrl: null } : s) as any);
+    updateStickers(current => current.map(s => s.id === id ? { ...s, photoUri: uri, photoUrl: null } : s));
   }, [active, updateStickers]);
   const fillCellFromLibrary = useCallback(async (id: string) => {
     try {
@@ -651,6 +661,7 @@ export default function StoryComposerScreen() {
     if (tx.trimEnd != null) return;
     // Every video opens the trimmer once, the way Instagram does: long clips
     // get a 60s window pre-set, short ones open on their full length.
+    if (d <= 1.2) return;
     autoTrimSetRef.current.add(active.id);
     if (d > STORY_MAX_SEC + 0.5) setTx({ trimStart: 0, trimEnd: STORY_MAX_SEC });
     else if (d > 1.2) setTx({ trimStart: 0, trimEnd: d });
@@ -681,6 +692,8 @@ export default function StoryComposerScreen() {
   // A typed @handle inside a text sticker is a real mention: the person is notified and can add the story to theirs
   // (through the hidden-mention path the composer already has), and the handle opens their profile in the viewer.
   const resolveTextMentions = useCallback(async (stickerId: string, text: string) => {
+    const draftId = active?.id;
+    if (!draftId) return;
     const handles = Array.from(new Set((text.match(/@([A-Za-z0-9_.]{2,30})/g) || []).map(h => h.slice(1).toLowerCase())));
     let found: { id: string; username: string }[] = [];
     if (handles.length) {
@@ -690,15 +703,15 @@ export default function StoryComposerScreen() {
       } catch {}
     }
     if (!mountedRef.current) return;
-    setDrafts(prev => prev.map((d, i) => {
-      if (i !== activeIndex) return d;
+    setDrafts(prev => prev.map(d => {
+      if (d.id !== draftId || d.uploadState === 'uploading' || d.uploadState === 'done' || !d.stickers?.some(s => s.id === stickerId && s.text === text)) return d;
       const stickers = (d.stickers || []).map(s => (s.id === stickerId ? ({ ...s, mentions: found.length ? found : undefined } as any) : s));
       const cur = (((d as any).hiddenMentions || []) as { id: string; username: string }[]);
       const onStickers = new Set(stickers.filter((s: any) => s.kind === 'mention' && s.mentionUserId).map((s: any) => s.mentionUserId));
       const add = found.filter(u => !cur.some(h => h.id === u.id) && !onStickers.has(u.id));
       return { ...d, stickers, hiddenMentions: add.length ? [...cur, ...add] : cur } as any;
     }));
-  }, [activeIndex]);
+  }, [active?.id]);
   const saveSticker = useCallback(() => {
     const tr = stickerText.trim(); if (!tr) { if (editingStickerId) updateStickers((active?.stickers || []).filter(s => s.id !== editingStickerId)); closeTextEditor(); return; }
     const extra: any = { bgEnabled: stickerBgEnabled, fontSizeOverride: stickerFontSize > 0 ? stickerFontSize : undefined, opacity: stickerOpacity < 1.0 ? stickerOpacity : undefined, textAlign: stickerTextAlign !== 'center' ? stickerTextAlign : undefined, anim: stickerAnim !== 'none' ? stickerAnim : undefined, startSec: stickerStartSec != null ? stickerStartSec : undefined, endSec: stickerEndSec != null ? stickerEndSec : undefined };
@@ -720,10 +733,10 @@ export default function StoryComposerScreen() {
   // ── Sticker interaction handlers ──
   const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'photo' && (s as any).photoShape === 'cell') openCellMenu(id, !!((s as any).photoUri || (s as any).photoUrl));
     else if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if (s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag') { updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, pillVariant: (((x as any).pillVariant || 0) + 1) % 4 } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
-  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
-  const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
-  const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
-  const handleDeleteDrop = useCallback((id: string) => { updateStickers((active?.stickers || []).filter(s => s.id !== id)); }, [active, updateStickers]);
+  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
+  const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
+  const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
+  const handleDeleteDrop = useCallback((id: string) => { updateStickers(current => current.filter(s => s.id !== id)); }, [active, updateStickers]);
 
   // ── Poll ──
   const openPollEditor = useCallback(() => { if (active?.pollData) { setPollQuestion(active.pollData.question); setPollOptions([...active.pollData.options]); } else { setPollQuestion(''); setPollOptions(['', '']); } setPollEditorOpen(true); }, [active]);

@@ -5,6 +5,7 @@ import { StudioLoadError } from "../LoadError";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
+import { profilePath } from "@/lib/profileLookup";
 import { MessageSquare, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -44,26 +45,26 @@ export default function ReviewsPage() {
     finally { setBusy(false); }
   };
 
-  const stars = (n: number) => <span className="inline-flex gap-0.5">{[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} className={i <= n ? "fill-pearl text-pearl" : "text-ink/20"} />)}</span>;
+  const stars = (n: number) => <span className="inline-flex gap-0.5">{[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} className={i <= n ? "fill-pearl text-accent" : "text-muted"} />)}</span>;
   const shown = (d?.reviews || []).filter(r => filter === "all" ? true : filter === "unanswered" ? !r.reply : r.rating <= 3);
 
   return (
     <div className="max-w-[860px]">
       <h1 className="font-display text-[21px] leading-tight text-porcelain">Reviews</h1>
-      <p className="mt-1 text-[13px] text-ink/50">Reply in public. A calm answer to a bad review is read by more people than the review itself.</p>
+      <p className="mt-1 text-[13px] text-muted">Reply in public. A calm answer to a bad review is read by more people than the review itself.</p>
 
       <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
-      {loading && !d ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : !d ? null : (
+      {loading && !d ? <p className="py-12 text-center text-sm text-muted">Loading</p> : !d ? null : (
         <>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-[200px_1fr]">
             <div className="rounded-xl border border-ink/10 px-4 py-4 text-center">
               <p className="font-display text-[40px] leading-none text-porcelain">{Number(d.average).toFixed(1)}</p>
               <div className="mt-2 flex justify-center">{stars(Math.round(Number(d.average)))}</div>
-              <p className="mt-1 text-[12px] text-ink/45">{d.count} review{d.count === 1 ? "" : "s"}</p>
+              <p className="mt-1 text-[12px] text-muted">{d.count} review{d.count === 1 ? "" : "s"}</p>
             </div>
             <div className="rounded-xl border border-ink/10 px-4 py-3">
               {[5, 4, 3, 2, 1].map(n => { const c = Number(d.distribution?.[String(n)] || 0); const w = d.count ? (c / d.count) * 100 : 0; return (
-                <div key={n} className="flex items-center gap-2 py-1 text-[12px] text-ink/60"><span className="w-3">{n}</span><Star size={11} className="fill-pearl text-pearl" /><div className="h-1.5 flex-1 rounded-full bg-surface"><div className="h-1.5 rounded-full bg-pearl" style={{ width: w + "%" }} /></div><span className="w-6 text-right">{c}</span></div>
+                <div key={n} className="flex items-center gap-2 py-1 text-[12px] text-ink/60"><span className="w-3">{n}</span><Star size={11} className="fill-pearl text-accent" /><div className="h-1.5 flex-1 rounded-full bg-surface"><div className="h-1.5 rounded-full bg-pearl" style={{ width: w + "%" }} /></div><span className="w-6 text-right">{c}</span></div>
               ); })}
             </div>
           </div>
@@ -72,7 +73,7 @@ export default function ReviewsPage() {
             {(["all", "unanswered", "low"] as const).map(f => <button key={f} onClick={() => setFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (filter === f ? "bg-ink text-white" : "bg-surface text-ink/60")}>{f === "all" ? "All" : f === "unanswered" ? "Unanswered" : "3 stars and below"}</button>)}
           </div>
 
-          {shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">{d.count === 0 ? "No reviews yet. Customers leave them on your profile." : "Nothing in this filter."}</p> : shown.map(r => (
+          {shown.length === 0 ? <p className="py-12 text-center text-sm text-muted">{d.count === 0 ? "No reviews yet. Customers leave them on your profile." : "Nothing in this filter."}</p> : shown.map(r => (
             <div key={r.id} className="mt-2 rounded-xl border border-ink/10 p-3">
               <div className="flex items-start gap-3">
                 {r.avatar_url ? (
@@ -81,14 +82,14 @@ export default function ReviewsPage() {
                 ) : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-[12px] font-semibold text-white">{r.name.charAt(0)}</span>}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Link href={r.username ? "/" + r.username : "#"} className="text-[13.5px] font-semibold text-ink hover:underline">{r.name}</Link>
+                    <Link href={profilePath(r.username, r.user_id)} className="text-[13.5px] font-semibold text-ink hover:underline">{r.name}</Link>
                     {stars(r.rating)}
-                    <span className="text-[11.5px] text-ink/40">{new Date(r.created_at).toLocaleDateString()}{r.helpful_count ? " · " + r.helpful_count + " found helpful" : ""}</span>
+                    <span className="text-[11.5px] text-muted">{new Date(r.created_at).toLocaleDateString()}{r.helpful_count ? " · " + r.helpful_count + " found helpful" : ""}</span>
                   </div>
-                  {r.body ? <p className="mt-1 text-[13.5px] text-ink/80">{r.body}</p> : <p className="mt-1 text-[12.5px] italic text-ink/40">No written review.</p>}
+                  {r.body ? <p className="mt-1 text-[13.5px] text-ink/80">{r.body}</p> : <p className="mt-1 text-[12.5px] italic text-muted">No written review.</p>}
                   {r.reply && replyFor !== r.id ? (
                     <div className="mt-2 rounded-lg bg-surface p-2.5">
-                      <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-ink/40"><MessageSquare size={11} /> Your reply{r.replied_at ? " · " + new Date(r.replied_at).toLocaleDateString() : ""}</p>
+                      <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted"><MessageSquare size={11} /> Your reply{r.replied_at ? " · " + new Date(r.replied_at).toLocaleDateString() : ""}</p>
                       <p className="mt-1 text-[13px] text-ink/80">{r.reply}</p>
                     </div>
                   ) : null}
@@ -97,7 +98,7 @@ export default function ReviewsPage() {
                       <textarea value={text} onChange={e => setText(e.target.value)} maxLength={600} placeholder="Thank them, address the point, say what happens next." className="h-20 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" autoFocus />
                       <div className="mt-1.5 flex gap-2">
                         <button onClick={() => save(r)} disabled={busy} className="rounded-md bg-ink px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">{r.reply ? "Update reply" : "Post reply"}</button>
-                        {r.reply ? <button onClick={() => { void save(r, ""); }} disabled={busy} className="rounded-md bg-red-500/10 px-3 py-1.5 text-[12px] text-red-400">Remove reply</button> : null}
+                        {r.reply ? <button onClick={() => { void save(r, ""); }} disabled={busy} className="rounded-md bg-danger/10 px-3 py-1.5 text-[12px] text-danger">Remove reply</button> : null}
                         <button onClick={() => setReplyFor(null)} className="rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink/60">Cancel</button>
                       </div>
                     </div>

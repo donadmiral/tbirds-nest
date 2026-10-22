@@ -12,6 +12,7 @@ function load(file) {
 }
 const { createFollowStore } = load('lib/followState.ts');
 const { notificationHref, conversationHref } = load('lib/notificationRouting.ts');
+const profileLookup = load('lib/profileLookup.ts');
 const defer = () => { let resolve; const promise = new Promise(r => resolve = r); return { promise, resolve }; };
 const flush = () => new Promise(r => setImmediate(r));
 function harness() {
@@ -105,7 +106,7 @@ function searchHarness() {
   const source=fs.readFileSync(path.join(__dirname,'../../app/search/page.tsx'),'utf8')+'\nexport { SearchResults, SearchFromUrl };';
   const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText;
   const jsx=(type,props,key)=>({type,props,key});
-  const imports=name=>name==='react'?react:name==='react/jsx-runtime'?{jsx,jsxs:jsx,Fragment:'Fragment'}:name==='next/navigation'?{useRouter:()=>({back(){},push(){}}),useSearchParams:()=>new URLSearchParams({q:url})}:name==='@/lib/supabase/client'?{createClient:()=>client}:name==='@/lib/feed'?{timeAgo:()=>''}:name==='@/lib/media'?{displayImageUrl:x=>x}:new Proxy({__esModule:true,default:name},{get:(target,key)=>target[key]??String(key)});
+  const imports=name=>name==='react'?react:name==='react/jsx-runtime'?{jsx,jsxs:jsx,Fragment:'Fragment'}:name==='next/navigation'?{useRouter:()=>({back(){},push(){}}),useSearchParams:()=>new URLSearchParams({q:url})}:name==='@/lib/supabase/client'?{createClient:()=>client}:name==='@/lib/profileLookup'?profileLookup:name==='@/lib/feed'?{timeAgo:()=>''}:name==='@/lib/media'?{displayImageUrl:x=>x}:new Proxy({__esModule:true,default:name},{get:(target,key)=>target[key]??String(key)});
   vm.runInNewContext(js,{module,exports:module.exports,require:imports,URLSearchParams,window:{localStorage:{getItem:()=>null}},queueMicrotask,setTimeout(fn){const id=++timer;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}});
   function render(query=''){hook=0;const tree=module.exports.SearchResults({initialQuery:query});while(scheduled.length)scheduled.shift()();return tree;}
   function nodes(tree,type){ if(!tree||typeof tree!=='object')return[]; if(Array.isArray(tree))return tree.flatMap(x=>nodes(x,type));return[...(tree.type===type?[tree]:[]),...nodes(tree.props?.children,type)]; }

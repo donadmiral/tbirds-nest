@@ -130,8 +130,8 @@ export default function AdWizardPage() {
   return (
     <div className="px-1">
       <div className="flex items-center gap-3 pb-1">
-        <Link href="/ads" className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back to Ads"><ArrowLeft size={18} /></Link>
-        <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-pearl" /> New promotion</h1>
+        <Link href="/ads" className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back to Ads"><ArrowLeft size={18} /></Link>
+        <h1 className="flex items-center gap-2 font-display text-xl text-porcelain"><Megaphone size={19} className="text-accent" /> New promotion</h1>
       </div>
       <div className="flex gap-1.5 py-3">
         {[1, 2, 3, 4].map((s) => (
@@ -144,9 +144,9 @@ export default function AdWizardPage() {
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {GOALS.map((g) => (
             <button key={g.key} onClick={() => setGoal(g.key)} className={card(goal === g.key)}>
-              <g.icon size={19} className={goal === g.key ? "text-pearl" : "text-ink/50"} />
+              <g.icon size={19} className={goal === g.key ? "text-accent" : "text-muted"} />
               <span className="text-[14px] font-semibold text-ink">{g.label}</span>
-              {goal === g.key ? <Check size={16} className="ml-auto text-pearl" /> : null}
+              {goal === g.key ? <Check size={16} className="ml-auto text-accent" /> : null}
             </button>
           ))}
         </div>
@@ -155,7 +155,7 @@ export default function AdWizardPage() {
       {step === 2 ? (
         <div className="flex flex-col gap-5">
           <div>
-            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Choose a format</p>
+            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Choose a format</p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {([
                 ["Image", "One photo with a caption", "/home?compose=photo", "photo"],
@@ -166,33 +166,33 @@ export default function AdWizardPage() {
                 <Link key={kind} href={href + (href.includes("?") ? "&" : "?") + "then=promote"}
                   className="flex flex-col rounded-xl border border-ink/10 px-3.5 py-3 transition-colors duration-[140ms] hover:border-pearl/60 hover:bg-pearl/5">
                   <span className="text-[13.5px] font-semibold text-ink">{name}</span>
-                  <span className="mt-0.5 text-[11.5px] leading-snug text-ink/50">{blurb}</span>
+                  <span className="mt-0.5 text-[11.5px] leading-snug text-muted">{blurb}</span>
                 </Link>
               ))}
             </div>
-            <p className="mt-2 text-[12px] text-ink/45">These open the composer. Publish the post, come back here, and it appears under existing posts to promote.</p>
+            <p className="mt-2 text-[12px] text-muted">These open the composer. Publish the post, come back here, and it appears under existing posts to promote.</p>
           </div>
           <div>
-            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Or write a text ad now</p>
+            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Or write a text ad now</p>
             <textarea value={newText}
               onChange={(e) => { setNewText(e.target.value); if (e.target.value.trim()) setPick({ kind: "new", text: e.target.value }); }}
               onFocus={() => { if (newText.trim()) setPick({ kind: "new", text: newText }); }}
               placeholder="Write the ad text"
               rows={2}
-              className={"w-full resize-none rounded-lg border p-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] " + (pick?.kind === "new" ? "border-pearl bg-surface" : "border-ink/10")}
+              className={"w-full resize-none rounded-lg border p-4 text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] " + (pick?.kind === "new" ? "border-pearl bg-surface" : "border-ink/10")}
             />
           </div>
           {posts.length > 0 ? (
             <div>
-              <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Or promote an existing post</p>
+              <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Or promote an existing post</p>
               <div className="flex flex-col gap-2">
                 {posts.slice(0, 5).map((p) => (
                   <button key={p.id} onClick={() => setPick({ kind: "post", post: p })} className={card(pick?.kind === "post" && pick.post.id === p.id)}>
                     <span className="min-w-0 flex-1">
                       <span className="line-clamp-2 block text-[13px] text-ink/85">{p.content || "Media post"}</span>
-                      <span className="block text-[11px] text-ink/40">{timeAgo(p.created_at)}</span>
+                      <span className="block text-[11px] text-muted">{timeAgo(p.created_at)}</span>
                     </span>
-                    {pick?.kind === "post" && pick.post.id === p.id ? <Check size={16} className="shrink-0 text-pearl" /> : null}
+                    {pick?.kind === "post" && pick.post.id === p.id ? <Check size={16} className="shrink-0 text-accent" /> : null}
                   </button>
                 ))}
               </div>
@@ -200,20 +200,20 @@ export default function AdWizardPage() {
           ) : null}
           {listings.length > 0 ? (
             <div>
-              <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Or a Market product, the ad builds itself</p>
+              <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Or a Market product, the ad builds itself</p>
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {listings.map((l) => {
                   const on = pick?.kind === "listing" && pick.listing.id === l.id;
                   return (
                     <button key={l.id} onClick={() => setPick({ kind: "listing", listing: l })} className={"relative w-28 shrink-0 overflow-hidden rounded-lg border text-left transition-colors duration-[140ms] " + (on ? "border-pearl" : "border-ink/10 hover:border-ink/25")}>
-                      {on ? <span className="absolute right-1 top-1 z-10 rounded-full bg-pearl p-0.5 text-ink"><Check size={11} /></span> : null}
+                      {on ? <span className="absolute right-1 top-1 z-10 rounded-full bg-pearl p-0.5 text-on-pearl"><Check size={11} /></span> : null}
                       {l.images?.[0] ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={l.images[0]} alt="" className="h-20 w-full bg-surface object-cover" />
                       ) : <span className="block h-20 w-full bg-surface" />}
                       <span className="block px-2 py-1.5">
                         <span className="block truncate text-[11px] font-semibold text-ink">{l.title}</span>
-                        <span className="block text-[11px] text-pearl">{priceLabel(l)}</span>
+                        <span className="block text-[11px] text-accent">{priceLabel(l)}</span>
                       </span>
                     </button>
                   );
@@ -223,16 +223,16 @@ export default function AdWizardPage() {
           ) : null}
           {jobs.length > 0 ? (
             <div>
-              <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Or a job, the ad builds itself</p>
+              <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Or a job, the ad builds itself</p>
               <div className="flex flex-col gap-2">
                 {jobs.slice(0, 5).map((j) => (
                   <button key={j.id} onClick={() => setPick({ kind: "job", job: j })} className={card(pick?.kind === "job" && pick.job.id === j.id)}>
-                    <Briefcase size={17} className="shrink-0 text-pearl" />
+                    <Briefcase size={17} className="shrink-0 text-accent" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] font-semibold text-ink">{j.title}</span>
-                      <span className="block truncate text-[11px] text-ink/40">{[j.company, j.location].filter(Boolean).join(" · ")}</span>
+                      <span className="block truncate text-[11px] text-muted">{[j.company, j.location].filter(Boolean).join(" · ")}</span>
                     </span>
-                    {pick?.kind === "job" && pick.job.id === j.id ? <Check size={16} className="shrink-0 text-pearl" /> : null}
+                    {pick?.kind === "job" && pick.job.id === j.id ? <Check size={16} className="shrink-0 text-accent" /> : null}
                   </button>
                 ))}
               </div>
@@ -244,17 +244,17 @@ export default function AdWizardPage() {
       {step === 3 ? (
         <div className="flex flex-col gap-5">
           <div>
-            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Audience</p>
+            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Audience</p>
             <div className={card(true)}>
               <span className="min-w-0 flex-1">
                 <span className="block text-[14px] font-semibold text-ink">Automatic</span>
-                <span className="block text-[12px] text-ink/50">Everyone eligible on Platinum Circles. Audience targeting arrives with Ads Manager.</span>
+                <span className="block text-[12px] text-muted">Everyone eligible on Platinum Circles. Audience targeting arrives with Ads Manager.</span>
               </span>
-              <Check size={16} className="text-pearl" />
+              <Check size={16} className="text-accent" />
             </div>
           </div>
           <div>
-            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Run for</p>
+            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Run for</p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {DURATIONS.map((d) => (
                 <button key={d.days} onClick={() => setDays(d.days)} className={card(days === d.days) + " justify-center"}>
@@ -264,14 +264,14 @@ export default function AdWizardPage() {
             </div>
           </div>
           <div>
-            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Impression cap, optional</p>
+            <p className="pb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Impression cap, optional</p>
             <input value={cap}
               onChange={(e) => setCap(e.target.value)}
               inputMode="numeric"
               placeholder="e.g. 5000, the promotion stops itself there"
-              className="w-full rounded-lg border border-ink/10 bg-transparent p-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:border-pearl"
+              className="w-full rounded-lg border border-ink/10 bg-transparent p-4 text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:border-pearl"
             />
-            <p className="pt-2 text-[11px] leading-relaxed text-ink/35">No charge during the testing phase. At launch, campaigns bill to your IntoBank wallet through Crisp. IntoBank and Crisp are the only payment rails on Platinum Circles.</p>
+            <p className="pt-2 text-[11px] leading-relaxed text-muted">No charge during the testing phase. At launch, campaigns bill to your IntoBank wallet through Crisp. IntoBank and Crisp are the only payment rails on Platinum Circles.</p>
           </div>
         </div>
       ) : null}
@@ -279,7 +279,7 @@ export default function AdWizardPage() {
       {step === 4 ? (
         <div className="flex flex-col gap-4">
           <div className="relative rounded-lg border border-ink/10 p-4">
-            <span className="absolute right-3 top-3 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink/50">Sponsored</span>
+            <span className="absolute right-3 top-3 rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted">Sponsored</span>
             <div className="flex gap-3">
               {me?.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -311,11 +311,11 @@ export default function AdWizardPage() {
           <button onClick={() => setStep(step - 1)} className="flex items-center gap-1.5 rounded-full bg-surface px-4 py-2.5 text-[13px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated"><ArrowLeft size={14} /> Back</button>
         ) : null}
         {step < 4 ? (
-          <button onClick={() => setStep(step + 1)} disabled={!canNext} className="ml-auto flex items-center gap-1.5 rounded-full bg-pearl px-5 py-2.5 text-[14px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
+          <button onClick={() => setStep(step + 1)} disabled={!canNext} className="ml-auto flex items-center gap-1.5 rounded-full bg-pearl px-5 py-2.5 text-[14px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
             Continue <ArrowRight size={14} />
           </button>
         ) : (
-          <button onClick={publish} disabled={pending} className="ml-auto rounded-full bg-pearl px-6 py-2.5 text-[14px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
+          <button onClick={publish} disabled={pending} className="ml-auto rounded-full bg-pearl px-6 py-2.5 text-[14px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
             {pending ? "Publishing" : "Publish promotion"}
           </button>
         )}

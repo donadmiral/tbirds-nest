@@ -45,7 +45,7 @@ export function GroupCallBar({ conversationId }: { conversationId: string }) {
             Ongoing {live.is_video ? "video" : "voice"} call · {live.joinedNames.length} in call
           </span>
           {live.joinedNames.length > 0 ? (
-            <span className="block truncate text-[12px] text-ink/55">{live.joinedNames.join(", ")}</span>
+            <span className="block truncate text-[12px] text-muted">{live.joinedNames.join(", ")}</span>
           ) : null}
         </span>
         <button onClick={() => requestGroupJoin({ sessionId: live.id, isVideo: live.is_video })} className="shrink-0 rounded-md bg-success px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity hover:opacity-90">Join</button>
@@ -54,7 +54,7 @@ export function GroupCallBar({ conversationId }: { conversationId: string }) {
     );
   }
 
-  const btn = "rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-pearl";
+  const btn = "rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-accent";
   return (
     <span className="ml-auto flex items-center gap-1">
       <button onClick={() => start(false)} title="Start group voice call" className={btn}><Phone size={17} /></button>

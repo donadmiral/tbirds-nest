@@ -26,9 +26,10 @@ function fixture(t) {
   const repo = path.join(root, 'repo');
   fs.mkdirSync(repo);
   git(repo, 'init', '--quiet');
-  for (const dir of [...apps, 'supabase']) fs.mkdirSync(path.join(repo, dir));
+  for (const dir of [...apps, 'supabase', 'shared']) fs.mkdirSync(path.join(repo, dir));
   for (const app of apps) fs.writeFileSync(path.join(repo, app, 'index.js'), 'initial app\n');
   fs.writeFileSync(path.join(repo, 'supabase/migration.sql'), '-- initial schema\n');
+  fs.writeFileSync(path.join(repo, 'shared/domain.ts'), 'export const initial = true;\n');
   const commit = (message) => {
     git(repo, 'add', '.');
     git(repo, 'commit', '--quiet', '-m', message);
@@ -49,6 +50,14 @@ function ignoredExit(repo, app, previous) {
   assert.equal(result.error, undefined);
   return result.status;
 }
+
+test('shared contract changes rebuild the web app', (t) => {
+  const f = fixture(t);
+  f.change('shared/domain.ts');
+  f.commit('Shared contract change');
+  assert.equal(ignoredExit(f.repo, 'web', f.previous), 1);
+  assert.equal(ignoredExit(f.repo, 'admin-web', f.previous), 0);
+});
 
 for (const app of apps) {
   test(`${app}: unchanged app since the successful deployment is skipped`, (t) => {

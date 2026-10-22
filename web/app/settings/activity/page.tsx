@@ -34,12 +34,12 @@ export default function ActivityPage() {
         {items.map((it) => (
           <li key={it.key}><Link href={"/post/" + it.post_id} className="flex items-center gap-3 py-3 hover:bg-surface/60">
             {it.image ? <img src={it.image} alt="" className="h-12 w-12 rounded-lg object-cover" /> : <div className="h-12 w-12 rounded-lg bg-surface" />}
-            <div className="min-w-0 flex-1">{it.note ? <p className="line-clamp-2 text-[14px] font-semibold text-ink">{it.note}</p> : null}<p className={"line-clamp-1 text-[14px] " + (it.note ? "text-ink/55" : "font-semibold text-ink")}>{it.text}</p></div>
-            <span className="text-[12px] text-ink/45">{new Date(it.when).toLocaleDateString()}</span>
+            <div className="min-w-0 flex-1">{it.note ? <p className="line-clamp-2 text-[14px] font-semibold text-ink">{it.note}</p> : null}<p className={"line-clamp-1 text-[14px] " + (it.note ? "text-muted" : "font-semibold text-ink")}>{it.text}</p></div>
+            <span className="text-[12px] text-muted">{new Date(it.when).toLocaleDateString()}</span>
           </Link></li>
         ))}
       </ul>
-      {items.length === 0 ? <p className="mt-3 text-[13.5px] text-ink/50">Nothing here yet.</p> : null}
+      {items.length === 0 ? <p className="mt-3 text-[13.5px] text-muted">Nothing here yet.</p> : null}
     </div>
   );
 }

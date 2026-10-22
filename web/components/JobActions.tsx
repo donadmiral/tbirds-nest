@@ -62,7 +62,7 @@ export function JobActions({ jobId, posterId, initiallySaved, viewerId }: {
 
   return (
     <div className="flex flex-wrap gap-2">
-      <button onClick={toggleSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-pearl" : "")}>
+      <button onClick={toggleSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-accent" : "")}>
         <Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}
       </button>
       <button onClick={share} className={btn}>

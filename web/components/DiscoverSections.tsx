@@ -45,15 +45,15 @@ export function FeaturedChannels() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={displayImageUrl(c.icon_url, 96) ?? c.icon_url} alt="" loading="lazy" decoding="async" className="h-10 w-10 rounded-xl object-cover" />
               ) : (
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-pearl/15 text-pearl">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-pearl/15 text-accent">
                   <Radio size={17} />
                 </span>
               )}
               <span className="mt-2.5 truncate text-[13.5px] font-semibold text-ink">{c.name}</span>
-              <span className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-ink/45">
+              <span className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-muted">
                 {c.description || (c.member_count.toLocaleString() + (c.member_count === 1 ? " member" : " members"))}
               </span>
-              <span className={"mt-2.5 rounded-full py-1.5 text-center text-[12px] font-semibold " + (c.is_member ? "text-ink/40" : "bg-pearl/15 text-pearl-muted")}>
+              <span className={"mt-2.5 rounded-full py-1.5 text-center text-[12px] font-semibold " + (c.is_member ? "text-muted" : "bg-pearl/15 text-pearl-muted")}>
                 {c.is_member ? "Joined" : "Join"}
               </span>
             </Link>
@@ -90,7 +90,7 @@ export function ExploreTopics() {
                 className="flex items-baseline gap-2 rounded-full border border-ink/10 px-3.5 py-2 transition-colors duration-[140ms] hover:bg-surface"
               >
                 <span className="text-[13px] font-semibold text-ink">#{tag}</span>
-                <span className="text-[11.5px] text-ink/40">{t.post_count.toLocaleString()}</span>
+                <span className="text-[11.5px] text-muted">{t.post_count.toLocaleString()}</span>
               </Link>
             );
           })}
@@ -137,8 +137,8 @@ export function TopArticles() {
                 )}
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 block font-display text-[15px] leading-snug text-porcelain">{a.article_title}</span>
-                  <span className="mt-1 line-clamp-2 block text-[12px] leading-snug text-ink/45">{a.content ?? a.body ?? ""}</span>
-                  <span className="mt-1.5 block truncate text-[11.5px] text-ink/35">
+                  <span className="mt-1 line-clamp-2 block text-[12px] leading-snug text-muted">{a.content ?? a.body ?? ""}</span>
+                  <span className="mt-1.5 block truncate text-[11.5px] text-muted">
                     {a.author_name}
                     {minutes ? " · " + minutes + " min read" : ""}
                   </span>

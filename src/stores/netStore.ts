@@ -11,25 +11,42 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState } from 'react-native';
+import { deliverMessage, type MessageIntent, type MessageReceipt } from '../../shared/messageDelivery';
 
 const PING_URL = (process.env.EXPO_PUBLIC_SUPABASE_URL || '') + '/auth/v1/health';
+// Serialize persistence so senders can wait for their ID to be durable before
+// making a request. A failed save prevents that request from being attempted.
+let outboxWrite: Promise<void> = Promise.resolve();
+let hydrationError: Error | null = null;
+const hydrationFailures = new Set<(error: Error) => void>();
+const outboxStorage = {
+  getItem: (key: string) => AsyncStorage.getItem(key),
+  setItem: (key: string, value: string) => {
+    outboxWrite = outboxWrite.catch(() => {}).then(() => AsyncStorage.setItem(key, value));
+    return outboxWrite;
+  },
+  removeItem: (key: string) => {
+    outboxWrite = outboxWrite.catch(() => {}).then(() => AsyncStorage.removeItem(key));
+    return outboxWrite;
+  },
+};
 
-type QueuedMessage = {
+type QueuedMessage = MessageIntent & {
   key: string;
-  conversation_id: string;
-  sender_id: string;
-  receiver_id: string | null;
-  text: string;
-  reply_to_id: string | null;
+  owner_auth_id: string;
   queued_at: number;
+  failed?: boolean;
 };
 
 type NetState = {
   online: boolean;
   outbox: QueuedMessage[];
+  confirmed: { owner_auth_id: string; message: MessageReceipt }[];
   setOnline: (v: boolean) => void;
-  enqueue: (m: Omit<QueuedMessage, 'key' | 'queued_at'>) => void;
+  enqueue: (m: Omit<QueuedMessage, 'key' | 'queued_at'>) => Promise<void>;
   removeFromOutbox: (key: string) => void;
+  setOutboxFailed: (key: string, failed: boolean) => void;
+  confirmOutboxMessage: (key: string, message: MessageReceipt) => void;
 };
 
 export const useNetStore = create<NetState>()(
@@ -37,41 +54,90 @@ export const useNetStore = create<NetState>()(
     (set) => ({
       online: true,
       outbox: [],
-      setOnline: (v) => set({ online: v }),
-      enqueue: (m) =>
+      confirmed: [],
+      setOnline: (v) => { if (useNetStore.persist.hasHydrated()) set({ online: v }); },
+      enqueue: async (m) => {
+        await waitForOutboxHydration();
         set((s) => ({
-          outbox: [...s.outbox, { ...m, key: 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), queued_at: Date.now() }],
-        })),
+          outbox: s.outbox.some(item => item.id === m.id) ? s.outbox : [...s.outbox, { ...m, key: m.id, queued_at: Date.now() }],
+        }));
+        try { await outboxWrite; }
+        catch (error) {
+          set(s => ({ outbox: s.outbox.filter(item => item.id !== m.id) }));
+          await outboxWrite.catch(() => {});
+          throw error;
+        }
+      },
       removeFromOutbox: (key) => set((s) => ({ outbox: s.outbox.filter((x) => x.key !== key) })),
+      setOutboxFailed: (key, failed) => set(s => ({ outbox: s.outbox.map(item => item.key === key ? { ...item, failed } : item) })),
+      confirmOutboxMessage: (key, message) => set(s => {
+        const item = s.outbox.find(value => value.key === key);
+        if (!item) return s;
+        return {
+          outbox: s.outbox.filter(value => value.key !== key),
+          confirmed: [...s.confirmed.slice(-49), { owner_auth_id: item.owner_auth_id, message }],
+        };
+      }),
     }),
     {
       name: 'pc-outbox',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => outboxStorage),
       partialize: (s) => ({ outbox: s.outbox }) as any,
+      onRehydrateStorage: () => {
+        hydrationError = null;
+        return (_state, error) => {
+          if (!error) return;
+          hydrationError = new Error('Your saved messages could not be loaded. Please reopen the app.');
+          hydrationFailures.forEach(fail => fail(hydrationError!));
+        };
+      },
     }
   )
 );
 
+async function waitForOutboxHydration(): Promise<void> {
+  if (useNetStore.persist.hasHydrated()) return;
+  if (hydrationError) throw hydrationError;
+  await new Promise<void>((resolve, reject) => {
+    let unsubscribe = () => {};
+    const cleanup = () => { clearTimeout(timeout); unsubscribe(); hydrationFailures.delete(fail); };
+    const fail = (error: Error) => { cleanup(); reject(error); };
+    const timeout = setTimeout(() => fail(new Error('Your saved messages could not be loaded. Please reopen the app.')), 10000);
+    hydrationFailures.add(fail);
+    unsubscribe = useNetStore.persist.onFinishHydration(() => { cleanup(); resolve(); });
+  });
+}
+
+export async function retryOutboxMessage(key: string): Promise<void> {
+  await waitForOutboxHydration();
+  if (flushing) throw new Error('Another delivery check is running. Please try again.');
+  useNetStore.getState().setOutboxFailed(key, false);
+  await flushOutbox(key);
+}
+
 let started = false;
 let flushing = false;
 
-async function flushOutbox() {
+async function flushOutbox(preferredKey?: string) {
   if (flushing) return;
   flushing = true;
   try {
+    await waitForOutboxHydration();
+    await outboxWrite;
     const { supabase } = require('../services/supabase');
-    while (true) {
-      const item = useNetStore.getState().outbox[0];
+    for (let attempted = 0; attempted < 20; attempted++) {
+      const { data: session, error: sessionError } = await supabase.auth.getSession();
+      const owner = session?.session?.user?.id;
+      if (sessionError || !owner) break;
+      // Old outbox entries have no stable ID and cannot safely be replayed.
+      const item = useNetStore.getState().outbox.find(value => value.owner_auth_id === owner && value.id && !value.failed && (!preferredKey || value.key === preferredKey));
       if (!item) break;
-      const { error } = await supabase.from('messages').insert([{
-        conversation_id: item.conversation_id,
-        text: item.text,
-        sender_id: item.sender_id,
-        receiver_id: item.receiver_id,
-        reply_to_id: item.reply_to_id,
-      }]);
-      useNetStore.getState().removeFromOutbox(item.key);
-      if (error) continue;
+      const { key: _key, queued_at: _time, owner_auth_id: _owner, failed: _failed, ...intent } = item;
+      const result = await deliverMessage(supabase, intent, true);
+      // Preserve both uncertain and denied messages for the user to review.
+      if (result.status === 'pending') break;
+      if (result.status !== 'confirmed') { useNetStore.getState().setOutboxFailed(item.key, true); continue; }
+      useNetStore.getState().confirmOutboxMessage(item.key, result.row);
     }
   } catch {
   } finally {

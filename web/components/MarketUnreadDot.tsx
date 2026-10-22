@@ -24,7 +24,7 @@ export function MarketUnreadDot() {
 
   if (n === 0) return null;
   return (
-    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-pearl px-1 text-[9px] font-bold text-ink">
+    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-pearl px-1 text-[9px] font-bold text-on-pearl">
       {n > 9 ? "9+" : n}
     </span>
   );

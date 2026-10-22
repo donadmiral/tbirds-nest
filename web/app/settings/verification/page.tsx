@@ -68,13 +68,13 @@ export default function VerificationPage() {
     } finally { setBusy(false); }
   };
 
-  const field = "w-full rounded-xl border border-ink/12 bg-white px-3 py-2.5 text-[14px] text-ink outline-none placeholder:text-ink/35 focus:border-pearl";
+  const field = "w-full rounded-xl border border-ink/12 bg-white px-3 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted focus:border-pearl";
   const pending = existing && existing.status !== "rejected";
 
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
       <Link href="/settings" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
-      <h1 className="mt-4 flex items-center gap-2 font-display text-[24px] font-bold text-ink"><BadgeCheck size={22} className="text-pearl" /> Apply for verification</h1>
+      <h1 className="mt-4 flex items-center gap-2 font-display text-[24px] font-bold text-ink"><BadgeCheck size={22} className="text-accent" /> Apply for verification</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">A verified seal tells people the account is who it says it is. Applications are reviewed by a person, and you hear back in the app.</p>
 
       {existing === undefined ? null : pending ? (
@@ -86,7 +86,7 @@ export default function VerificationPage() {
         <div className="mt-6 space-y-5">
           {!isBusiness ? (
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide text-ink/50">I am</p>
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-muted">I am</p>
               <div className="mt-2 flex gap-2">
                 {([["public_figure", "A public figure"], ["official", "An official"]] as [Tier, string][]).map(([k, label]) => (
                   <button key={k} type="button" onClick={() => setTier(k)} className={"rounded-full border px-3.5 py-1.5 text-[13px] font-semibold " + (tier === k ? "border-ink bg-ink text-white" : "border-ink/15 text-ink/70 hover:border-ink/40")}>{label}</button>
@@ -96,7 +96,7 @@ export default function VerificationPage() {
           ) : null}
           {tier === "public_figure" ? (
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide text-ink/50">Category</p>
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-muted">Category</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {CATEGORIES.map((c) => (
                   <button key={c} type="button" onClick={() => setCategory(c)} className={"rounded-full border px-3 py-1 text-[12.5px] font-semibold " + (category === c ? "border-ink bg-ink text-white" : "border-ink/15 text-ink/70 hover:border-ink/40")}>{c}</button>
@@ -106,19 +106,19 @@ export default function VerificationPage() {
           ) : null}
           {tier === "official" ? (
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide text-ink/50">Office or position</p>
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-muted">Office or position</p>
               <input value={office} onChange={(e) => setOffice(e.target.value)} placeholder="e.g. Member of Parliament, Harare" className={field + " mt-2"} />
             </div>
           ) : null}
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-wide text-ink/50">Your case</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wide text-muted">Your case</p>
             <textarea value={statement} onChange={(e) => setStatement(e.target.value)} rows={4} placeholder={isBusiness ? "Registration number, how long established, public footprint..." : "Your reach, your work, why people look for you here..."} className={field + " mt-2 resize-none"} />
           </div>
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-wide text-ink/50">Links, one per line</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wide text-muted">Links, one per line</p>
             <textarea value={links} onChange={(e) => setLinks(e.target.value)} rows={3} placeholder={"Press coverage\nOfficial website\nOther profiles"} className={field + " mt-2 resize-none"} />
           </div>
-          {error ? <p className="text-[13px] text-red-500">{error}</p> : null}
+          {error ? <p className="text-[13px] text-danger">{error}</p> : null}
           <button type="button" disabled={busy} onClick={submit} className="rounded-full bg-ink px-5 py-2.5 text-[14px] font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-50">{busy ? "Submitting" : "Submit application"}</button>
         </div>
       )}

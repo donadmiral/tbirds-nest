@@ -109,7 +109,7 @@ export const callService = {
   async acceptCall(callId: string): Promise<boolean> {
     if (!callId) return false;
     const { data, error } = await supabase.from('call_sessions')
-      .update({ status: 'active', started_at: new Date().toISOString() }).eq('id', callId).select('id');
+      .update({ status: 'active', started_at: new Date().toISOString() }).eq('id', callId).eq('is_group_call', false).eq('status', 'ringing').select('id');
     if (error) { console.log('[SVC_ACCEPT_ERR]', error.message); return false; }
     return ((data as any[]) || []).length > 0;
   },
@@ -117,7 +117,7 @@ export const callService = {
   async declineCall(callId: string): Promise<boolean> {
     if (!callId) return false;
     const { data, error } = await supabase.from('call_sessions')
-      .update({ status: 'declined', ended_at: new Date().toISOString() }).eq('id', callId).select('id');
+      .update({ status: 'declined', ended_at: new Date().toISOString() }).eq('id', callId).eq('is_group_call', false).eq('status', 'ringing').select('id');
     if (error) return false;
     return ((data as any[]) || []).length > 0;
   },
@@ -126,7 +126,7 @@ export const callService = {
     if (!callId) return false;
     const dur = Math.max(0, Math.floor(durationSecs || 0));
     const { data, error } = await supabase.from('call_sessions')
-      .update({ status: 'ended', ended_at: new Date().toISOString(), duration_sec: dur }).eq('id', callId).select('id');
+      .update({ status: 'ended', ended_at: new Date().toISOString(), duration_sec: dur }).eq('id', callId).eq('is_group_call', false).in('status', ['ringing', 'active']).select('id');
     if (error) return false;
     return ((data as any[]) || []).length > 0;
   },
@@ -134,7 +134,7 @@ export const callService = {
   async markMissed(callId: string): Promise<boolean> {
     if (!callId) return false;
     const { data, error } = await supabase.from('call_sessions')
-      .update({ status: 'missed', ended_at: new Date().toISOString() }).eq('id', callId).select('id');
+      .update({ status: 'missed', ended_at: new Date().toISOString() }).eq('id', callId).eq('is_group_call', false).eq('status', 'ringing').select('id');
     if (error) return false;
     return ((data as any[]) || []).length > 0;
   },
@@ -192,16 +192,23 @@ export const callService = {
     const token = sess?.session?.access_token;
     if (!token) throw new Error('Not authenticated');
     const url = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/daily-get-token`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string, Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ callSessionId: params.callSessionId, roomName: params.roomName, isOwner: params.isOwner ?? false, kind: params.kind ?? 'call' }),
-    });
-    const responseText = await res.text();
-    if (!res.ok) throw new Error(`Edge Function ${res.status}: ${responseText}`);
-    const data = JSON.parse(responseText);
-    if (!data?.token || !data?.roomUrl) throw new Error('Invalid token response');
-    return data as DailyTokenResult;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      const res = await fetch(url, {
+        method: 'POST', signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string, Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ callSessionId: params.callSessionId, roomName: params.roomName, isOwner: params.isOwner ?? false, kind: params.kind ?? 'call' }),
+      });
+      if (!res.ok) throw new Error(res.status === 409 ? 'This call has ended.' : res.status === 403 ? 'You cannot join this call.' : 'Unable to connect to the call. Please try again.');
+      const data = await res.json();
+      if (typeof data?.token !== 'string' || !data.token || typeof data?.roomUrl !== 'string' || !data.roomUrl.startsWith('https://')) throw new Error('Invalid call connection response.');
+      return data as DailyTokenResult;
+    } catch (error) {
+      if (controller.signal.aborted) throw new Error('Call connection timed out. Please try again.');
+      throw error;
+    } finally { clearTimeout(timeout); }
+
   },
 
   formatDuration(seconds: number): string {

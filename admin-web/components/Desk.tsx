@@ -87,7 +87,7 @@ export function StatStrip({ cards, page }: { cards: StatCard[]; page?: string })
             stat: { value: c.value, delta: c.delta, note: c.note },
           })} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 11.3, fontWeight: 600, color: 'rgba(var(--on),0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.label}</span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 11.3, fontWeight: 600, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.label}</span>
             {c.icon ? (
               <span style={{ width: 26, height: 26, flex: '0 0 26px', borderRadius: 8, background: 'rgba(var(--on),0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: c.color || 'var(--accent)' }}><path d={c.icon} /></svg>
@@ -97,7 +97,7 @@ export function StatStrip({ cards, page }: { cards: StatCard[]; page?: string })
           <div className="pc-num" style={{ marginTop: 9, fontSize: 25, lineHeight: 1, color: 'var(--txt-strong)' }}>{c.value}</div>
           <div style={{ marginTop: 9, display: 'flex', alignItems: 'baseline', gap: 7, whiteSpace: 'nowrap', overflow: 'hidden' }}>
             {c.delta ? <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, fontWeight: 600, color: TONE[c.deltaTone || 'neutral'].fg }}>{c.delta}</span> : null}
-            <span style={{ flex: 1, minWidth: 0, fontSize: 10, color: 'rgba(var(--on),0.3)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.note || ''}</span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 10, color: 'var(--txt-muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.note || ''}</span>
           </div>
           {c.spark && c.spark.length > 1 ? <div style={{ marginTop: 9 }}><Spark values={c.spark} color={c.color || 'var(--accent)'} height={24} /></div> : null}
         </div>
@@ -127,7 +127,7 @@ function CollectButton({ title, onAdd }: { title: string; onAdd: () => void }) {
         position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: 7,
         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
         border: '1px solid rgba(var(--on),0.12)', background: 'var(--panel)',
-        color: done ? 'var(--ok)' : 'rgba(var(--on),0.42)', zIndex: 2,
+        color: done ? 'var(--ok)' : 'var(--txt-muted)', zIndex: 2,
       }}>
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" strokeWidth="2.6" strokeLinecap="round" style={{ stroke: 'currentColor' }}>
         <path d={done ? 'M5 13l4 4L19 7' : 'M12 5v14M5 12h14'} />
@@ -154,7 +154,7 @@ function CellView({ c }: { c: Cell }) {
         </span>
         <span style={{ minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</span>
-          {c.sub ? <span style={{ display: 'block', fontSize: 10.6, color: 'rgba(var(--on),0.36)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.sub}</span> : null}
+          {c.sub ? <span style={{ display: 'block', fontSize: 10.6, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.sub}</span> : null}
         </span>
       </span>
     );
@@ -171,14 +171,14 @@ function CellView({ c }: { c: Cell }) {
           : <span style={{ width: 29, height: 29, flex: '0 0 29px', borderRadius: '50%', background: 'rgba(var(--on),0.07)', color: 'rgba(var(--on),0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700 }}>{c.v.slice(0, 1).toUpperCase()}</span>}
         <span style={{ minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</span>
-          {c.sub ? <span style={{ display: 'block', fontSize: 10.6, color: 'rgba(var(--on),0.36)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.sub}</span> : null}
+          {c.sub ? <span style={{ display: 'block', fontSize: 10.6, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.sub}</span> : null}
         </span>
       </span>
     );
   }
   if (c.t === 'link') return <Link href={c.href} className="pc-crumb" style={{ fontSize: 12.2, color: 'var(--txt)', textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</Link>;
   if (c.t === 'mono') return <span className="pc-num" style={{ fontSize: 11.6, color: c.tone ? TONE[c.tone].fg : 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</span>;
-  if (c.t === 'dim') return <span style={{ fontSize: 11.8, color: 'rgba(var(--on),0.42)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</span>;
+  if (c.t === 'dim') return <span style={{ fontSize: 11.8, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</span>;
   return <span style={{ fontSize: 12.2, fontWeight: c.strong ? 600 : 400, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</span>;
 }
 
@@ -220,7 +220,7 @@ export function Desk({
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pages - 1);
   const shown = filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
-  const selected = rows.find(r => r.id === sel) || null;
+  const selected = filtered.find(r => r.id === sel) || null;
 
   return (
     <div className="grid gap-4 xl:grid-cols-[1fr_368px]">
@@ -230,10 +230,10 @@ export function Desk({
           {tabs.map(t => {
             const on = t.key === tab;
             return (
-              <button key={t.key} type="button" onClick={() => { setTab(t.key); setPage(0); }}
-                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 12px 10px', background: 'none', border: 'none', borderBottom: '2px solid ' + (on ? 'var(--accent)' : 'transparent'), cursor: 'pointer', fontSize: 12.3, fontWeight: on ? 600 : 500, color: on ? 'var(--txt-strong)' : 'rgba(var(--on),0.45)', whiteSpace: 'nowrap' }}>
+              <button key={t.key} type="button" aria-pressed={on} onClick={() => { setTab(t.key); setPage(0); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 12px 10px', background: 'none', border: 'none', borderBottom: '2px solid ' + (on ? 'var(--accent)' : 'transparent'), cursor: 'pointer', fontSize: 12.3, fontWeight: on ? 600 : 500, color: on ? 'var(--txt-strong)' : 'var(--txt-muted)', whiteSpace: 'nowrap' }}>
                 {t.label}
-                {t.count > 0 ? <span className="pc-num" style={{ fontSize: 10, fontWeight: 600, padding: '1px 5px', borderRadius: 5, background: on ? 'rgba(var(--accent-rgb),0.14)' : 'rgba(var(--on),0.07)', color: on ? 'var(--accent)' : 'rgba(var(--on),0.45)' }}>{t.count}</span> : null}
+                {t.count > 0 ? <span className="pc-num" style={{ fontSize: 10, fontWeight: 600, padding: '1px 5px', borderRadius: 5, background: on ? 'rgba(var(--accent-rgb),0.14)' : 'rgba(var(--on),0.07)', color: on ? 'var(--accent)' : 'var(--txt-muted)' }}>{t.count}</span> : null}
               </button>
             );
           })}
@@ -241,39 +241,48 @@ export function Desk({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 13px', borderBottom: '1px solid rgba(var(--on),0.10)', flexWrap: 'wrap' }}>
           <div className="pc-search" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6.5px 10px', borderRadius: 8, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.10)', minWidth: 200 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ stroke: 'rgba(var(--on),0.36)', flex: '0 0 12px' }} strokeWidth="2.4"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.6-3.6" /></svg>
-            <input value={q} onChange={e => { setQ(e.target.value); setPage(0); }} placeholder={searchHint}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--txt-muted)', flex: '0 0 12px' }} strokeWidth="2.4"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.6-3.6" /></svg>
+            <input aria-label={searchHint || 'Search records'} value={q} onChange={e => { setQ(e.target.value); setPage(0); }} placeholder={searchHint}
               style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', fontSize: 11.8, color: 'var(--txt)' }} />
           </div>
           {filters.map(f => (
-            <select key={f.key} value={facet[f.key] || 'All'} onChange={e => { setFacet(p => ({ ...p, [f.key]: e.target.value })); setPage(0); }}
+            <select key={f.key} aria-label={f.label} value={facet[f.key] || 'All'} onChange={e => { setFacet(p => ({ ...p, [f.key]: e.target.value })); setPage(0); }}
               style={{ padding: '6.5px 10px', borderRadius: 8, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.10)', fontSize: 11.8, color: 'rgba(var(--on),0.62)', outline: 'none', cursor: 'pointer' }}>
               <option value="All">{f.label}: All</option>
               {f.options.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           ))}
-          <span className="pc-num" style={{ marginLeft: 'auto', fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{filtered.length} of {rows.length}</span>
+          <span className="pc-num" style={{ marginLeft: 'auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{filtered.length} of {rows.length}</span>
           <TableShare page={pageLabel || deskName()} columns={columns.map(c => c.label)} filtered={filtered} all={rows}
             state={[tab !== 'all' ? 'Tab: ' + (tabs.find(t => t.key === tab)?.label || tab) : '', q.trim() ? 'Search: ' + q.trim() : '',
               ...filters.map(f => (facet[f.key] && facet[f.key] !== 'All' ? f.label + ': ' + facet[f.key] : ''))].filter(Boolean)} />
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <div style={{ minWidth }}>
-            <div style={{ display: 'grid', gridTemplateColumns: grid, padding: '0 13px', borderBottom: '1px solid rgba(var(--on),0.10)', background: 'rgba(var(--on),0.015)' }}>
+          <div role="grid" aria-label={detailTitle + ' records'} style={{ minWidth }}>
+            <div role="row" style={{ display: 'grid', gridTemplateColumns: grid, padding: '0 13px', borderBottom: '1px solid rgba(var(--on),0.10)', background: 'rgba(var(--on),0.015)' }}>
               {columns.map((c, i) => (
-                <div key={c.label + i} style={{ padding: '9px 8px', fontSize: 10.3, fontWeight: 700, color: 'rgba(var(--on),0.36)', textAlign: c.align || 'left', whiteSpace: 'nowrap' }}>{c.label}</div>
+                <div role="columnheader" key={c.label + i} style={{ padding: '9px 8px', fontSize: 10.3, fontWeight: 700, color: 'var(--txt-muted)', textAlign: c.align || 'left', whiteSpace: 'nowrap' }}>{c.label}</div>
               ))}
             </div>
             {shown.length === 0 ? (
-              <div style={{ padding: '38px 0', textAlign: 'center', fontSize: 12.4, color: 'rgba(var(--on),0.34)' }}>Nothing matches this view.</div>
+              <div style={{ padding: '38px 0', textAlign: 'center', fontSize: 12.4, color: 'var(--txt-muted)' }}>Nothing matches this view.</div>
             ) : shown.map(r => {
               const on = r.id === sel;
               return (
-                <div key={r.id} onClick={() => setSel(r.id)} className="pc-nav"
+                <div key={r.id} role="row" tabIndex={0} aria-selected={on} aria-label={r.detail.title} onClick={() => setSel(r.id)} className="pc-nav"
+                  onKeyDown={event => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSel(r.id); }
+                    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                      event.preventDefault();
+                      const sibling = event.key === 'ArrowDown' ? event.currentTarget.nextElementSibling : event.currentTarget.previousElementSibling;
+                      if (sibling instanceof HTMLElement && sibling.tabIndex === 0) sibling.focus();
+                    }
+                  }}
                   style={{ display: 'grid', gridTemplateColumns: grid, padding: '0 13px', cursor: 'pointer', borderBottom: '1px solid rgba(var(--on),0.10)', background: on ? 'rgba(var(--on),0.05)' : 'transparent', boxShadow: on ? 'inset 2px 0 0 var(--accent)' : 'none' }}>
                   {r.cells.map((c, i) => (
-                    <div key={i} style={{ padding: '10px 8px', display: 'flex', alignItems: 'center', minWidth: 0, justifyContent: columns[i]?.align === 'right' ? 'flex-end' : 'flex-start' }}>
+                    <div role="gridcell" key={i} style={{ padding: '10px 8px', display: 'flex', alignItems: 'center', minWidth: 0, justifyContent: columns[i]?.align === 'right' ? 'flex-end' : 'flex-start' }}>
                       <CellView c={c} />
                     </div>
                   ))}
@@ -284,12 +293,12 @@ export function Desk({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 13px' }}>
-          <span className="pc-num" style={{ flex: 1, fontSize: 10.8, color: 'rgba(var(--on),0.34)' }}>
+          <span className="pc-num" style={{ flex: 1, fontSize: 10.8, color: 'var(--txt-muted)' }}>
             {filtered.length === 0 ? 'Nothing to show' : 'Showing ' + (safePage * pageSize + 1) + ' to ' + Math.min(filtered.length, safePage * pageSize + pageSize) + ' of ' + filtered.length}
           </span>
           <button type="button" disabled={safePage === 0} onClick={() => setPage(p => Math.max(0, p - 1))} className="pc-icon-btn"
             style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid rgba(var(--on),0.10)', background: 'transparent', fontSize: 11.5, color: safePage === 0 ? 'rgba(var(--on),0.22)' : 'var(--txt)', cursor: safePage === 0 ? 'default' : 'pointer' }}>Back</button>
-          <span className="pc-num" style={{ fontSize: 11.2, color: 'rgba(var(--on),0.45)' }}>{safePage + 1} / {pages}</span>
+          <span className="pc-num" style={{ fontSize: 11.2, color: 'var(--txt-muted)' }}>{safePage + 1} / {pages}</span>
           <button type="button" disabled={safePage >= pages - 1} onClick={() => setPage(p => Math.min(pages - 1, p + 1))} className="pc-icon-btn"
             style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid rgba(var(--on),0.10)', background: 'transparent', fontSize: 11.5, color: safePage >= pages - 1 ? 'rgba(var(--on),0.22)' : 'var(--txt)', cursor: safePage >= pages - 1 ? 'default' : 'pointer' }}>Next</button>
         </div>
@@ -300,7 +309,7 @@ export function Desk({
           <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' }}>{detailTitle}</span>
         </div>
         {!selected ? (
-          <div style={{ padding: '44px 16px', textAlign: 'center', fontSize: 12.4, color: 'rgba(var(--on),0.34)' }}>Pick a row to open it.</div>
+          <div style={{ padding: '44px 16px', textAlign: 'center', fontSize: 12.4, color: 'var(--txt-muted)' }}>Pick a row to open it.</div>
         ) : (
           <div style={{ padding: 16 }}>
             {selected.detail.media ? (
@@ -316,7 +325,7 @@ export function Desk({
                 : <span style={{ width: 42, height: 42, flex: '0 0 42px', borderRadius: 11, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700 }}>{selected.detail.title.slice(0, 1).toUpperCase()}</span>}
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--txt-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected.detail.title}</div>
-                {selected.detail.subtitle ? <div style={{ fontSize: 11.4, color: 'rgba(var(--on),0.4)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected.detail.subtitle}</div> : null}
+                {selected.detail.subtitle ? <div style={{ fontSize: 11.4, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected.detail.subtitle}</div> : null}
               </div>
             </div>
 
@@ -331,7 +340,7 @@ export function Desk({
                 {selected.detail.stats.map(s => (
                   <div key={s.label} style={{ flex: '1 1 78px', minWidth: 78, padding: '9px 10px', borderRadius: 10, border: '1px solid rgba(var(--on),0.10)' }}>
                     <div className="pc-num" style={{ fontSize: 16, color: 'var(--txt-strong)' }}>{s.value}</div>
-                    <div style={{ fontSize: 10, color: 'rgba(var(--on),0.36)', marginTop: 3 }}>{s.label}</div>
+                    <div style={{ fontSize: 10, color: 'var(--txt-muted)', marginTop: 3 }}>{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -341,7 +350,7 @@ export function Desk({
               <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(var(--on),0.10)' }}>
                 {selected.detail.fields.map(f => (
                   <div key={f.label} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '5px 0' }}>
-                    <span style={{ flex: '0 0 108px', fontSize: 11.4, color: 'rgba(var(--on),0.38)' }}>{f.label}</span>
+                    <span style={{ flex: '0 0 108px', fontSize: 11.4, color: 'var(--txt-muted)' }}>{f.label}</span>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 11.8, color: 'var(--txt)', wordBreak: 'break-word' }}>{f.value}</span>
                   </div>
                 ))}
@@ -350,7 +359,7 @@ export function Desk({
 
             {selected.detail.body?.map(b => (
               <div key={b.label} style={{ marginTop: 14 }}>
-                <div style={{ fontSize: 11.3, fontWeight: 600, color: 'rgba(var(--on),0.5)', marginBottom: 6 }}>{b.label}</div>
+                <div style={{ fontSize: 11.3, fontWeight: 600, color: 'var(--txt-muted)', marginBottom: 6 }}>{b.label}</div>
                 <div style={{ whiteSpace: 'pre-wrap', fontSize: 11.8, lineHeight: 1.5, color: 'rgba(var(--on),0.62)', padding: 11, borderRadius: 10, background: 'rgba(var(--on),0.035)' }}>{b.text}</div>
               </div>
             ))}
@@ -361,12 +370,12 @@ export function Desk({
                 <CommandForm scope={a.key} key={a.key} action={a.action} style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <input type="hidden" name={a.idName} value={selected.actionId || selected.id} />
                   {(a.inputs || []).map(inp => inp.options ? (
-                    <select key={inp.name} name={inp.name} defaultValue={inp.defaultValue}
+                    <select key={inp.name} name={inp.name} aria-label={inp.placeholder || inp.name.replace(/_/g, ' ')} defaultValue={inp.defaultValue}
                       style={{ padding: '8px 10px', borderRadius: 9, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.12)', fontSize: 12, color: 'var(--txt)', outline: 'none' }}>
                       {inp.options.map(o => <option key={o} value={o}>{o.replace(/_/g, ' ')}</option>)}
                     </select>
                   ) : (
-                    <input key={inp.name} name={inp.name} type={inp.type || 'text'} required={inp.required} placeholder={inp.placeholder} defaultValue={inp.defaultValue}
+                    <input key={inp.name} name={inp.name} aria-label={inp.placeholder || inp.name.replace(/_/g, ' ')} type={inp.type || 'text'} required={inp.required} placeholder={inp.placeholder} defaultValue={inp.defaultValue}
                       style={{ padding: '8px 10px', borderRadius: 9, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.12)', fontSize: 12, color: 'var(--txt)', outline: 'none' }} />
                   ))}
                   <button type="submit"
@@ -450,7 +459,7 @@ function TableShare({ page, columns, filtered, all, state }: {
     <div style={{ position: 'relative' }}>
       <button type="button" onClick={() => setOpen(o => !o)} title="Share or export this table" className="pc-icon-btn"
         style={{ width: 27, height: 27, borderRadius: 7, border: '1px solid rgba(var(--on),0.10)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.45)' }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: 'var(--txt-muted)' }}>
           <circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" />
         </svg>
       </button>
@@ -463,7 +472,7 @@ function TableShare({ page, columns, filtered, all, state }: {
         <>
           <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 30 }} />
           <div style={{ position: 'absolute', top: 33, right: 0, zIndex: 40, width: 246, padding: 5, borderRadius: 11, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.11)', boxShadow: '0 16px 42px rgba(0,0,0,0.22)' }}>
-            <div style={{ padding: '6px 10px 7px', fontSize: 9.6, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(var(--on),0.36)' }}>
+            <div style={{ padding: '6px 10px 7px', fontSize: 9.6, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--txt-muted)' }}>
               {state.length ? state.join(' \u00b7 ').toUpperCase() : 'NO FILTERS APPLIED'}
             </div>
             <button type="button" className="pc-nav" style={row} onClick={() => exportRows(filtered, 'filtered')}>Export these {filtered.length} rows (CSV)</button>

@@ -31,18 +31,18 @@ export function createRecoveryHandler(deps: Dependencies & { serviceKey: string 
         .or(`last_status_check_at.is.null,last_status_check_at.lte.${cutoff}`)
         .order("last_status_check_at", { ascending: true, nullsFirst: true }).order("id", { ascending: true }).limit(limit);
       if (error) return json({ success: false, code: "RECOVERY_QUERY_UNAVAILABLE" }, 503);
-      let checked = 0, completed = 0, pending = 0, errors = 0;
+      let checked = 0, completed = 0, pending = 0, errors = 0, skipped = 0;
       const deadline = Date.now() + 20000;
       for (const payment of data || []) {
         if (Date.now() >= deadline) break;
-        const result = await recoverPayment(deps, payment);
-        checked++;
+        const result = await recoverPayment({ ...deps, deadlineAt: deadline }, payment);
+        if (result.lookupAttempted) checked++; else skipped++;
         if (result.payment.status === "completed") completed++;
         if (result.payment.status === "pending") pending++;
         if (result.persistenceError || ("lookupError" in result && result.lookupError)) errors++;
       }
       // Aggregate outcomes only. Never disclose users or raw provider responses.
-      return json({ success: errors === 0, checked, completed, pending, errors, remaining_in_batch: (data?.length || 0) - checked }, errors ? 503 : 200);
+      return json({ success: errors === 0, checked, completed, pending, errors, skipped, remaining_in_batch: (data?.length || 0) - checked - skipped }, errors ? 503 : 200);
     } catch {
       return json({ success: false, code: "RECOVERY_UNAVAILABLE" }, 503);
     }

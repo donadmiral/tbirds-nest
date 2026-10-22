@@ -32,12 +32,12 @@ export default function LoginActivityPage() {
         {rows.map((r) => (
           <li key={r.id} className="flex items-center gap-3 py-3">
             {r.platform === "ios" || r.platform === "android" ? <Smartphone size={18} className="text-ink" /> : <Monitor size={18} className="text-ink" />}
-            <div className="min-w-0 flex-1"><p className="truncate text-[14.5px] font-semibold text-ink">{r.device_name || (r.platform === "ios" ? "iPhone" : r.platform === "android" ? "Android" : "Device")}</p><p className="text-[12px] text-ink/50">{ago(r.updated_at || r.created_at)}</p></div>
+            <div className="min-w-0 flex-1"><p className="truncate text-[14.5px] font-semibold text-ink">{r.device_name || (r.platform === "ios" ? "iPhone" : r.platform === "android" ? "Android" : "Device")}</p><p className="text-[12px] text-muted">{ago(r.updated_at || r.created_at)}</p></div>
           </li>
         ))}
       </ul>
-      {rows.length === 0 ? <p className="mt-3 text-[13.5px] text-ink/50">No phones recorded yet.</p> : null}
-      <button type="button" onClick={logOutOthers} className="mt-5 rounded-full bg-red-50 px-5 py-2.5 text-[14px] font-bold text-red-600 hover:opacity-90">Log out of all other devices</button>
+      {rows.length === 0 ? <p className="mt-3 text-[13.5px] text-muted">No phones recorded yet.</p> : null}
+      <button type="button" onClick={logOutOthers} className="mt-5 rounded-full bg-red-50 px-5 py-2.5 text-[14px] font-bold text-danger hover:opacity-90">Log out of all other devices</button>
       {msg ? <p className="mt-3 text-[13px] text-ink/70">{msg}</p> : null}
     </div>
   );

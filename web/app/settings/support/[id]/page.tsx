@@ -10,8 +10,8 @@ type Ticket = { id: string; subject: string; body: string; status: string; creat
 type Msg = { id: string; sender: string; body: string; created_at: string };
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
-  open: { label: "Open", cls: "bg-red-500/10 text-red-500" },
-  pending: { label: "Replied — your turn", cls: "bg-amber-500/10 text-amber-700" },
+  open: { label: "Open", cls: "bg-danger/10 text-danger" },
+  pending: { label: "Replied — your turn", cls: "bg-warn/10 text-warn" },
   solved: { label: "Solved", cls: "bg-success/10 text-success" },
 };
 
@@ -53,7 +53,7 @@ export default function TicketPage() {
     await load();
   };
 
-  if (!ticket) return <div className="mx-auto max-w-[600px] px-1"><p className="py-10 text-center text-sm text-ink/40">Loading</p></div>;
+  if (!ticket) return <div className="mx-auto max-w-[600px] px-1"><p className="py-10 text-center text-sm text-muted">Loading</p></div>;
   const meta = STATUS_META[ticket.status] || STATUS_META.open;
 
   return (
@@ -66,13 +66,13 @@ export default function TicketPage() {
 
       <div className="mb-2 rounded-xl bg-ink/[0.035] p-3.5">
         <p className="text-[13.5px] leading-relaxed text-ink/80">{ticket.body}</p>
-        <p className="mt-2 text-[11px] text-ink/40">{new Date(ticket.created_at).toLocaleString()}</p>
+        <p className="mt-2 text-[11px] text-muted">{new Date(ticket.created_at).toLocaleString()}</p>
       </div>
 
       {(msgs ?? []).map(m => (
         <div key={m.id} className={"mb-2 max-w-[85%] rounded-xl p-3 " + (m.sender === "member" ? "ml-auto bg-ink text-white" : "bg-ink/[0.035] text-ink")}>
           <p className="text-[13.5px] leading-relaxed">{m.body}</p>
-          <p className={"mt-1.5 text-[10.5px] " + (m.sender === "member" ? "text-white/50" : "text-ink/40")}>{m.sender === "member" ? "You" : "Platinum Circles"} · {new Date(m.created_at).toLocaleString()}</p>
+          <p className={"mt-1.5 text-[10.5px] " + (m.sender === "member" ? "text-white/50" : "text-muted")}>{m.sender === "member" ? "You" : "Platinum Circles"} · {new Date(m.created_at).toLocaleString()}</p>
         </div>
       ))}
 

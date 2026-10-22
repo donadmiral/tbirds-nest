@@ -2,7 +2,7 @@
 
 /* ══════════════════════════════════════════════════════════════════════════
    Platinum Circles Operations - design tokens
-   Light is the default. [data-theme="dark"] on <html> flips the whole desk.
+   Appearance follows the device unless a light or dark preference is saved.
    Every value below comes from the operations design, nothing invented.
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -15,6 +15,7 @@
   --panel-2: #F5F5F5;
   --topbar: rgba(250, 250, 250, 0.82);
   --txt: #262626;
+  --txt-muted: #666666;
   --txt-strong: #000000;
   --accent: #000000;
   --accent-rgb: 0, 0, 0;
@@ -31,6 +32,7 @@
   --vio: #3E6B99;
   --vio-rgb: 62, 107, 153;
   --alert: #C4302B;
+  --alert-ink: #FFFFFF;
   --chip-bg: #EFEFEF;
   --chip-fg: #262626;
   --pearl: #8A7A62;
@@ -54,6 +56,7 @@
   --panel-2: #161616;
   --topbar: rgba(0, 0, 0, 0.82);
   --txt: #F0F0F0;
+  --txt-muted: #A8A8A8;
   --txt-strong: #FFFFFF;
   --accent: #FFFFFF;
   --accent-rgb: 255, 255, 255;
@@ -70,6 +73,7 @@
   --vio: #7EA6D9;
   --vio-rgb: 126, 166, 217;
   --alert: #F1707B;
+  --alert-ink: #000000;
   --chip-bg: #1F1F1F;
   --chip-fg: #F0F0F0;
   --pearl: #C9BFB0;
@@ -84,6 +88,50 @@
   --c6: #46B4C4;
   color-scheme: dark;
 }
+
+@media (prefers-color-scheme: dark) {
+:root[data-theme="system"] {
+  --on: 255, 255, 255;
+  --bg: #000000;
+  --rail: rgba(0, 0, 0, 0.82);
+  --panel: #0B0B0B;
+  --panel-2: #161616;
+  --topbar: rgba(0, 0, 0, 0.82);
+  --txt: #F0F0F0;
+  --txt-muted: #A8A8A8;
+  --txt-strong: #FFFFFF;
+  --accent: #FFFFFF;
+  --accent-rgb: 255, 255, 255;
+  --accent-2: #D4D4D4;
+  --accent-ink: #000000;
+  --ok: #4CC38A;
+  --ok-rgb: 76, 195, 138;
+  --bad: #F1707B;
+  --bad-rgb: 241, 112, 123;
+  --warn: #E3B341;
+  --warn-rgb: 227, 179, 65;
+  --info: #7EA6D9;
+  --info-rgb: 126, 166, 217;
+  --vio: #7EA6D9;
+  --vio-rgb: 126, 166, 217;
+  --alert: #F1707B;
+  --alert-ink: #000000;
+  --chip-bg: #1F1F1F;
+  --chip-fg: #F0F0F0;
+  --pearl: #C9BFB0;
+  --deep: #262626;
+  --line: rgba(255, 255, 255, 0.10);
+  --c1: #6E9BEE;
+  --c1-rgb: 110, 155, 238;
+  --c2: #4FBE93;
+  --c3: #E8A93C;
+  --c4: #9B85E8;
+  --c5: #E8756C;
+  --c6: #46B4C4;
+  color-scheme: dark;
+}
+}
+
 
 /* ── base ───────────────────────────────────────────────────────────────── */
 
@@ -186,16 +234,16 @@ body {
 .text-\[\#26282E\] { color: var(--txt); }
 .text-\[\#43454B\] { color: var(--txt); }
 .text-\[\#5A5D64\] { color: rgba(var(--on),0.62); }
-.text-\[\#5B6470\] { color: rgba(var(--on),0.55); }
-.text-\[\#7A7D84\] { color: rgba(var(--on),0.55); }
-.text-\[\#9A9DA4\] { color: rgba(var(--on),0.42); }
+.text-\[\#5B6470\] { color: var(--txt-muted); }
+.text-\[\#7A7D84\] { color: var(--txt-muted); }
+.text-\[\#9A9DA4\] { color: var(--txt-muted); }
 .text-\[\#B03A3A\] { color: var(--bad); }
 .text-\[\#B08D3F\] { color: var(--warn); }
 .text-\[\#B45309\] { color: var(--warn); }
-.text-\[\#B4B6BB\] { color: rgba(var(--on),0.36); }
-.text-\[\#C6C8CC\] { color: rgba(var(--on),0.28); }
-.text-\[\#C9CBD1\] { color: rgba(var(--on),0.30); }
-.text-\[\#D7DBE0\] { color: rgba(var(--on),0.26); }
+.text-\[\#B4B6BB\] { color: var(--txt-muted); }
+.text-\[\#C6C8CC\] { color: var(--txt-muted); }
+.text-\[\#C9CBD1\] { color: var(--txt-muted); }
+.text-\[\#D7DBE0\] { color: #D7DBE0; }
 .text-\[\#E7C878\] { color: var(--accent); }
 .focus-within\:border-\[\#B9BCC2\]:focus-within { border-color: rgba(var(--accent-rgb),0.30); }
 .focus\:border-\[\#0B1E3D\]:focus { border-color: var(--accent); }
@@ -210,7 +258,7 @@ body {
 .hover\:border-\[\#D6D4CE\]:hover { border-color: rgba(var(--on),0.18); }
 .hover\:text-\[\#17181C\]:hover { color: var(--txt); }
 .hover\:text-\[\#B03A3A\]:hover { color: var(--bad); }
-.placeholder\:text-\[\#A9ABB1\]::placeholder { color: rgba(var(--on),0.34); }
+.placeholder\:text-\[\#A9ABB1\]::placeholder { color: var(--txt-muted); }
 
 [fill="#5A5D64"] { fill: rgba(var(--on),0.62); }
 [stroke="#9A9DA4"] { stroke: rgba(var(--on),0.42); }
@@ -253,3 +301,19 @@ body {
   .pc-slide { page-break-after: always; break-after: page; border: none !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; }
   .pc-deck { display: block !important; }
 }
+
+/* Readable controls and accessible interaction across every desk. */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--info) !important;
+  outline-offset: 3px;
+}
+input::placeholder, textarea::placeholder { color: var(--txt-muted); opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  header, aside { background: var(--panel) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+}
+@media (pointer: coarse) { .pc-seg { min-width: 44px; min-height: 44px; } }
+[data-theme="dark"] .pc-wordmark { filter: invert(1); }
+@media (prefers-color-scheme: dark) { [data-theme="system"] .pc-wordmark { filter: invert(1); } }

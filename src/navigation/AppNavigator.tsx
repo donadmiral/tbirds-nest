@@ -39,6 +39,7 @@ import LoginScreen          from '../screens/auth/LoginScreen';
 import BusinessSignInScreen from '../screens/auth/BusinessSignInScreen';
 import BusinessAccessScreen from '../screens/profile/BusinessAccessScreen';
 import AccountStandingScreen from '../screens/profile/AccountStandingScreen';
+import MonetizationScreen from '../screens/profile/MonetizationScreen';
 import OfflineBanner from '../components/OfflineBanner';
 import ArticleComposeScreen from '../screens/feed/ArticleComposeScreen';
 import SignUpScreen         from '../screens/auth/SignUpScreen';
@@ -201,6 +202,7 @@ function ProfileStackNav() {
       <ProfStack.Screen name="ChangeUsername" component={ChangeUsernameScreen} />
       <ProfStack.Screen name="BusinessAccess" component={BusinessAccessScreen} />
       <ProfStack.Screen name="AccountStanding" component={AccountStandingScreen} />
+      <ProfStack.Screen name="Monetization" component={MonetizationScreen} />
       <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
       <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
       <ProfStack.Screen name="RestrictedAccounts" component={RestrictedAccountsScreen} />

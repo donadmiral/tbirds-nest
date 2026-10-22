@@ -34,7 +34,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const jar = await cookies();
-  const theme = jar.get('pc-theme')?.value === 'dark' ? 'dark' : 'light';
+  const storedTheme = jar.get('pc-theme')?.value;
+  const theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : 'system';
   const density = jar.get('pc-density')?.value === 'compact' ? 'compact' : 'comfortable';
 
   return (

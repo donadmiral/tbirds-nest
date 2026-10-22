@@ -64,17 +64,17 @@ export default function NotificationSettingsPage() {
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
-      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Bell size={19} className="text-pearl" /> Notifications</h1>
-      <p className="pb-5 text-[13px] text-ink/50">Choose which kinds of activity reach your phone as a push. The Activity list always shows everything, and quiet hours are set on the phone.</p>
-      {err ? <p className="pb-3 text-sm text-red-400">{err}</p> : null}
-      {prefs === null ? <p className="py-10 text-center text-sm text-ink/40">Loading</p> : (
+      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Bell size={19} className="text-accent" /> Notifications</h1>
+      <p className="pb-5 text-[13px] text-muted">Choose which kinds of activity reach your phone as a push. The Activity list always shows everything, and quiet hours are set on the phone.</p>
+      {err ? <p className="pb-3 text-sm text-danger">{err}</p> : null}
+      {prefs === null ? <p className="py-10 text-center text-sm text-muted">Loading</p> : (
         <div className="flex flex-col gap-2">
           {CATEGORIES.map((c) => (
             <div key={c.key} className="flex items-center gap-3 rounded-lg border border-ink/10 p-4">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-pearl">{c.icon}</span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-accent">{c.icon}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[14px] font-semibold text-ink">{c.label}</span>
-                <span className="block text-[12px] text-ink/50">{c.sub}</span>
+                <span className="block text-[12px] text-muted">{c.sub}</span>
               </span>
               <Toggle on={prefs[c.key] !== false} onChange={(v) => set(c.key, v)} label={c.label} />
             </div>

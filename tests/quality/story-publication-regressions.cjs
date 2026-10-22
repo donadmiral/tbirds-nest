@@ -55,9 +55,9 @@ function harness(options = {}) {
     '../utils/uploadSafe': { ensureUploadSafe: async (uri) => ({ uri, ext: 'jpg', mime: 'image/jpeg' }) },
   }, {
     process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'https://example.invalid', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'synthetic' } },
-    FormData: class { append() {} }, AbortController,
-    setTimeout: () => 1, clearTimeout() {},
-    fetch: async () => { calls.push({ upload: true }); return options.upload ? options.upload() : { ok: true }; },
+    FormData: class { fields = []; append(...args) { this.fields.push(args); } }, AbortController,
+    setTimeout: options.setTimeout ?? (() => 1), clearTimeout: options.clearTimeout ?? (() => {}),
+    fetch: async (url, request) => { calls.push({ upload: true, url, request }); return options.upload ? options.upload(url, request) : { ok: true }; },
   });
   const react = {
     useState(initial) { const key = slot++; if (!(key in values)) values[key] = initial; return [values[key], (value) => { values[key] = typeof value === 'function' ? value(values[key]) : value; }]; },
@@ -148,4 +148,65 @@ test('native mention rejection remains a failure until the same story is complet
   const h = harness({ drafts: [draft('draft-a', { hiddenMentions: [{ id: 'person-a', username: 'synthetic' }] })], responses: { story_mentions: [{ data: null, error: { code: '42501', message: 'Denied' } }] } });
   await h.render().publishAll(); assert.equal(h.success.length, 0);
   await h.render().publishAll(); assert.equal(tableCalls(h, 'stories').length, 1); assert.equal(tableCalls(h, 'story_mentions').length, 2); assert.equal(h.success.length, 1);
+});
+
+for (const [role, extra] of [
+  ['photo_sticker', { stickers: [{ id: 'photo', kind: 'photo', photoUri: 'file:///sticker.jpg' }] }],
+  ['front_photo', { dualFrontUri: 'file:///front.jpg' }],
+  ['voiceover', { audio: { kind: 'voiceover', localUri: 'file:///voice.m4a' } }],
+]) {
+  test(`native failed ${role} keeps the draft and retry reuses the confirmed main upload`, async () => {
+    let rejectAsset = true;
+    const h = harness({ drafts: [draft('draft-a', { mediaType: 'image', localUri: 'file:///main.jpg', ...extra })], upload: async (url) => {
+      if (url.includes(`_${role}.`) && rejectAsset) return { ok: false, status: 503 };
+      return { ok: true };
+    }});
+    await h.render().publishAll();
+    assert.equal(h.success.length, 0); assert.equal(tableCalls(h, 'stories').length, 0);
+    assert.equal(h.drafts[0].uploadState, 'error');
+    rejectAsset = false;
+    await h.render().publishAll();
+    assert.equal(h.success.length, 1); assert.equal(tableCalls(h, 'stories').length, 1);
+    assert.equal(h.calls.filter(c => c.url?.includes('_media.')).length, 1);
+    const row = tableCalls(h, 'stories')[0].row;
+    if (role === 'photo_sticker') {
+      assert.match(row.stickers_json[0].photoUrl, /^https:/);
+      assert.equal(row.stickers_json[0].photoUri, undefined);
+      assert.equal(h.drafts[0].stickers[0].photoUri, 'file:///sticker.jpg');
+    }
+    if (role === 'front_photo') assert.match(row.dual_front_url, /^https:/);
+    if (role === 'voiceover') assert.match(row.audio_url, /^https:/);
+  });
+}
+test('native asset uploads are bounded to three, deduplicated, and all finish before story insert', async () => {
+  let active = 0, peak = 0;
+  const gates = [];
+  const stickers = Array.from({ length: 5 }, (_, i) => ({ id: `sticker-${i}`, kind: 'photo', photoUri: `file:///sticker-${i < 2 ? 0 : i}.jpg` }));
+  const h = harness({ drafts: [draft('draft-a', { stickers })], upload: async () => {
+    active++; peak = Math.max(peak, active);
+    const gate = deferred(); gates.push(gate); await gate.promise; active--; return { ok: true };
+  }});
+  const sharing = h.render().publishAll(); await flush();
+  assert.ok(active > 1 && active <= 3); assert.equal(tableCalls(h, 'stories').length, 0);
+  for (let round = 0; round < 5; round++) { gates.forEach(g => g.resolve()); await flush(); }
+  await sharing;
+  assert.ok(peak <= 3); assert.equal(h.calls.filter(c => c.upload).length, 4);
+  assert.equal(h.success.length, 1); assert.equal(tableCalls(h, 'stories')[0].row.stickers_json.length, 5);
+});
+test('native failed upload always clears its abort timer', async () => {
+  let cleared = 0;
+  const h = harness({ drafts: [draft('draft-a', { mediaType: 'image', localUri: 'file:///main.jpg' })], upload: async () => { throw new Error('Offline'); }, clearTimeout: () => { cleared++; } });
+  await h.render().publishAll(); assert.equal(cleared, 1); assert.equal(tableCalls(h, 'stories').length, 0);
+});
+test('simultaneous sticker transforms merge against the current draft after reorder', () => {
+  const { updateDraftStickers } = load('src/controllers/stories/stickerDraftUpdates.ts', {});
+  let drafts = [draft('other', { stickers: [] }), draft('original', { stickers: [{ id: 'sticker', nx: 0.5, ny: 0.5, scale: 1, rotation: 0 }] })];
+  for (const patch of [{ nx: 0.7, ny: 0.6 }, { scale: 1.8 }, { rotation: 1.2 }]) {
+    drafts = updateDraftStickers(drafts, 'original', current => current.map(sticker => ({ ...sticker, ...patch })));
+  }
+  assert.equal(drafts[1].stickers[0].nx, 0.7); assert.equal(drafts[1].stickers[0].scale, 1.8); assert.equal(drafts[1].stickers[0].rotation, 1.2);
+  assert.equal(drafts[0].stickers.length, 0);
+  drafts[1].uploadState = 'uploading';
+  const locked = updateDraftStickers(drafts, 'original', []);
+  assert.equal(locked[1], drafts[1]);
 });

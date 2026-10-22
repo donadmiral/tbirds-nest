@@ -90,11 +90,11 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={myAvatar} alt="" className="h-full w-full rounded-full border border-ink/10 object-cover" />
             ) : (
-              <span className="flex h-full w-full items-center justify-center rounded-full bg-surface text-ink/40">+</span>
+              <span className="flex h-full w-full items-center justify-center rounded-full bg-surface text-muted">+</span>
             )}
-            <a href="/story/new" onClick={(e) => e.stopPropagation()} className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-ink">+</a>
+            <a href="/story/new" onClick={(e) => e.stopPropagation()} className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl">+</a>
           </span>
-          <span className="w-full truncate text-center text-[11px] text-ink/60">Your story</span>
+          <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
         </a>
         {[...users, ...spot].map((u, i) => (u.user_id === myId ? null : (
           <Fragment key={u.user_id}>
@@ -114,7 +114,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
               </span>
               {i >= users.length ? <span className="absolute -bottom-0.5 -right-0.5 flex h-[20px] w-[20px] items-center justify-center rounded-full border-2 border-white bg-white text-[11px] leading-none" aria-label="Spotlight">{"\uD83D\uDD25"}</span> : null}
             </span>
-            <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-ink/50")}>
+            <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-muted")}>
               {u.full_name?.split(" ")[0] ?? u.username}
             </span>
           </button>

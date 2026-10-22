@@ -295,7 +295,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
       <fieldset disabled={publicationStatus.locked} className="contents">
       <textarea value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" rows={1}
         onInput={e => { const el = e.currentTarget; el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }}
-        className="w-full resize-none overflow-hidden border-0 font-display text-[26px] font-bold leading-tight text-ink outline-none placeholder:text-ink/30" />
+        className="w-full resize-none overflow-hidden border-0 font-display text-[26px] font-bold leading-tight text-ink outline-none placeholder:text-muted" />
       <div className="mt-2 flex flex-wrap gap-1.5">
         {CATEGORIES.map((c) => (
           <button key={c.key} type="button" onClick={() => setCategory(category === c.key ? null : c.key)}
@@ -310,13 +310,13 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
           <button onClick={clearCover} className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white"><X size={14} /></button>
         </div>
       ) : (
-        <label className="mb-3 mt-2 flex min-h-[54px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-ink/15 text-[13px] font-semibold text-ink/45 hover:border-ink/30">
+        <label className="mb-3 mt-2 flex min-h-[54px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-ink/15 text-[13px] font-semibold text-muted hover:border-ink/30">
           <ImagePlus size={15} /> Add a cover image (optional)
           <input ref={fileRef} type="file" accept="image/*" onChange={pickCover} className="hidden" />
         </label>
       )}
 
-      <p className="mb-3 text-[12px] font-semibold text-ink/45">{minutes} min read · publishing as {name || "you"}</p>
+      <p className="mb-3 text-[12px] font-semibold text-muted">{minutes} min read · publishing as {name || "you"}</p>
 
       {/* Formatting inserts the same markup X uses under the hood: headings,
           bold, italic, quotes, links and images. Plain paragraphs need none. */}
@@ -335,7 +335,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
           <ImagePlus size={15} />
           <input type="file" accept="image/*" onChange={insertImage} className="hidden" />
         </label>
-        <span className="ml-auto text-[11.5px] text-ink/40">{body.trim() ? body.trim().split(/\s+/).length : 0} words</span>
+        <span className="ml-auto text-[11.5px] text-muted">{body.trim() ? body.trim().split(/\s+/).length : 0} words</span>
         <button type="button" onClick={() => setPreview((v) => !v)}
           className={"rounded-full px-3 py-1 text-[12.5px] font-semibold transition-colors " + (preview ? "bg-ink text-white" : "bg-surface text-ink/70 hover:text-ink")}>
           {preview ? "Edit" : "Preview"}
@@ -344,24 +344,24 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
 
       {preview ? (
         <div className="min-h-[420px] rounded-xl border border-ink/10 bg-white px-5 py-4">
-          {body.trim() ? <ArticleBody text={body} /> : <p className="text-[14px] text-ink/40">Nothing to preview yet.</p>}
+          {body.trim() ? <ArticleBody text={body} /> : <p className="text-[14px] text-muted">Nothing to preview yet.</p>}
         </div>
       ) : (
         <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder="Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images."
-          className="min-h-[420px] w-full resize-none border-0 text-[16px] leading-relaxed text-ink outline-none placeholder:text-ink/30" />
+          className="min-h-[420px] w-full resize-none border-0 text-[16px] leading-relaxed text-ink outline-none placeholder:text-muted" />
       )}
 
       </fieldset>
-      {error ? <p role="alert" className="mt-2 text-[13px] text-red-500">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View article</Link></> : null}</p> : null}
+      {error ? <p role="alert" className="mt-2 text-[13px] text-danger">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View article</Link></> : null}</p> : null}
 
       {linkModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-6" onClick={() => setLinkModalOpen(false)}>
           <div className="w-full max-w-[360px] rounded-2xl bg-white p-5" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
             <p className="mb-3 text-[15px] font-bold text-ink">Add a link</p>
             <input value={linkText} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLinkText(e.target.value)} placeholder="Link text"
-              className="mb-2.5 w-full rounded-xl bg-surface px-3.5 py-2.5 text-[14px] text-ink outline-none placeholder:text-ink/35" />
+              className="mb-2.5 w-full rounded-xl bg-surface px-3.5 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted" />
             <input value={linkUrl} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLinkUrl(e.target.value)} placeholder="https://" autoCapitalize="none" autoCorrect="off"
-              className="mb-3 w-full rounded-xl bg-surface px-3.5 py-2.5 text-[14px] text-ink outline-none placeholder:text-ink/35" />
+              className="mb-3 w-full rounded-xl bg-surface px-3.5 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted" />
             <div className="flex gap-2.5">
               <button type="button" onClick={() => setLinkModalOpen(false)} className="flex-1 rounded-xl bg-surface py-2.5 text-[13.5px] font-bold text-ink/60">Cancel</button>
               <button type="button" onClick={confirmLink} className="flex-1 rounded-xl bg-ink py-2.5 text-[13.5px] font-bold text-white">Insert</button>

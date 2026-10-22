@@ -1,5 +1,5 @@
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
@@ -14,20 +14,25 @@ import JobListRow from '../../components/jobs/JobListRow';
 const NAVY = '#0B1E3D';
 
 export default function SavedJobsScreen() {
+  useTheme();
   const navigation = useNavigation<any>();
   const userId = useAuthStore(st => st.profile?.id);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
 
   useFocusEffect(useCallback(() => {
     let live = true;
     (async () => {
-      if (!userId) return;
+      setLoading(true); setLoadError(false);
+      if (!userId) { if (live) { setLoading(false); setLoadError(true); } return; }
       try { const rows = await jobsService.getSavedJobs(userId); if (live) setJobs(rows); }
+      catch { if (live) setLoadError(true); }
       finally { if (live) setLoading(false); }
     })();
     return () => { live = false; };
-  }, [userId]));
+  }, [userId, retry]));
 
   const unsave = useCallback(async (jobId: string) => {
     if (!userId) return;
@@ -39,16 +44,18 @@ export default function SavedJobsScreen() {
 
   return (
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle={getTheme().surface.canvas === '#FFFFFF' ? 'dark-content' : 'light-content'} backgroundColor={getTheme().surface.canvas} />
       <View style={st.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Feather name="chevron-left" size={26} color={NAVY} />
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={st.headerTitle}>Saved jobs</Text>
         <View style={{ width: 26 }} />
       </View>
       {loading ? (
         <ListRowSkeleton />
+      ) : loadError ? (
+        <View style={st.center}><Text style={st.emptyTitle}>Could not load saved jobs</Text><TouchableOpacity accessibilityRole="button" onPress={() => setRetry(value => value + 1)} style={{ minHeight: 48, justifyContent: 'center' }}><Text style={st.emptySub}>Tap to retry</Text></TouchableOpacity></View>
       ) : jobs.length === 0 ? (
         <View style={st.center}>
           <Ionicons name="bookmark-outline" size={38} color="#C7CDD6" />
@@ -83,9 +90,9 @@ export default function SavedJobsScreen() {
 const st = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
-  sep: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(11,30,61,0.07)', marginLeft: 74 },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary },
+  sep: { height: StyleSheet.hairlineWidth, backgroundColor: t.brand.tintBg, marginLeft: 74 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  emptyTitle: { fontSize: 16.5, fontWeight: '800', color: NAVY, marginTop: 12 },
-  emptySub: { fontSize: 13.5, color: 'rgba(11,30,61,0.55)', textAlign: 'center', marginTop: 4, lineHeight: 19 },
+  emptyTitle: { fontSize: 16.5, fontWeight: '800', color: t.ink.primary, marginTop: 12 },
+  emptySub: { fontSize: 13.5, color: t.ink.secondary, textAlign: 'center', marginTop: 4, lineHeight: 19 },
 }));

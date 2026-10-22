@@ -31,7 +31,7 @@ export function RecruiterFunnel({ apps, jobs }: { apps: Applicant[]; jobs: Job[]
             return (
               <div key={s.key} className="flex min-w-[92px] flex-1 items-center gap-1">
                 <div className="min-w-0 flex-1 rounded-xl bg-surface/70 px-3 py-2.5">
-                  <p className="truncate text-[11.5px] text-ink/45">{s.label}</p>
+                  <p className="truncate text-[11.5px] text-muted">{s.label}</p>
                   <Metric value={n} size={22} />
                   {/* Share of all applications in this current stage. */}
                   <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-ink/8">
@@ -46,19 +46,19 @@ export function RecruiterFunnel({ apps, jobs }: { apps: Applicant[]; jobs: Job[]
 
       <div className="flex flex-col gap-3">
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11.5px] text-ink/45">
+          <p className="flex items-center gap-1.5 text-[11.5px] text-muted">
             <Users size={12} /> Open roles
           </p>
           <Metric value={f.openJobs} size={24} />
-          <p className="mt-0.5 text-[11.5px] text-ink/40">
+          <p className="mt-0.5 text-[11.5px] text-muted">
             {f.total} {f.total === 1 ? "application" : "applications"} for this role
           </p>
         </div>
 
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Hired for this role</p>
+          <p className="text-[11.5px] text-muted">Hired for this role</p>
           <Metric value={f.hired} size={24} />
-          <p className="mt-0.5 text-[11.5px] text-ink/40">{f.total ? f.rate.toFixed(1) + "% of applications" : "No applications yet"}</p>
+          <p className="mt-0.5 text-[11.5px] text-muted">{f.total ? f.rate.toFixed(1) + "% of applications" : "No applications yet"}</p>
         </div>
       </div>
     </div>
@@ -130,7 +130,7 @@ export function RecruiterRail({
             {items.upcoming.map((a) => (
               <div key={a.id}>
                 <p className="truncate text-[13px] font-medium text-ink">{a.name ?? "Applicant"}</p>
-                <p className="text-[11.5px] text-ink/45">
+                <p className="text-[11.5px] text-muted">
                   {new Date(a.interview_at!).toLocaleString([], {
                     weekday: "short",
                     month: "short",

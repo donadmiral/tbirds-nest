@@ -83,21 +83,21 @@ export default function MarketPage() {
   const cats = useMemo(() => ["All", ...MARKET_CATEGORIES], []);
   const filtersActive = filters.minPrice != null || filters.maxPrice != null || !!filters.condition || !!filters.city || (filters.sort && filters.sort !== "recent");
   const num = (v: string) => { const n = Number(v.replace(/,/g, "")); return v.trim() !== "" && Number.isFinite(n) && n >= 0 ? n : null; };
-  const inputCls = "rounded-lg bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated";
+  const inputCls = "rounded-lg bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated";
 
   return (
     <div>
       <div className="flex items-center justify-between px-1 pb-3">
         <h1 className="font-display text-2xl text-porcelain">Market</h1>
         <Link href="/market/messages" title="Market messages" className="relative rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><MessageCircle size={19} /><MarketUnreadDot /></Link>
-          <Link href="/market/new" className="ml-1 flex items-center gap-1.5 rounded-full bg-pearl px-3.5 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90"><Plus size={16} /> Sell</Link>
+          <Link href="/market/new" className="ml-1 flex items-center gap-1.5 rounded-full bg-pearl px-3.5 py-2 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"><Plus size={16} /> Sell</Link>
       </div>
 
       <div className="flex gap-2 px-1 pb-3">
         {TABS.map((t) => (
           <button key={t.id}
             onClick={() => { if (tab !== t.id) setLoading(true); setTab(t.id); }}
-            className={"rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (tab === t.id ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
+            className={"rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (tab === t.id ? "bg-pearl font-semibold text-on-pearl" : "bg-surface text-ink/70 hover:text-ink")}
           >
             {t.label}
           </button>
@@ -109,20 +109,20 @@ export default function MarketPage() {
           {alertsOpen ? <MarketAlerts initialQuery={applied || search} onClose={() => setAlertsOpen(false)} /> : null}
           <div className="flex gap-2 px-1">
             <div className="relative flex-1">
-              <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
+              <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
               <input value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { if (applied !== search.trim()) setLoading(true); setApplied(search.trim()); } }}
                 placeholder="Search the market"
                 aria-label="Search the market"
-                className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+                className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
               />
             </div>
             <button onClick={() => setAlertsOpen(true)} title="Market alerts" className="flex items-center rounded-full bg-surface px-3 text-ink/70 transition-colors duration-[140ms] hover:text-ink">
               <BellPlus size={16} />
             </button>
             <button onClick={() => { setDraft(filters); setFiltersOpen((v) => !v); }}
-              className={"flex items-center gap-1.5 rounded-full px-3.5 text-[13px] transition-colors duration-[140ms] " + (filtersActive ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/70 hover:text-ink")}
+              className={"flex items-center gap-1.5 rounded-full px-3.5 text-[13px] transition-colors duration-[140ms] " + (filtersActive ? "bg-pearl font-semibold text-on-pearl" : "bg-surface text-ink/70 hover:text-ink")}
             >
               <SlidersHorizontal size={15} /> Filters
             </button>
@@ -155,7 +155,7 @@ export default function MarketPage() {
                 </select>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => { if (filters !== draft) setLoading(true); setFilters(draft); setFiltersOpen(false); }} className="rounded-full bg-pearl px-4 py-2 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Apply</button>
+                <button onClick={() => { if (filters !== draft) setLoading(true); setFilters(draft); setFiltersOpen(false); }} className="rounded-full bg-pearl px-4 py-2 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Apply</button>
                 <button onClick={() => { if (filters !== EMPTY) setLoading(true); setDraft(EMPTY); setFilters(EMPTY); setFiltersOpen(false); }} className="rounded-full bg-surface px-4 py-2 text-[13px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Clear all</button>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function MarketPage() {
             {cats.map((c) => (
               <button key={c}
                 onClick={() => { if (category !== c) setLoading(true); setCategory(c); }}
-                className={"shrink-0 rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (category === c ? "bg-pearl font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
+                className={"shrink-0 rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (category === c ? "bg-pearl font-semibold text-on-pearl" : "bg-surface text-ink/60 hover:text-ink")}
               >
                 {c}
               </button>
@@ -176,9 +176,9 @@ export default function MarketPage() {
 
       {error ? <p role="alert" className="px-1 py-3 text-sm text-danger">{error} <button onClick={() => { setLoading(true); void load(); }} className="underline">Retry</button></p> : null}
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
+        <p className="py-16 text-center text-sm text-muted">Loading</p>
       ) : listings.length === 0 && !error ? (
-        <p className="py-16 text-center text-sm text-ink/40">
+        <p className="py-16 text-center text-sm text-muted">
           {tab === "saved" ? "Listings you save will appear here." : tab === "selling" ? "Your listings will appear here." : "Nothing listed here yet."}
         </p>
       ) : (

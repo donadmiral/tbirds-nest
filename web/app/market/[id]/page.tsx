@@ -1,5 +1,6 @@
 "use client";
 
+import { profilePath } from "@/lib/profileLookup";
 import { PersonName } from "@/components/PersonName";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -126,12 +127,12 @@ export default function ListingPage() {
   }
 
   if (loadError && loadedId === id) return <p role="alert" className="py-16 text-center text-sm text-danger">Could not load listing. <button onClick={() => { setL(undefined); setLoadError(false); setRetry((n) => n + 1); }} className="underline">Retry</button></p>;
-  if (l === undefined || loadedId !== id) return <p className="py-16 text-center text-sm text-ink/40">Loading</p>;
+  if (l === undefined || loadedId !== id) return <p className="py-16 text-center text-sm text-muted">Loading</p>;
   if (l === null) {
     return (
       <div className="flex flex-col items-center gap-3 px-1 py-24 text-center">
         <h1 className="font-display text-2xl text-porcelain">This listing is not available</h1>
-        <Link href="/market" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Back to Market</Link>
+        <Link href="/market" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Back to Market</Link>
       </div>
     );
   }
@@ -149,7 +150,7 @@ export default function ListingPage() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={l.images[img]} alt="" className="max-h-[440px] w-full object-contain" />
         ) : (
-          <div className="flex h-64 items-center justify-center text-ink/30">No photos</div>
+          <div className="flex h-64 items-center justify-center text-muted">No photos</div>
         )}
         {sold ? (
           <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-[16px] font-extrabold tracking-widest text-white">
@@ -167,15 +168,15 @@ export default function ListingPage() {
       ) : null}
 
       <div className="mt-4">
-        <p className="text-2xl font-semibold text-pearl">{priceLabel(l)}</p>
+        <p className="text-2xl font-semibold text-accent">{priceLabel(l)}</p>
         <h1 className="mt-0.5 text-xl font-semibold text-ink">{l.title}</h1>
-        <p className="mt-1 text-[13px] text-ink/40">
+        <p className="mt-1 text-[13px] text-muted">
           {[l.category, l.condition, l.location_city, timeAgo(l.created_at)].filter(Boolean).join(" · ")}
         </p>
       </div>
 
       <p className="mt-2 text-[13px] text-ink/60">Collection · Meet the seller{l.delivery_available ? " · Delivery" + (l.delivery_fee != null && Number(l.delivery_fee) > 0 ? " " + priceLabel({ ...l, price: Number(l.delivery_fee) }) : " available") : ""}</p>
-      {l.delivery_available && l.delivery_note ? <p className="mt-0.5 text-[12px] text-ink/40">{l.delivery_note}</p> : null}
+      {l.delivery_available && l.delivery_note ? <p className="mt-0.5 text-[12px] text-muted">{l.delivery_note}</p> : null}
 
       {isOwner ? (
         <div className="mt-4 flex flex-wrap gap-2">
@@ -186,7 +187,7 @@ export default function ListingPage() {
           ) : (
             <span className="rounded-md bg-surface px-4 py-2 text-[13px] text-ink/60">This listing is marked {l.status}.</span>
           )}
-          <button onClick={onSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-pearl" : "")}>
+          <button onClick={onSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-accent" : "")}>
             <Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}
           </button>
           <button onClick={onShare} className={btn}>
@@ -197,7 +198,7 @@ export default function ListingPage() {
         <div className="mt-4 flex flex-wrap gap-2">
           {!sold ? (
             <>
-              <button onClick={messageSeller} className="flex items-center gap-1.5 rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90">
+              <button onClick={messageSeller} className="flex items-center gap-1.5 rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">
                 <MessageCircle size={16} /> Message seller
               </button>
               <button onClick={() => setOfferOpen((v) => !v)} className={btn}>
@@ -205,7 +206,7 @@ export default function ListingPage() {
               </button>
             </>
           ) : null}
-          <button onClick={onSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-pearl" : "")}>
+          <button onClick={onSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-accent" : "")}>
             <Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}
           </button>
           <button onClick={onShare} className={btn}>
@@ -220,9 +221,9 @@ export default function ListingPage() {
             onChange={(e) => setOfferAmt(e.target.value)}
             placeholder={"Your offer in " + l.currency}
             inputMode="numeric"
-            className="w-44 rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+            className="w-44 rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
           />
-          <button onClick={sendOffer} disabled={busy} className="rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
+          <button onClick={sendOffer} disabled={busy} className="rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
             {busy ? "Sending" : "Send offer"}
           </button>
         </div>
@@ -235,7 +236,7 @@ export default function ListingPage() {
       ) : null}
 
       {l.seller ? (
-        <Link href={l.seller.username ? "/" + l.seller.username : "#"} className="mt-6 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
+        <Link href={profilePath(l.seller.username, l.seller_id)} className="mt-6 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
           {l.seller.avatar_url ? (
             <StoryAvatar userId={l.seller_id} name={l.seller.full_name} avatarUrl={l.seller.avatar_url} size={56} />
           ) : (
@@ -251,7 +252,7 @@ export default function ListingPage() {
       ) : null}
 
       {!isOwner ? (
-        <p className="mt-4 flex gap-4 text-[12px] text-ink/40">
+        <p className="mt-4 flex gap-4 text-[12px] text-muted">
           <button onClick={reportListing} className="transition-colors duration-[140ms] hover:text-ink/70">Report listing</button>
           <button onClick={blockSeller} className="transition-colors duration-[140ms] hover:text-danger">Block seller</button>
         </p>
