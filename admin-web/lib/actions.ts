@@ -16,11 +16,22 @@ import { runAdminCommand } from '@/lib/adminCommand';
 export async function signIn(formData: FormData) {
   const email = String(formData.get('email') || '').trim();
   const password = String(formData.get('password') || '');
-  const { data, error } = await anonClient().auth.signInWithPassword({ email, password });
-  if (error || !data.session) redirect('/?error=' + encodeURIComponent('Sign in failed'));
-  const admin = await adminFromToken(data.session.access_token);
-  if (!admin) redirect('/?error=' + encodeURIComponent('An active staff session is required. Contact your administrator if access is unavailable.'));
-  await saveAdminSession(data.session);
+  let session = null;
+  let failure = 'credentials';
+  try {
+    const result = await anonClient().auth.signInWithPassword({ email, password });
+    session = result.data.session;
+    if (result.error && (!result.error.status || result.error.status >= 500)) failure = 'unavailable';
+  } catch { failure = 'unavailable'; }
+  if (!session) redirect('/?error=' + failure);
+  let admin = null;
+  try { admin = await adminFromToken(session.access_token); }
+  catch { redirect('/?error=unavailable'); }
+  if (!admin) {
+    try { await serviceClient().auth.admin.signOut(session.access_token, 'local'); } catch { /* No admin session is persisted. */ }
+    redirect('/?error=access');
+  }
+  await saveAdminSession(session);
   redirect('/dashboard');
 }
 
@@ -39,216 +50,286 @@ export async function signOut() {
 }
 
 export async function approveApplication(formData: FormData) {
-  await runAdminCommand('approveApplication', 'verification', formData);
+  const result = await runAdminCommand('approveApplication', 'verification', formData);
+  if (!result.success) return result;
   revalidatePath('/queue');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function rejectApplication(formData: FormData) {
-  await runAdminCommand('rejectApplication', 'verification', formData);
+  const result = await runAdminCommand('rejectApplication', 'verification', formData);
+  if (!result.success) return result;
   revalidatePath('/queue');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function suspendUser(formData: FormData) {
-  await runAdminCommand('suspendUser', 'user_moderate', formData);
+  const result = await runAdminCommand('suspendUser', 'user_moderate', formData);
+  if (!result.success) return result;
   revalidatePath('/users');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function restoreUser(formData: FormData) {
-  await runAdminCommand('restoreUser', 'user_moderate', formData);
+  const result = await runAdminCommand('restoreUser', 'user_moderate', formData);
+  if (!result.success) return result;
   revalidatePath('/users');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function revokeVerification(formData: FormData) {
-  await runAdminCommand('revokeVerification', 'verification', formData);
+  const result = await runAdminCommand('revokeVerification', 'verification', formData);
+  if (!result.success) return result;
   revalidatePath('/users');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function dismissReport(formData: FormData) {
-  await runAdminCommand('dismissReport', 'report_post', formData);
+  const result = await runAdminCommand('dismissReport', 'report_post', formData);
+  if (!result.success) return result;
   revalidatePath('/reports');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function removeReportedPost(formData: FormData) {
-  await runAdminCommand('removeReportedPost', 'report_post', formData);
+  const result = await runAdminCommand('removeReportedPost', 'report_post', formData);
+  if (!result.success) return result;
   revalidatePath('/reports');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function removeReportedListing(formData: FormData) {
-  await runAdminCommand('removeReportedListing', 'report_listing', formData);
+  const result = await runAdminCommand('removeReportedListing', 'report_listing', formData);
+  if (!result.success) return result;
   revalidatePath('/reports');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function resolveUserReport(formData: FormData) {
-  await runAdminCommand('resolveUserReport', 'report_user', formData);
+  const result = await runAdminCommand('resolveUserReport', 'report_user', formData);
+  if (!result.success) return result;
   revalidatePath('/reports');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function adminRemovePost(formData: FormData) {
-  await runAdminCommand('adminRemovePost', 'post_moderate', formData);
+  const result = await runAdminCommand('adminRemovePost', 'post_moderate', formData);
+  if (!result.success) return result;
   revalidatePath('/content');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function adminRemoveListing(formData: FormData) {
-  await runAdminCommand('adminRemoveListing', 'market_moderate', formData);
+  const result = await runAdminCommand('adminRemoveListing', 'market_moderate', formData);
+  if (!result.success) return result;
   revalidatePath('/market');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function resolveTicket(formData: FormData) {
-  await runAdminCommand('resolveTicket', 'support', formData);
+  const result = await runAdminCommand('resolveTicket', 'support', formData);
+  if (!result.success) return result;
   revalidatePath('/support');
   revalidatePath('/dashboard');
   const tid = String(formData.get('tid') || formData.get('rid') || '');
   if (tid) revalidatePath('/support/' + tid);
+  return result;
 }
 
 export async function approveCampaign(formData: FormData) {
-  await runAdminCommand('approveCampaign', 'ads', formData);
+  const result = await runAdminCommand('approveCampaign', 'ads', formData);
+  if (!result.success) return result;
   revalidatePath('/ads');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function rejectCampaign(formData: FormData) {
-  await runAdminCommand('rejectCampaign', 'ads', formData);
+  const result = await runAdminCommand('rejectCampaign', 'ads', formData);
+  if (!result.success) return result;
   revalidatePath('/ads');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function adminEndCampaign(formData: FormData) {
-  await runAdminCommand('adminEndCampaign', 'ads', formData);
+  const result = await runAdminCommand('adminEndCampaign', 'ads', formData);
+  if (!result.success) return result;
   revalidatePath('/ads');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function inviteStaff(formData: FormData) {
-  await provisionAccount('staff', formData);
+  const result = await provisionAccount('staff', formData);
+  if (!result.success) return result;
   revalidatePath('/staff');
+  return result;
 }
 
 export async function setStaffRole(formData: FormData) {
-  await runAdminCommand('setStaffRole', 'staff_manage', formData);
+  const result = await runAdminCommand('setStaffRole', 'staff_manage', formData);
+  if (!result.success) return result;
   revalidatePath('/staff');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function deactivateStaff(formData: FormData) {
-  await runAdminCommand('deactivateStaff', 'staff_manage', formData);
+  const result = await runAdminCommand('deactivateStaff', 'staff_manage', formData);
+  if (!result.success) return result;
   revalidatePath('/staff');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function issueStrike(formData: FormData) {
-  await runAdminCommand('issueStrike', 'user_moderate', formData);
+  const result = await runAdminCommand('issueStrike', 'user_moderate', formData);
+  if (!result.success) return result;
   revalidatePath('/users');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function liftRestriction(formData: FormData) {
-  await runAdminCommand('liftRestriction', 'user_moderate', formData);
+  const result = await runAdminCommand('liftRestriction', 'user_moderate', formData);
+  if (!result.success) return result;
   revalidatePath('/users');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function adminRemoveStory(formData: FormData) {
-  await runAdminCommand('adminRemoveStory', 'post_moderate', formData);
+  const result = await runAdminCommand('adminRemoveStory', 'post_moderate', formData);
+  if (!result.success) return result;
   revalidatePath('/stories');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function toggleFlag(formData: FormData) {
-  await runAdminCommand('toggleFlag', 'system', formData);
+  const result = await runAdminCommand('toggleFlag', 'system', formData);
+  if (!result.success) return result;
   revalidatePath('/system');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function publishAnnouncement(formData: FormData) {
-  await runAdminCommand('publishAnnouncement', 'system', formData);
+  const result = await runAdminCommand('publishAnnouncement', 'system', formData);
+  if (!result.success) return result;
   revalidatePath('/system');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function retireAnnouncement(formData: FormData) {
-  await runAdminCommand('retireAnnouncement', 'system', formData);
+  const result = await runAdminCommand('retireAnnouncement', 'system', formData);
+  if (!result.success) return result;
   revalidatePath('/system');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function addBlockedWord(formData: FormData) {
-  await runAdminCommand('addBlockedWord', 'system', formData);
+  const result = await runAdminCommand('addBlockedWord', 'system', formData);
+  if (!result.success) return result;
   revalidatePath('/system');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function removeBlockedWord(formData: FormData) {
-  await runAdminCommand('removeBlockedWord', 'system', formData);
+  const result = await runAdminCommand('removeBlockedWord', 'system', formData);
+  if (!result.success) return result;
   revalidatePath('/system');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function approveBusinessApplication(formData: FormData) {
-  await provisionAccount('business', formData);
+  const result = await provisionAccount('business', formData);
+  if (!result.success) return result;
   revalidatePath('/businesses');
+  return result;
 }
 
 export async function rejectBusinessApplication(formData: FormData) {
-  await runAdminCommand('rejectBusinessApplication', 'business_manage', formData);
+  const result = await runAdminCommand('rejectBusinessApplication', 'business_manage', formData);
+  if (!result.success) return result;
   revalidatePath('/businesses');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function sendTicketReply(formData: FormData) {
-  await runAdminCommand('sendTicketReply', 'support', formData);
+  const result = await runAdminCommand('sendTicketReply', 'support', formData);
+  if (!result.success) return result;
   revalidatePath('/support');
   revalidatePath('/dashboard');
   const tid = String(formData.get('tid') || formData.get('rid') || '');
   if (tid) revalidatePath('/support/' + tid);
+  return result;
 }
 
 export async function setTicketStatus(formData: FormData) {
-  await runAdminCommand('setTicketStatus', 'support', formData);
+  const result = await runAdminCommand('setTicketStatus', 'support', formData);
+  if (!result.success) return result;
   revalidatePath('/support');
   revalidatePath('/dashboard');
   const tid = String(formData.get('tid') || formData.get('rid') || '');
   if (tid) revalidatePath('/support/' + tid);
+  return result;
 }
 
 export async function archiveOrganization(formData: FormData) {
-  await runAdminCommand('archiveOrganization', 'organization_manage', formData);
+  const result = await runAdminCommand('archiveOrganization', 'organization_manage', formData);
+  if (!result.success) return result;
   revalidatePath('/organizations');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function restoreOrganization(formData: FormData) {
-  await runAdminCommand('restoreOrganization', 'organization_manage', formData);
+  const result = await runAdminCommand('restoreOrganization', 'organization_manage', formData);
+  if (!result.success) return result;
   revalidatePath('/organizations');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function adminTransferOwnership(formData: FormData) {
-  await runAdminCommand('adminTransferOwnership', 'organization_manage', formData);
+  const result = await runAdminCommand('adminTransferOwnership', 'organization_manage', formData);
+  if (!result.success) return result;
   revalidatePath('/organizations');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function adminDeleteAccount(formData: FormData) {
-  await runAdminCommand('adminDeleteAccount', 'account_delete', formData);
+  const result = await runAdminCommand('adminDeleteAccount', 'account_delete', formData);
+  if (!result.success) return result;
   revalidatePath('/users');
   revalidatePath('/dashboard');
+  return result;
 }
 
 export async function adminRemoveComment(formData: FormData) {
-  await runAdminCommand('adminRemoveComment', 'comment_delete', formData);
+  const result = await runAdminCommand('adminRemoveComment', 'comment_delete', formData);
+  if (!result.success) return result;
   revalidatePath('/content');
   revalidatePath('/dashboard');
+  return result;
 }
 

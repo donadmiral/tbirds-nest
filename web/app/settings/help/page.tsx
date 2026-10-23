@@ -21,7 +21,7 @@ export default function HelpPage() {
     <div className="mx-auto max-w-[600px] px-1">
       <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <h1 className="pb-1 font-display text-xl text-porcelain">Help &amp; Support</h1>
-      <p className="pb-5 text-[13px] text-ink/50">Short answers to how Platinum Circles works. Tap a topic.</p>
+      <p className="pb-5 text-[13px] text-muted">Short answers to how Platinum Circles works. Tap a topic.</p>
 
       {TOPICS.map((t, i) => {
         const Icon = t.icon;
@@ -31,7 +31,7 @@ export default function HelpPage() {
             <span className="flex items-center gap-2.5">
               <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-ink/[0.07] text-ink"><Icon size={15} /></span>
               <span className="flex-1 text-[14px] font-bold text-ink">{t.q}</span>
-              {isOpen ? <ChevronUp size={16} className="text-ink/40" /> : <ChevronDown size={16} className="text-ink/40" />}
+              {isOpen ? <ChevronUp size={16} className="text-muted" /> : <ChevronDown size={16} className="text-muted" />}
             </span>
             {isOpen ? <span className="mt-2.5 block pl-[40px] text-[13px] leading-relaxed text-ink/75">{t.a}</span> : null}
           </button>

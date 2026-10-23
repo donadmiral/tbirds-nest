@@ -76,26 +76,29 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   // Your own stories live under Your story, not as a second person in the row.
   const mineIdx = myId ? users.findIndex((u) => u.user_id === myId) : -1;
   const mine = mineIdx >= 0 ? users[mineIdx] : null;
-  const others = users.map((u, i) => ({ u, i })).filter((x) => x.u.user_id !== myId);
+  const ownAvatar = (
+    <span className="relative block h-[62px] w-[62px]">
+      {mine && myId ? <PlatinumRingWeb userId={myId} size={62} active={false} /> : null}
+      {myAvatar ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={myAvatar} alt="" className="h-full w-full rounded-full border border-ink/10 object-cover" />
+      ) : <span className="flex h-full w-full items-center justify-center rounded-full bg-surface text-muted">+</span>}
+    </span>
+  );
 
   return (
     <>
       <div className="mb-4 flex gap-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-4 py-4">
-        <a href={mine ? undefined : "/story/new"} onClick={mine ? (e) => { e.preventDefault(); setOpenAt(mineIdx); } : undefined} className="flex w-16 shrink-0 flex-col items-center gap-1.5 cursor-pointer">
-          {/* Your own face with a plus on it, rather than an empty dashed
-              circle: it reads as "add to your story" instead of as a gap. */}
-          <span className="relative block h-[62px] w-[62px]">
-            {mine && myId ? <PlatinumRingWeb userId={myId} size={62} active={false} /> : null}
-            {myAvatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={myAvatar} alt="" className="h-full w-full rounded-full border border-ink/10 object-cover" />
-            ) : (
-              <span className="flex h-full w-full items-center justify-center rounded-full bg-surface text-ink/40">+</span>
-            )}
-            <a href="/story/new" onClick={(e) => e.stopPropagation()} className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-ink">+</a>
-          </span>
-          <span className="w-full truncate text-center text-[11px] text-ink/60">Your story</span>
-        </a>
+        <div className="relative w-16 shrink-0">
+          {mine ? <button type="button" onClick={() => setOpenAt(mineIdx)} aria-label="View your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+            {ownAvatar}
+            <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
+          </button> : <a href="/story/new" aria-label="Add to your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+            {ownAvatar}
+            <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
+          </a>}
+          <a href="/story/new" aria-label="Create a story" className="absolute -right-3 top-[31px] flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"><span className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl" aria-hidden="true">+</span></a>
+        </div>
         {[...users, ...spot].map((u, i) => (u.user_id === myId ? null : (
           <Fragment key={u.user_id}>
           {i === users.length && spot.length > 0 ? <span className="my-2 w-px shrink-0 self-stretch bg-ink/10" title="Spotlight: public stories from people you don't follow" aria-hidden /> : null}
@@ -114,7 +117,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
               </span>
               {i >= users.length ? <span className="absolute -bottom-0.5 -right-0.5 flex h-[20px] w-[20px] items-center justify-center rounded-full border-2 border-white bg-white text-[11px] leading-none" aria-label="Spotlight">{"\uD83D\uDD25"}</span> : null}
             </span>
-            <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-ink/50")}>
+            <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-muted")}>
               {u.full_name?.split(" ")[0] ?? u.username}
             </span>
           </button>

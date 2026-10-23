@@ -63,7 +63,7 @@ export default function AccountTypePage() {
           );
         })}
       </div>
-      {err ? <p className="mt-3 text-[13px] text-red-700">{err}</p> : null}
+      {err ? <p className="mt-3 text-[13px] text-danger">{err}</p> : null}
     </div>
   );
 }

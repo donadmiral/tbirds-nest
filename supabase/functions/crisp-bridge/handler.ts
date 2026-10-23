@@ -10,7 +10,7 @@ const keyValid = (value: unknown) => typeof value === "string" && /^[a-zA-Z0-9:_
 function sameIntent(prior: Payment, body: any) {
   return prior.recipient_id === body.recipient_id && prior.conversation_id === body.conversation_id &&
     Number(prior.amount) === Number(body.amount) && prior.currency === (body.currency ?? "USD") &&
-    (prior.note ?? null) === (body.note ?? null) && (prior.listing_id ?? null) === (body.listing_id ?? null);
+    (prior.note ?? null) === (body.note ?? null) && (prior.listing_id ?? null) === (body.listing_id ?? null) && (prior.order_id ?? null) === (body.order_id ?? null);
 }
 export function createBridgeHandler(deps: Dependencies) {
   return async (req: Request): Promise<Response> => {
@@ -56,7 +56,13 @@ export function createBridgeHandler(deps: Dependencies) {
           if (!["USD", "ZWG"].includes(params.currency)) return json({ success: false, error: "Unsupported currency" }, 400);
         }
         const { data, response } = await requestCrisp(deps, params);
-        if (action === "peer-status") return json({ linked: response.ok && data?.linked === true }, response.status);
+        if (action === "peer-status") {
+          if (!response.ok) return json({ success: false, error: "Recipient connection status unavailable" }, response.status);
+          if (data?.success !== true || typeof data.linked !== "boolean") {
+            return json({ success: false, code: "CRISP_BAD_RESPONSE", error: "Recipient connection status was not confirmed" }, 502);
+          }
+          return json({ linked: data.linked });
+        }
         return json(data, response.status);
       }
       if (req.method === "POST" && ["link", "unlink"].includes(action)) {
@@ -77,7 +83,7 @@ export function createBridgeHandler(deps: Dependencies) {
       if (!/^[0-9]+(?:\.[0-9]{1,2})?$/.test(String(body.amount)) || !(amount > 0 && amount <= 100000)) return json({ success: false, error: "Amount must be between 0.01 and 100,000 with at most two decimal places" }, 400);
       const currency = body.currency ?? "USD";
       if (!["USD", "ZWG"].includes(currency)) return json({ success: false, error: "Unsupported currency" }, 400);
-      if ((body.note != null && (typeof body.note !== "string" || body.note.length > 500)) || (body.listing_id != null && !uuid(body.listing_id))) return json({ success: false, error: "Invalid payment details" }, 400);
+      if ((body.note != null && (typeof body.note !== "string" || body.note.length > 500)) || (body.listing_id != null && !uuid(body.listing_id)) || (body.order_id != null && !uuid(body.order_id))) return json({ success: false, error: "Invalid payment details" }, 400);
       const conversation = await deps.db.from("conversations").select("id,user_1,user_2").eq("id", body.conversation_id).maybeSingle();
       if (conversation.error) return json({ success: false, error: "Conversation lookup unavailable" }, 503);
       if (!conversation.data) return json({ success: false, error: "Conversation not found" }, 404);
@@ -91,13 +97,14 @@ export function createBridgeHandler(deps: Dependencies) {
         return json({ ...outcome(recovered.payment, recovered.persistenceError ? "RECEIPT_UPDATE_PENDING" : undefined), idempotent: true });
       };
       if (prior.data) return await returnPrior(prior.data);
+      if (body.listing_id && !body.order_id) return json({ success: false, submitted: false, code: "MARKET_ORDER_REQUIRED", error: "Open an accepted marketplace order before paying for this listing" }, 409);
       // Current Crisp P2P supports USD only. Existing records remain readable and
       // recoverable in their original denomination, without creating new ZWG work.
       if (currency !== "USD") return json({ success: false, submitted: false, code: "UNSUPPORTED_CHAT_CURRENCY", error: "Chat transfers currently support USD only" }, 400);
       if (!deps.crispKey || !deps.crispUrl) return json({ success: false, code: "CRISP_UNAVAILABLE", error: "Payment service unavailable" }, 503);
       const inserted = await deps.db.from("chat_payments").insert({
         conversation_id: body.conversation_id, sender_id: user.id, recipient_id: body.recipient_id,
-        idempotency_key: body.idempotency_key, amount, currency, listing_id: body.listing_id ?? null,
+        idempotency_key: body.idempotency_key, amount, currency, listing_id: body.listing_id ?? null, order_id: body.order_id ?? null,
         note: body.note ?? null, status: "pending",
       }).select(PAYMENT_FIELDS).single();
       if (inserted.error?.code === "23505") {
@@ -105,7 +112,12 @@ export function createBridgeHandler(deps: Dependencies) {
         if (!raced.error && raced.data) return await returnPrior(raced.data);
         return json({ success: true, status: "pending", pending: true, code: "PAYMENT_LOOKUP_PENDING" }, 202);
       }
-      if (inserted.error || !inserted.data) return json({ success: false, error: "Could not record payment request" }, 503);
+      if (inserted.error || !inserted.data) {
+        const reason = String(inserted.error?.message || "");
+        const code = ["MARKET_ORDER_REQUIRED", "ORDER_PAYMENT_MISMATCH", "ORDER_NOT_PAYABLE"].find(value => reason.includes(value));
+        if (code) return json({ success: false, submitted: false, code, error: "The order cannot be paid with these details. Refresh the order before trying again." }, 409);
+        return json({ success: false, error: "Could not record payment request" }, 503);
+      }
       inFlight = inserted.data;
       const { data, response } = await requestCrisp(deps, { endpoint: "p2p" }, {
         sender_external_id: user.id, recipient_external_id: body.recipient_id, amount, currency,

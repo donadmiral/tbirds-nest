@@ -60,13 +60,39 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   const [adding, setAdding] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
 
-  const load = useCallback(() => {
-    getMemoryBook(ownerId).then(setAlbum);
-  }, [ownerId]);
+  const loadGeneration = useRef(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    const generation = ++loadGeneration.current;
+    if (!uid) { setAlbum(null); return; }
+    try {
+      const next = await getMemoryBook(ownerId);
+      if (generation !== loadGeneration.current) return;
+      setAlbum(next); setLoadError(next ? null : "This album is unavailable.");
+    } catch {
+      if (generation !== loadGeneration.current) return;
+      setAlbum(null); setLoadError("The album could not load. Please retry.");
+    }
+  }, [ownerId, uid]);
 
-  useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
+    void load();
+    const refresh = () => { if (document.visibilityState === "visible") void load(); };
+    const timer = setInterval(refresh, 240000);
+    window.addEventListener("focus", refresh); document.addEventListener("visibilitychange", refresh);
+    return () => { loadGeneration.current++; clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [load]);
+  useEffect(() => {
+    let alive = true, authVersion = 0, viewer: string | null = null;
+    const apply = (next: string | null) => {
+      if (!alive) return;
+      if (viewer !== next) { loadGeneration.current++; setAlbum(null); setLikedPages(new Set()); setManage(false); setAdding(false); setIdx(0); }
+      viewer = next; setUid(next); setLoadError(next ? null : "Sign in to view this album.");
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; apply(session?.user.id ?? null); });
+    const initial = authVersion;
+    void supabase.auth.getSession().then(({ data }) => { if (initial === authVersion) apply(data.session?.user.id ?? null); }).catch(() => { if (alive && initial === authVersion) setLoadError("Your account could not load. Please retry."); });
+    return () => { alive = false; loadGeneration.current++; subscription.unsubscribe(); };
   }, [supabase]);
   // Seed the hearts with what this person already liked.
   useEffect(() => {
@@ -98,12 +124,12 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
 
-  if (!album) return <p className="py-24 text-center text-sm text-ink/40">Opening the album</p>;
+  if (!album) return <div className="py-24 text-center text-sm text-muted"><p>{loadError ?? "Opening the album"}</p>{loadError && <button className="mt-3 underline" onClick={() => void load()}>Retry</button>}</div>;
   if (!album.is_owner && !album.can_view) {
     return (
       <div className="flex flex-col items-center gap-3 py-24">
-        <p className="text-sm text-ink/50">This album is private.</p>
-        <Link href="/home" className="rounded-md bg-pearl px-5 py-2 text-sm font-semibold text-ink">Back home</Link>
+        <p className="text-sm text-muted">This album is private.</p>
+        <Link href="/home" className="rounded-md bg-pearl px-5 py-2 text-sm font-semibold text-on-pearl">Back home</Link>
       </div>
     );
   }
@@ -126,9 +152,9 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
 
       {pages.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-20">
-          <p className="text-sm text-ink/50">{album.is_owner ? "Your album is waiting for its first memory." : "No memories here yet."}</p>
+          <p className="text-sm text-muted">{album.is_owner ? "Your album is waiting for its first memory." : "No memories here yet."}</p>
           {album.is_owner ? (
-            <button onClick={() => setAdding(true)} className="rounded-md bg-pearl px-5 py-2 text-sm font-semibold text-ink">Add memories</button>
+            <button onClick={() => setAdding(true)} className="rounded-md bg-pearl px-5 py-2 text-sm font-semibold text-on-pearl">Add memories</button>
           ) : null}
         </div>
       ) : view === "grid" ? (
@@ -201,7 +227,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
           <div className="mt-4 flex items-center justify-center gap-3">
             <button onClick={() => go(-1)} disabled={idx === 0} className="rounded-full border border-ink/10 bg-white/80 p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
             <span className="rounded-full border border-ink/10 bg-white/80 px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {pages.length}</span>
-            <button onClick={() => { const sid = page && (page as any).story_id ? String((page as any).story_id) : null; if (!sid) return; setLikedPages(prev => { const n = new Set(prev); if (n.has(sid)) n.delete(sid); else n.add(sid); return n; }); void supabase.rpc("toggle_story_reaction", { p_story_id: sid, p_emoji: "\u2764\uFE0F" }); }} className={"rounded-full border border-ink/10 bg-white/80 p-2.5 backdrop-blur " + (page && likedPages.has(String((page as any).story_id)) ? "text-red-500" : "text-ink/40")} aria-label="Love this memory">{"\u2764"}</button>
+            <button onClick={() => { const sid = page && (page as any).story_id ? String((page as any).story_id) : null; if (!sid) return; setLikedPages(prev => { const n = new Set(prev); if (n.has(sid)) n.delete(sid); else n.add(sid); return n; }); void supabase.rpc("toggle_story_reaction", { p_story_id: sid, p_emoji: "\u2764\uFE0F" }); }} className={"rounded-full border border-ink/10 bg-white/80 p-2.5 backdrop-blur " + (page && likedPages.has(String((page as any).story_id)) ? "text-danger" : "text-muted")} aria-label="Love this memory">{"\u2764"}</button>
             <button onClick={() => go(1)} disabled={idx >= pages.length - 1} className="rounded-full border border-ink/10 bg-white/80 p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
           </div>
           {album.is_owner && page ? (
@@ -209,7 +235,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
               <button onClick={async () => { const other = pages[idx - 1]; if (other) { await swapMemoryPages(page, other); setIdx(idx - 1); load(); } }} disabled={idx === 0} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move earlier"><ArrowUp size={15} /></button>
               <button onClick={async () => { const other = pages[idx + 1]; if (other) { await swapMemoryPages(page, other); setIdx(idx + 1); load(); } }} disabled={idx >= pages.length - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
               <button onClick={async () => { await updateMemoryPage(page.id, { style: page.style === "polaroid" ? "full" : "polaroid" }); load(); }} className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-ink/60" title="Switch page style">{page.style === "polaroid" ? "Full page" : "Polaroid"}</button>
-              <button onClick={async () => { if (confirm("Remove this memory from the album?")) { await deleteMemoryPage(page.id); setIdx(Math.max(0, idx - 1)); load(); } }} className="rounded-full bg-black/5 p-2 text-ink/60 hover:text-red-600" title="Remove page"><Trash2 size={15} /></button>
+              <button onClick={async () => { if (confirm("Remove this memory from the album?")) { await deleteMemoryPage(page.id); setIdx(Math.max(0, idx - 1)); load(); } }} className="rounded-full bg-black/5 p-2 text-ink/60 hover:text-danger" title="Remove page"><Trash2 size={15} /></button>
             </div>
           ) : null}
         </div>
@@ -230,7 +256,7 @@ function PageCaption({ page, isOwner, onSaved }: { page: MemoryPage; isOwner: bo
       <span className="mt-2 flex items-center gap-2">
         <input value={text} onChange={(e) => setText(e.target.value)} maxLength={60} placeholder="Write a caption"
           className="min-w-0 flex-1 border-b border-ink/20 bg-transparent px-1 py-1 text-center font-display text-[13px] text-ink outline-none" />
-        <button onClick={async () => { await updateMemoryPage(page.id, { caption: text.trim() || null }); setEditing(false); onSaved(); }} className="rounded-full bg-pearl p-1.5 text-ink" aria-label="Save caption"><Check size={13} /></button>
+        <button onClick={async () => { await updateMemoryPage(page.id, { caption: text.trim() || null }); setEditing(false); onSaved(); }} className="rounded-full bg-pearl p-1.5 text-on-pearl" aria-label="Save caption"><Check size={13} /></button>
       </span>
     );
   }
@@ -239,7 +265,7 @@ function PageCaption({ page, isOwner, onSaved }: { page: MemoryPage; isOwner: bo
       <span className="truncate text-center font-display text-[13px] text-ink/75">
         {page.caption || fmtDate(page.taken_at)}
       </span>
-      {isOwner ? <button onClick={() => setEditing(true)} className="text-ink/35 hover:text-ink/70" aria-label="Edit caption"><Pencil size={12} /></button> : null}
+      {isOwner ? <button onClick={() => setEditing(true)} className="text-muted hover:text-ink/70" aria-label="Edit caption"><Pencil size={12} /></button> : null}
     </span>
   );
 }
@@ -248,19 +274,26 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
   const [rows, setRows] = useState<Awaited<ReturnType<typeof getMyStories>>>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
-  useEffect(() => { getMyStories().then(setRows); }, []);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    void getMyStories().then(value => { if (alive) { setRows(value); setError(null); } }).catch(() => { if (alive) setError("Stories could not load. Please retry."); });
+    return () => { alive = false; };
+  }, [attempt]);
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose}>
       <div className="max-h-[86vh] w-full max-w-[560px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <p className="font-display text-[16px] text-ink">Add memories</p>
-          <button onClick={onClose} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={17} /></button>
+          <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
         </div>
-        <p className="mb-3 text-[12px] text-ink/50">Every story you have ever posted. Pick the ones worth keeping.</p>
-        {rows.length === 0 ? <p className="py-10 text-center text-sm text-ink/40">No stories yet.</p> : (
+        <p className="mb-3 text-[12px] text-muted">Every story you have ever posted. Pick the ones worth keeping.</p>
+        {error && <button className="mb-3 text-sm underline" onClick={() => setAttempt(n => n + 1)}>{error}</button>}
+        {rows.length === 0 ? <p className="py-10 text-center text-sm text-muted">{error ? "" : "No stories yet."}</p> : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {rows.map((s) => {
-              const taken = existing.some((p) => (p as MemoryPage & { story_id?: string }).id && p.media_url === s.media_url);
+              const taken = existing.some((p) => p.story_id === s.id);
               const on = picked.has(s.id);
               return (
                 <button key={s.id} disabled={taken} onClick={() => setPicked((prev) => { const n = new Set(prev); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); return n; })}
@@ -281,7 +314,7 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
         )}
         <button disabled={picked.size === 0 || busy}
           onClick={async () => { setBusy(true); for (const id of picked) { await addMemoryPage(id, albumId); } setBusy(false); onClose(); }}
-          className="mt-4 w-full rounded-md bg-pearl py-2.5 text-sm font-semibold text-ink disabled:opacity-40">
+          className="mt-4 w-full rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl disabled:opacity-40">
           {busy ? "Adding" : picked.size === 0 ? "Pick stories to add" : "Add " + picked.size + (picked.size === 1 ? " memory" : " memories")}
         </button>
       </div>
@@ -313,14 +346,14 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
       <div className="max-h-[88vh] w-full max-w-[520px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <p className="font-display text-[16px] text-ink">Album settings</p>
-          <button onClick={onClose} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={17} /></button>
+          <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
         </div>
 
-        <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Title</p>
+        <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Title</p>
         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30}
           className="mb-4 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
 
-        <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Cover color</p>
+        <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Cover color</p>
         <div className="mb-4 flex flex-wrap gap-2">
           {Object.entries(COVER_COLORS).map(([key, c]) => (
             <button key={key} onClick={() => setColor(key)}
@@ -331,7 +364,7 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
           ))}
         </div>
 
-        <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-ink/40">Who can open it</p>
+        <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Who can open it</p>
         <div className="mb-4 flex flex-col gap-1.5">
           {AUDIENCES.map((a) => (
             <button key={a.key} onClick={() => setAudience(a.key)}
@@ -343,11 +376,11 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
         </div>
 
         <div className="mb-1.5 flex items-center gap-2">
-          <p className="text-[12px] font-semibold uppercase tracking-wide text-ink/40">People</p>
+          <p className="text-[12px] font-semibold uppercase tracking-wide text-muted">People</p>
           <button onClick={() => setMode("block")} className={"rounded-full px-2.5 py-1 text-[11px] font-semibold " + (mode === "block" ? "bg-ink text-white" : "bg-black/5 text-ink/60")}>Hidden from</button>
           <button onClick={() => setMode("allow")} className={"rounded-full px-2.5 py-1 text-[11px] font-semibold " + (mode === "allow" ? "bg-ink text-white" : "bg-black/5 text-ink/60")}>Chosen people</button>
         </div>
-        <p className="mb-2 text-[11px] text-ink/45">{mode === "block" ? "These people never see the album, whatever the audience." : "Used when the audience is set to only people I choose."}</p>
+        <p className="mb-2 text-[11px] text-muted">{mode === "block" ? "These people never see the album, whatever the audience." : "Used when the audience is set to only people I choose."}</p>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people"
           className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none focus:border-ink/40" />
         {results.length > 0 ? (
@@ -358,9 +391,9 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(r.avatar_url, 100) ?? r.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
-                ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pearl text-[11px] font-semibold text-ink">{(r.full_name ?? "?").charAt(0)}</span>}
-                <span className="text-[13px] text-ink">{r.full_name} <span className="text-ink/40">@{r.username}</span></span>
-                <Plus size={14} className="ml-auto text-ink/40" />
+                ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pearl text-[11px] font-semibold text-on-pearl">{(r.full_name ?? "?").charAt(0)}</span>}
+                <span className="text-[13px] text-ink">{r.full_name} <span className="text-muted">@{r.username}</span></span>
+                <Plus size={14} className="ml-auto text-muted" />
               </button>
             ))}
           </div>
@@ -370,14 +403,14 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
             {r.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={displayImageUrl(r.avatar_url, 100) ?? r.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
-            ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pearl text-[11px] font-semibold text-ink">{(r.full_name ?? "?").charAt(0)}</span>}
+            ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pearl text-[11px] font-semibold text-on-pearl">{(r.full_name ?? "?").charAt(0)}</span>}
             <span className="text-[13px] text-ink">{r.full_name}</span>
-            <button onClick={async () => { if (await setAccess(r.id, mode, false)) setList(list.filter((x) => x.id !== r.id)); }} className="ml-auto rounded-full p-1 text-ink/40 hover:text-red-600" aria-label="Remove"><X size={14} /></button>
+            <button onClick={async () => { if (await setAccess(r.id, mode, false)) setList(list.filter((x) => x.id !== r.id)); }} className="ml-auto rounded-full p-1 text-muted hover:text-danger" aria-label="Remove"><X size={14} /></button>
           </div>
         ))}
 
         <button onClick={async () => { await saveAlbumSettings(title.trim() || "Memories", color, audience); onClose(); }}
-          className="mt-4 w-full rounded-md bg-pearl py-2.5 text-sm font-semibold text-ink">Save album</button>
+          className="mt-4 w-full rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl">Save album</button>
       </div>
     </div>
   );

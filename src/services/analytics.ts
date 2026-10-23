@@ -1,5 +1,5 @@
 /**
- * Analytics scaffold. No-op by default.
+ * Activity events are development-only; redacted error reports use our own backend.
  *
  * Every screen and action in the app calls into this module. The day you
  * pick a provider (PostHog, Amplitude, Segment, Mixpanel, Supabase events,
@@ -12,6 +12,8 @@
  * - Typed event names would be ideal but would also slow you down right
  *   now. Keep it string-based until you have 50+ events and want discipline.
  */
+
+import { createDiagnosticReporter, sanitizeDiagnostic } from '../../shared/clientDiagnostics';
 
 type Props = Record<string, string | number | boolean | null | undefined>;
 
@@ -61,10 +63,7 @@ export function trackScreen(name: string, props: Props = {}) {
  */
 export function trackError(err: unknown, context: Props = {}) {
   __shipError(err, context, false);
-  const message = err instanceof Error ? err.message : String(err);
-  const stack = err instanceof Error ? err.stack : undefined;
-  safeLog('error', message, context, stack);
-  // Wire provider here later: Sentry.captureException(err, { extra: context })
+  safeLog('error', sanitizeDiagnostic(err, { source: context.source }));
 }
 
 /**
@@ -79,26 +78,20 @@ export function currentUser() {
 const analytics = { identify, track, trackScreen, trackError, currentUser };
 export default analytics;
 /**
- * Durable crash shipping: every tracked or uncaught error writes itself
- * to client_errors. Fire and forget, never throws, lazy-requires the
- * client to avoid import cycles. The global handler nets crashes that
- * never reach a boundary.
+ * Best-effort redacted diagnostics. The database binds the signed-in identity
+ * and applies its own deduplication and rate limit. Unauthenticated reports are denied.
+ * No error message, stack, arbitrary context or private content leaves the client.
  */
+const sendDiagnostic = createDiagnosticReporter(payload => {
+  const { supabase } = require('./supabase');
+  return supabase.rpc('report_client_error', { p_report: payload });
+});
 function __shipError(err: unknown, context: Props, fatal: boolean) {
   try {
-    const e = err instanceof Error ? err : new Error(String(err));
-    const { supabase } = require('./supabase');
-    const Platform = require('react-native').Platform;
-    let ver: string | null = null;
-    try { ver = require('expo-constants').default?.expoConfig?.version ?? null; } catch {}
-    supabase.from('client_errors').insert({
-      user_id: currentUser().id ?? null,
-      message: String(e.message || 'unknown').slice(0, 500),
-      stack: String(e.stack || '').slice(0, 4000),
-      context: { ...context, fatal },
-      platform: Platform.OS,
-      app_version: ver,
-    }).then(() => {}, () => {});
+    const platform = require('react-native').Platform.OS;
+    let appVersion: string | null = null;
+    try { appVersion = require('expo-constants').default?.expoConfig?.version ?? null; } catch {}
+    sendDiagnostic(err, { source: context.source ?? (context.boundary === 'root' ? 'render' : 'unknown'), platform, appVersion, fatal });
   } catch {}
 }
 

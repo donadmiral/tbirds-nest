@@ -53,7 +53,7 @@ export default function NewBusinessPage() {
     router.push(biz?.username ? "/" + biz.username : "/businesses");
   };
 
-  const hint = avail === "checking" ? ["Checking...", "text-ink/45"] : avail === "free" ? ["Available", "text-success"] : avail === "taken" ? ["Already taken", "text-red-500"] : avail === "invalid" ? ["3 to 30 characters. Lowercase letters, numbers, underscores.", "text-ink/45"] : ["This becomes the business @handle.", "text-ink/35"];
+  const hint = avail === "checking" ? ["Checking...", "text-muted"] : avail === "free" ? ["Available", "text-success"] : avail === "taken" ? ["Already taken", "text-danger"] : avail === "invalid" ? ["3 to 30 characters. Lowercase letters, numbers, underscores.", "text-muted"] : ["This becomes the business @handle.", "text-muted"];
 
   return (
     <div className="mx-auto max-w-[520px] px-1">
@@ -61,21 +61,21 @@ export default function NewBusinessPage() {
         <Link href="/businesses" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Businesses</Link>
         <button onClick={create} disabled={!canCreate} className="rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-bold text-white disabled:opacity-40">{creating ? "Creating" : "Create"}</button>
       </div>
-      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Briefcase size={19} className="text-pearl" /> New business</h1>
-      <p className="pb-6 text-[13px] leading-relaxed text-ink/50">A business gets its own profile, followers, posts and chats. You stay signed in as yourself and choose who to post as.</p>
+      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Briefcase size={19} className="text-accent" /> New business</h1>
+      <p className="pb-6 text-[13px] leading-relaxed text-muted">A business gets its own profile, followers, posts and chats. You stay signed in as yourself and choose who to post as.</p>
 
-      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Business name</p>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">Business name</p>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="Pearl Group" className="mb-5 w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-ink/40" />
 
-      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Username</p>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">Username</p>
       <div className="mb-1.5 flex items-center gap-1.5 rounded-lg border border-ink/15 px-3.5 py-2.5">
-        <span className="text-[14px] font-semibold text-ink/40">@</span>
+        <span className="text-[14px] font-semibold text-muted">@</span>
         <input value={username} onChange={e => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").toLowerCase())} placeholder="pearlgroup" className="w-full text-[14px] text-ink outline-none" />
-        {avail === "free" ? <Check size={15} className="shrink-0 text-success" /> : avail === "taken" ? <X size={15} className="shrink-0 text-red-500" /> : null}
+        {avail === "free" ? <Check size={15} className="shrink-0 text-success" /> : avail === "taken" ? <X size={15} className="shrink-0 text-danger" /> : null}
       </div>
       <p className={"mb-5 text-[12px] " + hint[1]}>{hint[0]}</p>
 
-      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Category</p>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">Category</p>
       <div className="mb-6 flex flex-wrap gap-1.5">
         {CATEGORIES.map(c => (
           <button key={c} onClick={() => setCategory(c)} className={"rounded-full border px-3 py-1.5 text-[12.5px] font-semibold " + (category === c ? "border-ink bg-ink text-white" : "border-ink/15 text-ink/60")}>{c}</button>
@@ -83,9 +83,9 @@ export default function NewBusinessPage() {
       </div>
 
       <div className="rounded-lg border border-ink/10 bg-ink/[0.02] p-3">
-        <p className="text-[12px] leading-relaxed text-ink/50">Nobody signs in as a business. Access is managed by adding people to its team from Studio Settings, so you never share a password.</p>
+        <p className="text-[12px] leading-relaxed text-muted">Nobody signs in as a business. Access is managed by adding people to its team from Studio Settings, so you never share a password.</p>
       </div>
-      {error ? <p className="mt-3 text-[13px] text-red-500">{error}</p> : null}
+      {error ? <p className="mt-3 text-[13px] text-danger">{error}</p> : null}
     </div>
   );
 }

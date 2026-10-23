@@ -6,6 +6,7 @@ import { serviceClient } from '@/lib/supabaseAdmin';
 import { approveCampaign, rejectCampaign, adminEndCampaign } from '@/lib/actions';
 import Seal from '@/components/Seal';
 import Shell from '@/components/Shell';
+import { completeRecordedPayments } from '@/lib/operationsReporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,45 +22,44 @@ function statusPill(s: string) {
   return <span className="rounded-full border border-[#E5E4E0] bg-[#F0EFEC] px-2 py-0.5 text-[10.5px] font-bold capitalize text-[#5A5D64]">{s}</span>;
 }
 
-function money(amounts: Record<string, number>) {
-  const parts = Object.entries(amounts).filter(([, v]) => v > 0).map(([cur, v]) => (cur === 'ZWG' ? 'Z$' : '$') + v.toLocaleString());
-  return parts.length ? parts.join(' \u00b7 ') : '\u2014';
-}
-
 export default async function AdsPage() {
   const admin = await requireDesk('/ads');
   const svc = serviceClient();
 
-  const [{ data: submittedRaw }, { data: liveRaw }, { data: historyRaw }] = await Promise.all([
-    svc.from('studio_campaigns').select('*').eq('status', 'submitted').order('created_at', { ascending: true }),
-    svc.from('studio_campaigns').select('*').in('status', ['live', 'paused', 'approved']).order('updated_at', { ascending: false }),
+  const [submittedResult, liveResult, historyResult] = await Promise.all([
+    svc.from('studio_campaigns').select('*', { count: 'exact' }).eq('status', 'submitted').order('created_at', { ascending: true }),
+    svc.from('studio_campaigns').select('*', { count: 'exact' }).in('status', ['live', 'paused', 'approved']).order('updated_at', { ascending: false }),
     svc.from('studio_campaigns').select('*').in('status', ['rejected', 'ended']).order('updated_at', { ascending: false }).limit(15),
   ]);
-  const submitted = submittedRaw ?? [];
-  const live = liveRaw ?? [];
-  const history = historyRaw ?? [];
+  if ([submittedResult, liveResult, historyResult].some(result => result.error)) throw new Error('Campaigns could not be loaded.');
+  const submitted = submittedResult.data ?? [];
+  const live = liveResult.data ?? [];
+  const history = historyResult.data ?? [];
   const allCampaigns = [...submitted, ...live, ...history];
 
   const ownerIds = Array.from(new Set(allCampaigns.map(c => c.owner_id)));
   const owners: Record<string, any> = {};
   if (ownerIds.length) {
-    const { data } = await svc.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').in('id', ownerIds);
+    const { data, error } = await svc.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').in('id', ownerIds);
+    if (error) throw new Error('Campaign owners could not be loaded.');
     (data ?? []).forEach(p => { owners[p.id] = p; });
   }
 
   const activeCampaignIds = [...submitted, ...live].map(c => c.id);
   const promoByCampaign: Record<string, any[]> = {};
   if (activeCampaignIds.length) {
-    const { data: promos } = await svc.from('promoted_posts')
+    const { data: promos, error: promosError } = await svc.from('promoted_posts')
       .select('id, campaign_id, post_id, label, status, total_cap, impressions_count, clicks_count')
       .in('campaign_id', activeCampaignIds);
+    if (promosError) throw new Error('Campaign ads could not be loaded.');
     (promos ?? []).forEach(p => { (promoByCampaign[p.campaign_id] = promoByCampaign[p.campaign_id] || []).push(p); });
     const postIds = Array.from(new Set((promos ?? []).map(p => p.post_id)));
     if (postIds.length) {
-      const [{ data: posts }, { data: media }] = await Promise.all([
+      const [{ data: posts, error: postsError }, { data: media, error: mediaError }] = await Promise.all([
         svc.from('posts').select('id, content, body').in('id', postIds),
         svc.from('post_media').select('post_id, url, sort_order').in('post_id', postIds).order('sort_order', { ascending: true }),
       ]);
+      if (postsError || mediaError) throw new Error('Campaign media could not be loaded.');
       const postById: Record<string, any> = {};
       (posts ?? []).forEach(p => { postById[p.id] = p; });
       const thumbByPost: Record<string, string> = {};
@@ -72,16 +72,17 @@ export default async function AdsPage() {
   }
 
   const week = Date.now() - 7 * 86400000;
-  const [{ count: impCount }, { count: clkCount }] = await Promise.all([
+  const [impressions, clicks, paidResult, liveCountResult] = await Promise.all([
     svc.from('ad_events').select('id', { count: 'exact', head: true }).eq('kind', 'impression').gte('created_at', new Date(week).toISOString()),
     svc.from('ad_events').select('id', { count: 'exact', head: true }).eq('kind', 'click').gte('created_at', new Date(week).toISOString()),
+    svc.from('studio_campaigns').select('paid_amount, currency', { count: 'exact' }).gt('paid_amount', 0).gte('reviewed_at', new Date(week).toISOString()).limit(1000),
+    svc.from('studio_campaigns').select('id', { count: 'exact', head: true }).eq('status', 'live'),
   ]);
-  const paidThisWeek: Record<string, number> = {};
-  history.concat(live).forEach(c => {
-    if (c.reviewed_at && new Date(c.reviewed_at).getTime() > week && Number(c.paid_amount) > 0) {
-      paidThisWeek[c.currency] = (paidThisWeek[c.currency] || 0) + Number(c.paid_amount);
-    }
-  });
+  if ([impressions, clicks, liveCountResult].some(result => result.error || result.count === null)) throw new Error('Campaign metrics could not be loaded.');
+  const impCount = impressions.count;
+  const clkCount = clicks.count;
+  const paidThisWeek = completeRecordedPayments(paidResult);
+  const paidLabel = paidThisWeek === null ? 'Unavailable' : paidThisWeek.length ? paidThisWeek.map(row => row.currency + ' ' + row.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })).join(' · ') : 'No payments recorded';
 
   const ownerRow = (ownerId: string) => {
     const p = owners[ownerId] || {};
@@ -126,11 +127,11 @@ export default async function AdsPage() {
     <Shell admin={admin} active="/ads" title="Ads" sub="Every campaign submitted for review, and what is live on the platform right now">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-4">
-          <p className="text-[24px] font-semibold tabular-nums tracking-tight">{submitted.length}</p>
+          <p className="text-[24px] font-semibold tabular-nums tracking-tight">{submittedResult.count ?? '—'}</p>
           <p className="mt-0.5 text-[12px] font-medium text-[#7A7D84]">Awaiting review</p>
         </div>
         <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-4">
-          <p className="text-[24px] font-semibold tabular-nums tracking-tight">{live.filter(c => c.status === 'live').length}</p>
+          <p className="text-[24px] font-semibold tabular-nums tracking-tight">{liveCountResult.count}</p>
           <p className="mt-0.5 text-[12px] font-medium text-[#7A7D84]">Live now</p>
         </div>
         <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-4">
@@ -138,10 +139,12 @@ export default async function AdsPage() {
           <p className="mt-0.5 text-[12px] font-medium text-[#7A7D84]">Impressions / clicks this week</p>
         </div>
         <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-4">
-          <p className="text-[24px] font-semibold tabular-nums tracking-tight">{money(paidThisWeek)}</p>
-          <p className="mt-0.5 text-[12px] font-medium text-[#7A7D84]">Recorded paid this week</p>
+          <p className="text-[24px] font-semibold tabular-nums tracking-tight">{paidLabel}</p>
+          <p className="mt-0.5 text-[12px] font-medium text-[#7A7D84]">Recorded payments on campaigns reviewed in 7 days (UTC)</p>
         </div>
       </div>
+      <p className="mt-3 text-xs text-[#5A5D64]">Showing {submitted.length} of {submittedResult.count ?? 'unknown'} awaiting review and {live.length} of {liveResult.count ?? 'unknown'} active campaigns. History shows the latest 15 decisions. Recorded payments are staff-entered records, not confirmation of bank settlement.</p>
+      {paidThisWeek === null ? <p role="status" className="mt-2 text-sm" style={{ color: 'var(--warn)' }}>The complete payment total could not be confirmed. No partial total is shown.</p> : null}
 
       <p className="mb-2 mt-8 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Awaiting review</p>
       {submitted.length === 0 ? (
@@ -169,13 +172,12 @@ export default async function AdsPage() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <PermissionGate role={admin.role} permission="ads"><CommandForm scope="approveCampaign" action={approveCampaign} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="id" value={c.id} />
-              <input name="paid_amount" placeholder={'Amount received (' + c.currency + ')'} className="w-48 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
-              <input name="payment_ref" placeholder="Payment reference" className="w-44 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+              <span className="text-xs text-[#17181C]/60">Content approval. Payment is verified separately through IntoBank.</span>
               <button className="rounded-[12px] bg-[#17181C] px-5 py-2 text-xs font-extrabold text-white transition-opacity duration-150 hover:opacity-90">Approve</button>
             </CommandForm></PermissionGate>
             <PermissionGate role={admin.role} permission="ads"><CommandForm scope="rejectCampaign" action={rejectCampaign} className="flex flex-1 min-w-[260px] items-center gap-2">
               <input type="hidden" name="id" value={c.id} />
-              <input name="reason" placeholder="Reason if rejecting" className="flex-1 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+              <input name="reason" aria-label="Reason for rejection" placeholder="Reason if rejecting" className="flex-1 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
               <button className="rounded-[12px] border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 transition-colors duration-150 hover:bg-red-100">Reject</button>
             </CommandForm></PermissionGate>
           </div>

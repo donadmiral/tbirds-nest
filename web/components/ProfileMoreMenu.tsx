@@ -57,7 +57,7 @@ export function ProfileMoreMenu({ profileId, name }: { profileId: string; name: 
             <button onClick={toggleRestrict} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-ink transition-colors duration-[140ms] hover:bg-surface">
               {restricted ? <UserCheck size={14} /> : <UserMinus size={14} />} {restricted ? "Unrestrict" : "Restrict"}
             </button>
-            <button onClick={block} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-red-600 transition-colors duration-[140ms] hover:bg-surface">
+            <button onClick={block} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-danger transition-colors duration-[140ms] hover:bg-surface">
               <ShieldOff size={14} /> Block
             </button>
           </span>

@@ -74,7 +74,7 @@ export function SeriesChart({ rows, series, height = 250 }: { rows: Row[]; serie
             const on = !off.includes(s.key);
             return (
               <button key={s.key} type="button" onClick={() => setOff(p => on ? [...p, s.key] : p.filter(k => k !== s.key))}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 11.6, color: on ? 'var(--txt)' : 'rgba(var(--on),0.3)' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 11.6, color: on ? 'var(--txt)' : 'var(--txt-muted)' }}>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: on ? s.color : 'rgba(var(--on),0.2)' }} />
                 {s.label}
               </button>
@@ -84,7 +84,7 @@ export function SeriesChart({ rows, series, height = 250 }: { rows: Row[]; serie
         <div style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 9, background: 'rgba(var(--on),0.05)', border: '1px solid rgba(var(--on),0.10)' }}>
           {ranges.map(r => (
             <button key={r} type="button" onClick={() => { setRange(r); setHover(null); }} className="pc-seg pc-num"
-              style={{ border: 'none', cursor: 'pointer', borderRadius: 7, padding: '4px 10px', fontSize: 11, fontWeight: 600, background: range === r ? 'rgba(var(--on),0.10)' : 'transparent', color: range === r ? 'var(--txt-strong)' : 'rgba(var(--on),0.4)' }}>
+              style={{ border: 'none', cursor: 'pointer', borderRadius: 7, padding: '4px 10px', fontSize: 11, fontWeight: 600, background: range === r ? 'rgba(var(--on),0.10)' : 'transparent', color: range === r ? 'var(--txt-strong)' : 'var(--txt-muted)' }}>
               {r}D
             </button>
           ))}
@@ -106,13 +106,13 @@ export function SeriesChart({ rows, series, height = 250 }: { rows: Row[]; serie
           )) : null}
         </svg>
 
-        <div className="pc-num" style={{ position: 'absolute', left: 0, top: 0, height, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none', fontSize: 10, color: 'rgba(var(--on),0.3)' }}>
+        <div className="pc-num" style={{ position: 'absolute', left: 0, top: 0, height, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none', fontSize: 10, color: 'var(--txt-muted)' }}>
           {[1, 0.75, 0.5, 0.25, 0].map(t => <span key={t} style={{ transform: 'translateY(-50%)' }}>{fmt(Math.round(max * t))}</span>)}
         </div>
 
         {hover !== null && shown[hover] ? (
           <div style={{ position: 'absolute', top: 6, left: 'min(max(' + ((hoverX! / w) * 100).toFixed(1) + '%, 10px), calc(100% - 190px))', pointerEvents: 'none', minWidth: 170, padding: '9px 11px', borderRadius: 10, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.12)', boxShadow: '0 8px 26px rgba(0,0,0,0.14)' }}>
-            <div style={{ fontSize: 10.5, color: 'rgba(var(--on),0.42)', marginBottom: 5 }}>{dayLabel(String(shown[hover].day))}</div>
+            <div style={{ fontSize: 10.5, color: 'var(--txt-muted)', marginBottom: 5 }}>{dayLabel(String(shown[hover].day))}</div>
             {live.map(s => (
               <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 3 }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flex: '0 0 6px' }} />
@@ -124,7 +124,7 @@ export function SeriesChart({ rows, series, height = 250 }: { rows: Row[]; serie
         ) : null}
       </div>
 
-      <div className="pc-num" style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>
+      <div className="pc-num" style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 10.5, color: 'var(--txt-muted)' }}>
         {[0, Math.floor(n / 4), Math.floor(n / 2), Math.floor((3 * n) / 4), n - 1].filter((v, i, a) => a.indexOf(v) === i).map(i => (
           <span key={i}>{shown[i] ? dayLabel(String(shown[i].day)) : ''}</span>
         ))}
@@ -166,7 +166,7 @@ export function Donut({ slices, centerLabel, size = 168 }: { slices: Slice[]; ce
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <span className="pc-num" style={{ fontSize: 21, color: 'var(--txt-strong)' }}>{hover === null ? fmt(total) : fmt(slices[hover].value)}</span>
-          <span style={{ fontSize: 10.5, color: 'rgba(var(--on),0.4)', marginTop: 2, maxWidth: 96, textAlign: 'center' }}>{hover === null ? centerLabel : slices[hover].label}</span>
+          <span style={{ fontSize: 10.5, color: 'var(--txt-muted)', marginTop: 2, maxWidth: 96, textAlign: 'center' }}>{hover === null ? centerLabel : slices[hover].label}</span>
         </div>
       </div>
       <div style={{ flex: '1 1 150px', minWidth: 150 }}>
@@ -194,13 +194,13 @@ export function Bars({ items, height = 150 }: { items: { label: string; value: n
         {items.map((it, i) => (
           <div key={it.label} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
             style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', height: '100%', gap: 6 }}>
-            <span className="pc-num" style={{ fontSize: 10.5, color: hover === i ? 'var(--txt)' : 'rgba(var(--on),0.34)' }}>{it.value}</span>
+            <span className="pc-num" style={{ fontSize: 10.5, color: hover === i ? 'var(--txt)' : 'var(--txt-muted)' }}>{it.value}</span>
             <div style={{ width: '100%', height: Math.max(2, (it.value / max) * (height - 26)), borderRadius: '5px 5px 2px 2px', background: hover === i ? 'var(--accent)' : 'rgba(var(--on),0.20)', transition: 'background 140ms, height 200ms' }} />
           </div>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 7 }}>
-        {items.map(it => <span key={it.label} style={{ flex: 1, textAlign: 'center', fontSize: 10.5, color: 'rgba(var(--on),0.36)' }}>{it.label}</span>)}
+        {items.map(it => <span key={it.label} style={{ flex: 1, textAlign: 'center', fontSize: 10.5, color: 'var(--txt-muted)' }}>{it.label}</span>)}
       </div>
     </div>
   );
@@ -225,7 +225,7 @@ export function StackBars({ days, series, height = 160 }: { days: Row[]; series:
             {totals[i] === 0 ? <div style={{ height: 2, background: 'rgba(var(--on),0.09)' }} /> : null}
             {hover === i ? (
               <div style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translate(-50%,-6px)', zIndex: 5, whiteSpace: 'nowrap', padding: '7px 9px', borderRadius: 9, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.12)', boxShadow: '0 8px 22px rgba(0,0,0,0.14)' }}>
-                <div style={{ fontSize: 10.3, color: 'rgba(var(--on),0.42)', marginBottom: 3 }}>{dayLabel(String(d.day))}</div>
+                <div style={{ fontSize: 10.3, color: 'var(--txt-muted)', marginBottom: 3 }}>{dayLabel(String(d.day))}</div>
                 {series.map(s => (
                   <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                     <span style={{ width: 6, height: 6, borderRadius: 2, background: s.color }} />
@@ -238,7 +238,7 @@ export function StackBars({ days, series, height = 160 }: { days: Row[]; series:
           </div>
         ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 7, fontSize: 10.5, color: 'rgba(var(--on),0.3) ' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 7, fontSize: 10.5, color: 'var(--txt-muted)' }}>
         <span>{dayLabel(String(days[0].day))}</span>
         <span>{dayLabel(String(days[days.length - 1].day))}</span>
       </div>
@@ -247,7 +247,7 @@ export function StackBars({ days, series, height = 160 }: { days: Row[]; series:
 }
 
 export function Empty({ note }: { note: string }) {
-  return <div style={{ padding: '34px 0', textAlign: 'center', fontSize: 12.4, color: 'rgba(var(--on),0.34)' }}>{note}</div>;
+  return <div style={{ padding: '34px 0', textAlign: 'center', fontSize: 12.4, color: 'var(--txt-muted)' }}>{note}</div>;
 }
 
 /* -- greeting ----------------------------------------------------------- */

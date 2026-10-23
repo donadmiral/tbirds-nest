@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { displayImageUrl } from "@/lib/media";
 import { Panel } from "@/components/ui";
@@ -30,6 +32,9 @@ export default function InboxPage() {
   const [filter, setFilter] = useState<"all" | "dm" | "offer" | "applicant" | "review">("all");
   const [showDone, setShowDone] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
   const [view, setView] = useState<"queue" | "replies" | "automations">("queue");
   const [replies, setReplies] = useState<SavedReply[]>([]);
   const [auto, setAuto] = useState<AutoReplies | null>(null);
@@ -39,24 +44,55 @@ export default function InboxPage() {
   const [noteText, setNoteText] = useState("");
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
     try {
-      const { data } = await supabase.rpc("studio_inbox", { p_filter: filter, p_limit: 120 });
+      const { data, error } = await supabase.rpc("studio_inbox", { p_filter: filter, p_limit: 120 });
+      if (error) throw error;
+      if (version !== loadVersion.current) return;
       setItems((data as Item[]) ?? []);
-    } finally { setLoading(false); }
+      setLoaded(true); setLoadError(null);
+    } catch {
+      if (version === loadVersion.current) setLoadError("Inbox could not be refreshed. Your last loaded data is unchanged.");
+    } finally { if (version === loadVersion.current) setLoading(false); }
   }, [supabase, filter]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); return () => { loadVersion.current += 1; }; }, [load]);
   useStudioLive(load);
-  useEffect(() => {
-    supabase.rpc("studio_team").then(({ data }) => setTeam((data as Member[]) ?? []));
-    listReplies().then(setReplies).catch(() => {});
-    getAutoReplies().then(setAuto).catch(() => {});
+  const [toolsError, setToolsError] = useState<string | null>(null);
+  const [toolsLoading, setToolsLoading] = useState(false);
+  const failedTools = useRef(new Set(["team", "replies", "automations"]));
+  const toolsPending = useRef(false);
+  const loadTools = useCallback(async () => {
+    if (toolsPending.current) return;
+    toolsPending.current = true;
+    setToolsLoading(true);
+    try {
+      // Retry only failed sections so a team-directory error cannot hide saved
+      // replies or overwrite an automation draft the user is already editing.
+      await Promise.allSettled([
+        failedTools.current.has("team") ? (async () => {
+          const members = await supabase.rpc("studio_team");
+          if (members.error) throw members.error;
+          setTeam((members.data as Member[]) ?? []); failedTools.current.delete("team");
+        })() : Promise.resolve(),
+        failedTools.current.has("replies") ? listReplies().then(saved => { setReplies(saved); failedTools.current.delete("replies"); }) : Promise.resolve(),
+        failedTools.current.has("automations") ? getAutoReplies().then(automation => { setAuto(automation); failedTools.current.delete("automations"); }) : Promise.resolve(),
+      ]);
+      setToolsError(failedTools.current.size ? "Some inbox tools could not be loaded. Please try again." : null);
+    } finally { toolsPending.current = false; setToolsLoading(false); }
   }, [supabase]);
+  useEffect(() => { void loadTools(); }, [loadTools]);
+  const pendingThreads = useRef(new Set<string>());
 
   const setState = async (it: Item, patch: { label?: string | null; assignee?: string | null; done?: boolean; note?: string | null }) => {
-    setItems(prev => prev.map(x => x.id === it.id ? { ...x, ...patch } : x));
-    const { error } = await supabase.rpc("studio_set_thread", { p_conversation: it.id, p_label: patch.label ?? null, p_assignee: patch.assignee ?? null, p_done: patch.done ?? null, p_note: patch.note ?? null });
-    if (error) { alert(error.message); void load(); }
+    if (pendingThreads.current.has(it.id)) return;
+    pendingThreads.current.add(it.id);
+    try {
+      const { error } = await supabase.rpc("studio_set_thread", { p_conversation: it.id, p_label: patch.label ?? null, p_assignee: patch.assignee ?? null, p_done: patch.done ?? null, p_note: patch.note ?? null });
+      if (error) throw error;
+      setItems(prev => prev.map(x => x.id === it.id ? { ...x, ...patch } : x));
+    } catch { alert("This conversation could not be updated. Please try again."); }
+    finally { pendingThreads.current.delete(it.id); }
   };
 
   const respondOffer = async (it: Item, action: "accepted" | "declined") => {
@@ -72,7 +108,7 @@ export default function InboxPage() {
     catch (e: any) { alert(e?.message || "Could not save."); }
     finally { setSaving(false); }
   };
-  const removeReply = async (r: SavedReply) => { await deleteReply(r.id); setReplies(prev => prev.filter(x => x.id !== r.id)); };
+  const removeReply = async (r: SavedReply) => { try { await deleteReply(r.id); setReplies(prev => prev.filter(x => x.id !== r.id)); } catch { alert("The reply could not be deleted. Please try again."); } };
   const saveAuto = async () => {
     if (!auto || saving) return;
     setSaving(true);
@@ -84,6 +120,8 @@ export default function InboxPage() {
 
   return (
     <div className="max-w-[960px]">
+      <StudioLoadError message={toolsError} retry={() => { void loadTools(); }} busy={toolsLoading} />
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
       <StudioRailPortal>
         <>
           {items.length > 0 ? (
@@ -128,7 +166,7 @@ export default function InboxPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Inbox</h1>
-          <p className="mt-1 text-[13px] text-ink/50">Messages, offers, applicants and reviews in one queue. Label, assign, and mark done.</p>
+          <p className="mt-1 text-[13px] text-muted">Messages, offers, applicants and reviews in one queue. Label, assign, and mark done.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
           {(["queue", "replies", "automations"] as const).map(v => (
@@ -147,10 +185,10 @@ export default function InboxPage() {
                 {f === "all" ? "All" : f === "dm" ? "Messages" : f === "offer" ? "Offers" : f === "applicant" ? "Applicants" : "Reviews"}
               </button>
             ))}
-            <label className="ml-auto flex items-center gap-1.5 text-[12.5px] text-ink/50"><input type="checkbox" checked={showDone} onChange={e => setShowDone(e.target.checked)} /> Show done</label>
+            <label className="ml-auto flex items-center gap-1.5 text-[12.5px] text-muted"><input type="checkbox" checked={showDone} onChange={e => setShowDone(e.target.checked)} /> Show done</label>
           </div>
-          {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
-          : shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">Queue is clear.</p>
+          {loading && !loaded ? <p className="py-12 text-center text-sm text-muted">Loading</p>
+          : !loaded ? null : shown.length === 0 ? <p className="py-12 text-center text-sm text-muted">Queue is clear.</p>
           : shown.map(it => {
             const Icon = KIND_ICON[it.kind];
             const href = it.kind === "dm" ? "/messages" : it.kind === "offer" ? "/market/" + it.ref : it.kind === "applicant" ? "/jobs" : (me?.username ? "/" + me.username : "/studio");
@@ -164,21 +202,21 @@ export default function InboxPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[14px] font-semibold text-ink">{it.title}</span>
-                      <span className="flex items-center gap-1 rounded bg-surface px-1.5 py-0.5 text-[10.5px] font-semibold uppercase text-ink/50"><Icon size={11} /> {it.kind === "dm" ? it.context : it.kind}</span>
-                      {it.unread > 0 ? <span className="rounded-full bg-pearl px-1.5 text-[10.5px] font-bold text-ink">{it.unread}</span> : null}
-                      {it.waiting && !it.done ? <span className="text-[10.5px] font-semibold uppercase text-pearl">waiting on you</span> : null}
+                      <span className="flex items-center gap-1 rounded bg-surface px-1.5 py-0.5 text-[10.5px] font-semibold uppercase text-muted"><Icon size={11} /> {it.kind === "dm" ? it.context : it.kind}</span>
+                      {it.unread > 0 ? <span className="rounded-full bg-pearl px-1.5 text-[10.5px] font-bold text-on-pearl">{it.unread}</span> : null}
+                      {it.waiting && !it.done ? <span className="text-[10.5px] font-semibold uppercase text-accent">waiting on you</span> : null}
                       {it.label ? <span className="rounded bg-navy/15 px-1.5 py-0.5 text-[10.5px] font-semibold text-ink">{it.label}</span> : null}
-                      {memberName(it.assignee) ? <span className="text-[11px] text-ink/45">to {memberName(it.assignee)}</span> : null}
-                      <span className="ml-auto text-[11px] text-ink/40">{new Date(it.at).toLocaleString()}</span>
+                      {memberName(it.assignee) ? <span className="text-[11px] text-muted">to {memberName(it.assignee)}</span> : null}
+                      <span className="ml-auto text-[11px] text-muted">{new Date(it.at).toLocaleString()}</span>
                     </div>
                     <p className="mt-1 line-clamp-2 text-[13.5px] text-ink/80">{it.preview || ""}</p>
-                    {it.note ? <p className="mt-1 text-[12px] italic text-ink/50">Note: {it.note}</p> : null}
+                    {it.note ? <p className="mt-1 text-[12px] italic text-muted">Note: {it.note}</p> : null}
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <Link href={href} className="rounded-md bg-ink px-2.5 py-1 text-[12px] font-semibold text-white">Open</Link>
                       {it.kind === "offer" && it.waiting && canInbox ? (
                         <>
                           <button onClick={() => respondOffer(it, "accepted")} className="inline-flex items-center gap-1 rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success"><Check size={12} /> Accept</button>
-                          <button onClick={() => respondOffer(it, "declined")} className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2.5 py-1 text-[12px] font-semibold text-red-400"><X size={12} /> Decline</button>
+                          <button onClick={() => respondOffer(it, "declined")} className="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2.5 py-1 text-[12px] font-semibold text-danger"><X size={12} /> Decline</button>
                         </>
                       ) : null}
                       <select value={it.label || ""} onChange={e => setState(it, { label: e.target.value || null })} className="rounded-md bg-surface px-2 py-1 text-[12px] text-ink/70 outline-none" aria-label="Label">
@@ -208,50 +246,50 @@ export default function InboxPage() {
         </>
       ) : view === "replies" ? (
         <div className="mt-5 max-w-[640px]">
-          <p className="text-[13px] text-ink/55">Type the shortcut with a slash in any chat to insert the reply. Keep them short and warm.</p>
+          <p className="text-[13px] text-muted">Type the shortcut with a slash in any chat to insert the reply. Keep them short and warm.</p>
           <div className="mt-3 rounded-xl border border-ink/10 p-3">
             <div className="flex gap-2">
               <input value={newReply.shortcut} onChange={e => setNewReply(r => ({ ...r, shortcut: e.target.value }))} placeholder="/hours" className="w-32 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
               <input value={newReply.title} onChange={e => setNewReply(r => ({ ...r, title: e.target.value }))} placeholder="Title" className="flex-1 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
             </div>
             <textarea value={newReply.body} onChange={e => setNewReply(r => ({ ...r, body: e.target.value }))} placeholder="Reply text" className="mt-2 h-20 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
-            <button onClick={saveReply} disabled={saving || !newReply.body.trim()} className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-pearl px-3.5 py-1.5 text-[12.5px] font-semibold text-ink disabled:opacity-40"><Plus size={13} /> Save reply</button>
+            <button onClick={saveReply} disabled={saving || !newReply.body.trim()} className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-pearl px-3.5 py-1.5 text-[12.5px] font-semibold text-on-pearl disabled:opacity-40"><Plus size={13} /> Save reply</button>
           </div>
           {replies.map(r => (
             <div key={r.id} className="mt-2 flex items-start gap-3 rounded-xl border border-ink/10 p-3">
               <span className="rounded bg-surface px-1.5 py-0.5 font-mono text-[12px] text-ink/70">/{r.shortcut}</span>
               <div className="min-w-0 flex-1"><p className="text-[13.5px] font-semibold text-ink">{r.title}</p><p className="mt-0.5 whitespace-pre-wrap text-[13px] text-ink/70">{r.body}</p></div>
-              <button onClick={() => removeReply(r)} className="rounded-md px-2 py-1 text-red-400 hover:bg-red-500/10" aria-label="Delete"><Trash2 size={13} /></button>
+              <button onClick={() => removeReply(r)} className="rounded-md px-2 py-1 text-danger hover:bg-danger/10" aria-label="Delete"><Trash2 size={13} /></button>
             </div>
           ))}
         </div>
       ) : auto ? (
         <div className="mt-5 max-w-[640px]">
           <div className="rounded-xl border border-ink/10 p-4">
-            <label className="flex items-center gap-2 text-[14px] font-semibold text-ink"><input type="checkbox" checked={auto.welcome_enabled} onChange={e => setAuto({ ...auto, welcome_enabled: e.target.checked })} /> <Zap size={14} className="text-pearl" /> Welcome message</label>
-            <p className="mt-1 text-[12.5px] text-ink/50">Sent once when someone messages you for the first time.</p>
+            <label className="flex items-center gap-2 text-[14px] font-semibold text-ink"><input type="checkbox" checked={auto.welcome_enabled} onChange={e => setAuto({ ...auto, welcome_enabled: e.target.checked })} /> <Zap size={14} className="text-accent" /> Welcome message</label>
+            <p className="mt-1 text-[12.5px] text-muted">Sent once when someone messages you for the first time.</p>
             <textarea value={auto.welcome_text || ""} onChange={e => setAuto({ ...auto, welcome_text: e.target.value })} placeholder="Thanks for reaching out to us. How can we help today?" className="mt-2 h-20 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
           </div>
           <div className="mt-3 rounded-xl border border-ink/10 p-4">
             <label className="flex items-center gap-2 text-[14px] font-semibold text-ink"><input type="checkbox" checked={auto.away_enabled} onChange={e => setAuto({ ...auto, away_enabled: e.target.checked })} /> Away message</label>
-            <p className="mt-1 text-[12.5px] text-ink/50">Sent outside your business hours, once per conversation per day.</p>
+            <p className="mt-1 text-[12.5px] text-muted">Sent outside your business hours, once per conversation per day.</p>
             <textarea value={auto.away_text || ""} onChange={e => setAuto({ ...auto, away_text: e.target.value })} placeholder="We are closed right now and reply during opening hours." className="mt-2 h-20 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
           </div>
           <div className="mt-3 rounded-xl border border-ink/10 p-4">
             <p className="text-[14px] font-semibold text-ink">Quick questions</p>
-            <p className="mt-1 text-[12.5px] text-ink/50">Shown as tap-to-ask buttons when someone opens a chat with you. Up to five.</p>
+            <p className="mt-1 text-[12.5px] text-muted">Shown as tap-to-ask buttons when someone opens a chat with you. Up to five.</p>
             {auto.faq.map((f, i) => (
               <div key={i} className="mt-2 flex gap-2">
                 <input value={f.q} onChange={e => setAuto({ ...auto, faq: auto.faq.map((x, j) => j === i ? { ...x, q: e.target.value } : x) })} placeholder="Question" className="w-2/5 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
                 <input value={f.a} onChange={e => setAuto({ ...auto, faq: auto.faq.map((x, j) => j === i ? { ...x, a: e.target.value } : x) })} placeholder="Answer" className="flex-1 rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13px] text-ink outline-none" />
-                <button onClick={() => setAuto({ ...auto, faq: auto.faq.filter((_, j) => j !== i) })} className="rounded-md px-2 text-red-400" aria-label="Remove"><X size={13} /></button>
+                <button onClick={() => setAuto({ ...auto, faq: auto.faq.filter((_, j) => j !== i) })} className="rounded-md px-2 text-danger" aria-label="Remove"><X size={13} /></button>
               </div>
             ))}
             {auto.faq.length < 5 ? <button onClick={() => setAuto({ ...auto, faq: [...auto.faq, { q: "", a: "" }] })} className="mt-2 inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] font-semibold text-ink/70"><Plus size={12} /> Add question</button> : null}
           </div>
-          <button onClick={saveAuto} disabled={saving} className="mt-4 rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-ink disabled:opacity-40">{saving ? "Saving" : "Save automations"}</button>
+          <button onClick={saveAuto} disabled={saving} className="mt-4 rounded-md bg-pearl px-4 py-2.5 text-[13px] font-semibold text-on-pearl disabled:opacity-40">{saving ? "Saving" : "Save automations"}</button>
         </div>
-      ) : <p className="py-12 text-center text-sm text-ink/40">Loading</p>}
+      ) : <p className="py-12 text-center text-sm text-muted">Loading</p>}
     </div>
   );
 }

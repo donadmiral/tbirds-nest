@@ -9,14 +9,14 @@ export function RichText({ text }: { text: string }) {
       {parts.map((p, i) => {
         if (p.startsWith("#")) {
           return (
-            <Link key={i} href={"/topic/" + encodeURIComponent(p.slice(1))} onClick={(e) => e.stopPropagation()} className="text-pearl hover:underline">
+            <Link key={i} href={"/topic/" + encodeURIComponent(p.slice(1))} onClick={(e) => e.stopPropagation()} className="text-accent hover:underline">
               {p}
             </Link>
           );
         }
         if (p.startsWith("@") && p.length > 1) {
           return (
-            <Link key={i} href={"/" + p.slice(1).replace(/\.$/, "")} onClick={(e) => e.stopPropagation()} className="text-pearl hover:underline">
+            <Link key={i} href={"/" + p.slice(1).replace(/\.$/, "")} onClick={(e) => e.stopPropagation()} className="text-accent hover:underline">
               {p}
             </Link>
           );

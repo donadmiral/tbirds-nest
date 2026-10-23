@@ -88,7 +88,7 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
               <div key={name} className="flex items-center gap-2 py-0.5">
                 <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: SLICE[i % SLICE.length] }} />
                 <span className="min-w-0 flex-1 truncate text-[12.5px] capitalize text-ink/75">{name}</span>
-                <span className="shrink-0 text-[12px] tabular-nums text-ink/45">{n}</span>
+                <span className="shrink-0 text-[12px] tabular-nums text-muted">{n}</span>
               </div>
             ))}
           </div>
@@ -97,7 +97,7 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
 
       <Panel title="Where they are" icon={<MapPin size={15} />}>
         {sum.top_cities.length === 0 ? (
-          <p className="text-[13px] text-ink/45">No locations on file yet. Followers who set a location appear here.</p>
+          <p className="text-[13px] text-muted">No locations on file yet. Followers who set a location appear here.</p>
         ) : (
           <div className="flex flex-col gap-2">
             {sum.top_cities.slice(0, 6).map((c) => {
@@ -106,7 +106,7 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
                 <div key={c.city}>
                   <div className="flex items-baseline justify-between text-[12.5px]">
                     <span className="min-w-0 truncate text-ink/75">{c.city}</span>
-                    <span className="shrink-0 tabular-nums text-ink/45">{c.n}</span>
+                    <span className="shrink-0 tabular-nums text-muted">{c.n}</span>
                   </div>
                   <div className="mt-1 h-[3px] w-full overflow-hidden rounded-full bg-surface">
                     <div className="h-full rounded-full bg-pearl" style={{ width: Math.max(share, 4) + "%" }} />
@@ -121,7 +121,7 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
       <Panel title="Growth, last 30 days">
         <div className="flex items-baseline gap-2">
           <span className="font-display text-[26px] leading-none text-porcelain">{sum.followers}</span>
-          <span className="text-[12.5px] text-ink/45">
+          <span className="text-[12.5px] text-muted">
             {sum.new_30d > 0 ? "+" + sum.new_30d + " this month" : "no new followers this month"}
           </span>
         </div>
@@ -129,7 +129,7 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
           <Sparkline points={growth} height={56} />
         </div>
         {sum.customers > 0 ? (
-          <p className="mt-2 text-[12.5px] text-ink/55">
+          <p className="mt-2 text-[12.5px] text-muted">
             <span className="font-semibold text-ink">{sum.customers}</span> of them have paid you
           </p>
         ) : null}

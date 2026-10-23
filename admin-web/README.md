@@ -1,36 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Platinum Operations
 
-## Getting Started
+Use the staff account created in the same Supabase project as this deployment. The sign-in panel identifies the backend as QA, production, or unverified. A Supabase dashboard login and an IntoBank account are separate identities and do not grant Platinum staff permission.
 
-First, run the development server:
+## Password recovery
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The **Forgot password?** link opens `/reset-password/request`. Email is sent only after the user submits that form. The result never discloses whether the address exists. The recovery link must be opened in the same browser within ten minutes; the SDK performs a PKCE exchange using a short-lived HttpOnly verifier cookie. A different browser, expired/reused code, or nonstaff account cannot establish an admin recovery session.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The callback is `/reset-password/callback`. Add the exact full callback URL for each authorized deployment to that Supabase project's Auth redirect allowlist. Vercel's `VERCEL_URL` and `VERCEL_BRANCH_URL` are trusted exact origins automatically. For an additional custom QA alias, configure `ADMIN_AUTH_ORIGINS` as comma-separated HTTPS origins. Production also accepts `https://admin.platinumcircles.app`. Wildcards, paths, query strings, credentials, and untrusted submitted origins are rejected. This repository setting does not configure the hosted Supabase allowlist.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The reset flow requires an active staff account and a live recovery session. Its signed HttpOnly cookie is scoped to `/reset-password`, expires server-side after ten minutes, and keeps its original deadline when MFA elevates the session. Existing authenticators are required before changing an MFA-protected password. Recovery never enrolls, removes or disables MFA; it never grants staff access or creates a normal admin session. Password updates use the end-user Auth SDK. The server then requests global session revocation and clears its cookies. A failed revocation is explicitly reported as a partial outcome, not a failed password update.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A successful reset changes only the password in the backend shown on this page. It does not copy or synchronize production, QA, Supabase dashboard or IntoBank passwords. Lost authenticators require a separate authorized recovery process.
 
-## Learn More
+## Local checks
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run `node node_modules/typescript/bin/tsc --noEmit` and `node --test --test-concurrency=2 tests/*.cjs` from this directory. Tests mock email delivery and never send a recovery email. Hosted acceptance still needs a user-requested email, successful same-browser recovery, retained MFA, expired-link rejection, and a fresh sign-in after reset.

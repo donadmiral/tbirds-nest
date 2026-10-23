@@ -26,12 +26,12 @@ export default function ArchivePage() {
         {rows.map((r) => { const img = (r.post_media || []).find((m) => m.media_type === "image")?.url; return (
           <li key={r.id} className="flex items-center gap-3 py-3">
             {img ? <img src={img} alt="" className="h-14 w-14 rounded-lg object-cover" /> : <div className="h-14 w-14 rounded-lg bg-surface" />}
-            <div className="min-w-0 flex-1"><p className="line-clamp-2 text-[14px] font-semibold text-ink">{r.article_title || r.content || r.body || "Post"}</p><p className="text-[12px] text-ink/50">Archived {new Date(r.archived_at).toLocaleDateString()}</p></div>
+            <div className="min-w-0 flex-1"><p className="line-clamp-2 text-[14px] font-semibold text-ink">{r.article_title || r.content || r.body || "Post"}</p><p className="text-[12px] text-muted">Archived {new Date(r.archived_at).toLocaleDateString()}</p></div>
             <button type="button" onClick={() => restore(r)} className="rounded-full bg-ink px-4 py-1.5 text-[13px] font-bold text-white hover:opacity-90">Restore</button>
           </li>
         ); })}
       </ul>
-      {rows.length === 0 ? <p className="mt-3 text-[13.5px] text-ink/50">Nothing archived.</p> : null}
+      {rows.length === 0 ? <p className="mt-3 text-[13.5px] text-muted">Nothing archived.</p> : null}
     </div>
   );
 }

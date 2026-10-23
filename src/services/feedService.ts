@@ -1,3 +1,4 @@
+import { ensureUploadSafe } from '../utils/uploadSafe';
 import { supabase } from './supabase';
 import { authorId as currentAuthorId } from '../stores/actorStore';
 import type { Post, PostComment } from '../types';
@@ -77,13 +78,15 @@ export const feedService = {
   },
 
   async uploadPostImage(userId: string, uri: string): Promise<string> {
-    const ext = uri.split('.').pop() ?? 'jpg';
-    const path = `posts/${userId}/${Date.now()}.${ext}`;
+    const safe = await ensureUploadSafe(uri, 'image');
+    if (safe.kind !== 'image') throw new Error('Choose a photo for this article.');
+    const path = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${safe.ext}`;
     const formData = new FormData();
-    formData.append('file', { uri, name: path, type: `image/${ext}` } as any);
-    const { error } = await supabase.storage.from('media').upload(path, formData);
-    if (error) throw error;
-    const { data } = supabase.storage.from('media').getPublicUrl(path);
+    formData.append('file', { uri: safe.uri, name: path, type: safe.mime } as any);
+    const { error } = await supabase.storage.from('post-media').upload(path, formData, { contentType: safe.mime, upsert: false });
+    if (error) throw new Error('The photo could not upload. Please try again.');
+    // Store a canonical object reference. Display authorization issues a short-lived URL.
+    const { data } = supabase.storage.from('post-media').getPublicUrl(path);
     return data.publicUrl;
   },
 };

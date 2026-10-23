@@ -19,7 +19,8 @@ import LoginActivityScreen from '../screens/profile/LoginActivityScreen';
 import MfaGate from '../components/MfaGate';
 import AddAccountSheet from '../components/AddAccountSheet';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator, type BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
+import { useNavigationAccessibility } from '../hooks/useNavigationAccessibility';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from '../components/SafeArea';
 import * as Notifications from 'expo-notifications';
@@ -38,6 +39,7 @@ import LoginScreen          from '../screens/auth/LoginScreen';
 import BusinessSignInScreen from '../screens/auth/BusinessSignInScreen';
 import BusinessAccessScreen from '../screens/profile/BusinessAccessScreen';
 import AccountStandingScreen from '../screens/profile/AccountStandingScreen';
+import MonetizationScreen from '../screens/profile/MonetizationScreen';
 import OfflineBanner from '../components/OfflineBanner';
 import ArticleComposeScreen from '../screens/feed/ArticleComposeScreen';
 import SignUpScreen         from '../screens/auth/SignUpScreen';
@@ -200,6 +202,7 @@ function ProfileStackNav() {
       <ProfStack.Screen name="ChangeUsername" component={ChangeUsernameScreen} />
       <ProfStack.Screen name="BusinessAccess" component={BusinessAccessScreen} />
       <ProfStack.Screen name="AccountStanding" component={AccountStandingScreen} />
+      <ProfStack.Screen name="Monetization" component={MonetizationScreen} />
       <ProfStack.Screen name="EditProfile"     component={EditProfileScreen} />
       <ProfStack.Screen name="BlockedAccounts" component={BlockedAccountsScreen} />
       <ProfStack.Screen name="RestrictedAccounts" component={RestrictedAccountsScreen} />
@@ -229,33 +232,41 @@ function getTabIcon(name: string, focused: boolean): IoniconName {
 }
 
 // Phase 8B: Physical tab bar button with micro-compression + haptic
-function TabBarButton({ children, onPress, onLongPress, accessibilityState, style }: any) {
+function TabBarButton({ children, onPress, onLongPress, accessibilityState, style, reduceMotion, ...rest }: BottomTabBarButtonProps & { reduceMotion: boolean }) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const lastActiveRef = React.useRef(accessibilityState?.selected);
 
   React.useEffect(() => {
     // Haptic on tab change (not on re-press of active tab)
     if (accessibilityState?.selected && !lastActiveRef.current) {
-      Haptics.selectionAsync();
+      Haptics.selectionAsync().catch(() => {});
     }
     lastActiveRef.current = accessibilityState?.selected;
   }, [accessibilityState?.selected]);
 
   const handlePressIn = React.useCallback(() => {
+    if (reduceMotion) return;
     Animated.timing(scaleAnim, { toValue: 0.95, duration: 100, useNativeDriver: true }).start();
-  }, [scaleAnim]);
+  }, [scaleAnim, reduceMotion]);
 
   const handlePressOut = React.useCallback(() => {
+    if (reduceMotion) { scaleAnim.setValue(1); return; }
     Animated.spring(scaleAnim, { toValue: 1, tension: 100, friction: 14, useNativeDriver: true }).start();
-  }, [scaleAnim]);
+  }, [scaleAnim, reduceMotion]);
+
+  React.useEffect(() => {
+    if (reduceMotion) { scaleAnim.stopAnimation(); scaleAnim.setValue(1); }
+  }, [reduceMotion, scaleAnim]);
 
   return (
     <Pressable
+      {...rest}
+      accessibilityState={accessibilityState}
       onPress={onPress}
       onLongPress={onLongPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[style, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}
+      style={[style, { flex: 1, minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }]}
     >
       <Animated.View style={{ transform: [{ scale: scaleAnim }], alignItems: 'center', justifyContent: 'center' }}>
         {children}
@@ -265,6 +276,8 @@ function TabBarButton({ children, onPress, onLongPress, accessibilityState, styl
 }
 
 function MainTabs() {
+  const { t, isDark } = useTheme();
+  const accessibility = useNavigationAccessibility();
   const profile = useAuthStore(s => s.profile);
   const userId = profile?.id ?? null;
   const [unreadNotifs, setUnreadNotifs] = useState(0);
@@ -307,12 +320,13 @@ function MainTabs() {
 
   return (
     <Tab.Navigator
-      tabBar={(p) => <AdaptiveTabBar {...p} />}
+      tabBar={(p) => <AdaptiveTabBar {...p} keepVisible={accessibility.reduceMotion || accessibility.screenReader} />}
       initialRouteName="Feed"
       screenOptions={({ route }) => ({
         headerShown: false, tabBarHideOnKeyboard: true,
-        tabBarActiveTintColor: '#0B1E3D', tabBarInactiveTintColor: '#8E8E93',
-        tabBarButton: (props) => <TabBarButton {...props} />,
+        tabBarActiveTintColor: t.ink.primary, tabBarInactiveTintColor: accessibility.highContrast ? t.ink.primary : t.ink.secondary,
+        tabBarAccessibilityLabel: route.name === 'Feed' ? 'Home' : route.name,
+        tabBarButton: (props) => <TabBarButton {...props} reduceMotion={accessibility.reduceMotion} />,
         tabBarIcon: ({ focused, color, size }) => {
           const iconName = getTabIcon(route.name, focused);
           if (route.name === 'Feed' && unreadNotifs > 0) {
@@ -334,10 +348,10 @@ function MainTabs() {
           height: 64,
           borderRadius: 32,
           overflow: 'hidden',
-          backgroundColor: 'rgba(255,255,255,0.88)',
+          backgroundColor: Platform.OS === 'ios' && !accessibility.reduceTransparency && !accessibility.highContrast ? `${t.surface.raised}EB` : t.surface.raised,
           borderTopWidth: 0,
           borderWidth: StyleSheet.hairlineWidth,
-          borderColor: 'rgba(0,0,0,0.08)',
+          borderColor: accessibility.highContrast ? t.ink.primary : t.surface.hairline,
           paddingBottom: 0,
           paddingTop: 0,
           shadowColor: '#000',
@@ -347,9 +361,11 @@ function MainTabs() {
           elevation: 14,
         },
         tabBarItemStyle: { height: 64 },
-        tabBarBackground: () => (
-          <BlurView tint="systemChromeMaterialLight" intensity={90} style={StyleSheet.absoluteFill} />
-        ),
+        // Android keeps a native opaque surface. iOS blur is decorative and
+        // never required for contrast or to identify a navigation control.
+        tabBarBackground: () => Platform.OS === 'ios' && !accessibility.reduceTransparency && !accessibility.highContrast ? (
+          <BlurView tint={isDark ? 'systemChromeMaterialDark' : 'systemChromeMaterialLight'} intensity={90} style={StyleSheet.absoluteFill} />
+        ) : <View style={[StyleSheet.absoluteFill, { backgroundColor: t.surface.raised }]} />,
       })}
     >
       <Tab.Screen name="Feed"     component={FeedStackNav} />

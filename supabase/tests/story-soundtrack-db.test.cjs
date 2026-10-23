@@ -1,0 +1,33 @@
+const test=require('node:test'), assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {PGlite}=require('./rpc-authorization/node_modules/@electric-sql/pglite');
+const U='10000000-0000-4000-8000-000000000001',V='10000000-0000-4000-8000-000000000002';
+const url=`https://example.supabase.co/storage/v1/object/public/story-media/${U}/original.m4a`;
+let db,n=0;
+const key=()=>`20000000-0000-4000-8000-${String(++n).padStart(12,'0')}`;
+async function pub(audio,extra={},id=key(),actor=U){await db.query("select set_config('request.jwt.claim.sub',$1,false)",[actor]);await db.exec('set role authenticated');try{return(await db.query('select publish_story_v2($1,$2,$3) id',[actor,id,JSON.stringify({media_type:'text',text_background:{colors:['#000']},stickers_json:[],audio_draft:audio,...extra})])).rows[0].id;}finally{await db.exec('reset role');}}
+const original=()=>({kind:'voiceover',url,title:'Original recording',durationSec:12,rightsAttested:true,addToSounds:true});
+test.before(async()=>{db=new PGlite();await db.exec(`
+ create role anon;create role authenticated;create schema auth;create schema storage;
+ create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+ create function auth.jwt() returns jsonb language sql stable as $$select '{}'::jsonb$$;
+ create function can_act_as(uuid) returns boolean language sql stable as $$select auth.uid()=$1$$;
+ create function viewer_can_see_story(uuid) returns boolean language sql stable as $$select true$$;
+ grant usage on schema auth to authenticated;
+ create table profiles(id uuid primary key,username text,full_name text,avatar_url text);
+ insert into profiles(id) values('${U}'),('${V}');
+ create table stories(id uuid primary key,user_id uuid,media_url text,media_type text,caption text,audience text,filter_id text,stickers_json jsonb,media_transform jsonb,text_background jsonb,duration_sec integer,audio_url text,audio_title text,audio_source text,audio_duration_sec integer);
+ create table story_drafts(id uuid primary key,user_id uuid);
+ create table story_shared_with(story_id uuid,user_id uuid);
+ create table story_mentions(story_id uuid,mentioned_user_id uuid,mentioned_by_user_id uuid,visible boolean);
+ create table story_sticker_responses(id uuid,story_id uuid,sticker_id text,user_id uuid,response_type text,text_value text,number_value numeric,option_id text,created_at timestamptz);
+ create table story_sounds(id uuid primary key default gen_random_uuid(),owner_id uuid,title text,url text,duration_sec integer,source text,use_count integer default 0);
+ create table storage.objects(bucket_id text,name text,owner_id text,owner uuid);
+ insert into storage.objects values('story-media','${U}/original.m4a','${U}',null);
+ `);for(const file of ['20261022211259_platinum_story_editor_and_hiring.sql','20261022211311_story_sound_rights.sql','20261023192203_story_soundtrack_authoring.sql'])await db.exec(fs.readFileSync(path.join(__dirname,'../migrations',file),'utf8'));});
+test.after(()=>db.close());
+test('owned original soundtrack and reusable sound publish atomically and replay once',async()=>{const request=key(),audio=original(),id=await pub(audio,{},request);assert.equal(await pub(audio,{},request),id);const story=(await db.query('select * from stories where id=$1',[id])).rows[0];assert.equal(story.audio_url,url);assert.equal(story.audio_duration_sec,12);assert.equal(story.audio_source,'voiceover');assert.equal((await db.query('select count(*)::int n from story_sounds where origin_story_id=$1',[id])).rows[0].n,1);});
+test('foreign uploads and absent rights reject before a story is written',async()=>{const before=(await db.query('select count(*)::int n from stories')).rows[0].n;await assert.rejects(()=>pub(original(),{},key(),V),/AUDIO_MUST_BELONG/);await assert.rejects(()=>pub({...original(),rightsAttested:false}),/AUDIO_RIGHTS_REQUIRED/);assert.equal((await db.query('select count(*)::int n from stories')).rows[0].n,before);});
+test('recording duration, path and volume bounds are enforced by the server',async()=>{await assert.rejects(()=>pub({...original(),durationSec:31}),/INVALID_AUDIO_DURATION/);await assert.rejects(()=>pub({...original(),url:url+'?token=temporary'}),/AUDIO_MUST_BELONG/);await assert.rejects(()=>pub(original(),{media_transform:{mix:{orig:101}}}),/INVALID_AUDIO_MIX/);});
+test('reusable sound metadata is resolved by ID rather than trusting a client URL',async()=>{const sound=(await db.query('select id from story_sounds limit 1')).rows[0];const id=await pub({kind:'sound',soundId:sound.id,url:'https://untrusted.example/audio.mp3',title:'Forged',durationSec:999}, {},key(),V);const row=(await db.query('select audio_url,audio_title,audio_duration_sec from stories where id=$1',[id])).rows[0];assert.equal(row.audio_url,url);assert.equal(row.audio_title,'Original recording');assert.equal(row.audio_duration_sec,12);});
+test('blocked reusable sounds cannot enter new stories',async()=>{const sound=(await db.query('select id from story_sounds limit 1')).rows[0];await db.query("update story_sounds set rights_status='blocked' where id=$1",[sound.id]);await assert.rejects(()=>pub({kind:'sound',soundId:sound.id}, {},key(),V),/SOUND_UNAVAILABLE/);});
+test('audio validation failure keeps the saved draft',async()=>{const draft=key();await db.query('insert into story_drafts(id,user_id,audio_draft) values($1,$2,$3)',[draft,U,JSON.stringify(original())]);await assert.rejects(()=>pub({...original(),rightsAttested:false},{draft_id:draft}),/AUDIO_RIGHTS_REQUIRED/);assert.equal((await db.query('select count(*)::int n from story_drafts where id=$1',[draft])).rows[0].n,1);});

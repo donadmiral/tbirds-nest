@@ -16,7 +16,7 @@ import { nativeCallService } from '../services/nativeCallService';
 import { useAuthStore } from '../stores/authStore';
 import { callService, CallRecord } from '../services/callService';
 import { supabase } from '../services/supabase';
-import { View, Text, TouchableOpacity, Image, Vibration, StyleSheet, Platform } from 'react-native';
+import { AppState, View, Text, TouchableOpacity, Image, Vibration, StyleSheet, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from './SafeArea';
 import { useCallContext } from '../contexts/CallContext';
@@ -28,38 +28,63 @@ export default function IncomingCallListener() {
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
   const insets = useSafeAreaInsets();
-  const { callState, startCall, endCall } = useCallContext();
+  const { callState, activeCall, startCall, endCall } = useCallContext();
+  const currentCallRef = useRef(activeCall);
+  useEffect(() => { currentCallRef.current = activeCall; }, [activeCall]);
   const callStateRef = useRef(callState);
   useEffect(() => { callStateRef.current = callState; }, [callState]);
   // Android: the app was opened by the call notification, or an action on it was pressed while running.
   useEffect(() => {
+    if (!userId) return;
+    let disposed = false;
     let off = () => {};
     const openFrom = async (p: { callId: string; callerName: string; callerAvatar?: string | null; isVideo?: boolean; conversationId?: string | null }, answer: boolean) => {
       const call: any = await callService.getCall(p.callId);
-      if (!call || call.status !== 'ringing') { dismissIncomingCall(p.callId); return; }
+      if (disposed || callStateRef.current !== 'idle') return;
+      if (!call || (call.status !== 'ringing' && !(call.is_group_call && call.status === 'active'))) { dismissIncomingCall(p.callId); return; }
       handledCallIdsRef.current.add(p.callId);
-      nav.navigate('IncomingCall', { callId: p.callId, callerName: p.callerName, callerAvatar: p.callerAvatar || null, isVideo: !!p.isVideo, conversationId: p.conversationId || call.conversation_id || null, autoAccept: answer });
+      const params = { callId: call.id, channelId: call.channel_id, callerName: p.callerName,
+        callerAvatar: p.callerAvatar || null, otherUser: { id: call.caller_id, full_name: p.callerName, avatar_url: p.callerAvatar || null },
+        isVideo: !!call.is_video, isGroupCall: !!call.is_group_call, conversationId: call.conversation_id || null };
+      if (answer) {
+        startCall({ callId: call.id, channelId: call.channel_id, otherUserId: call.caller_id,
+          otherUserName: p.callerName, otherUserAvatar: p.callerAvatar || null,
+          isVideo: !!call.is_video, isIncoming: true, isGroupCall: !!call.is_group_call,
+          conversationId: call.conversation_id || null });
+        dismissIncomingCall(call.id);
+        nav.navigate('Call', { ...params, fromContext: true, isIncoming: true });
+      } else nav.navigate('IncomingCall', params);
     };
     (async () => {
       const initial = await consumeInitialCallNotification();
-      if (initial) openFrom(initial.payload, initial.answer);
+      if (disposed) return;
+      if (initial) void openFrom(initial.payload, initial.answer).catch(() => {});
       off = listenForegroundCallActions((p, action) => {
-        if (action === 'decline') { callService.declineCall(p.callId).catch(() => {}); dismissIncomingCall(p.callId); return; }
-        openFrom(p, action === 'answer');
+        if (disposed) return;
+        if (action === 'decline') {
+          void callService.getCall(p.callId).then(async call => {
+            if (disposed || !call) return;
+            if (call.is_group_call) await callService.declineGroupCall(call.id, userId);
+            else await callService.declineCall(call.id);
+          }).catch(() => {});
+          dismissIncomingCall(p.callId); return;
+        }
+        void openFrom(p, action === 'answer').catch(() => {});
       });
-    })();
-    return () => { try { off(); } catch {} };
-  }, [nav]);
+    })().catch(() => {});
+    return () => { disposed = true; try { off(); } catch {} };
+  }, [nav, userId, startCall]);
 
-  // Dormant until the CallKit build: the OS lock-screen answer/decline route.
-  // BUILD DAY: polish caller display names here; today this never runs.
+  // Native lock-screen answer/end callbacks are scoped to their call and account.
   useEffect(() => {
     if (!userId) return;
+    let disposed = false;
     nativeCallService.setup({
       onAnswer: async (uuid) => {
         try {
           const call: any = await callService.getCall(uuid);
-          if (!call) return;
+          if (disposed || callStateRef.current !== 'idle') return;
+          if (!call || (call.status !== 'ringing' && !(call.is_group_call && call.status === 'active'))) return;
           handledCallIdsRef.current.add(uuid);
           clearCallNavGuard();
           // The real name and face, the same lookup the in-app banner does.
@@ -75,6 +100,7 @@ export default function IncomingCallListener() {
               avatar = p?.avatar_url ?? null;
             }
           } catch {}
+          if (disposed || callStateRef.current !== 'idle') return;
           startCall({
             callId: uuid,
             channelId: call.channel_id || call.agora_channel || '',
@@ -104,9 +130,13 @@ export default function IncomingCallListener() {
         try {
           // The OS end button ends the real call when one is running, and
           // declines a ringing one.
-          if (callStateRef.current !== 'idle') { endCall(); return; }
-          supabase.rpc('decline_group_call', { p_session_id: uuid }).then(() => {}, () => {});
-          callService.declineCall(uuid).catch(() => {});
+          if (disposed) return;
+          if (currentCallRef.current?.callId?.toLowerCase() === uuid.toLowerCase() && callStateRef.current !== 'idle') { endCall(); return; }
+          void callService.getCall(uuid).then(async call => {
+            if (disposed || !call || call.status !== 'ringing') return;
+            if (call.is_group_call) await callService.declineGroupCall(uuid, userId);
+            else await callService.declineCall(uuid);
+          }).catch(() => {});
         } catch {}
       },
     });
@@ -114,24 +144,25 @@ export default function IncomingCallListener() {
     // A VoIP push arriving is what rings a locked or killed iPhone. Reporting
     // it to CallKit is mandatory, so this is registered right beside setup.
     nativeCallService.listenForVoipPushes((callId) => {
-      handledCallIdsRef.current.add(callId);
+      if (!disposed) handledCallIdsRef.current.add(callId);
     });
+    return () => { disposed = true; };
   }, [userId, nav, startCall, endCall]);
   const activeCallIdRef = useRef<string | null>(null);
   const [banner, setBanner] = useState<{ callId: string; navParams: any; name: string; avatar: string | null; isGroup: boolean; isVideo: boolean } | null>(null);
   const bannerRef = useRef<any>(null);
   useEffect(() => { bannerRef.current = banner; }, [banner]);
   // Every ring off: ours, the vibration and the phone's own screen, whatever was showing.
-  const killRinging = useCallback((why: string) => {
+  const killRinging = useCallback((why: string, callId: string) => {
+    if (activeCallIdRef.current !== callId) return;
     console.log('[CALL_END] kill ringing:', why);
-    try { audioService.stopAll(); } catch {}
+    if (callStateRef.current === 'idle') void audioService.stopAll().catch(() => {});
     try { Vibration.cancel(); } catch {}
-    try { const { nativeCallService } = require('../services/nativeCallService'); nativeCallService.endAllNativeCalls(); } catch {}
     setBanner(null);
   }, []);
   const clearBanner = useCallback(() => {
     setBanner(null);
-    try { audioService.stopAll(); } catch {}
+    if (callStateRef.current === 'idle') void audioService.stopAll().catch(() => {});
     try { Vibration.cancel(); } catch {}
   }, []);
   const handledCallIdsRef = useRef<Set<string>>(new Set());
@@ -139,21 +170,27 @@ export default function IncomingCallListener() {
   useEffect(() => {
     if (!userId) return;
 
-    console.log('[CALL_LISTENER] Setting up subscription for user:', userId);
+    let disposed = false;
+    const statusSubscriptions = new Set<any>();
+    const bannerTimers = new Set<ReturnType<typeof setTimeout>>();
+    handledCallIdsRef.current.clear();
+    const mayReceive = () => !disposed && callStateRef.current === 'idle';
+    const ringable = (call: CallRecord | null) => !!call && (call.status === 'ringing' || (call.is_group_call && call.status === 'active'));
+    console.log('[CALL_LISTENER] Setting up incoming subscription');
 
     const handleIncoming = async (call: CallRecord) => {
       console.log('[CALL_LISTENER] Incoming call:', call.id, 'isGroup:', call.is_group_call, 'status:', call.status);
 
-      if (!call.caller_id) return;
+      if (!call.caller_id || !mayReceive()) return;
       if (handledCallIdsRef.current.has(call.id)) return;
-      if (activeCallIdRef.current === call.id) return;
+      if (activeCallIdRef.current) return;
       if (call.status !== 'ringing') return;
       if (callStateRef.current !== 'idle') { handledCallIdsRef.current.add(call.id); return; } // busy: call waiting is a Phase B item
       // On iPhones with CallKit the VoIP push rings this call natively. Give
       // it a moment and only fall back to the in-app banner if no push came.
       if (Platform.OS === 'ios' && nativeCallService.available()) {
         await new Promise(r => setTimeout(r, 1500));
-        if (handledCallIdsRef.current.has(call.id)) return;
+        if (!mayReceive() || handledCallIdsRef.current.has(call.id)) return;
       }
 
       // If push tap handler already handling this call, skip
@@ -163,7 +200,9 @@ export default function IncomingCallListener() {
       }
 
       const fresh = await callService.getCall(call.id);
-      if (!fresh || fresh.status !== 'ringing') {
+      if (!mayReceive()) return;
+      if (handledCallIdsRef.current.has(call.id) || activeCallIdRef.current) return;
+      if (!ringable(fresh)) {
         handledCallIdsRef.current.add(call.id);
         return;
       }
@@ -190,7 +229,7 @@ export default function IncomingCallListener() {
         .eq('id', call.caller_id).single();
 
       const recheck = await callService.getCall(call.id);
-      if (!recheck || recheck.status !== 'ringing') {
+      if (!mayReceive() || !ringable(recheck)) {
         activeCallIdRef.current = null;
         clearCallNavGuard();
         return;
@@ -209,6 +248,7 @@ export default function IncomingCallListener() {
         if (conv?.group_emoji) groupEmoji = conv.group_emoji;
       }
 
+      if (!mayReceive()) return;
       const navParams = {
         callId: call.id,
         channelId: call.channel_id,
@@ -229,49 +269,73 @@ export default function IncomingCallListener() {
         isGroup: call.is_group_call, isVideo: call.is_video,
       });
       try { Vibration.vibrate([0, 400, 800], true); } catch {}
-      setTimeout(() => {
-        if (bannerRef.current?.callId === call.id) {
+      const bannerTimer = setTimeout(() => {
+        bannerTimers.delete(bannerTimer);
+        if (!disposed && bannerRef.current?.callId === call.id) {
           clearBanner();
           activeCallIdRef.current = null;
           clearCallNavGuard();
         }
       }, 45000);
+      bannerTimers.add(bannerTimer);
 
       const subUid = `${call.id}_listener_${Date.now()}`;
       const statusSub = supabase.channel(`call_status_${subUid}`)
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'call_sessions', filter: `id=eq.${call.id}` },
           (payload) => {
+            if (disposed) return;
             const st = (payload.new as any).status;
             console.log('[CALL_END] status', st, 'for', call.id.slice(0, 8));
             if (st === 'ended' || st === 'declined' || st === 'missed' || (st === 'active' && !call.is_group_call)) {
-              killRinging('status ' + st);
+              killRinging('status ' + st, call.id);
               // The phone's own call screen rings on its own; tell it the call is over.
-              if (st !== 'active') { try { const { nativeCallService } = require('../services/nativeCallService'); console.log('[CALL_END] ending native call', call.id.slice(0, 8)); nativeCallService.endNativeCall(call.id); nativeCallService.endAllNativeCalls(); } catch (e) { console.log('[CALL_END] native end failed', (e as any)?.message); } }
-              activeCallIdRef.current = null;
-              clearCallNavGuard();
+              if (st !== 'active') { try { const { nativeCallService } = require('../services/nativeCallService'); console.log('[CALL_END] ending native call', call.id.slice(0, 8)); nativeCallService.endNativeCall(call.id); } catch (e) { console.log('[CALL_END] native end failed', (e as any)?.message); } }
+              if (activeCallIdRef.current === call.id) { activeCallIdRef.current = null; clearCallNavGuard(); }
               statusSub.unsubscribe();
+              statusSubscriptions.delete(statusSub);
             }
           })
         .subscribe();
+      statusSubscriptions.add(statusSub);
     };
+    const receive = (call: CallRecord) => { void handleIncoming(call).catch(() => {}); };
 
-    // Single subscription handles both 1-on-1 and group calls
-    const invitePoll = setInterval(async () => {
+    // Reconcile after subscription recovery and foregrounding; no permanent
+    // per-user polling loop is needed while the app is idle.
+    let recoveringGroups = false;
+    const recoverGroupInvites = async () => {
+      if (!mayReceive() || recoveringGroups) return;
+      recoveringGroups = true;
       try {
         const { data: invites } = await supabase.from('call_participants')
           .select('call_session_id, status, created_at')
           .eq('user_id', userId).eq('status', 'invited')
           .gt('created_at', new Date(Date.now() - 60000).toISOString());
+        if (!mayReceive()) return;
         for (const inv of (invites || [])) {
           if (handledCallIdsRef.current.has(inv.call_session_id)) continue;
           const call = await callService.getCall(inv.call_session_id);
           if (call && (call.status === 'ringing' || call.status === 'active')) {
-            handleIncoming({ ...call, status: 'ringing' } as any);
+            receive({ ...call, status: 'ringing' } as any);
           }
         }
-      } catch {}
-    }, 8000);
-    const directSub = callService.subscribeToIncomingCalls(userId, handleIncoming);
+      } catch {} finally { recoveringGroups = false; }
+    };
+    void recoverGroupInvites();
+    let recovering = false;
+    const recoverIncoming = async () => {
+      if (!mayReceive() || recovering) return;
+      recovering = true;
+      try {
+        const calls = await callService.listRingingCalls(userId);
+        if (mayReceive()) for (const call of calls) receive(call);
+      } catch {} finally { recovering = false; }
+    };
+    const directSub = callService.subscribeToIncomingCalls(userId, receive, () => { void recoverIncoming(); });
+    void recoverIncoming();
+    const foreground = AppState.addEventListener('change', state => {
+      if (state === 'active') { void recoverIncoming(); void recoverGroupInvites(); }
+    });
 
     const inviteSub = supabase.channel(`gcall_invites_${userId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: "receiver_id=eq." + userId }, async (p) => { try { const m: any = p.new; if (m?.id && m.sender_id !== userId) { await supabase.from('messages').update({ delivered_at: new Date().toISOString() }).eq('id', m.id).is('delivered_at', null); } } catch {} })
@@ -279,13 +343,17 @@ export default function IncomingCallListener() {
         const row = p.new as any;
         if (row?.status !== 'invited') return;
         const call = await callService.getCall(row.call_session_id);
-        if (call && (call.status === 'ringing' || call.status === 'active')) handleIncoming({ ...call, status: 'ringing' } as any);
+        if (mayReceive() && call && (call.status === 'ringing' || call.status === 'active')) receive({ ...call, status: 'ringing' } as any);
       })
-      .subscribe();
+      .subscribe(status => { if (status === 'SUBSCRIBED') void recoverGroupInvites(); });
 
     return () => {
+      disposed = true;
+      for (const sub of statusSubscriptions) sub.unsubscribe();
+      for (const timer of bannerTimers) clearTimeout(timer);
+      clearBanner();
       console.log('[CALL_LISTENER] Cleaning up subscription');
-      clearInterval(invitePoll);
+      foreground.remove();
       directSub.unsubscribe();
       supabase.removeChannel(inviteSub);
       activeCallIdRef.current = null;

@@ -39,12 +39,12 @@ export function MemoryAlbumBook({ profileId }: { profileId: string }) {
                   </span>
                 </span>
               </span>
-              <span className="mt-1 block w-[74px] truncate text-[11px] text-ink/50">{b.count === 1 ? "1 memory" : String(b.count ?? 0) + " memories"}</span>
+              <span className="mt-1 block w-[74px] truncate text-[11px] text-muted">{b.count === 1 ? "1 memory" : String(b.count ?? 0) + " memories"}</span>
             </Link>
           );
         })}
         {isOwner ? (
-          <span className="flex h-[92px] w-[74px] shrink-0 items-center justify-center rounded-[10px] border border-dashed border-ink/20 text-ink/30" title="Create books in the app"><Plus size={18} /></span>
+          <span className="flex h-[92px] w-[74px] shrink-0 items-center justify-center rounded-[10px] border border-dashed border-ink/20 text-muted" title="Create books in the app"><Plus size={18} /></span>
         ) : null}
       </div>
     </div>

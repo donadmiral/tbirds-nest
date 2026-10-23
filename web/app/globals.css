@@ -7,15 +7,19 @@
   --color-ink: #16181c;
   --color-navy: #16181c;
   --color-pearl: #c9bfb0;
-  --color-pearl-muted: #8f8477;
+  --color-pearl-muted: #625548;
+  --color-accent: #625548;
+  --color-secondary: #535761;
+  --color-muted: #646870;
+  --color-on-pearl: #16181c;
   --color-porcelain: #16181c;
   --color-surface: rgba(0, 0, 0, 0.05);
   --color-surface-elevated: rgba(0, 0, 0, 0.08);
   --color-surface-active: rgba(0, 0, 0, 0.12);
-  --color-danger: #ff3b30;
-  --color-success: #059669;
-  --color-info: #8f8477;
-  --color-warn: #ff9500;
+  --color-danger: #b3261e;
+  --color-success: #066344;
+  --color-info: #235fad;
+  --color-warn: #8a5200;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -27,6 +31,18 @@
   --font-sans: var(--font-instrument);
 }
 
+:root {
+  --chrome-solid: #faf9f7;
+  --chrome-glass: rgba(250, 249, 247, 0.94);
+  --chrome-border: rgba(22, 24, 28, 0.16);
+  --chrome-highlight: rgba(255, 255, 255, 0.85);
+  --chrome-secondary: #535761;
+  --chrome-shadow: 0 8px 28px rgba(22, 24, 28, 0.08);
+  --focus-ring: #625548;
+  --wordmark-primary: #12213d;
+  --wordmark-secondary: #667084;
+}
+
 body {
   background: #ffffff;
   color: var(--color-ink);
@@ -36,12 +52,12 @@ body {
 
 ::selection {
   background: var(--color-pearl);
-  color: var(--color-ink);
+  color: var(--color-on-pearl);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-pearl);
-  outline-offset: 2px;
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -49,29 +65,102 @@ body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 /* Dark mode.
    Every colour in the app is a token, so dark is a second set of values, not
-   a second set of classes. bg-white is remapped to a dark card colour; the
-   .theater scope restores true white inside the video viewer, which is dark
-   in both modes and needs light text. */
+   a second set of classes. bg-white is remapped to a dark card colour.
+   Media viewers keep their own fixed palette below because they remain dark
+   in both modes. */
 .dark {
   --color-ink: #ece8df;
   --color-navy: #ece8df;
   --color-porcelain: #f6f2ea;
   --color-white: #17191d;
   --color-pearl-muted: #b9ae9e;
+  --color-accent: #c9bfb0;
+  --color-secondary: #c3c0b9;
+  --color-muted: #aaa9a5;
+  --color-danger: #ff938a;
+  --color-success: #62dfa0;
+  --color-info: #8abcff;
+  --color-warn: #ffc36a;
   --color-surface: rgba(255, 255, 255, 0.06);
   --color-surface-elevated: rgba(255, 255, 255, 0.10);
   --color-surface-active: rgba(255, 255, 255, 0.14);
+  --chrome-solid: #202126;
+  --chrome-glass: rgba(32, 33, 38, 0.94);
+  --chrome-border: rgba(236, 232, 223, 0.22);
+  --chrome-highlight: rgba(236, 232, 223, 0.08);
+  --chrome-secondary: #c3c0b9;
+  --chrome-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+  --focus-ring: #d7c8b2;
+  --wordmark-primary: #ece8df;
+  --wordmark-secondary: #b8bdc9;
   color-scheme: dark;
 }
 .dark body { background: #0f1013; }
-.dark .theater { --color-white: #ffffff; }
 .dark img[src$=".svg"] { filter: none; }
+
+/* Video controls and the theater are dark even when the page is light. Keep
+   foreground and backdrop tokens together so a page theme cannot invert one. */
+.theater, .video-player {
+  --color-ink: #16181c;
+  --color-navy: #16181c;
+  --color-white: #ffffff;
+  --color-porcelain: #f6f2ea;
+  --color-secondary: #dedbd5;
+  --color-muted: #b9b7b2;
+  --color-accent: #c9bfb0;
+  --color-danger: #ff938a;
+  --color-success: #62dfa0;
+  --color-info: #8abcff;
+  --color-warn: #ffc36a;
+  --focus-ring: #c9bfb0;
+  color-scheme: dark;
+}
+
+/* Shared comments use ink as their foreground. Their filled actions still
+   need dark ink, while the surrounding viewer uses ink as a backdrop. */
+.theater-comments {
+  --color-ink: #ffffff;
+  --color-surface: rgba(255, 255, 255, 0.06);
+  --color-surface-elevated: rgba(255, 255, 255, 0.10);
+}
+.theater-comments button.bg-ink { background-color: var(--color-on-pearl); }
+.theater-comments button.bg-pearl { color: var(--color-on-pearl); }
+.theater-comments button.bg-pearl:disabled { opacity: 0.65; }
+.theater-comments textarea::placeholder { color: rgb(255 255 255 / 0.6); }
+
+/* The post menu retains its light popup. Its trigger remains on the dark
+   sidebar, so the two surfaces need different focus indicators. */
+.theater-menu {
+  --color-porcelain: #16181c;
+  --color-secondary: #535761;
+  --color-muted: #646870;
+  --color-accent: #625548;
+  --color-danger: #b3261e;
+  --color-success: #066344;
+  --color-info: #235fad;
+  --color-warn: #8a5200;
+  --color-surface: rgba(0, 0, 0, 0.05);
+  --color-surface-elevated: rgba(0, 0, 0, 0.08);
+  --color-surface-active: rgba(0, 0, 0, 0.12);
+  --focus-ring: #625548;
+  color-scheme: light;
+}
+.theater-menu > div > button { --focus-ring: var(--color-pearl); }
+.theater :focus-visible, .video-player:focus-visible, .video-player :focus-visible {
+  box-shadow: 0 0 0 3px #0b0b0d;
+}
+
+@media (forced-colors: active) {
+  :focus-visible { outline-color: Highlight; }
+}
 
 /* Safe areas for phones in the browser: the notch and the home indicator. */
 .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
@@ -85,3 +174,8 @@ select { color-scheme: light; background-color: #FFFFFF; color: #0B1E3D; }
 select option, select optgroup { background-color: #FFFFFF; color: #0B1E3D; }
 .dark select { color-scheme: dark; background-color: #15171B; color: #F5F3EF; }
 .dark select option, .dark select optgroup { background-color: #15171B; color: #F5F3EF; }
+.video-player select, .video-player select option {
+  color-scheme: dark;
+  background-color: var(--color-ink);
+  color: var(--color-white);
+}

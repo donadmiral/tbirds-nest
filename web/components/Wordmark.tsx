@@ -10,8 +10,8 @@ export function Wordmark({ size = 26, className = "" }: { size?: number; classNa
       style={{ fontSize: size, fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif" }}
       aria-label="Platinum Circles"
     >
-      <span style={{ color: "#12213D" }}>Platinum</span>
-      <span style={{ color: "#8F97A8" }}>Circles</span>
+      <span style={{ color: "var(--wordmark-primary, #12213D)" }}>Platinum</span>
+      <span style={{ color: "var(--wordmark-secondary, #667084)" }}>Circles</span>
     </span>
   );
 }

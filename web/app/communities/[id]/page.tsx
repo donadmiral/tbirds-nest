@@ -1,11 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createScopedMutation } from "../../../../shared/scopedMutation";
+import { withTimeout } from "@/lib/withTimeout";
 import { displayImageUrl } from "@/lib/media";
 import type { ChangeEvent } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Camera, Check, Hash, Image as ImageIcon, Inbox, Link2, LogOut, MessageCircle, Megaphone, MoreHorizontal, Plus, Send, Settings2, Shield, UserPlus, Users, X } from "lucide-react";
+import { useSocialPages } from "@/lib/useSocialPages";
+import { SocialPageFooter } from "@/components/SocialPageFooter";
+import { ErrorState } from "@/components/ErrorState";
 import { PersonName } from "@/components/PersonName";
 import { createClient } from "@/lib/supabase/client";
 import { PostCard } from "@/components/PostCard";
@@ -20,12 +25,17 @@ type Info = {
 };
 
 export default function CommunityPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const params = useParams<{ id: string }>();
   const communityId = String(params.id || "");
   const [me, setMe] = useState<string | null>(null);
   const [info, setInfo] = useState<Info | null>(null);
-  const [posts, setPosts] = useState<any[]>([]);
+  const postsPage = useSocialPages<any>("get_community_posts_page", { p_community: communityId }, { key: "post_id", enabled: !!info?.is_member });
+  const { items: posts, setItems: setPosts } = postsPage;
+  const infoRequest = useRef(0);
+  const postLock = useRef(false);
+  const actions=useRef(createScopedMutation());const mutationEpoch=useRef(0);
+  const [infoError, setInfoError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -34,26 +44,32 @@ export default function CommunityPage() {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [membersOpen, setMembersOpen] = useState(false);
-  const [members, setMembers] = useState<any[]>([]);
+  const membersPage = useSocialPages<any>("get_community_members_page", { p_community: communityId }, { key: "user_id", enabled: membersOpen && !!info?.is_member });
+  const { items: members, setItems: setMembers } = membersPage;
   const [requestsOpen, setRequestsOpen] = useState(false);
-  const [requests, setRequests] = useState<any[]>([]);
+  const requestsPage = useSocialPages<any>("get_join_requests_page", { p_community: communityId }, { key: "user_id", enabled: requestsOpen && !!info?.is_member });
+  const { items: requests, setItems: setRequests } = requestsPage;
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Membership machine: invitations, announcements, sub-groups, limited and removed members.
   const router = useRouter();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteQ, setInviteQ] = useState("");
   const [inviteHits, setInviteHits] = useState<any[]>([]);
-  const [invites, setInvites] = useState<any[]>([]);
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const invitesPage = useSocialPages<any>("get_community_invites_page", { p_community: communityId }, { key: "user_id", enabled: inviteOpen && !!info?.is_member });
+  const { items: invites, setItems: setInvites } = invitesPage;
+  const announcementsPage = useSocialPages<any>("get_community_announcements_page", { p_community: communityId }, { key: "id", enabled: !!info?.is_member });
+  const { items: announcements, setItems: setAnnouncements } = announcementsPage;
   const [annDraft, setAnnDraft] = useState("");
   const [annOpen, setAnnOpen] = useState(false);
-  const [subs, setSubs] = useState<any[]>([]);
+  const subsPage = useSocialPages<any>("get_sub_communities_page", { p_community: communityId }, { key: "id", enabled: !!info?.is_member });
+  const { items: subs, setItems: setSubs } = subsPage;
   const [subOpen, setSubOpen] = useState(false);
   const [subName, setSubName] = useState("");
   const [subDesc, setSubDesc] = useState("");
   const [subMode, setSubMode] = useState<"open" | "approval" | "invite">("open");
-  const [bans, setBans] = useState<any[]>([]);
   const [bansOpen, setBansOpen] = useState(false);
+  const bansPage = useSocialPages<any>("get_community_bans_page", { p_community: communityId }, { key: "user_id", enabled: bansOpen && !!info?.is_member });
+  const { items: bans, setItems: setBans } = bansPage;
   const [linkNote, setLinkNote] = useState<string | null>(null);
 
   const isMember = !!info?.is_member;
@@ -61,127 +77,136 @@ export default function CommunityPage() {
   const isMod = myRole === "owner" || myRole === "moderator";
   const band = COMM_COLORS[info?.cover_color || "sky"] || COMM_COLORS.sky;
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setMe(data.session?.user.id ?? null));
-  }, [supabase]);
-
   const loadInfo = useCallback(async () => {
-    const { data } = await supabase.rpc("get_community", { p_community: communityId });
-    const row = Array.isArray(data) ? data[0] : data;
-    if (row) setInfo(row as Info);
+    const version = ++infoRequest.current;
+    setInfoError(false);
+    try {
+      const { data, error } = await withTimeout(supabase.rpc("get_community", { p_community: communityId }));
+      if (error) throw error;
+      if (version !== infoRequest.current) return;
+      const row = Array.isArray(data) ? data[0] : data;
+      setInfo((row as Info) ?? null);
+    } catch { if (version === infoRequest.current) setInfoError(true); }
+    finally { if (version === infoRequest.current) setLoading(false); }
   }, [communityId, supabase]);
 
-  const loadPosts = useCallback(async (cursor?: string | null) => {
-    const { data, error } = await supabase.rpc("get_community_posts", { p_community: communityId, p_cursor: cursor ?? null, p_limit: 25 });
-    if (error) return;
-    const rows = (data as any[]) ?? [];
-    if (cursor) {
-      setPosts(prev => {
-        const seen = new Set(prev.map(p => p.post_id));
-        return [...prev, ...rows.filter(r => !seen.has(r.post_id))];
-      });
-    } else setPosts(rows);
-  }, [communityId, supabase]);
+  const reloadPosts = postsPage.reload;
+  const loadPosts = useCallback(async () => { await reloadPosts(); }, [reloadPosts]);
+  const reloadAnnouncements = announcementsPage.reload, reloadSubs = subsPage.reload;
+  const loadExtras = useCallback(async () => { await Promise.all([reloadAnnouncements(), reloadSubs()]); }, [reloadAnnouncements, reloadSubs]);
 
   useEffect(() => {
-    (async () => { await loadInfo(); setLoading(false); })();
-  }, [loadInfo]);
-
-  useEffect(() => { if (isMember) void loadPosts(null); }, [isMember, loadPosts]);
-
-  const loadExtras = useCallback(async () => {
-    const [{ data: an }, { data: sb }] = await Promise.all([
-      supabase.rpc("get_community_announcements", { p_community: communityId, p_limit: 20 }),
-      supabase.rpc("get_sub_communities", { p_community: communityId, p_limit: 30 }),
-    ]);
-    setAnnouncements((an as any[]) ?? []); setSubs((sb as any[]) ?? []);
-  }, [communityId, supabase]);
-  useEffect(() => { if (isMember) void loadExtras(); }, [isMember, loadExtras]);
+    setInfo(null); setLoading(true); setMembersOpen(false); setRequestsOpen(false); setInviteOpen(false); setBansOpen(false);
+    let alive = true;
+    let uid: string | null | undefined;
+    const bind = (next: string | null) => { if (alive && uid !== next) { uid = next; mutationEpoch.current++;actions.current.reset();postLock.current=false;setPosting(false);setAnnDraft("");setSubName("");setSubDesc("");setLinkNote(null);setSettingsOpen(false);setInviteOpen(false);setAnnOpen(false);setSubOpen(false);setMe(next); setInfo(null); setDraft(""); setFile(null); setInviteQ(""); setInviteHits([]); void loadInfo(); } };
+    const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => bind(session?.user.id ?? null));
+    withTimeout(supabase.auth.getSession()).then(({data,error})=>{if(error)throw error;if(uid===undefined)bind(data.session?.user.id??null);}).catch(()=>{if(alive&&uid===undefined){setLoading(false);setInfoError(true);}});
+    return () => { alive = false; infoRequest.current++;mutationEpoch.current++;actions.current.reset(); auth.subscription.unsubscribe(); };
+  }, [supabase, loadInfo]);
 
   useEffect(() => {
     if (!inviteOpen) return;
     const q = inviteQ.trim().replace(/^@/, "");
     let dead = false;
     const t = window.setTimeout(async () => {
-      const base = supabase.from("profiles").select("id, full_name, username, avatar_url").limit(12);
-      const { data } = q ? await base.or("username.ilike." + q + "%,full_name.ilike.%" + q + "%") : await base.order("last_seen", { ascending: false });
-      if (!dead) setInviteHits((data as any[]) ?? []);
+      if (q.length < 2) { if (!dead) setInviteHits([]); return; }
+      try {
+      const { data, error } = await withTimeout(supabase.rpc("search_people_page", { p_q: q, p_limit: 12, p_offset: 0 }));
+      if (!dead) {
+        setInviteHits(error ? [] : (data ?? []));
+        setLinkNote(error ? "Could not search people. Please try again." : null);
+      }
+      } catch {if(!dead){setInviteHits([]);setLinkNote("Could not search people. Please try again.");}}
     }, 160);
     return () => { dead = true; window.clearTimeout(t); };
   }, [inviteQ, inviteOpen, supabase]);
 
+  const actionRpc = (name:string,args:Record<string,unknown>) => actions.current.run(name+JSON.stringify(args), async()=>{
+    if(!me)throw new Error("Sign in before continuing.");
+    return await withTimeout(supabase.rpc(name,args));
+  });
   const respondInvite = async (accept: boolean) => {
-    const { data, error } = await supabase.rpc("respond_community_invite", { p_community: communityId, p_accept: accept });
+    const { data, error, stale } = await actionRpc("respond_community_invite", { p_community: communityId, p_accept: accept });
+    if (stale) return;
     if (error) { alert(error.message); return; }
-    if (data === "joined") setInfo(p => p ? { ...p, is_member: true, my_role: p.my_role || "member", my_status: "active", has_invite: false, member_count: (p.member_count || 0) + 1 } : p);
-    else setInfo(p => p ? { ...p, has_invite: false } : p);
+    await loadInfo();
   };
-  const openInvite = async () => {
-    setInviteOpen(true); setLinkNote(null);
-    const { data } = await supabase.rpc("get_community_invites", { p_community: communityId, p_limit: 60 });
-    setInvites((data as any[]) ?? []);
-  };
+  const openInvite = async () => { setInviteOpen(true); setLinkNote(null); };
+
   const invitePerson = async (p: any) => {
-    const { error } = await supabase.rpc("invite_to_community", { p_community: communityId, p_user: p.id });
+    const { error, stale } = await actionRpc("invite_to_community", { p_community: communityId, p_user: p.id });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setInvites(prev => [{ user_id: p.id, full_name: p.full_name, username: p.username, avatar_url: p.avatar_url, created_at: new Date().toISOString() }, ...prev.filter(x => x.user_id !== p.id)]);
     setInviteQ("");
   };
   const revokeInvite = async (r: any) => {
-    const { error } = await supabase.rpc("revoke_community_invite", { p_community: communityId, p_user: r.user_id });
+    const { error, stale } = await actionRpc("revoke_community_invite", { p_community: communityId, p_user: r.user_id });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setInvites(prev => prev.filter(x => x.user_id !== r.user_id));
   };
   const copyInviteLink = async (fresh: boolean) => {
     let token: string | null = null;
     if (!fresh) {
-      const { data } = await supabase.rpc("get_community_invite_link", { p_community: communityId });
+      const { data, error, stale } = await actionRpc("get_community_invite_link", { p_community: communityId });
+      if (stale) return;
+    if (error) { setLinkNote("Could not read the invite link. Please try again."); return; }
       const row = Array.isArray(data) ? data[0] : data;
       token = (row as any)?.token || null;
     }
     if (!token) {
-      const { data, error } = await supabase.rpc("create_community_invite_link", { p_community: communityId, p_expires_days: 7, p_max_uses: null });
-      if (error) { alert(error.message); return; }
+      const { data, error, stale } = await actionRpc("create_community_invite_link", { p_community: communityId, p_expires_days: 7, p_max_uses: null });
+      if (stale) return;
+    if (error) { alert(error.message); return; }
       token = String(data);
     }
-    const url = "https://platinumcircles.app/communities/join/" + token;
+    const url = window.location.origin + "/communities/join/" + encodeURIComponent(token!);
     try { await navigator.clipboard.writeText(url); setLinkNote("Link copied. It admits anyone for 7 days: " + url); }
     catch { setLinkNote(url); }
   };
   const openChat = async () => {
-    const { data, error } = await supabase.rpc("get_community_conversation", { p_community: communityId });
+    const { data, error, stale } = await actionRpc("get_community_conversation", { p_community: communityId });
+    if (stale) return;
     if (error || !data) { alert(error?.message || "Could not open the chat"); return; }
     router.push("/messages?c=" + data);
   };
   const postAnnouncement = async () => {
     const body = annDraft.trim(); if (!body) return;
-    const { error } = await supabase.rpc("post_community_announcement", { p_community: communityId, p_body: body });
+    const { error, stale } = await actionRpc("post_community_announcement", { p_community: communityId, p_body: body });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setAnnDraft(""); setAnnOpen(false); void loadExtras();
   };
   const deleteAnnouncement = async (a: any) => {
     if (!confirm("Remove this announcement?")) return;
-    await supabase.rpc("delete_community_announcement", { p_id: a.id });
+    const { error, stale } = await actionRpc("delete_community_announcement", { p_id: a.id });
+    if (stale) return;
+    if (error) { alert(error.message); return; }
     setAnnouncements(prev => prev.filter(x => x.id !== a.id));
   };
   const createSub = async () => {
     const nm = subName.trim(); if (nm.length < 3) return;
-    const { data, error } = await supabase.rpc("create_sub_community", { p_parent: communityId, p_name: nm, p_description: subDesc.trim() || null, p_join_mode: subMode, p_cover_color: info?.cover_color || "sky" });
+    const { data, error, stale } = await actionRpc("create_sub_community", { p_parent: communityId, p_name: nm, p_description: subDesc.trim() || null, p_join_mode: subMode, p_cover_color: info?.cover_color || "sky" });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setSubOpen(false); setSubName(""); setSubDesc(""); setSubMode("open");
     router.push("/communities/" + data);
   };
   const applyStatus = async (m: any, status: "active" | "limited") => {
-    const { error } = await supabase.rpc("set_community_member_status", { p_community: communityId, p_user: m.user_id, p_status: status });
+    const { error, stale } = await actionRpc("set_community_member_status", { p_community: communityId, p_user: m.user_id, p_status: status });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setMembers(prev => prev.map(x => x.user_id === m.user_id ? { ...x, status } : x));
   };
   const removeMember = async (m: any, ban: boolean) => {
     if (!confirm(ban ? "Remove and block from rejoining?" : "Remove from the community?")) return;
-    const { error } = await supabase.rpc("remove_community_member", { p_community: communityId, p_user: m.user_id, p_ban: ban, p_reason: null });
+    const { error, stale } = await actionRpc("remove_community_member", { p_community: communityId, p_user: m.user_id, p_ban: ban, p_reason: null });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
-    setInfo(p => p ? { ...p, member_count: Math.max((p.member_count || 1) - 1, 0) } : p);
+    await loadInfo();
   };
   const memberAction = (m: any, v: string) => {
     if (v === "moderator" || v === "member") void applyRole(m, v);
@@ -190,102 +215,103 @@ export default function CommunityPage() {
     else if (v === "remove") void removeMember(m, false);
     else if (v === "ban") void removeMember(m, true);
   };
-  const openBans = async () => {
-    setBansOpen(true);
-    const { data } = await supabase.rpc("get_community_bans", { p_community: communityId, p_limit: 60 });
-    setBans((data as any[]) ?? []);
-  };
+  const openBans = async () => { setBansOpen(true); };
+
   const unban = async (b: any) => {
-    const { error } = await supabase.rpc("unban_community_member", { p_community: communityId, p_user: b.user_id });
+    const { error, stale } = await actionRpc("unban_community_member", { p_community: communityId, p_user: b.user_id });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setBans(prev => prev.filter(x => x.user_id !== b.user_id));
   };
 
   const join = async () => {
-    const { data, error } = await supabase.rpc("join_community", { p_community: communityId });
+    const { data, error, stale } = await actionRpc("join_community", { p_community: communityId });
+    if (stale) return;
     if (error) { alert(error.message); return; }
-    if (data === "joined") setInfo(p => p ? { ...p, is_member: true, my_role: p.my_role || "member", member_count: (p.member_count || 0) + 1 } : p);
-    else setInfo(p => p ? { ...p, has_pending: true } : p);
+    await loadInfo();
   };
 
   const cancelRequest = async () => {
-    await supabase.rpc("cancel_join_request", { p_community: communityId });
+    const { error, stale } = await actionRpc("cancel_join_request", { p_community: communityId });
+    if (stale) return;
+    if (error) { alert(error.message); return; }
     setInfo(p => p ? { ...p, has_pending: false } : p);
   };
 
   const leave = async () => {
     if (!confirm("Leave this community?")) return;
-    const { error } = await supabase.rpc("leave_community", { p_community: communityId });
+    const { error, stale } = await actionRpc("leave_community", { p_community: communityId });
+    if (stale) return;
     if (error) { alert(error.message); return; }
-    setInfo(p => p ? { ...p, is_member: false, my_role: null, member_count: Math.max((p.member_count || 1) - 1, 0) } : p);
-    setPosts([]);
+    await loadInfo();
+    setPosts(() => []);
   };
 
   const submitPost = async () => {
     const body = draft.trim();
-    if ((!body && !file) || posting || !me) return;
-    setPosting(true);
+    if ((!body && !file) || postLock.current || !me) return;
+    postLock.current = true; setPosting(true);
+    const version = mutationEpoch.current;
     try {
       let mediaUrl: string | null = null;
       if (file) {
+        if (!file.type.startsWith("image/") || file.type === "image/svg+xml" || file.size > 20 * 1024 * 1024) throw new Error("Choose a photo smaller than 20 MB.");
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace("jpeg", "jpg");
         const path = me + "/community_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
         const up = await supabase.storage.from("post-media").upload(path, file, { contentType: file.type || "image/jpeg" });
         if (up.error) throw up.error;
         mediaUrl = supabase.storage.from("post-media").getPublicUrl(path).data.publicUrl;
       }
+      if (version !== mutationEpoch.current) return;
       const { error } = await supabase.from("posts")
         .insert({ user_id: me, content: body || null, media_url: mediaUrl, community_id: communityId })
         .select("id, created_at").single();
       if (error) throw error;
+      if (version !== mutationEpoch.current) return;
       setDraft(""); setFile(null);
-      await loadPosts(null);
-    } catch (err: any) { alert(err?.message || "Could not post."); }
-    finally { setPosting(false); }
+      await loadPosts();
+    } catch (err: any) { if(version===mutationEpoch.current)alert(err?.message || "Could not post."); }
+    finally { if(version===mutationEpoch.current){postLock.current = false; setPosting(false);} }
   };
 
   const pin = async (p: any) => {
-    const { error } = await supabase.rpc("pin_community_post", { p_post: p.post_id, p_pin: !p.is_pinned });
+    const { error, stale } = await actionRpc("pin_community_post", { p_post: p.post_id, p_pin: !p.is_pinned });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setMenuFor(null);
-    await loadPosts(null);
+    await loadPosts();
   };
 
   const removePost = async (p: any) => {
     const own = p.author_id === me;
     if (!confirm(own ? "Delete this post?" : "Remove this post from the community?")) return;
-    const r = own
-      ? await supabase.from("posts").delete().eq("id", p.post_id)
-      : await supabase.rpc("remove_community_post", { p_post: p.post_id });
-    if ((r as any).error) { alert((r as any).error.message); return; }
+    const r = await actions.current.run('remove:'+p.post_id,()=>withTimeout(own
+      ? supabase.from("posts").delete().eq("id",p.post_id)
+      : supabase.rpc("remove_community_post",{p_post:p.post_id})));
+    if(r.stale)return;
+    if (r.error) { alert(r.error.message); return; }
     setMenuFor(null);
     setPosts(prev => prev.filter(x => x.post_id !== p.post_id));
   };
 
-  const openMembers = async () => {
-    setMembersOpen(true);
-    const { data } = await supabase.rpc("get_community_members", { p_community: communityId, p_limit: 100 });
-    setMembers((data as any[]) ?? []);
-  };
+  const openMembers = async () => { setMembersOpen(true); };
 
   const applyRole = async (m: any, role: string) => {
-    const { error } = await supabase.rpc("set_community_role", { p_community: communityId, p_user: m.user_id, p_role: role });
+    const { error, stale } = await actionRpc("set_community_role", { p_community: communityId, p_user: m.user_id, p_role: role });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     if (role === "remove") setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
     else setMembers(prev => prev.map(x => x.user_id === m.user_id ? { ...x, role } : x));
   };
 
-  const openRequests = async () => {
-    setRequestsOpen(true);
-    const { data } = await supabase.rpc("get_join_requests", { p_community: communityId, p_limit: 60 });
-    setRequests((data as any[]) ?? []);
-  };
+  const openRequests = async () => { setRequestsOpen(true); };
 
   const resolveReq = async (r: any, approve: boolean) => {
-    const { error } = await supabase.rpc("resolve_join_request", { p_community: communityId, p_user: r.user_id, p_approve: approve });
+    const { error, stale } = await actionRpc("resolve_join_request", { p_community: communityId, p_user: r.user_id, p_approve: approve });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setRequests(prev => prev.filter(x => x.user_id !== r.user_id));
-    if (approve) setInfo(p => p ? { ...p, member_count: (p.member_count || 0) + 1 } : p);
+    await loadInfo();
   };
 
   const catLabel = info?.category ? (CATEGORIES.find(c => c.key === info.category)?.label || info.category) : null;
@@ -319,7 +345,7 @@ export default function CommunityPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={info.icon_url} alt="" className="h-[52px] w-[52px] rounded-2xl object-cover" />
           ) : (
-            <span className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-white/60 text-[#1F2937]"><Users size={22} /></span>
+            <span className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-[#FFFFFF]/60 text-[#1F2937]"><Users size={22} /></span>
           )}
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-[18px] font-extrabold text-[#1F2937]">{info?.name || "Community"}</h1>
@@ -331,17 +357,17 @@ export default function CommunityPage() {
           {info && !isMember ? (
             info.has_invite ? (
               <span className="flex gap-1.5">
-                <button onClick={() => respondInvite(true)} className="rounded-full bg-[#0F1419] px-4 py-1.5 text-[13px] font-bold text-white">Accept</button>
-                <button onClick={() => respondInvite(false)} className="rounded-full bg-white/70 px-3.5 py-1.5 text-[12.5px] font-bold text-[#1F2937]">Decline</button>
+                <button onClick={() => respondInvite(true)} className="rounded-full bg-ink px-4 py-1.5 text-[13px] font-bold text-white">Accept</button>
+                <button onClick={() => respondInvite(false)} className="rounded-full bg-[#FFFFFF]/70 px-3.5 py-1.5 text-[12.5px] font-bold text-[#1F2937]">Decline</button>
               </span>
             ) : info.is_banned ? (
-              <span className="rounded-full bg-white/70 px-3 py-1.5 text-[12px] font-bold text-[#1F2937]/70">Removed</span>
+              <span className="rounded-full bg-[#FFFFFF]/70 px-3 py-1.5 text-[12px] font-bold text-[#1F2937]/70">Removed</span>
             ) : info.has_pending ? (
-              <button onClick={cancelRequest} className="rounded-full bg-white/70 px-3.5 py-1.5 text-[12.5px] font-bold text-[#1F2937]">Requested</button>
+              <button onClick={cancelRequest} className="rounded-full bg-[#FFFFFF]/70 px-3.5 py-1.5 text-[12.5px] font-bold text-[#1F2937]">Requested</button>
             ) : info.join_mode === "invite" ? (
-              <span className="rounded-full bg-white/70 px-3 py-1.5 text-[12px] font-bold text-[#1F2937]/70">Invite only</span>
+              <span className="rounded-full bg-[#FFFFFF]/70 px-3 py-1.5 text-[12px] font-bold text-[#1F2937]/70">Invite only</span>
             ) : me ? (
-              <button onClick={join} className="rounded-full bg-[#0F1419] px-4 py-1.5 text-[13px] font-bold text-white">{info.join_mode === "approval" ? "Request" : "Join"}</button>
+              <button onClick={join} className="rounded-full bg-ink px-4 py-1.5 text-[13px] font-bold text-white">{info.join_mode === "approval" ? "Request" : "Join"}</button>
             ) : null
           ) : null}
         </div>
@@ -350,51 +376,56 @@ export default function CommunityPage() {
 
       {info?.rules ? (
         <button onClick={() => setRulesOpen(o => !o)} className="mt-3 w-full rounded-xl border border-ink/10 p-3 text-left">
-          <span className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-[#0B1E3D]"><Shield size={13} /> Community rules</span>
+          <span className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-ink"><Shield size={13} /> Community rules</span>
           <span className={"mt-1 block whitespace-pre-wrap text-[12.5px] text-ink/60" + (rulesOpen ? "" : " line-clamp-2")}>{info.rules}</span>
         </button>
       ) : null}
 
+      {infoError ? <ErrorState title="Could not load this community" onRetry={() => void loadInfo()} /> : null}
+      {!loading && !info && !infoError ? <p className="py-8 text-center text-sm text-muted">This community is unavailable.</p> : null}
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading&hellip;</p>
+        <p className="py-16 text-center text-sm text-muted">Loading&hellip;</p>
       ) : !isMember ? (
-        <p className="py-16 text-center text-sm text-ink/40">{info?.has_invite ? "Accept the invitation above to see the posts." : info?.is_banned ? "You were removed from this community." : info?.join_mode === "invite" ? "Ask a moderator for an invite to see the posts." : "Join to see and share posts inside this community."}</p>
+        <p className="py-16 text-center text-sm text-muted">{info?.has_invite ? "Accept the invitation above to see the posts." : info?.is_banned ? "You were removed from this community." : info?.join_mode === "invite" ? "Ask a moderator for an invite to see the posts." : "Join to see and share posts inside this community."}</p>
       ) : (
         <div className="mt-3">
           {(announcements.length > 0 || isMod) ? (
-            <div className="mb-3 rounded-2xl border border-[#0B1E3D]/15 bg-[#C9BFB0]/15 p-3">
-              <div className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-[#0B1E3D]">
+            <div className="mb-3 rounded-2xl border border-ink/15 bg-[#C9BFB0]/15 p-3">
+              <div className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-ink">
                 <Megaphone size={13} /> Announcements
                 <span className="flex-1" />
-                {isMod ? <button onClick={() => setAnnOpen(o => !o)} className="rounded-full p-1 text-[#0B1E3D] hover:bg-black/5" aria-label="Post an announcement"><Plus size={15} /></button> : null}
+                {isMod ? <button onClick={() => setAnnOpen(o => !o)} className="rounded-full p-1 text-ink hover:bg-black/5" aria-label="Post an announcement"><Plus size={15} /></button> : null}
               </div>
               {annOpen ? (
                 <div className="mt-2 flex gap-2">
                   <input value={annDraft} onChange={e => setAnnDraft(e.target.value)} maxLength={2000} placeholder="What should everyone know?" onKeyDown={e => { if (e.key === "Enter") void postAnnouncement(); }}
-                    className="w-full rounded-full bg-white px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-ink/40" />
+                    className="w-full rounded-full bg-white px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-muted" />
                   <button onClick={postAnnouncement} disabled={!annDraft.trim()} className="rounded-full bg-ink px-4 text-[13px] font-semibold text-white disabled:opacity-30">Post</button>
                 </div>
               ) : null}
-              {announcements.length === 0 ? <p className="mt-1 text-[12.5px] text-ink/60">Nothing announced yet. Only moderators post here; every member sees it.</p> : announcements.slice(0, 3).map((a: any) => (
+              {announcements.length === 0 ? <p className="mt-1 text-[12.5px] text-ink/60">Nothing announced yet. Only moderators post here; every member sees it.</p> : announcements.map((a: any) => (
                 <div key={a.id} className="group mt-2">
                   <p className="whitespace-pre-wrap text-[13px] text-ink">{a.body}</p>
-                  <p className="text-[11.5px] text-ink/45">{(a.full_name || a.username || "Moderator")}{isMod ? <button onClick={() => deleteAnnouncement(a)} className="ml-2 hidden text-red-600 group-hover:inline">Remove</button> : null}</p>
+                  <p className="text-[11.5px] text-muted">{(a.full_name || a.username || "Moderator")}{isMod ? <button onClick={() => deleteAnnouncement(a)} className="ml-2 hidden text-danger group-hover:inline">Remove</button> : null}</p>
                 </div>
               ))}
+              <SocialPageFooter {...announcementsPage} />
             </div>
           ) : null}
+          {announcementsPage.error && announcements.length === 0 && !isMod ? <SocialPageFooter {...announcementsPage} /> : null}
           {(subs.length > 0 || isMod) ? (
             <div className="mb-3 flex flex-wrap gap-2">
               {subs.map((s: any) => (
-                <Link key={s.id} href={"/communities/" + s.id} className="flex items-center gap-1 rounded-full border border-[#0B1E3D]/20 bg-white px-3 py-1.5 text-[13px] font-semibold text-[#0B1E3D] hover:bg-black/[0.03]">
-                  <Hash size={12} /> {s.name}{s.join_mode === "invite" && !s.is_member ? <span className="text-ink/40"> · invite only</span> : null}
+                <Link key={s.id} href={"/communities/" + s.id} className="flex items-center gap-1 rounded-full border border-ink/20 bg-white px-3 py-1.5 text-[13px] font-semibold text-ink hover:bg-black/[0.03]">
+                  <Hash size={12} /> {s.name}{s.join_mode === "invite" && !s.is_member ? <span className="text-muted"> · invite only</span> : null}
                 </Link>
               ))}
               {isMod ? (
-                <button onClick={() => setSubOpen(o => !o)} className="flex items-center gap-1 rounded-full border border-dashed border-[#0B1E3D]/30 px-3 py-1.5 text-[13px] font-semibold text-[#0B1E3D] hover:bg-black/[0.03]"><Plus size={12} /> Sub-group</button>
+                <button onClick={() => setSubOpen(o => !o)} className="flex items-center gap-1 rounded-full border border-dashed border-ink/30 px-3 py-1.5 text-[13px] font-semibold text-ink hover:bg-black/[0.03]"><Plus size={12} /> Sub-group</button>
               ) : null}
             </div>
           ) : null}
+          <SocialPageFooter {...subsPage} />
           {subOpen ? (
             <div className="mb-3 rounded-2xl border border-ink/10 p-3">
               <p className="mb-2 text-[12.5px] text-ink/60">A sub-group lives inside {info?.name}. Only its members can join, and leaving {info?.name} leaves the sub-group too.</p>
@@ -409,36 +440,37 @@ export default function CommunityPage() {
             </div>
           ) : null}
           {info?.my_status === "limited" ? (
-            <p className="mb-3 rounded-2xl border border-ink/10 px-3 py-2.5 text-center text-[13px] font-semibold text-ink/50">You can view this community but not post in it</p>
+            <p className="mb-3 rounded-2xl border border-ink/10 px-3 py-2.5 text-center text-[13px] font-semibold text-muted">You can view this community but not post in it</p>
           ) : (
           <div className="mb-3 rounded-2xl border border-ink/10 p-3">
             {file ? (
               <p className="mb-2 flex items-center gap-2 text-[12.5px] text-ink/60">
                 <ImageIcon size={13} /> {file.name}
-                <button onClick={() => setFile(null)} className="text-ink/40 hover:text-ink" aria-label="Remove attachment"><X size={13} /></button>
+                <button onClick={() => setFile(null)} className="text-muted hover:text-ink" aria-label="Remove attachment"><X size={13} /></button>
               </p>
             ) : null}
             <div className="flex items-end gap-2">
-              <button onClick={() => fileRef.current?.click()} className="rounded-full p-2 text-ink/45 hover:bg-black/5" aria-label="Attach a photo"><ImageIcon size={18} /></button>
+              <button onClick={() => fileRef.current?.click()} className="rounded-full p-2 text-muted hover:bg-black/5" aria-label="Attach a photo"><ImageIcon size={18} /></button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { setFile(e.target.files?.[0] || null); e.target.value = ""; }} />
               <input value={draft} onChange={e => setDraft(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") void submitPost(); }}
                 placeholder="Share with the community"
-                className="w-full rounded-full bg-ink/5 px-4 py-2.5 text-[14px] text-ink outline-none placeholder:text-ink/40" />
+                className="w-full rounded-full bg-ink/5 px-4 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted" />
               <button onClick={submitPost} disabled={(!draft.trim() && !file) || posting} className="rounded-full bg-ink p-2.5 text-white disabled:opacity-30" aria-label="Post"><Send size={15} /></button>
             </div>
           </div>
           )}
-          {posts.length === 0 ? (
-            <p className="py-12 text-center text-sm text-ink/40">Quiet in here. Be the first to post.</p>
+          {postsPage.loading && posts.length === 0 ? <p className="py-6 text-center text-sm text-muted">Loading posts…</p> : null}
+          {posts.length === 0 && !postsPage.loading && !postsPage.error ? (
+            <p className="py-12 text-center text-sm text-muted">Quiet in here. Be the first to post.</p>
           ) : (
             posts.map(p => (
               <div key={p.post_id} className="relative mb-1">
                 {(p.is_pinned || isMod || p.author_id === me) ? (
                   <div className="flex items-center justify-between px-1 pt-2">
-                    <span className="text-[11px] font-extrabold text-[#0B1E3D]">{p.is_pinned ? "Pinned" : ""}</span>
+                    <span className="text-[11px] font-extrabold text-ink">{p.is_pinned ? "Pinned" : ""}</span>
                     {(isMod || p.author_id === me) ? (
-                      <button onClick={() => setMenuFor(menuFor === p.post_id ? null : p.post_id)} className="rounded-full p-1 text-ink/40 hover:bg-black/5" aria-label="Post actions"><MoreHorizontal size={15} /></button>
+                      <button onClick={() => setMenuFor(menuFor === p.post_id ? null : p.post_id)} className="rounded-full p-1 text-muted hover:bg-black/5" aria-label="Post actions"><MoreHorizontal size={15} /></button>
                     ) : null}
                   </div>
                 ) : null}
@@ -447,17 +479,14 @@ export default function CommunityPage() {
                     {isMod ? (
                       <button onClick={() => pin(p)} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-ink hover:bg-black/5">{p.is_pinned ? "Unpin from top" : "Pin to top"}</button>
                     ) : null}
-                    <button onClick={() => removePost(p)} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-red-600 hover:bg-black/5">{p.author_id === me ? "Delete post" : "Remove post"}</button>
+                    <button onClick={() => removePost(p)} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-danger hover:bg-black/5">{p.author_id === me ? "Delete post" : "Remove post"}</button>
                   </div>
                 ) : null}
                 <PostCard post={p} />
               </div>
             ))
           )}
-          {posts.length >= 25 ? (
-            <button onClick={() => { const last = posts[posts.length - 1]; if (last) void loadPosts(last.created_at); }}
-              className="mx-auto mb-6 block rounded-full bg-ink/5 px-4 py-2 text-[13px] font-semibold text-ink/60 hover:text-ink">Load more</button>
-          ) : null}
+          <SocialPageFooter {...postsPage} />
         </div>
       )}
 
@@ -465,21 +494,21 @@ export default function CommunityPage() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setMembersOpen(false)}>
           <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">Members{isMod ? <button onClick={openBans} className="ml-3 text-[12.5px] font-semibold text-[#0B1E3D] hover:underline">Blocked</button> : null}</p>
-              <button onClick={() => setMembersOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <p className="text-[15px] font-semibold text-ink">Members{isMod ? <button onClick={openBans} className="ml-3 text-[12.5px] font-semibold text-ink hover:underline">Blocked</button> : null}</p>
+              <button onClick={() => setMembersOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             {members.map(m => (
               <div key={m.user_id} className="flex items-center gap-2 py-1.5">
                 {m.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(m.avatar_url, 200) ?? m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(m.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(m.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={m.full_name || "Member"} userId={m.user_id} badgeSize={12} />{m.user_id === me ? " (you)" : ""}</span>
-                  {m.username ? <span className="block text-[12px] text-ink/45">@{m.username}</span> : null}
+                  {m.username ? <span className="block text-[12px] text-muted">@{m.username}</span> : null}
                 </span>
-                {m.status === "limited" ? <span className="rounded-full bg-ink/5 px-2 py-0.5 text-[10.5px] font-bold text-ink/50">Limited</span> : null}
-                {m.role !== "member" ? <span className="rounded-full bg-[#0B1E3D]/10 px-2 py-0.5 text-[10.5px] font-bold text-[#0B1E3D]">{m.role === "owner" ? "Owner" : "Moderator"}</span> : null}
+                {m.status === "limited" ? <span className="rounded-full bg-ink/5 px-2 py-0.5 text-[10.5px] font-bold text-muted">Limited</span> : null}
+                {m.role !== "member" ? <span className="rounded-full bg-ink/10 px-2 py-0.5 text-[10.5px] font-bold text-ink">{m.role === "owner" ? "Owner" : "Moderator"}</span> : null}
                 {isMod && m.role !== "owner" && m.user_id !== me && (m.role !== "moderator" || myRole === "owner") ? (
                   <select value="" onChange={e => { memberAction(m, e.target.value); e.target.value = ""; }} aria-label="Member actions"
                     className="rounded-md border border-ink/15 bg-white px-1.5 py-1 text-[12px] text-ink outline-none">
@@ -492,6 +521,7 @@ export default function CommunityPage() {
                 ) : null}
               </div>
             ))}
+            <SocialPageFooter {...membersPage} />
           </div>
         </div>
       ) : null}
@@ -501,22 +531,23 @@ export default function CommunityPage() {
           <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">Join requests</p>
-              <button onClick={() => setRequestsOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setRequestsOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
-            {requests.length === 0 ? <p className="py-8 text-center text-sm text-ink/40">No pending requests.</p> : requests.map(r => (
+            {requests.length === 0 ? <p className="py-8 text-center text-sm text-muted">No pending requests.</p> : requests.map(r => (
               <div key={r.user_id} className="flex items-center gap-2 py-1.5">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={r.full_name || "Member"} userId={r.user_id} badgeSize={12} /></span>
-                  {r.username ? <span className="block text-[12px] text-ink/45">@{r.username}</span> : null}
+                  {r.username ? <span className="block text-[12px] text-muted">@{r.username}</span> : null}
                 </span>
-                <button onClick={() => resolveReq(r, true)} className="rounded-full bg-[#0B1E3D] p-1.5 text-white" aria-label="Approve"><Check size={14} /></button>
+                <button onClick={() => resolveReq(r, true)} className="rounded-full bg-ink p-1.5 text-white" aria-label="Approve"><Check size={14} /></button>
                 <button onClick={() => resolveReq(r, false)} className="rounded-full bg-ink/5 p-1.5 text-ink/60" aria-label="Deny"><X size={14} /></button>
               </div>
             ))}
+            <SocialPageFooter {...requestsPage} />
           </div>
         </div>
       ) : null}
@@ -526,7 +557,7 @@ export default function CommunityPage() {
           <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">Invite people</p>
-              <button onClick={() => setInviteOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setInviteOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <p className="mb-2 text-[12.5px] text-ink/60">An invitation always admits, even when the community is invite only.</p>
             <div className="mb-3 flex gap-2">
@@ -535,34 +566,35 @@ export default function CommunityPage() {
             </div>
             {linkNote ? <p className="mb-3 break-all rounded-lg bg-ink/5 px-3 py-2 text-[12px] text-ink/70">{linkNote}</p> : null}
             <input value={inviteQ} onChange={e => setInviteQ(e.target.value)} placeholder="Search people" autoFocus
-              className="mb-2 w-full rounded-full bg-ink/5 px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-ink/40" />
+              className="mb-2 w-full rounded-full bg-ink/5 px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-muted" />
             {inviteHits.filter(h => h.id !== me && !invites.some(i => i.user_id === h.id)).map(h => (
               <div key={h.id} className="flex items-center gap-2 py-1.5">
                 {h.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(h.avatar_url, 200) ?? h.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(h.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(h.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={h.full_name || "Member"} userId={h.id} badgeSize={12} /></span>
-                  {h.username ? <span className="block text-[12px] text-ink/45">@{h.username}</span> : null}
+                  {h.username ? <span className="block text-[12px] text-muted">@{h.username}</span> : null}
                 </span>
-                <button onClick={() => invitePerson(h)} className="rounded-full bg-[#0B1E3D] px-3 py-1 text-[12px] font-bold text-white">Invite</button>
+                <button onClick={() => invitePerson(h)} className="rounded-full bg-ink px-3 py-1 text-[12px] font-bold text-white">Invite</button>
               </div>
             ))}
-            {invites.length > 0 ? <p className="mb-1 mt-3 text-[12px] font-bold uppercase tracking-wide text-ink/40">Pending</p> : null}
+            {invites.length > 0 ? <p className="mb-1 mt-3 text-[12px] font-bold uppercase tracking-wide text-muted">Pending</p> : null}
             {invites.map(r => (
               <div key={r.user_id} className="flex items-center gap-2 py-1.5">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={r.full_name || "Member"} userId={r.user_id} badgeSize={12} /></span>
-                  {r.username ? <span className="block text-[12px] text-ink/45">@{r.username}</span> : null}
+                  {r.username ? <span className="block text-[12px] text-muted">@{r.username}</span> : null}
                 </span>
-                <button onClick={() => revokeInvite(r)} className="rounded-full p-1.5 text-ink/40 hover:bg-black/5" aria-label="Withdraw invitation"><X size={14} /></button>
+                <button onClick={() => revokeInvite(r)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Withdraw invitation"><X size={14} /></button>
               </div>
             ))}
+            <SocialPageFooter {...invitesPage} />
           </div>
         </div>
       ) : null}
@@ -572,21 +604,22 @@ export default function CommunityPage() {
           <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">Blocked from rejoining</p>
-              <button onClick={() => setBansOpen(false)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setBansOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
-            {bans.length === 0 ? <p className="py-8 text-center text-sm text-ink/40">No one is blocked.</p> : bans.map(b => (
+            {bans.length === 0 ? <p className="py-8 text-center text-sm text-muted">No one is blocked.</p> : bans.map(b => (
               <div key={b.user_id} className="flex items-center gap-2 py-1.5">
                 {b.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={displayImageUrl(b.avatar_url, 200) ?? b.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B1E3D] text-[12px] font-bold text-white">{(b.full_name || "?").charAt(0)}</span>}
+                ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(b.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={b.full_name || "Member"} userId={b.user_id} badgeSize={12} /></span>
-                  {b.username ? <span className="block text-[12px] text-ink/45">@{b.username}</span> : null}
+                  {b.username ? <span className="block text-[12px] text-muted">@{b.username}</span> : null}
                 </span>
                 <button onClick={() => unban(b)} className="rounded-full bg-ink/5 px-3 py-1 text-[12px] font-bold text-ink">Allow back</button>
               </div>
             ))}
+            <SocialPageFooter {...bansPage} />
           </div>
         </div>
       ) : null}
@@ -600,7 +633,7 @@ export default function CommunityPage() {
 }
 
 function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId: string | null; onClose: () => void; onSaved: () => void }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [eName, setEName] = useState(info.name || "");
   const [eDesc, setEDesc] = useState(info.description || "");
   const [eRules, setERules] = useState(info.rules || "");
@@ -649,7 +682,7 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
       <div className="max-h-[88vh] w-full max-w-[460px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[15px] font-semibold text-ink">Community settings</p>
-          <button onClick={onClose} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+          <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
         </div>
         <div className="mb-4 flex flex-col items-center">
           <button onClick={() => iconRef.current?.click()} className="relative" aria-label="Change the community icon">
@@ -659,7 +692,7 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
             ) : (
               <span className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl text-[#1F2937]" style={{ background: COMM_COLORS[eColor] || COMM_COLORS.sky }}><Users size={24} /></span>
             )}
-            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#0B1E3D] text-white">
+            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-ink text-white">
               {iconBusy ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <Camera size={12} />}
             </span>
           </button>
@@ -702,7 +735,7 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
           const { error } = await supabase.rpc("delete_community", { p_community: info.id });
           if (error) { alert(error.message); return; }
           window.location.href = "/communities";
-        }} className="mt-3 w-full rounded-md border border-red-600 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50">Delete community</button>
+        }} className="mt-3 w-full rounded-md border border-red-600 py-2.5 text-sm font-semibold text-danger hover:bg-red-50">Delete community</button>
       </div>
     </div>
   );

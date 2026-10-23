@@ -1,8 +1,8 @@
 // src/utils/uploadSafe.ts
 // One gate every upload passes through. Video leaves as H.264 MP4, images
 // leave as JPEG/PNG/GIF/WebP. Never QuickTime, never HEIC. Real transcode
-// when react-native-compressor is in the native build; until then the
-// H.264 QuickTime file is uploaded as .mp4 / video/mp4, which browsers play.
+// when react-native-compressor is in the native build. Conversion failure
+// keeps the draft local instead of disguising unsupported bytes as MP4/JPEG.
 import { resolveTrueMeta } from './sniffMedia';
 
 export type SafeKind = 'image' | 'video';
@@ -38,20 +38,25 @@ function nitroNativeAvailable(): boolean {
 
 async function transcodeVideo(uri: string): Promise<string | null> {
   if (!nitroNativeAvailable()) {
-    console.log('[uploadSafe] NitroModules not in this build, uploading untranscoded');
+    console.log('[uploadSafe] Native video conversion is unavailable');
     return null;
   }
   try {
     const mod: any = require('react-native-compressor');
     const Video = mod?.Video || mod?.default?.Video;
     if (!Video?.compress) return null;
+    let cancellationId: string | undefined;
+    let timedOut = false;
     const work: Promise<string | null> = Promise.resolve()
-      .then(() => Video.compress(uri, { compressionMethod: 'manual', maxSize: 1920, bitrate: 6000000 }))
+      .then(() => Video.compress(uri, { compressionMethod: 'manual', maxSize: 1920, bitrate: 6000000, getCancellationId: (id: string) => { cancellationId = id; if (timedOut) { try { Video.cancelCompression(id); } catch {} } } }))
       .catch((e: any) => { console.log('[uploadSafe] native transcode failed', e?.message || e); return null; });
-    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 45000));
-    const out = await Promise.race([work, timeout]);
-    if (!out || out === uri) return null;
-    return out;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<null>((resolve) => { timer = setTimeout(() => { timedOut = true; if (cancellationId) { try { Video.cancelCompression(cancellationId); } catch {} } resolve(null); }, 45000); });
+    try {
+      const out = await Promise.race([work, timeout]);
+      if (!out || out === uri) return null;
+      return out;
+    } finally { if (timer !== undefined) clearTimeout(timer); }
   } catch (e) {
     console.log('[uploadSafe] native transcode unavailable', (e as any)?.message || e);
     return null;
@@ -61,9 +66,14 @@ async function transcodeVideo(uri: string): Promise<string | null> {
 async function toJpeg(uri: string): Promise<string | null> {
   try {
     const IM: any = require('expo-image-manipulator');
-    if (!IM?.manipulateAsync) return null;
-    const r = await IM.manipulateAsync(uri, [], { compress: 0.9, format: IM.SaveFormat?.JPEG || 'jpeg' });
-    return r?.uri || null;
+    if (!IM?.ImageManipulator?.manipulate) return null;
+    const context = IM.ImageManipulator.manipulate(uri);
+    let rendered: any;
+    try {
+      rendered = await context.renderAsync();
+      const result = await rendered.saveAsync({ compress: 0.9, format: IM.SaveFormat?.JPEG || 'jpeg' });
+      return result?.uri || null;
+    } finally { rendered?.release?.(); context.release?.(); }
   } catch (e) {
     console.log('[uploadSafe] image convert unavailable', (e as any)?.message || e);
     return null;
@@ -85,11 +95,11 @@ export async function ensureUploadSafe(uri: string, kindHint: SafeKind, extHint?
     if (!needs) return { uri, ext, mime: mimeOf('video', ext), kind, converted: false };
     const out = await transcodeVideo(uri);
     if (out) return { uri: out, ext: 'mp4', mime: 'video/mp4', kind, converted: true };
-    return { uri, ext: 'mp4', mime: 'video/mp4', kind, converted: false };
+    throw new Error('This video could not be converted to a supported format. Your original is kept. Please retry or choose an MP4 video.');
   }
   const needsImg = !IMAGE_OK.has(ext) || /hei[cf]/i.test(mime);
   if (!needsImg) return { uri, ext, mime: mimeOf('image', ext), kind, converted: false };
   const out = await toJpeg(uri);
   if (out) return { uri: out, ext: 'jpg', mime: 'image/jpeg', kind, converted: true };
-  return { uri, ext: 'jpg', mime: 'image/jpeg', kind, converted: false };
+  throw new Error('This photo could not be converted to a supported format. Your original is kept. Please retry or choose a JPEG or PNG photo.');
 }

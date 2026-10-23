@@ -1,5 +1,6 @@
 // Mirrors src/services/storiesService.ts shapes and RPCs used by the viewer.
 import { createClient } from "@/lib/supabase/client";
+import { hydrateStoryMedia } from "@/lib/contentMedia";
 
 export type CatchupUser = {
   user_id: string;
@@ -70,6 +71,9 @@ export type StoryTextSticker = {
   sliderLabel?: string;
   quizQuestion?: string;
   quizOptions?: { id: string; label: string; isCorrect: boolean }[];
+  addYoursPrompt?: string;
+  addYoursOriginStoryId?: string | null;
+  addYoursOriginStickerId?: string | null;
   countdownTitle?: string;
   countdownTarget?: string | null;
 };
@@ -206,7 +210,7 @@ export async function getUserStories(userId: string): Promise<StoryRow[]> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_user_stories", { p_user_id: userId });
   if (error) return [];
-  return (data ?? []) as StoryRow[];
+  return hydrateStoryMedia((data ?? []) as StoryRow[], supabase);
 }
 
 export async function markStoryViewed(storyId: string): Promise<void> {
@@ -270,20 +274,27 @@ export async function submitStickerResponse(storyId: string, stickerId: string, 
     p_number_value: value.number_value ?? null,
     p_option_id: value.option_id ?? null,
   });
-  return !error;
+  if (error) throw error;
+  return true;
 }
 
 export type StickerResponseRow = StickerResponseValue & { user_id?: string; created_at?: string };
 export async function getStickerResponses(storyId: string, stickerId: string): Promise<StickerResponseRow[]> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_sticker_responses", { p_story_id: storyId, p_sticker_id: stickerId });
-  if (error || !data) return [];
-  return data as StickerResponseRow[];
+  if (error) throw error;
+  return (data ?? []) as StickerResponseRow[];
 }
 
 export async function getMyStickerResponse(storyId: string, stickerId: string): Promise<StickerResponseValue | null> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_my_sticker_response", { p_story_id: storyId, p_sticker_id: stickerId });
-  if (error || !data) return null;
-  return data as StickerResponseValue;
+  if (error) throw error;
+  return data as StickerResponseValue | null;
+}
+export type StickerSummary = { count: number; average: number | null; options: Record<string, number> };
+export async function getStickerSummary(storyId: string, stickerId: string): Promise<StickerSummary> {
+  const { data, error } = await createClient().rpc("get_story_sticker_summary", { p_story_id: storyId, p_sticker_id: stickerId });
+  if (error) throw error;
+  return data as StickerSummary;
 }

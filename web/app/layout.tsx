@@ -1,4 +1,4 @@
-import BootSplash from "@/components/BootSplash";
+import { ClientDiagnostics } from "@/components/ClientDiagnostics";
 import type { Metadata } from "next";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { Manrope, Inter } from "next/font/google";
@@ -42,8 +42,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <BootSplash />
-        {children}
+        {children}<ClientDiagnostics />
         {/* Global, so a dropped connection is reported on every route. */}
         <ConnectionBanner />
       </body>

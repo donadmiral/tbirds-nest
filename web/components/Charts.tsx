@@ -79,7 +79,7 @@ export function TrendChart({
   if (!hasData) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl bg-surface/60" style={{ height: H }}>
-        <p className="text-[13px] text-ink/40">{emptyLabel}</p>
+        <p className="text-[13px] text-muted">{emptyLabel}</p>
       </div>
     );
   }
@@ -102,14 +102,14 @@ export function TrendChart({
         })}
       </svg>
       {labels && labels.length > 1 ? (
-        <div className="mt-1 flex justify-between text-[11px] text-ink/35">
+        <div className="mt-1 flex justify-between text-[11px] text-muted">
           <span>{labels[0]}</span>
           <span>{labels[Math.floor(labels.length / 2)]}</span>
           <span>{labels[labels.length - 1]}</span>
         </div>
       ) : null}
       {series.length > 1 ? (
-        <div className="mt-2 flex gap-4 text-[11.5px] text-ink/50">
+        <div className="mt-2 flex gap-4 text-[11.5px] text-muted">
           {series.map((s) => (
             <span key={s.name} className="flex items-center gap-1.5">
               <span className="h-[2px] w-4 rounded-full" style={{ background: s.tone === "ink" ? INK : PEARL, opacity: s.tone === "ink" ? 0.45 : 1 }} />
@@ -125,14 +125,14 @@ export function TrendChart({
 /** Ranked rows with a proportional bar. Used for locations, ages, referrers. */
 export function RankedBars({ rows, unit }: { rows: { label: string; value: number }[]; unit?: string }) {
   const max = rows.length ? Math.max(...rows.map((r) => r.value)) || 1 : 1;
-  if (rows.length === 0) return <p className="text-[13px] text-ink/40">Nothing to show yet.</p>;
+  if (rows.length === 0) return <p className="text-[13px] text-muted">Nothing to show yet.</p>;
   return (
     <div className="flex flex-col gap-2.5">
       {rows.map((r) => (
         <div key={r.label}>
           <div className="flex items-baseline justify-between text-[13px]">
             <span className="truncate text-ink">{r.label}</span>
-            <span className="ml-3 shrink-0 tabular-nums text-ink/45">
+            <span className="ml-3 shrink-0 tabular-nums text-muted">
               {r.value.toLocaleString()}
               {unit ? " " + unit : ""}
             </span>
@@ -153,7 +153,7 @@ export function DonutChart({ slices, size = 132 }: { slices: { label: string; va
   const restTotal = top.slice(5).reduce((n, s) => n + s.value, 0);
   const parts = restTotal > 0 ? [...head, { label: "Other", value: restTotal }] : head;
   const total = parts.reduce((n, s) => n + s.value, 0);
-  if (total === 0) return <p className="text-[13px] text-ink/40">Nothing to show yet.</p>;
+  if (total === 0) return <p className="text-[13px] text-muted">Nothing to show yet.</p>;
 
   const r = size / 2 - 9;
   const c = 2 * Math.PI * r;
@@ -190,7 +190,7 @@ export function DonutChart({ slices, size = 132 }: { slices: { label: string; va
           <li key={s.label} className="flex items-center gap-2 text-[13px]">
             <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: PEARL, opacity: opacities[i] ?? 0.14 }} />
             <span className="truncate text-ink">{s.label}</span>
-            <span className="ml-auto shrink-0 tabular-nums text-ink/45">{Math.round((s.value / total) * 100)}%</span>
+            <span className="ml-auto shrink-0 tabular-nums text-muted">{Math.round((s.value / total) * 100)}%</span>
           </li>
         ))}
       </ul>
@@ -223,7 +223,7 @@ export function ContentThumb({ url, kind, label, size = 44 }: { url?: string | n
   return (
     <span
       style={box}
-      className="flex shrink-0 items-center justify-center rounded-md bg-surface text-[13px] font-semibold text-ink/35"
+      className="flex shrink-0 items-center justify-center rounded-md bg-surface text-[13px] font-semibold text-muted"
     >
       {(label || "·").trim().charAt(0).toUpperCase()}
     </span>
@@ -244,7 +244,7 @@ export function Metric({ value, size = 26 }: { value: number | string; size?: nu
   const zero = n === 0 || value === "0";
   return (
     <p
-      className={zero ? "font-semibold leading-tight text-ink/25" : "font-display leading-tight text-porcelain"}
+      className={zero ? "font-semibold leading-tight text-muted" : "font-display leading-tight text-porcelain"}
       style={{ fontSize: zero ? size - 2 : size }}
     >
       {typeof value === "number" ? value.toLocaleString() : value}

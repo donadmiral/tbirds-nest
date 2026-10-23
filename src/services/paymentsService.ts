@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-get-random-values';
 import { createPaymentIntentStore, paymentOutcome } from './paymentIntent';
 import type { PaymentIntent, PaymentOutcome, PaymentScope } from './paymentIntent';
+import { providerIssue } from '../../shared/payments/providerStatus';
 
 const intentStore = createPaymentIntentStore(AsyncStorage, () => {
   const bytes = new Uint8Array(16);
@@ -118,6 +119,8 @@ function getSessionWithTimeout(
 }
 
 function getResponseMessage(body: any, fallback: string): string {
+  const issue = providerIssue(body);
+  if (issue) return issue.userMessage;
   const candidate =
     typeof body?.error === 'string'
       ? body.error
@@ -157,7 +160,7 @@ async function call(path: string, init: RequestInit = {}, expectedUserId?: strin
     );
   }
 
-  if (expectedUserId && session.user?.id !== expectedUserId) {
+  if (expectedUserId !== undefined && (!expectedUserId || session.user?.id !== expectedUserId)) {
     throw new BridgeError(401, 'Your account changed. Reopen this payment from the correct account.', 'auth');
   }
 
@@ -247,14 +250,15 @@ async function call(path: string, init: RequestInit = {}, expectedUserId?: strin
     }
 
     if (!response.ok) {
+      const issue = providerIssue(body);
       throw new BridgeError(
         response.status,
         getResponseMessage(
           body,
           'IntoBank returned ' + response.status
         ),
-        'http',
-        typeof body?.code === 'string' ? body.code : null
+        issue && !issue.code.endsWith('_UNCONFIRMED') ? 'configuration' : 'http',
+        issue?.code ?? (typeof body?.code === 'string' ? body.code : null)
       );
     }
 
@@ -308,33 +312,43 @@ async function call(path: string, init: RequestInit = {}, expectedUserId?: strin
 }
 
 export const paymentsService = {
-  async getBalance(currency = 'USD') {
-    return call('?action=balance&currency=' + currency);
+  async getBalance(ownerId: string, currency = 'USD') {
+    const r = await call('?action=balance&currency=' + encodeURIComponent(currency), {}, ownerId);
+    if (r?.success !== true || typeof r.linked !== 'boolean' ||
+      (r.linked && (r.currency !== currency || typeof r.balance !== 'number' ||
+        !Number.isFinite(r.balance) || typeof r.available !== 'number' || !Number.isFinite(r.available)))) {
+      throw new BridgeError(200, 'IntoBank did not confirm the wallet balance. Please try again.', 'invalid-response');
+    }
+    return r;
   },
 
-  async getLinkStatus(): Promise<LinkStatus> {
-    const r = await call('?action=status');
+  async getLinkStatus(ownerId: string): Promise<LinkStatus> {
+    const r = await call('?action=status', {}, ownerId);
+    if (r?.success !== true || typeof r.linked !== 'boolean') {
+      throw new BridgeError(200, 'IntoBank did not confirm the connection status. Please try again.', 'invalid-response');
+    }
     return {
-      linked: !!r?.linked,
-      linked_at: r?.linked_at ?? null,
+      linked: r.linked,
+      linked_at: typeof r.linked_at === 'string' ? r.linked_at : null,
     };
   },
 
-  async peerLinked(userId: string): Promise<boolean> {
-    try {
-      const r = await call(
-        '?action=peer-status&user=' + userId
-      );
-      return !!r?.linked;
-    } catch {
-      return false;
+  async peerLinked(userId: string, ownerId: string): Promise<boolean> {
+    const r = await call('?action=peer-status&user=' + encodeURIComponent(userId), {}, ownerId);
+    if (typeof r?.linked !== 'boolean' || r?.success === false) {
+      throw new BridgeError(200, 'IntoBank did not confirm the recipient connection. Please try again.', 'invalid-response');
     }
+    return r.linked;
   },
 
-  async unlink() {
-    return call('?action=unlink', {
+  async unlink(ownerId: string) {
+    const r = await call('?action=unlink', {
       method: 'POST',
-    });
+    }, ownerId);
+    if (r?.success !== true) {
+      throw new BridgeError(200, getResponseMessage(r, 'IntoBank did not confirm the disconnection. Please try again.'), 'invalid-response');
+    }
+    return r;
   },
 
   async linkAccount(code: string, ownerId: string) {
@@ -350,7 +364,7 @@ export const paymentsService = {
   },
 
   getPendingIntent(scope: PaymentScope) { return intentStore.load(scope); },
-  prepareIntent(params: PaymentScope & { amount: number; currency?: string; listingId?: string | null }) {
+  prepareIntent(params: PaymentScope & { amount: number; currency?: string; listingId?: string | null; orderId?: string | null }) {
     return intentStore.prepare(params);
   },
   clearIntent(intent: PaymentIntent) { return intentStore.clear(intent); },
@@ -376,6 +390,7 @@ export const paymentsService = {
     currency?: string;
     note?: string;
     listingId?: string | null;
+    orderId?: string | null;
     idempotencyKey: string;
   }): Promise<PaymentOutcome> {
     if (!LocalAuthentication?.hasHardwareAsync) {
@@ -422,6 +437,7 @@ export const paymentsService = {
       }
     }
 
+    try {
     const result = await call('?action=pay', {
       method: 'POST',
       body: JSON.stringify({
@@ -431,9 +447,19 @@ export const paymentsService = {
         conversation_id: params.conversationId,
         note: params.note ?? null,
         listing_id: params.listingId ?? null,
+        order_id: params.orderId ?? null,
         idempotency_key: params.idempotencyKey,
       }),
     }, params.ownerId);
     return paymentOutcome(result);
+    } catch (error) {
+      // These are explicit pre-submission order validation failures. Unlike
+      // timeouts or provider errors, no transfer was attempted, so recovery may
+      // safely release this local identity after displaying the rejection.
+      if (error instanceof BridgeError && error.status === 409 && ['MARKET_ORDER_REQUIRED', 'ORDER_PAYMENT_MISMATCH', 'ORDER_NOT_PAYABLE'].includes(error.code || '')) {
+        return { status: 'failed', pending: false, success: false, error: error.message };
+      }
+      throw error;
+    }
   },
 };

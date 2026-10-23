@@ -11,18 +11,18 @@ import { MemoryAlbumBook } from "@/components/MemoryAlbumBook";
 import { MessageButton } from "@/components/MessageButton";
 import { ProfileMoreMenu } from "@/components/ProfileMoreMenu";
 import { ProfileContext } from "@/components/ProfileContext";
+import { isProfileId, matchesUsername, profilePath, usernameLookupPattern } from "@/lib/profileLookup";
 
 type Params = { params: Promise<{ username: string }> };
 
 async function loadProfile(username: string) {
   const supabase = await createClient();
-  const { data } = await supabase
+  const query = supabase
     .from("profiles")
-    .select("id, full_name, username, avatar_url, banner_url, bio, links, is_verified, verified_tier, account_type, account_class, account_labels")
-    .ilike("username", username)
-    .limit(1)
-    .maybeSingle();
-  return data;
+    .select("id, full_name, username, avatar_url, banner_url, bio, links, is_verified, verified_tier, account_type, account_class, account_labels");
+  const byId = isProfileId(username);
+  const { data } = await (byId ? query.eq("id", username) : query.ilike("username", usernameLookupPattern(username))).limit(1).maybeSingle();
+  return (byId ? data?.id === username.toLowerCase() : matchesUsername(data, username)) ? data : null;
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const p = await loadProfile(username);
   if (!p) return { title: "Platinum Circles" };
   return {
-    title: (p.full_name ?? p.username) + " (@" + p.username + ") on Platinum Circles",
+    title: (p.full_name ?? p.username ?? "Member") + (p.username ? " (@" + p.username + ")" : "") + " on Platinum Circles",
     description: p.bio ?? "See " + (p.full_name ?? p.username) + " on Platinum Circles.",
   };
 }
@@ -50,7 +50,7 @@ export default async function ProfilePage({ params }: Params) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 px-6 text-center">
         <h1 className="font-display text-2xl text-porcelain">Profile not found</h1>
-        <Link href="/" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">
+        <Link href="/" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">
           Open Platinum Circles
         </Link>
       </main>
@@ -104,7 +104,7 @@ export default async function ProfilePage({ params }: Params) {
             </h1>
             {p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={17} /> : null}
           </div>
-          <p className="text-center text-[13.5px] text-ink/50">@{p.username}</p>
+          {p.username ? <p className="text-center text-[13.5px] text-muted">@{p.username}</p> : null}
           {(() => {
             const c = (p as any).account_class as string | null; const lb = ((p as any).account_labels || {}) as Record<string, boolean>;
             const chips: string[] = [];
@@ -134,24 +134,24 @@ export default async function ProfilePage({ params }: Params) {
           <div className="mt-4 flex justify-center">
             <div className="flex overflow-hidden rounded-full border border-ink/10 bg-pearl/10">
               <Link
-                href={"/" + p.username + "/follows?tab=followers"}
+                href={profilePath(p.username, p.id) + "/follows?tab=followers"}
                 className="flex min-w-[92px] flex-col items-center px-4 py-2 transition-colors duration-[140ms] hover:bg-pearl/20"
               >
                 <span className="text-[16px] font-bold text-ink">{fmtCount(followers.count ?? 0)}</span>
-                <span className="text-[11.5px] text-ink/50">Followers</span>
+                <span className="text-[11.5px] text-muted">Followers</span>
               </Link>
               {!isBusiness ? (
                 <Link
-                  href={"/" + p.username + "/follows?tab=following"}
+                  href={profilePath(p.username, p.id) + "/follows?tab=following"}
                   className="flex min-w-[92px] flex-col items-center border-l border-ink/10 px-4 py-2 transition-colors duration-[140ms] hover:bg-pearl/20"
                 >
                   <span className="text-[16px] font-bold text-ink">{fmtCount(following.count ?? 0)}</span>
-                  <span className="text-[11.5px] text-ink/50">Following</span>
+                  <span className="text-[11.5px] text-muted">Following</span>
                 </Link>
               ) : null}
               <div className="flex min-w-[92px] flex-col items-center border-l border-ink/10 px-4 py-2">
                 <span className="text-[16px] font-bold text-ink">{fmtCount(postCount.count ?? 0)}</span>
-                <span className="text-[11.5px] text-ink/50">Posts</span>
+                <span className="text-[11.5px] text-muted">Posts</span>
               </div>
             </div>
           </div>

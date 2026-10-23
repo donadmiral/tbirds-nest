@@ -18,6 +18,10 @@ export type Listing = {
   images: string[];
   status: ListingStatus;
   created_at: string;
+  stock_quantity?: number;
+  delivery_available?: boolean;
+  delivery_fee?: number | null;
+  delivery_note?: string | null;
   seller?: {
     id: string;
     full_name: string;
@@ -37,20 +41,22 @@ export const MARKET_CONDITIONS = ['New', 'Like New', 'Good', 'Fair'] as const;
 const SELLER_SELECT = 'seller:profiles!marketplace_listings_seller_id_fkey(id, full_name, username, avatar_url, is_verified)';
 
 export const marketService = {
-async getMarketFeed(opts: { search?: string | null; category?: string | null; city?: string | null; limit?: number }): Promise<Listing[]> {
+async getMarketFeed(opts: { search?: string | null; category?: string | null; city?: string | null; limit?: number; offset?: number }): Promise<Listing[]> {
     const { data: ranked, error } = await supabase.rpc('get_market_feed', {
-      p_category: opts.category || null,
+      p_category: opts.category && opts.category !== 'All' ? opts.category : null,
       p_search: opts.search?.trim() || null,
       p_city: opts.city?.trim() || null,
       p_limit: opts.limit ?? 30,
-      p_offset: 0,
+      p_offset: opts.offset ?? 0,
     });
-    if (error || !ranked?.length) return [];
+    if (error) throw error;
+    if (!ranked?.length) return [];
     const ids = (ranked as any[]).map(r => r.id);
-    const { data: rows } = await supabase
+    const { data: rows, error: rowsError } = await supabase
       .from('marketplace_listings')
       .select(`*, ${SELLER_SELECT}`)
       .in('id', ids);
+    if (rowsError) throw rowsError;
     const byId: Record<string, any> = {};
     (rows || []).forEach((r: any) => { byId[r.id] = r; });
     return ids.map(id => byId[id]).filter(Boolean) as Listing[];
@@ -60,6 +66,7 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
     search?: string;
     category?: string | null;
     limit?: number;
+    offset?: number;
     before?: string | null;
     minPrice?: number | null;
     maxPrice?: number | null;
@@ -71,10 +78,9 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
       .from('marketplace_listings')
       .select(`*, ${SELLER_SELECT}`)
       .eq('status', 'available')
-      .order('created_at', { ascending: false })
-      .limit(opts?.limit ?? 30);
+      .range(opts?.offset ?? 0, (opts?.offset ?? 0) + (opts?.limit ?? 30) - 1);
 
-    if (opts?.category) q = q.eq('category', opts.category);
+    if (opts?.category && opts.category !== 'All') q = q.eq('category', opts.category);
     if (opts?.search && opts.search.trim().length > 0) {
       q = q.ilike('title', `%${opts.search.trim()}%`);
     }
@@ -85,11 +91,12 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
     if (opts?.city && opts.city.trim().length > 0) q = q.ilike('location_city', '%' + opts.city.trim() + '%');
     if (opts?.sort === 'price_low') q = q.order('price', { ascending: true });
     else if (opts?.sort === 'price_high') q = q.order('price', { ascending: false });
+    q = q.order('created_at', { ascending: false }).order('id', { ascending: false });
 
     const { data, error } = await q;
     if (error) {
       console.log('[marketService.listListings]', error.message);
-      return [];
+      throw error;
     }
     return (data as any[]) ?? [];
   },
@@ -99,38 +106,44 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
       .from('marketplace_listings')
       .select(`*, ${SELLER_SELECT}`)
       .eq('id', id)
-      .single();
+      .maybeSingle();
     if (error) {
       console.log('[marketService.getListing]', error.message);
-      return null;
+      throw error;
     }
     return data as any;
   },
 
   async getSavedIds(): Promise<Set<string>> {
-    const { data: me } = await supabase.auth.getUser();
+    const { data: me, error: authError } = await supabase.auth.getUser();
+    if (authError && authError.name !== "AuthSessionMissingError") throw authError;
     if (!me?.user) return new Set();
-    const { data } = await supabase.from('saved_listings').select('listing_id').eq('user_id', me.user.id);
+    const { data, error } = await supabase.from('saved_listings').select('listing_id').eq('user_id', me.user.id);
+    if (error) throw error;
     return new Set((data || []).map((r: any) => r.listing_id));
   },
 
   async getSavedListings(): Promise<Listing[]> {
-    const { data: me } = await supabase.auth.getUser();
+    const { data: me, error: authError } = await supabase.auth.getUser();
+    if (authError && authError.name !== "AuthSessionMissingError") throw authError;
     if (!me?.user) return [];
     const { data, error } = await supabase
       .from('saved_listings')
       .select(`listing:marketplace_listings(*, ${SELLER_SELECT})`)
       .eq('user_id', me.user.id)
       .order('created_at', { ascending: false });
-    if (error) { console.log('[marketService.getSavedListings]', error.message); return []; }
+    if (error) throw error;
     return (data || []).map((r: any) => r.listing).filter(Boolean);
   },
 
   async toggleSaved(listingId: string, on: boolean): Promise<void> {
-    const { data: me } = await supabase.auth.getUser();
-    if (!me?.user) return;
-    if (on) await supabase.from('saved_listings').upsert({ user_id: me.user.id, listing_id: listingId });
-    else await supabase.from('saved_listings').delete().eq('user_id', me.user.id).eq('listing_id', listingId);
+    const { data: me, error: authError } = await supabase.auth.getUser();
+    if (authError) throw authError;
+    if (!me?.user) throw new Error('Sign in to save listings.');
+    const { error } = on
+      ? await supabase.from('saved_listings').upsert({ user_id: me.user.id, listing_id: listingId })
+      : await supabase.from('saved_listings').delete().eq('user_id', me.user.id).eq('listing_id', listingId);
+    if (error) throw error;
   },
   async myListings(userId: string): Promise<Listing[]> {
     const { data, error } = await supabase
@@ -141,7 +154,7 @@ async getMarketFeed(opts: { search?: string | null; category?: string | null; ci
       .order('created_at', { ascending: false });
     if (error) {
       console.log('[marketService.myListings]', error.message);
-      return [];
+      throw error;
     }
     return (data as any[]) ?? [];
   },

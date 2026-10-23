@@ -1,5 +1,6 @@
 "use client";
 
+import { profilePath } from "@/lib/profileLookup";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { TrendingUp, Briefcase } from "lucide-react";
@@ -74,7 +75,7 @@ export default function ExplorePage() {
 
   const head = "flex items-center gap-1.5 pb-2 pt-7 text-[15px] font-semibold text-ink";
 
-  if (!loaded) return <p className="py-16 text-center text-sm text-ink/40">Loading</p>;
+  if (!loaded) return <p className="py-16 text-center text-sm text-muted">Loading</p>;
 
   return (
     <div className="px-1">
@@ -82,13 +83,13 @@ export default function ExplorePage() {
 
       {topics.length > 0 ? (
         <>
-          <h2 className={head}><TrendingUp size={16} className="text-pearl" /> Trending</h2>
+          <h2 className={head}><TrendingUp size={16} className="text-accent" /> Trending</h2>
           <div className="flex flex-wrap gap-2">
             {topics.map((t) => {
               const tag = t.topic.startsWith("#") ? t.topic : "#" + t.topic;
               return (
                 <Link key={t.topic} href={"/topic/" + encodeURIComponent(tag.slice(1))} className="rounded-full bg-surface px-3.5 py-1.5 text-[13px] text-ink/80 transition-colors hover:bg-surface-elevated hover:text-ink">
-                  {tag} <span className="text-ink/40">· {t.post_count}</span>
+                  {tag} <span className="text-muted">· {t.post_count}</span>
                 </Link>
               );
             })}
@@ -103,9 +104,9 @@ export default function ExplorePage() {
             {people.map((p) => (
               <div key={p.id} className="flex flex-col items-center gap-2 rounded-xl border border-ink/10 p-4 text-center">
                 <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={56} href={p.username ? "/" + p.username : null} />
-                <Link href={p.username ? "/" + p.username : "#"} className="min-w-0">
+                <Link href={profilePath(p.username, p.id)} className="min-w-0">
                   <span className="block truncate text-[13px] font-semibold text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={13} /></span>
-                  <span className="block truncate text-[12px] text-ink/45">{p.headline || "@" + (p.username ?? "")}</span>
+                  <span className="block truncate text-[12px] text-muted">{p.headline || "@" + (p.username ?? "")}</span>
                 </Link>
                 <FollowButton authorId={p.id} size="md" />
               </div>
@@ -116,7 +117,7 @@ export default function ExplorePage() {
 
       {listings.length > 0 ? (
         <>
-          <h2 className={head}>Fresh on the Market <Link href="/market" className="ml-auto text-[12px] font-normal text-pearl hover:underline">See all</Link></h2>
+          <h2 className={head}>Fresh on the Market <Link href="/market" className="ml-auto text-[12px] font-normal text-accent hover:underline">See all</Link></h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {listings.map((l) => <ListingCard key={l.id} l={l} />)}
           </div>
@@ -125,13 +126,13 @@ export default function ExplorePage() {
 
       {jobs.length > 0 ? (
         <>
-          <h2 className={head}>Latest jobs <Link href="/jobs" className="ml-auto text-[12px] font-normal text-pearl hover:underline">See all</Link></h2>
+          <h2 className={head}>Latest jobs <Link href="/jobs" className="ml-auto text-[12px] font-normal text-accent hover:underline">See all</Link></h2>
           {jobs.map((j) => (
             <Link key={j.id} href={"/jobs/" + j.id} className="flex items-center gap-3 rounded-md px-1 py-2.5 transition-colors hover:bg-surface">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-pearl"><Briefcase size={16} /></span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-accent"><Briefcase size={16} /></span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[14px] font-semibold text-ink">{j.title}</span>
-                <span className="block truncate text-[12px] text-ink/45">{[j.company, j.location, j.salary_range].filter(Boolean).join(" · ")}</span>
+                <span className="block truncate text-[12px] text-muted">{[j.company, j.location, j.salary_range].filter(Boolean).join(" · ")}</span>
               </span>
             </Link>
           ))}

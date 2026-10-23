@@ -6,6 +6,7 @@ import { AlertTriangle, CheckCircle2, Clock, Megaphone, Pause, Play, Plus, Send,
 import { createClient } from "@/lib/supabase/client";
 import { can } from "@/lib/studio";
 import { useStudio } from "@/components/StudioShell";
+import { StudioLoadError } from "../LoadError";
 
 type Ad = { id: string; post_id: string; label: string; status: string; total_cap: number | null; impressions: number; clicks: number; starts_at: string | null; ends_at: string | null; content: string; thumb: string | null; products: number };
 type Campaign = { id: string; name: string; objective: string; budget: number; currency: string; payment_method: string | null; payment_ref: string | null; paid_amount: number; starts_at: string | null; ends_at: string | null; status: string; review_note: string | null; created_at: string; impressions: number; clicks: number; ads: Ad[] };
@@ -31,23 +32,34 @@ export default function AdsManagerPage() {
   const [label, setLabel] = useState("Sponsored");
   const [cap, setCap] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsError, setPostsError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
+  const postsVersion = useRef(0);
+  const acting = useRef(false);
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
     try {
       const { data, error } = await supabase.rpc("studio_campaigns");
-      if (error) { setErr(error.message); return; }
-      setRows((data as Campaign[]) ?? []);
-    } finally { setLoading(false); }
+      if (error) throw error;
+      if (version !== loadVersion.current) return;
+      setRows((data as Campaign[]) ?? []); setLoaded(true); setErr(null);
+    } catch {
+      if (version === loadVersion.current) setErr("Campaigns could not be refreshed. Please try again.");
+    } finally { if (version === loadVersion.current) setLoading(false); }
   }, [supabase]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); return () => { loadVersion.current += 1; postsVersion.current += 1; }; }, [load]);
 
   const act = async (fn: () => PromiseLike<{ error: any }>, after?: () => void) => {
-    if (busy) return;
+    if (acting.current) return;
+    acting.current = true;
     setBusy(true);
     try { const { error } = await fn(); if (error) throw error; after?.(); await load(); }
     catch (e: any) { alert(e?.message || "Action failed."); }
-    finally { setBusy(false); }
+    finally { acting.current = false; setBusy(false); }
   };
 
   const openNew = () => { setF(emptyForm()); setOpen(true); };
@@ -57,23 +69,28 @@ export default function AdsManagerPage() {
     p_starts_at: f.starts_at ? new Date(f.starts_at).toISOString() : null, p_ends_at: f.ends_at ? new Date(f.ends_at).toISOString() : null,
   }), () => setOpen(false));
   const openAdd = async (c: Campaign) => {
-    setAddFor(c); setLabel("Sponsored"); setCap("");
-    const { data } = await supabase.rpc("studio_my_posts_for_ads", { p_limit: 40 });
-    setPosts((data as MyPost[]) ?? []);
+    const version = ++postsVersion.current;
+    setAddFor(c); setLabel("Sponsored"); setCap(""); setPosts([]); setPostsLoading(true); setPostsError(null);
+    try {
+      const { data, error } = await supabase.rpc("studio_my_posts_for_ads", { p_limit: 40 });
+      if (error) throw error;
+      if (version === postsVersion.current) setPosts((data as MyPost[]) ?? []);
+    } catch {
+      if (version === postsVersion.current) setPostsError("Your posts could not be loaded. Please try again.");
+    } finally { if (version === postsVersion.current) setPostsLoading(false); }
   };
   const addAd = (postId: string) => { if (!addFor) return; void act(() => supabase.rpc("studio_add_ad", { p_campaign: addFor.id, p_post_id: postId, p_label: label || "Sponsored", p_total_cap: cap ? Number(cap) : null }), () => setAddFor(null)); };
 
-  const statusChip = (s: string) => s === "live" ? "bg-success/15 text-success" : s === "approved" ? "bg-pearl/15 text-pearl" : s === "submitted" ? "bg-navy/20 text-ink" : s === "rejected" ? "bg-red-500/15 text-red-400" : s === "paused" ? "bg-surface text-ink/70" : "bg-surface text-ink/45";
+  const statusChip = (s: string) => s === "live" ? "bg-success/15 text-success" : s === "approved" ? "bg-pearl/15 text-accent" : s === "submitted" ? "bg-navy/20 text-ink" : s === "rejected" ? "bg-danger/15 text-danger" : s === "paused" ? "bg-surface text-ink/70" : "bg-surface text-muted";
   const ctr = (i: number, c: number) => i > 0 ? ((c / i) * 100).toFixed(1) + "%" : "0%";
 
-  if (err) return <p className="py-16 text-center text-sm text-red-400">{err}</p>;
 
   return (
     <div className="max-w-[960px]">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Ads Manager</h1>
-          <p className="mt-1 text-[13px] text-ink/50">Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live.</p>
+          <p className="mt-1 text-[13px] text-muted">Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live.</p>
         </div>
         <div className="flex gap-2">
           <Link href="/ads" className="rounded-md bg-surface px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:text-ink">Quick promotions</Link>
@@ -81,20 +98,21 @@ export default function AdsManagerPage() {
         </div>
       </div>
 
-      {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
-      : rows.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">No campaigns yet. Create one, add ads from your posts, submit it for review, then set it live.</p>
+      <StudioLoadError message={err} retry={() => { void load(); }} busy={loading} />
+      {loading && !loaded ? <p className="py-12 text-center text-sm text-muted">Loading</p>
+      : !loaded ? null : rows.length === 0 ? <p className="py-12 text-center text-sm text-muted">No campaigns yet. Create one, add ads from your posts, submit it for review, then set it live.</p>
       : rows.map(c => (
         <div key={c.id} className="mt-3 rounded-2xl border border-ink/10 bg-white p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Megaphone size={16} className="text-pearl" />
+            <Megaphone size={16} className="text-accent" />
             <span className="text-[15px] font-semibold text-ink">{c.name}</span>
             <span className={"rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + statusChip(c.status)}>{c.status}</span>
-            <span className="text-[12px] text-ink/45">{OBJECTIVES.find(o => o[0] === c.objective)?.[1] || c.objective} · {c.currency} {Number(c.budget).toLocaleString()}{c.payment_method ? " via " + (c.payment_method === "crisp" ? "Crisp" : "IntoBank") : ""}</span>
-            <span className="ml-auto text-[12px] text-ink/45">{c.starts_at ? new Date(c.starts_at).toLocaleDateString() : "no start"} to {c.ends_at ? new Date(c.ends_at).toLocaleDateString() : "open end"}</span>
+            <span className="text-[12px] text-muted">{OBJECTIVES.find(o => o[0] === c.objective)?.[1] || c.objective} · {c.currency} {Number(c.budget).toLocaleString()}{c.payment_method ? " via " + (c.payment_method === "crisp" ? "Crisp" : "IntoBank") : ""}</span>
+            <span className="ml-auto text-[12px] text-muted">{c.starts_at ? new Date(c.starts_at).toLocaleDateString() : "no start"} to {c.ends_at ? new Date(c.ends_at).toLocaleDateString() : "open end"}</span>
           </div>
           <p className="mt-1.5 text-[13px] text-ink/60">{Number(c.impressions).toLocaleString()} impressions · {Number(c.clicks).toLocaleString()} clicks · CTR {ctr(c.impressions, c.clicks)}{c.paid_amount ? " · paid " + c.currency + " " + Number(c.paid_amount).toLocaleString() : ""}</p>
-          {c.status === "rejected" && c.review_note ? <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-red-400"><AlertTriangle size={12} /> {c.review_note}</p> : null}
-          {c.status === "submitted" ? <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-ink/50"><Clock size={12} /> Awaiting review. You are notified when it is approved.</p> : null}
+          {c.status === "rejected" && c.review_note ? <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-danger"><AlertTriangle size={12} /> {c.review_note}</p> : null}
+          {c.status === "submitted" ? <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-muted"><Clock size={12} /> Awaiting review. You are notified when it is approved.</p> : null}
           {c.status === "approved" ? <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-success"><CheckCircle2 size={12} /> Approved. Set it live when ready.</p> : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -103,11 +121,11 @@ export default function AdsManagerPage() {
             {spender && ["draft", "rejected"].includes(c.status) ? <button disabled={busy} onClick={() => act(() => supabase.rpc("studio_submit_campaign", { p_id: c.id }))} className="inline-flex items-center gap-1 rounded-md bg-ink px-2.5 py-1 text-[12px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Send size={12} /> Submit for review</button> : null}
             {spender && ["approved", "paused"].includes(c.status) ? <button disabled={busy} onClick={() => act(() => supabase.rpc("studio_set_campaign_status", { p_id: c.id, p_status: "live" }))} className="inline-flex items-center gap-1 rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success transition-opacity duration-[140ms] hover:opacity-80"><Play size={12} /> Set live</button> : null}
             {spender && c.status === "live" ? <button disabled={busy} onClick={() => act(() => supabase.rpc("studio_set_campaign_status", { p_id: c.id, p_status: "paused" }))} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Pause size={12} /> Pause</button> : null}
-            {spender && ["live", "paused", "approved"].includes(c.status) ? <button disabled={busy} onClick={() => confirm("End this campaign? Its ads stop serving.") && act(() => supabase.rpc("studio_set_campaign_status", { p_id: c.id, p_status: "ended" }))} className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2.5 py-1 text-[12px] text-red-400 transition-colors duration-[140ms] hover:bg-red-500/15"><Square size={12} /> End</button> : null}
-            {spender && ["draft", "rejected"].includes(c.status) ? <button disabled={busy} onClick={() => confirm("Delete this draft? Its ads are removed with it.") && act(() => supabase.rpc("studio_delete_campaign", { p_id: c.id }))} className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2.5 py-1 text-[12px] text-red-400 transition-colors duration-[140ms] hover:bg-red-500/15"><Trash2 size={12} /> Delete</button> : null}
+            {spender && ["live", "paused", "approved"].includes(c.status) ? <button disabled={busy} onClick={() => confirm("End this campaign? Its ads stop serving.") && act(() => supabase.rpc("studio_set_campaign_status", { p_id: c.id, p_status: "ended" }))} className="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2.5 py-1 text-[12px] text-danger transition-colors duration-[140ms] hover:bg-danger/15"><Square size={12} /> End</button> : null}
+            {spender && ["draft", "rejected"].includes(c.status) ? <button disabled={busy} onClick={() => confirm("Delete this draft? Its ads are removed with it.") && act(() => supabase.rpc("studio_delete_campaign", { p_id: c.id }))} className="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2.5 py-1 text-[12px] text-danger transition-colors duration-[140ms] hover:bg-danger/15"><Trash2 size={12} /> Delete</button> : null}
           </div>
 
-          {c.ads.length === 0 ? <p className="mt-3 text-[12.5px] text-ink/40">No ads in this campaign yet.</p> : c.ads.map(a => (
+          {c.ads.length === 0 ? <p className="mt-3 text-[12.5px] text-muted">No ads in this campaign yet.</p> : c.ads.map(a => (
             <div key={a.id} className="mt-2 flex items-center gap-3.5 rounded-lg bg-surface p-3">
               {a.thumb ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -115,9 +133,9 @@ export default function AdsManagerPage() {
               ) : <span className="h-14 w-14 rounded-md bg-ink/10" />}
               <div className="min-w-0 flex-1">
                 <Link href={"/post/" + a.post_id} className="line-clamp-1 text-[13.5px] text-ink hover:underline">{a.content || "Media post"}</Link>
-                <p className="text-[11.5px] text-ink/45">{a.label} · {a.status} · {a.impressions.toLocaleString()} / {a.total_cap ? a.total_cap.toLocaleString() : "∞"} impressions · {a.clicks} clicks · CTR {ctr(a.impressions, a.clicks)}{a.products ? " · " + a.products + " product cards" : ""}</p>
+                <p className="text-[11.5px] text-muted">{a.label} · {a.status} · {a.impressions.toLocaleString()} / {a.total_cap ? a.total_cap.toLocaleString() : "∞"} impressions · {a.clicks} clicks · CTR {ctr(a.impressions, a.clicks)}{a.products ? " · " + a.products + " product cards" : ""}</p>
               </div>
-              {editor && c.status !== "ended" ? <button disabled={busy} onClick={() => confirm("Remove this ad from the campaign?") && act(() => supabase.rpc("studio_remove_ad", { p_promo: a.id }))} className="rounded-md p-1.5 text-red-400 transition-colors duration-[140ms] hover:bg-red-500/10" aria-label="Remove"><Trash2 size={13} /></button> : null}
+              {editor && c.status !== "ended" ? <button disabled={busy} onClick={() => confirm("Remove this ad from the campaign?") && act(() => supabase.rpc("studio_remove_ad", { p_promo: a.id }))} className="rounded-md p-1.5 text-danger transition-colors duration-[140ms] hover:bg-danger/10" aria-label="Remove"><Trash2 size={13} /></button> : null}
             </div>
           ))}
         </div>
@@ -128,14 +146,14 @@ export default function AdsManagerPage() {
           <div className="w-full max-w-[520px] rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">{f.id ? "Edit campaign" : "New campaign"}</p>
-              <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <input value={f.name} onChange={e => setF({ ...f, name: e.target.value })} maxLength={80} placeholder="Campaign name, for example Spring counter kit" className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-ink/40">Objective</p>
+            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Objective</p>
             <div className="mb-3 flex flex-wrap gap-1.5">
               {OBJECTIVES.map(([k, l]) => <button key={k} onClick={() => setF({ ...f, objective: k })} className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (f.objective === k ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{l}</button>)}
             </div>
-            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-ink/40">Budget and payment</p>
+            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Budget and payment</p>
             <div className="mb-3 flex gap-2">
               <select value={f.currency} onChange={e => setF({ ...f, currency: e.target.value })} className="rounded-lg border border-ink/15 px-2 py-2 text-[13.5px] text-ink outline-none"><option>USD</option><option>ZWG</option></select>
               <input value={f.budget} onChange={e => setF({ ...f, budget: e.target.value })} inputMode="decimal" placeholder="Budget" className="w-32 rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
@@ -143,12 +161,12 @@ export default function AdsManagerPage() {
                 {[["crisp", "Crisp"], ["intobank", "IntoBank"]].map(([k, l]) => <button key={k} onClick={() => setF({ ...f, payment_method: k })} className={"flex-1 rounded-lg border px-2 py-2 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (f.payment_method === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>{l}</button>)}
               </div>
             </div>
-            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-ink/40">Schedule</p>
+            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Schedule</p>
             <div className="mb-4 flex gap-2">
               <input type="datetime-local" value={f.starts_at} onChange={e => setF({ ...f, starts_at: e.target.value })} className="flex-1 rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
               <input type="datetime-local" value={f.ends_at} onChange={e => setF({ ...f, ends_at: e.target.value })} className="flex-1 rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             </div>
-            <p className="mb-3 text-[12px] text-ink/45">Leave the end empty for a campaign that runs until you end it. Payment is settled with the review team on Crisp or IntoBank before the campaign goes live.</p>
+            <p className="mb-3 text-[12px] text-muted">Leave the end empty for a campaign that runs until you end it. Payment is settled with the review team on Crisp or IntoBank before the campaign goes live.</p>
             <button onClick={save} disabled={busy || !f.name.trim()} className="w-full rounded-md bg-ink py-2.5 text-sm font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{busy ? "Saving" : f.id ? "Save changes" : "Create campaign"}</button>
           </div>
         </div>
@@ -159,21 +177,22 @@ export default function AdsManagerPage() {
           <div className="flex max-h-[85vh] w-full max-w-[560px] flex-col rounded-t-2xl bg-white sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
               <p className="text-[15px] font-semibold text-ink">Add an ad to {addFor.name}</p>
-              <button onClick={() => setAddFor(null)} className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setAddFor(null)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <div className="flex gap-2 px-4 pt-3">
               <input value={label} onChange={e => setLabel(e.target.value)} maxLength={24} placeholder="Label" className="w-36 rounded-lg border border-ink/15 px-3 py-1.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
               <input value={cap} onChange={e => setCap(e.target.value)} inputMode="numeric" placeholder="Impression cap (optional)" className="flex-1 rounded-lg border border-ink/15 px-3 py-1.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             </div>
-            <p className="px-4 pt-2 text-[12px] text-ink/45">Pick one of your posts. Posts with product cards become carousel ads automatically.</p>
+            <p className="px-4 pt-2 text-[12px] text-muted">Pick one of your posts. Posts with product cards become carousel ads automatically.</p>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-              {posts.length === 0 ? <p className="py-8 text-center text-[13px] text-ink/45">No posts yet. Publish one from the Planner first.</p> : posts.map(p => (
+              <StudioLoadError message={postsError} retry={() => { void openAdd(addFor); }} busy={postsLoading} />
+              {postsLoading ? <p className="py-8 text-center text-[13px] text-muted">Loading posts…</p> : postsError ? null : posts.length === 0 ? <p className="py-8 text-center text-[13px] text-muted">No posts yet. Publish one from the Planner first.</p> : posts.map(p => (
                 <button key={p.id} disabled={busy} onClick={() => addAd(p.id)} className="mb-1.5 flex w-full items-center gap-3 rounded-2xl border border-ink/10 bg-white p-2 text-left transition-colors duration-[140ms] hover:bg-black/[0.03]">
                   {p.thumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.thumb} alt="" className="h-10 w-10 rounded-md object-cover" />
                   ) : <span className="h-10 w-10 rounded-md bg-ink/10" />}
-                  <span className="min-w-0 flex-1"><span className="line-clamp-1 text-[13px] text-ink">{p.content || "Media post"}</span><span className="text-[11px] text-ink/45">{new Date(p.created_at).toLocaleDateString()} · {p.likes} likes{p.products ? " · " + p.products + " products" : ""}</span></span>
+                  <span className="min-w-0 flex-1"><span className="line-clamp-1 text-[13px] text-ink">{p.content || "Media post"}</span><span className="text-[11px] text-muted">{new Date(p.created_at).toLocaleDateString()} · {p.likes} likes{p.products ? " · " + p.products + " products" : ""}</span></span>
                 </button>
               ))}
             </div>

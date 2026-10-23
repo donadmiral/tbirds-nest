@@ -182,7 +182,9 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
           onContextMenu={e => openMenu(e, item)}
           onMouseEnter={() => setHover((inPinned ? 'pin:' : '') + item.href)}
           onMouseLeave={() => setHover(null)}
-          title={undefined}
+          title={item.label}
+          aria-label={item.label + (n > 0 ? `, ${n} waiting` : '')}
+          aria-current={on ? 'page' : undefined}
           style={{
             position: 'relative', zIndex: 1,
             display: 'flex', alignItems: 'center', gap: 10,
@@ -196,7 +198,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
         >
           <svg width="14.5" height="14.5" viewBox="0 0 24 24" style={{
             flex: '0 0 14.5px',
-            fill: on ? 'var(--accent)' : 'rgba(var(--on),0.33)',
+            fill: on ? 'var(--accent)' : 'var(--txt-muted)',
             transform: on ? 'scale(1.06)' : 'scale(1)',
             transition: 'fill 160ms ' + EASE + ', transform 200ms ' + EASE,
           }}><path d={item.icon} /></svg>
@@ -207,7 +209,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
             <span className="pc-num" style={{
               fontSize: 10, fontWeight: 600, padding: '1.5px 5px', borderRadius: 5,
               background: on ? 'rgba(var(--accent-rgb),0.16)' : 'rgba(var(--on),0.07)',
-              color: on ? 'var(--accent)' : 'rgba(var(--on),0.45)',
+              color: on ? 'var(--accent)' : 'var(--txt-muted)',
               transform: pop[item.href] ? 'scale(1.08)' : 'scale(1)',
               transition: 'transform 200ms ' + EASE,
             }}>{n}</span>
@@ -231,7 +233,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
             pointerEvents: 'none',
           }}>
             {item.label}
-            <span className="pc-num" style={{ fontSize: 9.5, color: 'rgba(var(--on),0.38)', border: '1px solid rgba(var(--on),0.12)', borderRadius: 4, padding: '0 4px' }}>G {item.key}</span>
+            <span className="pc-num" style={{ fontSize: 9.5, color: 'var(--txt-muted)', border: '1px solid rgba(var(--on),0.12)', borderRadius: 4, padding: '0 4px' }}>G {item.key}</span>
             {n > 0 ? <span className="pc-num" style={{ fontSize: 9.5, color: 'var(--alert)' }}>{n}</span> : null}
           </div>
         ) : null}
@@ -264,15 +266,15 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
             <div style={{ minWidth: 0, flex: 1 }}>
               {/* Same lockup as the web app: Platinum in ink, Circles in grey, one heavy sans. */}
               <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, whiteSpace: 'nowrap', fontFamily: "Inter, 'Segoe UI', system-ui, sans-serif" }}>
-                <span style={{ color: 'var(--txt-strong)' }}>Platinum</span><span style={{ color: 'rgba(var(--on),0.46)' }}>Circles</span>
+                <span style={{ color: 'var(--txt-strong)' }}>Platinum</span><span style={{ color: 'var(--txt-muted)' }}>Circles</span>
               </div>
-              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.02em', color: 'rgba(var(--on),0.46)', marginTop: 2 }}>Operations</div>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.02em', color: 'var(--txt-muted)', marginTop: 2 }}>Operations</div>
             </div>
           ) : null}
           {open ? (
             <button type="button" onClick={toggleCollapse} className="pc-icon-btn" title={collapsed ? 'Keep expanded' : 'Collapse rail'}
               style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" style={{ stroke: 'rgba(var(--on),0.4)' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" style={{ stroke: 'var(--txt-muted)' }}>
                 <path d={collapsed ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'} strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
@@ -296,7 +298,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
 
             {pinned.length > 0 && open ? (
               <div style={{ marginBottom: 15 }}>
-                <div style={{ padding: '0 8px 6px', fontSize: 9.5, fontWeight: 700, color: 'rgba(var(--on),0.44)', letterSpacing: '0.04em' }}>PINNED</div>
+                <div style={{ padding: '0 8px 6px', fontSize: 9.5, fontWeight: 700, color: 'var(--txt-muted)', letterSpacing: '0.04em' }}>PINNED</div>
                 {pinned.map(it => row(it, true))}
               </div>
             ) : null}
@@ -306,18 +308,18 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
               return (
                 <div key={g.label} style={{ marginBottom: 15 }}>
                   {open ? (
-                    <button type="button" onClick={() => toggleGroup(g.label)}
+                    <button type="button" aria-expanded={!shut} onClick={() => toggleGroup(g.label)}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '0 8px 6px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-                      <span style={{ flex: 1, fontSize: 9.5, fontWeight: 700, color: 'rgba(var(--on),0.44)', letterSpacing: '0.02em' }}>{g.label}</span>
+                      <span style={{ flex: 1, fontSize: 9.5, fontWeight: 700, color: 'var(--txt-muted)', letterSpacing: '0.02em' }}>{g.label}</span>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" strokeWidth="2.6"
-                        style={{ stroke: 'rgba(var(--on),0.3)', transform: shut ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 180ms ' + EASE }}>
+                        style={{ stroke: 'var(--txt-muted)', transform: shut ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 180ms ' + EASE }}>
                         <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </button>
                   ) : (
                     <div style={{ height: 1, margin: '0 6px 8px', background: 'rgba(var(--on),0.08)' }} />
                   )}
-                  <div style={{
+                  <div inert={shut && open} aria-hidden={shut && open ? true : undefined} style={{
                     overflow: 'hidden',
                     maxHeight: shut && open ? 0 : 44 * g.items.length + 8,
                     opacity: shut && open ? 0 : 1,
@@ -340,7 +342,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
               <span style={{ width: 27, height: 27, flex: '0 0 27px', borderRadius: 7, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{(email || '?').slice(0, 1).toUpperCase()}</span>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 11.8, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{email}</div>
-                <div style={{ fontSize: 9.5, color: 'rgba(var(--on),0.34)', textTransform: 'capitalize', marginTop: 1 }}>{roleLabel}</div>
+                <div style={{ fontSize: 9.5, color: 'var(--txt-muted)', textTransform: 'capitalize', marginTop: 1 }}>{roleLabel}</div>
               </div>
             </div>
           ) : (
@@ -348,7 +350,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
               <span style={{ width: 27, height: 27, borderRadius: 7, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{(email || '?').slice(0, 1).toUpperCase()}</span>
               <button type="button" onClick={toggleCollapse} className="pc-icon-btn" title="Expand rail"
                 style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" style={{ stroke: 'rgba(var(--on),0.4)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" style={{ stroke: 'var(--txt-muted)' }}>
                   <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
@@ -363,7 +365,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
           borderRadius: 10, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)',
           boxShadow: '0 14px 40px rgba(0,0,0,0.22)',
         }} onClick={e => e.stopPropagation()}>
-          <div style={{ padding: '5px 9px 6px', fontSize: 10, fontWeight: 700, color: 'rgba(var(--on),0.38)', letterSpacing: '0.03em' }}>{menu.label.toUpperCase()}</div>
+          <div style={{ padding: '5px 9px 6px', fontSize: 10, fontWeight: 700, color: 'var(--txt-muted)', letterSpacing: '0.03em' }}>{menu.label.toUpperCase()}</div>
           <button type="button" className="pc-nav" onClick={() => { router.push(menu.href); setMenu(null); }} style={menuBtn}>Open</button>
           <button type="button" className="pc-nav" onClick={() => { window.open(menu.href, '_blank'); setMenu(null); }} style={menuBtn}>Open in new tab</button>
           <button type="button" className="pc-nav" onClick={() => { togglePin(menu.href); setMenu(null); }} style={menuBtn}>{pins.includes(menu.href) ? 'Unpin from top' : 'Pin to top'}</button>

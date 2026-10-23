@@ -41,7 +41,7 @@ export function ThemeToggle() {
   return (
     <div className="flex gap-1 rounded-full bg-surface p-1">
       {opts.map((o) => (
-        <button key={o.key} onClick={() => choose(o.key)}
+        <button key={o.key} onClick={() => choose(o.key)} aria-pressed={theme === o.key}
           className={"flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (theme === o.key ? "bg-white text-ink shadow-sm" : "text-ink/60 hover:text-ink")}>
           <o.icon size={13} /> {o.label}
         </button>

@@ -16,6 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUnreadStore } from '../../stores/unreadStore';
 import { storiesService } from '../../services/storiesService';
+import { signGroupAvatars } from '../../services/chatMediaService';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDraftStore } from '../../stores/draftStore';
@@ -103,6 +104,8 @@ export default function ConversationsScreen({ navigation }: any) {
 
   const mountedRef = useRef(true);
   const initialLoadDoneRef = useRef(false);
+  const accountRef = useRef(userId); accountRef.current = userId;
+  useEffect(() => { setConversations([]); initialLoadDoneRef.current = false; }, [userId]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -169,9 +172,9 @@ useEffect(() => {
         groupConvs = gc || [];
       }
 
-      const allConvs = [...(dmConvs || []), ...groupConvs];
+      const allConvs = [...(dmConvs || []), ...await signGroupAvatars(groupConvs)];
       if (allConvs.length === 0) {
-        if (mountedRef.current) setConversations([]);
+        if (mountedRef.current && accountRef.current === userId) setConversations([]);
         return;
       }
 
@@ -245,11 +248,10 @@ useEffect(() => {
         return tb - ta;
       });
 
-      if (mountedRef.current) setConversations(list);
+      if (mountedRef.current && accountRef.current === userId) setConversations(list);
     } catch (e) { console.log('[Conversations] load error:', e); }
     finally {
-      if (mountedRef.current) setLoading(false);
-      initialLoadDoneRef.current = true;
+      if (mountedRef.current && accountRef.current === userId) { setLoading(false); initialLoadDoneRef.current = true; }
     }
   }, [userId]);
 

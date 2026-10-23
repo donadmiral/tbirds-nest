@@ -203,15 +203,15 @@ export interface DraggableStickerProps {
 // ── Helpers (pure, used in worklets via runOnJS bridge) ──
 
 function fireHapticLight() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 
 function fireHapticMedium() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 }
 
 function fireHapticSelection() {
-  Haptics.selectionAsync();
+  void Haptics.selectionAsync().catch(() => {});
 }
 
 // ── Worklet helpers ──
@@ -306,6 +306,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   const pinchBase = useSharedValue(sticker.scale);
   const rotationBase = useSharedValue(sticker.rotation);
   const inDeleteZone = useSharedValue(false);
+  const panActive = useSharedValue(false);
   const alignedX = useSharedValue(false);
   const alignedY = useSharedValue(false);
   // Centres of the other stickers, plain numbers the worklet can read.
@@ -409,6 +410,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
     .minDistance(4)
     .onStart(() => {
       'worklet';
+      panActive.value = true;
       cancelAnimation(translateX);
       cancelAnimation(translateY);
       if (containerW > 0 && containerH > 0) {
@@ -528,8 +530,10 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
         if (guideYOp) guideYOp.value = withTiming(yClose ? 1 : 0, { duration: 120 });
       }
     })
-    .onEnd((e) => {
+    .onEnd((e, success) => {
       'worklet';
+      if (!success) return;
+      panActive.value = false;
       if (alignXOp) alignXOp.value = 0; if (alignYOp) alignYOp.value = 0; alignedX.value = false; alignedY.value = false;
       if (containerW === 0 || containerH === 0) return;
 
@@ -593,6 +597,21 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       translateX.value = withSpring(0, SPRING_LAND);
       translateY.value = withSpring(0, SPRING_LAND);
       runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
+    })
+    .onFinalize((_event, success) => {
+      'worklet';
+      if (success || !panActive.value) return;
+      panActive.value = false;
+      inDeleteZone.value = false;
+      pickupScale.value = withSpring(1, SPRING_SNAP);
+      translateX.value = 0; translateY.value = 0;
+      posNx.value = startNx.value; posNy.value = startNy.value;
+      if (deleteHotSV) deleteHotSV.value = 0;
+      if (guideXOp) guideXOp.value = 0; if (guideYOp) guideYOp.value = 0;
+      if (alignXOp) alignXOp.value = 0; if (alignYOp) alignYOp.value = 0;
+      runOnJS(jsDeleteZoneChange)(stickerId, false);
+      runOnJS(jsSmartGuideChange)(stickerId, null, null);
+      runOnJS(jsDragEnd)(stickerId, startNx.value, startNy.value);
     }),
     [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, deleteHotSV, alignXPos, alignYPos, alignXOp, alignYOp, otherCenters, jsDeleteDrop, jsSmartGuideChange, guideXOp, guideYOp]
   );
@@ -803,7 +822,9 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   if (prev.containerW !== next.containerW || prev.containerH !== next.containerH) return false;
   if (prev.deleteZoneNy !== next.deleteZoneNy) return false;
   if (prev.safeTopNy !== next.safeTopNy || prev.safeBottomNy !== next.safeBottomNy) return false;
-  return true;
+  // Callbacks and neighbour positions can change without this sticker changing.
+  // Keeping old closures loses newer edits and snaps to obsolete positions.
+  return Object.keys(prev).every(key => prev[key as keyof DraggableStickerProps] === next[key as keyof DraggableStickerProps]);
 });
 
 export default DraggableSticker;

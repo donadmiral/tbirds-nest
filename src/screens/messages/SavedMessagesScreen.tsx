@@ -1,6 +1,6 @@
 import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   ActivityIndicator, StatusBar,
@@ -10,7 +10,7 @@ import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
-import { signChatMediaMap } from '../../services/chatMediaService';
+import { signChatMediaMap, isChatMediaUrl } from '../../services/chatMediaService';
 import { useAuthStore } from '../../stores/authStore';
 
 type SavedMsg = {
@@ -44,6 +44,8 @@ export default function SavedMessagesScreen({ navigation }: any) {
   const userId = profile?.id ?? null;
   const [saved, setSaved]   = useState<SavedMsg[]>([]);
   const [loading, setLoading] = useState(true);
+  const accountRef = useRef(userId); accountRef.current = userId;
+  useEffect(() => { setSaved([]); }, [userId]);
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -63,12 +65,12 @@ export default function SavedMessagesScreen({ navigation }: any) {
         .order('saved_at', { ascending: false });
       const savedRows = (data || []) as any[];
       const signedMap = await signChatMediaMap(savedRows.map((r: any) => r.message).filter(Boolean));
-      savedRows.forEach((r: any) => { if (r.message && signedMap[r.message.id]) r.message.media_url = signedMap[r.message.id]; });
-      setSaved(savedRows as unknown as SavedMsg[]);
+      savedRows.forEach((r: any) => { if (r.message && isChatMediaUrl(r.message.media_url)) r.message.media_url = signedMap[r.message.id] || null; });
+      if (accountRef.current === userId) setSaved(savedRows as unknown as SavedMsg[]);
     } catch (e) {
       console.log('SAVED_MSGS_ERR', e);
     } finally {
-      setLoading(false);
+      if (accountRef.current === userId) setLoading(false);
     }
   }, [userId]);
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { profilePath } from "@/lib/profileLookup";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ThumbsUp, ThumbsDown, Reply, Trash2, Copy, MoreHorizontal, ChevronDown, ChevronUp, EyeOff, ShieldAlert, UserMinus } from "lucide-react";
@@ -8,6 +9,7 @@ import { PersonName } from "@/components/PersonName";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { RichText } from "@/components/RichText";
 import { timeAgo } from "@/lib/feed";
+import { refreshCommentCount } from "@/lib/commentCounts";
 
 type CommentRow = {
   id: string;
@@ -47,16 +49,18 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
     const userId = sess.session?.user.id ?? null;
     setUid(userId);
     if (userId) { const { data: ci } = await supabase.from("post_collaborators").select("status").eq("post_id", postId).eq("user_id", userId).maybeSingle(); setCollabInvite((ci as { status?: string } | null)?.status === "invited"); }
-    const { data: pol } = await supabase.from("posts").select("comment_policy, user_id").eq("id", postId).maybeSingle();
+    const { data: pol, error: policyError } = await supabase.from("posts").select("comment_policy, user_id").eq("id", postId).maybeSingle();
+    if (policyError) return;
     const authorId = (pol as { user_id?: string } | null)?.user_id ?? null;
     setPostAuthor(authorId);
     if ((pol as { comment_policy?: string } | null)?.comment_policy === "off") { setOff(true); setItems([]); return; }
     setOff(false);
-    const { data: rows } = await supabase
+    const { data: rows, error: commentsError } = await supabase
       .from("post_comments")
       .select("id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, hidden_at, is_spam, spam_reason")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
+    if (commentsError) return;
     const all = ((rows ?? []) as (CommentRow & { content: string | null; hidden_at?: string | null; is_spam?: boolean })[]).filter((r) => !r.hidden_at || r.user_id === userId || authorId === userId).map((r) => ({ ...r, body: r.body || r.content || "", hidden: !!r.hidden_at, spam: !!r.is_spam && r.user_id !== userId, replies: [] as CommentRow[] }));
     const ids = Array.from(new Set(all.map((c) => c.user_id)));
     if (ids.length > 0) {
@@ -105,11 +109,16 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
     if (!uid || c.user_id !== uid) return;
     if (!window.confirm("Delete this comment?")) return;
     setMenuFor(null);
-    const strip = (list: CommentRow[]): CommentRow[] =>
-      list.filter((x) => x.id !== c.id).map((x) => ({ ...x, replies: strip(x.replies) }));
-    setItems((l) => strip(l));
-    const { error } = await supabase.from("post_comments").delete().eq("id", c.id);
-    if (error) { alert("Could not delete: " + error.message); load(); }
+    try {
+      const { error, status } = await supabase.from("post_comments").delete().eq("id", c.id);
+      if (error && (status === 0 || status >= 500)) throw error;
+      if (error) alert("Could not delete: " + error.message);
+    } catch {
+      alert("Could not confirm whether the comment was deleted. Check the thread before trying again.");
+    } finally {
+      void refreshCommentCount(supabase, postId);
+      void load().catch(() => { /* Keep the last thread when reconciliation is unavailable. */ });
+    }
   }
 
   async function copyText(c: CommentRow) {
@@ -126,16 +135,23 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
     const body = draft.trim();
     if (!body || busy || !uid) return;
     setBusy(true);
-    const { error } = await supabase.from("post_comments").insert({
-      post_id: postId, user_id: uid, body, content: body,
-      parent_comment_id: replyTo?.id ?? null, media_url: null, media_type: null,
-    });
-    setBusy(false);
-    if (error) { alert("Could not comment: " + error.message); return; }
-    if (replyTo) setExpanded((s) => new Set(s).add(replyTo.parent_comment_id ?? replyTo.id));
-    setDraft("");
-    setReplyTo(null);
-    load();
+    try {
+      const { error, status } = await supabase.from("post_comments").insert({
+        post_id: postId, user_id: uid, body, content: body,
+        parent_comment_id: replyTo?.id ?? null, media_url: null, media_type: null,
+      });
+      if (error && (status === 0 || status >= 500)) throw error;
+      if (error) { alert("Could not comment: " + error.message); return; }
+      if (replyTo) setExpanded((s) => new Set(s).add(replyTo.parent_comment_id ?? replyTo.id));
+      setDraft(current => current === draft ? "" : current);
+      setReplyTo(current => current?.id === replyTo?.id ? null : current);
+    } catch {
+      alert("Could not confirm whether your comment was sent. Check the thread before trying again.");
+    } finally {
+      setBusy(false);
+      void refreshCommentCount(supabase, postId);
+      void load().catch(() => { /* The draft survives uncertain writes and failed reconciliation. */ });
+    }
   }
 
   function countAll(c: CommentRow): number {
@@ -154,24 +170,24 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
           <StoryAvatar userId={c.user_id} name={c.author?.full_name} avatarUrl={c.author?.avatar_url} size={depth > 0 ? 30 : 36} href={c.author?.username ? "/" + c.author.username : null} />
           <div className="min-w-0 flex-1">
             <p className="flex items-baseline gap-1.5 text-[13px]">
-              <Link href={c.author?.username ? "/" + c.author.username : "#"} className="font-semibold text-ink hover:underline"><PersonName name={c.author?.full_name ?? "Member"} userId={c.user_id} badgeSize={13} /></Link>
-              {c.hidden ? <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/50">Hidden</span> : null}
-              {c.spam ? <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink/50">May be spam</span> : null}
-              <span className="text-ink/40">{timeAgo(c.created_at)}</span>
+              <Link href={profilePath(c.author?.username, c.user_id)} className="font-semibold text-ink hover:underline"><PersonName name={c.author?.full_name ?? "Member"} userId={c.user_id} badgeSize={13} /></Link>
+              {c.hidden ? <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold uppercase text-muted">Hidden</span> : null}
+              {c.spam ? <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold uppercase text-muted">May be spam</span> : null}
+              <span className="text-muted">{timeAgo(c.created_at)}</span>
             </p>
             <p className="whitespace-pre-wrap text-[14px] text-ink/90"><RichText text={c.body} /></p>
             <div className="-ml-2.5 mt-1 flex items-center gap-0.5">
-              <button onClick={() => react(c.id, 1)} className={vb + " " + (mine === 1 ? "text-success" : "text-ink/45 hover:bg-success/10 hover:text-success")}>
+              <button aria-label="Like comment" aria-pressed={mine === 1} onClick={() => react(c.id, 1)} className={vb + " " + (mine === 1 ? "text-success" : "text-muted hover:bg-success/10 hover:text-success")}>
                 <ThumbsUp size={13} fill={mine === 1 ? "currentColor" : "none"} /> {c.likes_count > 0 ? c.likes_count : ""}
               </button>
-              <button onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-ink/45 hover:bg-danger/10 hover:text-danger")}>
+              <button aria-label="Dislike comment" aria-pressed={mine === -1} onClick={() => react(c.id, -1)} className={vb + " " + (mine === -1 ? "text-danger" : "text-muted hover:bg-danger/10 hover:text-danger")}>
                 <ThumbsDown size={13} fill={mine === -1 ? "currentColor" : "none"} /> {c.dislikes_count > 0 ? c.dislikes_count : ""}
               </button>
-              <button onClick={() => startReply(c)} className={vb + " text-ink/45 hover:bg-ink/[0.06] hover:text-ink"}>
+              <button onClick={() => startReply(c)} className={vb + " text-muted hover:bg-ink/[0.06] hover:text-ink"}>
                 <Reply size={13} /> Reply
               </button>
               <span className="relative">
-                <button onClick={() => setMenuFor(menuFor === c.id ? null : c.id)} className="rounded-full p-2 text-ink/30 opacity-0 transition-colors duration-[140ms] hover:bg-surface hover:text-ink group-hover:opacity-100" title="More">
+                <button onClick={() => setMenuFor(menuFor === c.id ? null : c.id)} className="rounded-full p-2 text-muted opacity-0 transition-colors duration-[140ms] hover:bg-surface hover:text-ink group-hover:opacity-100" title="More">
                   <MoreHorizontal size={14} />
                 </button>
                 {menuFor === c.id ? (
@@ -193,7 +209,7 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
             </div>
             {depth === 0 && total > 0 ? (
               <button onClick={() => setExpanded((s) => { const n = new Set(s); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })}
-                className="mt-1.5 flex items-center gap-1 text-[12px] font-semibold text-pearl hover:underline"
+                className="mt-1.5 flex items-center gap-1 text-[12px] font-semibold text-accent hover:underline"
               >
                 {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                 {open ? "Hide replies" : "View " + total + (total === 1 ? " reply" : " replies")}
@@ -209,10 +225,10 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
   return (
     <section className="mt-6 border-t border-ink/10 pt-4">
       <h2 className="text-[15px] font-semibold text-ink">{items.length > 0 ? "Comments" : "No comments yet"}</h2>
-      {!loaded ? <p className="py-6 text-center text-sm text-ink/40">Loading</p> : items.filter((c) => !c.spam).map((c) => <Row key={c.id} c={c} depth={0} />)}
+      {!loaded ? <p className="py-6 text-center text-sm text-muted">Loading</p> : items.filter((c) => !c.spam).map((c) => <Row key={c.id} c={c} depth={0} />)}
       {loaded && items.some((c) => c.spam) ? (
         <div className="mt-4">
-          <button onClick={() => setShowSpam((v) => !v)} className="flex items-center gap-1 text-[12.5px] font-semibold text-ink/50 hover:text-ink">
+          <button onClick={() => setShowSpam((v) => !v)} className="flex items-center gap-1 text-[12.5px] font-semibold text-muted hover:text-ink">
             {showSpam ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             {items.filter((c) => c.spam).length} {items.filter((c) => c.spam).length === 1 ? "comment" : "comments"} may be spam
           </button>
@@ -221,9 +237,9 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
       ) : null}
       <div className="mt-5">
         {replyTo ? (
-          <p className="mb-1 flex items-center gap-2 text-[12px] text-ink/50">
+          <p className="mb-1 flex items-center gap-2 text-[12px] text-muted">
             Replying to <span className="font-semibold text-ink/80">{replyTo.author?.full_name}</span>
-            <button onClick={() => setReplyTo(null)} className="text-pearl hover:underline">Cancel</button>
+            <button onClick={() => setReplyTo(null)} className="text-accent hover:underline">Cancel</button>
           </p>
         ) : null}
         <div className="flex items-end gap-2">
@@ -233,9 +249,9 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
             placeholder={replyTo ? "Write a reply" : "Add a comment"}
             rows={1}
-            className="max-h-32 flex-1 resize-none rounded-full bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+            className="max-h-32 flex-1 resize-none rounded-full bg-surface px-4 py-2.5 text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
           />
-          <button onClick={submit} disabled={busy || !draft.trim()} className="rounded-full bg-pearl px-5 py-2.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30">
+          <button onClick={submit} disabled={busy || !draft.trim()} className="rounded-full bg-pearl px-5 py-2.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30">
             {busy ? "Sending" : "Send"}
           </button>
         </div>

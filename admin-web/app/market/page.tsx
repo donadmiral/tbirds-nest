@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
@@ -27,7 +28,7 @@ const SERIES = ['var(--c2)', 'var(--c1)', 'var(--c3)', 'var(--c4)', 'var(--c6)',
 const STATUS_TONE: Record<string, Tone> = { available: 'ok', active: 'ok', sold: 'neutral', pending: 'warn', reserved: 'warn', removed: 'bad', draft: 'neutral' };
 
 function title(s: string) { return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
-function money(n: number) { return '$' + n.toLocaleString(undefined, { maximumFractionDigits: 2 }); }
+function money(n: number, currency?: unknown) { return (String(currency || '').trim() || 'Currency not recorded') + ' ' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 export default async function MarketPage() {
   const admin = await requireDesk('/market');
@@ -44,6 +45,7 @@ export default async function MarketPage() {
     svc.from('listing_reports').select('id, listing_id, reason, status').limit(1000),
   ]);
 
+  if (listRes.error || totalRes.error || reportRes.error) throw new Error('Marketplace records could not be loaded. Please retry.');
   const listings = (listRes.data ?? []) as Record<string, unknown>[];
   const urlMap = await resolveMedia(listings.map(l => pickMedia(l)));
 
@@ -93,10 +95,10 @@ export default async function MarketPage() {
     .map((k, i) => ({ label: title(k), value: catCount[k], color: SERIES[i % SERIES.length] }));
 
   const cards = [
-    { label: 'Listings on file', value: fmt(totalRes.count ?? listings.length), note: 'marketplace_listings', icon: IC.bag, color: 'var(--c1)', spark },
-    { label: 'Listed this week', value: fmt(new7), delta: d7.text, deltaTone: d7.tone, note: 'against the week before', icon: IC.bag, color: 'var(--c2)', spark: spark.slice(-14) },
-    { label: 'Value on sale', value: money(listedValue), note: fmt(available.length) + ' available listings', icon: IC.money, color: 'var(--c3)' },
-    { label: 'Marked sold', value: fmt(sold.length), note: money(soldValue) + ' of listed value', icon: IC.check, color: 'var(--c6)' },
+    { label: 'Listings on file', value: fmt(totalRes.count ?? listings.length), note: 'All marketplace listings', icon: IC.bag, color: 'var(--c1)', spark },
+    { label: 'Listed this week', value: fmt(new7), delta: d7.text, deltaTone: d7.tone, note: 'within the loaded listing sample', icon: IC.bag, color: 'var(--c2)', spark: spark.slice(-14) },
+    { label: 'Available listings', value: fmt(available.length), note: 'in the newest 250 listings', icon: IC.money, color: 'var(--c3)' },
+    { label: 'Marked sold', value: fmt(sold.length), note: 'in the newest 250 listings', icon: IC.check, color: 'var(--c6)' },
     { label: 'Carrying reports', value: fmt(flagged), note: fmt(sellers) + ' sellers on the market', icon: IC.flag, color: 'var(--c5)' },
   ];
 
@@ -116,7 +118,7 @@ export default async function MarketPage() {
 
     const fields = [
       { label: 'Listing id', value: id },
-      { label: 'Price', value: money(price) },
+      { label: 'Price', value: money(price,l.currency) },
       { label: 'Status', value: title(status) },
       { label: 'Seller', value: (s.full_name || 'Unnamed') + ' (@' + (s.username || 'member') + ')' },
       { label: 'Listed', value: new Date(String(l.created_at)).toLocaleString() },
@@ -140,7 +142,7 @@ export default async function MarketPage() {
       facets: { status: title(status), category: cat ? title(cat) : 'Uncategorised' },
       cells: [
         { t: 'media', v: String(l.title || 'Untitled listing'), sub: cat ? title(cat) : 'uncategorised', thumb: url, video },
-        { t: 'mono', v: money(price) },
+        { t: 'mono', v: money(price,l.currency) },
         { t: 'pill', v: rep?.open ? 'Reported' : title(status), tone: rep?.open ? 'bad' : (STATUS_TONE[status] || 'neutral') },
         { t: 'user', v: s.full_name || 'Unnamed', sub: '@' + (s.username || 'member'), img: s.avatar_url },
         { t: 'dim', v: s.location || '-' },
@@ -148,7 +150,7 @@ export default async function MarketPage() {
       ],
       detail: {
         title: String(l.title || 'Untitled listing'),
-        subtitle: money(price) + (cat ? ' \u00b7 ' + title(cat) : '') + ' \u00b7 ' + ago(String(l.created_at)),
+        subtitle: money(price,l.currency) + (cat ? ' \u00b7 ' + title(cat) : '') + ' \u00b7 ' + ago(String(l.created_at)),
         img: s.avatar_url,
         media: url ? { url, video } : null,
         pills: [
@@ -157,7 +159,7 @@ export default async function MarketPage() {
           ...(s.is_verified ? [{ v: 'Verified seller', tone: 'ok' as Tone }] : []),
         ],
         stats: [
-          { label: 'Price', value: money(price) },
+          { label: 'Price', value: money(price,l.currency) },
           { label: 'Photos', value: String(photos.length) },
           { label: 'Reports', value: String(rep?.total || 0) },
         ],
@@ -185,7 +187,9 @@ export default async function MarketPage() {
   ];
 
   return (
-    <Shell admin={admin} active="/market" title="Market" sub="Every listing with its real photos, its seller and anything reported against it. Removing a listing takes it off the market everywhere.">
+    <Shell admin={admin} active="/market" title="Market" sub="Review the newest listings, their sellers and loaded reports. Removing a listing takes it off the market everywhere.">
+      <Link href="/market/orders" className="mb-4 inline-block underline">Investigate orders, returns and disputes</Link>
+      <p className="mb-4 text-sm text-[var(--txt-muted)]">Listing analysis below covers the newest 250 listings. Prices are listing values, not settled revenue. Open order investigations for verified payment and fulfillment records.</p>
       <StatStrip cards={cards} />
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_336px]">

@@ -15,9 +15,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { showMessage } from 'react-native-flash-message';
-import { storiesService } from '../../services/storiesService';
+import { storiesService, type StoryUploadCache } from '../../services/storiesService';
 import { supabase } from '../../services/supabase';
 import { duration } from '../../constants/tokens';
+import { PublicationAttempt } from '../../utils/publication';
+import { authorId as currentAuthorId } from '../../stores/actorStore';
 
 interface Draft {
   id: string;
@@ -63,6 +65,11 @@ export interface PublishOrchestratorOutput {
   publishAll: () => Promise<void>;
 }
 
+function draftContent(draft: Draft): string {
+  const { uploadState: _state, errorMsg: _error, ...content } = draft;
+  return JSON.stringify(content);
+}
+
 export function usePublishOrchestrator(input: PublishOrchestratorInput): PublishOrchestratorOutput {
   const {
     drafts, setDrafts, myId, navigation,
@@ -71,6 +78,11 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
 
   const [publishing, setPublishing] = useState(false);
   const mountedRef = useRef(true);
+  const publishingRef = useRef(false);
+  const uploadCache = useRef<StoryUploadCache>(new Map());
+  const latestDrafts = useRef(drafts);
+  latestDrafts.current = drafts;
+  const attempts = useRef(new Map<string, { userId: string; authorId: string; draft: Draft; progress: PublicationAttempt }>());
 
   // Own lifecycle internally. No consumer coordination needed.
   useEffect(() => {
@@ -78,14 +90,15 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
     return () => { mountedRef.current = false; };
   }, []);
 
-  const canPublish = drafts.length > 0 && !publishing;
+  const canPublish = drafts.some((d) => d.uploadState !== 'done' && !attempts.current.get(d.id)?.progress.uncertain) && !publishing;
 
   const publishAll = useCallback(async () => {
-    if (!myId || publishing || drafts.length === 0) return;
+    if (!myId || publishingRef.current || drafts.length === 0) return;
+    publishingRef.current = true;
     setPublishing(true);
 
-    closeBloom();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try { closeBloom(); } catch { /* Animation must not strand publication. */ }
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     let successCount = 0;
     let failCount = 0;
@@ -94,7 +107,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
 
     for (let i = 0; i < drafts.length; i++) {
       if (!mountedRef.current) return;
-      const d = drafts[i];
+      let d = drafts[i];
 
       if (d.uploadState === 'done') {
         successCount++;
@@ -103,16 +116,38 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
 
       // Mark uploading
       if (mountedRef.current) {
-        setDrafts(prev => prev.map((x, idx) =>
-          idx === i ? { ...x, uploadState: 'uploading' as const, errorMsg: null } : x
+        setDrafts(prev => prev.map((x) =>
+          x.id === d.id ? { ...x, uploadState: 'uploading' as const, errorMsg: null } : x
         ));
       }
 
       try {
-        const stickerPayload = d.stickers && d.stickers.length > 0 ? d.stickers : null;
+        const author: string = currentAuthorId(myId) ?? myId;
+        let attempt = attempts.current.get(d.id);
+        if (!attempt) {
+          const snapshot = JSON.parse(JSON.stringify(d)) as Draft;
+          const progress = new PublicationAttempt(async () => {
+            const { data, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError || data.session?.user.id !== myId || (currentAuthorId(myId) ?? myId) !== author) throw new Error('Return to the account that started this story to finish it.');
+            const current = latestDrafts.current.find((row) => row.id === snapshot.id);
+            if (!current || draftContent(current) !== draftContent(snapshot)) throw new Error('This draft changed after sharing started. Restore the original draft to finish the same story, or check your stories before starting again.');
+          });
+          attempt = { userId: myId, authorId: author, draft: snapshot, progress };
+          attempts.current.set(d.id, attempt);
+        }
+        if (attempt.userId !== myId || attempt.authorId !== author) throw new Error('Return to the account that started this story to finish it.');
+        await attempt.progress.check();
+        if (attempt.progress.uncertain) throw new Error('The last save could not be confirmed. Check your stories before sharing again.');
+        // Keep the original payload: edits after a partial save must not make a
+        // second story or silently change what its confirmed steps contain.
+        d = attempt.draft;
+        const stickerPayload = d.stickers && d.stickers.length > 0 ? JSON.parse(JSON.stringify(d.stickers)) : null;
 
         const story = await storiesService.uploadAndCreateStory({
           userId: myId,
+          publication: attempt.progress,
+          expectedAuthorId: attempt.authorId,
+          uploadCache: uploadCache.current,
           localUri: d.localUri,
           mediaType: d.mediaType,
           caption: d.caption || null,
@@ -140,11 +175,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
 
         // Create poll if present
         if (d.pollData) {
-          try {
-            await storiesService.createStoryPoll(story.id, d.pollData.question, d.pollData.options, { nx: d.pollData.nx, ny: d.pollData.ny, scale: d.pollData.scale });
-          } catch (pollErr: any) {
-            console.error('[Publish] poll creation failed:', pollErr?.message);
-          }
+          await storiesService.createStoryPoll(story.id, d.pollData.question, d.pollData.options, { nx: d.pollData.nx, ny: d.pollData.ny, scale: d.pollData.scale }, attempt.progress);
         }
 
         // Mentions: visible ones come from mention stickers, hidden ones from
@@ -163,25 +194,32 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
         ];
         // A reshared story card marks the original mention as reshared.
         const resharedIds: string[] = Array.from(new Set((stickerPayload || []).filter((s: any) => s.kind === 'story' && s.storyId).map((s: any) => String(s.storyId))));
-        for (const rid of resharedIds) { try { await supabase.rpc('mark_story_reshared', { p_story_id: rid }); } catch {} }
+        for (const rid of resharedIds) { await attempt.progress.check(); try { await supabase.rpc('mark_story_reshared', { p_story_id: rid }); } catch {} }
         if (mentionRows.length > 0) {
-          const { error: mentionErr } = await supabase.from('story_mentions').insert(mentionRows);
-          if (mentionErr) console.error('[Publish] story_mentions failed:', mentionErr.message);
+          await attempt.progress.write('mentions', () => supabase.from('story_mentions').insert(mentionRows));
         }
 
 
+        await attempt.progress.check();
         // Mark done
         if (mountedRef.current) {
-          setDrafts(prev => prev.map((x, idx) =>
-            idx === i ? { ...x, uploadState: 'done' as const } : x
+          setDrafts(prev => prev.map((x) =>
+            x.id === d.id ? { ...x, uploadState: 'done' as const } : x
           ));
         }
         successCount++;
       } catch (e: any) {
         console.error('[Publish]', e?.message);
+        const attempt = attempts.current.get(d.id);
+        const prefix = attempt?.progress.uncertain
+          ? 'Save not confirmed. Check your stories before sharing again. Keep this draft open. '
+          : attempt?.progress.postId
+            ? 'Story created; some details could not be confirmed. Retry finishes this same story. '
+            : '';
+        if (!attempt?.progress.postId && !attempt?.progress.uncertain) attempts.current.delete(d.id);
         if (mountedRef.current) {
-          setDrafts(prev => prev.map((x, idx) =>
-            idx === i ? { ...x, uploadState: 'error' as const, errorMsg: e?.message || 'Upload failed' } : x
+          setDrafts(prev => prev.map((x) =>
+            x.id === d.id ? { ...x, uploadState: 'error' as const, errorMsg: prefix + (e?.message || 'Upload failed') } : x
           ));
         }
         failCount++;
@@ -189,10 +227,11 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
     }
 
     if (!mountedRef.current) return;
+    publishingRef.current = false;
     setPublishing(false);
 
     if (failCount === 0) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       Animated.parallel([
         Animated.timing(mediaOpacity, { toValue: 0, duration: duration.medium, useNativeDriver: true }),
         Animated.timing(mediaScale, { toValue: 0.96, duration: duration.medium, useNativeDriver: true }),
@@ -200,7 +239,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
         if (mountedRef.current) { showMessage({ message: 'Story shared', type: 'success', duration: 1800 }); const nav: any = navigation; try { const st = nav.getState?.(); console.log('[Publish] exit from', JSON.stringify((st?.routes || []).map((r: any) => r.name))); if ((st?.routes?.length || 0) > 1 && typeof nav.popToTop === 'function') nav.popToTop(); else if (nav.canGoBack?.()) nav.goBack(); } catch (e: any) { console.log('[Publish] exit failed', e?.message); } }
       });
     } else if (successCount === 0) {
-      Alert.alert('Upload failed', 'Could not upload. Please try again.');
+      Alert.alert('Sharing incomplete', 'Your drafts are kept. Review each story’s error before trying again.');
     } else {
       Alert.alert('Partial upload', `${successCount} uploaded, ${failCount} failed.`);
     }

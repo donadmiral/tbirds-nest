@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
+import { profilePath } from "@/lib/profileLookup";
 import { ArrowLeft, UserMinus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { PersonName } from "@/components/PersonName";
@@ -37,17 +38,17 @@ export default function RestrictedAccountsPage() {
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
-      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><UserMinus size={19} className="text-pearl" /> Restricted accounts</h1>
-      <p className="pb-5 text-[13px] text-ink/50">A restricted person's comments on your posts wait for your approval, their messages go to Message requests, and nothing they do notifies you. They are not told. Restrict someone from their profile or from one of their comments.</p>
-      {err ? <p className="text-sm text-red-400">{err}</p> : rows === null ? <p className="py-10 text-center text-sm text-ink/40">Loading</p>
+      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><UserMinus size={19} className="text-accent" /> Restricted accounts</h1>
+      <p className="pb-5 text-[13px] text-muted">A restricted person's comments on your posts wait for your approval, their messages go to Message requests, and nothing they do notifies you. They are not told. Restrict someone from their profile or from one of their comments.</p>
+      {err ? <p className="text-sm text-danger">{err}</p> : rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-14 text-center">
-          <UserMinus size={28} className="text-ink/25" />
+          <UserMinus size={28} className="text-muted" />
           <p className="text-[14px] font-semibold text-ink">Nobody is restricted</p>
         </div>
       ) : rows.map(r => (
         <div key={r.user_id} className="mb-2 flex items-center gap-3.5 rounded-lg border border-ink/10 p-3.5">
-          <Link href={r.username ? "/" + r.username : "#"} className="shrink-0">
+          <Link href={profilePath(r.username, r.user_id)} className="shrink-0">
             {r.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
@@ -55,7 +56,7 @@ export default function RestrictedAccountsPage() {
           </Link>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14.5px] font-semibold text-ink"><PersonName name={r.full_name || "User"} userId={r.user_id} badgeSize={13} /></p>
-            {r.username ? <p className="text-[12px] text-ink/45">@{r.username}</p> : null}
+            {r.username ? <p className="text-[12px] text-muted">@{r.username}</p> : null}
           </div>
           <button onClick={() => unrestrict(r)} disabled={!!busy[r.user_id]} className="rounded-full border border-ink/15 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface disabled:opacity-40">Unrestrict</button>
         </div>

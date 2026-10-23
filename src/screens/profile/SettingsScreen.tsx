@@ -2,9 +2,10 @@ import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
-import { themedSheet, getTheme } from '../../theme/useTheme';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
+import { AppState, KeyboardAvoidingView, Platform } from 'react-native';
 import { paymentsService } from '../../services/paymentsService';
+import { createIntoBankLinkState } from '../../services/intoBankLinkState';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useAccountsStore } from '../../stores/accountsStore';
@@ -66,7 +67,9 @@ function Row({ icon, label, sublabel, onPress, danger, right, chevron = true }: 
 }
 
 export default function SettingsScreen() {
+  useTheme();
   const navigation = useNavigation<any>();
+  const exportBusy = React.useRef(false);
   const insets = useSafeAreaInsets();
   const { profile, signOut } = useAuthStore();
 
@@ -183,55 +186,76 @@ const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
 
 type SetRow = { icon: string; color?: string; label: string; sub?: string; onPress?: () => void; right?: React.ReactNode; danger?: boolean; chevron?: boolean; visible?: boolean };
   const sw = (value: boolean, onChange: (v: boolean) => void, disabled = false) => (
-    <Switch value={value} onValueChange={onChange} trackColor={{ false: 'rgba(11,30,61,0.08)', true: '#059669' }} thumbColor="#FFF" disabled={disabled} />
+    <Switch value={value} onValueChange={onChange} trackColor={{ false: getTheme().surface.hairline, true: getTheme().status.success }} thumbColor="#FFF" disabled={disabled} />
   );
-  const [ibLinked, setIbLinked] = React.useState<boolean | null>(null);
+  const ibOwnerId = useAuthStore(st => st.session?.user?.id || '');
+  const [ibState, setIbState] = React.useState<{ ownerId: string; linked: boolean | null; issue: string | null }>({ ownerId: '', linked: null, issue: null });
+  const ibLinked = ibState.ownerId === ibOwnerId ? ibState.linked : null;
+  const ibIssue = ibState.ownerId === ibOwnerId ? ibState.issue : null;
   const [showLinkSheet, setShowLinkSheet] = React.useState(false);
-  const [ibIssue, setIbIssue] = React.useState<string | null>(null);
+  const ibStateRef = React.useRef<ReturnType<typeof createIntoBankLinkState> | null>(null);
   // An outage on the way to IntoBank is shown as an outage. The link itself changes only on a definite answer or the person's own unlink.
   const refreshIbStatus = React.useCallback(() => {
-    paymentsService.getLinkStatus().then(r => { setIbLinked(!!r.linked); setIbIssue(null); AsyncStorage.setItem('pc.ib.linked', r.linked ? '1' : '0').catch(() => {}); }, (e: any) => { setIbIssue(e?.message || 'IntoBank could not be reached.'); AsyncStorage.getItem('pc.ib.linked').then(v => { if (v != null) setIbLinked(v === '1'); }).catch(() => {}); });
+    void ibStateRef.current?.refresh();
   }, []);
   const lockEnabled = useLockStore(st => st.enabled);
   const toggleAppLock = async () => {
     const st = useLockStore.getState();
     if (st.enabled === true) {
       await st.setEnabled(false);
-      Alert.alert('Face ID lock off', 'Platinum Circles now opens without Face ID.');
+      Alert.alert('App lock off', 'Platinum Circles now opens without a biometric check.');
       return;
     }
     try {
       const hw = await LocalAuthentication.hasHardwareAsync();
       const enrolled = hw && (await LocalAuthentication.isEnrolledAsync());
-      if (!enrolled) { Alert.alert('Face ID unavailable', 'Set up Face ID or a device passcode in iPhone Settings first.'); return; }
-      const r = await LocalAuthentication.authenticateAsync({ promptMessage: 'Confirm to require Face ID' });
+      if (!enrolled) { Alert.alert('Biometrics unavailable', 'Set up fingerprint or face recognition in your device settings first.'); return; }
+      const r = await LocalAuthentication.authenticateAsync({ promptMessage: 'Confirm to require biometric unlock' });
       if (r.success) {
         await st.setEnabled(true);
-        Alert.alert('Face ID lock on', 'Platinum Circles asks for Face ID at launch and after a minute away.');
+        Alert.alert('App lock on', 'Platinum Circles asks for Use biometrics at launch and after a minute away.');
       }
     } catch { Alert.alert('Could not enable', 'Please try again.'); }
   };
   // The last known IntoBank state shows at once; the server's answer refreshes it quietly.
   React.useEffect(() => {
-    let alive = true;
-    AsyncStorage.getItem('pc.ib.linked').then(v => { if (alive && v != null && ibLinked === null) setIbLinked(v === '1'); }).catch(() => {});
+    setShowLinkSheet(false);
+    setIbState({ ownerId: ibOwnerId, linked: null, issue: null });
+    const controller = createIntoBankLinkState({
+      ownerId: ibOwnerId,
+      isCurrentOwner: () => useAuthStore.getState().session?.user?.id === ibOwnerId,
+      storage: AsyncStorage,
+      readStatus: paymentsService.getLinkStatus,
+      onState: state => setIbState({ ownerId: ibOwnerId, ...state }),
+    });
+    ibStateRef.current = controller;
+    return () => { controller.dispose(); if (ibStateRef.current === controller) ibStateRef.current = null; };
+  }, [ibOwnerId]);
+  useFocusEffect(React.useCallback(() => {
     refreshIbStatus();
-    return () => { alive = false; };
-  }, []);
+    const subscription = AppState.addEventListener('change', state => { if (state === 'active') refreshIbStatus(); });
+    return () => subscription.remove();
+  }, [ibOwnerId, refreshIbStatus]));
   const confirmUnlink = () => {
+    const controller = ibStateRef.current;
+    const isCurrentOwner = () => !!controller && ibStateRef.current === controller && !!ibOwnerId && useAuthStore.getState().session?.user?.id === ibOwnerId;
     Alert.alert('Unlink IntoBank?', 'Payments in chats stop until you link an account again, from Settings or from any pay sheet. Nothing about your IntoBank account itself changes.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Unlink', style: 'destructive', onPress: async () => { try {
+        if (!isCurrentOwner()) return;
         // Disconnecting a bank is confirmed the same way sending money is.
         if (LocalAuthentication?.authenticateAsync) { const ok = await LocalAuthentication.authenticateAsync({ promptMessage: 'Confirm to unlink IntoBank', fallbackLabel: 'Use passcode' }); if (!ok?.success) return; }
-        await paymentsService.unlink(); setIbLinked(false); setIbIssue(null); AsyncStorage.setItem('pc.ib.linked', '0').catch(() => {}); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch (e: any) { Alert.alert('Could not deactivate', e?.message || 'Please try again.'); } } },
+        if (!isCurrentOwner()) return;
+        await paymentsService.unlink(ibOwnerId);
+        if (!isCurrentOwner()) return;
+        controller?.confirm(false); Alert.alert('Done', 'Your IntoBank account is no longer connected.'); } catch (e: any) { if (isCurrentOwner()) Alert.alert('Could not deactivate', e?.message || 'Please try again.'); } } },
     ]);
   };
 
   const buildSections = (): { title: string; rows: SetRow[] }[] => [
     { title: 'Security', rows: [
-      ...(lockEnabled ? [{ icon: 'clock', color: '#0B1E3D', label: 'Ask for Face ID', sub: (() => { const ms = useLockStore.getState().lockAfterMs; return ms <= 0 ? 'Immediately when I return' : ms >= 900000 ? 'After 15 minutes away' : ms >= 300000 ? 'After 5 minutes away' : 'After 1 minute away'; })(), onPress: () => {
-        Alert.alert('Ask for Face ID', 'When you come back to the app after being away', [
+      ...(lockEnabled ? [{ icon: 'clock', color: getTheme().ink.primary, label: 'Require biometric unlock', sub: (() => { const ms = useLockStore.getState().lockAfterMs; return ms <= 0 ? 'Immediately when I return' : ms >= 900000 ? 'After 15 minutes away' : ms >= 300000 ? 'After 5 minutes away' : 'After 1 minute away'; })(), onPress: () => {
+        Alert.alert('Require biometric unlock', 'When you come back to the app after being away', [
           { text: 'Immediately', onPress: () => useLockStore.getState().setLockAfterMs(0) },
           { text: 'After 1 minute', onPress: () => useLockStore.getState().setLockAfterMs(60000) },
           { text: 'After 5 minutes', onPress: () => useLockStore.getState().setLockAfterMs(300000) },
@@ -239,7 +263,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } }] : []),
-            { icon: 'bell-off', color: '#0B1E3D', label: 'Quiet mode', sub: ((): string => { const q = (pf as any)?.quiet_from; const r = (pf as any)?.quiet_to; return (q != null && r != null) ? ('No notifications ' + q + ':00 to ' + r + ':00') : 'Pause notifications for the hours you choose'; })(), onPress: () => {
+            { icon: 'bell-off', color: getTheme().ink.primary, label: 'Quiet mode', sub: ((): string => { const q = (pf as any)?.quiet_from; const r = (pf as any)?.quiet_to; return (q != null && r != null) ? ('No notifications ' + q + ':00 to ' + r + ':00') : 'Pause notifications for the hours you choose'; })(), onPress: () => {
         const set = async (from: number | null, to: number | null) => {
           if (!profile?.id) return;
           const off = -new Date().getTimezoneOffset();
@@ -255,7 +279,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } },
-      { icon: 'moon', color: '#0B1E3D', label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'dark' ? 'Dark' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
+      { icon: 'moon', color: getTheme().ink.primary, label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'dark' ? 'Dark' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
         Alert.alert('Appearance', 'Light, dark, or whatever your phone is set to', [
           { text: 'Follow my phone', onPress: () => useThemeStore.getState().setMode('system') },
           { text: 'Light', onPress: () => useThemeStore.getState().setMode('light') },
@@ -263,22 +287,23 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } },
-      { icon: 'lock', color: '#0B1E3D', label: 'Unlock with Face ID', sub: 'Face ID at launch and when you return after being away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
+      { icon: 'lock', color: getTheme().ink.primary, label: 'Biometric app lock', sub: 'Use biometrics at launch and when you return after being away', onPress: toggleAppLock, chevron: false, right: sw(lockEnabled === true, toggleAppLock) },
     ] },
     { title: 'IntoBank', rows: [
-      { icon: 'credit-card', color: '#0B1E3D', label: ibLinked === null ? 'IntoBank' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibIssue ? ibIssue + ' Tap to try again.' : ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibIssue) { setIbIssue(null); refreshIbStatus(); return; } if (ibLinked === false) setShowLinkSheet(true); } },
+      { icon: 'trending-up', color: getTheme().ink.primary, label: 'Monetization', sub: 'Eligibility, earnings and payout status', onPress: () => navigation.navigate('Monetization') },
+      { icon: 'credit-card', color: getTheme().ink.primary, label: ibLinked === null ? 'IntoBank' : ibLinked ? 'IntoBank connected' : 'IntoBank not connected', sub: ibIssue ? ibIssue + ' Tap to try again.' : ibLinked === false ? 'Tap to link your account' : ibLinked ? 'Chat payments ride your IntoBank wallet' : 'One moment', onPress: () => { if (ibIssue) { refreshIbStatus(); return; } if (ibLinked === false) setShowLinkSheet(true); } },
       ...(ibLinked ? [{ icon: 'x-circle', color: '#FF3B30', label: 'Unlink IntoBank', sub: 'Disconnect this bank account, or unlink to connect a different one', onPress: confirmUnlink }] : []),
-      ...(ibLinked === false && !ibIssue ? [{ icon: 'link', color: '#0B1E3D', label: 'Link IntoBank', sub: 'Approve Platinum Circles in the IntoBank app, then enter the connection code', onPress: () => setShowLinkSheet(true) }] : []),
+      ...(ibLinked === false && !ibIssue ? [{ icon: 'link', color: getTheme().ink.primary, label: 'Link IntoBank', sub: 'Approve Platinum Circles in the IntoBank app, then enter the connection code', onPress: () => setShowLinkSheet(true) }] : []),
     ] },
     { title: 'Account', rows: [
-      { icon: 'user', color: '#0B1E3D', label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
-      { icon: 'award', color: '#0B1E3D', label: 'Account type', sub: ((): string => { const t = currentAccountType(); return t === 'business' ? 'Business' : t === 'creator' ? 'Creator' : 'Personal'; })(), onPress: () => setClassModal(true) },
-            { icon: 'shield', color: '#0B1E3D', label: 'Two-factor authentication', sub: 'A code from an authenticator app at every sign-in', onPress: () => (navigation as any).navigate('TwoFactor') },
-      { icon: 'smartphone', color: '#0B1E3D', label: 'Login activity', sub: 'Devices signed in, and log the others out', onPress: () => (navigation as any).navigate('LoginActivity') },
-      { icon: 'eye', color: '#0B1E3D', label: 'Privacy', sub: 'Public, or private with approved followers', onPress: () => setPrivacyModal(true) },
-      { icon: 'user-check', color: '#0B1E3D', label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
-                  { icon: 'volume-x', color: '#0B1E3D', label: 'Muted words', sub: 'Keep posts with certain words out of your feed', onPress: () => (navigation as any).navigate('MutedWords') },
-      { icon: 'alert-triangle', color: '#0B1E3D', label: 'Sensitive content', sub: ((): string => { const v = (pf as any)?.sensitive_content || 'blur'; return v === 'show' ? 'Shown' : v === 'hide' ? 'Hidden' : 'Blurred until you tap'; })(), onPress: () => {
+      { icon: 'user', color: getTheme().ink.primary, label: 'Edit Profile', sub: 'Name, bio, photo', onPress: goToEditProfile },
+      { icon: 'award', color: getTheme().ink.primary, label: 'Account type', sub: ((): string => { const t = currentAccountType(); return t === 'business' ? 'Business' : t === 'creator' ? 'Creator' : 'Personal'; })(), onPress: () => setClassModal(true) },
+            { icon: 'shield', color: getTheme().ink.primary, label: 'Two-factor authentication', sub: 'A code from an authenticator app at every sign-in', onPress: () => (navigation as any).navigate('TwoFactor') },
+      { icon: 'smartphone', color: getTheme().ink.primary, label: 'Login activity', sub: 'Devices signed in, and log the others out', onPress: () => (navigation as any).navigate('LoginActivity') },
+      { icon: 'eye', color: getTheme().ink.primary, label: 'Privacy', sub: 'Public, or private with approved followers', onPress: () => setPrivacyModal(true) },
+      { icon: 'user-check', color: getTheme().ink.primary, label: 'Follow Requests', sub: 'Approve who can follow you', onPress: () => navigation.navigate('FollowRequests') },
+                  { icon: 'volume-x', color: getTheme().ink.primary, label: 'Muted words', sub: 'Keep posts with certain words out of your feed', onPress: () => (navigation as any).navigate('MutedWords') },
+      { icon: 'alert-triangle', color: getTheme().ink.primary, label: 'Sensitive content', sub: ((): string => { const v = (pf as any)?.sensitive_content || 'blur'; return v === 'show' ? 'Shown' : v === 'hide' ? 'Hidden' : 'Blurred until you tap'; })(), onPress: () => {
         const set = async (v: 'show' | 'blur' | 'hide') => { if (!profile?.id) return; const { error } = await supabase.from('profiles').update({ sensitive_content: v }).eq('id', profile.id); if (error) { Alert.alert('Not saved', error.message); return; } setLocalProfile((p: any) => ({ ...(p || {}), sensitive_content: v })); };
         Alert.alert('Sensitive content', 'Photos and videos a poster marked as sensitive', [
           { text: 'Show', onPress: () => set('show') },
@@ -287,59 +312,73 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } },
-      { icon: 'bookmark', color: '#0B1E3D', label: 'Saved posts', sub: 'Posts you bookmarked', onPress: () => navigation.navigate('SavedPosts') },
-      { icon: 'archive', color: '#0B1E3D', label: 'Archive', sub: 'Posts you hid without deleting', onPress: () => (navigation as any).navigate('Archive') },
-      { icon: 'activity', color: '#0B1E3D', label: 'Your activity', sub: 'Likes, comments, reposts and saves', onPress: () => (navigation as any).navigate('YourActivity') },
-      { icon: 'download', color: '#0B1E3D', label: 'Download your data', sub: 'Everything on your account, as one file', onPress: async () => {
+      { icon: 'bookmark', color: getTheme().ink.primary, label: 'Saved posts', sub: 'Posts you bookmarked', onPress: () => navigation.navigate('SavedPosts') },
+      { icon: 'archive', color: getTheme().ink.primary, label: 'Archive', sub: 'Posts you hid without deleting', onPress: () => (navigation as any).navigate('Archive') },
+      { icon: 'activity', color: getTheme().ink.primary, label: 'Your activity', sub: 'Likes, comments, reposts and saves', onPress: () => (navigation as any).navigate('YourActivity') },
+      { icon: 'download', color: getTheme().ink.primary, label: 'Download your data', sub: 'Export your account data', onPress: async () => {
+        if (exportBusy.current) return;
+        const ownerId = useAuthStore.getState().session?.user?.id;
+        if (!ownerId) { Alert.alert('Sign in again', 'Sign in to download your account data.'); return; }
+        exportBusy.current = true;
+        const assertOwner = () => {
+          if (useAuthStore.getState().session?.user?.id !== ownerId) throw new Error('The signed-in account changed. Start the export again.');
+        };
         try {
-          showMessage({ message: 'Preparing your data', description: 'This takes a few seconds.', type: 'info', duration: 2500 });
+          showMessage({ message: 'Preparing your data', description: 'This may take a moment.', type: 'info', duration: 2500 });
           const { data, error } = await supabase.functions.invoke('export-my-data', { body: {} });
           if (error) throw error;
+          assertOwner();
+          if (data?.export_status !== 'complete' || data?.account?.id !== ownerId) throw new Error('Your complete account export is not ready. Please try again.');
           const FileSystem = require('expo-file-system/legacy');
           const path = (FileSystem.cacheDirectory || '') + 'platinum-circles-data-' + new Date().toISOString().slice(0, 10) + '.json';
           await FileSystem.writeAsStringAsync(path, JSON.stringify(data, null, 2));
+          assertOwner();
           let shared = false;
-          try { const Sharing = require('expo-sharing'); if (Sharing?.isAvailableAsync && await Sharing.isAvailableAsync()) { await Sharing.shareAsync(path, { mimeType: 'application/json', dialogTitle: 'Your Platinum Circles data' }); shared = true; } } catch {}
-          if (!shared) { const { Share } = require('react-native'); await Share.share({ url: path, title: 'Your Platinum Circles data' } as any); }
-        } catch (e: any) { Alert.alert('Could not export', e?.message || 'Try again.'); }
+          try {
+            const Sharing = require('expo-sharing');
+            if (Sharing?.isAvailableAsync && await Sharing.isAvailableAsync()) { assertOwner(); await Sharing.shareAsync(path, { mimeType: 'application/json', dialogTitle: 'Your Platinum Circles data' }); shared = true; }
+          } catch (e) { assertOwner(); }
+          if (!shared) { assertOwner(); const { Share } = require('react-native'); await Share.share({ url: path, title: 'Your Platinum Circles data' } as any); }
+        } catch (e: any) { Alert.alert('Could not export', e?.message || 'Please try again.'); }
+        finally { exportBusy.current = false; }
       } },
       { icon: 'slash', color: '#FF3B30', label: 'Blocked accounts', sub: 'See and undo who you blocked', onPress: () => navigation.navigate('BlockedAccounts') },
-      { icon: 'user-minus', color: '#0B1E3D', label: 'Restricted accounts', sub: 'Their comments wait for your approval and their messages go to requests', onPress: () => navigation.navigate('RestrictedAccounts') },
-      { icon: 'briefcase', color: '#0B1E3D', label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages
-      { icon: 'mail', color: '#0B1E3D', label: 'Message requests', sub: 'Messages from people you do not follow', onPress: () => (navigation as any).navigate('MessageRequests') },
-      { icon: 'award', color: '#0B1E3D', label: 'Verification', sub: 'Apply for the badge - earned, never bought', onPress: () => (navigation as any).navigate('ApplyVerification') },
-      { icon: 'life-buoy', color: '#0B1E3D', label: 'Contact support', sub: 'Write to the operations team', onPress: () => (navigation as any).navigate('ContactSupport') },
-      { icon: 'briefcase', color: 'rgba(11,30,61,0.42)', label: 'Apply for a business account', sub: 'Companies get their own @ and the space-grey seal', onPress: () => (navigation as any).navigate('BusinessApply') },
-      { icon: 'at-sign', color: '#0B1E3D', label: 'Change username', sub: 'Pick a new @ if it is available', onPress: () => (navigation as any).navigate('ChangeUsername') },
-      { icon: 'key', color: '#0B1E3D', label: 'Business access', sub: 'For business accounts - the people and devices that may speak as it', onPress: () => (navigation as any).navigate('BusinessAccess') },
-      { icon: 'shield', color: '#0B1E3D', label: 'Account standing', sub: 'Your record and any active restriction', onPress: () => (navigation as any).navigate('AccountStanding') },
-      { icon: 'trending-up', color: 'rgba(11,30,61,0.42)', label: 'Promotions and campaigns', sub: 'Promote your posts as sponsored placements', onPress: () => (navigation as any).navigate('Campaigns') },
-      { icon: 'edit-3', color: '#0B1E3D', label: 'Write an article', sub: 'Long-form publishing with a cover and read time', onPress: () => (navigation as any).navigate('ArticleCompose') },
+      { icon: 'user-minus', color: getTheme().ink.primary, label: 'Restricted accounts', sub: 'Their comments wait for your approval and their messages go to requests', onPress: () => navigation.navigate('RestrictedAccounts') },
+      { icon: 'briefcase', color: getTheme().ink.primary, label: 'Businesses', sub: 'Pages you run, and your team', onPress: () => navigation.navigate('Businesses') }, // visible to everyone — a person creates business pages
+      { icon: 'mail', color: getTheme().ink.primary, label: 'Message requests', sub: 'Messages from people you do not follow', onPress: () => (navigation as any).navigate('MessageRequests') },
+      { icon: 'award', color: getTheme().ink.primary, label: 'Verification', sub: 'Apply for the badge - earned, never bought', onPress: () => (navigation as any).navigate('ApplyVerification') },
+      { icon: 'life-buoy', color: getTheme().ink.primary, label: 'Contact support', sub: 'Write to the operations team', onPress: () => (navigation as any).navigate('ContactSupport') },
+      { icon: 'briefcase', color: getTheme().ink.secondary, label: 'Apply for a business account', sub: 'Companies get their own @ and the space-grey seal', onPress: () => (navigation as any).navigate('BusinessApply') },
+      { icon: 'at-sign', color: getTheme().ink.primary, label: 'Change username', sub: 'Pick a new @ if it is available', onPress: () => (navigation as any).navigate('ChangeUsername') },
+      { icon: 'key', color: getTheme().ink.primary, label: 'Business access', sub: 'For business accounts - the people and devices that may speak as it', onPress: () => (navigation as any).navigate('BusinessAccess') },
+      { icon: 'shield', color: getTheme().ink.primary, label: 'Account standing', sub: 'Your record and any active restriction', onPress: () => (navigation as any).navigate('AccountStanding') },
+      { icon: 'trending-up', color: getTheme().ink.secondary, label: 'Promotions and campaigns', sub: 'Promote your posts as sponsored placements', onPress: () => (navigation as any).navigate('Campaigns') },
+      { icon: 'edit-3', color: getTheme().ink.primary, label: 'Write an article', sub: 'Long-form publishing with a cover and read time', onPress: () => (navigation as any).navigate('ArticleCompose') },
     ]},
     { title: 'Notifications', rows: [
       { icon: 'bell', color: '#FF3B30', label: 'Push Notifications', sub: 'Master toggle for all alerts', chevron: false, right: sw(pushEnabled, togglePush) },
-      ...NOTIF_TYPES.map(t => ({ icon: t.icon, color: '#0B1E3D', label: t.label, sub: t.sub, chevron: false,
+      ...NOTIF_TYPES.map(t => ({ icon: t.icon, color: getTheme().ink.primary, label: t.label, sub: t.sub, chevron: false,
         right: sw(notifPrefs[t.key] !== false && pushEnabled, (v: boolean) => setTypePref(t.key, v), !pushEnabled) })),
     ]},
     { title: 'Data & appearance', rows: [
-      { icon: 'play-circle', color: '#0B1E3D', label: 'Autoplay videos', sub: 'Turn off to save mobile data', chevron: false,
+      { icon: 'play-circle', color: getTheme().ink.primary, label: 'Autoplay videos', sub: 'Turn off to save mobile data', chevron: false,
         right: sw(appSet.autoplayVideos, v => appSet.set({ autoplayVideos: v })) },
-      { icon: 'upload-cloud', color: '#0B1E3D', label: 'Upload quality', sub: appSet.uploadQuality === 'high' ? 'High — best quality' : 'Data saver — smaller uploads', chevron: false,
+      { icon: 'upload-cloud', color: getTheme().ink.primary, label: 'Upload quality', sub: appSet.uploadQuality === 'high' ? 'High — best quality' : 'Data saver — smaller uploads', chevron: false,
         right: sw(appSet.uploadQuality === 'high', v => appSet.set({ uploadQuality: v ? 'high' : 'data-saver' })) },
     ]},
     { title: 'Support', rows: [
-      { icon: 'help-circle', color: '#0B1E3D', label: 'Help & Support', sub: 'FAQs, submit a ticket', onPress: () => navigation.navigate('HelpSupport') },
-      { icon: 'mail', color: '#0B1E3D', label: 'Contact Us', sub: 'support@platinumcircles.app', onPress: () => Linking.openURL('mailto:support@platinumcircles.app?subject=PlatinumCircles%20Inquiry').catch(() => Alert.alert('No mail app', 'Email us at support@platinumcircles.app')) },
-      { icon: 'star', color: '#0B1E3D', label: 'Rate the App', sub: 'Share your feedback', onPress: () => Alert.alert('Thank you!', 'App Store rating coming soon.') },
+      { icon: 'help-circle', color: getTheme().ink.primary, label: 'Help & Support', sub: 'FAQs, submit a ticket', onPress: () => navigation.navigate('HelpSupport') },
+      { icon: 'mail', color: getTheme().ink.primary, label: 'Contact Us', sub: 'support@platinumcircles.app', onPress: () => Linking.openURL('mailto:support@platinumcircles.app?subject=PlatinumCircles%20Inquiry').catch(() => Alert.alert('No mail app', 'Email us at support@platinumcircles.app')) },
+      { icon: 'star', color: getTheme().ink.primary, label: 'Rate the App', sub: 'Share your feedback', onPress: () => Alert.alert('Thank you!', 'App Store rating coming soon.') },
     ]},
     { title: 'Legal', rows: [
-      { icon: 'file-text', color: 'rgba(11,30,61,0.42)', label: 'Terms of Service', onPress: () => navigation.navigate('Terms') },
-      { icon: 'shield', color: 'rgba(11,30,61,0.42)', label: 'Privacy Policy', onPress: () => navigation.navigate('PrivacyPolicy') },
+      { icon: 'file-text', color: getTheme().ink.secondary, label: 'Terms of Service', onPress: () => navigation.navigate('Terms') },
+      { icon: 'shield', color: getTheme().ink.secondary, label: 'Privacy Policy', onPress: () => navigation.navigate('PrivacyPolicy') },
     ]},
     { title: 'Account Actions', rows: [
-      { icon: 'refresh-cw', color: '#0B1E3D', label: 'Switch Account', sub: 'Up to five accounts on this phone; long-press the Profile tab any time', onPress: () => useAccountsStore.getState().openSwitcher() },
-      { icon: 'log-out', color: '#0B1E3D', label: 'Sign Out', onPress: handleSignOut },
-      { icon: 'moon', color: 'rgba(11,30,61,0.42)', label: 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: handleDeactivate },
+      { icon: 'refresh-cw', color: getTheme().ink.primary, label: 'Switch Account', sub: 'Up to five accounts on this phone; long-press the Profile tab any time', onPress: () => useAccountsStore.getState().openSwitcher() },
+      { icon: 'log-out', color: getTheme().ink.primary, label: 'Sign Out', onPress: handleSignOut },
+      { icon: 'moon', color: getTheme().ink.secondary, label: 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: handleDeactivate },
       { icon: 'trash-2', color: '#FF3B30', label: 'Delete Account', sub: 'Permanently remove all your data', danger: true, onPress: () => { setDeleteConfirmTxt(''); setDeleteModal(true); } },
     ]},
   ];
@@ -470,7 +509,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={getTheme().surface.canvas === '#FFFFFF' ? 'dark-content' : 'light-content'} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text>
@@ -507,7 +546,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
                 s.accountTypeTxt,
                 isASU
                   ? { color: isVerifiedInstitution ? MAROON : '#D97706' }
-                  : { color: '#0B1E3D' }
+                  : { color: getTheme().ink.primary }
               ]}>
                 {isASU
                   ? (isVerifiedInstitution ? 'ASU Verified' : 'ASU Pending Verification')
@@ -519,10 +558,10 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
         </TouchableOpacity>
 
         <View style={{ paddingHorizontal: 16, paddingBottom: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(11,30,61,0.05)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: getTheme().brand.tintBg, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 }}>
             <Feather name="search" size={15} color="rgba(11,30,61,0.42)" />
             <TextInput value={settingsQuery} onChangeText={setSettingsQuery} placeholder="Search settings"
-              placeholderTextColor="rgba(11,30,61,0.42)" style={{ flex: 1, fontSize: 15, color: '#0B1E3D', padding: 0 }} />
+              placeholderTextColor={getTheme().ink.secondary} style={{ flex: 1, fontSize: 15, color: getTheme().ink.primary, padding: 0 }} />
             {settingsQuery ? <TouchableOpacity onPress={() => setSettingsQuery('')}><Feather name="x" size={15} color="rgba(11,30,61,0.42)" /></TouchableOpacity> : null}
           </View>
         </View>
@@ -548,24 +587,24 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
 
       {/* Change Password Modal */}
       <Modal visible={pwModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setPwModal(false); setNewPw(''); setConfirmPw(''); }}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF', paddingTop: insets.top }} edges={['left', 'right']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: getTheme().surface.canvas, paddingTop: insets.top }} edges={['left', 'right']}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => { setPwModal(false); setNewPw(''); setConfirmPw(''); }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Change Password</Text>
             <TouchableOpacity onPress={changePassword} disabled={savingPw}>
-              {savingPw ? <ActivityIndicator color="#0B1E3D" size={16} /> : <Text style={s.modalSave}>Update</Text>}
+              {savingPw ? <ActivityIndicator color={getTheme().ink.primary} size={16} /> : <Text style={s.modalSave}>Update</Text>}
             </TouchableOpacity>
           </View>
           <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
             <View style={s.pwInfo}>
-              <Feather name="lock" size={18} color="#0B1E3D" />
+              <Feather name="lock" size={18} color={getTheme().ink.primary} />
               <Text style={s.pwInfoTxt}>Your new password must be at least 8 characters. You will remain signed in after changing it.</Text>
             </View>
             <Text style={s.modalFieldLabel}>New Password</Text>
             <View style={s.pwInputRow}>
-              <TextInput value={currentPw} onChangeText={setCurrentPw} placeholder="Current password" placeholderTextColor="rgba(11,30,61,0.24)" style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
-<TextInput value={newPw} onChangeText={setNewPw} placeholder="Enter new password" placeholderTextColor="rgba(11,30,61,0.24)" style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
+              <TextInput value={currentPw} onChangeText={setCurrentPw} placeholder="Current password" placeholderTextColor={getTheme().ink.secondary} style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
+<TextInput value={newPw} onChangeText={setNewPw} placeholder="Enter new password" placeholderTextColor={getTheme().ink.secondary} style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
               <TouchableOpacity onPress={() => setShowNewPw(p => !p)} style={s.pwEye}><Feather name={showNewPw ? 'eye-off' : 'eye'} size={18} color="rgba(11,30,61,0.42)" /></TouchableOpacity>
             </View>
             {newPw.length > 0 && (
@@ -583,7 +622,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             )}
             <Text style={[s.modalFieldLabel, { marginTop: 20 }]}>Confirm New Password</Text>
             <View style={s.pwInputRow}>
-              <TextInput value={confirmPw} onChangeText={setConfirmPw} placeholder="Confirm new password" placeholderTextColor="rgba(11,30,61,0.24)" style={s.pwInput} secureTextEntry={!showConfPw} autoCapitalize="none" autoCorrect={false} />
+              <TextInput value={confirmPw} onChangeText={setConfirmPw} placeholder="Confirm new password" placeholderTextColor={getTheme().ink.secondary} style={s.pwInput} secureTextEntry={!showConfPw} autoCapitalize="none" autoCorrect={false} />
               <TouchableOpacity onPress={() => setShowConfPw(p => !p)} style={s.pwEye}><Feather name={showConfPw ? 'eye-off' : 'eye'} size={18} color="rgba(11,30,61,0.42)" /></TouchableOpacity>
             </View>
             {confirmPw.length > 0 && newPw !== confirmPw && <Text style={s.pwMismatch}>Passwords do not match</Text>}
@@ -591,7 +630,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               style={[s.pwSubmitBtn, (savingPw || newPw.length < 8 || newPw !== confirmPw) && s.pwSubmitBtnOff]}
               onPress={changePassword} disabled={savingPw || newPw.length < 8 || newPw !== confirmPw} activeOpacity={0.85}
             >
-              {savingPw ? <ActivityIndicator color="#FFF" /> : <Text style={s.pwSubmitBtnTxt}>Update Password</Text>}
+              {savingPw ? <ActivityIndicator color={getTheme().ink.inverse} /> : <Text style={s.pwSubmitBtnTxt}>Update Password</Text>}
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -600,20 +639,20 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
 
       {/* Privacy Modal */}
       <Modal visible={classModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setClassModal(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF', paddingTop: insets.top }} edges={['left', 'right']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: getTheme().surface.canvas, paddingTop: insets.top }} edges={['left', 'right']}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => setClassModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Account type</Text>
-            <View style={{ width: 52 }}>{savingClass ? <ActivityIndicator color="#0B1E3D" size={16} /> : null}</View>
+            <View style={{ width: 52 }}>{savingClass ? <ActivityIndicator color={getTheme().ink.primary} size={16} /> : null}</View>
           </View>
           <ScrollView contentContainerStyle={s.modalBody}>
             <Text style={s.privDesc}>Switch any time; nothing is deleted. Business opens the Studio on this account. Verification is applied for separately, under Verification.</Text>
             {ACCOUNT_CLASSES.map(opt => { const on = currentAccountType() === opt.value; return (
               <TouchableOpacity key={opt.value} onPress={() => saveAccountClass(opt.value)} disabled={savingClass} activeOpacity={0.8}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, marginTop: 10, borderWidth: 1.5, borderColor: on ? '#0B1E3D' : 'rgba(11,30,61,0.12)', backgroundColor: on ? 'rgba(201,191,176,0.22)' : '#FFF' }}>
-                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: on ? '#0B1E3D' : 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Feather name={opt.icon as any} size={18} color={on ? '#FFF' : '#0B1E3D'} /></View>
-                <View style={{ flex: 1 }}><Text style={{ fontSize: 15, fontWeight: '800', color: '#0B1E3D' }}>{opt.title}</Text><Text style={{ fontSize: 12.5, color: 'rgba(11,30,61,0.6)', marginTop: 2, lineHeight: 17 }}>{opt.desc}</Text></View>
-                {on ? <Feather name="check-circle" size={20} color="#0B1E3D" /> : null}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, marginTop: 10, borderWidth: 1.5, borderColor: on ? getTheme().ink.primary : getTheme().surface.hairline, backgroundColor: on ? getTheme().brand.tintBg : getTheme().surface.canvas }}>
+                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: on ? getTheme().brand.base : getTheme().brand.tintBg, alignItems: 'center', justifyContent: 'center' }}><Feather name={opt.icon as any} size={18} color={on ? getTheme().ink.inverse : getTheme().ink.primary} /></View>
+                <View style={{ flex: 1 }}><Text style={{ fontSize: 15, fontWeight: '800', color: getTheme().ink.primary }}>{opt.title}</Text><Text style={{ fontSize: 12.5, color: getTheme().ink.secondary, marginTop: 2, lineHeight: 17 }}>{opt.desc}</Text></View>
+                {on ? <Feather name="check-circle" size={20} color={getTheme().ink.primary} /> : null}
               </TouchableOpacity>
             ); })}
           </ScrollView>
@@ -621,13 +660,13 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       </Modal>
 
       <Modal visible={privacyModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPrivacyModal(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF', paddingTop: insets.top }} edges={['left', 'right']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: getTheme().surface.canvas, paddingTop: insets.top }} edges={['left', 'right']}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => setPrivacyModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Privacy</Text>
             <TouchableOpacity onPress={savePrivacy} disabled={savingPriv}>
-              {savingPriv ? <ActivityIndicator color="#0B1E3D" size={16} /> : <Text style={s.modalSave}>Save</Text>}
+              {savingPriv ? <ActivityIndicator color={getTheme().ink.primary} size={16} /> : <Text style={s.modalSave}>Save</Text>}
             </TouchableOpacity>
           </View>
           <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={s.modalBody}>
@@ -639,13 +678,13 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             ].map(opt => (
               <TouchableOpacity key={opt.value} style={[s.privOption, visibility === opt.value && s.privOptionActive]} onPress={() => setVisibility(opt.value)} activeOpacity={0.8}>
                 <View style={[s.privOptionIcon, visibility === opt.value && s.privOptionIconActive]}>
-                  <Feather name={opt.icon as any} size={20} color={visibility === opt.value ? '#0B1E3D' : 'rgba(11,30,61,0.42)'} />
+                  <Feather name={opt.icon as any} size={20} color={visibility === opt.value ? getTheme().ink.primary : getTheme().ink.secondary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.privOptionTitle, visibility === opt.value && { color: '#0B1E3D' }]}>{opt.title}</Text>
+                  <Text style={[s.privOptionTitle, visibility === opt.value && { color: getTheme().ink.primary }]}>{opt.title}</Text>
                   <Text style={s.privOptionDesc}>{opt.desc}</Text>
                 </View>
-                {visibility === opt.value && <Feather name="check-circle" size={20} color="#0B1E3D" />}
+                {visibility === opt.value && <Feather name="check-circle" size={20} color={getTheme().ink.primary} />}
               </TouchableOpacity>
             ))}
             <View style={s.privNote}>
@@ -663,7 +702,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
 
       {/* Delete Account Modal */}
       <Modal visible={deleteModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setDeleteModal(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF', paddingTop: insets.top }} edges={['left', 'right']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: getTheme().surface.canvas, paddingTop: insets.top }} edges={['left', 'right']}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => setDeleteModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
@@ -679,18 +718,18 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               </Text>
             </View>
             <Text style={s.modalFieldLabel}>Type DELETE to confirm</Text>
-            <TextInput value={deleteConfirmTxt} onChangeText={setDeleteConfirmTxt} placeholder="DELETE" placeholderTextColor="rgba(11,30,61,0.24)" style={s.deleteInput} autoCapitalize="characters" autoCorrect={false} />
+            <TextInput value={deleteConfirmTxt} onChangeText={setDeleteConfirmTxt} placeholder="DELETE" placeholderTextColor={getTheme().ink.secondary} style={s.deleteInput} autoCapitalize="characters" autoCorrect={false} />
             <TouchableOpacity
               style={[s.deleteBtn, (deleting || deleteConfirmTxt !== 'DELETE') && s.deleteBtnOff]}
               onPress={handleDeleteAccount} disabled={deleting || deleteConfirmTxt !== 'DELETE'} activeOpacity={0.85}
             >
-              {deleting ? <ActivityIndicator color="#FFF" /> : <Text style={s.deleteBtnTxt}>Delete My Account</Text>}
+              {deleting ? <ActivityIndicator color={getTheme().ink.inverse} /> : <Text style={s.deleteBtnTxt}>Delete My Account</Text>}
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
-      <LinkIntoBankSheet visible={showLinkSheet} onClose={() => setShowLinkSheet(false)} onLinked={() => { setIbLinked(true); setIbIssue(null); AsyncStorage.setItem('pc.ib.linked', '1').catch(() => {}); }} />
+      <LinkIntoBankSheet visible={showLinkSheet} onClose={() => setShowLinkSheet(false)} onLinked={() => ibStateRef.current?.confirm(true)} />
     </SafeAreaView>
   );
 }
@@ -716,7 +755,7 @@ const s = themedSheet((t) => ({
   profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface.raised, borderRadius: radius.lg, padding: space.sm, marginBottom: space.xl, gap: space.sm, borderWidth: HAIR, borderColor: t.surface.hairline },
   profileCardAvatar: { width: 52, height: 52, borderRadius: 26 },
   profileCardAvatarFb: { width: 52, height: 52, borderRadius: 26, backgroundColor: t.brand.warm, alignItems: 'center', justifyContent: 'center' },
-  profileCardAvatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: t.brand.base },
+  profileCardAvatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: '#0B1E3D' },
   profileCardInfo: { flex: 1 },
   profileCardName: { fontSize: typeSize.subhead, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.3 },
   profileCardEmail: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 2 },

@@ -1,6 +1,6 @@
 import { themedSheet } from '../theme/useTheme';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import analytics from '../services/analytics';
 
 type Props = { children: React.ReactNode };
@@ -20,14 +20,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.log('[ErrorBoundary]', error.message, info.componentStack);
-    // Forward to analytics so once a provider is wired up, crashes are
-    // captured automatically without any more changes here.
-    analytics.trackError(error, {
-      boundary: 'root',
-      component_stack: info.componentStack ?? null,
-    });
+  componentDidCatch(error: Error) {
+    analytics.trackError(error, { boundary: 'root', source: 'render' });
   }
 
   reset = () => {
@@ -41,8 +35,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
       <View style={s.container}>
         <Text style={s.emoji}>⚠️</Text>
         <Text style={s.title}>Something went wrong</Text>
-        <Text style={s.message}>{this.state.error?.message ?? 'Unknown error'}</Text>
-        <TouchableOpacity style={s.button} onPress={this.reset} activeOpacity={0.85}>
+        <Text style={s.message}>This screen could not load. Please try again.</Text>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Try loading this screen again" style={s.button} onPress={this.reset} activeOpacity={0.85}>
           <Text style={s.buttonText}>Try again</Text>
         </TouchableOpacity>
       </View>
@@ -53,8 +47,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
 const s = themedSheet((t) => ({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: t.surface.canvas },
   emoji: { fontSize: 48, marginBottom: 16 },
-  title: { fontSize: 20, fontWeight: '700', color: '#111827', marginBottom: 8 },
-  message: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24, lineHeight: 20 },
-  button: { backgroundColor: '#2563EB', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
+  title: { fontSize: 20, fontWeight: '700', color: t.ink.primary, marginBottom: 8 },
+  message: { fontSize: 14, color: t.ink.secondary, textAlign: 'center', marginBottom: 24, lineHeight: 20 },
+  button: { backgroundColor: t.ink.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
   buttonText: { color: t.ink.inverse, fontSize: 15, fontWeight: '600' },
 }));

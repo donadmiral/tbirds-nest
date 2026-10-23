@@ -85,7 +85,7 @@ export function ArticleBody({
             <figure key={k} className="my-5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={m[2]} alt={m[1]} loading="lazy" className="w-full rounded-xl" />
-              {m[1] ? <figcaption className="mt-1.5 text-center text-[12.5px] text-ink/50">{m[1]}</figcaption> : null}
+              {m[1] ? <figcaption className="mt-1.5 text-center text-[12.5px] text-muted">{m[1]}</figcaption> : null}
             </figure>
           );
         }

@@ -12,13 +12,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, FlatList,
   ActivityIndicator, Alert, Dimensions, StatusBar, ScrollView, Animated,
-  Easing, PanResponder, KeyboardAvoidingView, Platform,
+  Easing, PanResponder, KeyboardAvoidingView, Platform, AppState,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import Svg, { Ellipse, Circle } from 'react-native-svg';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { hydrateMemoryAlbumMedia, hydrateStoryMedia } from '../../services/contentMedia';
 import { supabase } from '../../services/supabase';
 import { COVER_COLORS } from '../../components/MemoryAlbumCard';
 
@@ -62,7 +63,23 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   // Who is looking, and who owns the album: the Message button on a video memory DMs the owner.
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [ownerProfile, setOwnerProfile] = useState<{ full_name: string | null; username: string | null; avatar_url: string | null } | null>(null);
-  useEffect(() => { supabase.auth.getSession().then(({ data }) => setViewerId(data.session?.user.id ?? null)).catch(() => {}); }, []);
+  const viewerRef = useRef<string | null>(null);
+  const loadGeneration = useRef(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true, authVersion = 0;
+    const apply = (next: string | null) => {
+      if (!alive) return;
+      if (viewerRef.current !== next) {
+        loadGeneration.current++; setAlbum(null); setMyStories([]); setPlayingUrl(null); setPicker(false); setSettings(false); setCaptionFor(null); setLikedPages(new Set());
+      }
+      viewerRef.current = next; setViewerId(next);
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; apply(session?.user.id ?? null); });
+    const initial = authVersion;
+    void supabase.auth.getSession().then(({ data }) => { if (initial === authVersion) apply(data.session?.user.id ?? null); }).catch(() => { if (alive) setLoadError('Your account could not load. Please retry.'); });
+    return () => { alive = false; loadGeneration.current++; subscription.unsubscribe(); };
+  }, []);
   useEffect(() => { if (!ownerId) return; (async () => { try { const { data } = await supabase.from('profiles').select('full_name, username, avatar_url').eq('id', ownerId).maybeSingle(); if (data) setOwnerProfile(data as any); } catch {} })(); }, [ownerId]);
   const ownerName = ownerProfile?.full_name ?? null; const ownerUsername = ownerProfile?.username ?? null; const ownerAvatar = ownerProfile?.avatar_url ?? null;
   const [bookId, setBookId] = useState<string | null>(albumIdParam);
@@ -91,32 +108,37 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   useEffect(() => { idxRef.current = idx; }, [idx]);
 
   const load = useCallback(async () => {
-    if (!ownerId) return;
+    const generation = ++loadGeneration.current;
+    if (!ownerId || !viewerId) { setAlbum(null); setLoading(false); return; }
     try {
       const { data, error } = albumIdParam
         ? await supabase.rpc('get_memory_book', { p_album: albumIdParam })
         : await supabase.rpc('get_memory_album', { p_owner: ownerId });
-      if (!error) {
-        setAlbum(data ?? null);
-        // Seed the hearts with what this person already liked, so the button
-        // reads true on open instead of forgetting every time.
-        try {
-          const ids = ((data?.pages ?? []) as any[]).map((pg: any) => pg.story_id).filter(Boolean);
-          const { data: u } = await supabase.auth.getUser();
-          if (ids.length && u?.user?.id) {
-            const { data: mine } = await supabase.from('story_reactions').select('story_id').eq('user_id', u.user.id).in('story_id', ids);
-            setLikedPages(new Set(((mine ?? []) as any[]).map((r: any) => String(r.story_id))));
-          }
-        } catch {}
-        if (data) {
-          setTitle(data.title || 'Memories'); setColor(data.cover_color || 'blush'); setAud(data.audience || 'profile');
-          if (data.id) setBookId(data.id);
-        }
+      if (error) throw error;
+      const [hydrated] = data ? await hydrateMemoryAlbumMedia([data]) : [];
+      if (generation !== loadGeneration.current || viewerRef.current !== viewerId) return;
+      setAlbum(hydrated ?? null); setLoadError(null);
+      if (data) {
+        setTitle(data.title || 'Memories'); setColor(data.cover_color || 'blush'); setAud(data.audience || 'profile');
+        if (data.id) setBookId(data.id);
       }
-    } finally { setLoading(false); }
-  }, [ownerId]);
+      const ids = ((data?.pages ?? []) as any[]).map((pg: any) => pg.story_id).filter(Boolean);
+      if (ids.length) {
+        const { data: mine } = await supabase.from('story_reactions').select('story_id').eq('user_id', viewerId).in('story_id', ids);
+        if (generation === loadGeneration.current && viewerRef.current === viewerId) setLikedPages(new Set(((mine ?? []) as any[]).map((r: any) => String(r.story_id))));
+      }
+    } catch {
+      if (generation === loadGeneration.current) { setAlbum(null); setPlayingUrl(null); setLoadError('The album could not load. Please retry.'); }
+    } finally { if (generation === loadGeneration.current) setLoading(false); }
+  }, [ownerId, albumIdParam, viewerId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void load();
+    const refresh = () => { if (AppState.currentState === 'active') void load(); };
+    const sub = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
+    const timer = setInterval(refresh, 240000);
+    return () => { loadGeneration.current++; clearInterval(timer); sub.remove(); };
+  }, [load]);
 
   const c = COVER_COLORS[album?.cover_color] ?? COVER_COLORS.blush;
   const pages: any[] = useMemo(
@@ -162,13 +184,14 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     const { data: sess } = await supabase.auth.getSession();
     const uid = sess.session?.user.id;
     if (!uid) return;
-    const inAlbum = new Set(pages.map(p => p.media_url).filter(Boolean));
+    const inAlbum = new Set(pages.map(p => p.story_id).filter(Boolean));
     const { data } = await supabase.from('stories')
       .select('id, media_url, media_type, thumbnail_url, caption, created_at')
       .eq('user_id', uid)
       .order('created_at', { ascending: false })
       .limit(120);
-    setMyStories((data ?? []).map((s: any) => ({ ...s, _in: inAlbum.has(s.media_url) })));
+    const stories = await hydrateStoryMedia(data ?? []);
+    if (viewerRef.current === uid) setMyStories(stories.map((s: any) => ({ ...s, _in: inAlbum.has(s.id) })));
   }, [pages]);
 
   const addChosen = useCallback(async () => {
@@ -231,6 +254,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     if (!d) return '';
     try { return new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return ''; }
   };
+
+  if (loadError) return <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}><Text>{loadError}</Text><TouchableOpacity onPress={() => void load()} style={{ marginTop: 16 }}><Text>Retry</Text></TouchableOpacity></SafeAreaView>;
 
   if (loading) {
     return (

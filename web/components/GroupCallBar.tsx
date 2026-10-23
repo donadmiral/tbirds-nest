@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Phone, Video, X } from "lucide-react";
-import { checkLiveGroupCall, startGroupCall, requestGroupJoin, declineGroupCall, type LiveGroupCall } from "@/lib/calls";
+import { checkLiveGroupCall, requestGroupStart, requestGroupJoin, declineGroupCall, type LiveGroupCall } from "@/lib/calls";
 
 export function GroupCallBar({ conversationId }: { conversationId: string }) {
   const [live, setLive] = useState<LiveGroupCall | null>(null);
@@ -10,8 +10,8 @@ export function GroupCallBar({ conversationId }: { conversationId: string }) {
   useEffect(() => {
     let on = true;
     const check = () => checkLiveGroupCall(conversationId).then(
-      (l) => { console.log("[BAR]", conversationId.slice(0, 8), l ? "LIVE " + l.id.slice(0, 8) + " joined:" + l.joinedNames.length : "clear"); if (on) setLive(l); },
-      (err) => { console.log("[BAR] check failed:", err instanceof Error ? err.message : err); if (on) setLive(null); }
+      (l) => { if (on) setLive(l); },
+      () => { if (on) setLive(null); }
     );
     check();
     const t = setInterval(check, 8000);
@@ -21,10 +21,8 @@ export function GroupCallBar({ conversationId }: { conversationId: string }) {
     return () => { on = false; clearInterval(t); window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onFocus); };
   }, [conversationId]);
 
-  async function start(isVideo: boolean) {
-    const sessionId = await startGroupCall(conversationId, isVideo);
-    if (!sessionId) { alert("Could not start the call."); return; }
-    requestGroupJoin({ sessionId, isVideo });
+  function start(isVideo: boolean) {
+    requestGroupStart({ conversationId, isVideo });
   }
 
   async function reject() {
@@ -45,7 +43,7 @@ export function GroupCallBar({ conversationId }: { conversationId: string }) {
             Ongoing {live.is_video ? "video" : "voice"} call · {live.joinedNames.length} in call
           </span>
           {live.joinedNames.length > 0 ? (
-            <span className="block truncate text-[12px] text-ink/55">{live.joinedNames.join(", ")}</span>
+            <span className="block truncate text-[12px] text-muted">{live.joinedNames.join(", ")}</span>
           ) : null}
         </span>
         <button onClick={() => requestGroupJoin({ sessionId: live.id, isVideo: live.is_video })} className="shrink-0 rounded-md bg-success px-3 py-1.5 text-[12px] font-semibold text-ink transition-opacity hover:opacity-90">Join</button>
@@ -54,7 +52,7 @@ export function GroupCallBar({ conversationId }: { conversationId: string }) {
     );
   }
 
-  const btn = "rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-pearl";
+  const btn = "rounded-md p-2 text-ink/60 transition-colors hover:bg-surface hover:text-accent";
   return (
     <span className="ml-auto flex items-center gap-1">
       <button onClick={() => start(false)} title="Start group voice call" className={btn}><Phone size={17} /></button>

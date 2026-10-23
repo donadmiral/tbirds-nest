@@ -14,8 +14,8 @@ import { createClient } from "@/lib/supabase/client";
  */
 export async function getViewerId(): Promise<string | null> {
   try {
-    const { data } = await createClient().auth.getSession();
-    return data.session?.user.id ?? null;
+    const { data, error } = await createClient().auth.getSession();
+    return error ? null : data.session?.user.id ?? null;
   } catch {
     return null;
   }
@@ -23,16 +23,21 @@ export async function getViewerId(): Promise<string | null> {
 
 type Table = "post_likes" | "post_bookmarks" | "post_reposts";
 
-async function toggle(table: Table, postId: string, on: boolean): Promise<boolean> {
+async function toggle(table: Table, postId: string, on: boolean, expectedViewerId?: string, isCurrent?: () => boolean): Promise<boolean> {
   const supabase = createClient();
   const userId = await getViewerId();
-  if (!userId) return false;
-  const { error } = on
-    ? await supabase.from(table).insert({ post_id: postId, user_id: userId })
-    : await supabase.from(table).delete().eq("post_id", postId).eq("user_id", userId);
-  return !error;
+  if (!userId || (expectedViewerId !== undefined && userId !== expectedViewerId) || isCurrent?.() === false) return false;
+  try {
+    const { error } = on
+      ? await supabase.from(table).insert({ post_id: postId, user_id: userId })
+      : await supabase.from(table).delete().eq("post_id", postId).eq("user_id", userId);
+    // A concurrent card or a replay may have already established this relation.
+    return (!error || (on && error.code === "23505")) && await getViewerId() === userId && isCurrent?.() !== false;
+  } catch {
+    return false;
+  }
 }
 
-export const toggleLike = (id: string, on: boolean) => toggle("post_likes", id, on);
-export const toggleBookmark = (id: string, on: boolean) => toggle("post_bookmarks", id, on);
+export const toggleLike = (id: string, on: boolean, viewer?: string, isCurrent?: () => boolean) => toggle("post_likes", id, on, viewer, isCurrent);
+export const toggleBookmark = (id: string, on: boolean, viewer?: string, isCurrent?: () => boolean) => toggle("post_bookmarks", id, on, viewer, isCurrent);
 export const toggleRepost = (id: string, on: boolean) => toggle("post_reposts", id, on);

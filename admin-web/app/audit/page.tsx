@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
 const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
   list: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z',
@@ -39,10 +39,11 @@ export default async function AuditPage() {
   const fullAudit = ['super_admin', 'platform_admin', 'auditor_readonly'].includes(admin.role);
   let auditQuery = svc.from('admin_audit_log').select('id, admin_id, action, target_kind, target_id, reason, before, after, created_at', { count: 'exact' });
   if (!fullAudit) auditQuery = auditQuery.eq('admin_id', admin.id);
-  const [{ data: rowsData, count }, { data: staff }] = await Promise.all([
+  const [{ data: rowsData, count, error: auditError }, { data: staff, error: staffError }] = await Promise.all([
     auditQuery.order('created_at', { ascending: false }).order('id').limit(400),
     fullAudit ? svc.from('admin_users').select('user_id, role') : svc.from('admin_users').select('user_id, role').eq('user_id', admin.id),
   ]);
+  if (auditError || staffError || count === null) throw new Error('Audit history could not be loaded.');
 
   const rowsRaw = (rowsData ?? []) as {
     id: string; admin_id: string; action: string; target_kind: string | null; target_id: string | null;
@@ -53,6 +54,7 @@ export default async function AuditPage() {
   ((staff ?? []) as { user_id: string; role: string }[]).forEach(s => { roleOf[s.user_id] = s.role; });
   const actorIds = Array.from(new Set(rowsRaw.map(r => r.admin_id).filter(Boolean)));
   const people = actorIds.length ? await svc.from('profiles').select('id, full_name, username').in('id', actorIds) : {data: []};
+  if ('error' in people && people.error) throw new Error('Audit participants could not be loaded.');
   const emails: Record<string, string> = {};
   for (const p of people.data ?? []) emails[p.id] = p.full_name || p.username || p.id.slice(0,8);
   const who = (id: string) => emails[id] || (id ? id.slice(0, 8) : 'system');
@@ -116,7 +118,7 @@ export default async function AuditPage() {
         fields: [
           { label: 'When', value: new Date(r.created_at).toLocaleString() },
           { label: 'Performed by', value: who(r.admin_id) },
-          { label: 'Role at the time', value: roleOf[r.admin_id] ? title(roleOf[r.admin_id]) : 'not on the desk now' },
+          { label: 'Current staff role', value: roleOf[r.admin_id] ? title(roleOf[r.admin_id]) : 'not on the desk now' },
           { label: 'Target kind', value: title(r.target_kind || 'unspecified') },
           { label: 'Target id', value: r.target_id || 'none' },
           { label: 'Entry id', value: r.id },

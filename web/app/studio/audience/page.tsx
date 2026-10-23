@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { displayImageUrl } from "@/lib/media";
 import { Panel } from "@/components/ui";
@@ -10,6 +12,7 @@ import { Metric } from "@/components/Charts";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { profilePath } from "@/lib/profileLookup";
 import { Download, Plus, Search, Trash2, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -28,25 +31,40 @@ export default function AudiencePage() {
   const [q, setQ] = useState("");
   const [label, setLabel] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
   const [form, setForm] = useState<{ id: string | null; name: string; phone: string; email: string; source: string; note: string; status: string; contact_id: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
     try {
       const [a, l, s] = await Promise.all([
         supabase.rpc("studio_audience", { p_q: q.trim() || null, p_label: label || null, p_limit: 300 }),
         supabase.rpc("studio_leads"), supabase.rpc("studio_audience_summary"),
       ]);
+      if (a.error || l.error || s.error) throw a.error || l.error || s.error;
+      if (version !== loadVersion.current) return;
       setPeople((a.data as Person[]) ?? []); setLeads((l.data as Lead[]) ?? []); setSum(s.data as Summary);
-    } finally { setLoading(false); }
+      setLoaded(true); setLoadError(null);
+    } catch {
+      if (version === loadVersion.current) setLoadError("Audience could not be refreshed. Your last loaded data is unchanged.");
+    } finally { if (version === loadVersion.current) setLoading(false); }
   }, [supabase, q, label]);
-  useEffect(() => { const t = setTimeout(() => { void load(); }, 250); return () => clearTimeout(t); }, [load]);
+  useEffect(() => { const t = setTimeout(() => { void load(); }, 250); return () => { clearTimeout(t); loadVersion.current += 1; }; }, [load]);
 
+  const pendingContacts = useRef(new Set<string>());
   const setPersonLabel = async (p: Person, l: string) => {
-    setPeople(prev => prev.map(x => x.id === p.id ? { ...x, label: l || null } : x));
-    const { error } = await supabase.rpc("studio_set_contact_label", { p_contact: p.id, p_label: l || null, p_note: null });
-    if (error) { alert(error.message); void load(); }
+    if (pendingContacts.current.has(p.id)) return;
+    pendingContacts.current.add(p.id);
+    try {
+      const { error } = await supabase.rpc("studio_set_contact_label", { p_contact: p.id, p_label: l || null, p_note: null });
+      if (error) throw error;
+      setPeople(prev => prev.map(x => x.id === p.id ? { ...x, label: l || null } : x));
+    } catch { alert("The label could not be saved. Please try again."); }
+    finally { pendingContacts.current.delete(p.id); }
   };
   const saveLead = async () => {
     if (!form || busy) return;
@@ -58,28 +76,42 @@ export default function AudiencePage() {
     } catch (e: any) { alert(e?.message || "Could not save."); }
     finally { setBusy(false); }
   };
-  const deleteLead = async (l: Lead) => { if (!confirm("Delete this lead?")) return; await supabase.rpc("studio_delete_lead", { p_id: l.id }); await load(); };
-  const setLeadStatus = async (l: Lead, status: string) => {
-    setLeads(prev => prev.map(x => x.id === l.id ? { ...x, status } : x));
-    const { error } = await supabase.rpc("studio_upsert_lead", { p_id: l.id, p_name: l.name, p_phone: l.phone, p_email: l.email, p_source: l.source, p_note: l.note, p_status: status, p_contact: l.contact_id });
-    if (error) { alert(error.message); void load(); }
+  const deleteLead = async (l: Lead) => {
+    if (!confirm("Delete this lead?")) return;
+    try {
+      const { error } = await supabase.rpc("studio_delete_lead", { p_id: l.id });
+      if (error) throw error;
+      setLeads(prev => prev.filter(x => x.id !== l.id));
+    } catch { alert("The lead could not be deleted. Please try again."); }
   };
+  const setLeadStatus = async (l: Lead, status: string) => {
+    if (pendingContacts.current.has(l.id)) return;
+    pendingContacts.current.add(l.id);
+    try {
+      const { error } = await supabase.rpc("studio_upsert_lead", { p_id: l.id, p_name: l.name, p_phone: l.phone, p_email: l.email, p_source: l.source, p_note: l.note, p_status: status, p_contact: l.contact_id });
+      if (error) throw error;
+      setLeads(prev => prev.map(x => x.id === l.id ? { ...x, status } : x));
+    } catch { alert("The lead status could not be saved. Please try again."); }
+    finally { pendingContacts.current.delete(l.id); }
+  };
+
   const exportCsv = () => {
     const rows = view === "followers"
       ? [["name", "username", "location", "label", "followed", "paid", "messages"], ...people.map(p => [p.name, p.username || "", p.location || "", p.label || "", p.followed_at, String(p.paid), String(p.messages)])]
       : [["name", "phone", "email", "source", "status", "note", "created"], ...leads.map(l => [l.name, l.phone || "", l.email || "", l.source || "", l.status, l.note || "", l.created_at])];
     const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    const a = document.createElement("a"); a.href = url; a.download = view + ".csv"; a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement("a"); a.href = url; a.download = view + "-loaded.csv"; a.click(); URL.revokeObjectURL(url);
   };
-  const chip = (s: string) => s === "converted" ? "bg-success/15 text-success" : s === "lost" ? "bg-surface text-ink/40" : s === "contacted" ? "bg-pearl/15 text-pearl" : "bg-navy/20 text-ink";
+  const chip = (s: string) => s === "converted" ? "bg-success/15 text-success" : s === "lost" ? "bg-surface text-muted" : s === "contacted" ? "bg-pearl/15 text-accent" : "bg-navy/20 text-ink";
 
   return (
     <div className="max-w-[960px]">
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Audience</h1>
-          <p className="mt-1 text-[13px] text-ink/50">Who follows you, who pays you, and the leads you are working.</p>
+          <p className="mt-1 text-[13px] text-muted">Who follows you, who pays you, and the leads you are working.</p>
         </div>
         <div className="flex gap-1 rounded-full bg-surface p-1">
           {(["followers", "leads"] as const).map(v => <button key={v} onClick={() => setView(v)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (view === v ? "bg-ink text-white" : "text-ink/60")}>{v === "followers" ? "Followers" : "Leads"}</button>)}
@@ -89,7 +121,7 @@ export default function AudiencePage() {
       {sum ? (
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[["Followers", sum.followers], ["New in 30 days", sum.new_30d], ["Paying customers", sum.customers], ["Labelled", Object.values(sum.labels || {}).reduce((a, b) => a + Number(b), 0)]].map(([l, n]) => (
-            <div key={String(l)} className="rounded-xl border border-ink/10 px-4 py-3"><p className="text-[11.5px] text-ink/45">{l}</p><div className="mt-0.5"><Metric value={Number(n)} size={22} /></div></div>
+            <div key={String(l)} className="rounded-xl border border-ink/10 px-4 py-3"><p className="text-[11.5px] text-muted">{l}</p><div className="mt-0.5"><Metric value={Number(n)} size={22} /></div></div>
           ))}
         </div>
       ) : null}
@@ -125,7 +157,7 @@ export default function AudiencePage() {
                     )}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] text-ink">{p.name}</span>
-                      <span className="block text-[11px] text-ink/45">{p.paid} {p.paid === 1 ? "payment" : "payments"}</span>
+                      <span className="block text-[11px] text-muted">{p.paid} {p.paid === 1 ? "payment" : "payments"}</span>
                     </span>
                   </div>
                 ))}
@@ -140,30 +172,31 @@ export default function AudiencePage() {
       <div className="mt-4 flex flex-wrap items-center gap-2">
         {view === "followers" ? (
           <>
-            <div className="flex items-center gap-2 rounded-xl bg-surface px-3 py-2"><Search size={14} className="text-ink/40" /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search followers" className="w-48 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink/40" /></div>
+            <div className="flex items-center gap-2 rounded-xl bg-surface px-3 py-2"><Search size={14} className="text-muted" /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search followers" className="w-48 bg-transparent text-[13px] text-ink outline-none placeholder:text-muted" /></div>
             <select value={label} onChange={e => setLabel(e.target.value)} className="rounded-md bg-surface px-2 py-2 text-[12.5px] text-ink/70 outline-none"><option value="">All labels</option>{LABELS.map(l => <option key={l} value={l}>{l}</option>)}</select>
           </>
-        ) : <button onClick={() => setForm({ id: null, name: "", phone: "", email: "", source: "", note: "", status: "new", contact_id: null })} className="inline-flex items-center gap-1.5 rounded-md bg-pearl px-3.5 py-2 text-[13px] font-semibold text-ink"><Plus size={14} /> New lead</button>}
-        <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 hover:text-ink"><Download size={13} /> Export CSV</button>
+        ) : <button onClick={() => setForm({ id: null, name: "", phone: "", email: "", source: "", note: "", status: "new", contact_id: null })} className="inline-flex items-center gap-1.5 rounded-md bg-pearl px-3.5 py-2 text-[13px] font-semibold text-on-pearl"><Plus size={14} /> New lead</button>}
+        <button onClick={exportCsv} className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 hover:text-ink"><Download size={13} /> Export loaded rows</button>
       </div>
 
-      {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p> : view === "followers" ? (
-        people.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">No followers match.</p> : people.map(p => (
+      {loaded && view === "followers" ? <p className="mt-2 text-[12px] text-muted">Showing up to 300 matching followers. Export includes the loaded rows.</p> : null}
+      {loading && !loaded ? <p className="py-12 text-center text-sm text-muted">Loading</p> : !loaded ? null : view === "followers" ? (
+        people.length === 0 ? <p className="py-12 text-center text-sm text-muted">No followers match.</p> : people.map(p => (
           <div key={p.id} className="mt-2 flex items-center gap-3 rounded-xl border border-ink/10 px-3 py-2.5">
             {p.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={displayImageUrl(p.avatar_url, 200) ?? p.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
             ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{p.name.charAt(0)}</span>}
             <div className="min-w-0 flex-1">
-              <Link href={p.username ? "/" + p.username : "#"} className="text-[14px] font-semibold text-ink hover:underline">{p.name}</Link>
-              <p className="text-[12px] text-ink/45">{p.username ? "@" + p.username + " · " : ""}{p.location ? p.location + " · " : ""}followed {new Date(p.followed_at).toLocaleDateString()}{p.paid ? " · " + p.paid + " payment" + (p.paid > 1 ? "s" : "") : ""}{p.messages ? " · " + p.messages + " messages" : ""}</p>
+              <Link href={profilePath(p.username, p.id)} className="text-[14px] font-semibold text-ink hover:underline">{p.name}</Link>
+              <p className="text-[12px] text-muted">{p.username ? "@" + p.username + " · " : ""}{p.location ? p.location + " · " : ""}followed {new Date(p.followed_at).toLocaleDateString()}{p.paid ? " · " + p.paid + " payment" + (p.paid > 1 ? "s" : "") : ""}{p.messages ? " · " + p.messages + " messages" : ""}</p>
             </div>
             <select value={p.label || ""} onChange={e => setPersonLabel(p, e.target.value)} className="rounded-md bg-surface px-2 py-1 text-[12px] text-ink/70 outline-none" aria-label="Label"><option value="">No label</option>{LABELS.map(l => <option key={l} value={l}>{l}</option>)}</select>
             <button onClick={() => { setView("leads"); setForm({ id: null, name: p.name, phone: "", email: "", source: "follower", note: "", status: "new", contact_id: p.id }); }} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink">Make lead</button>
           </div>
         ))
       ) : (
-        leads.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">No leads yet. Add one, or turn a follower into a lead.</p> : leads.map(l => (
+        leads.length === 0 ? <p className="py-12 text-center text-sm text-muted">No leads yet. Add one, or turn a follower into a lead.</p> : leads.map(l => (
           <div key={l.id} className="mt-2 flex items-center gap-3 rounded-xl border border-ink/10 px-3 py-2.5">
             {l.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -171,11 +204,11 @@ export default function AudiencePage() {
             ) : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy text-white"><Users size={15} /></span>}
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-semibold text-ink">{l.name} <span className={"ml-1 rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + chip(l.status)}>{l.status}</span></p>
-              <p className="text-[12px] text-ink/45">{[l.phone, l.email, l.source ? "via " + l.source : null, l.username ? "@" + l.username : null].filter(Boolean).join(" · ")}{l.note ? " · " + l.note : ""}</p>
+              <p className="text-[12px] text-muted">{[l.phone, l.email, l.source ? "via " + l.source : null, l.username ? "@" + l.username : null].filter(Boolean).join(" · ")}{l.note ? " · " + l.note : ""}</p>
             </div>
             <select value={l.status} onChange={e => setLeadStatus(l, e.target.value)} className="rounded-md bg-surface px-2 py-1 text-[12px] text-ink/70 outline-none" aria-label="Status">{STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select>
             <button onClick={() => setForm({ id: l.id, name: l.name, phone: l.phone || "", email: l.email || "", source: l.source || "", note: l.note || "", status: l.status, contact_id: l.contact_id })} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 hover:text-ink">Edit</button>
-            <button onClick={() => deleteLead(l)} className="rounded-md p-1.5 text-red-400 hover:bg-red-500/10" aria-label="Delete"><Trash2 size={13} /></button>
+            <button onClick={() => deleteLead(l)} className="rounded-md p-1.5 text-danger hover:bg-danger/10" aria-label="Delete"><Trash2 size={13} /></button>
           </div>
         ))
       )}
@@ -183,7 +216,7 @@ export default function AudiencePage() {
       {form ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/55 sm:items-center" onClick={() => !busy && setForm(null)}>
           <div className="w-full max-w-[460px] rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between"><p className="text-[15px] font-semibold text-ink">{form.id ? "Edit lead" : "New lead"}</p><button onClick={() => setForm(null)} className="rounded-full p-1.5 text-ink/50 hover:bg-black/5" aria-label="Close"><X size={16} /></button></div>
+            <div className="mb-3 flex items-center justify-between"><p className="text-[15px] font-semibold text-ink">{form.id ? "Edit lead" : "New lead"}</p><button onClick={() => setForm(null)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button></div>
             {[["name", "Name"], ["phone", "Phone"], ["email", "Email"], ["source", "Source, for example walk-in, referral, ad"], ["note", "Note"]].map(([k, ph]) => (
               <input key={k} value={(form as any)[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} placeholder={ph} className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
             ))}

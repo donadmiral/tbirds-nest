@@ -1,4 +1,5 @@
 import StoryAudienceSheet from '../../components/stories/StoryAudienceSheet';
+import { updateDraftStickers, type StickerChange } from '../../controllers/stories/stickerDraftUpdates';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList,
@@ -12,6 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
+import { useStorySoundPreview } from '../../hooks/useStorySoundPreview';
 import StudioRail, { type RailItem } from '../../components/stories/StudioRail';
 import TrimStrip from '../../components/stories/TrimStrip';
 import StudioSheet, { type StudioTile } from '../../components/stories/StudioSheet';
@@ -226,9 +228,12 @@ export default function StoryComposerScreen() {
   const active = drafts[activeIndex];
   const mountedRef = useRef(true);
 
-  const updateActive = useCallback((patch: Partial<Draft>) => {
-    setDrafts(prev => prev.map((d, i) => (i === activeIndex ? { ...d, ...patch } : d)));
-  }, [activeIndex]);
+  const updateActive = useCallback((patch: Partial<Draft> | ((current: Draft) => Partial<Draft>)) => {
+    const draftId = active?.id;
+    if (!draftId) return;
+    setDrafts(prev => prev.map(d => d.id === draftId && d.uploadState !== 'uploading' && d.uploadState !== 'done'
+      ? { ...d, ...(typeof patch === 'function' ? patch(d) : patch) } : d));
+  }, [active?.id]);
 
   // ── Accessibility ──
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -500,9 +505,11 @@ export default function StoryComposerScreen() {
   const [previewOn, setPreviewOn] = useState(false);
   const [vidPlayer, setVidPlayer] = useState<any>(null);
   // Music preview in the editor at the mixed volume, exactly as the viewer will play it.
-  const previewAudioUrl = active?.audio?.localUri || active?.audio?.url || null;
+  const soundPreview = useStorySoundPreview(active?.audio, myId);
+  const previewAudioUrl = soundPreview.url;
   const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
-  useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode, previewMusicVol);
+  const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen, previewMusicVol);
+  useEffect(() => { if (musicOpen) { try { vidPlayer?.pause?.(); } catch {} } }, [musicOpen, vidPlayer]);
   // Video drafts picked without dimensions: probe the first frame so canvas
   // gestures work and the story publishes with a real thumbnail.
   useEffect(() => {
@@ -512,13 +519,15 @@ export default function StoryComposerScreen() {
     let dead = false;
     VideoThumbnails.getThumbnailAsync(d.localUri, { time: 0, quality: 0.6 }).then(t => {
       if (dead) return;
-      setDrafts(prev => prev.map(x => x.id === d.id ? { ...x, imageW: x.imageW || t.width || 0, imageH: x.imageH || t.height || 0, thumbnailUri: x.thumbnailUri || t.uri } : x));
+      setDrafts(prev => prev.map(x => x.id === d.id && x.uploadState !== 'uploading' && x.uploadState !== 'done' ? { ...x, imageW: x.imageW || t.width || 0, imageH: x.imageH || t.height || 0, thumbnailUri: x.thumbnailUri || t.uri } : x));
     }).catch(() => {});
     return () => { dead = true; };
   }, [active?.id, active?.localUri, active?.mediaType, active?.imageW, active?.thumbnailUri, setDrafts]);
   const autoTrimSetRef = useRef<Set<string>>(new Set());
   const getTx = useCallback((): MediaTransform => (active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (active?.mediaFit || 'cover') as MediaFit }), [active]);
-  const setTx = useCallback((patch: Partial<MediaTransform>) => { const cur = active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (active?.mediaFit || 'cover') as MediaFit }; updateActive({ mediaTransform: { ...cur, ...patch } as MediaTransform }); }, [active, updateActive]);
+  const setTx = useCallback((patch: Partial<MediaTransform>) => {
+    updateActive(current => ({ mediaTransform: { ...(current.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (current.mediaFit || 'cover') as MediaFit }), ...patch } }));
+  }, [updateActive]);
   // Backdrop: cut the subject out with the background-removal model behind the
   // Replicate proxy, then let the background layer show through behind them.
   const cutoutSubject = useCallback(async () => {
@@ -543,7 +552,11 @@ export default function StoryComposerScreen() {
     } finally { setCutBusy(false); }
   }, [active, cutBusy, updateActive, getTx, setTx]);
   const pushHistory = useCallback(() => { const cur = active?.stickers || []; undoStackRef.current.push(cur.map(s => ({ ...s }))); if (undoStackRef.current.length > MAX_HISTORY) undoStackRef.current.shift(); redoStackRef.current = []; setUndoCount(undoStackRef.current.length); setRedoCount(0); }, [active]);
-  const updateStickers = useCallback((ns: StoryTextSticker[]) => { pushHistory(); updateActive({ stickers: ns }); }, [pushHistory, updateActive]);
+  const updateStickers = useCallback((change: StickerChange) => {
+    if (!active?.id) return;
+    pushHistory();
+    setDrafts(prev => updateDraftStickers(prev, active.id, change));
+  }, [active?.id, pushHistory]);
   const drawStrokes: DrawStroke[] = ((active?.stickers || []).find(sx => (sx as any).kind === 'drawing') as any)?.strokes || [];
   const setDrawStrokes = useCallback((strokes: DrawStroke[]) => {
     const cur = active?.stickers || [];
@@ -555,7 +568,7 @@ export default function StoryComposerScreen() {
   }, [active, updateStickers]);
   const addSimpleSticker = useCallback((extra: any, nyStart = 0.4) => {
     const st: any = { id: newStickerId(), text: '', color: '#FFFFFF', nx: 0.5, ny: nyStart, scale: 1, rotation: 0, ...extra };
-    updateStickers([...(active?.stickers || []), st]);
+    updateStickers(current => [...current, st]);
   }, [active, updateStickers]);
   const addPhotoSticker = useCallback(async () => {
     try {
@@ -580,7 +593,7 @@ export default function StoryComposerScreen() {
     updateStickers([...(active?.stickers || []), ...made] as any);
   }, [active, updateStickers]);
   const setCellPhoto = useCallback((id: string, uri: string | null) => {
-    updateStickers(((active?.stickers || []) as any[]).map(s => s.id === id ? { ...s, photoUri: uri, photoUrl: null } : s) as any);
+    updateStickers(current => current.map(s => s.id === id ? { ...s, photoUri: uri, photoUrl: null } : s));
   }, [active, updateStickers]);
   const fillCellFromLibrary = useCallback(async (id: string) => {
     try {
@@ -651,6 +664,7 @@ export default function StoryComposerScreen() {
     if (tx.trimEnd != null) return;
     // Every video opens the trimmer once, the way Instagram does: long clips
     // get a 60s window pre-set, short ones open on their full length.
+    if (d <= 1.2) return;
     autoTrimSetRef.current.add(active.id);
     if (d > STORY_MAX_SEC + 0.5) setTx({ trimStart: 0, trimEnd: STORY_MAX_SEC });
     else if (d > 1.2) setTx({ trimStart: 0, trimEnd: d });
@@ -681,6 +695,8 @@ export default function StoryComposerScreen() {
   // A typed @handle inside a text sticker is a real mention: the person is notified and can add the story to theirs
   // (through the hidden-mention path the composer already has), and the handle opens their profile in the viewer.
   const resolveTextMentions = useCallback(async (stickerId: string, text: string) => {
+    const draftId = active?.id;
+    if (!draftId) return;
     const handles = Array.from(new Set((text.match(/@([A-Za-z0-9_.]{2,30})/g) || []).map(h => h.slice(1).toLowerCase())));
     let found: { id: string; username: string }[] = [];
     if (handles.length) {
@@ -690,15 +706,15 @@ export default function StoryComposerScreen() {
       } catch {}
     }
     if (!mountedRef.current) return;
-    setDrafts(prev => prev.map((d, i) => {
-      if (i !== activeIndex) return d;
+    setDrafts(prev => prev.map(d => {
+      if (d.id !== draftId || d.uploadState === 'uploading' || d.uploadState === 'done' || !d.stickers?.some(s => s.id === stickerId && s.text === text)) return d;
       const stickers = (d.stickers || []).map(s => (s.id === stickerId ? ({ ...s, mentions: found.length ? found : undefined } as any) : s));
       const cur = (((d as any).hiddenMentions || []) as { id: string; username: string }[]);
       const onStickers = new Set(stickers.filter((s: any) => s.kind === 'mention' && s.mentionUserId).map((s: any) => s.mentionUserId));
       const add = found.filter(u => !cur.some(h => h.id === u.id) && !onStickers.has(u.id));
       return { ...d, stickers, hiddenMentions: add.length ? [...cur, ...add] : cur } as any;
     }));
-  }, [activeIndex]);
+  }, [active?.id]);
   const saveSticker = useCallback(() => {
     const tr = stickerText.trim(); if (!tr) { if (editingStickerId) updateStickers((active?.stickers || []).filter(s => s.id !== editingStickerId)); closeTextEditor(); return; }
     const extra: any = { bgEnabled: stickerBgEnabled, fontSizeOverride: stickerFontSize > 0 ? stickerFontSize : undefined, opacity: stickerOpacity < 1.0 ? stickerOpacity : undefined, textAlign: stickerTextAlign !== 'center' ? stickerTextAlign : undefined, anim: stickerAnim !== 'none' ? stickerAnim : undefined, startSec: stickerStartSec != null ? stickerStartSec : undefined, endSec: stickerEndSec != null ? stickerEndSec : undefined };
@@ -720,10 +736,10 @@ export default function StoryComposerScreen() {
   // ── Sticker interaction handlers ──
   const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'photo' && (s as any).photoShape === 'cell') openCellMenu(id, !!((s as any).photoUri || (s as any).photoUrl));
     else if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if (s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag') { updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, pillVariant: (((x as any).pillVariant || 0) + 1) % 4 } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
-  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
-  const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
-  const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
-  const handleDeleteDrop = useCallback((id: string) => { updateStickers((active?.stickers || []).filter(s => s.id !== id)); }, [active, updateStickers]);
+  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
+  const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
+  const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
+  const handleDeleteDrop = useCallback((id: string) => { updateStickers(current => current.filter(s => s.id !== id)); }, [active, updateStickers]);
 
   // ── Poll ──
   const openPollEditor = useCallback(() => { if (active?.pollData) { setPollQuestion(active.pollData.question); setPollOptions([...active.pollData.options]); } else { setPollQuestion(''); setPollOptions(['', '']); } setPollEditorOpen(true); }, [active]);
@@ -853,7 +869,7 @@ export default function StoryComposerScreen() {
     setStickerForm(null);
   }, [stickerForm, addSimpleSticker]);
   // ── Derived state ──
-  const canPublish = drafts.length > 0 && !publish.publishing;
+  const canPublish = publish.canPublish;
   const hasPoll = !!active?.pollData;
   const isTextStory = active?.mediaType === 'text';
   const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { addyours: st.filter(s => s.kind === 'addyours').length, support: st.filter(s => s.kind === 'support').length, text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, hashtag: st.filter(s => s.kind === 'hashtag').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length, countdown: st.filter(s => s.kind === 'countdown').length, entity: st.filter(s => (s as any).kind === 'entity').length, gif: st.filter(s => (s as any).kind === 'gif').length, photo: st.filter(s => (s as any).kind === 'photo').length, time: st.filter(s => (s as any).kind === 'time').length, date: st.filter(s => (s as any).kind === 'date').length, weather: st.filter(s => (s as any).kind === 'weather').length }; }, [active?.stickers]);
@@ -908,7 +924,7 @@ export default function StoryComposerScreen() {
     { id: 'adjust', cat: 'media', tint: '#34D399', icon: 'adjust', label: 'Adjust', on: !!(getTx() as any).adjust || (getTx() as any).filterAmt != null, run: () => setAdjustOpen(true) },
     { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
     { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
-    { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => { Alert.alert('Coming soon', 'Sound mix arrives together with music.'); } },
+    { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) },
     { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: 'Save media', on: false, run: saveMediaToDevice },
     { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
@@ -970,7 +986,7 @@ export default function StoryComposerScreen() {
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
             { id: 'rbg', label: 'Backdrop', icon: 'bg', on: false, run: () => Alert.alert('Coming soon', 'Backdrop arrives in a later update.') },
-            { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => { Alert.alert('Coming soon', 'Sound mix arrives together with music.'); } },
+            { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) },
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
             { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },
           ] as RailItem[])} />
@@ -1218,7 +1234,8 @@ export default function StoryComposerScreen() {
       </Modal>
 
       {/* Sticker Tray - Instagram construction */}
-      <MusicSheet visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
+      {soundPreview.error || previewAudio.error ? <TouchableOpacity accessibilityRole="button" onPress={() => { soundPreview.retry(); previewAudio.retry(); }} style={{ padding: 12 }}><Text style={{ color: '#FFB4B4' }}>{soundPreview.error || previewAudio.error}</Text></TouchableOpacity> : null}
+      <MusicSheet visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onShareTrack={(track) => { addSimpleSticker({ kind: 'link', text: track.title + ' · ' + track.artist, url: track.url }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
       <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={active?.filterId || null} onSelect={(fid: string | null) => { updateActive({ filterId: fid }); }} previewUri={active?.localUri || null} />
       <AdjustPanel visible={adjustOpen} onClose={() => setAdjustOpen(false)} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
       <BackgroundSheet visible={bgOpen} onClose={() => setBgOpen(false)} bg={((getTx() as any).bg || null) as StoryBg | null} onChange={(b: StoryBg) => setTx({ bg: b } as any)} />

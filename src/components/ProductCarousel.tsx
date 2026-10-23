@@ -9,6 +9,8 @@
  * External cards (a business's own shop) open in an in-app browser sheet, the
  * way Instagram and X do it: the shop loads over the feed, one tap comes back.
  */
+import { productDestination } from '../../shared/productDestination';
+import { useNavigation } from '@react-navigation/native';
 import { themedSheet, getTheme } from '../theme/useTheme';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
@@ -50,15 +52,16 @@ export function money(price?: number | string | null, currency?: string | null) 
 
 export default function ProductCarousel({ products, onOpenListing, onOpenLink }: Props) {
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
+  const navigation = useNavigation<any>();
   if (!products?.length) return null;
   const ordered = [...products].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
   const open = (p: PostProduct) => {
-    if (p.listing_id && onOpenListing) { onOpenListing(p.listing_id); return; }
-    if (p.link_url && /^https?:\/\//i.test(p.link_url)) {
-      onOpenLink?.(p.link_url);
-      setSheetUrl(p.link_url);
-    }
+    const destination = productDestination(p.listing_id, p.link_url);
+    if (!destination) return;
+    if (destination.kind === 'market') { if (onOpenListing) onOpenListing(destination.id!); else navigation.navigate('ListingDetail', { listingId: destination.id }); return; }
+    if (destination.kind === 'job') { onOpenLink?.(destination.href); navigation.navigate('JobDetail', { jobId: destination.id }); return; }
+    onOpenLink?.(destination.href); setSheetUrl(destination.href);
   };
 
   return (
@@ -72,13 +75,16 @@ export default function ProductCarousel({ products, onOpenListing, onOpenLink }:
       >
         {ordered.map(p => {
           const priceLabel = money(p.price, p.currency);
-          const internal = !!p.listing_id;
+          const destination = productDestination(p.listing_id, p.link_url);
+          const internal = !!destination && destination.kind !== 'external';
           return (
             <TouchableOpacity
               key={p.id}
               style={s.card}
               activeOpacity={0.85}
               onPress={() => open(p)}
+              disabled={!destination}
+              accessibilityState={{ disabled: !destination }}
               accessibilityRole="button"
               accessibilityLabel={`${p.title}${priceLabel ? `, ${priceLabel}` : ''}`}
             >

@@ -64,7 +64,7 @@ export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: st
         onClick={hide}
         title="Not interested"
         aria-label="Hide this post"
-        className="ml-auto shrink-0 rounded-full p-1 text-ink/30 opacity-0 transition-opacity duration-[140ms] hover:bg-surface hover:text-ink group-hover/byline:opacity-100 focus:opacity-100"
+        className="ml-auto shrink-0 rounded-full p-1 text-muted opacity-0 transition-opacity duration-[140ms] hover:bg-surface hover:text-ink group-hover/byline:opacity-100 focus:opacity-100"
       >
         <EyeOff size={13} />
       </button>
@@ -121,7 +121,7 @@ export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: st
             <FileText size={12} /> Article
           </span>
           <span className="mt-2 block font-display text-[19px] leading-snug text-porcelain">{post.article_title}</span>
-          {text ? <span className="mt-1.5 block text-[13px] leading-snug text-ink/55" style={CLAMP(3)}>{text}</span> : null}
+          {text ? <span className="mt-1.5 block text-[13px] leading-snug text-muted" style={CLAMP(3)}>{text}</span> : null}
         </span>
         {byline}
       </Link>
@@ -138,7 +138,7 @@ export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: st
           <img src={displayImageUrl(link.image_url, 640) ?? link.image_url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
         </span>
         <span className="block px-3.5 pt-3">
-          <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40">
+          <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted">
             <Link2 size={11} /> {link.domain}
           </span>
           <span className="mt-1 block text-[13.5px] font-medium leading-snug text-ink" style={CLAMP(2)}>{link.title ?? text}</span>

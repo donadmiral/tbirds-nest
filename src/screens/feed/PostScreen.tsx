@@ -19,7 +19,7 @@ import CommentsPanel, { CommentsPanelHandle } from '../../components/feed/Commen
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Image, Linking, Keyboard,
-  Alert, StatusBar, Dimensions,
+  Alert, StatusBar, Dimensions, AppState,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -28,8 +28,13 @@ import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
+import { hydratePostMedia } from '../../services/contentMedia';
+import { orderTimeout } from '../../../shared/orderRequest';
+import { matchesUsername, usernameLookupPattern } from '../../utils/profileLookup';
 import { useAuthStore } from '../../stores/authStore';
 import * as Haptics from 'expo-haptics';
+
+const bounded = <T,>(work: PromiseLike<T>) => orderTimeout(work, 15000, 'The post could not be loaded. Please try again.');
 
 const SCREEN_W = Dimensions.get('window').width;
 const NAVY = '#0B1E3D';
@@ -64,16 +69,18 @@ function initials(name?: string | null) {
 }
 
 export default function PostScreen({ route, navigation }: any) {
-  const { postId, focusComment, media: seedMedia } = route.params ?? {};
+  const { postId, focusComment } = route.params ?? {};
   const insets = useSafeAreaInsets();
-  const { profile } = useAuthStore();
-  const userId = profile?.id ?? null;
+  const userId = useAuthStore(state => state.session?.user.id ?? null);
+  const identityRef = useRef({ postId, userId });
+  identityRef.current = { postId, userId };
+  const loadEpoch = useRef(0);
+  const likeLock = useRef<number | null>(null);
 
   const [post, setPost] = useState<Post | null>(null);
   const [collabInvite, setCollabInvite] = useState<boolean>(false);
   const [postCollabs, setPostCollabs] = useState<{ id: string; username: string | null; full_name: string | null; avatar_url: string | null }[]>([]);
   const [collabSheet, setCollabSheet] = useState(false);
-  useFocusEffect(useCallback(() => { if (userId) supabase.from('post_collaborators').select('status').eq('post_id', postId).eq('user_id', userId).maybeSingle().then(({ data }) => setCollabInvite((data as any)?.status === 'invited'), () => {}); }, [postId, userId]));
   const [linkPreview, setLinkPreview] = useState<{ url: string; title: string | null; description: string | null; image_url: string | null; domain: string | null } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
   const [likedPost, setLikedPost] = useState(false);
@@ -83,6 +90,7 @@ export default function PostScreen({ route, navigation }: any) {
   const [threadAbove, setThreadAbove] = useState<any[]>([]);
   const [threadBelow, setThreadBelow] = useState<any[]>([]);
   const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const panelRef = useRef<CommentsPanelHandle>(null);
 
   useFocusEffect(
@@ -96,126 +104,157 @@ export default function PostScreen({ route, navigation }: any) {
   );
 
   const load = useCallback(async () => {
+    const epoch = ++loadEpoch.current;
+    const current = () => epoch === loadEpoch.current && identityRef.current.postId === postId && identityRef.current.userId === userId;
+    setLoadError(null);
     try {
-      const { data: vis } = await supabase.rpc('can_view_post', { p_post_id: postId });
-      supabase.from('post_collaborators').select('user_id, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url)').eq('post_id', postId).eq('status', 'accepted').then(({ data }) => setPostCollabs(((data ?? []) as any[]).map((r: any) => ({ id: r.user_id, username: r.profile?.username ?? null, full_name: r.profile?.full_name ?? null, avatar_url: r.profile?.avatar_url ?? null }))), () => {});
-      if (userId) supabase.from('post_collaborators').select('status').eq('post_id', postId).eq('user_id', userId).maybeSingle().then(({ data }) => setCollabInvite((data as any)?.status === 'invited'), () => {});
-      if (vis === false) { setNotFound(true); setLoading(false); return; }
-    } catch {}
-    try {
-      const { data: pd } = await supabase
-        .from('posts')
+      const { data: vis, error: visibilityError } = await bounded(supabase.rpc('can_view_post', { p_post_id: postId }));
+      if (!current()) return;
+      if (visibilityError) throw visibilityError;
+      if (vis !== true) {
+        setPost(null); setGalleryImages([]); setThreadAbove([]); setThreadBelow([]); setNotFound(true); return;
+      }
+      const { data: raw, error } = await bounded(supabase.from('posts')
         .select('*, post_media(id, url, media_type, width, height, sort_order, edit, is_sensitive), post_products(id, title, subtitle, price, currency, image_url, listing_id, link_url, cta_label, sort_order)')
-        .eq('id', postId).single();
-
-      if (pd) {
-        const { data: ad } = await supabase.from('profiles')
-          .select('id, full_name, username, avatar_url, degree_program').eq('id', pd.user_id).single();
-        setPost({
-          ...pd,
-          content: pd.content ?? pd.body ?? '',
-          author: ad ?? null,
-          likes_count: pd.likes_count ?? 0,
-          comments_count: pd.comments_count ?? 0,
-          reposts_count: pd.reposts_count ?? 0,
-          bookmarks_count: pd.bookmarks_count ?? 0,
-          post_media: Array.isArray(pd.post_media) ? pd.post_media : [],
-          post_products: Array.isArray(pd.post_products) ? pd.post_products : [],
-        });
-        if (pd.link_url) {
-          supabase.from('link_previews').select('url, title, description, image_url, domain').eq('url', pd.link_url).maybeSingle()
-            .then(({ data: lp }) => { if (lp) setLinkPreview(lp as any); });
-        }
-        if (pd.article_title) {
-          supabase.from('articles').select('current_revision_id').eq('linked_post_id', pd.id).maybeSingle()
-            .then(({ data: art }: { data: { current_revision_id: string } | null }) => {
-              if (!art?.current_revision_id) return;
-              supabase.from('article_blocks').select('content').eq('revision_id', art.current_revision_id).eq('block_type', 'gallery').maybeSingle()
-                .then(({ data: blk }: { data: { content: unknown } | null }) => {
-                  const imgs = (blk?.content as any)?.images;
-                  if (Array.isArray(imgs)) setGalleryImages(imgs);
-                });
-            });
-        }
-        try {
+        .eq('id', postId).maybeSingle());
+      if (error) throw error;
+      if (!current()) return;
+      if (!raw) { setPost(null); setNotFound(true); return; }
+      const [[pd], { data: ad, error: authorError }] = await Promise.all([
+        hydratePostMedia([raw]),
+        bounded(supabase.from('profiles').select('id, full_name, username, avatar_url, degree_program').eq('id', raw.user_id).maybeSingle()),
+      ]);
+      if (authorError) throw authorError;
+      if (!current()) return;
+      setNotFound(false);
+      setPost({ ...pd, content: pd.content ?? pd.body ?? '', author: ad ?? null,
+        likes_count: pd.likes_count ?? 0, comments_count: pd.comments_count ?? 0,
+        reposts_count: pd.reposts_count ?? 0, bookmarks_count: pd.bookmarks_count ?? 0,
+        post_media: (Array.isArray(pd.post_media) ? pd.post_media : []).filter((m: any) => !!m.url),
+        post_products: Array.isArray(pd.post_products) ? pd.post_products : [], });
+      setLoading(false);
+      const extras = await Promise.allSettled([
+        (async () => {
+          const { data, error } = await bounded(supabase.from('post_collaborators').select('user_id, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url)').eq('post_id', postId).eq('status', 'accepted'));
+          if (error) throw error;
+          if (current()) setPostCollabs(((data ?? []) as any[]).map(r => ({ id: r.user_id, username: r.profile?.username ?? null, full_name: r.profile?.full_name ?? null, avatar_url: r.profile?.avatar_url ?? null })));
+        })(),
+        (async () => {
+          if (!userId) return;
+          const [invitation, like] = await Promise.all([
+            bounded(supabase.from('post_collaborators').select('status').eq('post_id', postId).eq('user_id', userId).maybeSingle()),
+            bounded(supabase.from('post_likes').select('post_id').eq('user_id', userId).eq('post_id', postId).maybeSingle()),
+          ]);
+          if (invitation.error || like.error) throw invitation.error || like.error;
+          if (current()) { setCollabInvite(invitation.data?.status === 'invited'); setLikedPost(!!like.data); }
+        })(),
+        (async () => {
+          if (!pd.link_url) { if (current()) setLinkPreview(null); return; }
+          const { data, error } = await bounded(supabase.from('link_previews').select('url, title, description, image_url, domain').eq('url', pd.link_url).maybeSingle());
+          if (error) throw error;
+          const [safe] = await hydratePostMedia([{ post_id: postId, preview: data }]);
+          if (current()) setLinkPreview(safe.preview);
+        })(),
+        (async () => {
+          if (!pd.article_title) { if (current()) setGalleryImages([]); return; }
+          const { data: article, error } = await bounded(supabase.from('articles').select('current_revision_id').eq('linked_post_id', pd.id).maybeSingle());
+          if (error) throw error;
+          if (!article?.current_revision_id) { if (current()) setGalleryImages([]); return; }
+          const { data: block, error: blockError } = await bounded(supabase.from('article_blocks').select('content').eq('revision_id', article.current_revision_id).eq('block_type', 'gallery').maybeSingle());
+          if (blockError) throw blockError;
+          const [safe] = await hydratePostMedia([{ post_id: pd.id, blocks: block }]);
+          const images = (safe.blocks?.content as any)?.images;
+          if (current()) setGalleryImages(Array.isArray(images) ? images.filter((image: any) => typeof image?.url === 'string' && image.url) : []);
+        })(),
+        (async () => {
           const above: any[] = [];
           let cursor = pd.thread_parent_id ?? null;
-          let hops = 0;
-          while (cursor && hops < 10) {
-            const { data: par } = await supabase.from('posts').select('id, user_id, content, body, created_at, thread_parent_id').eq('id', cursor).maybeSingle();
-            if (!par) break;
-            above.unshift({ ...par, content: par.content ?? par.body ?? '' });
-            cursor = par.thread_parent_id ?? null;
-            hops++;
+          const visited = new Set<string>([postId]);
+          while (cursor && above.length < 10 && !visited.has(cursor) && current()) {
+            visited.add(cursor);
+            const { data: parent, error } = await bounded(supabase.from('posts').select('id, user_id, content, body, created_at, thread_parent_id').eq('id', cursor).maybeSingle());
+            if (error) throw error;
+            if (!parent) break;
+            above.unshift({ ...parent, content: parent.content ?? parent.body ?? '' });
+            cursor = parent.thread_parent_id ?? null;
           }
-          const { data: kids } = await supabase.from('posts').select('id, user_id, content, body, created_at').eq('thread_parent_id', postId).order('created_at', { ascending: true });
-          const below = (kids ?? []).map((k: any) => ({ ...k, content: k.content ?? k.body ?? '' }));
-          const tIds = Array.from(new Set([...above, ...below].map((t: any) => t.user_id)));
-          const tMap: Record<string, any> = {};
-          if (tIds.length > 0) {
-            const { data: tAuthors } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', tIds);
-            (tAuthors ?? []).forEach((a: any) => { tMap[a.id] = a; });
+          if (!current()) return;
+          const { data: children, error } = await bounded(supabase.from('posts').select('id, user_id, content, body, created_at').eq('thread_parent_id', postId).order('created_at', { ascending: true }).limit(50));
+          if (error) throw error;
+          const below = (children ?? []).map((child: any) => ({ ...child, content: child.content ?? child.body ?? '' }));
+          const ids = Array.from(new Set([...above, ...below].map(row => row.user_id)));
+          const authors: Record<string, any> = {};
+          if (ids.length) {
+            const { data, error } = await bounded(supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', ids));
+            if (error) throw error;
+            (data ?? []).forEach(author => { authors[author.id] = author; });
           }
-          setThreadAbove(above.map((t: any) => ({ ...t, author: tMap[t.user_id] ?? null })));
-          setThreadBelow(below.map((t: any) => ({ ...t, author: tMap[t.user_id] ?? null })));
-        } catch (e) { console.log('THREAD_LOAD_ERR', e); }
-        if (userId) {
-          const { data: ld } = await supabase.from('post_likes')
-            .select('post_id').eq('user_id', userId).eq('post_id', postId).maybeSingle();
-          setLikedPost(!!ld);
-        }
+          if (current()) { setThreadAbove(above.map(row => ({ ...row, author: authors[row.user_id] ?? null }))); setThreadBelow(below.map(row => ({ ...row, author: authors[row.user_id] ?? null }))); }
+        })(),
+      ]);
+      if (current() && extras.some(result => result.status === 'rejected')) {
+        setGalleryImages([]); setLinkPreview(null); setLoadError('Some post details could not be loaded. Pull to refresh.');
       }
-    } catch (e) {
-      console.log('LOAD_POST_CATCH', e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) {
+      if (current()) { setPost(null); setGalleryImages([]); setLinkPreview(null); setThreadAbove([]); setThreadBelow([]); setLoadError('The post could not be loaded. Please try again.'); }
+    } finally { if (current()) setLoading(false); }
   }, [postId, userId]);
 
   useEffect(() => {
-    load();
-    const ch = supabase.channel(`post-${postId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes', filter: `post_id=eq.${postId}` }, () => load())
+    setPost(null); setGalleryImages([]); setLinkPreview(null); setThreadAbove([]); setThreadBelow([]);
+    setPostCollabs([]); setCollabInvite(false); setCollabSheet(false); setLikedPost(false); setNotFound(false); setLoading(true); likeLock.current = null;
+    void load();
+    const ch = supabase.channel(`post-${postId}-${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes', filter: `post_id=eq.${postId}` }, () => { void load(); })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [load]);
+    return () => { loadEpoch.current++; void supabase.removeChannel(ch); };
+  }, [load, postId, userId]);
+
+  useEffect(() => {
+    if (!screenFocused) return;
+    const interval = setInterval(() => { void load(); }, 240000);
+    const listener = AppState.addEventListener('change', state => { if (state === 'active') void load(); });
+    return () => { clearInterval(interval); listener.remove(); };
+  }, [load, screenFocused]);
 
   const togglePostLike = async () => {
-    if (!userId || !post) return;
+    if (!userId || !post || likeLock.current !== null) return;
+    const epoch = loadEpoch.current; likeLock.current = epoch;
+    const current = () => likeLock.current === epoch && identityRef.current.postId === postId && identityRef.current.userId === userId;
     const was = likedPost;
     setLikedPost(!was);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPost(p => p ? { ...p, likes_count: Math.max(0, p.likes_count + (was ? -1 : 1)) } : p);
     try {
       if (was) {
-        const { error } = await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
+        const { error } = await bounded(supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId));
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });
+        const { error } = await bounded(supabase.from('post_likes').insert({ post_id: postId, user_id: userId }));
         if (error && !String(error.message).includes('duplicate')) throw error;
       }
     } catch (e: any) {
-      console.log('[LIKE_ERR]', e?.message);
+      if (!current()) return;
+      setLoadError('The like could not be confirmed. Pull to refresh.');
       setLikedPost(was);
       setPost(p => p ? { ...p, likes_count: Math.max(0, p.likes_count + (was ? 1 : -1)) } : p);
-    }
+    } finally { if (likeLock.current === epoch) likeLock.current = null; }
   };
 
   const handleMentionTap = async (username: string) => {
     const { data } = await supabase.from('profiles')
-      .select('id, full_name, username, avatar_url').ilike('username', username).maybeSingle();
-    if (data) navigation.navigate('UserProfile', { userId: data.id, user: data });
+      .select('id, full_name, username, avatar_url').ilike('username', usernameLookupPattern(username)).maybeSingle();
+    if (data && matchesUsername(data, username)) navigation.navigate('UserProfile', { userId: data.id, user: data });
     else Alert.alert('Not found', `@${username} is not on PlatinumCircles yet.`);
   };
   const handleHashtagTap = (tag: string) => navigation.navigate('Search', { query: `#${tag}` });
 
   // A video post pins its media above the thread, so the video and the comments stay in view together (X and Instagram).
-  // The feed hands its media in through route.params so the video carries over before the post itself has loaded.
   const mediaItems: CarouselMedia[] = post?.post_media?.length
     ? [...(post.post_media as CarouselMedia[])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
     : post?.media_url
       ? [{ id: '0', url: post.media_url, media_type: /\.(mp4|mov|m4v|webm|quicktime)(\?|#|$)/i.test(post.media_url) ? 'video' as const : 'image' as const, sort_order: 0 }]
-      : (!post && Array.isArray(seedMedia) ? (seedMedia as CarouselMedia[]) : []);
+      : [];
   const pinned = !post?.article_title && mediaItems.some((m) => m.media_type === 'video');
   const pinAspect = (mediaItems[0]?.edit as any)?.aspect as string | undefined;
   const pinRatio = pinAspect === 'square' ? 1 : pinAspect === 'landscape' ? 1 / 1.91 : 1.25;
@@ -242,6 +281,7 @@ export default function PostScreen({ route, navigation }: any) {
   const a = post?.author;
   const header = post ? (
     <View>
+      {loadError ? <Text accessibilityRole="alert" style={{ padding: 16, color: '#B91C1C' }}>{loadError}</Text> : null}
       {threadAbove.map(renderThreadRow)}
       <View style={s.postBanner}>
         <TouchableOpacity
@@ -380,6 +420,8 @@ export default function PostScreen({ route, navigation }: any) {
       ) : null}
       {loading || !afterSlide ? (
         <PostSkeleton />
+      ) : loadError && !post ? (
+        <View style={s.loader}><Text accessibilityRole="alert" style={{ color: '#B91C1C', padding: 16 }}>{loadError}</Text><TouchableOpacity onPress={() => { setLoading(true); void load(); }}><Text style={{ color: NAVY, fontWeight: '700', padding: 16 }}>Retry</Text></TouchableOpacity></View>
       ) : notFound ? (
         <View style={s.loader}><Feather name="eye-off" size={34} color="#9CA3AF" /><Text style={{ marginTop: 10, fontSize: 15, fontWeight: '600', color: '#6B7280' }}>This post isn't available</Text></View>
       ) : (

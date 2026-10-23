@@ -1,5 +1,6 @@
 "use client";
 
+import { profilePath } from "@/lib/profileLookup";
 import { PersonName } from "@/components/PersonName";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -43,7 +44,7 @@ export function PollCard({ postId }: { postId: string }) {
             <span aria-hidden className={"absolute inset-y-0 left-0 " + (mine ? "bg-pearl/40" : "bg-ink/10")} style={{ width: pct + "%" }} />
             <span className="relative flex items-center justify-between text-[13.5px] text-ink">
               <span className={mine ? "font-semibold" : ""}>{o.label}{mine ? " ✓" : ""}</span>
-              <span className="text-ink/55">{pct}%</span>
+              <span className="text-muted">{pct}%</span>
             </span>
           </span>
         ) : (
@@ -54,7 +55,7 @@ export function PollCard({ postId }: { postId: string }) {
           </button>
         );
       })}
-      <span className="text-[12px] text-ink/45">
+      <span className="text-[12px] text-muted">
         {total} {total === 1 ? "vote" : "votes"} · {ended ? "Final results" : hoursLeft + "h left"}{isAuthor ? <> · <button type="button" onClick={() => setVotersOpen(true)} className="underline">See votes</button></> : null}
       </span>
       {votersOpen ? <PollVoters postId={postId} onClose={() => setVotersOpen(false)} /> : null}
@@ -71,11 +72,11 @@ export function PollVoters({ postId, onClose }: { postId: string; onClose: () =>
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 sm:items-center" onClick={onClose}>
       <div className="max-h-[70vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 text-[15px] font-semibold">Votes</div>
-        {rows === null ? <div className="text-[13px] text-ink/50">Loading</div> : rows.length === 0 ? <div className="text-[13px] text-ink/50">No votes yet</div> : Object.entries(groups).map(([label, list]) => (
+        {rows === null ? <div className="text-[13px] text-muted">Loading</div> : rows.length === 0 ? <div className="text-[13px] text-muted">No votes yet</div> : Object.entries(groups).map(([label, list]) => (
           <div key={label} className="mb-3">
-            <div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-ink/50">{label} · {list?.length}</div>
+            <div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">{label} · {list?.length}</div>
             {(list ?? []).map((r) => (
-              <a key={r.user_id} href={"/" + (r.username ?? "")} className="flex items-center gap-2 py-1.5">
+              <a key={r.user_id} href={profilePath(r.username, r.user_id)} className="flex items-center gap-2 py-1.5">
                 {r.avatar_url ? <img src={r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" /> : <span className="h-8 w-8 rounded-full bg-surface" />}
                 <PersonName name={r.full_name ?? r.username ?? ""} userId={r.user_id} className="text-[14px] font-semibold" />
               </a>

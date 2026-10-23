@@ -68,7 +68,7 @@ const sb = () => createClient();
 
 export async function studioMe(): Promise<StudioMe | null> {
   const { data, error } = await sb().rpc("studio_me");
-  if (error) return null;
+  if (error) throw error;
   return data as StudioMe;
 }
 export async function bindMember(code: string) {
@@ -78,7 +78,7 @@ export async function bindMember(code: string) {
 }
 export async function studioHome(): Promise<StudioHome | null> {
   const { data, error } = await sb().rpc("studio_home");
-  if (error) return null;
+  if (error) throw error;
   return data as StudioHome;
 }
 export async function listScheduled(status?: string) {
@@ -126,6 +126,7 @@ export async function myListings() {
   const uid = data.session?.user.id;
   if (!uid) return [];
   const r = await s.rpc("get_seller_listings", { p_seller_id: uid, p_cursor: null, p_limit: 50, p_include_sold: false });
+  if (r.error) throw r.error;
   return (r.data as { id: string; title: string; price: number; currency: string; images: string[] }[]) ?? [];
 }
 export async function listReplies() {
@@ -142,7 +143,8 @@ export async function deleteReply(id: string) {
   if (error) throw error;
 }
 export async function getAutoReplies(): Promise<AutoReplies> {
-  const { data } = await sb().rpc("studio_get_auto_replies");
+  const { data, error } = await sb().rpc("studio_get_auto_replies");
+  if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
   return row ? { welcome_enabled: !!row.welcome_enabled, welcome_text: row.welcome_text, away_enabled: !!row.away_enabled, away_text: row.away_text, faq: Array.isArray(row.faq) ? row.faq : [] }
     : { welcome_enabled: false, welcome_text: "", away_enabled: false, away_text: "", faq: [] };

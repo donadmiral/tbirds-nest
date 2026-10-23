@@ -12,7 +12,8 @@ import type { LinkingOptions } from '@react-navigation/native';
  * registered in AppNavigator exactly.
  */
 export const linking: LinkingOptions<any> = {
-  prefixes: [Linking.createURL('/'), 'platinum-circles://'],
+  // Resolve the installed app's scheme so QA links cannot open production.
+  prefixes: [Linking.createURL('/')],
   config: {
     screens: {
       // Unauthenticated

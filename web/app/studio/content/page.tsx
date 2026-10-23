@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 /**
  * The Content desk.
  *
@@ -16,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Eye, FileText, Heart, Image as ImageIcon, MessageCircle, Play, Plus, Search } from "lucide-react";
 import { listScheduled, studioHome, type ScheduledPost, type StudioHome } from "@/lib/studio";
+import { useUploadPreview } from "@/lib/useUploadPreview";
 import { EmptyState, PillTabs } from "@/components/ui";
 import { Metric } from "@/components/Charts";
 
@@ -32,15 +35,18 @@ const TABS: { key: Tab; label: string }[] = [
 function statusChip(s: string) {
   if (s === "published") return "bg-success/15 text-success";
   if (s === "scheduled") return "bg-pearl/20 text-pearl-muted";
-  if (s === "failed") return "bg-red-500/12 text-red-400";
+  if (s === "failed") return "bg-danger/12 text-danger";
   if (s === "publishing") return "bg-ink/10 text-ink/60";
-  return "bg-surface text-ink/50";
+  return "bg-surface text-muted";
 }
 
 export default function ContentPage() {
   const [rows, setRows] = useState<ScheduledPost[]>([]);
+  const mediaPreview = useUploadPreview(rows);
   const [home, setHome] = useState<StudioHome | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("all");
   const [q, setQ] = useState("");
   const mounted = useRef(true);
@@ -51,7 +57,9 @@ export default function ContentPage() {
       const [posts, h] = await Promise.all([listScheduled(), studioHome()]);
       if (!mounted.current) return;
       setRows(posts);
-      setHome(h);
+      setHome(h); setLoaded(true); setLoadError(null);
+    } catch {
+      if (mounted.current) setLoadError("Content could not be refreshed. Please try again.");
     } finally {
       if (mounted.current) setLoading(false);
     }
@@ -97,10 +105,11 @@ export default function ContentPage() {
 
   return (
     <div>
+      {mediaPreview.error ? <p role="alert" className="text-sm text-danger">{mediaPreview.error} <button className="underline" onClick={mediaPreview.retry}>Retry</button></p> : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Content library</h1>
-          <p className="mt-1 text-[13px] text-ink/50">Everything you have written, whatever state it is in.</p>
+          <p className="mt-1 text-[13px] text-muted">Everything you have written, whatever state it is in.</p>
         </div>
         <Link
           href="/studio/planner"
@@ -112,19 +121,19 @@ export default function ContentPage() {
 
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Items in the library</p>
+          <p className="text-[11.5px] text-muted">Items in the library</p>
           <Metric value={rows.length} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Views across recent posts</p>
+          <p className="text-[11.5px] text-muted">Views across recent posts</p>
           <Metric value={totals.views} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Likes across recent posts</p>
+          <p className="text-[11.5px] text-muted">Likes across recent posts</p>
           <Metric value={totals.likes} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Comments across recent posts</p>
+          <p className="text-[11.5px] text-muted">Comments across recent posts</p>
           <Metric value={totals.comments} size={24} />
         </div>
       </div>
@@ -136,19 +145,20 @@ export default function ContentPage() {
           onSelect={(k) => setTab(k as Tab)}
         />
         <label className="flex min-w-[220px] flex-1 items-center gap-2 rounded-full border border-ink/10 bg-white px-3.5 py-2 sm:max-w-[280px]">
-          <Search size={15} className="shrink-0 text-ink/35" />
+          <Search size={15} className="shrink-0 text-muted" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search your content"
-            className="min-w-0 flex-1 bg-transparent text-[13.5px] text-ink outline-none placeholder:text-ink/35"
+            className="min-w-0 flex-1 bg-transparent text-[13.5px] text-ink outline-none placeholder:text-muted"
           />
         </label>
       </div>
 
-      {loading ? (
-        <p className="py-14 text-center text-sm text-ink/40">Loading</p>
-      ) : shown.length === 0 ? (
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      {loading && !loaded ? (
+        <p className="py-14 text-center text-sm text-muted">Loading</p>
+      ) : !loaded ? null : shown.length === 0 ? (
         <div className="mt-4">
           <EmptyState
             icon={<FileText size={19} />}
@@ -162,7 +172,7 @@ export default function ContentPage() {
         <div className="mt-4 overflow-hidden rounded-2xl border border-ink/10 bg-white">
           {shown.map((r, i) => {
             const e = engagement.get(r.published_post_id || r.id);
-            const cover = r.media?.[0];
+            const cover = mediaPreview.preview.find(row => row.id === r.id)?.media?.[0];
             const when = r.publish_at ? new Date(r.publish_at) : null;
             const text = r.content || r.body || "Untitled";
             return (
@@ -182,19 +192,19 @@ export default function ContentPage() {
                       <img src={cover.url} alt="" className="h-full w-full object-cover" />
                     )
                   ) : (
-                    <ImageIcon size={16} className="text-ink/25" />
+                    <ImageIcon size={16} className="text-muted" />
                   )}
                 </span>
 
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 block text-[13.5px] leading-snug text-ink">{text}</span>
-                  <span className="mt-1 flex flex-wrap items-center gap-2 text-[11.5px] text-ink/45">
+                  <span className="mt-1 flex flex-wrap items-center gap-2 text-[11.5px] text-muted">
                     <span className={"rounded-full px-2 py-0.5 font-semibold capitalize " + statusChip(r.status)}>{r.status}</span>
                     {when ? <span>{when.toLocaleDateString(undefined, { month: "short", day: "numeric" })} at {when.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span> : <span>no date set</span>}
                   </span>
                 </span>
 
-                <span className="hidden shrink-0 items-center gap-4 text-[12px] text-ink/45 sm:flex">
+                <span className="hidden shrink-0 items-center gap-4 text-[12px] text-muted sm:flex">
                   {e ? (
                     <>
                       <span className="flex items-center gap-1"><Eye size={12} /> {e.views}</span>
@@ -202,7 +212,7 @@ export default function ContentPage() {
                       <span className="flex items-center gap-1"><MessageCircle size={12} /> {e.comments}</span>
                     </>
                   ) : (
-                    <span className="text-ink/25">not measured</span>
+                    <span className="text-muted">not measured</span>
                   )}
                 </span>
 

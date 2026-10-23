@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
-import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark, Play, Pause } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
+import { hydrateStoryMedia } from "@/lib/contentMedia";
 import { QuestionCard, QuizCard, SliderCard, CountdownCard, AddYoursCard, SupportCard, ResultsCard } from "@/components/StoryEngageCards";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
@@ -158,7 +159,7 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
                     <span className="truncate">{ps.postAuthorName || "Post"}</span>
                     {badgeColor ? <BadgeCheck size={14} style={{ color: badgeColor, flexShrink: 0 }} /> : null}
                   </span>
-                  <span className="block truncate text-[12.5px] text-ink/50">{ps.postUsername ? "@" + ps.postUsername : ""}{ps.postUsername && dateStr ? " \u00B7 " : ""}{dateStr || ""}</span>
+                  <span className="block truncate text-[12.5px] text-muted">{ps.postUsername ? "@" + ps.postUsername : ""}{ps.postUsername && dateStr ? " \u00B7 " : ""}{dateStr || ""}</span>
                 </span>
               </span>
               {ps.postArticleTitle ? <span className="mt-2 block px-4 text-[16px] font-bold leading-snug text-ink">{ps.postArticleTitle}</span> : null}
@@ -211,13 +212,15 @@ function FilterOverlay({ filterId, amt }: { filterId: string | null | undefined;
   );
 }
 
-export function StoryViewer({ users, startIndex, onClose }: {
+export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   users: CatchupUser[];
   startIndex: number;
+  initialStoryId?: string;
   onClose: () => void;
 }) {
   const [userIdx, setUserIdx] = useState(startIndex);
   const [stories, setStories] = useState<StoryRow[]>([]);
+  const [storyLoadFinished, setStoryLoadFinished] = useState(false);
   const [itemIdx, setItemIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -226,41 +229,84 @@ export function StoryViewer({ users, startIndex, onClose }: {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
-  const [muted, setMuted] = useState(false);
+  const viewerRef = useRef<string | null>(null);
+  const [muted, setMuted] = useState(true);
   const [clock, setClock] = useState<number | null>(null);
   const [poll, setPoll] = useState<StoryPoll | null>(null);
   const [viewersOpen, setViewersOpen] = useState(false);
   const [storyMentions, setStoryMentions] = useState<{ id: string; mentioned_user_id: string; visible: boolean; username?: string | null }[]>([]);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heldRef = useRef(false);
+  const playbackPausedRef = useRef(false);
+  const manualPauseRef = useRef(false);
+  const holdPausedRef = useRef(false);
+  const holdConsumedClickRef = useRef(false);
+  const [playbackPaused, setPlaybackPaused] = useState(false);
   const pausedAtRef = useRef(0);
   const [myReactions, setMyReactions] = useState<Set<string>>(new Set());
+  const reactionRequests = useRef(new Set<string>());
+  const reactionVersion = useRef(0);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [heartBurst, setHeartBurst] = useState(0);
-  const [mediaReady, setMediaReady] = useState(false);
+  const [loadedStoryId, setLoadedStoryId] = useState<string | null>(null);
+  const readyStoryRef = useRef<string | null>(null);
+  const [failedStoryId, setFailedStoryId] = useState<string | null>(null);
+  const [mediaRetry, setMediaRetry] = useState(0);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const deletingRef = useRef(false);
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
+  const sendingReplyRef = useRef(false);
   const [replyToast, setReplyToast] = useState(false);
   const user = users[userIdx];
   const story = stories[itemIdx];
+  const currentStoryRef = useRef(story?.id);
+  currentStoryRef.current = story?.id;
+  const mediaReady = !story?.media_url || loadedStoryId === story.id;
 
   // Reset on every advance, otherwise the previous story's ready flag hides the
   // shimmer for the next one and it flashes black again.
-  useEffect(() => { setMediaReady(false); }, [story?.id]);
+  useEffect(() => {
+    readyStoryRef.current = null;
+    setLoadedStoryId(null);
+    setFailedStoryId(null);
+    setActionError(null);
+    setReplyText("");
+    setReplyToast(false);
+    setViewersOpen(false);
+    setHeartBurst(0);
+    playbackPausedRef.current = false;
+    manualPauseRef.current = false;
+    holdPausedRef.current = false;
+    holdConsumedClickRef.current = false;
+    setPlaybackPaused(false);
+    if (holdRef.current) clearTimeout(holdRef.current);
+    return () => {
+      if (holdRef.current) clearTimeout(holdRef.current);
+    };
+  }, [story?.id]);
+  const onMediaReady = () => {
+    if (currentStoryRef.current !== story?.id) return;
+    readyStoryRef.current = story?.id ?? null;
+    setLoadedStoryId(story?.id ?? null);
+    setFailedStoryId(null);
+    startedAt.current = Date.now();
+  };
 
   // Preload the next frame while this one is on screen. A story lasts several
   // seconds; using that time is the difference between instant and a stall at
   // every tap.
   useEffect(() => {
+    const videos: HTMLVideoElement[] = [];
     [stories[itemIdx + 1], stories[itemIdx + 2]].forEach((next, i) => {
       if (!next?.media_url) return;
       const poster = (next as { thumbnail_url?: string | null }).thumbnail_url;
       if (poster) { const pi = new Image(); pi.src = poster; }
-      if (next.media_type === "video") { if (i === 0) { const v = document.createElement("video"); v.preload = "auto"; v.src = next.media_url; } }
+      if (next.media_type === "video") { if (i === 0) { const v = document.createElement("video"); v.preload = "metadata"; v.src = next.media_url; videos.push(v); } }
       else { const img = new Image(); img.src = next.media_url; }
     });
+    return () => { videos.forEach(video => { video.removeAttribute("src"); video.load(); }); };
   }, [stories, itemIdx]);
-  const storyAudioUrl = story && story.media_type !== "video" ? (story.audio_url ?? null) : null;
+  const storyAudioUrl = story?.audio_url ?? null;
   const isOwn = !!(uid && story && uid === story.user_id);
   useEffect(() => { setPoll(null); if (!story) return; let dead = false; getStoryPoll(story.id).then((p) => { if (!dead) setPoll(p); }).catch(() => {}); return () => { dead = true; }; }, [story?.id]);
   // Only the author and mentioned people get rows back (RLS), so a normal
@@ -298,14 +344,16 @@ export function StoryViewer({ users, startIndex, onClose }: {
   }, [itemIdx, stories.length, nextUser, stopTimer]);
 
   const back = useCallback(() => {
+    if (itemIdx === 0 && userIdx === 0) return;
     stopTimer();
     if (itemIdx > 0) setItemIdx(itemIdx - 1);
     else if (userIdx > 0) { setUserIdx(userIdx - 1); setItemIdx(0); }
   }, [itemIdx, userIdx, stopTimer]);
 
   const pauseNow = useCallback(() => {
-    if (heldRef.current) return;
-    heldRef.current = true;
+    if (playbackPausedRef.current) return;
+    playbackPausedRef.current = true;
+    setPlaybackPaused(true);
     pausedAtRef.current = (Date.now() - startedAt.current) / durRef.current;
     stopTimer();
     videoRef.current?.pause();
@@ -313,11 +361,15 @@ export function StoryViewer({ users, startIndex, onClose }: {
   }, [stopTimer]);
 
   const resumeNow = useCallback(() => {
-    if (!heldRef.current) return;
+    if (!playbackPausedRef.current || manualPauseRef.current || document.hidden) return;
+    playbackPausedRef.current = false;
+    setPlaybackPaused(false);
+    stopTimer();
     startedAt.current = Date.now() - pausedAtRef.current * durRef.current;
     timerRef.current = setInterval(() => {
+      if (story?.media_url && readyStoryRef.current !== story.id) { startedAt.current = Date.now(); return; }
       const el = videoRef.current;
-      if (el && !el.paused) {
+      if (story?.media_type === "video" && el) {
         const t0 = Number((story?.media_transform as StoryMediaTransform | undefined)?.trimStart) || 0; const win = durRef.current / 1000;
         const p = Math.max(0, Math.min(1, (el.currentTime - t0) / win));
         if (el.ended || (el.currentTime - t0) >= win - 0.06) advance(); else setProgress(p);
@@ -328,104 +380,180 @@ export function StoryViewer({ users, startIndex, onClose }: {
       else setProgress(p);
     }, 50);
     videoRef.current?.play().catch(() => {});
-    audioRef.current?.play().catch(() => {});
-    setTimeout(() => { heldRef.current = false; }, 60);
-  }, [advance]);
+    if (readyStoryRef.current === story?.id || !story?.media_url) audioRef.current?.play().catch(() => {});
+  }, [advance, story, stopTimer]);
+
+  const togglePlayback = useCallback(() => {
+    if (playbackPausedRef.current) {
+      manualPauseRef.current = false;
+      resumeNow();
+    } else {
+      manualPauseRef.current = true;
+      pauseNow();
+    }
+  }, [pauseNow, resumeNow]);
 
   const holdStart = useCallback(() => {
-    holdRef.current = setTimeout(() => { pauseNow(); }, 200);
+    if (holdRef.current) clearTimeout(holdRef.current);
+    holdPausedRef.current = false;
+    holdConsumedClickRef.current = false;
+    holdRef.current = setTimeout(() => {
+      holdConsumedClickRef.current = true;
+      if (!playbackPausedRef.current) { holdPausedRef.current = true; pauseNow(); }
+    }, 200);
   }, [pauseNow]);
 
   const holdEnd = useCallback(() => {
     if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; }
-    if (!heldRef.current) return;
+    if (!holdPausedRef.current) return;
+    holdPausedRef.current = false;
     resumeNow();
   }, [resumeNow]);
 
   const react = useCallback(async (emoji: string) => {
-    if (!story || !canReact) return;
+    if (!story || !canReact || !uid) return;
+    const storyId = story.id;
+    const requestKey = storyId + ":" + emoji;
+    if (reactionRequests.current.has(requestKey)) return;
+    reactionRequests.current.add(requestKey);
+    reactionVersion.current += 1;
     const had = myReactions.has(emoji);
-    const next = new Set(myReactions);
-    if (had) next.delete(emoji); else next.add(emoji);
-    setMyReactions(next);
-    if (!had && emoji === REACTION_EMOJIS[0]) { setHeartBurst(Date.now()); setTimeout(() => setHeartBurst(0), 900); }
-    const res = await toggleStoryReaction(story.id, emoji);
-    if (res) {
-      const synced = new Set(myReactions);
-      if (res.reacted) synced.add(emoji); else synced.delete(emoji);
-      setMyReactions(synced);
-    } else {
-      setMyReactions(myReactions);
-    }
-  }, [story, canReact, myReactions]);
+    const applyReaction = (reacted: boolean) => setMyReactions(current => {
+      const next = new Set(current);
+      if (reacted) next.add(emoji); else next.delete(emoji);
+      return next;
+    });
+    applyReaction(!had);
+    if (!had && emoji === REACTION_EMOJIS[0]) { setHeartBurst(Date.now()); setTimeout(() => { if (currentStoryRef.current === storyId) setHeartBurst(0); }, 900); }
+    try {
+      const { data, error } = await createClient().auth.getSession();
+      if (error || data.session?.user.id !== uid) throw new Error("Account changed");
+      const res = await toggleStoryReaction(storyId, emoji);
+      if (currentStoryRef.current !== storyId) return;
+      applyReaction(res ? res.reacted : had);
+      if (!res) setActionError("Your reaction could not be confirmed. Try again.");
+    } catch {
+      if (currentStoryRef.current === storyId) {
+        applyReaction(had);
+        setActionError("Your reaction could not be confirmed. Try again.");
+      }
+    } finally { reactionRequests.current.delete(requestKey); }
+  }, [story, canReact, uid, myReactions]);
 
   const sendReply = useCallback(async () => {
     if (!story || !uid || !canReply) return;
     const trimmed = replyText.trim();
-    if (!trimmed || sendingReply) return;
+    if (!trimmed || sendingReplyRef.current) return;
+    sendingReplyRef.current = true;
     setSendingReply(true);
+    setActionError(null);
     try {
       const supabase = createClient();
+      const checkSession = async () => { const { data, error } = await supabase.auth.getSession(); if (error || data.session?.user.id !== uid) throw new Error("Sign in again to send this reply."); };
+      await checkSession();
       const ownerId = story.user_id;
       const sorted = [uid, ownerId].sort();
       const messageText = "Replied to your story:\n" + trimmed;
-      const { data: existing } = await supabase.from("conversations").select("id")
+      const { data: existing, error: lookupError } = await supabase.from("conversations").select("id")
         .or("and(user_1.eq." + uid + ",user_2.eq." + ownerId + "),and(user_1.eq." + ownerId + ",user_2.eq." + uid + ")")
         .eq("type", "direct").eq("is_group", false).maybeSingle();
+      if (lookupError) throw lookupError;
       let convId = existing?.id as string | undefined;
       if (!convId) {
-        const { data: created } = await supabase.from("conversations")
+        const { data: created, error: createError } = await supabase.from("conversations")
           .insert({ user_1: sorted[0], user_2: sorted[1], last_message: "", last_message_time: new Date().toISOString() })
           .select("id").single();
+        if (createError) throw createError;
         convId = created?.id;
       }
-      if (!convId) { setSendingReply(false); return; }
+      if (!convId) throw new Error("The conversation could not be opened.");
+      await checkSession();
       const { error: msgErr } = await supabase.from("messages")
         .insert({ conversation_id: convId, sender_id: uid, receiver_id: ownerId, text: messageText });
-      if (!msgErr) {
-        await supabase.from("conversations").update({ last_message: messageText, last_message_time: new Date().toISOString() }).eq("id", convId);
+      if (msgErr) throw msgErr;
+      // The message is committed. A preview refresh must not invite resending it.
+      void Promise.resolve(supabase.from("conversations").update({ last_message: messageText, last_message_time: new Date().toISOString() }).eq("id", convId)).catch(() => {});
+      if (currentStoryRef.current === story.id) {
         setReplyText("");
         setReplyToast(true);
         setTimeout(() => setReplyToast(false), 2000);
+        resumeNow();
       }
+    } catch {
+      if (currentStoryRef.current === story.id) setActionError("Your reply could not be confirmed. It is kept here. Check Messages before sending again.");
     } finally {
+      sendingReplyRef.current = false;
       setSendingReply(false);
-      resumeNow();
     }
   }, [story, uid, canReply, replyText, sendingReply, resumeNow]);
 
   useEffect(() => {
-    createClient().auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
+    const client = createClient();
+    let alive = true, version = 0;
+    const accept = (next: string | null) => {
+      if (!alive) return;
+      if (viewerRef.current !== next) {
+        viewerRef.current = next;
+        setStories([]); setReplyText(""); setPoll(null); setMyReactions(new Set()); setViewersOpen(false);
+      }
+      setUid(next);
+    };
+    const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+      version++; accept(session?.user.id ?? null);
+    });
+    const initial = version;
+    void client.auth.getSession().then(({ data, error }) => {
+      if (alive && version === initial) accept(error ? null : data.session?.user.id ?? null);
+    });
+    return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
+  const refreshCurrentMedia = async () => {
+    if (!story || !uid) return;
+    const id = story.id, viewer = uid;
+    setFailedStoryId(null); setLoadedStoryId(null); readyStoryRef.current = null;
+    try {
+      const [current] = await hydrateStoryMedia([story]);
+      if (viewerRef.current !== viewer || currentStoryRef.current !== id) return;
+      setStories(rows => rows.map(row => row.id === id ? current : row));
+      setMediaRetry(value => value + 1);
+    } catch { if (viewerRef.current === viewer && currentStoryRef.current === id) setFailedStoryId(id); }
+  };
+
   useEffect(() => {
-    if (!user) return;
+    if (!user || !uid) return;
     let off = false;
+    setStories([]);
+    setStoryLoadFinished(false);
     getUserStories(user.user_id).then((rows) => {
       if (off) return;
-      setStories(rows);
-      setItemIdx(0);
-    });
+      const target = userIdx === startIndex && initialStoryId ? rows.findIndex((row) => row.id === initialStoryId) : 0;
+      // An expired notification must not open an unrelated story instead.
+      setStories(target < 0 ? [] : rows);
+      setItemIdx(Math.max(0, target));
+      setStoryLoadFinished(true);
+    }, () => { if (!off) { setStories([]); setStoryLoadFinished(true); } });
     return () => { off = true; };
-  }, [user]);
+  }, [user, userIdx, startIndex, initialStoryId, uid]);
 
   useEffect(() => {
     setEmojiOpen(false);
-    if (!story || !uid || uid === story.user_id) { setMyReactions(new Set()); return; }
+    setMyReactions(new Set());
+    const version = ++reactionVersion.current;
+    if (!story || !uid || uid === story.user_id) return;
     let off = false;
-    getMyStoryReactions(story.id).then((emojis) => { if (!off) setMyReactions(new Set(emojis)); });
+    getMyStoryReactions(story.id).then((emojis) => { if (!off && reactionVersion.current === version) setMyReactions(new Set(emojis)); }).catch(() => {});
     return () => { off = true; };
   }, [story?.id, uid]);
 
   useEffect(() => {
     if (!story) return;
-    markStoryViewed(story.id);
     setProgress(0);
     stopTimer();
     const mtx = (story.media_transform || {}) as StoryMediaTransform;
-    if ((mtx.mix?.orig ?? 100) <= 0) setMuted(true);
     const hasTrim = typeof mtx.trimStart === "number" && typeof mtx.trimEnd === "number" && mtx.trimEnd > mtx.trimStart;
     setClock(story.media_type === "video" ? (Number(mtx.trimStart) || 0) : null);
+    if (videoRef.current) { try { videoRef.current.volume = Math.max(0, Math.min(1, (mtx.mix?.orig ?? 100) / 100)); } catch {} }
     if (audioRef.current) { try { audioRef.current.volume = Math.max(0, Math.min(1, (mtx.mix?.music ?? 100) / 100)); } catch {} }
     const isVideo = story.media_type === "video";
     let dur = isVideo
@@ -438,6 +566,7 @@ export function StoryViewer({ users, startIndex, onClose }: {
     durRef.current = dur;
     startedAt.current = Date.now();
     timerRef.current = setInterval(() => {
+      if (story.media_url && readyStoryRef.current !== story.id) { startedAt.current = Date.now(); return; }
       if (isVideo && videoRef.current) {
         // Video: the bar follows the player's own clock, so buffering stalls the bar instead of advancing past the picture.
         const el = videoRef.current; const t0 = Number(mtx.trimStart) || 0; const win = durRef.current / 1000;
@@ -449,12 +578,14 @@ export function StoryViewer({ users, startIndex, onClose }: {
       if (p >= 1) advance();
       else setProgress(p);
     }, 50);
-    audioRef.current?.play().catch(() => {});
     return stopTimer;
   }, [story, advance, stopTimer]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target?.isContentEditable || target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      if (["Escape", "ArrowRight", "ArrowLeft"].includes(e.key)) e.preventDefault();
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") advance();
       if (e.key === "ArrowLeft") back();
@@ -462,6 +593,34 @@ export function StoryViewer({ users, startIndex, onClose }: {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [advance, back, onClose]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = Math.max(0, Math.min(1, (story?.media_transform?.mix?.music ?? 100) / 100));
+    if (mediaReady && !playbackPaused && !document.hidden) void audio.play().catch(() => {});
+    else audio.pause();
+  }, [story?.id, storyAudioUrl, mediaReady, playbackPaused, muted, story?.media_transform?.mix?.music]);
+
+  useEffect(() => {
+    if (story && mediaReady) void markStoryViewed(story.id);
+  }, [story?.id, mediaReady]);
+
+  useEffect(() => {
+    let pausedByVisibility = false;
+    const onVisibility = () => {
+      if (document.hidden) {
+        pausedByVisibility = !playbackPausedRef.current;
+        if (pausedByVisibility) pauseNow();
+      } else if (pausedByVisibility) {
+        pausedByVisibility = false;
+        resumeNow();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    onVisibility();
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [pauseNow, resumeNow]);
 
   if (!user) return null;
 
@@ -525,13 +684,14 @@ export function StoryViewer({ users, startIndex, onClose }: {
             {story.media_type === "video" && story.media_url ? (
               <video
                 ref={videoRef}
-                key={story.id}
+                key={story.id + "-" + mediaRetry}
                 src={story.media_url}
                 autoPlay
                 playsInline
                 preload="auto"
                 muted={muted}
-                onLoadedData={() => setMediaReady(true)}
+                onLoadedData={onMediaReady}
+                onError={() => { if (currentStoryRef.current === story.id) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
                 onLoadedMetadata={(e) => { const m = (story.media_transform || {}) as StoryMediaTransform; try { (e.target as HTMLVideoElement).playbackRate = Number(m.speed) || 1; } catch {} const t0 = Number(m.trimStart) || 0; if (t0 > 0.05) { try { (e.target as HTMLVideoElement).currentTime = t0; } catch {} } }}
                 onTimeUpdate={(e) => { const el = e.target as HTMLVideoElement; const m = (story.media_transform || {}) as StoryMediaTransform; setClock(el.currentTime); const t1 = Number(m.trimEnd) || 0; if (t1 > 0 && el.currentTime >= t1) advance(); }}
                 className="h-full w-full object-contain"
@@ -540,21 +700,27 @@ export function StoryViewer({ users, startIndex, onClose }: {
             ) : story.media_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                key={story.id}
+                key={story.id + "-" + mediaRetry}
                 src={story.media_url}
                 alt=""
-                onLoad={() => setMediaReady(true)}
-                onError={() => setMediaReady(true)}
+                onLoad={onMediaReady}
+                onError={() => { if (currentStoryRef.current === story.id) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
                 className="h-full w-full"
                 style={mediaStyle(story.media_transform)}
               />
+            ) : null}
+            {failedStoryId === story.id ? (
+              <div role="alert" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/70 px-6 text-center text-sm text-white">
+                <p>This story’s media could not load.</p>
+                <button className="rounded-full border border-white/50 px-4 py-2" onClick={() => void refreshCurrentMedia()}>Retry</button>
+              </div>
             ) : null}
             <FilterOverlay filterId={story.filter_id} amt={story.media_transform?.filterAmt ?? 100} />
             <AdjustOverlay adjust={story.media_transform?.adjust || null} />
             <DrawSvg stickers={story.stickers_json} />
             <style dangerouslySetInnerHTML={{ __html: STICKER_ANIM_CSS }} />
             {storyAudioUrl ? (
-              <audio ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} autoPlay muted={muted} />
+              <audio ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} loop muted={muted} onError={() => setFailedStoryId(story.id)} />
             ) : null}
             {storyAudioUrl && story.audio_title ? (
               <span className="absolute left-3 top-14 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white">
@@ -573,10 +739,10 @@ export function StoryViewer({ users, startIndex, onClose }: {
             ) : null}
             {poll ? <StoryPollCard poll={poll} isOwn={isOwn} onUpdate={setPoll} /> : null}
             {story.stickers_json && story.stickers_json.length > 0 ? (
-              <StickerLayer stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} />
+              <StickerLayer key={uid + ":" + story.id} stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} />
             ) : null}
             {story.caption ? (
-              <p className="absolute inset-x-0 bottom-20 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow">{String(story.caption).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => part.startsWith("@") ? <a key={i} href={"/" + part.slice(1)} onClick={(e) => e.stopPropagation()} className="font-extrabold underline">{part}</a> : <span key={i}>{part}</span>)}</p>
+              <p className={"absolute inset-x-0 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow " + (isOwn ? "bottom-28" : "bottom-20")}>{String(story.caption).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => part.startsWith("@") ? <a key={i} href={"/" + part.slice(1)} onClick={(e) => e.stopPropagation()} className="font-extrabold underline">{part}</a> : <span key={i}>{part}</span>)}</p>
             ) : null}
             {heartBurst ? (
               <span key={heartBurst} className="pointer-events-none absolute inset-0 z-[6] flex items-center justify-center">
@@ -587,13 +753,13 @@ export function StoryViewer({ users, startIndex, onClose }: {
             ) : null}
           </>
         ) : (
-          <p className="flex h-full items-center justify-center text-sm text-white/50">Loading</p>
+          <p className="flex h-full items-center justify-center text-sm text-white/50">{storyLoadFinished ? "This story could not be loaded." : "Loading"}</p>
         )}
 
         {story ? <SaveToMemory story={story} /> : null}
-        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onClick={() => { if (!heldRef.current) back(); }} className="absolute inset-y-0 left-0 z-[3] w-1/3" aria-label="Previous" />
-        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onDoubleClick={() => react(REACTION_EMOJIS[0])} className="absolute inset-y-0 left-1/3 z-[3] w-1/3" aria-label="Pause" />
-        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onClick={() => { if (!heldRef.current) advance(); }} className="absolute inset-y-0 right-0 z-[3] w-1/3" aria-label="Next" />
+        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onClick={(event) => { const consumed = holdConsumedClickRef.current; holdConsumedClickRef.current = false; if (event.detail === 0 || !consumed) back(); }} className="absolute inset-y-0 left-0 z-[3] w-1/3" aria-label="Previous" />
+        <div onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onDoubleClick={() => react(REACTION_EMOJIS[0])} className="absolute inset-y-0 left-1/3 z-[3] w-1/3" aria-hidden="true" />
+        <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onClick={(event) => { const consumed = holdConsumedClickRef.current; holdConsumedClickRef.current = false; if (event.detail === 0 || !consumed) advance(); }} className="absolute inset-y-0 right-0 z-[3] w-1/3" aria-label="Next" />
 
         {canReply || canReact ? (
           <div className="absolute inset-x-0 bottom-0 z-20 flex items-center gap-2 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
@@ -637,6 +803,9 @@ export function StoryViewer({ users, startIndex, onClose }: {
         ) : null}
 
         <div className="absolute right-2 top-[68px] z-20 flex flex-col gap-2">
+          {story ? <button type="button" onClick={togglePlayback} className="flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" aria-label={playbackPaused ? "Play story" : "Pause story"} title={playbackPaused ? "Play story" : "Pause story"}>
+            {playbackPaused ? <Play size={18} /> : <Pause size={18} />}
+          </button> : null}
           {story?.media_type === "video" || storyAudioUrl ? (
             <button onClick={() => setMuted(!muted)} className="rounded-full bg-black/40 p-2 text-white" aria-label="Mute">
               {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
@@ -646,15 +815,23 @@ export function StoryViewer({ users, startIndex, onClose }: {
             <>
               <button onClick={() => { setViewersOpen(true); }} className="rounded-full bg-black/40 p-2 text-white" title="Viewers"><Eye size={15} /></button>
               <button onClick={async () => {
-                if (!confirm("Delete this story everywhere?")) return;
-                await createClient().from("stories").delete().eq("id", story.id);
-                const rest = stories.filter((s) => s.id !== story.id);
-                setStories(rest);
-                if (rest.length === 0) nextUser(); else setItemIdx(Math.min(itemIdx, rest.length - 1));
+                if (deletingRef.current || !confirm("Delete this story everywhere?")) return;
+                deletingRef.current = true;
+                setActionError(null);
+                try {
+                  const { data, error } = await createClient().from("stories").delete().eq("id", story.id).eq("user_id", uid).select("id").maybeSingle();
+                  if (error || !data) throw error || new Error("Deletion was not confirmed");
+                  if (currentStoryRef.current !== story.id) return;
+                  const rest = stories.filter((s) => s.id !== story.id);
+                  setStories(rest);
+                  if (rest.length === 0) nextUser(); else setItemIdx(Math.min(itemIdx, rest.length - 1));
+                } catch { if (currentStoryRef.current === story.id) setActionError("The story could not be deleted. Please try again."); }
+                finally { deletingRef.current = false; }
               }} className="rounded-full bg-black/40 p-2 text-white" title="Delete story"><Trash2 size={15} /></button>
             </>
           ) : null}
         </div>
+        {actionError ? <p role="alert" className="absolute inset-x-4 bottom-24 z-30 rounded-lg bg-black/80 px-3 py-2 text-center text-sm text-white">{actionError}</p> : null}
         {viewersOpen && story ? <ViewersSheet storyId={story.id} onClose={() => setViewersOpen(false)} /> : null}
       </div>
     </div>
@@ -676,15 +853,15 @@ function ViewersSheet({ storyId, onClose }: { storyId: string; onClose: () => vo
     <div className="absolute inset-x-0 bottom-0 z-30 max-h-[55%] overflow-y-auto rounded-t-2xl bg-white p-4" onClick={(e) => e.stopPropagation()}>
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[14px] font-semibold text-ink">Viewers · {people.length}</p>
-        <button onClick={onClose} className="rounded-full p-1.5 text-ink/50" aria-label="Close"><X size={16} /></button>
+        <button onClick={onClose} className="rounded-full p-1.5 text-muted" aria-label="Close"><X size={16} /></button>
       </div>
-      {people.length === 0 ? <p className="py-6 text-center text-[13px] text-ink/40">No views yet.</p> : people.map((p) => (
+      {people.length === 0 ? <p className="py-6 text-center text-[13px] text-muted">No views yet.</p> : people.map((p) => (
         <div key={p.id} className="flex items-center gap-2.5 py-1.5">
           {p.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={displayImageUrl(p.avatar_url, 200) ?? p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-          ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-pearl text-[12px] font-semibold text-ink">{(p.full_name ?? "?").charAt(0)}</span>}
-          <span className="text-[13px] text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={12} /> <span className="text-ink/40">@{p.username}</span></span>
+          ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-pearl text-[12px] font-semibold text-on-pearl">{(p.full_name ?? "?").charAt(0)}</span>}
+          <span className="text-[13px] text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={12} /> <span className="text-muted">@{p.username}</span></span>
         </div>
       ))}
     </div>
