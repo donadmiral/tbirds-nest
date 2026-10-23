@@ -1,11 +1,28 @@
 {
   "project": "uaulhuelcfkjwojtymmw",
   "environment": "isolated QA",
+  "source_commit": "32d52d8f00f8aedc6754d6756c9f456159650811",
   "migrations": [
     {
       "version": "20261022173041",
       "name": "platinum_private_application_cvs",
-      "sql_md5": "b006e43065463315aa018732cdb560c1"
+      "sql_md5": "b006e43065463315aa018732cdb560c1",
+      "source": "supabase/migrations/20261022173041_platinum_private_application_cvs.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261022173052",
+      "name": "account_export_snapshot",
+      "sql_md5": "04e56a388a816347c13863c7ebb06af6",
+      "source": "supabase/migrations/20261022173052_account_export_snapshot.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261022173111",
+      "name": "creator_monetization_foundation",
+      "sql_md5": "ca58b8c4a9b038fd2e97581fa40a44ff",
+      "source": "supabase/migrations/20261022173111_creator_monetization_foundation.sql",
+      "matches_source": true
     },
     {
       "version": "20261023190035",
@@ -160,6 +177,103 @@
       "sql_md5": "ae34bb5ed829eaef229b76670d1a8f67",
       "source": "supabase/migrations/20261023190325_scoped_call_worker_credential.sql",
       "matches_source": true
+    },
+    {
+      "version": "20261023190711",
+      "name": "platinum_chat_storage_cutover_and_reference_guards",
+      "sql_md5": "ff9cf4c99eb0a63a7df04c47cee7eff8",
+      "source": "supabase/migrations/20261023185729_chat_storage_cutover_and_reference_guards.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190725",
+      "name": "platinum_platinum_storage_bootstrap",
+      "sql_md5": "2799441b7e8e95e8a5d6fc7eb15c9e35",
+      "source": "supabase/migrations/20261023190601_platinum_storage_bootstrap.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190732",
+      "name": "platinum_qa_call_revocation_schedule",
+      "sql_md5": "988a037f9738fc67c9b6b408aa33ff6e",
+      "source": "supabase/ops/install-call-revocation-cron.sql",
+      "matches_source": true
     }
-  ]
+  ],
+  "functions": [
+    {
+      "name": "daily-get-token",
+      "version": 35,
+      "status": "ACTIVE",
+      "verify_jwt": true
+    },
+    {
+      "name": "crisp-bridge",
+      "version": 32,
+      "status": "ACTIVE",
+      "verify_jwt": false
+    },
+    {
+      "name": "chat-media-sign",
+      "version": 15,
+      "status": "ACTIVE",
+      "verify_jwt": true
+    },
+    {
+      "name": "content-media-sign",
+      "version": 1,
+      "status": "ACTIVE",
+      "verify_jwt": true
+    },
+    {
+      "name": "daily-reconcile",
+      "version": 1,
+      "status": "ACTIVE",
+      "verify_jwt": false
+    },
+    {
+      "name": "creator-payouts",
+      "version": 1,
+      "status": "ACTIVE",
+      "verify_jwt": true
+    },
+    {
+      "name": "apple-music",
+      "version": 1,
+      "status": "ACTIVE",
+      "verify_jwt": true
+    }
+  ],
+  "storage": {
+    "private": [
+      "application-cvs",
+      "channel-media",
+      "chat-files",
+      "chat-media",
+      "media",
+      "post-media",
+      "story-media"
+    ],
+    "public": [
+      "avatars",
+      "market-media"
+    ],
+    "cutover_audit_issues": 0,
+    "fresh_anonymous_story_get": 400,
+    "previously_cached_get": 200,
+    "owner_signed_playback": "requires authenticated acceptance"
+  },
+  "calls": {
+    "scheduler_installed": true,
+    "worker_auth_validated": true,
+    "provider_ready": false,
+    "missing_configuration": [
+      "DAILY_API_KEY"
+    ]
+  },
+  "admin": {
+    "qa_owner_bootstrapped": true,
+    "verified_totp_factors": 0,
+    "hosted_totp_configuration_verified": false
+  }
 }

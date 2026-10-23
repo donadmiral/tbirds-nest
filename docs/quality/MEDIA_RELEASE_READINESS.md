@@ -27,6 +27,8 @@ Content buckets receive restrictive owner-only direct reads, even if legacy broa
 
 ## Private media rollout
 
+QA coordinator update, 23 October: the matching web build and `content-media-sign` are deployed, and `post-media`, `story-media` and `media` are private in `uaulhuelcfkjwojtymmw`. The corrected cutover audit returned zero rows. A fresh anonymous GET for the existing synthetic story returned HTTP 400 (`NoSuchBucket`); a previously cached GET initially returned 200. This verifies origin denial, not worldwide cache eviction. Signed owner playback and compatible phone acceptance still require an authenticated test. Production visibility was not changed.
+
 No media bucket visibility was changed by the media implementation lane. The manifest migrations deliberately leave `post-media`, `story-media` and legacy `media` visibility untouched. Public buckets bypass the new audience checks, so staging these checks alone does not enforce private or paid media.
 
 Before changing those buckets to private:

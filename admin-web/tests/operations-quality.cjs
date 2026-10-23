@@ -15,6 +15,17 @@ function load(name) {
 const { deploymentEnvironment, completeRecordedPayments } = load('operationsReporting');
 const { supportSearch, supportSubjectPattern, supportHref, supportMap } = load('supportReporting');
 
+test('Supabase configuration allows staff to enroll and verify the TOTP required by admin desks', () => {
+  const config = fs.readFileSync(path.join(__dirname, '../../supabase/config.toml'), 'utf8');
+  const totp = config.match(/^\[auth\.mfa\.totp\]\s*\n([\s\S]*?)(?=^\[|$(?![\s\S]))/m)?.[1];
+  assert.ok(totp, 'The TOTP Auth configuration must exist');
+  for (const setting of ['enroll_enabled', 'verify_enabled']) {
+    const values = [...totp.matchAll(new RegExp(`^${setting}\\s*=\\s*(true|false)\\s*(?:#.*)?$`, 'gm'))];
+    assert.equal(values.length, 1, `${setting} must be configured exactly once in the TOTP section`);
+    assert.equal(values[0][1], 'true', `${setting} must allow first-time staff to reach AAL2`);
+  }
+});
+
 test('only explicit deployment metadata labels production', () => {
   assert.equal(deploymentEnvironment('production', 'production').label, 'Production');
   assert.equal(deploymentEnvironment('preview', 'production').label, 'Preview');
