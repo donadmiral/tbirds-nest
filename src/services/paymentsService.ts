@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-get-random-values';
 import { createPaymentIntentStore, paymentOutcome } from './paymentIntent';
 import type { PaymentIntent, PaymentOutcome, PaymentScope } from './paymentIntent';
+import { providerIssue } from '../../shared/payments/providerStatus';
 
 const intentStore = createPaymentIntentStore(AsyncStorage, () => {
   const bytes = new Uint8Array(16);
@@ -118,6 +119,8 @@ function getSessionWithTimeout(
 }
 
 function getResponseMessage(body: any, fallback: string): string {
+  const issue = providerIssue(body);
+  if (issue) return issue.userMessage;
   const candidate =
     typeof body?.error === 'string'
       ? body.error
@@ -247,14 +250,15 @@ async function call(path: string, init: RequestInit = {}, expectedUserId?: strin
     }
 
     if (!response.ok) {
+      const issue = providerIssue(body);
       throw new BridgeError(
         response.status,
         getResponseMessage(
           body,
           'IntoBank returned ' + response.status
         ),
-        'http',
-        typeof body?.code === 'string' ? body.code : null
+        issue && !issue.code.endsWith('_UNCONFIRMED') ? 'configuration' : 'http',
+        issue?.code ?? (typeof body?.code === 'string' ? body.code : null)
       );
     }
 

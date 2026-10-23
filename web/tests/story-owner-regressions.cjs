@@ -77,6 +77,7 @@ function scenario(options = {}) {
     changeOwner(next){owner=next;listener?.('SIGNED_IN',next?{user:{id:next}}:null);render();},
     pick(type='image/jpeg'){nodes(render()).find(n=>n.type==='input'&&n.props.type==='file').props.onChange({target:{files:[{type,name:type.startsWith('video')?'video.mp4':'photo.jpg'}],value:''}});render();},
     openDraft(name='draft-a'){const button=nodes(render()).find(n=>n.type==='button'&&nodes(n).some(child=>child.type==='img'&&child.props.src==='https://media.test/'+name));assert.ok(button);const result=button.props.onClick();render();return result;},
+    sound(){return nodes(render()).find(n=>n.type==='StoryAudioEditor');},
     input(){return nodes(render()).find(n=>n.props?.placeholder==='Write a caption');},
     button(label){return nodes(render()).find(n=>n.type==='button'&&text(n)===label);},
     fireTimeout(ms){for(const[id,timer]of [...timers])if(timer.ms===ms){timers.delete(id);timer.callback();}render();},
@@ -175,4 +176,22 @@ test('private draft preview capabilities never replace canonical publish or save
   const write=h.writes.find(w=>w.table==='story_drafts'&&w.op==='update');
   assert.equal(write.payload.media_url,'https://media.test/draft-a');
   assert.ok(!JSON.stringify(write.payload).includes('token='));h.unmount();
+});
+
+
+test('story audio selection and mix reach the atomic publication without preview tokens',async()=>{
+ const h=scenario();await h.flush();h.pick();await h.flush();
+ h.sound().props.onChange({kind:'sound',soundId:'approved',title:'Recording',durationSec:12});h.render();
+ h.sound().props.onMixChange({orig:0,music:60});h.render();
+ await h.button('Share to story').props.onClick();await h.flush();
+ const sent=h.writes.find(w=>w.table==='publish_story_v2').payload.p_story;
+ assert.equal(sent.audio_draft.soundId,'approved');assert.equal(sent.media_transform.mix.orig,0);assert.equal(sent.media_transform.mix.music,60);
+ assert.ok(!JSON.stringify(sent).includes('token='));h.unmount();
+});
+test('pending audio upload locks publication and saved drafts retain canonical audio',async()=>{
+ const h=scenario();await h.flush();h.pick();await h.flush();
+ h.sound().props.onBusyChange(true);h.render();await h.button('Share to story').props.onClick();await h.flush();assert.equal(h.writes.length,0);
+ h.sound().props.onBusyChange(false);h.render();const audio={kind:'voiceover',url:'https://media.test/original.m4a',title:'Original',durationSec:10,rightsAttested:true,addToSounds:true};
+ h.sound().props.onChange(audio);h.render();await h.button('Save as draft').props.onClick();await h.flush();
+ assert.deepEqual(h.writes.find(w=>w.table==='story_drafts').payload.audio_draft,audio);h.unmount();
 });

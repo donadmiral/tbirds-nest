@@ -1,4 +1,4 @@
-import { createIntoBankSandboxProvider, validateInstruction } from './provider.ts';
+import { createIntoBankSandboxProvider, validateInstruction, PayoutProviderError } from './provider.ts';
 import type { Instruction } from './provider.ts';
 type Result = { data: unknown; error: unknown };
 type Deps = {
@@ -43,7 +43,7 @@ export function createPayoutHandler(deps: Deps) {
           outcome=await provider.submit(instruction,signal);
         }
         if (!outcome) failure='PAYOUT_PROVIDER_UNCONFIRMED';
-      } catch { failure='PAYOUT_PROVIDER_UNCONFIRMED'; }
+      } catch (error) { failure=error instanceof PayoutProviderError ? error.diagnostic : 'PAYOUT_PROVIDER_UNCONFIRMED'; }
       try {
         const finished=await deps.db.rpc('creator_finish_payout_attempt',{p_id:instruction.id,p_lease:lease,p_outcome:outcome,p_error:failure});
         if (finished.error || typeof finished.data!=='string') throw new Error('PAYOUT_RECORD_UNCONFIRMED');

@@ -11,6 +11,14 @@ export type Outcome = {
   status: 'submitted' | 'unknown' | 'completed' | 'rejected';
 };
 type Options = { url: string; key: string; environment: string; fetcher: typeof fetch };
+export class PayoutProviderError extends Error {
+  readonly diagnostic: string;
+  constructor(diagnostic: string) {
+    super(diagnostic);
+    this.name = 'PayoutProviderError';
+    this.diagnostic = diagnostic;
+  }
+}
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function validateInstruction(i: Instruction) {
   if (!i || !uuid.test(i.id) || !uuid.test(i.creator_id) || i.provider_id !== 'intobank' || i.environment !== 'test' || i.currency !== 'USD' ||
@@ -65,7 +73,17 @@ export function createIntoBankSandboxProvider(options: Options) {
         account_number: i.account_reference.slice('INTOBANK:'.length), currency: 'USD', amount: `${padded.slice(0,-2)}.${padded.slice(-2)}`,
         note: 'Platinum Circles creator payout' }) } : {}),
     });
-    if (!response.ok) throw new Error('PAYOUT_PROVIDER_UNCONFIRMED');
+    if (!response.ok) {
+      // Only persist known symbolic diagnostics, never provider payloads or credentials.
+      // These errors are not settlement receipts; reservations remain pending.
+      const body = await response.json().catch(() => null);
+      const code = body?.success === false && typeof body.error === 'string' ? body.error : '';
+      if (['KEY_PERMISSION_DENIED', 'BANK_PAYMENT_REQUIRED', 'LIVE_BANK_INTEGRATION_NOT_APPROVED'].includes(code)) {
+        const scope = code === 'KEY_PERMISSION_DENIED' && ['payouts', 'balance'].includes(body.capability) ? ':' + body.capability : '';
+        throw new PayoutProviderError(code + scope);
+      }
+      throw new Error('PAYOUT_PROVIDER_UNCONFIRMED');
+    }
     return parseReceipt(i, await response.json());
   }
   return { submit: (i: Instruction, signal: AbortSignal) => request(i, true, signal), reconcile: (i: Instruction, signal: AbortSignal) => request(i, false, signal) };

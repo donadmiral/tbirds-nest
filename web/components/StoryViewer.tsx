@@ -380,7 +380,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       else setProgress(p);
     }, 50);
     videoRef.current?.play().catch(() => {});
-    audioRef.current?.play().catch(() => {});
+    if (readyStoryRef.current === story?.id || !story?.media_url) audioRef.current?.play().catch(() => {});
   }, [advance, story, stopTimer]);
 
   const togglePlayback = useCallback(() => {
@@ -551,7 +551,6 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     setProgress(0);
     stopTimer();
     const mtx = (story.media_transform || {}) as StoryMediaTransform;
-    if ((mtx.mix?.orig ?? 100) <= 0) setMuted(true);
     const hasTrim = typeof mtx.trimStart === "number" && typeof mtx.trimEnd === "number" && mtx.trimEnd > mtx.trimStart;
     setClock(story.media_type === "video" ? (Number(mtx.trimStart) || 0) : null);
     if (videoRef.current) { try { videoRef.current.volume = Math.max(0, Math.min(1, (mtx.mix?.orig ?? 100) / 100)); } catch {} }
@@ -579,7 +578,6 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       if (p >= 1) advance();
       else setProgress(p);
     }, 50);
-    audioRef.current?.play().catch(() => {});
     return stopTimer;
   }, [story, advance, stopTimer]);
 
@@ -595,6 +593,14 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [advance, back, onClose]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = Math.max(0, Math.min(1, (story?.media_transform?.mix?.music ?? 100) / 100));
+    if (mediaReady && !playbackPaused && !document.hidden) void audio.play().catch(() => {});
+    else audio.pause();
+  }, [story?.id, storyAudioUrl, mediaReady, playbackPaused, muted, story?.media_transform?.mix?.music]);
 
   useEffect(() => {
     if (story && mediaReady) void markStoryViewed(story.id);
@@ -714,7 +720,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             <DrawSvg stickers={story.stickers_json} />
             <style dangerouslySetInnerHTML={{ __html: STICKER_ANIM_CSS }} />
             {storyAudioUrl ? (
-              <audio ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} autoPlay muted={muted} />
+              <audio ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} loop muted={muted} onError={() => setFailedStoryId(story.id)} />
             ) : null}
             {storyAudioUrl && story.audio_title ? (
               <span className="absolute left-3 top-14 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white">

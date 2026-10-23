@@ -22,6 +22,16 @@ The deployed bank model now rejects new legacy `partner_payout` commands with `B
 
 Both payouts and purchases start disabled. `provider_dispatch_ready()` is deliberately false for the unsupported current partner contract, so changing stale provider flags cannot advertise or start new payouts. Commerce settlement/refund functions accept test-environment orders only and are not exposed as customer-facing capture APIs. No live purchase capture, automatic recurring mandate, store billing, digital-goods billing exception, tax approval or verified destination setup is inferred from a wallet link. Completing the real bank-source/mandate and applicable app-store contracts is required before enabling those capabilities. The live UI never presents sandbox money as live earnings.
 
+### Configuration observations, 2026-10-23 UTC
+
+- IntoBank's deployed `crisp-api` version 56 accepts test keys only; non-test keys receive `LIVE_BANK_INTEGRATION_NOT_APPROVED`. The provider payment policy is sandbox.
+- The active Platinum Circles partner has one active test key with `balance`, `payments` and `bills` permissions. It lacks the separately enforced `links`, `refunds` and `payouts` permissions. No key value or hash was read during this check.
+- Platinum production has successful recorded `payments_bridge` health checks. These are connection/status checks, not proof of live money movement. New creator-finance tables and the payout worker are not installed there.
+- Platinum QA has the finance migrations and worker, with new payouts and purchases disabled. The authenticated Supabase Edge Functions Secrets page reports no custom secrets. Configure QA's server-side `CRISP_API_URL` and an explicitly approved QA/test `CRISP_API_KEY` before expecting its bridge to connect; never put the provider key in public mobile or web variables.
+- Account linking requires the provider's `links` permission as well as the user's IntoBank approval code. Adding key permissions does not resolve `BANK_PAYMENT_REQUIRED`: new creator disbursements still need a supported partner bank-source/mandate contract and canonical receipts.
+
+Admin payment health now distinguishes recent, stale, failed and missing status checks. Known provider configuration errors have separate operator guidance and customer-safe messages. Payout diagnostics never establish finality: an error still leaves the existing request reserved until reconciliation confirms its outcome.
+
 ## Migration order
 
 1. `20261022173111_creator_monetization_foundation.sql`
@@ -37,5 +47,6 @@ The product migration must precede `20261022211648_content_media_manifests.sql`,
 - `node --test tests/creator-monetization.test.cjs tests/creator-payout-worker.test.cjs web/tests/monetization-quality.cjs`
 - `node --test supabase/tests/creator-finance-operations.test.cjs supabase/tests/creator-commerce.test.cjs`
 - `node --test supabase/tests/creator-monetization-db.test.cjs` covers the original ledger foundation.
+- `node --test tests/payment-service.test.cjs tests/payment-provider-status.test.cjs tests/creator-payout-worker.test.cjs tests/send-money-sheet-context.test.cjs` covers safe provider diagnostics, permission failures and payment recovery ownership.
 
 The database suites execute the production SQL in isolated PGlite with synthetic roles, users and funds. Tests first verify that production dispatch is blocked; a database-owner-only synthetic capability then exercises the future payout state machine. They prove transaction and authorization behavior, not bank execution, physical-device acceptance or production capacity. Provider receipts have their own isolated contract tests. Current live bank readiness was inspected without financial mutations.

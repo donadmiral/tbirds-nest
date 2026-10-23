@@ -6,6 +6,7 @@ import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import ReviewForm from './ReviewForm';
 import { formatMinor } from '../../../../shared/monetization/domain';
+import { providerIssue } from '../../../../shared/payments/providerStatus';
 export const dynamic='force-dynamic';
 type Enrollment={user_id:string;status:string;accepted_terms_version:string|null;public_reason:string|null;updated_at:string};
 type Payout={id:string;user_id:string;currency:string;amount_minor:string;environment:string;status:string;provider_reference:string|null;last_error:string|null;created_at:string};
@@ -18,12 +19,13 @@ export default async function CreatorFinancePage({searchParams}:{searchParams:Pr
   const users=data.enrollments as Enrollment[],payouts=data.payouts as Payout[];
   return <Shell admin={admin} active="/payments" title="Creator finance" sub={`IntoBank · ${data.environment==='test'?'Sandbox records, no live earnings':'Live records'} · Enrollment ${data.enrollment_open?'open':'closed'}`}>
     <Link className="inline-flex min-h-11 items-center underline" href="/payments">Back to payments</Link>
+    <p className="mt-3 text-sm">The record environment is separate from provider approval. Enrollment approval and a working API connection do not authorize live payouts; the bank funding connection, mandate and payout permission must also be approved.</p>
     <section className="mt-4 space-y-3"><h2 className="text-lg font-semibold">Creator reviews</h2><p>Up to 50 creators per page. Approval does not enable unverified payout accounts.</p>
       {!users.length&&<p>No creators in this page.</p>}{users.map(e=><article key={e.user_id} className="rounded-xl border p-4" style={{background:'var(--panel)'}}><Link className="underline" href={'/users/'+e.user_id}>{e.user_id}</Link><p>{e.status} · Terms {e.accepted_terms_version||'not accepted'}</p>{e.public_reason&&<p>{e.public_reason}</p>}<ReviewForm userId={e.user_id} updatedAt={e.updated_at} status={e.status} commandKey={randomUUID()}/></article>)}
       {data.next_cursor&&<Link className="inline-flex min-h-11 items-center underline" href={'/payments/creators?'+new URLSearchParams({before_at:data.next_cursor.updated_at,before_id:data.next_cursor.user_id}).toString()}>Next 50 creators</Link>}
     </section>
     <section className="mt-6"><h2 className="text-lg font-semibold">Latest payout activity</h2><p className="mb-3">Latest {payouts.length} requests, up to 50. Unknown outcomes remain reserved until the provider confirms them.</p>
-      {!payouts.length?<p>No payout requests recorded.</p>:<div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr>{['Creator','Amount','Environment','Status','Provider reference','Created'].map(h=><th key={h} className="p-2">{h}</th>)}</tr></thead><tbody>{payouts.map(p=><tr key={p.id}><td className="p-2"><Link href={'/users/'+p.user_id} className="underline">{p.user_id}</Link></td><td className="p-2 whitespace-nowrap">{formatMinor(p.amount_minor,p.currency)}</td><td className="p-2">{p.environment}</td><td className="p-2">{p.status}{p.last_error&&<span className="block">Awaiting confirmation</span>}</td><td className="p-2">{p.provider_reference||'Not confirmed'}</td><td className="p-2 whitespace-nowrap">{new Date(p.created_at).toLocaleString()}</td></tr>)}</tbody></table></div>}
+      {!payouts.length?<p>No payout requests recorded.</p>:<div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr>{['Creator','Amount','Environment','Status','Provider reference','Created'].map(h=><th key={h} className="p-2">{h}</th>)}</tr></thead><tbody>{payouts.map(p=><tr key={p.id}><td className="p-2"><Link href={'/users/'+p.user_id} className="underline">{p.user_id}</Link></td><td className="p-2 whitespace-nowrap">{formatMinor(p.amount_minor,p.currency)}</td><td className="p-2">{p.environment}</td><td className="p-2">{p.status}{p.last_error&&<span className="block">{providerIssue(p.last_error)?.operatorMessage || 'Outcome unconfirmed. Reconcile the existing reference before retrying.'}</span>}</td><td className="p-2">{p.provider_reference||'Not confirmed'}</td><td className="p-2 whitespace-nowrap">{new Date(p.created_at).toLocaleString()}</td></tr>)}</tbody></table></div>}
     </section>
   </Shell>;
 }

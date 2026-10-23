@@ -8,6 +8,7 @@ import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
 import { isPaymentInFlight, paymentCurrency } from '@/lib/paymentReporting';
+import { bridgeConnectionStatus, providerIssue } from '../../../shared/payments/providerStatus';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,10 +41,12 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
-  const [page, report] = await Promise.all([
+  const [page, report, health] = await Promise.all([
     svc.rpc('admin_payment_report', { p_status: search.status, p_query: search.q, p_before: search.before, p_before_id: search.id, p_limit: 50 }),
     svc.rpc('admin_payment_summary'),
+    svc.from('health_runs').select('created_at,steps').order('created_at', { ascending: false }).limit(1).maybeSingle(),
   ]);
+  const connection = bridgeConnectionStatus(health.error ? null : health.data, now);
   if (page.error || report.error || !page.data || !report.data) throw new Error('Payment records could not be loaded. Please retry.');
   const summary = report.data as { status_counts: Record<string, number>; completed_week: number; failed_week: number; failed_previous_week: number;
     volume_week: {currency:string; amount:string; average:string}[]; volume_all: {currency:string;amount:string}[];
@@ -119,7 +122,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
         fields,
         body: [
           ...(r.note ? [{ label: 'Note from the sender', text: r.note }] : []),
-          ...(r.error ? [{ label: 'Failure reported by the rail', text: r.error }] : []),
+          ...(r.error ? [{ label: 'Failure reported by the rail', text: providerIssue(r.error)?.operatorMessage || r.error }] : []),
         ],
         links: [
           { label: 'Open sender', href: '/users/' + r.sender_id },
@@ -141,6 +144,12 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
   return (
     <Shell admin={admin} active="/payments" title="Payments" sub={fmt(totalTransfers) + ' transfers. Completed value: ' + volAll + '. ' + fmt(inFlight) + ' pending or processing. Reporting dates use UTC.'}>
       <StatStrip cards={cards} />
+      <section className="mt-4 rounded-xl border p-4" style={{ background: 'var(--panel)' }} aria-label="IntoBank connection health">
+        <h2 className="font-semibold">IntoBank: {connection.label}</h2>
+        {connection.checkedAt && <p className="mt-1 text-sm">Checked <time dateTime={connection.checkedAt}>{connection.checkedAt.replace('T', ' ').replace('.000Z', ' UTC')}</time></p>}
+        <p className="mt-2 text-sm">{connection.detail}</p>
+        <p className="mt-2 text-sm">Account linking, refunds and payouts each require their own provider permission. A test key or linked account does not enable live bank payments.</p>
+      </section>
       {['super_admin','platform_admin','finance_admin'].includes(admin.role) && <Link href="/payments/creators" className="inline-flex min-h-11 items-center underline">Creator finance and reviews</Link>}
       <form method="get" className="mt-4 flex flex-wrap items-end gap-3">
         <label>Search all transfers<input name="q" defaultValue={search.q} maxLength={100} placeholder="Member, reference or amount" className="block rounded border p-2" /></label>

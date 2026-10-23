@@ -42,3 +42,19 @@ test('missing canonical receipt leaves funds pending without a new POST',async()
   const methods=[];const d=deps([{...I,dispatch_started:true}],async(_,options)=>{methods.push(options.method);return new Response(JSON.stringify({success:true,found:false,contract_version:'crisp-payout-v1',environment:'test'}))});
   const res=await createPayoutHandler(d)(req());assert.equal(res.status,503);assert.deepEqual(methods,['GET']);assert.equal(d.calls.at(-1)[1].p_outcome,null);
 });
+
+test('provider capability errors are visible to operators without releasing reserved payouts',async()=>{
+  for(const [body,expected] of [
+    [{success:false,error:'KEY_PERMISSION_DENIED',capability:'payouts'},'KEY_PERMISSION_DENIED:payouts'],
+    [{success:false,error:'BANK_PAYMENT_REQUIRED'},'BANK_PAYMENT_REQUIRED'],
+    [{success:false,error:'LIVE_BANK_INTEGRATION_NOT_APPROVED'},'LIVE_BANK_INTEGRATION_NOT_APPROVED'],
+    [{success:false,error:'private-secret'},'PAYOUT_PROVIDER_UNCONFIRMED'],
+    [{success:false,error:'KEY_PERMISSION_DENIED',capability:'private-secret'},'KEY_PERMISSION_DENIED'],
+  ]){
+    const d=deps([I],async()=>new Response(JSON.stringify(body),{status:403}));
+    const res=await createPayoutHandler(d)(req());const result=await res.json();
+    assert.equal(res.status,503);assert.equal(result.completed,0);assert.equal(result.pending,1);
+    const finish=d.calls.at(-1);assert.equal(finish[1].p_outcome,null);assert.equal(finish[1].p_error,expected);
+    assert.doesNotMatch(JSON.stringify(result),/private-secret/);
+  }
+});

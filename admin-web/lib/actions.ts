@@ -16,11 +16,22 @@ import { runAdminCommand } from '@/lib/adminCommand';
 export async function signIn(formData: FormData) {
   const email = String(formData.get('email') || '').trim();
   const password = String(formData.get('password') || '');
-  const { data, error } = await anonClient().auth.signInWithPassword({ email, password });
-  if (error || !data.session) redirect('/?error=' + encodeURIComponent('Sign in failed'));
-  const admin = await adminFromToken(data.session.access_token);
-  if (!admin) redirect('/?error=' + encodeURIComponent('An active staff session is required. Contact your administrator if access is unavailable.'));
-  await saveAdminSession(data.session);
+  let session = null;
+  let failure = 'credentials';
+  try {
+    const result = await anonClient().auth.signInWithPassword({ email, password });
+    session = result.data.session;
+    if (result.error && (!result.error.status || result.error.status >= 500)) failure = 'unavailable';
+  } catch { failure = 'unavailable'; }
+  if (!session) redirect('/?error=' + failure);
+  let admin = null;
+  try { admin = await adminFromToken(session.access_token); }
+  catch { redirect('/?error=unavailable'); }
+  if (!admin) {
+    try { await serviceClient().auth.admin.signOut(session.access_token, 'local'); } catch { /* No admin session is persisted. */ }
+    redirect('/?error=access');
+  }
+  await saveAdminSession(session);
   redirect('/dashboard');
 }
 

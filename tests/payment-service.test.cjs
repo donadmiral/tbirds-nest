@@ -6,6 +6,7 @@ const vm = require('node:vm');
 const { stripTypeScriptTypes } = require('node:module');
 const { webcrypto } = require('node:crypto');
 const { createPaymentIntentStore, paymentOutcome } = require('../src/services/paymentIntent.ts');
+const { providerIssue } = require('../shared/payments/providerStatus.ts');
 
 // Execute the actual service with mocked native/auth/transport dependencies.
 // No server, hosted project, token or real payment is used by this suite.
@@ -17,7 +18,7 @@ function serviceHarness({ body = {}, status = 200, userId = 'sender-a', native =
     .replace(/^export /gm, '');
   const context = {
     module: { exports: {} }, console, AbortController, setTimeout, clearTimeout,
-    Uint8Array, crypto: webcrypto, createPaymentIntentStore, paymentOutcome,
+    Uint8Array, crypto: webcrypto, createPaymentIntentStore, paymentOutcome, providerIssue,
     process: { env: { EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321/', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'synthetic-public-key' } },
     require(name) {
       assert.equal(name, 'expo-local-authentication');
@@ -145,4 +146,35 @@ test('wallet reads never invent zero balance or a disconnected account from inco
   assert.equal((await serviceHarness({ body: { success: true, linked: false } }).paymentsService.getBalance('sender-a')).linked, false);
   const confirmed = serviceHarness({ body: { success: true, linked: true, currency: 'USD', balance: 10, available: 8 } });
   assert.equal((await confirmed.paymentsService.getBalance('sender-a')).available, 8);
+});
+
+test('provider permission errors identify unavailable linking without blaming the approval code', async () => {
+  const h = serviceHarness({status:403, body:{success:false,error:'KEY_PERMISSION_DENIED',capability:'links'}});
+  await assert.rejects(h.paymentsService.linkAccount('ABCDEF12','sender-a'), error => {
+    assert.equal(error.code, 'KEY_PERMISSION_DENIED');
+    assert.equal(error.kind, 'configuration');
+    assert.match(error.message, /Connecting or disconnecting IntoBank is temporarily unavailable/);
+    assert.doesNotMatch(error.message, /KEY_PERMISSION|invalid code|expired/i);
+    return true;
+  });
+  assert.equal(h.requests.length, 1);
+});
+
+test('bank approval failures remain exceptions, never completed or safe-to-repeat payments', async () => {
+  for (const code of ['BANK_PAYMENT_REQUIRED','LIVE_BANK_INTEGRATION_NOT_APPROVED']) {
+    const h=serviceHarness({status:409,body:{success:false,error:code}});
+    await assert.rejects(h.paymentsService.sendMoney(intent), error => {
+      assert.equal(error.code,code); assert.equal(error.kind,'configuration');
+      assert.match(error.message,/approved|enabled/); return true;
+    });
+    assert.equal(h.requests.length,1);
+  }
+});
+
+test('a missing environment configuration gives setup guidance without exposing the server error',async()=>{
+  const h=serviceHarness({status:503,body:{success:false,code:'CRISP_NOT_CONFIGURED',error:'private-server-detail'}});
+  await assert.rejects(h.paymentsService.getLinkStatus('sender-a'),error=>{
+    assert.equal(error.kind,'configuration');assert.equal(error.code,'CRISP_NOT_CONFIGURED');
+    assert.match(error.message,/not set up for this app environment/);assert.doesNotMatch(error.message,/private-server-detail/);return true;
+  });
 });

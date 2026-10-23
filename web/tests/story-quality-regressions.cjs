@@ -171,7 +171,7 @@ function draftHarness(rows) {
   const globals = {
     uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, assertOwner() {}, runBounded: value => value, busyRef: lock, publication: { current: null }, draftRequest: request,
     setBusy: value => busy = value, setError: value => error = value, setPeople: value => people = value,
-    hydrateStoryDraftMedia: async rows => rows, replacePreview() {},
+    hydrateStoryDraftMedia: async rows => rows, replacePreview() {}, setAudioDraft() {},
     setStickers() {}, setTransform() {}, setBackground() {}, setEditorKey() {}, setFilterId() {}, setDraftId() {}, setMediaUrl() {}, setMediaType() {}, setDurationSec() {}, setCaption() {}, setAudience() {},
     publicationError: failure => failure.message,
     supabase: { from: () => ({ select: () => ({ in: async () => ({ data: rows, error: null }) }) }) },

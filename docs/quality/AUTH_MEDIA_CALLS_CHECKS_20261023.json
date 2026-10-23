@@ -1,0 +1,87 @@
+{
+  "measuredAt": "2026-10-23T19:27:08.177Z",
+  "node": "v24.19.0",
+  "passed": true,
+  "stages": [
+    {
+      "name": "phone-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 25563,
+      "log": "phone-types.log",
+      "testCount": null
+    },
+    {
+      "name": "web-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 3710,
+      "log": "web-types.log",
+      "testCount": null
+    },
+    {
+      "name": "admin-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 1969,
+      "log": "admin-types.log",
+      "testCount": null
+    },
+    {
+      "name": "phone-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 24209,
+      "log": "phone-tests.log",
+      "testCount": 481
+    },
+    {
+      "name": "web-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 9990,
+      "log": "web-tests.log",
+      "testCount": 330
+    },
+    {
+      "name": "admin-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 3115,
+      "log": "admin-tests.log",
+      "testCount": 53
+    },
+    {
+      "name": "database-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 52263,
+      "log": "database-tests.log",
+      "testCount": 150
+    },
+    {
+      "name": "rpc-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 14372,
+      "log": "rpc-tests.log",
+      "testCount": null
+    }
+  ],
+  "testCounts": {
+    "phone-tests": 481,
+    "web-tests": 330,
+    "admin-tests": 53,
+    "database-tests": 150
+  },
+  "totalCountedTests": 1014,
+  "scope": "Admin recovery, call membership/reconnect, story audio authoring and provider diagnostics. Final native checks repeated after heartbeat-generation guard. RPC authorization is additional to counted tests. No real payments or physical-device calls executed."
+}

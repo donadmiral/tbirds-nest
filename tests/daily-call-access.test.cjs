@@ -9,6 +9,7 @@ const sessionId = 'a0000000-0000-4000-8000-000000000001';
 const now = Date.now();
 function harness(options = {}) {
   let handler; const reads = [], provider = [];
+  let partIdentity = options.partIdentity ?? 'membership-generation';
   const session = { id: sessionId, initiator_id: 'owner', receiver_id: 'receiver', conversation_id: 'group',
     is_group_call: false, is_video: true, status: 'active', created_at: new Date(now - 30000).toISOString(), ...options.session };
   const client = {
@@ -18,7 +19,7 @@ function harness(options = {}) {
       return { select() { return this; }, eq(key, value) { read.filters[key] = value; return this; },
         maybeSingle: async () => ({ data: {
           call_sessions: options.missing ? null : session,
-          call_participants: { user_id: options.user ?? 'owner', status: options.partStatus ?? 'joined', provider_identity: 'membership-generation' },
+          call_participants: { user_id: options.user ?? 'owner', status: options.partStatus ?? 'joined', provider_identity: partIdentity },
           conversation_members: options.removed ? null : { user_id: options.user ?? 'owner' },
           profiles: { full_name: 'Synthetic QA user' },
         }[table], error: options.readError === table ? { message: 'unavailable' } : null }),
@@ -35,7 +36,10 @@ function harness(options = {}) {
     require: () => ({ createClient: () => client }),
     fetch: async (url, init = {}) => {
       const call = { url, method: init.method ?? 'GET', body: init.body ? JSON.parse(init.body) : null }; provider.push(call);
-      if (url.endsWith('/meeting-tokens')) return Response.json(options.badToken ? {} : { token: 'synthetic-meeting-token' }, { status: options.tokenError ? 500 : 200 });
+      if (url.endsWith('/meeting-tokens')) {
+        if (options.rotateIdentityAtToken) partIdentity = options.rotateIdentityAtToken;
+        return Response.json(options.badToken ? {} : { token: 'synthetic-meeting-token' }, { status: options.tokenError ? 500 : 200 });
+      }
       if (call.method === 'POST') return Response.json(room, { status: options.createRace ? 400 : 200 });
       const gets = provider.filter(item => item.method === 'GET').length;
       return Response.json(room, { status: options.create && gets === 1 ? 404 : 200 });
@@ -116,5 +120,28 @@ test('invalid IDs and methods do not reach the provider', async () => {
 test('failed or malformed provider tokens cannot report a successful call join', async () => {
   for (const options of [{ tokenError: true }, { badToken: true }]) {
     const h = harness(options); const result = await h.run(); assert.equal(result.status, 502); assert.equal(result.body.token, undefined);
+  }
+});
+
+test('group token request binds the exact admission identity and rejects a replaced device before contacting Daily', async () => {
+  const first = 'b0000000-0000-4000-8000-000000000001', second = 'b0000000-0000-4000-8000-000000000002';
+  const h = harness({ session: { is_group_call: true }, partIdentity: second });
+  assert.equal((await h.run({ callSessionId: sessionId, expectedProviderIdentity: first })).status, 409);
+  assert.equal(h.provider.length, 0);
+  const valid = harness({ session: { is_group_call: true }, partIdentity: second });
+  assert.equal((await valid.run({ callSessionId: sessionId, expectedProviderIdentity: second.toUpperCase() })).status, 200);
+  assert.equal(valid.provider.find(row => row.url.endsWith('/meeting-tokens')).body.properties.user_id, second);
+});
+test('admission replaced during token minting never returns the obsolete credential', async () => {
+  const first = 'b0000000-0000-4000-8000-000000000001', second = 'b0000000-0000-4000-8000-000000000002';
+  const h = harness({ session: { is_group_call: true }, partIdentity: first, rotateIdentityAtToken: second });
+  const result = await h.run({ callSessionId: sessionId, expectedProviderIdentity: first });
+  assert.equal(result.status, 409); assert.equal(result.body.token, undefined);
+});
+test('malformed admission identities are rejected without provider requests', async () => {
+  for (const expectedProviderIdentity of [null, {}, '', 'another-membership']) {
+    const h = harness({ session: { is_group_call: true } });
+    assert.equal((await h.run({ callSessionId: sessionId, expectedProviderIdentity })).status, 400);
+    assert.equal(h.provider.length, 0);
   }
 });

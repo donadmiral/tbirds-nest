@@ -14,6 +14,7 @@ export type CallRecord = {
   status: CallStatus; is_video: boolean; is_group_call: boolean;
   started_at: string | null; ended_at: string | null;
   duration_secs: number | null; created_at: string;
+  provider_identity?: string;
 };
 
 export type DailyTokenResult = { roomName: string; roomUrl: string; token: string };
@@ -67,20 +68,22 @@ export const callService = {
   async initiateGroupCall(params: {
     callerId: string; conversationId: string; channelId: string; isVideo?: boolean;
   }): Promise<CallRecord | null> {
-    const { data: sessionId, error } = await supabase.rpc('start_group_call', {
+    const { data: admission, error } = await supabase.rpc('start_group_call_membership', {
       p_conversation_id: params.conversationId,
       p_is_video: params.isVideo ?? false,
     });
-    if (error || typeof sessionId !== 'string' || !sessionId) return null;
+    const sessionId = admission?.session_id;
+    const identity = admission?.provider_identity;
+    if (error || typeof sessionId !== 'string' || !sessionId || typeof identity !== 'string' || !identity) return null;
     const { data, error: readError } = await supabase.from('call_sessions')
       .select('*').eq('id', sessionId).single();
     if (readError || !data) {
       // Do not leave the newly created caller membership behind on a failed read.
-      await supabase.rpc('leave_group_call', { p_session_id: sessionId });
+      await supabase.rpc('leave_group_call_membership', { p_session_id: sessionId, p_provider_identity: identity });
       return null;
     }
     supabase.functions.invoke('send-voip-push', { body: { callId: sessionId } }).catch(() => {});
-    return toRecord(data as CallSessionRow);
+    return { ...toRecord(data as CallSessionRow)!, provider_identity: identity };
   },
 
   /** The RPC checks current membership and joins only the authenticated user. */
@@ -90,10 +93,25 @@ export const callService = {
     return !error;
   },
 
+  /** Admission and its generation are returned in one server transaction. */
+  async joinGroupCallMembership(callId: string, userId: string): Promise<string | null> {
+    if (!callId || !userId) return null;
+    const { data, error } = await supabase.rpc('join_group_call_membership', { p_session_id: callId });
+    return !error && typeof data === 'string' && data ? data : null;
+  },
+
   /** Leaving updates our participant row. The server ends an empty call. */
   async leaveGroupCall(callId: string, userId: string): Promise<void> {
     if (!callId || !userId) return;
     const { error } = await supabase.rpc('leave_group_call', { p_session_id: callId });
+    if (error) throw error;
+  },
+
+  /** A delayed close must never remove a newer membership of the same account. */
+  async leaveGroupCallMembership(callId: string, providerIdentity: string): Promise<void> {
+    const { error } = await supabase.rpc('leave_group_call_membership', {
+      p_session_id: callId, p_provider_identity: providerIdentity,
+    });
     if (error) throw error;
   },
 
@@ -166,14 +184,23 @@ export const callService = {
     }
   },
 
-  subscribeToIncomingCalls(userId: string, onIncoming: (call: CallRecord) => void) {
+  async listRingingCalls(userId: string): Promise<CallRecord[]> {
+    const { data, error } = await supabase.from('call_sessions').select('*')
+      .eq('receiver_id', userId).eq('status', 'ringing')
+      .gt('created_at', new Date(Date.now() - 45000).toISOString())
+      .order('created_at', { ascending: false }).limit(10);
+    if (error) throw error;
+    return ((data || []) as CallSessionRow[]).map(row => toRecord(row)!).filter(Boolean);
+  },
+
+  subscribeToIncomingCalls(userId: string, onIncoming: (call: CallRecord) => void, onReady?: () => void) {
     return supabase.channel(`incoming_calls_${userId}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'call_sessions', filter: `receiver_id=eq.${userId}` },
         (payload) => {
           const row = payload.new as CallSessionRow;
           if (row.status === 'ringing') { const rec = toRecord(row); if (rec) onIncoming(rec); }
-        }).subscribe();
+        }).subscribe(status => { if (status === 'SUBSCRIBED') onReady?.(); });
   },
 
   subscribeToCallStatus(callId: string, onStatusChange: (status: CallStatus) => void) {
@@ -187,6 +214,7 @@ export const callService = {
 
   async getDailyToken(params: {
     callSessionId?: string; roomName?: string; isOwner?: boolean; kind?: 'call' | 'meeting';
+    expectedProviderIdentity?: string;
   }): Promise<DailyTokenResult> {
     const { data: sess } = await supabase.auth.getSession();
     const token = sess?.session?.access_token;
@@ -198,7 +226,7 @@ export const callService = {
       const res = await fetch(url, {
         method: 'POST', signal: controller.signal,
         headers: { 'Content-Type': 'application/json', apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string, Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ callSessionId: params.callSessionId, roomName: params.roomName, isOwner: params.isOwner ?? false, kind: params.kind ?? 'call' }),
+        body: JSON.stringify({ callSessionId: params.callSessionId, roomName: params.roomName, isOwner: params.isOwner ?? false, kind: params.kind ?? 'call', expectedProviderIdentity: params.expectedProviderIdentity }),
       });
       if (!res.ok) throw new Error(res.status === 409 ? 'This call has ended.' : res.status === 403 ? 'You cannot join this call.' : 'Unable to connect to the call. Please try again.');
       const data = await res.json();

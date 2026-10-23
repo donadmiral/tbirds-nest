@@ -8,7 +8,7 @@ const ts = require('typescript');
 function harness(options = {}) {
   const rpcs = [], reads = [], pushes = [];
   const client = {
-    rpc: async (name, args) => { rpcs.push({ name, args }); return { data: name === 'start_group_call' ? 'canonical-session' : null, error: options.errorRpc === name ? { message: 'denied' } : null }; },
+    rpc: async (name, args) => { rpcs.push({ name, args }); return { data: name === 'start_group_call_membership' ? { session_id: 'canonical-session', provider_identity: 'membership' } : null, error: options.errorRpc === name ? { message: 'denied' } : null }; },
     from(table) {
       assert.equal(table, 'call_sessions');
       const query = { table }; reads.push(query);
@@ -29,20 +29,20 @@ function harness(options = {}) {
 }
 test('native group start uses one server-authorized shared session, regardless of caller/channel input', async () => {
   const h = harness(); const call = await h.service.initiateGroupCall({ callerId: 'client-input', conversationId: 'group', channelId: 'legacy-channel', isVideo: true });
-  assert.equal(h.rpcs.length, 1); assert.equal(h.rpcs[0].name, 'start_group_call');
+  assert.equal(h.rpcs.length, 1); assert.equal(h.rpcs[0].name, 'start_group_call_membership');
   assert.equal(JSON.stringify(h.rpcs[0].args), JSON.stringify({ p_conversation_id: 'group', p_is_video: true }));
   assert.equal(call.id, 'canonical-session'); assert.equal(call.channel_id, call.id); assert.equal(call.caller_id, 'server-user');
   assert.equal(h.reads[0].id, call.id); assert.equal(h.pushes[0].args.body.callId, call.id);
 });
 test('failed server admission creates no member rows or push', async () => {
-  const h = harness({ errorRpc: 'start_group_call' });
+  const h = harness({ errorRpc: 'start_group_call_membership' });
   assert.equal(await h.service.initiateGroupCall({ conversationId: 'group' }), null);
   assert.equal(h.reads.length, 0); assert.equal(h.pushes.length, 0);
 });
 test('failed session lookup leaves the created membership and does not notify receivers', async () => {
   const h = harness({ readError: true });
   assert.equal(await h.service.initiateGroupCall({ conversationId: 'group' }), null);
-  assert.equal(h.rpcs[1].name, 'leave_group_call'); assert.equal(h.rpcs[1].args.p_session_id, 'canonical-session');
+  assert.equal(h.rpcs[1].name, 'leave_group_call_membership'); assert.equal(h.rpcs[1].args.p_session_id, 'canonical-session'); assert.equal(h.rpcs[1].args.p_provider_identity, 'membership');
   assert.equal(h.pushes.length, 0);
 });
 test('join updates participant membership through the canonical RPC and reports denial', async () => {
@@ -80,13 +80,14 @@ test('the real call setup waits for membership and never requests media credenti
   const module = { exports: {} };
   const code = ts.transpileModule('export const setup = ' + setup, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports, console: { log() {} },
-    Platform: { OS: 'ios' }, myIdRef: { current: 'member' }, endingRef: { current: false },
+    Platform: { OS: 'ios' }, Camera: { requestMicrophonePermissionsAsync: async () => ({ granted: true }) }, Alert: { alert() {} }, attemptRef: { current: 1 }, endCall() {}, myIdRef: { current: 'member' }, endingRef: { current: false },
     callIdRef: { current: null }, callObjRef: { current: null }, activeCallRef: { current: { isGroupCall: true } }, stateRef: { current: 'connecting' },
-    callService: { joinGroupCall: () => { events.push('join'); return admission; }, getDailyToken: () => { events.push('token'); } },
+    callService: { joinGroupCallMembership: () => { events.push('join'); return admission; }, getDailyToken: () => { events.push('token'); } },
     setErrorMsg: message => events.push(message), transitionTo: state => events.push(state),
     audioService: { stopAll: async () => {} }, cleanupSubscription() {}, clearRingingTimeout() {}, clearReconnectTimeout() {}, clearDegradedTimeout() {}, resetState() {}, setCallState() {},
   });
-  const pending = module.exports.setup({ callId: 'session', isGroupCall: true, isIncoming: true });
+  const pending = module.exports.setup({ callId: 'session', isGroupCall: true, isIncoming: true }, 1, 'member');
+  for (let i = 0; i < 10; i++) await Promise.resolve();
   assert.deepEqual(events, ['join']); admit(false); await pending;
   assert.deepEqual(events, ['join', 'Could not join this group call.', 'failed']);
 });

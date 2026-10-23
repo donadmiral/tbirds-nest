@@ -18,7 +18,7 @@ const fmtSec = (seconds: number | null | undefined) => `0:${String(Math.max(0, M
 
 export default function MusicSheet({ visible, onClose, current, onSelect, onRemove, disabled, onShareTrack }: Props) {
   const [tab, setTab] = useState<Tab>('record');
-  const [phase, setPhase] = useState<'idle' | 'starting' | 'recording' | 'stopping'>('idle');
+  const [phase, setPhase] = useState<'idle' | 'starting' | 'recording' | 'stopping' | 'selecting'>('idle');
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
   const [recordedSec, setRecordedSec] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -131,12 +131,26 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
     const mine = previewGeneration.current;
     try {
       await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
-      const { sound } = await Audio.Sound.createAsync({ uri }, { shouldPlay: false });
+      const playable = id === 'voiceover' ? uri : (await storiesService.getStorySound(id)).url;
+      if (!active.current || mine !== previewGeneration.current) return;
+      const { sound } = await Audio.Sound.createAsync({ uri: playable }, { shouldPlay: false });
       if (!active.current || mine !== previewGeneration.current) { await sound.unloadAsync(); return; }
       previewRef.current = sound; setPreviewingId(id);
       sound.setOnPlaybackStatusUpdate(status => { if (status.isLoaded && status.didJustFinish) void stopPreview(); });
       await sound.playAsync();
     } catch { if (active.current && mine === previewGeneration.current) { setError('Could not play this sound. Try again.'); void stopPreview(); } }
+  };
+  const selectSound = async (id: string) => {
+    if (operation.current || disabled || phase !== 'idle') return;
+    operation.current = true; setPhase('selecting'); setError('');
+    const mine = session.current;
+    try {
+      await stopPreview();
+      const sound = await storiesService.getStorySound(id);
+      if (!active.current || mine !== session.current) return;
+      onSelect({ kind: 'sound', soundId: sound.id, title: sound.title, durationSec: sound.duration_sec, source: sound.source });
+    } catch (e) { if (active.current && mine === session.current) setError(e instanceof Error ? e.message : 'Sound is unavailable. Please retry.'); }
+    finally { if (active.current && mine === session.current) { operation.current = false; setPhase('idle'); } }
   };
   const useVoiceover = () => {
     if (!recordedUri || !rightsAttested || disabled || phase !== 'idle') return;
@@ -163,7 +177,7 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
               <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10 }}><TouchableOpacity accessibilityRole="button" style={[ms.secondaryBtn, { minHeight: 44 }]} onPress={() => { void previewUri('voiceover', recordedUri); }}><Text style={ms.secondaryTxt}>{previewingId === 'voiceover' ? 'Stop preview' : 'Preview'}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" style={[ms.primaryBtn, { minHeight: 44, opacity: rightsAttested ? 1 : 0.5 }]} onPress={useVoiceover} disabled={disabled || !rightsAttested}><Text style={ms.primaryTxt}>Use voiceover</Text></TouchableOpacity></View>
             </View> : null}
           </View> : <View style={ms.listPane}>
-            {loadingRows ? <ActivityIndicator color="#FFF" style={{ marginTop: 26 }} /> : rows.length === 0 ? <><Text style={ms.emptyTxt}>{error ? 'Your sound selection is unchanged.' : tab === 'sounds' ? 'No reusable original sounds yet. Record and share your own.' : 'No licensed soundtracks are available yet. You can record original audio or share an Apple Music song link.'}</Text>{error ? <TouchableOpacity accessibilityRole="button" style={[ms.secondaryBtn, { marginTop: 12, minHeight: 44 }]} onPress={() => setReload(value => value + 1)}><Text style={ms.secondaryTxt}>Retry</Text></TouchableOpacity> : null}</> : <FlatList data={rows} keyExtractor={row => row.id} style={{ maxHeight: 300 }} renderItem={({ item }) => <View style={ms.soundRow}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Preview ${item.title}`} style={[ms.playBtn, { width: 44, height: 44 }]} onPress={() => { void previewUri(item.id, item.url); }}><Feather name={previewingId === item.id ? 'pause' : 'play'} size={16} color="#FFF" /></TouchableOpacity><View style={{ flex: 1, minWidth: 0 }}><Text style={ms.soundTitle} numberOfLines={1}>{item.title}</Text><Text style={ms.soundMeta}>{[item.artist, fmtSec(item.duration_sec)].filter(Boolean).join(' · ')}</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Use ${item.title}`} style={[ms.useBtn, { minHeight: 44, justifyContent: 'center' }]} disabled={disabled} onPress={() => { void stopPreview(); onSelect({ kind: 'sound', soundId: item.id, url: item.url, title: item.title, durationSec: item.duration_sec, source: item.source }); }}><Text style={ms.useBtnTxt}>Use</Text></TouchableOpacity></View>} />}
+            {loadingRows ? <ActivityIndicator color="#FFF" style={{ marginTop: 26 }} /> : rows.length === 0 ? <><Text style={ms.emptyTxt}>{error ? 'Your sound selection is unchanged.' : tab === 'sounds' ? 'No reusable original sounds yet. Record and share your own.' : 'No licensed soundtracks are available yet. You can record original audio or share an Apple Music song link.'}</Text>{error ? <TouchableOpacity accessibilityRole="button" style={[ms.secondaryBtn, { marginTop: 12, minHeight: 44 }]} onPress={() => setReload(value => value + 1)}><Text style={ms.secondaryTxt}>Retry</Text></TouchableOpacity> : null}</> : <FlatList data={rows} keyExtractor={row => row.id} style={{ maxHeight: 300 }} renderItem={({ item }) => <View style={ms.soundRow}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Preview ${item.title}`} style={[ms.playBtn, { width: 44, height: 44 }]} onPress={() => { void previewUri(item.id, item.url); }}><Feather name={previewingId === item.id ? 'pause' : 'play'} size={16} color="#FFF" /></TouchableOpacity><View style={{ flex: 1, minWidth: 0 }}><Text style={ms.soundTitle} numberOfLines={1}>{item.title}</Text><Text style={ms.soundMeta}>{[item.artist, fmtSec(item.duration_sec)].filter(Boolean).join(' · ')}</Text></View><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Use ${item.title}`} style={[ms.useBtn, { minHeight: 44, justifyContent: 'center' }]} disabled={disabled || busy} onPress={() => { void selectSound(item.id); }}><Text style={ms.useBtnTxt}>Use</Text></TouchableOpacity></View>} />}
           </View>}
         </View>
       </View>

@@ -579,6 +579,14 @@ async function finishStoryRecipients(storyId: string, audience: string | null | 
 export const storiesService = {
   uploadAndCreateStory,
 
+  async getStorySound(id: string): Promise<StorySound> {
+    const { data, error } = await supabase.from('story_sounds').select('*').eq('id', id).in('rights_status', ['creator_attested', 'licensed']).maybeSingle();
+    if (error || !data) throw new Error('This sound is no longer available. Choose another sound.');
+    const [sound] = await hydrateSoundMedia([data as StorySound]);
+    if (!sound.url) throw new Error('This sound could not load. Please retry.');
+    return sound;
+  },
+
   async listStorySounds(source: 'original' | 'library', limit = 50): Promise<StorySound[]> {
     const { data, error } = await supabase
       .from('story_sounds')

@@ -33,6 +33,11 @@ Deno.serve(async (req) => {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
       return json(400, { error: 'valid callSessionId required' });
     }
+    const expectedIdentity = body?.expectedProviderIdentity;
+    if (expectedIdentity !== undefined && (typeof expectedIdentity !== 'string'
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(expectedIdentity))) {
+      return json(400, { error: 'valid expectedProviderIdentity required' });
+    }
     const roomName = sessionId;
     let isOwner = false; // derived from call_sessions below, never from the client
     let isVideo = false;
@@ -65,6 +70,9 @@ Deno.serve(async (req) => {
           .select('user_id').eq('conversation_id', sess.conversation_id).eq('user_id', uid).maybeSingle();
         if (partError || memberError) return json(503, { error: 'call access unavailable' });
         allowed = part?.status === 'joined' && !!member && !!part.provider_identity;
+        if (allowed && expectedIdentity !== undefined && part.provider_identity !== expectedIdentity.toLowerCase()) {
+          return json(409, { error: 'call membership changed' });
+        }
         if (allowed) providerUserId = part.provider_identity;
       }
       if (!allowed) return json(403, { error: 'not a participant' });

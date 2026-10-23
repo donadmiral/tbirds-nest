@@ -10,3 +10,5 @@ export const hydrateMemoryAlbumMedia = <T,>(rows: T[], client: ContentMediaClien
 export const hydrateHighlightMedia = <T,>(rows: T[], client: ContentMediaClient = createClient()) => hydrateContentMedia(client, process.env.NEXT_PUBLIC_SUPABASE_URL!, rows, 'highlight');
 
 export const hydrateUploadMedia = <T,>(rows: T[], client: ContentMediaClient = createClient()) => hydrateOwnerUploadMedia(client, process.env.NEXT_PUBLIC_SUPABASE_URL!, rows);
+
+export const hydrateSoundMedia = <T,>(rows: T[], client: ContentMediaClient = createClient()) => hydrateContentMedia(client, process.env.NEXT_PUBLIC_SUPABASE_URL!, rows, 'sound');

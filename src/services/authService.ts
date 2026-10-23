@@ -20,7 +20,6 @@ export const authService = {
     redirectTo?: string
   ): Promise<SignUpResult> {
     const isASU = isAsuEmail(email);
-    console.log('[signup] START email=', email, 'redirectTo=', redirectTo);
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -34,15 +33,12 @@ export const authService = {
       },
     });
 
-    console.log('[signup] signUp returned. error=', error?.message || 'none', 'userId=', data?.user?.id || 'none', 'session=', !!data?.session, 'identities=', data?.user?.identities?.length);
     if (error && /already/i.test(error.message)) {
-      console.log('[signup] ALREADY REGISTERED -> resending');
       await this.resendVerification(email, redirectTo);
       return { needsEmailVerification: true };
     }
-    if (error) { console.log('[signup] FATAL:', error.message); throw error; }
+    if (error) throw error;
     if (data?.user && (data.user.identities?.length ?? 0) === 0) {
-      console.log('[signup] identities=0 -> email already in use; resending');
       await this.resendVerification(email, redirectTo);
       return { needsEmailVerification: true };
     }
@@ -63,12 +59,11 @@ export const authService = {
         .is('account_type', null);
 
       if (updateError) {
-        console.log('[authService.signUp] profile classification error:', updateError.message);
+        console.warn('[authService.signUp] Profile classification could not be confirmed');
         // Non-fatal: the database trigger handles this
       }
     }
 
-    console.log('[signup] DONE needsEmailVerification=', !data.session);
     return { needsEmailVerification: !data.session };
   },
 
@@ -100,7 +95,6 @@ export const authService = {
    * Re-send the signup verification email. Safe to call repeatedly.
    */
   async resendVerification(email: string, redirectTo?: string) {
-    console.log('[signup] resendVerification ->', email);
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email,
@@ -126,7 +120,7 @@ export const authService = {
     const { error } = await supabase.auth.verifyOtp({
       email,
       token: code,
-      type: 'email',
+      type: 'recovery',
     });
     if (error) throw error;
   },

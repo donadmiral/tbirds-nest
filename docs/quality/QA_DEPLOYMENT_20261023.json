@@ -198,12 +198,26 @@
       "sql_md5": "988a037f9738fc67c9b6b408aa33ff6e",
       "source": "supabase/ops/install-call-revocation-cron.sql",
       "matches_source": true
+    },
+    {
+      "version": "20261023192454",
+      "name": "platinum_story_soundtrack_authoring",
+      "sql_md5": "9fa7baf779e54c0b5c78df902e484de8",
+      "source": "supabase/migrations/20261023192203_story_soundtrack_authoring.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023192555",
+      "name": "platinum_call_membership_recovery",
+      "sql_md5": "b781275c7cbcc5704ef92b7ef657a64f",
+      "source": "supabase/migrations/20261023193500_call_membership_recovery.sql",
+      "matches_source": true
     }
   ],
   "functions": [
     {
       "name": "daily-get-token",
-      "version": 35,
+      "version": 36,
       "status": "ACTIVE",
       "verify_jwt": true
     },
@@ -233,7 +247,7 @@
     },
     {
       "name": "creator-payouts",
-      "version": 1,
+      "version": 2,
       "status": "ACTIVE",
       "verify_jwt": true
     },
@@ -274,6 +288,21 @@
   "admin": {
     "qa_owner_bootstrapped": true,
     "verified_totp_factors": 0,
-    "hosted_totp_configuration_verified": false
+    "hosted_totp_configuration_verified": true,
+    "hosted_totp_enabled": true,
+    "recovery_callback_verified": "https://admin-web-git-codex-platinum-quality-20261017-intobank.vercel.app/reset-password/callback",
+    "recovery_email_acceptance": "Requires user-initiated recovery and password entry; no email sent or password changed by agent"
+  },
+  "followup_source": "Commit containing the admin recovery, story soundtrack and call membership fixes, based on 457a8e36a60154be59495eeeb9063625d8e50a7f",
+  "auth": {
+    "qa_phone_callback_verified": "platinum-circles-qa://auth/callback",
+    "redirect_allowlist_count": 9,
+    "evidence": "qa-auth-callbacks-20261023.jpg"
+  },
+  "provider_environment_findings": {
+    "qa": "No custom Edge Function secrets configured, observed in hosted dashboard. Existing managed Supabase runtime credentials are separate.",
+    "production_calls": "Anonymous empty token request passed provider-key presence check, then failed user authentication; no call created.",
+    "production_crisp": "Active test key has balance/payments/bills scopes, not links/refunds/payouts. Live API requires bank integration approval. No key material copied or stored.",
+    "production_modified": false
   }
 }

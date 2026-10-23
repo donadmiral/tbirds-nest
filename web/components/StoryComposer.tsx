@@ -12,11 +12,14 @@ import { publicationError } from "@/lib/publication";
 import { checkUploadableBytes } from "@/lib/media";
 import { hydrateStoryDraftMedia } from "@/lib/contentMedia";
 import { StoryEditor } from "@/components/StoryEditor";
+import { StoryAudioEditor } from "@/components/StoryAudioEditor";
+import type { StoryAudioDraft } from "@/lib/storyAudio";
 
 type Draft = {
   id: string; user_id: string; media_url: string | null; media_type: string; caption: string | null;
   audience: string; shared_with: string[]; duration_sec: number | null; created_at: string;
   preview_media_url?: string | null;
+  audio_draft?: StoryAudioDraft | null;
   filter_id?: string | null; stickers_json?: StoryTextSticker[]; media_transform?: StoryMediaTransform | null; text_background?: { colors: string[] } | null;
 };
 
@@ -43,6 +46,8 @@ function ComposerInner() {
     setPreviewUrl(url);
   };
   const [mediaType, setMediaType] = useState<"image" | "video" | "text">("image");
+  const [audioDraft, setAudioDraft] = useState<StoryAudioDraft | null>(null);
+  const videoPreview = useRef<HTMLVideoElement | null>(null);
   const [durationSec, setDurationSec] = useState<number | null>(null);
   const [caption, setCaption] = useState("");
   const [stickers, setStickers] = useState<StoryTextSticker[]>([]);
@@ -70,6 +75,8 @@ function ComposerInner() {
   const authEventVersion = useRef(0);
   const cancellations = useRef(new Set<() => void>());
   const metadataCleanup = useRef<(() => void) | null>(null);
+
+  useEffect(() => { if (videoPreview.current) videoPreview.current.volume = Math.max(0, Math.min(1, (transform.mix?.orig ?? 100) / 100)); }, [transform.mix?.orig, previewUrl]);
 
   const isCurrent = (owner: string, version: number) => mountedRef.current && ownerRef.current === owner && ownerVersion.current === version;
   const assertOwner = (owner: string, version: number) => {
@@ -113,7 +120,7 @@ function ComposerInner() {
         publishedRef.current = false;
         appliedRouteDraft.current = null;
         setDrafts([]); setDraftId(null); setMediaUrl(null); replacePreview(null); setMediaType("image");
-        setCaption(""); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null);
+        setCaption(""); setAudioDraft(null); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null);
         setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0 }); setEditorKey(k => k + 1);
         if (previous) { try { sessionStorage.removeItem("platinum:story-publish:" + previous); } catch {} }
         setQ(""); setResults([]); setBusy(null);
@@ -156,6 +163,7 @@ function ComposerInner() {
       if (typeof saved.requestId !== "string" || !saved.payload || typeof saved.payload !== "object") throw new Error();
       const p = saved.payload;
       publication.current = saved;
+      setAudioDraft(p.audio_draft ?? null);
       setMediaUrl(p.media_url ?? null); setMediaType(p.media_type);
       setCaption(p.caption ?? ""); setAudience(p.audience); setFilterId(p.filter_id);
       setStickers(p.stickers_json ?? []); setTransform(p.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0 });
@@ -233,6 +241,7 @@ function ComposerInner() {
     setStickers(d.stickers_json ?? []); setTransform(d.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0 });
     if (d.text_background) setBackground(d.text_background);
     setEditorKey(k => k + 1);
+    setAudioDraft(d.audio_draft ?? null);
     setDraftId(d.id);
     setMediaUrl(d.media_url);
     setMediaType(d.media_type === "video" ? "video" : d.media_type === "text" ? "text" : "image");
@@ -311,7 +320,7 @@ function ComposerInner() {
         audience, filter_id: filterId, stickers_json: stickers, media_transform: transform,
         text_background: mediaType === "text" ? background : null,
         duration_sec: mediaType === "video" ? Math.min(60, (transform.trimEnd ?? durationSec ?? 10) - (transform.trimStart ?? 0)) : null,
-        shared_with: people.map(p => p.id), draft_id: draftId,
+        shared_with: people.map(p => p.id), draft_id: draftId, audio_draft: audioDraft,
       } };
     }
     const attempt = publication.current;
@@ -354,7 +363,7 @@ function ComposerInner() {
       const payload = {
         user_id: uid, media_url: mediaUrl, media_type: mediaType,
         caption: caption.trim() || null, audience,
-        shared_with: people.map((p) => p.id), duration_sec: durationSec,
+        shared_with: people.map((p) => p.id), duration_sec: durationSec, audio_draft: audioDraft,
         filter_id: filterId, stickers_json: stickers, media_transform: transform, text_background: mediaType === "text" ? background : null,
       };
       const r = draftId
@@ -363,7 +372,7 @@ function ComposerInner() {
       assertOwner(owner, version);
       if (r.error || !r.data) throw r.error || new Error("Could not confirm the saved draft.");
       saved = true;
-      setDraftId(null); setMediaUrl(null); setMediaType("image"); setCaption(""); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null); setStickers([]); setEditorKey(k => k + 1); setTransform({ scale: 1, translateNX: 0, translateNY: 0 });
+      setDraftId(null); setMediaUrl(null); setMediaType("image"); setCaption(""); setAudioDraft(null); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null); setStickers([]); setEditorKey(k => k + 1); setTransform({ scale: 1, translateNX: 0, translateNY: 0 });
       await loadDrafts(owner, version);
     } catch (failure) { if (isCurrent(owner, version)) setError((saved ? "Draft saved, but the draft list could not reload. " : "Your draft remains open here; keep this page open. ") + publicationError(failure)); }
     finally { if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); } }
@@ -422,7 +431,7 @@ function ComposerInner() {
         <>
         <StoryEditor key={editorKey} value={stickers} onChange={setStickers}>
           {mediaType === "text" ? <div className="h-full w-full" style={{ background: `linear-gradient(160deg,${background.colors.join(",")})` }} /> : mediaType === "video" ? (
-            <video src={previewUrl ?? undefined} controls playsInline className="h-full w-full object-contain" onTimeUpdate={e => { const v = e.currentTarget; if (transform.trimEnd && v.currentTime >= transform.trimEnd) { v.pause(); v.currentTime = transform.trimStart ?? 0; } }} onPlay={e => { if (e.currentTarget.currentTime < (transform.trimStart ?? 0)) e.currentTarget.currentTime = transform.trimStart ?? 0; }} />
+            <video ref={videoPreview} src={previewUrl ?? undefined} controls playsInline className="h-full w-full object-contain" onTimeUpdate={e => { const v = e.currentTarget; if (transform.trimEnd && v.currentTime >= transform.trimEnd) { v.pause(); v.currentTime = transform.trimStart ?? 0; } }} onPlay={e => { if (e.currentTarget.currentTime < (transform.trimStart ?? 0)) e.currentTarget.currentTime = transform.trimStart ?? 0; }} />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={previewUrl ?? undefined} alt="" className="h-full w-full object-contain" />
@@ -432,8 +441,9 @@ function ComposerInner() {
             <div className="pointer-events-none absolute inset-0" style={{ backdropFilter: filterCss(filterId), WebkitBackdropFilter: filterCss(filterId) }}>
               {f.layers.map((l, i) => <div key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />)}
             </div>) : null; })() : null}
-          <button onClick={() => { setMediaUrl(null); replacePreview(null); setMediaType("image"); setDraftId(null); setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0 }); setEditorKey(k => k + 1); }} className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white" aria-label="Remove media"><X size={14} /></button>
+          <button onClick={() => { setMediaUrl(null); replacePreview(null); setMediaType("image"); setDraftId(null); setAudioDraft(null); setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0 }); setEditorKey(k => k + 1); }} className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white" aria-label="Remove media"><X size={14} /></button>
         </StoryEditor>
+        {uid && <StoryAudioEditor key={uid} owner={uid} value={audioDraft} onChange={setAudioDraft} mix={transform.mix ?? {}} onMixChange={mix => setTransform(t => ({ ...t, mix }))} isVideo={mediaType === "video"} disabled={!!busy || publicationStatus.locked} onBusyChange={active => { busyRef.current = active; setBusy(active ? "audio-upload" : null); if (active) videoPreview.current?.pause(); }} />}
         {mediaType === "video" && durationSec ? <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-muted"><label>Start, seconds<input type="number" min={0} max={Math.max(0, durationSec - 1)} value={transform.trimStart ?? 0} onChange={e => { const start = Math.max(0, Math.min(durationSec - 1, Number(e.target.value))); setTransform(t => ({ ...t, trimStart: start, trimEnd: Math.min(durationSec, start + 60) })); }} className="mt-1 w-full rounded-lg border border-ink/15 p-2 text-ink" /></label><label>End, seconds<input type="number" min={(transform.trimStart ?? 0) + 1} max={Math.min(durationSec, (transform.trimStart ?? 0) + 60)} value={transform.trimEnd ?? Math.min(durationSec, 60)} onChange={e => setTransform(t => ({ ...t, trimEnd: Math.max((t.trimStart ?? 0) + 1, Math.min(durationSec, (t.trimStart ?? 0) + 60, Number(e.target.value))) }))} className="mt-1 w-full rounded-lg border border-ink/15 p-2 text-ink" /></label></div> : null}
         {mediaType === "image" ? (
           <div className="mt-3">
