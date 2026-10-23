@@ -40,3 +40,25 @@ table, RLS, deduplication trigger, and vulnerable function come from the sealed
 source. Group fixtures use the exact affected function/trigger bodies with
 minimal synthetic tables. This focused patch does not audit every privileged
 routine or repair the separate legacy direct community-insertion client flow.
+
+
+## Admin contracts and integration chain
+
+`node test-admin-commands.mjs` loads the complete public schema reference, applies
+all October 22–23 candidate migrations in order, and executes admin operations
+against PostgreSQL in PGlite. It covers all current admin operation names,
+role-matrix parity, live MFA/session checks, audit rollback, idempotency, safe
+provisioning identity checks, moderator-removal persistence, and financial history
+retention during deletion requests. `node test-pending-migration-chain.mjs` also
+checks the full migration sequence with function body checking enabled.
+Both suites are included in `npm test` in this directory.
+
+Managed Auth, Storage and Vault APIs are local fixtures. Duplicate concurrent
+JavaScript requests exercise command replay, but PGlite serializes database work;
+this is not a multi-backend lock/deadlock stress test. Hosted GoTrue account
+creation, MFA and browser sessions still need deployment integration checks.
+
+A deletion command disables account access and creates a `retention_review`
+request visible at `/users/deletions`. It deliberately preserves the auth identity,
+financial history and audit records. It does not claim to finish personal-data
+erasure; a retention-aware processor is a separate integration.

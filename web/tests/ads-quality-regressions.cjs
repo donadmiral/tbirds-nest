@@ -93,34 +93,31 @@ test('promo reads reject a response for a previous account', async () => {
   await assert.rejects(reading);
 });
 
-test('performance reads all pages and filters to this advertiser and a fixed UTC window', async () => {
-  const day = new Date().toISOString().slice(0, 10);
-  const rows = Array.from({ length: 1250 }, (_, i) => ({ id: String(i), kind: i % 2 ? 'click' : 'impression', created_at: day + 'T00:00:00Z' }));
-  const app = library({ query: async call => {
-    const range = call.methods.find(m => m[0] === 'range');
-    return { data: rows.slice(range[1], range[2] + 1), count: rows.length, error: null };
-  } });
+const performanceRows = () => Array.from({ length: 30 }, (_, i) => ({ day: new Date(Date.UTC(2026, 9, i + 1)).toISOString().slice(0, 10), impressions: i === 0 ? 12050 : 0, clicks: i === 0 ? 250 : 0 }));
+test('performance uses a server aggregate without truncating high-volume activity', async () => {
+  const app = library({ rpc: async () => ({ data: performanceRows(), error: null }) });
   const result = await app.api.myPromoPerformance('account-a');
-  assert.equal(result.length, 30);
-  assert.equal(result.reduce((n, r) => n + r.impressions, 0), 625);
-  assert.equal(result.reduce((n, r) => n + r.clicks, 0), 625);
-  assert.equal(app.calls.length, 3);
-  for (const call of app.calls) {
-    assert.ok(call.methods.some(m => m[0] === 'eq' && m[1] === 'promoted_posts.advertiser_id' && m[2] === 'account-a'));
-    assert.ok(call.methods.some(m => m[0] === 'gte' && m[2].endsWith('T00:00:00.000Z')));
-    assert.ok(call.methods.some(m => m[0] === 'order' && m[1] === 'id'));
-  }
-  assert.equal(new Set(app.calls.map(c => c.methods.find(m => m[0] === 'lte')[2])).size, 1);
+  assert.equal(result.reduce((n, r) => n + r.impressions, 0), 12050);
+  assert.equal(result.reduce((n, r) => n + r.clicks, 0), 250);
+  assert.equal(app.calls.length, 1); assert.equal(app.calls[0].rpc, 'promo_daily_performance');
+  assert.equal(app.calls[0].args.p_expected_user, 'account-a');
 });
-
-for (const [name, result] of [
-  ['denied', { data: null, count: null, error: { message: 'denied' } }],
-  ['truncated', { data: [{ id: 'one', kind: 'impression', created_at: new Date().toISOString() }], count: 2, error: null }],
-  ['unbounded', { data: [], count: 10001, error: null }],
-]) test(`${name} performance never produces a misleading chart`, async () => {
-  const app = library({ query: async () => result });
-  await assert.rejects(app.api.myPromoPerformance('account-a'));
-  assert.equal(app.calls.length, 1);
+test('performance errors, truncated days, duplicate days and malformed totals cannot become a chart', async () => {
+  const rows = performanceRows();
+  for (const result of [
+    { data: null, error: { message: 'denied' } }, { data: rows.slice(1), error: null },
+    { data: rows.map(() => rows[0]), error: null },
+    { data: rows.map((row, i) => i ? row : { ...row, impressions: -1 }), error: null },
+    { data: rows.map((row, i) => i ? row : { ...row, impressions: Number.MAX_SAFE_INTEGER + 1 }), error: null },
+  ]) {
+    const app = library({ rpc: async () => result });
+    await assert.rejects(app.api.myPromoPerformance('account-a'));
+  }
+});
+test('late aggregate from an old account is discarded', async () => {
+  const pending = deferred(); const app = library({ rpc: () => pending.promise });
+  const read = app.api.myPromoPerformance('account-a'); await flush(); app.setUser('account-b');
+  pending.resolve({ data: performanceRows(), error: null }); await assert.rejects(read);
 });
 
 test('returned and thrown analytics failures remain retryable', async () => {

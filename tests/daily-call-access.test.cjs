@@ -18,7 +18,7 @@ function harness(options = {}) {
       return { select() { return this; }, eq(key, value) { read.filters[key] = value; return this; },
         maybeSingle: async () => ({ data: {
           call_sessions: options.missing ? null : session,
-          call_participants: { user_id: options.user ?? 'owner', status: options.partStatus ?? 'joined' },
+          call_participants: { user_id: options.user ?? 'owner', status: options.partStatus ?? 'joined', provider_identity: 'membership-generation' },
           conversation_members: options.removed ? null : { user_id: options.user ?? 'owner' },
           profiles: { full_name: 'Synthetic QA user' },
         }[table], error: options.readError === table ? { message: 'unavailable' } : null }),
@@ -30,7 +30,7 @@ function harness(options = {}) {
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const module = { exports: {} };
   vm.runInNewContext(code, {
-    module, exports: module.exports, Request, Response, Date,
+    module, exports: module.exports, Request, Response, Date, AbortSignal,
     Deno: { env: { get: () => 'synthetic-placeholder' }, serve: value => { handler = value; } },
     require: () => ({ createClient: () => client }),
     fetch: async (url, init = {}) => {

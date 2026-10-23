@@ -6,6 +6,7 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
+import { readSupportTriage } from '@/lib/supportTriage';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   if ([tickets, openCount, pendingCount, solvedCount, appealCount, totalCount, oldest].some(result => result.error)) throw new Error('Support inbox could not be loaded.');
   if ([tickets, openCount, pendingCount, solvedCount, appealCount, totalCount].some(result => result.count === null)) throw new Error('Support counts could not be confirmed.');
   const all = (tickets.data ?? []) as { id: string; user_id: string; kind: string | null; subject: string; status: string; created_at: string; updated_at: string | null }[];
+  const triage = await readSupportTriage(all.map(ticket => ticket.id));
 
   const uids = Array.from(new Set(all.map(t => t.user_id).filter(Boolean)));
   const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; location: string | null; created_at: string }> = {};
@@ -97,6 +99,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   ];
 
   const rows: DeskRow[] = all.map(t => {
+    const assignment = triage.get(t.id)!;
     const p = people[t.user_id] || { full_name: null, username: null, avatar_url: null, location: null, created_at: t.created_at };
     const tone = STATUS_TONE[t.status] || 'neutral';
     const last = t.updated_at || t.created_at;
@@ -123,6 +126,9 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           { label: 'Member since', value: new Date(p.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) },
         ],
         fields: [
+          { label: 'Owner', value: assignment.assigned_name || assignment.assigned_to || 'Unassigned' },
+          { label: 'Priority / queue', value: assignment.priority + ' / ' + assignment.queue + (assignment.escalated ? ' / escalated' : '') },
+          { label: 'Response due', value: assignment.response_due_at ? new Date(assignment.response_due_at).toLocaleString() : 'No pending response target' },
           { label: 'Opened', value: new Date(t.created_at).toLocaleString() },
           { label: 'Last activity', value: new Date(last).toLocaleString() },
           { label: 'Kind', value: title(t.kind || 'general') },

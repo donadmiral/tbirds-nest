@@ -108,3 +108,12 @@ test('only confirmed transaction references or explicit terminal failure settle 
   assert.equal(failed.status, 'failed');
   assert.equal(failed.success, false);
 });
+
+test('marketplace order identity survives restart and cannot drift on a retry', async () => {
+  const storage = memoryStorage();
+  const orderId = '10000000-0000-4000-8000-000000000001';
+  const original = await createPaymentIntentStore(storage, () => reference).prepare({ ...params, orderId });
+  const reopened = createPaymentIntentStore(storage, () => { throw Error('must retain original'); });
+  assert.equal((await reopened.load(scope)).orderId, orderId);
+  assert.deepEqual(await reopened.prepare({ ...params, orderId: '10000000-0000-4000-8000-000000000002' }), original);
+});

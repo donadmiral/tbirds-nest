@@ -13,15 +13,16 @@ import { RichText } from "@/components/RichText";
 import { displayImageUrl, srcSetFor } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
 import { createClient } from "@/lib/supabase/client";
+import { hydratePostMedia } from "@/lib/contentMedia";
+import { orderTimeout } from "../../shared/orderRequest";
 import { usePostInteractions } from "@/lib/usePostInteractions";
 import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
 
 type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null };
 
-// post_media.edit recipes come from a small side query (the feed RPC predates the column); cached per media id.
+// post_media.edit recipes come from a small authorized side query when older feed rows omit them.
 // Legacy media carries a placeholder id; only real media ids are ever sent to the media tables.
 const UUID_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const editCache = new Map<string, PostMediaEditRecipe | null>();
 function editStyle(e: PostMediaEditRecipe | null | undefined): React.CSSProperties {
   if (!e) return {};
   const sc = typeof e.scale === "number" && e.scale > 0 ? e.scale : 1; const nx = typeof e.translateNX === "number" ? e.translateNX : 0; const ny = typeof e.translateNY === "number" ? e.translateNY : 0;
@@ -33,7 +34,6 @@ function editStyle(e: PostMediaEditRecipe | null | undefined): React.CSSProperti
 // Tagged people: a pearl people-mark with the count; tap it and the tags rise as
 // navy pills anchored where each person is, each linking to the profile.
 type MediaTag = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null; verified_tier: string | null };
-const tagCache = new Map<string, MediaTag[]>();
 function TagLayer({ tags, w, h, mode = "pins" }: { tags: MediaTag[]; w?: number; h?: number; mode?: "pins" | "list" }) {
   // Instagram's model: a round person badge on the picture; tapping it shows white pills with a pointer aimed at the
   // person, the name in its tier colour and the seal, each linking to the profile. On a video the badge opens a list.
@@ -129,38 +129,55 @@ function fitted(w: number | null | undefined, h: number | null | undefined, avai
 export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; onDoubleClick?: (e: React.MouseEvent) => void }) {
   const [edits, setEdits] = useState<Record<string, PostMediaEditRecipe | null>>({});
   useEffect(() => {
-    const need = media.filter((m) => m.edit === undefined && !editCache.has(m.id) && UUID_ID.test(m.id)).map((m) => m.id);
-    const seed: Record<string, PostMediaEditRecipe | null> = {};
-    media.forEach((m) => { if (m.edit !== undefined) seed[m.id] = m.edit ?? null; else if (editCache.has(m.id)) seed[m.id] = editCache.get(m.id) ?? null; });
-    setEdits(seed);
+    const need = media.filter(m => m.edit === undefined && UUID_ID.test(m.id)).map(m => m.id);
+    setEdits({});
     if (!need.length) return;
-    let dead = false;
-    createClient().from("post_media").select("id, edit").in("id", need).then(({ data }) => {
-      if (dead) return;
-      const next: Record<string, PostMediaEditRecipe | null> = {};
-      need.forEach((id) => { editCache.set(id, null); next[id] = null; });
-      (data || []).forEach((r: any) => { editCache.set(r.id, r.edit ?? null); next[r.id] = r.edit ?? null; });
-      setEdits((p) => ({ ...p, ...next }));
-    });
-    return () => { dead = true; };
-  }, [media]);
+    const client = createClient();
+    let live = true, version = 0;
+    const refresh = async () => {
+      const run = ++version;
+      try {
+        const { data, error } = await orderTimeout(client.from("post_media").select("id, edit").eq("post_id", postId).in("id", need));
+        if (error) throw error;
+        const [safe] = await hydratePostMedia([{ post_id: postId, post_media: data ?? [] }], client);
+        if (!live || run !== version) return;
+        const next: Record<string, PostMediaEditRecipe | null> = {};
+        need.forEach(id => { next[id] = null; });
+        safe.post_media.forEach((row: any) => { next[row.id] = row.edit ?? null; });
+        setEdits(next);
+      } catch { if (live && run === version) setEdits({}); }
+    };
+    void refresh();
+    const timer = setInterval(() => { void refresh(); }, 240000);
+    const visible = () => { if (document.visibilityState === 'visible') void refresh(); };
+    document.addEventListener('visibilitychange', visible);
+    const { data } = client.auth.onAuthStateChange(() => { version++; setEdits({}); queueMicrotask(() => { if (live) void refresh(); }); });
+    return () => { live = false; version++; clearInterval(timer); document.removeEventListener('visibilitychange', visible); data.subscription.unsubscribe(); };
+  }, [media, postId]);
   const editOf = (m: MediaItem) => (m.edit !== undefined ? m.edit : edits[m.id]) ?? null;
   const [tags, setTags] = useState<Record<string, MediaTag[]>>({});
   useEffect(() => {
-    const seed: Record<string, MediaTag[]> = {}; const need: string[] = [];
-    media.forEach((m) => { if (tagCache.has(m.id)) seed[m.id] = tagCache.get(m.id)!; else if (UUID_ID.test(m.id)) need.push(m.id); });
-    setTags(seed);
+    const need = media.filter(m => UUID_ID.test(m.id)).map(m => m.id);
+    setTags({});
     if (!need.length) return;
-    let dead = false;
-    createClient().from("post_media_tags").select("media_id, user_id, nx, ny, profile:profiles!post_media_tags_user_id_fkey(full_name, username, avatar_url, verified_tier)").in("media_id", need).then(({ data }) => {
-      if (dead) return;
-      const next: Record<string, MediaTag[]> = {}; need.forEach((id) => { next[id] = []; });
-      (data || []).forEach((r: any) => { const p = r.profile || {}; (next[r.media_id] ||= []).push({ user_id: r.user_id, nx: Number(r.nx) || 0.5, ny: Number(r.ny) || 0.5, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null, verified_tier: p.verified_tier ?? null }); });
-      Object.entries(next).forEach(([id, t]) => tagCache.set(id, t));
-      setTags((prev) => ({ ...prev, ...next }));
-    });
-    return () => { dead = true; };
-  }, [media]);
+    const client = createClient();
+    let live = true, version = 0;
+    const refresh = async () => {
+      const run = ++version;
+      try {
+        const { data, error } = await orderTimeout(client.from("post_media_tags").select("media_id, user_id, nx, ny, profile:profiles!post_media_tags_user_id_fkey(full_name, username, avatar_url, verified_tier)").in("media_id", need));
+        if (error) throw error;
+        if (!live || run !== version) return;
+        const next: Record<string, MediaTag[]> = {};
+        need.forEach(id => { next[id] = []; });
+        (data ?? []).forEach((row: any) => { const profile = row.profile || {}; (next[row.media_id] ||= []).push({ user_id: row.user_id, nx: Number(row.nx) || 0.5, ny: Number(row.ny) || 0.5, full_name: profile.full_name ?? null, username: profile.username ?? null, avatar_url: profile.avatar_url ?? null, verified_tier: profile.verified_tier ?? null }); });
+        setTags(next);
+      } catch { if (live && run === version) setTags({}); }
+    };
+    void refresh();
+    const { data } = client.auth.onAuthStateChange(() => { version++; setTags({}); queueMicrotask(() => { if (live) void refresh(); }); });
+    return () => { live = false; version++; data.subscription.unsubscribe(); };
+  }, [media, postId]);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);

@@ -89,7 +89,8 @@ export default function MarketPage() {
     <div>
       <div className="flex items-center justify-between px-1 pb-3">
         <h1 className="font-display text-2xl text-porcelain">Market</h1>
-        <Link href="/market/messages" title="Market messages" className="relative rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><MessageCircle size={19} /><MarketUnreadDot /></Link>
+        <Link href="/market/orders" className="rounded-full px-3 py-2 text-sm font-semibold hover:bg-surface">Orders</Link>
+            <Link href="/market/messages" title="Market messages" className="relative rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><MessageCircle size={19} /><MarketUnreadDot /></Link>
           <Link href="/market/new" className="ml-1 flex items-center gap-1.5 rounded-full bg-pearl px-3.5 py-2 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"><Plus size={16} /> Sell</Link>
       </div>
 

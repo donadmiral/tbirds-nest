@@ -1,31 +1,41 @@
-# Creator monetization foundation
+# Creator finance and commerce
 
-IntoBank is the primary provider. This feature is deliberately not wired to the existing member-to-member Crisp payment operation. That operation does not define a creator funding source, approved beneficiary or payout settlement contract.
+IntoBank is the primary provider. Financial values are exact decimal strings of USD minor units; PostgreSQL bigint and integer allocation avoid floating-point money arithmetic.
 
-## Implemented contract
+## Implemented
 
-- `/monetization` and native `MonetizationScreen` display the authenticated member's program state, live IntoBank link status, recorded balances, recent ledger movements and payout outcomes.
-- A successful empty overview says no earnings have been recorded. A missing migration, outage or malformed response says unavailable and never substitutes zero earnings.
-- Session, overview, link and enrollment waits have UI deadlines. A timed-out enrollment is unconfirmed, not cancelled. Account changes clear displayed financial data and ignore late responses from the previous account.
-- Register interest is real, caller-bound and idempotent. An application additionally requires the current server-specified terms. Interest does not confer eligibility or an earnings promise. Enrollment starts closed.
-- Money is held as PostgreSQL `bigint` minor units and transported as decimal strings. USD is the only funded-earning currency enabled in this version. No arithmetic uses floating point.
-- Private tables and narrow caller-bound invoker wrappers isolate records. Clients cannot write balances, provider capability, verification, approval or settlement.
-- Every balance change is an immutable ledger movement. A replayed key must match the original owner, currency, amount, buckets and source reference. Adjustments are additional entries, not history edits.
-- Payout requests require approval, enabled provider/currency and an independently verified payout account. They freeze the provider and destination and atomically move available funds to reserved funds. Unknown results stay reserved.
-- Trusted reconciliation binds provider/event/reference, payout ID, frozen account, amount and currency. Verified completion moves reserved to paid. A provider-confirmed no-movement rejection restores available funds. Contradictory terminal outcomes are rejected for investigation.
-- Provider-specific code is isolated in `provider.ts`. The current IntoBank adapter cannot submit or claim completion, and an unknown provider never becomes an implicit fallback.
+- Authenticated web and phone creator screens show real program state, recorded balances, payout outcomes, product drafts, purchases, paid access periods and refund balances. Missing services remain visibly unavailable rather than appearing as zero earnings.
+- Enrollment requires current server terms and staff approval. Finance reviews require an active finance-role admin session at native aal2, matching row revision, reason and idempotency key. Each decision creates one audit record.
+- Payouts reserve funds atomically, freeze recipient and provider, retain unknown amounts, and reconcile canonical receipts. Expiring leases recover crashed workers. A dispatch intent prevents duplicate sending; recovery performs a status read. Pausing new payouts does not pause existing money reconciliation.
+- Phone payout requests persist their idempotency key and amount before sending. Uncertain responses retry that exact request. Web directs the user to the phone for payouts.
+- Immutable revenue policy version 2026-10-v1 allocates eligible net revenue: ads 55%, subscriptions 90%, gifts 70%, sponsorships 90%, marketplace 95% to the creator. Genuine tips allocate 100% with no deducted fee. These rates do not promise earnings. Any future version needs a separately published policy.
+- Creator product drafts support prepaid subscriptions, genuine tips and digital gifts. Orders freeze creator, price, currency and access period; account changes and self-purchases are rejected. Settlement is service-only and atomically writes the receipt, policy allocation, ledger credit and subscription period.
+- Fully refunded subscriptions lose their paid access. Partial refunds calculate cumulative creator reversals without rounding drift. Refunds after money has been paid create a visible receivable, preserve paid history, block new withdrawals and offset future earnings. No client can mark its order paid or grant an entitlement.
+- Subscription access is checked on the server for the requesting user and current paid period. It restores across devices through authenticated reads. These are prepaid periods; automatic renewal is explicitly unavailable.
+- Historical finance references retain auth identities. Coordinated account erasure must deactivate accounts and revoke access while retaining financial records for the applicable retention policy.
 
-## Not enabled by this migration
+## Provider verification and release boundary
 
-No test balances, earnings formula, take rate, eligibility threshold, paid subscription, creator fee or live transfer is created. Payout capability starts disabled and no payout execution worker/endpoint is installed. The UI does not offer a transfer control before that integration exists.
+Read-only inspection on 2026-10-23 confirmed that the current IntoBank branch is `claude/prefunded-rail` at `f312569d337b7d6409166170a392d1fd60e05bed`. Its canonical instruction fields support receipt binding. The proposed receipt/reference patch is a separate integration candidate, not a deployed provider capability.
 
-A release enabling payouts needs the approved IntoBank funding/disbursement contract, account verification, payload-bound provider idempotency, canonical settlement/no-movement receipts and reconciliation schedule. It also needs approved program terms/eligibility, funding attribution, finance approval roles, tax/identity requirements where applicable, support/appeals and retention/deletion handling. Historical financial records currently prevent deleting their referenced auth user; do not enable earnings in production until the coordinated account-retention contract is installed. Interest-only accounts can be deleted normally.
+The deployed bank model now rejects new legacy `partner_payout` commands with `BANK_PAYMENT_REQUIRED`. Its replacement `triniti_bank_payment_command` requires a consented owner bank connection and verified beneficiary, and currently only permits simulated domestic bank routes. It is not a partner-funded creator disbursement contract. There is no configured partner bank source/mandate binding in this integration. Do not enable creator payouts by setting a database flag, fabricate a wallet payout, reuse a person's bank consent, or claim live bank access.
 
-`creator_finance.record_funded_earning`, `move_earning` and `reconcile_payout` are private service-role entry points for a future verified server adapter. A typed reference alone is not proof of funding: no unverified caller-facing endpoint is provided. The migration leaves provider and approval configuration restricted to database ownership, pending reviewed operational commands.
+Both payouts and purchases start disabled. `provider_dispatch_ready()` is deliberately false for the unsupported current partner contract, so changing stale provider flags cannot advertise or start new payouts. Commerce settlement/refund functions accept test-environment orders only and are not exposed as customer-facing capture APIs. No live purchase capture, automatic recurring mandate, store billing, digital-goods billing exception, tax approval or verified destination setup is inferred from a wallet link. Completing the real bank-source/mandate and applicable app-store contracts is required before enabling those capabilities. The live UI never presents sandbox money as live earnings.
+
+## Migration order
+
+1. `20261022173111_creator_monetization_foundation.sql`
+2. `20261022211313_creator_finance_operations.sql`
+3. `20261022211400_creator_product_entitlements.sql`
+4. `20261022211649_creator_finance_review.sql` (requires the existing admin session check, native auth.sessions and admin audit schema)
+5. `20261023190254_creator_finance_dispatch_and_refund_guards.sql` (forward-only readiness, refund and recovery hardening)
+
+The product migration must precede `20261022211648_content_media_manifests.sql`, which calls `creator_has_active_subscription`.
 
 ## Verification
 
-- `node --test tests/creator-monetization.test.cjs` executes the production domain, provider and client contracts.
-- `node --test web/tests/monetization-quality.cjs` executes the web authentication lifecycle, including failures, late sessions, account changes and unmounts.
-- `PGLITE_MODULE=/path/to/@electric-sql/pglite node --test supabase/tests/creator-monetization-db.test.cjs` executes the real migration and functions in an isolated PostgreSQL runtime with synthetic roles/users/funds. It covers direct-access denial, owner binding, current terms, integer precision, immutable history, matching replay, guarded reservation, unknown outcomes and terminal reconciliation.
-- These tests do not establish real provider outcomes, cross-connection load or browser/device acceptance. The migration was applied to the isolated Platinum QA project on 2026-10-22. Production rollout remains separate.
+- `node --test tests/creator-monetization.test.cjs tests/creator-payout-worker.test.cjs web/tests/monetization-quality.cjs`
+- `node --test supabase/tests/creator-finance-operations.test.cjs supabase/tests/creator-commerce.test.cjs`
+- `node --test supabase/tests/creator-monetization-db.test.cjs` covers the original ledger foundation.
+
+The database suites execute the production SQL in isolated PGlite with synthetic roles, users and funds. Tests first verify that production dispatch is blocked; a database-owner-only synthetic capability then exercises the future payout state machine. They prove transaction and authorization behavior, not bank execution, physical-device acceptance or production capacity. Provider receipts have their own isolated contract tests. Current live bank readiness was inspected without financial mutations.

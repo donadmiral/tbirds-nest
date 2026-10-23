@@ -11,6 +11,7 @@ import { CalendarClock, Image as ImageIcon, Plus, Send, Tag, Trash2, X, AlertTri
 import { CATEGORIES } from "@/lib/categories";
 import { createClient } from "@/lib/supabase/client";
 import { can, cancelScheduled, deleteScheduled, listScheduled, myListings, publishNow, savePost, uploadStudioMedia, type ScheduledPost } from "@/lib/studio";
+import { useUploadPreview } from "@/lib/useUploadPreview";
 import { useStudio } from "@/components/StudioShell";
 
 type Draft = { id: string | null; content: string; body: string; category: string | null; community: string | null; media: ScheduledPost["media"]; products: ScheduledPost["products"]; publishAt: string };
@@ -30,6 +31,8 @@ export default function PlannerPage() {
   const [tab, setTab] = useState<"upcoming" | "drafts" | "published">("upcoming");
   const [open, setOpen] = useState(false);
   const [d, setD] = useState<Draft>(empty());
+  const previewSource = useMemo(() => ({ rows, draft: d }), [rows, d]);
+  const mediaPreview = useUploadPreview(previewSource);
   const [busy, setBusy] = useState(false);
   const [listings, setListings] = useState<{ id: string; title: string; price: number; currency: string; images: string[] }[]>([]);
   const [listingsLoaded, setListingsLoaded] = useState(false);
@@ -188,6 +191,7 @@ export default function PlannerPage() {
 
   return (
     <div className="max-w-[960px]">
+      {mediaPreview.error ? <div role="alert" className="mb-3 text-sm text-danger">{mediaPreview.error} <button onClick={mediaPreview.retry} className="underline">Retry</button></div> : null}
       <StudioRailPortal>
         <>
           {railRows.failed > 0 || railRows.drafts > 0 || railRows.thisWeek > 0 ? (
@@ -307,7 +311,7 @@ export default function PlannerPage() {
         <div key={r.id} className="mt-2.5 flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-white p-3.5">
           {r.media?.[0]?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={r.media[0].url} alt="" className="h-16 w-16 rounded-lg object-cover" />
+            <img src={mediaPreview.preview.rows.find(row => row.id === r.id)?.media?.[0]?.url || undefined} alt="" className="h-16 w-16 rounded-lg object-cover" />
           ) : <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-surface text-muted"><FileText size={20} /></span>}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -348,7 +352,7 @@ export default function PlannerPage() {
                     <span key={i} className="relative">
                       {m.media_type === "video" ? <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-ink text-[10px] text-white">video</span>
                         // eslint-disable-next-line @next/next/no-img-element
-                        : <img src={m.url} alt="" className="h-16 w-16 rounded-lg object-cover" />}
+                        : <img src={mediaPreview.preview.draft.media[i]?.url || undefined} alt="" className="h-16 w-16 rounded-lg object-cover" />}
                       <button onClick={() => setD(x => ({ ...x, media: x.media.filter((_, j) => j !== i) }))} className="absolute -right-1 -top-1 rounded-full bg-ink p-0.5 text-white" aria-label="Remove"><X size={11} /></button>
                     </span>
                   ))}

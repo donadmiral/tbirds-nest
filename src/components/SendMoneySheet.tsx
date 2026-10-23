@@ -6,6 +6,8 @@ import { themedSheet, useTheme, getTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { supabase } from '../services/supabase';
+import { orderError, type MarketOrder } from '../../shared/marketOrders';
 import { paymentsService } from '../services/paymentsService';
 import type { PaymentIntent, PaymentOutcome } from '../services/paymentIntent';
 import { flagsService } from '../services/flagsService';
@@ -25,12 +27,13 @@ type Props = {
   listingId?: string | null;
   /** Pre-fills the keypad, e.g. a listing price. */
   initialAmount?: number | null;
+  orderId?: string | null;
 };
 
 const KEYS = ['1','2','3','4','5','6','7','8','9','.','0','del'];
 
 export default function SendMoneySheet({
-  visible, onClose, recipientId, recipientName, conversationId, onSent, onRequested, listingId, initialAmount,
+  visible, onClose, recipientId, recipientName, conversationId, onSent, onRequested, listingId, initialAmount, orderId,
 }: Props) {
   useTheme();
   const ownerId = useAuthStore(st => st.session?.user?.id || '');
@@ -45,10 +48,11 @@ export default function SendMoneySheet({
   const [retryAllowed, setRetryAllowed] = useState(false);
   const [recoveryMessage, setRecoveryMessage] = useState('');
   const [loadError, setLoadError] = useState('');
+  const [checkout, setCheckout] = useState<MarketOrder | null>(null);
   // Each opening and account/conversation change owns a different identity,
   // including A-to-B-to-A changes that return to the same payment details.
-  const context = useMemo(() => ({ ownerId, conversationId, recipientId, listingId, currency: 'USD', visible }),
-    [ownerId, conversationId, recipientId, listingId, visible]);
+  const context = useMemo(() => ({ ownerId, conversationId, recipientId, listingId, orderId, currency: 'USD', visible }),
+    [ownerId, conversationId, recipientId, listingId, orderId, visible]);
   const activeContextRef = useRef<typeof context | null>(context);
   activeContextRef.current = context;
   const operationRef = useRef<symbol | null>(null);
@@ -75,6 +79,7 @@ export default function SendMoneySheet({
       setRetryAllowed(false);
       setRaw('0');
       setRecoveryMessage(outcome.error || 'The payment was declined. No new payment has been sent.');
+      if (listingId) setLoadError('Close this sheet and reopen the order to review the current total before trying again.');
       return;
     }
     if (!isCurrent()) return;
@@ -86,7 +91,7 @@ export default function SendMoneySheet({
       : outcome.status === 'not_submitted'
         ? outcome.error || 'Confirmation was cancelled. Check the saved payment before retrying.'
         : 'Payment outcome unconfirmed. Check its status before making another payment. Closing this sheet keeps the original reference.');
-  }, [isCurrent, onSent, onClose]);
+  }, [isCurrent, onSent, onClose, listingId]);
 
   // Reopening a sheet only reads status. It never sends or creates a new key.
   useEffect(() => {
@@ -99,7 +104,7 @@ export default function SendMoneySheet({
     };
     if (!visible) return cleanup;
     const current = () => !cancelled && isCurrent();
-    setChecking(true); setCode(''); setLoadError(''); setRecoveryMessage('');
+    setChecking(true); setCheckout(null); setCode(''); setLoadError(''); setRecoveryMessage('');
     setPendingIntent(null); setRetryAllowed(false); setWallet(null); setLinked(false); setPeerHasBank(false);
     setRaw(initialAmount && initialAmount > 0 ? String(initialAmount) : '0');
     (async () => {
@@ -116,6 +121,17 @@ export default function SendMoneySheet({
           } catch {
             if (current()) setRecoveryMessage('Payment outcome unconfirmed. Reconnect and check its status. The original payment reference is saved.');
           }
+        }
+        if (listingId && !intent) {
+          const response = orderId
+            ? await supabase.rpc('get_market_order', { p_id: orderId })
+            : await supabase.rpc('get_market_checkout', { p_listing_id: listingId, p_seller_id: recipientId });
+          if (response.error) throw new Error(orderError(response.error));
+          const order = response.data as MarketOrder;
+          if (order.buyer_id !== ownerId || order.seller_id !== recipientId || order.conversation_id !== conversationId || order.listing_id !== listingId || order.status !== 'awaiting_payment') throw new Error('Open the accepted order from its marketplace listing.');
+          if (order.currency !== 'USD') throw new Error('IntoBank Chat Pay currently supports USD orders.');
+          if (!current()) return;
+          setCheckout(order); setRaw(String(Number(order.total_minor) / 100));
         }
         const [balance, peer] = await Promise.all([
           paymentsService.getBalance(ownerId), paymentsService.peerLinked(recipientId, ownerId),
@@ -143,7 +159,7 @@ export default function SendMoneySheet({
   }, [raw]);
 
   const press = useCallback((k: string) => {
-    if (pendingIntent || busy) return;
+    if (pendingIntent || busy || listingId) return;
     setRaw(prev => {
       if (k === 'del') { const n = prev.slice(0, -1); return n === '' ? '0' : n; }
       if (k === '.') { return prev.includes('.') ? prev : prev + '.'; }
@@ -152,15 +168,15 @@ export default function SendMoneySheet({
       if (prev.replace('.', '').length >= 8) return prev;
       return prev + k;
     });
-  }, [pendingIntent, busy]);
+  }, [pendingIntent, busy, listingId]);
 
   const adjust = useCallback((d: number) => {
-    if (pendingIntent || busy) return;
+    if (pendingIntent || busy || listingId) return;
     setRaw(prev => {
       const next = Math.max(0, (Number(prev) || 0) + d);
       return String(Number(next.toFixed(2)));
     });
-  }, [pendingIntent, busy]);
+  }, [pendingIntent, busy, listingId]);
 
   const doLink = useCallback(async () => {
     if (!ownerId || !isCurrent() || operationRef.current) return;
@@ -197,7 +213,7 @@ export default function SendMoneySheet({
     let intent: PaymentIntent | null = null;
     try {
       intent = await paymentsService.prepareIntent({
-        ownerId, recipientId, amount, conversationId, currency: 'USD', listingId: listingId ?? null,
+        ownerId, recipientId, amount, conversationId, currency: 'USD', listingId: listingId ?? null, orderId: checkout?.id ?? orderId ?? null,
       });
       if (!isCurrent()) return;
       setPendingIntent(intent); setRaw(String(intent.amount));
@@ -213,13 +229,13 @@ export default function SendMoneySheet({
         else setRecoveryMessage('Payment outcome unconfirmed. ' + (e?.message || 'Reconnect and check its status.'));
       }
     } finally { finishOperation(operation); }
-  }, [loadError, amount, peerHasBank, pendingIntent, recipientName, ownerId, recipientId, conversationId, listingId, isCurrent, showOutcome, finishOperation]);
+  }, [loadError, amount, peerHasBank, pendingIntent, recipientName, ownerId, recipientId, conversationId, listingId, orderId, checkout, isCurrent, showOutcome, finishOperation]);
 
   const doRequest = useCallback(() => {
-    if (!ownerId || !isCurrent() || amount <= 0 || busy || pendingIntent || loadError) return;
+    if (!ownerId || !isCurrent() || amount <= 0 || busy || pendingIntent || loadError || listingId) return;
     onRequested?.(amount, 'USD');
     onClose();
-  }, [ownerId, amount, busy, pendingIntent, loadError, onRequested, onClose, isCurrent]);
+  }, [ownerId, amount, busy, pendingIntent, loadError, listingId, onRequested, onClose, isCurrent]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { if (!busy) onClose(); }}>
@@ -269,11 +285,12 @@ export default function SendMoneySheet({
               )}
 
 
+              {!!listingId && <Text style={s.linkSub}>The order total is fixed, including any agreed delivery fee. Review the order before confirming.</Text>}
               {!!recoveryMessage && <Text style={s.linkSub} accessibilityLiveRegion="polite">{recoveryMessage}</Text>}
               {!!loadError && <Text style={s.linkSub}>{loadError}</Text>}
               {pendingIntent && <Text style={s.fundTxt}>Reference: {pendingIntent.idempotencyKey}</Text>}
               <View style={s.amountRow}>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Decrease amount by one dollar" hitSlop={6} style={s.step} onPress={() => adjust(-1)} disabled={busy || !!pendingIntent} activeOpacity={0.7}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Decrease amount by one dollar" hitSlop={6} style={s.step} onPress={() => adjust(-1)} disabled={busy || !!pendingIntent || !!listingId} activeOpacity={0.7}>
                   <Feather name="minus" size={18} color={getTheme().ink.primary} />
                 </TouchableOpacity>
                 <View style={s.amountWrap}>
@@ -281,23 +298,23 @@ export default function SendMoneySheet({
                     ${raw}
                   </Text>
                 </View>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Increase amount by one dollar" hitSlop={6} style={s.step} onPress={() => adjust(1)} disabled={busy || !!pendingIntent} activeOpacity={0.7}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Increase amount by one dollar" hitSlop={6} style={s.step} onPress={() => adjust(1)} disabled={busy || !!pendingIntent || !!listingId} activeOpacity={0.7}>
                   <Feather name="plus" size={18} color={getTheme().ink.primary} />
                 </TouchableOpacity>
               </View>
 
-              <View style={s.keypad}>
+              {!listingId && <View style={s.keypad}>
                 {KEYS.map(k => (
-                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={k === 'del' ? 'Delete last digit' : k === '.' ? 'Decimal point' : k} key={k} style={s.key} onPress={() => press(k)} disabled={busy || !!pendingIntent} activeOpacity={0.6}>
+                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={k === 'del' ? 'Delete last digit' : k === '.' ? 'Decimal point' : k} key={k} style={s.key} onPress={() => press(k)} disabled={busy || !!pendingIntent || !!listingId} activeOpacity={0.6}>
                     {k === 'del'
                       ? <Feather name="delete" size={22} color={getTheme().ink.primary} />
                       : <Text style={s.keyTxt}>{k}</Text>}
                   </TouchableOpacity>
                 ))}
-              </View>
+              </View>}
 
               <View style={s.actions}>
-                <TouchableOpacity
+                {!listingId && <TouchableOpacity
                   accessibilityRole="button"
                   style={[s.request, (amount <= 0 || busy || !!pendingIntent || !!loadError) && s.off]}
                   onPress={doRequest}
@@ -305,7 +322,7 @@ export default function SendMoneySheet({
                   activeOpacity={0.85}
                 >
                   <Text style={s.requestTxt}>Request</Text>
-                </TouchableOpacity>
+                </TouchableOpacity>}
                 <TouchableOpacity
                   accessibilityRole="button"
                   accessibilityLabel={pendingIntent ? (retryAllowed ? 'Retry same payment' : 'Check payment status') : 'Pay'}

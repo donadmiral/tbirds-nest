@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Eye, FileText, Heart, Image as ImageIcon, MessageCircle, Play, Plus, Search } from "lucide-react";
 import { listScheduled, studioHome, type ScheduledPost, type StudioHome } from "@/lib/studio";
+import { useUploadPreview } from "@/lib/useUploadPreview";
 import { EmptyState, PillTabs } from "@/components/ui";
 import { Metric } from "@/components/Charts";
 
@@ -41,6 +42,7 @@ function statusChip(s: string) {
 
 export default function ContentPage() {
   const [rows, setRows] = useState<ScheduledPost[]>([]);
+  const mediaPreview = useUploadPreview(rows);
   const [home, setHome] = useState<StudioHome | null>(null);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -103,6 +105,7 @@ export default function ContentPage() {
 
   return (
     <div>
+      {mediaPreview.error ? <p role="alert" className="text-sm text-danger">{mediaPreview.error} <button className="underline" onClick={mediaPreview.retry}>Retry</button></p> : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Content library</h1>
@@ -169,7 +172,7 @@ export default function ContentPage() {
         <div className="mt-4 overflow-hidden rounded-2xl border border-ink/10 bg-white">
           {shown.map((r, i) => {
             const e = engagement.get(r.published_post_id || r.id);
-            const cover = r.media?.[0];
+            const cover = mediaPreview.preview.find(row => row.id === r.id)?.media?.[0];
             const when = r.publish_at ? new Date(r.publish_at) : null;
             const text = r.content || r.body || "Untitled";
             return (

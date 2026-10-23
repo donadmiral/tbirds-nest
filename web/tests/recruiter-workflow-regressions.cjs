@@ -48,7 +48,14 @@ function harness({ rpc = async name => ({data: name === 'studio_jobs' ? [job('A'
       }
     },
   };
-  const client = { rpc: (name, args) => { calls.push({ name, args }); return rpc(name, args); } };
+  const client = { rpc: async (name, args) => {
+    calls.push({ name, args }); const result = await rpc(name, args);
+    if (name === 'studio_applicant_page' && Array.isArray(result.data)) {
+      const counts = { all: result.data.length }; for (const row of result.data) counts[row.status] = (counts[row.status] || 0) + 1;
+      return { ...result, data: { applications: result.data, counts, cursor: null, has_more: false, next_interviews: [], interviews_today: 0 } };
+    }
+    return result;
+  } };
   const runtime = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: 'Fragment' };
   const moduleObject = { exports: {} };
   const stubs = new Proxy({}, { get: (_, key) => String(key) });
@@ -61,6 +68,7 @@ function harness({ rpc = async name => ({data: name === 'studio_jobs' ? [job('A'
       if (id === '@/components/StudioShell') return { useStudio: () => ({ me: { role: 'owner' } }) };
       if (id === '@/lib/studio') return { can: () => true };
       if (id === '@/lib/recruiting') return helper;
+      if (id.endsWith('/shared/hiring')) return require('../../shared/hiring.ts');
       if (id === 'next/navigation') return {useRouter: () => ({push: path => routes.push(path)})};
       if (id.endsWith('/LoadError')) return { StudioLoadError: 'StudioLoadError' };
       if (id === 'next/link') return { __esModule: true, default: 'Link' };
@@ -135,7 +143,7 @@ test('withdrawn and future statuses stay visible and withdrawn applications cann
     const button = app.find(n => n.type === 'button' && text(n) === label); assert.equal(button.props.disabled, true);
     button.props.onClick();
   }
-  assert.equal(app.calls.some(c => c.name === 'studio_set_stage'), false);
+  assert.equal(app.calls.some(c => c.name === 'studio_update_application'), false);
 });
 
 test('both message controls target the returned jobs conversation and lock repeated clicks', async () => {
@@ -208,4 +216,21 @@ for (const outcome of ['error', 'missing', 'thrown']) test(`message ${outcome} o
   app.find(n => n.type === 'button' && text(n).trim() === 'Message').props.onClick(); await app.flush();
   assert.ok(app.error('The conversation')); assert.deepEqual(app.routes, []);
   assert.equal(app.find(n => n.type === 'button' && text(n).trim() === 'Message').props.disabled, false);
+});
+
+
+test('paginated pipeline uses complete counts and appends older applicants without replacing the current page', async () => {
+  const app = harness({rpc: async (name, args) => {
+    if (name === 'studio_jobs') return {data: [job('A')], error: null};
+    if (name === 'studio_applicant_page') return {data: { applications: [applicant(args.p_before_id ? 'Older' : 'Newest')], counts: {all: 350, applied: 200, interview: 100, hired: 50}, cursor: args.p_before_id ? null : {id: 'Newest', applied_at: '2026-01-01'}, has_more: !args.p_before_id, next_interviews: [], interviews_today: 0 }, error: null};
+    return {data: null, error: null};
+  }});
+  app.render(); await app.flush(); assert.ok(app.text.includes('350 applications in this role'));
+  app.click('Load more applicants'); await app.flush();
+  assert.ok(app.text.includes('Applicant Newest')); assert.ok(app.text.includes('Applicant Older'));
+  assert.equal(app.calls.filter(c=>c.name==='studio_applicant_page').at(-1).args.p_before_id,'Newest');
+});
+test('server status summary counts aliases and unknown stages exactly once', () => {
+  const result=helper.recruitingCountSummary({all:350,applied:100,viewed:100,shortlisted:25,hired:30,accepted:20,withdrawn:70,future:5});
+  assert.equal(result.total,350); assert.equal(result.counts.applied,200); assert.equal(result.hired,50); assert.equal(result.counts.other,5);
 });

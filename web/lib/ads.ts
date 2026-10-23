@@ -1,6 +1,7 @@
 // The simple ads tier on the existing 0041 rails: promoted_posts,
 // ad_events via record_ad_event (deduped per user and kind), get_active_promos.
 import { createClient } from "@/lib/supabase/client";
+import { hydratePostMedia } from "@/lib/contentMedia";
 import type { FeedRow } from "@/lib/feed";
 
 export type Promo = {
@@ -55,14 +56,14 @@ export async function getActivePromos(limit = 3): Promise<PromoRow[]> {
     const reposted = new Set((reposts?.data ?? []).map((r) => r.post_id));
     const saved = new Set((bookmarks?.data ?? []).map((r) => r.post_id));
     const followed = new Set((follows?.data ?? []).map((r) => r.following_id));
-    return rows.map((r) => ({
+    return await hydratePostMedia(rows.map((r) => ({
       ...r,
       viewer_liked: liked.has(r.post_id),
       viewer_reposted: reposted.has(r.post_id),
       viewer_bookmarked: saved.has(r.post_id),
       viewer_follows: followed.has(r.author_id),
       sort_key: 0,
-    }));
+    })), supabase);
   } catch {
     return [];
   }
@@ -122,47 +123,11 @@ export type PromoDay = { day: string; impressions: number; clicks: number };
 export async function myPromoPerformance(expectedAdvertiser: string): Promise<PromoDay[]> {
   const supabase = createClient();
   const uid = await requireAdvertiser(supabase, expectedAdvertiser);
-  const until = new Date();
-  const since = new Date(until);
-  since.setUTCHours(0, 0, 0, 0);
-  since.setUTCDate(since.getUTCDate() - 29);
-  const byDay = new Map<string, PromoDay>();
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(since.getTime() + i * 86400000);
-    const day = date.toISOString().slice(0, 10);
-    byDay.set(day, { day, impressions: 0, clicks: 0 });
-  }
-  // Do not silently graph the Data API's first page as the whole month. The
-  // bounded fallback is for existing deployments; high volume needs a rollup.
-  const pageSize = 500;
-  const maxEvents = 10000;
-  const ids = new Set<string>();
-  let total: number | null = null;
-  for (let offset = 0; offset < maxEvents; offset += pageSize) {
-    const { data, error, count } = await supabase.from("ad_events")
-      .select("id, kind, created_at, promoted_posts!inner(advertiser_id)", { count: "exact" })
-      .eq("promoted_posts.advertiser_id", uid)
-      .gte("created_at", since.toISOString()).lte("created_at", until.toISOString())
-      .order("created_at").order("id").range(offset, offset + pageSize - 1);
-    if (error) throw error;
-    if (count === null || count > maxEvents) throw new Error("The detailed chart is unavailable for this volume. Lifetime totals are still shown.");
-    if (total !== null && total !== count) throw new Error("Performance changed while loading. Refresh the chart.");
-    total = count;
-    for (const event of data ?? []) {
-      if (ids.has(event.id)) continue;
-      ids.add(event.id);
-      const row = byDay.get(event.created_at.slice(0, 10));
-      if (!row) continue;
-      if (event.kind === "click") row.clicks++;
-      else if (event.kind === "impression") row.impressions++;
-    }
-    if (ids.size === total) {
-      await requireAdvertiser(supabase, uid);
-      return Array.from(byDay.values());
-    }
-    if (!data?.length || data.length < pageSize) break;
-  }
-  throw new Error("The full performance chart could not be loaded. Refresh the chart.");
+  const { data, error } = await supabase.rpc('promo_daily_performance', { p_expected_user: uid });
+  if (error) throw error;
+  if (!Array.isArray(data) || data.length !== 30 || data.some(row => !/^\d{4}-\d{2}-\d{2}$/.test(row.day) || !Number.isSafeInteger(row.impressions) || row.impressions < 0 || !Number.isSafeInteger(row.clicks) || row.clicks < 0) || new Set(data.map(row => row.day)).size !== 30) throw new Error('The performance chart could not be verified. Refresh and try again.');
+  await requireAdvertiser(supabase, uid);
+  return data as PromoDay[];
 }
 
 export async function createPromo(postId: string, opts: { label?: string; endsAt?: string | null; totalCap?: number | null }): Promise<string | null> {

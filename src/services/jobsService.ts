@@ -405,7 +405,7 @@ export const jobsService = {
       .from('job_applications')
       .select('*')
       .eq('job_id', jobId)
-      .order('applied_at', { ascending: false });
+      .order('applied_at', { ascending: false }).limit(50);
     if (error) {
       console.log('[jobsService.getApplicationsForJob]', error.message);
       throw error;
@@ -443,13 +443,7 @@ export const jobsService = {
   },
 
   async scheduleInterview(applicationId: string, at: string | null, location: string | null): Promise<void> {
-    const { error } = await supabase
-      .from('job_applications')
-      .update({ interview_at: at, interview_location: location, updated_at: new Date().toISOString() })
-      .eq('id', applicationId)
-      .neq('status', 'withdrawn')
-      .select('id')
-      .single();
+    const { error } = await supabase.rpc('studio_schedule_interview', { p_application: applicationId, p_at: at, p_location: location });
     if (error) throw error;
   },
 

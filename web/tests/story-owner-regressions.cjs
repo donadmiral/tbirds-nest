@@ -33,6 +33,7 @@ function scenario(options = {}) {
     return { data: [], error: null };
   };
   const client = {
+    rpc(name,payload) { const call={table:name,op:'rpc',payload,filters:{}}; writes.push(call); return options.write ? options.write(call) : Promise.resolve({data:'saved',error:null}); },
     auth: {
       getSession: () => options.session ? options.session(owner) : Promise.resolve({ data: { session: owner ? { user: { id: owner } } : null }, error: null }),
       getUser: () => options.user ? options.user() : Promise.resolve({ data: { user: owner ? { id: owner } : null }, error: null }),
@@ -49,7 +50,8 @@ function scenario(options = {}) {
     }; } },
   };
   const runtime={jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
-  const common={console,Promise,Set,Map,Error,crypto:{randomUUID:()=> 'upload'},
+  const storage = new Map();
+  const common={sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},console,Promise,Set,Map,Error,crypto:{randomUUID:()=> 'upload'},
     setTimeout:(callback,ms)=>{const id=++nextTimer;timers.set(id,{callback,ms});return id;},clearTimeout:id=>timers.delete(id),
     URL:{createObjectURL:()=> 'blob:preview',revokeObjectURL:value=>revoked.push(value)},
     document:{createElement:()=>{ const video={removeAttribute(){},load(){this.cleaned=true;},duration:10};videos.push(video);return video;}},
@@ -61,6 +63,7 @@ function scenario(options = {}) {
     if(name==='@/lib/supabase/client')return{createClient:()=>client};
     if(name==='@/lib/publication')return load(publication);
     if(name==='@/lib/stories')return{STORY_FILTERS:[],STORY_FILTER_FAMILIES:[],filterCss:()=>''};
+    if(name==='@/lib/contentMedia')return{hydrateStoryDraftMedia:async rows=>options.hydrateDrafts ? options.hydrateDrafts(rows) : rows};
     if(name==='@/lib/media')return{checkUploadableBytes:async()=>null};
     if(name==='@/lib/memoryAlbum')return{searchPeople:async()=>[]};
     return new Proxy({},{get:(_,key)=>String(key)});
@@ -101,7 +104,7 @@ test('upload completion from A cannot populate B and cannot release B upload loc
   const a=defer(),b=defer();const h=scenario({upload:path=>path.startsWith('a/')?a.promise:b.promise});await h.flush();
   h.pick();await h.flush();h.changeOwner('b');await h.flush();h.pick();await h.flush();
   a.resolve({error:null});await h.flush();assert.ok(h.text.includes('Uploading'));assert.ok(!nodes(h.tree).some(n=>n.props?.src?.startsWith('https://media.test/a/')));
-  b.resolve({error:null});await h.flush();assert.ok(nodes(h.tree).some(n=>n.props?.src==='https://media.test/b/upload.jpg'));h.unmount();
+  b.resolve({error:null});await h.flush();assert.ok(nodes(h.tree).some(n=>n.props?.src==='blob:preview'));h.unmount();
 });
 test('unmount cancels pending work and prevents late state updates',async()=>{
   const pending=defer();const h=scenario({upload:()=>pending.promise});await h.flush();h.pick();await h.flush();
@@ -109,7 +112,7 @@ test('unmount cancels pending work and prevents late state updates',async()=>{
 });
 test('account change cleans a pending video metadata object immediately',async()=>{
   const h=scenario();await h.flush();h.pick('video/mp4');await h.flush();assert.equal(h.videos.length,1);
-  h.changeOwner('b');await h.flush();assert.equal(h.videos[0].cleaned,true);assert.deepEqual(h.revoked,['blob:preview']);assert.ok(!nodes(h.tree).some(n=>n.type==='video'));h.unmount();
+  h.changeOwner('b');await h.flush();assert.equal(h.videos[0].cleaned,true);assert.deepEqual(h.revoked,['blob:preview','blob:preview']);assert.ok(!nodes(h.tree).some(n=>n.type==='video'));h.unmount();
 });
 test('failed or stalled initial session leaves publishing disabled and shows recovery',async()=>{
   const h=scenario({session:()=>new Promise(()=>{})});h.fireTimeout(15000);await h.flush();
@@ -133,11 +136,43 @@ test('account change during publication authentication prevents the story insert
 });
 test('a committed story from A never sends child writes or changes navigation after switching to B',async()=>{
   const pending=defer();const h=scenario({loadDrafts:owner=>({data:owner==='a'?[draft('a')]:[],error:null}),write:()=>pending.promise});await h.flush();await h.openDraft();await h.flush();
-  const publishing=h.button('Share to story').props.onClick();await h.flush();assert.equal(h.writes.length,1);assert.equal(h.writes[0].table,'stories');
+  const publishing=h.button('Share to story').props.onClick();await h.flush();assert.equal(h.writes.length,1);assert.equal(h.writes[0].table,'publish_story_v2');
   h.changeOwner('b');pending.resolve({data:{id:'story-a'},error:null});await publishing;await h.flush();
   assert.equal(h.writes.length,1);assert.equal(h.navigation.length,0);assert.equal(h.input().props.value,'');h.unmount();
 });
 test('a stale submit handler captured for A cannot publish from B',async()=>{
   const h=scenario();await h.flush();h.pick();await h.flush();const submit=h.button('Share to story').props.onClick;
   h.changeOwner('b');await submit();await h.flush();assert.equal(h.writes.length,0);h.unmount();
+});
+
+
+test('lost story response retries the same atomic request and never creates a fresh publication key',async()=>{
+  let calls=0;
+  const h=scenario({write:async()=>++calls===1?{error:{message:'connection closed'}}:{data:'story-confirmed',error:null}});
+  await h.flush(); h.pick(); await h.flush();
+  await h.button('Share to story').props.onClick(); await h.flush();
+  assert.match(h.text,/Retry safely/); assert.equal(h.navigation.length,0);
+  await h.button('Retry safely').props.onClick(); await h.flush();
+  assert.equal(h.writes.length,2); assert.equal(h.writes[0].payload.p_request_id,h.writes[1].payload.p_request_id);
+  assert.deepEqual(h.writes[0].payload.p_story,h.writes[1].payload.p_story);
+  assert.deepEqual(h.navigation,['/home']); h.unmount();
+});
+test('saved story draft keeps its filter and stickers in the owner-scoped write',async()=>{
+  const row={...draft('a'),filter_id:'warm',stickers_json:[{id:'a',kind:'question',text:'Ask',nx:.5,ny:.4}],media_transform:{scale:1,translateNX:0,translateNY:0,trimStart:2,trimEnd:8}};
+  const h=scenario({loadDrafts:()=>({data:[row],error:null})}); await h.flush(); await h.openDraft(); await h.flush();
+  await h.button('Update draft').props.onClick(); await h.flush();
+  const saved=h.writes.find(w=>w.table==='story_drafts'); assert.equal(saved.payload.filter_id,'warm');
+  assert.deepEqual(saved.payload.stickers_json,row.stickers_json); assert.deepEqual(saved.payload.media_transform,row.media_transform);
+  assert.equal(saved.filters.user_id,'a'); h.unmount();
+});
+
+test('private draft preview capabilities never replace canonical publish or saved references', async()=>{
+  const h=scenario({loadDrafts:()=>({data:[draft('a')],error:null}),hydrateDrafts:async rows=>rows.map(row=>({...row,media_url:'https://media.test/signed?token=secret'}))});
+  await h.flush();
+  const button=nodes(h.tree).find(n=>n.type==='button'&&nodes(n).some(x=>x.props?.src==='https://media.test/signed?token=secret'));
+  assert.ok(button);await button.props.onClick();await h.flush();
+  await h.button('Update draft').props.onClick();await h.flush();
+  const write=h.writes.find(w=>w.table==='story_drafts'&&w.op==='update');
+  assert.equal(write.payload.media_url,'https://media.test/draft-a');
+  assert.ok(!JSON.stringify(write.payload).includes('token='));h.unmount();
 });

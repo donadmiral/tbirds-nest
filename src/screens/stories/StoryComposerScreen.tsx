@@ -1231,7 +1231,7 @@ export default function StoryComposerScreen() {
       </Modal>
 
       {/* Sticker Tray - Instagram construction */}
-      <MusicSheet visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
+      <MusicSheet visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onShareTrack={(track) => { addSimpleSticker({ kind: 'link', text: track.title + ' · ' + track.artist, url: track.url }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
       <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={active?.filterId || null} onSelect={(fid: string | null) => { updateActive({ filterId: fid }); }} previewUri={active?.localUri || null} />
       <AdjustPanel visible={adjustOpen} onClose={() => setAdjustOpen(false)} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
       <BackgroundSheet visible={bgOpen} onClose={() => setBgOpen(false)} bg={((getTx() as any).bg || null) as StoryBg | null} onChange={(b: StoryBg) => setTx({ bg: b } as any)} />

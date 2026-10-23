@@ -1,10 +1,12 @@
 "use client";
 
+import { saveApplicationStatus, saveInterview, type ApplicantCursor } from "../../../../shared/hiring";
+
 import { ApplicationCvLink } from "@/components/ApplicationCvLink";
 
 import { RecruiterFunnel, RecruiterRail } from "@/components/RecruiterFunnel";
 import { StudioLoadError } from "../LoadError";
-import { RECRUITER_STAGES, RECRUITER_COLUMNS, RECRUITER_STAGE_LABEL, recruiterStage, interviewLocalInput, futureInterviewIso } from "@/lib/recruiting";
+import { RECRUITER_STAGES, RECRUITER_COLUMNS, RECRUITER_STAGE_LABEL, recruiterStage, recruitingCountSummary, interviewLocalInput, futureInterviewIso } from "@/lib/recruiting";
 import { useRouter } from "next/navigation";
 import { displayImageUrl } from "@/lib/media";
 import { StudioRailPortal } from "@/components/StudioRailPortal";
@@ -42,6 +44,10 @@ export default function RecruiterPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobId, setJobId] = useState<string | null>(null);
   const [apps, setApps] = useState<Applicant[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [appCursor, setAppCursor] = useState<ApplicantCursor | null>(null); const [hasMoreApps, setHasMoreApps] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [interviewsToday, setInterviewsToday] = useState(0); const [nextInterviews, setNextInterviews] = useState<{id:string;name:string;interview_at:string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingApps, setLoadingApps] = useState(false);
   const [sel, setSel] = useState<Applicant | null>(null);
@@ -74,7 +80,7 @@ export default function RecruiterPage() {
     activeJob.current = { id };
     appsRequest.current += 1;
     activeApplicant.current = { id: null };
-    setJobId(id); setApps([]); setSel(null); setNote(""); setActionError(null); setAppsError(null);
+    setJobId(id); setApps([]); setCounts({}); setAppCursor(null); setHasMoreApps(false); setStatusFilter('all'); setNextInterviews([]); setInterviewsToday(0); setSel(null); setNote(""); setActionError(null); setAppsError(null);
     setLoadingApps(!!id);
   }, []);
 
@@ -94,23 +100,26 @@ export default function RecruiterPage() {
       if (mounted.current && request === jobsRequest.current) setLoading(false);
     }
   }, [supabase, selectJob]);
-  const loadApps = useCallback(async (id: string) => {
+  const loadApps = useCallback(async (id: string, cursor: ApplicantCursor | null = null) => {
     const context = activeJob.current;
     if (context.id !== id) return;
     const request = ++appsRequest.current;
     const current = () => mounted.current && context === activeJob.current && request === appsRequest.current;
     setLoadingApps(true); setAppsError(null);
     try {
-      const { data, error } = await supabase.rpc("studio_applicants", { p_job: id });
+      const { data, error } = await supabase.rpc("studio_applicant_page", { p_job: id, p_status: statusFilter, p_before_at: cursor?.applied_at ?? null, p_before_id: cursor?.id ?? null, p_limit: 25 });
       if (error) throw error;
       if (!current()) return;
-      const list = (data as Applicant[]) ?? [];
-      setApps(list);
-      setSel(s => s ? list.find(a => a.id === s.id) || null : null);
+      if (!data || !Array.isArray(data.applications) || !data.counts) throw new Error('Incomplete applicant response');
+      const list: Applicant[] = data.applications.map((row: Applicant & { applicant?: { full_name?: string; username?: string; avatar_url?: string; bio?: string; location?: string } }) => ({ ...row, name: row.applicant?.full_name || row.name || 'Applicant', username: row.applicant?.username ?? row.username ?? null, avatar_url: row.applicant?.avatar_url ?? row.avatar_url ?? null, bio: row.applicant?.bio ?? row.bio ?? null, location: row.applicant?.location ?? row.location ?? null, tags: row.tags ?? [], notes: row.notes ?? [] }));
+      setApps(old => cursor ? [...new Map([...old, ...list].map(row => [row.id, row])).values()] : list);
+      setCounts(data.counts); setAppCursor(data.cursor); setHasMoreApps(!!data.has_more);
+      setNextInterviews(data.next_interviews ?? []); setInterviewsToday(data.interviews_today ?? 0);
+      setSel(s => s ? list.find(a => a.id === s.id) || (cursor ? s : null) : null);
     } catch {
       if (current()) setAppsError("Applicants could not be loaded. Please try again.");
     } finally { if (current()) setLoadingApps(false); }
-  }, [supabase]);
+  }, [supabase, statusFilter]);
   useEffect(() => {
     let live = true;
     mounted.current = true;
@@ -124,6 +133,10 @@ export default function RecruiterPage() {
   }, [jobId, recruiter, loadApps]);
 
   const job = jobs.find(j => j.id === jobId) || null;
+  const completeCounts = recruitingCountSummary(counts);
+  const filterApplicants = (status: string) => {
+    activeJob.current = { id: jobId }; appsRequest.current++; setStatusFilter(status); setApps([]); setAppCursor(null); setHasMoreApps(false); selectApplicant(null);
+  };
 
   const act = async (fn: () => PromiseLike<{ error: unknown }>, success?: () => void) => {
     if (actionPending.current) return;
@@ -144,13 +157,13 @@ export default function RecruiterPage() {
   const setStage = (a: Applicant, status: string) => {
     if (a.status === "withdrawn" || !STAGES.some(s => s === status)) return;
     if ((status === "rejected" || status === "hired") && !confirm((status === "rejected" ? "Reject " : "Mark as hired: ") + a.name + "? They will be notified.")) return;
-    void act(() => supabase.rpc("studio_set_stage", { p_application: a.id, p_status: status }));
+    void act(async () => { await saveApplicationStatus(supabase, a, status); return { error: null }; });
   };
   const schedule = (a: Applicant) => {
     const date = futureInterviewIso(ivAt);
     if (a.status === "withdrawn") return;
     if (!date) { setActionError("Choose a future interview date and time."); return; }
-    void act(() => supabase.rpc("studio_schedule_interview", { p_application: a.id, p_at: date, p_location: ivLoc.trim() || null }));
+    void act(async () => { await saveInterview(supabase, a, date, ivLoc.trim() || null); return { error: null }; });
   };
   const addNote = (a: Applicant) => {
     if (!note.trim()) return;
@@ -217,21 +230,22 @@ export default function RecruiterPage() {
           <StudioLoadError message={appsError} retry={() => { if (jobId) void loadApps(jobId); }} busy={loadingApps} />
           <StudioLoadError message={actionError} retry={() => { setActionError(null); if (jobId) void loadApps(jobId); }} busy={loadingApps || busy} />
           {!loadingApps && !appsError ? <>
-            <StudioRailPortal><RecruiterRail apps={apps} jobs={jobs} /></StudioRailPortal>
-            <RecruiterFunnel apps={apps} jobs={jobs} />
+            <StudioRailPortal><RecruiterRail apps={apps} jobs={jobs} counts={counts} nextInterviews={nextInterviews} interviewsToday={interviewsToday} /></StudioRailPortal>
+            <RecruiterFunnel apps={apps} jobs={jobs} counts={counts} />
           </> : null}
 
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm"><label>Show applications <select aria-label="Filter application status" value={statusFilter} onChange={e => filterApplicants(e.target.value)} className="ml-2 rounded-lg border border-ink/15 bg-white p-2"><option value="all">All stages</option>{Object.keys(counts).filter(key => ['applied','viewed','shortlisted','screening','interview','offer','hired','accepted','rejected','withdrawn'].includes(key)).map(key => <option key={key} value={key}>{STAGE_LABEL[recruiterStage(key)] || key}{key !== recruiterStage(key) ? ' (' + key + ')' : ''} · {counts[key]}</option>)}</select></label><span className="text-muted">{apps.length} loaded · {completeCounts.total} applications in this role</span>{hasMoreApps && <button disabled={loadingApps} onClick={() => jobId && void loadApps(jobId, appCursor)} className="rounded-lg bg-surface px-3 py-2">Load more applicants</button>}</div>
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]">
             <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
-              {RECRUITER_COLUMNS.filter(st => st !== "other" || apps.some(a => recruiterStage(a.status) === "other")).map(st => {
+              {RECRUITER_COLUMNS.filter(st => st !== "other" || completeCounts.counts.other > 0).map(st => {
                 const col = apps.filter(a => recruiterStage(a.status) === st);
                 return (
                   <div key={st} className="w-[168px] shrink-0 rounded-2xl border border-ink/10 bg-white p-2">
                     <span className={"mb-2 block h-[3px] w-full rounded-full " + STAGE_BAR[st]} aria-hidden />
-                    <p className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-muted"><span>{STAGE_LABEL[st]}</span><span className="tabular-nums">{col.length}</span></p>
+                    <p className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wide text-muted"><span>{STAGE_LABEL[st]}</span><span className="tabular-nums" title="All applications in this stage">{completeCounts.counts[st] ?? 0}</span></p>
                     {loadingApps ? <p className="px-1 text-[12px] text-muted">Loading</p> : col.length === 0 && !appsError ? (
                       <p className="px-1 pb-1 text-[11.5px] leading-snug text-muted break-words">
-                        {st === "applied" ? "New applications land here" : st === "rejected" ? "Nobody rejected" : "Nobody at this stage"}
+                        {(completeCounts.counts[st] ?? 0) > 0 ? "Choose this stage in the filter or load more applicants to view them." : st === "applied" ? "New applications land here" : st === "rejected" ? "Nobody rejected" : "Nobody at this stage"}
                       </p>
                     ) : col.map(a => (
                       <button key={a.id} onClick={() => selectApplicant(a)} aria-pressed={sel?.id === a.id} className={"mb-1.5 w-full rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (sel?.id === a.id ? "border-pearl" : "border-ink/10")}>
@@ -290,7 +304,7 @@ export default function RecruiterPage() {
                   </div>
 
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {sel.portfolio_url ? <a href={sel.portfolio_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><ExternalLink size={12} /> Portfolio</a> : null}
+                    {sel.portfolio_url && /^https?:\/\//i.test(sel.portfolio_url) ? <a href={sel.portfolio_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><ExternalLink size={12} /> Portfolio</a> : null}
                     {sel.phone ? <a href={"tel:" + sel.phone} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Phone size={12} /> {sel.phone}</a> : null}
                   </div>
                   {sel.cover_letter || sel.cover_note ? (

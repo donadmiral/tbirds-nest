@@ -1,25 +1,13 @@
 "use client";
 
-/**
- * The app-wide error boundary.
- *
- * Next.js renders this instead of its default error page whenever a route
- * throws during render or data loading. Before this existed, any uncaught
- * error anywhere in 65 routes produced the framework's stack-trace screen,
- * which tells the person nothing and offers them no way out.
- *
- * The reset() callback re-runs the failed render, so a transient failure (a
- * dropped connection, a timed-out query) recovers in place without a reload.
- */
 import { useEffect } from "react";
+import { reportClientError } from "@/lib/clientDiagnostics";
 import Link from "next/link";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 
-export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function AppError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   useEffect(() => {
-    // Kept so the failure is visible in the console during development and
-    // ready for a reporter (Sentry or similar) to hook into later.
-    console.error("Route error:", error);
+    reportClientError(error);
   }, [error]);
 
   return (
@@ -34,7 +22,7 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
         </p>
         <div className="mt-5 flex items-center justify-center gap-2.5">
           <button
-            onClick={reset}
+            onClick={retry}
             className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"
           >
             <RotateCcw size={14} /> Try again
@@ -46,9 +34,7 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
             Back to home
           </Link>
         </div>
-        {error.digest ? (
-          <p className="mt-4 text-[11.5px] text-muted">Reference {error.digest}</p>
-        ) : null}
+
       </div>
     </div>
   );

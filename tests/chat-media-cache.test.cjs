@@ -16,7 +16,7 @@ const baseline = {
   'src/services/chatMediaService.ts': 'eabe22330246947d37017994a94fe991d4f4657c',
   'web/lib/chatMedia.ts': '59d64dfb0fe136449ee2fcd69f19b0c8b6161539',
 };
-const ttl = 20 * 60 * 60 * 1000;
+const ttl = 60 * 1000;
 const plain = (value) => JSON.parse(JSON.stringify(value));
 const session = (id) => id ? { user: { id } } : null;
 const row = (id = 'message-1', file = 'one.jpg') => ({
@@ -100,7 +100,7 @@ function harness(file) {
 }
 
 for (const file of ['web/lib/chatMedia.ts', 'src/services/chatMediaService.ts']) {
-  test(`${file}: same account reuses media until the existing 20-hour expiry`, async () => {
+  test(`${file}: same account reuses media until the short one-minute cache expiry`, async () => {
     const h = harness(file);
     const first = await h.signChatMediaMap([row()]);
     h.client.emit('TOKEN_REFRESHED', 'account-a');
@@ -232,20 +232,20 @@ for (const file of ['web/lib/chatMedia.ts', 'src/services/chatMediaService.ts'])
     assert.equal(h.client.state.calls.length, 2);
   });
 
-  test(`${file}: null sessions and Auth failures preserve the caller's original rows`, async () => {
+  test(`${file}: null sessions and Auth failures never expose public-form private locators`, async () => {
     const h = harness(file);
     const rows = [row()];
     h.client.state.userId = null;
-    assert.equal(await h.signChatMedia(rows), rows);
+    assert.equal((await h.signChatMedia(rows))[0].media_url, null);
     h.client.state.sessionImpl = () => ({ data: { session: session('account-a') }, error: new Error('Synthetic Auth failure') });
-    assert.equal(await h.signChatMedia(rows), rows);
+    assert.equal((await h.signChatMedia(rows))[0].media_url, null);
     h.client.state.sessionImpl = () => { throw new Error('Synthetic Auth rejection'); };
-    assert.equal(await h.signChatMedia(rows), rows);
+    assert.equal((await h.signChatMedia(rows))[0].media_url, null);
     assert.equal(h.client.state.calls.length, 0);
   });
 
   for (const failure of ['returned', 'thrown']) {
-    test(`${file}: ${failure} signing failure retains partial success and public fallback`, async () => {
+    test(`${file}: ${failure} signing failure retains partial success without a public fallback`, async () => {
       const h = harness(file);
       h.client.state.invokeImpl = (call) => {
         if (call.index === 1) return h.client.response(call);
@@ -258,7 +258,7 @@ for (const file of ['web/lib/chatMedia.ts', 'src/services/chatMediaService.ts'])
       assert.match(result[0].media_url, /signed\.example\.test/);
       assert.equal(result[0].text, rows[0].text);
       assert.equal(result[0].thumbnail_url, rows[0].thumbnail_url);
-      assert.equal(result[100], rows[100]);
+      assert.equal(result[100].media_url, null);
       assert.deepEqual(rows, before, 'must not mutate canonical caller rows');
     });
   }

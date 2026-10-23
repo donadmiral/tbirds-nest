@@ -1,5 +1,5 @@
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { useUploadPreview } from '../../hooks/useUploadPreview';
 import { uploadMedia } from '../../services/mediaService';
 import { CATEGORIES } from '../../constants/categories';
 import { useStudioLive } from '../../hooks/useStudioLive';
@@ -289,6 +290,8 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
   const [category, setCategory] = useState<string | null>(null);
   const [media, setMedia] = useState<{ url: string; media_type: string; width?: number; height?: number }[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const previewSource = useMemo(() => ({ rows, media }), [rows, media]);
+  const mediaPreview = useUploadPreview(previewSource);
   const [when, setWhen] = useState('');
   const [busy, setBusy] = useState(false);
   const [listings, setListings] = useState<any[]>([]);
@@ -390,10 +393,10 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
       </View>
       {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
       : shown.length === 0 ? <View style={[s.center, { flex: 1, paddingHorizontal: 40 }]}><Feather name="calendar" size={34} color="#E5E5EA" /><Text style={s.emptyTitle}>{tab === 'upcoming' ? 'Nothing scheduled' : tab === 'drafts' ? 'No drafts' : 'Nothing published from here yet'}</Text><Text style={s.emptySub}>Scheduled posts go out on the minute, even with the app closed.</Text></View>
-      : <FlatList data={shown} keyExtractor={r => r.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_CLEAR }}
+      : <FlatList ListHeaderComponent={mediaPreview.error ? <TouchableOpacity onPress={mediaPreview.retry}><Text style={{ color: '#A21B2D', padding: 12 }}>{mediaPreview.error}</Text></TouchableOpacity> : null} data={shown} keyExtractor={r => r.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_CLEAR }}
           renderItem={({ item: r }) => (
             <TouchableOpacity style={[s.card, { flexDirection: 'row', gap: 10 }]} onPress={() => canPublish && rowActions(r)} activeOpacity={0.85}>
-              {r.media?.[0]?.url ? <ExpoImage source={{ uri: r.media[0].url }} style={s.thumb} contentFit="cover" /> : <View style={[s.thumb, { backgroundColor: getTheme().surface.raised, alignItems: 'center', justifyContent: 'center' }]}><Feather name="file-text" size={16} color="#C7C7CC" /></View>}
+              {r.media?.[0]?.url ? <ExpoImage source={{ uri: mediaPreview.preview.rows.find((row: any) => row.id === r.id)?.media?.[0]?.url || undefined }} style={s.thumb} contentFit="cover" /> : <View style={[s.thumb, { backgroundColor: getTheme().surface.raised, alignItems: 'center', justifyContent: 'center' }]}><Feather name="file-text" size={16} color="#C7C7CC" /></View>}
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Text style={[s.statusPill, { color: chip(r.status) }]}>{String(r.status).toUpperCase()}</Text>
@@ -420,7 +423,7 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {media.map((m, i) => (
                     <View key={i}>
-                      {m.media_type === 'video' ? <View style={[s.thumbLg, { backgroundColor: '#0F1419', alignItems: 'center', justifyContent: 'center' }]}><Feather name="play" size={20} color={getTheme().ink.inverse} /></View> : <ExpoImage source={{ uri: m.url }} style={s.thumbLg} contentFit="cover" />}
+                      {m.media_type === 'video' ? <View style={[s.thumbLg, { backgroundColor: '#0F1419', alignItems: 'center', justifyContent: 'center' }]}><Feather name="play" size={20} color={getTheme().ink.inverse} /></View> : <ExpoImage source={{ uri: mediaPreview.preview.media[i]?.url || undefined }} style={s.thumbLg} contentFit="cover" />}
                       <TouchableOpacity onPress={() => setMedia(x => x.filter((_, j) => j !== i))} style={s.removeX}><Feather name="x" size={12} color={getTheme().ink.inverse} /></TouchableOpacity>
                     </View>
                   ))}

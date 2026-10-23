@@ -1,3 +1,4 @@
+import { sanitizeDiagnostic } from '../../../shared/clientDiagnostics';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
 import { redirect } from 'next/navigation';
@@ -14,7 +15,7 @@ export default async function SystemPage() {
   const { data: flags, error: flagsError } = await svc.from('feature_flags').select('*').order('key');
   const { data: notes, error: notesError } = await svc.from('announcements').select('*').order('created_at', { ascending: false }).limit(10);
   const { data: cerrs, error: errorsError } = await svc.from('client_errors')
-    .select('id, user_id, message, stack, platform, app_version, context, created_at')
+    .select('id, user_id, message, platform, app_version, context, created_at')
     .order('created_at', { ascending: false }).limit(15);
   if (flagsError || notesError || errorsError) throw new Error('Platform controls could not be loaded.');
   const eids = Array.from(new Set((cerrs ?? []).map(e => e.user_id).filter(Boolean)));
@@ -100,18 +101,19 @@ export default async function SystemPage() {
             <p className="px-5 py-6 text-[12.5px] text-[#9A9DA4]">No client error reports were returned. This does not confirm every device is error-free.</p>
           ) : (cerrs ?? []).map(e => {
             const p = e.user_id ? epeople[e.user_id] : null;
-            const fatal = (e.context as any)?.fatal === true;
+            const safe = sanitizeDiagnostic({ name: e.message }, { ...(e.context as Record<string, unknown>), platform: e.platform, appVersion: e.app_version });
+            const fatal = safe.fatal;
             return (
               <details key={e.id} className="border-b border-[#F0EFEC] last:border-0">
                 <summary className="flex cursor-pointer items-center gap-3 px-5 py-3 hover:bg-[#FAFAF9]">
                   <span className={'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ' + (fatal ? 'bg-[#FBF2F2] text-[#B03A3A]' : 'bg-[#FDF6E9] text-[#B08D3F]')}>{fatal ? 'FATAL' : 'caught'}</span>
-                  <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-[#26282E]">{e.message}</span>
-                  <span className="shrink-0 text-[11px] text-[#9A9DA4]">{e.platform}{e.app_version ? ' ' + e.app_version : ''}</span>
+                  <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-[#26282E]">{safe.category}</span>
+                  <span className="shrink-0 text-[11px] text-[#9A9DA4]">{safe.platform}{safe.appVersion ? ' ' + safe.appVersion : ''}</span>
                   <span className="shrink-0 text-[11px] tabular-nums text-[#9A9DA4]">{new Date(e.created_at).toLocaleString()}</span>
                 </summary>
                 <div className="bg-[#FAFAF9] px-5 py-3">
                   <p className="mb-1 text-[11px] text-[#5A5D64]">{p ? ('From ' + (p.full_name || '@' + p.username)) : 'Not signed in'}</p>
-                  <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-[8px] bg-[#26282E] p-3 text-[10.5px] leading-relaxed text-[#D7DBE0]">{e.stack || 'no stack'}</pre>
+                  <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-[8px] bg-[#26282E] p-3 text-[10.5px] leading-relaxed text-[#D7DBE0]">{`Source: ${safe.source}. Raw error messages and stack traces are not collected or displayed.`}</pre>
                 </div>
               </details>
             );

@@ -13,7 +13,28 @@ function load(name) {
   return module.exports;
 }
 const domain=load('domain'), provider=load('provider'), client=load('client');
+const policy=load('policy'),statement=load('statement');
+const commerce=load('commerce');
 function snapshot() { return {user_id:'owner-a',as_of:'2026-10-20T12:00:00Z',program:{enrollment_open:false,terms_version:null,terms_url:null},provider:{id:'intobank',name:'IntoBank',payouts_enabled:false,currencies:[]},enrollment:{status:'interested',reason:null},payout_account:{status:'not_configured',verified_at:null},balances:[],recent_earnings:[],recent_payouts:[]}; }
+test('commerce rejects cross-account records, impossible live readiness and malformed monetary values',()=>{
+  const owner='10000000-0000-4000-8000-000000000001';
+  const value={user_id:owner,capabilities:{environment:'test',provider:'intobank',purchases_enabled:true,recurring_enabled:false,currency:'USD',reason:'sandbox_only'},refund_balance_minor:'0',products:[],purchases:[],subscriptions:[]};
+  assert.equal(commerce.parseCreatorCommerce(value,owner).capabilities.purchases_enabled,true);
+  assert.throws(()=>commerce.parseCreatorCommerce(value,'10000000-0000-4000-8000-000000000002'));
+  assert.throws(()=>commerce.parseCreatorCommerce({...value,capabilities:{...value.capabilities,environment:'live'}},owner));
+  assert.throws(()=>commerce.parseCreatorCommerce({...value,refund_balance_minor:0},owner));
+  assert.throws(()=>commerce.parseCreatorCommerce({...value,capabilities:{...value.capabilities,recurring_enabled:true}},owner));
+  assert.throws(()=>commerce.parseCreatorCommerce({...value,subscriptions:[{creator_id:owner,starts_at:'2026-11-01',ends_at:'2026-10-01',auto_renew:false}]},owner));
+});
+test('product saves send exact prices and owner; a missing response is never confirmation',async()=>{
+  const owner='10000000-0000-4000-8000-000000000001',id='20000000-0000-4000-8000-000000000001';
+  const product={id,kind:'subscription',title:'Monthly access',amount_minor:'199',active:false,period_days:30};
+  let captured;
+  const result=await commerce.saveCreatorProduct({rpc:async(name,args)=>{captured={name,args};return {data:id,error:null};}},owner,product);
+  assert.equal(result,id);assert.equal(captured.name,'creator_save_product');assert.equal(captured.args.p_expected_user,owner);assert.equal(captured.args.p_amount_minor,'199');assert.equal(captured.args.p_active,false);
+  await assert.rejects(()=>commerce.saveCreatorProduct({rpc:async()=>({data:null,error:null})},owner,product),/could not be confirmed/);
+  await assert.rejects(()=>commerce.saveCreatorProduct({rpc:async()=>assert.fail('invalid input must not submit')},owner,{...product,amount_minor:'1.99'}));
+});
 test('USD parses exact decimal strings without floating-point rounding',()=>{
   assert.equal(domain.usdToMinor('90071992547409.93'),'9007199254740993');
   assert.equal(domain.usdToMinor('0.01'),'1');
@@ -81,4 +102,22 @@ test('a stalled operation stops blocking the UI without claiming the server canc
   await assert.rejects(()=>client.withFinanceDeadline(pending,'Not confirmed. Refresh before retrying.',1),/Not confirmed/);
   resolve({data:'interested',error:null});
   assert.deepEqual(await pending,{data:'interested',error:null});
+});
+test('approved revenue shares allocate every minor unit without floats or hidden tip fees',()=>{
+  assert.deepEqual(policy.allocateRevenue('ads','10000','1000'),{policyVersion:'2026-10-v1',kind:'ads',grossMinor:'10000',deductionsMinor:'1000',eligibleMinor:'9000',creatorMinor:'4950',platformMinor:'4050'});
+  assert.equal(policy.allocateRevenue('tip','101').creatorMinor,'101');assert.equal(policy.allocateRevenue('subscription','1').platformMinor,'1');
+  for(const kind of Object.keys(policy.REVENUE_SHARES)){const a=policy.allocateRevenue(kind,'9007199254740993');assert.equal(BigInt(a.creatorMinor)+BigInt(a.platformMinor),9007199254740993n);}
+  assert.throws(()=>policy.allocateRevenue('tip','100','1'));assert.throws(()=>policy.allocateRevenue('ads','10','11'));assert.throws(()=>policy.allocateRevenue('unknown','10'));
+});
+test('statement validates account, exact amounts and last-row cursor',()=>{
+  const e={id:'10000000-0000-4000-8000-000000000001',created_at:'2026-10-22T10:00:00Z',currency:'USD',amount_minor:'1',from:'funding',to:'pending'};
+  const s={user_id:'a',environment:'live',entries:[e],next_cursor:{id:e.id,created_at:e.created_at}};
+  assert.deepEqual(statement.parseCreatorStatement(s,'a'),s);assert.throws(()=>statement.parseCreatorStatement(s,'b'));
+  assert.throws(()=>statement.parseCreatorStatement({...s,entries:[e,e]},'a'));assert.throws(()=>statement.parseCreatorStatement({...s,next_cursor:{...s.next_cursor,id:'10000000-0000-4000-8000-000000000002'}},'a'));
+});
+test('payout requests preserve the supplied key and money amount and never claim success on empty responses',async()=>{
+  const id='10000000-0000-4000-8000-000000000001';let sent;
+  const rpc=async(name,args)=>{sent={name,args};return {data:id,error:null}};
+  assert.equal(await client.requestCreatorPayout({rpc},'a','2500',id),id);assert.equal(sent.args.p_idempotency_key,id);assert.equal(sent.args.p_amount_minor,'2500');
+  await assert.rejects(()=>client.requestCreatorPayout({rpc:async()=>({data:null,error:null})},'a','2500',id),/not confirmed/);
 });

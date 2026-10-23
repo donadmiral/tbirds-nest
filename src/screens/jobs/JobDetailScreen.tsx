@@ -19,6 +19,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { isJobId } from '../../../shared/hiring';
 import { jobsService, isJobDeadlinePassed } from '../../services/jobsService';
 import { uploadApplicationCv } from '../../services/applicationCvService';
 import { applicationCvFile } from '../../../shared/applicationCv';
@@ -74,7 +75,28 @@ export default function JobDetailScreen() {
   const insets = useSafeAreaInsets();
   const userId = useAuthStore(st => st.profile?.id);
 
-  const job = route.params?.job;
+  const routeJob = route.params?.job;
+  const requestedJobId = route.params?.jobId ?? routeJob?.id;
+  const [fetchedJob, setFetchedJob] = useState<any>(null);
+  const [jobLoading, setJobLoading] = useState(!routeJob);
+  const [jobError, setJobError] = useState<string | null>(null);
+  const [jobRetry, setJobRetry] = useState(0);
+  const job = isJobId(requestedJobId) ? (routeJob?.id === requestedJobId ? routeJob : fetchedJob?.id === requestedJobId ? fetchedJob : null) : null;
+  useEffect(() => {
+    let live = true;
+    setFetchedJob(null); setJobError(null);
+    if (!isJobId(requestedJobId)) { setJobLoading(false); setJobError('This job link is invalid.'); return; }
+    if (routeJob?.id === requestedJobId) { setJobLoading(false); return; }
+    setJobLoading(true);
+    void supabase.from('jobs').select('*').eq('id', requestedJobId).maybeSingle().then(({ data, error }) => {
+      if (!live) return;
+      if (error) setJobError('The job could not be loaded. Check your connection and try again.');
+      else if (!data) setJobError('This job is no longer available.');
+      else setFetchedJob(data);
+      setJobLoading(false);
+    }, () => { if (live) { setJobLoading(false); setJobError('The job could not be loaded. Please try again.'); } });
+    return () => { live = false; };
+  }, [requestedJobId, routeJob?.id, userId, jobRetry]);
   const [saved, setSaved] = useState(false);
   const saving = useRef(false);
   const applyingRef = useRef(false);
@@ -88,15 +110,18 @@ export default function JobDetailScreen() {
   const [portfolio, setPortfolio] = useState('');
 
   useEffect(() => {
+    let live = true;
+    setSaved(false); setAppStatus(null);
     if (!job || !userId) return;
     (async () => {
       try {
         const { data: sv } = await supabase.from('job_saves').select('job_id').eq('user_id', userId).eq('job_id', job.id).maybeSingle();
-        setSaved(!!sv);
+        if (live) setSaved(!!sv);
         const { data: ap } = await supabase.from('job_applications').select('status').eq('applicant_id', userId).eq('job_id', job.id).maybeSingle();
-        setAppStatus(ap?.status ?? null);
+        if (live) setAppStatus(ap?.status ?? null);
       } catch {}
     })();
+    return () => { live = false; };
   }, [job?.id, userId]);
 
   const toggleSave = useCallback(async () => {
@@ -169,7 +194,7 @@ export default function JobDetailScreen() {
   if (!job) {
     return (
       <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-        {afterSlide ? <View style={st.loader}><Text style={st.missing}>This job is no longer available.</Text></View> : <JobSkeleton />}
+        {!afterSlide || jobLoading ? <JobSkeleton /> : <View style={st.loader}><Text style={st.missing}>{jobError || 'This job is no longer available.'}</Text>{isJobId(requestedJobId) ? <TouchableOpacity onPress={() => setJobRetry(value => value + 1)}><Text style={st.missing}>Try again</Text></TouchableOpacity> : null}<TouchableOpacity onPress={() => navigation.goBack()}><Text style={st.missing}>Back to jobs</Text></TouchableOpacity></View>}
       </SafeAreaView>
     );
   }

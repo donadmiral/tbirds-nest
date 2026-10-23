@@ -6,14 +6,18 @@ import Link from "next/link";
 import { ArrowLeft, Check, ImagePlus, Plus, Trash2, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { STORY_FILTERS, STORY_FILTER_FAMILIES, filterCss } from "@/lib/stories";
+import { STORY_FILTERS, STORY_FILTER_FAMILIES, filterCss, type StoryTextSticker, type StoryMediaTransform } from "@/lib/stories";
 import { searchPeople, type AccessPerson } from "@/lib/memoryAlbum";
-import { PublicationAttempt, publicationError } from "@/lib/publication";
+import { publicationError } from "@/lib/publication";
 import { checkUploadableBytes } from "@/lib/media";
+import { hydrateStoryDraftMedia } from "@/lib/contentMedia";
+import { StoryEditor } from "@/components/StoryEditor";
 
 type Draft = {
   id: string; user_id: string; media_url: string | null; media_type: string; caption: string | null;
   audience: string; shared_with: string[]; duration_sec: number | null; created_at: string;
+  preview_media_url?: string | null;
+  filter_id?: string | null; stickers_json?: StoryTextSticker[]; media_transform?: StoryMediaTransform | null; text_background?: { colors: string[] } | null;
 };
 
 const AUD = [
@@ -31,9 +35,20 @@ function ComposerInner() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [draftId, setDraftId] = useState<string | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const localPreview = useRef<string | null>(null);
+  const replacePreview = (url: string | null) => {
+    if (localPreview.current) URL.revokeObjectURL(localPreview.current);
+    localPreview.current = url?.startsWith("blob:") ? url : null;
+    setPreviewUrl(url);
+  };
+  const [mediaType, setMediaType] = useState<"image" | "video" | "text">("image");
   const [durationSec, setDurationSec] = useState<number | null>(null);
   const [caption, setCaption] = useState("");
+  const [stickers, setStickers] = useState<StoryTextSticker[]>([]);
+  const [transform, setTransform] = useState<StoryMediaTransform>({ scale: 1, translateNX: 0, translateNY: 0 });
+  const [background, setBackground] = useState({ colors: ["#0B1E3D", "#594D71"] });
+  const [editorKey, setEditorKey] = useState(0);
   const [filterId, setFilterId] = useState<string | null>(null);
   const [audience, setAudience] = useState("everyone");
   const [people, setPeople] = useState<AccessPerson[]>([]);
@@ -43,7 +58,7 @@ function ComposerInner() {
   const busyRef = useRef(false);
   const publishedRef = useRef(false);
   const [publicationStatus, setPublicationStatus] = useState<{ postId: string | null; uncertain: boolean; locked: boolean; published: boolean }>({ postId: null, uncertain: false, locked: false, published: false });
-  const publication = useRef<{ progress: PublicationAttempt; run: () => Promise<void> } | null>(null);
+  const publication = useRef<{ requestId: string; payload: Record<string, unknown> } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const draftRequest = useRef(0);
@@ -97,8 +112,10 @@ function ComposerInner() {
         publication.current = null;
         publishedRef.current = false;
         appliedRouteDraft.current = null;
-        setDrafts([]); setDraftId(null); setMediaUrl(null); setMediaType("image");
+        setDrafts([]); setDraftId(null); setMediaUrl(null); replacePreview(null); setMediaType("image");
         setCaption(""); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null);
+        setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0 }); setEditorKey(k => k + 1);
+        if (previous) { try { sessionStorage.removeItem("platinum:story-publish:" + previous); } catch {} }
         setQ(""); setResults([]); setBusy(null);
         setPublicationStatus({ postId: null, uncertain: false, locked: false, published: false });
         setError(previous && next ? "Account changed. Choose a story for this account." : null);
@@ -125,8 +142,45 @@ function ComposerInner() {
       authEventVersion.current += 1;
       cancelPending();
       subscription.unsubscribe();
+      if (localPreview.current) URL.revokeObjectURL(localPreview.current);
+      localPreview.current = null;
     };
   }, [supabase, router]);
+
+  useEffect(() => {
+    if (!uid) return;
+    try {
+      const raw = sessionStorage.getItem("platinum:story-publish:" + uid);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (typeof saved.requestId !== "string" || !saved.payload || typeof saved.payload !== "object") throw new Error();
+      const p = saved.payload;
+      publication.current = saved;
+      setMediaUrl(p.media_url ?? null); setMediaType(p.media_type);
+      setCaption(p.caption ?? ""); setAudience(p.audience); setFilterId(p.filter_id);
+      setStickers(p.stickers_json ?? []); setTransform(p.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0 });
+      if (p.text_background) setBackground(p.text_background);
+      setPeople((p.shared_with ?? []).map((id: string) => ({ id, full_name: "Selected recipient", username: null, avatar_url: null })));
+      setDraftId(p.draft_id ?? null); setEditorKey(k => k + 1);
+      setPublicationStatus({ postId: null, uncertain: true, locked: true, published: false });
+      setError("A previous share needs confirmation. Retry safely to confirm the same story.");
+    } catch { setError("The pending story could not be restored. Check your stories before starting another."); }
+  }, [uid]);
+
+  useEffect(() => {
+    const origin = params.get("join"), stickerId = params.get("sticker");
+    if (!uid || !origin || !stickerId || publication.current) return;
+    let cancelled = false;
+    const version = ownerVersion.current;
+    void runBounded(supabase.from("stories").select("stickers_json").eq("id", origin).single()).then(({ data, error: readError }) => {
+      if (cancelled || !isCurrent(uid, version)) return;
+      if (readError) throw readError;
+      const source = (data?.stickers_json as StoryTextSticker[] | undefined)?.find(s => s.id === stickerId && s.kind === "addyours");
+      if (!source) throw new Error("This Add Yours prompt is no longer available.");
+      setStickers(list => list.some(s => s.addYoursOriginStoryId === origin && s.addYoursOriginStickerId === stickerId) ? list : [...list, { ...source, id: crypto.randomUUID(), addYoursOriginStoryId: origin, addYoursOriginStickerId: stickerId }]);
+    }).catch(failure => { if (!cancelled && isCurrent(uid, version)) setError(publicationError(failure)); });
+    return () => { cancelled = true; };
+  }, [uid, params, supabase]);
 
   const loadDrafts = async (owner: string, version: number) => {
     assertOwner(owner, version);
@@ -135,7 +189,11 @@ function ComposerInner() {
     assertOwner(owner, version);
     if (draftError) throw draftError;
     if ((data ?? []).some(row => row.user_id !== owner)) throw new Error("The draft owner could not be confirmed.");
-    setDrafts((data ?? []) as Draft[]);
+    // Keep canonical references for publication; signed previews never enter a draft write.
+    const rows = (data ?? []) as Draft[];
+    const previews = await runBounded(hydrateStoryDraftMedia(rows, supabase));
+    assertOwner(owner, version);
+    setDrafts(rows.map((row, index) => ({ ...row, preview_media_url: previews[index]?.media_url ?? null })));
   };
   useEffect(() => {
     if (!uid) return;
@@ -171,14 +229,21 @@ function ComposerInner() {
     setBusy("draft-load");
     setError(null);
     setPeople([]);
-    setFilterId(null);
+    setFilterId(d.filter_id ?? null);
+    setStickers(d.stickers_json ?? []); setTransform(d.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0 });
+    if (d.text_background) setBackground(d.text_background);
+    setEditorKey(k => k + 1);
     setDraftId(d.id);
     setMediaUrl(d.media_url);
-    setMediaType(d.media_type === "video" ? "video" : "image");
+    setMediaType(d.media_type === "video" ? "video" : d.media_type === "text" ? "text" : "image");
     setDurationSec(d.duration_sec);
     setCaption(d.caption ?? "");
     setAudience(d.audience);
     try {
+      const [preview] = await runBounded(hydrateStoryDraftMedia([d], supabase));
+      assertOwner(owner, version);
+      if (draftRequest.current !== request) return;
+      replacePreview(preview?.media_url ?? null);
       if (d.shared_with?.length) {
         const { data, error: peopleError } = await runBounded(supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", d.shared_with));
         assertOwner(owner, version);
@@ -211,6 +276,7 @@ function ComposerInner() {
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("story-media").getPublicUrl(path);
       setMediaUrl(pub.publicUrl);
+      replacePreview(URL.createObjectURL(f));
       setMediaType(isVideo ? "video" : "image");
       setDurationSec(null);
       if (isVideo) {
@@ -222,7 +288,7 @@ function ComposerInner() {
           const timer = setTimeout(() => finish(null), 5000);
           metadataCleanup.current = () => finish(null);
           video.preload = "metadata";
-          video.onloadedmetadata = () => finish(Number.isFinite(video.duration) ? Math.min(60, Math.max(1, Math.round(video.duration))) : null);
+          video.onloadedmetadata = () => finish(Number.isFinite(video.duration) ? Math.max(1, Math.round(video.duration)) : null);
           video.onerror = () => finish(null);
           video.src = url;
         });
@@ -234,68 +300,50 @@ function ComposerInner() {
   }
 
   async function publish() {
-    if (!uid || !mediaUrl || busyRef.current || publishedRef.current || publication.current?.progress.uncertain || !isCurrent(uid, ownerVersion.current)) return;
+    if (!uid || (!mediaUrl && mediaType !== "text") || busyRef.current || publishedRef.current || !isCurrent(uid, ownerVersion.current)) return;
     const owner = uid, version = ownerVersion.current;
     if (audience === "only_with" && people.length === 0) { setError("Choose at least one person to share with."); return; }
-    busyRef.current = true;
-    setBusy("publish");
-    setError(null);
+    if (mediaType === "text" && !stickers.length) { setError("Add text or a sticker to your story."); return; }
+    busyRef.current = true; setBusy("publish"); setError(null);
     if (!publication.current) {
-      const progress = new PublicationAttempt(() => checkOwner(owner, version));
-      const run = async () => {
-        assertOwner(owner, version);
-        const { data: auth, error: authError } = await runBounded(supabase.auth.getUser());
-        assertOwner(owner, version);
-        if (authError || auth.user?.id !== uid) throw new Error("Sign in to the account that started this story to finish it.");
-        const row = await progress.write("story", () => runBounded(supabase.from("stories").insert({
-          user_id: uid, media_url: mediaUrl, media_type: mediaType,
-          caption: caption.trim() || null, audience, filter_id: filterId,
-          duration_sec: mediaType === "video" ? durationSec ?? 10 : null,
-        }).select("id").single()));
-        if (!row) { progress.uncertain = true; throw new Error("Could not confirm the story."); }
-        progress.postId = row.id;
-        if (audience === "only_with") {
-          await progress.write("recipients", () => runBounded(supabase.from("story_shared_with").insert(
-            Array.from(new Set(people.map((p) => p.id))).map((id) => ({ story_id: row.id, user_id: id })))));
-        }
-        const handles = Array.from(new Set((caption.match(/@([A-Za-z0-9_.]{2,30})/g) || []).map((h) => h.slice(1).toLowerCase())));
-        if (handles.length) {
-          const { data: ppl, error: lookupError } = await runBounded(supabase.from("profiles").select("id").in("username", handles).neq("id", uid));
-          assertOwner(owner, version);
-          if (lookupError) throw lookupError;
-          const rows = ((ppl ?? []) as { id: string }[]).map((p) => ({ story_id: row.id, mentioned_user_id: p.id, visible: true }));
-          if (rows.length) await progress.write("mentions", () => runBounded(supabase.from("story_mentions").insert(rows)));
-        }
-        if (draftId) await progress.write("delete-draft", () => runBounded(supabase.from("story_drafts").delete().eq("id", draftId).eq("user_id", owner)));
-        await progress.check();
-      };
-      publication.current = { progress, run };
-      setPublicationStatus({ postId: null, uncertain: false, locked: true, published: false });
+      publication.current = { requestId: crypto.randomUUID(), payload: {
+        media_url: mediaUrl, media_type: mediaType, caption: caption.trim() || null,
+        audience, filter_id: filterId, stickers_json: stickers, media_transform: transform,
+        text_background: mediaType === "text" ? background : null,
+        duration_sec: mediaType === "video" ? Math.min(60, (transform.trimEnd ?? durationSec ?? 10) - (transform.trimStart ?? 0)) : null,
+        shared_with: people.map(p => p.id), draft_id: draftId,
+      } };
     }
     const attempt = publication.current;
+    setPublicationStatus({ postId: null, uncertain: false, locked: true, published: false });
     try {
-      await attempt.run();
+      sessionStorage.setItem("platinum:story-publish:" + owner, JSON.stringify(attempt));
+      await checkOwner(owner, version);
+      const { data: authenticated, error: authError } = await runBounded(supabase.auth.getUser());
       assertOwner(owner, version);
+      if (authError || authenticated.user?.id !== owner) throw new Error("Sign in to the account that started this story.");
+      const { data, error: writeError } = await runBounded(supabase.rpc("publish_story_v2", {
+        p_expected_user: owner, p_request_id: attempt.requestId, p_story: attempt.payload,
+      }));
+      assertOwner(owner, version);
+      if (writeError) throw writeError;
+      if (typeof data !== "string") throw new Error("The server did not confirm the story. Retry safely.");
+      sessionStorage.removeItem("platinum:story-publish:" + owner);
       publishedRef.current = true;
-      setPublicationStatus({ postId: attempt.progress.postId, uncertain: false, locked: true, published: true });
-      try { router.push("/home"); } catch { setError("Your story was shared. Open Home to view it."); }
+      setPublicationStatus({ postId: data, uncertain: false, locked: true, published: true });
+      router.push("/home");
     } catch (failure) {
       if (!isCurrent(owner, version)) return;
-      const progress = attempt.progress;
-      setPublicationStatus({ postId: progress?.postId ?? null, uncertain: progress?.uncertain ?? false, locked: !!progress?.postId || !!progress?.uncertain, published: false });
-      setError((progress?.uncertain
-        ? "We could not confirm the last save. Check your stories before sharing again. Your draft remains open here; keep this page open. "
-        : progress?.postId
-          ? "Your story exists, but sharing did not finish. Retry finishes this same story. Your draft remains open here; keep this page open. "
-          : "Your draft remains open here; keep this page open. ") + publicationError(failure));
-      if (!progress?.postId && !progress?.uncertain) publication.current = null;
-    } finally {
-      if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); }
-    }
+      const code = failure && typeof failure === "object" && "code" in failure ? String(failure.code) : "";
+      const rejected = /^(22|23|28|42|P0)[0-9A-Z]{3}$/.test(code);
+      if (rejected) { publication.current = null; try { sessionStorage.removeItem("platinum:story-publish:" + owner); } catch {} }
+      setPublicationStatus({ postId: null, uncertain: !rejected, locked: !rejected, published: false });
+      setError((rejected ? "Your story was not shared. Your edits are still here. " : "We could not confirm sharing. Retry safely to confirm this same story. ") + publicationError(failure));
+    } finally { if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); } }
   }
 
   async function saveDraft() {
-    if (!uid || !mediaUrl || busyRef.current || publication.current || !isCurrent(uid, ownerVersion.current)) return;
+    if (!uid || (!mediaUrl && mediaType !== "text") || busyRef.current || publication.current || !isCurrent(uid, ownerVersion.current)) return;
     const owner = uid, version = ownerVersion.current;
     busyRef.current = true;
     setBusy("draft");
@@ -307,6 +355,7 @@ function ComposerInner() {
         user_id: uid, media_url: mediaUrl, media_type: mediaType,
         caption: caption.trim() || null, audience,
         shared_with: people.map((p) => p.id), duration_sec: durationSec,
+        filter_id: filterId, stickers_json: stickers, media_transform: transform, text_background: mediaType === "text" ? background : null,
       };
       const r = draftId
         ? await runBounded(supabase.from("story_drafts").update(payload).eq("id", draftId).eq("user_id", owner).select("id").single())
@@ -314,7 +363,7 @@ function ComposerInner() {
       assertOwner(owner, version);
       if (r.error || !r.data) throw r.error || new Error("Could not confirm the saved draft.");
       saved = true;
-      setDraftId(null); setMediaUrl(null); setCaption(""); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null);
+      setDraftId(null); setMediaUrl(null); setMediaType("image"); setCaption(""); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null); setStickers([]); setEditorKey(k => k + 1); setTransform({ scale: 1, translateNX: 0, translateNY: 0 });
       await loadDrafts(owner, version);
     } catch (failure) { if (isCurrent(owner, version)) setError((saved ? "Draft saved, but the draft list could not reload. " : "Your draft remains open here; keep this page open. ") + publicationError(failure)); }
     finally { if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); } }
@@ -343,7 +392,7 @@ function ComposerInner() {
       </div>
 
       <fieldset disabled={!uid || !!busy || publicationStatus.locked} className="contents">
-      {drafts.length > 0 && !mediaUrl ? (
+      {drafts.length > 0 && !mediaUrl && mediaType !== "text" ? (
         <div className="mb-5">
           <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Drafts</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
@@ -352,7 +401,7 @@ function ComposerInner() {
                 <button onClick={() => applyDraft(d)} className="block aspect-[9/14] w-full overflow-hidden rounded-lg border border-ink/10 bg-ink/5">
                   {d.media_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    d.media_type === "video" ? <video src={d.media_url} muted className="h-full w-full object-cover" /> : <img src={d.media_url} alt="" className="h-full w-full object-cover" />
+                    d.media_type === "video" ? <video src={d.preview_media_url ?? undefined} muted className="h-full w-full object-cover" /> : <img src={d.preview_media_url ?? undefined} alt="" className="h-full w-full object-cover" />
                   ) : null}
                 </button>
                 <button onClick={() => deleteDraft(d)}
@@ -363,28 +412,29 @@ function ComposerInner() {
         </div>
       ) : null}
 
-      {!mediaUrl ? (
-        <button onClick={() => fileRef.current?.click()} disabled={busy === "upload"}
+      {!mediaUrl && mediaType !== "text" ? (
+        <><button onClick={() => fileRef.current?.click()} disabled={busy === "upload"}
           className="flex aspect-[9/14] w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-ink/15 text-ink/45 hover:border-ink/30">
           <ImagePlus size={26} />
           <span className="text-[13px] font-semibold">{busy === "upload" ? "Uploading" : "Add a photo or video"}</span>
-        </button>
+        </button><button type="button" onClick={() => setMediaType("text")} className="mt-3 w-full rounded-lg border border-ink/15 p-3 text-sm text-ink">Create a text story</button></>
       ) : (
         <>
-        <div className="relative aspect-[9/14] w-full overflow-hidden rounded-2xl bg-ink">
-          {mediaType === "video" ? (
-            <video src={mediaUrl} controls playsInline className="h-full w-full object-contain" />
+        <StoryEditor key={editorKey} value={stickers} onChange={setStickers}>
+          {mediaType === "text" ? <div className="h-full w-full" style={{ background: `linear-gradient(160deg,${background.colors.join(",")})` }} /> : mediaType === "video" ? (
+            <video src={previewUrl ?? undefined} controls playsInline className="h-full w-full object-contain" onTimeUpdate={e => { const v = e.currentTarget; if (transform.trimEnd && v.currentTime >= transform.trimEnd) { v.pause(); v.currentTime = transform.trimStart ?? 0; } }} onPlay={e => { if (e.currentTarget.currentTime < (transform.trimStart ?? 0)) e.currentTarget.currentTime = transform.trimStart ?? 0; }} />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={mediaUrl} alt="" className="h-full w-full object-contain" />
+            <img src={previewUrl ?? undefined} alt="" className="h-full w-full object-contain" />
           )}
           {/* The chosen look, drawn exactly as the viewer draws it. */}
           {filterId ? (() => { const f = STORY_FILTERS.find((x) => x.id === filterId); return f ? (
             <div className="pointer-events-none absolute inset-0" style={{ backdropFilter: filterCss(filterId), WebkitBackdropFilter: filterCss(filterId) }}>
               {f.layers.map((l, i) => <div key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />)}
             </div>) : null; })() : null}
-          <button onClick={() => { setMediaUrl(null); setDraftId(null); }} className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white" aria-label="Remove media"><X size={14} /></button>
-        </div>
+          <button onClick={() => { setMediaUrl(null); replacePreview(null); setMediaType("image"); setDraftId(null); setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0 }); setEditorKey(k => k + 1); }} className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white" aria-label="Remove media"><X size={14} /></button>
+        </StoryEditor>
+        {mediaType === "video" && durationSec ? <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-muted"><label>Start, seconds<input type="number" min={0} max={Math.max(0, durationSec - 1)} value={transform.trimStart ?? 0} onChange={e => { const start = Math.max(0, Math.min(durationSec - 1, Number(e.target.value))); setTransform(t => ({ ...t, trimStart: start, trimEnd: Math.min(durationSec, start + 60) })); }} className="mt-1 w-full rounded-lg border border-ink/15 p-2 text-ink" /></label><label>End, seconds<input type="number" min={(transform.trimStart ?? 0) + 1} max={Math.min(durationSec, (transform.trimStart ?? 0) + 60)} value={transform.trimEnd ?? Math.min(durationSec, 60)} onChange={e => setTransform(t => ({ ...t, trimEnd: Math.max((t.trimStart ?? 0) + 1, Math.min(durationSec, (t.trimStart ?? 0) + 60, Number(e.target.value))) }))} className="mt-1 w-full rounded-lg border border-ink/15 p-2 text-ink" /></label></div> : null}
         {mediaType === "image" ? (
           <div className="mt-3">
             {STORY_FILTER_FAMILIES.map((fam) => (
@@ -397,7 +447,7 @@ function ComposerInner() {
                       <button key={f.id ?? "none"} type="button" onClick={() => setFilterId(f.id)} className="flex w-[64px] shrink-0 flex-col items-center gap-1">
                         <span className={"relative block h-[64px] w-[64px] overflow-hidden rounded-xl border-2 " + (on ? "border-pearl" : "border-transparent")}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={mediaUrl} alt="" className="h-full w-full object-cover" style={{ filter: filterCss(f.id) }} />
+                          <img src={previewUrl ?? undefined} alt="" className="h-full w-full object-cover" style={{ filter: filterCss(f.id) }} />
                           {f.layers.map((l, i) => <span key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />)}
                         </span>
                         <span className={"text-[11px] " + (on ? "font-semibold text-ink" : "text-muted")}>{f.label}</span>
@@ -454,13 +504,13 @@ function ComposerInner() {
       </fieldset>
       {error ? <p role="alert" className="mt-3 text-[13px] text-red-700">{error}</p> : null}
       <div className="mt-5 flex gap-2">
-        <button onClick={saveDraft} disabled={!uid || !mediaUrl || !!busy || publicationStatus.locked}
+        <button onClick={saveDraft} disabled={!uid || (!mediaUrl && mediaType !== "text") || !!busy || publicationStatus.locked}
           className="flex-1 rounded-md border border-ink/15 py-2.5 text-sm font-semibold text-secondary disabled:opacity-40">
           {busy === "draft" ? "Saving" : draftId ? "Update draft" : "Save as draft"}
         </button>
-        <button onClick={publish} disabled={!uid || !mediaUrl || audience === "only_with" && people.length === 0 || !!busy || publicationStatus.published || publicationStatus.uncertain}
+        <button onClick={publish} disabled={!uid || (!mediaUrl && mediaType !== "text") || audience === "only_with" && people.length === 0 || !!busy || publicationStatus.published}
           className="flex-1 rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl disabled:opacity-40">
-          {busy === "publish" ? "Posting" : publicationStatus.postId ? "Retry" : "Share to story"}
+          {busy === "publish" ? "Posting" : publicationStatus.postId || publicationStatus.uncertain ? "Retry safely" : "Share to story"}
         </button>
       </div>
     </div>

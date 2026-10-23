@@ -13,13 +13,13 @@ function scenario(name, { own=true, video=false, hasStories=true } = {}) {
   const slots=[],intervals=new Map(),timeouts=new Map(),listeners=new Map();
   const story={id:'story',user_id:'author',media_type:video?'video':'image',media_url:'https://media.test/story',caption:'Caption remains readable',duration_sec:10,created_at:'2026-10-22T12:00:00Z'};
   const user={user_id:'author',full_name:'Author',story_count:1};
-  const identity=own?'author':'viewer';
+  let identity=own?'author':'viewer', authListener;
   const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
   const hooks={Fragment:'Fragment',useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return[slots[i],value=>{const n=typeof value==='function'?value(slots[i]):value;if(!Object.is(n,slots[i])){slots[i]=n;dirty=true;}}];},useRef(initial){const i=cursor++;return slots[i]??={current:initial};},useCallback(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={fn,deps};return slots[i].fn;},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
   const player={currentTime:0,paused:false,ended:false,playCalls:0,pauseCalls:0,play(){this.paused=false;this.playCalls++;return Promise.resolve();},pause(){this.paused=true;this.pauseCalls++;}};
-  const client={auth:{getSession:async()=>({data:{session:{user:{id:identity}}}})},rpc:async()=>({data:[],error:null}),from(){const query={select(){return query;},eq(){return query;},in(){return query;},maybeSingle(){return query;},then(ok,bad){return Promise.resolve({data:[],error:null}).then(ok,bad);}};return query;}};
+  const client={auth:{onAuthStateChange:fn=>{authListener=fn;return{data:{subscription:{unsubscribe(){authListener=null;}}}};},getSession:async()=>({data:{session:{user:{id:identity}}}})},rpc:async()=>({data:[],error:null}),from(){const query={select(){return query;},eq(){return query;},in(){return query;},maybeSingle(){return query;},then(ok,bad){return Promise.resolve({data:[],error:null}).then(ok,bad);}};return query;}};
   const document={hidden:false,addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n),createElement:()=>({removeAttribute(){},load(){}})};
-  const imports={react:hooks,'react/jsx-runtime':{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})},'@/lib/supabase/client':{createClient:()=>client},'@/lib/media':{displayImageUrl:x=>x},'@/lib/feed':{timeAgo:()=> 'now'},'@/lib/stories':{getCatchupFeed:async()=>hasStories?[user]:[],getUserStories:async()=>[story],getStoryPoll:async()=>null,getMyStoryReactions:async()=>[],markStoryViewed:async()=>{},toggleStoryReaction:async()=>{reactions++;return{reacted:true};},REACTION_EMOJIS:['heart'],STORY_FILTERS:[]}};
+  const imports={react:hooks,'react/jsx-runtime':{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})},'@/lib/supabase/client':{createClient:()=>client},'@/lib/media':{displayImageUrl:x=>x},'@/lib/feed':{timeAgo:()=> 'now'},'@/lib/stories':{getCatchupFeed:async()=>hasStories?[user]:[],getUserStories:async()=>identity?[story]:[],getStoryPoll:async()=>null,getMyStoryReactions:async()=>[],markStoryViewed:async()=>{},toggleStoryReaction:async()=>{reactions++;return{reacted:true};},REACTION_EMOJIS:['heart'],STORY_FILTERS:[]}};
   const exports={};vm.runInNewContext(sources[name],{exports,require:n=>imports[n]??new Proxy({},{get:(_,key)=>String(key)}),document,window:{addEventListener:(n,fn)=>listeners.set(n,fn),removeEventListener:n=>listeners.delete(n)},Image:function(){},console,
     setInterval:fn=>{const n=++id;intervals.set(n,fn);return n;},clearInterval:n=>intervals.delete(n),setTimeout:(fn,ms)=>{const n=++id;timeouts.set(n,{fn,ms});return n;},clearTimeout:n=>timeouts.delete(n)});
   const props=name==='StoryViewer'?{users:[user],startIndex:0,onClose(){closed++;}}:{};
@@ -30,6 +30,7 @@ function scenario(name, { own=true, video=false, hasStories=true } = {}) {
     click(label,detail=1){const b=this.button(label);assert.ok(b,label);b.props.onClick({detail});render();},
     zone(){return nodes(render()).find(n=>n.props?.onDoubleClick);},
     timeout(ms){for(const[n,t]of [...timeouts])if(t.ms===ms){timeouts.delete(n);t.fn();}render();},
+    changeViewer(next){identity=next;authListener?.('SIGNED_OUT',next?{user:{id:next}}:null);render();},
     unmount(){slots.forEach(s=>s?.cleanup?.());},
   };
 }
@@ -63,4 +64,12 @@ test('manual pause permits Next while a completed long hold consumes its click',
   const h=scenario('StoryViewer');await h.flush();h.click('Pause story');h.click('Next');assert.equal(h.closed,1);h.unmount();
   const held=scenario('StoryViewer');await held.flush();const next=held.button('Next');next.props.onPointerDown();held.timeout(200);next.props.onPointerUp();next.props.onClick({detail:1});assert.equal(held.closed,0);
   held.click('Next',0);assert.equal(held.closed,1);held.unmount();
+});
+
+test('signing out immediately clears story media, reply and playback', async()=>{
+  const h=scenario('StoryViewer');await h.flush();
+  assert.ok(nodes(h.tree).some(n=>n.props?.src==='https://media.test/story'));
+  h.changeViewer(null);await h.flush();
+  assert.ok(!nodes(h.tree).some(n=>n.props?.src==='https://media.test/story'));
+  assert.equal(h.intervals,0);h.unmount();
 });

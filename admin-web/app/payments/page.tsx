@@ -1,10 +1,13 @@
+import Link from 'next/link';
+import { paymentSearch, paymentHref, paymentDecimal, paymentVolumes, PAYMENT_STATUSES, type PaymentSearch } from '@/lib/paymentPage';
 import { requireDesk } from '@/lib/adminAuth';
+
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
-import { isPaymentInFlight, paymentCurrency, paymentTotals } from '@/lib/paymentReporting';
+import { isPaymentInFlight, paymentCurrency } from '@/lib/paymentReporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,11 +26,12 @@ const IC = {
 
 const STATUS_TONE: Record<string, Tone> = { completed: 'ok', failed: 'bad', pending: 'warn', processing: 'warn', refunded: 'info', cancelled: 'neutral' };
 
-function money(n: number, cur?: string) {
-  return paymentCurrency(cur ?? null) + ' ' + n.toFixed(2);
+function money(n: string, cur?: string) {
+  return paymentCurrency(cur ?? null) + ' ' + paymentDecimal(n);
 }
 
-export default async function PaymentsPage() {
+export default async function PaymentsPage({ searchParams }: { searchParams: Promise<PaymentSearch> }) {
+  const search = paymentSearch(await searchParams);
   const admin = await requireDesk('/payments');
   const svc = serviceClient();
 
@@ -36,70 +40,50 @@ export default async function PaymentsPage() {
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
-  const { data, error } = await svc.from('chat_payments')
-    .select('id, sender_id, recipient_id, amount, currency, status, tx_id, note, error, listing_id, created_at, completed_at')
-    .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(500);
-  if (error) return <Shell admin={admin} active="/payments" title="Payments" sub="Payment records could not be loaded."><p role="alert">Please refresh this page to try again.</p></Shell>;
-  const rowsRaw = (data ?? []) as {
-    id: string; sender_id: string; recipient_id: string; amount: number | string; currency: string | null;
+  const [page, report] = await Promise.all([
+    svc.rpc('admin_payment_report', { p_status: search.status, p_query: search.q, p_before: search.before, p_before_id: search.id, p_limit: 50 }),
+    svc.rpc('admin_payment_summary'),
+  ]);
+  if (page.error || report.error || !page.data || !report.data) throw new Error('Payment records could not be loaded. Please retry.');
+  const summary = report.data as { status_counts: Record<string, number>; completed_week: number; failed_week: number; failed_previous_week: number;
+    volume_week: {currency:string; amount:string; average:string}[]; volume_all: {currency:string;amount:string}[];
+    days: {day:string;completed:number;failed:number;other:number}[]; top_recipients: {id:string;full_name:string|null;username:string|null;total:number}[] };
+  const rowsRaw = page.data.rows as {
+    id: string; sender_id: string; recipient_id: string; amount: string; currency: string | null;
     status: string; tx_id: string | null; note: string | null; error: string | null; listing_id: string | null;
     created_at: string; completed_at: string | null;
+    sender_name: string|null; sender_username:string|null; sender_avatar:string|null;
+    recipient_name:string|null;recipient_username:string|null;recipient_avatar:string|null;
   }[];
 
-  const uids = Array.from(new Set(rowsRaw.flatMap(r => [r.sender_id, r.recipient_id]).filter(Boolean)));
-  const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null }> = {};
-  if (uids.length) {
-    const { data: ppl, error: peopleError } = await svc.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
-    if (peopleError) throw new Error("Payment participants could not be loaded.");
-    (ppl ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null }) => { people[p.id] = p; });
-  }
-  const nameOf = (id: string) => people[id]?.full_name || '@' + (people[id]?.username || 'member');
-
-  const amt = (r: { amount: number | string }) => Number(r.amount) || 0;
-  const week = rowsRaw.filter(r => r.created_at >= from7);
-  const prevWeek = rowsRaw.filter(r => r.created_at >= from14 && r.created_at < from7);
-  const doneWeek = rowsRaw.filter(r => r.status === 'completed' && (r.completed_at || r.created_at) >= from7);
-  const failedWeek = week.filter(r => r.status === 'failed');
-  const pendingAll = rowsRaw.filter(r => isPaymentInFlight(r.status));
-  const volWeek = paymentTotals(doneWeek);
-  const volAll = paymentTotals(rowsRaw.filter(r => r.status === 'completed'));
-  const settled = rowsRaw.filter(r => r.status === 'completed' || r.status === 'failed').length;
-  const successRate = settled ? (rowsRaw.filter(r => r.status === 'completed').length / settled) * 100 : 0;
-  const avgTicket = paymentTotals(doneWeek, true);
-
-  const pct = (a: number, b: number) => b > 0 ? { text: (a >= b ? '+' : '') + (((a - b) / b) * 100).toFixed(1) + '%', tone: (a >= b ? 'ok' : 'bad') as Tone } : { text: a > 0 ? 'new' : 'flat', tone: (a > 0 ? 'ok' : 'neutral') as Tone };
-
-  const dayRows = days30.map(d => {
-    const inDay = rowsRaw.filter(r => r.created_at.slice(0, 10) === d);
-    return {
-      day: d,
-      completed: inDay.filter(r => r.status === 'completed').length,
-      failed: inDay.filter(r => r.status === 'failed').length,
-      other: inDay.filter(r => isPaymentInFlight(r.status)).length,
-    } as Record<string, number | string>;
+  const people: Record<string, { full_name: string|null; username: string|null; avatar_url: string|null }> = {};
+  rowsRaw.forEach(row => {
+    people[row.sender_id] = { full_name: row.sender_name, username: row.sender_username, avatar_url: row.sender_avatar };
+    people[row.recipient_id] = { full_name: row.recipient_name, username: row.recipient_username, avatar_url: row.recipient_avatar };
   });
-  const spark = (key: string) => days30.map(d => rowsRaw.filter(r => (key === 'completed' ? r.completed_at || r.created_at : r.created_at).slice(0, 10) === d && (key === 'all' || r.status === key)).length);
-
-  const statusCount: Record<string, number> = {};
-  rowsRaw.forEach(r => { statusCount[r.status] = (statusCount[r.status] || 0) + 1; });
+  summary.top_recipients.forEach(row => { people[row.id] = {full_name:row.full_name,username:row.username,avatar_url:null}; });
+  const nameOf = (id: string) => people[id]?.full_name || '@' + (people[id]?.username || 'member');
+  const amt = (r: { amount: string }) => r.amount;
+  const volWeek = paymentVolumes(summary.volume_week);
+  const volAll = paymentVolumes(summary.volume_all);
+  const avgTicket = paymentVolumes(summary.volume_week, true);
+  const statusCount = summary.status_counts;
+  const totalTransfers = Object.values(statusCount).reduce((a,b)=>a+b,0);
+  const inFlight = (statusCount.pending ?? 0) + (statusCount.processing ?? 0);
+  const settled = (statusCount.completed ?? 0) + (statusCount.failed ?? 0);
+  const successRate = settled ? (statusCount.completed ?? 0) / settled * 100 : 0;
+  const dayRows = days30.map(day => ({day,completed:0,failed:0,other:0,...summary.days.find(row=>row.day===day)}));
   const STATUS_COLOR: Record<string, string> = { completed: 'var(--ok)', failed: 'var(--bad)', pending: 'var(--warn)', processing: 'var(--c3)', refunded: 'var(--info)', cancelled: 'rgba(var(--on),0.2)' };
   const statusSlices: Slice[] = Object.keys(statusCount).map((k) => ({ label: k.charAt(0).toUpperCase() + k.slice(1), value: statusCount[k], color: STATUS_COLOR[k] || 'var(--c4)' }));
 
-  const byRecipient: Record<string, number> = {};
-  rowsRaw.filter(r => r.status === 'completed').forEach(r => {
-    byRecipient[r.recipient_id] = (byRecipient[r.recipient_id] || 0) + 1;
-  });
-  const topReceivers = Object.entries(byRecipient).sort((a, b) => b[1] - a[1]).slice(0, 6);
-  const recMax = Math.max(1, ...topReceivers.map(r => r[1]));
-
-  const failDelta = pct(failedWeek.length, prevWeek.filter(r => r.status === 'failed').length);
-
+  const topReceivers = summary.top_recipients.map(row => [row.id,row.total] as const);
+  const recMax = Math.max(1, ...topReceivers.map(row => row[1]));
   const cards = [
-    { label: 'Completed volume, 7 days', value: volWeek, note: 'by currency, loaded records only', icon: IC.money, color: 'var(--c2)' },
-    { label: 'Completed, 7 days', value: fmt(doneWeek.length), note: 'completion date, loaded records only', icon: IC.check, color: 'var(--c1)', spark: spark('completed') },
-    { label: 'Failed, 7 days', value: fmt(failedWeek.length), delta: failDelta.text, deltaTone: (failedWeek.length > 0 ? 'bad' : 'neutral') as Tone, note: 'creation date, loaded records only', icon: IC.x, color: 'var(--c5)', spark: spark('failed') },
-    { label: 'Success rate', value: settled ? successRate.toFixed(1) + '%' : '—', note: 'completed ÷ (completed + failed), loaded records', icon: IC.card, color: 'var(--c6)' },
-    { label: 'Average transfer', value: avgTicket, note: 'by currency, completed in 7 days', icon: IC.clock, color: 'var(--c3)' },
+    { label: 'Completed volume, 7 days', value: volWeek, note: 'All completed transfers, by currency', icon: IC.money, color: 'var(--c2)' },
+    { label: 'Completed, 7 days', value: fmt(summary.completed_week), note: 'By completion date', icon: IC.check, color: 'var(--c1)' },
+    { label: 'Failed, 7 days', value: fmt(summary.failed_week), note: 'By creation date', icon: IC.x, color: 'var(--c5)' },
+    { label: 'Success rate', value: settled ? successRate.toFixed(1) + '%' : '—', note: 'Completed ÷ (completed + failed)', icon: IC.card, color: 'var(--c6)' },
+    { label: 'Average transfer', value: avgTicket, note: 'By currency, completed in 7 days', icon: IC.clock, color: 'var(--c3)' },
   ];
 
   const rows: DeskRow[] = rowsRaw.map(r => {
@@ -146,7 +130,7 @@ export default async function PaymentsPage() {
   });
 
   const tabs = [
-    { key: 'all', label: 'All transfers', count: rows.length },
+    { key: 'all', label: 'This page', count: rows.length },
     { key: 'completed', label: 'Completed', count: rows.filter(r => r.tabs.includes('completed')).length },
     { key: 'failed', label: 'Failed', count: rows.filter(r => r.tabs.includes('failed')).length },
     { key: 'pending', label: 'In flight', count: rows.filter(r => r.tabs.includes('pending')).length },
@@ -155,13 +139,25 @@ export default async function PaymentsPage() {
   ];
 
   return (
-    <Shell admin={admin} active="/payments" title="Payments" sub={'Latest ' + fmt(rowsRaw.length) + ' loaded transfers, up to 500. Completed value: ' + volAll + '. ' + fmt(pendingAll.length) + ' pending or processing. Figures cover this loaded sample; reporting dates use UTC.'}>
+    <Shell admin={admin} active="/payments" title="Payments" sub={fmt(totalTransfers) + ' transfers. Completed value: ' + volAll + '. ' + fmt(inFlight) + ' pending or processing. Reporting dates use UTC.'}>
       <StatStrip cards={cards} />
+      {['super_admin','platform_admin','finance_admin'].includes(admin.role) && <Link href="/payments/creators" className="inline-flex min-h-11 items-center underline">Creator finance and reviews</Link>}
+      <form method="get" className="mt-4 flex flex-wrap items-end gap-3">
+        <label>Search all transfers<input name="q" defaultValue={search.q} maxLength={100} placeholder="Member, reference or amount" className="block rounded border p-2" /></label>
+        <label>Status<select name="status" defaultValue={search.status} className="block rounded border p-2">{PAYMENT_STATUSES.map(status=><option key={status} value={status}>{status.replaceAll('_',' ')}</option>)}</select></label>
+        <button type="submit" className="rounded border px-4 py-2">Search</button>
+        <Link href="/payments/creators" className="rounded border px-4 py-2">Creator finance</Link>
+      </form>
+      <nav aria-label="Payment pages" className="mt-3 flex justify-between text-sm">
+        <Link href={paymentHref(search.status,search.q)}>Newest</Link>
+        <span>{rowsRaw.length} transfers on this page</span>
+        {page.data.has_more ? <Link href={paymentHref(search.status,search.q,page.data.next_cursor)}>Older transfers →</Link> : <span>End of results</span>}
+      </nav>
 
       <div className="mt-4" style={PANEL}>
         <div style={HEAD}>
           <div style={H_TITLE}>Transfers created by day</div>
-          <div style={H_SUB}>Transfer counts by current status, last 30 days (UTC), loaded records only</div>
+          <div style={H_SUB}>Transfer counts by current status, last 30 days (UTC), all matching dates</div>
         </div>
         <div style={{ padding: '18px 16px 14px' }}>
           <StackBars days={dayRows} series={[
@@ -180,7 +176,7 @@ export default async function PaymentsPage() {
             grid="96px minmax(150px,1.3fr) minmax(150px,1.3fr) 110px 110px 92px"
             rows={rows}
             filters={[{ key: 'status', label: 'Status', options: Object.keys(statusCount) }]}
-            searchHint="Search by member, reference or amount"
+            searchHint="Filter this page"
             detailTitle="Transfer details"
             minWidth={860}
           />
@@ -190,7 +186,7 @@ export default async function PaymentsPage() {
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>Where transfers end up</div>
-              <div style={H_SUB}>Status across the loaded transfers</div>
+              <div style={H_SUB}>Status across all transfers</div>
             </div>
             <div style={{ padding: 16 }}>
               <Donut slices={statusSlices} centerLabel="transfers" size={150} />
@@ -200,7 +196,7 @@ export default async function PaymentsPage() {
           <div className="mt-4" style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>Who is being paid</div>
-              <div style={H_SUB}>Most completed transfers received in the loaded records</div>
+              <div style={H_SUB}>Most completed transfers received across all records</div>
             </div>
             <div style={{ padding: 16 }}>
               {topReceivers.length === 0 ? <Empty note="No completed transfer yet." /> : topReceivers.map(([id, total]) => (

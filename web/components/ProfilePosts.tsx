@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useCallback } from "react";
+import { useSocialPages } from "@/lib/useSocialPages";
+import { SocialPageFooter } from "@/components/SocialPageFooter";
 import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
 
@@ -33,11 +34,8 @@ export function ProfilePosts({ profileId, authorName, authorUsername, authorAvat
   authorAvatar: string | null;
   authorVerified: boolean;
 }) {
-  const supabase = useRef(createClient()).current;
-  const [posts, setPosts] = useState<FeedRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
-  const cursor = useRef<string | null>(null);
+  const page = useSocialPages<ProfilePostRow>("get_profile_posts_page", { p_profile_id: profileId }, { key: "post_id" });
+  const posts = page.items;
 
   const toRow = useCallback(
     (r: ProfilePostRow): FeedRow => ({
@@ -79,48 +77,14 @@ export function ProfilePosts({ profileId, authorName, authorUsername, authorAvat
     [profileId, authorName, authorUsername, authorAvatar, authorVerified]
   );
 
-  const load = useCallback(
-    async (more: boolean) => {
-      if (!more) {
-        setLoading(true);
-        cursor.current = null;
-      }
-      const { data } = await supabase.rpc("get_profile_posts", {
-        p_profile_id: profileId,
-        p_cursor: more ? cursor.current : null,
-        p_limit: 20,
-      });
-      const rows = (data ?? []) as ProfilePostRow[];
-      setPosts((prev) => (more ? [...prev, ...rows.map(toRow)] : rows.map(toRow)));
-      if (rows.length > 0) cursor.current = rows[rows.length - 1].created_at;
-      setHasMore(rows.length >= 20);
-      setLoading(false);
-    },
-    [profileId, supabase, toRow]
-  );
-
-  useEffect(() => {
-    load(false);
-  }, [load]);
-
-  if (loading) {
+  if (page.loading && posts.length === 0) {
     return <p className="py-12 text-center text-sm text-muted">Loading posts</p>;
-  }
-  if (posts.length === 0) {
-    return <p className="py-12 text-center text-sm text-muted">No posts yet.</p>;
   }
   return (
     <div>
-      {posts.map((p) => (
-        <PostCard key={p.post_id} post={p} />
-      ))}
-      {hasMore ? (
-        <div className="flex justify-center py-6">
-          <button onClick={() => load(true)} className="rounded-md bg-surface px-5 py-2.5 text-sm text-ink hover:bg-surface-elevated">
-            Load more
-          </button>
-        </div>
-      ) : null}
+      {!page.loading && !page.error && posts.length === 0 ? <p className="py-12 text-center text-sm text-muted">No posts yet.</p> : null}
+      {posts.map((p) => <PostCard key={p.post_id} post={toRow(p)} />)}
+      <SocialPageFooter {...page} />
     </div>
   );
 }

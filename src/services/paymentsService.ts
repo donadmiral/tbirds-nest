@@ -360,7 +360,7 @@ export const paymentsService = {
   },
 
   getPendingIntent(scope: PaymentScope) { return intentStore.load(scope); },
-  prepareIntent(params: PaymentScope & { amount: number; currency?: string; listingId?: string | null }) {
+  prepareIntent(params: PaymentScope & { amount: number; currency?: string; listingId?: string | null; orderId?: string | null }) {
     return intentStore.prepare(params);
   },
   clearIntent(intent: PaymentIntent) { return intentStore.clear(intent); },
@@ -386,6 +386,7 @@ export const paymentsService = {
     currency?: string;
     note?: string;
     listingId?: string | null;
+    orderId?: string | null;
     idempotencyKey: string;
   }): Promise<PaymentOutcome> {
     if (!LocalAuthentication?.hasHardwareAsync) {
@@ -432,6 +433,7 @@ export const paymentsService = {
       }
     }
 
+    try {
     const result = await call('?action=pay', {
       method: 'POST',
       body: JSON.stringify({
@@ -441,9 +443,19 @@ export const paymentsService = {
         conversation_id: params.conversationId,
         note: params.note ?? null,
         listing_id: params.listingId ?? null,
+        order_id: params.orderId ?? null,
         idempotency_key: params.idempotencyKey,
       }),
     }, params.ownerId);
     return paymentOutcome(result);
+    } catch (error) {
+      // These are explicit pre-submission order validation failures. Unlike
+      // timeouts or provider errors, no transfer was attempted, so recovery may
+      // safely release this local identity after displaying the rejection.
+      if (error instanceof BridgeError && error.status === 409 && ['MARKET_ORDER_REQUIRED', 'ORDER_PAYMENT_MISMATCH', 'ORDER_NOT_PAYABLE'].includes(error.code || '')) {
+        return { status: 'failed', pending: false, success: false, error: error.message };
+      }
+      throw error;
+    }
   },
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { profilePath } from "@/lib/profileLookup";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
@@ -10,6 +10,7 @@ import { PageHeader, Panel } from "@/components/ui";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ErrorState } from "@/components/ErrorState";
 import { getTierColor } from "@/lib/tier";
 import { createClient } from "@/lib/supabase/client";
 import { ExploreTopics, FeaturedChannels, TopArticles } from "@/components/DiscoverSections";
@@ -28,25 +29,26 @@ type Creator = {
 /** People worth following, ranked by reach. Their own row, not a rail panel,
  *  because on Discover finding people is the point rather than a footnote. */
 function TrendingCreators() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [people, setPeople] = useState<Creator[]>([]);
 
+  const [failed, setFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
-      let q = supabase
-        .from("profiles")
-        .select("id, full_name, username, avatar_url, headline, connections_count, is_verified, verified_tier")
-        .is("deactivated_at", null)
-        .order("connections_count", { ascending: false, nullsFirst: false })
-        .limit(10);
-      if (uid) q = q.neq("id", uid);
-      const { data } = await q;
-      setPeople((data ?? []) as Creator[]);
-    })();
-  }, [supabase]);
+    let alive = true;
+    setLoading(true); setFailed(false);
+    supabase.rpc("get_trending_creators", { p_limit: 10 }).then(({ data, error }) => {
+      if (!alive) return;
+      if (error) setFailed(true);
+      else setPeople((data ?? []) as Creator[]);
+      setLoading(false);
+    }, () => { if (alive) { setFailed(true); setLoading(false); } });
+    return () => { alive = false; };
+  }, [supabase, retry]);
 
+  if (failed) return <ErrorState title="Could not load trending creators" onRetry={() => setRetry((n) => n + 1)} />;
+  if (loading) return <p className="py-4 text-sm text-muted">Loading creators…</p>;
   if (people.length === 0) return null;
 
   return (

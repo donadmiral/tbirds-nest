@@ -12,6 +12,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { hydrateStoryMedia } from '../services/contentMedia';
 import { supabase } from '../services/supabase';
 import PlatinumRing from './stories/PlatinumRing';
 import { light } from '../constants/tokens';
@@ -33,7 +34,7 @@ export default function TrendingStoriesRail() {
           const ids = hot.map(h => h.story_id).filter(Boolean);
           if (ids.length) {
             const { data: st } = await supabase.from('stories').select('id, media_url, thumbnail_url, media_type').in('id', ids);
-            const by = new Map<string, any>(); ((st ?? []) as any[]).forEach(x => by.set(x.id, x));
+            const by = new Map<string, any>(); (await hydrateStoryMedia((st ?? []) as any[])).forEach(x => by.set(x.id, x));
             hot.forEach(h => { const x = by.get(h.story_id); if (x) { h.thumb = x.thumbnail_url || (x.media_type === 'image' ? x.media_url : null); h.media_type = x.media_type; } });
           }
         } catch {}

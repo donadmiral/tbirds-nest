@@ -5,6 +5,7 @@ import { displayImageUrl } from "@/lib/media";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark, Play, Pause } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
+import { hydrateStoryMedia } from "@/lib/contentMedia";
 import { QuestionCard, QuizCard, SliderCard, CountdownCard, AddYoursCard, SupportCard, ResultsCard } from "@/components/StoryEngageCards";
 import { timeAgo } from "@/lib/feed";
 import { SaveToMemory } from "@/components/SaveToMemory";
@@ -228,6 +229,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
+  const viewerRef = useRef<string | null>(null);
   const [muted, setMuted] = useState(true);
   const [clock, setClock] = useState<number | null>(null);
   const [poll, setPoll] = useState<StoryPoll | null>(null);
@@ -486,11 +488,40 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [story, uid, canReply, replyText, sendingReply, resumeNow]);
 
   useEffect(() => {
-    createClient().auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
+    const client = createClient();
+    let alive = true, version = 0;
+    const accept = (next: string | null) => {
+      if (!alive) return;
+      if (viewerRef.current !== next) {
+        viewerRef.current = next;
+        setStories([]); setReplyText(""); setPoll(null); setMyReactions(new Set()); setViewersOpen(false);
+      }
+      setUid(next);
+    };
+    const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+      version++; accept(session?.user.id ?? null);
+    });
+    const initial = version;
+    void client.auth.getSession().then(({ data, error }) => {
+      if (alive && version === initial) accept(error ? null : data.session?.user.id ?? null);
+    });
+    return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
+  const refreshCurrentMedia = async () => {
+    if (!story || !uid) return;
+    const id = story.id, viewer = uid;
+    setFailedStoryId(null); setLoadedStoryId(null); readyStoryRef.current = null;
+    try {
+      const [current] = await hydrateStoryMedia([story]);
+      if (viewerRef.current !== viewer || currentStoryRef.current !== id) return;
+      setStories(rows => rows.map(row => row.id === id ? current : row));
+      setMediaRetry(value => value + 1);
+    } catch { if (viewerRef.current === viewer && currentStoryRef.current === id) setFailedStoryId(id); }
+  };
+
   useEffect(() => {
-    if (!user) return;
+    if (!user || !uid) return;
     let off = false;
     setStories([]);
     setStoryLoadFinished(false);
@@ -503,7 +534,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       setStoryLoadFinished(true);
     }, () => { if (!off) { setStories([]); setStoryLoadFinished(true); } });
     return () => { off = true; };
-  }, [user, userIdx, startIndex, initialStoryId]);
+  }, [user, userIdx, startIndex, initialStoryId, uid]);
 
   useEffect(() => {
     setEmojiOpen(false);
@@ -675,7 +706,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             {failedStoryId === story.id ? (
               <div role="alert" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/70 px-6 text-center text-sm text-white">
                 <p>This story’s media could not load.</p>
-                <button className="rounded-full border border-white/50 px-4 py-2" onClick={() => { setFailedStoryId(null); setLoadedStoryId(null); readyStoryRef.current = null; setMediaRetry(value => value + 1); }}>Retry</button>
+                <button className="rounded-full border border-white/50 px-4 py-2" onClick={() => void refreshCurrentMedia()}>Retry</button>
               </div>
             ) : null}
             <FilterOverlay filterId={story.filter_id} amt={story.media_transform?.filterAmt ?? 100} />
@@ -702,7 +733,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             ) : null}
             {poll ? <StoryPollCard poll={poll} isOwn={isOwn} onUpdate={setPoll} /> : null}
             {story.stickers_json && story.stickers_json.length > 0 ? (
-              <StickerLayer stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} />
+              <StickerLayer key={uid + ":" + story.id} stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} />
             ) : null}
             {story.caption ? (
               <p className={"absolute inset-x-0 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow " + (isOwn ? "bottom-28" : "bottom-20")}>{String(story.caption).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => part.startsWith("@") ? <a key={i} href={"/" + part.slice(1)} onClick={(e) => e.stopPropagation()} className="font-extrabold underline">{part}</a> : <span key={i}>{part}</span>)}</p>

@@ -1,5 +1,9 @@
 "use client";
 
+import { hydratePostMedia } from "@/lib/contentMedia";
+import { withTimeout } from "@/lib/withTimeout";
+import { productDestination } from "../../shared/productDestination";
+
 import { profilePath } from "@/lib/profileLookup";
 import { usePollFlag } from "@/lib/pollCheck";
 import { PersonName } from "@/components/PersonName";
@@ -72,17 +76,27 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
   const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; first: { url: string; media_type: string; edit?: { coverUrl?: string | null } | null } | null } | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("posts")
-        .select("content, body, created_at, user_id, post_media(url, media_type, sort_order, edit)")
-        .eq("id", quotedId)
-        .maybeSingle();
-      if (!data) return;
-      const { data: a } = await supabase.from("profiles").select("full_name, username").eq("id", data.user_id).maybeSingle();
-      const media = (data.post_media ?? []).slice().sort((x: { sort_order: number }, y: { sort_order: number }) => x.sort_order - y.sort_order);
-      setQ({ content: data.content, body: data.body, created_at: data.created_at, author: a ?? null, first: media[0] ?? null });
-    })();
+    let live = true, version = 0;
+    const load = async () => {
+      const run = ++version;
+      try {
+        const {data,error} = await withTimeout(supabase.from("posts").select("content, body, created_at, user_id, post_media(url, media_type, sort_order, edit)").eq("id",quotedId).maybeSingle());
+        if(error)throw error;
+        if(!data){if(live&&run===version)setQ(null);return;}
+        const [{data:author,error:authorError},safe] = await Promise.all([
+          withTimeout(supabase.from("profiles").select("full_name, username").eq("id",data.user_id).maybeSingle()),
+          hydratePostMedia([{...data,post_id:quotedId}],supabase),
+        ]);
+        if(authorError)throw authorError;
+        if(!live||run!==version)return;
+        const media=(safe[0].post_media||[]).slice().sort((x:{sort_order:number},y:{sort_order:number})=>x.sort_order-y.sort_order);
+        setQ({content:data.content,body:data.body,created_at:data.created_at,author:author??null,first:media[0]??null});
+      }catch{if(live&&run===version)setQ(null);}
+    };
+    setQ(null);void load();
+    const timer=setInterval(()=>void load(),240000);
+    const {data}=supabase.auth.onAuthStateChange(()=>{version++;setQ(null);queueMicrotask(()=>{if(live)void load();});});
+    return()=>{live=false;version++;clearInterval(timer);data.subscription.unsubscribe();};
   }, [supabase, quotedId]);
 
   if (!q) return null;
@@ -171,19 +185,25 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   // Only the writer's own gallery block is fetched here - articles are a
   // small extra lookup, not part of get_feed's normal columns.
   useEffect(() => {
+    setGalleryImages([]);
     if (!post.article_title) return;
-    let dead = false;
-    supabase.from("articles").select("current_revision_id").eq("linked_post_id", post.post_id).maybeSingle()
-      .then(({ data: art }: { data: { current_revision_id: string } | null }) => {
-        if (dead || !art?.current_revision_id) return;
-        supabase.from("article_blocks").select("content").eq("revision_id", art.current_revision_id).eq("block_type", "gallery").maybeSingle()
-          .then(({ data: blk }: { data: { content: unknown } | null }) => {
-            if (dead) return;
-            const imgs = (blk?.content as { images?: unknown })?.images;
-            if (Array.isArray(imgs)) setGalleryImages(imgs as { url: string; width?: number; height?: number }[]);
-          });
-      });
-    return () => { dead = true; };
+    let live=true,version=0;
+    const load=async()=>{
+      const run=++version;
+      try{
+        const {data:article,error}=await withTimeout(supabase.from("articles").select("current_revision_id").eq("linked_post_id",post.post_id).maybeSingle());
+        if(error)throw error;
+        if(!article?.current_revision_id){if(live&&run===version)setGalleryImages([]);return;}
+        const {data:block,error:blockError}=await withTimeout(supabase.from("article_blocks").select("content").eq("revision_id",article.current_revision_id).eq("block_type","gallery").maybeSingle());
+        if(blockError)throw blockError;
+        const [safe]=await hydratePostMedia([{post_id:post.post_id,blocks:block}],supabase);
+        const images=(safe.blocks?.content as {images?:unknown})?.images;
+        if(live&&run===version)setGalleryImages(Array.isArray(images)?images.filter((image):image is {url:string;width?:number;height?:number}=>!!image&&typeof image.url==='string'):[]);
+      }catch{if(live&&run===version)setGalleryImages([]);}
+    };
+    void load();const timer=setInterval(()=>void load(),240000);
+    const {data}=supabase.auth.onAuthStateChange(()=>{version++;setGalleryImages([]);queueMicrotask(()=>{if(live)void load();});});
+    return()=>{live=false;version++;clearInterval(timer);data.subscription.unsubscribe();};
   }, [post.article_title, post.post_id, supabase]);
   // Long enough that it would crowd out the next post in the feed.
   const isLong = text.length > 600 || text.split("\n").length > 12;
@@ -253,7 +273,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <FollowButton authorId={post.author_id} />
-              <PostMenu postId={post.post_id} authorId={post.author_id} text={text} reason={whyReason} onHidden={() => setHidden(true)} />
+              <PostMenu postId={post.post_id} authorId={post.author_id} text={text} reason={whyReason} onHidden={() => { setHidden(true); window.dispatchEvent(new CustomEvent("pc-feed-hidden", { detail: { postId: post.post_id } })); }} />
             </div>
           </div>
 
@@ -341,8 +361,9 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
             <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1" data-product-cards>
               {products.map((p) => {
                 const price = money(p.price, p.currency);
-                const internal = !!p.listing_id;
-                const href = internal ? "/market/" + p.listing_id : (p.link_url && /^https?:\/\//i.test(p.link_url) ? p.link_url : "");
+                const destination = productDestination(p.listing_id, p.link_url);
+                const internal = !!destination && destination.kind !== "external";
+                const href = destination?.href || "";
                 const cls = "relative block w-44 shrink-0 overflow-hidden rounded-xl border border-ink/10 bg-white text-left transition-colors duration-[140ms] hover:border-ink/25";
                 const body = (
                   <>

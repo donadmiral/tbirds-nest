@@ -15,10 +15,11 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { authorId as currentAuthorId } from '../../stores/actorStore';
 import { feedService } from '../../services/feedService';
+import { useUploadPreview } from '../../hooks/useUploadPreview';
 import ArticleBody from '../../components/ArticleBody';
 import { CATEGORIES } from '../../constants/categories';
 
-const DRAFT_KEY = 'pc:article-draft';
+const DRAFT_PREFIX = 'pc:article-draft:';
 
 const NAVY = '#0B1E3D';
 
@@ -26,12 +27,17 @@ export default function ArticleComposeScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
+  const draftOwner = profile?.id ?? null;
+  const DRAFT_KEY = DRAFT_PREFIX + draftOwner;
+  const [restoredOwner, setRestoredOwner] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [cover, setCover] = useState<string | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const [coverDims, setCoverDims] = useState<{ width: number; height: number } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; width?: number; height?: number }[]>([]);
+  const previewSource = useMemo(() => ({ body, galleryImages }), [body, galleryImages]);
+  const mediaPreview = useUploadPreview(previewSource);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
   const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
@@ -49,23 +55,25 @@ export default function ArticleComposeScreen() {
   // The draft outlives the screen: backgrounding the app or navigating away
   // by accident no longer loses the piece. Mirrors the web writer exactly.
   useEffect(() => {
-    (async () => {
+    let alive = true;
+    setTitle(''); setBody(''); setCover(null); setGalleryImages([]); setRestoredOwner(null);
+    if (!draftOwner) return;
+    void (async () => {
       try {
         const raw = await AsyncStorage.getItem(DRAFT_KEY);
-        if (raw) {
-          const d = JSON.parse(raw) as { title?: string; body?: string };
-          if (d.title) setTitle(d.title);
-          if (d.body) setBody(d.body);
-        }
-      } catch {}
-    })();
-  }, []);
+        if (!alive) return;
+        if (raw) { const draft = JSON.parse(raw); setTitle(draft.title || ''); setBody(draft.body || ''); }
+      } finally { if (alive) setRestoredOwner(draftOwner); }
+    })().catch(() => {});
+    return () => { alive = false; };
+  }, [DRAFT_KEY, draftOwner]);
   useEffect(() => {
+    if (!draftOwner || restoredOwner !== draftOwner) return;
     const timer = setTimeout(() => {
       if (title || body) AsyncStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body })).catch(() => {});
     }, 500);
     return () => clearTimeout(timer);
-  }, [title, body]);
+  }, [title, body, DRAFT_KEY, draftOwner, restoredOwner]);
 
   // Wraps the current selection (or inserts at the cursor), same shape as
   // the web toolbar's wrap(): heading/quote markers get a leading newline
@@ -318,7 +326,8 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
 
           {preview ? (
             <View style={s.previewWrap}>
-              {body.trim() ? <ArticleBody text={body} /> : <Text style={s.previewEmpty}>Nothing to preview yet.</Text>}
+              {mediaPreview.error ? <TouchableOpacity onPress={mediaPreview.retry}><Text style={s.previewEmpty}>{mediaPreview.error}</Text></TouchableOpacity> : null}
+              {body.trim() ? <ArticleBody text={mediaPreview.preview.body} /> : <Text style={s.previewEmpty}>Nothing to preview yet.</Text>}
             </View>
           ) : (
             <TextInput
@@ -338,7 +347,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
             <View style={s.galleryStrip}>
               {galleryImages.map((img: { url: string; width?: number; height?: number }, i: number) => (
                 <View key={img.url + i} style={s.galleryThumbWrap}>
-                  <Image source={{ uri: img.url }} style={s.galleryThumb} />
+                  <Image source={{ uri: mediaPreview.preview.galleryImages[i]?.url || undefined }} style={s.galleryThumb} />
                   <TouchableOpacity
                     onPress={() => setGalleryImages((prev: { url: string; width?: number; height?: number }[]) => prev.filter((_: unknown, idx: number) => idx !== i))}
                     style={s.galleryRemove}

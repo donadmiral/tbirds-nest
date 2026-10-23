@@ -13,6 +13,8 @@ import { Hash, Radio } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Panel } from "@/components/ui";
 import { displayImageUrl } from "@/lib/media";
+import { hydratePostMedia } from "@/lib/contentMedia";
+import { withTimeout } from "@/lib/withTimeout";
 import type { FeedRow } from "@/lib/feed";
 
 type Ch = { id: string; name: string; description: string | null; icon_url: string | null; member_count: number; is_member: boolean };
@@ -107,11 +109,14 @@ export function TopArticles() {
   const [rows, setRows] = useState<FeedRow[]>([]);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.rpc("get_feed", { p_mode: "trending", p_limit: 60 });
-      const articles = ((data ?? []) as FeedRow[]).filter((r) => !!r.article_title).slice(0, 6);
-      setRows(articles);
-    })();
+    let live=true,version=0;
+    const load=async()=>{const run=++version;try{const {data,error}=await withTimeout(supabase.rpc("get_feed",{p_mode:"trending",p_limit:60}));if(error)throw error;
+      const articles=await hydratePostMedia(((data??[]) as FeedRow[]).filter(row=>!!row.article_title).slice(0,6),supabase);
+      if(live&&run===version)setRows(articles);
+    }catch{if(live&&run===version)setRows([]);}};
+    void load();const timer=setInterval(()=>void load(),240000);
+    const {data}=supabase.auth.onAuthStateChange(()=>{version++;setRows([]);queueMicrotask(()=>{if(live)void load();});});
+    return()=>{live=false;version++;clearInterval(timer);data.subscription.unsubscribe();};
   }, [supabase]);
 
   if (rows.length === 0) return null;

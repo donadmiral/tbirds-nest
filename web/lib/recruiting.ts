@@ -20,6 +20,16 @@ export function recruitingSummary(apps: { status: string }[]) {
   return { counts, total: apps.length, hired: counts.hired, rate: apps.length ? counts.hired / apps.length * 100 : 0 };
 }
 
+/** Normalize complete server counts without constructing a truncated applicant list. */
+export function recruitingCountSummary(raw: Record<string, number>) {
+  const counts: Record<string, number> = Object.fromEntries(RECRUITER_COLUMNS.map(stage => [stage, 0]));
+  for (const [status, value] of Object.entries(raw)) {
+    if (status !== 'all' && Number.isFinite(value) && value >= 0) counts[recruiterStage(status)] += value;
+  }
+  const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+  return { counts, total, hired: counts.hired, rate: total ? counts.hired / total * 100 : 0 };
+}
+
 export function interviewLocalInput(iso: string | null): string {
   if (!iso) return "";
   const date = new Date(iso);

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useUploadPreview } from "@/lib/useUploadPreview";
 import { ArticleBody } from "@/components/ArticleBody";
 import { CATEGORIES } from "@/lib/categories";
 import { PublicationAttempt, publicationError } from "@/lib/publication";
@@ -16,6 +17,8 @@ export default function WriteArticlePage() {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const previewSource = useMemo(() => ({ body }), [body]);
+  const mediaPreview = useUploadPreview(previewSource);
   const [cover, setCover] = useState<File | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
@@ -24,7 +27,9 @@ export default function WriteArticlePage() {
   const [linkUrl, setLinkUrl] = useState("https://");
   const linkRangeRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
   const bodyRef = useRef<HTMLTextAreaElement | null>(null);
-  const DRAFT_KEY = "pc:article-draft";
+  const [draftOwner, setDraftOwner] = useState<string | null>(null);
+  const [restoredOwner, setRestoredOwner] = useState<string | null>(null);
+  const DRAFT_KEY = "pc:article-draft:" + draftOwner;
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -37,13 +42,28 @@ export default function WriteArticlePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return;
-      const { data } = await supabase.from("profiles").select("full_name").eq("id", auth.user.id).single();
-      setName(data?.full_name ?? null);
-    })().catch(() => { /* Name is optional; publication still verifies authentication. */ });
+    let alive = true, version = 0, currentOwner: string | null = null;
+    const accept = (owner: string | null) => {
+      if (!alive) return;
+      if (currentOwner !== owner) {
+        currentOwner = owner;
+        setTitle(""); setBody(""); setCover(null); setCoverPreview(null); setName(null);
+        publication.current = null; publishedRef.current = false; setRestoredOwner(null);
+        setPublicationStatus({ postId: null, uncertain: false, locked: false, published: false });
+      }
+      setDraftOwner(owner);
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { version++; accept(session?.user.id ?? null); });
+    const initial = version;
+    void supabase.auth.getUser().then(({ data }) => { if (version === initial) accept(data.user?.id ?? null); });
+    return () => { alive = false; subscription.unsubscribe(); };
   }, [supabase]);
+  useEffect(() => {
+    if (!draftOwner) return;
+    let alive = true;
+    void supabase.from("profiles").select("full_name").eq("id", draftOwner).single().then(({ data }) => { if (alive) setName(data?.full_name ?? null); });
+    return () => { alive = false; };
+  }, [supabase, draftOwner]);
 
   const minutes = useMemo(() => {
     const words = body.trim().split(/\s+/).filter(Boolean).length;
@@ -144,12 +164,15 @@ export default function WriteArticlePage() {
 
   // The draft outlives the tab: closing it by accident no longer loses the piece.
   useEffect(() => {
+    if (!draftOwner) return;
     try {
       const raw = window.localStorage.getItem(DRAFT_KEY);
       if (raw) { const d = JSON.parse(raw) as { title?: string; body?: string }; if (d.title) setTitle(d.title); if (d.body) setBody(d.body); }
     } catch { /* no draft */ }
-  }, []);
+    setRestoredOwner(draftOwner);
+  }, [DRAFT_KEY, draftOwner]);
   useEffect(() => {
+    if (!draftOwner || restoredOwner !== draftOwner) return;
     const t = setTimeout(() => {
       if (publishedRef.current) return;
       try {
@@ -158,7 +181,7 @@ export default function WriteArticlePage() {
       } catch { /* Keep the in-memory draft if browser storage is unavailable. */ }
     }, 500);
     return () => clearTimeout(t);
-  }, [title, body]);
+  }, [title, body, DRAFT_KEY, draftOwner, restoredOwner]);
 
   const clearCover = () => { if (coverPreview) URL.revokeObjectURL(coverPreview); setCover(null); setCoverPreview(null); if (fileRef.current) fileRef.current.value = ""; };
 
@@ -344,7 +367,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
 
       {preview ? (
         <div className="min-h-[420px] rounded-xl border border-ink/10 bg-white px-5 py-4">
-          {body.trim() ? <ArticleBody text={body} /> : <p className="text-[14px] text-muted">Nothing to preview yet.</p>}
+          {body.trim() ? <>{mediaPreview.error ? <p role="alert" className="text-sm text-danger">{mediaPreview.error} <button onClick={mediaPreview.retry} className="underline">Retry</button></p> : null}<ArticleBody text={mediaPreview.preview.body} /></> : <p className="text-[14px] text-muted">Nothing to preview yet.</p>}
         </div>
       ) : (
         <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder="Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images."

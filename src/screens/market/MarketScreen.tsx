@@ -1,3 +1,4 @@
+import MarketOrderPanel from '../../components/market/MarketOrderPanel';
 import { prefetch } from '../../lib/screenTransition';
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, useTheme } from '../../theme/useTheme';
@@ -9,7 +10,7 @@ import MarketFilterSheet, { MarketFilters, EMPTY_FILTERS } from '../../component
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator, useWindowDimensions, FlatList, RefreshControl, StyleSheet,
-  Text, TextInput, TouchableOpacity, View, Alert,
+  Text, TextInput, TouchableOpacity, View, Alert, Modal, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
@@ -46,6 +47,7 @@ export default function MarketScreen({ navigation }: any) {
   useFocusEffect(React.useCallback(() => { useUnreadStore.getState().refresh(); }, []));
   const { profile: meProfile } = useAuthStore();
   const [filterOpen, setFilterOpen] = useState(false);
+  const [ordersOpen, setOrdersOpen] = useState(false);
   const request = useRef(0);
   const saveContext = useMemo(() => ({}), [marketTab, meProfile?.id]);
   const saveContextRef = useRef(saveContext);
@@ -192,6 +194,7 @@ export default function MarketScreen({ navigation }: any) {
       <View style={s.header}>
         <Text style={s.headerTitle}>Market</Text>
         <View style={{ flex: 1 }} />
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Marketplace orders" onPress={() => setOrdersOpen(true)} style={{ padding: 12 }}><Feather name="package" size={21} color={t.ink.primary} /></TouchableOpacity>
         <TouchableOpacity
           style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
           activeOpacity={0.8}
@@ -312,6 +315,11 @@ export default function MarketScreen({ navigation }: any) {
           scrollEventThrottle={16}
         />
       )}
+      <Modal visible={ordersOpen} animationType="slide" onRequestClose={() => setOrdersOpen(false)}>
+        <SafeAreaView style={s.safe} edges={['top', 'bottom']}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Close orders" onPress={() => setOrdersOpen(false)} style={{ padding: 16 }}><Text style={{ color: t.ink.primary, fontWeight: '600' }}>Close orders</Text></TouchableOpacity>
+          <ScrollView>{ordersOpen && <MarketOrderPanel onMessage={order => { setOrdersOpen(false); navigation.navigate('Chat', { conversationId: order.conversation_id, otherUserId: order.buyer_id === meProfile?.id ? order.seller_id : order.buyer_id }); }} />}</ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

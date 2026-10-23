@@ -7,10 +7,21 @@ const ts = require('typescript');
 
 // Execute the production callbacks with synthetic rows and a recording transport.
 // No native runtime, hosted database, credentials or real events are required.
+const sharedModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/feedSnapshot.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: sharedModule.exports, module: sharedModule });
+const { mergeFeedRefresh } = sharedModule.exports;
+const mediaModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../shared/feedMedia.ts'), 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText, { exports: mediaModule.exports, module: mediaModule, setTimeout, clearTimeout });
+const { renewFeedMedia } = mediaModule.exports;
+
+
 const source = fs.readFileSync(path.join(__dirname, '../src/screens/feed/FeedScreen.tsx'), 'utf8');
 const ast = ts.createSourceFile('FeedScreen.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const callbacks = {};
 function visit(node) {
+  if (ts.isVariableDeclaration(node) && node.name.getText(ast) === '[mutedWords, setMutedWords]') {
+    callbacks.mutedInitial = node.initializer.arguments[0];
+  }
   if (ts.isVariableDeclaration(node) && ['loadFeed', 'loadMore'].includes(node.name.getText(ast))) {
     callbacks[node.name.getText(ast)] = node.initializer.arguments[0];
   }
@@ -18,6 +29,8 @@ function visit(node) {
     && node.arguments[0]?.getText(ast).includes("supabase.channel('feed_live')")) {
     callbacks.realtime = node.arguments[0];
   }
+  if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect'
+    && node.arguments[0]?.getText(ast).includes("select('muted_words')")) callbacks.mutedRefresh = node.arguments[0];
   ts.forEachChild(node, visit);
 }
 visit(ast);
@@ -30,15 +43,21 @@ function compile(name, scope) {
   return scope.run;
 }
 
-function harness({ previewRows = [], heldTable = null } = {}) {
+function harness({ previewRows = [], heldTable = null, rpc } = {}) {
   const requests = [], handlers = new Map(), errors = [];
-  let currentUser = 'viewer-a', previewState = {}, pendingResolve;
+  let currentUser = 'viewer-a', previewState = {}, pendingResolve, pendingCount = 0, loading = true;
   let postState = [{ id: 'shown', user_id: 'author', comments_count: 4800, likes_count: 0 }];
   const feedRows = [{ post_id: 'shown', author_id: 'author', comments_count: 4800, likes_count: 0, sort_key: 1 }];
   const scope = {
     console: { log: (...args) => errors.push(args) }, setTimeout, clearTimeout,
     userId: 'viewer-a', posts: postState, profilesMap: {}, PAGE_SIZE: 20,
     postsRef: { current: postState }, realtimeTimerRef: { current: null },
+    feedRequestRef: { current: 0 }, resolvedFeedRequestRef: { current: 0 }, pageRequestRef: { current: 0 },
+    feedScopeRef: { current: 'viewer-a:latest:all' }, discoverCatRef: { current: 'all' },
+    pendingPostsRef: { current: [] }, restoredSnapshotRef: { current: false }, scrollOffsetRef: { current: 0 },
+    reconcileFeedVisibility: async (_account, ids) => new Set(ids),
+    savePublicFeedSnapshot: async () => {}, feedSnapshots: { clear: async () => {} },
+    mergeFeedRefresh, setPendingPostCount: value => { pendingCount = value; },
     hiddenIdsRef: { current: new Set() }, cursorRef: { current: { key: 2, id: 'old' } },
     hasMoreRef: { current: true }, loadingMoreRef: { current: false },
     feedModeRef: { current: 'latest' }, countCacheRef: { current: {} }, likedPostsRef: { current: {} },
@@ -46,14 +65,15 @@ function harness({ previewRows = [], heldTable = null } = {}) {
     loadFeed: () => Promise.resolve(), scheduleRefresh() {},
     overlayCounts: rows => rows, feedModeToServer: mode => mode, isMuted: () => false,
     mapFeedRow: row => ({ ...row, id: row.post_id, user_id: row.author_id }),
+    hydratePostMedia: async rows => rows, renewFeedMedia,
     hydrateShares() {}, hydrateCollabs() {}, hydratePolls() {}, scorePost: () => 0,
-    setLoading() {}, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
+    setLoading(value) { loading = value; }, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
     setProfilesMap() {}, setLikedPosts() {}, setBookmarkedPosts() {}, setRepostedPosts() {},
     setLikerNames() {}, setQuotedMap() {}, setWtfSuggestions() {},
     setPosts(update) { postState = typeof update === 'function' ? update(postState) : update; scope.postsRef.current = postState; },
     setCommentPreviews(update) { previewState = typeof update === 'function' ? update(previewState) : update; },
     supabase: {
-      rpc: async name => { assert.equal(name, 'get_feed'); return { data: feedRows, error: null }; },
+      rpc: rpc ?? (async name => { assert.equal(name, 'get_feed'); return { data: feedRows, error: null }; }),
       from(table) {
         const request = { table, single: false };
         requests.push(request);
@@ -84,6 +104,7 @@ function harness({ previewRows = [], heldTable = null } = {}) {
   return {
     scope, requests, handlers, errors,
     get posts() { return postState; }, get previews() { return previewState; },
+    get pendingCount() { return pendingCount; }, get loading() { return loading; },
     switchAccount() { currentUser = 'viewer-b'; },
     removePost() { scope.postsRef.current = []; },
     resolvePending(data) { assert.ok(pendingResolve); pendingResolve({ data, error: null }); },
@@ -151,3 +172,103 @@ for (const callback of ['loadFeed', 'loadMore']) {
     assert.deepEqual(h.errors, []);
   });
 }
+
+const tick = () => new Promise(resolve => setImmediate(resolve));
+const row = (id, count = 0) => ({ post_id: id, author_id: 'author', likes_count: 0, comments_count: count, sort_key: 1 });
+
+test('a late refresh cannot overwrite a newer request', async () => {
+  const resolves = [];
+  const h = harness({ rpc: () => new Promise(resolve => resolves.push(resolve)) });
+  const run = compile('loadFeed', h.scope);
+  const old = run(); const recent = run();
+  resolves[1]({ data: [row('newest')], error: null }); await recent;
+  resolves[0]({ data: [row('obsolete')], error: null }); await old;
+  assert.deepEqual(Array.from(h.posts, p => p.id), ['newest']);
+});
+
+test('refresh cannot render after an account or feed mode switch', async () => {
+  for (const reason of ['account', 'mode']) {
+    let resolve;
+    const h = harness({ rpc: () => new Promise(done => { resolve = done; }) });
+    const pending = compile('loadFeed', h.scope)();
+    if (reason === 'account') h.switchAccount();
+    else h.scope.feedScopeRef.current = 'viewer-a:trending:all';
+    resolve({ data: [row('obsolete')], error: null }); await pending;
+    assert.equal(h.posts[0].id, 'shown');
+  }
+});
+
+test('background refresh updates visible rows without moving them and holds new posts', async () => {
+  const h = harness({ rpc: async () => ({ data: [row('new-post'), row('shown', 12)], error: null }) });
+  await compile('loadFeed', h.scope)(false, true);
+  assert.deepEqual(h.posts.map(p => p.id), ['shown']);
+  assert.equal(h.posts[0].comments_count, 12);
+  assert.equal(h.pendingCount, 1);
+});
+
+test('live rows render and stop loading before comment enrichment completes', async () => {
+  const h = harness({ heldTable: 'post_comments' });
+  const pending = compile('loadFeed', h.scope)(true);
+  await tick();
+  assert.equal(h.loading, false);
+  assert.equal(h.posts[0].id, 'shown');
+  h.resolvePending([]); await pending;
+});
+
+test('a late pagination response cannot append into a different feed', async () => {
+  let resolve;
+  const h = harness({ rpc: () => new Promise(done => { resolve = done; }) });
+  const pending = compile('loadMore', h.scope)();
+  h.scope.feedScopeRef.current = 'viewer-a:trending:all';
+  resolve({ data: [row('obsolete')], error: null }); await pending;
+  assert.equal(h.posts.length, 1);
+  assert.equal(h.posts[0].id, 'shown');
+});
+
+test('off-feed reactions and counts never expand account state', () => {
+  const h = harness(); compile('realtime', h.scope)();
+  h.handlers.get('feed_likes:INSERT')({ new: { post_id: 'elsewhere', user_id: 'other' } });
+  h.handlers.get('feed_post_counts:UPDATE')({ new: { id: 'elsewhere', likes_count: 9000 } });
+  assert.equal(h.posts[0].likes_count, 0);
+  assert.equal(Object.keys(h.scope.countCacheRef.current).length, 0);
+});
+
+
+test('background reconciliation removes revoked posts while preserving older accessible rows', async () => {
+  const h = harness({ rpc: async () => ({ data: [row('new-post')], error: null }) });
+  h.scope.setPosts([{ id: 'revoked' }, { id: 'older' }]);
+  h.scope.reconcileFeedVisibility = async () => new Set(['older']);
+  await compile('loadFeed', h.scope)(false, true);
+  assert.deepEqual(Array.from(h.posts, p => p.id), ['older']);
+  assert.equal(h.pendingCount, 1);
+});
+test('paging retains its cursor after a signing failure so retry cannot skip a page', async () => {
+  const h = harness(); const oldCursor = h.scope.cursorRef.current;
+  h.scope.hydratePostMedia = async () => { throw Error('signer offline'); };
+  await compile('loadMore', h.scope)();
+  assert.equal(h.scope.cursorRef.current, oldCursor);
+  assert.equal(h.scope.hasMoreRef.current, true);
+});
+test('media refresh renews only missing, expiring or suspicious capabilities and retains order', async () => {
+  const now = 1000000, valid = { id: 'valid', _mediaExpiresAt: now + 120000 }, expired = { id: 'old', _mediaExpiresAt: now - 1 };
+  const rows = [valid, { id: 'new' }, expired, { id: 'forged', _mediaExpiresAt: now + 9999999 }];
+  let requested;
+  const refreshed = await renewFeedMedia(rows, async values => { requested = values; return values.map(x => ({ ...x, _mediaExpiresAt: now + 300000 })); }, now);
+  assert.deepEqual(Array.from(requested, x => x.id), ['new', 'old', 'forged']);
+  assert.equal(refreshed[0], valid); assert.deepEqual(Array.from(refreshed, x => x.id), ['valid','new','old','forged']);
+  assert.equal(refreshed[2]._mediaExpiresAt, now + 300000);
+});
+
+test('native launch applies the known mute preferences before an optional network refresh completes', async () => {
+  const profile = { id: 'alice', muted_words: ['BLOCKED'] };
+  const initial = compile('mutedInitial', { profile })();
+  assert.deepEqual(Array.from(initial), ['blocked']);
+  let words = initial, finish;
+  const scope = { userId: 'alice', useAuthStore: { getState: () => ({ profile }) },
+    setMutedWords: value => { words = value; },
+    supabase: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => new Promise(resolve => { finish = resolve; }) }) }) }) } };
+  const cleanup = compile('mutedRefresh', scope)();
+  assert.deepEqual(Array.from(words), ['blocked']);
+  finish({ data: null, error: Error('offline') }); await tick();
+  assert.deepEqual(Array.from(words), ['blocked']); cleanup();
+});

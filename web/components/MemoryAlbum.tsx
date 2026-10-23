@@ -60,13 +60,39 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   const [adding, setAdding] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
 
-  const load = useCallback(() => {
-    getMemoryBook(ownerId).then(setAlbum);
-  }, [ownerId]);
+  const loadGeneration = useRef(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    const generation = ++loadGeneration.current;
+    if (!uid) { setAlbum(null); return; }
+    try {
+      const next = await getMemoryBook(ownerId);
+      if (generation !== loadGeneration.current) return;
+      setAlbum(next); setLoadError(next ? null : "This album is unavailable.");
+    } catch {
+      if (generation !== loadGeneration.current) return;
+      setAlbum(null); setLoadError("The album could not load. Please retry.");
+    }
+  }, [ownerId, uid]);
 
-  useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
+    void load();
+    const refresh = () => { if (document.visibilityState === "visible") void load(); };
+    const timer = setInterval(refresh, 240000);
+    window.addEventListener("focus", refresh); document.addEventListener("visibilitychange", refresh);
+    return () => { loadGeneration.current++; clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [load]);
+  useEffect(() => {
+    let alive = true, authVersion = 0, viewer: string | null = null;
+    const apply = (next: string | null) => {
+      if (!alive) return;
+      if (viewer !== next) { loadGeneration.current++; setAlbum(null); setLikedPages(new Set()); setManage(false); setAdding(false); setIdx(0); }
+      viewer = next; setUid(next); setLoadError(next ? null : "Sign in to view this album.");
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; apply(session?.user.id ?? null); });
+    const initial = authVersion;
+    void supabase.auth.getSession().then(({ data }) => { if (initial === authVersion) apply(data.session?.user.id ?? null); }).catch(() => { if (alive && initial === authVersion) setLoadError("Your account could not load. Please retry."); });
+    return () => { alive = false; loadGeneration.current++; subscription.unsubscribe(); };
   }, [supabase]);
   // Seed the hearts with what this person already liked.
   useEffect(() => {
@@ -98,7 +124,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
 
-  if (!album) return <p className="py-24 text-center text-sm text-muted">Opening the album</p>;
+  if (!album) return <div className="py-24 text-center text-sm text-muted"><p>{loadError ?? "Opening the album"}</p>{loadError && <button className="mt-3 underline" onClick={() => void load()}>Retry</button>}</div>;
   if (!album.is_owner && !album.can_view) {
     return (
       <div className="flex flex-col items-center gap-3 py-24">
@@ -248,7 +274,13 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
   const [rows, setRows] = useState<Awaited<ReturnType<typeof getMyStories>>>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
-  useEffect(() => { getMyStories().then(setRows); }, []);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    void getMyStories().then(value => { if (alive) { setRows(value); setError(null); } }).catch(() => { if (alive) setError("Stories could not load. Please retry."); });
+    return () => { alive = false; };
+  }, [attempt]);
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose}>
       <div className="max-h-[86vh] w-full max-w-[560px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
@@ -257,10 +289,11 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
           <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
         </div>
         <p className="mb-3 text-[12px] text-muted">Every story you have ever posted. Pick the ones worth keeping.</p>
-        {rows.length === 0 ? <p className="py-10 text-center text-sm text-muted">No stories yet.</p> : (
+        {error && <button className="mb-3 text-sm underline" onClick={() => setAttempt(n => n + 1)}>{error}</button>}
+        {rows.length === 0 ? <p className="py-10 text-center text-sm text-muted">{error ? "" : "No stories yet."}</p> : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {rows.map((s) => {
-              const taken = existing.some((p) => (p as MemoryPage & { story_id?: string }).id && p.media_url === s.media_url);
+              const taken = existing.some((p) => p.story_id === s.id);
               const on = picked.has(s.id);
               return (
                 <button key={s.id} disabled={taken} onClick={() => setPicked((prev) => { const n = new Set(prev); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); return n; })}

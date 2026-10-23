@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getListing, getSavedListingIds, toggleSaved, priceLabel, type Listing } from "@/lib/market";
 import { SellerTrust } from "@/components/SellerTrust";
 import { StoryAvatar } from "@/components/StoryAvatar";
+import { MarketOrders } from "@/components/MarketOrders";
 import { SellerReviews } from "@/components/SellerReviews";
 import { timeAgo } from "@/lib/feed";
 
@@ -257,7 +258,8 @@ export default function ListingPage() {
           <button onClick={blockSeller} className="transition-colors duration-[140ms] hover:text-danger">Block seller</button>
         </p>
       ) : null}
-      <SellerReviews sellerId={l.seller_id} listingId={l.id} viewerId={uid} />
+      <MarketOrders listing={l} />
+        <SellerReviews sellerId={l.seller_id} listingId={l.id} viewerId={uid} />
     </div>
   );
 }

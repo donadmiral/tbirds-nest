@@ -45,7 +45,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { messageStatusService } from '../../services/messageStatusService';
 import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
-import { signChatMedia, signChatMediaMap, isChatMediaUrl } from '../../services/chatMediaService';
+import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
 import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
@@ -396,13 +396,18 @@ export default function ChatScreen() {
   // The conversation row fills in whatever the params left out (a notification or the community's Chat button pass only the id).
   const [convMeta, setConvMeta] = useState<any>(null);
   useEffect(() => {
-    if (!conversationId) return;
-    supabase.from('conversations').select('is_group, group_name, group_emoji, group_avatar_url, group_type, group_ref_id').eq('id', conversationId).maybeSingle().then(({ data }) => { if (data) setConvMeta(data); }, () => {});
-  }, [conversationId]);
+    let current = true;
+    setConvMeta(null);
+    if (!conversationId || !currentUserId) return;
+    supabase.from('conversations').select('is_group, group_name, group_emoji, group_avatar_url, group_type, group_ref_id').eq('id', conversationId).maybeSingle().then(async ({ data }) => {
+      if (data) { const [signed] = await signGroupAvatars([data]); if (current) setConvMeta(signed); }
+    }, () => {});
+    return () => { current = false; };
+  }, [conversationId, currentUserId]);
   const isGroup: boolean = route.params?.isGroup ?? !!convMeta?.is_group;
   const groupName: string = route.params?.groupName ?? (convMeta?.group_name || '');
   const groupEmoji: string = route.params?.groupEmoji ?? (convMeta?.group_emoji || '');
-  const groupAvatarUrl: string | null = route.params?.groupAvatarUrl ?? (convMeta?.group_avatar_url || null);
+  const groupAvatarUrl: string | null = convMeta?.group_avatar_url || (!isChatMediaUrl(route.params?.groupAvatarUrl) ? route.params?.groupAvatarUrl : null) || null;
   // A community's chat: the community is its home, so the header says so and the info sheet opens it.
   const groupType: string | null = route.params?.groupType ?? (convMeta?.group_type || null);
   const groupRefId: string | null = route.params?.groupRefId ?? (convMeta?.group_ref_id || null);
@@ -789,7 +794,7 @@ export default function ChatScreen() {
 
       const starredRows = (starredRes.data || []) as any[];
       const infoSigned = await signChatMediaMap(starredRows.map((r: any) => r.msg).filter(Boolean));
-      starredRows.forEach((r: any) => { if (r.msg && infoSigned[r.msg.id]) r.msg.media_url = infoSigned[r.msg.id]; });
+      starredRows.forEach((r: any) => { if (r.msg && isChatMediaUrl(r.msg.media_url)) r.msg.media_url = infoSigned[r.msg.id] || null; });
       const senderIds = Array.from(new Set(starredRows.map((r: any) => r.msg?.sender_id).filter(Boolean)));
       let nameMap: Record<string, string> = {};
       if (senderIds.length > 0) {
@@ -1292,18 +1297,30 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
     finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
   }, [currentUserId, doSend]);
 
+  const sealedRequests = useRef(new Map<string, string>());
+  const sealedOpening = useRef(false);
   const openSealedMedia = useCallback(async (msg: any) => {
+    if (sealedOpening.current) return;
+    sealedOpening.current = true;
+    const viewer = useAuthStore.getState().session?.user.id;
+    const chat = activeConversation.current;
+    const current = () => mountedRef.current && activeConversation.current === chat && useAuthStore.getState().session?.user.id === viewer;
+    const requestId = sealedRequests.current.get(msg.id) || makeMessageId();
+    sealedRequests.current.set(msg.id, requestId);
     try {
-      const { data, error } = await supabase.rpc('consume_media_view', { p_message_id: msg.id });
-      const row = Array.isArray(data) ? data[0] : data;
-      if (error || !row?.url) {
-        setViewedOutIds(prev => new Set(prev).add(msg.id));
-        Alert.alert('Opened', 'This photo has already been viewed.');
+      const { data, error } = await supabase.functions.invoke('chat-media-sign', { body: { messageIds: [msg.id], consume: true, requestId } });
+      if (!current()) return;
+      if (error || !data?.urls?.[msg.id]) {
+        // A network failure is not proof the attachment was consumed. Reuse the
+        // same viewing grant when retrying a lost signing response.
+        Alert.alert('Unable to open attachment', 'Please try again. The attachment may have expired or already been opened.');
         return;
       }
-      if ((row.remaining ?? 0) <= 0) setViewedOutIds(prev => new Set(prev).add(msg.id));
-      setFullscreenImg(row.url);
-    } catch {}
+      sealedRequests.current.delete(msg.id);
+      if ((data.remaining ?? 0) <= 0) setViewedOutIds(prev => new Set(prev).add(msg.id));
+      setFullscreenImg(data.urls[msg.id]);
+    } catch { if (current()) Alert.alert('Unable to open attachment', 'Check your connection and try again.'); }
+    finally { sealedOpening.current = false; }
   }, []);
   const sendMediaAssets = useCallback(async (assets: { uri: string; type?: string | null; width?: number; height?: number; base64?: string | null }[]) => {
     if (!currentUserId || mediaSending.current) return false;

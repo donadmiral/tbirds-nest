@@ -8,6 +8,8 @@ const root = path.join(__dirname, '..');
 const compile = file => ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
 const sources = {
   '@/components/MessagesApp': compile(path.join(root, 'components/MessagesApp.tsx')),
+  '@/lib/messageOutbox': compile(path.join(root, 'lib/messageOutbox.ts')),
+  '../../shared/messageDelivery': compile(path.join(root, '../shared/messageDelivery.ts')),
   '@/lib/messageActions': compile(path.join(root, 'lib/messageActions.ts')),
   '../../shared/messageContent': compile(path.join(root, '../shared/messageContent.ts')),
   '../../shared/messageHistory': compile(path.join(root, '../shared/messageHistory.ts')),
@@ -55,7 +57,7 @@ function scenario(initial = [row(1)], options = {}) {
   const client = {
     auth: { getSession: async () => ({ data: { session: authUser ? { user: { id: authUser } } : null }, error: null }), onAuthStateChange: callback => { authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; } },
     from(table) { const call = { table, op: 'select', filters: {} }; const chain = {
-      select(value) { call.select = value; return chain; }, eq(k,v) { call.filters[k] = v; return chain; }, is(k,v) { call.filters[k] = v; return chain; }, in(k,v) { call.filters[k] = v; return chain; },
+      abortSignal() { return chain; }, select(value) { call.select = value; return chain; }, eq(k,v) { call.filters[k] = v; return chain; }, is(k,v) { call.filters[k] = v; return chain; }, in(k,v) { call.filters[k] = v; return chain; },
       order() { return chain; }, limit(value) { call.limit = value; return chain; }, or(value) { call.filter = value; return chain; }, maybeSingle() { call.single = true; return chain; }, single() { call.single = true; return chain; },
       insert(input) { call.op = 'insert'; call.input = input; return chain; }, update(input) { call.op = 'update'; call.input = input; return chain; }, upsert(input) { call.op = 'upsert'; call.input = input; return chain; }, delete() { call.op = 'delete'; return chain; },
       then(ok,bad) { return Promise.resolve().then(() => execute(call)).then(ok,bad); },
@@ -75,6 +77,8 @@ function scenario(initial = [row(1)], options = {}) {
   };
   const runtime = { jsx: (type,props,key) => ({ type,props,key }), jsxs: (type,props,key) => ({ type,props,key }), Fragment: 'Fragment' };
   const cache = new Map();
+  const stored = new Map();
+  const localStorage = { get length() { return stored.size; }, key: i => [...stored.keys()][i], getItem: key => stored.get(key) ?? null, setItem: (key,value) => stored.set(key,value), removeItem: key => stored.delete(key) }; 
   const load = name => {
     if (cache.has(name)) return cache.get(name).exports;
     if (name === 'react') return hooks;
@@ -86,8 +90,8 @@ function scenario(initial = [row(1)], options = {}) {
     if (name === 'next/link') return { __esModule: true, default: 'Link' };
     if (!sources[name]) return new Proxy({}, { get: (_,key) => String(key) });
     const module = { exports: {} }; cache.set(name,module);
-    vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, Error, URLSearchParams, crypto: { randomUUID: () => 'temporary' },
-      window: { location: { search: '' }, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: { body: { style: {} } },
+    vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
+      window: { localStorage, addEventListener() {}, removeEventListener() {}, location: { search: '' }, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: { body: { style: {} } },
       navigator: options.navigator || {}, MediaRecorder: options.MediaRecorder, Blob,
       setTimeout, clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
       ResizeObserver: class { observe() {} disconnect() {} }, MutationObserver: class { observe() {} disconnect() {} },
@@ -175,7 +179,7 @@ test('limited-view attachments never render a direct media URL on web', async()=
 });
 test('draft is preserved per conversation and delayed send remains in original conversation',async()=>{
   const app=scenario([row(1),row(2,{conversation_id:'b'})]);await app.flush();await app.open('a');await app.flush();app.draft('Keep in A');await app.open('b');await app.flush();assert.equal(app.find(n=>n.type==='textarea').props.value,'');await app.open('a');await app.flush();assert.equal(app.find(n=>n.type==='textarea').props.value,'Keep in A');
-  const wait=deferred();app.setWrite(call=>call.table==='messages'&&call.op==='insert'?wait.promise:null);const send=app.click('Send');await app.flush();await app.open('b');await app.flush();wait.resolve({data:row(10,{text:'Keep in A'}),error:null});await send;await app.flush();
+  const wait=deferred();app.setWrite(call=>call.table==='messages'&&call.op==='insert'?wait.promise:null);const send=app.click('Send');await app.flush();await app.open('b');await app.flush();wait.resolve({data:{...app.writes.find(c=>c.table==='messages'&&c.op==='insert').input[0],created_at:'2026-10-20T11:00:00Z'},error:null});await send;await app.flush();
   // The inbox should show A's confirmed preview, but B must not gain A's bubble.
   assert.equal(app.all(n=>n.type==='p'&&text(n)==='Keep in A').length,0);
   assert.equal(app.find(n=>n.type==='textarea').props.value,'');

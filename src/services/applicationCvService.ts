@@ -2,7 +2,7 @@ import 'react-native-get-random-values';
 import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { supabase, SUPABASE_URL } from './supabase';
-import { APPLICATION_CV_BUCKET, applicationCvFile, applicationCvPath } from '../../shared/applicationCv';
+import { APPLICATION_CV_BUCKET, applicationCvFile, applicationCvPath, legacyApplicationCvPath } from '../../shared/applicationCv';
 
 function uploadId() {
   const bytes = new Uint8Array(16);
@@ -39,12 +39,11 @@ export async function applicationCvUrl(reference: string, filename?: string | nu
     if (error || !data?.signedUrl) throw new Error('This CV could not be opened. Please try again.');
     return data.signedUrl;
   }
-  // Older applications may contain a URL in the original chat-files bucket.
-  // Never follow arbitrary schemes or hosts supplied in an application row.
-  try {
-    const url = new URL(reference);
-    if (url.protocol === 'https:' && !url.username && !url.password && url.origin === new URL(SUPABASE_URL).origin
-      && /^\/storage\/v1\/object\/(public|sign)\/chat-files\//.test(url.pathname)) return url.href;
-  } catch { /* Invalid references are shown as unavailable. */ }
+  const legacyPath = legacyApplicationCvPath(reference, SUPABASE_URL);
+  if (legacyPath) {
+    const { data, error } = await supabase.storage.from('chat-files').createSignedUrl(legacyPath, 60, { download: filename || 'CV' });
+    if (error || !data?.signedUrl) throw new Error('This CV could not be opened. Please try again.');
+    return data.signedUrl;
+  }
   throw new Error('This CV is unavailable. Ask the applicant to upload it again.');
 }

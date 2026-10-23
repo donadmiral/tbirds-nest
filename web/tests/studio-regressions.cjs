@@ -31,6 +31,8 @@ function harness(file, rpc) {
       vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/profileLookup.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{module:mod,exports:mod.exports});
       return mod.exports;
     }
+    if (id.endsWith('/shared/commerceMoney')) return require('../../shared/commerceMoney.ts');
+    if (id.endsWith('/shared/marketOrders')) return require('../../shared/marketOrders.ts');
     if (id === '@/lib/media') return { displayImageUrl: x => x };
     if (id.endsWith('/LoadError')) return { StudioLoadError: 'StudioLoadError' };
     if (id === 'next/link') return { default: 'Link' };
@@ -67,8 +69,8 @@ const text = node => typeof node === 'string' || typeof node === 'number' ? Stri
   let fail = true;
   const listing = { id: 'synthetic-listing', title: 'Retained listing', price: 20, currency: 'USD', category: 'Other', images: [], status: 'available', pending_offers: 0, sold_count: 0, in_posts: 0 };
   const commerce = harness('app/studio/commerce/page.tsx', async name => {
-    if (fail && name === 'studio_orders') return { data: null, error: { message: 'offline' } };
-    return { data: name === 'studio_catalog' ? [listing] : name === 'studio_orders' ? [] : {}, error: null };
+    if (fail && name === 'business_receipts') return { data: null, error: { message: 'offline' } };
+    return { data: name === 'business_catalog' ? {rows:[listing],next_cursor:null,has_more:false} : name === 'business_receipts' ? {rows:[],next_cursor:null,has_more:false} : {}, error: null };
   });
   commerce.render(); await commerce.flush();
   assert.ok(commerce.find(n => n.type === 'StudioLoadError').props.message, 'RPC errors must be visible');

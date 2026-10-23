@@ -8,6 +8,7 @@ import SellerTrust from '../../components/market/SellerTrust';
 import ReportListingSheet from '../../components/market/ReportListingSheet';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+import MarketOrderPanel from '../../components/market/MarketOrderPanel';
 import SellerReviews from '../../components/market/SellerReviews';
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
@@ -274,6 +275,8 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             <Feather name="chevron-right" size={18} color="#C7C7CC" />
           </TouchableOpacity>
         </View>
+
+        {!!listing && <MarketOrderPanel listing={listing} onMessage={order => navigation.navigate('Chat', { conversationId: order.conversation_id, otherUserId: order.buyer_id === userId ? order.seller_id : order.buyer_id })} />}
 
         {!!listing && <SellerReviews sellerId={listing.seller_id} listingId={listing.id} currentUserId={userId} />}
 

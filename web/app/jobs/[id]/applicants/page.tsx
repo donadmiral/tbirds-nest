@@ -2,7 +2,7 @@
 
 import { ApplicationCvLink } from "@/components/ApplicationCvLink";
 import { profilePath } from "@/lib/profileLookup";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -12,6 +12,8 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { timeAgo } from "@/lib/feed";
 import { STATUS_META, APPLICATION_STATUS_ORDER, type ApplicationStatus } from "@/lib/jobs";
 
+import { loadApplicantPage, mergeApplicants, saveApplicationStatus, saveInterview, type ApplicantCursor } from "../../../../../shared/hiring";
+
 const STATUS_ORDER = APPLICATION_STATUS_ORDER;
 
 type AppRow = {
@@ -19,7 +21,8 @@ type AppRow = {
   cover_note: string | null; cv_url: string | null; cv_name: string | null;
   applicant_phone: string | null; portfolio_url: string | null;
   interview_at: string | null; interview_location: string | null;
-  applied_at: string;
+  applied_at: string; updated_at?: string | null;
+  applicant?: AppRow["profile"];
   profile?: { id: string; full_name: string | null; username: string | null; avatar_url: string | null } | null;
 };
 
@@ -41,86 +44,79 @@ export default function ApplicantsPage() {
   const pending = useRef(new Set<string>());
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
+  const [counts, setCounts] = useState<Record<string, number>>({ all: 0 });
+  const [nextCursor, setNextCursor] = useState<ApplicantCursor | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const morePending = useRef(false);
+  const account = useRef<string | null>(null);
   const load = useCallback(async () => {
     const token = ++request.current;
+    setLoading(true); setError(null); setApps([]); setCounts({ all: 0 }); setNextCursor(null);
+    morePending.current = false; setLoadingMore(false);
     try {
       const { data: sess, error: sessionError } = await supabase.auth.getSession();
       if (token !== request.current) return;
-      setLoading(true); setError(null);
-      if (sessionError) throw sessionError;
       const uid = sess.session?.user.id ?? null;
-      const { data: job, error: jobError } = await supabase.from("jobs").select("id, title, posted_by").eq("id", jobId).maybeSingle();
+      account.current = uid;
+      if (sessionError || !uid) { setAllowed(false); return; }
+      const { data: job, error: jobError } = await supabase.from('jobs').select('id, title, posted_by').eq('id', jobId).maybeSingle();
+      if (token !== request.current) return;
       if (jobError) throw jobError;
-      if (token !== request.current) return;
-      if (!job || !uid || job.posted_by !== uid) { setAllowed(false); return; }
-      setJobTitle(job.title);
-      setAllowed(true);
-      const { data: rows, error: appsError } = await supabase
-        .from("job_applications")
-        .select("id, job_id, applicant_id, status, cover_note, cv_url, cv_name, applicant_phone, portfolio_url, interview_at, interview_location, applied_at")
-        .eq("job_id", jobId)
-        .order("applied_at", { ascending: false });
-      if (appsError) throw appsError;
-      const list = (rows ?? []) as AppRow[];
-      const ids = Array.from(new Set(list.map((a) => a.applicant_id)));
-      if (ids.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
-        if (profilesError) throw profilesError;
-        const map = new Map((profiles ?? []).map((p) => [p.id, p]));
-        list.forEach((a) => (a.profile = map.get(a.applicant_id) ?? null));
-      }
-      if (token !== request.current) return;
-      const fresh = list.filter((a) => a.status === "applied").map((a) => a.id);
-      if (fresh.length > 0) {
-        const { data: viewed, error: viewedError } = await supabase.from("job_applications")
-          .update({ status: "viewed" }).in("id", fresh).eq("status", "applied").select("id");
-        if (token !== request.current) return;
-        if (viewedError) setError("Applicants loaded, but their viewed status could not be saved. Please retry.");
-        const viewedIds = new Set((viewed ?? []).map((row) => row.id));
-        list.forEach((app) => { if (viewedIds.has(app.id)) app.status = "viewed"; });
-      }
-      setApps(list);
+      if (!job || job.posted_by !== uid) { setAllowed(false); return; }
+      setJobTitle(job.title); setAllowed(true);
+      const page = await loadApplicantPage<AppRow>(supabase, jobId, filter);
+      if (token !== request.current || uid !== account.current) return;
+      setApps(page.applications.map(row => ({ ...row, profile: row.applicant })));
+      setCounts(page.counts); setNextCursor(page.has_more ? page.cursor : null);
     } catch (reason) {
-      if (token === request.current) setError(reason instanceof Error ? reason.message : "Could not load applicants. Please try again.");
-    } finally {
-      if (token === request.current) setLoading(false);
-    }
-  }, [supabase, jobId]);
+      if (token === request.current) setError(reason instanceof Error ? reason.message : 'Could not load applicants. Please try again.');
+    } finally { if (token === request.current) setLoading(false); }
+  }, [supabase, jobId, filter]);
 
   useEffect(() => {
-    // Skip a fetch if React cleans up this effect before its queued start.
     let cancelled = false;
     queueMicrotask(() => { if (!cancelled) void load(); });
-    return () => { cancelled = true; request.current += 1; };
-  }, [load]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id ?? null;
+      if (next === account.current) return;
+      account.current = next; ++request.current;
+      setApps([]); setCounts({ all: 0 }); setAllowed(null); setScheduling(null); setWhen(''); setWhere('');
+      pending.current.clear(); setPendingIds(new Set());
+      queueMicrotask(() => { if (!cancelled) void load(); });
+    });
+    return () => { cancelled = true; request.current += 1; subscription.unsubscribe(); };
+  }, [load, supabase]);
 
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { all: apps.length };
-    STATUS_ORDER.forEach((s) => (c[s] = apps.filter((a) => a.status === s).length));
-    return c;
-  }, [apps]);
-
-  const shown = useMemo(() => (filter === "all" ? apps : apps.filter((a) => a.status === filter)), [apps, filter]);
-
-  async function setStatus(app: AppRow, status: ApplicationStatus, extra?: { interview_at?: string; interview_location?: string | null }): Promise<boolean> {
-    if (app.status === "withdrawn" || status === "withdrawn" || pending.current.has(app.id)) return false;
-    pending.current.add(app.id);
-    setPendingIds(new Set(pending.current));
-    const prev = { status: app.status, interview_at: app.interview_at, interview_location: app.interview_location };
-    setApps((l) => l.map((x) => (x.id === app.id ? { ...x, status, ...(extra ?? {}) } : x)));
+  async function loadMore() {
+    if (!nextCursor || morePending.current) return;
+    morePending.current = true; setLoadingMore(true); setError(null);
+    const token = request.current;
     try {
-      const { error } = await supabase.from("job_applications").update({ status, ...(extra ?? {}) })
-        .eq("id", app.id).neq("status", "withdrawn").select("id").single();
-      if (error) throw error;
+      const page = await loadApplicantPage<AppRow>(supabase, jobId, filter, nextCursor);
+      if (token !== request.current) return;
+      setApps(list => mergeApplicants(list, page.applications.map(row => ({ ...row, profile: row.applicant }))));
+      setCounts(page.counts); setNextCursor(page.has_more ? page.cursor : null);
+    } catch { if (token === request.current) setError('More applicants could not be loaded. Please try again.'); }
+    finally { if (token === request.current) { morePending.current = false; setLoadingMore(false); } }
+  }
+  const shown = apps;
+  async function setStatus(app: AppRow, status: ApplicationStatus, extra?: { interview_at?: string; interview_location?: string | null }): Promise<boolean> {
+    if (app.status === 'withdrawn' || status === 'withdrawn' || pending.current.has(app.id)) return false;
+    const token = request.current;
+    pending.current.add(app.id); setPendingIds(new Set(pending.current)); setError(null);
+    try {
+      const saved = extra?.interview_at
+        ? await saveInterview(supabase, app, extra.interview_at, extra.interview_location ?? null)
+        : await saveApplicationStatus(supabase, app, status);
+      if (token !== request.current) return false;
+      setApps(list => list.map(row => row.id === app.id ? saved : row));
+      pending.current.delete(app.id); setPendingIds(new Set(pending.current));
+      void load();
       return true;
     } catch (reason) {
-      setApps((l) => l.map((x) => (x.id === app.id ? { ...x, ...prev } : x)));
-      alert("Could not update application. Please refresh and try again. " + (reason instanceof Error ? reason.message : ""));
+      if (token === request.current) setError(reason instanceof Error ? reason.message : 'Could not update application. Refresh and try again.');
       return false;
-    } finally {
-      pending.current.delete(app.id);
-      setPendingIds(new Set(pending.current));
-    }
+    } finally { pending.current.delete(app.id); if (token === request.current) setPendingIds(new Set(pending.current)); }
   }
 
   if (allowed === false) {
@@ -140,7 +136,7 @@ export default function ApplicantsPage() {
       <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
         {["all", ...STATUS_ORDER].map((s) => (
           <button key={s}
-            onClick={() => setFilter(s)}
+            onClick={() => { if (s !== filter) { ++request.current; setFilter(s); setScheduling(null); } }}
             className={"shrink-0 rounded-md px-3 py-1.5 text-[13px] transition-colors " + (filter === s ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
           >
             {s === "all" ? "All" : STATUS_META[s as ApplicationStatus].label} {counts[s] ? "(" + counts[s] + ")" : ""}
@@ -193,7 +189,7 @@ export default function ApplicantsPage() {
                 {a.cover_note ? <p className="mt-3 whitespace-pre-wrap text-[14px] text-ink/80">{a.cover_note}</p> : null}
 
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button onClick={async () => { const { data, error } = await supabase.rpc("start_dm_ctx", { p_receiver_id: a.applicant_id, p_context: "jobs", p_ref_id: jobId }); if (error || !data) { alert("Could not open the conversation. Please try again."); return; } router.push("/jobs/messages?c=" + data); }} className="flex items-center gap-1.5 rounded-md bg-pearl/15 px-3 py-1.5 text-[13px] font-semibold text-accent hover:bg-pearl/25">
+                  <button onClick={async () => { const token = request.current; const { data, error } = await supabase.rpc("start_dm_ctx", { p_receiver_id: a.applicant_id, p_context: "jobs", p_ref_id: jobId }); if (error || !data) { alert("Could not open the conversation. Please try again."); return; } if (token === request.current) router.push("/jobs/messages?c=" + data); }} className="flex items-center gap-1.5 rounded-md bg-pearl/15 px-3 py-1.5 text-[13px] font-semibold text-accent hover:bg-pearl/25">
                     <MessageCircle size={14} /> Message
                   </button>
                   {a.cv_url ? (
@@ -215,6 +211,16 @@ export default function ApplicantsPage() {
                   </p>
                 ) : null}
 
+                {a.interview_at && a.status !== 'withdrawn' ? <div className="mt-2 flex gap-3 text-sm">
+                  <button disabled={pendingIds.has(a.id)} onClick={() => { setScheduling(a.id); setWhen(''); setWhere(a.interview_location || ''); }} className="underline">Reschedule interview</button>
+                  <button disabled={pendingIds.has(a.id)} onClick={async () => {
+                    if (pending.current.has(a.id)) return;
+                    const token = request.current; pending.current.add(a.id); setPendingIds(new Set(pending.current));
+                    try { await saveInterview(supabase, a, null, null); if (token === request.current) { pending.current.delete(a.id); setPendingIds(new Set(pending.current)); void load(); } }
+                    catch (reason) { if (token === request.current) setError(reason instanceof Error ? reason.message : 'Could not cancel interview.'); }
+                    finally { pending.current.delete(a.id); if (token === request.current) setPendingIds(new Set(pending.current)); }
+                  }} className="underline">Cancel interview</button>
+                </div> : null}
                 {scheduling === a.id ? (
                   <div className="mt-3 flex flex-col gap-2 rounded-md bg-surface p-3">
                     <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="rounded-md bg-surface-elevated px-3 py-2 text-[13px] text-ink outline-none" />
@@ -238,6 +244,7 @@ export default function ApplicantsPage() {
           })}
         </div>
       )}
+      {nextCursor && !loading ? <button type="button" disabled={loadingMore} onClick={() => { void loadMore(); }} className="my-4 rounded-md bg-surface px-4 py-2 text-sm text-ink">{loadingMore ? 'Loading applicants…' : 'Load more applicants'}</button> : null}
     </div>
   );
 }

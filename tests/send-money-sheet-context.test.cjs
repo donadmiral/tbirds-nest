@@ -13,6 +13,10 @@ function harness({ linked = true, holdPrepare = false, initialOwner = 'account-a
   let savedIntent = null, status = { status: 'not_found' }, holdStatus = false;
   const slots = [], effects = [], sends = [], links = [], statuses = [], prepares = [], clears = [], alerts = [], balances = [];
   let sent = 0, closed = 0, requested = 0;
+  let checkoutOverride;
+  const checkouts = [];
+  const orders = { exports: {} };
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(require.resolve('../shared/marketOrders.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { exports: orders.exports, module: orders });
   let props = { visible: true, recipientId: 'recipient', recipientName: 'Recipient', conversationId: 'conversation', initialAmount: 12,
     onSent: () => sent++, onClose: () => closed++, onRequested: () => requested++ };
   const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => value === b[i]);
@@ -62,6 +66,12 @@ function harness({ linked = true, holdPrepare = false, initialOwner = 'account-a
     if (name === 'react-native') return { ...Object.fromEntries(['View', 'Text', 'TouchableOpacity', 'Modal', 'TextInput', 'ActivityIndicator', 'KeyboardAvoidingView', 'Image'].map(x => [x, x])), Platform: { OS: 'ios' }, Alert: { alert: (...args) => alerts.push(args) } };
     if (name === '../theme/useTheme') return { themedSheet: factory => factory({ surface: { canvas: '', raised: '', hairline: '' }, ink: { inverse: '', primary: '', secondary: '' }, brand: { base: '' } }), useTheme: () => ({}), getTheme: () => ({ ink: { inverse: '', primary: '', secondary: '' } }) };
     if (name === '../stores/authStore') return { useAuthStore };
+    if (name === '../../shared/marketOrders') return orders.exports;
+    if (name === '../services/supabase') return { supabase: { async rpc(name, args) {
+      assert.ok(['get_market_order', 'get_market_checkout'].includes(name)); checkouts.push({ name, args });
+      return checkoutOverride ?? { error: null, data: { id: props.orderId ?? 'accepted-order', buyer_id: ownerId, seller_id: props.recipientId,
+        conversation_id: props.conversationId, listing_id: props.listingId, status: 'awaiting_payment', currency: 'USD', total_minor: '1250' } };
+    } } };
     if (name === '../services/paymentsService') return { paymentsService: services };
     if (name === '../services/flagsService') return { flagsService: { isEnabled: async () => true } };
     if (name === '@expo/vector-icons') return { Feather: 'Feather' };
@@ -83,7 +93,8 @@ function harness({ linked = true, holdPrepare = false, initialOwner = 'account-a
   const button = label => all().find(n => n.type === 'TouchableOpacity' && text(n) === label);
   render();
   return {
-    sends, links, statuses, prepares, clears, alerts, balances,
+    sends, links, statuses, prepares, clears, alerts, balances, checkouts,
+    setCheckout(value) { checkoutOverride = value; },
     get sent() { return sent; }, get closed() { return closed; }, get writes() { return writes; }, get requested() { return requested; },
     get busy() { render(); return all().find(n => n.type === 'TouchableOpacity' && n.props.activeOpacity === 1).props.disabled; },
     get text() { render(); return text(tree); },
@@ -184,4 +195,19 @@ test('stale linking completion skips wallet lookup and cannot unlock a newer lin
   assert.equal(h.balances.length, balanceReads); assert.equal(h.busy, true); assert.equal(h.alerts.length, 0);
   h.links[1].resolve({ success: true }); await fresh;
   assert.equal(h.balances.length, balanceReads + 1); assert.equal(h.busy, false);
+});
+
+test('market payment uses the accepted server order total and binds the resulting intent to that order', async () => {
+  const h = harness(); await h.ready(); h.setProps({ listingId: 'listing', orderId: 'accepted-order', initialAmount: 1 }); await h.ready();
+  assert.equal(h.checkouts[0].name, 'get_market_order'); assert.equal(h.checkouts[0].args.p_id, 'accepted-order');
+  const payment = h.press('Pay'); await flush();
+  assert.equal(h.prepares[0].input.amount, 12.5); assert.equal(h.prepares[0].input.orderId, 'accepted-order');
+  h.sends[0].resolve(completed); await payment;
+});
+
+test('an order for another buyer cannot expose an enabled payment flow', async () => {
+  const h = harness(); await h.ready();
+  h.setCheckout({ error: null, data: { id: 'order', buyer_id: 'other-account', seller_id: 'recipient', listing_id: 'listing', conversation_id: 'conversation', currency: 'USD', status: 'awaiting_payment', total_minor: '1200' } });
+  h.setProps({ listingId: 'listing', orderId: 'order' }); await h.ready();
+  assert.match(h.text, /Open the accepted order/); assert.equal(h.prepares.length, 0); assert.equal(h.sends.length, 0);
 });

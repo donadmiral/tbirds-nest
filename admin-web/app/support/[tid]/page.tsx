@@ -7,6 +7,8 @@ import { sendTicketReply, setTicketStatus } from '@/lib/actions';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { supportPage, SUPPORT_MESSAGE_PAGE_SIZE } from '@/lib/supportReporting';
+import { readSupportTriage } from '@/lib/supportTriage';
+import { updateSupportTriage } from '@/lib/supportTriageActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,11 +27,18 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
   const { data: t, error: ticketError } = await svc.from('support_tickets').select('*').eq('id', tid).maybeSingle();
   if (ticketError) throw new Error('Support ticket could not be loaded.');
   if (!t) redirect('/support');
-  const [messages, profile] = await Promise.all([
+  const [messages, profile, assignments, staff] = await Promise.all([
     svc.from('support_messages').select('*', { count: 'exact' }).eq('ticket_id', t.id).order('created_at', { ascending: false }).order('id', { ascending: false }).range(start, start + SUPPORT_MESSAGE_PAGE_SIZE - 1),
     svc.from('profiles').select('id, full_name, username').eq('id', t.user_id).maybeSingle(),
+    readSupportTriage([t.id]),
+    svc.from('admin_users').select('user_id,role').eq('active', true).in('role', ['super_admin', 'platform_admin', 'trust_safety', 'support_agent']).limit(100),
   ]);
-  if (messages.error || messages.count === null || profile.error) throw new Error('Support conversation could not be loaded.');
+  if (messages.error || messages.count === null || profile.error || staff.error) throw new Error('Support conversation could not be loaded.');
+  const triage = assignments.get(t.id)!;
+  const staffIds = (staff.data ?? []).map(member => member.user_id as string);
+  const staffProfiles = staffIds.length ? await svc.from('profiles').select('id,full_name,username').in('id', staffIds) : { data: [], error: null };
+  if (staffProfiles.error) throw new Error('Support staff could not be loaded.');
+  const staffNames = new Map((staffProfiles.data ?? []).map(member => [member.id, member.full_name || member.username || member.id]));
   const msgs = [...(messages.data ?? [])].reverse();
   const p = profile.data;
   return (
@@ -48,6 +57,21 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
           </div>
           <span className={'shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ' + (PILL[t.status] || PILL.open)}>{t.status}</span>
         </div>
+      </div>
+
+      <div className="mb-4 rounded-[12px] border border-[#E5E4E0] bg-white p-5">
+        <h2 className="text-sm font-bold">Case ownership and priority</h2>
+        <p className="my-2 text-xs text-[#5A5D64]">Internal response targets: urgent 15 minutes, high 1 hour, normal 24 hours, low 72 hours. These targets do not promise staffed coverage.</p>
+        {triage.response_due_at ? <p className="mb-3 text-sm">Response due {new Date(triage.response_due_at).toLocaleString()}{Date.parse(triage.response_due_at) < Date.now() ? ' · Overdue' : ''}</p> : null}
+        <PermissionGate role={admin.role} permission="support"><CommandForm scope="supportTriage" action={updateSupportTriage} className="flex flex-wrap items-end gap-3">
+          <input type="hidden" name="ticket_id" value={t.id} /><input type="hidden" name="version" value={triage.version} />
+          <label className="text-sm">Owner<select name="assigned_to" defaultValue={triage.assigned_to ?? ''} className="block rounded-lg border p-2"><option value="">Unassigned</option>{triage.assigned_to && !staffIds.includes(triage.assigned_to) ? <option value={triage.assigned_to}>Inactive staff: reassign this case</option> : null}{(staff.data ?? []).map(member => <option key={member.user_id} value={member.user_id}>{staffNames.get(member.user_id) ?? member.user_id} ({member.role})</option>)}</select></label>
+          <label className="text-sm">Priority<select name="priority" defaultValue={triage.priority} className="block rounded-lg border p-2">{['urgent', 'high', 'normal', 'low'].map(priority => <option key={priority}>{priority}</option>)}</select></label>
+          <label className="text-sm">Queue<select name="queue" defaultValue={triage.queue} className="block rounded-lg border p-2">{['general', 'account', 'payments', 'safety', 'marketplace'].map(queue => <option key={queue}>{queue}</option>)}</select></label>
+          <label className="text-sm">Escalation<select name="escalated" defaultValue={String(triage.escalated)} className="block rounded-lg border p-2"><option value="false">Standard</option><option value="true">Escalated</option></select></label>
+          <label className="w-full text-sm">Reason<input name="reason" required minLength={3} maxLength={2000} className="block w-full rounded-lg border p-2" placeholder="Why this owner, priority or escalation is appropriate" /></label>
+          <button className="rounded-lg bg-[#0B1E3D] px-4 py-2 text-sm font-bold text-white">Save assignment</button>
+        </CommandForm></PermissionGate>
       </div>
 
       <div className="mb-4 rounded-[12px] border border-[#E5E4E0] bg-white p-5">

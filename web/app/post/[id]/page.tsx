@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { hydrateContentMedia } from "../../../../shared/contentMedia";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -10,7 +12,7 @@ import { timeAgo, type FeedRow } from "@/lib/feed";
 
 type Params = { params: Promise<{ id: string }> };
 
-async function loadPost(id: string) {
+const loadPost = cache(async (id: string) => {
   const supabase = await createClient();
   const { data: allowed } = await supabase.rpc("can_view_post", { p_post_id: id });
   if (!allowed) return null;
@@ -36,7 +38,7 @@ async function loadPost(id: string) {
     .eq("post_id", id)
     .order("sort_order", { ascending: true });
   return { post, author, media: media ?? [], products: products ?? [] };
-}
+});
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
@@ -51,7 +53,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     openGraph: {
       title: `${data.author.full_name ?? "Post"} on Platinum Circles`,
       description: text || "View this post on Platinum Circles.",
-      images: data.media[0]?.media_type !== "video" && data.media[0]?.url ? [data.media[0].url] : [],
+      images: [],
     },
   };
 }
@@ -85,7 +87,7 @@ export default async function PostPage({ params }: Params) {
     viewer = { liked: !!l.data, bookmarked: !!b.data, reposted: !!r.data };
   }
 
-  const row: FeedRow = {
+  const rawRow: FeedRow = {
     post_id: data.post.id,
     author_id: data.post.user_id,
     content: data.post.content,
@@ -121,6 +123,8 @@ export default async function PostPage({ params }: Params) {
     innovation_stage: null,
   };
 
+  const [row] = await hydrateContentMedia(supabase, process.env.NEXT_PUBLIC_SUPABASE_URL!, [rawRow], "post");
+
   // Comments moved to the interactive <Comments /> component.
 
   // A video post pins its media: on phones it sticks to the top while the thread scrolls, on desktop it holds the left column.
@@ -153,7 +157,7 @@ export default async function PostPage({ params }: Params) {
       </Link>
       {hasVideo ? (
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_440px] lg:items-start lg:gap-6">
-          <PinnedMedia media={data.media as Parameters<typeof PinnedMedia>[0]["media"]} postId={id} viewsCount={data.post.views_count ?? null} aspect={pinAspect} post={viewerPost} topOffset={viewerId ? 0 : 56} />
+          <PinnedMedia media={row.media as Parameters<typeof PinnedMedia>[0]["media"]} postId={id} viewsCount={data.post.views_count ?? null} aspect={pinAspect} post={viewerPost} topOffset={viewerId ? 0 : 56} />
           <div className="min-w-0 pt-3 lg:pt-0">{thread}</div>
         </div>
       ) : thread}

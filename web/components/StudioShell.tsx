@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Briefcase, FileText, Home, Inbox, KeyRound, LayoutDashboard, Megaphone, Settings, ShoppingBag, Star, Users, CalendarClock } from "lucide-react";
@@ -24,6 +24,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   // studio_me carries no verification fields, so the seal comes from the
   // profile rather than being assumed from the business role.
+  const [accountId, setAccountId] = useState("");
+  const account = useRef<string | undefined>(undefined);
+  const generation = useRef(0);
   const [tier, setTier] = useState<string | null>(null);
   // Which desks this organization uses. Null until loaded means "all", so
   // nothing flickers away and then back.
@@ -36,24 +39,41 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const refresh = useCallback(async () => {
-    try { setMe(await studioMe()); setLoadError(null); }
-    catch { setLoadError("Studio could not verify this session. Please try again."); }
-    finally { setLoading(false); }
+    const run = ++generation.current;
+    const supabase = createClient();
+    try {
+      const {data: session, error: sessionError} = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (run !== generation.current) return;
+      const uid = session.session?.user.id || '';
+      account.current = uid; setAccountId(uid);
+      if (!uid) {setMe(null);setTier(null);setSurfaces(null);setLoadError(null);return;}
+      const [studio, profile, surfacesResult] = await Promise.all([
+        studioMe(),
+        supabase.from("profiles").select("is_verified, verified_tier").eq("id", uid).maybeSingle(),
+        supabase.rpc("studio_surfaces"),
+      ]);
+      if (run !== generation.current || account.current !== uid) return;
+      setMe(studio); setLoadError(null);
+      setTier(profile.error ? null : profile.data?.verified_tier ?? (profile.data?.is_verified ? "business" : null));
+      setSurfaces(!surfacesResult.error && Array.isArray(surfacesResult.data) ? surfacesResult.data as string[] : null);
+    } catch {
+      if (run === generation.current) {setMe(null);setLoadError("Studio could not verify this session. Please try again.");}
+    } finally { if (run === generation.current) setLoading(false); }
   }, []);
 
   useEffect(() => {
-    (async () => {
-      const supabase = createClient();
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
-      if (!uid) return;
-      const { data } = await supabase.from("profiles").select("is_verified, verified_tier").eq("id", uid).maybeSingle();
-      setTier(data?.verified_tier ?? (data?.is_verified ? "business" : null));
-      const { data: sf } = await supabase.rpc("studio_surfaces");
-      if (Array.isArray(sf)) setSurfaces(sf as string[]);
-    })().catch(() => { /* Verification decoration is optional; Studio access is checked separately. */ });
-  }, []);
-  useEffect(() => { void refresh(); }, [refresh]);
+    let live = true;
+    const supabase = createClient();
+    const {data} = supabase.auth.onAuthStateChange((_event, session) => {
+      const uid = session?.user.id || '';
+      if (uid === account.current) return;
+      account.current = uid; generation.current++; setAccountId(uid); setMe(null); setTier(null); setSurfaces(null); setCode(''); setErr(null); setLoading(true);
+      queueMicrotask(() => {if (live) void refresh();});
+    });
+    void refresh();
+    return () => {live = false;generation.current++;data.subscription.unsubscribe();};
+  }, [refresh]);
 
   const bind = async () => {
     if (!code.trim() || busy) return;
@@ -92,7 +112,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <StudioCtx.Provider value={{ me, refresh }}>
+    <StudioCtx.Provider key={[accountId,me.member_id,me.role].join(":")} value={{ me, refresh }}>
       <div className="mx-auto max-w-[1360px] px-6 py-6">
         {/* The desk nav runs across the top rather than down the side. Studio
             already sits inside the app's left rail, and a second vertical nav

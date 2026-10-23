@@ -17,6 +17,10 @@ export function conversationHref(id: string, context: string | null) {
 
 export function notificationHref(notification: NotificationDestination): string {
   const value = (key: string) => notificationValue(notification, key);
+  if (notification.type === "market_order") {
+    const listing = value("listing_id");
+    return listing && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(listing) ? "/market/" + listing : "/notifications";
+  }
   const conversation = value("conversation_id");
   if (conversation) return conversationHref(conversation, value("context"));
   const post = notification.post_id || value("post_id");

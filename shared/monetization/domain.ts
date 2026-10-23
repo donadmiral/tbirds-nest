@@ -6,6 +6,7 @@ export type EnrollmentStatus = 'not_enrolled' | 'interested' | 'applied' | 'appr
 export type PayoutStatus = 'requested' | 'submitted' | 'unknown' | 'completed' | 'rejected';
 export type PayoutAccountStatus = 'not_configured' | 'pending' | 'ready' | 'restricted';
 export type CreatorSnapshot = {
+  environment?: 'test' | 'live';
   user_id: string; as_of: string;
   program: { enrollment_open: boolean; terms_version: string | null; terms_url: string | null };
   provider: { id: string; name: string; payouts_enabled: boolean; currencies: string[] };
@@ -46,7 +47,7 @@ export function parseCreatorSnapshot(value: unknown, userId: string): CreatorSna
     try { const url = new URL(x); return url.protocol === 'https:' && !!url.hostname && !url.username && !url.password; }
     catch { return false; }
   };
-  if (!v || v.user_id !== userId || !date(v.as_of) || typeof v.program?.enrollment_open !== 'boolean' ||
+  if (!v || v.user_id !== userId || (v.environment !== undefined && !['test','live'].includes(v.environment)) || !date(v.as_of) || typeof v.program?.enrollment_open !== 'boolean' ||
     !textOrNull(v.program?.terms_version) || !textOrNull(v.program?.terms_url) ||
     (v.program?.terms_url !== null && !termsUrl(v.program.terms_url)) ||
     (v.program.enrollment_open && (!v.program.terms_version?.trim() || !termsUrl(v.program.terms_url))) ||

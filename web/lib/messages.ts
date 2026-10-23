@@ -1,4 +1,5 @@
 // Mirrors ConversationsScreen assembly and the messages row shape.
+import { signGroupAvatars } from "@/lib/chatMedia";
 import { createClient } from "@/lib/supabase/client";
 
 export type Conv = {
@@ -38,6 +39,9 @@ export type Msg = {
   view_limit?: number | null;
   is_system_message?: boolean;
   _reactions?: { user_id: string; emoji: string }[];
+  _private_media_url?: string | null;
+  _private_thumbnail_url?: string | null;
+  _delivery?: 'pending' | 'rejected' | 'conflict';
 };
 
 export async function loadConversations(userId: string, context: string = "personal"): Promise<Conv[]> {
@@ -111,7 +115,8 @@ export async function loadConversations(userId: string, context: string = "perso
       request_pending: c.request_status === "pending" && !!c.request_sender_id && c.request_sender_id === otherId,
     };
   });
-  const groups: Conv[] = groupConvs.filter(keep).map((c) => ({
+  const signedGroups = await signGroupAvatars(groupConvs as (Record<string, unknown> & { group_avatar_url?: string | null })[]);
+  const groups: Conv[] = signedGroups.filter(keep).map((c) => ({
     id: c.id as string,
     is_group: true,
     other_id: null,

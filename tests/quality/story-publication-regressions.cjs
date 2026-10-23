@@ -50,7 +50,9 @@ function harness(options = {}) {
   };
   const actors = { authorId: () => actorId };
   const service = load('src/services/storiesService.ts', {
+    '../../shared/contentMedia': { canonicalContentMedia: value => value },
     './supabase': { supabase: client }, '../utils/publication': publication, '../stores/actorStore': actors,
+    './contentMedia': { hydrateStoryMedia: async rows => rows, hydrateSoundMedia: async rows => rows },
     '../utils/sniffMedia': { resolveTrueMeta: async () => ({ ext: 'jpg', mime: 'image/jpeg', kind: 'image' }) },
     '../utils/uploadSafe': { ensureUploadSafe: async (uri) => ({ uri, ext: 'jpg', mime: 'image/jpeg' }) },
   }, {
@@ -150,10 +152,16 @@ test('native mention rejection remains a failure until the same story is complet
   await h.render().publishAll(); assert.equal(tableCalls(h, 'stories').length, 1); assert.equal(tableCalls(h, 'story_mentions').length, 2); assert.equal(h.success.length, 1);
 });
 
+test('native voiceover publication requires rights attestation before any upload', async () => {
+  const h = harness({ drafts: [draft('draft-a', { audio: { kind: 'voiceover', localUri: 'file:///voice.m4a', durationSec: 5 } })] });
+  await h.render().publishAll();
+  assert.equal(h.success.length, 0); assert.equal(tableCalls(h, 'stories').length, 0);
+  assert.equal(h.calls.filter(call => call.upload).length, 0);
+});
 for (const [role, extra] of [
   ['photo_sticker', { stickers: [{ id: 'photo', kind: 'photo', photoUri: 'file:///sticker.jpg' }] }],
   ['front_photo', { dualFrontUri: 'file:///front.jpg' }],
-  ['voiceover', { audio: { kind: 'voiceover', localUri: 'file:///voice.m4a' } }],
+  ['voiceover', { audio: { kind: 'voiceover', localUri: 'file:///voice.m4a', durationSec: 5, rightsAttested: true } }],
 ]) {
   test(`native failed ${role} keeps the draft and retry reuses the confirmed main upload`, async () => {
     let rejectAsset = true;

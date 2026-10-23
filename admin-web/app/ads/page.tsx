@@ -172,8 +172,7 @@ export default async function AdsPage() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <PermissionGate role={admin.role} permission="ads"><CommandForm scope="approveCampaign" action={approveCampaign} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="id" value={c.id} />
-              <input name="paid_amount" type="number" min="0" step="0.01" aria-label="Recorded amount received" placeholder={'Amount received (' + c.currency + ')'} className="w-48 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
-              <input name="payment_ref" aria-label="Payment reference" placeholder="Payment reference" className="w-44 rounded-[12px] border border-[#17181C]/15 px-3 py-2 text-xs text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
+              <span className="text-xs text-[#17181C]/60">Content approval. Payment is verified separately through IntoBank.</span>
               <button className="rounded-[12px] bg-[#17181C] px-5 py-2 text-xs font-extrabold text-white transition-opacity duration-150 hover:opacity-90">Approve</button>
             </CommandForm></PermissionGate>
             <PermissionGate role={admin.role} permission="ads"><CommandForm scope="rejectCampaign" action={rejectCampaign} className="flex flex-1 min-w-[260px] items-center gap-2">

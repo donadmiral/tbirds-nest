@@ -8,6 +8,8 @@
  * below it. Money is grouped by currency rather than summed across them: this
  * business takes both USD and ZWG, and one blended number would be a lie.
  */
+import { decimalMinor } from "../../shared/commerceMoney";
+import { orderMoney } from "../../shared/marketOrders";
 import { useMemo } from "react";
 import Link from "next/link";
 import { TrendingUp, Package, Clock } from "lucide-react";
@@ -16,7 +18,7 @@ import { Panel } from "@/components/ui";
 
 type Order = {
   id: string;
-  amount: number;
+  amount: number | string;
   currency: string;
   status: string;
   created_at: string;
@@ -28,7 +30,7 @@ type Order = {
 type Listing = {
   id: string;
   title: string;
-  price: number;
+  price: number | string;
   currency: string;
   images: string[];
   status: string;
@@ -46,24 +48,24 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
 
     // Grouped by currency. Adding USD to ZWG would produce a number that means
     // nothing, however tidy it looks in a card.
-    const byCurrency = new Map<string, { total: number; count: number }>();
+    const byCurrency = new Map<string, { total: bigint; count: number }>();
     for (const o of recent) {
-      const cur = byCurrency.get(o.currency) ?? { total: 0, count: 0 };
-      cur.total += Number(o.amount || 0);
+      const cur = byCurrency.get(o.currency) ?? { total: BigInt(0), count: 0 };
+      cur.total += decimalMinor(o.amount);
       cur.count += 1;
       byCurrency.set(o.currency, cur);
     }
 
-    const buckets = new Map<string, number>();
+    const buckets = new Map<string, bigint>();
     for (let i = DAYS - 1; i >= 0; i--) {
-      buckets.set(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), 0);
+      buckets.set(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), BigInt(0));
     }
     const currencies = [...byCurrency.entries()].sort(([a], [b]) => a.localeCompare(b));
     const primary = currencies[0]?.[0] ?? null;
     for (const o of recent) {
       if (primary && o.currency !== primary) continue;
       const k = (o.completed_at || o.created_at).slice(0, 10);
-      if (buckets.has(k)) buckets.set(k, (buckets.get(k) ?? 0) + Number(o.amount || 0));
+      if (buckets.has(k)) buckets.set(k, (buckets.get(k) ?? BigInt(0)) + decimalMinor(o.amount));
     }
 
     return {
@@ -81,8 +83,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
     [listings],
   );
 
-  const money = (n: number, cur: string) =>
-    cur + " " + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money = (n: bigint, cur: string) => orderMoney(n.toString(), cur);
 
   return (
     <div className="mb-5">
@@ -107,7 +108,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
           <p className="text-[11.5px] text-muted">Average order</p>
           {stats.byCurrency.length > 0 ? (
             <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">
-              {money(stats.byCurrency[0][1].total / Math.max(1, stats.byCurrency[0][1].count), stats.byCurrency[0][0])}
+              {money((stats.byCurrency[0][1].total + BigInt(Math.floor(stats.byCurrency[0][1].count / 2))) / BigInt(Math.max(1, stats.byCurrency[0][1].count)), stats.byCurrency[0][0])}
             </p>
           ) : (
             <Metric value={0} size={24} />
@@ -132,7 +133,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
             <span className="text-[11.5px] text-muted">last {DAYS} days · UTC</span>
           </div>
           <TrendChart
-            series={[{ name: "Completed sales", points: stats.series.map(([, v]) => v) }]}
+            series={[{ name: "Completed sales", points: stats.series.map(([, v]) => Number(v) / 100) }]}
             labels={stats.series.map(([d]) => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" }))}
             height={200}
             emptyLabel="No paid orders in this period"
@@ -157,7 +158,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
                   )}
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-medium text-ink">{l.title}</span>
-                    <span className="block text-[11.5px] text-muted">{money(Number(l.price || 0), l.currency)}</span>
+                    <span className="block text-[11.5px] text-muted">{money(decimalMinor(l.price), l.currency)}</span>
                   </span>
                   <span className="shrink-0 text-[12px] text-muted">{l.sold_count} sold</span>
                 </div>
@@ -187,11 +188,11 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
  */
 export function CommerceRail({ orders, listings }: { orders: Order[]; listings: Listing[] }) {
   const m = useMemo(() => {
-    const cleared = new Map<string, number>();
+    const cleared = new Map<string, bigint>();
     let pendingCount = 0;
     for (const o of orders) {
       if (o.status === "completed") {
-        cleared.set(o.currency, (cleared.get(o.currency) ?? 0) + Number(o.amount || 0));
+        cleared.set(o.currency, (cleared.get(o.currency) ?? BigInt(0)) + decimalMinor(o.amount));
       } else if (o.status === "pending") {
         pendingCount += 1;
       }
@@ -203,8 +204,7 @@ export function CommerceRail({ orders, listings }: { orders: Order[]; listings: 
     };
   }, [orders, listings]);
 
-  const money = (n: number, cur: string) =>
-    cur + " " + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money = (n: bigint, cur: string) => orderMoney(n.toString(), cur);
 
   return (
     <>

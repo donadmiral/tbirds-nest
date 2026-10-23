@@ -28,10 +28,14 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
+import { hydratePostMedia, hydrateStoryMedia } from '../../services/contentMedia';
+import { orderTimeout } from '../../../shared/orderRequest';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+
+const deadline = <T,>(work: PromiseLike<T>) => orderTimeout(work, 15000, 'The connection timed out. Refresh to check the result before trying again.');
 
 type Notif = {
   notification_id: string;
@@ -212,7 +216,7 @@ function sectionFor(iso: string): string {
 export default function NotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
-  const userId = (profile as any)?.id ?? null;
+  const userId = useAuthStore(state => state.session?.user.id || '');
 
   const [rows, setRows] = useState<Notif[]>([]);
   const [filt, setFilt] = useState('all');
@@ -224,41 +228,55 @@ export default function NotificationsScreen({ navigation }: any) {
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [loadingMore, setLoadingMore] = useState(false);
   const [done, setDone] = useState(false);
-  const cursorRef = useRef<string | null>(null);
+  const cursorRef = useRef({offset:0,asOf:new Date().toISOString()});
+  const generation=useRef(0), pageLock=useRef(false), owner=useRef(userId), rowsRef=useRef<Notif[]>([]);owner.current=userId;rowsRef.current=rows;
   const mounted = useRef(true);
 
-  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => {mounted.current=true;return () => { mounted.current = false;generation.current++; };}, []);
 
+  const hydrateThumbs = useCallback(async (batch:Notif[],run:number,actor:string) => {
+    const postIds=Array.from(new Set(batch.map(row=>row.post_id||(row.data as any)?.post_id).filter(Boolean)));
+    const storyIds=Array.from(new Set(batch.map(row=>(row.data as any)?.story_id).filter(Boolean)));
+    const add:Record<string,string>={};
+    const [postResult,storyResult]=await Promise.all([
+      postIds.length?deadline(supabase.from('posts').select('id, media_url, post_media(url, media_type, sort_order)').in('id',postIds)):Promise.resolve({data:[],error:null}),
+      storyIds.length?deadline(supabase.from('stories').select('id, thumbnail_url, media_url, media_type').in('id',storyIds)):Promise.resolve({data:[],error:null}),
+    ]);
+    if(postResult.error)throw postResult.error;if(storyResult.error)throw storyResult.error;
+    const [posts,stories]=await Promise.all([hydratePostMedia(postResult.data||[]),hydrateStoryMedia(storyResult.data||[])]);
+    posts.forEach((post:any)=>{const media=[...(post.post_media||[])].sort((a:any,b:any)=>(a.sort_order||0)-(b.sort_order||0));const url=media.find((item:any)=>item.media_type==='image')?.url||(post.media_url&&!/\.(mp4|mov|m4v)($|\?)/i.test(post.media_url)?post.media_url:null);if(url)add['p:'+post.id]=url;});
+    stories.forEach((story:any)=>{const url=story.thumbnail_url||(story.media_type!=='video'?story.media_url:null);if(url)add['s:'+story.id]=url;});
+    if(mounted.current&&run===generation.current&&owner.current===actor)setThumbs(old=>({...old,...add}));
+  },[]);
   const load = useCallback(async () => {
-    setError(null);
+    const run=++generation.current,actor=userId;pageLock.current=false;setLoadingMore(false);setError(null);
+    const snapshot=new Date().toISOString();cursorRef.current={offset:0,asOf:snapshot};
+    if(!actor){setRows([]);setThumbs({});setLoading(false);setRefreshing(false);return;}
     try {
-    const { data, error: err } = await supabase.rpc('get_notifications', {
-      p_limit: 60, p_cursor: null,
-    });
-    if (!mounted.current) return;
-    if (err) { setError(err.message); setLoading(false); setRefreshing(false); return; }
-    const batch = (data ?? []) as Notif[];
-    setRows(invitesFirst(batch));
-    hydrateThumbs(batch);
-    cursorRef.current = batch.length ? (batch[batch.length - 1] as any).created_at : null;
-    setDone(batch.length < 60);
-    } catch (e: any) { if (mounted.current) setError(e?.message || 'Network problem'); } finally { if (mounted.current) { setLoading(false); setRefreshing(false); } }
-  }, []);
-
-  const loadMore = useCallback(async () => {
-    if (loadingMore || done || !cursorRef.current) return;
-    setLoadingMore(true);
-    const { data } = await supabase.rpc('get_notifications', { p_limit: 60, p_cursor: cursorRef.current });
-    hydrateThumbs(((data ?? []) as Notif[]));
-    if (!mounted.current) return;
-    const batch = (data ?? []) as Notif[];
-    if (batch.length) {
-      cursorRef.current = (batch[batch.length - 1] as any).created_at;
-      setRows(prev => { const seen = new Set(prev.map(r => r.notification_id)); return [...prev, ...batch.filter(r => !seen.has(r.notification_id))]; });
-    }
-    if (batch.length < 60) setDone(true);
-    setLoadingMore(false);
-  }, [loadingMore, done]);
+      const {data,error:err}=await deadline(supabase.rpc('get_notifications_page',{p_limit:60,p_offset:0,p_as_of:snapshot}));if(err)throw err;
+      const batch=await hydratePostMedia((data||[]) as Notif[]);
+      if(!mounted.current||run!==generation.current||owner.current!==actor)return;
+      setRows(invitesFirst(batch));cursorRef.current.offset=batch.length;setDone(batch.length<60);
+      void hydrateThumbs(batch,run,actor).catch(()=>{});
+    }catch(e:any){if(mounted.current&&run===generation.current&&owner.current===actor)setError(e?.message||'Notifications could not be loaded.');}
+    finally{if(mounted.current&&run===generation.current&&owner.current===actor){setLoading(false);setRefreshing(false);}}
+  },[userId,hydrateThumbs]);
+  const loadMore=useCallback(async()=>{
+    if(pageLock.current||done||!userId)return;const run=generation.current,actor=userId,page={...cursorRef.current};pageLock.current=true;setLoadingMore(true);
+    try{
+      const {data,error:err}=await deadline(supabase.rpc('get_notifications_page',{p_limit:60,p_offset:page.offset,p_as_of:page.asOf}));if(err)throw err;
+      const batch=await hydratePostMedia((data||[]) as Notif[]);
+      if(!mounted.current||run!==generation.current||owner.current!==actor)return;
+      cursorRef.current.offset+=batch.length;setRows(old=>{const seen=new Set(old.map(row=>row.notification_id));return [...old,...batch.filter(row=>!seen.has(row.notification_id))];});setDone(batch.length<60);setError(null);
+      void hydrateThumbs(batch,run,actor).catch(()=>{});
+    }catch(e:any){if(mounted.current&&run===generation.current&&owner.current===actor)setError(e?.message||'More notifications could not be loaded.');}
+    finally{if(mounted.current&&run===generation.current&&owner.current===actor){pageLock.current=false;setLoadingMore(false);}}
+  },[userId,done,hydrateThumbs]);
+  useEffect(()=>{generation.current++;pageLock.current=false;setRows([]);setThumbs({});setBusy({});setDone(false);setLoading(!!userId);setError(null);},[userId]);
+  useEffect(()=>{
+    const timer=setInterval(()=>{const run=generation.current,actor=userId;if(!actor||!rowsRef.current.length)return;void (async()=>{try{const fresh=await hydratePostMedia(rowsRef.current);if(run!==generation.current||owner.current!==actor)return;setRows(fresh);await hydrateThumbs(fresh,run,actor);}catch{/* Media fails closed when access changes; a refresh retries. */if(run===generation.current&&owner.current===actor){setThumbs({});setRows(old=>old.map(row=>({...row,post_thumb:null})));setError('Some media could not be refreshed. Pull down to retry.');}}})();},240000);
+    return()=>clearInterval(timer);
+  },[userId,hydrateThumbs]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
@@ -314,6 +332,8 @@ export default function NotificationsScreen({ navigation }: any) {
         { text: 'Add to your story', onPress: () => reshareStory(String(d.story_id)) },
         { text: 'Cancel', style: 'cancel' },
       ]);
+    } else if (n.type === 'market_order' && typeof d.listing_id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(d.listing_id)) {
+      navigation.navigate('ListingDetail', { listingId: d.listing_id });
     } else if (n.type === 'payment_received' && d.conversation_id) {
       navigation.navigate('Messages', { screen: 'Chat', params: { conversationId: d.conversation_id } });
     } else if (n.type === 'job_application' && d.job_id) {
@@ -388,28 +408,6 @@ export default function NotificationsScreen({ navigation }: any) {
     setRows(prev => prev.filter(r => r.notification_id !== n.notification_id));
   };
 
-  const hydrateThumbs = useCallback(async (batch: Notif[]) => {
-    const postIds = Array.from(new Set(batch.map(r => (r as any).post_id || (r as any).data?.post_id).filter(Boolean)));
-    const storyIds = Array.from(new Set(batch.map(r => (r as any).data?.story_id).filter(Boolean)));
-    const add: Record<string, string> = {};
-    if (postIds.length) {
-      const { data: ps } = await supabase.from('posts').select('id, media_url, post_media(url, media_type, sort_order)').in('id', postIds);
-      (ps ?? []).forEach((p: any) => {
-        const pm = Array.isArray(p.post_media) ? [...p.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : [];
-        const img = pm.find((m: any) => m.media_type === 'image');
-        const u = img?.url || (p.media_url && !/\.(mp4|mov|m4v)($|\?)/i.test(p.media_url) ? p.media_url : null);
-        if (u) add['p:' + p.id] = u;
-      });
-    }
-    if (storyIds.length) {
-      const { data: ss } = await supabase.from('stories').select('id, thumbnail_url, media_url, media_type').in('id', storyIds);
-      (ss ?? []).forEach((st: any) => {
-        const u = st.thumbnail_url || (st.media_type !== 'video' ? st.media_url : null);
-        if (u) add['s:' + st.id] = u;
-      });
-    }
-    if (Object.keys(add).length && mounted.current) setThumbs(prev => ({ ...prev, ...add }));
-  }, []);
 
   const sections = useMemo(() => {
     // Things that want an ACTION from you sit pinned on top, out of the stream.

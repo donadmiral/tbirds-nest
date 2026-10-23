@@ -1,7 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { withTimeout } from "@/lib/withTimeout";
+import { useSocialPages } from "@/lib/useSocialPages";
+import { SocialPageFooter } from "@/components/SocialPageFooter";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Plus, Radio, Search, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
@@ -15,10 +19,14 @@ type Comm = {
 };
 
 export default function CommunitiesPage() {
-  const supabase = createClient();
+  const [supabase] = useState(createClient);
+  const router = useRouter();
   const [q, setQ] = useState("");
-  const [rows, setRows] = useState<Comm[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
+  const page = useSocialPages<Comm>("get_communities_page", { p_query: query.trim() || null });
+  const { items: rows, setItems: setRows, loading } = page;
+  const [actionError, setActionError] = useState<string | null>(null);
+  const locks = useRef(new Set<string>());const actionEpoch=useRef(0);
   const [me, setMe] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [gName, setGName] = useState("");
@@ -30,39 +38,35 @@ export default function CommunitiesPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setMe(data.session?.user.id ?? null));
-  }, [supabase]);
-
-  const load = useCallback(async (query: string) => {
-    setLoading(true);
-    try {
-      const [{ data }, { data: inv }] = await Promise.all([
-        supabase.rpc("get_communities", { p_query: query.trim() || null, p_limit: 40 }),
-        supabase.rpc("get_my_community_invites"),
-      ]);
-      // Invitations sit first; accepting one admits you even to an invite-only community.
-      const invited = new Set(((inv as any[]) ?? []).map(i => i.id));
-      const base = ((data as Comm[]) ?? []).map(r => ({ ...r, has_invite: invited.has(r.id) }));
-      const extra: Comm[] = ((inv as any[]) ?? []).filter(i => !base.some(r => r.id === i.id)).map(i => ({ id: i.id, name: i.name, description: "Invited by " + (i.invited_by_name || i.invited_by_username || "a moderator"), icon_url: i.icon_url, cover_color: i.cover_color, category: null, join_mode: "invite", member_count: i.member_count, is_member: false, my_role: null, has_pending: false, has_invite: true }));
-      setRows([...extra, ...base].sort((x, y) => (y.has_invite ? 1 : 0) - (x.has_invite ? 1 : 0)));
-    } finally { setLoading(false); }
+    let alive = true, uid:string|null|undefined;
+    const bind=(next:string|null)=>{if(!alive||next===uid)return;uid=next;actionEpoch.current++;locks.current.clear();setBusy(false);setCreating(false);setGName('');setGDesc('');setGRules('');setMe(next);setActionError(null);};
+    const {data:auth}=supabase.auth.onAuthStateChange((_event,session)=>bind(session?.user.id??null));
+    withTimeout(supabase.auth.getSession()).then(({data,error})=>{if(error)throw error;if(uid===undefined)bind(data.session?.user.id??null);}).catch(()=>{if(alive)setActionError('Your session could not be loaded. Reload to try again.');});
+    return()=>{alive=false;actionEpoch.current++;auth.subscription.unsubscribe();};
   }, [supabase]);
 
   useEffect(() => {
-    const t = setTimeout(() => { void load(q); }, 250);
-    return () => clearTimeout(t);
-  }, [q, load]);
+    const timer = setTimeout(() => setQuery(q), 250);
+    return () => clearTimeout(timer);
+  }, [q]);
 
   const join = async (c: Comm) => {
+    if (locks.current.has(c.id)) return;
+    locks.current.add(c.id); setActionError(null);
+    const version = actionEpoch.current;
+    try {
     const { data, error } = await supabase.rpc("join_community", { p_community: c.id });
-    if (error) { alert(error.message); return; }
-    if (data === "joined") setRows(prev => prev.map(r => r.id === c.id ? { ...r, is_member: true, my_role: r.my_role || "member", member_count: (r.member_count || 0) + 1 } : r));
-    else setRows(prev => prev.map(r => r.id === c.id ? { ...r, has_pending: true } : r));
+    if (error) throw error;
+    if (version !== actionEpoch.current) return;
+    await page.reload();
+    } catch { if(version===actionEpoch.current)setActionError("Could not join this community. Please try again."); }
+    finally { if(version===actionEpoch.current)locks.current.delete(c.id); }
   };
 
   const create = async () => {
     const nm = gName.trim();
-    if (!nm || busy) return;
+    if (!nm || locks.current.has("create")) return;
+    const version=actionEpoch.current;locks.current.add("create"); setActionError(null);
     setBusy(true);
     try {
       const { data, error } = await supabase.rpc("create_community", {
@@ -70,12 +74,12 @@ export default function CommunitiesPage() {
         p_join_mode: gMode, p_cover_color: gColor, p_rules: gRules.trim() || null,
       });
       if (error) throw error;
-      setCreating(false);
+      if(version!==actionEpoch.current)return;setCreating(false);
       const id = typeof data === "string" ? data : (data as any)?.id;
-      if (id) window.location.href = "/communities/" + id;
-      else void load(q);
-    } catch (err: any) { alert(err?.message || "Could not create the community."); }
-    finally { setBusy(false); }
+      if (id) router.push("/communities/" + id);
+      else void page.reload();
+    } catch (err: any) { if(version===actionEpoch.current)setActionError(err?.message || "Could not create the community."); }
+    finally { if(version===actionEpoch.current){locks.current.delete("create"); setBusy(false);} }
   };
 
   const catLabel = (key: string | null) => key ? (CATEGORIES.find(c => c.key === key)?.label || key) : null;
@@ -94,13 +98,14 @@ export default function CommunitiesPage() {
       </div>
       <div className="mb-4 flex items-center gap-2 rounded-lg bg-ink/5 px-3 py-2 transition-colors duration-[140ms] focus-within:bg-ink/[0.07]">
         <Search size={15} className="text-muted" />
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search communities"
+        <input value={q} onChange={e => setQ(e.target.value)} aria-label="Search communities" placeholder="Search communities"
           className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-muted" />
         {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-muted" /></button> : null}
       </div>
-      {loading ? (
+      {actionError ? <p role="alert" className="py-2 text-sm text-danger">{actionError}</p> : null}
+      {loading && rows.length === 0 ? (
         <p className="py-16 text-center text-sm text-muted">Loading&hellip;</p>
-      ) : rows.length === 0 ? (
+      ) : rows.length === 0 && !page.error ? (
         <p className="py-16 text-center text-sm text-muted">{q ? "No communities match." : "No communities yet. Create the first one."}</p>
       ) : (
         <ul>
@@ -137,6 +142,7 @@ export default function CommunitiesPage() {
           ))}
         </ul>
       )}
+      <SocialPageFooter {...page} />
       {creating ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setCreating(false)}>
           <div className="max-h-[88vh] w-full max-w-[460px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
@@ -175,6 +181,7 @@ export default function CommunitiesPage() {
             </div>
             <textarea value={gRules} onChange={e => setGRules(e.target.value)} maxLength={600} placeholder="Rules shown to people when they join (optional)"
               className="mb-4 h-20 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+            {actionError ? <p role="alert" className="mb-2 text-sm text-danger">{actionError}</p> : null}
             <button onClick={create} disabled={!gName.trim() || busy}
               className="w-full rounded-full bg-ink py-2.5 text-sm font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
               {busy ? "Creating\u2026" : "Create community"}

@@ -18,6 +18,10 @@ export type Listing = {
   images: string[];
   status: ListingStatus;
   created_at: string;
+  stock_quantity?: number;
+  delivery_available?: boolean;
+  delivery_fee?: number | null;
+  delivery_note?: string | null;
   seller?: {
     id: string;
     full_name: string;

@@ -154,6 +154,11 @@ export default function StoryViewerScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
+  const viewerRef = useRef(myId); viewerRef.current = myId;
+  const loadGeneration = useRef(0);
+  const [loadedViewer, setLoadedViewer] = useState<string | null>(null);
+  const [engagementError, setEngagementError] = useState(false);
+  const [engagementRetry, setEngagementRetry] = useState(0);
 
   const params = route.params as RouteParams;
   // Accept both shapes: the strip sends { userIds, startUserId }; profile and
@@ -163,7 +168,7 @@ export default function StoryViewerScreen() {
     return params?.userId ? [params.userId] : [];
   }, [params?.userIds, params?.userId]);
   const startUserId = params?.startUserId || params?.userId;
-  const sessionKey = useMemo(() => userIds.join('|'), [userIds]);
+  const sessionKey = useMemo(() => `${myId ?? ''}:${userIds.join('|')}`, [userIds, myId]);
 
   const resumePosition = useMemo(() => {
     if (lastViewerPosition && lastViewerPosition.sessionKey === sessionKey && Date.now() - lastViewerPosition.timestamp < 5 * 60 * 1000) return { userIndex: lastViewerPosition.userIndex, storyIndex: lastViewerPosition.storyIndex };
@@ -295,11 +300,11 @@ export default function StoryViewerScreen() {
   useEffect(() => { storyIndexRef.current = storyIndex; }, [storyIndex]);
   useEffect(() => { userIndexRef.current = userIndex; }, [userIndex]);
 
-  const currentStory = stories[storyIndex];
+  const currentStory = loadedViewer === myId ? stories[storyIndex] : undefined;
   const isVideo = currentStory?.media_type === 'video';
   const isText = currentStory?.media_type === 'text';
   const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; } });
-  useEffect(() => { const u = isVideo && !isText ? currentStory?.media_url : null; if (!u) return; const p: any = videoPlayer; let sub: any = null; try { console.log('[storyVideo] source ->', String(u).slice(-60)); if (p?.replaceAsync) p.replaceAsync(u); else p?.replace?.(u); sub = p?.addListener?.('statusChange', (s2: any) => { const stt = s2?.status ?? s2; if (stt === 'error' || s2?.error) console.log('[storyVideo] status error:', s2?.error?.message || JSON.stringify(s2).slice(0, 160)); if (stt === 'readyToPlay') { try { const mtx: any = (storiesRef.current[storyIndexRef.current] as any)?.media_transform; const t0 = Number(mtx?.trimStart) || 0; if (t0 > 0.05) { try { p.currentTime = t0; } catch {} } const ov = mtx?.mix?.orig; const vol = typeof ov === 'number' ? Math.max(0, Math.min(1, ov / 100)) : 1; try { p.muted = vol <= 0.001; p.volume = vol; } catch {} try { p.playbackRate = Number(mtx?.speed) || 1; } catch {} } catch {} try { p?.play?.(); } catch {} } }); setTimeout(() => { try { p?.play?.(); } catch {} }, 60); } catch (e: any) { console.log('[storyVideo] replace failed:', e?.message); } return () => { try { sub?.remove?.(); } catch {} }; }, [isVideo, isText, currentStory?.media_url, videoPlayer]);
+  useEffect(() => { const u = isVideo && !isText ? currentStory?.media_url : null; if (!u) return; const p: any = videoPlayer; let sub: any = null; let alive = true; let timer: ReturnType<typeof setTimeout> | undefined; try { if (p?.replaceAsync) void Promise.resolve(p.replaceAsync(u)).catch(() => { if (alive) setMediaError(true); }); else p?.replace?.(u); sub = p?.addListener?.('statusChange', (s2: any) => { if (!alive) return; const stt = s2?.status ?? s2; if (stt === 'error' || s2?.error) setMediaError(true); if (stt === 'readyToPlay') { try { const mtx: any = (storiesRef.current[storyIndexRef.current] as any)?.media_transform; const t0 = Number(mtx?.trimStart) || 0; if (t0 > 0.05) { try { p.currentTime = t0; } catch {} } const ov = mtx?.mix?.orig; const vol = typeof ov === 'number' ? Math.max(0, Math.min(1, ov / 100)) : 1; try { p.muted = vol <= 0.001; p.volume = vol; } catch {} try { p.playbackRate = Number(mtx?.speed) || 1; } catch {} } catch {} try { p?.play?.(); } catch {} } }); timer = setTimeout(() => { if (alive) { try { p?.play?.(); } catch {} } }, 60); } catch { if (alive) setMediaError(true); } return () => { alive = false; if (timer) clearTimeout(timer); try { sub?.remove?.(); } catch {} }; }, [isVideo, isText, currentStory?.media_url, videoPlayer]);
   // Dual viewer swap state (viewer-only, does not persist)
   const [dualSwapped, setDualSwapped] = useState(false);
   const dualSwapOpacity = useSharedValue(1);
@@ -342,16 +347,37 @@ export default function StoryViewerScreen() {
   const startProgress = useCallback((durationMs: number, fromValue = 0) => { cancelAnimation(progressSV); progressDurationRef.current = durationMs; const effectiveFrom = Math.max(fromValue, PROGRESS_SEED); const remainingMs = durationMs * (1 - effectiveFrom); progressSV.value = effectiveFrom; progressSV.value = withTiming(1, { duration: remainingMs, easing: REasing.linear }, (finished) => { if (finished) { runOnJS(advanceForward)(); } }); }, [progressSV, advanceForward]);
 
   const loadForCurrentUser = useCallback(async () => {
-    if (!currentUserId) return; setMediaReady(false);
-    if (highlightId) { setLoading(true); try { const [hlStories, profileRes] = await Promise.all([storiesService.getHighlightStories(highlightId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle()]); setStories(hlStories); setStoryUser(profileRes.data || null); setStoryIndex(0); } catch (e) { console.log('[StoryViewer.loadHighlight]', e); setStories([]); } finally { setLoading(false); } return; }
-    const cached = nextUserCache.current.get(currentUserId);
-    if (cached) { nextUserCache.current.delete(currentUserId); setStories(cached.stories); setStoryUser(cached.profile); if (!resumeConsumedRef.current && resumeStoryIndex >= 0 && resumeStoryIndex < cached.stories.length) { setStoryIndex(resumeStoryIndex); resumeConsumedRef.current = true; } else { const firstUnseen = cached.stories.findIndex(s => !s.is_viewed); setStoryIndex(firstUnseen >= 0 ? firstUnseen : 0); } setLoading(false); return; }
-    setLoading(true);
-    try { const [userStories, profileRes] = await Promise.all([storiesService.getUserStories(currentUserId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle()]); setStories(userStories); setStoryUser(profileRes.data || null); if (!resumeConsumedRef.current && resumeStoryIndex >= 0 && resumeStoryIndex < userStories.length) { setStoryIndex(resumeStoryIndex); resumeConsumedRef.current = true; } else { const firstUnseen = userStories.findIndex(s => !s.is_viewed); setStoryIndex(firstUnseen >= 0 ? firstUnseen : 0); } } catch (e) { console.log('[StoryViewer.load]', e); setStories([]); } finally { setLoading(false); }
-  }, [currentUserId]);
-  useEffect(() => { loadForCurrentUser(); }, [loadForCurrentUser]);
+    const request = ++loadGeneration.current, viewer = myId;
+    const current = () => loadGeneration.current === request && viewerRef.current === viewer;
+    if (!currentUserId || !viewer) { setStories([]); setLoadedViewer(null); setLoading(false); return; }
+    setMediaReady(false); setLoading(true); setMediaError(false);
+    try {
+      const cacheKey = viewer + ':' + currentUserId;
+      const cached = highlightId ? undefined : nextUserCache.current.get(cacheKey);
+      nextUserCache.current.delete(cacheKey);
+      const fresh = cached && cached.stories.every(story => {
+        const expiry = (story as StoryRow & { _mediaExpiresAt?: number })._mediaExpiresAt;
+        return !expiry || expiry > Date.now() + 60000;
+      });
+      const [userStories, profileRes] = fresh ? [cached!.stories, { data: cached!.profile }] : await Promise.all([
+        highlightId ? storiesService.getHighlightStories(highlightId) : storiesService.getUserStories(currentUserId),
+        supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle(),
+      ]);
+      if (!current()) return;
+      setStories(userStories); setLoadedViewer(viewer); setStoryUser(profileRes.data || null);
+      if (!highlightId && !resumeConsumedRef.current && resumeStoryIndex >= 0 && resumeStoryIndex < userStories.length) {
+        setStoryIndex(resumeStoryIndex); resumeConsumedRef.current = true;
+      } else {
+        const firstUnseen = highlightId ? 0 : userStories.findIndex(s => !s.is_viewed);
+        setStoryIndex(firstUnseen >= 0 ? firstUnseen : 0);
+      }
+    } catch { if (current()) { setStories([]); setMediaError(true); } }
+    finally { if (current()) setLoading(false); }
+  }, [currentUserId, myId, highlightId, resumeStoryIndex]);
+  useEffect(() => { void loadForCurrentUser(); return () => { loadGeneration.current++; }; }, [loadForCurrentUser]);
+  useEffect(() => { nextUserCache.current.clear(); preloadStatus.current.clear(); setHoldoverMedia(null); setViewers([]); setViewersOpen(false); setReplyText(''); }, [myId]);
 
-  useEffect(() => { let cancelled = false; const preloadUser = async (userId: string) => { if (!userId || nextUserCache.current.has(userId)) return; try { const [userStories, profileRes] = await Promise.all([storiesService.getUserStories(userId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', userId).maybeSingle()]); if (cancelled) return; if (nextUserCache.current.size >= 3) { const firstKey = nextUserCache.current.keys().next().value; if (firstKey) nextUserCache.current.delete(firstKey); } nextUserCache.current.set(userId, { stories: userStories, profile: profileRes.data || null }); if (userStories.length > 0) { const first = userStories[0]; const firstPoster = (first as any).thumbnail_url as string | undefined; if (first.media_type !== 'image' && firstPoster) { ExpoImage.prefetch(firstPoster).catch(() => {}); } if (first.media_type === 'image' && first.media_url) { preloadStatus.current.set(first.media_url, 'pending'); ExpoImage.prefetch(first.media_url).then((ok: any) => { if (!cancelled) preloadStatus.current.set(first.media_url!, ok === false ? 'failed' : 'done'); }).catch(() => { if (!cancelled) preloadStatus.current.set(first.media_url!, 'failed'); }); } } } catch (e) { console.log('[StoryViewer.preloadUser]', e); } }; const n1Id = userIds[userIndex + 1]; const n2Id = userIds[userIndex + 2]; (async () => { if (n1Id) await preloadUser(n1Id); if (cancelled) return; if (n2Id) await preloadUser(n2Id); })(); return () => { cancelled = true; }; }, [userIndex, userIds]);
+  useEffect(() => { let cancelled = false; const preloadUser = async (userId: string) => { const cacheKey = myId + ':' + userId; if (!myId || !userId || nextUserCache.current.has(cacheKey)) return; try { const [userStories, profileRes] = await Promise.all([storiesService.getUserStories(userId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', userId).maybeSingle()]); if (cancelled) return; if (nextUserCache.current.size >= 3) { const firstKey = nextUserCache.current.keys().next().value; if (firstKey) nextUserCache.current.delete(firstKey); } nextUserCache.current.set(cacheKey, { stories: userStories, profile: profileRes.data || null }); if (userStories.length > 0) { const first = userStories[0]; const firstPoster = (first as any).thumbnail_url as string | undefined; if (first.media_type !== 'image' && firstPoster) { ExpoImage.prefetch(firstPoster).catch(() => {}); } if (first.media_type === 'image' && first.media_url) { preloadStatus.current.set(first.media_url, 'pending'); ExpoImage.prefetch(first.media_url).then((ok: any) => { if (!cancelled) preloadStatus.current.set(first.media_url!, ok === false ? 'failed' : 'done'); }).catch(() => { if (!cancelled) preloadStatus.current.set(first.media_url!, 'failed'); }); } } } catch (e) { console.log('[StoryViewer.preloadUser]', e); } }; const n1Id = userIds[userIndex + 1]; const n2Id = userIds[userIndex + 2]; (async () => { if (n1Id) await preloadUser(n1Id); if (cancelled) return; if (n2Id) await preloadUser(n2Id); })(); return () => { cancelled = true; }; }, [userIndex, userIds, myId]);
 
   useEffect(() => { const prefetchStory = (story: StoryRow | undefined) => { if (story && story.media_type !== 'image' && (story as any).thumbnail_url) { const poster = (story as any).thumbnail_url as string; if (preloadStatus.current.get(poster) !== 'done') { preloadStatus.current.set(poster, 'pending'); ExpoImage.prefetch(poster).then((ok: any) => { preloadStatus.current.set(poster, ok === false ? 'failed' : 'done'); }).catch(() => { preloadStatus.current.set(poster, 'failed'); }); } } if (story && story.media_type === 'image' && story.media_url) { const url = story.media_url; if (preloadStatus.current.get(url) === 'done') return; preloadStatus.current.set(url, 'pending'); ExpoImage.prefetch(url).then((ok: any) => { preloadStatus.current.set(url, ok === false ? 'failed' : 'done'); }).catch(() => { preloadStatus.current.set(url, 'failed'); }); } }; prefetchStory(stories[storyIndex + 1]); prefetchStory(stories[storyIndex + 2]); }, [storyIndex, stories]);
 
@@ -359,7 +385,25 @@ export default function StoryViewerScreen() {
 
   useEffect(() => { if (!currentStory) return; let cancelled = false; storiesService.getStoryPoll(currentStory.id).then(data => { if (!cancelled) setPoll(data); }).catch((e) => { console.log('[StoryPoll.load]', e); }); return () => { cancelled = true; }; }, [currentStory?.id]);
 
-  useEffect(() => { if (!currentStory) return; const stickerList = (currentStory.stickers_json || []) as StoryTextSticker[]; const engagementStickers = stickerList.filter(s => s.kind === 'question' || s.kind === 'slider' || s.kind === 'quiz' || s.kind === 'countdown' || s.kind === 'addyours' || s.kind === 'notify'); if (engagementStickers.length === 0) { dispatchEngagement({ type: 'RESET' }); return; } let cancelled = false; const isOwnStory = currentStory.user_id === myId; (async () => { try { const myResps: Record<string, any> = {}; const counts: Record<string, number> = {}; const avgs: Record<string, number> = {}; const quizCounts: Record<string, Record<string, number>> = {}; const promises = engagementStickers.flatMap(st => { const tasks: Promise<void>[] = []; if (isOwnStory) { tasks.push(storiesService.getStickerResponses(currentStory.id, st.id).then(all => { if (cancelled) return; counts[st.id] = all.length; if (st.kind === 'slider') { const vals = all.filter(r => r.number_value != null).map(r => r.number_value as number); avgs[st.id] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0; } if (st.kind === 'quiz') { const optCounts: Record<string, number> = {}; all.forEach(r => { if (r.option_id) optCounts[r.option_id] = (optCounts[r.option_id] || 0) + 1; }); quizCounts[st.id] = optCounts; } })); } else { tasks.push(storiesService.getMyStickerResponse(currentStory.id, st.id).then(my => { if (cancelled) return; if (my) myResps[st.id] = my; })); if (st.kind === 'slider' || st.kind === 'quiz') { tasks.push(storiesService.getStickerResponses(currentStory.id, st.id).then(all => { if (cancelled) return; counts[st.id] = all.length; if (st.kind === 'slider') { const vals = all.filter(r => r.number_value != null).map(r => r.number_value as number); avgs[st.id] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0; } if (st.kind === 'quiz') { const optCounts: Record<string, number> = {}; all.forEach(r => { if (r.option_id) optCounts[r.option_id] = (optCounts[r.option_id] || 0) + 1; }); quizCounts[st.id] = optCounts; } })); } } return tasks; }); await Promise.all(promises); if (cancelled) return; dispatchEngagement({ type: 'LOADED', responses: myResps, counts, averages: avgs, quizCounts }); } catch (e) { console.log('[StoryViewer.engagementLoad]', e); } })(); return () => { cancelled = true; }; }, [currentStory?.id, myId]);
+  useEffect(() => {
+    dispatchEngagement({ type: 'RESET' }); setEngagementError(false);
+    if (!currentStory || !myId) return;
+    let cancelled = false;
+    const stickers = (currentStory.stickers_json || []).filter(s => ['question','slider','quiz','countdown','addyours','notify'].includes(s.kind || ''));
+    const own = currentStory.user_id === myId;
+    const responses: Record<string, any> = {}, counts: Record<string, number> = {}, averages: Record<string, number> = {}, quizCounts: Record<string, Record<string, number>> = {};
+    void Promise.all(stickers.map(async sticker => {
+      if (!own) { const response = await storiesService.getMyStickerResponse(currentStory.id, sticker.id); if (response) responses[sticker.id] = response; }
+      if (own || ['slider','quiz','addyours'].includes(sticker.kind || '')) {
+        const summary = await storiesService.getStickerSummary(currentStory.id, sticker.id);
+        counts[sticker.id] = summary.count;
+        if (summary.average != null) averages[sticker.id] = summary.average;
+        quizCounts[sticker.id] = summary.options;
+      }
+    })).then(() => { if (!cancelled) dispatchEngagement({ type: 'LOADED', responses, counts, averages, quizCounts }); })
+      .catch(() => { if (!cancelled) setEngagementError(true); });
+    return () => { cancelled = true; };
+  }, [currentStory?.id, myId, engagementRetry]);
 
   useEffect(() => { if (!currentStory) return; if (myId && currentStory.user_id !== myId) { storiesService.markViewed(currentStory.id); } }, [currentStory?.id, myId]);
   const storyAudioUrl = currentStory ? ((currentStory as any).audio_url as string | null) || null : null;
@@ -641,7 +685,7 @@ export default function StoryViewerScreen() {
         <AdjustLayer adjust={(mediaMt as any)?.adjust || null} zIndex={2} />
         <DrawingLayer strokes={(((stickers.find(sx => (sx as any).kind === 'drawing') as any)?.strokes) || null) as any} width={mediaSize.w} height={mediaSize.h} zIndex={3} />
         {renderPipDual()}
-        {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><Text style={{ color: 'rgba(245,240,235,0.15)', fontSize: 12, marginTop: 14, letterSpacing: 0.5, fontWeight: '500' }}>Unavailable</Text></View>)}
+        {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><TouchableOpacity accessibilityRole="button" onPress={() => void loadForCurrentUser()}><Text style={{ color: '#FFFFFF', fontSize: 14, marginTop: 14 }}>Media unavailable. Tap to retry.</Text></TouchableOpacity></View>)}
         <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { saveAndGoBack(); setTimeout(() => navigation.navigate('Search' as never, { query: '#' + tag } as never), 280); }} onMentionTap={(userId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId }); }} onPostTap={(postId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId }); }} onPostProfileTap={(uid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: uid }); }} onStoryTap={(uid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('StoryViewer', { userId: uid }); }} onPostHoldStart={() => pauseFor('cardHold')} onPostHoldEnd={() => resumeFrom('cardHold')} storyPaused={paused} clockSec={clockSec} onEntityTap={(st: any) => { const et = st?.entityType; const id = st?.entityId; if (!id) return; if (et === 'profile') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: id }); } else if (et === 'job') { pauseFor('deepnav'); supabase.from('jobs').select('*').eq('id', id).maybeSingle().then(({ data }) => { if (!data) { resumeFrom('deepnav'); return; } const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('JobDetail', { job: data }); }); } else if (et === 'article') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId: id }); } else if (et === 'listing') { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('ListingDetail', { listingId: id }), 280); } }} onStickerLayout={(id: string, r: any) => { measuredStickerRectsRef.current[id] = r; }} engagementProps={engagementProps} />
       </Animated.View>{/* wrap */}
       </Animated.View>
@@ -649,6 +693,7 @@ export default function StoryViewerScreen() {
 
       <EnvironmentLayer chromeOpacity={chromeOpacity} isPaused={paused} isOwn={isOwn ?? false} />
       {poll && (() => { const clampedTop = Math.max(insets.top + 90, Math.min(poll.ny * SCREEN_H - 100, SCREEN_H - 360)); const clampedLeft = (poll.nx * SCREEN_W) - (SCREEN_W * 0.4); return (<View style={[s.pollOverlay, { top: clampedTop, left: clampedLeft, transform: [{ scale: poll.scale || 1 }] }]} pointerEvents="auto" onLayout={(e) => { const layout = e.nativeEvent.layout; pollLayoutRef.current = { top: clampedTop, bottom: clampedTop + layout.height, left: clampedLeft, right: clampedLeft + layout.width }; }}><PollCard poll={poll} isOwn={isOwn} onVote={handlePollVote} onOpenVoters={openPollVoters} onShareResults={handlePollShareResults} /></View>); })()}
+      {engagementError ? <TouchableOpacity accessibilityRole="button" onPress={() => setEngagementRetry(value => value + 1)} style={{ position: 'absolute', top: insets.top + 80, alignSelf: 'center', zIndex: 10, backgroundColor: '#0B1E3D', padding: 10, borderRadius: 10 }}><Text style={{ color: '#FFF' }}>Responses could not load. Tap to retry.</Text></TouchableOpacity> : null}
       <StoryProgressBar progressSV={progressSV} currentIndex={storyIndex} totalStories={stories.length} chromeOpacity={chromeOpacity} topInset={insets.top} isPaused={paused} bottomInset={insets.bottom} />
       <MemoryCaption caption={currentStory.caption} chromeOpacity={chromeOpacity} bottomOffset={isOwn ? 130 : 125 + insets.bottom} />
       <IdentityPresence user={storyUser} isOwn={isOwn ?? false} timeAgo={timeAgo(currentStory.created_at)} scope={currentStory.scope} category={(currentStory as any).category} viewsCount={currentStory.views_count} chromeOpacity={chromeOpacity} topInset={insets.top} onOpenViewers={isOwn ? openViewersList : undefined} onSaveHighlight={isOwn ? () => { pauseFor('highlight'); setHighlightSheetOpen(true); } : undefined} onOpenSettings={isOwn ? () => { pauseFor('settings'); setSettingsOpen(true); } : undefined} onDelete={isOwn ? handleDelete : undefined} onClose={saveAndGoBack} bottomInset={insets.bottom} />

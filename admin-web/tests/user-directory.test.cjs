@@ -119,7 +119,7 @@ test('search escaping, stable ordering, page boundaries and navigation remain in
   assert.equal(page.get('order'), 'created_at.desc,id.asc');
   assert.equal(page.get('offset'), '50');
   assert.equal(page.get('limit'), '25');
-  const links = elements(tree, 'Link');
+  const links = elements(tree, 'Link').filter(link => new URL(link.props.href, 'https://example.invalid').pathname === '/users');
   assert.deepEqual(links.map(link => new URL(link.props.href, 'https://example.invalid').searchParams.get('page')), ['2', '4']);
   assert.equal(new URL(links[0].props.href, 'https://example.invalid').searchParams.get('q'), q);
 });
@@ -159,5 +159,5 @@ test('empty search results need no secondary lookups and do not invent members',
   assert.equal(h.requests.length, 6);
   assert.equal(h.requests[0].url.searchParams.get('offset'), '0');
   assert.equal(elements(tree, 'UsersDesk').length, 0);
-  assert.equal(elements(tree, 'Link').length, 0);
+  assert.deepEqual(elements(tree, 'Link').map(link => link.props.href), ['/users/deletions']);
 });

@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Users } from "lucide-react";
 import { Metric } from "@/components/Charts";
-import { RECRUITER_COLUMNS, RECRUITER_STAGE_LABEL, recruitingSummary, recruiterStage } from "@/lib/recruiting";
+import { RECRUITER_COLUMNS, RECRUITER_STAGE_LABEL, recruitingSummary, recruitingCountSummary, recruiterStage } from "@/lib/recruiting";
 import { Panel } from "@/components/ui";
 
 type Applicant = { id: string; status: string; applied_at: string; updated_at: string };
@@ -12,13 +12,13 @@ type Job = { id: string; title: string; closed: boolean; counts: Record<string, 
 
 const FUNNEL = RECRUITER_COLUMNS.map(key => ({ key, label: RECRUITER_STAGE_LABEL[key] }));
 
-export function RecruiterFunnel({ apps, jobs }: { apps: Applicant[]; jobs: Job[] }) {
+export function RecruiterFunnel({ apps, jobs, counts }: { apps: Applicant[]; jobs: Job[]; counts?: Record<string, number> }) {
   const f = useMemo(() => ({
-    ...recruitingSummary(apps),
+    ...(counts ? recruitingCountSummary(counts) : recruitingSummary(apps)),
     openJobs: jobs.filter(j => !j.closed).length,
-  }), [apps, jobs]);
+  }), [apps, jobs, counts]);
 
-  if (apps.length === 0 && f.openJobs === 0) return null;
+  if (f.total === 0 && f.openJobs === 0) return null;
 
   return (
     <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,300px)]">
@@ -75,9 +75,13 @@ export function RecruiterFunnel({ apps, jobs }: { apps: Applicant[]; jobs: Job[]
 export function RecruiterRail({
   apps,
   jobs,
+  counts, nextInterviews, interviewsToday: completeInterviewsToday,
 }: {
   apps: (Applicant & { interview_at?: string | null; name?: string })[];
   jobs: Job[];
+  counts?: Record<string, number>;
+  nextInterviews?: { id: string; name: string; interview_at: string }[];
+  interviewsToday?: number;
 }) {
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
@@ -97,15 +101,15 @@ export function RecruiterRail({
       .slice(0, 3);
 
     return {
-      upcoming,
+      upcoming: nextInterviews ?? upcoming,
       rows: [
-        { n: interviewsToday.length, label: "interviews today" },
-        { n: apps.filter((a) => a.status === "applied").length, label: "in the new application stage" },
-        { n: apps.filter((a) => a.status === "offer").length, label: "offers out" },
+        { n: completeInterviewsToday ?? interviewsToday.length, label: completeInterviewsToday === undefined ? "loaded interviews today" : "upcoming interviews today (UTC)" },
+        { n: counts ? recruitingCountSummary(counts).counts.applied : apps.filter((a) => a.status === "applied").length, label: "in the new application stage" },
+        { n: counts?.offer ?? apps.filter((a) => a.status === "offer").length, label: "offers out" },
         { n: jobs.filter((j) => !j.closed && j.counts?.total === 0).length, label: "roles with no applicants" },
       ].filter((r) => r.n > 0),
     };
-  }, [apps, jobs, now]);
+  }, [apps, jobs, now, counts, nextInterviews, completeInterviewsToday]);
 
   if (items.rows.length === 0 && items.upcoming.length === 0) return null;
 

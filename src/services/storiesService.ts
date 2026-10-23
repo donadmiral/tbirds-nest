@@ -1,4 +1,6 @@
+import { canonicalContentMedia } from '../../shared/contentMedia';
 import { supabase } from './supabase';
+import { hydrateStoryMedia, hydrateSoundMedia, hydrateHighlightMedia } from './contentMedia';
 import { PublicationAttempt } from '../utils/publication';
 import { authorId as currentAuthorId } from '../stores/actorStore';
 
@@ -127,6 +129,8 @@ export type StoryAudioDraft = {
   durationSec?: number | null;
   source?: 'voiceover' | 'library' | 'original';
   addToSounds?: boolean;
+  /** Creator confirms ownership and permission to publish/reuse this recording. */
+  rightsAttested?: boolean;
 };
 
 export type StorySound = {
@@ -139,6 +143,7 @@ export type StorySound = {
   source: 'original' | 'library';
   use_count: number;
   created_at: string;
+  rights_status?: 'unverified' | 'creator_attested' | 'licensed' | 'blocked';
 };
 
 export const STORY_CATEGORIES = [
@@ -371,6 +376,7 @@ export async function uploadAndCreateStory(params: {
   await publication.check();
   const existing = publication.get<StoryRow>('story');
   if (existing) {
+    await finishStorySound(existing.id, audio, publication);
     await finishStoryRecipients(existing.id, audience, sharedWith, publication);
     return existing;
   }
@@ -455,11 +461,17 @@ export async function uploadAndCreateStory(params: {
     jobs.push(async () => { dualFrontPublicUrl = (await uploadAsset('front_photo', dualFrontLocalUri, 'image')).url; });
   }
   if (audio?.kind === 'voiceover' && audio.localUri) {
+    if (!audio.rightsAttested) throw new Error('Confirm that you own and can publish this voiceover before sharing.');
+    if (!audio.durationSec || !Number.isFinite(audio.durationSec) || audio.durationSec < 1 || audio.durationSec > 30) throw new Error('Record a voiceover between 1 and 30 seconds.');
     audioMeta = { title: audio.title || 'Voiceover', source: 'voiceover', durationSec: audio.durationSec ?? null };
     jobs.push(async () => { audioFinalUrl = (await uploadAsset('voiceover', audio.localUri!, 'audio')).url; });
-  } else if (audio?.kind === 'sound' && audio.url) {
-    audioFinalUrl = audio.url;
-    audioMeta = { title: audio.title || null, source: audio.source || 'original', durationSec: audio.durationSec ?? null };
+  } else if (audio?.kind === 'sound') {
+    if (!audio.soundId) throw new Error('Choose an available sound from the sound library.');
+    const { data: sound, error } = await supabase.from('story_sounds').select('id,title,url,source,duration_sec,rights_status')
+      .eq('id', audio.soundId).in('rights_status', ['creator_attested', 'licensed']).maybeSingle();
+    if (error || !sound) throw new Error('This sound is no longer available for reuse. Choose another sound.');
+    audioFinalUrl = sound.url;
+    audioMeta = { title: sound.title, source: sound.source, durationSec: sound.duration_sec };
   }
   for (const sticker of publishedStickers) {
     if (sticker.photoUri && !sticker.photoUrl) {
@@ -529,7 +541,7 @@ export async function uploadAndCreateStory(params: {
 
   // A lost response must never trigger a fresh server-generated story ID.
   // The caller retains this checkpoint for the draft and current author.
-  const data = await publication.write('story', () => supabase.from('stories').insert(insertPayload).select().single());
+  const data = await publication.write('story', () => supabase.from('stories').insert(canonicalContentMedia(insertPayload, supabaseUrl)).select().single());
   if (!data) { publication.uncertain = true; throw new Error('Could not confirm the story. Check your stories before trying again.'); }
   publication.postId = data.id;
 
@@ -538,15 +550,22 @@ export async function uploadAndCreateStory(params: {
     supabase.rpc('increment_share_count', { p_post_id: pid }).then(() => {}, () => {});
   });
 
-  if (audio && audio.kind === 'voiceover' && audio.addToSounds && audioFinalUrl) {
-    supabase.from('story_sounds').insert({ owner_id: userId, title: audio.title || 'Original sound', url: audioFinalUrl, duration_sec: audio.durationSec != null ? Math.round(audio.durationSec) : null, source: 'original' }).then(() => {}, () => {});
-  }
+  await finishStorySound(data.id, audio, publication);
   if (audio && audio.kind === 'sound' && audio.soundId) {
     supabase.rpc('increment_sound_use', { p_sound_id: audio.soundId }).then(() => {}, () => {});
   }
 
   await finishStoryRecipients(data.id, audience, sharedWith, publication);
   return data as StoryRow;
+}
+
+async function finishStorySound(storyId: string, audio: StoryAudioDraft | null | undefined, publication: PublicationAttempt) {
+  if (audio?.kind !== 'voiceover' || !audio.addToSounds) return;
+  if (!audio.rightsAttested) throw new Error('Confirm the rights to your original sound before making it reusable.');
+  await publication.check();
+  // This RPC is idempotent per story, so a lost response is safe to retry.
+  const { data, error } = await supabase.rpc('publish_story_sound', { p_story_id: storyId, p_rights_attested: true });
+  if (error || !data) throw new Error('Your story was saved, but its reusable sound could not be confirmed. Retry to finish sharing the sound.');
 }
 
 async function finishStoryRecipients(storyId: string, audience: string | null | undefined, sharedWith: string[] | null | undefined, publication: PublicationAttempt) {
@@ -565,10 +584,11 @@ export const storiesService = {
       .from('story_sounds')
       .select('*')
       .eq('source', source)
+      .in('rights_status', ['creator_attested', 'licensed'])
       .order(source === 'original' ? 'use_count' : 'created_at', { ascending: false })
-      .limit(limit);
-    if (error) { console.log('[storiesService] listStorySounds:', error.message); return []; }
-    return (data || []) as StorySound[];
+      .limit(Math.min(100, Math.max(1, Math.trunc(limit) || 50)));
+    if (error) throw new Error('Sounds could not be loaded. Please try again.');
+    return hydrateSoundMedia((data || []) as StorySound[]);
   },
 
   async getCatchupFeed(mode: CatchupMode = 'all', limit = 30): Promise<CatchupUser[]> {
@@ -591,7 +611,7 @@ export const storiesService = {
       console.log('[storiesService.getUserStories]', error.message);
       return [];
     }
-    return (data || []) as StoryRow[];
+    return hydrateStoryMedia((data || []) as StoryRow[]);
   },
 
   async getFollowing(): Promise<any[]> {
@@ -796,13 +816,14 @@ export const storiesService = {
   async getUserHighlights(userId: string): Promise<StoryHighlight[]> {
     const { data, error } = await supabase.rpc('get_user_highlights', { p_user_id: userId });
     if (error) { console.log('[storiesService.getUserHighlights]', error.message); return []; }
-    return (data || []) as StoryHighlight[];
+    return hydrateHighlightMedia((data || []) as StoryHighlight[]);
   },
 
   async getHighlightStories(highlightId: string): Promise<StoryRow[]> {
     const { data, error } = await supabase.rpc('get_highlight_stories', { p_highlight_id: highlightId });
     if (error) { console.log('[storiesService.getHighlightStories]', error.message); return []; }
-    return (data || []) as StoryRow[];
+    const [highlight] = await hydrateHighlightMedia([{ id: highlightId, stories: (data || []) as StoryRow[] }]);
+    return highlight.stories;
   },
 
   async createHighlight(title: string): Promise<StoryHighlight> {
@@ -879,6 +900,12 @@ export const storiesService = {
       return [];
     }
     return (data || []) as StickerResponse[];
+  },
+
+  async getStickerSummary(storyId: string, stickerId: string): Promise<{ count: number; average: number | null; options: Record<string, number> }> {
+    const { data, error } = await supabase.rpc('get_sticker_response_summary', { p_story_id: storyId, p_sticker_id: stickerId });
+    if (error) throw error;
+    return data as { count: number; average: number | null; options: Record<string, number> };
   },
 
   async getMyStickerResponse(storyId: string, stickerId: string): Promise<StickerResponse | null> {

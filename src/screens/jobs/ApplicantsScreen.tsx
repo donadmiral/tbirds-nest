@@ -10,7 +10,7 @@ import VerifiedBadge from '../../components/VerifiedBadge';
  * filterable by status. Changing a status writes job_applications.status,
  * so applicants can follow their progress in My applications.
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
   Alert, ActivityIndicator, StatusBar, Linking, Modal, ScrollView, TextInput,
@@ -21,6 +21,8 @@ import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { jobsService, JobApplication, ApplicationStatus, STATUS_META, APPLICATION_STATUS_ORDER } from '../../services/jobsService';
+
+import { loadApplicantPage, mergeApplicants, saveApplicationStatus, saveInterview, type ApplicantCursor } from '../../../shared/hiring';
 
 const NAVY = '#0B1E3D';
 
@@ -54,38 +56,51 @@ export default function ApplicantsScreen() {
   const pendingStatuses = useRef(new Set<string>());
   const [statusApp, setStatusApp] = useState<JobApplication | null>(null);
 
+  const generation = useRef(0);
+  const sheetGeneration = useRef(0);
+  const [counts, setCounts] = useState<Record<string, number>>({ all: 0 });
+  const [cursor, setCursor] = useState<ApplicantCursor | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const morePending = useRef(false);
   const load = useCallback(async () => {
-    if (!job?.id) return;
-    setLoading(true); setErr(null);
+    const token = ++generation.current;
+    setLoading(true); setErr(null); setApps([]); setCounts({ all: 0 }); setCursor(null);
+    morePending.current = false; setLoadingMore(false);
+    if (!job?.id || !userId) { setErr('This job is unavailable. Sign in and reopen the job.'); setLoading(false); return; }
     try {
-      const rows = await jobsService.getApplicationsForJob(job.id);
-      setApps(rows);
-    } catch (e: any) {
-      setErr(e?.message || 'Could not load applicants');
-    } finally { setLoading(false); }
-  }, [job?.id]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { all: apps.length };
-    STATUS_ORDER.forEach(st => { c[st] = apps.filter(a => a.status === st).length; });
-    return c;
-  }, [apps]);
-
-  const shown = useMemo(
-    () => (filter === 'all' ? apps : apps.filter(a => a.status === filter)),
-    [apps, filter],
-  );
+      const page = await loadApplicantPage<JobApplication>(supabase, job.id, filter);
+      if (token !== generation.current) return;
+      setApps(page.applications); setCounts(page.counts); setCursor(page.has_more ? page.cursor : null);
+    } catch (e: any) { if (token === generation.current) setErr(e?.message || 'Could not load applicants'); }
+    finally { if (token === generation.current) setLoading(false); }
+  }, [job?.id, userId, filter]);
+  useEffect(() => {
+    setSheetApp(null); setSheetProfile(null); setStatusApp(null); setIvAt(''); setIvLoc(''); ++sheetGeneration.current;
+    void load();
+    return () => { ++generation.current; ++sheetGeneration.current; };
+  }, [load]);
+  const loadMore = async () => {
+    if (!cursor || morePending.current) return;
+    const token = generation.current;
+    morePending.current = true; setLoadingMore(true);
+    try {
+      const page = await loadApplicantPage<JobApplication>(supabase, job.id, filter, cursor);
+      if (token !== generation.current) return;
+      setApps(rows => mergeApplicants(rows, page.applications)); setCounts(page.counts); setCursor(page.has_more ? page.cursor : null);
+    } catch (e: any) { if (token === generation.current) Alert.alert('Could not load more applicants', e?.message || 'Please try again.'); }
+    finally { if (token === generation.current) { morePending.current = false; setLoadingMore(false); } }
+  };
+  const shown = apps;
 
   const openSheet = useCallback(async (app: JobApplication) => {
-    setSheetApp(app);
+    const request = ++sheetGeneration.current, token = generation.current;
+    setSheetApp(app); setIvAt(''); setIvLoc('');
     setSheetProfile(null);
     try {
       const { data } = await supabase.from('profiles')
         .select('id, full_name, username, avatar_url, headline, bio, location, workplace')
         .eq('id', app.applicant_id).maybeSingle();
-      setSheetProfile(data ?? null);
+      if (request === sheetGeneration.current && token === generation.current) setSheetProfile(data ?? null);
     } catch {}
   }, []);
 
@@ -96,22 +111,23 @@ export default function ApplicantsScreen() {
 
   const updateStatus = useCallback(async (app: JobApplication, status: ApplicationStatus) => {
     if (app.status === 'withdrawn' || status === 'withdrawn' || pendingStatuses.current.has(app.id)) return;
-    pendingStatuses.current.add(app.id);
-    setStatusApp(null);
-    const previous = app.status;
-    setApps(list => list.map(row => row.id === app.id ? { ...row, status } : row));
-    try { await jobsService.updateApplicationStatus(app.id, status); }
-    catch (e: any) {
-      setApps(list => list.map(row => row.id === app.id ? { ...row, status: previous } : row));
-      Alert.alert('Could not update', e?.message || 'Please try again.');
-    } finally { pendingStatuses.current.delete(app.id); }
-  }, []);
+    if (status === 'interview') { setStatusApp(null); void openSheet(app); return; }
+    const token = generation.current;
+    pendingStatuses.current.add(app.id); setStatusApp(null);
+    try {
+      await saveApplicationStatus(supabase, app, status);
+      if (token === generation.current) void load();
+    } catch (e: any) { if (token === generation.current) Alert.alert('Could not update', e?.message || 'Please try again.'); }
+    finally { pendingStatuses.current.delete(app.id); }
+  }, [load, openSheet]);
 
   const messageApplicant = useCallback(async (app: JobApplication) => {
     if (!userId || !app.applicant_id) return;
+    const token = generation.current;
     try {
       const { data: convId, error } = await supabase.rpc('start_dm_ctx', { p_receiver_id: app.applicant_id, p_context: 'jobs', p_ref_id: job.id });
       if (error || !convId) throw error || new Error('Could not start conversation');
+      if (token !== generation.current) return;
       navigation.navigate('Chat', {
         conversationId: convId,
         userId: app.applicant_id,
@@ -192,7 +208,7 @@ export default function ApplicantsScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1, marginHorizontal: 10 }}>
           <Text style={st.headerTitle} numberOfLines={1}>{job?.title || 'Applicants'}</Text>
-          <Text style={st.headerSub}>{apps.length} {apps.length === 1 ? 'applicant' : 'applicants'}</Text>
+          <Text style={st.headerSub}>{counts.all ?? 0} {counts.all === 1 ? 'applicant' : 'applicants'}</Text>
         </View>
         <View style={{ width: 26 }} />
       </View>
@@ -204,7 +220,7 @@ export default function ApplicantsScreen() {
           keyExtractor={fk => fk}
           contentContainerStyle={{ paddingHorizontal: 14, gap: 8 }}
           renderItem={({ item: fk }) => (
-            <TouchableOpacity style={[st.filterPill, filter === fk && st.filterPillOn]} onPress={() => setFilter(fk as any)} activeOpacity={0.8}>
+            <TouchableOpacity style={[st.filterPill, filter === fk && st.filterPillOn]} onPress={() => { if (fk !== filter) { ++generation.current; setFilter(fk as any); } }} activeOpacity={0.8}>
               <Text style={[st.filterTxt, filter === fk && st.filterTxtOn]}>
                 {fk === 'all' ? 'All' : STATUS_META[fk as ApplicationStatus].label} {counts[fk] ?? 0}
               </Text>
@@ -234,6 +250,7 @@ export default function ApplicantsScreen() {
           renderItem={renderRow}
           contentContainerStyle={{ padding: 14, paddingBottom: 60 }}
           showsVerticalScrollIndicator={false}
+          ListFooterComponent={cursor ? <TouchableOpacity disabled={loadingMore} style={st.retry} onPress={() => { void loadMore(); }}><Text style={st.retryTxt}>{loadingMore ? 'Loading…' : 'Load more applicants'}</Text></TouchableOpacity> : null}
         />
       )}
       <Modal visible={!!statusApp} animationType="slide" transparent onRequestClose={() => setStatusApp(null)}>
@@ -261,8 +278,8 @@ export default function ApplicantsScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-<Modal visible={!!sheetApp} animationType="slide" transparent onRequestClose={() => setSheetApp(null)}>
-        <TouchableOpacity style={sh.scrim} activeOpacity={1} onPress={() => setSheetApp(null)}>
+<Modal visible={!!sheetApp} animationType="slide" transparent onRequestClose={() => { ++sheetGeneration.current; setSheetApp(null); }}>
+        <TouchableOpacity style={sh.scrim} activeOpacity={1} onPress={() => { ++sheetGeneration.current; setSheetApp(null); }}>
           <TouchableOpacity activeOpacity={1} style={sh.card} onPress={() => {}}>
             {sheetApp && (() => {
               const a: any = sheetApp.applicant || {};
@@ -335,6 +352,14 @@ export default function ApplicantsScreen() {
                     {(sheetApp as any)?.interview_at ? (
                       <Text style={{ fontSize: 12.5, color: '#1D7A38', fontWeight: '700', marginBottom: 8 }}>Scheduled {new Date((sheetApp as any).interview_at).toLocaleString()}{(sheetApp as any).interview_location ? ' - ' + (sheetApp as any).interview_location : ''}</Text>
                     ) : null}
+                    {(sheetApp as any).interview_at && sheetApp.status !== 'withdrawn' ? <TouchableOpacity style={{ paddingVertical: 10 }} onPress={async () => {
+                      if (pendingStatuses.current.has(sheetApp.id)) return;
+                      const app = sheetApp, token = generation.current, sheetToken = sheetGeneration.current;
+                      pendingStatuses.current.add(app.id);
+                      try { const saved = await saveInterview(supabase, app, null, null); if (token === generation.current && sheetToken === sheetGeneration.current) { setSheetApp(saved); setApps(rows => rows.map(row => row.id === saved.id ? saved : row)); } }
+                      catch (e: any) { if (token === generation.current) Alert.alert('Could not cancel interview', e?.message || 'Please try again.'); }
+                      finally { pendingStatuses.current.delete(app.id); }
+                    }}><Text style={{ color: getTheme().ink.secondary, textDecorationLine: 'underline' }}>Cancel interview</Text></TouchableOpacity> : null}
                     <TextInput value={ivAt} onChangeText={setIvAt} placeholder="Date and time, e.g. 2026-08-04 14:00" placeholderTextColor={getTheme().ink.secondary} style={{ borderWidth: 1, borderColor: getTheme().surface.hairline, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, color: getTheme().ink.primary, marginBottom: 8 }} />
                     <TextInput value={ivLoc} onChangeText={setIvLoc} placeholder="Location or call link (optional)" placeholderTextColor={getTheme().ink.secondary} style={{ borderWidth: 1, borderColor: getTheme().surface.hairline, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, color: getTheme().ink.primary, marginBottom: 8 }} />
                     <TouchableOpacity style={{ backgroundColor: getTheme().brand.base, borderRadius: 10, paddingVertical: 10, alignItems: 'center' }} activeOpacity={0.85}
@@ -343,12 +368,15 @@ export default function ApplicantsScreen() {
                         const d = new Date(ivAt.trim().replace(' ', 'T'));
                         if (!ivAt.trim() || isNaN(d.getTime()) || d.getTime() <= Date.now()) { Alert.alert('Date needed', 'Choose a future date and time using YYYY-MM-DD HH:MM.'); return; }
                         pendingStatuses.current.add(sheetApp.id);
-                        const schedulingId = sheetApp.id;
+                        const schedulingId = sheetApp.id, token = generation.current, sheetToken = sheetGeneration.current;
                         try {
-                          await jobsService.scheduleInterview(sheetApp!.id, d.toISOString(), ivLoc.trim() || null);
-                          setSheetApp({ ...(sheetApp as any), interview_at: d.toISOString(), interview_location: ivLoc.trim() || null });
+                          const saved = await saveInterview(supabase, sheetApp, d.toISOString(), ivLoc.trim() || null);
+                          if (token !== generation.current || sheetToken !== sheetGeneration.current) return;
+                          setSheetApp(saved); setApps(rows => rows.map(row => row.id === saved.id ? saved : row));
                           setIvAt(''); setIvLoc('');
-                        } catch (e: any) { Alert.alert('Could not schedule', e?.message || ''); }
+                          const page = await loadApplicantPage<JobApplication>(supabase, job.id, filter);
+                          if (token === generation.current) { setCounts(page.counts); setApps(page.applications); setCursor(page.has_more ? page.cursor : null); }
+                        } catch (e: any) { if (token === generation.current) Alert.alert('Could not schedule', e?.message || ''); }
                         finally { pendingStatuses.current.delete(schedulingId); }
                       }}>
                       <Text style={{ color: getTheme().ink.inverse, fontSize: 13, fontWeight: '800' }}>{(sheetApp as any)?.interview_at ? 'Reschedule' : 'Schedule interview'}</Text>

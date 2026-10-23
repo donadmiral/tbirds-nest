@@ -6,7 +6,7 @@
 # compiles them and they are known to be clean. The phone app joined them on 30 Aug 2026,
 # the day its backlog reached zero.
 
-name: Type check
+name: Type and quality gates
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
       - run: npx tsc --noEmit
         working-directory: admin-web
       - name: Test operations quality regressions
-        run: node --test tests/*.cjs
+        run: node --test --test-concurrency=2 tests/*.cjs
         working-directory: admin-web
 
   web:
@@ -52,7 +52,7 @@ jobs:
         working-directory: web
       - run: npm ci --prefix supabase/tests/rpc-authorization
       - name: Test web quality regressions
-        run: node --test tests/*.cjs tests/quality/*.cjs
+        run: node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs
         working-directory: web
 
   phone:
@@ -76,12 +76,12 @@ jobs:
           npm ci --prefix web
           npm ci --prefix admin-web
           npm ci --prefix supabase/tests/rpc-authorization
-      - name: Test phone and call quality regressions
-        run: node --test tests/*.cjs tests/quality/*.cjs
+      - name: Test phone, diagnostics, feed and call regressions
+        run: node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs
       - name: Test payment recovery and database boundaries
         env:
           PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.cjs
           TRINITI_PGLITE_MODULE: ${{ github.workspace }}/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.js
-        run: node --experimental-strip-types --test supabase/tests/*.test.*
+        run: node --experimental-strip-types --test --test-concurrency=2 supabase/tests/*.test.*
       - name: Test RPC authorization
         run: npm test --prefix supabase/tests/rpc-authorization

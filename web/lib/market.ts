@@ -13,6 +13,7 @@ export type Listing = {
   location_city: string | null;
   images: string[];
   status: string;
+  stock_quantity?: number;
   delivery_available?: boolean;
   delivery_fee?: number | null;
   delivery_note?: string | null;

@@ -1,0 +1,111 @@
+{
+  "measuredAt": "2026-10-22",
+  "environment": "QA Supabase, existing tiny dataset, authenticated read-only EXPLAIN ANALYZE",
+  "query": "get_feed SQL body, for_you, limit 20, first page",
+  "planningMs": 24.413,
+  "executionMs": 9.716,
+  "returnedRows": 2,
+  "sharedHitBlocks": 893,
+  "sharedReadBlocks": 0,
+  "tempReadBlocks": 0,
+  "tempWrittenBlocks": 0,
+  "activeScans": [
+    {
+      "node": "Index Scan",
+      "relation": "posts",
+      "rowsPerLoop": 2,
+      "loops": 1
+    },
+    {
+      "node": "Index Scan",
+      "relation": "post_products",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Index Only Scan",
+      "relation": "hidden_posts",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Bitmap Heap Scan",
+      "relation": "blocked_users",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Seq Scan",
+      "relation": "profiles",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Bitmap Heap Scan",
+      "relation": "post_likes",
+      "rowsPerLoop": 1,
+      "loops": 1
+    },
+    {
+      "node": "Index Scan",
+      "relation": "posts",
+      "rowsPerLoop": 1,
+      "loops": 1
+    },
+    {
+      "node": "Index Scan",
+      "relation": "profiles",
+      "rowsPerLoop": 1,
+      "loops": 2
+    },
+    {
+      "node": "Index Only Scan",
+      "relation": "follows",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Index Only Scan",
+      "relation": "post_likes",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Index Only Scan",
+      "relation": "post_bookmarks",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Index Only Scan",
+      "relation": "post_reposts",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Index Only Scan",
+      "relation": "post_seen",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Bitmap Heap Scan",
+      "relation": "trending_snapshot",
+      "rowsPerLoop": 0,
+      "loops": 1
+    },
+    {
+      "node": "Index Scan",
+      "relation": "link_previews",
+      "rowsPerLoop": 0,
+      "loops": 2
+    },
+    {
+      "node": "Index Scan",
+      "relation": "post_products",
+      "rowsPerLoop": 0,
+      "loops": 2
+    }
+  ],
+  "limitation": "Not a load test. The dataset returned two posts; these timings do not demonstrate performance at millions of accounts or high concurrency."
+}

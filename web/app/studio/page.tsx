@@ -7,6 +7,7 @@ import { AlertTriangle, ArrowDownRight, ArrowUpRight, Briefcase, CalendarClock, 
 import { pct, studioHome, type StudioHome } from "@/lib/studio";
 import { useStudio } from "@/components/StudioShell";
 import { createClient } from "@/lib/supabase/client";
+import { useUploadPreview } from "@/lib/useUploadPreview";
 import { ContentThumb, Sparkline } from "@/components/Charts";
 
 // The daily series behind the headline numbers. studio_home returns totals
@@ -20,7 +21,8 @@ export default function StudioHomePage() {
   const { me } = useStudio();
   const [h, setH] = useState<StudioHome | null>(null);
   const [series, setSeries] = useState<Day[]>([]);
-  const [thumbs, setThumbs] = useState<Record<string, { url: string; media_type: string }>>({});
+  const [sourceThumbs, setThumbs] = useState<Record<string, { url: string; media_type: string }>>({});
+  const { preview: thumbs, error: thumbnailError, retry: retryThumbnails } = useUploadPreview(sourceThumbs);
   const [loading, setLoading] = useState(true);
 
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -93,6 +95,7 @@ export default function StudioHomePage() {
   return (
     <div>
       <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      {thumbnailError && <StudioLoadError message={thumbnailError} retry={retryThumbnails} busy={false} />}
       {/* The greeting lives in the Studio header now, so the page opens on the
           work rather than repeating the name. */}
       {!loading && series.length < 2 ? (

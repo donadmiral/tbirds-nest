@@ -64,7 +64,7 @@ test('resuming a paused video does not fall back to wall time or leak another ti
 });
 test('story recipient search ignores older results and clears results when empty', async () => {
   const pending = defer(); let results = [], cleanup, timer;
-  const code = effect(composer, '    let cancelled = false;', '  }, [q, uid]);');
+  const code = effect(composer, '    if (!q.trim() || !uid) return;', '  }, [q, uid]);');
   const base = { uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, runBounded: value => value, useEffect: fn => cleanup = fn(), setResults: rows => results = rows, setError() {}, setTimeout: fn => { timer = fn; return 1; }, clearTimeout() {}, searchPeople: () => pending.promise };
   execute(code, { ...base, q: 'old query' }); timer(); cleanup();
   execute(code, { ...base, q: '' }); pending.resolve([{ id: 'old-person' }]); await flush();
@@ -72,7 +72,7 @@ test('story recipient search ignores older results and clears results when empty
 });
 test('failed story recipient search is handled with a recoverable message', async () => {
   let message, timer;
-  execute(effect(composer, '    let cancelled = false;', '  }, [q, uid]);'), { uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, runBounded: value => value, useEffect: fn => fn(), q: 'query', setResults() {}, setError: text => message = text, setTimeout: fn => { timer = fn; return 1; }, searchPeople: async () => { throw new Error('offline'); } });
+  execute(effect(composer, '    if (!q.trim() || !uid) return;', '  }, [q, uid]);'), { uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, runBounded: value => value, useEffect: fn => fn(), q: 'query', setResults() {}, setError: text => message = text, setTimeout: fn => { timer = fn; return 1; }, searchPeople: async () => { throw new Error('offline'); } });
   timer(); await flush(); assert.match(message, /Try searching again/);
 });
 function replyHarness({ messageError, changedSession = false } = {}) {
@@ -171,7 +171,8 @@ function draftHarness(rows) {
   const globals = {
     uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, assertOwner() {}, runBounded: value => value, busyRef: lock, publication: { current: null }, draftRequest: request,
     setBusy: value => busy = value, setError: value => error = value, setPeople: value => people = value,
-    setFilterId() {}, setDraftId() {}, setMediaUrl() {}, setMediaType() {}, setDurationSec() {}, setCaption() {}, setAudience() {},
+    hydrateStoryDraftMedia: async rows => rows, replacePreview() {},
+    setStickers() {}, setTransform() {}, setBackground() {}, setEditorKey() {}, setFilterId() {}, setDraftId() {}, setMediaUrl() {}, setMediaType() {}, setDurationSec() {}, setCaption() {}, setAudience() {},
     publicationError: failure => failure.message,
     supabase: { from: () => ({ select: () => ({ in: async () => ({ data: rows, error: null }) }) }) },
   };

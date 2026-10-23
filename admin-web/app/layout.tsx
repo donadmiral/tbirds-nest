@@ -1,3 +1,4 @@
+import { ClientDiagnostics } from "@/components/ClientDiagnostics";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
@@ -46,7 +47,7 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${jetMono.variable} h-full antialiased`}
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col">{children}</body>
+      <body suppressHydrationWarning className="min-h-full flex flex-col">{children}<ClientDiagnostics /></body>
     </html>
   );
 }

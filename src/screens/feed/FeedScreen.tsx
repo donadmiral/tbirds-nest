@@ -30,6 +30,7 @@ import NewPostsPill from '../../components/NewPostsPill';
 import TierName from '../../components/TierName';
 import AnnouncementBanner from '../../components/AnnouncementBanner';
 import TrendingStoriesRail from '../../components/TrendingStoriesRail';
+import * as ExpoLinking from 'expo-linking';
 import * as FileSystem from 'expo-file-system/legacy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -39,6 +40,7 @@ import {
   StatusBar, RefreshControl, Share, Alert, TextInput, Image,
   KeyboardAvoidingView, Platform, Keyboard, ScrollView, Dimensions, Modal,
   Animated,
+  AppState,
   PanResponder,
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from '../../components/SafeArea';
@@ -72,6 +74,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CATEGORIES } from '../../constants/categories';
 import { FeedSkeleton } from '../../components/Skeleton';
 import { light } from '../../constants/tokens';
+import { hydratePostMedia } from '../../services/contentMedia';
+import { renewFeedMedia } from '../../../shared/feedMedia';
+import { feedSnapshots, savePublicFeedSnapshot, reconcileFeedVisibility } from '../../services/feedSnapshot';
+import { mergeFeedRefresh, feedPrefetchUrls } from '../../../shared/feedSnapshot';
+import { useSettingsStore } from '../../stores/settingsStore';
 import PostInsightsSheet from '../../components/PostInsightsSheet';
 import VerifiedBadge from '../../components/VerifiedBadge';
 
@@ -126,7 +133,7 @@ function mapFeedRow(r: any): Post {
     quoted_post_id: r.quoted_post_id ?? null,
     thread_parent_id: r.thread_parent_id ?? null,
     media: Array.isArray(r.media)
-      ? [...r.media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      ? r.media.filter((item: any) => typeof item?.url === 'string' && item.url.length > 0).sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       : [],
   };
   return { ...base, score: scorePost(base) };
@@ -198,6 +205,8 @@ export default function FeedScreen({ navigation }: any) {
   const isVerifiedSchoolUser = !!(profile as any)?.is_verified_school_user;
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [feedOwner, setFeedOwner] = useState(userId);
+  const dataSaver = useSettingsStore(state => state.uploadQuality === 'data-saver');
   const [profilesMap, setProfilesMap] = useState<ProfileMap>({});
   const [postRings, setPostRings] = useState<Record<string, boolean>>({});
   useFocusEffect(useCallback(() => {
@@ -217,10 +226,19 @@ export default function FeedScreen({ navigation }: any) {
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
   const [sharePostTarget, setSharePostTarget] = useState<Post | null>(null);
   // Muted words: posts containing any of them stay out of every feed here.
-  const [mutedWords, setMutedWords] = useState<string[]>([]);
+  const [mutedWords, setMutedWords] = useState<string[]>(() => {
+    const words = (profile as any)?.muted_words;
+    return Array.isArray(words) ? words.filter((word): word is string => typeof word === 'string').map(word => word.toLowerCase()) : [];
+  });
   useEffect(() => {
-    if (!userId) return;
-    supabase.from('profiles').select('muted_words').eq('id', userId).maybeSingle().then(({ data }) => setMutedWords((((data as any)?.muted_words as string[]) || []).map((w) => String(w).toLowerCase())), () => {});
+    let alive = true;
+    const current = useAuthStore.getState().profile;
+    const words = current?.id === userId ? (current as any)?.muted_words : [];
+    setMutedWords(Array.isArray(words) ? words.filter((word): word is string => typeof word === 'string').map(word => word.toLowerCase()) : []);
+    if (userId) supabase.from('profiles').select('muted_words').eq('id', userId).maybeSingle().then(({ data, error }) => {
+      if (!error && data && alive && useAuthStore.getState().profile?.id === userId) setMutedWords((((data as any)?.muted_words as string[]) || []).filter(word => typeof word === 'string').map(word => word.toLowerCase()));
+    }, () => {});
+    return () => { alive = false; };
   }, [userId]);
   const isMuted = useCallback((pp: Post) => {
     if (!mutedWords.length) return false;
@@ -245,6 +263,15 @@ export default function FeedScreen({ navigation }: any) {
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'discover' | 'trending'>('forYou');
   const [discoverCat, setDiscoverCat] = useState('all');
+  const [pendingPostCount, setPendingPostCount] = useState(0);
+  const feedRequestRef = useRef(0);
+  const resolvedFeedRequestRef = useRef(0);
+  const feedScopeRef = useRef('');
+  feedScopeRef.current = `${userId ?? ''}:${feedMode}:${discoverCat}`;
+  const pendingPostsRef = useRef<Post[]>([]);
+  const scrollOffsetRef = useRef(0);
+  const restoredSnapshotRef = useRef(false);
+  const prefetchedImagesRef = useRef(new Set<string>());
   const discoverInnoIdsRef = useRef<Set<string>>(new Set());
   const discoverMetaRef = useRef<Map<string, string | null>>(new Map());
   const discoverCatRef = useRef(discoverCat);
@@ -302,9 +329,16 @@ export default function FeedScreen({ navigation }: any) {
   const [pollOpts, setPollOpts] = useState<string[] | null>(null);
   const [pollDays, setPollDays] = useState(1);
   const [pollPosts, setPollPosts] = useState<Record<string, boolean>>({});
+  const metadataFence = useCallback(() => {
+    const scope = feedScopeRef.current, request = feedRequestRef.current;
+    const owner = useAuthStore.getState().profile?.id;
+    return () => !!owner && useAuthStore.getState().profile?.id === owner
+      && scope === feedScopeRef.current && request === feedRequestRef.current;
+  }, []);
   const hydratePolls = useCallback((ids: string[]) => {
     if (!ids.length) return;
-    supabase.from('post_polls').select('post_id').in('post_id', ids).then(({ data }) => { const m: Record<string, boolean> = {}; (data || []).forEach((r: any) => { m[r.post_id] = true; }); setPollPosts(prev => ({ ...prev, ...m })); }, () => {});
+    const isCurrent = metadataFence();
+    supabase.from('post_polls').select('post_id').in('post_id', ids).then(({ data }) => { if (!isCurrent()) return; const m: Record<string, boolean> = {}; (data || []).forEach((r: any) => { m[r.post_id] = true; }); setPollPosts(prev => ({ ...prev, ...m })); }, () => {});
   }, []);
   const [collabs, setCollabs] = useState<Record<string, { id: string; username: string | null; full_name: string | null }[]>>({});
   const [collabPicker, setCollabPicker] = useState<'composer' | { postId: string } | null>(null);
@@ -315,7 +349,9 @@ export default function FeedScreen({ navigation }: any) {
   }, [userId]);
   const hydrateCollabs = useCallback((ids: string[]) => {
     if (!ids.length) return;
+    const isCurrent = metadataFence();
     supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url, is_verified, verified_tier)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
+      if (!isCurrent()) return;
       const m: Record<string, { id: string; username: string | null; full_name: string | null }[]> = {};
       (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null, avatar_url: pr.avatar_url ?? null, is_verified: !!pr.is_verified, verified_tier: pr.verified_tier ?? null } as any); });
       setCollabs(prev => ({ ...prev, ...m }));
@@ -415,16 +451,18 @@ export default function FeedScreen({ navigation }: any) {
   const [heartPost,    setHeartPost]    = useState<string | null>(null);
   const [activePostId, setActivePostId]   = useState<string | null>(null);
   const [screenFocused, setScreenFocused] = useState(true);
+  const [appActive, setAppActive] = useState(AppState.currentState === 'active');
+  const pageRequestRef = useRef(0);
 
-  const loadFeedRef = useRef<(showLoader: boolean) => Promise<void>>(undefined);
+  const loadFeedRef = useRef<(showLoader: boolean, background?: boolean) => Promise<void>>(undefined);
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     setScreenFocused(true);
     return () => {
       setScreenFocused(false);
       Keyboard.dismiss();
     };
-  }, []);
+  }, []));
 
   useEffect(() => {
     if (!userId) { setUnreadNotifs(0); return; }
@@ -478,6 +516,7 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => {
     if (!userId) return;
     const flushSeen = async () => {
+      if (useAuthStore.getState().profile?.id !== userId) return;
       const batch = Array.from(seenPendingRef.current);
       if (batch.length === 0) return;
       seenPendingRef.current.clear();
@@ -485,7 +524,7 @@ export default function FeedScreen({ navigation }: any) {
       const { error } = await supabase
         .from('post_seen')
         .upsert(batch.map(id => ({ user_id: userId, post_id: id })), { onConflict: 'user_id,post_id' });
-      if (error) {
+      if (error && useAuthStore.getState().profile?.id === userId) {
         console.log('[FEED] post_seen upsert failed:', error.message);
         // let them retry on the next flush rather than losing them silently
         batch.forEach(id => seenSentRef.current.delete(id));
@@ -504,7 +543,7 @@ export default function FeedScreen({ navigation }: any) {
   const closeVideoDwell = useCallback(() => {
     const open = videoDwellRef.current;
     videoDwellRef.current = null;
-    if (!open || !userId) return;
+    if (!open || !userId || useAuthStore.getState().profile?.id !== userId) return;
     // Dwell keeps running if the reader stops scrolling, so cap the report.
     // A clip is watched, not camped on: sixty seconds is the ceiling.
     const seconds = Math.min(Math.round((Date.now() - open.start) / 1000), 60);
@@ -520,17 +559,17 @@ export default function FeedScreen({ navigation }: any) {
   }, [userId]);
 
   useEffect(() => {
-    if (videoDwellRef.current && (!screenFocused || videoDwellRef.current.postId !== activePostId)) {
+    if (videoDwellRef.current && (!screenFocused || !appActive || videoDwellRef.current.postId !== activePostId)) {
       closeVideoDwell();
     }
-    if (!screenFocused || !activePostId || !userId) return;
+    if (!screenFocused || !appActive || !activePostId || !userId) return;
     const active = posts.find(x => x.id === activePostId);
     if (!active) return;
     const isVideo = !!active.media?.some((m: any) => m.media_type === 'video');
     if (isVideo && videoDwellRef.current?.postId !== activePostId) {
       videoDwellRef.current = { postId: activePostId, start: Date.now() };
     }
-  }, [activePostId, posts, userId, screenFocused, closeVideoDwell]);
+  }, [activePostId, posts, userId, screenFocused, appActive, closeVideoDwell]);
 
   useEffect(() => closeVideoDwell, [closeVideoDwell]);
 
@@ -543,35 +582,51 @@ export default function FeedScreen({ navigation }: any) {
   const scheduleRefresh = useCallback(() => {
     if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
     realtimeTimerRef.current = setTimeout(() => {
-      loadFeedRef.current?.(false);
+      loadFeedRef.current?.(false, true);
     }, 2000);
   }, []);
 
-  const loadFeed = useCallback(async (showLoader = false) => {
+  const loadFeed = useCallback(async (showLoader = false, background = false) => {
+    if (!userId) return;
+    const request = ++feedRequestRef.current;
+    const scope = feedScopeRef.current;
+    const mode = feedModeRef.current;
+    const category = discoverCatRef.current;
+    const isCurrent = () => request === feedRequestRef.current && scope === feedScopeRef.current
+      && useAuthStore.getState().profile?.id === userId;
+    loadingMoreRef.current = false;
+    setLoadingMore(false);
+    const deadline = setTimeout(() => {
+      if (!isCurrent()) return;
+      setLoading(false); setRefreshing(false);
+      setFeedError(postsRef.current.length ? 'Your feed is taking longer to refresh. You can keep reading.' : 'Your feed is taking longer to load. Please try again.');
+    }, 12_000);
     try {
-      if (showLoader) setLoading(true);
-      if (userId) {
-        const { data: hid } = await supabase.from('hidden_posts').select('post_id').eq('user_id', userId);
-        hiddenIdsRef.current = new Set((hid ?? []).map((h: any) => h.post_id));
-      }
+      if (showLoader && !postsRef.current.length) setLoading(true);
+      // get_feed already enforces hidden posts, blocks and audience access.
+      // Category reads bypass that RPC, so their exclusions load concurrently.
+      const hiddenRead = mode === 'discover'
+        ? Promise.resolve(supabase.from('hidden_posts').select('post_id').eq('user_id', userId))
+        : Promise.resolve(null);
 
       let feedRows: any[] | null = null; let feedErr: any = null;
-      if (feedModeRef.current === 'discover') {
+      if (mode === 'discover') {
         const [dA, dB, dC, ...rest] = await Promise.all([
           supabase.rpc('get_feed', { p_mode: 'latest', p_cursor_key: null, p_cursor_id: null, p_limit: 50 }),
           supabase.rpc('get_feed', { p_mode: 'trending', p_cursor_key: null, p_cursor_id: null, p_limit: 20 }),
           supabase.rpc('get_feed', { p_mode: 'innovation', p_cursor_key: null, p_cursor_id: null, p_limit: 30 }),
           // Exact: the chosen category as the author filed it in the composer.
           // The keyword guessing that used to fill these chips is gone.
-          (discoverCatRef.current === 'innovation' || discoverCatRef.current === 'all')
+          (category === 'innovation' || category === 'all')
             ? Promise.resolve({ data: [], error: null })
             : supabase.from('posts')
                 .select('id, user_id, content, body, category, channel, article_title, read_minutes, created_at, likes_count, comments_count, reposts_count, bookmarks_count, views_count, media_url')
-                .eq('category', discoverCatRef.current).is('community_id', null)
+                .eq('category', category).is('community_id', null)
                 .order('created_at', { ascending: false }).limit(40),
         ]);
         const dD = (rest as any[])[0];
-        feedErr = dA.error || dB.error || dC.error || null;
+        if (!isCurrent()) return;
+        feedErr = dA.error || dB.error || dC.error || dD?.error || null;
         const seenIds = new Set<string>(); const merged: any[] = [];
         const innoIds = new Set<string>(); const catMeta = new Map<string, string | null>();
         ((dC.data ?? []) as any[]).forEach((r: any) => innoIds.add(r.post_id));
@@ -589,6 +644,7 @@ export default function FeedScreen({ navigation }: any) {
             supabase.from('post_media').select('id, post_id, url, media_type, width, height, sort_order, edit').in('post_id', ids),
             supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier, account_type').in('id', authorIds),
           ]);
+          if (!isCurrent()) return;
           const mediaBy = new Map<string, any[]>();
           ((med ?? []) as any[]).forEach((m: any) => { const a = mediaBy.get(m.post_id) ?? []; a.push(m); mediaBy.set(m.post_id, a); });
           const authorBy = new Map<string, any>();
@@ -616,6 +672,7 @@ export default function FeedScreen({ navigation }: any) {
         // so the page is not the same list tomorrow. Then author spacing.
         try {
           const { data: ranked } = await supabase.rpc('rank_discover', { p_ids: merged.map((r: any) => r.post_id) });
+          if (!isCurrent()) return;
           const scoreBy = new Map<string, number>();
           ((ranked ?? []) as any[]).forEach((x: any) => scoreBy.set(x.id, Number(x.score) || 0));
           if (scoreBy.size > 0) {
@@ -632,53 +689,82 @@ export default function FeedScreen({ navigation }: any) {
         } catch { feedRows = merged; }
       } else {
         const fr = await supabase.rpc('get_feed', {
-          p_mode: feedModeToServer(feedModeRef.current),
+          p_mode: feedModeToServer(mode),
           p_cursor_key: null,
           p_cursor_id: null,
           p_limit: PAGE_SIZE,
         });
         feedRows = (fr.data ?? null) as any[] | null; feedErr = fr.error;
       }
-      if (feedErr) { console.log('[FEED] get_feed failed:', feedErr.message); setFeedError(feedErr.message); return; }
+      const hiddenResult = await hiddenRead;
+      if (!isCurrent()) return;
+      if (hiddenResult?.error) throw hiddenResult.error;
+      if (hiddenResult) (hiddenResult.data ?? []).forEach((row: any) => hiddenIdsRef.current.add(row.post_id));
+      if (feedErr) { setFeedError('Your feed could not load. Please try again.'); return; }
       setFeedError(null);
 
+      resolvedFeedRequestRef.current = request;
       const rows = (feedRows ?? []) as any[];
-      const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !isMuted(pp));
+      const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !hiddenIdsRef.current.has(pp.id) && !isMuted(pp));
       hydrateShares(scored.map(pp => pp.id));
       hydrateCollabs(scored.map(pp => pp.id));
       hydratePolls(scored.map(pp => pp.id));
-      const seenOnce = new Set<string>();
-      setPosts(scored.filter(p => seenOnce.has(p.id) ? false : (seenOnce.add(p.id), true)));
-      cursorRef.current = rows.length
-        ? { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id }
-        : null;
-      hasMoreRef.current = feedModeRef.current === 'discover' ? false : rows.length >= PAGE_SIZE;
+      const preservePosition = (background || (restoredSnapshotRef.current && scrollOffsetRef.current > 20)) && postsRef.current.length > 0;
+      let retained = postsRef.current;
+      if (preservePosition && retained.length) {
+        const visible = await reconcileFeedVisibility(userId, retained.map(post => post.id), isCurrent);
+        if (!isCurrent()) return;
+        if (visible) retained = retained.filter(post => visible.has(post.id));
+      }
+      const merged = mergeFeedRefresh(retained, scored, preservePosition);
+      merged.rows = (await renewFeedMedia(merged.rows, hydratePostMedia)).map(post => ({ ...post, media: (post.media ?? []).filter(item => typeof item.url === 'string' && item.url.length > 0) }));
+      if (!isCurrent()) return;
+      pendingPostsRef.current = merged.pending;
+      setPendingPostCount(merged.pending.length);
+      postsRef.current = merged.rows;
+      setPosts(merged.rows);
+      if (!preservePosition || restoredSnapshotRef.current) {
+        cursorRef.current = rows.length
+          ? { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id }
+          : null;
+        hasMoreRef.current = mode === 'discover' ? false : rows.length >= PAGE_SIZE;
+      }
+      restoredSnapshotRef.current = false;
+      // Content is usable now. Profiles/comments below are optional enrichment.
+      setLoading(false);
+      setRefreshing(false);
+      void savePublicFeedSnapshot(userId, mode, rows, isCurrent);
 
       const pmFromFeed: ProfileMap = {};
       const lm0: Record<string, boolean> = {}, bm0: Record<string, boolean> = {}, rm0: Record<string, boolean> = {};
       rows.forEach((r: any) => {
         pmFromFeed[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null };
-        if (r.viewer_liked) lm0[r.post_id] = true;
-        if (r.viewer_bookmarked) bm0[r.post_id] = true;
-        if (r.viewer_reposted) rm0[r.post_id] = true;
+        lm0[r.post_id] = !!r.viewer_liked;
+        bm0[r.post_id] = !!r.viewer_bookmarked;
+        rm0[r.post_id] = !!r.viewer_reposted;
       });
-      setLikedPosts(lm0); setBookmarkedPosts(bm0); setRepostedPosts(rm0);
+      setProfilesMap(prev => preservePosition ? { ...prev, ...pmFromFeed } : pmFromFeed);
+      setLikedPosts(prev => preservePosition ? { ...prev, ...lm0 } : lm0);
+      setBookmarkedPosts(prev => preservePosition ? { ...prev, ...bm0 } : bm0);
+      setRepostedPosts(prev => preservePosition ? { ...prev, ...rm0 } : rm0);
       const likerIds = scored.filter(p => p.likes_count > 0).map(p => p.id);
-      if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(m); });
+      if (likerIds.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds }).then(({ data }) => { if (!isCurrent()) return; const m: Record<string, string[]> = {}; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); setLikerNames(prev => preservePosition ? { ...prev, ...m } : m); });
       const qIds = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows: any[] = [];
       if (qIds.length > 0) {
         const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order, edit)').in('id', qIds);
+        if (!isCurrent()) return;
         qRows = qData ?? [];
         const qm: Record<string, { content: string; user_id: string; media?: { url: string; media_type: string } | null }> = {};
         qRows.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type, thumbnail_url: (pm[0] as any)?.edit?.coverUrl ?? null } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; });
-        setQuotedMap(qm);
+        setQuotedMap(prev => preservePosition ? { ...prev, ...qm } : qm);
       }
       const uids = Array.from(new Set([...scored.map(p => p.user_id), ...qRows.map((qr: any) => qr.user_id)]));
       const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', uids);
+      if (!isCurrent()) return;
       const pm: ProfileMap = { ...pmFromFeed };
       (pData || []).forEach((p: any) => { pm[p.id] = p; });
-      setProfilesMap(pm);
+      setProfilesMap(prev => ({ ...prev, ...pm }));
       if (userId) {
         supabase.from('profiles')
           .select('id, full_name, username, avatar_url, headline, connections_count')
@@ -686,7 +772,7 @@ export default function FeedScreen({ navigation }: any) {
           .is('deactivated_at', null)
           .order('connections_count', { ascending: false, nullsFirst: false })
           .limit(15)
-          .then(({ data: sug }) => { if (sug) setWtfSuggestions(sug); });
+          .then(({ data: sug }) => { if (isCurrent() && sug) setWtfSuggestions(sug); });
       }
       if (userId) {
         const ids = scored.map(p => p.id);
@@ -697,6 +783,7 @@ export default function FeedScreen({ navigation }: any) {
             .in('post_id', ids)
             .order('created_at', { ascending: false });
 
+          if (!isCurrent()) return;
           // These rows are previews, and the API may return only a prefix.
           // Keep the authoritative comments_count returned by get_feed.
           const cpMap: Record<string, CommentPreview> = {};
@@ -706,6 +793,7 @@ export default function FeedScreen({ navigation }: any) {
 
           if (aIds.length > 0) {
             const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds);
+            if (!isCurrent()) return;
             (aData || []).forEach((a: any) => { authors[a.id] = a; });
           }
 
@@ -717,14 +805,14 @@ export default function FeedScreen({ navigation }: any) {
             }
           });
 
-          setCommentPreviews(cpMap);
+          setCommentPreviews(prev => preservePosition ? { ...prev, ...cpMap } : cpMap);
         }
       }
     } catch (e: any) {
-      console.log('LOAD_FEED', e);
-      setFeedError(e?.message || 'Something went wrong loading your feed.');
+      if (!isCurrent()) return;
+      setFeedError('Your feed could not load. Please try again.');
     }
-    finally { setLoading(false); setRefreshing(false); }
+    finally { clearTimeout(deadline); if (isCurrent()) { setLoading(false); setRefreshing(false); } }
   }, [userId]);
 
   useEffect(() => {
@@ -737,38 +825,97 @@ export default function FeedScreen({ navigation }: any) {
     if (modeFirstRun.current) { modeFirstRun.current = false; return; }
     cursorRef.current = null;
     hasMoreRef.current = true;
-    // Keep the current rows on screen while the new mode or category loads; the list swaps in place instead of flashing white.
+    pendingPostsRef.current = [];
+    setPendingPostCount(0);
     loadFeedRef.current?.(false);
   }, [feedMode, discoverCat]);
 
   useEffect(() => {
     if (!userId) return;
+    let alive = true;
+    const isCurrent = () => alive && useAuthStore.getState().profile?.id === userId;
     supabase.from('follows').select('following_id').eq('follower_id', userId).limit(1000)
-      .then(({ data }) => { if (data) setFollowingIds(new Set(data.map((r: any) => r.following_id))); });
+      .then(({ data }) => { if (isCurrent() && data) setFollowingIds(new Set(data.map((r: any) => r.following_id))); });
     supabase.from('follow_requests').select('target_id').eq('requester_id', userId).eq('status', 'pending').limit(1000)
-      .then(({ data }) => { if (data) setRequestedIds(new Set(data.map((r: any) => r.target_id))); });
+      .then(({ data }) => { if (isCurrent() && data) setRequestedIds(new Set(data.map((r: any) => r.target_id))); });
     useActorStore.getState().loadActors();
+    return () => { alive = false; };
   }, [userId]);
+
+  useEffect(() => {
+    let alive = true;
+    ++feedRequestRef.current;
+    postsRef.current = [];
+    setFeedOwner(userId);
+    setPosts([]); setProfilesMap({}); setLikedPosts({}); setBookmarkedPosts({}); setRepostedPosts({});
+    setCommentPreviews({}); setQuotedMap({}); setLikerNames({}); setFeedError(null);
+    setFollowingIds(new Set()); setRequestedIds(new Set()); setWtfSuggestions([]); setPollPosts({}); setCollabs({});
+    restoredSnapshotRef.current = false; scrollOffsetRef.current = 0;
+    countCacheRef.current = {}; hiddenIdsRef.current.clear();
+    seenPendingRef.current.clear(); seenSentRef.current.clear();
+    pendingPostsRef.current = []; setPendingPostCount(0);
+    prefetchedImagesRef.current.clear();
+    cursorRef.current = null; hasMoreRef.current = true;
+    feedSnapshots.setAccount(userId);
+    if (!userId) { setLoading(false); return () => { alive = false; }; }
+    setLoading(true);
+    const scope = feedScopeRef.current;
+    const initialRequest = feedRequestRef.current + 1;
+    void feedSnapshots.read(userId, feedModeRef.current).then(snapshot => {
+      if (!alive || !snapshot || scope !== feedScopeRef.current || feedRequestRef.current !== initialRequest
+        || resolvedFeedRequestRef.current === initialRequest || useAuthStore.getState().profile?.id !== userId || postsRef.current.length) return;
+      const restored = snapshot.rows.map(mapFeedRow).filter(post => !isMuted(post));
+      const pm: ProfileMap = {}; const likes: Record<string, boolean> = {}, marks: Record<string, boolean> = {}, reposts: Record<string, boolean> = {};
+      snapshot.rows.forEach(row => {
+        pm[row.author_id] = { id: row.author_id, full_name: row.author_name, username: row.author_username,
+          avatar_url: row.author_avatar, is_verified: row.author_verified, verified_tier: row.author_verified_tier };
+        likes[row.post_id] = !!row.viewer_liked; marks[row.post_id] = !!row.viewer_bookmarked; reposts[row.post_id] = !!row.viewer_reposted;
+      });
+      restoredSnapshotRef.current = true;
+      postsRef.current = restored; setPosts(restored); setProfilesMap(pm);
+      setLikedPosts(likes); setBookmarkedPosts(marks); setRepostedPosts(reposts); setLoading(false);
+    });
+    void loadFeed(true);
+    return () => { alive = false; ++feedRequestRef.current; };
+  }, [userId, loadFeed]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      setAppActive(state === 'active');
+      if (state === 'active') loadFeedRef.current?.(false, true);
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    if (!screenFocused || !appActive) return;
+    const timer = setInterval(() => { void loadFeedRef.current?.(false, true); }, 240_000);
+    return () => clearInterval(timer);
+  }, [screenFocused, appActive]);
 
   useEffect(() => {
     let feedLive = true;
     const hasFeedPost = (postId: string) => feedLive
       && useAuthStore.getState().profile?.id === userId
       && postsRef.current.some(post => post.id === postId);
-    loadFeed(true);
-
     // Order is decided by get_feed on the server. Never re-sort under the
     // reader's thumb because a like arrived over realtime.
     const sortPosts = (items: Post[]) => items;
 
     const ch = supabase.channel('feed_live')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => scheduleRefresh())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => { if (feedLive && useAuthStore.getState().profile?.id === userId) scheduleRefresh(); })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, payload => {
+        const id = (payload.old as any)?.id;
+        if (!id || !hasFeedPost(id)) return;
+        if (userId) void feedSnapshots.clear(userId);
+        setPosts(prev => prev.filter(post => post.id !== id));
+      })
       .subscribe();
 
     const likeCh = supabase.channel('feed_likes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_likes' }, (payload) => {
         const row = payload.new as any;
-        if (!row?.post_id) return;
+        if (!row?.post_id || !hasFeedPost(row.post_id)) return;
         const wasAlreadyLikedHere = !!likedPostsRef.current[row.post_id];
         if (row.user_id === userId) {
           setLikedPosts(prev => ({ ...prev, [row.post_id]: true }));
@@ -782,7 +929,7 @@ export default function FeedScreen({ navigation }: any) {
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_likes' }, (payload) => {
         const row = payload.old as any;
-        if (!row?.post_id) return;
+        if (!row?.post_id || !hasFeedPost(row.post_id)) return;
         const wasLikedHere = !!likedPostsRef.current[row.post_id];
         if (row.user_id === userId) {
           setLikedPosts(prev => ({ ...prev, [row.post_id]: false }));
@@ -801,19 +948,19 @@ export default function FeedScreen({ navigation }: any) {
     // number optimistically, so its own rows are skipped here.
     const rbCh = supabase.channel('feed_reposts_bookmarks')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_reposts' }, (payload) => {
-        const row = payload.new as any; if (!row?.post_id || row.user_id === userId) return;
+        const row = payload.new as any; if (!row?.post_id || !hasFeedPost(row.post_id) || row.user_id === userId) return;
         setPosts(prev => prev.map(p => p.id === row.post_id ? { ...p, reposts_count: (p.reposts_count || 0) + 1 } : p));
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_reposts' }, (payload) => {
-        const row = payload.old as any; if (!row?.post_id || row.user_id === userId) return;
+        const row = payload.old as any; if (!row?.post_id || !hasFeedPost(row.post_id) || row.user_id === userId) return;
         setPosts(prev => prev.map(p => p.id === row.post_id ? { ...p, reposts_count: Math.max(0, (p.reposts_count || 0) - 1) } : p));
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_bookmarks' }, (payload) => {
-        const row = payload.new as any; if (!row?.post_id) return;
+        const row = payload.new as any; if (!row?.post_id || !hasFeedPost(row.post_id)) return;
         setPosts(prev => prev.map(p => p.id === row.post_id ? { ...p, bookmarks_count: (p.bookmarks_count || 0) + 1 } : p));
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_bookmarks' }, (payload) => {
-        const row = payload.old as any; if (!row?.post_id) return;
+        const row = payload.old as any; if (!row?.post_id || !hasFeedPost(row.post_id)) return;
         setPosts(prev => prev.map(p => p.id === row.post_id ? { ...p, bookmarks_count: Math.max(0, (p.bookmarks_count || 0) - 1) } : p));
       })
       .subscribe();
@@ -821,7 +968,7 @@ export default function FeedScreen({ navigation }: any) {
     // Post-row updates carry the counts the triggers just changed.
     const countCh = supabase.channel('feed_post_counts')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload) => {
-        const r = payload.new as any; if (!r?.id) return;
+        const r = payload.new as any; if (!r?.id || !hasFeedPost(r.id)) return;
         const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
         const prevC = countCacheRef.current[r.id] || {};
         countCacheRef.current[r.id] = {
@@ -893,7 +1040,7 @@ export default function FeedScreen({ navigation }: any) {
     const postUpdateCh = supabase.channel('feed_post_updates')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload) => {
         const row = payload.new as any;
-        if (!row?.id) return;
+        if (!row?.id || !hasFeedPost(row.id)) return;
         setPosts(prev => sortPosts(prev.map(p => {
           if (p.id !== row.id) return p;
           const next = {
@@ -1047,6 +1194,9 @@ export default function FeedScreen({ navigation }: any) {
   const [promos, setPromos] = useState<Post[]>([]);
   const promoSeenRef = useRef<Set<string>>(new Set());
   useEffect(() => {
+    let alive = true;
+    setPromos([]); promoSeenRef.current.clear();
+    if (!userId) return;
     (async () => {
       try {
         const { data } = await supabase.rpc('get_active_promos', { p_limit: 3 });
@@ -1055,10 +1205,13 @@ export default function FeedScreen({ navigation }: any) {
         const pm: Record<string, any> = {};
         rows.forEach(r => { pm[r.author_id] = { id: r.author_id, full_name: r.author_name, username: r.author_username, avatar_url: r.author_avatar, is_verified: r.author_verified, verified_tier: r.author_verified_tier ?? null }; });
         setProfilesMap(prev => ({ ...pm, ...prev }));
-        setPromos(rows.map(r => ({ ...mapFeedRow(r), _promo: { id: r.promo_id, label: r.promo_label || 'Sponsored' } } as any)));
+        const secured = await hydratePostMedia(rows);
+        if (!alive || useAuthStore.getState().profile?.id !== userId) return;
+        setPromos(secured.map(r => ({ ...mapFeedRow(r), _promo: { id: r.promo_id, label: r.promo_label || 'Sponsored' } } as any)));
       } catch {}
     })();
-  }, []);
+    return () => { alive = false; };
+  }, [userId]);
   useEffect(() => {
     if (!activePostId) return;
     const p: any = promos.find(x => x.id === activePostId);
@@ -1085,6 +1238,7 @@ export default function FeedScreen({ navigation }: any) {
 
   const hidePost = useCallback(async (postId: string) => {
     hiddenIdsRef.current.add(postId);
+    if (userId) void feedSnapshots.clear(userId);
     setPosts(prev => prev.filter(p => p.id !== postId));
     if (!userId) return;
     const { error } = await supabase.from('hidden_posts').insert({ user_id: userId, post_id: postId });
@@ -1105,6 +1259,8 @@ export default function FeedScreen({ navigation }: any) {
           { text: 'Block', style: 'destructive', onPress: async () => {
             const { error } = await supabase.from('blocked_users').upsert({ blocker_id: userId, blocked_id: captured.user_id });
             if (error) { Alert.alert('Could not block', error.message); return; }
+            if (useAuthStore.getState().profile?.id !== userId) return;
+            if (userId) void feedSnapshots.clear(userId);
             setPosts(prev => prev.filter(p => p.user_id !== captured.user_id));
           } },
         ]
@@ -1276,11 +1432,12 @@ export default function FeedScreen({ navigation }: any) {
 
   const hydrateShares = useCallback((ids: string[]) => {
     if (!ids.length) return;
+    const isCurrent = metadataFence();
     // The post row carries the counts the triggers maintain, readable by
     // everyone. That is the number every phone shows, whatever it can or
     // cannot read of the underlying like, repost and bookmark rows.
-    supabase.from('posts').select('*').in('id', ids).then(({ data }) => {
-      if (!data || !data.length) return;
+    supabase.from('posts').select('id, likes_count, reposts_count, bookmarks_count, shares_count').in('id', ids).then(({ data }) => {
+      if (!isCurrent() || !data || !data.length) return;
       const m: Record<string, any> = {};
       data.forEach((r: any) => { m[r.id] = r; });
       const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
@@ -1300,14 +1457,17 @@ export default function FeedScreen({ navigation }: any) {
     // Counts from the rows themselves, so a phone that did not do the acting
     // still shows the real numbers even before the post row's counter catches up.
     supabase.from('post_reposts').select('post_id').in('post_id', ids).then(({ data }) => {
+      if (!isCurrent()) return;
       const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
       setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.reposts_count || 0) ? { ...pp, reposts_count: m[pp.id] } : pp));
     }, () => {});
     supabase.from('post_bookmarks').select('post_id').in('post_id', ids).then(({ data }) => {
+      if (!isCurrent()) return;
       const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
       setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.bookmarks_count || 0) ? { ...pp, bookmarks_count: m[pp.id] } : pp));
     }, () => {});
     supabase.from('posts').select('quoted_post_id').in('quoted_post_id', ids).then(({ data }) => {
+      if (!isCurrent()) return;
       const q: Record<string, number> = {};
       (data || []).forEach((r: any) => { if (r.quoted_post_id) q[r.quoted_post_id] = (q[r.quoted_post_id] || 0) + 1; });
       setPosts(prev => prev.map(pp => ids.includes(pp.id) ? { ...pp, quotes_count: q[pp.id] || 0 } : pp));
@@ -1640,25 +1800,42 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const loadMore = useCallback(async () => {
-    if (feedModeRef.current === 'discover') return;
+    if (!userId || feedModeRef.current === 'discover') return;
+    const request = feedRequestRef.current;
+    let pageRequest = pageRequestRef.current;
+    const scope = feedScopeRef.current;
+    const mode = feedModeRef.current;
+    const isCurrent = () => request === feedRequestRef.current && pageRequest === pageRequestRef.current && scope === feedScopeRef.current
+      && useAuthStore.getState().profile?.id === userId;
     if (loadingMoreRef.current || !hasMoreRef.current || posts.length === 0) return;
     loadingMoreRef.current = true;
+    pageRequest = ++pageRequestRef.current;
     setLoadingMore(true);
+    const deadline = setTimeout(() => {
+      if (!isCurrent()) return;
+      ++pageRequestRef.current;
+      loadingMoreRef.current = false; setLoadingMore(false);
+      setFeedError('Could not load more posts. Please try again.');
+    }, 12_000);
     try {
       const cur = cursorRef.current;
       if (!cur) { hasMoreRef.current = false; return; }
       const { data: moreRows, error: moreErr } = await supabase.rpc('get_feed', {
-        p_mode: feedModeToServer(feedModeRef.current),
+        p_mode: feedModeToServer(mode),
         p_cursor_key: cur.key,
         p_cursor_id: cur.id,
         p_limit: PAGE_SIZE,
       });
-      if (moreErr) { console.log('[FEED] get_feed page failed:', moreErr.message); return; }
+      if (!isCurrent()) return;
+      if (moreErr) { setFeedError('Could not load more posts. Please try again.'); return; }
+      setFeedError(null);
       const rows = (moreRows ?? []) as any[];
-      if (rows.length < PAGE_SIZE) hasMoreRef.current = false;
-      if (rows.length === 0) return;
+      if (rows.length === 0) { hasMoreRef.current = false; return; }
+      const hydrated = await hydratePostMedia(rows);
+      if (!isCurrent()) return;
+      const scored = overlayCounts(hydrated.map(mapFeedRow)).filter(pp => !hiddenIdsRef.current.has(pp.id) && !isMuted(pp));
+      hasMoreRef.current = rows.length >= PAGE_SIZE;
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
-      const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !isMuted(pp));
       hydrateShares(scored.map(pp => pp.id));
       hydrateCollabs(scored.map(pp => pp.id));
       hydratePolls(scored.map(pp => pp.id));
@@ -1669,11 +1846,12 @@ export default function FeedScreen({ navigation }: any) {
       setRepostedPosts(prev => { const m = { ...prev }; rows.forEach((r: any) => { if (r.viewer_reposted) m[r.post_id] = true; }); return m; });
       const ids = scored.map(p => p.id);
       const likerIds2 = scored.filter(p => p.likes_count > 0).map(p => p.id);
-      if (likerIds2.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds2 }).then(({ data }) => { if (data) setLikerNames(prev => { const m = { ...prev }; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); return m; }); });
+      if (likerIds2.length > 0) supabase.rpc('get_recent_likers', { post_ids: likerIds2 }).then(({ data }) => { if (isCurrent() && data) setLikerNames(prev => { const m = { ...prev }; (data ?? []).forEach((r: any) => { m[r.post_id] = r.liker_names ?? []; }); return m; }); });
       const qIds2 = Array.from(new Set(scored.map(p => p.quoted_post_id).filter(Boolean))) as string[];
       let qRows2: any[] = [];
       if (qIds2.length > 0) {
         const { data: qData } = await supabase.from('posts').select('id, content, body, user_id, media_url, post_media(url, media_type, sort_order, edit)').in('id', qIds2);
+        if (!isCurrent()) return;
         qRows2 = qData ?? [];
         setQuotedMap(prev => { const qm = { ...prev }; qRows2.forEach((qr: any) => { qm[qr.id] = { content: qr.content ?? qr.body ?? '', user_id: qr.user_id, media: (() => { const pm = Array.isArray(qr.post_media) ? [...qr.post_media].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) : []; return pm[0] ? { url: pm[0].url, media_type: pm[0].media_type, thumbnail_url: (pm[0] as any)?.edit?.coverUrl ?? null } : (qr.media_url ? { url: qr.media_url, media_type: 'image' } : null); })() }; }); return qm; });
       }
@@ -1681,6 +1859,7 @@ export default function FeedScreen({ navigation }: any) {
       const missingU = uids2.filter(u => !profilesMap[u]);
       if (missingU.length > 0) {
         const { data: pData } = await supabase.from('profiles').select('id, full_name, username, avatar_url, profile_visibility, is_verified, verified_tier').in('id', missingU);
+        if (!isCurrent()) return;
         if (pData) setProfilesMap(prev => { const pm = { ...prev }; pData.forEach((p: any) => { pm[p.id] = p; }); return pm; });
       }
       // viewer flags now arrive with the get_feed rows above
@@ -1688,6 +1867,7 @@ export default function FeedScreen({ navigation }: any) {
         .select('post_id, body, user_id, parent_comment_id, created_at, likes_count')
         .in('post_id', ids)
         .order('created_at', { ascending: false });
+      if (!isCurrent()) return;
       if (cData && cData.length > 0) {
         // Preview rows can be capped independently of the total comment count.
         const topC = cData.filter((c: any) => !c.parent_comment_id);
@@ -1695,16 +1875,18 @@ export default function FeedScreen({ navigation }: any) {
         const authors2: Record<string, any> = {};
         if (aIds2.length > 0) {
           const { data: aData } = await supabase.from('profiles').select('id, full_name, username').in('id', aIds2);
+          if (!isCurrent()) return;
           (aData ?? []).forEach((a: any) => { authors2[a.id] = a; });
         }
         setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { const cur = cp[c.post_id]; if (!cur || (c.likes_count ?? 0) > (cur.likes ?? 0)) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User', likes: c.likes_count ?? 0 }; } }); return cp; });
       }
-    } catch (e) { console.log('[LOAD_MORE_ERR]', e); }
-    finally { loadingMoreRef.current = false; setLoadingMore(false); }
+    } catch (e) { if (isCurrent()) setFeedError('Could not load more posts. Please try again.'); }
+    finally { clearTimeout(deadline); if (isCurrent()) { loadingMoreRef.current = false; setLoadingMore(false); } }
   }, [posts, userId, profilesMap]);
 
   const displayPosts = useMemo(() => {
-    let list = [...posts];
+    if (feedOwner !== userId) return [];
+    let list = posts.filter(post => !isMuted(post) && !hiddenIdsRef.current.has(post.id));
     if (feedMode === 'discover' && discoverCat !== 'all') {
       if (discoverCat === 'innovation') {
         list = list.filter(p => discoverInnoIdsRef.current.has(p.id) || (p as any).channel === 'innovation');
@@ -1747,7 +1929,20 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       }
     }
     return list;
-  }, [posts, feedMode, discoverCat, search, followingIds, wtfSuggestions, promos]);
+  }, [posts, feedMode, discoverCat, search, followingIds, wtfSuggestions, promos, isMuted, feedOwner, userId]);
+
+  useEffect(() => {
+    if (!screenFocused || AppState.currentState !== 'active' || dataSaver) return;
+    const activeIndex = Math.max(0, displayPosts.findIndex(post => post.id === activePostId));
+    const urls = feedPrefetchUrls(displayPosts, activeIndex + 1, dataSaver)
+      .filter(url => !prefetchedImagesRef.current.has(url));
+    if (!urls.length) return;
+    if (prefetchedImagesRef.current.size > 80) prefetchedImagesRef.current.clear();
+    urls.forEach(url => prefetchedImagesRef.current.add(url));
+    void ExpoImagePrefetch.prefetch(urls).catch(() => {
+      urls.forEach(url => prefetchedImagesRef.current.delete(url));
+    });
+  }, [displayPosts, activePostId, dataSaver, screenFocused, appActive]);
 
   const videoPosts = useMemo(() => displayPosts
     .filter((p: any) => Array.isArray(p.media) && p.media.some((m: any) => m.media_type === 'video'))
@@ -2026,7 +2221,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           };
           // An article's picture is its cover, drawn inside the article block; the media strip would show it twice.
           if ((post as any).article_title) return null;
-          const media = renderMedia(post, screenFocused && !fsVideo && !commentsHold && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
+          const media = renderMedia(post, screenFocused && appActive && !fsVideo && !commentsHold && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
@@ -2123,6 +2318,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
   }, [
     activePostId,
     screenFocused,
+    appActive,
     fsVideo,
     commentsHold,
     profilesMap,
@@ -2141,7 +2337,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     openComments,
   ]);
 
-  const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused) + '|' + String(!!fsVideo) + '|' + String(commentsHold);
+  const flatListExtra = String(heartPost) + '|' + String(activePostId) + '|' + String(screenFocused && appActive) + '|' + String(!!fsVideo) + '|' + String(commentsHold);
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
@@ -2206,10 +2402,10 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <FeedSkeleton />
           ) : (
             <View style={s.flex} {...tabSwipe.panHandlers}>
-              <NewPostsPill topCreatedAt={posts.length ? posts.reduce((m, p) => ((p.created_at ?? '') > m ? (p.created_at ?? '') : m), posts[0].created_at ?? '') : null} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
+              <NewPostsPill count={pendingPostCount} onPress={() => { setRefreshing(true); loadFeed(false); feedListRef.current?.scrollToOffset({ offset: 0, animated: true }); }} />
             <TapTopFlatList innerRef={feedListRef} key={feedMode === 'discover' ? 'discover-grid' : 'feed-list'} numColumns={feedMode === 'discover' ? 2 : 1} columnWrapperStyle={feedMode === 'discover' ? { paddingHorizontal: 12, gap: 10, marginBottom: 10 } : undefined}
               data={displayPosts}
-              onScroll={handleTabBarScroll}
+              onScroll={(event: any) => { scrollOffsetRef.current = event.nativeEvent.contentOffset.y; handleTabBarScroll(event); }}
               scrollEventThrottle={16}
               keyExtractor={(p: Post) => p._rk ?? p.id}
               renderItem={renderPost}
@@ -2902,7 +3098,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               setMenuPost(null);
               setTimeout(async () => {
                 if (!captured) return;
-                await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${captured.content}\n\nOpen in the app: platinum-circles://post/${captured.id}` });
+                await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${captured.content}\n\nOpen in the app: ${ExpoLinking.createURL('post/' + captured.id)}` });
               }, 400);
             }}>
               <Feather name="share-2" size={18} color={getTheme().ink.primary} />

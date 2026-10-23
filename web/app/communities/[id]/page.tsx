@@ -1,11 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createScopedMutation } from "../../../../shared/scopedMutation";
+import { withTimeout } from "@/lib/withTimeout";
 import { displayImageUrl } from "@/lib/media";
 import type { ChangeEvent } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Camera, Check, Hash, Image as ImageIcon, Inbox, Link2, LogOut, MessageCircle, Megaphone, MoreHorizontal, Plus, Send, Settings2, Shield, UserPlus, Users, X } from "lucide-react";
+import { useSocialPages } from "@/lib/useSocialPages";
+import { SocialPageFooter } from "@/components/SocialPageFooter";
+import { ErrorState } from "@/components/ErrorState";
 import { PersonName } from "@/components/PersonName";
 import { createClient } from "@/lib/supabase/client";
 import { PostCard } from "@/components/PostCard";
@@ -20,12 +25,17 @@ type Info = {
 };
 
 export default function CommunityPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const params = useParams<{ id: string }>();
   const communityId = String(params.id || "");
   const [me, setMe] = useState<string | null>(null);
   const [info, setInfo] = useState<Info | null>(null);
-  const [posts, setPosts] = useState<any[]>([]);
+  const postsPage = useSocialPages<any>("get_community_posts_page", { p_community: communityId }, { key: "post_id", enabled: !!info?.is_member });
+  const { items: posts, setItems: setPosts } = postsPage;
+  const infoRequest = useRef(0);
+  const postLock = useRef(false);
+  const actions=useRef(createScopedMutation());const mutationEpoch=useRef(0);
+  const [infoError, setInfoError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -34,26 +44,32 @@ export default function CommunityPage() {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [membersOpen, setMembersOpen] = useState(false);
-  const [members, setMembers] = useState<any[]>([]);
+  const membersPage = useSocialPages<any>("get_community_members_page", { p_community: communityId }, { key: "user_id", enabled: membersOpen && !!info?.is_member });
+  const { items: members, setItems: setMembers } = membersPage;
   const [requestsOpen, setRequestsOpen] = useState(false);
-  const [requests, setRequests] = useState<any[]>([]);
+  const requestsPage = useSocialPages<any>("get_join_requests_page", { p_community: communityId }, { key: "user_id", enabled: requestsOpen && !!info?.is_member });
+  const { items: requests, setItems: setRequests } = requestsPage;
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Membership machine: invitations, announcements, sub-groups, limited and removed members.
   const router = useRouter();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteQ, setInviteQ] = useState("");
   const [inviteHits, setInviteHits] = useState<any[]>([]);
-  const [invites, setInvites] = useState<any[]>([]);
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const invitesPage = useSocialPages<any>("get_community_invites_page", { p_community: communityId }, { key: "user_id", enabled: inviteOpen && !!info?.is_member });
+  const { items: invites, setItems: setInvites } = invitesPage;
+  const announcementsPage = useSocialPages<any>("get_community_announcements_page", { p_community: communityId }, { key: "id", enabled: !!info?.is_member });
+  const { items: announcements, setItems: setAnnouncements } = announcementsPage;
   const [annDraft, setAnnDraft] = useState("");
   const [annOpen, setAnnOpen] = useState(false);
-  const [subs, setSubs] = useState<any[]>([]);
+  const subsPage = useSocialPages<any>("get_sub_communities_page", { p_community: communityId }, { key: "id", enabled: !!info?.is_member });
+  const { items: subs, setItems: setSubs } = subsPage;
   const [subOpen, setSubOpen] = useState(false);
   const [subName, setSubName] = useState("");
   const [subDesc, setSubDesc] = useState("");
   const [subMode, setSubMode] = useState<"open" | "approval" | "invite">("open");
-  const [bans, setBans] = useState<any[]>([]);
   const [bansOpen, setBansOpen] = useState(false);
+  const bansPage = useSocialPages<any>("get_community_bans_page", { p_community: communityId }, { key: "user_id", enabled: bansOpen && !!info?.is_member });
+  const { items: bans, setItems: setBans } = bansPage;
   const [linkNote, setLinkNote] = useState<string | null>(null);
 
   const isMember = !!info?.is_member;
@@ -61,127 +77,136 @@ export default function CommunityPage() {
   const isMod = myRole === "owner" || myRole === "moderator";
   const band = COMM_COLORS[info?.cover_color || "sky"] || COMM_COLORS.sky;
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setMe(data.session?.user.id ?? null));
-  }, [supabase]);
-
   const loadInfo = useCallback(async () => {
-    const { data } = await supabase.rpc("get_community", { p_community: communityId });
-    const row = Array.isArray(data) ? data[0] : data;
-    if (row) setInfo(row as Info);
+    const version = ++infoRequest.current;
+    setInfoError(false);
+    try {
+      const { data, error } = await withTimeout(supabase.rpc("get_community", { p_community: communityId }));
+      if (error) throw error;
+      if (version !== infoRequest.current) return;
+      const row = Array.isArray(data) ? data[0] : data;
+      setInfo((row as Info) ?? null);
+    } catch { if (version === infoRequest.current) setInfoError(true); }
+    finally { if (version === infoRequest.current) setLoading(false); }
   }, [communityId, supabase]);
 
-  const loadPosts = useCallback(async (cursor?: string | null) => {
-    const { data, error } = await supabase.rpc("get_community_posts", { p_community: communityId, p_cursor: cursor ?? null, p_limit: 25 });
-    if (error) return;
-    const rows = (data as any[]) ?? [];
-    if (cursor) {
-      setPosts(prev => {
-        const seen = new Set(prev.map(p => p.post_id));
-        return [...prev, ...rows.filter(r => !seen.has(r.post_id))];
-      });
-    } else setPosts(rows);
-  }, [communityId, supabase]);
+  const reloadPosts = postsPage.reload;
+  const loadPosts = useCallback(async () => { await reloadPosts(); }, [reloadPosts]);
+  const reloadAnnouncements = announcementsPage.reload, reloadSubs = subsPage.reload;
+  const loadExtras = useCallback(async () => { await Promise.all([reloadAnnouncements(), reloadSubs()]); }, [reloadAnnouncements, reloadSubs]);
 
   useEffect(() => {
-    (async () => { await loadInfo(); setLoading(false); })();
-  }, [loadInfo]);
-
-  useEffect(() => { if (isMember) void loadPosts(null); }, [isMember, loadPosts]);
-
-  const loadExtras = useCallback(async () => {
-    const [{ data: an }, { data: sb }] = await Promise.all([
-      supabase.rpc("get_community_announcements", { p_community: communityId, p_limit: 20 }),
-      supabase.rpc("get_sub_communities", { p_community: communityId, p_limit: 30 }),
-    ]);
-    setAnnouncements((an as any[]) ?? []); setSubs((sb as any[]) ?? []);
-  }, [communityId, supabase]);
-  useEffect(() => { if (isMember) void loadExtras(); }, [isMember, loadExtras]);
+    setInfo(null); setLoading(true); setMembersOpen(false); setRequestsOpen(false); setInviteOpen(false); setBansOpen(false);
+    let alive = true;
+    let uid: string | null | undefined;
+    const bind = (next: string | null) => { if (alive && uid !== next) { uid = next; mutationEpoch.current++;actions.current.reset();postLock.current=false;setPosting(false);setAnnDraft("");setSubName("");setSubDesc("");setLinkNote(null);setSettingsOpen(false);setInviteOpen(false);setAnnOpen(false);setSubOpen(false);setMe(next); setInfo(null); setDraft(""); setFile(null); setInviteQ(""); setInviteHits([]); void loadInfo(); } };
+    const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => bind(session?.user.id ?? null));
+    withTimeout(supabase.auth.getSession()).then(({data,error})=>{if(error)throw error;if(uid===undefined)bind(data.session?.user.id??null);}).catch(()=>{if(alive&&uid===undefined){setLoading(false);setInfoError(true);}});
+    return () => { alive = false; infoRequest.current++;mutationEpoch.current++;actions.current.reset(); auth.subscription.unsubscribe(); };
+  }, [supabase, loadInfo]);
 
   useEffect(() => {
     if (!inviteOpen) return;
     const q = inviteQ.trim().replace(/^@/, "");
     let dead = false;
     const t = window.setTimeout(async () => {
-      const base = supabase.from("profiles").select("id, full_name, username, avatar_url").limit(12);
-      const { data } = q ? await base.or("username.ilike." + q + "%,full_name.ilike.%" + q + "%") : await base.order("last_seen", { ascending: false });
-      if (!dead) setInviteHits((data as any[]) ?? []);
+      if (q.length < 2) { if (!dead) setInviteHits([]); return; }
+      try {
+      const { data, error } = await withTimeout(supabase.rpc("search_people_page", { p_q: q, p_limit: 12, p_offset: 0 }));
+      if (!dead) {
+        setInviteHits(error ? [] : (data ?? []));
+        setLinkNote(error ? "Could not search people. Please try again." : null);
+      }
+      } catch {if(!dead){setInviteHits([]);setLinkNote("Could not search people. Please try again.");}}
     }, 160);
     return () => { dead = true; window.clearTimeout(t); };
   }, [inviteQ, inviteOpen, supabase]);
 
+  const actionRpc = (name:string,args:Record<string,unknown>) => actions.current.run(name+JSON.stringify(args), async()=>{
+    if(!me)throw new Error("Sign in before continuing.");
+    return await withTimeout(supabase.rpc(name,args));
+  });
   const respondInvite = async (accept: boolean) => {
-    const { data, error } = await supabase.rpc("respond_community_invite", { p_community: communityId, p_accept: accept });
+    const { data, error, stale } = await actionRpc("respond_community_invite", { p_community: communityId, p_accept: accept });
+    if (stale) return;
     if (error) { alert(error.message); return; }
-    if (data === "joined") setInfo(p => p ? { ...p, is_member: true, my_role: p.my_role || "member", my_status: "active", has_invite: false, member_count: (p.member_count || 0) + 1 } : p);
-    else setInfo(p => p ? { ...p, has_invite: false } : p);
+    await loadInfo();
   };
-  const openInvite = async () => {
-    setInviteOpen(true); setLinkNote(null);
-    const { data } = await supabase.rpc("get_community_invites", { p_community: communityId, p_limit: 60 });
-    setInvites((data as any[]) ?? []);
-  };
+  const openInvite = async () => { setInviteOpen(true); setLinkNote(null); };
+
   const invitePerson = async (p: any) => {
-    const { error } = await supabase.rpc("invite_to_community", { p_community: communityId, p_user: p.id });
+    const { error, stale } = await actionRpc("invite_to_community", { p_community: communityId, p_user: p.id });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setInvites(prev => [{ user_id: p.id, full_name: p.full_name, username: p.username, avatar_url: p.avatar_url, created_at: new Date().toISOString() }, ...prev.filter(x => x.user_id !== p.id)]);
     setInviteQ("");
   };
   const revokeInvite = async (r: any) => {
-    const { error } = await supabase.rpc("revoke_community_invite", { p_community: communityId, p_user: r.user_id });
+    const { error, stale } = await actionRpc("revoke_community_invite", { p_community: communityId, p_user: r.user_id });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setInvites(prev => prev.filter(x => x.user_id !== r.user_id));
   };
   const copyInviteLink = async (fresh: boolean) => {
     let token: string | null = null;
     if (!fresh) {
-      const { data } = await supabase.rpc("get_community_invite_link", { p_community: communityId });
+      const { data, error, stale } = await actionRpc("get_community_invite_link", { p_community: communityId });
+      if (stale) return;
+    if (error) { setLinkNote("Could not read the invite link. Please try again."); return; }
       const row = Array.isArray(data) ? data[0] : data;
       token = (row as any)?.token || null;
     }
     if (!token) {
-      const { data, error } = await supabase.rpc("create_community_invite_link", { p_community: communityId, p_expires_days: 7, p_max_uses: null });
-      if (error) { alert(error.message); return; }
+      const { data, error, stale } = await actionRpc("create_community_invite_link", { p_community: communityId, p_expires_days: 7, p_max_uses: null });
+      if (stale) return;
+    if (error) { alert(error.message); return; }
       token = String(data);
     }
-    const url = "https://platinumcircles.app/communities/join/" + token;
+    const url = window.location.origin + "/communities/join/" + encodeURIComponent(token!);
     try { await navigator.clipboard.writeText(url); setLinkNote("Link copied. It admits anyone for 7 days: " + url); }
     catch { setLinkNote(url); }
   };
   const openChat = async () => {
-    const { data, error } = await supabase.rpc("get_community_conversation", { p_community: communityId });
+    const { data, error, stale } = await actionRpc("get_community_conversation", { p_community: communityId });
+    if (stale) return;
     if (error || !data) { alert(error?.message || "Could not open the chat"); return; }
     router.push("/messages?c=" + data);
   };
   const postAnnouncement = async () => {
     const body = annDraft.trim(); if (!body) return;
-    const { error } = await supabase.rpc("post_community_announcement", { p_community: communityId, p_body: body });
+    const { error, stale } = await actionRpc("post_community_announcement", { p_community: communityId, p_body: body });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setAnnDraft(""); setAnnOpen(false); void loadExtras();
   };
   const deleteAnnouncement = async (a: any) => {
     if (!confirm("Remove this announcement?")) return;
-    await supabase.rpc("delete_community_announcement", { p_id: a.id });
+    const { error, stale } = await actionRpc("delete_community_announcement", { p_id: a.id });
+    if (stale) return;
+    if (error) { alert(error.message); return; }
     setAnnouncements(prev => prev.filter(x => x.id !== a.id));
   };
   const createSub = async () => {
     const nm = subName.trim(); if (nm.length < 3) return;
-    const { data, error } = await supabase.rpc("create_sub_community", { p_parent: communityId, p_name: nm, p_description: subDesc.trim() || null, p_join_mode: subMode, p_cover_color: info?.cover_color || "sky" });
+    const { data, error, stale } = await actionRpc("create_sub_community", { p_parent: communityId, p_name: nm, p_description: subDesc.trim() || null, p_join_mode: subMode, p_cover_color: info?.cover_color || "sky" });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setSubOpen(false); setSubName(""); setSubDesc(""); setSubMode("open");
     router.push("/communities/" + data);
   };
   const applyStatus = async (m: any, status: "active" | "limited") => {
-    const { error } = await supabase.rpc("set_community_member_status", { p_community: communityId, p_user: m.user_id, p_status: status });
+    const { error, stale } = await actionRpc("set_community_member_status", { p_community: communityId, p_user: m.user_id, p_status: status });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setMembers(prev => prev.map(x => x.user_id === m.user_id ? { ...x, status } : x));
   };
   const removeMember = async (m: any, ban: boolean) => {
     if (!confirm(ban ? "Remove and block from rejoining?" : "Remove from the community?")) return;
-    const { error } = await supabase.rpc("remove_community_member", { p_community: communityId, p_user: m.user_id, p_ban: ban, p_reason: null });
+    const { error, stale } = await actionRpc("remove_community_member", { p_community: communityId, p_user: m.user_id, p_ban: ban, p_reason: null });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
-    setInfo(p => p ? { ...p, member_count: Math.max((p.member_count || 1) - 1, 0) } : p);
+    await loadInfo();
   };
   const memberAction = (m: any, v: string) => {
     if (v === "moderator" || v === "member") void applyRole(m, v);
@@ -190,102 +215,103 @@ export default function CommunityPage() {
     else if (v === "remove") void removeMember(m, false);
     else if (v === "ban") void removeMember(m, true);
   };
-  const openBans = async () => {
-    setBansOpen(true);
-    const { data } = await supabase.rpc("get_community_bans", { p_community: communityId, p_limit: 60 });
-    setBans((data as any[]) ?? []);
-  };
+  const openBans = async () => { setBansOpen(true); };
+
   const unban = async (b: any) => {
-    const { error } = await supabase.rpc("unban_community_member", { p_community: communityId, p_user: b.user_id });
+    const { error, stale } = await actionRpc("unban_community_member", { p_community: communityId, p_user: b.user_id });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setBans(prev => prev.filter(x => x.user_id !== b.user_id));
   };
 
   const join = async () => {
-    const { data, error } = await supabase.rpc("join_community", { p_community: communityId });
+    const { data, error, stale } = await actionRpc("join_community", { p_community: communityId });
+    if (stale) return;
     if (error) { alert(error.message); return; }
-    if (data === "joined") setInfo(p => p ? { ...p, is_member: true, my_role: p.my_role || "member", member_count: (p.member_count || 0) + 1 } : p);
-    else setInfo(p => p ? { ...p, has_pending: true } : p);
+    await loadInfo();
   };
 
   const cancelRequest = async () => {
-    await supabase.rpc("cancel_join_request", { p_community: communityId });
+    const { error, stale } = await actionRpc("cancel_join_request", { p_community: communityId });
+    if (stale) return;
+    if (error) { alert(error.message); return; }
     setInfo(p => p ? { ...p, has_pending: false } : p);
   };
 
   const leave = async () => {
     if (!confirm("Leave this community?")) return;
-    const { error } = await supabase.rpc("leave_community", { p_community: communityId });
+    const { error, stale } = await actionRpc("leave_community", { p_community: communityId });
+    if (stale) return;
     if (error) { alert(error.message); return; }
-    setInfo(p => p ? { ...p, is_member: false, my_role: null, member_count: Math.max((p.member_count || 1) - 1, 0) } : p);
-    setPosts([]);
+    await loadInfo();
+    setPosts(() => []);
   };
 
   const submitPost = async () => {
     const body = draft.trim();
-    if ((!body && !file) || posting || !me) return;
-    setPosting(true);
+    if ((!body && !file) || postLock.current || !me) return;
+    postLock.current = true; setPosting(true);
+    const version = mutationEpoch.current;
     try {
       let mediaUrl: string | null = null;
       if (file) {
+        if (!file.type.startsWith("image/") || file.type === "image/svg+xml" || file.size > 20 * 1024 * 1024) throw new Error("Choose a photo smaller than 20 MB.");
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace("jpeg", "jpg");
         const path = me + "/community_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
         const up = await supabase.storage.from("post-media").upload(path, file, { contentType: file.type || "image/jpeg" });
         if (up.error) throw up.error;
         mediaUrl = supabase.storage.from("post-media").getPublicUrl(path).data.publicUrl;
       }
+      if (version !== mutationEpoch.current) return;
       const { error } = await supabase.from("posts")
         .insert({ user_id: me, content: body || null, media_url: mediaUrl, community_id: communityId })
         .select("id, created_at").single();
       if (error) throw error;
+      if (version !== mutationEpoch.current) return;
       setDraft(""); setFile(null);
-      await loadPosts(null);
-    } catch (err: any) { alert(err?.message || "Could not post."); }
-    finally { setPosting(false); }
+      await loadPosts();
+    } catch (err: any) { if(version===mutationEpoch.current)alert(err?.message || "Could not post."); }
+    finally { if(version===mutationEpoch.current){postLock.current = false; setPosting(false);} }
   };
 
   const pin = async (p: any) => {
-    const { error } = await supabase.rpc("pin_community_post", { p_post: p.post_id, p_pin: !p.is_pinned });
+    const { error, stale } = await actionRpc("pin_community_post", { p_post: p.post_id, p_pin: !p.is_pinned });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setMenuFor(null);
-    await loadPosts(null);
+    await loadPosts();
   };
 
   const removePost = async (p: any) => {
     const own = p.author_id === me;
     if (!confirm(own ? "Delete this post?" : "Remove this post from the community?")) return;
-    const r = own
-      ? await supabase.from("posts").delete().eq("id", p.post_id)
-      : await supabase.rpc("remove_community_post", { p_post: p.post_id });
-    if ((r as any).error) { alert((r as any).error.message); return; }
+    const r = await actions.current.run('remove:'+p.post_id,()=>withTimeout(own
+      ? supabase.from("posts").delete().eq("id",p.post_id)
+      : supabase.rpc("remove_community_post",{p_post:p.post_id})));
+    if(r.stale)return;
+    if (r.error) { alert(r.error.message); return; }
     setMenuFor(null);
     setPosts(prev => prev.filter(x => x.post_id !== p.post_id));
   };
 
-  const openMembers = async () => {
-    setMembersOpen(true);
-    const { data } = await supabase.rpc("get_community_members", { p_community: communityId, p_limit: 100 });
-    setMembers((data as any[]) ?? []);
-  };
+  const openMembers = async () => { setMembersOpen(true); };
 
   const applyRole = async (m: any, role: string) => {
-    const { error } = await supabase.rpc("set_community_role", { p_community: communityId, p_user: m.user_id, p_role: role });
+    const { error, stale } = await actionRpc("set_community_role", { p_community: communityId, p_user: m.user_id, p_role: role });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     if (role === "remove") setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
     else setMembers(prev => prev.map(x => x.user_id === m.user_id ? { ...x, role } : x));
   };
 
-  const openRequests = async () => {
-    setRequestsOpen(true);
-    const { data } = await supabase.rpc("get_join_requests", { p_community: communityId, p_limit: 60 });
-    setRequests((data as any[]) ?? []);
-  };
+  const openRequests = async () => { setRequestsOpen(true); };
 
   const resolveReq = async (r: any, approve: boolean) => {
-    const { error } = await supabase.rpc("resolve_join_request", { p_community: communityId, p_user: r.user_id, p_approve: approve });
+    const { error, stale } = await actionRpc("resolve_join_request", { p_community: communityId, p_user: r.user_id, p_approve: approve });
+    if (stale) return;
     if (error) { alert(error.message); return; }
     setRequests(prev => prev.filter(x => x.user_id !== r.user_id));
-    if (approve) setInfo(p => p ? { ...p, member_count: (p.member_count || 0) + 1 } : p);
+    await loadInfo();
   };
 
   const catLabel = info?.category ? (CATEGORIES.find(c => c.key === info.category)?.label || info.category) : null;
@@ -355,6 +381,8 @@ export default function CommunityPage() {
         </button>
       ) : null}
 
+      {infoError ? <ErrorState title="Could not load this community" onRetry={() => void loadInfo()} /> : null}
+      {!loading && !info && !infoError ? <p className="py-8 text-center text-sm text-muted">This community is unavailable.</p> : null}
       {loading ? (
         <p className="py-16 text-center text-sm text-muted">Loading&hellip;</p>
       ) : !isMember ? (
@@ -375,14 +403,16 @@ export default function CommunityPage() {
                   <button onClick={postAnnouncement} disabled={!annDraft.trim()} className="rounded-full bg-ink px-4 text-[13px] font-semibold text-white disabled:opacity-30">Post</button>
                 </div>
               ) : null}
-              {announcements.length === 0 ? <p className="mt-1 text-[12.5px] text-ink/60">Nothing announced yet. Only moderators post here; every member sees it.</p> : announcements.slice(0, 3).map((a: any) => (
+              {announcements.length === 0 ? <p className="mt-1 text-[12.5px] text-ink/60">Nothing announced yet. Only moderators post here; every member sees it.</p> : announcements.map((a: any) => (
                 <div key={a.id} className="group mt-2">
                   <p className="whitespace-pre-wrap text-[13px] text-ink">{a.body}</p>
                   <p className="text-[11.5px] text-muted">{(a.full_name || a.username || "Moderator")}{isMod ? <button onClick={() => deleteAnnouncement(a)} className="ml-2 hidden text-danger group-hover:inline">Remove</button> : null}</p>
                 </div>
               ))}
+              <SocialPageFooter {...announcementsPage} />
             </div>
           ) : null}
+          {announcementsPage.error && announcements.length === 0 && !isMod ? <SocialPageFooter {...announcementsPage} /> : null}
           {(subs.length > 0 || isMod) ? (
             <div className="mb-3 flex flex-wrap gap-2">
               {subs.map((s: any) => (
@@ -395,6 +425,7 @@ export default function CommunityPage() {
               ) : null}
             </div>
           ) : null}
+          <SocialPageFooter {...subsPage} />
           {subOpen ? (
             <div className="mb-3 rounded-2xl border border-ink/10 p-3">
               <p className="mb-2 text-[12.5px] text-ink/60">A sub-group lives inside {info?.name}. Only its members can join, and leaving {info?.name} leaves the sub-group too.</p>
@@ -429,7 +460,8 @@ export default function CommunityPage() {
             </div>
           </div>
           )}
-          {posts.length === 0 ? (
+          {postsPage.loading && posts.length === 0 ? <p className="py-6 text-center text-sm text-muted">Loading posts…</p> : null}
+          {posts.length === 0 && !postsPage.loading && !postsPage.error ? (
             <p className="py-12 text-center text-sm text-muted">Quiet in here. Be the first to post.</p>
           ) : (
             posts.map(p => (
@@ -454,10 +486,7 @@ export default function CommunityPage() {
               </div>
             ))
           )}
-          {posts.length >= 25 ? (
-            <button onClick={() => { const last = posts[posts.length - 1]; if (last) void loadPosts(last.created_at); }}
-              className="mx-auto mb-6 block rounded-full bg-ink/5 px-4 py-2 text-[13px] font-semibold text-ink/60 hover:text-ink">Load more</button>
-          ) : null}
+          <SocialPageFooter {...postsPage} />
         </div>
       )}
 
@@ -492,6 +521,7 @@ export default function CommunityPage() {
                 ) : null}
               </div>
             ))}
+            <SocialPageFooter {...membersPage} />
           </div>
         </div>
       ) : null}
@@ -517,6 +547,7 @@ export default function CommunityPage() {
                 <button onClick={() => resolveReq(r, false)} className="rounded-full bg-ink/5 p-1.5 text-ink/60" aria-label="Deny"><X size={14} /></button>
               </div>
             ))}
+            <SocialPageFooter {...requestsPage} />
           </div>
         </div>
       ) : null}
@@ -563,6 +594,7 @@ export default function CommunityPage() {
                 <button onClick={() => revokeInvite(r)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Withdraw invitation"><X size={14} /></button>
               </div>
             ))}
+            <SocialPageFooter {...invitesPage} />
           </div>
         </div>
       ) : null}
@@ -587,6 +619,7 @@ export default function CommunityPage() {
                 <button onClick={() => unban(b)} className="rounded-full bg-ink/5 px-3 py-1 text-[12px] font-bold text-ink">Allow back</button>
               </div>
             ))}
+            <SocialPageFooter {...bansPage} />
           </div>
         </div>
       ) : null}
@@ -600,7 +633,7 @@ export default function CommunityPage() {
 }
 
 function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId: string | null; onClose: () => void; onSaved: () => void }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [eName, setEName] = useState(info.name || "");
   const [eDesc, setEDesc] = useState(info.description || "");
   const [eRules, setERules] = useState(info.rules || "");

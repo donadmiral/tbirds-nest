@@ -2,10 +2,10 @@
 export type Payment = {
   id: string; sender_id: string; recipient_id: string; conversation_id: string;
   idempotency_key: string; amount: number | string; currency: string;
-  listing_id: string | null; note: string | null;
+  listing_id: string | null; order_id?: string | null; note: string | null;
   status: "pending" | "completed" | "failed"; tx_id: string | null; error: string | null;
 };
-export const PAYMENT_FIELDS = "id,sender_id,recipient_id,conversation_id,idempotency_key,amount,currency,listing_id,note,status,tx_id,error";
+export const PAYMENT_FIELDS = "id,sender_id,recipient_id,conversation_id,idempotency_key,amount,currency,listing_id,order_id,note,status,tx_id,error";
 // SDK injection allows offline tests of the actual production handler.
 export type Dependencies = {
   db: any; crispUrl: string; crispKey: string; fetcher: typeof fetch; now?: () => Date; deadlineAt?: number;

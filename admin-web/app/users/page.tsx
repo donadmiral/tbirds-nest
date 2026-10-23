@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
-import { canOpen } from '@/lib/permissions';
+import { canOpen, canPerform } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { USER_DIRECTORY_SELECT, withDirectoryCounts } from '@/lib/userDirectory';
 import Shell from '@/components/Shell';
@@ -44,6 +44,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
 
   return (
     <Shell admin={admin} active="/users" title="Users" sub="Every member on Platinum Circles \u2014 verification tier, strikes, restriction state and account standing.">
+      {canPerform(admin.role, 'account_delete') && <Link href="/users/deletions" className="mb-4 inline-block text-sm underline">Deletion requests</Link>}
       <form method="get" className="mb-4 flex gap-2">
         <input name="q" defaultValue={q || ''} placeholder="Search name, username, or email"
           className="flex-1 rounded-[12px] border border-[#17181C]/15 bg-white px-4 py-2.5 text-sm text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />

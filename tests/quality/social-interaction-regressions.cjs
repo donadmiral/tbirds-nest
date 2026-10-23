@@ -5,11 +5,12 @@ const test = require('node:test');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-function load(relative, client) {
+function load(relative, client, options = {}) {
   const source = fs.readFileSync(path.join(__dirname, '../..', relative), 'utf8');
   const module = { exports: {} };
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports, Set, require: (name) => {
+    if (name === '@/lib/contentMedia') return {hydratePostMedia: async (rows, actual) => {assert.equal(actual,client); if(options.mediaError)throw new Error('media unavailable');client.hydrated=(client.hydrated||0)+1;return rows;}};
     if (name === '@/lib/supabase/client') return { createClient: () => client };
     throw new Error(`Unexpected dependency ${name}`);
   } });
@@ -55,6 +56,7 @@ test('sponsored cards preserve actual viewer interactions and use bounded batche
   const api = client();
   const rows = await load('web/lib/ads.ts', api).getActivePromos();
   assert.equal(rows.length, 1);
+  assert.equal(api.hydrated,1);
   for (const key of ['viewer_liked', 'viewer_reposted', 'viewer_bookmarked', 'viewer_follows']) assert.equal(rows[0][key], true);
   assert.equal(rows[0].likes_count, 4);
   assert.equal(api.queries.length, 4);
@@ -97,3 +99,5 @@ test('a returned auth error cannot authorize an interaction from stale session d
   assert.equal(await load('web/lib/interactions.ts', api).toggleLike('post-a', true), false);
   assert.equal(api.queries.length, 0);
 });
+
+test('a failed media authorization never exposes an unhydrated sponsored card', async()=>{const api=client();assert.equal((await load('web/lib/ads.ts',api,{mediaError:true}).getActivePromos()).length,0);});

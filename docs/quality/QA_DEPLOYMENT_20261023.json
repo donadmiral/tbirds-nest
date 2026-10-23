@@ -1,0 +1,165 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "environment": "isolated QA",
+  "migrations": [
+    {
+      "version": "20261022173041",
+      "name": "platinum_private_application_cvs",
+      "sql_md5": "b006e43065463315aa018732cdb560c1"
+    },
+    {
+      "version": "20261023190035",
+      "name": "platinum_marketplace_order_lifecycle",
+      "sql_md5": "3c05a638432142be054f3e921d80c0c3",
+      "source": "supabase/migrations/20261022211223_marketplace_order_lifecycle.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190043",
+      "name": "platinum_market_receipt_binding_immutable",
+      "sql_md5": "9d91cb881e61d908f69252cc4dd673ef",
+      "source": "supabase/migrations/20261023185851_market_receipt_binding_immutable.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190051",
+      "name": "platinum_social_directory_history_quality",
+      "sql_md5": "9c9f0546a5bf3ab295acb253466e9e7f",
+      "source": "supabase/migrations/20261022211253_social_directory_history_quality.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190056",
+      "name": "platinum_platinum_story_editor_and_hiring",
+      "sql_md5": "3dc9ee823db1a44549357c9e7d1fb8ed",
+      "source": "supabase/migrations/20261022211259_platinum_story_editor_and_hiring.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190108",
+      "name": "platinum_story_sound_rights",
+      "sql_md5": "5bec39207444eef0e93b08ad60e3c5d2",
+      "source": "supabase/migrations/20261022211311_story_sound_rights.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190130",
+      "name": "platinum_message_call_access",
+      "sql_md5": "f4498430959c3dbf69acc6e7c9266e86",
+      "source": "supabase/migrations/20261022211236_message_call_access.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190135",
+      "name": "platinum_creator_finance_operations",
+      "sql_md5": "dae11b5aa0eb64b050851d69018fa7e2",
+      "source": "supabase/migrations/20261022211313_creator_finance_operations.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190139",
+      "name": "platinum_creator_product_entitlements",
+      "sql_md5": "8265d47791275a0869e100b0f20ffd46",
+      "source": "supabase/migrations/20261022211400_creator_product_entitlements.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190144",
+      "name": "platinum_feed_snapshot_visibility",
+      "sql_md5": "318cd9222dda7a37144a1b8e63a52704",
+      "source": "supabase/migrations/20261022211411_feed_snapshot_visibility.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190148",
+      "name": "platinum_business_publishing_and_receipts",
+      "sql_md5": "d6437bb05f8d2055eadd59ce68c7f0d2",
+      "source": "supabase/migrations/20261022211448_business_publishing_and_receipts.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190154",
+      "name": "platinum_hiring_workflow_quality",
+      "sql_md5": "4df58a4b68def0ef5a3fabcc89d98846",
+      "source": "supabase/migrations/20261022211637_hiring_workflow_quality.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190205",
+      "name": "platinum_feed_mute_feedback",
+      "sql_md5": "ced35f1b2f8f52feea7180f55be1656a",
+      "source": "supabase/migrations/20261022211641_feed_mute_feedback.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190210",
+      "name": "platinum_content_media_manifests",
+      "sql_md5": "73f6d0380395b8fe075ddc2b48254359",
+      "source": "supabase/migrations/20261022211648_content_media_manifests.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190216",
+      "name": "platinum_creator_finance_review",
+      "sql_md5": "aaa6e6dbdc3de67b6781a985567d298f",
+      "source": "supabase/migrations/20261022211649_creator_finance_review.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190220",
+      "name": "platinum_admin_payment_reporting_and_support",
+      "sql_md5": "87b5d40623f93349a8d1781a14513391",
+      "source": "supabase/migrations/20261022211701_admin_payment_reporting_and_support.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190232",
+      "name": "platinum_admin_command_provision_contracts",
+      "sql_md5": "1382a890e5eeb0a5b3e6a1767f2a5e86",
+      "source": "supabase/migrations/20261022211835_admin_command_provision_contracts.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190244",
+      "name": "platinum_redacted_client_diagnostics",
+      "sql_md5": "f2af375f9846093a4cf2ec08dfdc95b6",
+      "source": "supabase/migrations/20261023185734_redacted_client_diagnostics.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190248",
+      "name": "platinum_support_triage",
+      "sql_md5": "3af52c4ccc2f6adc9db09101d85be5aa",
+      "source": "supabase/migrations/20261023191000_support_triage.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190330",
+      "name": "platinum_content_owner_upload_previews",
+      "sql_md5": "ad01be320790821d3ae5f0ee1a4a7052",
+      "source": "supabase/migrations/20261023190047_content_owner_upload_previews.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190408",
+      "name": "platinum_creator_finance_dispatch_and_refund_guards",
+      "sql_md5": "4f28f3c3f561d5a43e793e27281e4c3a",
+      "source": "supabase/migrations/20261023190254_creator_finance_dispatch_and_refund_guards.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190414",
+      "name": "platinum_admin_moderation_removal_guards",
+      "sql_md5": "b4c578e7323d9522243c97dcd1f4f0ef",
+      "source": "supabase/migrations/20261023190316_admin_moderation_removal_guards.sql",
+      "matches_source": true
+    },
+    {
+      "version": "20261023190430",
+      "name": "platinum_scoped_call_worker_credential",
+      "sql_md5": "ae34bb5ed829eaef229b76670d1a8f67",
+      "source": "supabase/migrations/20261023190325_scoped_call_worker_credential.sql",
+      "matches_source": true
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import { allowedDesks } from '@/lib/permissions';
+import { staffIdentities } from '@/lib/staffDirectory';
 import { completeRead } from '@/lib/completeRead';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
@@ -20,7 +22,6 @@ const FIELD: React.CSSProperties = { padding: '9px 11px', borderRadius: 9, backg
 
 const ROLES = ['super_admin', 'platform_admin', 'trust_safety', 'support_agent', 'ops_engineer', 'market_reviewer', 'jobs_reviewer', 'verification_reviewer', 'finance_admin', 'analyst', 'auditor_readonly'];
 
-const DESK_COUNT: Record<string, number> = { super_admin: 17, platform_admin: 16, trust_safety: 8, support_agent: 4, ops_engineer: 5, market_reviewer: 6, jobs_reviewer: 3, verification_reviewer: 4, finance_admin: 4, analyst: 3, auditor_readonly: 3 };
 
 const IC = {
   staff: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z',
@@ -38,19 +39,16 @@ export default async function StaffPage() {
   const admin = await requireDesk('/staff');
   const svc = serviceClient();
 
-  const [staffResult, { data: recentActions }] = await Promise.all([
+  const [staffResult, auditResult] = await Promise.all([
     svc.from('admin_users').select('user_id, role, active, created_at', { count: 'exact' }).order('created_at', { ascending: true }),
     svc.from('admin_audit_log').select('admin_id, action, created_at').order('created_at', { ascending: false }).limit(500),
   ]);
 
   completeRead(staffResult, 'Staff directory');
   const staff = staffResult.data;
-  const authUsers = [];
-  for (const row of staff ?? []) {
-    const found = await svc.auth.admin.getUserById(row.user_id);
-    if (found.error) throw new Error('Staff identity lookup failed.');
-    authUsers.push(found.data.user);
-  }
+  if (auditResult.error) throw new Error('Staff activity could not be loaded. Retry the directory.');
+  const recentActions = auditResult.data;
+  const authUsers = await staffIdentities(staff ?? [], id => svc.auth.admin.getUserById(id));
   const rowsRaw = (staff ?? []) as { user_id: string; role: string; active: boolean; created_at: string }[];
   const emails: Record<string, string> = {};
   const lastSignIn: Record<string, string | null> = {};
@@ -107,7 +105,7 @@ export default async function StaffPage() {
           { v: s.active ? 'Active' : 'Deactivated', tone: s.active ? 'ok' : 'neutral' },
         ],
         stats: [
-          { label: 'Desks', value: String(DESK_COUNT[s.role] ?? 1) },
+          { label: 'Desks', value: String(allowedDesks(s.role).size) },
           { label: 'Actions logged', value: String(actionCount[s.user_id] || 0) },
           { label: 'Last action', value: lastAction[s.user_id] ? ago(lastAction[s.user_id]).replace(' ago', '') : 'none' },
         ],

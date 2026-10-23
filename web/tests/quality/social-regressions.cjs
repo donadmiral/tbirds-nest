@@ -99,22 +99,22 @@ test('routing escapes path/query values and rejects non-string metadata', () => 
 
 function searchHarness() {
   const states=[], effects=[], timers=new Map(); let hook=0,timer=0; const scheduled=[];
-  let url='linked search', answer=()=>({data:[],error:null}); const searches=[];
-  const client={auth:{getSession:async()=>({data:{session:null},error:null})},rpc(name,args){ if(name==='get_trending_topics'||name==='log_search_event')return Promise.resolve({data:[],error:null}); searches.push(args.p_q); return Promise.resolve(answer(name,args)); }};
-  const react={Suspense:'Suspense',useState(initial){const i=hook++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return[states[i],value=>states[i]=typeof value==='function'?value(states[i]):value];},useCallback(fn){hook++;return fn;},useEffect(fn,deps){const i=hook++;const prev=effects[i];if(!prev||deps.some((value,k)=>!Object.is(value,prev.deps[k]))){scheduled.push(()=>{prev?.cleanup?.();effects[i]={deps,cleanup:fn()};});}}};
+  let auth;let url='linked search', answer=()=>({data:[],error:null}); const searches=[];
+  const client={auth:{getSession:()=>new Promise(()=>{}),onAuthStateChange:fn=>{auth=fn;return{data:{subscription:{unsubscribe(){}}}};}},rpc(name,args){ if(name==='get_trending_topics'||name==='log_search_event')return Promise.resolve({data:[],error:null}); searches.push(args.p_q); return Promise.resolve(answer(name,args)); }};
+  const react={Suspense:'Suspense',useRef(initial){const i=hook++;if(!(i in states))states[i]={current:initial};return states[i];},useState(initial){const i=hook++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return[states[i],value=>states[i]=typeof value==='function'?value(states[i]):value];},useCallback(fn,deps){const i=hook++;const prev=states[i];if(!prev||deps.some((value,k)=>!Object.is(value,prev.deps[k])))states[i]={fn,deps};return states[i].fn;},useEffect(fn,deps){const i=hook++;const prev=effects[i];if(!prev||deps.some((value,k)=>!Object.is(value,prev.deps[k]))){scheduled.push(()=>{prev?.cleanup?.();effects[i]={deps,cleanup:fn()};});}}};
   const module={exports:{}};
   const source=fs.readFileSync(path.join(__dirname,'../../app/search/page.tsx'),'utf8')+'\nexport { SearchResults, SearchFromUrl };';
   const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText;
   const jsx=(type,props,key)=>({type,props,key});
-  const imports=name=>name==='react'?react:name==='react/jsx-runtime'?{jsx,jsxs:jsx,Fragment:'Fragment'}:name==='next/navigation'?{useRouter:()=>({back(){},push(){}}),useSearchParams:()=>new URLSearchParams({q:url})}:name==='@/lib/supabase/client'?{createClient:()=>client}:name==='@/lib/profileLookup'?profileLookup:name==='@/lib/feed'?{timeAgo:()=>''}:name==='@/lib/media'?{displayImageUrl:x=>x}:new Proxy({__esModule:true,default:name},{get:(target,key)=>target[key]??String(key)});
-  vm.runInNewContext(js,{module,exports:module.exports,require:imports,URLSearchParams,window:{localStorage:{getItem:()=>null}},queueMicrotask,setTimeout(fn){const id=++timer;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}});
+  const imports=name=>name==='react'?react:name==='react/jsx-runtime'?{jsx,jsxs:jsx,Fragment:'Fragment'}:name==='next/navigation'?{useRouter:()=>({back(){},push(){}}),useSearchParams:()=>new URLSearchParams({q:url})}:name==='@/lib/supabase/client'?{createClient:()=>client}:name==='@/lib/profileLookup'?profileLookup:name==='@/lib/feed'?{timeAgo:()=>''}:name==='@/lib/contentMedia'?{hydratePostMedia:async value=>value}:name==='@/lib/withTimeout'?{withTimeout:value=>value}:name==='@/lib/media'?{displayImageUrl:x=>x}:new Proxy({__esModule:true,default:name},{get:(target,key)=>target[key]??String(key)});
+  vm.runInNewContext(js,{module,exports:module.exports,require:imports,URLSearchParams,window:{localStorage:{getItem:()=>null},addEventListener(){},removeEventListener(){}},document:{visibilityState:"visible",addEventListener(){},removeEventListener(){}},setInterval:()=>0,clearInterval(){},queueMicrotask,setTimeout(fn){const id=++timer;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}});
   function render(query=''){hook=0;const tree=module.exports.SearchResults({initialQuery:query});while(scheduled.length)scheduled.shift()();return tree;}
   function nodes(tree,type){ if(!tree||typeof tree!=='object')return[]; if(Array.isArray(tree))return tree.flatMap(x=>nodes(x,type));return[...(tree.type===type?[tree]:[]),...nodes(tree.props?.children,type)]; }
-  return{render,nodes,searches,setAnswer(fn){answer=fn;},fromUrl(){return module.exports.SearchFromUrl();},setQuery(value){const input=nodes(render(),'input')[0];input.props.onChange({target:{value}});return render();},async runTimers(){const pending=[...timers.values()];timers.clear();const running=pending.map(fn=>fn());await flush();return running;}};
+  return{render,nodes,searches,auth(uid){auth?.('SIGNED_IN',uid?{user:{id:uid}}:null);},setAnswer(fn){answer=fn;},fromUrl(){return module.exports.SearchFromUrl();},setQuery(value){const input=nodes(render(),'input')[0];input.props.onChange({target:{value}});return render();},async runTimers(){const pending=[...timers.values()];timers.clear();const running=pending.map(fn=>fn());await flush();return running;}};
 }
 test('search reads q from navigation links',()=>{const h=searchHarness();const tree=h.fromUrl();assert.equal(tree.props.initialQuery,'linked search');assert.equal(tree.key,'linked search');});
 test('a late old search cannot replace the newer query results',async()=>{
- const h=searchHarness(),old=defer();h.setAnswer((name,args)=>args.p_q==='older'?old.promise:{data:name==='search_people'?[{id:'new',full_name:'New result',username:'new'}]:[],error:null});
+ const h=searchHarness(),old=defer();h.setAnswer((name,args)=>args.p_q==='older'?old.promise:{data:name==='search_people_page'?[{id:'new',full_name:'New result',username:'new'}]:[],error:null});
  h.render('older');await h.runTimers();h.setQuery('newer');await h.runTimers();await flush();
  const before=h.nodes(h.render(),'FollowButton');assert.equal(before[0].props.authorId,'new');
  old.resolve({data:[],error:null});await flush();const after=h.nodes(h.render(),'FollowButton');assert.equal(after[0].props.authorId,'new');
@@ -128,12 +128,12 @@ test('returned search RPC errors show retry instead of a false empty result',asy
 
 function storyLoadHarness({ initialStoryId='target', userIdx=0, startIndex=0 }={}) {
   const source=fs.readFileSync(path.join(__dirname,'../../components/StoryViewer.tsx'),'utf8');
-  const end=source.indexOf('  }, [user, userIdx, startIndex, initialStoryId]);');
+  const end=source.indexOf('  }, [user, userIdx, startIndex, initialStoryId, uid]);');
   const start=source.lastIndexOf('  useEffect(() => {',end);
   assert.ok(start>=0&&end>start,'story loading effect is present');
   const pending=defer(), observed={};let cleanup;
   const code=source.slice(start,end)+'  }, []);';
-  vm.runInNewContext(code,{user:{user_id:'owner'},userIdx,startIndex,initialStoryId,useEffect:fn=>cleanup=fn(),getUserStories:()=>pending.promise,setStories:value=>observed.stories=value,setItemIdx:value=>observed.index=value,setStoryLoadFinished:value=>observed.finished=value});
+  vm.runInNewContext(code,{uid:'viewer',user:{user_id:'owner'},userIdx,startIndex,initialStoryId,useEffect:fn=>cleanup=fn(),getUserStories:()=>pending.promise,setStories:value=>observed.stories=value,setItemIdx:value=>observed.index=value,setStoryLoadFinished:value=>observed.finished=value});
   return {pending,observed,cleanup};
 }
 test('story notification opens its exact asynchronously loaded story',async()=>{
@@ -147,4 +147,22 @@ test('moving to another story owner starts at their first story',async()=>{
 });
 test('unmounted story loading does not replace the current viewer',async()=>{
  const h=storyLoadHarness();h.cleanup();h.pending.resolve([{id:'target'}]);await flush();assert.equal(h.observed.finished,false);assert.equal(h.observed.stories.length,0);
+});
+
+test('search continuation appends beyond twenty without duplicates',async()=>{
+ const h=searchHarness();h.setAnswer((name,args)=>({data:name==='search_people_page'?Array.from({length:args.p_offset===0?20:3},(_,i)=>({id:'p'+(i+args.p_offset),full_name:'Person '+i,username:'person'+i})):[],error:null}));
+ h.render('people');await h.runTimers();let tree=h.render();assert.equal(h.nodes(tree,'FollowButton').length,20);
+ const more=h.nodes(tree,'button').find(b=>b.props.children==='More people');assert.ok(more);more.props.onClick();await flush();tree=h.render();assert.equal(h.nodes(tree,'FollowButton').length,23);
+ assert.equal(h.nodes(tree,'button').filter(b=>b.props.children==='More people').length,0);
+});
+test('one unavailable search vertical does not hide successful results',async()=>{
+ const h=searchHarness();h.setAnswer(name=>name==='search_jobs_fts_page'?{data:null,error:{message:'offline'}}:{data:name==='search_people_page'?[{id:'p',full_name:'Person',username:'person'}]:[],error:null});
+ h.render('people');await h.runTimers();const tree=h.render();assert.equal(h.nodes(tree,'FollowButton').length,1);assert.equal(h.nodes(tree,'ErrorState').length,0);assert.ok(h.nodes(tree,'button').find(b=>b.props.children==='Retry jobs'));
+});
+test('account change invalidates in-flight search data',async()=>{
+ const h=searchHarness(),pending=defer();h.setAnswer(()=>pending.promise);h.render('private');await h.runTimers();h.auth('next-account');h.render();pending.resolve({data:[{id:'old',full_name:'Old private profile'}],error:null});await flush();assert.equal(h.nodes(h.render(),'FollowButton').length,0);
+});
+test('market order notifications accept only a listing UUID destination',()=>{
+ const id='12345678-1234-4000-8000-123456789012';assert.equal(notificationHref({type:'market_order',data:{listing_id:id,conversation_id:'ignored'}}),'/market/'+id);
+ assert.equal(notificationHref({type:'market_order',data:{listing_id:'../settings'}}),'/notifications');
 });

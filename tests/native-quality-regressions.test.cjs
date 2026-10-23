@@ -152,7 +152,7 @@ for(const invalid of [false,true])test(`MFA removal ${invalid?'rejects an invali
  await run();assert.deepEqual(calls,invalid?['challenge','verify']:['challenge','verify','unenroll']);
 });
 const { webcrypto } = require('node:crypto');
-const cvContract = compile(read('shared/applicationCv.ts'));
+const cvContract = compile(read('shared/applicationCv.ts'),{URL});
 function cvHarness({owner='11111111-1111-4111-8111-111111111111',size=4,uploadError=null}={}) {
   const uploads=[],signs=[];
   const service=compile(read('src/services/applicationCvService.ts'),{crypto:webcrypto,URL,require(name){
@@ -179,7 +179,8 @@ test('CV upload rejects account changes, oversized files and storage errors with
 test('CV opening refuses foreign links, arbitrary schemes, malformed references and unrelated storage buckets',async()=>{
  const h=cvHarness();
  for(const ref of ['https://evil.invalid/resume.pdf','javascript:alert(1)','application-cvs/../secret','https://fixture.supabase.co/storage/v1/object/public/avatars/file','https://attacker@fixture.supabase.co/storage/v1/object/public/chat-files/file'])await assert.rejects(h.applicationCvUrl(ref),/unavailable/);
- const legacy='https://fixture.supabase.co/storage/v1/object/public/chat-files/legacy.pdf';assert.equal(await h.applicationCvUrl(legacy),legacy);assert.equal(h.signs.length,0);
+ const legacy=`https://fixture.supabase.co/storage/v1/object/public/chat-files/${owner}/legacy.pdf?t=123`;const signed=await h.applicationCvUrl(legacy);assert.notEqual(signed,legacy);assert.equal(h.signs.length,1);assert.equal(h.signs[0].bucket,'chat-files');assert.equal(h.signs[0].ttl,60);
+ await assert.rejects(h.applicationCvUrl('https://fixture.supabase.co/storage/v1/object/public/chat-files/legacy.pdf'),/unavailable/);
 });
 test('market service sends pagination offset through the ranked feed contract',async()=>{
  const calls=[];

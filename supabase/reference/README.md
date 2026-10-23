@@ -4,7 +4,7 @@
 Circles database (project `prlkikhckbifseosbukl`) taken on 17 October 2026 and
 used to bootstrap the isolated QA project (`uaulhuelcfkjwojtymmw`).
 
-It is a read-only reference: 156 tables and 400 functions as they exist live,
+It is a read-only reference: 156 table definitions and 403 function definitions from that capture,
 including many functions that were created in the SQL editor and never
 recorded in `supabase/migrations`. Read it to learn the real columns, function
 signatures, grants and RLS policies before writing a migration or an RPC call.

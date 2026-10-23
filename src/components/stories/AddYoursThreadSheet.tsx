@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, Image, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from '../SafeArea';
+import { hydrateStoryMedia } from '../../services/contentMedia';
 import { supabase } from '../../services/supabase';
 import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
@@ -13,18 +14,25 @@ type Row = { id: string; user_id: string; media_url: string | null; thumbnail_ur
 
 export default function AddYoursThreadSheet({ visible, prompt, originStoryId, originStickerId, onClose, onOpen }: { visible: boolean; prompt: string; originStoryId: string | null; originStickerId: string | null; onClose: () => void; onOpen: (userId: string, storyId: string) => void }) {
   const insets = useSafeAreaInsets();
+  const [error, setError] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
   const [rows, setRows] = useState<Row[] | null>(null);
   useEffect(() => {
     if (!visible) return;
+    let cancelled = false;
     setRows(null);
+    setError(null);
     (async () => {
       const sel = 'id, user_id, media_url, thumbnail_url, created_at, profile:profiles!stories_user_id_fkey(username, full_name, avatar_url)';
       const out: Row[] = [];
       if (originStoryId) { const { data } = await supabase.from('stories').select(sel).eq('id', originStoryId).maybeSingle(); if (data) out.push(data as any); }
       if (originStickerId) { const { data } = await supabase.from('stories').select(sel).contains('stickers_json', [{ addYoursOriginStickerId: originStickerId }]).gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(100); (data as any[] || []).forEach((r) => { if (!out.some((x) => x.id === r.id)) out.push(r); }); }
-      setRows(out.map((r: any) => ({ ...r, profile: Array.isArray(r.profile) ? r.profile[0] : r.profile })));
-    })();
-  }, [visible, originStoryId, originStickerId]);
+      const hydrated = await hydrateStoryMedia(out);
+      if (cancelled) return;
+      setRows(hydrated.map((r: any) => ({ ...r, profile: Array.isArray(r.profile) ? r.profile[0] : r.profile })));
+    })().catch(() => { if (!cancelled) { setRows([]); setError('Stories could not load. Tap to retry.'); } });
+    return () => { cancelled = true; };
+  }, [visible, originStoryId, originStickerId, reload]);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={st.wrap}>
@@ -33,6 +41,7 @@ export default function AddYoursThreadSheet({ visible, prompt, originStoryId, or
           <View style={st.handle} />
           <Text style={st.kicker}>ADD YOURS</Text>
           <Text style={st.title} numberOfLines={2}>{prompt}</Text>
+          {error ? <TouchableOpacity onPress={() => setReload(n => n + 1)}><Text style={st.empty}>{error}</Text></TouchableOpacity> : null}
           {rows === null ? <ActivityIndicator color="#C9BFB0" style={{ marginVertical: 24 }} /> : (
             <FlatList data={rows} keyExtractor={(r) => r.id} numColumns={3} columnWrapperStyle={{ gap: 8 }} contentContainerStyle={{ gap: 8, paddingTop: 12 }} style={{ maxHeight: 420 }}
               ListEmptyComponent={<Text style={st.empty}>No one has added theirs yet.</Text>}

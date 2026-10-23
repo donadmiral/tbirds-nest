@@ -26,3 +26,16 @@ export function applicationCvFile(name: string, size: number): { extension: stri
   }
   return { extension, contentType };
 }
+
+/** Old native clients stored first-party chat-files locators. Sign them afresh. */
+export function legacyApplicationCvPath(reference: string, base: string): string | null {
+  try {
+    const url = new URL(reference);
+    if (url.origin !== new URL(base).origin || url.protocol !== 'https:' || url.username || url.password || url.hash) return null;
+    const match = url.pathname.match(/^\/storage\/v1\/object\/(?:public|sign)\/chat-files\/(.+)$/);
+    if (!match) return null;
+    const path = decodeURIComponent(match[1]);
+    if (path.includes('%') || path.includes('\\') || path.split('/').some(part => !part || part === '.' || part === '..')) return null;
+    return new RegExp(`^${uuid}/[A-Za-z0-9_. /-]+$`, 'i').test(path) ? path : null;
+  } catch { return null; }
+}

@@ -10,7 +10,9 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { Heart, Repeat2, MessageCircle, UserPlus, AtSign, Bell, Check, ShieldQuestion } from "lucide-react";
 import { EmptyState, PageHeader } from "@/components/ui";
+import { SocialPageFooter } from "@/components/SocialPageFooter";
 import { ErrorState } from "@/components/ErrorState";
+import { hydratePostMedia, hydrateStoryMedia } from "@/lib/contentMedia";
 import { withTimeout } from "@/lib/withTimeout";
 import { UnreadSummary } from "@/components/NotificationsRail";
 import { StoryViewer } from "@/components/StoryViewer";
@@ -29,6 +31,7 @@ import { timeAgo } from "@/lib/feed";
 
 type Notif = {
   notification_id: string;
+  group_key: string;
   type: string;
   message: string | null;
   body_preview: string | null;
@@ -60,6 +63,7 @@ function lineFor(n: Notif): { lead: string; rest: string } {
   const c = n.body_preview ? quote(n.body_preview) : "";
   const emoji = (n.body_preview || "").trim();
   switch (n.type) {
+    case "market_order": return { lead: n.message || "Marketplace order updated", rest: "" };
     case "like": return { lead, rest: " liked your post" };
     case "market_alert": return { lead, rest: " listed a match for your alert" + (((n.data as { title?: string } | null)?.title) ? ": " + (n.data as { title?: string }).title : "") };
     case "comment_like": return { lead, rest: c ? " liked your comment " + c : " liked your comment" };
@@ -106,6 +110,12 @@ export default function NotificationsPage() {
   const router = useRouter();
   const request = useRef(0);
   const identity = useRef(0);
+  const cursor = useRef({ offset: 0, asOf: new Date().toISOString() });
+  const loadingRef = useRef(false);
+  const refreshPending = useRef(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [pageError, setPageError] = useState<string | null>(null);
   const [unreadTotal, setUnreadTotal] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [markingRead, setMarkingRead] = useState(false);
@@ -116,10 +126,15 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [filt, setFilt] = useState("all");
   const [failed, setFailed] = useState(false);
-  const [sThumbs, setSThumbs] = useState<Record<string, string>>({});
+  const [sThumbs, setSThumbs] = useState<Record<string, { url: string; expiresAt: number }>>({});
   const [storyView, setStoryView] = useState<CatchupUser | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async function loadNotifications(more = false) {
+    if (loadingRef.current) { if (!more) refreshPending.current = true; return; }
+    loadingRef.current = true;
+    if (more) setLoadingMore(true);
+    setPageError(null);
+    const asOf = more ? cursor.current.asOf : new Date().toISOString();
     const version = ++request.current;
     setFailed(false);
     try {
@@ -131,12 +146,15 @@ export default function NotificationsPage() {
         return;
       }
       const [res, count] = await Promise.all([
-        withTimeout(supabase.rpc("get_notifications", { p_limit: 60, p_cursor: null })),
+        withTimeout(supabase.rpc("get_notifications_page", { p_limit: 40, p_offset: more ? cursor.current.offset : 0, p_as_of: asOf })),
         withTimeout(supabase.from("notifications").select("id", { count: "exact", head: true }).eq("recipient_id", uid).is("read_at", null)),
       ]);
       if (res.error || count.error) throw res.error || count.error;
       if (version !== request.current) return;
       let data = (res.data ?? []) as Notif[];
+      const rawSize = data.length;
+      data = await withTimeout(hydratePostMedia(data, supabase));
+      if (version !== request.current) return;
       const requestIds = data.filter((row) => row.type === "follow_request").map((row) => notificationValue(row, "request_id")).filter((id): id is string => !!id);
       if (requestIds.length) {
         const { data: requests, error } = await supabase.from("follow_requests").select("id, status").in("id", requestIds);
@@ -145,22 +163,41 @@ export default function NotificationsPage() {
         const pending = new Set((requests ?? []).filter((row) => row.status === "pending").map((row) => row.id));
         data = data.filter((row) => row.type !== "follow_request" || pending.has(notificationValue(row, "request_id")));
       }
-      setRows(data);
+      setRows((previous) => {
+        const ordered = more ? [...previous, ...data] : [...data, ...previous];
+        const seen = new Set<string>();
+        return ordered.filter((item) => { const key = item.group_key || item.notification_id; if (seen.has(key)) return false; seen.add(key); return true; })
+          .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.notification_id.localeCompare(a.notification_id));
+      });
+      if (more || cursor.current.offset === 0) {
+        cursor.current = { offset: (more ? cursor.current.offset : 0) + rawSize, asOf };
+        setHasMore(rawSize === 40);
+      }
       setUnreadTotal(count.count);
       setLoading(false);
       const storyIds = Array.from(new Set(data.map((row) => notificationValue(row, "story_id")).filter((id): id is string => !!id)));
       if (storyIds.length) {
         const { data: stories } = await supabase.from("stories").select("id, thumbnail_url, media_url, media_type").in("id", storyIds);
         if (version !== request.current) return;
-        const thumbnails: Record<string, string> = {};
-        for (const story of stories ?? []) {
+        const thumbnails: Record<string, { url: string; expiresAt: number }> = {};
+        const safeStories = await withTimeout(hydrateStoryMedia(stories ?? [], supabase));
+        if (version !== request.current) return;
+        for (const story of safeStories) {
           const url = story.thumbnail_url || (story.media_type !== "video" ? story.media_url : null);
-          if (url) thumbnails[story.id] = url;
+          if (url) thumbnails[story.id] = { url, expiresAt: (story as typeof story & { _mediaExpiresAt?: number })._mediaExpiresAt ?? Date.now() + 240000 };
         }
-        setSThumbs(thumbnails);
+        setSThumbs((previous) => ({ ...previous, ...thumbnails }));
       }
     } catch {
-      if (version === request.current) { setFailed(true); setLoading(false); }
+      if (version === request.current) {
+        if (more) setPageError("Could not load older notifications. Please try again.");
+        else setFailed(true);
+        setLoading(false);
+      }
+    } finally {
+      loadingRef.current = false;
+      setLoadingMore(false);
+      if (refreshPending.current) { refreshPending.current = false; void loadNotifications(); }
     }
   }, [supabase]);
 
@@ -174,6 +211,7 @@ export default function NotificationsPage() {
       if (!alive || next === uid) return;
       uid = next;
       request.current++; identity.current++;
+      cursor.current = { offset: 0, asOf: new Date().toISOString() }; setHasMore(true);
       setRows([]); setUnreadTotal(null); setSThumbs({}); setLoading(true); setActionError(null);
       if (channel) { void supabase.removeChannel(channel); channel = null; }
       if (next) channel = supabase.channel("web-notifications-" + next + "-" + Math.random().toString(36).slice(2))
@@ -187,8 +225,39 @@ export default function NotificationsPage() {
       bind(data.session?.user.id ?? null);
     }, () => { if (alive) { setFailed(true); setLoading(false); } });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Cleanup deliberately invalidates the latest request and identity counters.
-    return () => { alive = false; request.current++; identity.current++; auth.subscription.unsubscribe(); if (timer) clearTimeout(timer); if (channel) void supabase.removeChannel(channel); };
+    return () => { alive = false; refreshPending.current = false; request.current++; identity.current++; auth.subscription.unsubscribe(); if (timer) clearTimeout(timer); if (channel) void supabase.removeChannel(channel); };
   }, [supabase, load]);
+
+  useEffect(() => {
+    let alive = true, pending = false;
+    const version = identity.current;
+    const renew = async () => {
+      if (pending || document.visibilityState !== "visible") return;
+      const expiring = rows.filter((row) => {
+        const expiry = (row as Notif & { _mediaExpiresAt?: number })._mediaExpiresAt;
+        return typeof expiry === "number" && expiry <= Date.now() + 60000;
+      });
+      const stories = Object.entries(sThumbs).filter(([, entry]) => entry.expiresAt <= Date.now() + 60000).map(([id, entry]) => ({ id, thumbnail_url: entry.url }));
+      if (!expiring.length && !stories.length) return;
+      pending = true;
+      try {
+        const [posts, storyRows] = await Promise.all([
+          withTimeout(hydratePostMedia(expiring, supabase)), withTimeout(hydrateStoryMedia(stories, supabase)),
+        ]);
+        if (!alive || version !== identity.current) return;
+        if (posts.length) {
+          const byId = new Map(posts.map((row) => [row.notification_id, row]));
+          setRows((previous) => previous.map((row) => byId.get(row.notification_id) ?? row));
+        }
+        if (storyRows.length) setSThumbs((previous) => ({ ...previous, ...Object.fromEntries(storyRows.map((row) => [row.id, { url: row.thumbnail_url, expiresAt: (row as typeof row & { _mediaExpiresAt?: number })._mediaExpiresAt ?? Date.now() + 240000 }])) }));
+      } catch { /* Expired capabilities remain inaccessible; retry after reconnection. */ }
+      finally { pending = false; }
+    };
+    void renew();
+    const timer = setInterval(() => { void renew(); }, 60000);
+    window.addEventListener("online", renew); document.addEventListener("visibilitychange", renew);
+    return () => { alive = false; clearInterval(timer); window.removeEventListener("online", renew); document.removeEventListener("visibilitychange", renew); };
+  }, [rows, sThumbs, supabase]);
 
   async function markAllRead() {
     if (markingRef.current) return;
@@ -198,7 +267,7 @@ export default function NotificationsPage() {
       const { error } = await supabase.rpc("mark_notifications_read", { p_ids: null });
       if (error) throw error;
       // Refresh after success so a notification arriving during the write remains unread.
-      if (version === identity.current) { window.dispatchEvent(new Event("pc:notifications-changed")); await load(); }
+      if (version === identity.current) { setRows((previous) => previous.map((row) => ({ ...row, read_at: new Date().toISOString(), unread_in_group: 0 }))); window.dispatchEvent(new Event("pc:notifications-changed")); await load(); }
     } catch { if (version === identity.current) setActionError("Could not mark notifications as read. Please try again."); }
     finally { markingRef.current = false; setMarkingRead(false); }
   }
@@ -214,6 +283,7 @@ export default function NotificationsPage() {
       if (result.error) throw result.error;
       if (version !== identity.current) return;
       window.dispatchEvent(new Event("pc:notifications-changed"));
+      setRows((previous) => previous.filter((row) => row.notification_id !== n.notification_id));
       if (n.type === "community_invite" && result.data === "joined") router.push(notificationHref(n));
       await load();
     } catch { if (version === identity.current) setActionError("Could not respond to this invitation. Please try again."); }
@@ -307,7 +377,7 @@ export default function NotificationsPage() {
       ) : null}
 
       {actionError ? <p role="alert" className="mb-3 text-sm text-danger">{actionError}</p> : null}
-      {failed ? (
+      {failed && rows.length === 0 ? (
         <ErrorState title="Could not load notifications" onRetry={() => void load()} />
       ) : loading ? (
         <p className="py-16 text-center text-sm text-muted">Loading</p>
@@ -369,9 +439,9 @@ export default function NotificationsPage() {
                       <FollowButton authorId={n.actor_id} />
                     </span>
                   ) : null}
-                  {(n.post_thumb || sThumbs[String((n.data as { story_id?: string } | null)?.story_id ?? "")]) ? (
+                  {(n.post_thumb || sThumbs[String((n.data as { story_id?: string } | null)?.story_id ?? "")]?.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={n.post_thumb || sThumbs[String((n.data as { story_id?: string } | null)?.story_id ?? "")]} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
+                    <img src={n.post_thumb || sThumbs[String((n.data as { story_id?: string } | null)?.story_id ?? "")]?.url} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
                   ) : null}
                 </Link>
               );
@@ -379,6 +449,8 @@ export default function NotificationsPage() {
           </section>
         ))
       )}
+      {failed && rows.length > 0 ? <ErrorState title="Could not refresh notifications" onRetry={() => void load()} /> : null}
+      {!loading ? <SocialPageFooter loading={loadingMore} error={pageError} hasMore={hasMore} loadMore={() => load(true)} /> : null}
       {storyView ? <StoryViewer key={storyView.latest_story_id} users={[storyView]} startIndex={0} initialStoryId={storyView.latest_story_id} onClose={() => setStoryView(null)} /> : null}
     </div>
   );

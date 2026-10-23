@@ -40,12 +40,14 @@ export async function getDailyRoom(callSessionId: string): Promise<{ roomUrl: st
 
 export async function setCallStatus(id: string, status: string): Promise<void> {
   const supabase = createClient();
-  await supabase.from("call_sessions").update({ status }).eq("id", id);
+  const { data, error } = await supabase.from("call_sessions").update({ status }).eq("id", id).in("status", ["ringing", "active"]).select("id").maybeSingle();
+  if (error || !data) throw new Error("This call is no longer available.");
 }
 
 export async function endCall(id: string): Promise<void> {
   const supabase = createClient();
-  await supabase.from("call_sessions").update({ status: "ended" }).eq("id", id);
+  const { error } = await supabase.from("call_sessions").update({ status: "ended" }).eq("id", id).in("status", ["ringing", "active"]);
+  if (error) throw new Error("The call could not be ended. Please try again.");
   try { await supabase.rpc("record_call_event", { p_call_id: id }); } catch { /* record best-effort */ }
 }
 
@@ -62,17 +64,20 @@ export async function startGroupCall(conversationId: string, isVideo: boolean): 
 
 export async function joinGroupCall(sessionId: string): Promise<void> {
   const supabase = createClient();
-  await supabase.rpc("join_group_call", { p_session_id: sessionId });
+  const { error } = await supabase.rpc("join_group_call", { p_session_id: sessionId });
+  if (error) throw new Error("The group call is no longer available, or your access has changed.");
 }
 
 export async function leaveGroupCall(sessionId: string): Promise<void> {
   const supabase = createClient();
-  await supabase.rpc("leave_group_call", { p_session_id: sessionId });
+  const { error } = await supabase.rpc("leave_group_call", { p_session_id: sessionId });
+  if (error) throw new Error("The group call is no longer available, or your access has changed.");
 }
 
 export async function declineGroupCall(sessionId: string): Promise<void> {
   const supabase = createClient();
-  await supabase.rpc("decline_group_call", { p_session_id: sessionId });
+  const { error } = await supabase.rpc("decline_group_call", { p_session_id: sessionId });
+  if (error) throw new Error("The group call is no longer available, or your access has changed.");
 }
 
 export type LiveGroupCall = { id: string; is_video: boolean; joinedNames: string[] };

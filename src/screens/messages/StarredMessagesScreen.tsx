@@ -9,7 +9,7 @@ import EmptyState from '../../components/EmptyState';
  * All messages I personally starred, across DMs and groups.
  * Tap a row to open the chat. Tap the star to unstar.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator,
   StatusBar, Image, RefreshControl,
@@ -18,7 +18,7 @@ import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
-import { signChatMediaMap } from '../../services/chatMediaService';
+import { signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
 import { useAuthStore } from '../../stores/authStore';
 
 type Row = {
@@ -73,6 +73,8 @@ export default function StarredMessagesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const accountRef = useRef(myId); accountRef.current = myId;
+  useEffect(() => { setRows([]); }, [myId]);
   const [q, setQ] = useState('');
   const load = useCallback(async () => {
     if (!myId) { setLoading(false); return; }
@@ -83,11 +85,12 @@ export default function StarredMessagesScreen() {
         .eq('starred_by', myId)
         .order('starred_at', { ascending: false });
 
+      if (accountRef.current !== myId) return;
       if (error) { console.log('[STARRED_SCREEN_ERR]', error.message); setRows([]); return; }
       const starredRows = (starred || []) as any[];
       if (starredRows.length === 0) { setRows([]); return; }
       const signedMap = await signChatMediaMap(starredRows.map((r: any) => r.msg).filter(Boolean));
-      starredRows.forEach((r: any) => { if (r.msg && signedMap[r.msg.id]) r.msg.media_url = signedMap[r.msg.id]; });
+      starredRows.forEach((r: any) => { if (r.msg && isChatMediaUrl(r.msg.media_url)) r.msg.media_url = signedMap[r.msg.id] || null; });
 
       const convIds = Array.from(new Set(starredRows.map(r => r.conversation_id)));
       const { data: convs } = await supabase
@@ -95,7 +98,7 @@ export default function StarredMessagesScreen() {
         .select('id, is_group, group_name, group_emoji, group_avatar_url, user_1, user_2')
         .in('id', convIds);
       const convMap: Record<string, any> = {};
-      (convs || []).forEach((c: any) => { convMap[c.id] = c; });
+      (await signGroupAvatars(convs || [])).forEach((c: any) => { convMap[c.id] = c; });
 
       const senderIds = Array.from(new Set(starredRows.map(r => r.msg?.sender_id).filter(Boolean)));
       const dmOtherIds = new Set<string>();
@@ -132,12 +135,11 @@ export default function StarredMessagesScreen() {
           other_party: otherParty,
         };
       });
-      setRows(composed);
+      if (accountRef.current === myId) setRows(composed);
     } catch (e) {
       console.log('[STARRED_LOAD_CATCH]', e);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (accountRef.current === myId) { setLoading(false); setRefreshing(false); }
     }
   }, [myId]);
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getServerViewer } from "@/lib/serverViewer";
 import { Nav } from "@/components/Nav";
 import { MobileTabBar } from "@/components/MobileTabBar";
 import { WebCallLayer } from "@/components/WebCallLayer";
@@ -21,8 +21,8 @@ export async function AppShell({
   /** A route's own rail panels. Falls back to discovery when omitted. */
   railContent?: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerViewer();
+  const data = { user };
   if (!data.user) {
     return (
       <div className="min-h-screen">

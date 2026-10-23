@@ -5,8 +5,8 @@
  * browser's default, which on a stalled mobile connection can mean a spinner
  * that never resolves and a screen the person cannot leave except by reloading.
  *
- * This does not cancel the underlying request, since supabase-js does not expose
- * an abort signal on its query builder. It bounds how long the UI waits, which
+ * This generic wrapper does not cancel the underlying request. Callers with
+ * cancellable query builders should attach their own AbortSignal. It bounds the UI wait, which
  * is the part that matters: a rejected promise reaches a catch and can render a
  * retry, where a pending one renders nothing forever.
  */

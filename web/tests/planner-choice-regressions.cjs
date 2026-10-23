@@ -55,6 +55,8 @@ function harness({ products = async () => [], communities = async () => ({ data:
       if (id === '@/lib/supabase/client') return { createClient: () => client };
       if (id === '@/components/StudioShell') return { useStudio: () => ({ me: { role: 'owner' } }) };
       if (id === '@/lib/categories') return { CATEGORIES: [] };
+      // Preview authorization is exercised by upload-preview-regressions; this fixture tests independent planner choice reads.
+      if (id === '@/lib/useUploadPreview') return { useUploadPreview: value => ({ preview: value, error: null, retry() {} }) };
       if (id === '@/lib/studio') return {
         can: () => true, myListings: () => { calls.push({ name: 'myListings' }); return products(); },
         listScheduled: async () => rows,

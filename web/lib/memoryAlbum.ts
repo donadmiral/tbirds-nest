@@ -1,5 +1,6 @@
 "use client";
 
+import { hydrateMemoryAlbumMedia, hydrateStoryMedia } from "@/lib/contentMedia";
 import { createClient } from "@/lib/supabase/client";
 
 export type MemoryPage = {
@@ -30,7 +31,8 @@ export async function getMemoryAlbum(ownerId: string): Promise<MemoryAlbum | nul
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_memory_album", { p_owner: ownerId });
   if (error || !data) return null;
-  return data as MemoryAlbum;
+  const [album] = await hydrateMemoryAlbumMedia([data as MemoryAlbum], supabase);
+  return album;
 }
 
 export type MemoryBookInfo = { id: string; title: string; cover_color: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
@@ -50,7 +52,8 @@ export async function getMemoryBook(albumId: string): Promise<MemoryAlbum | null
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_memory_book", { p_album: albumId });
   if (error || !data) return null;
-  return data as MemoryAlbum;
+  const [album] = await hydrateMemoryAlbumMedia([data as MemoryAlbum], supabase);
+  return album;
 }
 
 export async function addMemoryPage(storyId: string, albumId?: string): Promise<boolean> {
@@ -96,7 +99,7 @@ export async function getMyStories(limit = 120): Promise<{ id: string; media_url
     .eq("user_id", uid)
     .order("created_at", { ascending: false })
     .limit(limit);
-  return data ?? [];
+  return hydrateStoryMedia(data ?? [], supabase);
 }
 
 export async function getAccessList(kind: "allow" | "block"): Promise<AccessPerson[]> {
