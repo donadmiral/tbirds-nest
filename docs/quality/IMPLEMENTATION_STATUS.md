@@ -10,6 +10,8 @@ Five October 25 migrations were applied to isolated QA `uaulhuelcfkjwojtymmw`. T
 
 Published application source: `56fda23eac087040f8a168a59887d8c6cd8a7ddf`, tree `d0d26aff6a7dc7b6a9ab9dd8efd1bf443421eead`. All four Vercel builds and all three jobs in GitHub workflow 40173606034 succeeded. The existing cloud-browser owner session moved from `/security` to `/dashboard` without enrolling an authenticator; marketplace, seller-review moderation and verification desks rendered successfully. The separate web app reached its sign-in page; authenticated web scenarios were not run in this browser. No new native binary was produced.
 
+Native release preparation now passes Android and iOS Hermes exports against the QA environment, Expo dependency compatibility, the phone TypeScript check and all 526 phone tests after updating `expo-asset` to 12.0.14. EAS uploads exclude local environment files and signing material while preserving required source/assets. Expo website sign-in succeeded after an initial GitHub browser error, but automatic approval review blocked the separate CLI device authorization because the secure prompt did not clearly disclose the access grant. Explicit approval is required before connecting the CLI. No cloud build was submitted or signed installer created. See `NATIVE_RELEASE_20261025.json` for exact evidence and continuation commands.
+
 ## This release
 
 - Verified purchase reviews; checked listing/review reporting; version-aware staff review moderation; retained report history when an account or review is deleted; visible load errors and retry on web/phone.
