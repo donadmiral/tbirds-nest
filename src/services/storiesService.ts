@@ -616,8 +616,7 @@ export const storiesService = {
       p_user_id: userId,
     });
     if (error) {
-      console.log('[storiesService.getUserStories]', error.message);
-      return [];
+      throw new Error('Stories could not be loaded. Please try again.');
     }
     return hydrateStoryMedia((data || []) as StoryRow[]);
   },

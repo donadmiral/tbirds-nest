@@ -35,7 +35,7 @@ try{
  $fn$;`);
  }
  if(allMigrations){
-  const files=(await readdir(new URL('../../migrations/',import.meta.url))).filter(n=>/^202610(22|23)\d+.*\.sql$/.test(n)).sort();
+  const files=(await readdir(new URL('../../migrations/',import.meta.url))).filter(n=>/^202610(22|23|25)\d+.*\.sql$/.test(n)).sort();
   for(const file of files)await db.exec(await readFile(new URL('../../migrations/'+file,import.meta.url),'utf8'));
  }else{
  await db.exec(await readFile(new URL('../../migrations/20261022211835_admin_command_provision_contracts.sql',import.meta.url),'utf8'));
@@ -113,11 +113,11 @@ try{
   await db.exec('drop trigger fail_audit on public.admin_audit_log; drop function public.fail_audit();');
  });
  await run('verification review grants and revokes badge, rejects repeated review',async()=>{
-  const id=await insert('verification_applications',{applicant_id:member,tier:'public_figure',category:'education'});
-  await call('approveApplication',{id});assert.equal((await one('select verified_tier from public.profiles where id=$1',[member])).verified_tier,'public_figure');
+  const id=await insert('verification_applications',{applicant_id:member,tier:'public_figure',category:'education',evidence:{statement:'Established educational organization and public identity.',links:['https://example.test/identity']}});
+  await call('approveApplication',{id,reason:'Reviewed public identity evidence and verified its ownership.'});assert.equal((await one('select verified_tier from public.profiles where id=$1',[member])).verified_tier,'public_figure');
   await reject(()=>call('rejectApplication',{id,reason:'x'}),'APPLICATION_NOT_PENDING');
   await call('revokeVerification',{id:member});assert.equal((await one('select is_verified from public.profiles where id=$1',[member])).is_verified,false);
-  const second=await insert('verification_applications',{applicant_id:other,tier:'business'});await call('rejectApplication',{id:second,reason:'Unverified documents'});
+  const second=await insert('verification_applications',{applicant_id:other,tier:'public_figure',category:'education',evidence:{statement:'Established educational organization and public identity.',links:['https://example.test/identity']}});await call('rejectApplication',{id:second,reason:'Unverified documents'});
  });
  await run('moderation suspension revokes sessions; restoration and timed restrictions work',async()=>{
   const ms=randomUUID();await q("insert into auth.sessions(id,user_id,aal) values($1,$2,'aal1')",[ms,member]);

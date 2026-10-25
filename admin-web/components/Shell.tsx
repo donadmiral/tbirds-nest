@@ -98,9 +98,9 @@ export default async function Shell({ admin, active, title, crumb, sub, children
 
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
-        <header style={{ position: 'sticky', top: 0, zIndex: 30, display: 'flex', alignItems: 'center', gap: 14, height: 58, padding: '0 22px', background: 'var(--topbar)', backdropFilter: 'blur(26px) saturate(1.2)', WebkitBackdropFilter: 'blur(26px) saturate(1.2)', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
+        <header className="pc-topbar" style={{ position: 'sticky', top: 0, zIndex: 30, background: 'var(--topbar)', backdropFilter: 'blur(26px) saturate(1.2)', WebkitBackdropFilter: 'blur(26px) saturate(1.2)', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
+          <div className="pc-breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
             <Link href="/dashboard" className="pc-crumb" style={{ color: 'var(--txt-muted)', fontWeight: 500, textDecoration: 'none' }}>Operations</Link>
             <span style={{ color: 'var(--txt-muted)' }}>/</span>
             <span style={{ fontWeight: 600, color: 'var(--txt)' }}>{crumb ?? title}</span>
@@ -108,7 +108,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
 
           <CommandPalette items={paletteItems} actions={actions} />
 
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 9 }}>
+          <div className="pc-topbar-actions">
 
             <ShareMenu path={active} label={crumb ?? (typeof title === 'string' ? title : '')} />
 
@@ -126,9 +126,9 @@ export default async function Shell({ admin, active, title, crumb, sub, children
               ) : null}
             </Link>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 10px 4px 4px', borderRadius: 9, border: '1px solid rgba(var(--on),0.10)' }}>
+            <div className="pc-staff-chip" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 10px 4px 4px', borderRadius: 9, border: '1px solid rgba(var(--on),0.10)' }}>
               <span style={{ width: 25, height: 25, borderRadius: 6, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700 }}>{initial}</span>
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap' }}>{local}</span>
+              <span className="pc-staff-name" style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--txt)' }}>{local}</span>
               <span style={{ fontSize: 9.5, fontWeight: 600, padding: '1.5px 5px', borderRadius: 4, background: 'rgba(var(--accent-rgb),0.13)', color: 'var(--accent)', letterSpacing: '0.02em' }}>{roleShort}</span>
               <form action={signOut}>
                 <button className="pc-seg" title="Sign out" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 10.5, fontWeight: 600, color: 'var(--txt-muted)', padding: 0 }}>Exit</button>

@@ -11,6 +11,7 @@ import { getListing, getSavedListingIds, toggleSaved, priceLabel, type Listing }
 import { SellerTrust } from "@/components/SellerTrust";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { MarketOrders } from "@/components/MarketOrders";
+import { MarketReportForm } from "@/components/MarketReportForm";
 import { SellerReviews } from "@/components/SellerReviews";
 import { timeAgo } from "@/lib/feed";
 
@@ -23,6 +24,7 @@ export default function ListingPage() {
   const [img, setImg] = useState(0);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
   const [offerAmt, setOfferAmt] = useState("");
   const [busy, setBusy] = useState(false);
@@ -104,19 +106,6 @@ export default function ListingPage() {
     setBusy(false);
     if (error) { alert("Could not update: " + error.message); return; }
     setL({ ...l, status: "sold" });
-  }
-
-  async function reportListing() {
-    if (!uid || !l) { router.push("/login"); return; }
-    const reasons = ["scam", "prohibited", "misleading", "inappropriate", "duplicate", "other"];
-    const pick = window.prompt("Report this listing. Type one reason: " + reasons.join(", "));
-    if (!pick) return;
-    const reason = reasons.includes(pick.trim().toLowerCase()) ? pick.trim().toLowerCase() : "other";
-    const detail = window.prompt("Anything to add? Optional.") || null;
-    const { error } = await supabase.from("listing_reports").upsert({
-      listing_id: l.id, reporter_id: uid, reason, detail: detail?.trim() || null,
-    });
-    alert(error ? "Could not send the report: " + error.message : "Report sent. Thank you.");
   }
 
   async function blockSeller() {
@@ -254,12 +243,13 @@ export default function ListingPage() {
 
       {!isOwner ? (
         <p className="mt-4 flex gap-4 text-[12px] text-muted">
-          <button onClick={reportListing} className="transition-colors duration-[140ms] hover:text-ink/70">Report listing</button>
+          <button onClick={() => { if (!uid) router.push("/login"); else setReportOpen(true); }} className="transition-colors duration-[140ms] hover:text-ink/70">Report listing</button>
           <button onClick={blockSeller} className="transition-colors duration-[140ms] hover:text-danger">Block seller</button>
         </p>
       ) : null}
+      {reportOpen && uid && <MarketReportForm key={l.id + uid} kind="listing" id={l.id} userId={uid} onClose={() => setReportOpen(false)} />}
       <MarketOrders listing={l} />
-        <SellerReviews sellerId={l.seller_id} listingId={l.id} viewerId={uid} />
+      <SellerReviews sellerId={l.seller_id} listingId={l.id} viewerId={uid} />
     </div>
   );
 }

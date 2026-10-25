@@ -26,6 +26,8 @@ export function notificationHref(notification: NotificationDestination): string 
   const post = notification.post_id || value("post_id");
   if (post) return "/post/" + encodeURIComponent(post);
   const job = value("job_id");
+  if (notification.type === "job_interview" || (notification.type === "job_status" && value("status") !== "withdrawn")) return "/jobs/applications";
+  if (job && notification.type === "job_status" && value("status") === "withdrawn") return "/jobs/" + encodeURIComponent(job) + "/applicants";
   if (job) return "/jobs/" + encodeURIComponent(job) + (notification.type === "job_application" ? "/applicants" : "");
   const listing = value("listing_id");
   if (listing) return "/market/" + encodeURIComponent(listing);

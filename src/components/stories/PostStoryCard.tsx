@@ -95,7 +95,6 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   const likeC = nCount(likes);
   const comC = nCount(sticker.postComments);
   const repC = nCount(sticker.postReposts);
-  const tier = sticker.postVerifiedTier ?? (sticker.postVerified ? 'business' : null);
 
   const mediaBlock = sticker.postMediaUrl ? (
     isVideo ? (
@@ -121,7 +120,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Text style={st.name} numberOfLines={1}>{sticker.postAuthorName}</Text>
-          {tier ? <VerifiedBadge tier={tier} size={12} /> : null}
+          {sticker.postAuthorId ? <VerifiedBadge userId={sticker.postAuthorId} size={12} /> : null}
         </View>
         {(sticker.postUsername || sticker.postCreatedAt) ? (
           <Text style={st.handle} numberOfLines={1}>

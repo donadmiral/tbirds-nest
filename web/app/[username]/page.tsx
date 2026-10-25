@@ -102,7 +102,7 @@ export default async function ProfilePage({ params }: Params) {
             >
               {p.full_name}
             </h1>
-            {p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={17} /> : null}
+            {p.is_verified ? <VerifiedBadge userId={p.id} tier={p.verified_tier} size={17} /> : null}
           </div>
           {p.username ? <p className="text-center text-[13.5px] text-muted">@{p.username}</p> : null}
           {(() => {
@@ -160,7 +160,7 @@ export default async function ProfilePage({ params }: Params) {
       <div className="mb-6 flex flex-col items-center gap-2 px-1">
         <div className="flex items-center gap-2">
           <MessageButton profileId={p.id} />
-          <ProfileMoreMenu profileId={p.id} name={p.full_name ?? null} />
+          <ProfileMoreMenu key={p.id} profileId={p.id} name={p.full_name ?? null} />
         </div>
         <ProfileContext profileId={p.id} username={p.username ?? ""} />
       </div>

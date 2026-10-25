@@ -211,7 +211,7 @@ export default function ProfileHeader({
 
         <View style={s.nameRow}>
           <Text style={[s.name, getTierColor((profile as any)?.verified_tier ?? ((profile as any)?.is_verified ? 'business' : null)) ? { color: getTierColor((profile as any)?.verified_tier ?? ((profile as any)?.is_verified ? 'business' : null)) as string } : null]} numberOfLines={1}><TierName userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} baseStyle={[s.name, getTierColor((profile as any)?.verified_tier ?? ((profile as any)?.is_verified ? 'business' : null)) ? { color: getTierColor((profile as any)?.verified_tier ?? ((profile as any)?.is_verified ? 'business' : null)) as string } : null]} text={profile?.full_name || 'Your Name' || ''} numberOfLines={1} /></Text>
-          {(profile?.verified_tier || profile?.is_verified) ? <VerifiedBadge tier={profile?.verified_tier} size={17} /> : null}
+          {(profile?.verified_tier || profile?.is_verified) ? <VerifiedBadge userId={profile?.id} tier={profile?.verified_tier} size={17} /> : null}
         </View>
         {profile?.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
         {ctxMutual ? <Text style={{ fontSize: 13, color: 'rgba(11,30,61,0.42)', marginTop: 5, textAlign: 'center', paddingHorizontal: 24 }}>{ctxMutual}</Text> : null}

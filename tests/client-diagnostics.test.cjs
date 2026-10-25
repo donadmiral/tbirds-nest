@@ -50,16 +50,52 @@ for (const [app, callback] of [['web', 'retry'], ['admin-web', 'unstable_retry']
 }
 test('admin diagnostic endpoint rejects untrusted origins, anonymous requests, oversized input and re-sanitizes accepted reports', async () => {
   let admin = { aal: 'aal2' }, sent = [];
+  const assurance = load('admin-web/lib/adminAssurance.ts', { 'server-only': {},
+    './supabaseAdmin': { serviceClient: () => { throw new Error('Non-QA diagnostics must not query the owner exception'); } } });
   const route = load('admin-web/app/api/diagnostics/route.ts', { 'next/headers': { cookies: async () => ({ get: () => ({ value: 'verified-token' }) }) },
-    '@/lib/adminAuth': { getAdmin: async () => admin }, '../../../../shared/clientDiagnostics': shared,
+    '@/lib/adminAuth': { getAdmin: async () => admin }, '@/lib/adminAssurance': assurance, '../../../../shared/clientDiagnostics': shared,
     globals: { fetch: async (...args) => { sent.push(args); return new Response(null, { status: 204 }); } } });
   const request = (body, origin = 'https://admin.test') => new Request('https://admin.test/api/diagnostics', { method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(body) });
   assert.equal((await route.POST(request({}, 'https://evil.test'))).status, 403);
   assert.equal((await route.POST(request({ secret: 'x'.repeat(3000) }))).status, 413);
   admin = null; assert.equal((await route.POST(request({}))).status, 401);
+  admin = { aal: 'aal1' }; assert.equal((await route.POST(request({}))).status, 401);
   assert.equal(sent.length, 0);
   admin = { aal: 'aal2' }; assert.equal((await route.POST(request({ category: 'TypeError', source: 'render', message: 'secret' }))).status, 204);
   const payload = JSON.parse(sent[0][1].body).p_report;
   assert.equal(payload.category, 'TypeError'); assert.equal(payload.platform, 'admin'); assert.equal(payload.message, undefined);
   assert.equal(sent[0][1].headers.Authorization, 'Bearer verified-token');
+});
+test('QA owner diagnostics require the live server policy and still forward only the verified user token', async () => {
+  const admin = { id: 'qa-owner', sessionId: 'native-session', aal: 'aal1' };
+  const env = { NEXT_PUBLIC_SUPABASE_URL: 'https://uaulhuelcfkjwojtymmw.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'public-anon' };
+  let allowed = false, policyError = null;
+  const checks = [], sent = [];
+  const assurance = load('admin-web/lib/adminAssurance.ts', { 'server-only': {},
+    './supabaseAdmin': { serviceClient: () => ({ rpc: async (...args) => {
+      checks.push(args); return { data: allowed, error: policyError };
+    } }) }, globals: { process: { env } } });
+  const route = load('admin-web/app/api/diagnostics/route.ts', {
+    'next/headers': { cookies: async () => ({ get: () => ({ value: 'verified-owner-token' }) }) },
+    '@/lib/adminAuth': { getAdmin: async () => admin }, '@/lib/adminAssurance': assurance,
+    '../../../../shared/clientDiagnostics': shared,
+    globals: { process: { env }, fetch: async (...args) => { sent.push(args); return new Response(null, { status: 204 }); } },
+  });
+  const request = () => new Request('https://qa-admin.test/api/diagnostics', {
+    method: 'POST', headers: { origin: 'https://qa-admin.test', 'content-type': 'application/json' },
+    body: JSON.stringify({ category: 'TypeError', source: 'render' }),
+  });
+  assert.equal((await route.POST(request())).status, 401);
+  assert.equal(sent.length, 0);
+  allowed = true;
+  assert.equal((await route.POST(request())).status, 204);
+  assert.deepEqual(plain(checks[1]), ['triniti_admin_single_owner_access', { p_actor_id: admin.id, p_session_id: admin.sessionId }]);
+  assert.equal(sent[0][1].headers.Authorization, 'Bearer verified-owner-token');
+  assert.equal(sent[0][1].headers.apikey, 'public-anon');
+  // The next report cannot reuse an earlier successful policy decision.
+  allowed = false;
+  assert.equal((await route.POST(request())).status, 401);
+  allowed = true; policyError = { message: 'Policy lookup unavailable' };
+  assert.equal((await route.POST(request())).status, 401);
+  assert.equal(sent.length, 1);
 });

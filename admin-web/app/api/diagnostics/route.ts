@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { getAdmin } from '@/lib/adminAuth';
+import { canAccessOperations } from '@/lib/adminAssurance';
 import { sanitizeDiagnostic } from '../../../../shared/clientDiagnostics';
 
 export async function POST(request: Request) {
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     const value = JSON.parse(body);
     if (!value || typeof value !== 'object' || Array.isArray(value)) return new Response(null, { status: 400 });
     const admin = await getAdmin();
-    if (!admin || admin.aal !== 'aal2') return new Response(null, { status: 401 });
+    if (!admin || !await canAccessOperations(admin)) return new Response(null, { status: 401 });
     const payload = sanitizeDiagnostic({ name: value.category }, { ...value, platform: 'admin' });
     const token = (await cookies()).get('pc_admin_token')?.value;
     // Forward the verified user's token: the database binds identity and rate limits itself.

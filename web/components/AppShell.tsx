@@ -27,17 +27,17 @@ export async function AppShell({
     return (
       <div className="min-h-screen">
         <a href="#main-content" className={chrome.skipLink}>Skip to content</a>
-        <header className={chrome.surface + " sticky top-0 z-20 flex items-center justify-between gap-3 border-b px-6 py-3"}>
+        <header className={chrome.surface + " sticky top-0 z-20 flex items-center justify-between gap-3 border-b px-3 py-3 sm:px-6"}>
           <Link href="/" className="flex items-center gap-3">
             <span className="h-7 w-7 rounded-full border-2 border-pearl" aria-hidden />
-            <span className="font-display text-lg tracking-wide text-ink">Platinum Circles</span>
+            <span className="font-display text-base tracking-wide text-ink sm:text-lg">Platinum Circles</span>
           </Link>
           <Link href="/login" className="flex min-h-12 shrink-0 items-center rounded-full bg-pearl px-4 py-2 text-sm font-semibold text-on-pearl transition-opacity hover:opacity-90">
             Sign in
           </Link>
         </header>
         <main id="main-content" tabIndex={-1} className="flex justify-center px-6 py-8">
-          <div className="w-full max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[760px]">{children}</div>
+          <div className="w-full min-w-0 max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[760px]">{children}</div>
         </main>
       </div>
     );
@@ -69,7 +69,7 @@ export async function AppShell({
           </main>
         ) : (
           <main id="main-content" tabIndex={-1} className="flex justify-center px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-3 md:-mt-[60px] md:px-6 md:pb-10 md:pt-[76px]">
-            <div className="w-full max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[760px]">{children}</div>
+            <div className="w-full min-w-0 max-w-[640px] transition-[max-width] duration-200 [.nav-collapsed_&]:max-w-[760px]">{children}</div>
           </main>
         )}
       </div>

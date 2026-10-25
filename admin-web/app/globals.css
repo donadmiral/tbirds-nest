@@ -3,23 +3,24 @@
 /* ══════════════════════════════════════════════════════════════════════════
    Platinum Circles Operations - design tokens
    Appearance follows the device unless a light or dark preference is saved.
-   Every value below comes from the operations design, nothing invented.
+   Canvas, surfaces and ink match src/constants/tokens/light.ts and dark.ts.
+   Status text and chart series retain their accessible, distinct colors.
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root,
 [data-theme="light"] {
-  --on: 0, 0, 0;
-  --bg: #FAFAFA;
-  --rail: rgba(255, 255, 255, 0.82);
-  --panel: #FFFFFF;
-  --panel-2: #F5F5F5;
-  --topbar: rgba(250, 250, 250, 0.82);
-  --txt: #262626;
-  --txt-muted: #666666;
-  --txt-strong: #000000;
-  --accent: #000000;
-  --accent-rgb: 0, 0, 0;
-  --accent-2: #404040;
+  --on: 11, 30, 61;
+  --bg: #FFFFFF;
+  --rail: rgba(250, 250, 249, 0.94);
+  --panel: #FAFAF9;
+  --panel-2: #F4F3F1;
+  --topbar: rgba(250, 250, 249, 0.94);
+  --txt: #0B1E3D;
+  --txt-muted: rgba(11, 30, 61, 0.74);
+  --txt-strong: #0B1E3D;
+  --accent: #0B1E3D;
+  --accent-rgb: 11, 30, 61;
+  --accent-2: #263D5C;
   --accent-ink: #FFFFFF;
   --ok: #1A7F4B;
   --ok-rgb: 26, 127, 75;
@@ -33,11 +34,11 @@
   --vio-rgb: 62, 107, 153;
   --alert: #C4302B;
   --alert-ink: #FFFFFF;
-  --chip-bg: #EFEFEF;
-  --chip-fg: #262626;
+  --chip-bg: #F4F3F1;
+  --chip-fg: #0B1E3D;
   --pearl: #8A7A62;
-  --deep: #1A1A1A;
-  --line: rgba(0, 0, 0, 0.10);
+  --deep: #0B1E3D;
+  --line: rgba(11, 30, 61, 0.08);
   --c1: #3B6FD4;
   --c1-rgb: 59, 111, 212;
   --c2: #17976A;
@@ -49,19 +50,19 @@
 }
 
 [data-theme="dark"] {
-  --on: 255, 255, 255;
-  --bg: #000000;
-  --rail: rgba(0, 0, 0, 0.82);
-  --panel: #0B0B0B;
-  --panel-2: #161616;
-  --topbar: rgba(0, 0, 0, 0.82);
-  --txt: #F0F0F0;
-  --txt-muted: #A8A8A8;
-  --txt-strong: #FFFFFF;
-  --accent: #FFFFFF;
-  --accent-rgb: 255, 255, 255;
+  --on: 245, 243, 239;
+  --bg: #0A1220;
+  --rail: rgba(17, 27, 46, 0.94);
+  --panel: #111B2E;
+  --panel-2: #0E1626;
+  --topbar: rgba(17, 27, 46, 0.94);
+  --txt: #F5F3EF;
+  --txt-muted: rgba(245, 243, 239, 0.74);
+  --txt-strong: #F5F3EF;
+  --accent: #F5F3EF;
+  --accent-rgb: 245, 243, 239;
   --accent-2: #D4D4D4;
-  --accent-ink: #000000;
+  --accent-ink: #0B1E3D;
   --ok: #4CC38A;
   --ok-rgb: 76, 195, 138;
   --bad: #F1707B;
@@ -74,11 +75,11 @@
   --vio-rgb: 126, 166, 217;
   --alert: #F1707B;
   --alert-ink: #000000;
-  --chip-bg: #1F1F1F;
-  --chip-fg: #F0F0F0;
+  --chip-bg: #0E1626;
+  --chip-fg: #F5F3EF;
   --pearl: #C9BFB0;
-  --deep: #262626;
-  --line: rgba(255, 255, 255, 0.10);
+  --deep: #0E1626;
+  --line: rgba(245, 243, 239, 0.10);
   --c1: #6E9BEE;
   --c1-rgb: 110, 155, 238;
   --c2: #4FBE93;
@@ -91,19 +92,19 @@
 
 @media (prefers-color-scheme: dark) {
 :root[data-theme="system"] {
-  --on: 255, 255, 255;
-  --bg: #000000;
-  --rail: rgba(0, 0, 0, 0.82);
-  --panel: #0B0B0B;
-  --panel-2: #161616;
-  --topbar: rgba(0, 0, 0, 0.82);
-  --txt: #F0F0F0;
-  --txt-muted: #A8A8A8;
-  --txt-strong: #FFFFFF;
-  --accent: #FFFFFF;
-  --accent-rgb: 255, 255, 255;
+  --on: 245, 243, 239;
+  --bg: #0A1220;
+  --rail: rgba(17, 27, 46, 0.94);
+  --panel: #111B2E;
+  --panel-2: #0E1626;
+  --topbar: rgba(17, 27, 46, 0.94);
+  --txt: #F5F3EF;
+  --txt-muted: rgba(245, 243, 239, 0.74);
+  --txt-strong: #F5F3EF;
+  --accent: #F5F3EF;
+  --accent-rgb: 245, 243, 239;
   --accent-2: #D4D4D4;
-  --accent-ink: #000000;
+  --accent-ink: #0B1E3D;
   --ok: #4CC38A;
   --ok-rgb: 76, 195, 138;
   --bad: #F1707B;
@@ -116,11 +117,11 @@
   --vio-rgb: 126, 166, 217;
   --alert: #F1707B;
   --alert-ink: #000000;
-  --chip-bg: #1F1F1F;
-  --chip-fg: #F0F0F0;
+  --chip-bg: #0E1626;
+  --chip-fg: #F5F3EF;
   --pearl: #C9BFB0;
-  --deep: #262626;
-  --line: rgba(255, 255, 255, 0.10);
+  --deep: #0E1626;
+  --line: rgba(245, 243, 239, 0.10);
   --c1: #6E9BEE;
   --c1-rgb: 110, 155, 238;
   --c2: #4FBE93;
@@ -317,3 +318,36 @@ input::placeholder, textarea::placeholder { color: var(--txt-muted); opacity: 1;
 @media (pointer: coarse) { .pc-seg { min-width: 44px; min-height: 44px; } }
 [data-theme="dark"] .pc-wordmark { filter: invert(1); }
 @media (prefers-color-scheme: dark) { [data-theme="system"] .pc-wordmark { filter: invert(1); } }
+
+
+/* Flexible chrome keeps every desk reachable on phones, tablets and zoomed
+   desktop windows. Wide data tables scroll within their existing containers. */
+.pc-topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  min-height: 58px;
+  padding: 10px max(22px, env(safe-area-inset-right)) 10px 22px;
+}
+.pc-breadcrumb { min-width: 0; flex-wrap: wrap; overflow-wrap: anywhere; }
+.pc-topbar-actions { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 9px; min-width: 0; }
+.pc-staff-chip { min-width: 0; max-width: 100%; }
+.pc-staff-chip > :not(.pc-staff-name) { flex-shrink: 0; }
+.pc-staff-name { min-width: 0; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-workspace { padding: 22px max(22px, env(safe-area-inset-right)) 30px 22px; }
+.pc-rail-backdrop { position: fixed; inset: 0; z-index: 35; border: 0; background: rgba(11, 30, 61, 0.45); }
+.pc-side-rail { padding-bottom: env(safe-area-inset-bottom); }
+@media (max-width: 767px) {
+  .pc-topbar { padding: 10px max(12px, env(safe-area-inset-right)) 10px 12px; }
+  .pc-topbar-actions { margin-left: 0; }
+  .pc-command-trigger { max-width: none !important; flex-basis: 100% !important; }
+  .pc-workspace { padding: 18px max(12px, env(safe-area-inset-right)) 24px 12px; }
+  .pc-rail-spacer { width: 74px !important; flex-basis: 74px !important; }
+  .pc-side-rail[data-ready="false"] { width: 74px !important; overflow: hidden; }
+  .pc-staff-name { max-width: 110px; }
+  .pc-share-popover { left: 0; right: auto !important; width: min(262px, calc(100vw - 98px)) !important; }
+}
+@media (pointer: coarse) {
+  .pc-side-rail nav a, .pc-side-rail .pc-icon-btn, .pc-topbar .pc-icon-btn, .pc-command-trigger { min-width: 44px; min-height: 44px; }
+}

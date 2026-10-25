@@ -93,7 +93,7 @@ const SPLIT_GAP = 4;
 type DualLayoutMode = 'pip_front_small' | 'pip_rear_small' | 'split_vertical' | 'split_horizontal' | 'floating_bubble';
 type ParsedDualLayout = { nx: number; ny: number; scale: number; primaryCamera: 'rear' | 'front'; mode: DualLayoutMode };
 
-type RouteParams = { userIds?: string[]; startUserId?: string; userId?: string; highlightId?: string; highlightTitle?: string };
+type RouteParams = { userIds?: string[]; startUserId?: string; startStoryId?: string; userId?: string; highlightId?: string; highlightTitle?: string };
 type HoldoverMedia = { url: string; type: 'image' | 'video'; transform: { scale: number; translateNX: number; translateNY: number; fit: 'cover' | 'contain' } | null } | null;
 
 type EngagementState = { responses: Record<string, any>; counts: Record<string, number>; averages: Record<string, number>; quizCounts: Record<string, Record<string, number>> };
@@ -168,6 +168,7 @@ export default function StoryViewerScreen() {
     return params?.userId ? [params.userId] : [];
   }, [params?.userIds, params?.userId]);
   const startUserId = params?.startUserId || params?.userId;
+  const startStoryId = params?.startStoryId;
   const sessionKey = useMemo(() => `${myId ?? ''}:${userIds.join('|')}`, [userIds, myId]);
 
   const resumePosition = useMemo(() => {
@@ -357,15 +358,18 @@ export default function StoryViewerScreen() {
       nextUserCache.current.delete(cacheKey);
       const fresh = cached && cached.stories.every(story => {
         const expiry = (story as StoryRow & { _mediaExpiresAt?: number })._mediaExpiresAt;
-        return !expiry || expiry > Date.now() + 60000;
+        return Date.parse(story.expires_at) > Date.now() && (!expiry || expiry > Date.now() + 60000);
       });
       const [userStories, profileRes] = fresh ? [cached!.stories, { data: cached!.profile }] : await Promise.all([
         highlightId ? storiesService.getHighlightStories(highlightId) : storiesService.getUserStories(currentUserId),
         supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', currentUserId).maybeSingle(),
       ]);
       if (!current()) return;
-      setStories(userStories); setLoadedViewer(viewer); setStoryUser(profileRes.data || null);
-      if (!highlightId && !resumeConsumedRef.current && resumeStoryIndex >= 0 && resumeStoryIndex < userStories.length) {
+      const targetStory = startStoryId && currentUserId === startUserId ? userStories.findIndex(s => s.id === startStoryId) : undefined;
+      setStories(targetStory === -1 ? [] : userStories); setLoadedViewer(viewer); setStoryUser(profileRes.data || null);
+      if (targetStory !== undefined) {
+        setStoryIndex(Math.max(0, targetStory));
+      } else if (!highlightId && !resumeConsumedRef.current && resumeStoryIndex >= 0 && resumeStoryIndex < userStories.length) {
         setStoryIndex(resumeStoryIndex); resumeConsumedRef.current = true;
       } else {
         const firstUnseen = highlightId ? 0 : userStories.findIndex(s => !s.is_viewed);
@@ -373,7 +377,7 @@ export default function StoryViewerScreen() {
       }
     } catch { if (current()) { setStories([]); setMediaError(true); } }
     finally { if (current()) setLoading(false); }
-  }, [currentUserId, myId, highlightId, resumeStoryIndex]);
+  }, [currentUserId, myId, highlightId, resumeStoryIndex, startStoryId, startUserId]);
   useEffect(() => { void loadForCurrentUser(); return () => { loadGeneration.current++; }; }, [loadForCurrentUser]);
   useEffect(() => { nextUserCache.current.clear(); preloadStatus.current.clear(); setHoldoverMedia(null); setViewers([]); setViewersOpen(false); setReplyText(''); }, [myId]);
 

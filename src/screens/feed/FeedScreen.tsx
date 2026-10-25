@@ -56,6 +56,7 @@ import * as Clipboard from 'expo-clipboard';
 import DiscoverTile from '../../components/feed/DiscoverTile';
 import * as Haptics from 'expo-haptics';
 import { supabase } from '../../services/supabase';
+import { sharePostToConversation } from '../../services/postSharing';
 import { useAuthStore } from '../../stores/authStore';
 import StoryBar from '../../components/stories/StoryStrip';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
@@ -414,6 +415,7 @@ export default function FeedScreen({ navigation }: any) {
   const [likersKind, setLikersKind] = useState<'likes' | 'reposts' | 'bookmarks'>('likes');
   const [likersLoaded, setLikersLoaded] = useState(false);
   const [wtfSuggestions, setWtfSuggestions] = useState<any[]>([]);
+  const sendingPost = useRef(false);
   const [sendPost, setSendPost] = useState<Post | null>(null);
   // Who viewed a video post: owner-only list behind the eye badge.
   const [viewersPost, setViewersPost] = useState<Post | null>(null);
@@ -430,6 +432,9 @@ export default function FeedScreen({ navigation }: any) {
   const [sendCommunities, setSendCommunities] = useState<any[]>([]);
   const [sendBusy, setSendBusy] = useState(false);
   const [sendLoading, setSendLoading] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const sendGeneration = useRef(0);
+  useEffect(() => { sendGeneration.current++; setSendPost(null); setSendConvs([]); setSendGroups([]); setSendCommunities([]); return () => { sendGeneration.current++; }; }, [userId]);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
   const [threadingPost, setThreadingPost] = useState<Post | null>(null);
   const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
@@ -1326,81 +1331,75 @@ export default function FeedScreen({ navigation }: any) {
 
   const openSendSheet = useCallback(async (post: Post) => {
     if (!userId) return;
-    setSendPost(post);
-    setSendConvs([]);
-    setSendLoading(true);
-    const { data: convs } = await supabase.from('conversations')
-      .select('id, user_1, user_2, last_message_time')
-      .eq('type', 'direct')
-      .or('context.is.null,context.eq.personal')
-      .or(`user_1.eq.${userId},user_2.eq.${userId}`)
-      .order('last_message_time', { ascending: false })
-      .limit(12);
-    const rows = convs ?? [];
-    const otherIds = Array.from(new Set(rows.map((c: any) => (c.user_1 === userId ? c.user_2 : c.user_1)).filter(Boolean)));
-    const pm: Record<string, any> = {};
-    if (otherIds.length > 0) {
-      const { data: profs } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', otherIds);
-      (profs ?? []).forEach((p: any) => { pm[p.id] = p; });
-    }
-    setSendConvs(rows.map((c: any) => { const oid = c.user_1 === userId ? c.user_2 : c.user_1; return { ...c, other: pm[oid] ?? null, otherId: oid }; }));
-    // Groups you belong to: sharing drops the post into the group chat for everyone in it.
+    const generation = ++sendGeneration.current;
+    const current = () => generation === sendGeneration.current && useAuthStore.getState().session?.user.id === userId;
+    setSendPost(post); setSendConvs([]); setSendGroups([]); setSendCommunities([]);
+    setSendLoading(true); setSendError(null);
     try {
-      const { data: mem } = await supabase.from('conversation_members').select('conversation_id').eq('user_id', userId);
-      const gids = Array.from(new Set((mem ?? []).map((r: any) => r.conversation_id).filter(Boolean)));
-      if (gids.length > 0) {
-        const { data: groups } = await supabase.from('conversations').select('id, group_name, group_emoji, last_message_time').eq('is_group', true).in('id', gids).order('last_message_time', { ascending: false }).limit(20);
-        setSendGroups((groups ?? []).map((g: any) => ({ ...g, otherId: null, group: true })));
-      } else { setSendGroups([]); }
-    } catch { setSendGroups([]); }
-    // Communities you belong to: sharing goes to the community's group chat (created on first share, members synced server-side).
-    try {
-      const { data: cm } = await supabase.from('community_members').select('community_id').eq('user_id', userId);
-      const cids = Array.from(new Set((cm ?? []).map((r: any) => r.community_id).filter(Boolean)));
-      if (cids.length > 0) {
-        const { data: comms } = await supabase.from('communities').select('id, name, emoji, member_count').in('id', cids).order('name');
-        setSendCommunities(comms ?? []);
-      } else { setSendCommunities([]); }
-    } catch { setSendCommunities([]); }
-    setSendLoading(false);
+      const [direct, memberships, communities] = await Promise.all([
+        supabase.from('conversations').select('id, user_1, user_2, last_message_time')
+          .eq('type', 'direct').or('context.is.null,context.eq.personal')
+          .or(`user_1.eq.${userId},user_2.eq.${userId}`).order('last_message_time', { ascending: false }).limit(30),
+        supabase.from('conversation_members').select('conversation_id').eq('user_id', userId).limit(100),
+        supabase.from('community_members').select('community_id').eq('user_id', userId).limit(100),
+      ]);
+      if (direct.error || memberships.error || communities.error) throw new Error('Your conversations could not be loaded. Please retry.');
+      const rows = direct.data ?? [];
+      const otherIds = Array.from(new Set(rows.map(c => c.user_1 === userId ? c.user_2 : c.user_1).filter(Boolean)));
+      const gids = Array.from(new Set((memberships.data ?? []).map(r => r.conversation_id).filter(Boolean)));
+      const cids = Array.from(new Set((communities.data ?? []).map(r => r.community_id).filter(Boolean)));
+      const [profiles, groups, communityRows] = await Promise.all([
+        otherIds.length ? supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', otherIds) : { data: [], error: null },
+        gids.length ? supabase.from('conversations').select('id, group_name, group_emoji, last_message_time').eq('is_group', true).in('id', gids).order('last_message_time', { ascending: false }).limit(30) : { data: [], error: null },
+        cids.length ? supabase.from('communities').select('id, name, emoji, member_count').in('id', cids).order('name').limit(30) : { data: [], error: null },
+      ]);
+      if (profiles.error || groups.error || communityRows.error) throw new Error('Your conversations could not be loaded. Please retry.');
+      if (!current()) return;
+      const profileMap = new Map((profiles.data ?? []).map(p => [p.id, p]));
+      setSendConvs(rows.map(c => { const otherId = c.user_1 === userId ? c.user_2 : c.user_1; return { ...c, other: profileMap.get(otherId), otherId }; }));
+      setSendGroups((groups.data ?? []).map(g => ({ ...g, otherId: null, group: true })));
+      setSendCommunities(communityRows.data ?? []);
+    } catch (e) { if (current()) setSendError(e instanceof Error ? e.message : 'Conversations could not be loaded. Please retry.'); }
+    finally { if (current()) setSendLoading(false); }
   }, [userId]);
 
 
   const sendPostTo = useCallback(async (conv: any) => {
-    if (!userId || !sendPost || sendBusy) return;
+    if (!userId || !sendPost || sendingPost.current) return;
+    sendingPost.current = true;
+    const generation = sendGeneration.current;
     setSendBusy(true);
     try {
-      const { error } = await supabase.from('messages').insert({
-        conversation_id: conv.id, sender_id: userId, receiver_id: conv.otherId ?? null,
-        text: null, shared_post_id: sendPost.id,
-      });
-      if (error) throw error;
-      recordShare(sendPost);
-      await supabase.from('conversations').update({ last_message: 'Shared a post', last_message_time: new Date().toISOString(), last_message_sender_id: userId }).eq('id', conv.id);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      let conversationId = conv.id;
+      if (conv.community) {
+        const result = await supabase.rpc('ensure_community_conversation', { p_community: conv.id });
+        if (result.error || !result.data) throw new Error('The community conversation could not be opened. Please retry.');
+        conversationId = result.data;
+      }
+      const result = await sharePostToConversation(userId, sendPost.id, conversationId, conv.otherId ?? null);
+      if (generation !== sendGeneration.current || useAuthStore.getState().session?.user.id !== userId) return;
+      if (result.status === 'pending') {
+        Alert.alert('Share saved', 'This post is waiting for delivery. It will retry when your connection returns.');
+      } else if (result.status !== 'confirmed') {
+        Alert.alert('Could not share', 'Open Messages to review or retry this share.');
+        return;
+      } else {
+        recordShare(sendPost);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
       setSendPost(null);
       setSendGroups([]);
       setSendCommunities([]);
     } catch (e: any) {
-      Alert.alert('Could not send', e?.message || 'Try again.');
+      if (generation === sendGeneration.current && useAuthStore.getState().session?.user.id === userId) Alert.alert('Could not send', e?.message || 'Try again.');
     } finally {
+      sendingPost.current = false;
       setSendBusy(false);
     }
-  }, [userId, sendPost, sendBusy]);
+  }, [userId, sendPost]);
 
-  const sendPostToCommunity = useCallback(async (community: any) => {
-    if (!userId || !sendPost || sendBusy) return;
-    setSendBusy(true);
-    try {
-      const { data: convId, error } = await supabase.rpc('ensure_community_conversation', { p_community: community.id });
-      if (error || !convId) throw error || new Error('No conversation');
-      setSendBusy(false);
-      await sendPostTo({ id: convId as string, otherId: null, group: true });
-    } catch (e: any) {
-      setSendBusy(false);
-      Alert.alert('Could not send', e?.message || 'Try again.');
-    }
-  }, [userId, sendPost, sendBusy, sendPostTo]);
+  const sendPostToCommunity = useCallback((community: any) =>
+    sendPostTo({ id: community.id, otherId: null, community: true }), [sendPostTo]);
 
   const addPostToStory = useCallback((post: Post) => {
     const author = profilesMap[post.user_id];
@@ -2059,7 +2058,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <View style={s.postMetaTxt}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
                 <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />
-                {((author as any)?.verified_tier || (author as any)?.is_verified) ? <VerifiedBadge tier={(author as any)?.verified_tier} size={13} /> : null}
+                <VerifiedBadge userId={(author as any)?.id} size={13} />
                 {(() => { const list = collabs[post.id] || []; if (!list.length) return null; if (list.length === 1) { const x: any = list[0]; return (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                     <Text style={[s.postAuthor, { fontWeight: '800' }]}>×</Text>
@@ -2841,7 +2840,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <View style={s.menuHandle} />
             <Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, paddingHorizontal: 16, paddingBottom: 8 }}>Send to</Text>
             {sendLoading && <ActivityIndicator size="small" color={getTheme().brand.base} style={{ paddingVertical: 18 }} />}
-            {!sendLoading && sendConvs.length === 0 && sendGroups.length === 0 && sendCommunities.length === 0 && <Text style={{ fontSize: 13, color: getTheme().ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
+            {sendError ? <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}><Text accessibilityRole="alert" style={{ color: getTheme().ink.primary }}>{sendError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => { if (sendPost) void openSendSheet(sendPost); }} style={{ paddingVertical: 12 }}><Text style={{ color: getTheme().brand.base, fontWeight: '700' }}>Retry</Text></TouchableOpacity></View> : null}
+            {sendBusy ? <ActivityIndicator accessibilityLabel="Sending post" size="small" color={getTheme().brand.base} /> : null}
+            {!sendLoading && !sendError && sendConvs.length === 0 && sendGroups.length === 0 && sendCommunities.length === 0 && <Text style={{ fontSize: 13, color: getTheme().ink.muted, paddingHorizontal: 16, paddingBottom: 16 }}>No conversations yet. Start one from Messages first.</Text>}
             <ScrollView style={{ maxHeight: 320 }}>
               {sendConvs.map((c: any) => (
                 <TouchableOpacity key={c.id} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 12 }} activeOpacity={0.8} onPress={() => sendPostTo(c)} disabled={sendBusy}>

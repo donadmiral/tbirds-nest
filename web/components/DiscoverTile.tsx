@@ -58,7 +58,7 @@ export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: st
         >
           {post.author_name}
         </span>
-        {verified ? <VerifiedBadge tier={tier} size={12} /> : null}
+        {verified ? <VerifiedBadge userId={post.author_id} tier={tier} size={12} /> : null}
       </span>
       <button
         onClick={hide}

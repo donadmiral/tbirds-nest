@@ -8,7 +8,7 @@ import VideoThumb from '../../components/VideoThumb';
  * UserProfileScreen.tsx
  * Design A — Classic iOS Style contact info, Clean Premium language.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
   ActivityIndicator, StatusBar, Alert, Share, RefreshControl, Dimensions,
@@ -24,6 +24,8 @@ import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
 import { Image as ExpoImage } from 'expo-image';
 import VerifiedBadge from '../../components/VerifiedBadge';
+
+import { reportAccount } from '../../../shared/accountReporting';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -109,10 +111,24 @@ export default function UserProfileScreen() {
       { text: 'Restrict', style: 'destructive', onPress: () => supabase.rpc('set_restriction', { p_user: targetId, p_on: true }).then(({ error }) => { if (error) Alert.alert('Could not restrict', error.message); else setRestricted(true); }) },
     ]);
   };
+  const reportPending = useRef(false);
+  const reportOrBlock = () => {
+    Alert.alert('Account safety', 'Reports are private and are reviewed by the safety team.', [
+      { text: 'Report impersonation', onPress: async () => {
+        if (!myId || reportPending.current) return;
+        reportPending.current = true;
+        try { Alert.alert('Report received', await reportAccount(supabase, myId, targetId, 'impersonation')); }
+        catch (error) { Alert.alert('Report not sent', error instanceof Error ? error.message : 'Please try again.'); }
+        finally { reportPending.current = false; }
+      } },
+      { text: 'Block', style: 'destructive', onPress: confirmBlock },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
   const moreMenu = () => {
     Alert.alert(profile?.full_name || 'Options', undefined, [
       { text: restricted ? 'Unrestrict' : 'Restrict', onPress: toggleRestrict },
-      { text: 'Block', style: 'destructive', onPress: confirmBlock },
+      { text: 'Report or block', style: 'destructive', onPress: reportOrBlock },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };

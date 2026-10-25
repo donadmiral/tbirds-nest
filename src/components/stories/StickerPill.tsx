@@ -52,7 +52,7 @@ export default function StickerPill({ label, kind, onPress, variant = 0, userId 
     <View style={s.row}>
       {cfg.icon ? <Feather name={cfg.icon} size={14} color={fg} style={{ marginRight: 5 }} /> : null}
       <Text style={[s.label, { color: nameColor }]} numberOfLines={1}>{text}</Text>
-      {kind === 'mention' && tier ? <View style={{ marginLeft: 5 }}><VerifiedBadge tier={tier as any} size={15} /></View> : null}
+      {kind === 'mention' && userId ? <View style={{ marginLeft: 5 }}><VerifiedBadge userId={userId} size={15} /></View> : null}
     </View>
   );
 

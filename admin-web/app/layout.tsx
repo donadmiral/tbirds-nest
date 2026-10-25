@@ -20,6 +20,8 @@ const jetMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover' as const };
+
 export const metadata: Metadata = {
   title: "Platinum Circles Operations",
   description: "The operations desk for Platinum Circles.",

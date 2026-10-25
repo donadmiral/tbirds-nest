@@ -90,6 +90,8 @@ function badgeFor(type: string): { icon: any; bg: string } | null {
     case 'story_reaction':   return { icon: 'zap', bg: '#E8A33D' };
     case 'message_reaction': return { icon: 'smile', bg: '#E8A33D' };
     case 'payment_received': return { icon: 'credit-card', bg: '#2F9E63' };
+    case 'job_interview':
+    case 'job_status':
     case 'job_application':  return { icon: 'briefcase', bg: '#0B1E3D' };
     case 'job_referral':     return { icon: 'send', bg: '#0B1E3D' };
     case 'story_mention':    return { icon: 'at-sign', bg: '#7C5CFF' };
@@ -176,6 +178,10 @@ function lineFor(n: Notif): { lead: string; rest: string } {
 
     case 'job_application':
       return { lead, rest: n.body_preview ? ` applied for ${n.body_preview}` : ' applied to your job' };
+
+    case 'job_status':
+    case 'job_interview':
+      return { lead: n.message || 'Your application was updated', rest: '' };
 
     case 'job_referral':
       return { lead, rest: n.body_preview ? ' referred you for ' + n.body_preview : ' referred you for a job' };
@@ -336,8 +342,10 @@ export default function NotificationsScreen({ navigation }: any) {
       navigation.navigate('ListingDetail', { listingId: d.listing_id });
     } else if (n.type === 'payment_received' && d.conversation_id) {
       navigation.navigate('Messages', { screen: 'Chat', params: { conversationId: d.conversation_id } });
-    } else if (n.type === 'job_application' && d.job_id) {
-      navigation.navigate('Jobs');
+    } else if ((n.type === 'job_application' || (n.type === 'job_status' && d.status === 'withdrawn')) && typeof d.job_id === 'string') {
+      navigation.navigate('Applicants', { job: { id: d.job_id, title: d.job_title } });
+    } else if (n.type === 'job_status' || n.type === 'job_interview') {
+      navigation.navigate('MyApplications');
     } else if (n.type === 'community_invite' && d.community_id) {
       navigation.navigate('Community', { communityId: d.community_id, name: d.community_name || 'Community' });
     } else if (n.type === 'business_member' && d.business_id) {

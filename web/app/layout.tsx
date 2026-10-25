@@ -1,6 +1,7 @@
 import { ClientDiagnostics } from "@/components/ClientDiagnostics";
 import type { Metadata } from "next";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -32,17 +33,17 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${marcellus.variable} ${instrument.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${marcellus.variable} ${instrument.variable}`}>
       <head>
         {/* Applies the saved appearance before paint so dark users see no flash. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{var t=localStorage.getItem('pc:theme')||'light';if(t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}",
+            __html: "(function(){var t='system';try{var s=localStorage.getItem('pc:theme');if(s==='dark'||s==='light')t=s}catch(e){}document.documentElement.classList.toggle('dark',t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))})()",
           }}
         />
       </head>
       <body suppressHydrationWarning>
-        {children}<ClientDiagnostics />
+        <ThemeProvider>{children}</ThemeProvider><ClientDiagnostics />
         {/* Global, so a dropped connection is reported on every route. */}
         <ConnectionBanner />
       </body>

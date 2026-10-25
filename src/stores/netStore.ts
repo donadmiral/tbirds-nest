@@ -95,7 +95,7 @@ export const useNetStore = create<NetState>()(
   )
 );
 
-async function waitForOutboxHydration(): Promise<void> {
+export async function waitForOutboxHydration(): Promise<void> {
   if (useNetStore.persist.hasHydrated()) return;
   if (hydrationError) throw hydrationError;
   await new Promise<void>((resolve, reject) => {

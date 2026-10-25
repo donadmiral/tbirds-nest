@@ -606,7 +606,7 @@ const swipeActions = (item: Conversation) => (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 1 }}>
                 <TierName tier={(item as any).type !== 'group' ? ((item as any).other_verified_tier ?? (((item as any).other_is_verified) ? 'business' : null)) : null} baseStyle={[s.cardName, hasUnread && s.cardNameBold, { flexShrink: 1, flex: 0 }]} text={item.other_name} />
-                {(((item as any).other_verified_tier || (item as any).other_is_verified) && (item as any).type !== 'group') ? <VerifiedBadge tier={(item as any).other_verified_tier} size={14} /> : null}
+                {(((item as any).other_verified_tier || (item as any).other_is_verified) && (item as any).type !== 'group') ? <VerifiedBadge userId={item.other_user_id} tier={(item as any).other_verified_tier} size={14} /> : null}
               </View>
               {item.is_muted && <Text style={{ fontSize: 11 }}>🔕</Text>}
               {item.is_archived && <View style={s.archivedBadge}><Text style={s.archivedTxt}>Archived</Text></View>}

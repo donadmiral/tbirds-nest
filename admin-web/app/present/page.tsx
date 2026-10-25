@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { requireDesk } from '@/lib/adminAuth';
 import PresentBuilder from '@/components/PresentBuilder';
+import { deploymentEnvironment } from '@/lib/operationsReporting';
 
 /**
  * The builder is a desk tool, not a desk. It carries no rail and no topbar so
@@ -8,5 +9,5 @@ import PresentBuilder from '@/components/PresentBuilder';
  */
 export default async function PresentPage() {
   const admin = await requireDesk('/dashboard');
-  return <PresentBuilder by={admin.email} role={admin.role} env="Production" />;
+  return <PresentBuilder by={admin.email} role={admin.role} env={deploymentEnvironment(process.env.VERCEL_ENV,process.env.NODE_ENV).label} />;
 }

@@ -209,7 +209,7 @@ export async function getCatchupFeed(limit = 30, mode: string = "all"): Promise<
 export async function getUserStories(userId: string): Promise<StoryRow[]> {
   const supabase = createClient();
   const { data, error } = await supabase.rpc("get_user_stories", { p_user_id: userId });
-  if (error) return [];
+  if (error) throw new Error("Stories could not be loaded. Please try again.");
   return hydrateStoryMedia((data ?? []) as StoryRow[], supabase);
 }
 

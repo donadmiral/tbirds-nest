@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { flagsService } from './flagsService';
 import { authorId as currentAuthorId } from '../stores/actorStore';
+import { loadMyApplicationPage, withdrawApplication, type ApplicantCursor, type MyApplicationPage } from '../../shared/hiring';
 
 /**
  * Canonical jobs service. Every jobs call in the app goes through this.
@@ -380,24 +381,18 @@ export const jobsService = {
   },
 
   async getMyApplications(userId: string): Promise<JobApplication[]> {
-    const { data, error } = await supabase
-      .from('job_applications')
-      .select('*')
-      .eq('applicant_id', userId)
-      .order('applied_at', { ascending: false });
-    if (error) {
-      console.log('[jobsService.getMyApplications]', error.message);
-      return [];
-    }
-    if (!data || data.length === 0) return [];
-    const jobIds = Array.from(new Set(data.map((a: any) => a.job_id)));
-    const { data: jobsData } = await supabase
-      .from('jobs')
-      .select('*')
-      .in('id', jobIds);
-    const jobMap: Record<string, Job> = {};
-    (jobsData || []).forEach((j: any) => { jobMap[j.id] = j as Job; });
-    return data.map((a: any) => ({ ...a, job: jobMap[a.job_id] })) as JobApplication[];
+    if (!userId) throw new Error('Sign in to see your applications.');
+    // The home badge needs only a bounded preview. The applications screen
+    // consumes the cursor so older applications remain reachable.
+    return (await loadMyApplicationPage<JobApplication>(supabase)).applications;
+  },
+
+  async getMyApplicationsPage(cursor: ApplicantCursor | null = null): Promise<MyApplicationPage<JobApplication>> {
+    return loadMyApplicationPage<JobApplication>(supabase, cursor);
+  },
+
+  async withdrawApplication(application: JobApplication): Promise<JobApplication> {
+    return withdrawApplication(supabase, application);
   },
 
   async getApplicationsForJob(jobId: string): Promise<JobApplication[]> {

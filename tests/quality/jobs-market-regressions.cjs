@@ -23,7 +23,10 @@ function loadModule(file, client) {
   };
   vm.runInNewContext(code, {
     module, exports: module.exports,
-    require: (id) => { assert.ok(id in imports, `Unexpected import ${id}`); return imports[id]; },
+    require: (id) => {
+      if (id === '../../shared/hiring') return loadModule('shared/hiring.ts', client);
+      assert.ok(id in imports, `Unexpected import ${id}`); return imports[id];
+    },
     console: { log() {} }, Date, Map, Set, Number, Error,
   }, { filename: file });
   return module.exports;
@@ -156,6 +159,13 @@ for (const file of ['web/lib/jobs.ts', 'src/services/jobsService.ts']) {
 test('native: applicant query failures surface to the employer retry state', async () => {
   const { jobsService } = loadModule('src/services/jobsService.ts', mockClient({ error: new Error('applicants unavailable') }));
   await assert.rejects(jobsService.getApplicationsForJob('job'), /applicants unavailable/);
+});
+test('native: my applications surface a failed page instead of reporting an empty history', async () => {
+  const client = mockClient({ rpcError: new Error('applications unavailable') });
+  const { jobsService } = loadModule('src/services/jobsService.ts', client);
+  await assert.rejects(jobsService.getMyApplications('viewer'), /applications unavailable/);
+  assert.equal(client.calls[0].name, 'my_application_page');
+  assert.equal(client.calls[0].args.p_limit, 25);
 });
 test('native: recruiter updates cannot overwrite a withdrawn application', async () => {
   const client = mockClient();

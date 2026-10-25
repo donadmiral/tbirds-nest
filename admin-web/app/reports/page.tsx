@@ -99,6 +99,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   return (
     <Shell admin={admin} active="/reports" title="Reports" sub={`${total} open reports in your assigned categories. Up to ${SIZE} per category on each page.`}>
+      {allowListings && <Link href="/market/reviews" className="mb-4 inline-block underline">Seller review reports</Link>}
       {unified.length === 0 ? (
         <div className="rounded-[12px] border border-dashed border-[#17181C]/15 bg-white p-12 text-center">
           <p className="text-sm font-bold text-[#17181C]">{total === 0 ? 'Nothing reported.' : 'No reports on this page.'}</p>

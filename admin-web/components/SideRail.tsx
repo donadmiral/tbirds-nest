@@ -44,6 +44,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [compactViewport, setCompactViewport] = useState(false);
   const [closed, setClosed] = useState<string[]>([]);
   const [pins, setPins] = useState<string[]>([]);
   const [peek, setPeek] = useState(false);
@@ -70,7 +71,12 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
     setCollapsed(read<boolean>(K_COLLAPSED, false));
     setClosed(read<string[]>(K_CLOSED, []));
     setPins(read<string[]>(K_PINS, []));
+    const media = window.matchMedia('(max-width: 767px)');
+    const resize = () => { setCompactViewport(media.matches); setPeek(false); };
+    resize();
+    media.addEventListener('change', resize);
     setReady(true);
+    return () => media.removeEventListener('change', resize);
   }, []);
 
   // A count that grows gets one short pulse, then holds still.
@@ -87,7 +93,8 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
     return () => clearTimeout(t);
   }, [counts]);
 
-  const open = !collapsed || peek;
+  const effectiveCollapsed = collapsed || compactViewport;
+  const open = !effectiveCollapsed || peek;
   const pinned = pins.map(h => byHref[h]).filter(Boolean) as RailItem[];
 
   const measure = useCallback(() => {
@@ -122,6 +129,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
   }, [menu]);
 
   function toggleCollapse() {
+    if (compactViewport) { setPeek(value => !value); return; }
     const next = !collapsed;
     setCollapsed(next);
     setPeek(false);
@@ -143,18 +151,19 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
   // Hovering a collapsed rail opens it as an overlay, but only after a real
   // dwell. Brushing past with the pointer must never move the interface.
   function railEnter() {
-    if (!collapsed) return;
+    if (!collapsed || compactViewport) return;
     if (peekTimer.current) clearTimeout(peekTimer.current);
     peekTimer.current = setTimeout(() => setPeek(true), 400);
   }
 
   function railLeave() {
     if (peekTimer.current) clearTimeout(peekTimer.current);
-    setPeek(false);
+    if (!compactViewport) setPeek(false);
     setHover(null);
   }
 
   function navClick(e: React.MouseEvent, href: string) {
+    setPeek(false);
     if (href !== active) return;
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -166,13 +175,13 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
     setMenu({ href: item.href, label: item.label, x: Math.min(e.clientX, window.innerWidth - 190), y: e.clientY });
   }
 
-  const width = collapsed ? W_RAIL : W_OPEN;
+  const width = effectiveCollapsed ? W_RAIL : W_OPEN;
   const shownWidth = open ? W_OPEN : W_RAIL;
 
   function row(item: RailItem, inPinned: boolean) {
     const on = active === item.href;
     const n = counts[item.href] || 0;
-    const showTip = collapsed && !peek && hover === (inPinned ? 'pin:' : '') + item.href;
+    const showTip = effectiveCollapsed && !peek && hover === (inPinned ? 'pin:' : '') + item.href;
     return (
       <div key={(inPinned ? 'pin:' : '') + item.href} style={{ position: 'relative' }}>
         <Link
@@ -191,7 +200,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
             padding: open ? '7px 9px' : '7px 0', marginBottom: 1,
             justifyContent: open ? 'flex-start' : 'center',
             borderRadius: 8, fontSize: 12.8, fontWeight: on ? 600 : 500, textDecoration: 'none',
-            color: on ? 'var(--txt-strong)' : 'rgba(var(--on),0.55)',
+            color: on ? 'var(--txt-strong)' : 'var(--txt-muted)',
             background: on && inPinned ? 'rgba(var(--on),0.075)' : 'transparent',
             transition: 'color 160ms ' + EASE + ', background 160ms ' + EASE,
           }}
@@ -243,13 +252,18 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
 
   return (
     <>
-      <div style={{ flex: '0 0 ' + width + 'px', width, transition: ready ? 'width 200ms ' + EASE + ', flex-basis 200ms ' + EASE : undefined }} />
+      <div className="pc-rail-spacer" style={{ flex: '0 0 ' + width + 'px', width, transition: ready ? 'width 200ms ' + EASE + ', flex-basis 200ms ' + EASE : undefined }} />
+
+      {compactViewport && peek ? <button type="button" aria-label="Close navigation" className="pc-rail-backdrop" onClick={() => setPeek(false)} /> : null}
 
       <aside
+        className="pc-side-rail"
+        data-ready={ready}
+        onKeyDown={event => { if (event.key === 'Escape') setPeek(false); }}
         onMouseEnter={railEnter}
         onMouseLeave={railLeave}
         style={{
-          position: 'fixed', top: 0, left: 0, height: '100vh', width: shownWidth, zIndex: 40,
+          position: 'fixed', top: 0, left: 0, height: '100dvh', width: shownWidth, zIndex: 40,
           display: 'flex', flexDirection: 'column',
           background: 'var(--rail)',
           backdropFilter: 'blur(26px) saturate(1.15)', WebkitBackdropFilter: 'blur(26px) saturate(1.15)',
@@ -272,7 +286,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
             </div>
           ) : null}
           {open ? (
-            <button type="button" onClick={toggleCollapse} className="pc-icon-btn" title={collapsed ? 'Keep expanded' : 'Collapse rail'}
+            <button type="button" onClick={toggleCollapse} className="pc-icon-btn" aria-label={compactViewport ? 'Close navigation' : collapsed ? 'Keep expanded' : 'Collapse rail'} title={compactViewport ? 'Close navigation' : collapsed ? 'Keep expanded' : 'Collapse rail'}
               style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" style={{ stroke: 'var(--txt-muted)' }}>
                 <path d={collapsed ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'} strokeLinecap="round" strokeLinejoin="round" />
@@ -356,6 +370,11 @@ export default function SideRail({ groups, counts, active, email, roleLabel }: {
               </button>
             </div>
           )}
+          <Link href="/security?setup=1" onClick={() => setPeek(false)} className="pc-nav" aria-label="Account security" title="Account security"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: open ? 'flex-start' : 'center', gap: 8, minHeight: 44, width: open ? '100%' : 44, margin: '6px auto 0', padding: open ? '8px 9px' : 8, borderRadius: 8, color: 'var(--txt-muted)', fontSize: 11.8, fontWeight: 600, textDecoration: 'none' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z" /><path d="m8.5 12 2.3 2.3 4.7-4.7" /></svg>
+            {open ? <span>Account security</span> : null}
+          </Link>
         </div>
       </aside>
 

@@ -10,11 +10,12 @@ export type MessageIntent = {
   thumbnail_url: string | null;
   reply_to_id: string | null;
   view_limit: number | null;
+  shared_post_id?: string | null;
 };
 type Client = { from(name: string): any };
 export type MessageReceipt = MessageIntent & { created_at: string; [key: string]: unknown };
 export type MessageDelivery = { status: 'confirmed'; row: MessageReceipt } | { status: 'pending' | 'rejected' | 'conflict' };
-const fields = ['id','conversation_id','sender_id','receiver_id','text','media_url','media_type','thumbnail_url','reply_to_id','view_limit'] as const;
+const fields = ['id','conversation_id','sender_id','receiver_id','text','media_url','media_type','thumbnail_url','reply_to_id','view_limit','shared_post_id'] as const;
 
 export function makeMessageId(): string {
   const bytes = new Uint8Array(16);
@@ -26,7 +27,7 @@ export function makeMessageId(): string {
 }
 
 function matches(row: any, intent: MessageIntent): row is MessageReceipt {
-  return !!row && typeof row.created_at === 'string' && Number.isFinite(Date.parse(row.created_at)) && fields.every(field => (row[field] ?? null) === intent[field]);
+  return !!row && typeof row.created_at === 'string' && Number.isFinite(Date.parse(row.created_at)) && fields.every(field => (row[field] ?? null) === (intent[field] ?? null));
 }
 
 async function bounded(query: any): Promise<any> {

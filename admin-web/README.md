@@ -2,6 +2,12 @@
 
 Use the staff account created in the same Supabase project as this deployment. The sign-in panel identifies the backend as QA, production, or unverified. A Supabase dashboard login and an IntoBank account are separate identities and do not grant Platinum staff permission.
 
+## Single-owner QA access
+
+MFA remains required by default. The isolated QA project can explicitly configure one existing active `super_admin` in the private `admin_ops.single_owner_qa_policy` table. No policy is enabled by the migration. Neither clients nor the service role can read or edit that table; only the server can ask the session-bound eligibility RPC. The admin server accepts this exception only for the exact QA Supabase URL. Password authentication, native session validation, staff roles, command audit and idempotency remain enforced.
+
+Adding or reactivating another active staff member, or deactivating/demoting the owner, automatically retires the exception with an audit record. Removing that staff member again does not re-enable it. Staff changes and command admission share a database lock so a roster change cannot race admission. The owner can still choose **Account security** at `/security?setup=1` to enroll an authenticator. Existing MFA-protected password recovery continues to require that authenticator. Production uses the normal MFA policy.
+
 ## Password recovery
 
 The **Forgot password?** link opens `/reset-password/request`. Email is sent only after the user submits that form. The result never discloses whether the address exists. The recovery link must be opened in the same browser within ten minutes; the SDK performs a PKCE exchange using a short-lived HttpOnly verifier cookie. A different browser, expired/reused code, or nonstaff account cannot establish an admin recovery session.

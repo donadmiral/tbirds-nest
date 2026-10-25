@@ -479,7 +479,7 @@ export default function JobsScreen({ navigation }: any) {
               </TouchableOpacity>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="My applications" onPress={() => (navigation as any).navigate('MyApplications')} style={s.hsIconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Ionicons name="document-text-outline" size={22} color={getTheme().ink.primary} />
-                {myApplications.length > 0 && <View style={s.hsDot}><Text style={s.hsDotTxt}>{myApplications.length}</Text></View>}
+                {myApplications.length > 0 && <View style={s.hsDot}><Text style={s.hsDotTxt}>{myApplications.length >= 25 ? '25+' : myApplications.length}</Text></View>}
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setShowPost(true)} style={s.hsPostBtn}>
                 <Text style={s.hsPostBtnTxt}>Post</Text>

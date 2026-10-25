@@ -133,16 +133,16 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
 
   return (
     <>
-      <button type="button" onClick={() => setOpenBar(true)} className="pc-search"
+      <button type="button" onClick={() => setOpenBar(true)} className="pc-search pc-command-trigger"
         style={{
-          marginLeft: 8, flex: '1 1 240px', minWidth: 190, maxWidth: 340,
+          flex: '1 1 190px', minWidth: 0, maxWidth: 340,
           display: 'flex', alignItems: 'center', gap: 9, padding: '7px 11px',
           borderRadius: 9, background: 'rgba(var(--on),0.04)', border: '1px solid rgba(var(--on),0.10)',
           cursor: 'pointer', textAlign: 'left',
         }}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ stroke: 'rgba(var(--on),0.38)', flex: '0 0 13px' }} strokeWidth="2.3"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.6-3.6" /></svg>
-        <span style={{ flex: 1, minWidth: 0, fontSize: 12.3, color: 'rgba(var(--on),0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Search desks, members, actions</span>
-        <span className="pc-num" style={{ fontSize: 10, color: 'rgba(var(--on),0.3)', border: '1px solid rgba(var(--on),0.11)', borderRadius: 4, padding: '1px 4px' }}>{mac ? '\u2318K' : 'Ctrl K'}</span>
+        <span style={{ flex: 1, minWidth: 0, fontSize: 12.3, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Search desks, members, actions</span>
+        <span className="pc-num" style={{ fontSize: 10, color: 'var(--txt-muted)', border: '1px solid rgba(var(--on),0.11)', borderRadius: 4, padding: '1px 4px' }}>{mac ? '\u2318K' : 'Ctrl K'}</span>
       </button>
 
       {openBar ? (
@@ -159,11 +159,11 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
               <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={listKey}
                 placeholder="Jump to a desk, find a member, run an action"
                 style={{ flex: 1, minWidth: 0, fontSize: 14, color: 'var(--txt)', background: 'transparent', border: 'none', outline: 'none' }} />
-              <span className="pc-num" style={{ fontSize: 10, color: 'rgba(var(--on),0.3)', border: '1px solid rgba(var(--on),0.11)', borderRadius: 4, padding: '1px 4px' }}>Esc</span>
+              <span className="pc-num" style={{ fontSize: 10, color: 'var(--txt-muted)', border: '1px solid rgba(var(--on),0.11)', borderRadius: 4, padding: '1px 4px' }}>Esc</span>
             </div>
             <div style={{ maxHeight: '52vh', overflowY: 'auto', padding: 6 }}>
               {rows.length === 0 ? (
-                <div style={{ padding: '22px 12px', fontSize: 12.5, color: 'rgba(var(--on),0.4)', textAlign: 'center' }}>Nothing matches that.</div>
+                <div style={{ padding: '22px 12px', fontSize: 12.5, color: 'var(--txt-muted)', textAlign: 'center' }}>Nothing matches that.</div>
               ) : rows.map((r, i) => (
                 <button key={r.kind + r.href + i} type="button" onMouseEnter={() => setCursor(i)} onClick={() => go(r.href)}
                   style={{

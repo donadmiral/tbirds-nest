@@ -221,6 +221,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const [userIdx, setUserIdx] = useState(startIndex);
   const [stories, setStories] = useState<StoryRow[]>([]);
   const [storyLoadFinished, setStoryLoadFinished] = useState(false);
+  const [storyLoadError, setStoryLoadError] = useState(false);
+  const [storyLoadAttempt, setStoryLoadAttempt] = useState(0);
   const [itemIdx, setItemIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -525,6 +527,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     let off = false;
     setStories([]);
     setStoryLoadFinished(false);
+    setStoryLoadError(false);
     getUserStories(user.user_id).then((rows) => {
       if (off) return;
       const target = userIdx === startIndex && initialStoryId ? rows.findIndex((row) => row.id === initialStoryId) : 0;
@@ -532,9 +535,9 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       setStories(target < 0 ? [] : rows);
       setItemIdx(Math.max(0, target));
       setStoryLoadFinished(true);
-    }, () => { if (!off) { setStories([]); setStoryLoadFinished(true); } });
+    }, () => { if (!off) { setStories([]); setStoryLoadError(true); setStoryLoadFinished(true); } });
     return () => { off = true; };
-  }, [user, userIdx, startIndex, initialStoryId, uid]);
+  }, [user, userIdx, startIndex, initialStoryId, uid, storyLoadAttempt]);
 
   useEffect(() => {
     setEmojiOpen(false);
@@ -753,7 +756,10 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             ) : null}
           </>
         ) : (
-          <p className="flex h-full items-center justify-center text-sm text-white/50">{storyLoadFinished ? "This story could not be loaded." : "Loading"}</p>
+          <div className="relative z-10 flex h-full flex-col items-center justify-center gap-3 text-sm text-white/70">
+            <p role={storyLoadError ? "alert" : "status"}>{storyLoadError ? "Stories could not load. Check your connection and try again." : storyLoadFinished ? "This story is no longer available." : "Loading"}</p>
+            {storyLoadError ? <button type="button" className="min-h-11 rounded-lg border border-white/30 px-4 py-2 text-white" onClick={() => setStoryLoadAttempt(n => n + 1)}>Try again</button> : null}
+          </div>
         )}
 
         {story ? <SaveToMemory story={story} /> : null}

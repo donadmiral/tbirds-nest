@@ -12,6 +12,8 @@ import React, { useEffect, useState } from 'react';
 import Svg, { Path, Defs, LinearGradient as SvgGradient, Stop, Ellipse } from 'react-native-svg';
 import { supabase } from '../services/supabase';
 
+import { createVerificationCache } from '../../shared/verificationCache';
+
 type Tier = 'public_figure' | 'business' | 'official' | null | undefined;
 
 export const TIER_COLORS: Record<string, string> = {
@@ -73,33 +75,21 @@ const SEAL = 'M12.00 0.65Q13.55 0.24 14.47 2.78Q15.73 3.00 17.67 2.17Q19.22 2.59
 // instead of collapsing into a blob the way a filled check does.
 const CHECK = 'M8.2 12.3l2.6 2.6 5-5.4';
 
-const tierCache = new Map<string, Tier | false>();
-const inFlight = new Map<string, Promise<Tier | false>>();
-
-async function lookupTier(userId: string): Promise<Tier | false> {
-  if (tierCache.has(userId)) return tierCache.get(userId)!;
-  if (inFlight.has(userId)) return inFlight.get(userId)!;
-  const p = (async () => {
-    try {
-      const { data } = await supabase.from('profiles').select('is_verified, verified_tier').eq('id', userId).maybeSingle();
-      const t: Tier | false = data?.verified_tier ? (data.verified_tier as Tier) : (data?.is_verified ? 'business' : false);
-      tierCache.set(userId, t);
-      return t;
-    } catch { return false; }
-    finally { inFlight.delete(userId); }
-  })();
-  inFlight.set(userId, p);
-  return p;
-}
+const verificationCache = createVerificationCache(async ids => {
+  const { data, error } = await supabase.from('profiles').select('id,is_verified,verified_tier').in('id', ids);
+  if (error) throw error;
+  return data ?? [];
+});
 
 export default function VerifiedBadge({ tier, userId, size = 15 }: { tier?: Tier; userId?: string | null; size?: number }) {
-  const [looked, setLooked] = useState<Tier | false | undefined>(undefined);
+  const [looked, setLooked] = useState<{ id: string; tier: Tier } | null>(null);
   useEffect(() => {
-    let alive = true;
-    if (!tier && userId) lookupTier(userId).then(t => { if (alive) setLooked(t); });
-    return () => { alive = false; };
-  }, [tier, userId]);
-  const eff: Tier | false | undefined = tier || looked;
+    if (!userId) return;
+    return verificationCache.subscribe(userId, value => setLooked({ id: userId, tier: value }));
+  }, [userId]);
+  // With an account ID, the current server claim wins over any stale post snapshot.
+  // Explicit tier-only calls remain available for the unchanged badge previews.
+  const eff = userId ? (looked?.id === userId ? looked.tier : verificationCache.peek(userId)) : tier;
   if (!eff) return null;
   const key = eff as string;
   const m = METALS[key] || METALS.business;
@@ -151,21 +141,11 @@ export function getTierColor(tier?: string | null): string | null {
   return TIER_COLORS[tier] ?? null;
 }
 
-const nameTierCache: Record<string, string | null> = {};
-
 export function useVerifiedTier(userId?: string | null): string | null {
-  const [tier, setTier] = React.useState<string | null>(userId ? (nameTierCache[userId] ?? null) : null);
-  React.useEffect(() => {
-    let alive = true;
-    if (!userId) { setTier(null); return; }
-    if (userId in nameTierCache) { setTier(nameTierCache[userId]); return; }
-    supabase.from('profiles').select('verified_tier, is_verified').eq('id', userId).maybeSingle()
-      .then(({ data }) => {
-        const t = data ? (data.verified_tier ?? (data.is_verified ? 'business' : null)) : null;
-        nameTierCache[userId] = t;
-        if (alive) setTier(t);
-      });
-    return () => { alive = false; };
+  const [value, setValue] = useState<{id:string; tier:string|null} | null>(null);
+  useEffect(() => {
+    if (!userId) return;
+    return verificationCache.subscribe(userId, tier => setValue({id:userId, tier}));
   }, [userId]);
-  return tier;
+  return userId && value?.id === userId ? value.tier : null;
 }

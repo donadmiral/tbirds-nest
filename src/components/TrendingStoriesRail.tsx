@@ -1,23 +1,23 @@
 /**
  * TrendingStoriesRail - a handful of the hottest public stories right now.
  * One bubble per person: their best story of the last 24h, ranked by views
- * plus double-weighted reactions, floor of 3 views, capped at 8. The flame
+ * plus double-weighted reactions, resolved against current visibility. The flame
  * says why they are here.
  */
 import VerifiedBadge from './VerifiedBadge';
 import TierName from './TierName';
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { AppState, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { hydrateStoryMedia } from '../services/contentMedia';
 import { supabase } from '../services/supabase';
 import PlatinumRing from './stories/PlatinumRing';
-import { light } from '../constants/tokens';
+import { loadTrendingStories, type TrendingStory } from '../../shared/trendingStories';
 
-type Hot = { story_id: string; user_id: string; full_name: string; username: string; avatar_url: string | null; views: number; reactions: number; heat: number; thumb?: string | null; media_type?: string | null };
+type Hot = TrendingStory;
 
 export default function TrendingStoriesRail() {
   const nav = useNavigation<any>();
@@ -25,22 +25,35 @@ export default function TrendingStoriesRail() {
 
   useFocusEffect(useCallback(() => {
     let alive = true;
-    supabase.rpc('get_trending_stories', { p_limit: 8 })
-      .then(async ({ data }) => {
-        const hot = (data || []) as Hot[];
-        // The rail shows the story itself, not just a face: fetch each story's
-        // preview so a tile reads like the trending post cards next to it.
-        try {
-          const ids = hot.map(h => h.story_id).filter(Boolean);
-          if (ids.length) {
-            const { data: st } = await supabase.from('stories').select('id, media_url, thumbnail_url, media_type').in('id', ids);
-            const by = new Map<string, any>(); (await hydrateStoryMedia((st ?? []) as any[])).forEach(x => by.set(x.id, x));
-            hot.forEach(h => { const x = by.get(h.story_id); if (x) { h.thumb = x.thumbnail_url || (x.media_type === 'image' ? x.media_url : null); h.media_type = x.media_type; } });
-          }
-        } catch {}
-        if (alive) setRows(hot);
-      });
-    return () => { alive = false; };
+    let generation = 0;
+    let viewer: string | null | undefined;
+    const refresh = async () => {
+      const request = ++generation;
+      try {
+        const hot = await loadTrendingStories({
+            session: () => supabase.auth.getSession(),
+            ranked: limit => supabase.rpc('get_trending_stories', { p_limit: limit }),
+            stories: ids => supabase.from('stories').select('id,user_id,media_url,thumbnail_url,media_type,expires_at,created_at').in('id', ids),
+          }, hydrateStoryMedia, 8);
+        if (alive && request === generation) setRows(hot);
+      } catch {
+        // A failed access/media check must never leave a stale visible tile.
+        if (alive && request === generation) setRows([]);
+      }
+    };
+    void refresh();
+    const timer = setInterval(() => { if (AppState.currentState === 'active') void refresh(); }, 30000);
+    const appState = AppState.addEventListener('change', state => {
+      if (state === 'active') void refresh();
+      else { generation++; setRows([]); }
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id ?? null;
+      if (next === viewer) return;
+      viewer = next; generation++; setRows([]);
+      queueMicrotask(() => { if (alive) void refresh(); });
+    });
+    return () => { alive = false; generation++; clearInterval(timer); appState.remove(); subscription.unsubscribe(); };
   }, []));
 
   if (rows.length === 0) return null;
@@ -51,7 +64,7 @@ export default function TrendingStoriesRail() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.rail}>
         {rows.map((r) => (
           <TouchableOpacity key={r.story_id} style={s.tile} activeOpacity={0.85}
-            onPress={() => nav.navigate('StoryViewer', { userIds: rows.map(x => x.user_id), startUserId: r.user_id })}>
+            onPress={() => nav.navigate('StoryViewer', { userIds: rows.map(x => x.user_id), startUserId: r.user_id, startStoryId: r.story_id })}>
             {r.thumb ? (
               <ExpoImage source={{ uri: r.thumb }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
             ) : (

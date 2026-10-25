@@ -188,6 +188,7 @@ export default async function MarketPage() {
 
   return (
     <Shell admin={admin} active="/market" title="Market" sub="Review the newest listings, their sellers and loaded reports. Removing a listing takes it off the market everywhere.">
+      <Link href="/market/reviews" className="mr-5 mb-4 inline-block underline">Review reported seller ratings</Link>
       <Link href="/market/orders" className="mb-4 inline-block underline">Investigate orders, returns and disputes</Link>
       <p className="mb-4 text-sm text-[var(--txt-muted)]">Listing analysis below covers the newest 250 listings. Prices are listing values, not settled revenue. Open order investigations for verified payment and fulfillment records.</p>
       <StatStrip cards={cards} />

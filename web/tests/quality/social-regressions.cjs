@@ -92,6 +92,12 @@ test('job applications, posts, marketplace and invitations preserve relevant des
   assert.equal(route('comment',{post_id:'p'}),'/post/p');assert.equal(route('market_alert',{listing_id:'l'}),'/market/l');
   assert.equal(route('community_invite',{community_id:'c'}),'/communities/c');assert.equal(route('business_member',{business_id:'b'}),'/businesses');
 });
+test('hiring decisions open applicant history and withdrawals open the employer applicants desk', () => {
+  const route=(type,data)=>notificationHref({type,data,actor_username:'actor'});
+  assert.equal(route('job_status',{job_id:'j',status:'offer'}),'/jobs/applications');
+  assert.equal(route('job_interview',{job_id:'j'}),'/jobs/applications');
+  assert.equal(route('job_status',{job_id:'j',status:'withdrawn'}),'/jobs/j/applicants');
+});
 test('routing escapes path/query values and rejects non-string metadata', () => {
   assert.equal(conversationHref('x&c=other','personal'),'/messages?c=x%26c%3Dother');
   assert.equal(notificationHref({type:'like',data:{post_id:42},actor_username:'a/b'}),'/a%2Fb');
@@ -128,12 +134,12 @@ test('returned search RPC errors show retry instead of a false empty result',asy
 
 function storyLoadHarness({ initialStoryId='target', userIdx=0, startIndex=0 }={}) {
   const source=fs.readFileSync(path.join(__dirname,'../../components/StoryViewer.tsx'),'utf8');
-  const end=source.indexOf('  }, [user, userIdx, startIndex, initialStoryId, uid]);');
+  const end=source.indexOf('  }, [user, userIdx, startIndex, initialStoryId, uid, storyLoadAttempt]);');
   const start=source.lastIndexOf('  useEffect(() => {',end);
   assert.ok(start>=0&&end>start,'story loading effect is present');
   const pending=defer(), observed={};let cleanup;
   const code=source.slice(start,end)+'  }, []);';
-  vm.runInNewContext(code,{uid:'viewer',user:{user_id:'owner'},userIdx,startIndex,initialStoryId,useEffect:fn=>cleanup=fn(),getUserStories:()=>pending.promise,setStories:value=>observed.stories=value,setItemIdx:value=>observed.index=value,setStoryLoadFinished:value=>observed.finished=value});
+  vm.runInNewContext(code,{uid:'viewer',user:{user_id:'owner'},userIdx,startIndex,initialStoryId,useEffect:fn=>cleanup=fn(),getUserStories:()=>pending.promise,setStories:value=>observed.stories=value,setItemIdx:value=>observed.index=value,setStoryLoadFinished:value=>observed.finished=value,setStoryLoadError:value=>observed.error=value});
   return {pending,observed,cleanup};
 }
 test('story notification opens its exact asynchronously loaded story',async()=>{
@@ -147,6 +153,11 @@ test('moving to another story owner starts at their first story',async()=>{
 });
 test('unmounted story loading does not replace the current viewer',async()=>{
  const h=storyLoadHarness();h.cleanup();h.pending.resolve([{id:'target'}]);await flush();assert.equal(h.observed.finished,false);assert.equal(h.observed.stories.length,0);
+});
+
+test('failed story loading exposes a retry state instead of pretending it expired',async()=>{
+ const h=storyLoadHarness();h.pending.resolve(Promise.reject(new Error('offline')));await flush();
+ assert.equal(h.observed.error,true);assert.equal(h.observed.finished,true);assert.equal(h.observed.stories.length,0);
 });
 
 test('search continuation appends beyond twenty without duplicates',async()=>{

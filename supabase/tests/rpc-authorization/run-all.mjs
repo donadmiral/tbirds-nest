@@ -11,4 +11,5 @@ await import('./test-combined-atomicity.mjs');
 await import('./test-postflight.mjs');
 
 await import('./test-admin-commands.mjs');
+await import('./test-verification-integrity.mjs');
 await import('./test-pending-migration-chain.mjs');

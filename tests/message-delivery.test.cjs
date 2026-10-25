@@ -96,3 +96,20 @@ test('background receipt synchronization confirms the open chat without a histor
   module.sync();await Promise.resolve();assert.equal(visible.length,1);assert.equal(visible[0]._optimistic,false);assert.equal(visible[0]._queued,undefined);
   visible=[];ref.current=[];module.sync();await Promise.resolve();assert.equal(visible.length,0,'an old receipt must not resurrect a removed message');
 });
+
+test('shared-post reconciliation never confirms a different post with the same message ID',async()=>{
+  const client=server();
+  const share={...intent,text:null,shared_post_id:'post-a'};
+  client.rows.set(share.id,{...share,shared_post_id:'post-b',created_at:'2026-10-25T10:00:00Z'});
+  assert.equal((await delivery.deliverMessage(client,share,true)).status,'conflict');
+  assert.equal(client.calls.filter(c=>c.op==='insert').length,0);
+});
+test('shared-post lost responses reconcile once while normal messages accept nullable share fields',async()=>{
+  const client=server({loseFirst:true});
+  const share={...intent,text:null,shared_post_id:'post-a'};
+  assert.equal((await delivery.deliverMessage(client,share)).status,'confirmed');
+  assert.equal((await delivery.deliverMessage(client,share,true)).status,'confirmed');
+  assert.equal(client.rows.size,1);
+  const ordinary=server();ordinary.rows.set(intent.id,{...intent,shared_post_id:null,created_at:'2026-10-25T10:00:00Z'});
+  assert.equal((await delivery.deliverMessage(ordinary,intent,true)).status,'confirmed');
+});

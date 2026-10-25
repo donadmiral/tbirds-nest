@@ -58,7 +58,7 @@ function TagLayer({ tags, w, h, mode = "pins" }: { tags: MediaTag[]; w?: number;
   }
   const name = (t: MediaTag) => {
     const tier = getTierColor(t.verified_tier);
-    return (<><span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>{t.verified_tier ? <VerifiedBadge tier={t.verified_tier as any} size={12} /> : null}</>);
+    return (<><span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>{t.verified_tier ? <VerifiedBadge userId={t.user_id} tier={t.verified_tier as any} size={12} /> : null}</>);
   };
   const badgeRight = placed.some((p) => p.y + PILL > H - 48 && p.x < 60) || tags.some((t) => t.ny > 0.84 && t.nx < 0.22);
   return (
@@ -504,7 +504,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={post.author_avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : null}
-                <span className="flex min-w-0 items-center gap-[3px] text-[14px] font-semibold md:text-[15px]"><span className="truncate">{post.author_name}</span>{post.author_verified ? <VerifiedBadge tier={post.author_verified_tier ?? null} size={14} /> : null}</span>
+                <span className="flex min-w-0 items-center gap-[3px] text-[14px] font-semibold md:text-[15px]"><span className="truncate">{post.author_name}</span>{post.author_verified ? <VerifiedBadge userId={post.author_id} tier={post.author_verified_tier ?? null} size={14} /> : null}</span>
                 <span className="hidden text-[13px] text-white/55 sm:inline">@{post.author_username}</span>
               </Link>
             ) : null}
