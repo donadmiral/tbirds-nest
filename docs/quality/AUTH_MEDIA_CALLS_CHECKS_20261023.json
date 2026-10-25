@@ -83,5 +83,26 @@
     "database-tests": 150
   },
   "totalCountedTests": 1014,
-  "scope": "Admin recovery, call membership/reconnect, story audio authoring and provider diagnostics. Final native checks repeated after heartbeat-generation guard. RPC authorization is additional to counted tests. No real payments or physical-device calls executed."
+  "scope": "Admin recovery, call membership/reconnect, story audio authoring and provider diagnostics. Final native checks repeated after heartbeat-generation guard. RPC authorization is additional to counted tests. No real payments or physical-device calls executed.",
+  "hostedVerification": {
+    "verifiedDate": "2026-10-25",
+    "sourceCommit": "4c082b4b08f298c012a6c6a472c1f26de57aa516",
+    "githubWorkflow": 40011614351,
+    "githubJobs": {
+      "Phone app": "success",
+      "Web app": "success",
+      "Operations app": "success"
+    },
+    "vercelDeployments": {
+      "tbirds-nest": "success",
+      "platinum-admin": "success",
+      "admin-web": "success",
+      "platinum-web": "success"
+    },
+    "adminSignIn": "QA environment and password recovery link visibly rendered",
+    "adminRecovery": "Request form visibly rendered. Email submission and authenticated recovery require the user.",
+    "adminRecoveryUrl": "https://admin-web-git-codex-platinum-quality-20261017-intobank.vercel.app/reset-password/request",
+    "screenshot": "qa-admin-recovery-20261025.jpg",
+    "productionPromoted": false
+  }
 }
