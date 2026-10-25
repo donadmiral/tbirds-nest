@@ -8,6 +8,8 @@ All three TypeScript checks pass. The latest complete suites pass: 526 phone, 34
 
 Five October 25 migrations were applied to isolated QA `uaulhuelcfkjwojtymmw`. The existing sole active super administrator has the explicitly requested password-only owner policy enabled. This is not a new account or a blanket removal of authentication: valid native sessions, role checks, transactional audits and command idempotency remain required. A second active staff account retires the exception. The admin frontend additionally limits the exception to this QA project. Account security still permits optional authenticator enrollment.
 
+Published application source: `56fda23eac087040f8a168a59887d8c6cd8a7ddf`, tree `d0d26aff6a7dc7b6a9ab9dd8efd1bf443421eead`. All four Vercel builds and all three jobs in GitHub workflow 40173606034 succeeded. The existing cloud-browser owner session moved from `/security` to `/dashboard` without enrolling an authenticator; marketplace, seller-review moderation and verification desks rendered successfully. The separate web app reached its sign-in page; authenticated web scenarios were not run in this browser. No new native binary was produced.
+
 ## This release
 
 - Verified purchase reviews; checked listing/review reporting; version-aware staff review moderation; retained report history when an account or review is deleted; visible load errors and retry on web/phone.
