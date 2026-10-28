@@ -9,7 +9,7 @@
 import React from "react";
 import type { StoryTextSticker } from "@/lib/stories";
 
-export { AdjustOverlay, type StoryAdjust } from "../../shared/StoryAdjustOverlay";
+export { AdjustOverlay, type StoryAdjust } from "./StoryAdjustOverlay";
 
 /* ── Backdrop: identical semantics to phone BackgroundLayer ── */
 export type StoryBgSpec = { kind: "blur" | "color" | "gradient" | "none"; a?: string; b?: string };

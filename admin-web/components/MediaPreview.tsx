@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition, type CSSProperties } from '
 import { useRouter } from 'next/navigation';
 import { postAspectRatio, postCaptionAt, postTimeLabel, postTrimWindow, type PostFrameRecipe } from '../../shared/postMediaEditing';
 import { STORY_FILTERS, filterCss } from '../../shared/storyFilterAppearance';
-import { AdjustOverlay, type StoryAdjust } from '../../shared/StoryAdjustOverlay';
+import { AdjustOverlay, type StoryAdjust } from './StoryAdjustOverlay';
 
 export type MediaPreviewEdit = PostFrameRecipe & {
   rotation?: number; flipX?: boolean; scale?: number; translateNX?: number; translateNY?: number;
