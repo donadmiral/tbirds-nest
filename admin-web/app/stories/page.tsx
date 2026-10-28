@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemoveStory } from '@/lib/actions';
@@ -6,8 +5,8 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
-import { pickMedia, pickAllMedia, isVideoUrl } from '@/lib/media';
 import { resolveModerationMedia } from '@/lib/moderationMedia';
+import { resolveStoryPresentations } from '@/lib/storyPresentation';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,8 +44,7 @@ export default async function StoriesPage() {
 
   const stories = (storiesRes.data ?? []) as Record<string, unknown>[];
 
-  const rawMedia = stories.map(s => pickMedia(s));
-  const urlMap = await resolveModerationMedia(rawMedia, 'story', stories.map(s => String(s.id)));
+  const presentations = await resolveStoryPresentations(stories, resolveModerationMedia);
 
   const uids = Array.from(new Set(stories.map(s => String(s.user_id || '')).filter(Boolean)));
   const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }> = {};
@@ -57,15 +55,11 @@ export default async function StoriesPage() {
 
   const live = stories.filter(s => String(s.expires_at || '') > nowIso);
   const totalViews = stories.reduce((a, s) => a + (Number(s.views_count) || 0), 0);
-  const withMedia = stories.filter(s => pickMedia(s)).length;
+  const withMedia = presentations.filter(s => s.mediaCount > 0).length;
   const posters = new Set(stories.map(s => String(s.user_id))).size;
 
   const typeCount: Record<string, number> = {};
-  stories.forEach(s => {
-    const raw = pickMedia(s);
-    const t = String(s.media_type || (isVideoUrl(raw) ? 'video' : raw ? 'photo' : 'unknown'));
-    typeCount[t] = (typeCount[t] || 0) + 1;
-  });
+  presentations.forEach(s => { typeCount[s.kind] = (typeCount[s.kind] || 0) + 1; });
   const typeSlices: Slice[] = Object.keys(typeCount).map((k, i) => ({ label: title(k), value: typeCount[k], color: SERIES[i % SERIES.length] }));
 
   const spark = days30.map(d => stories.filter(s => String(s.created_at).slice(0, 10) === d).length);
@@ -78,31 +72,34 @@ export default async function StoriesPage() {
   const removed = (removedRes.data ?? []) as { id: string; target_id: string; created_at: string }[];
 
   const cards = [
-    { label: 'Stories on file', value: fmt(totalRes.count ?? stories.length), note: 'every row in stories', icon: IC.ring, color: 'var(--c1)', spark },
+    { label: 'Stories on file', value: fmt(totalRes.count ?? stories.length), note: 'all retained stories', icon: IC.ring, color: 'var(--c1)', spark },
     { label: 'Live right now', value: fmt(live.length), note: 'not yet expired', icon: IC.clock, color: 'var(--c2)' },
     { label: 'Expired in 24 hours', value: fmt(expired24Res.count ?? 0), note: 'they vanish on their own', icon: IC.clock, color: 'var(--c3)' },
-    { label: 'Views recorded', value: fmt(totalViews), note: 'stories.views_count', icon: IC.eye, color: 'var(--c6)' },
+    { label: 'Views recorded', value: fmt(totalViews), note: 'views across these stories', icon: IC.eye, color: 'var(--c6)' },
     { label: 'People posting', value: fmt(posters), note: fmt(withMedia) + ' stories carry media', icon: IC.users, color: 'var(--c4)' },
   ];
 
-  const rows: DeskRow[] = stories.map(s => {
+  const rows: DeskRow[] = stories.map((s, index) => {
     const id = String(s.id);
     const uid = String(s.user_id || '');
     const a = people[uid] || { full_name: null, username: null, avatar_url: null, is_verified: false };
-    const raw = pickMedia(s);
-    const url = raw ? urlMap[raw] || null : null;
-    const video = isVideoUrl(raw) || String(s.media_type || '').toLowerCase().includes('video');
-    const caption = String(s.caption || '').trim();
+    const presentation = presentations[index];
+    const first = presentation.gallery[0] || null;
+    const url = first?.url || null;
+    const video = !!first?.video;
+    const caption = presentation.caption;
     const expires = String(s.expires_at || '');
     const isLive = expires > nowIso;
     const hoursLeft = isLive ? Math.max(0, Math.round((new Date(expires).getTime() - now) / 3600000)) : 0;
     const views = Number(s.views_count) || 0;
-    const kind = video ? 'Video' : raw ? 'Photo' : 'Text';
+    const kind = presentation.kind;
+    const hasMedia = presentation.mediaCount > 0;
+    const tone: Tone = kind === 'Video' ? 'info' : hasMedia || kind === 'Shared post' ? 'accent' : 'neutral';
 
     const fields = [
       { label: 'Story id', value: id },
       { label: 'Author', value: (a.full_name || 'Unnamed') + ' (@' + (a.username || 'member') + ')' },
-      { label: 'Type', value: String(s.media_type || kind) },
+      { label: 'Type', value: kind },
       { label: 'Views', value: fmt(views) },
       { label: 'Posted', value: new Date(String(s.created_at)).toLocaleString() },
       { label: 'Expires', value: expires ? new Date(expires).toLocaleString() : 'not set' },
@@ -115,17 +112,15 @@ export default async function StoriesPage() {
       }
     });
 
-    const allRaw = pickAllMedia(s);
-
     return {
       id,
-      tabs: [isLive ? 'live' : 'expired', video ? 'video' : raw ? 'photo' : 'text'],
-      search: [caption, a.full_name, a.username, s.media_type].map(x => String(x || '').toLowerCase()).join(' '),
+      tabs: [isLive ? 'live' : 'expired', kind === 'Shared post' ? 'shared' : kind.toLowerCase()],
+      search: [caption, a.full_name, a.username, kind].map(x => String(x || '').toLowerCase()).join(' '),
       facets: { type: kind, state: isLive ? 'Live' : 'Expired' },
       cells: [
         { t: 'media', v: caption || kind + ' story', sub: '@' + (a.username || 'member'), thumb: url, video },
         { t: 'user', v: a.full_name || 'Unnamed', sub: '@' + (a.username || 'member'), img: a.avatar_url },
-        { t: 'pill', v: kind, tone: video ? 'info' : raw ? 'accent' : 'neutral' },
+        { t: 'pill', v: kind, tone },
         { t: 'pill', v: isLive ? hoursLeft + 'h left' : 'Expired', tone: (isLive ? 'ok' : 'neutral') as Tone },
         { t: 'mono', v: fmt(views) },
         { t: 'mono', v: ago(String(s.created_at)) },
@@ -134,15 +129,16 @@ export default async function StoriesPage() {
         title: caption || kind + ' story',
         subtitle: (a.full_name || 'Unnamed') + ' \u00b7 posted ' + ago(String(s.created_at)),
         img: a.avatar_url,
-        media: url ? { url, video } : null,
+        media: first,
+        gallery: presentation.gallery,
         pills: [
-          { v: kind, tone: video ? 'info' : raw ? 'accent' : 'neutral' },
+          { v: kind, tone },
           { v: isLive ? 'Live, ' + hoursLeft + ' hours left' : 'Expired', tone: (isLive ? 'ok' : 'neutral') as Tone },
           ...(a.is_verified ? [{ v: 'Verified author', tone: 'ok' as Tone }] : []),
         ],
         stats: [
           { label: 'Views', value: fmt(views) },
-          { label: 'Media', value: String(allRaw.length) },
+          { label: 'Media', value: String(presentation.mediaCount) },
           { label: isLive ? 'Hours left' : 'Ended', value: isLive ? String(hoursLeft) : ago(expires).replace(' ago', '') },
         ],
         fields,
@@ -160,6 +156,8 @@ export default async function StoriesPage() {
     { key: 'expired', label: 'Expired', count: rows.filter(r => r.tabs.includes('expired')).length },
     { key: 'video', label: 'Video', count: rows.filter(r => r.tabs.includes('video')).length },
     { key: 'photo', label: 'Photo', count: rows.filter(r => r.tabs.includes('photo')).length },
+    { key: 'text', label: 'Text', count: rows.filter(r => r.tabs.includes('text')).length },
+    { key: 'shared', label: 'Shared posts', count: rows.filter(r => r.tabs.includes('shared')).length },
   ];
 
   return (
@@ -175,7 +173,7 @@ export default async function StoriesPage() {
             grid="minmax(220px,2.4fr) minmax(150px,1.3fr) 96px 108px 84px 92px"
             rows={rows}
             filters={[
-              { key: 'type', label: 'Type', options: ['Photo', 'Video', 'Text'] },
+              { key: 'type', label: 'Type', options: ['Photo', 'Video', 'Text', 'Shared post'] },
               { key: 'state', label: 'State', options: ['Live', 'Expired'] },
             ]}
             searchHint="Search captions and authors"
@@ -190,7 +188,7 @@ export default async function StoriesPage() {
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>What gets posted</div>
-              <div style={H_SUB}>Photos, videos and text stories</div>
+              <div style={H_SUB}>Photos, videos, text and shared posts</div>
             </div>
             <div style={{ padding: 16 }}>
               {typeSlices.length === 0 ? <Empty note="No story on file yet." /> : <Donut slices={typeSlices} centerLabel="stories" size={148} />}
