@@ -203,7 +203,7 @@ function listingCardHarness(toggleSaved) {
     'next/link': { default: 'link' },
     'lucide-react': { Heart: 'heart' },
     '@/lib/market': { toggleSaved, priceLabel: () => '$10' },
-    '@/lib/feed': { timeAgo: () => '1h' },
+    '@/components/RelativeTime': { RelativeTime: 'time' },
     '@/lib/media': { displayImageUrl: (url) => url },
   };
   const module = { exports: {} };

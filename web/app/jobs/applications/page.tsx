@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { type JobRow, STATUS_META, APPLICATION_STATUS_ORDER } from "@/lib/jobs";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import { type ApplicantCursor, canWithdrawApplication, loadMyApplicationPage, mergeApplicants, withdrawApplication } from "../../../../shared/hiring";
 
 type AppRow = {
@@ -114,7 +114,7 @@ export default function MyApplicationsPage() {
         : <div className="border-t border-ink/10">
           {apps.map(a => {
             const meta = STATUS_META[a.status as keyof typeof STATUS_META] || { label: a.status, color: "#6B7280", bg: "#F3F4F6" };
-            const date = a.applied_at && Number.isFinite(Date.parse(a.applied_at)) ? timeAgo(a.applied_at) : "Date unavailable";
+            const date = a.applied_at && Number.isFinite(Date.parse(a.applied_at)) ? <RelativeTime dateTime={a.applied_at} /> : "Date unavailable";
             return (
               <div key={a.id} className="border-b border-ink/10 px-1 py-4">
                 <div className="flex items-center gap-4">

@@ -27,7 +27,7 @@ function iconFor(type: string) {
   if (type === "mention") return <AtSign size={15} className="text-accent" />;
   return <Bell size={15} className="text-muted" />;
 }
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 type Notif = {
   notification_id: string;
@@ -418,7 +418,7 @@ export default function NotificationsPage() {
                       {rest}
                     </span>
                     <span className="mt-0.5 flex items-center gap-2 text-[12px] text-muted">
-                      {timeAgo(n.created_at)}
+                      <RelativeTime dateTime={n.created_at} />
                       {n.unread_in_group > 0 ? <span className="rounded-full bg-pearl px-1.5 py-px text-[10px] font-bold text-on-pearl">{n.unread_in_group} new</span> : null}
                     </span>
                   </span>

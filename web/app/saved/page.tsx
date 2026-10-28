@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import { Bookmark } from "lucide-react";
 import { Card, EmptyState } from "@/components/ui";
 import { ErrorState } from "@/components/ErrorState";
@@ -215,7 +215,7 @@ export default function SavedPage() {
                   <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"} <VerifiedBadge userId={p.user_id} size={13} /></span>
                   <span className="truncate text-muted">@{p.author?.username}</span>
                   <span className="text-muted">·</span>
-                  <span className="shrink-0 text-muted">{timeAgo(p.created_at)}</span>
+                  <span className="shrink-0 text-muted"><RelativeTime dateTime={p.created_at} /></span>
                 </span>
                 {text ? <span className="mt-0.5 line-clamp-3 block whitespace-pre-wrap text-[14px] text-ink/85">{text}</span> : null}
                 <span className="mt-1 block text-[12px] text-muted">

@@ -8,7 +8,7 @@ import { type JobRow, isJobDeadlinePassed } from "@/lib/jobs";
 import { ApplyPanel } from "@/components/ApplyPanel";
 import { JobActions } from "@/components/JobActions";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -92,7 +92,7 @@ export default async function JobPage({ params }: Params) {
           {j.verified ? <VerifiedBadge tier="business" size={15} /> : null}
         </p>
         <p className="mt-1 text-[13px] text-muted">
-          Posted {timeAgo(j.created_at)}
+          Posted <RelativeTime dateTime={j.created_at} />
           {j.applications_count > 0 ? " · " + j.applications_count + " applicants" : ""}
           {dLeft !== null ? " · " + (deadlinePassed ? "Deadline passed" : dLeft === 0 ? "Closes today" : dLeft + " days left") : ""}
         </p>

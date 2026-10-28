@@ -112,6 +112,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [myStories, setMyStories] = useState<any[]>([]);
   const [storiesLoading,setStoriesLoading]=useState(false);
   const [storiesError,setStoriesError]=useState('');
+  const [failedStoryPreviews,setFailedStoryPreviews]=useState<Set<string>>(new Set());
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
   const [settings, setSettings] = useState(false);
@@ -206,14 +207,14 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   }), [flipTo]);
 
   const openPicker = useCallback(async () => {
-    setChosen(new Set()); setPicker(true); setStoriesLoading(true); setStoriesError(''); setMyStories([]);
+    setChosen(new Set()); setPicker(true); setStoriesLoading(true); setStoriesError(''); setMyStories([]); setFailedStoryPreviews(new Set());
     const expectedViewer=viewerRef.current;
     try {
       const {data:sess,error:authError}=await supabase.auth.getSession();
       const uid=sess.session?.user.id;
       if(authError||!uid||uid!==expectedViewer)throw Error();
       const inAlbum=new Set(pages.map(p=>p.story_id).filter(Boolean));
-      const {data,error}=await supabase.from('stories').select('id, media_url, media_type, thumbnail_url, caption, created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(120);
+      const {data,error}=await supabase.from('stories').select('id, media_url, media_type, thumbnail_url, caption, created_at, text_background, stickers_json').eq('user_id',uid).order('created_at',{ascending:false}).limit(120);
       if(error)throw error;
       const stories=await hydrateStoryMedia(data??[]);
       if(viewerRef.current===uid)setMyStories(stories.map((story:any)=>({...story,_in:inAlbum.has(story.id)})));
@@ -438,13 +439,16 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               return (
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  disabled={item._in}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.caption?.trim() || ((item.media_type === 'video' ? 'Video' : item.media_type === 'image' ? 'Photo' : 'Story') + ' from ' + fmtDate(item.created_at))}. ${item._in ? 'Already in this book' : on ? 'Selected' : 'Not selected'}`}
+                  accessibilityState={{ selected: on || item._in, disabled: !!item._in || adding }}
+                  disabled={item._in || adding}
                   onPress={() => setChosen(prev => { const n = new Set(prev); if (n.has(item.id)) n.delete(item.id); else n.add(item.id); return n; })}
                   style={{ width: (screenWidth - 20 - 12) / 3, aspectRatio: 0.75, borderRadius: 8, overflow: 'hidden', backgroundColor: '#0B1E3D', opacity: item._in ? 0.35 : 1 }}
                 >
-                  {(item.thumbnail_url || item.media_url) ? (
-                    <ExpoImage source={{ uri: item.thumbnail_url || item.media_url }} style={{ width: '100%', height: '100%' }} contentFit="contain" />
-                  ) : null}
+                  {item.media_type === 'video' && item.media_url && (!item.thumbnail_url || failedStoryPreviews.has(item.id)) ? <VideoThumb uri={item.media_url} fill/> : (item.thumbnail_url || item.media_url) && !failedStoryPreviews.has(item.id) ? (
+                    <ExpoImage source={{ uri: item.thumbnail_url || item.media_url }} onError={()=>setFailedStoryPreviews(prev=>new Set(prev).add(item.id))} style={{ width: '100%', height: '100%' }} contentFit="contain" />
+                  ) : <View style={{flex:1,alignItems:'center',justifyContent:'center',padding:12}}><Text numberOfLines={6} style={{color:'#FFFFFF',fontSize:12,textAlign:'center'}}>{item.media_type==='text'||(!item.media_url&&!item.thumbnail_url&&item.media_type!=='image'&&item.media_type!=='video') ? item.caption || 'Text story' : 'Preview unavailable'}</Text></View>}
                   {item.media_type === 'video' ? (
                     <View style={st.vidBadge}><Feather name="video" size={10} color="#FFF" /></View>
                   ) : null}
@@ -471,7 +475,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               <Text style={st.lbl}>Cover</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                 {Object.keys(COVER_COLORS).map(k => (
-                  <TouchableOpacity key={k} onPress={() => setColor(k)}
+                  <TouchableOpacity key={k} accessibilityRole="button" accessibilityLabel={`${k} cover color`} accessibilityState={{selected:color===k}} onPress={() => setColor(k)}
                     style={{ width: 30, height: 38, borderRadius: 5, backgroundColor: COVER_COLORS[k].cover, borderWidth: color === k ? 2.5 : 1, borderColor: color === k ? '#0B1E3D' : 'rgba(11,30,61,0.15)' }} />
                 ))}
               </View>
@@ -484,7 +488,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               ))}
               <MemoryAudienceEditor ownerId={ownerId} />
               <Text style={st.lbl}>Cover design</Text>
-              <ScrollView horizontal contentContainerStyle={{gap:14,padding:7}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} onPress={()=>setDesign(d.id)} style={{opacity:design===d.id?1:.45}}><MemoryBookCover title={title||'Memories'} color={color} design={d.id}/><Text style={{color:t.ink.primary,fontSize:10,marginTop:6}}>{d.label}</Text></TouchableOpacity>)}</ScrollView>
+              <ScrollView horizontal contentContainerStyle={{gap:14,padding:7}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} accessibilityRole="button" accessibilityLabel={`${d.label} cover design`} accessibilityState={{selected:design===d.id}} onPress={()=>setDesign(d.id)} style={{opacity:design===d.id?1:.45}}><MemoryBookCover title={title||'Memories'} color={color} design={d.id}/><Text style={{color:t.ink.primary,fontSize:10,marginTop:6}}>{d.label}</Text></TouchableOpacity>)}</ScrollView>
               <TouchableOpacity onPress={()=>{setSettings(false);setTimeout(()=>setSoundPicker(true),350);}}><Text style={{color:t.ink.primary,paddingVertical:14,fontWeight:'700'}}>{soundtrack?'Change book soundtrack':'Add a book soundtrack'}</Text></TouchableOpacity>
               {!!soundtrack&&<TouchableOpacity onPress={()=>setSoundtrack(null)}><Text style={{color:t.ink.secondary}}>No music</Text></TouchableOpacity>}
               {!!mutationError&&<Text style={{color:t.ink.secondary,marginVertical:8}}>{mutationError}</Text>}

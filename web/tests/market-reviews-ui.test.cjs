@@ -115,7 +115,7 @@ function app(kind, api) {
         if (id === "lucide-react") return { Star: "Star" };
         if (id === "@/components/VerifiedBadge")
           return { VerifiedBadge: "Badge" };
-        if (id === "@/lib/feed") return { timeAgo: () => "" };
+        if (id === "@/components/RelativeTime") return { RelativeTime: "time" };
         if (id === "./MarketReportForm") return { MarketReportForm: "Report" };
         throw new Error(id);
       },

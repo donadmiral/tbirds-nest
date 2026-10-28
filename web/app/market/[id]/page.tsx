@@ -13,7 +13,7 @@ import { StoryAvatar } from "@/components/StoryAvatar";
 import { MarketOrders } from "@/components/MarketOrders";
 import { MarketReportForm } from "@/components/MarketReportForm";
 import { SellerReviews } from "@/components/SellerReviews";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 export default function ListingPage() {
   const { id } = useParams<{ id: string }>();
@@ -161,7 +161,7 @@ export default function ListingPage() {
         <p className="text-2xl font-semibold text-accent">{priceLabel(l)}</p>
         <h1 className="mt-0.5 text-xl font-semibold text-ink">{l.title}</h1>
         <p className="mt-1 text-[13px] text-muted">
-          {[l.category, l.condition, l.location_city, timeAgo(l.created_at)].filter(Boolean).join(" · ")}
+          {[l.category, l.condition, l.location_city].filter(Boolean).join(" · ")}{l.category || l.condition || l.location_city ? " · " : ""}<RelativeTime dateTime={l.created_at} />
         </p>
       </div>
 

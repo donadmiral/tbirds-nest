@@ -7,7 +7,7 @@ import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactio
 import { StoryPollCard } from "@/components/StoryPollCard";
 import { hydrateStoryMedia } from "@/lib/contentMedia";
 import { QuestionCard, QuizCard, SliderCard, CountdownCard, AddYoursCard, SupportCard, ResultsCard } from "@/components/StoryEngageCards";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -710,7 +710,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             </span>
           )}
           <span className="text-[13px] font-semibold text-white drop-shadow">{user.full_name}</span> <VerifiedBadge userId={user.user_id} size={13} />
-          {story ? <span className="text-[12px] text-white/70 drop-shadow">{timeAgo(story.created_at)}</span> : null}
+          {story ? <span className="text-[12px] text-white/70 drop-shadow"><RelativeTime dateTime={story.created_at} /></span> : null}
         </div>
 
         {story ? (

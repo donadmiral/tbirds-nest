@@ -79,9 +79,10 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     let inlineOpener = null;
     const navigation = new Map();
     const modal = { ...focusNode(), contains: target => target === modal || target === closeButton || [...navigation.values()].includes(target),
-      querySelectorAll: () => [closeButton, ...navigation.values()] };
+      querySelectorAll: () => [closeButton, ...navigation.values()], querySelector: () => wrapper };
     const closeButton = focusNode();
     const wrapper = { ...focusNode(), contains: target => target === inlineOpener || modal.contains(target),
+      clientWidth: 600, clientHeight: 400,
       getBoundingClientRect: () => ({ width: 600, height: 400 }), querySelectorAll: () => [], querySelector: () => inlineOpener,
       requestFullscreen: async () => { document.fullscreenElement = wrapper; } };
     const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
@@ -138,6 +139,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     visibility(value) { document.hidden = value; [...(listeners.get('visibilitychange') || [])].forEach(fn => fn()); },
     intersect(ratio) { ioCallback?.([{ intersectionRatio: ratio }]); },
     dispatch(e) { [...(listeners.get('keydown') || [])].forEach(fn => fn(e)); },
+    resize() { [...(listeners.get('resize') || [])].forEach(fn => fn()); },
   };
 }
 
@@ -376,4 +378,126 @@ test('90 degree video rotation fits within the measured immersive viewport',()=>
  const screen=scenario().mount({immersive:true,edit:{rotation:90,flipX:true}});screen.videoEvent('onLoadedMetadata');
  const style=screen.find(n=>n.type==='video').props.style;
  assert.ok(style.width<=400.01);assert.ok(style.height<=600.01);assert.match(style.transform,/rotate\(90deg\).*scaleX\(-1\)/);screen.unmount();
+});
+
+test('post-detail gallery opts into full-frame video while feed defaults preserve the authored crop', () => {
+  const media = [{ id: 'portrait', url: 'portrait.mp4', media_type: 'video', width: 360, height: 640, edit: { fit: 'cover', scale: 1.2 } }];
+  const feed = scenario().mount({ media }, 'gallery');
+  const detail = scenario().mount({ media, fullFrame: true }, 'gallery');
+  assert.equal(feed.find(n => n.type === 'NestedVideoPlayer').props.fullFrame, false);
+  assert.equal(detail.find(n => n.type === 'NestedVideoPlayer').props.fullFrame, true);
+  assert.equal(feed.find(n => n.type === 'NestedVideoPlayer').props.edit, media[0].edit);
+  const player = scenario().mount({ edit: media[0].edit });
+  assert.equal(player.find(n => n.type === 'video').props.style.objectFit, 'cover');
+  assert.match(player.find(n => n.type === 'video').props.style.transform, /scale\(1.2\)/);
+  feed.unmount(); detail.unmount(); player.unmount();
+});
+
+test('post-detail portrait uses actual metadata to fit within its fixed viewport', () => {
+  const screen = scenario().mount({ fullFrame: true, width: 1920, height: 1080 });
+  screen.element.videoWidth = 360; screen.element.videoHeight = 640;
+  screen.videoEvent('onLoadedMetadata');
+  const video = screen.find(n => n.type === 'video');
+  assert.equal(video.props.style.objectFit, 'contain');
+  assert.equal(video.props.style.width, 225);
+  assert.equal(video.props.style.height, 400);
+  assert.equal(screen.label('Video player').props.style, undefined);
+  screen.unmount();
+});
+
+test('post-detail rotated video fits the rotated bounds without enabling theater mode', () => {
+  const screen = scenario().mount({ fullFrame: true, edit: { rotation: 90, flipX: true } });
+  screen.videoEvent('onLoadedMetadata');
+  const style = screen.find(n => n.type === 'video').props.style;
+  assert.equal(style.objectFit, 'contain');
+  assert.ok(style.width <= 400.01);
+  assert.ok(style.height <= 600.01);
+  assert.match(style.transform, /rotate\(90deg\).*scaleX\(-1\)/);
+  assert.equal(screen.label('Fill the screen'), undefined);
+  screen.unmount();
+});
+
+function assertRotatedFits(style, rotation, width, height) {
+  const radians = rotation * Math.PI / 180;
+  const w = Number.parseFloat(style.width), h = Number.parseFloat(style.height);
+  assert.ok(Number.isFinite(w) && Number.isFinite(h), 'Image has explicit finite source dimensions');
+  assert.ok(Math.abs(w * Math.cos(radians)) + Math.abs(h * Math.sin(radians)) <= width + 0.01, 'Rotated width fits');
+  assert.ok(Math.abs(w * Math.sin(radians)) + Math.abs(h * Math.cos(radians)) <= height + 0.01, 'Rotated height fits');
+  assert.equal(style.maxWidth, 'none'); assert.equal(style.maxHeight, 'none'); assert.equal(style.flexShrink, 0);
+}
+
+test('inline portrait and landscape images fit their 90/270 degree rotated boxes', () => {
+  for (const [width, height] of [[360, 640], [1920, 1080]]) for (const rotation of [90, 270]) {
+    const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width, height, edit: { rotation } }] }, 'gallery');
+    screen.render();
+    const image = screen.find(n => n.type === 'img' && n.props.role === 'button');
+    const frame = screen.find(n => n.type === 'div' && n.props.className === 'relative flex items-center justify-center');
+    assertRotatedFits(image.props.style, rotation, frame.props.style.width, frame.props.style.height);
+    assert.ok(frame.props.style.width <= 600); assert.ok(frame.props.style.height <= 700);
+    assert.match(image.props.style.transform, new RegExp(`rotate\\(${rotation}deg\\)`));
+    screen.unmount();
+  }
+});
+
+test('unrotated inline images retain their existing 1.25 upscale limit', () => {
+  const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width: 320, height: 180 }] }, 'gallery');
+  screen.render(); const style = screen.find(n => n.type === 'img' && n.props.role === 'button').props.style;
+  assert.equal(style.width, 400); assert.equal(style.height, 225); screen.unmount();
+  const panorama = scenario().mount({ media: [{ id: 'wide', url: 'wide.jpg', media_type: 'image', width: 10000, height: 1 }] }, 'gallery');
+  panorama.render(); const wideStyle = panorama.find(n => n.type === 'img' && n.props.role === 'button').props.style;
+  assert.ok(wideStyle.width >= 1); assert.ok(wideStyle.height >= 1); panorama.unmount();
+});
+
+test('malformed image dimensions never produce nonfinite fitted CSS values', () => {
+  for (const width of [Infinity, NaN, -1]) {
+    const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width, height: 180 }] }, 'gallery');
+    screen.render(); const style = screen.find(n => n.type === 'img' && n.props.role === 'button').props.style;
+    assert.equal(style.width, undefined); assert.equal(style.height, undefined); screen.unmount();
+  }
+  const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width: 320, height: 180, edit: { rotation: NaN } }] }, 'gallery');
+  screen.render(); const style = screen.find(n => n.type === 'img' && n.props.role === 'button').props.style;
+  assert.equal(style.width, 400); assert.equal(style.height, 225); screen.unmount();
+});
+
+function openImage(screen) {
+  screen.find(n => n.type === 'img' && n.props.role === 'button').props.onClick({ currentTarget: screen.inlineOpener, preventDefault() {}, stopPropagation() {} });
+  screen.render(); screen.render();
+}
+const theaterImage = screen => screen.find(n => n.type === 'img' && n.props.onWheel);
+
+test('theater portrait and landscape images fit 90/270 degree rotation in the measured pane', () => {
+  for (const [width, height] of [[360, 640], [1920, 1080]]) for (const rotation of [90, 270]) {
+    const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width, height, edit: { rotation } }] }, 'gallery');
+    openImage(screen);
+    assertRotatedFits(theaterImage(screen).props.style, rotation, 600, 400);
+    screen.unmount();
+  }
+});
+
+test('theater does not upscale small images and zoom/pan preserve authored rotation', () => {
+  const screen = scenario().mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', width: 160, height: 100, edit: { rotation: 90, flipX: true, translateNX: 0.1, scale: 1.1 } }] }, 'gallery');
+  openImage(screen); const initial = theaterImage(screen).props.style;
+  assert.ok(Math.abs(initial.width - 160) < 0.01); assert.ok(Math.abs(initial.height - 100) < 0.01);
+  theaterImage(screen).props.onDoubleClick({ stopPropagation() {} }); screen.render();
+  assert.match(theaterImage(screen).props.style.transform, /scale\(2.2\).*translate\(10%, 0%\) scale\(1.1\) rotate\(90deg\) scaleX\(-1\)/);
+  theaterImage(screen).props.onMouseDown({ clientX: 10, clientY: 10, preventDefault() {} });
+  screen.label('Media viewer').props.onMouseMove({ clientX: 40, clientY: 30 }); screen.render();
+  assert.match(theaterImage(screen).props.style.transform, /^translate\(30px,20px\)/);
+  screen.click('Reset zoom'); assert.match(theaterImage(screen).props.style.transform, /^translate\(0px,0px\) scale\(1\)/);
+  screen.unmount();
+});
+
+test('theater refits actual image metadata and follows comments and viewport resizing', () => {
+  const s = scenario(), screen = s.mount({ media: [{ id: 'one', url: 'one.jpg', media_type: 'image', edit: { rotation: 270 } }], post: { post_id: 'post' } }, 'gallery');
+  openImage(screen);
+  theaterImage(screen).props.onLoad({ currentTarget: { naturalWidth: 1920, naturalHeight: 1080 } }); screen.render();
+  assertRotatedFits(theaterImage(screen).props.style, 270, 600, 400);
+  screen.wrapper.getBoundingClientRect = () => ({ width: 300, height: 180 });
+  screen.click('Show comments'); screen.render(); s.resize(); screen.render();
+  assert.match(screen.find(n => n.props?.['data-media-pane'] !== undefined).props.className, /min-h-0.*max-lg:h-\[40vh\]/);
+  assertRotatedFits(theaterImage(screen).props.style, 270, 300, 180);
+  screen.wrapper.getBoundingClientRect = () => ({ width: 700, height: 500 });
+  screen.click('Hide comments'); screen.render(); s.resize(); screen.render();
+  assertRotatedFits(theaterImage(screen).props.style, 270, 700, 500);
+  screen.unmount();
 });

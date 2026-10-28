@@ -35,7 +35,7 @@ import { Comments } from "@/components/Comments";
 import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
 import { displayImageUrl } from "@/lib/media";
 import type { FeedRow } from "@/lib/feed";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import { toggleRepost } from "@/lib/interactions";
 import { usePostInteractions } from "@/lib/usePostInteractions";
 
@@ -106,7 +106,7 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
         <span className="flex items-center gap-1.5 text-[13px]">
           <span className="truncate font-semibold text-ink">{q.author?.full_name ?? "Member"}</span>
           {q.author?.username ? <span className="truncate text-muted">@{q.author.username}</span> : null}
-          <span className="shrink-0 text-muted">· {timeAgo(q.created_at)}</span>
+          <span className="shrink-0 text-muted">· <RelativeTime dateTime={q.created_at} /></span>
         </span>
         <span className="mt-0.5 line-clamp-3 block text-[13px] text-ink/75">{q.content ?? q.body ?? ""}</span>
       </span>
@@ -266,7 +266,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
             <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] text-muted">
               {post.author_username ? <Link href={profileHref} className="truncate hover:underline">@{post.author_username}</Link> : null}
               {post.author_username ? <span className="text-muted">·</span> : null}
-              <Link href={postHref} className="shrink-0 hover:underline">{timeAgo(post.created_at)}</Link>
+              <Link href={postHref} className="shrink-0 hover:underline"><RelativeTime dateTime={post.created_at} /></Link>
               {rb.edited_at ? <span className="shrink-0 text-[12px] text-muted">· Edited</span> : null}
               {(post as unknown as { promo_label?: string; promo_id?: string }).promo_id ? <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted">{(post as unknown as { promo_label?: string }).promo_label || "Sponsored"}</span> : null}
             </div>

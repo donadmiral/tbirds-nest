@@ -6,7 +6,7 @@ import { Clock, MapPin, Phone, Globe, Star, ExternalLink, ChevronDown, ChevronUp
 import { createClient } from "@/lib/supabase/client";
 import { openNow, todaySummary, hasHours, DAY_ORDER, DAY_LABEL, type Hours } from "@/lib/businessHours";
 import { StoryAvatar } from "@/components/StoryAvatar";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 type Biz = { hours: Hours | null; avg_rating: number | null; review_count: number | null; category: string | null; phone: string | null; email: string | null; website: string | null; address: string | null };
 type Product = { product_id: string; post_id: string; title: string; subtitle: string | null; price: number | null; currency: string | null; image_url: string | null; listing_id: string | null; link_url: string | null; cta_label: string | null };
@@ -160,7 +160,7 @@ export function BusinessProfile({ profileId, postsSlot }: { profileId: string; p
                       <span className="flex items-center gap-0.5 text-accent">
                         {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={11} fill={n <= r.rating ? "currentColor" : "none"} className={n <= r.rating ? "" : "text-muted"} />)}
                       </span>
-                      <span className="text-muted">{timeAgo(r.created_at)}</span>
+                      <span className="text-muted"><RelativeTime dateTime={r.created_at} /></span>
                     </p>
                     {r.body ? <p className="mt-0.5 text-[13px] text-ink/80">{r.body}</p> : null}
                   </div>

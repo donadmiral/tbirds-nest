@@ -9,7 +9,7 @@ import { useParams, useRouter } from "next/navigation";
 import { FileText, Phone, Link2, CalendarClock, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import { STATUS_META, APPLICATION_STATUS_ORDER, type ApplicationStatus } from "@/lib/jobs";
 
 import { loadApplicantPage, mergeApplicants, saveApplicationStatus, saveInterview, type ApplicantCursor } from "../../../../../shared/hiring";
@@ -170,7 +170,7 @@ export default function ApplicantsPage() {
                     <Link href={profilePath(a.profile?.username, a.applicant_id)} className="block truncate text-[15px] font-semibold text-ink hover:underline">
                       {a.profile?.full_name ?? "Member"} <VerifiedBadge userId={a.profile?.id} size={13} />
                     </Link>
-                    <p className="text-[12px] text-muted">{a.profile?.username ? "@" + a.profile.username + " · " : ""}{timeAgo(a.applied_at)}</p>
+                    <p className="text-[12px] text-muted">{a.profile?.username ? "@" + a.profile.username + " · " : ""}<RelativeTime dateTime={a.applied_at} /></p>
                   </div>
                   <select value={a.status} disabled={a.status === "withdrawn" || pendingIds.has(a.id)}
                     onChange={(e) => {

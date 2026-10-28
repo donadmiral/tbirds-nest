@@ -7,7 +7,7 @@ import { Briefcase, Bookmark, Share2, Check } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { createClient } from "@/lib/supabase/client";
 import { jobMeta, type JobRow, type PosterLite } from "@/lib/jobs";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 export function JobCard({ job, initiallySaved, viewerId }: {
   job: JobRow & { profile?: PosterLite | null };
@@ -55,7 +55,7 @@ export function JobCard({ job, initiallySaved, viewerId }: {
         <span className="flex items-center gap-1.5 truncate text-[14px] text-ink/70">{job.profile?.id ? <StoryAvatar userId={job.profile.id} name={job.profile.full_name} avatarUrl={job.profile.avatar_url} size={38} /> : null}<span className="flex items-center gap-[3px] truncate">{job.company}{job.verified ? <VerifiedBadge tier="business" size={13} /> : null}</span></span>
         {jobMeta(job) ? <span className="block truncate text-[13px] text-muted">{jobMeta(job)}</span> : null}
         <span className="mt-1 block text-[12px] text-muted">
-          {timeAgo(job.created_at)}{job.applications_count > 0 ? " · " + job.applications_count + " applicants" : ""}
+          <RelativeTime dateTime={job.created_at} />{job.applications_count > 0 ? " · " + job.applications_count + " applicants" : ""}
         </span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-1">

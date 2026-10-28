@@ -4,7 +4,7 @@ The source includes eight compact memory-book covers, book settings and persiste
 
 ## Verification
 
-All three application typechecks pass. Phone: 590 tests; web: 374; admin: 58; database: 245. The RPC runner and complete pending migration chain pass. Production Next.js build and iOS Hermes export pass. See RELEASE_CHECKS_20261028.json. An export is not a signed installer or an iPhone acceptance test.
+All three application typechecks pass. Phone: 594 tests; web: 387; admin: 58; database: 245. All 1,284 named tests pass with no skips or failures. The RPC runner and complete pending migration chain pass. Production Next.js build and iOS Hermes export pass. See RELEASE_CHECKS_20261028.json. An export is not a signed installer or an iPhone acceptance test.
 
 ## QA database applied
 
@@ -30,4 +30,12 @@ Rights-aware catalog ingestion, licensed-use and territory validation, immutable
 
 Test actual iPhone long presses, scroll, call routing and audio interruptions, camera/recording protection, permission cancellation, private-view false positives, thermal/battery use and upload quality. Android hardware/build acceptance is deferred by the user. This release is not a five-million-user load certification, universal camera-capture prevention, E2EE, or a claim of zero security advisories.
 
-The two synthetic QA videos require transfer from protected Vercel hosting to normal media storage; see QA_VIDEO_REPAIR_20261028.md for status. Other user videos must remain untouched.
+The two synthetic QA videos were transferred through the normal uploader to private media storage and the original QA post was repaired. Both videos played successfully in the authenticated web app. See QA_VIDEO_REPAIR_20261028.md for exact scope and evidence. The user's separate uploaded video was not modified.
+
+## Browser-discovered follow-up
+
+Live QA checks found and fixed three additional issues: timezone-dependent timestamp hydration, cropped portrait video in post detail, and archived video stories rendered as broken images in the book picker. Relative timestamps now have a stable first render and shared client clock. Post detail fits the full video frame inside the existing bounded layout. Rotated still images fit inline and theater viewports, including the comments panel. Book previews render text and video correctly, label their selection state, show unavailable media honestly, and recover after re-signing expired media URLs.
+
+Verified in the live QA browser before the final follow-up deployment: repaired landscape and portrait video playback; Discover scrolling between distinct posts; comments closed by default, opened and closed on request; expanded full-frame portrait playback; creating a compact Postcard-style book (`QA memories`, ID `8ab712f2-88ce-4205-9734-7871002c69a7`); sticker creation and editing controls; empty rights-cleared music catalog guidance; dark-mode settings readability and restoration of the original System theme. The story preview was not published.
+
+Screenshots: `qa-book-designs-20261028.jpg`, `qa-discover-fullframe-20261028.jpg`, and the initial `qa-video-repair-20261028.jpg`. The latter records the original post-detail crop before the follow-up fix. No signed media URL is stored in these notes.

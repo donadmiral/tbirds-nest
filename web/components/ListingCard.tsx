@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { Heart } from "lucide-react";
 import { priceLabel, toggleSaved, type Listing } from "@/lib/market";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 export function ListingCard({ l, saved: initiallySaved = false, viewerId = null, onSavedChange }: { l: Listing; saved?: boolean; viewerId?: string | null; onSavedChange?: (on: boolean) => void }) {
   const sold = l.status !== "available";
@@ -53,7 +53,7 @@ export function ListingCard({ l, saved: initiallySaved = false, viewerId = null,
         <span className="block text-[15px] font-semibold text-accent">{priceLabel(l)}</span>
         <span className="block truncate text-[13px] text-ink">{l.title}</span>
         <span className="block truncate text-[12px] text-muted">
-          {[l.location_city, l.delivery_available ? "Delivers" : null, timeAgo(l.created_at)].filter(Boolean).join(" · ")}
+          {[l.location_city, l.delivery_available ? "Delivers" : null].filter(Boolean).join(" · ")}{l.location_city || l.delivery_available ? " · " : ""}<RelativeTime dateTime={l.created_at} />
         </span>
       </span>
     </Link>

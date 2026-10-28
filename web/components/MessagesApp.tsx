@@ -15,7 +15,7 @@ import { ShareDetails } from "@/components/ShareDetails";
 import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from "../../shared/chatAttachmentCards";
 import { PrivateMediaViewer } from "@/components/PrivateMediaViewer";
 import { SharedPostCard } from "@/components/SharedPostCard";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from "../../shared/messageHistory";
 import { editMessage, reactToMessage, pinMessage, forwardMessage, canForwardMessage } from "@/lib/messageActions";
 
@@ -610,7 +610,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
             <span className="truncate text-[14px] font-semibold text-ink">{c.title}</span>{!c.is_group && c.other_id ? <VerifiedBadge userId={c.other_id} size={13} /> : null}{c.is_group && c.group_type === "community" ? <span className="shrink-0 rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase text-secondary">Community</span> : null}
             {c.unread > 0 ? <span className="h-[6px] w-[6px] shrink-0 rounded-full bg-pearl" aria-hidden /> : null}
           </span>
-          {c.last_message_time ? <span className="shrink-0 text-[11px] text-muted">{timeAgo(c.last_message_time)}</span> : null}
+          {c.last_message_time ? <span className="shrink-0 text-[11px] text-muted"><RelativeTime dateTime={c.last_message_time} /></span> : null}
         </span>
         <span className="flex items-center justify-between gap-2">
           <span className={"truncate text-[13px] " + (c.unread > 0 ? "font-medium text-secondary" : "text-muted")}>{c.last_message || "Say hello"}</span>
@@ -869,7 +869,7 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
             </a>
           ) : null}
           {m.text && m.media_type !== "document" ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
-          <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/80" : "text-secondary")}>{timeAgo(m.created_at)}{m.edited_at ? ' · edited' : ''}{mine ? pending ? m._delivery === 'rejected' ? ' · Not sent' : m._delivery === 'conflict' ? ' · Delivery conflict' : ' · Waiting for confirmation'  : m.read_at ? ' · Read' : m.delivered_at ? ' · Delivered' : ' · Sent' : ''}</p>
+          <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/80" : "text-secondary")}><RelativeTime dateTime={m.created_at} />{m.edited_at ? ' · edited' : ''}{mine ? pending ? m._delivery === 'rejected' ? ' · Not sent' : m._delivery === 'conflict' ? ' · Delivery conflict' : ' · Waiting for confirmation'  : m.read_at ? ' · Read' : m.delivered_at ? ' · Delivered' : ' · Sent' : ''}</p>
           {pending && m._delivery !== 'conflict' ? <button type="button" onClick={() => actions.retry(m)} className="mt-1 text-xs underline">Retry delivery</button> : null}
           {!pending && !m.view_limit && m.media_type && ['image', 'gif', 'sticker', 'video', 'audio', 'voice', 'document'].includes(m.media_type) && !m.media_url ? <button type="button" onClick={() => actions.refreshMedia(m)} className="text-xs underline">Attachment unavailable · Retry</button> : null}
           {reactions.length ? <div className="mt-1 flex flex-wrap gap-1">{reactions.map(emoji => <button type="button" key={emoji} disabled={!!actions.busy} aria-pressed={m._reactions?.some(row => row.emoji === emoji && row.user_id === uid)} aria-label={'React ' + emoji} onClick={() => actions.react(m, emoji)} className="rounded border border-current/30 px-1.5 py-0.5 text-xs">{emoji} {m._reactions?.filter(row => row.emoji === emoji).length}</button>)}</div> : null}

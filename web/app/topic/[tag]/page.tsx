@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { RichText } from "@/components/RichText";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 type TopicPost = {
   id: string;
@@ -60,7 +60,7 @@ export default function TopicPage({ params }: { params: Promise<{ tag: string }>
                 <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"} <VerifiedBadge userId={p.user_id} size={13} /></span>
                 <span className="truncate text-muted">@{p.author?.username}</span>
                 <span className="text-muted">·</span>
-                <span className="shrink-0 text-muted">{timeAgo(p.created_at)}</span>
+                <span className="shrink-0 text-muted"><RelativeTime dateTime={p.created_at} /></span>
               </span>
               <span className="mt-0.5 block whitespace-pre-wrap text-[14px] text-ink/85">
                 <RichText text={(p.content ?? p.body ?? "").slice(0, 400)} />

@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { PersonName } from "@/components/PersonName";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { RichText } from "@/components/RichText";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import { refreshCommentCount } from "@/lib/commentCounts";
 
 type CommentRow = {
@@ -173,7 +173,7 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
               <Link href={profilePath(c.author?.username, c.user_id)} className="font-semibold text-ink hover:underline"><PersonName name={c.author?.full_name ?? "Member"} userId={c.user_id} badgeSize={13} /></Link>
               {c.hidden ? <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold uppercase text-muted">Hidden</span> : null}
               {c.spam ? <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold uppercase text-muted">May be spam</span> : null}
-              <span className="text-muted">{timeAgo(c.created_at)}</span>
+              <span className="text-muted"><RelativeTime dateTime={c.created_at} /></span>
             </p>
             <p className="whitespace-pre-wrap text-[14px] text-ink/90"><RichText text={c.body} /></p>
             <div className="-ml-2.5 mt-1 flex items-center gap-0.5">

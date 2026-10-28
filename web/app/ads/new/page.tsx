@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Megaphone, Eye, UserPlus, MousePointerClick, MessageCircle, ShoppingBag, Briefcase, Check, ArrowLeft, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { priceLabel, type Listing } from "@/lib/market";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 type Goal = { key: string; label: string; icon: React.ComponentType<{ size?: number; className?: string }> };
 const GOALS: Goal[] = [
@@ -196,7 +196,7 @@ export default function AdWizardPage() {
                   <button key={p.id} onClick={() => setPick({ kind: "post", post: p })} className={card(pick?.kind === "post" && pick.post.id === p.id)}>
                     <span className="min-w-0 flex-1">
                       <span className="line-clamp-2 block text-[13px] text-ink/85">{p.content || "Media post"}</span>
-                      <span className="block text-[11px] text-muted">{timeAgo(p.created_at)}</span>
+                      <span className="block text-[11px] text-muted"><RelativeTime dateTime={p.created_at} /></span>
                     </span>
                     {pick?.kind === "post" && pick.post.id === p.id ? <Check size={16} className="shrink-0 text-accent" /> : null}
                   </button>

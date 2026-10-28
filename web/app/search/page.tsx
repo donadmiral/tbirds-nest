@@ -10,7 +10,7 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { RichText } from "@/components/RichText";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import { displayImageUrl } from "@/lib/media";
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { withTimeout } from "@/lib/withTimeout";
@@ -338,7 +338,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline gap-1.5 text-[13px]">
                       <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"} <VerifiedBadge userId={p.user_id} size={13} /></span>
-                      <span className="shrink-0 text-muted">{timeAgo(p.created_at)}</span>
+                      <span className="shrink-0 text-muted"><RelativeTime dateTime={p.created_at} /></span>
                     </span>
                     <span className="line-clamp-2 block text-[13px] text-ink/80"><RichText text={p.content ?? ""} /></span>
                   </span>
@@ -373,7 +373,7 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-accent"><FileText size={16} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-semibold text-ink">{a.article_title || "Article"}</span>
-                    <span className="block truncate text-[12px] text-muted">{[a.author_name, a.read_minutes ? a.read_minutes + " min read" : null, timeAgo(a.created_at)].filter(Boolean).join(" · ")}</span>
+                    <span className="block truncate text-[12px] text-muted">{[a.author_name, a.read_minutes ? a.read_minutes + " min read" : null].filter(Boolean).join(" · ")}{a.author_name || a.read_minutes ? " · " : ""}<RelativeTime dateTime={a.created_at} /></span>
                   </span>
                 </Link>
               ))}

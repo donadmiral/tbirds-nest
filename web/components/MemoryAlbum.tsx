@@ -15,6 +15,7 @@ import {
 
 import { MEMORY_DESIGNS } from '../../shared/memoryBookDesign';
 import { MemoryBookCover } from './memory/MemoryBookCover';
+import { MemoryStoryPreview } from './memory/MemoryStoryPreview';
 import { PostSoundtrack } from './PostSoundtrack';
 import SoundtrackPicker from './SoundtrackPicker';
 
@@ -312,22 +313,18 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
           <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
         </div>
         <p className="mb-3 text-[12px] text-muted">Every story you have ever posted. Pick the ones worth keeping.</p>
+        <button type="button" disabled={loading||busy} className="mb-3 text-xs text-muted underline disabled:opacity-50" onClick={()=>setAttempt(n=>n+1)}>Refresh previews</button>
         {error && <button className="mb-3 text-sm underline" onClick={() => setAttempt(n => n + 1)}>{error}</button>}
         {rows.length === 0 ? <p className="py-10 text-center text-sm text-muted">{loading ? "Loading your stories…" : error ? "" : "No stories yet."}</p> : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {rows.map((s) => {
               const taken = existing.some((p) => p.story_id === s.id);
               const on = picked.has(s.id);
+              const label = s.caption?.trim() || `${s.media_type === "video" ? "Video" : s.media_type === "image" ? "Photo" : "Story"} from ${fmtDate(s.created_at)}`;
               return (
-                <button key={s.id} disabled={taken} onClick={() => setPicked((prev) => { const n = new Set(prev); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); return n; })}
+                <button key={s.id} type="button" aria-label={`${label}. ${taken ? "Already in this book" : on ? "Selected" : "Not selected"}`} aria-pressed={taken||on} disabled={taken||busy} onClick={() => setPicked((prev) => { const n = new Set(prev); if (n.has(s.id)) n.delete(s.id); else n.add(s.id); return n; })}
                   className={"relative aspect-[9/14] overflow-hidden rounded-lg border " + (on ? "border-ink" : "border-ink/10") + (taken ? " opacity-35" : "")}>
-                  {s.media_type === "video" && s.thumbnail_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.thumbnail_url} alt="" className="h-full w-full object-contain" />
-                  ) : s.media_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.media_url} alt="" className="h-full w-full object-contain" />
-                  ) : <span className="block h-full w-full bg-ink/10" />}
+                  <MemoryStoryPreview key={[s.id,attempt,s.media_url,s.thumbnail_url].join(":")} story={s}/>
                   {on ? <span className="absolute right-1 top-1 rounded-full bg-ink p-1 text-white"><Check size={11} /></span> : null}
                   {taken ? <span className="absolute inset-x-0 bottom-0 bg-white/85 py-0.5 text-center text-[10px] font-semibold text-ink/60">In album</span> : null}
                 </button>
@@ -386,14 +383,14 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
           {Object.entries(COVER_COLORS).map(([key, c]) => (
             <button key={key} onClick={() => setColor(key)}
               className={"h-9 w-9 rounded-full border-2 " + (color === key ? "border-ink" : "border-ink/10")}
-              style={{ background: c.cover }} title={key} aria-label={key}>
+              style={{ background: c.cover }} title={key} aria-label={`${key} cover color`} aria-pressed={color===key}>
               <span className="mx-auto block h-4 w-1.5 rounded" style={{ background: c.spine }} />
             </button>
           ))}
         </div>
 
         <p className="mb-2 text-xs font-semibold uppercase text-muted">Cover design</p>
-        <div className="mb-4 flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} aria-pressed={design===d.id} onClick={()=>setDesign(d.id)} className={design===d.id?'':'opacity-45'}><MemoryBookCover title={title||'Memories'} color={color} design={d.id}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div>
+        <div className="mb-4 flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} aria-label={`${d.label} cover design`} aria-pressed={design===d.id} onClick={()=>setDesign(d.id)} className={design===d.id?'':'opacity-45'}><MemoryBookCover title={title||'Memories'} color={color} design={d.id}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div>
         <button className="mb-4 rounded-full border border-ink/15 px-4 py-2 text-sm" onClick={()=>setMusicOpen(true)}>{soundtrack?'Change soundtrack':'Add soundtrack'}</button>
         {soundtrack&&<button className="ml-3 text-sm underline" onClick={()=>setSoundtrack(null)}>No music</button>}
         {musicOpen&&<SoundtrackPicker value={soundtrack} use="memory_album" onChange={setSoundtrack} onClose={()=>setMusicOpen(false)}/>}

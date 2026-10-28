@@ -36,6 +36,7 @@ type Props = {
   src: string; postId: string; viewsCount?: number | null;
   width?: number; height?: number; onDims?: (w: number, h: number) => void;
   edit?: PostMediaEditRecipe | null; immersive?: boolean; onExpand?: () => void;
+  fullFrame?: boolean;
   allowPlayback?: boolean; soundtrack?:SoundtrackSelection|null; poster?:string|null; mediaOverlay?:ReactNode;
 };
 
@@ -43,7 +44,7 @@ export function VideoPlayer(props: Props) {
   return <VideoPlayback key={props.src + ":" + props.postId} {...props} />;
 }
 
-function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersive = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props) {
+function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersive = false, fullFrame = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props) {
   const ref = useRef<WebVideo | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -233,15 +234,16 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     setPlaying(false); void reportDwell(); clearStall();
     stalledAt.current = setTimeout(() => { if (wantsPlayback.current && (ref.current?.readyState ?? 0) < 3) { stop(); setFailed(true); } }, 15000);
   };
-  const fitted = expanded && !fill && viewport.width && viewport.height
+  const showFullFrame = expanded ? !fill : fullFrame;
+  const fitted = showFullFrame && viewport.width && viewport.height
     ? discoverFrame(viewport.width, viewport.height, sourceSize.width, sourceSize.height, edit?.rotation ?? 0) : null;
   const btn = "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink/60 text-white transition-colors hover:bg-ink/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl disabled:opacity-40";
   return (
     <div ref={wrapRef} role="group" aria-label="Video player" tabIndex={0} onKeyDown={onKey}
-      style={!expanded && width && height ? { aspectRatio: width + " / " + height } : undefined}
+      style={!expanded && !fullFrame && width && height ? { aspectRatio: width + " / " + height } : undefined}
       className={"video-player group relative overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl " + (expanded ? "flex h-full w-full flex-col items-stretch bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}>
-      <div ref={viewportRef} className={expanded?"relative flex min-h-0 flex-1 items-center justify-center overflow-hidden":"relative h-full w-full overflow-hidden"}>
-      <video poster={poster||edit?.coverUrl||undefined} style={{...(fitted ? { width: fitted.width, height: fitted.height, flexShrink: 0 } : {}), objectFit:expanded?(fill?"cover":"contain"):(edit?.fit||"cover"),transform:`translate(${(edit?.translateNX||0)*100}%, ${(edit?.translateNY||0)*100}%) scale(${edit?.scale||1}) rotate(${edit?.rotation||0}deg) scaleX(${edit?.flipX?-1:1})`}} ref={ref} src={src} playsInline muted={edit?.muted || muted} preload={allowPlayback && !dataSaverEnabled() ? "metadata" : "none"}
+      <div ref={viewportRef} className={expanded?"relative flex min-h-0 flex-1 items-center justify-center overflow-hidden":fullFrame?"relative flex h-full w-full items-center justify-center overflow-hidden":"relative h-full w-full overflow-hidden"}>
+      <video poster={poster||edit?.coverUrl||undefined} style={{...(fitted ? { width: fitted.width, height: fitted.height, flexShrink: 0 } : {}), objectFit:showFullFrame?"contain":expanded?"cover":(edit?.fit||"cover"),transform:`translate(${(edit?.translateNX||0)*100}%, ${(edit?.translateNY||0)*100}%) scale(${edit?.scale||1}) rotate(${edit?.rotation||0}deg) scaleX(${edit?.flipX?-1:1})`}} ref={ref} src={src} playsInline muted={edit?.muted || muted} preload={allowPlayback && !dataSaverEnabled() ? "metadata" : "none"}
         onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
         onDoubleClick={(e) => { e.stopPropagation(); void toggleFullscreen(); }}
         onPlay={() => {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 export function SharedPostCard({ postId }: { postId: string }) {
   const supabase = useRef(createClient()).current;
@@ -34,7 +34,7 @@ export function SharedPostCard({ postId }: { postId: string }) {
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-1.5 text-[12px]">
           <span className="truncate font-semibold text-ink">{p.author?.full_name ?? "Member"}</span>{p.author?.id ? <VerifiedBadge userId={p.author.id} size={12} /> : null}
-          <span className="shrink-0 text-muted">{timeAgo(p.created_at)}</span>
+          <span className="shrink-0 text-muted"><RelativeTime dateTime={p.created_at} /></span>
         </span>
         <span className="mt-0.5 line-clamp-3 block text-[13px] text-ink/80">{p.content ?? p.body ?? ""}</span>
       </span>

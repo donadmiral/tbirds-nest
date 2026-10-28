@@ -83,13 +83,13 @@ export async function deleteMemoryPage(id: string): Promise<boolean> {
   return !error && data?.length === 1;
 }
 
-export async function getMyStories(limit = 120): Promise<{ id: string; media_url: string | null; media_type: string; thumbnail_url: string | null; caption: string | null; created_at: string }[]> {
+export async function getMyStories(limit = 120): Promise<{ id: string; media_url: string | null; media_type: string; thumbnail_url: string | null; caption: string | null; created_at: string; text_background?: {color?:string;colors?:string[]} | string | null; stickers_json?: unknown }[]> {
   const supabase = createClient();
   const { data: sess } = await supabase.auth.getSession();
   const uid = sess.session?.user.id;
   if (!uid) return [];
   const { data, error } = await supabase.from("stories")
-    .select("id, media_url, media_type, thumbnail_url, caption, created_at")
+    .select("id, media_url, media_type, thumbnail_url, caption, created_at, text_background, stickers_json")
     .eq("user_id", uid)
     .order("created_at", { ascending: false })
     .limit(limit);

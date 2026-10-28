@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-10-28T15:19:27.989Z",
+  "measuredAt": "2026-10-28T15:28:53.405Z",
   "node": "v24.22.1",
   "passed": true,
   "stages": [
@@ -8,7 +8,7 @@
       "exitCode": 0,
       "signal": null,
       "passed": true,
-      "durationMs": 21797,
+      "durationMs": 19299,
       "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
@@ -16,7 +16,7 @@
       "exitCode": 0,
       "signal": null,
       "passed": true,
-      "durationMs": 16960,
+      "durationMs": 3503,
       "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
@@ -24,7 +24,7 @@
       "exitCode": 0,
       "signal": null,
       "passed": true,
-      "durationMs": 1936,
+      "durationMs": 1801,
       "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
@@ -32,63 +32,64 @@
       "exitCode": 0,
       "signal": null,
       "passed": true,
-      "durationMs": 24128,
-      "logSha256": "46727d0bd3f2fdfd8c8dc28315cd30abad89f6fa75f922043d26fb71b6437e07"
+      "durationMs": 25528,
+      "logSha256": "fad0cfaee5301e70c5e4dd3eeec1d1459d10a1c0f92f265eb6951eedbaf281db"
     },
     {
       "name": "web-tests",
       "exitCode": 0,
       "signal": null,
       "passed": true,
-      "durationMs": 11654,
-      "logSha256": "212304d141f099a30c924574847fb960acd21c29cdf91f74235b83a9bb90234c"
+      "durationMs": 11959,
+      "logSha256": "51dd324b7b735db51e99c686d3bba12fadf0c6bd204f201fc4da218d748fbf63"
     },
     {
       "name": "admin-tests",
       "exitCode": 0,
       "signal": null,
       "passed": true,
-      "durationMs": 3186,
-      "logSha256": "9a2d866a7e4401ad2ac2e8bfb491fab597fe58fb96057d75ac56340426b3a88e"
-    },
-    {
-      "name": "rpc-tests",
-      "exitCode": 0,
-      "signal": null,
-      "passed": true,
-      "durationMs": 14604,
-      "logSha256": "58fdb982a41aebabf07e9e732c7e76b2e9d44b385e47126fbc007e35216a8cd1"
+      "durationMs": 2882,
+      "logSha256": "f4e843fd5658a75ce34e3d53a78c7a49390979f84d43395a48b22f686360e6be"
     },
     {
       "name": "database-tests",
       "exitCode": 0,
       "signal": null,
       "passed": true,
-      "durationMs": 71279,
-      "logSha256": "75d5ea13c579e6f2887848940987fa8e78721974957d4882da9b690f59ccbfe4"
+      "durationMs": 69499,
+      "logSha256": "46abd9104cf18a77170cb27f54a1116ab6cfb093edf8a27defc05d2306428f21"
+    },
+    {
+      "name": "rpc-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 18220,
+      "logSha256": "58fdb982a41aebabf07e9e732c7e76b2e9d44b385e47126fbc007e35216a8cd1"
     }
   ],
+  "qaProject": "uaulhuelcfkjwojtymmw",
+  "privateMediaCutover": "held pending compatible native build and coordinated acceptance",
+  "scope": "Automated source and database verification. Not a physical-device acceptance result or production-capacity certification.",
+  "sourceBaseCommit": "6461aac6d83bb3d866c0e8371579b32875dac56e",
   "testCounts": {
-    "phone": 590,
-    "web": 374,
+    "phone": 594,
+    "web": 387,
     "admin": 58,
     "database": 245,
-    "totalNamedTests": 1267,
+    "totalNamedTests": 1284,
     "failed": 0,
     "skipped": 0,
     "rpc": "all runner suites and complete migration chain passed"
   },
-  "sourceBaseCommit": "1d70765e12df1f9bccdf2c30a090e85002c73a86",
-  "qaProject": "uaulhuelcfkjwojtymmw",
-  "privateMediaCutover": "held pending compatible native build and coordinated acceptance",
-  "scope": "Automated source and database verification. Not a physical-device acceptance result or production-capacity certification.",
   "iosExport": {
     "exitCode": 0,
-    "logSha256": "7ad26a47ae4620696ea2e2f86ca7aa0d306170d91c634660abe8323ece95b48c",
+    "logSha256": "ef68fdbf6698bde52fe1d375f3d6f8e0cc11d2571ed9e12a354a63340c3d8beb",
     "meaning": "iOS production JavaScript/Hermes export, not a signed installable app"
   },
   "webProductionBuild": {
     "exitCode": 0,
-    "logSha256": "bbe87c72474e2d134b53f62a7c7042c2427a8f7224d10e1f2b841d389cd50f96"
+    "logSha256": "b92551e419f68afbf1ee85339f476b7c0150d5032601d4c1578474ffa1becee9",
+    "note": "Clean .next rebuild after local Turbopack persistence-cache failure"
   }
 }

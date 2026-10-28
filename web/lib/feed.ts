@@ -60,8 +60,19 @@ export type FeedRow = {
   innovation_stage: string | null;
 };
 
-export function timeAgo(iso: string): string {
-  const s = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Stable across server/client locales and timezones, including midnight posts. */
+export function absolutePostDate(iso: string): string {
+  const date = new Date(iso);
+  return Number.isFinite(date.getTime()) ? `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}` : "Date unavailable";
+}
+
+/** Pass an explicit clock when rendering; RelativeTime supplies it after hydration. */
+export function timeAgo(iso: string, now = Date.now()): string {
+  const timestamp = new Date(iso).getTime();
+  if (!Number.isFinite(timestamp) || !Number.isFinite(now)) return "Date unavailable";
+  const s = Math.max(1, Math.floor((now - timestamp) / 1000));
   if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);
   if (m < 60) return `${m}m`;
@@ -69,5 +80,5 @@ export function timeAgo(iso: string): string {
   if (h < 24) return `${h}h`;
   const d = Math.floor(h / 24);
   if (d < 7) return `${d}d`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return absolutePostDate(iso);
 }

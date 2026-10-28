@@ -20,6 +20,7 @@ import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } f
 
 import {PostSoundtrack} from "./PostSoundtrack";
 import {readSoundtrack} from "../../shared/soundtrack";
+import { discoverFrame } from "../../shared/discover";
 
 type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null };
 
@@ -123,13 +124,21 @@ export type ViewerPost = {
   viewer_bookmarked?: boolean;
 };
 
-function fitted(w: number | null | undefined, h: number | null | undefined, availW: number, maxH: number): Dims | null {
-  if (!w || !h || !availW) return null;
-  const scale = Math.min(availW / w, maxH / h, 1.25);
-  return { w: Math.round(w * scale), h: Math.round(h * scale) };
+function fitted(w: number | null | undefined, h: number | null | undefined, availW: number, maxH: number, rotation = 0, maxScale = 1.25): (Dims & { sourceW: number; sourceH: number }) | null {
+  if (typeof w !== 'number' || typeof h !== 'number' || ![w, h, availW, maxH, maxScale].every(value => Number.isFinite(value) && value > 0)) return null;
+  rotation = Number.isFinite(rotation) ? rotation : 0;
+  const radians = rotation * Math.PI / 180;
+  const rotatedW = Math.abs(w * Math.cos(radians)) + Math.abs(h * Math.sin(radians));
+  const rotatedH = Math.abs(w * Math.sin(radians)) + Math.abs(h * Math.cos(radians));
+  const scale = Math.min(availW / rotatedW, maxH / rotatedH, maxScale);
+  const box = { w: Math.max(1, Math.round(rotatedW * scale)), h: Math.max(1, Math.round(rotatedH * scale)) };
+  // The box follows the rotated bounds; the image keeps its original aspect
+  // before the author's rotation, flip, translation and crop are applied.
+  const source = rotation % 360 === 0 ? { width: box.w, height: box.h } : discoverFrame(box.w, box.h, w, h, rotation);
+  return { ...box, sourceW: source.width, sourceH: source.height };
 }
 
-export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; onDoubleClick?: (e: React.MouseEvent) => void }) {
+export function MediaGallery({ media, postId, viewsCount, post, fullFrame = false, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; fullFrame?: boolean; onDoubleClick?: (e: React.MouseEvent) => void }) {
   const [edits, setEdits] = useState<Record<string, PostMediaEditRecipe | null>>({});
   useEffect(() => {
     const need = media.filter(m => m.edit === undefined && UUID_ID.test(m.id)).map(m => m.id);
@@ -183,6 +192,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   }, [media, postId]);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
+  const mediaPaneRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const touchX = useRef<number | null>(null);
@@ -190,6 +200,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
   const [availW, setAvailW] = useState(608);
   const [maxH, setMaxH] = useState(720);
+  const [viewerSize, setViewerSize] = useState<Dims>({ w: 0, h: 0 });
   const [trueDims, setTrueDims] = useState<Record<string, Dims>>({});
   const [idx, setIdx] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
@@ -239,6 +250,21 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
     window.addEventListener("resize", onResize);
     return () => { ro.disconnect(); window.removeEventListener("resize", onResize); };
   }, []);
+
+  useEffect(() => {
+    if (!viewerOpen) return;
+    const pane = mediaPaneRef.current;
+    if (!pane) return;
+    const update = () => {
+      const rect = pane.getBoundingClientRect();
+      setViewerSize(previous => previous.w === rect.width && previous.h === rect.height ? previous : { w: rect.width, h: rect.height });
+    };
+    update();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+    observer?.observe(pane);
+    window.addEventListener('resize', update);
+    return () => { observer?.disconnect(); window.removeEventListener('resize', update); };
+  }, [viewerOpen, mobileComments, immersive]);
 
   const resetZoom = useCallback(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, []);
   useEffect(() => {
@@ -312,15 +338,19 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
   if (media.length === 0) return null;
   const item = media[Math.min(idx, media.length - 1)];
   const known = trueDims[item.id] ?? (item.width && item.height ? { w: item.width, h: item.height } : null);
-  const fittedDims = fitted(known?.w, known?.h, availW, maxH);
+  const fittedDims = fitted(known?.w, known?.h, availW, maxH, editOf(item)?.rotation ?? 0);
   // Video takes the whole card width and caps its height at 4:5, exactly as
   // Instagram's feed does. A tall clip is cover-cropped to that box in the
-  // feed; the full frame is one click away in the viewer.
+  // feed; post detail opts into fitting the full frame inside the same box.
   const dims = item.media_type === "video" && availW
     ? { w: availW, h: Math.round(Math.min(known?.w && known?.h ? availW * (known.h / known.w) : availW * 1.25, availW * 1.25)) }
     : fittedDims;
   const altOf = (m: MediaItem, i: number) => m.alt_text || "Post media " + (i + 1);
   const showPanel = !!post && !immersive;
+  const viewerItem = lightbox === null ? null : media[lightbox];
+  const viewerKnown = viewerItem ? trueDims[viewerItem.id] ?? (viewerItem.width && viewerItem.height ? { w: viewerItem.width, h: viewerItem.height } : null) : null;
+  const viewerImage = viewerItem?.media_type !== 'video'
+    ? fitted(viewerKnown?.w, viewerKnown?.h, viewerSize.w, viewerSize.h, viewerItem ? editOf(viewerItem)?.rotation ?? 0 : 0, 1) : null;
 
   function goTo(next: number) { resetZoom(); setLightbox(next); }
   function onTouchStart(e: React.TouchEvent) { touchX.current = e.touches[0]?.clientX ?? null; }
@@ -422,6 +452,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
           {item.media_type === "video" ? (
             <div style={dims ? { width: dims.w + "px", height: dims.h + "px" } : { width: "100%" }}>
               <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount}
+                fullFrame={fullFrame}
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
                 edit={editOf(item)} soundtrack={readSoundtrack(editOf(media[0])?.soundtrack)} mediaOverlay={<EditPlanes e={editOf(item)} />}
@@ -430,7 +461,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               /><TagLayer mode="list" tags={tags[item.id] || []} w={dims?.w} h={dims?.h} /></div>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative flex items-center justify-center" style={dims ? { width: dims.w, height: dims.h } : undefined}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={displayImageUrl(item.url, dataSaverEnabled() ? 480 : 1200)!}
               {...(dataSaverEnabled() ? {} : srcSetFor(item.url))}
@@ -444,7 +475,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               aria-label={"Open " + altOf(item, idx)}
               alt={altOf(item, idx)}
               loading="lazy"
-              style={dims ? { width: dims.w + "px", height: dims.h + "px", ...editStyle(editOf(item)) } : editStyle(editOf(item))}
+              style={fittedDims ? { width: fittedDims.sourceW, height: fittedDims.sourceH, maxWidth: 'none', maxHeight: 'none', flexShrink: 0, ...editStyle(editOf(item)) } : editStyle(editOf(item))}
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
               <EditPlanes e={editOf(item)} />
@@ -527,7 +558,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
           </div>
 
           <div className={"flex min-h-0 flex-1" + (mobileComments ? " max-lg:flex-col" : "")}>
-          <div data-media-pane className={"relative flex min-w-0 flex-1 items-center justify-center overflow-hidden" + (mobileComments ? " max-lg:flex-none" : "")}>
+          <div ref={mediaPaneRef} data-media-pane className={"relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden" + (mobileComments ? " max-lg:h-[40vh] max-lg:flex-none" : "")}>
             {lightbox > 0 ? (
               <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-ink/60 p-2 text-white transition-colors duration-[140ms] hover:bg-ink/80"><ChevronLeft size={20} /></button>
             ) : null}
@@ -547,13 +578,14 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               // eslint-disable-next-line @next/next/no-img-element
               <img src={displayImageUrl(media[lightbox].url)!}
                 onError={(e) => { if (e.currentTarget.src !== media[lightbox].url) e.currentTarget.src = media[lightbox].url; }}
+                onLoad={(e) => measure(media[lightbox].id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
                 alt={altOf(media[lightbox], lightbox)}
                 onClick={(e) => e.stopPropagation()}
                 onWheel={onWheelZoom}
                 onDoubleClick={onDoubleClick}
                 onMouseDown={onDragStart}
                 draggable={false}
-                style={{...editStyle(editOf(media[lightbox])), transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ") "+(editStyle(editOf(media[lightbox])).transform||""), transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
+                style={{...(viewerImage ? { width: viewerImage.sourceW, height: viewerImage.sourceH, maxWidth: 'none', maxHeight: 'none', flexShrink: 0 } : {}), ...editStyle(editOf(media[lightbox])), transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ") "+(editStyle(editOf(media[lightbox])).transform||""), transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
                 className={"max-h-full max-w-full select-none object-contain [touch-action:none]" + (mobileComments ? " max-lg:max-h-[40vh]" : "")}
               />
             )}

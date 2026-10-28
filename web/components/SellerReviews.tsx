@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 import {
   getSellerReviewPage,
   submitSellerReview,
@@ -253,7 +253,7 @@ export function SellerReviews({
               {"★".repeat(r.rating)}
               {"☆".repeat(5 - r.rating)}
             </span>
-            <span className="text-muted">{timeAgo(r.created_at)}</span>
+            <span className="text-muted"><RelativeTime dateTime={r.created_at} /></span>
           </div>
           <p className="mt-1 text-xs text-muted">Verified purchase</p>
           {r.comment && (
