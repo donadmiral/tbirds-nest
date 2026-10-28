@@ -16,6 +16,8 @@ const helperCode = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../l
 const helperModule = { exports: {} };
 vm.runInNewContext(helperCode, { module: helperModule, exports: helperModule.exports });
 const helper = helperModule.exports;
+function sharedModule(file) { const module={exports:{}}; const code=ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText; vm.runInNewContext(code,{module,exports:module.exports});return module.exports; }
+const soundtrackHelpers=sharedModule('soundtrack.ts'),discoverHelpers=sharedModule('discover.ts');
 const allNodes = tree => {
   const found = [];
   const walk = node => { if (Array.isArray(node)) return node.forEach(walk); if (!node || typeof node !== 'object') return;
@@ -34,7 +36,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
   const add = (type, callback) => { const set = listeners.get(type) || new Set(); set.add(callback); listeners.set(type, set); };
   const remove = (type, callback) => listeners.get(type)?.delete(callback);
   const document = { hidden: false, pictureInPictureEnabled: pip, pictureInPictureElement: null, fullscreenElement: null,
-    addEventListener: add, removeEventListener: remove, body: { style: {} }, documentElement: { clientWidth: 1200 }, activeElement: { focus() {} },
+    addEventListener: add, removeEventListener: remove, body: { style: {} }, documentElement: { clientWidth: 1200, dataset: {} }, activeElement: { focus() {} },
     exitPictureInPicture: async () => { document.pictureInPictureElement = null; }, exitFullscreen: async () => { document.fullscreenElement = null; } };
   document.body.focus = () => { document.activeElement = document.body; };
   const storage = new Map([['pc:video-prefs', JSON.stringify(prefs)]]);
@@ -46,6 +48,8 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === 'react') return new Proxy({}, { get: (_, key) => (...args) => currentHooks[key](...args) });
     if (name === 'react/jsx-runtime') return runtime;
     if (name === '@/lib/videoPlayback') return helper;
+    if (name.includes('shared/soundtrack')) return soundtrackHelpers;
+    if (name.includes('shared/discover')) return discoverHelpers;
     if (name === '@/lib/mediaPrefs') return { dataSaverEnabled: () => saver, autoplayEnabled: () => autoplay };
     if (name === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };
     if (name === '@/lib/supabase/client') return { createClient: () => client };
@@ -78,7 +82,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
       querySelectorAll: () => [closeButton, ...navigation.values()] };
     const closeButton = focusNode();
     const wrapper = { ...focusNode(), contains: target => target === inlineOpener || modal.contains(target),
-      getBoundingClientRect: () => ({ width: 600 }), querySelectorAll: () => [], querySelector: () => inlineOpener,
+      getBoundingClientRect: () => ({ width: 600, height: 400 }), querySelectorAll: () => [], querySelector: () => inlineOpener,
       requestFullscreen: async () => { document.fullscreenElement = wrapper; } };
     const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
     const hooks = {
@@ -139,11 +143,11 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
 
 test('expanded videos show the complete frame before the user opts into crop', () => {
   const screen = scenario().mount({ immersive: true });
-  assert.match(screen.find(n => n.type === 'video').props.className, /object-contain/);
+  assert.equal(screen.find(n => n.type === 'video').props.style.objectFit, 'contain');
   screen.click('Fill the screen');
-  assert.match(screen.find(n => n.type === 'video').props.className, /object-cover/);
+  assert.equal(screen.find(n => n.type === 'video').props.style.objectFit, 'cover');
   screen.click('Show the whole frame');
-  assert.match(screen.find(n => n.type === 'video').props.className, /object-contain/);
+  assert.equal(screen.find(n => n.type === 'video').props.style.objectFit, 'contain');
 });
 test('remembered valid playback speed is applied to the actual media element', () => {
   const screen = scenario({ prefs: { speed: 1.75 } }).mount(); screen.videoEvent('onLoadedMetadata');
@@ -252,7 +256,7 @@ test('only one player owns playback and a stopped pending play cannot steal it b
   first.click('Play video'); second.click('Play video');
   first.element.paused = false; first.videoEvent('onPlay'); resolve(); await flush(first);
   assert.equal(first.element.paused, true);
-  second.videoEvent('onPlay'); assert.ok(second.label('Pause video'));
+  second.videoEvent('onPlay'); second.videoEvent('onPlaying'); assert.ok(second.label('Pause video'));
 });
 test('browser denial of PiP produces a visible fallback message', async () => {
   const screen = scenario({ pip: true }).mount(); screen.videoEvent('onLoadedMetadata');
@@ -352,4 +356,24 @@ test('unmounting an open viewer releases the page without focusing disconnected 
   assert.equal(s.document.body.style.paddingRight, '4px');
   const tab = event('Tab'); s.dispatch(tab);
   assert.equal(tab.defaultPrevented, false);
+});
+
+test('music keeps playing when the creator silences the original video track',()=>{
+ const soundtrack={soundId:'11111111-1111-4111-8111-111111111111',startSec:3,durationSec:10,volume:.8,originalVolume:.7};
+ const screen=scenario({prefs:{muted:false}}).mount({soundtrack,edit:{muted:true,trimStart:2}});
+ screen.videoEvent('onLoadedMetadata');screen.click('Play video');screen.videoEvent('onPlaying');
+ assert.equal(screen.element.volume,0);assert.equal(screen.element.muted,true);
+ assert.equal(screen.find(n=>n.type==='PostSoundtrack').props.active,true);
+ screen.videoEvent('onWaiting');assert.equal(screen.find(n=>n.type==='PostSoundtrack').props.active,false);
+ screen.unmount();
+});
+test('durable call state blocks new playback as well as late playing events',()=>{
+ const s=scenario();s.document.documentElement.dataset.platinumCallActive='true';const screen=s.mount({immersive:true});
+ screen.click('Play video');assert.equal(screen.element.playCalls,0);
+ screen.element.paused=false;screen.videoEvent('onPlaying');assert.equal(screen.element.paused,true);screen.unmount();
+});
+test('90 degree video rotation fits within the measured immersive viewport',()=>{
+ const screen=scenario().mount({immersive:true,edit:{rotation:90,flipX:true}});screen.videoEvent('onLoadedMetadata');
+ const style=screen.find(n=>n.type==='video').props.style;
+ assert.ok(style.width<=400.01);assert.ok(style.height<=600.01);assert.match(style.transform,/rotate\(90deg\).*scaleX\(-1\)/);screen.unmount();
 });

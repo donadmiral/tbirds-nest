@@ -104,9 +104,9 @@ export default function StoryOptionsSheet({
     ]);
 
   const shareStory = () => run(async () => {
-    if (!mediaUrl) { Alert.alert('Nothing to share', 'This story has no shareable media.'); return; }
+    if (!storyId) return;
     onClose();
-    await Share.share({ message: mediaUrl });
+    await Share.share({ message: `https://platinumcircles.app/story/${encodeURIComponent(storyId)}` });
   });
 
   const rows = isMine

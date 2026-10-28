@@ -48,6 +48,9 @@ import { uploadMedia } from '../../services/mediaService';
 import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
 import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
+import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
+import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from '../../../shared/chatAttachmentCards';
+import { PrivateMediaViewer } from '../../components/messages/PrivateMediaViewer';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
 import ChatInfoSections from '../../components/ChatInfoSections';
 import CallEventBubble from '../../components/CallEventBubble';
@@ -88,6 +91,7 @@ type MessageItem = {
   read_at?: string | null;
   delivered_at?: string | null;
   viewed_at?: string | null;
+  view_limit?: number | null;
   media_url?: string | null;
   media_type?: string | null;
   media_b64?: string | null;
@@ -204,6 +208,7 @@ function computeImageDims(origW?: number | null, origH?: number | null) {
 }
 
 function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: string) => void; onBack: () => void; gifMode?: string }) {
+  const {t}=useTheme();
   const GIPHY_KEY = process.env.EXPO_PUBLIC_GIPHY_KEY || '';
   const [q, setQ] = useState('');
   const [gifs, setGifs] = useState<any[]>([]);
@@ -222,7 +227,7 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
       setGifs(Array.isArray(json?.data) ? json.data : []);
     } catch { setGifs([]); }
     finally { setBusy(false); }
-  }, [GIPHY_KEY]);
+  }, [GIPHY_KEY, gifMode]);
 
   useEffect(() => { fetchGifs(''); }, [fetchGifs]);
   useEffect(() => {
@@ -234,15 +239,15 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
   if (!GIPHY_KEY) {
     return (
       <View style={{ paddingHorizontal: 20, paddingVertical: 28, alignItems: 'center', gap: 8 }}>
-        <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(11,30,61,0.06)' }}>
-          <Feather name="film" size={20} color={TEXT_SECONDARY} />
+        <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor:t.surface.sunken }}>
+          <Feather name="film" size={20} color={t.ink.secondary} />
         </View>
-        <Text style={{ fontSize: 15, fontWeight: '700', color: '#0B1E3D' }}>GIF key needed</Text>
-        <Text style={{ fontSize: 13, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 19 }}>
-          Add EXPO_PUBLIC_GIPHY_KEY to .env (free at developers.giphy.com) and restart the app.
+        <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink.primary }}>GIFs unavailable</Text>
+        <Text style={{ fontSize: 13, color: t.ink.secondary, textAlign: 'center', lineHeight: 19 }}>
+          GIF search is unavailable right now. You can still share photos and videos.
         </Text>
-        <TouchableOpacity onPress={onBack} style={{ marginTop: 6, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Back</Text>
+        <TouchableOpacity onPress={onBack} style={{ marginTop: 6, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999, backgroundColor:t.surface.sunken }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink.primary }}>Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -251,17 +256,17 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
   const half = Math.floor((SCREEN_W - 14 * 2 - 8) / 2);
   return (
     <View style={{ flex: 1, paddingTop: 4 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 8, backgroundColor: 'rgba(11,30,61,0.05)', borderRadius: 18, paddingHorizontal: 12 }}>
-        <Feather name="search" size={15} color={TEXT_SECONDARY} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 8, backgroundColor:t.surface.sunken, borderRadius: 18, paddingHorizontal: 12 }}>
+        <Feather name="search" size={15} color={t.ink.secondary} />
         <TextInput
-          style={{ flex: 1, fontSize: 14.5, color: '#0B1E3D', paddingVertical: 9 }}
+          style={{ flex: 1, fontSize: 14.5, color: t.ink.primary, paddingVertical: 9 }}
           value={q} onChangeText={setQ}
           placeholder="Search GIPHY"
           placeholderTextColor="#9CA3AF"
           autoCapitalize="none"
         />
         <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="x" size={17} color={TEXT_SECONDARY} />
+          <Feather name="x" size={17} color={t.ink.secondary} />
         </TouchableOpacity>
       </View>
       {busy && gifs.length === 0 ? (
@@ -285,7 +290,7 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
               </TouchableOpacity>
             );
           }}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', color: TEXT_SECONDARY, fontSize: 13, marginTop: 30 }}>No GIFs found</Text>}
+          ListEmptyComponent={<Text style={{ textAlign: 'center', color: t.ink.secondary, fontSize: 13, marginTop: 30 }}>No GIFs found</Text>}
         />
       )}
     </View>
@@ -490,6 +495,7 @@ export default function ChatScreen() {
   const [seenSheet, setSeenSheet] = useState<{ msg: any; rows: { name: string; avatar: string | null; seenAt: string | null }[] } | null>(null);
   const [lastStatus, setLastStatus] = useState<OutgoingStatus>(null);
 
+  const [shareDetails, setShareDetails] = useState<'contact'|'location'|null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showGifs, setShowGifs] = useState(false);
   const [editingMsg, setEditingMsg] = useState<MessageItem | null>(null);
@@ -512,6 +518,7 @@ export default function ChatScreen() {
   const [fullscreenImg, setFullscreenImg] = useState<string | null>(null);
   const [capturedVideo, setCapturedVideo] = useState<{ uri: string; type: 'video'; width?: number; height?: number } | null>(null);
   const mediaSending = useRef(false);
+  const mediaOperation = useRef(0);
   const reactionPending = useRef(new Set<string>());
   const editPending = useRef(false);
   const pinPending = useRef(false);
@@ -525,7 +532,8 @@ export default function ChatScreen() {
   const [showTimestamp, setShowTimestamp] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [viewedOutIds, setViewedOutIds] = useState<Set<string>>(new Set());
-  const pendingViewLimitRef = useRef<number | null>(null);
+  const [privateMedia, setPrivateMedia] = useState<{ id: string; userId: string; scope: string } | null>(null);
+  useEffect(() => { setPrivateMedia(null); setShareDetails(null); setViewedOutIds(new Set()); setFullscreenImg(null); setFullscreenVideo(null); }, [conversationId, session?.user.id]);
   const sendScale = useRef(new Animated.Value(1)).current;
   const springSend = useCallback(() => {
     sendScale.setValue(0.82);
@@ -537,6 +545,26 @@ export default function ChatScreen() {
   const startingCallRef = useRef(false);
   const voice = useVoiceRecorder();
   const [sendingVoice, setSendingVoice] = useState(false);
+  const voiceSending = useRef(false);
+  const voiceScope = `${session?.user.id || ''}:${currentUserId || ''}:${conversationId || passedUserId || ''}`;
+  const voiceScopeRef = useRef(voiceScope); voiceScopeRef.current = voiceScope;
+  const attachmentScope = `${session?.user.id || ''}:${currentUserId || ''}:${route.params?.conversationId || passedUserId || conversationId || ''}`;
+  const attachmentScopeRef = useRef(attachmentScope); attachmentScopeRef.current = attachmentScope;
+  const accountScope = `${session?.user.id || ''}:${currentUserId || ''}`;
+  const accountScopeValue = useRef(accountScope), accountScopeRef = useRef(0);
+  if (accountScopeValue.current !== accountScope) { accountScopeValue.current = accountScope; accountScopeRef.current++; }
+  useEffect(() => {
+    ++mediaOperation.current; mediaSending.current = false; setUploadingMedia(false);
+    setEditTarget(null); setCapturedVideo(null); setSelectedMsg(null); setReplyTo(null); setForwardMsg(null); setShowForwardPicker(false);
+    setShowInfoModal(false); setInfoMedia([]); setInfoFiles([]); setInfoStarred([]); setOtherTyping(false); setTypingUserId(null);
+    setSharedPostsMap({}); setSavedIds(new Set()); setStarredIds(new Set()); setPinnedMsg(null);
+    lastTypingRef.current = false; typingSentAt.current = 0;
+  }, [attachmentScope]);
+  const voiceControl = useRef(voice); voiceControl.current = voice;
+  useEffect(() => {
+    setSendingVoice(false);
+    return () => { voiceSending.current = false; void voiceControl.current.cancel(); };
+  }, [voiceScope]);
   const [otherOnline, setOtherOnline] = useState(false);
 
   const mountedRef = useRef(true);
@@ -573,6 +601,7 @@ export default function ChatScreen() {
   }, [conversationId]);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingRef = useRef(false);
+  const typingSentAt = useRef(0);
   const inputRef = useRef<TextInput>(null);
   const [pinnedMsg, setPinnedMsg] = useState<any | null>(null);
   useEffect(() => {
@@ -587,7 +616,7 @@ export default function ChatScreen() {
       } catch {}
     })();
     return () => { live = false; };
-  }, [conversationId]);
+  }, [conversationId, accountScope]);
   const togglePin = useCallback(async (msg: any) => {
     if (!conversationId || pinPending.current) return;
     pinPending.current = true;
@@ -647,8 +676,9 @@ export default function ChatScreen() {
     ), []);
 
   const mergeMsg = useCallback(async (incoming: MessageItem) => {
+    const scope = accountScopeRef.current;
     if (isChatMediaUrl(incoming.media_url)) incoming = (await signChatMedia([incoming]))[0];
-    if (!mountedRef.current || incoming.conversation_id !== activeConversation.current) return;
+    if (!mountedRef.current || scope !== accountScopeRef.current || incoming.conversation_id !== activeConversation.current) return;
     LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     setMessages(prev => {
       const ei = prev.findIndex(m => m.id === incoming.id);
@@ -674,23 +704,28 @@ export default function ChatScreen() {
   }, [confirmedOutbox, session?.user.id, conversationId, mergeMsg]);
 
   const loadSavedIds = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     if (!currentUserId || !conversationId) return;
     const { data } = await supabase.from('saved_messages').select('message_id').eq('user_id', currentUserId);
+    if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
     setSavedIds(new Set((data || []).map((r: any) => r.message_id)));
   }, [currentUserId, conversationId]);
 
   const loadStarredIds = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     if (!currentUserId || !conversationId) return;
     const { data } = await supabase.from('starred_messages')
       .select('message_id').eq('conversation_id', conversationId).eq('starred_by', currentUserId);
+    if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
     setStarredIds(new Set((data || []).map((r: any) => r.message_id)));
   }, [currentUserId, conversationId]);
 
   const refreshStatus = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     if (!conversationId || !currentUserId) return;
     try {
       const s = await messageStatusService.getLastOutgoingMessageStatus(conversationId, currentUserId);
-      if (mountedRef.current) setLastStatus(s ?? null);
+      if (mountedRef.current && scope === attachmentScopeRef.current) setLastStatus(s ?? null);
     } catch {}
   }, [conversationId, currentUserId]);
 
@@ -721,9 +756,9 @@ export default function ChatScreen() {
 
   const loadReactions = useCallback(async (msgIds: string[]) => {
     if (!msgIds.length) return;
-    const convId = activeConversation.current;
+    const convId = activeConversation.current, scope = accountScopeRef.current;
     const { data } = await supabase.from('message_reactions').select('message_id, emoji, user_id').in('message_id', msgIds);
-    if (!data || !mountedRef.current || activeConversation.current !== convId) return;
+    if (!data || !mountedRef.current || scope !== accountScopeRef.current || activeConversation.current !== convId) return;
     const byMsg: Record<string, Reaction[]> = {};
     data.forEach((r: any) => { if (!byMsg[r.message_id]) byMsg[r.message_id] = []; byMsg[r.message_id].push({ emoji: r.emoji, user_id: r.user_id }); });
     setMessages(prev => prev.map(m => msgIds.includes(m.id) ? { ...m, _reactions: byMsg[m.id] || [] } : m));
@@ -751,16 +786,19 @@ export default function ChatScreen() {
 
   useEffect(() => { if (isGroup && conversationId) loadGroupMembers(); }, [isGroup, conversationId]);
   const loadGroupMembers = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     if (!isGroup || !conversationId) return;
     try {
       const { data } = await supabase.from('conversation_members')
         .select('user_id, role, profile:profiles!user_id(id, full_name, username, avatar_url)')
         .eq('conversation_id', conversationId);
-      setGroupMembers(data || []);
+      if(scope === attachmentScopeRef.current && mountedRef.current) setGroupMembers(data || []);
     } catch (e) { console.log('[GROUP_MEMBERS_ERR]', e); }
   }, [isGroup, conversationId]);
 
   const loadInfoContent = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
+    const current = () => mountedRef.current && attachmentScopeRef.current === scope;
     if (!conversationId) {
       setInfoMedia([]); setInfoFiles([]); setInfoStarred([]);
       return;
@@ -773,24 +811,26 @@ export default function ChatScreen() {
           .eq('conversation_id', conversationId)
           .not('media_url', 'is', null)
           .in('media_type', ['image', 'video', 'gif'])
+          .is('view_limit', null)
           .order('created_at', { ascending: false })
           .limit(200),
         supabase.from('messages')
           .select('id, media_url, text, created_at, sender_id')
           .eq('conversation_id', conversationId)
           .eq('media_type', 'document')
+          .is('view_limit', null)
           .not('media_url', 'is', null)
           .order('created_at', { ascending: false })
           .limit(100),
         supabase.from('starred_messages')
-          .select('id, message_id, starred_at, starred_by, msg:messages!message_id(id, text, media_url, media_type, created_at, sender_id)')
+          .select('id, message_id, starred_at, starred_by, msg:messages!message_id(id, text, media_url, media_type, view_limit, created_at, sender_id)')
           .eq('conversation_id', conversationId)
           .order('starred_at', { ascending: false })
           .limit(100),
       ]);
 
-      setInfoMedia(await signChatMedia((mediaRes.data || []) as InfoMediaMsg[]));
-      setInfoFiles(await signChatMedia((filesRes.data || []) as InfoFileMsg[]));
+      if(mediaRes.error || filesRes.error || starredRes.error) throw Error('Chat details unavailable');
+      const [mediaRows, fileRows] = await Promise.all([signChatMedia((mediaRes.data || []) as InfoMediaMsg[]), signChatMedia((filesRes.data || []) as InfoFileMsg[])]);
 
       const starredRows = (starredRes.data || []) as any[];
       const infoSigned = await signChatMediaMap(starredRows.map((r: any) => r.msg).filter(Boolean));
@@ -801,14 +841,16 @@ export default function ChatScreen() {
         const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', senderIds);
         (profs || []).forEach((p: any) => { nameMap[p.id] = p.full_name || 'Member'; });
       }
+      if(!current()) return;
+      setInfoMedia(mediaRows); setInfoFiles(fileRows);
       setInfoStarred(starredRows.map((r: any) => ({
         id: r.id, message_id: r.message_id, starred_at: r.starred_at, starred_by: r.starred_by,
         msg: r.msg ? { ...r.msg, sender_name: nameMap[r.msg.sender_id] || 'Member' } : null,
       })));
     } catch (e) {
-      console.log('[INFO_LOAD_ERR]', e);
+      if(current()) { setInfoMedia([]); setInfoFiles([]); setInfoStarred([]); Alert.alert('Chat details unavailable','Please reopen this panel to retry.'); }
     } finally {
-      setInfoLoading(false);
+      if(current()) setInfoLoading(false);
     }
   }, [conversationId]);
 
@@ -830,10 +872,11 @@ export default function ChatScreen() {
   };
 
   const fetchMessages = useCallback(async () => {
+    const scope = accountScopeRef.current;
     const convId = conversationId;
     const request = ++historyRequest.current;
     if (!convId) { setMessages([]); setLoading(false); return; }
-    const current = () => mountedRef.current && activeConversation.current === convId && historyRequest.current === request;
+    const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === convId && historyRequest.current === request;
     setHistoryError(null);
     setLoading(true);
     try {
@@ -855,11 +898,12 @@ export default function ChatScreen() {
   }, [conversationId, markRead, refreshStatus, loadReactions, loadStarredIds, loadSavedIds]);
 
   const loadOlderMessages = useCallback(async () => {
+    const scope = accountScopeRef.current;
     const convId = conversationId;
     const cursor = historyCursor.current;
     if (!convId || !cursor || !hasOlder || olderPending.current || loading) return;
     const request = historyRequest.current;
-    const current = () => mountedRef.current && activeConversation.current === convId && historyRequest.current === request;
+    const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === convId && historyRequest.current === request;
     olderPending.current = true;
     setLoadingOlder(true); setHistoryError(null);
     try {
@@ -881,37 +925,43 @@ export default function ChatScreen() {
   }, [conversationId, hasOlder, loading, loadReactions]);
 
   const fetchTyping = useCallback(async () => {
+    const scope = accountScopeRef.current;
     if (!conversationId || !currentUserId) return;
     try {
       const { data } = await supabase.from('conversation_typing').select('*').eq('conversation_id', conversationId);
-      const freshTypers = (data || []).filter((r: any) => r.user_id !== currentUserId && r.is_typing && (Date.now() - new Date(r.updated_at).getTime() < 7000));
+      if (scope !== accountScopeRef.current || activeConversation.current !== conversationId || !mountedRef.current) return;
+      const freshTypers = (data || []).filter((r: any) => r.user_id !== currentUserId && r.is_typing && (Date.now() - new Date(r.updated_at).getTime() >= 0 && Date.now() - new Date(r.updated_at).getTime() < 7000));
       setTypingUserId(freshTypers[0]?.user_id ?? null);
       setOtherTyping(freshTypers.length > 0);
     } catch {}
   }, [conversationId, currentUserId]);
 
   const setTyping = useCallback(async (isTyping: boolean) => {
-    if (!conversationId || !currentUserId || lastTypingRef.current === isTyping) return;
-    lastTypingRef.current = isTyping;
+    if (!conversationId || !currentUserId) return;
+    const now = Date.now();
+    if (lastTypingRef.current === isTyping && (!isTyping || now - typingSentAt.current < 2000)) return;
+    lastTypingRef.current = isTyping; typingSentAt.current = now;
     try { await supabase.from('conversation_typing').upsert({ conversation_id: conversationId, user_id: currentUserId, is_typing: isTyping, updated_at: new Date().toISOString() }, { onConflict: 'conversation_id,user_id' }); } catch {}
   }, [conversationId, currentUserId]);
 
   useEffect(() => {
-    if (!isGroup && otherUser?.id) {
-      const isRecent = (lastSeen: string | null) => !!lastSeen && (Date.now() - new Date(lastSeen).getTime() < 120000);
-      supabase.from('user_presence').select('is_online, last_seen').eq('user_id', otherUser.id).maybeSingle()
-        .then(({ data }) => { if (data) setOtherOnline(!!data.is_online && isRecent(data.last_seen)); });
-      const presSub = supabase.channel(`presence_${otherUser.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence', filter: `user_id=eq.${otherUser.id}` },
-          (payload) => {
-            const p = payload.new as any;
-            if (isGroup && p?.is_system_message && !p?.payment_id) loadGroupMembers();
-            setOtherOnline(!!p?.is_online && isRecent(p?.last_seen));
-          })
-        .subscribe();
-      return () => { supabase.removeChannel(presSub); };
-    }
-  }, [isGroup, otherUser?.id]);
+    setOtherOnline(false);
+    if (isGroup || !otherUser?.id) return;
+    let live = true;
+    let presence: { is_online?: boolean; last_seen?: string | null } | null = null;
+    const refresh = () => {
+      if (!live) return;
+      const age = presence?.last_seen ? Date.now() - Date.parse(presence.last_seen) : Infinity;
+      setOtherOnline(!!presence?.is_online && age >= 0 && age < 120000);
+    };
+    void supabase.from('user_presence').select('is_online, last_seen').eq('user_id', otherUser.id).maybeSingle()
+      .then(({ data }) => { if (live) { presence = data; refresh(); } });
+    const channel = supabase.channel(`presence_${otherUser.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence', filter: `user_id=eq.${otherUser.id}` },
+        payload => { presence = payload.new; refresh(); }).subscribe();
+    const timer = setInterval(refresh, 5000);
+    return () => { live = false; clearInterval(timer); void supabase.removeChannel(channel); };
+  }, [isGroup, otherUser?.id, accountScope]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -975,7 +1025,7 @@ export default function ChatScreen() {
       clearInterval(typePoll); supabase.removeChannel(typeCh);
       supabase.removeChannel(reactCh);
     };
-  }, [conversationId, currentUserId, fetchMessages, fetchTyping, markRead, mergeMsg, refreshStatus, setTyping, loadReactions]);
+  }, [conversationId, currentUserId, fetchMessages, fetchTyping, markRead, mergeMsg, refreshStatus, setTyping, loadReactions, accountScope]);
 
   const handleTextChange = useCallback((text: string) => {
     setMessage(text);
@@ -1194,7 +1244,7 @@ const insertMention = useCallback((username: string) => {
     finally { forwardPending.current = false; }
   }, [forwardMsg, currentUserId]);
 
-  const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null, mediaWidth?: number, mediaHeight?: number, mediaThumbUrl?: string): Promise<boolean> => {
+  const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null, mediaWidth?: number, mediaHeight?: number, mediaThumbUrl?: string, viewLimit: number | null = null): Promise<boolean> => {
     if (!currentUserId) return false;
     const initiatingOwner = useAuthStore.getState().session?.user.id;
     if (!initiatingOwner) return false;
@@ -1209,7 +1259,7 @@ const insertMention = useCallback((username: string) => {
       id, conversation_id: convId, sender_id: currentUserId, receiver_id: receiverId,
       text: text || null, media_url: mediaUrl || null, media_type: mediaType || null,
       thumbnail_url: mediaThumbUrl || null, reply_to_id: replyId || null,
-      view_limit: pendingViewLimitRef.current,
+      view_limit: viewLimit,
     };
     const optimistic: MessageItem = {
       ...intent, created_at: new Date().toISOString(), media_b64: mediaB64 || null,
@@ -1274,99 +1324,99 @@ const insertMention = useCallback((username: string) => {
     } finally { textSendPending.current = false; if (mountedRef.current) setSending(false); }
   }, [message, conversationId, setTyping, replyTo, doSend]);
 
-const chooseAndSendImage = useCallback(async (img: { uri: string; width: number; height: number; base64: string | null; caption?: string }) => {
-    pendingViewLimitRef.current = null;
-    const choice: number | null = await new Promise(res => {
-      Alert.alert('Send photo', 'Choose how it can be viewed', [
-        { text: 'Normal', onPress: () => res(null) },
-        { text: 'View once', onPress: () => res(1) },
-        { text: 'View twice', onPress: () => res(2) },
-        { text: 'Cancel', style: 'cancel', onPress: () => res(-1) },
-      ]);
-    });
-    if (choice === -1) return;
-    pendingViewLimitRef.current = choice;
-    setUploadingMedia(true);
+const chooseAndSendImage = useCallback(async (img: { uri: string; width: number; height: number; base64: string | null; caption?: string }): Promise<boolean> => {
+    const owner = useAuthStore.getState().session?.user.id;
+    if (!owner || !currentUserId || mediaSending.current) return false;
+    const scope = attachmentScopeRef.current, operation = ++mediaOperation.current;
+    const current = () => mountedRef.current && attachmentScopeRef.current === scope && useAuthStore.getState().session?.user.id === owner && mediaOperation.current === operation;
+    mediaSending.current = true;
     try {
-      const { url } = await uploadMedia('chat-media', currentUserId!, {
+      const choice = await new Promise<number | null>(resolve => Alert.alert('Send photo', 'Choose how it can be viewed', [
+        { text: 'Normal', onPress: () => resolve(null) }, { text: 'View once', onPress: () => resolve(1) },
+        { text: 'View twice', onPress: () => resolve(2) }, { text: 'Cancel', style: 'cancel', onPress: () => resolve(-1) },
+      ], { cancelable: true, onDismiss: () => resolve(-1) }));
+      if (choice === -1 || !current()) return false;
+      setUploadingMedia(true);
+      const { url } = await uploadMedia('chat-media', currentUserId, {
         uri: img.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg',
-        width: img.width, height: img.height, base64: img.base64,
+        width: img.width, height: img.height, base64: choice ? null : img.base64,
       }, { filename: `edited_${Date.now()}.jpg` });
-      await doSend(img.caption || '', url, 'image', img.base64, null, img.width, img.height);
-    } catch { Alert.alert('Upload failed'); }
-    finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
+      if (!current()) return false;
+      const sent = await doSend(img.caption || '', url, 'image', choice ? null : img.base64, null, img.width, img.height, undefined, choice);
+      if (!sent && current()) throw Error('Photo could not be sent.');
+      return sent;
+    } catch {
+      if (current()) Alert.alert('Photo not sent', 'Your edited photo is kept for retry.', [
+        { text: 'Cancel', style: 'cancel' }, { text: 'Retry', onPress: () => { void chooseAndSendImage(img); } },
+      ]);
+      return false;
+    } finally { if (operation === mediaOperation.current) { mediaSending.current = false; if (current()) setUploadingMedia(false); } }
   }, [currentUserId, doSend]);
 
-  const sealedRequests = useRef(new Map<string, string>());
-  const sealedOpening = useRef(false);
-  const openSealedMedia = useCallback(async (msg: any) => {
-    if (sealedOpening.current) return;
-    sealedOpening.current = true;
+  const openSealedMedia = useCallback((msg: MessageItem) => {
     const viewer = useAuthStore.getState().session?.user.id;
-    const chat = activeConversation.current;
-    const current = () => mountedRef.current && activeConversation.current === chat && useAuthStore.getState().session?.user.id === viewer;
-    const requestId = sealedRequests.current.get(msg.id) || makeMessageId();
-    sealedRequests.current.set(msg.id, requestId);
-    try {
-      const { data, error } = await supabase.functions.invoke('chat-media-sign', { body: { messageIds: [msg.id], consume: true, requestId } });
-      if (!current()) return;
-      if (error || !data?.urls?.[msg.id]) {
-        // A network failure is not proof the attachment was consumed. Reuse the
-        // same viewing grant when retrying a lost signing response.
-        Alert.alert('Unable to open attachment', 'Please try again. The attachment may have expired or already been opened.');
-        return;
-      }
-      sealedRequests.current.delete(msg.id);
-      if ((data.remaining ?? 0) <= 0) setViewedOutIds(prev => new Set(prev).add(msg.id));
-      setFullscreenImg(data.urls[msg.id]);
-    } catch { if (current()) Alert.alert('Unable to open attachment', 'Check your connection and try again.'); }
-    finally { sealedOpening.current = false; }
-  }, []);
+    if (!viewer || msg.sender_id === viewer || !msg.view_limit || viewedOutIds.has(msg.id)) return;
+    if(msg.conversation_id !== activeConversation.current) return;
+    setPrivateMedia({ id: msg.id, userId: viewer, scope: attachmentScopeRef.current });
+  }, [viewedOutIds]);
   const sendMediaAssets = useCallback(async (assets: { uri: string; type?: string | null; width?: number; height?: number; base64?: string | null }[]) => {
-    if (!currentUserId || mediaSending.current) return false;
+    const owner = useAuthStore.getState().session?.user.id;
+    if (!owner || !currentUserId || mediaSending.current || !assets.length) return false;
+    const scope = attachmentScopeRef.current, operation = ++mediaOperation.current;
+    const current = () => mountedRef.current && attachmentScopeRef.current === scope && useAuthStore.getState().session?.user.id === owner && operation === mediaOperation.current;
     mediaSending.current = true;
-    let failed = 0; let failureReason = '';
+    let failed = 0, failureReason = '', viewLimit: number | null = null;
     setShowToolbar(false); setUploadingMedia(true);
     try {
+      if (assets.length === 1 && assets[0].type === 'video') {
+        const choice = await new Promise<number|null>(resolve => Alert.alert('Send video', 'Choose how it can be viewed', [
+          {text:'Normal',onPress:()=>resolve(null)}, {text:'View once',onPress:()=>resolve(1)}, {text:'Cancel',style:'cancel',onPress:()=>resolve(-1)},
+        ], {cancelable:true,onDismiss:()=>resolve(-1)}));
+        if (choice === -1 || !current()) return false;
+        viewLimit = choice;
+      }
       for (const asset of assets) {
-        const isVid = asset.type === 'video';
-        const ext = isVid ? 'mp4' : 'jpg';
-        const mime = isVid ? 'video/mp4' : 'image/jpeg';
-        const imgBase64 = asset.base64 ?? null;
+        if (!current()) return false;
+        const isVid = asset.type === 'video', ext = isVid ? 'mp4' : 'jpg', mime = isVid ? 'video/mp4' : 'image/jpeg';
+        const imgBase64 = viewLimit ? null : asset.base64 ?? null;
         try {
-          const { url } = await uploadMedia('chat-media', currentUserId!, {
+          const { url } = await uploadMedia('chat-media', currentUserId, {
             uri: asset.uri, kind: isVid ? 'video' : 'image', ext, mimeType: mime,
             width: asset.width, height: asset.height, base64: imgBase64,
           }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}` });
+          if (!current()) return false;
           let thumbUrl: string | undefined;
-          if (isVid) {
+          if (isVid && !viewLimit) {
             try {
               const th = await VideoThumbnails.getThumbnailAsync(asset.uri, { time: 0, quality: 0.7 });
-              const up = await uploadMedia('chat-media', currentUserId!, {
+              if (!current()) return false;
+              const up = await uploadMedia('chat-media', currentUserId, {
                 uri: th.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg', base64: null,
               }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}_thumb.jpg` });
               thumbUrl = up.url;
             } catch (thumbErr: any) { console.log('[CHAT_THUMB_ERR]', thumbErr?.message); }
           }
-          if (!(await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height, thumbUrl))) failed++;
+          if (!current()) return false;
+          if (!(await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height, thumbUrl, viewLimit))) failed++;
         } catch (error) { failed++; failureReason = error instanceof Error ? error.message : ''; }
       }
-    } finally { mediaSending.current = false; setUploadingMedia(false); pendingViewLimitRef.current = null; }
+    } finally { if (operation === mediaOperation.current) { mediaSending.current = false; if (current()) setUploadingMedia(false); } }
+    if (!current()) return false;
     if (failed) Alert.alert('Attachment not sent', failureReason || `${failed} attachment${failed === 1 ? '' : 's'} could not be sent. Please try again.`);
     return failed === 0;
-
   }, [currentUserId, doSend]);
 
   const pickAndSendMedia = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (attachmentScopeRef.current !== scope || !mountedRef.current) return;
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
         preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
       mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[], quality: 0.92,
       allowsMultipleSelection: true, selectionLimit: 10, base64: true,
     });
-    if (result.canceled || !result.assets?.length) return;
-    pendingViewLimitRef.current = null;
+    if (result.canceled || !result.assets?.length || attachmentScopeRef.current !== scope || !mountedRef.current) return;
     if (result.assets.length === 1 && result.assets[0].type !== 'video') {
       const a = result.assets[0];
       setShowToolbar(false);
@@ -1377,20 +1427,24 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
   }, [sendMediaAssets]);
 
 const pickAndSendDocument = useCallback(async () => {
-    setShowToolbar(false);
+    const owner = useAuthStore.getState().session?.user.id;
+    if (!owner || !currentUserId || mediaSending.current) return;
+    const scope = attachmentScopeRef.current, operation = ++mediaOperation.current;
+    const current = () => mountedRef.current && scope === attachmentScopeRef.current && owner === useAuthStore.getState().session?.user.id && operation === mediaOperation.current;
+    mediaSending.current = true; setShowToolbar(false);
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true, multiple: false });
-      if (result.canceled || !result.assets?.[0]) return;
+      if (result.canceled || !result.assets?.[0] || !current()) return;
       const asset = result.assets[0];
       const ext = asset.name.split('.').pop()?.toLowerCase() || 'bin';
       setUploadingMedia(true);
-      const safeName = asset.name.replace(/[^a-zA-Z0-9/_.\-]/g, '_');
-      const { url } = await uploadMedia('chat-files', currentUserId!, {
-        uri: asset.uri, kind: 'document', ext, mimeType: 'application/octet-stream', base64: null,
+      const safeName = asset.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const { url } = await uploadMedia('chat-files', currentUserId, {
+        uri: asset.uri, kind: 'document', ext, mimeType: asset.mimeType || 'application/octet-stream', base64: null,
       }, { filename: `${Date.now()}_${safeName}` });
-      await doSend(`📄 ${asset.name}`, url, 'document', null);
-    } catch (e: any) { Alert.alert('Error', 'Could not send file: ' + (e?.message || '')); }
-    finally { setUploadingMedia(false); }
+      if (current()) await doSend(`📄 ${asset.name}`, url, 'document', null);
+    } catch (e: any) { if(current()) Alert.alert('Error', 'Could not send file: ' + (e?.message || '')); }
+    finally { if(operation===mediaOperation.current){mediaSending.current=false;if(current())setUploadingMedia(false);} }
   }, [currentUserId, doSend]);
 
   const sendGif = useCallback(async (url: string) => {
@@ -1606,6 +1660,7 @@ const pickAndSendDocument = useCallback(async () => {
   }, []);
   const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
   useEffect(() => {
+    let live=true; const scope=accountScopeRef.current;
     const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
     const missing = ids.filter(id => !sharedPostsMap[id]);
     if (missing.length === 0) return;
@@ -1618,6 +1673,7 @@ const pickAndSendDocument = useCallback(async () => {
         const { data: aus } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
         (aus ?? []).forEach((a: any) => { am[a.id] = a; });
       }
+      if(!live || scope!==accountScopeRef.current)return;
       setSharedPostsMap(prev => {
         const n = { ...prev };
         rows.forEach((r: any) => {
@@ -1629,7 +1685,8 @@ const pickAndSendDocument = useCallback(async () => {
         return n;
       });
     })();
-  }, [messages, sharedPostsMap]);
+    return()=>{live=false;};
+  }, [messages, sharedPostsMap, accountScope]);
   const replySource = useMemo(() => {
     if (!replyTo) return null;
     return replyTo.text || (replyTo.media_type === 'image' ? '📷 Photo' : replyTo.media_type === 'video' ? '🎬 Video' : '📎 Media');
@@ -1703,6 +1760,7 @@ const pickAndSendDocument = useCallback(async () => {
               {sender?.full_name || msg.sender_name || 'Member'}
             </Text>
           )}
+          {(() => { const card = msg.view_limit ? null : parseChatAttachmentCard(msg.media_url); return card ? <View style={{padding:12,borderWidth:1,borderColor:t.surface.hairline,borderRadius:12,backgroundColor:t.surface.raised}}><Text style={{color:t.ink.primary,fontWeight:'700'}}>{attachmentCardText(card)}</Text>{attachmentCardLinks(card).map(link=><TouchableOpacity key={link.url} accessibilityRole="link" onPress={()=>{void Linking.openURL(link.url).catch(()=>Alert.alert('Could not open','No compatible app is available.'));}} style={{paddingVertical:10}}><Text style={{color:t.status.link}}>{link.label}</Text></TouchableOpacity>)}</View> : null; })()}
           {msg.shared_post_id && (
             <View style={{ marginBottom: 4 }}>
               <SharedPostCard post={sharedPost ? { id: msg.shared_post_id, content: sharedPost.content, author: sharedPost.author, media: sharedPost.media } : null} width={232} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onAuthorPress={sharedPost?.author?.id ? () => navigation.navigate('UserProfile' as never, { userId: sharedPost.author.id } as never) : undefined} />
@@ -1736,7 +1794,7 @@ const pickAndSendDocument = useCallback(async () => {
               isSticker && { backgroundColor: 'transparent', borderWidth: 0, shadowOpacity: 0, elevation: 0, padding: 0 },
                 !endsGroup && s.bubbleInRun,
             ]}>
-{(msg as any).view_limit && msg.media_type === 'image' ? (
+{(msg as any).view_limit && (msg.media_type === 'image' || msg.media_type === 'video') ? (
                 <TouchableOpacity
                   disabled={isMe || viewedOutIds.has(msg.id)}
                   onPress={() => openSealedMedia(msg)}
@@ -1744,19 +1802,19 @@ const pickAndSendDocument = useCallback(async () => {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4, paddingVertical: 2 }}>
                   <View style={{
                     width: 34, height: 34, borderRadius: 17, borderWidth: 1.5,
-                    borderColor: isMe ? 'rgba(255,255,255,0.55)' : 'rgba(11,30,61,0.35)',
+                    borderColor: isMe ? 'rgba(255,255,255,0.55)' : t.ink.muted,
                     alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: isMe ? 'rgba(255,255,255,0.85)' : 'rgba(11,30,61,0.7)' }}>{(msg as any).view_limit}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: isMe ? 'rgba(255,255,255,0.85)' : t.ink.secondary }}>{(msg as any).view_limit}</Text>
                   </View>
-                  <Text style={{ fontSize: 14.5, fontWeight: '600', fontStyle: viewedOutIds.has(msg.id) ? 'italic' : 'normal', color: isMe ? 'rgba(255,255,255,0.9)' : 'rgba(11,30,61,0.8)' }}>
-                    {isMe ? ((msg as any).view_limit === 1 ? 'View once photo' : 'View twice photo')
+                  <Text style={{ fontSize: 14.5, fontWeight: '600', fontStyle: viewedOutIds.has(msg.id) ? 'italic' : 'normal', color: isMe ? 'rgba(255,255,255,0.9)' : t.ink.primary }}>
+                    {isMe ? `${msg.view_limit === 1 ? 'View once' : 'View twice'} ${msg.media_type === 'video' ? 'video' : 'photo'}`
                       : viewedOutIds.has(msg.id) ? 'Opened'
-                      : 'Photo · tap to view'}
+                      : `${msg.media_type === 'video' ? 'Video' : 'Photo'} · tap to view`}
                   </Text>
                 </TouchableOpacity>
               ) : null}
-              {isSticker ? (
+              {isSticker && !msg.view_limit ? (
                 <ExpoImage source={{ uri: msg.media_url! }} style={{ width: 150, height: 150 }} contentFit="contain" />
               ) : null}
               {(msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url && !(msg as any).view_limit ? (
@@ -1778,7 +1836,7 @@ const pickAndSendDocument = useCallback(async () => {
                 />
               ) : null}
               {(msg.payment_id || msg.media_type === 'payment') && msg.payment_receipt_verified !== true ? (
-                <Text style={{ color: isMe ? '#FFFFFF' : '#0B1E3D', fontSize: 12 }}>This message is not a verified payment receipt.</Text>
+                <Text style={{ color: isMe ? '#FFFFFF' : t.ink.primary, fontSize: 12 }}>This message is not a verified payment receipt.</Text>
               ) : null}
               {msg.media_type === 'offer' && msg.media_url ? (() => {
                 let j: any = null; try { j = JSON.parse(msg.media_url); } catch {}
@@ -1786,16 +1844,16 @@ const pickAndSendDocument = useCallback(async () => {
                 const live = offersMap[j.offer_id];
                 const status = live?.status || j.status || 'pending';
                 const myTurn = status === 'pending' && (live?.proposer_id ?? msg.sender_id) !== currentUserId;
-                const statusColor = status === 'accepted' ? '#059669' : status === 'pending' ? '#B08D3F' : 'rgba(11,30,61,0.45)';
+                const statusColor = status === 'accepted' ? '#059669' : status === 'pending' ? t.status.warning : t.ink.secondary;
                 return (
-                  <View style={{ minWidth: 200, borderRadius: 14, overflow: 'hidden', backgroundColor: isMe ? 'rgba(255,255,255,0.12)' : 'rgba(11,30,61,0.045)', borderWidth: 1, borderColor: isMe ? 'rgba(255,255,255,0.25)' : 'rgba(11,30,61,0.1)' }}>
+                  <View style={{ minWidth: 200, borderRadius: 14, overflow: 'hidden', backgroundColor: isMe ? 'rgba(255,255,255,0.12)' : t.surface.raised, borderWidth: 1, borderColor: isMe ? 'rgba(255,255,255,0.25)' : t.surface.hairline }}>
                     <View style={{ padding: 12 }}>
-                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: isMe ? 'rgba(255,255,255,0.7)' : 'rgba(11,30,61,0.5)' }}>{j.counter_of ? 'COUNTER-OFFER' : 'OFFER'} · {String(j.listing_title || '').slice(0, 28)}</Text>
-                      <Text style={{ fontSize: 21, fontWeight: '800', marginTop: 3, color: isMe ? '#FFFFFF' : '#0B1E3D' }}>{j.currency} {j.amount}</Text>
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: isMe ? 'rgba(255,255,255,0.7)' : t.ink.secondary }}>{j.counter_of ? 'COUNTER-OFFER' : 'OFFER'} · {String(j.listing_title || '').slice(0, 28)}</Text>
+                      <Text style={{ fontSize: 21, fontWeight: '800', marginTop: 3, color: isMe ? '#FFFFFF' : t.ink.primary }}>{j.currency} {j.amount}</Text>
                       <Text style={{ fontSize: 12, fontWeight: '700', marginTop: 3, color: statusColor }}>{status.toUpperCase()}</Text>
                     </View>
                     {myTurn && (
-                      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: isMe ? 'rgba(255,255,255,0.2)' : 'rgba(11,30,61,0.08)' }}>
+                      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: isMe ? 'rgba(255,255,255,0.2)' : t.surface.hairline }}>
                         <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center' }} onPress={() => respondOffer(j.offer_id, 'accepted')}>
                           <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#059669' }}>Accept</Text>
                         </TouchableOpacity>
@@ -1812,16 +1870,16 @@ const pickAndSendDocument = useCallback(async () => {
                   </View>
                 );
               })() : null}
-              {msg.media_type === 'audio' && msg.media_url ? (
+              {msg.media_type === 'audio' && msg.media_url && !msg.view_limit ? (
                 <VoiceNote
                   uri={msg.media_url}
                   durationSec={msg.media_width ?? null}
-                  tint={isMe ? '#FFFFFF' : NAVY}
-                  dim={isMe ? 'rgba(255,255,255,0.45)' : 'rgba(11,30,61,0.28)'}
-                  onTint={isMe ? NAVY : '#FFFFFF'}
+                  tint={isMe ? '#FFFFFF' : t.ink.primary}
+                  dim={isMe ? 'rgba(255,255,255,0.45)' : t.ink.muted}
+                  onTint={isMe ? NAVY : t.surface.canvas}
                 />
               ) : null}
-              {msg.media_type === 'video' && msg.media_url ? (
+              {msg.media_type === 'video' && msg.media_url && !msg.view_limit ? (
                 <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_MAX_W, height: MSG_VID_H }]}
                   activeOpacity={0.85} onPress={() => setFullscreenVideo(msg.media_url!)}
                   onLongPress={() => setSelectedMsg(msg)}>
@@ -1831,11 +1889,11 @@ const pickAndSendDocument = useCallback(async () => {
                   <View style={s.videoPlayCircle}><Feather name="play" size={24} color="#FFF" /></View>
                 </TouchableOpacity>
               ) : null}
-              {msg.media_type === 'document' && msg.media_url ? (
+              {msg.media_type === 'document' && msg.media_url && !msg.view_limit ? (
                 <TouchableOpacity style={s.docBubble} activeOpacity={0.8}
                   onPress={() => { if (msg.media_url) Linking.openURL(msg.media_url); }}>
                   <View style={[s.docIconBg, isMe && s.docIconBgMe]}>
-                    <Feather name="file-text" size={20} color={isMe ? '#FFF' : NAVY} />
+                    <Feather name="file-text" size={20} color={isMe ? '#FFF' : t.ink.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[s.docName, isMe && s.docNameMe]} numberOfLines={2}>
@@ -1902,21 +1960,24 @@ const pickAndSendDocument = useCallback(async () => {
   // Stop, upload, then send. The recording is only discarded once the message
   // exists, so a failed upload does not lose what was said.
   const sendVoiceNote = useCallback(async () => {
-    const result = await voice.stop();
-    if (!result) return;
-    setSendingVoice(true);
+    if (voiceSending.current || !currentUserId) return;
+    voiceSending.current = true; setSendingVoice(true);
+    const scope = voiceScopeRef.current;
     try {
-      const { url } = await uploadMedia('chat-media', currentUserId!, {
+      const result = await voice.stop();
+      if (!result || voiceScopeRef.current !== scope) return;
+      const { url } = await uploadMedia('chat-media', currentUserId, {
         uri: result.uri, kind: 'audio', ext: 'm4a', mimeType: 'audio/m4a', base64: null,
       }, { filename: 'voice_' + Date.now() + '.m4a' });
-      await doSend('', url, 'audio', null, replyTo?.id ?? null, result.durationSec, undefined);
-    } catch (e: any) {
-      console.log('[VOICE] send failed:', e?.message);
-      Alert.alert('Could not send', 'Your voice message did not send. Please try again.');
+      if (voiceScopeRef.current !== scope) return;
+      const queued = await doSend('', url, 'audio', null, replyTo?.id ?? null, result.durationSec, undefined);
+      if (queued && voiceScopeRef.current === scope) voice.clearResult();
+    } catch {
+      if (voiceScopeRef.current === scope) Alert.alert('Could not send', 'Your recording is saved here. Tap Send to retry.');
     } finally {
-      setSendingVoice(false);
+      if (voiceScopeRef.current === scope) { voiceSending.current = false; setSendingVoice(false); }
     }
-  }, [voice, currentUserId, replyTo]);
+  }, [voice, currentUserId, replyTo, doSend]);
   const toolbarMaxH = toolbarH.interpolate({ inputRange: [0, 1], outputRange: [0, 160] });
 
   const renderInfoMediaTab = () => {
@@ -1928,8 +1989,10 @@ const pickAndSendDocument = useCallback(async () => {
           <TouchableOpacity key={m.id} style={s.mediaGridItem} activeOpacity={0.85}
             onPress={() => {
               if (!m.media_url) return;
+              const scope = attachmentScopeRef.current;
               setShowInfoModal(false);
               setTimeout(() => {
+                if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
                 if (m.media_type === 'video') setFullscreenVideo(m.media_url);
                 else setFullscreenImg(m.media_url);
               }, 250);
@@ -2266,6 +2329,8 @@ const pickAndSendDocument = useCallback(async () => {
                   { iconName: 'image', label: 'Gallery', action: pickAndSendMedia },
                   { iconName: 'film', label: 'GIFs', action: () => { setShowToolbar(false); setShowGifs(true); } },
                   { iconName: 'file-text', label: 'Files', action: pickAndSendDocument },
+                  { iconName: 'user', label: 'Contact', action: () => { setShowToolbar(false); setShareDetails('contact'); } },
+                  { iconName: 'map-pin', label: 'Location', action: () => { setShowToolbar(false); setShareDetails('location'); } },
                   { iconName: 'info', label: 'Info', action: () => { setShowToolbar(false); setShowInfoModal(true); } },
                 ].map(btn => (
                   <TouchableOpacity key={btn.label} style={s.toolbarBtn} onPress={btn.action} activeOpacity={0.7}>
@@ -2279,7 +2344,7 @@ const pickAndSendDocument = useCallback(async () => {
             )}
         </Animated.View>
 
-        {voice.recording ? (
+        {voice.recording || voice.result ? (
             <View style={[s.voiceBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
               <TouchableOpacity
                 onPress={() => voice.cancel()}
@@ -2293,7 +2358,7 @@ const pickAndSendDocument = useCallback(async () => {
               <View style={s.voiceDot} />
               <Text style={s.voiceTimer}>{formatVoiceDuration(voice.seconds)}</Text>
               <Text style={s.voiceHint} numberOfLines={1}>
-                {voice.atLimit ? 'Maximum length reached' : 'Recording'}
+                {voice.result ? 'Ready to send' : voice.atLimit ? 'Maximum length reached' : 'Recording'}
               </Text>
 
               <TouchableOpacity
@@ -2658,11 +2723,11 @@ const pickAndSendDocument = useCallback(async () => {
                 { iconName: 'copy', label: 'Copy', action: async () => {
                   if (selectedMsg?.text) { await Clipboard.setStringAsync(selectedMsg.text); setSelectedMsg(null); Alert.alert('Copied'); }
                 }},
-                { iconName: 'share-2', label: 'Share', action: async () => {
+                ...(!selectedMsg?.view_limit ? [{ iconName: 'share-2', label: 'Share', action: async () => {
                   if (!selectedMsg) return;
                   const content = selectedMsg.text || selectedMsg.media_url || '';
                   setSelectedMsg(null); await Share.share({ message: content });
-                }},
+                }}] : []),
                 { iconName: 'star',
                   label: selectedMsg && starredIds.has(selectedMsg.id) ? 'Unstar' : 'Star',
                   action: () => { if (selectedMsg) { toggleStar(selectedMsg); setSelectedMsg(null); } }},
@@ -2717,6 +2782,12 @@ const pickAndSendDocument = useCallback(async () => {
         </Pressable>
       </Modal>
 
+      {shareDetails && <ShareDetailsSheet key={voiceScope} kind={shareDetails} onClose={()=>setShareDetails(null)} onSend={async card=>{
+        const scope=attachmentScope; if(attachmentScopeRef.current!==scope || useAuthStore.getState().session?.user.id !== session?.user.id)return false;
+        return doSend(attachmentCardText(card),JSON.stringify(card),'link');
+      }}/>}
+      {privateMedia && privateMedia.userId === session?.user.id && privateMedia.scope === attachmentScope && <PrivateMediaViewer key={privateMedia.userId+':'+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
+        onClose={() => setPrivateMedia(current => current?.id === privateMedia.id && current?.userId === privateMedia.userId && current?.scope === privateMedia.scope ? null : current)} onConsumed={remaining => { if (remaining <= 0 && attachmentScopeRef.current === privateMedia.scope) setViewedOutIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       <Modal visible={!!fullscreenImg} transparent animationType="fade" onRequestClose={() => setFullscreenImg(null)}>
         <View style={s.fullscreenRoot}>
           <TouchableOpacity style={s.fullscreenClose} onPress={() => setFullscreenImg(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>

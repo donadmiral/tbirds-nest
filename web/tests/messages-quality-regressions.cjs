@@ -12,6 +12,7 @@ const sources = {
   '../../shared/messageDelivery': compile(path.join(root, '../shared/messageDelivery.ts')),
   '@/lib/messageActions': compile(path.join(root, 'lib/messageActions.ts')),
   '../../shared/messageContent': compile(path.join(root, '../shared/messageContent.ts')),
+  '../../shared/chatAttachmentCards': compile(path.join(root, '../shared/chatAttachmentCards.ts')),
   '../../shared/messageHistory': compile(path.join(root, '../shared/messageHistory.ts')),
 };
 function moduleFor(code) { const module = { exports: {} }; vm.runInNewContext(code, { module, exports: module.exports, require: name => sources[name] ? moduleFor(sources[name]) : ({}) }); return module.exports; }
@@ -90,7 +91,7 @@ function scenario(initial = [row(1)], options = {}) {
     if (name === 'next/link') return { __esModule: true, default: 'Link' };
     if (!sources[name]) return new Proxy({}, { get: (_,key) => String(key) });
     const module = { exports: {} }; cache.set(name,module);
-    vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
+    vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, process:{env:options.env||{}}, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
       window: { localStorage, addEventListener() {}, removeEventListener() {}, location: { search: '' }, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: { body: { style: {} } },
       navigator: options.navigator || {}, MediaRecorder: options.MediaRecorder, Blob,
       setTimeout, clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
@@ -101,7 +102,7 @@ function scenario(initial = [row(1)], options = {}) {
   const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener() {}, removeEventListener() {} };
   function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
   render();
-  return { client, rows: () => rows, writes, reads, rpcs, dom,
+  return { client, rows: () => rows, writes, reads, rpcs, dom, listeners,
     find: predicate => nodes(tree).find(predicate), all: predicate => nodes(tree).filter(predicate),
     get text() { return nodes(tree).filter(node => typeof node.type !== 'function').map(text).join(' '); },
     click(label) { const n = nodes(tree).find(node => (node.type==='button' || node.props?.role==='button') && (text(node).trim()===label || node.props?.['aria-label']===label || node.props?.title===label)); assert.ok(n,'missing button '+label); assert.ok(!n.props.disabled,'button disabled '+label); const result=n.props.onClick(); render(); return result; },
@@ -206,4 +207,30 @@ test('voice upload finishing after a chat switch releases the upload lock',async
 test('late microphone permission after leaving chat releases tracks without starting recorder',async()=>{
   const wait=deferred();let stopped=0,started=0;class Recorder{static isTypeSupported(){return true;}constructor(){started++;}}
   const app=scenario([row(1),row(2,{conversation_id:'b'})],{navigator:{mediaDevices:{getUserMedia:()=>wait.promise}},MediaRecorder:Recorder});await app.flush();await app.open('a');await app.flush();const request=app.click('Record a voice message');await app.open('b');await app.flush();wait.resolve({getTracks:()=>[{stop(){stopped++;}}]});await request;await app.flush();assert.equal(stopped,1);assert.equal(started,0);app.unmount();
+});
+
+test('received private videos open only the authorized viewer and never a direct media element',async()=>{
+ const app=scenario([row(1,{sender_id:'other',media_type:'video',media_url:'https://media.test/private.mp4',view_limit:1})],{env:{NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED:'true'}});await app.flush();await app.open('a');await app.flush();
+ assert.equal(app.all(n=>['img','video','audio'].includes(n.type)).length,0);
+ await app.click('Open private attachment');await app.flush();
+ const viewer=app.find(n=>n.type==='PrivateMediaViewer');assert.ok(viewer);assert.equal(viewer.props.messageId,id(1));assert.equal(viewer.props.userId,'me');
+ viewer.props.onConsumed(0);await app.flush();assert.ok(app.text.includes('Viewed'));
+ app.changeUser('new-user');await app.flush();assert.equal(app.find(n=>n.type==='PrivateMediaViewer'),undefined);app.unmount();
+});
+test('old realtime callbacks cannot insert a former account message into the same reopened chat',async()=>{
+ const app=scenario();await app.flush();await app.open('a');await app.flush();
+ const old=app.listeners.find(l=>l.filter.table==='messages'&&l.filter.event==='INSERT');assert.ok(old);
+ app.changeUser('new-user');await new Promise(resolve=>setTimeout(resolve,1));await app.flush();await app.open('a');await app.flush();
+ await old.callback({new:row(999,{text:'Old account private event'})});await app.flush();assert.ok(!app.text.includes('Old account private event'));app.unmount();
+});
+test('sent message bubble preserves its dark navy and white text pair in either theme',async()=>{
+ const app=scenario();await app.flush();await app.open('a');await app.flush();
+ assert.ok(app.find(n=>n.props?.className?.includes('bg-[#0B1E3D] text-white')));app.unmount();
+});
+
+test('private sessions remain disabled by default during the phone and server cutover',async()=>{
+ const app=scenario([row(1,{sender_id:'other',media_type:'image',media_url:'https://media.test/private.jpg',view_limit:1})]);await app.flush();await app.open('a');await app.flush();
+ assert.ok(app.text.includes('Open in phone app'));assert.equal(app.find(n=>n.type==='PrivateMediaViewer'),undefined);
+ assert.equal(app.find(n=>n.type==='button'&&text(n)==='Open private attachment'),undefined);
+ assert.equal(app.rpcs.some(c=>c.name.includes('private_media')),false);app.unmount();
 });

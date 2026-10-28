@@ -1,3 +1,5 @@
+import { storyHandles } from '../../../shared/storyMentions';
+import SaveToMemorySheet from '../../components/stories/SaveToMemorySheet';
 import StoryAudienceSheet from '../../components/stories/StoryAudienceSheet';
 import { updateDraftStickers, type StickerChange } from '../../controllers/stories/stickerDraftUpdates';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -317,11 +319,20 @@ export default function StoryComposerScreen() {
   // Sync refs so bloom/bubble read current values via their internal ref tracking
   useEffect(() => { arrangementOpenRef.current = arrangement.arrangementOpen; }, [arrangement.arrangementOpen]);
 
+  const [publishedStoryIds, setPublishedStoryIds] = useState<string[]>([]);
+  const onPublished = useCallback((ids: string[]) => setPublishedStoryIds(ids), []);
+  const finishPublishing = useCallback(() => {
+    setPublishedStoryIds([]);
+    const nav: any = navigation;
+    if (typeof nav.popToTop === 'function') nav.popToTop();
+    else if (nav.canGoBack?.()) nav.goBack();
+  }, [navigation]);
+
   // ── CONTROLLER: Publish (depends on bloom.closeBloom, mediaOpacity/Scale) ──
   const publish = usePublishOrchestrator({
     drafts, setDrafts, myId, navigation,
     closeBloom: bloom.closeBloom,
-    mediaOpacity, mediaScale,
+    mediaOpacity, mediaScale, onPublished,
   });
 
   // Sync publishing ref so bloom/bubble read current value
@@ -453,6 +464,7 @@ export default function StoryComposerScreen() {
   const [mentionResults, setMentionResults] = useState<any[]>([]);
   const [mentionLoading, setMentionLoading] = useState(false);
   const mentionDebounceRef = useRef<any>(null);
+  const mentionSearchVersion = useRef(0);
   const [mentionHidden, setMentionHidden] = useState(false);
   const [mentionPicks, setMentionPicks] = useState<any[]>([]);
 
@@ -508,7 +520,7 @@ export default function StoryComposerScreen() {
   const soundPreview = useStorySoundPreview(active?.audio, myId);
   const previewAudioUrl = soundPreview.url;
   const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
-  const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen, previewMusicVol);
+  const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen, previewMusicVol, active?.audio?.durationSec);
   useEffect(() => { if (musicOpen) { try { vidPlayer?.pause?.(); } catch {} } }, [musicOpen, vidPlayer]);
   // Video drafts picked without dimensions: probe the first frame so canvas
   // gestures work and the story publishes with a real thumbnail.
@@ -697,7 +709,7 @@ export default function StoryComposerScreen() {
   const resolveTextMentions = useCallback(async (stickerId: string, text: string) => {
     const draftId = active?.id;
     if (!draftId) return;
-    const handles = Array.from(new Set((text.match(/@([A-Za-z0-9_.]{2,30})/g) || []).map(h => h.slice(1).toLowerCase())));
+    const handles = storyHandles(text);
     let found: { id: string; username: string }[] = [];
     if (handles.length) {
       try {
@@ -709,10 +721,7 @@ export default function StoryComposerScreen() {
     setDrafts(prev => prev.map(d => {
       if (d.id !== draftId || d.uploadState === 'uploading' || d.uploadState === 'done' || !d.stickers?.some(s => s.id === stickerId && s.text === text)) return d;
       const stickers = (d.stickers || []).map(s => (s.id === stickerId ? ({ ...s, mentions: found.length ? found : undefined } as any) : s));
-      const cur = (((d as any).hiddenMentions || []) as { id: string; username: string }[]);
-      const onStickers = new Set(stickers.filter((s: any) => s.kind === 'mention' && s.mentionUserId).map((s: any) => s.mentionUserId));
-      const add = found.filter(u => !cur.some(h => h.id === u.id) && !onStickers.has(u.id));
-      return { ...d, stickers, hiddenMentions: add.length ? [...cur, ...add] : cur } as any;
+      return { ...d, stickers } as any;
     }));
   }, [active?.id]);
   const saveSticker = useCallback(() => {
@@ -765,11 +774,27 @@ export default function StoryComposerScreen() {
   const addLocationSticker = useCallback((item: any) => { const { name } = fmtLoc(item); updateStickers([...(active?.stickers || []), { id: newStickerId(), text: name, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.45, scale: 1, rotation: 0, kind: 'location', locationName: name, locationDisplayName: item.display_name || name, locationLat: parseFloat(item.lat) || undefined, locationLng: parseFloat(item.lon) || undefined, locationPlaceId: item.place_id ? String(item.place_id) : undefined }]); closeLocationModal(); }, [active, updateStickers, closeLocationModal]);
 
   // ── Mention ──
-  const loadMentionDefaults = useCallback(async () => { setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').neq('id', myId || '').order('last_seen', { ascending: false, nullsFirst: false }).limit(30); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
-  const openMentionModal = useCallback(() => { setMentionSearch(''); setMentionResults([]); setMentionModalOpen(true); loadMentionDefaults(); }, [loadMentionDefaults]);
-  const closeMentionModal = useCallback(() => { setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); setMentionPicks([]); setMentionHidden(false); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
-  const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { loadMentionDefaults(); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId, loadMentionDefaults]);
-  const onMentionSearchChange = useCallback((t: string) => { setMentionSearch(t); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => searchUsers(t), 300); }, [searchUsers]);
+  const loadMentionDefaults = useCallback(async () => {
+    const version = ++mentionSearchVersion.current; setMentionLoading(true);
+    try {
+      const { data, error } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').neq('id', myId || '').order('last_seen', { ascending: false, nullsFirst: false }).limit(30);
+      if (version === mentionSearchVersion.current && mountedRef.current) setMentionResults(error ? [] : data || []);
+    } catch { if (version === mentionSearchVersion.current && mountedRef.current) setMentionResults([]); }
+    finally { if (version === mentionSearchVersion.current && mountedRef.current) setMentionLoading(false); }
+  }, [myId]);
+  const openMentionModal = useCallback(() => { setMentionSearch(''); setMentionResults([]); setMentionModalOpen(true); void loadMentionDefaults(); }, [loadMentionDefaults]);
+  const closeMentionModal = useCallback(() => { mentionSearchVersion.current++; setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); setMentionLoading(false); setMentionPicks([]); setMentionHidden(false); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
+  const searchUsers = useCallback(async (q: string) => {
+    const c = q.trim().replace(/^@/, '').replace(/[^A-Za-z0-9_. -]/g, '').toLowerCase().slice(0, 60);
+    if (c.length < 2) { void loadMentionDefaults(); return; }
+    const version = ++mentionSearchVersion.current; setMentionLoading(true);
+    try {
+      const { data, error } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10);
+      if (version === mentionSearchVersion.current && mountedRef.current) setMentionResults(error ? [] : data || []);
+    } catch { if (version === mentionSearchVersion.current && mountedRef.current) setMentionResults([]); }
+    finally { if (version === mentionSearchVersion.current && mountedRef.current) setMentionLoading(false); }
+  }, [myId, loadMentionDefaults]);
+  const onMentionSearchChange = useCallback((t: string) => { mentionSearchVersion.current++; setMentionSearch(t); setMentionResults([]); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => void searchUsers(t), 250); }, [searchUsers]);
   const toggleMentionPick = useCallback((u: any) => { setMentionPicks(prev => prev.some(p => p.id === u.id) ? prev.filter(p => p.id !== u.id) : [...prev, u]); }, []);
   const confirmMentions = useCallback(() => {
     const picks = mentionPicks;
@@ -879,6 +904,7 @@ export default function StoryComposerScreen() {
     return (
       <SafeAreaView style={st.safe} edges={['top', 'bottom']}>
         <StatusBar barStyle="dark-content" />
+      {myId && <SaveToMemorySheet visible={publishedStoryIds.length > 0} storyIds={publishedStoryIds} userId={myId} onClose={finishPublishing} />}
         <View style={st.emptyFallback}>
           <Feather name="image" size={40} color={accent.warmMuted} />
           <Text style={st.emptyFallbackTitle}>No media selected</Text>

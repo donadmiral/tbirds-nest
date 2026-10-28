@@ -64,7 +64,15 @@ export default function AppleMusicPlayer({ track }: { track: AppleMusicTrack }) 
     void instance.current?.stop().catch(() => {});
   }, [track.id]);
 
+  useEffect(() => {
+    const stop = () => { generation.current += 1; setPlaying(false); void instance.current?.stop().catch(() => {}); };
+    const visibility = () => { if (document.hidden) stop(); };
+    window.addEventListener('platinum:stop-media', stop); document.addEventListener('visibilitychange', visibility);
+    return () => { window.removeEventListener('platinum:stop-media', stop); document.removeEventListener('visibilitychange', visibility); };
+  }, []);
+
   async function toggle() {
+    if (document.hidden || document.documentElement.dataset.platinumCallActive === 'true') return;
     const player = instance.current;
     if (!player || busy.current) return;
     if (Date.now() >= expiresAt.current - 10000) { await prepare(); return; }
@@ -76,7 +84,7 @@ export default function AppleMusicPlayer({ track }: { track: AppleMusicTrack }) 
       if (mine !== generation.current) { await player.unauthorize(); return; }
       if (player.isPlaying && activeTrack.current === track.id) { await player.pause(); setPlaying(false); return; }
       if (activeTrack.current !== track.id) { await player.setQueue({ song: track.id }); activeTrack.current = track.id; }
-      if (mine !== generation.current) return;
+      if (mine !== generation.current || document.hidden || document.documentElement.dataset.platinumCallActive === 'true') return;
       await player.play();
       if (mine === generation.current) setPlaying(true);
       else await player.stop();

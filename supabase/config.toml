@@ -414,3 +414,11 @@ entrypoint = "./functions/daily-get-token/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/daily-get-token/*.html" ]
+
+# These handlers authenticate explicitly: live user/session for reads, and a
+# scoped Vault credential for cleanup. Cleanup never accepts an app JWT.
+[functions.private-media-session]
+verify_jwt = false
+
+[functions.private-media-cleanup]
+verify_jwt = false

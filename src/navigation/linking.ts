@@ -23,6 +23,7 @@ export const linking: LinkingOptions<any> = {
       AuthCallback: 'auth/callback',
       SetupProfile: 'setup-profile',
       // Authenticated root
+      StoryViewer: 'story/:storyId',
       Main: {
         screens: {
           Feed: {

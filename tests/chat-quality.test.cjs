@@ -19,7 +19,7 @@ const defer = () => { let resolve; const promise = new Promise(done=>{resolve=do
 
 function historyHarness(response) {
   const state = { rows:[], loading:false, loadingOlder:false, error:null, hasOlder:false }, queries=[];
-  const context = { ...history, conversationId:'a', currentUserId:'me', mountedRef:{current:true}, activeConversation:{current:'a'}, historyRequest:{current:0}, historyCursor:{current:null}, olderPending:{current:false},
+  const context = { accountScopeRef:{current:'owner:me'}, ...history, conversationId:'a', currentUserId:'me', mountedRef:{current:true}, activeConversation:{current:'a'}, historyRequest:{current:0}, historyCursor:{current:null}, olderPending:{current:false},
     setMessages(fn){state.rows=typeof fn==='function'?fn(state.rows):fn;}, setLoading(value){state.loading=value;}, setHistoryError(value){state.error=value;}, setHasOlder(value){state.hasOlder=value;}, setLoadingOlder(value){state.loadingOlder=value;},
     signChatMedia:async rows=>rows, loadReactions:async()=>{}, markRead:async()=>{}, refreshStatus:async()=>{}, loadStarredIds:async()=>{}, loadSavedIds:async()=>{},
     supabase:{from(table){const query={table};queries.push(query); const chain={select(){return chain;},eq(key,value){query[key]=value;return chain;},order(){return chain;},limit(value){query.limit=value;return chain;},or(value){query.filter=value;return chain;},then(ok,bad){return Promise.resolve(typeof response==='function'?response(query):response).then(ok,bad);}};return chain;}}
@@ -49,8 +49,8 @@ test('an older page finishing after a conversation switch cannot unlock the new 
   wait.resolve({data:[row(4)],error:null});await pending;assert.equal(h.context.olderPending.current,true);assert.equal(h.state.rows.length,0);
 });
 test('camera/gallery shared video send awaits upload and preserves explicit failure',async()=>{
-  const calls=[],alerts=[]; const context={currentUserId:'me',mediaSending:{current:false},pendingViewLimitRef:{current:null},setShowToolbar(){},setUploadingMedia(){},
-    uploadMedia:async(bucket,user,asset)=>{calls.push(asset.kind);return{url:'https://media.test/'+asset.kind};},VideoThumbnails:{getThumbnailAsync:async()=>({uri:'thumb.jpg'})},doSend:async(...args)=>{calls.push(args[2]);return true;},Alert:{alert:(...args)=>alerts.push(args)}};
+  const calls=[],alerts=[]; const context={useAuthStore:{getState:()=>({session:{user:{id:'owner'}}})},attachmentScopeRef:{current:'scope'},mediaOperation:{current:0},mountedRef:{current:true},currentUserId:'me',mediaSending:{current:false},pendingViewLimitRef:{current:null},setShowToolbar(){},setUploadingMedia(){},
+    uploadMedia:async(bucket,user,asset)=>{calls.push(asset.kind);return{url:'https://media.test/'+asset.kind};},VideoThumbnails:{getThumbnailAsync:async()=>({uri:'thumb.jpg'})},doSend:async(...args)=>{calls.push(args[2]);return true;},Alert:{alert:(...args)=>{if(args[0]==='Send video')args[2].find(b=>b.text==='Normal').onPress();else alerts.push(args);}}};
   const send=evaluate(callbacks.sendMediaAssets,context);assert.equal(await send([{uri:'camera.mov',type:'video'}]),true);assert.deepEqual(calls,['video','image','video']);assert.equal(alerts.length,0);
   context.uploadMedia=async()=>{throw new Error('Convert this video to MP4 and try again.');}; const failed=evaluate(callbacks.sendMediaAssets,context);assert.equal(await failed([{uri:'camera.mov',type:'video'}]),false);assert.match(alerts[0][1],/MP4/);assert.equal(context.mediaSending.current,false);
 });
@@ -62,4 +62,53 @@ test('native sent and received bubble text remains paired in dark mode',()=>{
   const darkModule={exports:{}};vm.runInNewContext(transpile(fs.readFileSync(path.join(__dirname,'../src/constants/tokens/dark.ts'),'utf8')),{module:darkModule,exports:darkModule.exports});
   const t=darkModule.exports.dark;const styles=evaluate(callbacks.s,{t,StyleSheet:{hairlineWidth:1},NAVY:'#0B1E3D',NAVY_SOFT:'#1A3560',BUBBLE_OTHER:'#fff',TEXT_PRIMARY:'#000',TEXT_SECONDARY:'#888',HAIRLINE:'#eee',SCREEN_W:400,MSG_IMG_MAX_W:288,MSG_IMG_MAX_H:360,MSG_IMG_MIN_H:140,MSG_VID_H:180})(t);
   assert.equal(styles.bubbleMe.backgroundColor,'#0B1E3D');assert.equal(styles.bubbleTxtMe.color,'#FFFFFF');assert.equal(styles.docNameMe.color,'#FFFFFF');assert.equal(styles.bubbleOther.backgroundColor,t.surface.canvas);assert.equal(styles.bubbleTxtOther.color,t.ink.primary);assert.equal(styles.fsActionTxt.color,'#FFFFFF');
+});
+
+test('private video uploads never generate thumbnails or retain inline preview bytes',async()=>{
+  const uploads=[],sends=[];const context={currentUserId:'me',useAuthStore:{getState:()=>({session:{user:{id:'owner'}}})},attachmentScopeRef:{current:'a'},mediaOperation:{current:0},mountedRef:{current:true},mediaSending:{current:false},setShowToolbar(){},setUploadingMedia(){},
+    uploadMedia:async(_bucket,_uid,asset)=>{uploads.push(asset);return{url:'private-object'};},VideoThumbnails:{getThumbnailAsync:async()=>{throw Error('private thumbnail must not be generated');}},doSend:async(...args)=>{sends.push(args);return true;},Alert:{alert:(_title,_body,buttons)=>buttons.find(b=>b.text==='View once').onPress()}};
+  assert.equal(await evaluate(callbacks.sendMediaAssets,context)([{uri:'camera.mov',type:'video',base64:'private-preview'}]),true);
+  assert.equal(uploads.length,1);assert.equal(uploads[0].base64,null);assert.equal(sends[0][3],null);assert.equal(sends[0][7],undefined);assert.equal(sends[0][8],1);
+});
+test('old-account media upload completions cannot send or release a new operation lock',async()=>{
+  const wait=defer(),sends=[];let owner='owner';
+  const context={currentUserId:'me',useAuthStore:{getState:()=>({session:{user:{id:owner}}})},attachmentScopeRef:{current:'old-chat'},mediaOperation:{current:0},mountedRef:{current:true},mediaSending:{current:false},setShowToolbar(){},setUploadingMedia(){},uploadMedia:()=>wait.promise,doSend:async(...args)=>{sends.push(args);return true;},Alert:{alert(){}}};
+  const pending=evaluate(callbacks.sendMediaAssets,context)([{uri:'photo.jpg',type:'image'}]);
+  owner='new-owner';context.attachmentScopeRef.current='new-chat';context.mediaOperation.current++;context.mediaSending.current=true;
+  wait.resolve({url:'old-private-object'});assert.equal(await pending,false);assert.equal(sends.length,0);assert.equal(context.mediaSending.current,true);
+});
+test('edited private photos are fenced at the chooser and after upload',async()=>{
+  const wait=defer(),uploads=[],sends=[];let choice,owner='owner';
+  const context={currentUserId:'me',useAuthStore:{getState:()=>({session:{user:{id:owner}}})},attachmentScopeRef:{current:'a'},mediaOperation:{current:0},mountedRef:{current:true},mediaSending:{current:false},setUploadingMedia(){},uploadMedia:async(_bucket,_uid,asset)=>{uploads.push(asset);return wait.promise;},doSend:async(...args)=>{sends.push(args);return true;},Alert:{alert:(_title,_body,buttons)=>{choice=buttons;}}};
+  const send=evaluate(callbacks.chooseAndSendImage,context), pending=send({uri:'edited.jpg',width:10,height:10,base64:'preview'});
+  choice.find(b=>b.text==='View once').onPress();await Promise.resolve();assert.equal(uploads[0].base64,null);
+  owner='new-owner';wait.resolve({url:'private-object'});assert.equal(await pending,false);assert.equal(sends.length,0);
+  const next=send({uri:'edited2.jpg',width:10,height:10,base64:'preview'});context.attachmentScopeRef.current='different-chat';choice.find(b=>b.text==='Normal').onPress();assert.equal(await next,false);assert.equal(uploads.length,1);
+});
+test('late native history and typing from another account cannot repopulate the same chat',async()=>{
+  const wait=defer(),h=historyHarness(()=>wait.promise);const pending=h.fetch();h.context.accountScopeRef.current='next-account';wait.resolve({data:[row(1)],error:null});await pending;assert.equal(h.state.rows.length,0);
+  const typeWait=defer();let changed=false;const context={accountScopeRef:{current:'old'},conversationId:'a',currentUserId:'me',mountedRef:{current:true},activeConversation:{current:'a'},setTypingUserId(){changed=true;},setOtherTyping(){changed=true;},supabase:{from(){return{select(){return this;},eq(){return typeWait.promise;}};}}};
+  const typing=evaluate(callbacks.fetchTyping,context)();context.accountScopeRef.current='next';typeWait.resolve({data:[{user_id:'other',is_typing:true,updated_at:new Date().toISOString()}]});await typing;assert.equal(changed,false);
+});
+
+test('native sealed image/video bubbles never mount ordinary thumbnails, image viewers or playback',()=>{
+  let renderSource;
+  function find(node){if(ts.isVariableDeclaration(node)&&node.name.getText(ast)==='renderMsg')renderSource=node.initializer.getText(ast);ts.forEachChild(node,find);}find(ast);
+  const opened=[];
+  const state={exports:{}};
+  const context={module:state,exports:state.exports,React:{createElement:(type,props,...children)=>({type,props:{...props,children}}),Fragment:'Fragment'},
+    currentUserId:'me',groupEnds:{},groupStarts:{},isGroup:false,membersById:{},otherUser:{},otherInits:'AB',getStatus:()=>null,memberReads:[],showTimestamp:null,starredIds:new Set(),messages:[],sharedPostsMap:{},viewedOutIds:new Set(),
+    s:new Proxy({},{get:()=>({})}),t:{ink:{primary:'#eee',secondary:'#ccc',muted:'#aaa'},surface:{hairline:'#ccc',raised:'#123'},status:{link:'#abc'}},
+    View:'View',Text:'Text',Pressable:'Pressable',TouchableOpacity:'TouchableOpacity',Feather:'Feather',Ionicons:'Ionicons',ExpoImage:'ExpoImage',AutoSizeImage:'AutoSizeImage',VoiceNote:'VoiceNote',SharedPostCard:'SharedPostCard',MentionText:'MentionText',
+    openSealedMedia:m=>opened.push(m.id),setFullscreenImg:()=>assert.fail('ordinary fullscreen bypass'),setFullscreenVideo:()=>assert.fail('ordinary video bypass'),setSelectedMsg(){},setShowTimestamp(){},parseChatAttachmentCard:()=>null,MSG_IMG_MAX_W:300,MSG_VID_H:200,
+  };
+  const compiled=ts.transpileModule('export const render = '+renderSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React}}).outputText;
+  vm.runInNewContext(compiled,context);
+  for(const media_type of ['image','video']){
+    const tree=state.exports.render({item:{type:'msg',data:{id:media_type,sender_id:'other',media_type,view_limit:1,media_url:'secret-media',thumbnail_url:'secret-thumb',media_b64:'secret-preview'}}});
+    assert.equal(JSON.stringify(tree).includes('secret-'),false);
+    const nodes=[];function walk(n){if(Array.isArray(n))return n.forEach(walk);if(!n||typeof n!=='object')return;nodes.push(n);walk(n.props?.children);}walk(tree);
+    assert.equal(nodes.some(n=>['ExpoImage','AutoSizeImage','VoiceNote'].includes(n.type)),false);
+    const action=nodes.find(n=>n.type==='TouchableOpacity'&&n.props.onPress);assert.ok(action);action.props.onPress();assert.equal(opened.at(-1),media_type);
+  }
 });

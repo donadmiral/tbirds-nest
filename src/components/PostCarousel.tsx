@@ -30,6 +30,8 @@ import { FilterLayer } from './stories/StoryFilters';
 import { AdjustLayer } from './stories/storyPanels';
 import { useIsFocused } from '@react-navigation/native';
 import { useSettingsStore } from '../stores/settingsStore';
+import PostSoundtrack from './PostSoundtrack';
+import { readSoundtrack, type SoundtrackSelection } from '../../shared/soundtrack';
 import { Feather } from '@expo/vector-icons';
 
 export type CarouselMedia = {
@@ -39,7 +41,7 @@ export type CarouselMedia = {
   sort_order: number;
   width?: number | null;
   height?: number | null;
-  edit?: { scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; coverUrl?: string | null; muted?: boolean; trimStart?: number | null; trimEnd?: number | null } | null;
+  edit?: { rotation?: number; flipX?: boolean; speed?: number|null; soundtrack?: SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; coverUrl?: string | null; muted?: boolean; trimStart?: number | null; trimEnd?: number | null } | null;
 };
 
 type Props = {
@@ -63,8 +65,8 @@ let sessionMuted = true;
 function CarouselImage({ uri, width, height, edit }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit'] }) {
   const [loaded, setLoaded] = useState(false);
   const fit = edit?.fit === 'contain' ? 'contain' : 'cover';
-  const hasXform = !!(edit?.scale && edit.scale !== 1) || !!edit?.translateNX || !!edit?.translateNY;
-  const xform = hasXform ? [{ translateX: (edit?.translateNX || 0) * width }, { translateY: (edit?.translateNY || 0) * height }, { scale: edit?.scale || 1 }] : undefined;
+  const hasXform = !!(edit?.scale && edit.scale !== 1) || !!edit?.translateNX || !!edit?.translateNY || !!edit?.rotation || !!edit?.flipX;
+  const xform = hasXform ? [{ translateX: (edit?.translateNX || 0) * width }, { translateY: (edit?.translateNY || 0) * height }, { scale: edit?.scale || 1 },{rotate: `${edit?.rotation || 0}deg`},{scaleX:edit?.flipX?-1:1}] : undefined;
 
   return (
     <View style={{ width, height, backgroundColor: '#F0F0F0' }}>
@@ -91,9 +93,9 @@ function CarouselImage({ uri, width, height, edit }: { uri: string; width: numbe
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, holdView,
+  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, holdView, soundtrack,
 }: {
-  uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null; holdView?: boolean;
+  soundtrack?: SoundtrackSelection|null; uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null; holdView?: boolean;
   isVisible: boolean; isScreenActive: boolean;
   onTapOverride?: (at?: number) => void;
   onExpand?: (at?: number) => void;
@@ -111,8 +113,9 @@ function CarouselVideo({
   // Navigation focus: leaving the tab MUST silence the video.
   const screenFocused = useIsFocused();
   const postedMuted = !!(edit as any)?.muted;
-  const [muted, setMuted] = useState(sessionMuted || postedMuted);
+  const [muted, setMuted] = useState(sessionMuted);
   const [progress, setProgress] = useState(0);
+  const [musicClock,setMusicClock] = useState({time:0,playing:false,rate:edit?.speed||1});
   const [showControls, setShowControls] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsOpacity = useRef(new Animated.Value(0)).current;
@@ -122,15 +125,20 @@ function CarouselVideo({
   // shouldPlay was a prop on expo-av's Video. On a player object it is an effect.
   // Only the card that owns the engine drives it; every other card leaves the player alone.
   useEffect(() => { if (!owns) return; if (shouldPlay) player.play(); else player.pause(); }, [owns, shouldPlay, player]);
-  useEffect(() => { if (!owns) return; player.muted = muted || postedMuted; }, [owns, muted, postedMuted, player]);
+  useEffect(() => { if (!owns) return; player.muted = muted || postedMuted; player.volume = soundtrack?.originalVolume ?? 1; }, [owns, muted, postedMuted, player, soundtrack?.originalVolume]);
   useEffect(() => {
     if (!owns) { setProgress(0); return; }
     const sub = player.addListener('timeUpdate', (e: any) => {
       const d = player.duration;
+      const start=edit?.trimStart||0,end=edit?.trimEnd||d;
+      if(player.currentTime<start||end>start&&player.currentTime>=end)player.currentTime=start;
+      setMusicClock({time:Math.max(0,player.currentTime-start),playing:player.playing&&player.status==='readyToPlay',rate:edit?.speed||1});
       if (d > 0) setProgress((e?.currentTime ?? player.currentTime) / d);
     });
-    return () => { sub.remove(); };
-  }, [owns, player]);
+    const changes=player.addListener('playingChange',(e)=>setMusicClock(c=>({...c,playing:e.isPlaying&&player.status==='readyToPlay'})));
+    const status=player.addListener('statusChange', e=>setMusicClock(c=>({...c,playing:e.status==='readyToPlay'&&player.playing})));
+    return () => { sub.remove(); changes.remove(); status.remove(); };
+  }, [owns, player, edit?.trimStart, edit?.trimEnd, edit?.speed]);
 
   // Auto-hide controls after 3 seconds
   const scheduleHide = useCallback(() => {
@@ -200,18 +208,19 @@ function CarouselVideo({
       activeOpacity={1}
       onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
-      {owns || holdView ? <VideoView style={{ width: '100%', height: '100%' }} player={player} contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
+      {owns || holdView ? <VideoView style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={player} contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
       {poster && !owns && !holdView ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height }} contentFit="cover" /> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
 
+      <PostSoundtrack selection={soundtrack} active={owns&&shouldPlay&&!muted} clock={musicClock}/>
       {/* Playback progress bar */}
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' }} pointerEvents="none">
         <View style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%`, height: '100%', backgroundColor: '#FFFFFF' }} />
       </View>
 
       {/* Mute button always visible bottom-right */}
-      {postedMuted ? null : <TouchableOpacity
+      {postedMuted && !soundtrack ? null : <TouchableOpacity
         style={st.muteBtn}
         onPress={toggleMute}
         activeOpacity={0.8}
@@ -275,6 +284,7 @@ async function loadSensitiveMode() {
 
 export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress, postId, flush, holdView }: Props) {
   const [revealed, setRevealed] = useState(false);
+  useEffect(() => setRevealed(false), [postId]);
   const [, bump] = useState(0);
   useEffect(() => { loadSensitiveMode().then(() => bump((n) => n + 1)); }, []);
   const isSensitive = (media || []).some((m: any) => !!m?.is_sensitive || !!m?.edit?.sensitive);
@@ -287,6 +297,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   const ratio = aspect === 'square' ? 1 : aspect === 'landscape' ? 1 / 1.91 : HEIGHT_RATIO;
   const slideHeight = Math.round(containerWidth * ratio);
   const total = media.length;
+  const soundtrack=readSoundtrack(media[0]?.edit?.soundtrack);
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems.length > 0 && viewableItems[0].index != null) {
@@ -307,6 +318,8 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             postId={postId ?? null}
             holdView={!!holdView}
             poster={(item as any).edit?.coverUrl || null}
+            edit={item.edit}
+            soundtrack={soundtrack}
             width={containerWidth}
             height={slideHeight}
             isVisible={index === activeIndex}
@@ -327,13 +340,25 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             edit={item.edit}
           />
         </TouchableOpacity>
+        <PostSoundtrack selection={soundtrack} active={isActive&&index===activeIndex&&!veil} controls/>
         <TagLayer tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
       </View>
     );
-  }, [containerWidth, slideHeight, activeIndex, isActive, onMediaPress]);
+  }, [containerWidth, slideHeight, activeIndex, isActive, onMediaPress, media, tagMap, soundtrack, veil, postId, holdView]);
 
 
   if (total === 0) return null;
+  // After every hook, never before one.
+  if (isSensitive && sensitiveMode === 'hide') return null;
+  if (veil) {
+    return (
+      <TouchableOpacity activeOpacity={0.9} onPress={() => setRevealed(true)} style={{ width: containerWidth, height: slideHeight, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>Sensitive content</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>This photo or video may be sensitive. Tap to view.</Text>
+      </TouchableOpacity>
+    );
+  }
+
 
   // Single media item: same 4:5 container, no dots, no counter
   if (total === 1) {
@@ -348,6 +373,8 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
                 postId={postId ?? null}
                 holdView={!!holdView}
                 poster={(item as any).edit?.coverUrl || null}
+            edit={item.edit}
+            soundtrack={soundtrack}
                 width={containerWidth}
                 height={slideHeight}
                 isVisible={true}
@@ -366,6 +393,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
                   edit={item.edit}
                 />
               </TouchableOpacity>
+              <PostSoundtrack selection={soundtrack} active={isActive&&!veil} controls/>
               <TagLayer tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
             </View>
           )}
@@ -375,16 +403,6 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
     );
   }
 
-  // After every hook, never before one.
-  if (isSensitive && sensitiveMode === 'hide') return null;
-  if (veil) {
-    return (
-      <TouchableOpacity activeOpacity={0.9} onPress={() => setRevealed(true)} style={{ width: containerWidth, height: slideHeight, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>Sensitive content</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>This photo or video may be sensitive. Tap to view.</Text>
-      </TouchableOpacity>
-    );
-  }
 
   return (
     <View style={[st.carouselWrap, flush && { marginTop: 0, width: containerWidth }]}>

@@ -23,7 +23,8 @@ import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 // full articles, which is exactly what happened.
 const CLAMP = (n: number): React.CSSProperties => ({ display: "-webkit-box", WebkitLineClamp: n, WebkitBoxOrient: "vertical", overflow: "hidden" });
 
-export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: string) => void }) {
+export function DiscoverTile({ post, onHide, onOpen }: { post: FeedRow; onHide?: (id: string) => void; onOpen?: (id: string) => void }) {
+  const open=(e:React.MouseEvent)=>{if(onOpen&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();onOpen(post.post_id);}};
   const hide = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -76,13 +77,13 @@ export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: st
   if (first) {
     return (
       <Link
-        href={href}
+        href={href} onClick={open}
         className="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20"
       >
         <span className="relative block aspect-square w-full overflow-hidden bg-surface">
-          {isVideo ? (
+          {(first as any).is_sensitive || (first as any).edit?.sensitive ? <span className="flex h-full items-center justify-center gap-2 text-muted"><EyeOff size={20}/>Sensitive content</span> : isVideo ? (
             <>
-              <video src={first.url} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+              <video src={first.url} poster={(first as any).edit?.coverUrl||undefined} muted playsInline preload="metadata" className="h-full w-full object-cover" />
               <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white">
                 <Play size={13} fill="currentColor" />
               </span>
@@ -113,7 +114,7 @@ export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: st
   if (post.article_title) {
     return (
       <Link
-        href={href}
+        href={href} onClick={open}
         className="flex flex-col justify-between overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20"
       >
         <span className="block px-4 pt-4">
@@ -132,7 +133,7 @@ export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: st
   // sentence wrapped around it.
   if (link?.image_url) {
     return (
-      <Link href={href} className="flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20">
+      <Link href={href} onClick={open} className="flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20">
         <span className="relative block aspect-[16/10] w-full overflow-hidden bg-surface">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={displayImageUrl(link.image_url, 640) ?? link.image_url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
@@ -150,7 +151,7 @@ export function DiscoverTile({ post, onHide }: { post: FeedRow; onHide?: (id: st
 
   return (
     <Link
-      href={href}
+      href={href} onClick={open}
       className="flex flex-col justify-between overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20"
     >
       <span className="block px-4 pt-4">

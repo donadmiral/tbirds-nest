@@ -1,3 +1,4 @@
+import { storyMentionIds, storyHandles, currentTextMentions } from '../../../shared/storyMentions';
 /**
  * usePublishOrchestrator.ts
  *
@@ -57,6 +58,7 @@ export interface PublishOrchestratorInput {
   closeBloom: () => void;
   mediaOpacity: Animated.Value;
   mediaScale: Animated.Value;
+  onPublished?: (storyIds: string[]) => void;
 }
 
 export interface PublishOrchestratorOutput {
@@ -73,7 +75,7 @@ function draftContent(draft: Draft): string {
 export function usePublishOrchestrator(input: PublishOrchestratorInput): PublishOrchestratorOutput {
   const {
     drafts, setDrafts, myId, navigation,
-    closeBloom, mediaOpacity, mediaScale,
+    closeBloom, mediaOpacity, mediaScale, onPublished,
   } = input;
 
   const [publishing, setPublishing] = useState(false);
@@ -82,7 +84,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
   const uploadCache = useRef<StoryUploadCache>(new Map());
   const latestDrafts = useRef(drafts);
   latestDrafts.current = drafts;
-  const attempts = useRef(new Map<string, { userId: string; authorId: string; draft: Draft; progress: PublicationAttempt }>());
+  const attempts = useRef(new Map<string, { userId: string; authorId: string; draft: Draft; progress: PublicationAttempt; stickers?: any[] | null; resolvedMentionIds?: string[] }>());
 
   // Own lifecycle internally. No consumer coordination needed.
   useEffect(() => {
@@ -141,7 +143,21 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
         // Keep the original payload: edits after a partial save must not make a
         // second story or silently change what its confirmed steps contain.
         d = attempt.draft;
-        const stickerPayload = d.stickers && d.stickers.length > 0 ? JSON.parse(JSON.stringify(d.stickers)) : null;
+        if (attempt.stickers === undefined) {
+          const payload = d.stickers && d.stickers.length > 0 ? JSON.parse(JSON.stringify(d.stickers)) : null;
+          const handles = [...new Set([...(payload || []).filter((st: any) => !st.kind || st.kind === 'text').flatMap((st: any) => storyHandles(st.text)), ...storyHandles(d.caption)])];
+          if (handles.length) {
+            const { data: people, error } = await supabase.from('profiles').select('id,username').in('username', handles);
+            if (error) throw new Error('Mentions could not be checked. Please retry sharing.');
+            await attempt.progress.check();
+            for (const sticker of payload || []) {
+              if (!sticker.kind || sticker.kind === 'text') sticker.mentions = currentTextMentions({ text: sticker.text, mentions: people || [] });
+            }
+            attempt.resolvedMentionIds = (people || []).map((person: any) => String(person.id));
+          }
+          attempt.stickers = payload;
+        }
+        const stickerPayload = attempt.stickers;
 
         const story = await storiesService.uploadAndCreateStory({
           userId: myId,
@@ -181,9 +197,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
         // Mentions: visible ones come from mention stickers, hidden ones from
         // the draft's hidden list. One story_mentions row per person; the DB
         // trigger writes the notification, so there is a single source.
-        const visibleIds: string[] = Array.from(new Set(
-          (stickerPayload || []).filter((s: any) => s.kind === 'mention' && s.mentionUserId).map((s: any) => String(s.mentionUserId))
-        ));
+        const visibleIds = [...new Set([...storyMentionIds(stickerPayload || []), ...(attempt.resolvedMentionIds || [])])];
         const hiddenIds: string[] = Array.from(new Set(
           (((d as any).hiddenMentions || []) as any[]).map((h: any) => h?.id).filter(Boolean).map(String)
         ));
@@ -232,6 +246,11 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
 
     if (failCount === 0) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      if (onPublished) {
+        const ids = [...attempts.current.values()].map(attempt => attempt.progress.postId).filter((id): id is string => !!id);
+        onPublished([...new Set(ids)]);
+        return;
+      }
       Animated.parallel([
         Animated.timing(mediaOpacity, { toValue: 0, duration: duration.medium, useNativeDriver: true }),
         Animated.timing(mediaScale, { toValue: 0.96, duration: duration.medium, useNativeDriver: true }),
@@ -243,7 +262,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
     } else {
       Alert.alert('Partial upload', `${successCount} uploaded, ${failCount} failed.`);
     }
-  }, [myId, drafts, setDrafts, navigation, closeBloom, mediaOpacity, mediaScale, publishing]);
+  }, [myId, drafts, setDrafts, navigation, closeBloom, mediaOpacity, mediaScale, publishing, onPublished]);
 
   return {
     publishing,

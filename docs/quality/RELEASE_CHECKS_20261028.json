@@ -1,0 +1,94 @@
+{
+  "measuredAt": "2026-10-28T15:19:27.989Z",
+  "node": "v24.22.1",
+  "passed": true,
+  "stages": [
+    {
+      "name": "phone-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 21797,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "web-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 16960,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "admin-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 1936,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "phone-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 24128,
+      "logSha256": "46727d0bd3f2fdfd8c8dc28315cd30abad89f6fa75f922043d26fb71b6437e07"
+    },
+    {
+      "name": "web-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 11654,
+      "logSha256": "212304d141f099a30c924574847fb960acd21c29cdf91f74235b83a9bb90234c"
+    },
+    {
+      "name": "admin-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 3186,
+      "logSha256": "9a2d866a7e4401ad2ac2e8bfb491fab597fe58fb96057d75ac56340426b3a88e"
+    },
+    {
+      "name": "rpc-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 14604,
+      "logSha256": "58fdb982a41aebabf07e9e732c7e76b2e9d44b385e47126fbc007e35216a8cd1"
+    },
+    {
+      "name": "database-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 71279,
+      "logSha256": "75d5ea13c579e6f2887848940987fa8e78721974957d4882da9b690f59ccbfe4"
+    }
+  ],
+  "testCounts": {
+    "phone": 590,
+    "web": 374,
+    "admin": 58,
+    "database": 245,
+    "totalNamedTests": 1267,
+    "failed": 0,
+    "skipped": 0,
+    "rpc": "all runner suites and complete migration chain passed"
+  },
+  "sourceBaseCommit": "1d70765e12df1f9bccdf2c30a090e85002c73a86",
+  "qaProject": "uaulhuelcfkjwojtymmw",
+  "privateMediaCutover": "held pending compatible native build and coordinated acceptance",
+  "scope": "Automated source and database verification. Not a physical-device acceptance result or production-capacity certification.",
+  "iosExport": {
+    "exitCode": 0,
+    "logSha256": "7ad26a47ae4620696ea2e2f86ca7aa0d306170d91c634660abe8323ece95b48c",
+    "meaning": "iOS production JavaScript/Hermes export, not a signed installable app"
+  },
+  "webProductionBuild": {
+    "exitCode": 0,
+    "logSha256": "bbe87c72474e2d134b53f62a7c7042c2427a8f7224d10e1f2b841d389cd50f96"
+  }
+}

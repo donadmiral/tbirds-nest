@@ -2,11 +2,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { Audio } from 'expo-av';
+import { useCallContext } from '../contexts/CallContext';
 
-export function useStoryAudioMix(url: string | null, active: boolean, volume = 1) {
+export function useStoryAudioMix(url: string | null, active: boolean, volume = 1, durationSec?: number | null) {
+  const { callState } = useCallContext();
   const soundRef = useRef<Audio.Sound | null>(null);
-  const playback = useRef({ active, volume, foreground: AppState.currentState === 'active' });
-  playback.current.active = active; playback.current.volume = volume;
+  const playback = useRef({ active, volume, durationSec, foreground: AppState.currentState === 'active' });
+  playback.current.active = active && callState === 'idle'; playback.current.volume = volume; playback.current.durationSec = durationSec;
   const [error, setError] = useState<string | null>(null), [attempt, setAttempt] = useState(0);
   const generation = useRef(0), queue = useRef(Promise.resolve());
   const sync = () => {
@@ -18,7 +20,7 @@ export function useStoryAudioMix(url: string | null, active: boolean, volume = 1
       await sound.setVolumeAsync(Number.isFinite(state.volume) ? Math.max(0, Math.min(1, state.volume)) : 1);
       if (sound !== soundRef.current || current !== generation.current) return;
       // Muting never restarts the soundtrack, so unmuting stays on the timeline.
-      if (playback.current.active && playback.current.foreground) await sound.playAsync();
+      if (playback.current.active && playback.current.foreground) { await sound.playAsync(); if (!playback.current.active || !playback.current.foreground) await sound.pauseAsync(); }
       else await sound.pauseAsync();
     }).catch(() => { if (sound === soundRef.current && current === generation.current) setError('Sound could not play. Please retry.'); });
   };
@@ -28,15 +30,21 @@ export function useStoryAudioMix(url: string | null, active: boolean, volume = 1
       try {
         await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
         if (current !== generation.current) return;
-        const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: false, isLooping: true, volume: 0 });
+        const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: false, isLooping: true, volume: 0, progressUpdateIntervalMillis: 100 });
         owned = sound;
         if (current !== generation.current) { await sound.unloadAsync(); return; }
-        soundRef.current = sound; sync();
+        soundRef.current = sound;
+        sound.setOnPlaybackStatusUpdate(status => {
+          if (current !== generation.current || sound !== soundRef.current || !status.isLoaded) return;
+          const end = Math.min(30, Math.max(1, playback.current.durationSec || 30));
+          if (status.positionMillis >= end * 1000) void sound.setPositionAsync(0).catch(() => {});
+        });
+        sync();
       } catch { if (current === generation.current) setError('Sound could not load. Please retry.'); }
     })();
     return () => { generation.current++; if (soundRef.current === owned) soundRef.current = null; if (owned) void owned.unloadAsync().catch(() => {}); };
   }, [url, attempt]);
-  useEffect(() => { sync(); }, [active, volume]);
+  useEffect(() => { sync(); }, [active, volume, callState]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state => { playback.current.foreground = state === 'active'; sync(); });
     return () => subscription.remove();

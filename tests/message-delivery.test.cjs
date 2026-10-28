@@ -7,7 +7,7 @@ const ts = require('typescript');
 const root = path.resolve(__dirname,'..');
 function run(source, globals={}) {
   const module={exports:{}};
-  vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,AbortController,setTimeout,clearTimeout,crypto:require('node:crypto').webcrypto,...globals});
+  vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{accountScopeRef:{current:'owner:me'},module,exports:module.exports,AbortController,setTimeout,clearTimeout,crypto:require('node:crypto').webcrypto,...globals});
   return module.exports;
 }
 const delivery=run(fs.readFileSync(path.join(root,'shared/messageDelivery.ts'),'utf8'));

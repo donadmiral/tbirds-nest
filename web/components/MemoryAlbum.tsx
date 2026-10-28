@@ -10,8 +10,13 @@ import { createClient } from "@/lib/supabase/client";
 import {
   getMemoryAlbum, getMemoryBook, saveAlbumSettings, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
   getMyStories, addMemoryPage, getAccessList, setAccess, searchPeople,
-  COVER_COLORS, type MemoryAlbum, type MemoryPage, type AccessPerson,
+  COVER_COLORS, getMemoryBooks, type MemoryBookInfo, type MemoryAlbum, type MemoryPage, type AccessPerson,
 } from "@/lib/memoryAlbum";
+
+import { MEMORY_DESIGNS } from '../../shared/memoryBookDesign';
+import { MemoryBookCover } from './memory/MemoryBookCover';
+import { PostSoundtrack } from './PostSoundtrack';
+import SoundtrackPicker from './SoundtrackPicker';
 
 const AUDIENCES = [
   { key: "profile", label: "Everyone who can view my profile" },
@@ -35,9 +40,11 @@ function fmtDate(s: string | null) {
 // when you are looking at someone else's album.
 function MemoryVideo({ src, poster, ownerId }: { src: string; poster?: string; ownerId: string }) {
   const [muted, setMuted] = useState(true);
+  const ref=useRef<HTMLVideoElement|null>(null);
+  useEffect(()=>{const stop=()=>ref.current?.pause();const hidden=()=>{if(document.hidden)stop();};window.addEventListener("platinum:stop-media",stop);document.addEventListener("visibilitychange",hidden);return()=>{stop();window.removeEventListener("platinum:stop-media",stop);document.removeEventListener("visibilitychange",hidden);};},[]);
   return (
     <div className="relative h-full w-full">
-      <video src={src} poster={poster} controls playsInline muted={muted} className="h-full w-full object-contain" />
+      <video ref={ref} src={src} poster={poster} controls playsInline muted={muted} onPlay={()=>{if(document.hidden||document.documentElement.dataset.platinumCallActive==='true')ref.current?.pause();}} className="h-full w-full object-contain" />
       <div className="pointer-events-none absolute right-2 top-2 flex items-center gap-2">
         <button type="button" onClick={() => setMuted((v) => !v)} aria-label={muted ? "Unmute" : "Mute"} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30">
           {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
@@ -58,9 +65,12 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   const [flip, setFlip] = useState(0);
   const [manage, setManage] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [mutationError, setMutationError] = useState('');
+  const [nextBook, setNextBook] = useState<MemoryBookInfo | null>(null);
   const [uid, setUid] = useState<string | null>(null);
 
   const loadGeneration = useRef(0);
+  const reactionLock=useRef(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
@@ -94,6 +104,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
     void supabase.auth.getSession().then(({ data }) => { if (initial === authVersion) apply(data.session?.user.id ?? null); }).catch(() => { if (alive && initial === authVersion) setLoadError("Your account could not load. Please retry."); });
     return () => { alive = false; loadGeneration.current++; subscription.unsubscribe(); };
   }, [supabase]);
+  useEffect(() => { let live=true; setNextBook(null); if(!album?.user_id)return; void getMemoryBooks(album.user_id).then(shelf=>{if(!live)return;const at=shelf.books.findIndex(b=>b.id===album.id);setNextBook(at>=0?shelf.books[at+1]??null:null);}).catch(()=>{});return()=>{live=false;}; }, [album?.id,album?.user_id]);
   // Seed the hearts with what this person already liked.
   useEffect(() => {
     if (!uid || !album) return;
@@ -104,6 +115,8 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   }, [uid, album, supabase]);
 
   const pages = useMemo(() => album?.pages ?? [], [album]);
+  useEffect(() => { setIdx(0); setManage(false); setAdding(false); setView("book"); }, [ownerId]);
+  useEffect(() => { setIdx(i => Math.min(i, Math.max(0, pages.length - 1))); }, [pages.length]);
   const page = pages[idx];
   const cover = COVER_COLORS[album?.cover_color ?? "blush"] ?? COVER_COLORS.blush;
 
@@ -117,6 +130,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.closest("input,textarea,select,[contenteditable=true]")) return;
       if (e.key === "ArrowRight") go(1);
       if (e.key === "ArrowLeft") go(-1);
     };
@@ -136,7 +150,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
 
   return (
     <div className="mx-auto w-full max-w-[720px] px-3 pb-16">
-      <div className="sticky top-0 z-20 -mx-3 mb-4 flex items-center gap-2 border-b border-ink/10 bg-white/75 px-3 py-2.5 backdrop-blur-md">
+      <div className="sticky top-0 z-20 -mx-3 mb-4 flex items-center gap-2 border-b border-ink/10 bg-[var(--chrome-glass)] px-3 py-2.5 backdrop-blur-md">
         <button onClick={() => history.back()} className="rounded-full p-2 text-ink/60 hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></button>
         <p className="min-w-0 flex-1 truncate font-display text-[17px] text-ink">{album.title}</p>
         <button onClick={() => setView(view === "book" ? "grid" : "book")} className="rounded-full bg-black/5 p-2 text-ink/70 hover:bg-black/10" title={view === "book" ? "Grid view" : "Book view"}>
@@ -150,6 +164,8 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
         ) : null}
       </div>
 
+      <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&!manage&&!adding} className="mb-3" />
+      {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}
       {pages.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-20">
           <p className="text-sm text-muted">{album.is_owner ? "Your album is waiting for its first memory." : "No memories here yet."}</p>
@@ -166,20 +182,20 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
                   <>
                     {pg.thumbnail_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={pg.thumbnail_url} alt="" className="h-full w-full object-cover" />
+                      <img src={pg.thumbnail_url} alt="" className="h-full w-full object-contain" />
                     ) : <span className="block h-full w-full bg-ink/80" />}
                     <span className="absolute inset-0 flex items-center justify-center"><span className="rounded-full bg-black/45 p-2 text-white"><ChevronRight size={14} className="rotate-0" /></span></span>
                   </>
                 ) : pg.media_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={pg.media_url} alt="" className="h-full w-full object-cover" />
+                  <img src={pg.media_url} alt="" className="h-full w-full object-contain" />
                 ) : (
                   <span className="flex h-full w-full items-center justify-center bg-[#0B1E3D] p-2">
                     <span className="line-clamp-4 text-center font-display text-[11px] leading-tight text-white">{pg.story_caption || (postSticker(pg) ? "Shared post" : "Memory")}</span>
                   </span>
                 )}
               </span>
-              <span className="mt-2 block truncate text-center font-display text-[12px] text-ink/70">{pg.caption || fmtDate(pg.taken_at)}</span>
+              <span className="mt-2 block truncate text-center font-display text-[12px] text-[#5a5140]">{pg.caption || fmtDate(pg.taken_at)}</span>
             </button>
           ))}
         </div>
@@ -190,15 +206,15 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
               <div className="flex w-6 flex-col items-center justify-center gap-5 pr-2">
                 {[0, 1, 2, 3].map((r) => <span key={r} className="h-3 w-3 rounded-full border-2 bg-white/70" style={{ borderColor: cover.spine }} />)}
               </div>
-              <div key={flip} className="flex-1 origin-left rounded-xl border border-ink/10 bg-[#FBF7EE] p-4 sm:p-5" style={{ animation: "pcflip 380ms ease-out" }}>
+              <div key={flip} className="flex-1 origin-left rounded-xl border border-ink/10 bg-[#FBF7EE] p-4 sm:p-5" style={{ animation: "pcflip 380ms ease-out" }} data-memory-page>
                 {page ? (
                   <div className={page.style === "polaroid" ? "mx-auto max-w-[340px] rotate-[-1.5deg] border border-ink/10 bg-white p-2.5 pb-3" : ""}>
                     <div className={"relative overflow-hidden bg-ink " + (page.style === "polaroid" ? "aspect-[4/5]" : "aspect-[9/14] rounded-lg")}>
                       {page.media_type === "video" && page.media_url ? (
-                        <MemoryVideo key={page.id} src={page.media_url} poster={page.thumbnail_url ?? undefined} ownerId={ownerId} />
+                        <MemoryVideo key={page.id} src={page.media_url} poster={page.thumbnail_url ?? undefined} ownerId={album.user_id ?? ownerId} />
                       ) : page.media_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img key={page.id} src={page.media_url} alt="" className="h-full w-full object-cover" />
+                        <img key={page.id} src={page.media_url} alt="" className="h-full w-full object-contain" />
                       ) : postSticker(page) ? ((): any => { const ps: any = postSticker(page); return (
                         <div className="flex h-full w-full flex-col justify-center gap-2 bg-[#101826] p-5">
                           <p className="text-[11px] font-bold uppercase tracking-wide text-white/50">Shared post</p>
@@ -206,8 +222,9 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
                           {ps.postText ? <p className="text-[13.5px] leading-snug text-white/85">{String(ps.postText).slice(0, 180)}</p> : null}
                           {ps.postMediaUrl && ps.postMediaType !== "video" ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={ps.postMediaUrl} alt="" className="mt-1 max-h-[45%] w-full rounded-lg object-cover" />
+                            <img src={ps.postMediaUrl} alt="" className="mt-1 max-h-[45%] w-full rounded-lg object-contain" />
                           ) : null}
+                          {ps.postId&&<Link href={"/post/"+ps.postId} className="mt-2 rounded-full bg-white/15 px-3 py-2 text-center text-sm text-white">View full post</Link>}
                         </div>
                       ); })() : page.story_caption ? (
                         <div className="flex h-full w-full items-center justify-center bg-[#0B1E3D] p-6">
@@ -225,25 +242,26 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
             </div>
           </div>
           <div className="mt-4 flex items-center justify-center gap-3">
-            <button onClick={() => go(-1)} disabled={idx === 0} className="rounded-full border border-ink/10 bg-white/80 p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
-            <span className="rounded-full border border-ink/10 bg-white/80 px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {pages.length}</span>
-            <button onClick={() => { const sid = page && (page as any).story_id ? String((page as any).story_id) : null; if (!sid) return; setLikedPages(prev => { const n = new Set(prev); if (n.has(sid)) n.delete(sid); else n.add(sid); return n; }); void supabase.rpc("toggle_story_reaction", { p_story_id: sid, p_emoji: "\u2764\uFE0F" }); }} className={"rounded-full border border-ink/10 bg-white/80 p-2.5 backdrop-blur " + (page && likedPages.has(String((page as any).story_id)) ? "text-danger" : "text-muted")} aria-label="Love this memory">{"\u2764"}</button>
-            <button onClick={() => go(1)} disabled={idx >= pages.length - 1} className="rounded-full border border-ink/10 bg-white/80 p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
+            <button onClick={() => go(-1)} disabled={idx === 0} className="rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
+            <span className="rounded-full border border-ink/10 bg-[var(--canvas)] px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {pages.length}</span>
+            <button onClick={async () => {const sid=page?.story_id;if(!sid||reactionLock.current)return;reactionLock.current=true;const generation=loadGeneration.current;try{const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});if(error)throw error;if(generation===loadGeneration.current)setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});}catch{setMutationError('Your reaction could not save. Retry.');}finally{reactionLock.current=false;}}} className={"rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 backdrop-blur " + (page && likedPages.has(String((page as any).story_id)) ? "text-danger" : "text-muted")} aria-label="Love this memory">{"\u2764"}</button>
+            <button onClick={() => go(1)} disabled={idx >= pages.length - 1} className="rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
           </div>
           {album.is_owner && page ? (
             <div className="mt-3 flex items-center justify-center gap-2">
-              <button onClick={async () => { const other = pages[idx - 1]; if (other) { await swapMemoryPages(page, other); setIdx(idx - 1); load(); } }} disabled={idx === 0} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move earlier"><ArrowUp size={15} /></button>
-              <button onClick={async () => { const other = pages[idx + 1]; if (other) { await swapMemoryPages(page, other); setIdx(idx + 1); load(); } }} disabled={idx >= pages.length - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
-              <button onClick={async () => { await updateMemoryPage(page.id, { style: page.style === "polaroid" ? "full" : "polaroid" }); load(); }} className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-ink/60" title="Switch page style">{page.style === "polaroid" ? "Full page" : "Polaroid"}</button>
-              <button onClick={async () => { if (confirm("Remove this memory from the album?")) { await deleteMemoryPage(page.id); setIdx(Math.max(0, idx - 1)); load(); } }} className="rounded-full bg-black/5 p-2 text-ink/60 hover:text-danger" title="Remove page"><Trash2 size={15} /></button>
+              <button onClick={async () => { const other = pages[idx - 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx - 1); load(); }else setMutationError("Page order could not save. Retry."); } }} disabled={idx === 0} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move earlier"><ArrowUp size={15} /></button>
+              <button onClick={async () => { const other = pages[idx + 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx + 1); load(); }else setMutationError("Page order could not save. Retry."); } }} disabled={idx >= pages.length - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
+              <button onClick={async () => { if(await updateMemoryPage(page.id, { style: page.style === "polaroid" ? "full" : "polaroid" }))load();else setMutationError("Page style could not save. Retry."); }} className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-ink/60" title="Switch page style">{page.style === "polaroid" ? "Full page" : "Polaroid"}</button>
+              <button onClick={async () => { if (confirm("Remove this memory from the album?")) { if(await deleteMemoryPage(page.id)){setIdx(Math.max(0, idx - 1));load();}else setMutationError("Page could not be removed. Retry."); } }} className="rounded-full bg-black/5 p-2 text-ink/60 hover:text-danger" title="Remove page"><Trash2 size={15} /></button>
             </div>
           ) : null}
         </div>
       )}
 
+      {nextBook&&idx>=pages.length-1&&<Link href={'/album/'+nextBook.id} className="mx-auto mt-5 block w-fit rounded-full bg-pearl px-5 py-2 text-sm font-semibold text-on-pearl">Next book: {nextBook.title}</Link>}
       {adding && album.is_owner ? <AddMemories albumId={ownerId} onClose={() => { setAdding(false); load(); }} existing={pages} /> : null}
       {manage && album.is_owner ? <ManageAlbum album={album} onClose={() => { setManage(false); load(); }} /> : null}
-      <style jsx global>{"@keyframes pcflip { from { transform: rotateY(-62deg); opacity: 0.4; } to { transform: rotateY(0deg); opacity: 1; } }"}</style>
+      <style jsx global>{"@media (prefers-reduced-motion: reduce) { [data-memory-page] { animation: none !important; } } @keyframes pcflip { from { transform: rotateY(-62deg); opacity: 0.4; } to { transform: rotateY(0deg); opacity: 1; } }"}</style>
     </div>
   );
 }
@@ -251,18 +269,21 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
 function PageCaption({ page, isOwner, onSaved }: { page: MemoryPage; isOwner: boolean; onSaved: () => void }) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(page.caption ?? "");
+  const [error,setError]=useState("");
+  const lock=useRef(false);
   if (editing) {
     return (
       <span className="mt-2 flex items-center gap-2">
-        <input value={text} onChange={(e) => setText(e.target.value)} maxLength={60} placeholder="Write a caption"
-          className="min-w-0 flex-1 border-b border-ink/20 bg-transparent px-1 py-1 text-center font-display text-[13px] text-ink outline-none" />
-        <button onClick={async () => { await updateMemoryPage(page.id, { caption: text.trim() || null }); setEditing(false); onSaved(); }} className="rounded-full bg-pearl p-1.5 text-on-pearl" aria-label="Save caption"><Check size={13} /></button>
+        <input value={text} onChange={(e) => setText(e.target.value)} maxLength={140} placeholder="Write a caption"
+          className="min-w-0 flex-1 border-b border-ink/20 bg-transparent px-1 py-1 text-center font-display text-[13px] text-[#5a5140] outline-none" />
+        {error&&<span role="alert" className="text-xs text-danger">{error}</span>}
+        <button onClick={async () => { if(lock.current)return;lock.current=true;try{if(!await updateMemoryPage(page.id,{caption:text.trim()||null}))throw Error();setEditing(false);onSaved();}catch{setError("Could not save. Retry.");}finally{lock.current=false;} }} className="rounded-full bg-pearl p-1.5 text-on-pearl" aria-label="Save caption"><Check size={13} /></button>
       </span>
     );
   }
   return (
     <span className="mt-2 flex items-center justify-center gap-1.5">
-      <span className="truncate text-center font-display text-[13px] text-ink/75">
+      <span className="truncate text-center font-display text-[13px] text-[#5a5140]">
         {page.caption || fmtDate(page.taken_at)}
       </span>
       {isOwner ? <button onClick={() => setEditing(true)} className="text-muted hover:text-ink/70" aria-label="Edit caption"><Pencil size={12} /></button> : null}
@@ -276,21 +297,23 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [loading,setLoading]=useState(true);
+  const addLock=useRef(false);
   useEffect(() => {
-    let alive = true;
-    void getMyStories().then(value => { if (alive) { setRows(value); setError(null); } }).catch(() => { if (alive) setError("Stories could not load. Please retry."); });
+    let alive = true;setLoading(true);
+    void getMyStories().then(value => { if (alive) { setRows(value); setError(null); } }).catch(() => { if (alive) setError("Stories could not load. Please retry."); }).finally(()=>{if(alive)setLoading(false);});
     return () => { alive = false; };
   }, [attempt]);
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose}>
-      <div className="max-h-[86vh] w-full max-w-[560px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[86vh] w-full max-w-[560px] overflow-y-auto rounded-t-2xl bg-[var(--canvas)] p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <p className="font-display text-[16px] text-ink">Add memories</p>
           <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
         </div>
         <p className="mb-3 text-[12px] text-muted">Every story you have ever posted. Pick the ones worth keeping.</p>
         {error && <button className="mb-3 text-sm underline" onClick={() => setAttempt(n => n + 1)}>{error}</button>}
-        {rows.length === 0 ? <p className="py-10 text-center text-sm text-muted">{error ? "" : "No stories yet."}</p> : (
+        {rows.length === 0 ? <p className="py-10 text-center text-sm text-muted">{loading ? "Loading your stories…" : error ? "" : "No stories yet."}</p> : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {rows.map((s) => {
               const taken = existing.some((p) => p.story_id === s.id);
@@ -300,10 +323,10 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
                   className={"relative aspect-[9/14] overflow-hidden rounded-lg border " + (on ? "border-ink" : "border-ink/10") + (taken ? " opacity-35" : "")}>
                   {s.media_type === "video" && s.thumbnail_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.thumbnail_url} alt="" className="h-full w-full object-cover" />
+                    <img src={s.thumbnail_url} alt="" className="h-full w-full object-contain" />
                   ) : s.media_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.media_url} alt="" className="h-full w-full object-cover" />
+                    <img src={s.media_url} alt="" className="h-full w-full object-contain" />
                   ) : <span className="block h-full w-full bg-ink/10" />}
                   {on ? <span className="absolute right-1 top-1 rounded-full bg-ink p-1 text-white"><Check size={11} /></span> : null}
                   {taken ? <span className="absolute inset-x-0 bottom-0 bg-white/85 py-0.5 text-center text-[10px] font-semibold text-ink/60">In album</span> : null}
@@ -313,7 +336,7 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
           </div>
         )}
         <button disabled={picked.size === 0 || busy}
-          onClick={async () => { setBusy(true); for (const id of picked) { await addMemoryPage(id, albumId); } setBusy(false); onClose(); }}
+          onClick={async () => { if(addLock.current)return;addLock.current=true;setBusy(true);setError(null);try{for(const id of picked){if(!await addMemoryPage(id,albumId))throw Error();}onClose();}catch{setError("Some pages could not save. Retry; existing pages will not duplicate.");}finally{addLock.current=false;setBusy(false);} }}
           className="mt-4 w-full rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl disabled:opacity-40">
           {busy ? "Adding" : picked.size === 0 ? "Pick stories to add" : "Add " + picked.size + (picked.size === 1 ? " memory" : " memories")}
         </button>
@@ -324,6 +347,11 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
 
 function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => void }) {
   const [title, setTitle] = useState(album.title);
+  const [design,setDesign]=useState(album.cover_design??'keepsake');
+  const [soundtrack,setSoundtrack]=useState(album.soundtrack??null);
+  const [musicOpen,setMusicOpen]=useState(false);
+  const [error,setError]=useState('');
+  const [busy,setBusy]=useState(false);
   const [color, setColor] = useState(album.cover_color);
   const [audience, setAudience] = useState(album.audience);
   const [allow, setAllow] = useState<AccessPerson[]>([]);
@@ -332,10 +360,10 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
   const [results, setResults] = useState<AccessPerson[]>([]);
   const [mode, setMode] = useState<"allow" | "block">("block");
 
-  useEffect(() => { getAccessList("allow").then(setAllow); getAccessList("block").then(setBlock); }, []);
+  useEffect(() => { getAccessList("allow").then(setAllow).catch(()=>setError("Chosen people could not load.")); getAccessList("block").then(setBlock).catch(()=>setError("Hidden people could not load.")); }, []);
   useEffect(() => {
-    const t = setTimeout(() => { searchPeople(q).then(setResults); }, 250);
-    return () => clearTimeout(t);
+    let live=true;setResults([]);const t = setTimeout(() => { searchPeople(q).then(v=>{if(live)setResults(v);}).catch(()=>{if(live)setError("People search failed.");}); }, 250);
+    return () => {live=false;clearTimeout(t);};
   }, [q]);
 
   const list = mode === "allow" ? allow : block;
@@ -343,14 +371,14 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose}>
-      <div className="max-h-[88vh] w-full max-w-[520px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[88vh] w-full max-w-[520px] overflow-y-auto rounded-t-2xl bg-[var(--canvas)] p-4 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <p className="font-display text-[16px] text-ink">Album settings</p>
           <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
         </div>
 
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Title</p>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30}
+        <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={40}
           className="mb-4 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
 
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Cover color</p>
@@ -364,6 +392,11 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
           ))}
         </div>
 
+        <p className="mb-2 text-xs font-semibold uppercase text-muted">Cover design</p>
+        <div className="mb-4 flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} aria-pressed={design===d.id} onClick={()=>setDesign(d.id)} className={design===d.id?'':'opacity-45'}><MemoryBookCover title={title||'Memories'} color={color} design={d.id}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div>
+        <button className="mb-4 rounded-full border border-ink/15 px-4 py-2 text-sm" onClick={()=>setMusicOpen(true)}>{soundtrack?'Change soundtrack':'Add soundtrack'}</button>
+        {soundtrack&&<button className="ml-3 text-sm underline" onClick={()=>setSoundtrack(null)}>No music</button>}
+        {musicOpen&&<SoundtrackPicker value={soundtrack} use="memory_album" onChange={setSoundtrack} onClose={()=>setMusicOpen(false)}/>}
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Who can open it</p>
         <div className="mb-4 flex flex-col gap-1.5">
           {AUDIENCES.map((a) => (
@@ -380,13 +413,13 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
           <button onClick={() => setMode("block")} className={"rounded-full px-2.5 py-1 text-[11px] font-semibold " + (mode === "block" ? "bg-ink text-white" : "bg-black/5 text-ink/60")}>Hidden from</button>
           <button onClick={() => setMode("allow")} className={"rounded-full px-2.5 py-1 text-[11px] font-semibold " + (mode === "allow" ? "bg-ink text-white" : "bg-black/5 text-ink/60")}>Chosen people</button>
         </div>
-        <p className="mb-2 text-[11px] text-muted">{mode === "block" ? "These people never see the album, whatever the audience." : "Used when the audience is set to only people I choose."}</p>
+        <p className="mb-2 text-[11px] text-muted">{mode === "block" ? "These people never see your books, whatever each book’s audience." : "Used across your books whose audience is only people I choose."}</p>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people"
           className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none focus:border-ink/40" />
         {results.length > 0 ? (
           <div className="mb-2 flex flex-col gap-1">
             {results.map((r) => (
-              <button key={r.id} onClick={async () => { if (await setAccess(r.id, mode, true)) { setList([...list.filter((x) => x.id !== r.id), r]); setQ(""); setResults([]); } }}
+              <button key={r.id} onClick={async () => { if (await setAccess(r.id, mode, true)) { setList([...list.filter((x) => x.id !== r.id), r]); setQ(""); setResults([]); } else setError("Could not update who can see your books. Retry."); }}
                 className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-black/5">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -405,11 +438,12 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
               <img src={displayImageUrl(r.avatar_url, 100) ?? r.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
             ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pearl text-[11px] font-semibold text-on-pearl">{(r.full_name ?? "?").charAt(0)}</span>}
             <span className="text-[13px] text-ink">{r.full_name}</span>
-            <button onClick={async () => { if (await setAccess(r.id, mode, false)) setList(list.filter((x) => x.id !== r.id)); }} className="ml-auto rounded-full p-1 text-muted hover:text-danger" aria-label="Remove"><X size={14} /></button>
+            <button onClick={async () => { if (await setAccess(r.id, mode, false)) setList(list.filter((x) => x.id !== r.id)); else setError("Could not update who can see your books. Retry."); }} className="ml-auto rounded-full p-1 text-muted hover:text-danger" aria-label="Remove"><X size={14} /></button>
           </div>
         ))}
 
-        <button onClick={async () => { await saveAlbumSettings(title.trim() || "Memories", color, audience); onClose(); }}
+        {error&&<p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
+        <button disabled={busy} onClick={async () => {if(busy)return;setBusy(true);setError('');try{if(!await saveAlbumSettings(title.trim()||'Memories',color,audience,album.id,design,soundtrack))throw Error();onClose();}catch{setError('Book settings could not save. Your choices are kept.');}finally{setBusy(false);} }}
           className="mt-4 w-full rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl">Save album</button>
       </div>
     </div>

@@ -15,6 +15,11 @@ for (const file of ['components/PostCard.tsx', 'components/MediaGallery.tsx', 'l
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2020, esModuleInterop: true },
   }).outputText);
 }
+// Parsing the soundtrack is application logic, not a decorative child. Load
+// the real shared parser so the integration harness matches the current gallery.
+sources.set('../../shared/soundtrack', ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/soundtrack.ts'), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText);
 const text = node => typeof node === 'string' || typeof node === 'number' ? String(node)
   : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
 const nodes = tree => {

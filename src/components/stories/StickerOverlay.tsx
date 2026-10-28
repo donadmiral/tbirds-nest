@@ -1,5 +1,6 @@
+import { currentTextMentions } from '../../../shared/storyMentions';
 import ResultsStickerCard from './ResultsStickerCard';
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
@@ -77,6 +78,13 @@ function getWidthForKind(kind?: string): number {
   if (kind === 'link' || kind === 'location' || kind === 'mention' || kind === 'hashtag') return 160;
   // Text stickers: use the same max width as the composer
   return TEXT_STICKER_MAX_W;
+}
+
+function MentionText({ label, onPress }: { label: string; onPress?: () => void }) {
+  const began = useRef(0);
+  return <Text style={{ fontWeight: '800', textDecorationLine: 'underline' }}
+    onPressIn={() => { began.current = Date.now(); }} onLongPress={() => {}}
+    onPress={() => { if (Date.now() - began.current < 160) onPress?.(); }}>{label}</Text>;
 }
 
 export function renderStickerContent(
@@ -257,12 +265,12 @@ export function renderStickerContent(
     ? { opacity: sticker.opacity } : undefined;
 
   // Typed @handles that resolved to people are drawn as mentions and open the profile.
-  const mentionList: { id: string; username: string }[] = Array.isArray((sticker as any).mentions) ? (sticker as any).mentions : [];
+  const mentionList = currentTextMentions(sticker);
   const body = mentionList.length
     ? String(sticker.text).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => {
         const m = part.startsWith('@') ? mentionList.find(x => x.username.toLowerCase() === part.slice(1).toLowerCase()) : null;
         return m
-          ? <Text key={i} style={{ fontWeight: '800', textDecorationLine: 'underline' }} onPress={interactive && onMentionTap ? () => onMentionTap(m.id) : undefined}>{part}</Text>
+          ? <MentionText key={i} label={part} onPress={interactive && onMentionTap ? () => onMentionTap(m.id) : undefined} />
           : <Text key={i}>{part}</Text>;
       })
     : sticker.text;

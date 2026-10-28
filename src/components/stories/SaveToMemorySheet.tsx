@@ -1,139 +1,26 @@
-/**
- * SaveToMemorySheet — pick which memory book a story goes into.
- * Replaces highlights: lists the owner's books (get_memory_albums),
- * one tap adds the story via add_memory_page(p_story_id, p_album_id),
- * with an inline New book creator. Same props as the old highlight sheet.
- */
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
-import { COVER_COLORS } from '../MemoryAlbumCard';
+import { useTheme } from '../../theme/useTheme';
+import MemoryBookCover from '../memory/MemoryBookCover';
+import { MEMORY_DESIGNS } from '../../../shared/memoryBookDesign';
 
-export default function SaveToMemorySheet({ visible, onClose, storyId, userId }: {
-  visible: boolean; onClose: () => void; storyId: string; userId: string;
-}) {
-  const [books, setBooks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [savedTo, setSavedTo] = useState<Set<string>>(new Set());
-  const [busy, setBusy] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newColor, setNewColor] = useState('blush');
-
-  useEffect(() => {
-    if (!visible) return;
-    setSavedTo(new Set()); setCreating(false); setNewTitle('');
-    setLoading(true);
-    supabase.rpc('get_memory_albums', { p_owner: userId }).then(({ data, error }) => {
-      if (!error) setBooks(data?.books ?? []);
-      setLoading(false);
-    });
-  }, [visible, userId]);
-
-  const addTo = useCallback(async (bookId: string) => {
-    if (busy || savedTo.has(bookId)) return;
-    setBusy(bookId);
-    try {
-      const { error } = await supabase.rpc('add_memory_page', { p_story_id: storyId, p_album_id: bookId });
-      if (!error) setSavedTo(prev => new Set(prev).add(bookId));
-    } finally { setBusy(null); }
-  }, [busy, savedTo, storyId]);
-
-  const createAndAdd = useCallback(async () => {
-    const t = newTitle.trim();
-    if (!t || busy) return;
-    setBusy('new');
-    try {
-      const { data: id, error } = await supabase.rpc('create_memory_book', { p_title: t, p_cover_color: newColor });
-      if (!error && id) {
-        const { error: e2 } = await supabase.rpc('add_memory_page', { p_story_id: storyId, p_album_id: id });
-        setBooks(prev => [...prev, { id, title: t, cover_color: newColor, is_default: false, count: e2 ? 0 : 1 }]);
-        if (!e2) setSavedTo(prev => new Set(prev).add(id));
-        setCreating(false); setNewTitle('');
-      }
-    } finally { setBusy(null); }
-  }, [newTitle, newColor, busy, storyId]);
-
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <View style={ms.wrap}>
-        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
-        <View style={ms.sheet}>
-          <View style={ms.handle} />
-          <Text style={ms.title}>Add to a memory book</Text>
-          {loading ? (
-            <View style={{ paddingVertical: 30, alignItems: 'center' }}><ActivityIndicator color="#0B1E3D" /></View>
-          ) : (
-            <ScrollView style={{ flexGrow: 0, maxHeight: 340 }} showsVerticalScrollIndicator={false}>
-              {books.map(b => {
-                const c = COVER_COLORS[b.cover_color] ?? COVER_COLORS.blush;
-                const done = savedTo.has(b.id);
-                return (
-                  <TouchableOpacity key={b.id} onPress={() => addTo(b.id)} disabled={done} style={ms.row}>
-                    <View style={[ms.miniBook, { backgroundColor: c.spine }]}>
-                      <View style={[ms.miniCover, { backgroundColor: c.cover, borderColor: c.text + '55' }]}>
-                        <Feather name="heart" size={9} color={c.text} />
-                      </View>
-                    </View>
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text numberOfLines={1} style={ms.rowTitle}>{b.title}</Text>
-                      <Text style={ms.rowSub}>{b.count} {b.count === 1 ? 'memory' : 'memories'}</Text>
-                    </View>
-                    {busy === b.id ? <ActivityIndicator size={14} color="#0B1E3D" /> :
-                      done ? <View style={ms.doneChip}><Feather name="check" size={12} color="#FFF" /><Text style={ms.doneTxt}>Added</Text></View> :
-                      <Feather name="plus-circle" size={20} color="#0B1E3D" />}
-                  </TouchableOpacity>
-                );
-              })}
-              {!creating ? (
-                <TouchableOpacity onPress={() => setCreating(true)} style={ms.row}>
-                  <View style={ms.newTile}><Feather name="plus" size={15} color="#5B6B84" /></View>
-                  <Text style={[ms.rowTitle, { color: '#5B6B84' }]}>New book</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={ms.createBox}>
-                  <TextInput value={newTitle} onChangeText={setNewTitle} placeholder="Happy moments" placeholderTextColor="#9AA6B8" style={ms.input} maxLength={40} autoFocus />
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-                    {Object.keys(COVER_COLORS).map(k => (
-                      <TouchableOpacity key={k} onPress={() => setNewColor(k)}
-                        style={{ width: 24, height: 30, borderRadius: 4, backgroundColor: COVER_COLORS[k].cover, borderWidth: newColor === k ? 2 : 1, borderColor: newColor === k ? '#0B1E3D' : 'rgba(11,30,61,0.15)' }} />
-                    ))}
-                  </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 16 }}>
-                    <TouchableOpacity onPress={() => setCreating(false)}><Text style={{ color: '#5B6B84', fontWeight: '700', fontSize: 13 }}>Cancel</Text></TouchableOpacity>
-                    <TouchableOpacity onPress={createAndAdd} disabled={!newTitle.trim() || busy === 'new'}>
-                      {busy === 'new' ? <ActivityIndicator size={13} color="#0B1E3D" /> : <Text style={{ color: newTitle.trim() ? '#0B1E3D' : '#C7CEDA', fontWeight: '800', fontSize: 13 }}>Create and add</Text>}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )}
-            </ScrollView>
-          )}
-          <TouchableOpacity onPress={onClose} style={ms.doneBtn}><Text style={ms.doneBtnTxt}>Done</Text></TouchableOpacity>
-        </View>
-      </View>
-    </KeyboardAvoidingView>
-      </Modal>
-  );
+export default function SaveToMemorySheet({visible,onClose,storyId,storyIds,userId}:{visible:boolean;onClose:()=>void;storyId?:string;storyIds?:string[];userId:string}) {
+ const {t}=useTheme(),idsKey=JSON.stringify([...new Set(storyIds?.length?storyIds:storyId?[storyId]:[])]);
+ const ids=useMemo(()=>JSON.parse(idsKey) as string[],[idsKey]);
+ const [books,setBooks]=useState<any[]>([]),[loading,setLoading]=useState(false),[saved,setSaved]=useState<Set<string>>(new Set()),[busy,setBusy]=useState<string|null>(null),[error,setError]=useState(''),[creating,setCreating]=useState(false),[title,setTitle]=useState(''),[design,setDesign]=useState('keepsake');
+ const epoch=useRef(0),lock=useRef(false);
+ const load=useCallback(async()=>{const g=++epoch.current;setLoading(true);setError('');try{const {data,error:e}=await supabase.rpc('get_memory_albums',{p_owner:userId});if(e||!data?.is_owner)throw e||Error('Access');if(g===epoch.current)setBooks(data.books??[]);}catch{if(g===epoch.current)setError('Books could not load. Tap Retry.');}finally{if(g===epoch.current)setLoading(false);}},[userId]);
+ useEffect(()=>{epoch.current++;setBooks([]);setSaved(new Set());setCreating(false);setTitle('');setBusy(null);lock.current=false;if(visible)void load();return()=>{epoch.current++;};},[visible,idsKey,load]);
+ const authorize=async()=>{const {data,error:e}=await supabase.auth.getSession();if(e||data.session?.user.id!==userId)throw Error('Account changed. Reopen the book picker.');};
+ const add=async(bookId:string,g:number)=>{for(const id of ids){if(g!==epoch.current)return;await authorize();const {error:e}=await supabase.rpc('add_memory_page',{p_story_id:id,p_album_id:bookId});if(e)throw e;}if(g===epoch.current)setSaved(v=>new Set(v).add(bookId));};
+ const addTo=async(bookId:string)=>{if(lock.current||saved.has(bookId)||!ids.length)return;lock.current=true;setBusy(bookId);setError('');const g=epoch.current;try{await add(bookId,g);}catch{if(g===epoch.current)setError('Some memories could not be added. Retry this book; saved pages will not duplicate.');}finally{if(g===epoch.current){setBusy(null);lock.current=false;}}};
+ const create=async()=>{if(lock.current||!title.trim())return;lock.current=true;setBusy('new');setError('');const g=epoch.current;try{await authorize();const {data:id,error:e}=await supabase.rpc('create_memory_book_design',{p_title:title.trim(),p_cover_color:'blush',p_cover_design:design});if(e||!id)throw e||Error();if(g!==epoch.current)return;setBooks(v=>[...v,{id,title:title.trim(),cover_color:'blush',cover_design:design,count:0}]);setCreating(false);setTitle('');await add(id,g);}catch{if(g===epoch.current)setError('Could not finish saving. If the book appears above, tap it to retry.');}finally{if(g===epoch.current){setBusy(null);lock.current=false;}}};
+ return <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}><KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':undefined} style={{flex:1}}><View style={{flex:1,backgroundColor:'rgba(0,0,0,.45)',justifyContent:'flex-end'}}><TouchableOpacity style={{flex:1}} onPress={onClose} accessibilityLabel="Close book picker"/><View style={{maxHeight:'82%',backgroundColor:t.surface.canvas,borderTopLeftRadius:22,borderTopRightRadius:22,padding:20,paddingBottom:30}}><Text style={{fontSize:18,fontWeight:'800',color:t.ink.primary,marginBottom:14}}>Add to a memory book</Text>
+ {!!error&&<Text accessibilityRole="alert" style={{color:t.ink.secondary,marginBottom:10}}>{error}</Text>}
+ {loading?<ActivityIndicator/>:<ScrollView keyboardShouldPersistTaps="handled" style={{maxHeight:420}}>{books.map(b=><TouchableOpacity key={b.id} disabled={!!busy||saved.has(b.id)} onPress={()=>void addTo(b.id)} style={{flexDirection:'row',alignItems:'center',gap:14,paddingVertical:10}}><MemoryBookCover title={b.title} color={b.cover_color} design={b.cover_design} width={36} height={46}/><Text style={{flex:1,color:t.ink.primary,fontWeight:'700'}}>{b.title}</Text>{busy===b.id?<ActivityIndicator/>:<Feather name={saved.has(b.id)?'check-circle':'plus-circle'} color={t.ink.primary} size={22}/>}</TouchableOpacity>)}
+ {!books.length&&!!error&&<TouchableOpacity onPress={()=>void load()}><Text style={{color:t.ink.primary,padding:12}}>Retry</Text></TouchableOpacity>}
+ {!creating?<TouchableOpacity onPress={()=>setCreating(true)}><Text style={{color:t.ink.primary,paddingVertical:14,fontWeight:'700'}}>+ New book</Text></TouchableOpacity>:<View><TextInput value={title} onChangeText={setTitle} placeholder="Book title" placeholderTextColor={t.ink.secondary} maxLength={40} style={{color:t.ink.primary,borderWidth:1,borderColor:t.surface.hairline,borderRadius:10,padding:12}}/><ScrollView horizontal contentContainerStyle={{gap:10,paddingVertical:12}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} onPress={()=>setDesign(d.id)} style={{opacity:design===d.id?1:.45}}><MemoryBookCover title={title||d.label} design={d.id} width={42} height={54}/><Text style={{fontSize:9,color:t.ink.primary}}>{d.label}</Text></TouchableOpacity>)}</ScrollView><TouchableOpacity disabled={!!busy||!title.trim()} onPress={()=>void create()}><Text style={{color:t.ink.primary,fontWeight:'800',paddingVertical:12}}>Create and add</Text></TouchableOpacity></View>}
+ </ScrollView>}<TouchableOpacity onPress={onClose} style={{alignItems:'center',padding:14,marginTop:10,borderRadius:12,backgroundColor:t.brand.base}}><Text style={{color:t.ink.inverse,fontWeight:'800'}}>Done</Text></TouchableOpacity></View></View></KeyboardAvoidingView></Modal>;
 }
-
-const ms = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 28, maxHeight: '78%' },
-  handle: { alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: '#D9DEE7', marginBottom: 10 },
-  title: { fontSize: 15.5, fontWeight: '800', color: '#0B1E3D', marginBottom: 10 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
-  miniBook: { width: 34, height: 44, borderRadius: 5, padding: 2, paddingLeft: 4 },
-  miniCover: { flex: 1, borderRadius: 3, borderWidth: 1, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
-  rowTitle: { fontSize: 14, fontWeight: '700', color: '#0B1E3D' },
-  rowSub: { fontSize: 11.5, color: '#8b93a3', marginTop: 1 },
-  doneChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#1D7A38', borderRadius: 9, paddingHorizontal: 8, paddingVertical: 4 },
-  doneTxt: { color: '#FFF', fontSize: 11, fontWeight: '800' },
-  newTile: { width: 34, height: 44, borderRadius: 5, borderWidth: 1.4, borderStyle: 'dashed', borderColor: '#B7C0CE', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(11,30,61,0.03)' },
-  createBox: { borderWidth: 1, borderColor: '#E7EAF0', borderRadius: 12, padding: 12, marginTop: 4 },
-  input: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 9, paddingHorizontal: 11, paddingVertical: 8, fontSize: 13.5, color: '#0B1E3D', marginBottom: 10 },
-  doneBtn: { marginTop: 12, backgroundColor: '#0B1E3D', borderRadius: 12, alignItems: 'center', paddingVertical: 12 },
-  doneBtnTxt: { color: '#FFF', fontSize: 14, fontWeight: '800' },
-});

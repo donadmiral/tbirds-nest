@@ -46,15 +46,7 @@ Deno.serve(async req => {
     let remaining: number | undefined;
     const items: { id: string; url: string; thumbnail: boolean }[] = [];
     if (body.consume === true) {
-      if (ids.length !== 1 || typeof body.requestId !== 'string' || !UUID.test(body.requestId)) return json(400, { error: 'one message and a requestId are required' });
-      const message = manifest?.find((row: any) => row.id === ids[0] && row.view_limit);
-      if (!message || !objectLocation(message.media_url, base)) return json(403, { error: 'attachment unavailable' });
-      const { data: granted, error: grantError } = await anon.rpc('claim_chat_media_view', { p_message_id: ids[0], p_request_id: body.requestId });
-      if (grantError) return json(503, { error: 'media access unavailable' });
-      const grant = Array.isArray(granted) ? granted[0] : granted;
-      if (!grant?.url || grant.url !== message.media_url) return json(410, { error: 'attachment no longer available' });
-      remaining = grant.remaining;
-      items.push({ id: message.id, url: grant.url, thumbnail: false });
+      return json(409, { error: 'Update Platinum Circles to open private attachments', code: 'PRIVATE_VIEW_UPDATE_REQUIRED' });
     } else {
       for (const message of manifest || []) {
         if (message.view_limit) continue;

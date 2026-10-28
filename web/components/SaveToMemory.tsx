@@ -1,34 +1,22 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { BookHeart } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { addMemoryPage } from "@/lib/memoryAlbum";
-import type { StoryRow } from "@/lib/stories";
-
-export function SaveToMemory({ story }: { story: StoryRow }) {
-  const [uid, setUid] = useState<string | null>(null);
-  const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
-
-  useEffect(() => {
-    createClient().auth.getSession().then(({ data }) => setUid(data.session?.user.id ?? null));
-  }, []);
-  useEffect(() => { setState("idle"); }, [story.id]);
-
-  if (!uid || uid !== story.user_id) return null;
-
-  return (
-    <button
-      onClick={async () => {
-        if (state !== "idle") return;
-        setState("saving");
-        const ok = await addMemoryPage(story.id);
-        setState(ok ? "saved" : "idle");
-      }}
-      className="absolute bottom-16 right-3 z-20 flex items-center gap-1.5 rounded-full bg-white/90 px-3.5 py-2 text-[12px] font-semibold text-ink backdrop-blur transition-opacity hover:opacity-90"
-    >
-      <BookHeart size={14} />
-      {state === "saved" ? "In your album" : state === "saving" ? "Saving" : "Save to memory album"}
-    </button>
-  );
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { BookHeart, X } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { getMemoryBooks, type MemoryBookInfo } from '@/lib/memoryAlbum';
+import type { StoryRow } from '@/lib/stories';
+import { MemoryBookCover } from './memory/MemoryBookCover';
+import { MEMORY_DESIGNS } from '../../shared/memoryBookDesign';
+export function SaveToMemory({story,storyId,ownerId,inline=false,onClose}:{story?:StoryRow;storyId?:string;ownerId?:string;inline?:boolean;onClose?:()=>void}) {
+ const id=storyId??story?.id,owner=ownerId??story?.user_id;
+ const [uid,setUid]=useState<string|null>(null),[open,setOpen]=useState(inline),[books,setBooks]=useState<MemoryBookInfo[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(false),[saved,setSaved]=useState<Set<string>>(new Set()),[title,setTitle]=useState(''),[design,setDesign]=useState('keepsake'),[attempt,setAttempt]=useState(0);
+ const epoch=useRef(0),lock=useRef(false),client=useRef(createClient()).current;
+ useEffect(()=>{let live=true,last:string|null|undefined=undefined;const apply=(value:string|null)=>{if(!live||last===value)return;last=value;epoch.current++;setUid(value);setBooks([]);setSaved(new Set());setBusy(false);lock.current=false;};let version=0;const {data:{subscription}}=client.auth.onAuthStateChange((_e,s)=>{version++;apply(s?.user.id??null);});const initial=version;void client.auth.getSession().then(({data})=>{if(initial===version)apply(data.session?.user.id??null);});return()=>{live=false;epoch.current++;subscription.unsubscribe();};},[client]);
+ useEffect(()=>{epoch.current++;setSaved(new Set());setError('');setOpen(inline);},[id,owner,inline]);
+ useEffect(()=>{let live=true;if(!open||!uid||uid!==owner)return;void getMemoryBooks(uid).then(s=>{if(live)setBooks(s.books);}).catch(()=>{if(live)setError('Could not load books. Retry.');});return()=>{live=false;};},[open,uid,owner,attempt]);
+ const save=async(book:string)=>{if(lock.current||!id||saved.has(book))return;lock.current=true;setBusy(true);setError('');const g=epoch.current;try{const {data}=await client.auth.getSession();if(data.session?.user.id!==owner)throw Error();const {error:e}=await client.rpc('add_memory_page',{p_story_id:id,p_album_id:book});if(e)throw e;if(g===epoch.current)setSaved(v=>new Set(v).add(book));}catch{if(g===epoch.current)setError('Memory could not be added. Retry; saved pages will not duplicate.');}finally{if(g===epoch.current){lock.current=false;setBusy(false);}}};
+ const create=async()=>{if(lock.current||!title.trim())return;lock.current=true;setBusy(true);const g=epoch.current;try{const {data:s}=await client.auth.getSession();if(s.session?.user.id!==owner)throw Error();const {data:book,error:e}=await client.rpc('create_memory_book_design',{p_title:title.trim(),p_cover_color:'blush',p_cover_design:design});if(e||!book)throw e||Error();if(g!==epoch.current)return;setTitle('');setBooks(v=>[...v,{id:book,title:title.trim(),cover_color:'blush',cover_design:design,audience:'profile',count:0}]);lock.current=false;await save(book);}catch{if(g===epoch.current)setError('Could not create the book. Try again.');}finally{if(g===epoch.current){lock.current=false;setBusy(false);}}};
+ if(!uid||uid!==owner||!id)return null;
+ const content=<section aria-label="Choose memory book" className="max-h-[78dvh] w-full max-w-lg overflow-y-auto rounded-2xl bg-[var(--canvas)] p-5 text-ink" onClick={e=>e.stopPropagation()}><div className="mb-4 flex justify-between"><h2 className="font-semibold">Add to a memory book</h2><button aria-label="Close" onClick={()=>{setOpen(false);onClose?.();}}><X size={18}/></button></div>{error&&<p role="alert" className="mb-3 text-sm">{error} <button className="underline" onClick={()=>setAttempt(x=>x+1)}>Retry</button></p>}<div className="grid grid-cols-3 gap-4">{books.map(b=><button key={b.id} disabled={busy||saved.has(b.id)} onClick={()=>void save(b.id)} className="flex flex-col items-center gap-2 rounded-xl p-2 hover:bg-ink/5 disabled:opacity-60"><MemoryBookCover title={b.title} color={b.cover_color} design={b.cover_design}/><span className="max-w-full truncate text-xs">{saved.has(b.id)?'Added':b.title}</span></button>)}</div><div className="mt-5 border-t border-ink/10 pt-4"><label className="text-sm">New book<input value={title} onChange={e=>setTitle(e.target.value)} maxLength={40} placeholder="Happy moments" className="my-2 w-full rounded-lg border border-ink/15 bg-transparent p-2"/></label><select aria-label="Book design" value={design} onChange={e=>setDesign(e.target.value)} className="rounded-lg border border-ink/15 bg-[var(--canvas)] p-2 text-sm">{MEMORY_DESIGNS.map(d=><option key={d.id} value={d.id}>{d.label}</option>)}</select><button disabled={busy||!title.trim()} onClick={()=>void create()} className="ml-3 rounded-lg bg-pearl px-3 py-2 text-sm font-semibold text-on-pearl disabled:opacity-50">Create and add</button></div></section>;
+ if(inline)return content;
+ return <><button onClick={()=>setOpen(true)} className="absolute bottom-16 right-3 z-20 flex items-center gap-1.5 rounded-full bg-white/90 px-3.5 py-2 text-xs font-semibold text-[#0B1E3D]"><BookHeart size={14}/>Save to memory book</button>{open&&<div role="dialog" aria-modal="true" aria-label="Save to memory book" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={()=>setOpen(false)}>{content}</div>}</>;
 }

@@ -18,6 +18,9 @@ import { orderTimeout } from "../../shared/orderRequest";
 import { usePostInteractions } from "@/lib/usePostInteractions";
 import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } from "@/lib/commentCounts";
 
+import {PostSoundtrack} from "./PostSoundtrack";
+import {readSoundtrack} from "../../shared/soundtrack";
+
 type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null };
 
 // post_media.edit recipes come from a small authorized side query when older feed rows omit them.
@@ -27,7 +30,7 @@ function editStyle(e: PostMediaEditRecipe | null | undefined): React.CSSProperti
   if (!e) return {};
   const sc = typeof e.scale === "number" && e.scale > 0 ? e.scale : 1; const nx = typeof e.translateNX === "number" ? e.translateNX : 0; const ny = typeof e.translateNY === "number" ? e.translateNY : 0;
   const st: React.CSSProperties = { objectFit: e.fit === "contain" ? "contain" : "cover" };
-  if (sc !== 1 || nx !== 0 || ny !== 0) st.transform = "translate(" + (nx * 100) + "%, " + (ny * 100) + "%) scale(" + sc + ")";
+  if (sc !== 1 || nx !== 0 || ny !== 0 || e.rotation || e.flipX) st.transform = "translate(" + (nx * 100) + "%, " + (ny * 100) + "%) scale(" + sc + ") rotate("+(e.rotation||0)+"deg) scaleX("+(e.flipX?-1:1)+")";
   return st;
 }
 
@@ -421,10 +424,10 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount}
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
-                edit={editOf(item)}
+                edit={editOf(item)} soundtrack={readSoundtrack(editOf(media[0])?.soundtrack)} mediaOverlay={<EditPlanes e={editOf(item)} />}
                 allowPlayback={!item.is_sensitive || !!revealed[item.id]}
                 onExpand={() => openViewer(idx)}
-              /><EditPlanes e={editOf(item)} /><TagLayer mode="list" tags={tags[item.id] || []} w={dims?.w} h={dims?.h} /></div>
+              /><TagLayer mode="list" tags={tags[item.id] || []} w={dims?.w} h={dims?.h} /></div>
             </div>
           ) : (
             <div className="relative">
@@ -445,6 +448,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
               <EditPlanes e={editOf(item)} />
+              <PostSoundtrack selection={readSoundtrack(editOf(media[0])?.soundtrack)} active={!viewerOpen&&(!item.is_sensitive||!!revealed[item.id])} className="absolute bottom-2 right-2"/>
               <TagLayer tags={tags[item.id] || []} w={dims?.w} h={dims?.h} />
             </div>
           )}
@@ -535,7 +539,7 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 <VideoPlayer src={media[lightbox].url} postId={postId} viewsCount={viewsCount} immersive
                   width={trueDims[media[lightbox].id]?.w ?? media[lightbox].width ?? undefined}
                   height={trueDims[media[lightbox].id]?.h ?? media[lightbox].height ?? undefined}
-                  edit={editOf(media[lightbox])}
+                  edit={editOf(media[lightbox])} soundtrack={readSoundtrack(editOf(media[0])?.soundtrack)} mediaOverlay={<EditPlanes e={editOf(media[lightbox])} />}
                   allowPlayback={!media[lightbox].is_sensitive || !!revealed[media[lightbox].id]}
                 />
               </div>
@@ -549,10 +553,11 @@ export function MediaGallery({ media, postId, viewsCount, post, onDoubleClick: o
                 onDoubleClick={onDoubleClick}
                 onMouseDown={onDragStart}
                 draggable={false}
-                style={{ transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ")", transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
+                style={{...editStyle(editOf(media[lightbox])), transform: "translate(" + pan.x + "px," + pan.y + "px) scale(" + zoom + ") "+(editStyle(editOf(media[lightbox])).transform||""), transition: dragRef.current || reduced ? "none" : "transform 120ms", cursor: zoom > 1 ? "grab" : "zoom-in" }}
                 className={"max-h-full max-w-full select-none object-contain [touch-action:none]" + (mobileComments ? " max-lg:max-h-[40vh]" : "")}
               />
             )}
+            {media[lightbox].media_type!=="video"?<PostSoundtrack selection={readSoundtrack(editOf(media[0])?.soundtrack)} active={!media[lightbox].is_sensitive||!!revealed[media[lightbox].id]} className="absolute bottom-3 right-3"/>:null}
             {media[lightbox].is_sensitive && !revealed[media[lightbox].id] ? (
               <button type="button" onClick={(e) => { e.stopPropagation(); setRevealed((r) => ({ ...r, [media[lightbox].id]: true })); }} className="absolute inset-0 z-[6] flex flex-col items-center justify-center gap-2 bg-ink text-white">
                 <span className="text-sm font-semibold">Sensitive content</span>

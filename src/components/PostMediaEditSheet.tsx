@@ -103,6 +103,8 @@ function CoverStrip({ uri, durationSec, start, end, at, width, onChange }: {
 }
 
 export type PostMediaEdit = {
+  rotation?: number; flipX?: boolean;
+  soundtrack?: import("../../shared/soundtrack").SoundtrackSelection|null;
   scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain';
   filterId?: string | null; filterAmt?: number; adjust?: StoryAdjust | null;
   trimStart?: number | null; trimEnd?: number | null; muted?: boolean;
@@ -175,7 +177,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
         <View style={{ flex: 1, justifyContent: 'center' }}>
           <View style={{ width: canvasW, height: canvasH, backgroundColor: '#000', overflow: 'hidden' }}>
             <MediaCanvas localUri={uri} mediaType={mediaType} uploadState="idle" onRetry={() => {}} onLayout={() => {}} scaleAnim={scaleAnim} opacityAnim={opacityAnim}
-              imageW={width} imageH={height} mediaFit={fit} mediaTransform={tx} onTransformChange={setTx}
+              imageW={width} imageH={height} mediaFit={fit} postRotation={edit.rotation} postFlipX={edit.flipX} mediaTransform={tx} onTransformChange={setTx}
               onFitToggle={() => setEdit(e => ({ ...e, fit: (e.fit || 'cover') === 'cover' ? 'contain' : 'cover' }))} interactive
               videoMuted={!!edit.muted} videoVolume={edit.muted ? 0 : 1} trimStart={edit.trimStart ?? null} trimEnd={edit.trimEnd ?? null} onVideoPlayer={setPlayer}>
               <FilterLayer filterId={edit.filterId || null} amt={edit.filterAmt ?? 100} />
@@ -237,6 +239,8 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
         ) : null}
         <View style={[st.tools, { paddingBottom: Math.max(insets.bottom, 14) }]}>
           {([
+            { id: 'rotate', label: 'Rotate', icon: 'rotate-cw', on: !!edit.rotation, run:()=>setEdit(e=>({...e,rotation:((e.rotation||0)+90)%360})) },
+            { id: 'flip', label: 'Flip', icon: 'repeat', on: !!edit.flipX, run:()=>setEdit(e=>({...e,flipX:!e.flipX})) },
             { id: 'filter', label: 'Filter', icon: 'droplet', on: !!edit.filterId, run: () => setFilterOpen(true) },
             { id: 'adjust', label: 'Adjust', icon: 'sliders', on: !!edit.adjust, run: () => setAdjustOpen(true) },
             { id: 'fit', label: fit === 'contain' ? 'Fill' : 'Fit', icon: 'crop', on: fit === 'contain', run: () => setEdit(e => ({ ...e, fit: (e.fit || 'cover') === 'cover' ? 'contain' : 'cover' })) },

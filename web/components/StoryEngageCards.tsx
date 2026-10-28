@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { submitStickerResponse, getMyStickerResponse, getStickerResponses, getStickerSummary, type StickerSummary, type StoryTextSticker, type StickerResponseValue } from "@/lib/stories";
 
-const CARD: React.CSSProperties = { background: "#FFFFFF", borderRadius: 18, padding: "12px 14px", boxShadow: "0 10px 30px rgba(0,0,0,0.28)", color: "#0B1E3D", width: 250 };
+const CARD: React.CSSProperties = { background: "#FFFEFC", borderRadius: 22, padding: "16px", boxShadow: "0 10px 30px rgba(0,0,0,0.18)", color: "#0B1E3D", width: 250 };
 const TITLE: React.CSSProperties = { fontSize: 15, fontWeight: 800, letterSpacing: -0.2, lineHeight: "19px", textAlign: "center", marginBottom: 10 };
 const HINT: React.CSSProperties = { color: "rgba(11,30,61,0.55)", fontSize: 11.5, fontWeight: 600, textAlign: "center", marginTop: 6 };
 

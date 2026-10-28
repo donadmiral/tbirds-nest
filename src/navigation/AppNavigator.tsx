@@ -426,6 +426,9 @@ async function handleNotificationTap(data: any) {
   if (!navigationRef.current) return;
   switch (data.type) {
     case 'incoming_call': await handleIncomingCallTap(data); break;
+    case 'story_mention': case 'story_reaction': case 'story_reply':
+      if (typeof data.story_id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.story_id)) navigationRef.current.navigate('StoryViewer', { storyId: data.story_id });
+      break;
     case 'message':
       if (data.conversation_id) navigationRef.current.navigate('Chat', { conversationId: data.conversation_id });
       break;

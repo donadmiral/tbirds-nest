@@ -11,10 +11,15 @@ import { enqueueMessage, readOutbox, sendOutboxMessage, clearOutbox, forgetOutbo
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { CallButtons } from "@/components/CallButtons";
 import { GroupCallBar } from "@/components/GroupCallBar";
+import { ShareDetails } from "@/components/ShareDetails";
+import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from "../../shared/chatAttachmentCards";
+import { PrivateMediaViewer } from "@/components/PrivateMediaViewer";
 import { SharedPostCard } from "@/components/SharedPostCard";
 import { timeAgo } from "@/lib/feed";
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from "../../shared/messageHistory";
 import { editMessage, reactToMessage, pinMessage, forwardMessage, canForwardMessage } from "@/lib/messageActions";
+
+const PRIVATE_MEDIA_SESSIONS_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true';
 
 type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
 type MiniListing = { id: string; title: string; price: number; currency: string; images: string[]; status: string };
@@ -25,6 +30,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   useEffect(() => { const mq = window.matchMedia("(max-width: 767px)"); const apply = () => setIsNarrow(mq.matches); apply(); mq.addEventListener("change", apply); return () => mq.removeEventListener("change", apply); }, []);
   const compact = compactProp || isNarrow;
   const supabase = useRef(createClient()).current;
+  const cameraRef = useRef<HTMLInputElement | null>(null);
+  const [shareDetails,setShareDetails] = useState<"contact"|"location"|null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const [convs, setConvs] = useState<Conv[]>([]);
@@ -34,6 +41,9 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [loadingMsgs, setLoadingMsgs] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [conversationError, setConversationError] = useState<string | null>(null);
+  const [privateMedia, setPrivateMedia] = useState<{ id: string; userId: string; conversationId: string; account: number } | null>(null);
+  const [viewedPrivateIds, setViewedPrivateIds] = useState<Set<string>>(new Set());
+  useEffect(() => { setPrivateMedia(null); setShareDetails(null); setViewedPrivateIds(new Set()); }, [uid, active?.id]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [hasOlder, setHasOlder] = useState(false);
@@ -116,6 +126,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   }, [active?.id]);
   const activeRef = useRef<Conv | null>(null);
   const typingSentAt = useRef(0);
+  const typingIdle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -264,13 +275,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   useEffect(() => {
     if (!active || !uid) return;
+    let live = true; const account = accountGeneration.current;
+    const current = () => live && componentLive.current && account === accountGeneration.current && uidRef.current === uid && activeRef.current?.id === active.id;
     const ch = supabase
       .channel("web_messages_" + active.id)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "conversation_id=eq." + active.id }, async (p) => {
         let incoming = p.new as Msg;
-        if (activeRef.current?.id !== incoming.conversation_id) return;
+        if (!current() || activeRef.current?.id !== incoming.conversation_id) return;
         if (isChatMediaUrl(incoming.media_url)) incoming = (await signChatMedia([incoming]))[0];
-        if (activeRef.current?.id !== incoming.conversation_id) return;
+        if (!current() || activeRef.current?.id !== incoming.conversation_id) return;
         if (incoming.sender_id === uid) forgetOutboxMessage(uid, incoming.id);
         setMsgs(list => mergeMessagePage(list, [{ ...incoming, _delivery: undefined }], true));
         hydrateOffers([incoming]);
@@ -281,28 +294,28 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: "conversation_id=eq." + active.id }, async (p) => {
         let upd = p.new as Msg;
-        if (activeRef.current?.id !== upd.conversation_id) return;
+        if (!current() || activeRef.current?.id !== upd.conversation_id) return;
         if (isChatMediaUrl(upd.media_url)) upd = (await signChatMedia([upd]))[0];
-        if (activeRef.current?.id !== upd.conversation_id) return;
+        if (!current() || activeRef.current?.id !== upd.conversation_id) return;
         setMsgs((l) => l.map((m) => (m.id === upd.id ? { ...m, ...upd, _delivery: undefined } : m)));
         void loadPin(upd.conversation_id);
       })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages", filter: "conversation_id=eq." + active.id }, (payload) => {
-        if (activeRef.current?.id === active.id) setMsgs(list => list.filter(message => message.id !== (payload.old as { id?: string }).id));
+        if (current()) setMsgs(list => list.filter(message => message.id !== (payload.old as { id?: string }).id));
       })
       .subscribe();
 
     const fetchTyping = async () => {
       const { data } = await supabase.from("conversation_typing").select("*").eq("conversation_id", active.id);
       const fresh = ((data ?? []) as { user_id: string; is_typing: boolean; updated_at: string }[])
-        .filter((r) => r.user_id !== uid && r.is_typing && Date.now() - new Date(r.updated_at).getTime() < 7000);
-      if (activeRef.current?.id === active.id) setOtherTyping(fresh.length > 0);
+        .filter((r) => r.user_id !== uid && r.is_typing && Date.now() - new Date(r.updated_at).getTime() >= 0 && Date.now() - new Date(r.updated_at).getTime() < 7000);
+      if (current()) setOtherTyping(fresh.length > 0);
     };
     const typeCh = supabase
       .channel("web_typing_" + active.id)
       .on("postgres_changes", { event: "*", schema: "public", table: "conversation_typing", filter: "conversation_id=eq." + active.id }, fetchTyping)
       .subscribe();
-    const typePoll = setInterval(fetchTyping, 10000);
+    const typePoll = setInterval(fetchTyping, 3000);
     void fetchTyping();
     const reactionChannel = supabase.channel('web_reactions_' + active.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, (payload) => { const messageId = (payload.new as { message_id?: string }).message_id || (payload.old as { message_id?: string }).message_id; const rows = messageId ? msgsRef.current.filter(row => row.id === messageId) : msgsRef.current; for (let i = 0; i < rows.length; i += MESSAGE_PAGE_SIZE) void loadReactions(rows.slice(i, i + MESSAGE_PAGE_SIZE), active.id); })
@@ -310,6 +323,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       .subscribe();
 
     return () => {
+      live = false;
       supabase.removeChannel(ch);
       supabase.removeChannel(typeCh);
       clearInterval(typePoll);
@@ -327,14 +341,27 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     } catch { /* non-fatal */ }
   }, [supabase, active, uid]);
 
+  useEffect(() => {
+    typingSentAt.current = 0;
+    return () => {
+      if (typingIdle.current) clearTimeout(typingIdle.current);
+      typingIdle.current = null;
+      // This closure belongs to the departing account and conversation.
+      void setTyping(false);
+    };
+  }, [setTyping]);
+
   function onDraftChange(v: string) {
     setDraft(v);
     if (active && !editing) drafts.current.set(active.id, v);
+    if (typingIdle.current) clearTimeout(typingIdle.current);
+    if (!v.trim()) { void setTyping(false); return; }
     const now = Date.now();
     if (now - typingSentAt.current > 2000) {
       typingSentAt.current = now;
-      setTyping(true);
+      void setTyping(true);
     }
+    typingIdle.current = setTimeout(() => { typingIdle.current = null; void setTyping(false); }, 1500);
   }
 
   const deliverQueued = useCallback(async (queued: OutboxMessage) => {
@@ -414,6 +441,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   }
 
   const messageActions: MessageActions = {
+    openPrivate: message => { if (PRIVATE_MEDIA_SESSIONS_ENABLED && uid && uidRef.current === uid && message.view_limit && message.conversation_id === activeRef.current?.id && message.sender_id !== uid && !viewedPrivateIds.has(message.id)) setPrivateMedia({ id: message.id, userId: uid, conversationId: message.conversation_id, account: accountGeneration.current }); },
+    viewedPrivateIds,
     refreshMedia: message => { void runMessageAction(message, async () => {
       const account = accountGeneration.current;
       const [signed] = await signChatMedia([message]);
@@ -448,7 +477,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
     if (!componentLive.current || generation !== accountGeneration.current || uidRef.current !== senderId) return;
     const sent = await insertMessage(isImage || isVideo ? null : '📄 ' + f.name, pub.publicUrl, isImage ? 'image' : isVideo ? 'video' : 'document', target);
-    if (sent && activeRef.current?.id === target.id) { setAttachmentDraft(null); if (fileRef.current) fileRef.current.value = ''; }
+    if (sent && activeRef.current?.id === target.id) { setAttachmentDraft(null); if (fileRef.current) fileRef.current.value = ''; if(cameraRef.current)cameraRef.current.value=''; }
     } catch (error) { if (componentLive.current && generation === accountGeneration.current && activeRef.current?.id === target.id) setActionError(error instanceof Error ? error.message : 'Attachment not sent. Please try again.'); }
     finally { if (uploadId === uploadGeneration.current) { uploadPending.current = false; setSendingFile(false); } }
   }
@@ -464,7 +493,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       recTimerRef.current = null; recorderPending.current = false;
       setRecording(false); setRecSecs(0);
     };
-  }, [active?.id]);
+  }, [active?.id, uid]);
 
   async function startRecording() {
     const target = activeRef.current;
@@ -476,7 +505,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     recorderPending.current = true; setActionError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      if (generation !== recordingGeneration.current || activeRef.current?.id !== target.id) { stream.getTracks().forEach(track => track.stop()); return; }
+      if (generation !== recordingGeneration.current || uidRef.current !== uid || activeRef.current?.id !== target.id) { stream.getTracks().forEach(track => track.stop()); return; }
       streamRef.current = stream;
       const mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(type => MediaRecorder.isTypeSupported(type));
       const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
@@ -593,6 +622,12 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   const composer = (
     <div>
+      {shareDetails && <ShareDetails key={(uid||'')+':'+(active?.id||'')} kind={shareDetails} onClose={()=>setShareDetails(null)} onSend={async card=>{
+        if(uidRef.current!==uid || activeRef.current?.id!==active?.id)return false;
+        return insertMessage(attachmentCardText(card),JSON.stringify(card),'link');
+      }}/>}
+      {PRIVATE_MEDIA_SESSIONS_ENABLED && privateMedia && privateMedia.userId === uid && privateMedia.conversationId === active?.id && privateMedia.account === accountGeneration.current && <PrivateMediaViewer key={privateMedia.userId+":"+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
+        onClose={() => setPrivateMedia(current => current?.id === privateMedia.id && current?.userId === privateMedia.userId && current?.account === privateMedia.account ? null : current)} onConsumed={remaining => { if (remaining <= 0 && privateMedia.account === accountGeneration.current && privateMedia.conversationId === activeRef.current?.id) setViewedPrivateIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       {actionError ? <div role="alert" className="mb-2 text-sm text-danger"><p>{actionError}</p>{attachmentDraft ? <button type="button" disabled={sendingFile} className="mt-1 underline" onClick={() => void attach([attachmentDraft])}>Retry attachment</button> : null}</div> : null}
       {notice ? <p role="status" className="mb-2 text-sm text-ink">{notice}</p> : null}
       {editing || replyTo ? <div className="mb-2 flex items-center justify-between gap-3 rounded-md bg-surface p-2 text-sm text-ink"><span className="truncate">{editing ? 'Editing message' : 'Replying to: ' + (replyTo?.text || 'Attachment')}</span><button type="button" onClick={() => { if (editing) setDraft(active ? drafts.current.get(active.id) || '' : ''); setEditing(null); setReplyTo(null); }}>Cancel</button></div> : null}
@@ -601,6 +636,9 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       <button onClick={() => fileRef.current?.click()} disabled={sendingFile || sending || !!editing} title="Attach" aria-label="Attach a file" className="rounded-md p-2.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-accent disabled:opacity-40">
         <Paperclip size={18} />
       </button>
+      <button type="button" title="Take a photo or video" onClick={()=>cameraRef.current?.click()} disabled={sendingFile||sending||!!editing} className="p-2 text-muted" aria-label="Camera">Camera</button>
+      <input ref={cameraRef} type="file" accept="image/*,video/*" capture="environment" hidden onChange={e=>attach(e.target.files)}/>
+      <details className="relative"><summary className="cursor-pointer p-2 text-muted" aria-label="Share contact or location">More</summary><div className="absolute bottom-full left-0 z-20 rounded-lg bg-surface-elevated p-2 shadow-lg"><button type="button" onClick={()=>setShareDetails('contact')} className="block p-2">Contact</button><button type="button" onClick={()=>setShareDetails('location')} className="block p-2">Location</button></div></details>
       <input ref={fileRef} type="file" hidden onChange={(e) => attach(e.target.files)} />
       {recording ? (
         <span className="flex items-center gap-2">
@@ -770,7 +808,7 @@ function OfferCardView({ m, uid, offers, countering, counterAmt, setCountering, 
     const canRespond = status === "pending" && uid !== null && uid !== proposer;
     const color = status === "accepted" ? "text-success" : status === "pending" ? "text-accent" : "text-muted";
     return (
-      <div className="min-w-48 rounded-lg border border-ink/15 bg-white p-3">
+      <div className="min-w-48 rounded-lg border border-ink/15 bg-surface p-3">
         <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted"><Tag size={12} /> Offer</p>
         <p className="mt-0.5 text-[18px] font-semibold text-ink">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
         <p className={"text-[12px] font-semibold capitalize " + color}>{status}</p>
@@ -795,7 +833,7 @@ function OfferCardView({ m, uid, offers, countering, counterAmt, setCountering, 
     );
   }
 
-type MessageActions = { refreshMedia: (message: Msg) => void; retry: (message: Msg) => void; busy: string | null; pinnedId: string | null; reply: (message: Msg) => void; edit: (message: Msg) => void; forward: (message: Msg) => void; react: (message: Msg, emoji: string) => void; pin: (message: Msg) => void };
+type MessageActions = { openPrivate: (message: Msg) => void; viewedPrivateIds: Set<string>; refreshMedia: (message: Msg) => void; retry: (message: Msg) => void; busy: string | null; pinnedId: string | null; reply: (message: Msg) => void; edit: (message: Msg) => void; forward: (message: Msg) => void; react: (message: Msg, emoji: string) => void; pin: (message: Msg) => void };
 const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySource }: { m: Msg; uid: string | null; offer: OfferProps; actions: MessageActions; replySource?: Msg }) {
     const retriedMedia = useRef<string | null>(null);
     const renewMedia = () => { if (m.media_url && retriedMedia.current !== m.media_url) { retriedMedia.current = m.media_url; actions.refreshMedia(m); } };
@@ -805,13 +843,14 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
     const reactions = [...new Set((m._reactions || []).map(row => row.emoji))];
     return (
       <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
-        <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-navy text-white shadow-sm" : "bg-surface text-ink")}>
+        <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-[#0B1E3D] text-white shadow-sm" : "bg-surface text-ink")}>
           {m.forwarded_from_id ? <p className="mb-1 text-xs opacity-80">Forwarded</p> : null}
           {m.reply_to_id ? <blockquote className="mb-2 border-l-2 border-current pl-2 text-xs opacity-80">{replySource?.deleted_at ? 'Message removed' : replySource?.text || (replySource ? 'Attachment' : 'Reply to an earlier message')}</blockquote> : null}
           {m.media_type === "payment" || m.payment_id ? (
             <span className={"flex items-center gap-1.5 text-[13px] " + (mine ? "text-white/75" : "text-secondary")}><Wallet size={14} /> Payment · open the Platinum Circles app</span>
           ) : null}
-          {m.view_limit ? <p className="text-sm">Limited-view attachment · open the Platinum Circles app</p> : null}
+          {m.view_limit ? PRIVATE_MEDIA_SESSIONS_ENABLED ? <button type="button" disabled={mine || actions.viewedPrivateIds.has(m.id)} onClick={() => actions.openPrivate(m)} className="rounded-lg border border-current/30 p-3 text-sm disabled:opacity-60">{actions.viewedPrivateIds.has(m.id) ? "Viewed" : mine ? "Private attachment" : "Open private attachment"}</button> : <p className="text-sm">Limited-view attachment · Open in phone app</p> : null}
+          {(() => { const card=m.view_limit?null:parseChatAttachmentCard(m.media_url); return card?<div className="my-2 rounded-lg border border-current/30 p-3"><strong>{attachmentCardText(card)}</strong>{attachmentCardLinks(card).map(link=><a key={link.url} href={link.url} target={card.kind==='location'?'_blank':undefined} rel="noopener noreferrer" className="block py-2 underline">{link.label}</a>)}</div>:null; })()}
           {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
           {m.media_type === "offer" && m.media_url ? <OfferCardView m={m} {...offer} /> : null}
           {!m.view_limit && (m.media_type === "image" || m.media_type === "gif" || m.media_type === "sticker") && m.media_url ? (

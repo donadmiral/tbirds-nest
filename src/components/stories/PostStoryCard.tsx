@@ -99,21 +99,21 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   const mediaBlock = sticker.postMediaUrl ? (
     isVideo ? (
       <View style={st.mediaWrap}>
-        <VideoView player={player} style={st.media} contentFit="cover" nativeControls={false} />
+        <VideoView player={player} style={st.media} contentFit="contain" nativeControls={false} />
         {interactive ? (
-          <Pressable style={StyleSheet.absoluteFill} onPress={toggleMute} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={220} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160} />
         ) : null}
-        <View style={st.soundChip}><Feather name={muted ? 'volume-x' : 'volume-2'} size={13} color="#FFF" /></View>
+        <Pressable accessibilityLabel={muted ? "Unmute shared video" : "Mute shared video"} onPress={toggleMute} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160} style={st.soundChip}><Feather name={muted ? 'volume-x' : 'volume-2'} size={13} color="#FFF" /></Pressable>
       </View>
     ) : (
-      <View style={st.mediaWrap}>
-        <Image source={{ uri: sticker.postMediaUrl }} style={st.media} resizeMode="cover" />
-      </View>
+      <Pressable onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160} style={st.mediaWrap}>
+        <Image source={{ uri: sticker.postMediaUrl }} style={st.media} resizeMode="contain" />
+      </Pressable>
     )
   ) : null;
 
   const header = (
-    <TouchableOpacity activeOpacity={0.8} disabled={!interactive || !onOpenProfile} onPress={go(onOpenProfile)} style={st.head}>
+    <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} activeOpacity={0.8} disabled={!interactive || !onOpenProfile} onPress={go(onOpenProfile)} style={st.head}>
       {sticker.postAuthorAvatar
         ? <Image source={{ uri: sticker.postAuthorAvatar }} style={st.avatar} />
         : <View style={[st.avatar, st.avatarFb]}><Text style={st.avatarTxt}>{(sticker.postAuthorName || '?').slice(0, 1).toUpperCase()}</Text></View>}
@@ -132,13 +132,13 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   );
 
   const articleTitle = sticker.postArticleTitle ? (
-    <Pressable disabled={!interactive || !openPost} onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={220}>
+    <Pressable disabled={!interactive || !openPost} onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160}>
       <Text style={st.articleTitle} numberOfLines={2}>{sticker.postArticleTitle}</Text>
     </Pressable>
   ) : null;
 
   const caption = sticker.postText ? (
-    <Pressable disabled={!interactive || !openPost} onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={220}>
+    <Pressable disabled={!interactive || !openPost} onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160}>
       <Text style={[st.body, { fontSize: f.fontSize, lineHeight: f.lineHeight }]} numberOfLines={f.max}>{sticker.postText}</Text>
     </Pressable>
   ) : null;
@@ -150,22 +150,22 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
       {articleTitle}
       {isVideo ? caption : mediaBlock}
       <View style={st.engage}>
-        <TouchableOpacity style={st.engItem} disabled={!interactive} onPress={toggleLike} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+        <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.engItem} disabled={!interactive} onPress={toggleLike} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="heart" size={16} color={liked ? '#E0245E' : '#E0245E'} style={liked ? { opacity: 1 } : { opacity: 0.75 }} />
           {likeC ? <Text style={[st.engTxt, liked && { color: '#E0245E' }]}>{likeC}</Text> : null}
         </TouchableOpacity>
-        <TouchableOpacity style={st.engItem} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+        <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.engItem} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="message-circle" size={15} color="#5B6B84" />{comC ? <Text style={st.engTxt}>{comC}</Text> : null}
         </TouchableOpacity>
-        <TouchableOpacity style={st.engItem} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+        <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.engItem} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="repeat" size={15} color="#1D7A38" />{repC ? <Text style={st.engTxt}>{repC}</Text> : null}
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity disabled={!interactive || !openPost} onPress={go(openPost)} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+        <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} disabled={!interactive || !openPost} onPress={go(openPost)} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="bookmark" size={15} color="#5B6B84" />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={st.foot} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.75}>
+      <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.foot} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.75}>
         <Text style={st.footTxt}>{sticker.postArticleTitle ? 'Read the full article' : 'View original post'}</Text>
         <Feather name="chevron-right" size={14} color={NAVY} />
       </TouchableOpacity>
@@ -174,7 +174,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
 
   if (interactive) return inner;
   if (!onPress) return inner;
-  return <TouchableOpacity activeOpacity={0.88} onPress={onPress}>{inner}</TouchableOpacity>;
+  return <TouchableOpacity delayLongPress={160} onLongPress={() => {}} activeOpacity={0.88} onPress={onPress}>{inner}</TouchableOpacity>;
 }
 
 const st = StyleSheet.create({
