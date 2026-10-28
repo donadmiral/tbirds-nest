@@ -74,7 +74,7 @@ export function useVoiceRecorder() {
   const resetMode = () => AudioModule.setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
   useEffect(() => { live.current = true; return () => {
     live.current = false; ++generation.current; stopTick();
-    if (running.current) { running.current = false; void recorder.stop().catch(() => {}).finally(resetMode); }
+    if (running.current && !busy.current) { busy.current = true; running.current = false; void recorder.stop().catch(() => {}).finally(async () => { await resetMode(); busy.current = false; }); }
   }; }, [recorder]);
   const start = useCallback(async () => {
     if (busy.current || running.current || completed.current) return false;
@@ -101,7 +101,7 @@ export function useVoiceRecorder() {
       running.current = false; await resetMode();
       if (current()) { setError('Could not start recording.'); setRecording(false); }
       return false;
-    } finally { if (generation.current === operation) busy.current = false; }
+    } finally { busy.current = false; }
   }, [recorder]);
   const stop = useCallback(async (): Promise<VoiceResult | null> => {
     if (completed.current) return completed.current;
@@ -118,14 +118,14 @@ export function useVoiceRecorder() {
       completed.current = saved; setResult(saved); setRecording(false); setSeconds(durationSec);
       return saved;
     } catch { if (live.current && generation.current === operation) { setRecording(false); setError('Could not save the recording.'); } return null; }
-    finally { if (generation.current === operation) busy.current = false; }
+    finally { busy.current = false; }
   }, [recorder]);
   const clearResult = useCallback(() => { completed.current = null; setResult(null); setSeconds(0); }, []);
   const cancel = useCallback(async () => {
-    ++generation.current; busy.current = false; stopTick(); completed.current = null;
-    const wasRunning = running.current; running.current = false;
+    ++generation.current; stopTick(); completed.current = null;
+    const wasRunning = running.current && !busy.current; running.current = false;
     if (live.current) { setRecording(false); setResult(null); setSeconds(0); }
-    if (wasRunning) { await recorder.stop().catch(() => {}); await resetMode(); }
+    if (wasRunning) { busy.current = true; try { await recorder.stop().catch(() => {}); await resetMode(); } finally { busy.current = false; } }
   }, [recorder]);
   return { recording, seconds, result, clearResult, atLimit: seconds >= MAX_VOICE_SECONDS,
     metering: state?.metering ?? null, error, start, stop, cancel };

@@ -23,6 +23,7 @@ import { hydrateMemoryAlbumMedia, hydrateStoryMedia } from '../../services/conte
 import { supabase } from '../../services/supabase';
 import { COVER_COLORS } from '../../components/MemoryAlbumCard';
 
+import { useCallContext } from '../../contexts/CallContext';
 import { useIsFocused } from '@react-navigation/native';
 import MemoryBookCover from '../../components/memory/MemoryBookCover';
 import MemoryAudienceEditor from '../../components/memory/MemoryAudienceEditor';
@@ -75,6 +76,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [nextBook, setNextBook] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState('');
   const saveLock = useRef(false);
+  const reactionLock=useRef(false);
   useEffect(() => { void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion); const sub=AccessibilityInfo.addEventListener('reduceMotionChanged',setReduceMotion); return()=>sub.remove(); }, []);
   const ownerId: string = route.params?.ownerId;
   const albumIdParam: string | null = route.params?.albumId ?? null;
@@ -108,6 +110,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [idx, setIdx] = useState(0);
   const [picker, setPicker] = useState(false);
   const [myStories, setMyStories] = useState<any[]>([]);
+  const [storiesLoading,setStoriesLoading]=useState(false);
+  const [storiesError,setStoriesError]=useState('');
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
   const [settings, setSettings] = useState(false);
@@ -202,19 +206,19 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   }), [flipTo]);
 
   const openPicker = useCallback(async () => {
-    setChosen(new Set());
-    setPicker(true);
-    const { data: sess } = await supabase.auth.getSession();
-    const uid = sess.session?.user.id;
-    if (!uid) return;
-    const inAlbum = new Set(pages.map(p => p.story_id).filter(Boolean));
-    const { data } = await supabase.from('stories')
-      .select('id, media_url, media_type, thumbnail_url, caption, created_at')
-      .eq('user_id', uid)
-      .order('created_at', { ascending: false })
-      .limit(120);
-    const stories = await hydrateStoryMedia(data ?? []);
-    if (viewerRef.current === uid) setMyStories(stories.map((s: any) => ({ ...s, _in: inAlbum.has(s.id) })));
+    setChosen(new Set()); setPicker(true); setStoriesLoading(true); setStoriesError(''); setMyStories([]);
+    const expectedViewer=viewerRef.current;
+    try {
+      const {data:sess,error:authError}=await supabase.auth.getSession();
+      const uid=sess.session?.user.id;
+      if(authError||!uid||uid!==expectedViewer)throw Error();
+      const inAlbum=new Set(pages.map(p=>p.story_id).filter(Boolean));
+      const {data,error}=await supabase.from('stories').select('id, media_url, media_type, thumbnail_url, caption, created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(120);
+      if(error)throw error;
+      const stories=await hydrateStoryMedia(data??[]);
+      if(viewerRef.current===uid)setMyStories(stories.map((story:any)=>({...story,_in:inAlbum.has(story.id)})));
+    } catch { if(viewerRef.current===expectedViewer)setStoriesError('Your stories could not load. Tap to retry.'); }
+    finally { if(viewerRef.current===expectedViewer)setStoriesLoading(false); }
   }, [pages]);
 
   const addChosen = useCallback(async () => {
@@ -231,28 +235,28 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     Alert.alert('This memory', p.caption || '', [
       { text: 'Edit caption', onPress: () => { setCaptionFor(p); setCaptionText(p.caption || ''); } },
       { text: 'Remove from album', style: 'destructive', onPress: async () => {
-        await supabase.from('memory_pages').delete().eq('id', p.id);
-        load();
+        const {data,error}=await supabase.from('memory_pages').delete().eq('id',p.id).select('id');
+        if(error||!data?.length){setMutationError('This memory could not be removed. Retry.');return;}
+        void load();
       } },
       { text: 'Album settings', onPress: () => setSettings(true) },
       ...(album?.is_default === false ? [{ text: 'Delete this book', style: 'destructive' as const, onPress: () => {
         Alert.alert('Delete this book?', 'Its memories leave the book too. Stories are not deleted.', [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Delete', style: 'destructive', onPress: async () => {
-            try { await supabase.rpc('delete_memory_book', { p_album: bookId }); } catch {}
-            navigation.goBack();
+            try {const {error}=await supabase.rpc('delete_memory_book',{p_album:bookId});if(error)throw error;navigation.goBack();} catch {setMutationError('The book could not be deleted. Retry.');}
           } },
         ]);
       } }] : []),
       { text: 'Cancel', style: 'cancel' },
     ]);
-  }, [album, pages, load]);
+  }, [album, pages, load, bookId, navigation]);
 
   const saveCaption = useCallback(async () => {
-    if (!captionFor) return;
-    await supabase.from('memory_pages').update({ caption: captionText.trim() || null }).eq('id', captionFor.id);
-    setCaptionFor(null);
-    load();
+    if(!captionFor||saveLock.current)return;saveLock.current=true;setMutationError('');
+    try {const {data,error}=await supabase.from('memory_pages').update({caption:captionText.trim()||null}).eq('id',captionFor.id).select('id');if(error||!data?.length)throw Error();setCaptionFor(null);await load();}
+    catch {setMutationError('The caption could not save. Your text is kept.');}
+    finally {saveLock.current=false;}
   }, [captionFor, captionText, load]);
 
   const saveSettings = useCallback(async () => {
@@ -370,9 +374,9 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                           ) : (
                             <ExpoImage source={{ uri: pk.postMediaUrl }} style={{ marginTop: 8, flex: 1, minHeight: 150, borderRadius: 8 }} contentFit="contain" />
                           )) : null}
-                          <Text style={{ color: '#8FA0B8', fontSize: 10.5, marginTop: 8 }}>Shared post</Text>
+                          <TouchableOpacity disabled={!pk.postId} onPress={()=>navigation.push('PostTop',{postId:pk.postId})}><Text style={{ color: '#D8E2F0', fontSize: 12, marginTop: 8 }}>View full post →</Text></TouchableOpacity>
                         </View>
-                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo url={page.media_url} /><TouchableOpacity onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_url || page?.thumbnail_url) return (
+                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={page.id} url={page.media_url} active={focused&&!settings&&!picker&&!playingUrl} /><TouchableOpacity onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_url || page?.thumbnail_url) return (
                         <ExpoImage source={{ uri: page.thumbnail_url || page.media_url }} style={{ width: '100%', height: '100%' }} contentFit="contain" transition={140} />
                       ); return (
                         <View style={{ flex: 1, backgroundColor: '#0B1E3D', borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 14 }}>
@@ -383,7 +387,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                     <Text numberOfLines={2} style={st.handCaption}>{page?.caption || ' '}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
                       <Text style={st.handDate}>{fmtDate(page?.taken_at)}</Text>
-                      <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.8} onPress={() => { if (!page?.story_id) return; setLikedPages(prev => { const n = new Set(prev); if (n.has(page.story_id)) { n.delete(page.story_id); } else { n.add(page.story_id); } return n; }); void supabase.rpc('toggle_story_reaction', { p_story_id: page.story_id, p_emoji: '\u2764\uFE0F' }); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: likedPages.has(page?.story_id) ? 'rgba(224,36,94,0.14)' : 'rgba(11,30,61,0.06)' }}><Feather name="heart" size={15} color={likedPages.has(page?.story_id) ? '#E0245E' : 'rgba(11,30,61,0.7)'} /><Text style={{ fontSize: 12, fontWeight: '700', color: likedPages.has(page?.story_id) ? '#E0245E' : 'rgba(11,30,61,0.7)' }}>{likedPages.has(page?.story_id) ? 'Liked' : 'Like'}</Text></TouchableOpacity>
+                      <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.8} onPress={async () => {if(!page?.story_id||reactionLock.current)return;reactionLock.current=true;const sid=page.story_id,viewer=viewerRef.current;try{const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});if(error)throw error;if(viewerRef.current===viewer)setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});}catch{setMutationError('Your reaction could not save. Try again.');}finally{reactionLock.current=false;}}} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: likedPages.has(page?.story_id) ? 'rgba(224,36,94,0.14)' : 'rgba(11,30,61,0.06)' }}><Feather name="heart" size={15} color={likedPages.has(page?.story_id) ? '#E0245E' : 'rgba(11,30,61,0.7)'} /><Text style={{ fontSize: 12, fontWeight: '700', color: likedPages.has(page?.story_id) ? '#E0245E' : 'rgba(11,30,61,0.7)' }}>{likedPages.has(page?.story_id) ? 'Liked' : 'Like'}</Text></TouchableOpacity>
                     </View>
                   </View>
                 </Animated.View>
@@ -421,6 +425,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               )}
             </TouchableOpacity>
           </View>
+          {!!mutationError&&<Text style={{color:t.ink.secondary,padding:12}}>{mutationError}</Text>}
+          {!!storiesError&&<TouchableOpacity onPress={openPicker}><Text style={{color:t.ink.primary,padding:12}}>{storiesError}</Text></TouchableOpacity>}
           <FlatList
             data={myStories}
             keyExtractor={(s: any) => s.id}
@@ -434,7 +440,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                   activeOpacity={0.85}
                   disabled={item._in}
                   onPress={() => setChosen(prev => { const n = new Set(prev); if (n.has(item.id)) n.delete(item.id); else n.add(item.id); return n; })}
-                  style={{ width: (SW - 20 - 12) / 3, aspectRatio: 0.75, borderRadius: 8, overflow: 'hidden', backgroundColor: '#0B1E3D', opacity: item._in ? 0.35 : 1 }}
+                  style={{ width: (screenWidth - 20 - 12) / 3, aspectRatio: 0.75, borderRadius: 8, overflow: 'hidden', backgroundColor: '#0B1E3D', opacity: item._in ? 0.35 : 1 }}
                 >
                   {(item.thumbnail_url || item.media_url) ? (
                     <ExpoImage source={{ uri: item.thumbnail_url || item.media_url }} style={{ width: '100%', height: '100%' }} contentFit="contain" />
@@ -450,7 +456,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                 </TouchableOpacity>
               );
             }}
-            ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 50, fontSize: 13, color: '#5B6B84' }}>No stories yet. Post a story first.</Text>}
+            ListEmptyComponent={storiesLoading?<ActivityIndicator/>:!storiesError?<Text style={{textAlign:'center',marginTop:50,fontSize:13,color:t.ink.secondary}}>No stories yet. Post a story first.</Text>:null}
           />
         </View>
       </Modal>
@@ -479,7 +485,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               <MemoryAudienceEditor ownerId={ownerId} />
               <Text style={st.lbl}>Cover design</Text>
               <ScrollView horizontal contentContainerStyle={{gap:14,padding:7}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} onPress={()=>setDesign(d.id)} style={{opacity:design===d.id?1:.45}}><MemoryBookCover title={title||'Memories'} color={color} design={d.id}/><Text style={{color:t.ink.primary,fontSize:10,marginTop:6}}>{d.label}</Text></TouchableOpacity>)}</ScrollView>
-              <TouchableOpacity onPress={()=>setSoundPicker(true)}><Text style={{color:t.ink.primary,paddingVertical:14,fontWeight:'700'}}>{soundtrack?'Change book soundtrack':'Add a book soundtrack'}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={()=>{setSettings(false);setTimeout(()=>setSoundPicker(true),350);}}><Text style={{color:t.ink.primary,paddingVertical:14,fontWeight:'700'}}>{soundtrack?'Change book soundtrack':'Add a book soundtrack'}</Text></TouchableOpacity>
               {!!soundtrack&&<TouchableOpacity onPress={()=>setSoundtrack(null)}><Text style={{color:t.ink.secondary}}>No music</Text></TouchableOpacity>}
               {!!mutationError&&<Text style={{color:t.ink.secondary,marginVertical:8}}>{mutationError}</Text>}
             </ScrollView>
@@ -492,7 +498,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
       </KeyboardAvoidingView>
       </Modal>
 
-      <SoundtrackPicker visible={soundPicker} value={soundtrack} use="memory_album" onChange={setSoundtrack} onClose={()=>setSoundPicker(false)}/>
+      <SoundtrackPicker visible={soundPicker} value={soundtrack} use="memory_album" onChange={setSoundtrack} onClose={()=>{setSoundPicker(false);setTimeout(()=>setSettings(true),350);}}/>
       {playingUrl ? (
         <MemoryVideo url={playingUrl} topInset={Math.max(insets.top, 12)} onClose={() => setPlayingUrl(null)} onMessage={viewerId && ownerId && viewerId !== ownerId ? () => { setPlayingUrl(null); (navigation as any).navigate('Chat', { userId: ownerId, userName: ownerName || undefined, otherUser: { id: ownerId, full_name: ownerName || '', username: ownerUsername || '', avatar_url: ownerAvatar || null } }); } : undefined} />
       ) : null}
@@ -502,6 +508,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         <View style={st.sheetWrap}>
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Caption</Text>
+            {!!mutationError&&<Text style={{color:t.ink.secondary}}>{mutationError}</Text>}
             <TextInput value={captionText} onChangeText={setCaptionText} placeholder="Say something about this memory" placeholderTextColor="#9AA6B8" style={[st.input, { minHeight: 60, textAlignVertical: 'top' }]} multiline maxLength={140} />
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginTop: 8 }}>
               <TouchableOpacity onPress={() => setCaptionFor(null)}><Text style={{ color: '#5B6B84', fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
@@ -516,7 +523,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 }
 
 function MemoryVideo({ url, topInset, onClose, onMessage }: { url: string; topInset: number; onClose: () => void; onMessage?: () => void }) {
-  const player = useVideoPlayer(url, p => { p.loop = true; p.muted = false; p.play(); });
+  const player = useVideoPlayer(url, p => { p.loop = true; p.muted = false; });
+  useMemoryVideoLifecycle(player,true);
   const [muted, setMuted] = React.useState(false);
   const toggleMute = () => { setMuted(v => { const nv = !v; try { (player as any).muted = nv; } catch {} return nv; }); };
   return (
@@ -587,8 +595,9 @@ const st = themedSheet((t) => ({
   hint: { fontSize: 11.5, color: '#5B6B84', marginBottom: 4 },
 }));
 
-function PageVideo({ url }: { url: string }) {
+function PageVideo({ url, active }: { url: string; active:boolean }) {
   const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; try { pp.play(); } catch {} });
+  useMemoryVideoLifecycle(pv,active);
   const [muted, setMuted] = React.useState(true);
   return (
     <View style={{ width: '100%', height: '100%' }}>
@@ -598,4 +607,12 @@ function PageVideo({ url }: { url: string }) {
       </TouchableOpacity>
     </View>
   );
+}
+function useMemoryVideoLifecycle(player:ReturnType<typeof useVideoPlayer>,active:boolean){
+  const {callState}=useCallContext();
+  useEffect(()=>{
+    const sync=()=>{try{if(active&&callState==='idle'&&AppState.currentState==='active')player.play();else player.pause();}catch{}};
+    sync();const sub=AppState.addEventListener('change',sync);
+    return()=>{sub.remove();try{player.pause();}catch{}};
+  },[player,active,callState]);
 }

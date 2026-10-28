@@ -1,5 +1,5 @@
 import { Heart, Sun, Type, Feather, Moon, Star, BookOpen } from 'lucide-react';
-import { memoryColors, memoryDesign } from '../../../../shared/memoryBookDesign';
+import { memoryColors, memoryDesign } from '../../../shared/memoryBookDesign';
 const marks = { heart: Heart, sun: Sun, type: Type, feather: Feather, moon: Moon, star: Star, 'book-open': BookOpen };
 export function MemoryBookCover({title,color,design,width=66,height=84}:{title:string;color?:string;design?:string;width?:number;height?:number}) {
  const c=memoryColors(color),d=memoryDesign(design),Icon=marks[d.mark],u=width/66;

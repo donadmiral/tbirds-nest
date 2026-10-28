@@ -25,7 +25,7 @@ export default function QuestionStickerCard({
       <Text style={s.prompt} numberOfLines={3}>{prompt}</Text>
 
       {isOwn ? (
-        <TouchableOpacity style={s.field} activeOpacity={0.85} onPress={onTapViewResponses}>
+        <TouchableOpacity delayLongPress={160} onLongPress={() => {}} style={s.field} activeOpacity={0.85} onPress={onTapViewResponses}>
           <Text style={s.fieldTxt} numberOfLines={1}>
             {responseCount > 0
               ? `${responseCount} ${responseCount === 1 ? 'response' : 'responses'}`
@@ -33,7 +33,7 @@ export default function QuestionStickerCard({
           </Text>
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity
+        <TouchableOpacity delayLongPress={160} onLongPress={() => {}}
           style={[s.field, answered && s.fieldAnswered]}
           activeOpacity={0.85}
           onPress={interactive && !answered ? onTapAnswer : undefined}
@@ -49,7 +49,7 @@ export default function QuestionStickerCard({
 }
 
 const s = StyleSheet.create({
-  card: { width: 268, backgroundColor: '#FFFFFF', borderRadius: 18, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  card: { width: 268, backgroundColor: '#FFFEFC', borderRadius: 22, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
   prompt: { fontSize: 16, fontWeight: '800', color: '#0B1E3D', letterSpacing: -0.2, textAlign: 'center', marginBottom: 12 },
   field: { height: 44, borderRadius: 12, backgroundColor: '#F6F5F2', borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.14)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
   fieldAnswered: { backgroundColor: 'rgba(201,191,176,0.35)', borderColor: '#C9BFB0' },

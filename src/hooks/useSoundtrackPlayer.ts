@@ -28,8 +28,8 @@ export function useSoundtrackPlayer({selection,use,active,clock}:{selection:Soun
     if(c&&Math.abs(status.positionMillis/1000-target)>.4||!c&&(status.positionMillis/1000<selected.startSec||status.positionMillis/1000>=selected.startSec+selected.durationSec))await owned.setPositionAsync(target*1000);
     if(!current()||!allowed())return;
     await owned.setVolumeAsync(selected.volume);
-    await owned.setRateAsync(c?.rate||1,true);
-    if(!status.isPlaying&&allowed())await owned.playAsync();
+    if(status.rate!==(c?.rate||1))await owned.setRateAsync(c?.rate||1,true);
+    if(!status.isPlaying&&allowed()){await owned.playAsync();if(!allowed())await owned.pauseAsync();}
    }catch{fail('Music could not play. Tap to retry.');}finally{busy.current=false;}
   };
   setError(null);setLoading(!!selected);

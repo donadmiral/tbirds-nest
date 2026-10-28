@@ -156,7 +156,11 @@ test('lost story response retries the same atomic request and never creates a fr
   await h.button('Retry safely').props.onClick(); await h.flush();
   assert.equal(h.writes.length,2); assert.equal(h.writes[0].payload.p_request_id,h.writes[1].payload.p_request_id);
   assert.deepEqual(h.writes[0].payload.p_story,h.writes[1].payload.p_story);
-  assert.deepEqual(h.navigation,['/home']); h.unmount();
+  assert.deepEqual(h.navigation,[]);
+  const picker = nodes(h.tree).find(node => node.type === 'SaveToMemory');
+  assert.equal(picker.props.storyId, 'story-confirmed'); assert.equal(picker.props.ownerId, 'a'); assert.equal(picker.props.inline, true);
+  assert.ok(nodes(h.tree).some(node => node.type === 'Link' && node.props.href === '/home' && text(node) === 'Done'));
+  assert.equal(h.button('Story shared').props.disabled, true); h.unmount();
 });
 test('saved story draft keeps its filter and stickers in the owner-scoped write',async()=>{
   const row={...draft('a'),filter_id:'warm',stickers_json:[{id:'a',kind:'question',text:'Ask',nx:.5,ny:.4}],media_transform:{scale:1,translateNX:0,translateNY:0,trimStart:2,trimEnd:8}};

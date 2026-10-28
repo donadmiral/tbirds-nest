@@ -50,7 +50,7 @@ test('an older page finishing after a conversation switch cannot unlock the new 
 });
 test('camera/gallery shared video send awaits upload and preserves explicit failure',async()=>{
   const calls=[],alerts=[]; const context={currentUserId:'me',mediaSending:{current:false},pendingViewLimitRef:{current:null},setShowToolbar(){},setUploadingMedia(){},
-    uploadMedia:async(bucket,user,asset)=>{calls.push(asset.kind);return{url:'https://media.test/'+asset.kind};},VideoThumbnails:{getThumbnailAsync:async()=>({uri:'thumb.jpg'})},doSend:async(...args)=>{calls.push(args[2]);return true;},Alert:{alert:(...args)=>alerts.push(args)}};
+    uploadMedia:async(bucket,user,asset)=>{calls.push(asset.kind);return{url:'https://media.test/'+asset.kind};},VideoThumbnails:{getThumbnailAsync:async()=>({uri:'thumb.jpg'})},doSend:async(...args)=>{calls.push(args[2]);return true;},Alert:{alert:(...args)=>{if(args[0]==='Send video')args[2].find(b=>b.text==='Normal').onPress();else alerts.push(args);}}};
   const send=evaluate(callbacks.sendMediaAssets,context);assert.equal(await send([{uri:'camera.mov',type:'video'}]),true);assert.deepEqual(calls,['video','image','video']);assert.equal(alerts.length,0);
   context.uploadMedia=async()=>{throw new Error('Convert this video to MP4 and try again.');}; const failed=evaluate(callbacks.sendMediaAssets,context);assert.equal(await failed([{uri:'camera.mov',type:'video'}]),false);assert.match(alerts[0][1],/MP4/);assert.equal(context.mediaSending.current,false);
 });

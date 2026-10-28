@@ -118,3 +118,15 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.swap_memory_pages(uuid,uuid) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.swap_memory_pages(uuid,uuid) TO authenticated;
+-- Keep direct owner-table writes as strict as the RPC: an owned row must not
+-- attach someone else's story or become a page of someone else's book.
+CREATE OR REPLACE FUNCTION public.validate_memory_page_owner()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM public.memory_albums a WHERE a.id=new.album_id AND a.user_id=new.user_id)
+ OR (new.story_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.stories s WHERE s.id=new.story_id AND s.user_id=new.user_id))
+ THEN RAISE EXCEPTION 'MEMORY_PAGE_OWNER_MISMATCH' USING ERRCODE='42501'; END IF;
+ RETURN new;
+END $$;
+REVOKE ALL ON FUNCTION public.validate_memory_page_owner() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER memory_page_owner BEFORE INSERT OR UPDATE ON public.memory_pages FOR EACH ROW EXECUTE FUNCTION public.validate_memory_page_owner();

@@ -73,3 +73,23 @@ test('signing out immediately clears story media, reply and playback', async()=>
   assert.ok(!nodes(h.tree).some(n=>n.props?.src==='https://media.test/story'));
   assert.equal(h.intervals,0);h.unmount();
 });
+
+test('holding a nested card uses the whole surface and consumes the eventual click', async () => {
+  const h=scenario('StoryViewer',{video:true}); await h.flush();
+  const surface=nodes(h.tree).find(n=>n.props?.onPointerDownCapture);
+  surface.props.onPointerDownCapture({button:0,isPrimary:true,clientX:80,clientY:220});
+  h.timeout(200); assert.equal(h.intervals,0); assert.equal(h.player.paused,true);
+  surface.props.onPointerUpCapture(); assert.equal(h.intervals,1);
+  let prevented=0,stopped=0;
+  surface.props.onClickCapture({detail:1,preventDefault:()=>prevented++,stopPropagation:()=>stopped++});
+  assert.equal(prevented,1); assert.equal(stopped,1); assert.equal(h.closed,0);
+  h.unmount();
+});
+test('cancelling a surface hold or dragging a slider does not leave the viewer paused', async () => {
+  const h=scenario('StoryViewer'); await h.flush();
+  const surface=nodes(h.tree).find(n=>n.props?.onPointerDownCapture);
+  surface.props.onPointerDownCapture({button:0,isPrimary:true,clientX:10,clientY:10});
+  surface.props.onPointerMoveCapture({clientX:55,clientY:10});h.timeout(200);assert.equal(h.intervals,1);
+  surface.props.onPointerDownCapture({button:0,isPrimary:true,clientX:10,clientY:10});h.timeout(200);assert.equal(h.intervals,0);
+  surface.props.onPointerCancelCapture();assert.equal(h.intervals,1);h.unmount();
+});

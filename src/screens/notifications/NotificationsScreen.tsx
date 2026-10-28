@@ -332,12 +332,14 @@ export default function NotificationsScreen({ navigation }: any) {
     if (n.post_id || d.post_id) {
       navigation.navigate('Post', { postId: n.post_id || d.post_id, commentId: d.comment_id });
     } else if (n.type === 'story_mention' && d.story_id && n.actor_id) {
-      if (d.allow_reshare === false) { navigation.navigate('StoryViewer', { userId: n.actor_id }); return; }
+      if (d.allow_reshare === false) { navigation.navigate('StoryViewer', { userId: n.actor_id, storyId: String(d.story_id) }); return; }
       Alert.alert(n.actor_name ? n.actor_name + ' mentioned you' : 'Mentioned in a story', undefined, [
-        { text: 'View story', onPress: () => navigation.navigate('StoryViewer', { userId: n.actor_id }) },
+        { text: 'View story', onPress: () => navigation.navigate('StoryViewer', { userId: n.actor_id, storyId: String(d.story_id) }) },
         { text: 'Add to your story', onPress: () => reshareStory(String(d.story_id)) },
         { text: 'Cancel', style: 'cancel' },
       ]);
+    } else if (['story_reaction', 'story_reply'].includes(n.type) && typeof d.story_id === 'string') {
+      navigation.navigate('StoryViewer', { storyId: d.story_id });
     } else if (n.type === 'market_order' && typeof d.listing_id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(d.listing_id)) {
       navigation.navigate('ListingDetail', { listingId: d.listing_id });
     } else if (n.type === 'payment_received' && d.conversation_id) {
@@ -351,7 +353,7 @@ export default function NotificationsScreen({ navigation }: any) {
     } else if (n.type === 'business_member' && d.business_id) {
       navigation.navigate('Profile', { screen: 'BusinessManage', params: { businessId: d.business_id } });
     } else if (n.actor_id) {
-      navigation.navigate('UserProfile', { userId: n.actor_id });
+      navigation.navigate('UserProfile', { userId: n.actor_id, storyId: String(d.story_id) });
     }
   };
 

@@ -72,7 +72,7 @@ export default function StickerPill({ label, kind, onPress, variant = 0, userId 
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.85} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+      <TouchableOpacity delayLongPress={160} onLongPress={() => {}} onPress={onPress} activeOpacity={0.85} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
         {content}
       </TouchableOpacity>
     );
@@ -81,7 +81,7 @@ export default function StickerPill({ label, kind, onPress, variant = 0, userId 
 }
 
 const s = StyleSheet.create({
-  pill: { borderRadius: 11, paddingHorizontal: 13, paddingVertical: 8 },
+  pill: { borderRadius: 18, paddingHorizontal: 13, paddingVertical: 8 },
   row: { flexDirection: 'row', alignItems: 'center' },
   label: { fontSize: 15.5, fontWeight: '800', letterSpacing: -0.3, maxWidth: 200 },
   shadow: { shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 9, shadowOffset: { width: 0, height: 2 }, elevation: 4 },

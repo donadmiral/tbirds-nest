@@ -13,6 +13,16 @@ import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, animStyle, extraFontCss, STICKER_ANIM_CSS } from "@/components/StoryEngine";
 
+import { currentTextMentions } from "../../shared/storyMentions";
+
+const callActive = () => typeof document !== "undefined" && document.documentElement?.dataset?.platinumCallActive === "true";
+
+function SharedStoryVideo({ src, paused }: { src: string; paused: boolean }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => { const video = ref.current; if (!video) return; if (paused || callActive() || document.hidden) video.pause(); else void video.play().catch(() => {}); }, [src, paused]);
+  return <video ref={ref} src={src} muted loop playsInline preload="metadata" className="h-full w-full object-contain" />;
+}
+
 const IMAGE_DURATION_MS = 5000;
 const MAX_AUDIO_MS = 30000;
 
@@ -67,7 +77,7 @@ function MentionTag({ userId, username, pos, pillStyle, pillCls, tint }: { userI
   );
 }
 
-function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryTextSticker[]; clock?: number | null; storyId: string; isOwn: boolean }) {
+function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: StoryTextSticker[]; clock?: number | null; storyId: string; isOwn: boolean; paused: boolean }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-[4]">
       {stickers.map((st) => {
@@ -81,7 +91,7 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
         }
         if (kind === "text" || kind === "emoji") {
           // Typed @handles that resolved to people open the profile.
-          const ms = Array.isArray((st as { mentions?: { id: string; username: string }[] }).mentions) ? (st as { mentions?: { id: string; username: string }[] }).mentions! : [];
+          const ms = currentTextMentions(st);
           const body = ms.length ? String(st.text).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => {
             const m = part.startsWith("@") ? ms.find((x) => x.username.toLowerCase() === part.slice(1).toLowerCase()) : null;
             return m ? <a key={i} href={"/" + m.username} onClick={(e) => e.stopPropagation()} className="pointer-events-auto font-extrabold underline">{part}</a> : <span key={i}>{part}</span>;
@@ -94,7 +104,7 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
         }
         // Pill looks mirror the phone StickerPill: 0 white, 1 ink, 2 gradient, 3 glass.
         const pv = (((st as any).pillVariant || 0) % 4 + 4) % 4;
-        const pillBase = "pointer-events-auto inline-flex max-w-full items-center gap-1.5 truncate rounded-[11px] px-3.5 py-2 text-[15px] font-extrabold tracking-[-0.3px] shadow-lg";
+        const pillBase = "pointer-events-auto inline-flex max-w-full items-center gap-1.5 truncate rounded-[18px] border border-black/5 px-4 py-2.5 text-[15px] font-extrabold tracking-[-0.3px] shadow-lg";
         const pillGrad: Record<string, string> = { link: "linear-gradient(135deg,#3C7DFF,#00C2FF)", location: "linear-gradient(135deg,#FF6B4A,#FFB03A)", mention: "linear-gradient(135deg,#7C5CFF,#B96BFF)", hashtag: "linear-gradient(135deg,#0EA5E9,#22D3EE)" };
         const pillStyle: React.CSSProperties = pv === 0 ? { background: "#FFFFFF", color: "#0A0A0A" }
           : pv === 1 ? { background: "#0B1E3D", color: "#FFFFFF" }
@@ -111,15 +121,15 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
           return <a key={st.id} href={"/topic/" + encodeURIComponent(st.hashtag)} style={{ ...pos, ...pillStyle }} className={pillCls}>#{st.hashtag}</a>;
         }
         if (kind === "location") {
-          return <span key={st.id} style={{ ...pos, ...pillStyle }} className={pillCls}>{"\uD83D\uDCCD "}{st.locationDisplayName || st.locationName || st.text}</span>;
+          return <a key={st.id} href={"https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(st.locationDisplayName || st.locationName || st.text)} target="_blank" rel="noopener noreferrer" style={{ ...pos, ...pillStyle }} className={pillCls}>{"\uD83D\uDCCD "}{st.locationDisplayName || st.locationName || st.text}</a>;
         }
         if (kind === "story" && (st as any).storyId) {
           const rs: any = st;
           const thumb = rs.storyThumbUrl || rs.storyMediaUrl;
-          const href = rs.storyAuthorUsername ? "/" + rs.storyAuthorUsername : undefined;
+          const href = "/story/" + encodeURIComponent(rs.storyId);
           return (
             <a key={st.id} href={href} style={{ ...pos, width: 200, height: 356 }} className="pointer-events-auto block overflow-hidden rounded-[18px] border-2 border-white bg-black">
-              {thumb ? <img src={thumb} alt="" className="h-full w-full object-cover" /> : null}
+              {thumb ? <img src={thumb} alt="" className="h-full w-full object-contain" /> : null}
               <span className="absolute left-2.5 top-2.5 flex items-center gap-2 text-[12px] font-extrabold text-white drop-shadow">{rs.storyAuthorAvatar ? <img src={rs.storyAuthorAvatar} alt="" className="h-6 w-6 rounded-full border border-white object-cover" /> : null}{rs.storyAuthorName || "Story"}</span>
               <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/45 px-2 py-1 text-[11px] font-bold text-white">@ Mentioned you</span>
             </a>
@@ -139,10 +149,10 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
               {ps.postMediaUrl ? (
                 <span className="relative block w-full overflow-hidden bg-black/5" style={{ aspectRatio: "1 / 1.1" }}>
                   {isVideo ? (
-                    <video src={ps.postMediaUrl} muted autoPlay loop playsInline className="h-full w-full object-cover" />
+                    <SharedStoryVideo src={ps.postMediaUrl} paused={paused} />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={ps.postMediaUrl} alt="" className="h-full w-full object-cover" />
+                    <img src={ps.postMediaUrl} alt="" className="h-full w-full object-contain" />
                   )}
                   {isVideo ? <span className="absolute bottom-3 right-3 rounded-full bg-black/60 p-2 text-white"><VolumeX size={14} /></span> : null}
                 </span>
@@ -155,22 +165,22 @@ function StickerLayer({ stickers, clock, storyId, isOwn }: { stickers: StoryText
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{(ps.postAuthorName || "?").charAt(0).toUpperCase()}</span>
                 )}
                 <span className="min-w-0">
-                  <span className="flex items-center gap-1 text-[15px] font-bold leading-tight text-ink">
+                  <span className="flex items-center gap-1 text-[15px] font-bold leading-tight text-[#0B1E3D]">
                     <span className="truncate">{ps.postAuthorName || "Post"}</span>
                     {badgeColor ? <BadgeCheck size={14} style={{ color: badgeColor, flexShrink: 0 }} /> : null}
                   </span>
-                  <span className="block truncate text-[12.5px] text-muted">{ps.postUsername ? "@" + ps.postUsername : ""}{ps.postUsername && dateStr ? " \u00B7 " : ""}{dateStr || ""}</span>
+                  <span className="block truncate text-[12.5px] text-[#687387]">{ps.postUsername ? "@" + ps.postUsername : ""}{ps.postUsername && dateStr ? " \u00B7 " : ""}{dateStr || ""}</span>
                 </span>
               </span>
-              {ps.postArticleTitle ? <span className="mt-2 block px-4 text-[16px] font-bold leading-snug text-ink">{ps.postArticleTitle}</span> : null}
-              {ps.postText ? <span className="mt-1.5 block max-h-24 overflow-hidden px-4 text-[15px] leading-snug text-ink">{ps.postText}</span> : null}
+              {ps.postArticleTitle ? <span className="mt-2 block px-4 text-[16px] font-bold leading-snug text-[#0B1E3D]">{ps.postArticleTitle}</span> : null}
+              {ps.postText ? <span className="mt-1.5 block max-h-24 overflow-hidden px-4 text-[15px] leading-snug text-[#0B1E3D]">{ps.postText}</span> : null}
               <span className="mt-3 flex items-center gap-5 px-4">
                 <Heart size={20} style={{ color: "#E0245E" }} />
-                <MessageCircle size={20} className="text-navy" />
+                <MessageCircle size={20} className="text-[#0B1E3D]" />
                 <Repeat2 size={20} style={{ color: "#17BF63" }} />
-                <Bookmark size={20} className="ml-auto text-navy" />
+                <Bookmark size={20} className="ml-auto text-[#0B1E3D]" />
               </span>
-              <span className="mt-3 block border-t px-4 py-3 text-center text-[15px] font-bold text-ink" style={{ borderColor: "rgba(11,30,61,0.08)" }}>View original post {"\u203A"}</span>
+              <span className="mt-3 block border-t px-4 py-3 text-center text-[15px] font-bold text-[#0B1E3D]" style={{ borderColor: "rgba(11,30,61,0.08)" }}>View original post {"\u203A"}</span>
             </a>
           );
         }
@@ -237,6 +247,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const [poll, setPoll] = useState<StoryPoll | null>(null);
   const [viewersOpen, setViewersOpen] = useState(false);
   const [storyMentions, setStoryMentions] = useState<{ id: string; mentioned_user_id: string; visible: boolean; username?: string | null }[]>([]);
+  const holdOrigin = useRef<{ x: number; y: number } | null>(null);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playbackPausedRef = useRef(false);
   const manualPauseRef = useRef(false);
@@ -263,6 +274,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const story = stories[itemIdx];
   const currentStoryRef = useRef(story?.id);
   currentStoryRef.current = story?.id;
+  const overlayPausedRef = useRef(false);
+  overlayPausedRef.current = viewersOpen || emojiOpen || !!replyText.trim();
   const mediaReady = !story?.media_url || loadedStoryId === story.id;
 
   // Reset on every advance, otherwise the previous story's ready flag hides the
@@ -363,7 +376,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [stopTimer]);
 
   const resumeNow = useCallback(() => {
-    if (!playbackPausedRef.current || manualPauseRef.current || document.hidden) return;
+    if (!playbackPausedRef.current || manualPauseRef.current || overlayPausedRef.current || document.hidden || callActive()) return;
     playbackPausedRef.current = false;
     setPlaybackPaused(false);
     stopTimer();
@@ -477,6 +490,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       void Promise.resolve(supabase.from("conversations").update({ last_message: messageText, last_message_time: new Date().toISOString() }).eq("id", convId)).catch(() => {});
       if (currentStoryRef.current === story.id) {
         setReplyText("");
+        overlayPausedRef.current = false;
         setReplyToast(true);
         setTimeout(() => setReplyToast(false), 2000);
         resumeNow();
@@ -568,6 +582,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     }
     durRef.current = dur;
     startedAt.current = Date.now();
+    if (document.hidden || callActive() || playbackPausedRef.current) { pauseNow(); return stopTimer; }
     timerRef.current = setInterval(() => {
       if (story.media_url && readyStoryRef.current !== story.id) { startedAt.current = Date.now(); return; }
       if (isVideo && videoRef.current) {
@@ -601,7 +616,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     const audio = audioRef.current;
     if (!audio) return;
     audio.volume = Math.max(0, Math.min(1, (story?.media_transform?.mix?.music ?? 100) / 100));
-    if (mediaReady && !playbackPaused && !document.hidden) void audio.play().catch(() => {});
+    if (mediaReady && !playbackPaused && !document.hidden && !callActive()) void audio.play().catch(() => {});
     else audio.pause();
   }, [story?.id, storyAudioUrl, mediaReady, playbackPaused, muted, story?.media_transform?.mix?.music]);
 
@@ -624,6 +639,23 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     onVisibility();
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [pauseNow, resumeNow]);
+
+  useEffect(() => {
+    if (!story?.expires_at) return;
+    const remaining = Date.parse(story.expires_at) - Date.now();
+    if (!Number.isFinite(remaining)) return;
+    const expire = () => { pauseNow(); setStories([]); setStoryLoadFinished(true); };
+    if (remaining <= 0) { expire(); return; }
+    const timer = setTimeout(expire, Math.min(remaining, 2147483647));
+    return () => clearTimeout(timer);
+  }, [story?.id, story?.expires_at, pauseNow]);
+
+  useEffect(() => {
+    const stop = () => { manualPauseRef.current = true; pauseNow(); };
+    window.addEventListener("platinum:stop-media", stop);
+    if (callActive()) stop();
+    return () => window.removeEventListener("platinum:stop-media", stop);
+  }, [pauseNow]);
 
   if (!user) return null;
 
@@ -651,7 +683,11 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         <ChevronRight size={22} />
       </button>
 
-      <div className="relative aspect-[9/16] h-[92vh] max-w-[94vw] overflow-hidden rounded-xl bg-ink" style={bg ? { background: bg } : undefined}>
+      <div className="relative aspect-[9/16] h-[92vh] max-w-[94vw] overflow-hidden rounded-xl bg-ink" style={bg ? { background: bg } : undefined}
+        onPointerDownCapture={event => { if (event.button === 0 && event.isPrimary !== false) { holdOrigin.current = { x: event.clientX, y: event.clientY }; holdStart(); } }}
+        onPointerMoveCapture={event => { const origin = holdOrigin.current; if (origin && Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 12) { holdOrigin.current = null; holdEnd(); } }}
+        onPointerUpCapture={holdEnd} onPointerCancelCapture={holdEnd} onPointerLeave={holdEnd}
+        onClickCapture={event => { if (holdConsumedClickRef.current && event.detail !== 0) { holdConsumedClickRef.current = false; event.preventDefault(); event.stopPropagation(); } }}>
         <div className="absolute inset-x-2 top-2 z-10 flex gap-1">
           {stories.map((s, i) => (
             <span key={s.id} className="h-0.5 flex-1 overflow-hidden rounded-full bg-white/30">
@@ -689,7 +725,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
                 ref={videoRef}
                 key={story.id + "-" + mediaRetry}
                 src={story.media_url}
-                autoPlay
+                autoPlay={!playbackPaused && !callActive()}
+                onPlay={() => { if (playbackPausedRef.current || document.hidden || callActive()) videoRef.current?.pause(); }}
                 playsInline
                 preload="auto"
                 muted={muted}
@@ -742,7 +779,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             ) : null}
             {poll ? <StoryPollCard poll={poll} isOwn={isOwn} onUpdate={setPoll} /> : null}
             {story.stickers_json && story.stickers_json.length > 0 ? (
-              <StickerLayer key={uid + ":" + story.id} stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} />
+              <StickerLayer key={uid + ":" + story.id} stickers={story.stickers_json} clock={story.media_type === "video" ? clock : null} storyId={story.id} isOwn={isOwn} paused={playbackPaused} />
             ) : null}
             {story.caption ? (
               <p className={"absolute inset-x-0 z-[2] px-4 text-center text-[15px] font-medium text-white drop-shadow " + (isOwn ? "bottom-28" : "bottom-20")}>{String(story.caption).split(/(@[A-Za-z0-9_.]{2,30})/g).map((part, i) => part.startsWith("@") ? <a key={i} href={"/" + part.slice(1)} onClick={(e) => e.stopPropagation()} className="font-extrabold underline">{part}</a> : <span key={i}>{part}</span>)}</p>
@@ -790,7 +827,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
                 <button onClick={() => react(REACTION_EMOJIS[0])} className="rounded-full bg-black/30 p-2.5" aria-label="Love">
                   <Heart size={18} className={myReactions.has(REACTION_EMOJIS[0]) ? "fill-red-500 text-red-500" : "text-white"} />
                 </button>
-                <button onClick={() => { setEmojiOpen(!emojiOpen); if (!emojiOpen) pauseNow(); else resumeNow(); }} className="rounded-full bg-black/30 p-2.5 text-white" aria-label="React">
+                <button onClick={() => { setEmojiOpen(!emojiOpen); overlayPausedRef.current = !emojiOpen; if (!emojiOpen) pauseNow(); else resumeNow(); }} className="rounded-full bg-black/30 p-2.5 text-white" aria-label="React">
                   <Smile size={18} />
                 </button>
               </>
@@ -800,7 +837,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         {emojiOpen && canReact ? (
           <div className="absolute inset-x-0 bottom-16 z-20 flex justify-center gap-2 px-3">
             {REACTION_EMOJIS.map((e) => (
-              <button key={e} onClick={() => { react(e); setEmojiOpen(false); resumeNow(); }} className={"rounded-full px-2.5 py-2 text-[22px] " + (myReactions.has(e) ? "bg-white/30" : "bg-black/40")}>{e}</button>
+              <button key={e} onClick={() => { react(e); setEmojiOpen(false); overlayPausedRef.current = false; resumeNow(); }} className={"rounded-full px-2.5 py-2 text-[22px] " + (myReactions.has(e) ? "bg-white/30" : "bg-black/40")}>{e}</button>
             ))}
           </div>
         ) : null}
@@ -819,7 +856,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
           ) : null}
           {uid && story && uid === story.user_id ? (
             <>
-              <button onClick={() => { setViewersOpen(true); }} className="rounded-full bg-black/40 p-2 text-white" title="Viewers"><Eye size={15} /></button>
+              <button onClick={() => { setViewersOpen(true); overlayPausedRef.current = true; pauseNow(); }} className="rounded-full bg-black/40 p-2 text-white" title="Viewers"><Eye size={15} /></button>
               <button onClick={async () => {
                 if (deletingRef.current || !confirm("Delete this story everywhere?")) return;
                 deletingRef.current = true;
@@ -838,7 +875,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
           ) : null}
         </div>
         {actionError ? <p role="alert" className="absolute inset-x-4 bottom-24 z-30 rounded-lg bg-black/80 px-3 py-2 text-center text-sm text-white">{actionError}</p> : null}
-        {viewersOpen && story ? <ViewersSheet storyId={story.id} onClose={() => setViewersOpen(false)} /> : null}
+        {viewersOpen && story ? <ViewersSheet storyId={story.id} onClose={() => { setViewersOpen(false); overlayPausedRef.current = false; resumeNow(); }} /> : null}
       </div>
     </div>
   );

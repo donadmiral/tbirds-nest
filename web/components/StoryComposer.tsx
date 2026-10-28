@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, ImagePlus, Plus, Trash2, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import SaveToMemory from "@/components/SaveToMemory";
+import { SaveToMemory } from "@/components/SaveToMemory";
 import { STORY_FILTERS, STORY_FILTER_FAMILIES, filterCss, type StoryTextSticker, type StoryMediaTransform } from "@/lib/stories";
 import { searchPeople, type AccessPerson } from "@/lib/memoryAlbum";
 import { publicationError } from "@/lib/publication";

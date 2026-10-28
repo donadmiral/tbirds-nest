@@ -50,6 +50,7 @@ export type StoryTextSticker = {
   locationDisplayName?: string;
   mentionUserId?: string;
   mentionUsername?: string;
+  mentions?: { id: string; username: string }[];
   hashtag?: string;
   postId?: string;
   postAuthorName?: string;

@@ -21,6 +21,10 @@ export function notificationHref(notification: NotificationDestination): string 
     const listing = value("listing_id");
     return listing && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(listing) ? "/market/" + listing : "/notifications";
   }
+  const story = value("story_id");
+  if (story && ["story_mention", "story_reaction", "story_reply"].includes(notification.type)) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(story) ? "/story/" + story : "/notifications";
+  }
   const conversation = value("conversation_id");
   if (conversation) return conversationHref(conversation, value("context"));
   const post = notification.post_id || value("post_id");

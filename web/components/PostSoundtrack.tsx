@@ -26,6 +26,6 @@ export function PostSoundtrack({selection,use='post',active=true,clock,className
  },[key,use,attempt]);
  useEffect(()=>{if(!active||!playing||clock?.playing===false)ref.current?.pause();},[active,playing,clock?.playing]);
  if(!readSoundtrack(selection))return null;
- return <div className={className}><button type="button" className="rounded-full bg-black/70 px-3 py-1.5 text-xs text-white" onClick={e=>{e.stopPropagation();if(document.documentElement.dataset.platinumCallActive==='true')return;if(error){setAttempt(n=>n+1);setError(null);}setPlaying(v=>!v);}}>{playing?'Pause music':'Play music'}</button>{error?<span role="status" className="ml-2 rounded bg-black/80 px-2 text-xs text-white">{error}</span>:null}</div>;
+ return <div className={className}><button type="button" className="rounded-full bg-black/70 px-3 py-1.5 text-xs text-white" onClick={e=>{e.stopPropagation();if(document.documentElement.dataset.platinumCallActive==='true')return;if(error){setAttempt(n=>n+1);setError(null);}else if(!playing&&active&&(!clock||clock.playing)){void ref.current?.play().catch(()=>{});}setPlaying(v=>!v);}}>{playing?'Pause music':'Play music'}</button>{error?<span role="status" className="ml-2 rounded bg-black/80 px-2 text-xs text-white">{error}</span>:null}</div>;
 }
 export default PostSoundtrack;

@@ -4,7 +4,7 @@ import { hydrateSoundMedia, hydrateUploadMedia } from './contentMedia';
 export type StoryAudioDraft = { kind: 'voiceover' | 'sound'; url?: string | null; soundId?: string | null; title: string; durationSec: number; rightsAttested?: boolean; addToSounds?: boolean };
 export type StorySound = { id: string; title: string; url: string; duration_sec: number; source: string; rights_status: string };
 export async function listStorySounds(client = createClient()) {
-  const { data, error } = await client.from('story_sounds').select('id,title,url,duration_sec,source,rights_status').in('rights_status', ['creator_attested', 'licensed']).order('use_count', { ascending: false }).limit(100);
+  const { data, error } = await client.rpc('list_playable_sounds', { p_use: 'story', p_query: '', p_limit: 100 });
   if (error) throw new Error('Sounds could not load. Please retry.');
   return (data ?? []) as StorySound[];
 }
@@ -12,7 +12,8 @@ export async function storyAudioPreview(audio: StoryAudioDraft, client = createC
   if (audio.kind === 'voiceover') {
     const [row] = await hydrateUploadMedia([{ url: audio.url }], client); return row.url ?? null;
   }
-  const { data, error } = await client.from('story_sounds').select('id,url').eq('id', audio.soundId!).in('rights_status', ['creator_attested', 'licensed']).maybeSingle();
+  const { data: sounds, error } = await client.rpc('get_playable_sound', { p_sound_id: audio.soundId!, p_use: 'story' });
+  const data = sounds?.[0];
   if (error || !data) throw new Error('This sound is no longer available. Choose another sound.');
   const [row] = await hydrateSoundMedia([data], client); return row.url;
 }

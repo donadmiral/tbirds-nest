@@ -132,6 +132,8 @@ type MediaCanvasProps = {
   trimStart?: number | null;
   trimEnd?: number | null;
   onVideoPlayer?: (p: any) => void;
+  postRotation?: number;
+  postFlipX?: boolean;
 };
 
 export default function MediaCanvas({
@@ -159,6 +161,8 @@ export default function MediaCanvas({
   trimStart = null,
   trimEnd = null,
   onVideoPlayer,
+  postRotation = 0,
+  postFlipX = false,
 }: MediaCanvasProps) {
   const gesturesEnabled = interactive && imageW > 0 && imageH > 0;
 
@@ -386,6 +390,8 @@ export default function MediaCanvas({
             { translateX: imgTx },
             { translateY: imgTy },
             { scale: imgScale },
+            { rotate: `${Number.isFinite(postRotation) ? postRotation : 0}deg` },
+            { scaleX: postFlipX ? -1 : 1 },
           ],
         },
       ]}

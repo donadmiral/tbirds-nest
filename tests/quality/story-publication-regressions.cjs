@@ -71,6 +71,7 @@ function harness(options = {}) {
     Animated: { timing: () => ({}), parallel: () => ({ start: (done) => done() }) },
   };
   hook = load('src/controllers/stories/usePublishOrchestrator.ts', {
+    '../../../shared/storyMentions': load('shared/storyMentions.ts', {}),
     react, 'react-native': native,
     'expo-haptics': { impactAsync: async () => {}, notificationAsync: async () => {}, ImpactFeedbackStyle: { Medium: 'medium' }, NotificationFeedbackType: { Success: 'success' } },
     'react-native-flash-message': { showMessage: (message) => success.push(message) },
@@ -81,7 +82,7 @@ function harness(options = {}) {
   }).usePublishOrchestrator;
   const render = () => {
     slot = 0;
-    output = hook({ drafts, myId: userId, setDrafts: (update) => { drafts = typeof update === 'function' ? update(drafts) : update; render(); }, navigation: { canGoBack: () => true, goBack: () => navigations.push('back') }, closeBloom() {}, mediaOpacity: {}, mediaScale: {} });
+    output = hook({ onPublished: options.onPublished, drafts, myId: userId, setDrafts: (update) => { drafts = typeof update === 'function' ? update(drafts) : update; render(); }, navigation: { canGoBack: () => true, goBack: () => navigations.push('back') }, closeBloom() {}, mediaOpacity: {}, mediaScale: {} });
     return output;
   };
   render();
@@ -217,4 +218,29 @@ test('simultaneous sticker transforms merge against the current draft after reor
   drafts[1].uploadState = 'uploading';
   const locked = updateDraftStickers(drafts, 'original', []);
   assert.equal(locked[1], drafts[1]);
+});
+
+test('book picker receives only confirmed publication IDs and does not navigate away first', async () => {
+  const confirmed=[];
+  const h=harness({onPublished: ids=>confirmed.push(Array.from(ids))});
+  await h.render().publishAll();
+  assert.equal(confirmed.length,1);assert.equal(confirmed[0][0],tableCalls(h,'stories')[0] && 'story-1');
+  assert.equal(h.navigations.length,0);
+});
+test('typed story mentions exclude deleted handles and do not mistake email addresses for tags', () => {
+  const {storyHandles,currentTextMentions,storyMentionIds}=load('shared/storyMentions.ts',{});
+  assert.deepEqual(Array.from(storyHandles('mail@musa.test Hi @Musa, and @amy!')),['musa','amy']);
+  const sticker={kind:'text',text:'Hello @amy',mentions:[{id:'a',username:'amy'},{id:'m',username:'musa'}]};
+  assert.deepEqual(Array.from(currentTextMentions(sticker)).map(x=>x.id),['a']);
+  assert.deepEqual(Array.from(storyMentionIds([sticker,{kind:'mention',mentionUserId:'a'},{kind:'mention',mentionUserId:'b'}])),['a','b']);
+});
+test('native whole-surface hold ends only its own pause and clears cancelled timers', () => {
+  const source=fs.readFileSync(path.join(root,'src/screens/stories/StoryViewerScreen.tsx'),'utf8');
+  const start=source.indexOf('  const surfaceHold = useRef');const end=source.indexOf('  const panResponder',start);
+  const exported={};const timers=new Map();let next=0;const reasons=new Set(['reply']);
+  const js=ts.transpileModule(source.slice(start,end)+'\nObject.assign(exported,{beginSurfaceHold,endSurfaceHold});',{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
+  vm.runInNewContext(js,{exported,useRef:v=>({current:v}),useCallback:f=>f,useEffect(){},LONG_PRESS_MS:160,pauseFor:r=>reasons.add(r),resumeFrom:r=>reasons.delete(r),setTimeout:f=>{timers.set(++next,f);return next;},clearTimeout:id=>timers.delete(id)});
+  exported.beginSurfaceHold({nativeEvent:{touches:[{}],pageX:10,pageY:10}});for(const fn of timers.values())fn();
+  assert.deepEqual([...reasons],['reply','surfaceHold']);exported.endSurfaceHold();assert.deepEqual([...reasons],['reply']);
+  timers.clear();exported.beginSurfaceHold({nativeEvent:{touches:[{}],pageX:10,pageY:10}});exported.endSurfaceHold();assert.equal(timers.size,0);
 });

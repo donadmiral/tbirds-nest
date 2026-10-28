@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Play, Pause, Volume2, VolumeX, RotateCcw, RotateCw, Maximize, Minimize, Eye, RectangleHorizontal } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { autoplayEnabled, dataSaverEnabled } from "@/lib/mediaPrefs";
 import { PLAYBACK_SPEEDS, playbackWindow, clampVideoTime, formatVideoTime } from "@/lib/videoPlayback";
+
+import {PostSoundtrack} from './PostSoundtrack';
+import type {SoundtrackSelection} from '../../shared/soundtrack';
+import { discoverFrame } from '../../shared/discover';
 
 let activeStop: (() => void) | null = null;
 const PREF_KEY = "pc:video-prefs";
@@ -27,27 +31,31 @@ function remember(src: string, time: number) {
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 
 type WebVideo = HTMLVideoElement & { webkitEnterFullscreen?: () => void };
-export type PostMediaEditRecipe = { scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
+export type PostMediaEditRecipe = { rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
 type Props = {
   src: string; postId: string; viewsCount?: number | null;
   width?: number; height?: number; onDims?: (w: number, h: number) => void;
   edit?: PostMediaEditRecipe | null; immersive?: boolean; onExpand?: () => void;
-  allowPlayback?: boolean;
+  allowPlayback?: boolean; soundtrack?:SoundtrackSelection|null; poster?:string|null; mediaOverlay?:ReactNode;
 };
 
 export function VideoPlayer(props: Props) {
   return <VideoPlayback key={props.src + ":" + props.postId} {...props} />;
 }
 
-function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersive = false, edit = null, onExpand, allowPlayback = true }: Props) {
+function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersive = false, edit = null, onExpand, allowPlayback = true, soundtrack=null,poster=null,mediaOverlay }: Props) {
   const ref = useRef<WebVideo | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
+  const [sourceSize, setSourceSize] = useState({ width: width ?? 0, height: height ?? 0 });
+  const stalledAt = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dwellStart = useRef<number | null>(null);
   const playRequest = useRef(0);
   const wantsPlayback = useRef(false);
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(() => edit?.muted || readPrefs().muted);
-  const [speed, setSpeed] = useState(() => readPrefs().speed);
+  const [muted, setMuted] = useState(() => readPrefs().muted);
+  const [speed, setSpeed] = useState(() => edit?.speed || readPrefs().speed);
   const [duration, setDuration] = useState(0);
   const [time, setTime] = useState(0);
   const [fs, setFs] = useState(false);
@@ -88,7 +96,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
 
   const playNow = useCallback((explicit = false) => {
     const v = ref.current;
-    if (!v || !allowPlayback) return;
+    if (!v || !allowPlayback || document.documentElement.dataset.platinumCallActive==='true') return;
     if (activeStop && activeStop !== stop) activeStop();
     activeStop = stop;
     wantsPlayback.current = true;
@@ -114,6 +122,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
       if (document.hidden && document.pictureInPictureElement !== ref.current) stop();
     };
     document.addEventListener("visibilitychange", outsidePage);
+    window.addEventListener("platinum:stop-media",stop);
     // Opening theater is an explicit viewing action. Feed playback follows preferences.
     if (immersive) playNow();
     const io = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(([entry]) => {
@@ -123,7 +132,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
       } else stop();
     }, { threshold: [0, 0.6] });
     io?.observe(el);
-    return () => { io?.disconnect(); document.removeEventListener("visibilitychange", outsidePage); stop(); };
+    return () => { io?.disconnect(); document.removeEventListener("visibilitychange", outsidePage); window.removeEventListener("platinum:stop-media",stop); stop(); };
   }, [allowPlayback, immersive, playNow, stop]);
 
   useEffect(() => {
@@ -151,7 +160,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     } catch { setNotice("Picture in picture could not open in this browser. You can use fullscreen instead."); }
   }
   function toggleMute() {
-    if (edit?.muted) return;
+    if (edit?.muted && !soundtrack) return;
     const next = !ref.current?.muted;
     setMuted(next);
     writePrefs({ muted: next });
@@ -211,26 +220,44 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     e.preventDefault(); e.stopPropagation();
   }
 
+  useEffect(() => {
+    const element = viewportRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') return;
+    const update = () => { const rect = element.getBoundingClientRect(); setViewport({ width: rect.width, height: rect.height }); };
+    const observer = new ResizeObserver(update); observer.observe(element); update();
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => () => { if (stalledAt.current) clearTimeout(stalledAt.current); }, []);
+  const clearStall = () => { if (stalledAt.current) clearTimeout(stalledAt.current); stalledAt.current = null; };
+  const waitForData = () => {
+    setPlaying(false); void reportDwell(); clearStall();
+    stalledAt.current = setTimeout(() => { if (wantsPlayback.current && (ref.current?.readyState ?? 0) < 3) { stop(); setFailed(true); } }, 15000);
+  };
+  const fitted = expanded && !fill && viewport.width && viewport.height
+    ? discoverFrame(viewport.width, viewport.height, sourceSize.width, sourceSize.height, edit?.rotation ?? 0) : null;
   const btn = "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink/60 text-white transition-colors hover:bg-ink/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl disabled:opacity-40";
   return (
     <div ref={wrapRef} role="group" aria-label="Video player" tabIndex={0} onKeyDown={onKey}
       style={!expanded && width && height ? { aspectRatio: width + " / " + height } : undefined}
       className={"video-player group relative overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl " + (expanded ? "flex h-full w-full flex-col items-stretch bg-[#0b0b0d]" : "h-full w-full rounded-lg bg-black")}>
-      <video ref={ref} src={src} playsInline muted={edit?.muted || muted} preload={allowPlayback && !dataSaverEnabled() ? "metadata" : "none"}
+      <div ref={viewportRef} className={expanded?"relative flex min-h-0 flex-1 items-center justify-center overflow-hidden":"relative h-full w-full overflow-hidden"}>
+      <video poster={poster||edit?.coverUrl||undefined} style={{...(fitted ? { width: fitted.width, height: fitted.height, flexShrink: 0 } : {}), objectFit:expanded?(fill?"cover":"contain"):(edit?.fit||"cover"),transform:`translate(${(edit?.translateNX||0)*100}%, ${(edit?.translateNY||0)*100}%) scale(${edit?.scale||1}) rotate(${edit?.rotation||0}deg) scaleX(${edit?.flipX?-1:1})`}} ref={ref} src={src} playsInline muted={edit?.muted || muted} preload={allowPlayback && !dataSaverEnabled() ? "metadata" : "none"}
         onClick={(e) => { e.stopPropagation(); wrapRef.current?.focus(); togglePlay(); }}
         onDoubleClick={(e) => { e.stopPropagation(); void toggleFullscreen(); }}
         onPlay={() => {
           if (!allowPlayback || !wantsPlayback.current || (activeStop && activeStop !== stop)) { ref.current?.pause(); return; }
-          activeStop = stop; setPlaying(true);
-          if (dwellStart.current === null) dwellStart.current = Date.now();
+          activeStop = stop;
         }}
-        onPause={() => { setPlaying(false); void reportDwell(); }}
+        onPlaying={()=>{clearStall();if(document.documentElement.dataset.platinumCallActive==='true'){stop();return;}setPlaying(true);if(dwellStart.current===null)dwellStart.current=Date.now();}}
+        onWaiting={waitForData}
+        onStalled={waitForData}
+        onPause={() => { clearStall(); setPlaying(false); void reportDwell(); }}
         onEnded={() => { stop(); remember(src, range.start); }}
         onError={() => { stop(); setFailed(true); setNotice(""); }}
         onLoadedMetadata={() => {
           const v = ref.current;
           if (!v) return;
-          setDuration(v.duration); setFailed(false); v.playbackRate = speed;
+          setDuration(v.duration); setSourceSize({width:v.videoWidth,height:v.videoHeight}); setFailed(false); v.playbackRate = speed; v.volume=edit?.muted ? 0 : soundtrack?.originalVolume??1;
           const bounds = playbackWindow(v.duration, trimStart, trimEnd);
           if (bounds.duration) { v.currentTime = clampVideoTime(positions.get(src) ?? bounds.start, bounds); setTime(v.currentTime); }
           setPipAvailable(!!document.pictureInPictureEnabled && typeof v.requestPictureInPicture === "function" && v.videoWidth > 0);
@@ -245,8 +272,11 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
           if (trimEnd && bounds.duration && v.currentTime >= bounds.end && !v.paused) v.currentTime = bounds.start;
           setTime(v.currentTime); remember(src, v.currentTime);
         }}
-        className={expanded ? "block min-h-0 w-full flex-1 " + (fill ? "object-cover" : "object-contain") : "relative h-full w-full object-cover"}
+        className="block h-full w-full"
       />
+      {mediaOverlay}
+      </div>
+      {soundtrack?<PostSoundtrack selection={soundtrack} active={allowPlayback&&playing&&!muted} clock={{time:Math.max(0,time-range.start),playing,rate:speed}} autoPlay className="absolute right-3 top-3 z-10"/>:null}
       {!playing && !failed && allowPlayback ? <button type="button" onClick={() => playNow(true)} aria-label="Play video" className={"absolute left-1/2 top-1/2 z-[5] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-ink/70 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl"}><Play size={24} /></button> : null}
       {failed ? <div role="status" className="absolute inset-x-3 top-3 z-10 rounded-xl bg-black/85 p-4 text-center text-sm text-white">
         <p>This video could not load. Check your connection or try again.</p>
@@ -260,7 +290,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
           <button type="button" onClick={togglePlay} disabled={!allowPlayback} aria-label={playing ? "Pause video" : "Play video"} title={playing ? "Pause (K)" : "Play (K)"} className={btn}>{playing ? <Pause size={17} /> : <Play size={17} />}</button>
           <button type="button" onClick={() => seekBy(-10)} disabled={!range.duration} aria-label="Back 10 seconds" title="Back 10 seconds (J)" className={btn}><RotateCcw size={16} /></button>
           <button type="button" onClick={() => seekBy(10)} disabled={!range.duration} aria-label="Forward 10 seconds" title="Forward 10 seconds (L)" className={btn}><RotateCw size={16} /></button>
-          {edit?.muted ? null : <button type="button" onClick={toggleMute} aria-label={muted ? "Unmute video" : "Mute video"} title="Mute or unmute (M)" className={btn}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</button>}
+          {edit?.muted && !soundtrack ? null : <button type="button" onClick={toggleMute} aria-label={muted ? "Unmute video" : "Mute video"} title="Mute or unmute (M)" className={btn}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</button>}
           <span className="whitespace-nowrap px-1 text-[11px] tabular-nums text-white/85">{formatVideoTime(elapsed)} / {formatVideoTime(range.duration)}</span>
           <select value={speed} onChange={(e) => pickSpeed(Number(e.target.value))} aria-label="Playback speed" title="Playback speed (< or >)" className="ml-auto h-10 rounded-full bg-ink/80 px-2 text-[12px] text-white">{PLAYBACK_SPEEDS.map((value) => <option key={value} value={value}>{value}x</option>)}</select>
           {expanded ? <button type="button" onClick={() => setFill((value) => !value)} aria-label={fill ? "Show the whole frame" : "Fill the screen"} aria-pressed={fill} className="h-10 rounded-full border border-pearl/70 px-3 text-[12px] font-semibold text-pearl">{fill ? "Fit" : "Fill"}</button> : null}

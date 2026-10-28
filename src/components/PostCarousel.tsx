@@ -113,7 +113,7 @@ function CarouselVideo({
   // Navigation focus: leaving the tab MUST silence the video.
   const screenFocused = useIsFocused();
   const postedMuted = !!(edit as any)?.muted;
-  const [muted, setMuted] = useState(sessionMuted || postedMuted);
+  const [muted, setMuted] = useState(sessionMuted);
   const [progress, setProgress] = useState(0);
   const [musicClock,setMusicClock] = useState({time:0,playing:false,rate:edit?.speed||1});
   const [showControls, setShowControls] = useState(false);
@@ -212,14 +212,14 @@ function CarouselVideo({
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
 
-      <PostSoundtrack selection={soundtrack} active={owns&&shouldPlay&&!muted&&!postedMuted} clock={musicClock}/>
+      <PostSoundtrack selection={soundtrack} active={owns&&shouldPlay&&!muted} clock={musicClock}/>
       {/* Playback progress bar */}
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' }} pointerEvents="none">
         <View style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%`, height: '100%', backgroundColor: '#FFFFFF' }} />
       </View>
 
       {/* Mute button always visible bottom-right */}
-      {postedMuted ? null : <TouchableOpacity
+      {postedMuted && !soundtrack ? null : <TouchableOpacity
         style={st.muteBtn}
         onPress={toggleMute}
         activeOpacity={0.8}

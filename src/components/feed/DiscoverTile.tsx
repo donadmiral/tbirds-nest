@@ -14,7 +14,7 @@ import VerifiedBadge from '../VerifiedBadge';
 import VideoThumb from '../VideoThumb';
 import { light } from '../../constants/tokens';
 
-type Media = { url: string; media_type: 'image' | 'video'; edit?: any };
+type Media = { is_sensitive?: boolean; url: string; media_type: 'image' | 'video'; edit?: any };
 export type TilePost = {
   id: string; user_id: string; content?: string | null; article_title?: string | null;
   media?: Media[]; link?: { url?: string; domain?: string | null; title?: string | null; image_url?: string | null } | null;
@@ -43,7 +43,7 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
     return (
       <TouchableOpacity style={[s.tile, { width }]} activeOpacity={0.85} onPress={onPress}>
         <View style={[s.frame, { height: width }]}>
-          {cover
+          {first.is_sensitive || first.edit?.sensitive ? <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="eye-off" size={24} color={getTheme().ink.muted} /><Text style={{color:getTheme().ink.secondary}}>Sensitive content</Text></View> : cover
             ? <ExpoImage source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
             : isVideo
               ? <VideoThumb uri={first.url} fill chip={false} />

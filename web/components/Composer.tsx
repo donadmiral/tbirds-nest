@@ -15,6 +15,9 @@ import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
 import { AdjustOverlay } from "@/components/StoryEngine";
 import { PublicationAttempt, publicationError } from "@/lib/publication";
 
+import {SoundtrackPicker} from "./SoundtrackPicker";
+import type {SoundtrackSelection} from "../../shared/soundtrack";
+
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null };
 type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null };
 type PostKind = "post" | "media" | "video" | "article" | "listing" | "poll" | "innovation";
@@ -77,6 +80,8 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   const [pollOn, setPollOn] = useState(false);
   // Tag people on a photo: open the tagger for one item, click where the person is, pick them.
   const [tagIdx, setTagIdx] = useState<number | null>(null);
+  const [soundtrack,setSoundtrack]=useState<SoundtrackSelection|null>(null);
+  const [musicOpen,setMusicOpen]=useState(false);
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [tagAt, setTagAt] = useState<{ nx: number; ny: number } | null>(null);
   const [tagQ, setTagQ] = useState("");
@@ -269,7 +274,15 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             throw new Error("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message);
           }
           const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
-          media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.edit && Object.keys(p.edit).length ? { edit: p.edit } : {}), ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
+          let recipe: PostMediaEditRecipe = {...p.edit,...(i===0&&soundtrack?{soundtrack}:{})};
+          if(p.isVideo) {
+            const cover=await capturePostCover(p.preview,recipe.coverAt??recipe.trimStart??0);
+            const coverPath=uid+"/"+crypto.randomUUID()+"_cover.jpg";
+            const {error:coverError}=await supabase.storage.from("post-media").upload(coverPath,cover,{contentType:"image/jpeg",upsert:false});
+            if(coverError)throw new Error("The video cover could not upload. Retry this post.");
+            recipe={...recipe,coverUrl:supabase.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl};
+          }
+          media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(Object.keys(recipe).length ? { edit: recipe } : {}), ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
         }
 
         const insertData: Record<string, unknown> = {
@@ -348,7 +361,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       items.forEach((p) => URL.revokeObjectURL(p.preview));
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* fine */ }
       setText("");
-      setItems([]);
+      setItems([]);setSoundtrack(null);setMusicOpen(false);
       setAudience("everyone");
       setProducts([]);
       setPickerOpen(false);
@@ -554,6 +567,8 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           ))}
         </div>
       ) : null}
+      {items.length>0?<button type="button" disabled={publicationLocked} onClick={()=>setMusicOpen(true)} className="ml-14 mt-3 rounded-full bg-ink/5 px-4 py-2 text-sm font-semibold text-ink disabled:opacity-40">{soundtrack?'Edit music':'Add music'}</button>:null}
+      {musicOpen?<SoundtrackPicker value={soundtrack} onChange={setSoundtrack} onClose={()=>setMusicOpen(false)}/>:null}
       {editIdx !== null && items[editIdx] ? (
         <MediaEditDialog item={items[editIdx]} onClose={() => setEditIdx(null)}
           onSave={(edit) => { setItems((prev) => prev.map((it, x) => x !== editIdx ? it : { ...it, edit })); setEditIdx(null); }} />
@@ -723,12 +738,16 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
 function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () => void; onSave: (e: PostMediaEditRecipe | null) => void }) {
   const [e, setE] = useState<PostMediaEditRecipe>({ ...(item.edit || {}) });
   const [dur, setDur] = useState(0);
+  const video=useRef<HTMLVideoElement|null>(null);
+  useEffect(()=>{if(video.current)video.current.playbackRate=e.speed||1;},[e.speed]);
   const adj = e.adjust || {};
   const setAdj = (k: string, v: number) => setE((p) => ({ ...p, adjust: { ...(p.adjust || {}), [k]: v } }));
   const filterStyle = filterCss(e.filterId, (e.filterAmt ?? 100) / 100);
+  const previewStyle={filter:filterStyle,transform:`translate(${(e.translateNX||0)*100}%,${(e.translateNY||0)*100}%) scale(${e.scale||1}) rotate(${e.rotation||0}deg) scaleX(${e.flipX?-1:1})`};
   const fit = e.fit === "contain" ? "object-contain" : "object-cover";
   const clean = (): PostMediaEditRecipe | null => {
     const out: any = {};
+    for(const key of ["scale","translateNX","translateNY","rotation","flipX","speed","coverAt"] as const)if(e[key]!==undefined)out[key]=e[key];
     if (e.fit === "contain") out.fit = "contain";
     if (e.filterId) { out.filterId = e.filterId; if ((e.filterAmt ?? 100) !== 100) out.filterAmt = e.filterAmt; }
     const a: any = {}; Object.entries(adj).forEach(([k, v]) => { if (v) a[k] = v; }); if (Object.keys(a).length) out.adjust = a;
@@ -747,11 +766,11 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
       <div className="flex max-h-[92vh] w-full max-w-[920px] flex-col gap-4 overflow-auto rounded-2xl bg-white p-4 md:flex-row" onClick={(ev) => ev.stopPropagation()}>
         <div className="relative flex min-h-[260px] flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">
           {item.isVideo ? (
-            <video src={item.preview} muted={!!e.muted} controls playsInline className={"max-h-[70vh] w-full " + fit} style={{ filter: filterStyle }}
+            <video ref={video} src={item.preview} muted={!!e.muted} controls playsInline onTimeUpdate={ev=>{const v=ev.currentTarget;if(v.currentTime<(e.trimStart||0)||e.trimEnd&&v.currentTime>=e.trimEnd)v.currentTime=e.trimStart||0;}} className={"max-h-[70vh] w-full " + fit} style={previewStyle}
               onLoadedMetadata={(ev) => { const d = ev.currentTarget.duration || 0; setDur(d); if (typeof e.trimEnd !== "number") setE((p) => ({ ...p, trimEnd: Math.round(d * 10) / 10 })); }} />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={item.preview} alt="" className={"max-h-[70vh] w-full " + fit} style={{ filter: filterStyle }} />
+            <img src={item.preview} alt="" className={"max-h-[70vh] w-full " + fit} style={previewStyle} />
           )}
           <AdjustOverlay adjust={e.adjust} />
         </div>
@@ -772,8 +791,12 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
             <button type="button" onClick={() => setE((p) => ({ ...p, fit: (p.fit || "cover") === "cover" ? "contain" : "cover" }))} className="rounded-full bg-ink/5 px-3 py-1 text-[12px] font-bold text-ink hover:bg-ink/10">{e.fit === "contain" ? "Fill" : "Fit"}</button>
             {item.isVideo ? <button type="button" onClick={() => setE((p) => ({ ...p, muted: !p.muted }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (e.muted ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>{e.muted ? "Muted" : "Sound on"}</button> : null}
           </div>
+          <div className="flex flex-wrap gap-2"><button type="button" onClick={()=>setE(p=>({...p,rotation:((p.rotation||0)+90)%360}))} className="rounded-full bg-ink/5 px-3 py-2 text-sm">Rotate</button><button type="button" onClick={()=>setE(p=>({...p,flipX:!p.flipX}))} className="rounded-full bg-ink/5 px-3 py-2 text-sm">Flip</button></div>
+          {[['Zoom','scale',1,3,.05],['Horizontal','translateNX',-.5,.5,.01],['Vertical','translateNY',-.5,.5,.01]].map(([label,key,min,max,step])=><label key={String(key)} className="flex flex-col text-sm">{label}<input type="range" min={Number(min)} max={Number(max)} step={Number(step)} value={Number(e[key as keyof PostMediaEditRecipe]??(key==='scale'?1:0))} onChange={ev=>setE(p=>({...p,[key]:Number(ev.target.value)}))}/></label>)}
+          {item.isVideo?<label className="text-sm">Speed<select value={e.speed||1} onChange={ev=>setE(p=>({...p,speed:Number(ev.target.value)}))}>{[.5,1,1.5,2,3].map(n=><option key={n} value={n}>{n}x</option>)}</select></label>:null}
           {item.isVideo && dur > 0 ? (
             <div>
+              <label className="mb-3 flex flex-col text-sm">Video cover<input type="range" min={e.trimStart||0} max={e.trimEnd||dur} step={.1} value={e.coverAt??e.trimStart??0} onChange={ev=>{const at=Number(ev.target.value);setE(p=>({...p,coverAt:at}));if(video.current){video.current.pause();video.current.currentTime=at;}}}/></label>
               <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-muted">Trim</p>
               <label className="flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Start</span><input type="range" min={0} max={dur} step={0.1} value={e.trimStart ?? 0} onChange={(ev) => setE((p) => ({ ...p, trimStart: Math.min(Number(ev.target.value), (p.trimEnd ?? dur) - 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-muted">{(e.trimStart ?? 0).toFixed(1)}s</span></label>
               <label className="mt-1.5 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">End</span><input type="range" min={0} max={dur} step={0.1} value={e.trimEnd ?? dur} onChange={(ev) => setE((p) => ({ ...p, trimEnd: Math.max(Number(ev.target.value), (p.trimStart ?? 0) + 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-muted">{(e.trimEnd ?? dur).toFixed(1)}s</span></label>
@@ -790,4 +813,14 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
       </div>
     </div>
   );
+}
+
+/** Decode the selected frame with a deadline; a failed cover never becomes silent success. */
+function capturePostCover(url:string,at:number):Promise<Blob> {
+ return new Promise((resolve,reject)=>{const video=document.createElement('video');let done=false;
+ const finish=(blob?:Blob|null)=>{if(done)return;done=true;clearTimeout(timer);video.pause();video.removeAttribute('src');video.load();blob?resolve(blob):reject(new Error('The selected video cover could not be prepared.'));};
+ const timer=setTimeout(()=>finish(),15000);video.muted=true;video.preload='auto';video.playsInline=true;video.onerror=()=>finish();
+ const draw=()=>{try{const canvas=document.createElement('canvas');const scale=Math.min(1,1200/(video.videoWidth||1));canvas.width=Math.max(1,Math.round(video.videoWidth*scale));canvas.height=Math.max(1,Math.round(video.videoHeight*scale));canvas.getContext('2d')?.drawImage(video,0,0,canvas.width,canvas.height);canvas.toBlob(finish,'image/jpeg',.88);}catch{finish();}};
+ video.onloadeddata=()=>{const next=Math.min(Math.max(0,at),Math.max(0,video.duration-.05));if(next>.02){video.onseeked=draw;video.currentTime=next;}else draw();};video.src=url;
+ });
 }

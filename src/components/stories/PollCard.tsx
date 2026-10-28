@@ -68,7 +68,7 @@ function OptionRow({
   }));
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity delayLongPress={160} onLongPress={() => {}}
       style={s.row}
       onPress={onPress}
       activeOpacity={0.85}
@@ -155,7 +155,7 @@ export default function PollCard({ poll, isOwn, onVote, onOpenVoters, onShareRes
         </Text>
       )}
       {isOwn && onShareResults && total > 0 ? (
-        <TouchableOpacity onPress={onShareResults} activeOpacity={0.85} style={{ alignSelf: 'center', marginTop: 6, borderRadius: 999, backgroundColor: '#0B1E3D', paddingHorizontal: 14, paddingVertical: 6 }}><Text style={{ color: '#FFF', fontSize: 12, fontWeight: '800' }}>Share results</Text></TouchableOpacity>
+        <TouchableOpacity delayLongPress={160} onLongPress={() => {}} onPress={onShareResults} activeOpacity={0.85} style={{ alignSelf: 'center', marginTop: 6, borderRadius: 999, backgroundColor: '#0B1E3D', paddingHorizontal: 14, paddingVertical: 6 }}><Text style={{ color: '#FFF', fontSize: 12, fontWeight: '800' }}>Share results</Text></TouchableOpacity>
       ) : null}
     </View>
   );

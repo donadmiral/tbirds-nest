@@ -48,6 +48,9 @@ import { uploadMedia } from '../../services/mediaService';
 import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
 import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
+import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
+import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from '../../../shared/chatAttachmentCards';
+import { PrivateMediaViewer } from '../../components/messages/PrivateMediaViewer';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
 import ChatInfoSections from '../../components/ChatInfoSections';
 import CallEventBubble from '../../components/CallEventBubble';
@@ -88,6 +91,7 @@ type MessageItem = {
   read_at?: string | null;
   delivered_at?: string | null;
   viewed_at?: string | null;
+  view_limit?: number | null;
   media_url?: string | null;
   media_type?: string | null;
   media_b64?: string | null;
@@ -490,6 +494,7 @@ export default function ChatScreen() {
   const [seenSheet, setSeenSheet] = useState<{ msg: any; rows: { name: string; avatar: string | null; seenAt: string | null }[] } | null>(null);
   const [lastStatus, setLastStatus] = useState<OutgoingStatus>(null);
 
+  const [shareDetails, setShareDetails] = useState<'contact'|'location'|null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showGifs, setShowGifs] = useState(false);
   const [editingMsg, setEditingMsg] = useState<MessageItem | null>(null);
@@ -525,6 +530,8 @@ export default function ChatScreen() {
   const [showTimestamp, setShowTimestamp] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [viewedOutIds, setViewedOutIds] = useState<Set<string>>(new Set());
+  const [privateMedia, setPrivateMedia] = useState<{ id: string; userId: string } | null>(null);
+  useEffect(() => { setPrivateMedia(null); setShareDetails(null); setViewedOutIds(new Set()); setFullscreenImg(null); setFullscreenVideo(null); }, [conversationId, session?.user.id]);
   const pendingViewLimitRef = useRef<number | null>(null);
   const sendScale = useRef(new Animated.Value(1)).current;
   const springSend = useCallback(() => {
@@ -542,6 +549,7 @@ export default function ChatScreen() {
   const voiceScopeRef = useRef(voiceScope); voiceScopeRef.current = voiceScope;
   const voiceControl = useRef(voice); voiceControl.current = voice;
   useEffect(() => {
+    setSendingVoice(false);
     return () => { voiceSending.current = false; void voiceControl.current.cancel(); };
   }, [voiceScope]);
   const [otherOnline, setOtherOnline] = useState(false);
@@ -781,6 +789,7 @@ export default function ChatScreen() {
           .eq('conversation_id', conversationId)
           .not('media_url', 'is', null)
           .in('media_type', ['image', 'video', 'gif'])
+          .is('view_limit', null)
           .order('created_at', { ascending: false })
           .limit(200),
         supabase.from('messages')
@@ -1305,42 +1314,29 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
         uri: img.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg',
         width: img.width, height: img.height, base64: img.base64,
       }, { filename: `edited_${Date.now()}.jpg` });
-      await doSend(img.caption || '', url, 'image', img.base64, null, img.width, img.height);
+      await doSend(img.caption || '', url, 'image', choice ? null : img.base64, null, img.width, img.height);
     } catch { Alert.alert('Upload failed'); }
     finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
   }, [currentUserId, doSend]);
 
-  const sealedRequests = useRef(new Map<string, string>());
-  const sealedOpening = useRef(false);
-  const openSealedMedia = useCallback(async (msg: any) => {
-    if (sealedOpening.current) return;
-    sealedOpening.current = true;
+  const openSealedMedia = useCallback((msg: MessageItem) => {
     const viewer = useAuthStore.getState().session?.user.id;
-    const chat = activeConversation.current;
-    const current = () => mountedRef.current && activeConversation.current === chat && useAuthStore.getState().session?.user.id === viewer;
-    const requestId = sealedRequests.current.get(msg.id) || makeMessageId();
-    sealedRequests.current.set(msg.id, requestId);
-    try {
-      const { data, error } = await supabase.functions.invoke('chat-media-sign', { body: { messageIds: [msg.id], consume: true, requestId } });
-      if (!current()) return;
-      if (error || !data?.urls?.[msg.id]) {
-        // A network failure is not proof the attachment was consumed. Reuse the
-        // same viewing grant when retrying a lost signing response.
-        Alert.alert('Unable to open attachment', 'Please try again. The attachment may have expired or already been opened.');
-        return;
-      }
-      sealedRequests.current.delete(msg.id);
-      if ((data.remaining ?? 0) <= 0) setViewedOutIds(prev => new Set(prev).add(msg.id));
-      setFullscreenImg(data.urls[msg.id]);
-    } catch { if (current()) Alert.alert('Unable to open attachment', 'Check your connection and try again.'); }
-    finally { sealedOpening.current = false; }
-  }, []);
+    if (!viewer || msg.sender_id === viewer || !msg.view_limit || viewedOutIds.has(msg.id)) return;
+    setPrivateMedia({ id: msg.id, userId: viewer });
+  }, [viewedOutIds]);
   const sendMediaAssets = useCallback(async (assets: { uri: string; type?: string | null; width?: number; height?: number; base64?: string | null }[]) => {
     if (!currentUserId || mediaSending.current) return false;
     mediaSending.current = true;
     let failed = 0; let failureReason = '';
     setShowToolbar(false); setUploadingMedia(true);
     try {
+      if (assets.length === 1 && assets[0].type === 'video') {
+        const choice = await new Promise<number|null>(resolve => Alert.alert('Send video', 'Choose how it can be viewed', [
+          {text:'Normal',onPress:()=>resolve(null)}, {text:'View once',onPress:()=>resolve(1)}, {text:'Cancel',style:'cancel',onPress:()=>resolve(-1)},
+        ], {cancelable:true,onDismiss:()=>resolve(-1)}));
+        if (choice === -1) return false;
+        pendingViewLimitRef.current = choice;
+      }
       for (const asset of assets) {
         const isVid = asset.type === 'video';
         const ext = isVid ? 'mp4' : 'jpg';
@@ -1349,10 +1345,10 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
         try {
           const { url } = await uploadMedia('chat-media', currentUserId!, {
             uri: asset.uri, kind: isVid ? 'video' : 'image', ext, mimeType: mime,
-            width: asset.width, height: asset.height, base64: imgBase64,
+            width: asset.width, height: asset.height, base64: pendingViewLimitRef.current ? null : imgBase64,
           }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}` });
           let thumbUrl: string | undefined;
-          if (isVid) {
+          if (isVid && !pendingViewLimitRef.current) {
             try {
               const th = await VideoThumbnails.getThumbnailAsync(asset.uri, { time: 0, quality: 0.7 });
               const up = await uploadMedia('chat-media', currentUserId!, {
@@ -1361,7 +1357,7 @@ const chooseAndSendImage = useCallback(async (img: { uri: string; width: number;
               thumbUrl = up.url;
             } catch (thumbErr: any) { console.log('[CHAT_THUMB_ERR]', thumbErr?.message); }
           }
-          if (!(await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height, thumbUrl))) failed++;
+          if (!(await doSend('', url, isVid ? 'video' : 'image', pendingViewLimitRef.current ? null : imgBase64, null, asset.width, asset.height, thumbUrl))) failed++;
         } catch (error) { failed++; failureReason = error instanceof Error ? error.message : ''; }
       }
     } finally { mediaSending.current = false; setUploadingMedia(false); pendingViewLimitRef.current = null; }
@@ -1716,6 +1712,7 @@ const pickAndSendDocument = useCallback(async () => {
               {sender?.full_name || msg.sender_name || 'Member'}
             </Text>
           )}
+          {(() => { const card = parseChatAttachmentCard(msg.media_url); return card ? <View style={{padding:12,borderWidth:1,borderColor:t.surface.hairline,borderRadius:12,backgroundColor:t.surface.raised}}><Text style={{color:t.ink.primary,fontWeight:'700'}}>{attachmentCardText(card)}</Text>{attachmentCardLinks(card).map(link=><TouchableOpacity key={link.url} accessibilityRole="link" onPress={()=>{void Linking.openURL(link.url).catch(()=>Alert.alert('Could not open','No compatible app is available.'));}} style={{paddingVertical:10}}><Text style={{color:t.status.link}}>{link.label}</Text></TouchableOpacity>)}</View> : null; })()}
           {msg.shared_post_id && (
             <View style={{ marginBottom: 4 }}>
               <SharedPostCard post={sharedPost ? { id: msg.shared_post_id, content: sharedPost.content, author: sharedPost.author, media: sharedPost.media } : null} width={232} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onAuthorPress={sharedPost?.author?.id ? () => navigation.navigate('UserProfile' as never, { userId: sharedPost.author.id } as never) : undefined} />
@@ -1749,7 +1746,7 @@ const pickAndSendDocument = useCallback(async () => {
               isSticker && { backgroundColor: 'transparent', borderWidth: 0, shadowOpacity: 0, elevation: 0, padding: 0 },
                 !endsGroup && s.bubbleInRun,
             ]}>
-{(msg as any).view_limit && msg.media_type === 'image' ? (
+{(msg as any).view_limit && (msg.media_type === 'image' || msg.media_type === 'video') ? (
                 <TouchableOpacity
                   disabled={isMe || viewedOutIds.has(msg.id)}
                   onPress={() => openSealedMedia(msg)}
@@ -1757,15 +1754,15 @@ const pickAndSendDocument = useCallback(async () => {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4, paddingVertical: 2 }}>
                   <View style={{
                     width: 34, height: 34, borderRadius: 17, borderWidth: 1.5,
-                    borderColor: isMe ? 'rgba(255,255,255,0.55)' : 'rgba(11,30,61,0.35)',
+                    borderColor: isMe ? 'rgba(255,255,255,0.55)' : t.ink.muted,
                     alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: isMe ? 'rgba(255,255,255,0.85)' : 'rgba(11,30,61,0.7)' }}>{(msg as any).view_limit}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: isMe ? 'rgba(255,255,255,0.85)' : t.ink.secondary }}>{(msg as any).view_limit}</Text>
                   </View>
-                  <Text style={{ fontSize: 14.5, fontWeight: '600', fontStyle: viewedOutIds.has(msg.id) ? 'italic' : 'normal', color: isMe ? 'rgba(255,255,255,0.9)' : 'rgba(11,30,61,0.8)' }}>
-                    {isMe ? ((msg as any).view_limit === 1 ? 'View once photo' : 'View twice photo')
+                  <Text style={{ fontSize: 14.5, fontWeight: '600', fontStyle: viewedOutIds.has(msg.id) ? 'italic' : 'normal', color: isMe ? 'rgba(255,255,255,0.9)' : t.ink.primary }}>
+                    {isMe ? `${msg.view_limit === 1 ? 'View once' : 'View twice'} ${msg.media_type === 'video' ? 'video' : 'photo'}`
                       : viewedOutIds.has(msg.id) ? 'Opened'
-                      : 'Photo · tap to view'}
+                      : `${msg.media_type === 'video' ? 'Video' : 'Photo'} · tap to view`}
                   </Text>
                 </TouchableOpacity>
               ) : null}
@@ -1791,7 +1788,7 @@ const pickAndSendDocument = useCallback(async () => {
                 />
               ) : null}
               {(msg.payment_id || msg.media_type === 'payment') && msg.payment_receipt_verified !== true ? (
-                <Text style={{ color: isMe ? '#FFFFFF' : '#0B1E3D', fontSize: 12 }}>This message is not a verified payment receipt.</Text>
+                <Text style={{ color: isMe ? '#FFFFFF' : t.ink.primary, fontSize: 12 }}>This message is not a verified payment receipt.</Text>
               ) : null}
               {msg.media_type === 'offer' && msg.media_url ? (() => {
                 let j: any = null; try { j = JSON.parse(msg.media_url); } catch {}
@@ -1801,14 +1798,14 @@ const pickAndSendDocument = useCallback(async () => {
                 const myTurn = status === 'pending' && (live?.proposer_id ?? msg.sender_id) !== currentUserId;
                 const statusColor = status === 'accepted' ? '#059669' : status === 'pending' ? '#B08D3F' : 'rgba(11,30,61,0.45)';
                 return (
-                  <View style={{ minWidth: 200, borderRadius: 14, overflow: 'hidden', backgroundColor: isMe ? 'rgba(255,255,255,0.12)' : 'rgba(11,30,61,0.045)', borderWidth: 1, borderColor: isMe ? 'rgba(255,255,255,0.25)' : 'rgba(11,30,61,0.1)' }}>
+                  <View style={{ minWidth: 200, borderRadius: 14, overflow: 'hidden', backgroundColor: isMe ? 'rgba(255,255,255,0.12)' : t.surface.raised, borderWidth: 1, borderColor: isMe ? 'rgba(255,255,255,0.25)' : t.surface.hairline }}>
                     <View style={{ padding: 12 }}>
-                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: isMe ? 'rgba(255,255,255,0.7)' : 'rgba(11,30,61,0.5)' }}>{j.counter_of ? 'COUNTER-OFFER' : 'OFFER'} · {String(j.listing_title || '').slice(0, 28)}</Text>
-                      <Text style={{ fontSize: 21, fontWeight: '800', marginTop: 3, color: isMe ? '#FFFFFF' : '#0B1E3D' }}>{j.currency} {j.amount}</Text>
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: isMe ? 'rgba(255,255,255,0.7)' : t.ink.secondary }}>{j.counter_of ? 'COUNTER-OFFER' : 'OFFER'} · {String(j.listing_title || '').slice(0, 28)}</Text>
+                      <Text style={{ fontSize: 21, fontWeight: '800', marginTop: 3, color: isMe ? '#FFFFFF' : t.ink.primary }}>{j.currency} {j.amount}</Text>
                       <Text style={{ fontSize: 12, fontWeight: '700', marginTop: 3, color: statusColor }}>{status.toUpperCase()}</Text>
                     </View>
                     {myTurn && (
-                      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: isMe ? 'rgba(255,255,255,0.2)' : 'rgba(11,30,61,0.08)' }}>
+                      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: isMe ? 'rgba(255,255,255,0.2)' : t.surface.hairline }}>
                         <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center' }} onPress={() => respondOffer(j.offer_id, 'accepted')}>
                           <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#059669' }}>Accept</Text>
                         </TouchableOpacity>
@@ -1829,12 +1826,12 @@ const pickAndSendDocument = useCallback(async () => {
                 <VoiceNote
                   uri={msg.media_url}
                   durationSec={msg.media_width ?? null}
-                  tint={isMe ? '#FFFFFF' : NAVY}
-                  dim={isMe ? 'rgba(255,255,255,0.45)' : 'rgba(11,30,61,0.28)'}
-                  onTint={isMe ? NAVY : '#FFFFFF'}
+                  tint={isMe ? '#FFFFFF' : t.ink.primary}
+                  dim={isMe ? 'rgba(255,255,255,0.45)' : t.ink.muted}
+                  onTint={isMe ? NAVY : t.surface.canvas}
                 />
               ) : null}
-              {msg.media_type === 'video' && msg.media_url ? (
+              {msg.media_type === 'video' && msg.media_url && !msg.view_limit ? (
                 <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_MAX_W, height: MSG_VID_H }]}
                   activeOpacity={0.85} onPress={() => setFullscreenVideo(msg.media_url!)}
                   onLongPress={() => setSelectedMsg(msg)}>
@@ -1848,7 +1845,7 @@ const pickAndSendDocument = useCallback(async () => {
                 <TouchableOpacity style={s.docBubble} activeOpacity={0.8}
                   onPress={() => { if (msg.media_url) Linking.openURL(msg.media_url); }}>
                   <View style={[s.docIconBg, isMe && s.docIconBgMe]}>
-                    <Feather name="file-text" size={20} color={isMe ? '#FFF' : NAVY} />
+                    <Feather name="file-text" size={20} color={isMe ? '#FFF' : t.ink.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[s.docName, isMe && s.docNameMe]} numberOfLines={2}>
@@ -2282,6 +2279,8 @@ const pickAndSendDocument = useCallback(async () => {
                   { iconName: 'image', label: 'Gallery', action: pickAndSendMedia },
                   { iconName: 'film', label: 'GIFs', action: () => { setShowToolbar(false); setShowGifs(true); } },
                   { iconName: 'file-text', label: 'Files', action: pickAndSendDocument },
+                  { iconName: 'user', label: 'Contact', action: () => { setShowToolbar(false); setShareDetails('contact'); } },
+                  { iconName: 'map-pin', label: 'Location', action: () => { setShowToolbar(false); setShareDetails('location'); } },
                   { iconName: 'info', label: 'Info', action: () => { setShowToolbar(false); setShowInfoModal(true); } },
                 ].map(btn => (
                   <TouchableOpacity key={btn.label} style={s.toolbarBtn} onPress={btn.action} activeOpacity={0.7}>
@@ -2733,6 +2732,12 @@ const pickAndSendDocument = useCallback(async () => {
         </Pressable>
       </Modal>
 
+      {shareDetails && <ShareDetailsSheet key={voiceScope} kind={shareDetails} onClose={()=>setShareDetails(null)} onSend={async card=>{
+        const scope=voiceScope; if(voiceScopeRef.current!==scope)return false;
+        return doSend(attachmentCardText(card),JSON.stringify(card),'link');
+      }}/>}
+      {privateMedia && <PrivateMediaViewer messageId={privateMedia.id} userId={privateMedia.userId}
+        onClose={() => setPrivateMedia(null)} onConsumed={remaining => { if (remaining <= 0) setViewedOutIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       <Modal visible={!!fullscreenImg} transparent animationType="fade" onRequestClose={() => setFullscreenImg(null)}>
         <View style={s.fullscreenRoot}>
           <TouchableOpacity style={s.fullscreenClose} onPress={() => setFullscreenImg(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>

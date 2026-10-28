@@ -48,6 +48,11 @@ BEGIN
   END IF;
  END LOOP;
  IF NEW.view_limit IS NOT NULL THEN
+  loc:=public.chat_object_path(NEW.media_url);
+  IF EXISTS(SELECT 1 FROM public.messages m WHERE public.chat_object_path(m.media_url)=loc OR public.chat_object_path(m.thumbnail_url)=loc)
+   OR EXISTS(SELECT 1 FROM public.channel_messages WHERE public.chat_object_path(media_url)=loc)
+   OR EXISTS(SELECT 1 FROM public.conversations WHERE public.chat_object_path(group_avatar_url)=loc)
+   OR EXISTS(SELECT 1 FROM public.job_applications WHERE public.chat_object_path(cv_url)=loc) THEN RAISE EXCEPTION 'PRIVATE_REQUIRES_NEW_UPLOAD';END IF;
   IF NEW.view_limit NOT IN(1,2) OR NEW.media_type NOT IN('image','video') OR NEW.thumbnail_url IS NOT NULL OR NEW.forwarded_from_id IS NOT NULL THEN RAISE EXCEPTION 'INVALID_PRIVATE_ATTACHMENT';END IF;
   NEW.private_expires_at:=now()+interval '7 days';
  ELSE NEW.private_expires_at:=NULL;END IF;

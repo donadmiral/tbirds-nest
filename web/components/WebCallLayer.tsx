@@ -87,8 +87,7 @@ export function WebCallLayer() {
     setActiveCall(null); setConnecting(false); setReconnecting(false); setCallError(null);
     // Record and send closure independently of a stalled media teardown.
     const closing = session && account && (record || session.is_group_call) ? closeSession(session, account) : Promise.resolve(true);
-    const [, closed] = await Promise.all([teardownFrame(), closing]);
-    unlockMedia(release);
+    const [, closed] = await Promise.all([teardownFrame().finally(() => unlockMedia(release)), closing]);
     if (!closed && live.current && uidRef.current === account && generation.current === operation) {
       setCallError(CLOSE_PENDING);
     }

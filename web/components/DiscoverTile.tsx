@@ -81,7 +81,7 @@ export function DiscoverTile({ post, onHide, onOpen }: { post: FeedRow; onHide?:
         className="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20"
       >
         <span className="relative block aspect-square w-full overflow-hidden bg-surface">
-          {isVideo ? (
+          {(first as any).is_sensitive || (first as any).edit?.sensitive ? <span className="flex h-full items-center justify-center gap-2 text-muted"><EyeOff size={20}/>Sensitive content</span> : isVideo ? (
             <>
               <video src={first.url} poster={(first as any).edit?.coverUrl||undefined} muted playsInline preload="metadata" className="h-full w-full object-cover" />
               <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white">

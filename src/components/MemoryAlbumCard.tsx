@@ -11,11 +11,11 @@ export const COVER_COLORS = MEMORY_COVER_COLORS;
 export default function MemoryAlbumCard({ownerId,navigation}:{ownerId?:string|null;navigation:any}) {
  const {t}=useTheme();
  const [data,setData]=useState<any>(null),[error,setError]=useState(''),[creating,setCreating]=useState(false),[title,setTitle]=useState(''),[color,setColor]=useState('blush'),[design,setDesign]=useState('keepsake'),[busy,setBusy]=useState(false);
- const epoch=useRef(0),saving=useRef(false);
+ const epoch=useRef(0),saving=useRef(false),viewer=useRef<string|null|undefined>(undefined);
  const refresh=useCallback(async()=>{const id=++epoch.current;setData(null);setError('');if(!ownerId)return;try{const {data:result,error:e}=await supabase.rpc('get_memory_albums',{p_owner:ownerId});if(e)throw e;if(id===epoch.current)setData(result);}catch{if(id===epoch.current)setError('Memory books could not load. Tap to retry.');}},[ownerId]);
  useFocusEffect(useCallback(()=>{void refresh();return()=>{epoch.current++;};},[refresh]));
- useEffect(()=>{const {data:{subscription}}=supabase.auth.onAuthStateChange(()=>{epoch.current++;setData(null);setCreating(false);void refresh();});return()=>subscription.unsubscribe();},[refresh]);
- const create=async()=>{if(!title.trim()||saving.current)return;saving.current=true;setBusy(true);setError('');const id=epoch.current;try{const {data:book,error:e}=await supabase.rpc('create_memory_book_design',{p_title:title.trim(),p_cover_color:color,p_cover_design:design});if(e||!book)throw e||Error();if(id!==epoch.current)return;setCreating(false);setTitle('');void refresh();navigation.navigate('MemoryAlbum',{ownerId,albumId:book});}catch{if(id===epoch.current)setError('Could not create the book. Your choices are kept.');}finally{saving.current=false;setBusy(false);}};
+ useEffect(()=>{const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(viewer.current===next)return;viewer.current=next;epoch.current++;setData(null);setCreating(false);void refresh();});return()=>subscription.unsubscribe();},[refresh]);
+ const create=async()=>{if(!title.trim()||saving.current)return;saving.current=true;setBusy(true);setError('');const id=epoch.current;try{const {data:session}=await supabase.auth.getSession();if(session.session?.user.id!==ownerId)throw Error();const {data:book,error:e}=await supabase.rpc('create_memory_book_design',{p_title:title.trim(),p_cover_color:color,p_cover_design:design});if(e||!book)throw e||Error();if(id!==epoch.current)return;setCreating(false);setTitle('');void refresh();navigation.navigate('MemoryAlbum',{ownerId,albumId:book});}catch{if(id===epoch.current)setError('Could not create the book. Your choices are kept.');}finally{saving.current=false;setBusy(false);}};
  if(!ownerId)return null;
  const books=(data?.books??[]).filter((b:any)=>data.is_owner||b.count>0);
  if(!data&&!error)return null;

@@ -4,7 +4,7 @@ import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated,
+  AppState, View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated,
   PanResponder, ActivityIndicator, Alert, StatusBar, Modal, FlatList,
   Platform, TextInput, Keyboard, LayoutChangeEvent , KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -41,6 +41,7 @@ import IdentityPresence from '../../components/stories/IdentityPresence';
 import MemoryCaption from '../../components/stories/MemoryCaption';
 import StoryProgressBar from '../../components/stories/StoryProgressBar';
 import { FilterLayer } from '../../components/stories/StoryFilters';
+import { useCallContext } from '../../contexts/CallContext';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { DrawingLayer } from '../../components/stories/DrawLayer';
 import { BackgroundLayer, AdjustLayer } from '../../components/stories/storyPanels';
@@ -93,7 +94,7 @@ const SPLIT_GAP = 4;
 type DualLayoutMode = 'pip_front_small' | 'pip_rear_small' | 'split_vertical' | 'split_horizontal' | 'floating_bubble';
 type ParsedDualLayout = { nx: number; ny: number; scale: number; primaryCamera: 'rear' | 'front'; mode: DualLayoutMode };
 
-type RouteParams = { userIds?: string[]; startUserId?: string; startStoryId?: string; userId?: string; highlightId?: string; highlightTitle?: string };
+type RouteParams = { userIds?: string[]; startUserId?: string; startStoryId?: string; storyId?: string; userId?: string; highlightId?: string; highlightTitle?: string };
 type HoldoverMedia = { url: string; type: 'image' | 'video'; transform: { scale: number; translateNX: number; translateNY: number; fit: 'cover' | 'contain' } | null } | null;
 
 type EngagementState = { responses: Record<string, any>; counts: Record<string, number>; averages: Record<string, number>; quizCounts: Record<string, Record<string, number>> };
@@ -153,6 +154,9 @@ export default function StoryViewerScreen() {
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
+  const { callState } = useCallContext();
+  const [appActive, setAppActive] = useState(AppState.currentState === 'active');
+  useEffect(() => { const subscription = AppState.addEventListener('change', state => setAppActive(state === 'active')); return () => subscription.remove(); }, []);
   const myId = profile?.id ?? null;
   const viewerRef = useRef(myId); viewerRef.current = myId;
   const loadGeneration = useRef(0);
@@ -161,14 +165,27 @@ export default function StoryViewerScreen() {
   const [engagementRetry, setEngagementRetry] = useState(0);
 
   const params = route.params as RouteParams;
+  const [linkedStory, setLinkedStory] = useState<{ id: string; viewer: string; owner: string } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!params?.storyId || !myId) return;
+    const id = params.storyId, viewer = myId;
+    setLinkedStory(null);
+    void storiesService.getStoryOwner(id).then(owner => { if (!cancelled) setLinkedStory({ id, viewer, owner }); }, () => {
+      if (!cancelled) Alert.alert('Story unavailable', 'This story has expired or is not shared with you.', [{ text: 'Close', onPress: () => navigation.goBack() }]);
+    });
+    return () => { cancelled = true; };
+  }, [params?.storyId, myId, navigation]);
+  const linkedOwner = linkedStory?.id === params?.storyId && linkedStory?.viewer === myId ? linkedStory?.owner : null;
   // Accept both shapes: the strip sends { userIds, startUserId }; profile and
   // feed rings send a single { userId }.
   const userIds = useMemo(() => {
+    if (params?.storyId) return linkedOwner ? [linkedOwner] : [];
     if (params?.userIds && params.userIds.length > 0) return params.userIds;
     return params?.userId ? [params.userId] : [];
-  }, [params?.userIds, params?.userId]);
+  }, [params?.userIds, params?.userId, params?.storyId, linkedOwner]);
   const startUserId = params?.startUserId || params?.userId;
-  const startStoryId = params?.startStoryId;
+  const startStoryId = params?.storyId || params?.startStoryId;
   const sessionKey = useMemo(() => `${myId ?? ''}:${userIds.join('|')}`, [userIds, myId]);
 
   const resumePosition = useMemo(() => {
@@ -187,6 +204,8 @@ export default function StoryViewerScreen() {
   const [storyUser, setStoryUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
+  const playbackBlockedRef = useRef(false);
+  playbackBlockedRef.current = paused || !appActive || !['idle', 'ended'].includes(callState);
   const [mediaReady, setMediaReady] = useState(false);
   const [clockSec, setClockSec] = useState<number | null>(null);
   const [mediaError, setMediaError] = useState(false);
@@ -305,7 +324,7 @@ export default function StoryViewerScreen() {
   const isVideo = currentStory?.media_type === 'video';
   const isText = currentStory?.media_type === 'text';
   const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; } });
-  useEffect(() => { const u = isVideo && !isText ? currentStory?.media_url : null; if (!u) return; const p: any = videoPlayer; let sub: any = null; let alive = true; let timer: ReturnType<typeof setTimeout> | undefined; try { if (p?.replaceAsync) void Promise.resolve(p.replaceAsync(u)).catch(() => { if (alive) setMediaError(true); }); else p?.replace?.(u); sub = p?.addListener?.('statusChange', (s2: any) => { if (!alive) return; const stt = s2?.status ?? s2; if (stt === 'error' || s2?.error) setMediaError(true); if (stt === 'readyToPlay') { try { const mtx: any = (storiesRef.current[storyIndexRef.current] as any)?.media_transform; const t0 = Number(mtx?.trimStart) || 0; if (t0 > 0.05) { try { p.currentTime = t0; } catch {} } const ov = mtx?.mix?.orig; const vol = typeof ov === 'number' ? Math.max(0, Math.min(1, ov / 100)) : 1; try { p.muted = vol <= 0.001; p.volume = vol; } catch {} try { p.playbackRate = Number(mtx?.speed) || 1; } catch {} } catch {} try { p?.play?.(); } catch {} } }); timer = setTimeout(() => { if (alive) { try { p?.play?.(); } catch {} } }, 60); } catch { if (alive) setMediaError(true); } return () => { alive = false; if (timer) clearTimeout(timer); try { sub?.remove?.(); } catch {} }; }, [isVideo, isText, currentStory?.media_url, videoPlayer]);
+  useEffect(() => { const u = isVideo && !isText ? currentStory?.media_url : null; if (!u) return; const p: any = videoPlayer; let sub: any = null; let alive = true; let timer: ReturnType<typeof setTimeout> | undefined; try { if (p?.replaceAsync) void Promise.resolve(p.replaceAsync(u)).catch(() => { if (alive) setMediaError(true); }); else p?.replace?.(u); sub = p?.addListener?.('statusChange', (s2: any) => { if (!alive) return; const stt = s2?.status ?? s2; if (stt === 'error' || s2?.error) setMediaError(true); if (stt === 'readyToPlay') { try { const mtx: any = (storiesRef.current[storyIndexRef.current] as any)?.media_transform; const t0 = Number(mtx?.trimStart) || 0; if (t0 > 0.05) { try { p.currentTime = t0; } catch {} } const ov = mtx?.mix?.orig; const vol = typeof ov === 'number' ? Math.max(0, Math.min(1, ov / 100)) : 1; try { p.muted = vol <= 0.001; p.volume = vol; } catch {} try { p.playbackRate = Number(mtx?.speed) || 1; } catch {} } catch {} try { if (!playbackBlockedRef.current) p?.play?.(); } catch {} } }); timer = setTimeout(() => { if (alive) { try { if (!playbackBlockedRef.current) p?.play?.(); } catch {} } }, 60); } catch { if (alive) setMediaError(true); } return () => { alive = false; if (timer) clearTimeout(timer); try { sub?.remove?.(); } catch {} }; }, [isVideo, isText, currentStory?.media_url, videoPlayer]);
   // Dual viewer swap state (viewer-only, does not persist)
   const [dualSwapped, setDualSwapped] = useState(false);
   const dualSwapOpacity = useSharedValue(1);
@@ -385,7 +404,7 @@ export default function StoryViewerScreen() {
 
   useEffect(() => { const prefetchStory = (story: StoryRow | undefined) => { if (story && story.media_type !== 'image' && (story as any).thumbnail_url) { const poster = (story as any).thumbnail_url as string; if (preloadStatus.current.get(poster) !== 'done') { preloadStatus.current.set(poster, 'pending'); ExpoImage.prefetch(poster).then((ok: any) => { preloadStatus.current.set(poster, ok === false ? 'failed' : 'done'); }).catch(() => { preloadStatus.current.set(poster, 'failed'); }); } } if (story && story.media_type === 'image' && story.media_url) { const url = story.media_url; if (preloadStatus.current.get(url) === 'done') return; preloadStatus.current.set(url, 'pending'); ExpoImage.prefetch(url).then((ok: any) => { preloadStatus.current.set(url, ok === false ? 'failed' : 'done'); }).catch(() => { preloadStatus.current.set(url, 'failed'); }); } }; prefetchStory(stories[storyIndex + 1]); prefetchStory(stories[storyIndex + 2]); }, [storyIndex, stories]);
 
-  useEffect(() => { setPickerOpen(false); setReactionToast(null); setReplyMode(false); setReplyText(''); setPoll(null); pollLayoutRef.current = null; reactionBusyRef.current = new Set(); pauseStackRef.current.clear(); chromeOpacity.value = 1; if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } startChromeIdle(); if (!currentStory || !myId || currentStory.user_id === myId) { const empty = new Set<string>(); setMyReactions(empty); myReactionsRef.current = empty; return; } let cancelled = false; storiesService.getMyReactions(currentStory.id).then(emojis => { if (!cancelled) { const loaded = new Set(emojis); setMyReactions(loaded); myReactionsRef.current = loaded; } }); return () => { cancelled = true; }; }, [currentStory?.id, myId]);
+  useEffect(() => { setPickerOpen(false); setReactionToast(null); setReplyMode(false); setReplyText(''); setPoll(null); pollLayoutRef.current = null; reactionBusyRef.current = new Set(); pauseStackRef.current.clear(); if (!appActive || !['idle', 'ended'].includes(callState)) pauseStackRef.current.add('system'); setPaused(pauseStackRef.current.size > 0); chromeOpacity.value = 1; if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } startChromeIdle(); if (!currentStory || !myId || currentStory.user_id === myId) { const empty = new Set<string>(); setMyReactions(empty); myReactionsRef.current = empty; return; } let cancelled = false; storiesService.getMyReactions(currentStory.id).then(emojis => { if (!cancelled) { const loaded = new Set(emojis); setMyReactions(loaded); myReactionsRef.current = loaded; } }); return () => { cancelled = true; }; }, [currentStory?.id, myId]);
 
   useEffect(() => { if (!currentStory) return; let cancelled = false; storiesService.getStoryPoll(currentStory.id).then(data => { if (!cancelled) setPoll(data); }).catch((e) => { console.log('[StoryPoll.load]', e); }); return () => { cancelled = true; }; }, [currentStory?.id]);
 
@@ -412,6 +431,20 @@ export default function StoryViewerScreen() {
   useEffect(() => { if (!currentStory) return; if (myId && currentStory.user_id !== myId) { storiesService.markViewed(currentStory.id); } }, [currentStory?.id, myId]);
   const storyAudioUrl = currentStory ? ((currentStory as any).audio_url as string | null) || null : null;
   const musicVol = (() => { try { const m: any = (currentStory as any)?.media_transform?.mix; const v = typeof m?.music === 'number' ? m.music : 100; return Math.max(0, Math.min(1, v / 100)); } catch { return 1; } })();
+  useEffect(() => {
+    if (!appActive || !['idle', 'ended'].includes(callState)) pauseFor('system');
+    else resumeFrom('system');
+  }, [appActive, callState, currentStory?.id, pauseFor, resumeFrom]);
+  useEffect(() => {
+    if (params?.highlightId || !currentStory?.expires_at) return;
+    const remaining = Date.parse(currentStory.expires_at) - Date.now();
+    if (!Number.isFinite(remaining)) return;
+    const expire = () => { pauseFor('expired'); setStories([]); };
+    if (remaining <= 0) { expire(); return; }
+    const timer = setTimeout(expire, Math.min(remaining, 2147483647));
+    return () => clearTimeout(timer);
+  }, [currentStory?.id, currentStory?.expires_at, params?.highlightId, pauseFor]);
+
   const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, musicVol);
   useEffect(() => { if (storyAudio.error) setMediaError(true); }, [storyAudio.error]);
   // Creative engine: playback clock for timed stickers + trim-end guard
@@ -450,6 +483,21 @@ export default function StoryViewerScreen() {
   useEffect(() => { setMediaReady(false); setMediaError(false); if (progressSV.value < PROGRESS_SEED) { progressSV.value = PROGRESS_SEED; } if (mediaReadyTimeoutRef.current) clearTimeout(mediaReadyTimeoutRef.current); const cur = storiesRef.current[storyIndexRef.current]; if (cur && cur.media_type === 'text') { setMediaReady(true); return; } let timeoutMs = TIMEOUT_DEFAULT_MS; if (cur) { if (cur.media_type === 'video') { timeoutMs = TIMEOUT_VIDEO_MS; } else if (cur.media_url && preloadStatus.current.get(cur.media_url) === 'done') { timeoutMs = TIMEOUT_PRELOADED_MS; } } mediaReadyTimeoutRef.current = setTimeout(() => { setMediaReady(prev => { if (!prev) return true; return prev; }); mediaReadyTimeoutRef.current = null; }, timeoutMs); }, [storyIndex, userIndex, progressSV]);
 
   const pressStartTimestamp = useRef(0); const pressStartX = useRef(0); const longPressTimer = useRef<any>(null); const didLongPress = useRef(false); const didSwipe = useRef(false); const lastTapTime = useRef(0);
+
+  // Observe the whole surface without stealing sticker, slider or reply gestures.
+  const surfaceHold = useRef<{ timer: ReturnType<typeof setTimeout> | null; x: number; y: number }>({ timer: null, x: 0, y: 0 });
+  const endSurfaceHold = useCallback(() => {
+    if (surfaceHold.current.timer) clearTimeout(surfaceHold.current.timer);
+    surfaceHold.current.timer = null;
+    resumeFrom('surfaceHold');
+  }, [resumeFrom]);
+  const beginSurfaceHold = useCallback((event: any) => {
+    if (surfaceHold.current.timer) clearTimeout(surfaceHold.current.timer);
+    if ((event.nativeEvent.touches?.length ?? 1) !== 1) return;
+    surfaceHold.current.x = event.nativeEvent.pageX; surfaceHold.current.y = event.nativeEvent.pageY;
+    surfaceHold.current.timer = setTimeout(() => { surfaceHold.current.timer = null; pauseFor('surfaceHold'); }, LONG_PRESS_MS);
+  }, [pauseFor]);
+  useEffect(() => () => { if (surfaceHold.current.timer) clearTimeout(surfaceHold.current.timer); }, []);
 
   const panResponder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: (e) => { const tc = e.nativeEvent.touches?.length ?? 1; if (tc >= 2) return true; const touchY = e.nativeEvent.pageY; const touchX = e.nativeEvent.pageX; if (touchY > SCREEN_H - BOTTOM_CONTROLS_HEIGHT - insets.bottom) return false; const pl = pollLayoutRef.current; const currentPoll = pollRef.current; if (pl && touchX >= pl.left && touchX <= pl.right && touchY >= pl.top && touchY <= pl.bottom) return false; if (!pl && currentPoll) { const estTop = Math.max(insets.top + 90, Math.min(currentPoll.ny * SCREEN_H - 100, SCREEN_H - 360)); const estLeft = (currentPoll.nx * SCREEN_W) - (SCREEN_W * 0.4); if (touchX >= estLeft && touchX <= estLeft + SCREEN_W * 0.8 && touchY >= estTop && touchY <= estTop + 260) return false; } if (touchInStickerRects(touchX, touchY)) return false; return true; },
@@ -666,7 +714,9 @@ export default function StoryViewerScreen() {
   };
 
   return (
-    <Animated.View style={[s.root, { transform: [{ translateY }, { scale: translateY.interpolate({ inputRange: [-SCREEN_H * 0.3, 0, SCREEN_H], outputRange: [1, 1, 0.92], extrapolate: 'clamp' }) }] }]} {...panResponder.panHandlers}>
+    <Animated.View style={[s.root, { transform: [{ translateY }, { scale: translateY.interpolate({ inputRange: [-SCREEN_H * 0.3, 0, SCREEN_H], outputRange: [1, 1, 0.92], extrapolate: 'clamp' }) }] }]} {...panResponder.panHandlers}
+      onTouchStart={beginSurfaceHold} onTouchEnd={endSurfaceHold} onTouchCancel={endSurfaceHold}
+      onTouchMove={event => { if ((event.nativeEvent.touches?.length ?? 1) !== 1 || Math.hypot(event.nativeEvent.pageX - surfaceHold.current.x, event.nativeEvent.pageY - surfaceHold.current.y) > 12) endSurfaceHold(); }}>
       <StatusBar hidden />
       <ReAnimated.View style={[{ flex: 1 }, tapScaleStyle]}>
       <Animated.View style={{ flex: 1, transform: [{ scale: contentScale }] }}>
@@ -691,7 +741,7 @@ export default function StoryViewerScreen() {
         <DrawingLayer strokes={(((stickers.find(sx => (sx as any).kind === 'drawing') as any)?.strokes) || null) as any} width={mediaSize.w} height={mediaSize.h} zIndex={3} />
         {renderPipDual()}
         {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><TouchableOpacity accessibilityRole="button" onPress={() => { storyAudio.retry(); void loadForCurrentUser(); }}><Text style={{ color: '#FFFFFF', fontSize: 14, marginTop: 14 }}>Media unavailable. Tap to retry.</Text></TouchableOpacity></View>)}
-        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { saveAndGoBack(); setTimeout(() => navigation.navigate('Search' as never, { query: '#' + tag } as never), 280); }} onMentionTap={(userId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId }); }} onPostTap={(postId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId }); }} onPostProfileTap={(uid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: uid }); }} onStoryTap={(uid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('StoryViewer', { userId: uid }); }} onPostHoldStart={() => pauseFor('cardHold')} onPostHoldEnd={() => resumeFrom('cardHold')} storyPaused={paused} clockSec={clockSec} onEntityTap={(st: any) => { const et = st?.entityType; const id = st?.entityId; if (!id) return; if (et === 'profile') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: id }); } else if (et === 'job') { pauseFor('deepnav'); supabase.from('jobs').select('*').eq('id', id).maybeSingle().then(({ data }) => { if (!data) { resumeFrom('deepnav'); return; } const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('JobDetail', { job: data }); }); } else if (et === 'article') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId: id }); } else if (et === 'listing') { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('ListingDetail', { listingId: id }), 280); } }} onStickerLayout={(id: string, r: any) => { measuredStickerRectsRef.current[id] = r; }} engagementProps={engagementProps} />
+        <StickerOverlay stickers={stickers} containerW={mediaSize.w} containerH={mediaSize.h} onHashtagTap={(tag) => { saveAndGoBack(); setTimeout(() => navigation.navigate('Search' as never, { query: '#' + tag } as never), 280); }} onMentionTap={(userId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId }); }} onPostTap={(postId) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId }); }} onPostProfileTap={(uid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: uid }); }} onStoryTap={(uid: string, sid: string) => { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('StoryViewer', { userId: uid, startStoryId: sid }); }} onPostHoldStart={() => pauseFor('cardHold')} onPostHoldEnd={() => resumeFrom('cardHold')} storyPaused={paused} clockSec={clockSec} onEntityTap={(st: any) => { const et = st?.entityType; const id = st?.entityId; if (!id) return; if (et === 'profile') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('UserProfileTop', { userId: id }); } else if (et === 'job') { pauseFor('deepnav'); supabase.from('jobs').select('*').eq('id', id).maybeSingle().then(({ data }) => { if (!data) { resumeFrom('deepnav'); return; } const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('JobDetail', { job: data }); }); } else if (et === 'article') { pauseFor('deepnav'); const un = (navigation as any).addListener('focus', () => { un(); resumeFrom('deepnav'); }); (navigation as any).push('PostTop', { postId: id }); } else if (et === 'listing') { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('ListingDetail', { listingId: id }), 280); } }} onStickerLayout={(id: string, r: any) => { measuredStickerRectsRef.current[id] = r; }} engagementProps={engagementProps} />
       </Animated.View>{/* wrap */}
       </Animated.View>
       </ReAnimated.View>

@@ -467,8 +467,8 @@ export async function uploadAndCreateStory(params: {
     jobs.push(async () => { audioFinalUrl = (await uploadAsset('voiceover', audio.localUri!, 'audio')).url; });
   } else if (audio?.kind === 'sound') {
     if (!audio.soundId) throw new Error('Choose an available sound from the sound library.');
-    const { data: sound, error } = await supabase.from('story_sounds').select('id,title,url,source,duration_sec,rights_status')
-      .eq('id', audio.soundId).in('rights_status', ['creator_attested', 'licensed']).maybeSingle();
+    const { data: sounds, error } = await supabase.rpc('get_playable_sound', { p_sound_id: audio.soundId, p_use: 'story' });
+    const sound = sounds?.[0];
     if (error || !sound) throw new Error('This sound is no longer available for reuse. Choose another sound.');
     audioFinalUrl = sound.url;
     audioMeta = { title: sound.title, source: sound.source, durationSec: sound.duration_sec };
@@ -580,7 +580,8 @@ export const storiesService = {
   uploadAndCreateStory,
 
   async getStorySound(id: string): Promise<StorySound> {
-    const { data, error } = await supabase.from('story_sounds').select('*').eq('id', id).in('rights_status', ['creator_attested', 'licensed']).maybeSingle();
+    const { data: sounds, error } = await supabase.rpc('get_playable_sound', { p_sound_id: id, p_use: 'story' });
+    const data = sounds?.[0];
     if (error || !data) throw new Error('This sound is no longer available. Choose another sound.');
     const [sound] = await hydrateSoundMedia([data as StorySound]);
     if (!sound.url) throw new Error('This sound could not load. Please retry.');
@@ -588,15 +589,9 @@ export const storiesService = {
   },
 
   async listStorySounds(source: 'original' | 'library', limit = 50): Promise<StorySound[]> {
-    const { data, error } = await supabase
-      .from('story_sounds')
-      .select('*')
-      .eq('source', source)
-      .in('rights_status', ['creator_attested', 'licensed'])
-      .order(source === 'original' ? 'use_count' : 'created_at', { ascending: false })
-      .limit(Math.min(100, Math.max(1, Math.trunc(limit) || 50)));
+    const { data, error } = await supabase.rpc('list_playable_sounds', { p_use: 'story', p_limit: Math.min(100, Math.max(1, Math.trunc(limit) || 50)), p_query: '' });
     if (error) throw new Error('Sounds could not be loaded. Please try again.');
-    return hydrateSoundMedia((data || []) as StorySound[]);
+    return hydrateSoundMedia(((data || []) as StorySound[]).filter(sound => sound.source === source));
   },
 
   async getCatchupFeed(mode: CatchupMode = 'all', limit = 30): Promise<CatchupUser[]> {
@@ -609,6 +604,14 @@ export const storiesService = {
       return [];
     }
     return (data || []) as CatchupUser[];
+  },
+
+  async getStoryOwner(storyId: string): Promise<string> {
+    const { data: allowed, error: permissionError } = await supabase.rpc('viewer_can_see_story', { p_story_id: storyId });
+    if (permissionError || allowed !== true) throw new Error('This story is no longer available.');
+    const { data, error } = await supabase.from('stories').select('user_id,expires_at').eq('id', storyId).maybeSingle();
+    if (error || !data || !data.expires_at || Date.parse(data.expires_at) <= Date.now()) throw new Error('This story is no longer available.');
+    return data.user_id;
   },
 
   async getUserStories(userId: string): Promise<StoryRow[]> {

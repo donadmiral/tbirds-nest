@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {ActivityIndicator,Modal,ScrollView,Text,TextInput,TouchableOpacity,View} from 'react-native';
-import Slider from '@react-native-community/slider';
+import {MiniSlider} from './stories/storyPanels';
 import {useTheme} from '../theme/useTheme';
 import {useSafeAreaInsets} from './SafeArea';
 import {getSoundtrack,listSoundtracks} from '../services/soundtrackService';
@@ -12,9 +12,9 @@ export default function SoundtrackPicker({visible,value,use='post',onChange,onCl
  const preview=useSoundtrackPlayer({selection:selected,use,active:visible&&playing});
  useEffect(()=>{if(visible){setSelected(value);setPlaying(false);setQuery('');setTrack(null);}},[visible]);
  useEffect(()=>{if(!visible)return;let live=true;setLoading(true);setError(null);const timer=setTimeout(()=>void listSoundtracks(use,query).then(v=>{if(live)setRows(v);}).catch(()=>{if(live)setError('Music could not load. Tap to retry.');}).finally(()=>{if(live)setLoading(false);}),180);return()=>{live=false;clearTimeout(timer);};},[visible,use,query,attempt]);
- useEffect(()=>{if(!visible||!selected){setTrack(null);return;}let live=true;void getSoundtrack(selected.soundId,use).then(v=>{if(live)setTrack(v);}).catch(()=>{if(live){setTrack(null);setError('This sound is no longer available.');}});return()=>{live=false;};},[visible,use,selected?.soundId]);
+ useEffect(()=>{if(!visible||!selected){setTrack(null);return;}let live=true;void getSoundtrack(selected.soundId,use).then(v=>{if(live){setTrack(v);setError(null);}}).catch(()=>{if(live){setTrack(null);setError('This sound is no longer available.');}});return()=>{live=false;};},[visible,use,selected?.soundId]);
  const change=(key:keyof SoundtrackSelection,n:number)=>{if(selected&&track)setSelected(constrainSoundtrack({...selected,[key]:n},track));};
- const slider=(label:string,key:keyof SoundtrackSelection,min:number,max:number,step:number)=>selected?<View style={{gap:3}}><Text style={{color:t.ink.secondary}}>{label}: {Number(selected[key]).toFixed(step===1?0:1)}</Text><Slider accessibilityLabel={label} minimumValue={min} maximumValue={Math.max(min,max)} step={step} value={Number(selected[key])} onValueChange={n=>change(key,n)} minimumTrackTintColor={t.brand.warm}/></View>:null;
+ const slider=(label:string,key:keyof SoundtrackSelection,min:number,max:number,step:number)=>selected?<View style={{gap:3}}><Text style={{color:t.ink.secondary}}>{label}: {Number(selected[key]).toFixed(step===1?0:1)}</Text><View accessible accessibilityRole="adjustable" accessibilityLabel={label} accessibilityValue={{min,max,now:Number(selected[key])}} accessibilityActions={[{name:"increment"},{name:"decrement"}]} onAccessibilityAction={e=>change(key,Number(selected[key])+(e.nativeEvent.actionName==="increment"?step:-step))}><MiniSlider min={min/step} max={Math.max(min,max)/step} value={Number(selected[key])/step} onChange={n=>change(key,n*step)}/></View></View>:null;
  return <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}><View style={{flex:1,paddingTop:insets.top+16,paddingHorizontal:20,paddingBottom:insets.bottom+12,backgroundColor:t.surface.canvas}}>
   <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:18}}><TouchableOpacity onPress={onClose}><Text style={{color:t.ink.secondary,padding:10}}>Cancel</Text></TouchableOpacity><Text style={{fontSize:20,fontWeight:'700',color:t.ink.primary}}>Add music</Text><TouchableOpacity disabled={!!selected&&!track} onPress={()=>{onChange(selected);onClose();}}><Text style={{color:t.ink.primary,padding:10,fontWeight:'700'}}>Done</Text></TouchableOpacity></View>
   <TextInput value={query} onChangeText={setQuery} placeholder="Search songs or artists" placeholderTextColor={t.ink.muted} style={{padding:14,borderRadius:18,backgroundColor:t.surface.sunken,color:t.ink.primary,marginBottom:12}} accessibilityLabel="Search music"/>
