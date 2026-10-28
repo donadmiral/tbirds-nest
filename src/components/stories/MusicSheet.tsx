@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList, ActivityIndicator, StyleSheet, AppState } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import { useCallContext } from '../../contexts/CallContext';
 import { storiesService, StoryAudioDraft, StorySound } from '../../services/storiesService';
 import AppleMusicSheet from '../AppleMusicSheet';
 import type { AppleMusicTrack } from '../../../shared/appleMusic';
@@ -17,6 +18,8 @@ type Tab = 'record' | 'sounds' | 'library';
 const fmtSec = (seconds: number | null | undefined) => `0:${String(Math.max(0, Math.round(seconds || 0))).padStart(2, '0')}`;
 
 export default function MusicSheet({ visible, onClose, current, onSelect, onRemove, disabled, onShareTrack }: Props) {
+  const { callState } = useCallContext();
+  const callActive = useRef(callState !== 'idle'); callActive.current = callState !== 'idle';
   const [tab, setTab] = useState<Tab>('record');
   const [phase, setPhase] = useState<'idle' | 'starting' | 'recording' | 'stopping' | 'selecting'>('idle');
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
@@ -56,11 +59,13 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
     if (active.current) setPhase('idle');
   }, [stopPreview]);
 
+  useEffect(() => { if (callState !== 'idle') void cleanup(); }, [callState, cleanup]);
+
   useEffect(() => {
     active.current = visible;
     if (!visible) { void cleanup(); setAppleOpen(false); }
     const subscription = AppState.addEventListener('change', state => {
-      if (state !== 'active' && active.current) void stopRecordingRef.current();
+      if (state !== 'active' && active.current) { void stopRecordingRef.current(); void stopPreview(); }
     });
     return () => { active.current = false; subscription.remove(); void cleanup(); };
   }, [visible, cleanup]);
@@ -95,7 +100,7 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
   stopRecordingRef.current = stopRecording;
 
   const startRecording = async () => {
-    if (operation.current || disabled) return;
+    if (operation.current || disabled || callActive.current) return;
     operation.current = true; starting.current = true; setPhase('starting'); setError('');
     const mine = session.current;
     try {
@@ -124,20 +129,22 @@ export default function MusicSheet({ visible, onClose, current, onSelect, onRemo
   };
 
   const previewUri = async (id: string, uri: string) => {
-    if (phase !== 'idle' || disabled) return;
+    if (phase !== 'idle' || disabled || callActive.current) return;
     const stopping = previewingId === id;
     await stopPreview();
     if (stopping) return;
     const mine = previewGeneration.current;
     try {
       await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
-      const playable = id === 'voiceover' ? uri : (await storiesService.getStorySound(id)).url;
-      if (!active.current || mine !== previewGeneration.current) return;
-      const { sound } = await Audio.Sound.createAsync({ uri: playable }, { shouldPlay: false });
-      if (!active.current || mine !== previewGeneration.current) { await sound.unloadAsync(); return; }
+      const source = id === 'voiceover' ? { url: uri, duration_sec: recordedSec || 30 } : await storiesService.getStorySound(id);
+      const playable = source.url;
+      if (!active.current || mine !== previewGeneration.current || callActive.current) return;
+      const { sound } = await Audio.Sound.createAsync({ uri: playable }, { shouldPlay: false, progressUpdateIntervalMillis: 100 });
+      if (!active.current || mine !== previewGeneration.current || callActive.current) { await sound.unloadAsync(); return; }
       previewRef.current = sound; setPreviewingId(id);
-      sound.setOnPlaybackStatusUpdate(status => { if (status.isLoaded && status.didJustFinish) void stopPreview(); });
+      sound.setOnPlaybackStatusUpdate(status => { if (status.isLoaded && (status.didJustFinish || status.positionMillis >= (source.duration_sec || 30) * 1000)) void stopPreview(); });
       await sound.playAsync();
+      if (callActive.current) await stopPreview();
     } catch { if (active.current && mine === previewGeneration.current) { setError('Could not play this sound. Try again.'); void stopPreview(); } }
   };
   const selectSound = async (id: string) => {

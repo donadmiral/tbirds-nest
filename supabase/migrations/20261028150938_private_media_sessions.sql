@@ -11,6 +11,10 @@ ALTER TABLE private_media.recipients ENABLE ROW LEVEL SECURITY;ALTER TABLE priva
 REVOKE ALL ON ALL TABLES IN SCHEMA private_media FROM PUBLIC,anon,authenticated,service_role;
 CREATE INDEX private_grants_active ON private_media.grants(message_id,expires_at) WHERE closed_at IS NULL;
 CREATE INDEX private_erasure_due ON private_media.erasure(available_at) WHERE state<>'deleted';
+-- Existing locator indexes cover only ordinary live messages. These checks also
+-- inspect private/deleted historical references before reserving an upload.
+CREATE INDEX private_message_media_locator ON public.messages(public.chat_object_path(media_url)) WHERE public.chat_object_path(media_url) IS NOT NULL;
+CREATE INDEX private_message_thumbnail_locator ON public.messages(public.chat_object_path(thumbnail_url)) WHERE public.chat_object_path(thumbnail_url) IS NOT NULL;
 -- Legacy recipients are snapshotted once, but no historical object is enrolled for erasure.
 INSERT INTO private_media.recipients(message_id,user_id,views)
 SELECT m.id,u.id,coalesce(v.views,0) FROM public.messages m JOIN public.conversations c ON c.id=m.conversation_id
@@ -53,7 +57,8 @@ BEGIN
    OR EXISTS(SELECT 1 FROM public.channel_messages WHERE public.chat_object_path(media_url)=loc)
    OR EXISTS(SELECT 1 FROM public.conversations WHERE public.chat_object_path(group_avatar_url)=loc)
    OR EXISTS(SELECT 1 FROM public.job_applications WHERE public.chat_object_path(cv_url)=loc) THEN RAISE EXCEPTION 'PRIVATE_REQUIRES_NEW_UPLOAD';END IF;
-  IF NEW.view_limit NOT IN(1,2) OR NEW.media_type NOT IN('image','video') OR NEW.thumbnail_url IS NOT NULL OR NEW.forwarded_from_id IS NOT NULL THEN RAISE EXCEPTION 'INVALID_PRIVATE_ATTACHMENT';END IF;
+  IF loc IS NULL OR split_part(loc,'/',2)<>NEW.sender_id::text OR NEW.view_limit NOT IN(1,2) OR NEW.media_type IS NULL OR NEW.media_type NOT IN('image','video') OR NEW.thumbnail_url IS NOT NULL OR NEW.forwarded_from_id IS NOT NULL THEN RAISE EXCEPTION 'INVALID_PRIVATE_ATTACHMENT';END IF;
+  IF NOT EXISTS(SELECT 1 FROM storage.objects o WHERE o.bucket_id=split_part(loc,'/',1) AND o.name=substring(loc FROM position('/' IN loc)+1)) THEN RAISE EXCEPTION 'UPLOAD_PRIVATE_ATTACHMENT_FIRST';END IF;
   NEW.private_expires_at:=now()+interval '7 days';
  ELSE NEW.private_expires_at:=NULL;END IF;
  RETURN NEW;
@@ -114,6 +119,7 @@ BEGIN
  SELECT * INTO g FROM private_media.grants WHERE user_id=auth.uid() AND request_id=p_request_id FOR UPDATE;
  IF FOUND THEN
   IF g.message_id<>p_message_id OR g.auth_session_id IS DISTINCT FROM sid THEN RETURN false;END IF;
+  IF g.closed_at IS NOT NULL THEN RETURN true;END IF;
   UPDATE private_media.grants SET closed_at=coalesce(closed_at,now()),close_reason=coalesce(close_reason,reason) WHERE user_id=auth.uid() AND request_id=p_request_id;
  ELSE
   IF NOT EXISTS(SELECT 1 FROM private_media.recipients WHERE message_id=p_message_id AND user_id=auth.uid()) THEN RETURN false;END IF;

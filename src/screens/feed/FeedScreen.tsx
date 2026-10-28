@@ -324,7 +324,7 @@ export default function FeedScreen({ navigation }: any) {
   const [musicOpen, setMusicOpen] = useState(false);
   const [publicationLocked, setPublicationLocked] = useState(false);
   const publicationBusy = useRef(false);
-  const publicationAttempt = useRef<{ owner: string; postId: string; run: () => Promise<void> } | null>(null);
+  const publicationAttempt = useRef<{ owner: string; postId: string; started: boolean; run: () => Promise<void> } | null>(null);
   const [exclusivePost, setExclusivePost] = useState(false);
   const [innovationPost, setInnovationPost] = useState(false);
   const [postCategory, setPostCategory] = useState<string | null>(null);
@@ -1603,7 +1603,7 @@ export default function FeedScreen({ navigation }: any) {
           ...(composerPreview?.url ? { link_url: composerPreview.url } : {}),
         };
         publicationAttempt.current = {
-          owner, postId,
+          owner, postId, started: false,
           run: async () => {
             for (let i = 0; i < media.length; i++) await step(`upload-${i}`, async () => {
               const m = media[i], video = m.type === 'video';
@@ -1619,6 +1619,7 @@ export default function FeedScreen({ navigation }: any) {
               }
               uploaded[i] = { id: m.id, post_id: postId, url, media_type: m.type, sort_order: i, width: m.width ?? null, height: m.height ?? null, edit: Object.keys(edit).length ? edit : null, is_sensitive: composerSensitive };
             });
+            publicationAttempt.current!.started = true;
             await step('post', () => saveRows('posts', [{ ...post, ...(uploaded[0] ? { media_url: uploaded[0].url } : {}) }]));
             await step('media', () => saveRows('post_media', uploaded));
             await step('tags', () => saveRows('post_media_tags', tags));
@@ -2375,6 +2376,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 </View>
               )}
               {publicationLocked && <TouchableOpacity disabled={posting} onPress={createPost} accessibilityRole="button" style={{ padding: 14, backgroundColor: getTheme().surface.canvas, borderRadius: 14, marginBottom: 8 }}><Text style={{ color: getTheme().ink.primary, fontWeight: '700' }}>{posting ? 'Finishing your post…' : 'Finish post'}</Text><Text style={{ color: getTheme().ink.secondary }}>Your original post and media are kept for a safe retry.</Text></TouchableOpacity>}
+              {publicationLocked && !posting && !publicationAttempt.current?.started && <TouchableOpacity onPress={() => { publicationAttempt.current = null; setPublicationLocked(false); }} style={{ padding: 10 }}><Text style={{ color: getTheme().ink.primary }}>Edit draft</Text></TouchableOpacity>}
               <View style={s.composerCard} pointerEvents={publicationLocked ? 'none' : 'auto'}>
                 <View style={s.cAuthorRow}>
                   {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.cAvatar} fadeDuration={200} /> : <View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}

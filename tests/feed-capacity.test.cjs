@@ -54,6 +54,7 @@ function harness({ previewRows = [], heldTable = null, rpc } = {}) {
     postsRef: { current: postState }, realtimeTimerRef: { current: null },
     feedRequestRef: { current: 0 }, resolvedFeedRequestRef: { current: 0 }, pageRequestRef: { current: 0 },
     feedScopeRef: { current: 'viewer-a:latest:all' }, discoverCatRef: { current: 'all' },
+    discoverPageRef: { current: { asOf: '2026-01-01T00:00:00.000Z', offset: 0 } },
     pendingPostsRef: { current: [] }, restoredSnapshotRef: { current: false }, scrollOffsetRef: { current: 0 },
     reconcileFeedVisibility: async (_account, ids) => new Set(ids),
     savePublicFeedSnapshot: async () => {}, feedSnapshots: { clear: async () => {} },
@@ -204,6 +205,7 @@ test('background refresh updates visible rows without moving them and holds new 
   assert.deepEqual(h.posts.map(p => p.id), ['shown']);
   assert.equal(h.posts[0].comments_count, 12);
   assert.equal(h.pendingCount, 1);
+  assert.deepEqual(h.errors, []);
 });
 
 test('live rows render and stop loading before comment enrichment completes', async () => {
@@ -241,6 +243,7 @@ test('background reconciliation removes revoked posts while preserving older acc
   await compile('loadFeed', h.scope)(false, true);
   assert.deepEqual(Array.from(h.posts, p => p.id), ['older']);
   assert.equal(h.pendingCount, 1);
+  assert.deepEqual(h.errors, []);
 });
 test('paging retains its cursor after a signing failure so retry cannot skip a page', async () => {
   const h = harness(); const oldCursor = h.scope.cursorRef.current;
@@ -271,4 +274,47 @@ test('native launch applies the known mute preferences before an optional networ
   assert.deepEqual(Array.from(words), ['blocked']);
   finish({ data: null, error: Error('offline') }); await tick();
   assert.deepEqual(Array.from(words), ['blocked']); cleanup();
+});
+
+
+test('Discover pages use one category query and background refresh preserves the continuation anchor', async () => {
+  const calls = [];
+  const h = harness({ rpc: async (name, args) => {
+    calls.push({ name, ...args });
+    return { data: Array.from({ length: 20 }, (_, i) => row('discover-' + (args.p_offset + i))), error: null };
+  } });
+  h.scope.feedModeRef.current = 'discover'; h.scope.discoverCatRef.current = 'videos';
+  h.scope.feedScopeRef.current = 'viewer-a:discover:videos';
+  const refresh = compile('loadFeed', h.scope), more = compile('loadMore', h.scope);
+  await refresh();
+  const anchor = h.scope.discoverPageRef.current.asOf;
+  assert.equal(h.posts.length, 20); assert.equal(h.scope.discoverPageRef.current.offset, 20);
+  await more();
+  assert.equal(h.posts.length, 40); assert.equal(h.scope.discoverPageRef.current.offset, 40);
+  await refresh(false, true);
+  assert.equal(h.posts.length, 40); assert.equal(h.scope.discoverPageRef.current.offset, 40);
+  assert.equal(h.scope.discoverPageRef.current.asOf, anchor);
+  assert.deepEqual(calls.map(c => [c.name, c.p_video, c.p_category, c.p_limit, c.p_offset, c.p_as_of]), [
+    ['get_discover_page', true, null, 20, 0, anchor],
+    ['get_discover_page', true, null, 20, 20, anchor],
+    ['get_discover_page', true, null, 20, 0, anchor],
+  ]);
+  assert.deepEqual(h.errors, []);
+});
+
+test('Discover signing failure retains raw-page offset and retry advances it only after hydration', async () => {
+  const offsets = [];
+  const h = harness({ rpc: async (_name, args) => {
+    offsets.push(args.p_offset);
+    return { data: Array.from({ length: 20 }, (_, i) => row('next-' + i)), error: null };
+  } });
+  h.scope.feedModeRef.current = 'discover';
+  h.scope.discoverPageRef.current.offset = 20;
+  h.scope.hydratePostMedia = async () => { throw Error('signer offline'); };
+  const more = compile('loadMore', h.scope);
+  await more(); assert.equal(h.scope.discoverPageRef.current.offset, 20);
+  assert.equal(h.posts.length, 1); assert.ok(h.errors.some(e => typeof e === 'string' && e.includes('Could not load more')));
+  h.scope.hydratePostMedia = async rows => rows;
+  await more(); assert.equal(h.scope.discoverPageRef.current.offset, 40);
+  assert.deepEqual(offsets, [20, 20]); assert.equal(h.posts.length, 21);
 });

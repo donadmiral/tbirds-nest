@@ -43,6 +43,16 @@ test('Discover and media helper never reveal blocked, private or excluded posts'
  await db.exec(`update profiles set profile_visibility='private' where id='${A}'`);assert.equal((await as(B,query)).length,0);await db.exec(`update profiles set profile_visibility='public' where id='${A}'`);
  assert.equal((await as(C,`select * from get_community_posts_page('${GROUP}',20,0,'2026-02-01')`)).length,0);
 });
+test('Discover and its media helper withhold exclusive and deactivated-account content',async()=>{
+ const query="select * from get_discover_page('comedy',true,20,0,'2026-02-01')";
+ await db.exec(`update posts set is_exclusive=true where id='${POST}'`);
+ assert.equal((await as(B,query)).length,0);
+ assert.deepEqual((await as(B,`select feed_media_json('${POST}') media`))[0].media,[]);
+ assert.equal((await as(A,query)).length,1);
+ await db.exec(`update posts set is_exclusive=false where id='${POST}';update profiles set deactivated_at=now() where id='${A}'`);
+ assert.equal((await as(B,query)).length,0);
+ await db.exec(`update profiles set deactivated_at=null where id='${A}'`);
+});
 test('Discover continuation traverses all equal-date rows and retains an anchored set',async()=>{
  await db.exec(`insert into posts(id,user_id,content,category,created_at) select ('86000000-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid,'${A}','Page fixture '||i,'science','2026-01-02' from generate_series(1,47)i;`);
  const first=await as(B,"select * from get_discover_page('science',false,20,0,'2026-02-01')");

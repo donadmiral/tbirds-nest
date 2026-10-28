@@ -69,6 +69,7 @@ export function useVoiceRecorder() {
   const [error, setError] = useState<string | null>(null);
   const busy = useRef(false), running = useRef(false), generation = useRef(0), live = useRef(true);
   const began = useRef(0), completed = useRef<VoiceResult | null>(null);
+  const stopping = useRef<Promise<VoiceResult | null> | null>(null);
   const tick = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopTick = () => { if (tick.current) clearInterval(tick.current); tick.current = null; };
   const resetMode = () => AudioModule.setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
@@ -77,16 +78,18 @@ export function useVoiceRecorder() {
     if (running.current && !busy.current) { busy.current = true; running.current = false; void recorder.stop().catch(() => {}).finally(async () => { await resetMode(); busy.current = false; }); }
   }; }, [recorder]);
   const start = useCallback(async () => {
-    if (busy.current || running.current || completed.current) return false;
+    if (!live.current || busy.current || running.current || completed.current) return false;
     busy.current = true; const operation = ++generation.current;
     const current = () => live.current && generation.current === operation;
     setError(null);
+    let prepareAttempted = false;
     try {
       const permission = await AudioModule.requestRecordingPermissionsAsync();
       if (!current()) return false;
       if (!permission.granted) { setError('Microphone access is needed to record a voice message.'); return false; }
       await AudioModule.setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       if (!current()) { await resetMode(); return false; }
+      prepareAttempted = true;
       await recorder.prepareToRecordAsync();
       if (!current()) { await recorder.stop().catch(() => {}); await resetMode(); return false; }
       recorder.record({ forDuration: MAX_VOICE_SECONDS });
@@ -98,28 +101,42 @@ export function useVoiceRecorder() {
       }, 250);
       return true;
     } catch {
-      running.current = false; await resetMode();
+      running.current = false;
+      if (prepareAttempted) await recorder.stop().catch(() => {});
+      await resetMode();
       if (current()) { setError('Could not start recording.'); setRecording(false); }
       return false;
     } finally { busy.current = false; }
   }, [recorder]);
-  const stop = useCallback(async (): Promise<VoiceResult | null> => {
-    if (completed.current) return completed.current;
-    if (!running.current || busy.current) return null;
+  const stop = useCallback((): Promise<VoiceResult | null> => {
+    if (completed.current) return Promise.resolve(completed.current);
+    if (stopping.current) return stopping.current;
+    if (!live.current || !running.current || busy.current) return Promise.resolve(null);
     busy.current = true; running.current = false; stopTick();
     const operation = generation.current;
-    try {
-      // A native duration limit can finish before this user action.
-      try { await recorder.stop(); } catch { if (!recorder.uri) throw Error('No recording'); }
-      await resetMode();
-      if (!live.current || generation.current !== operation) return null;
-      const durationSec = Math.min(MAX_VOICE_SECONDS, Math.floor((Date.now() - began.current) / 1000));
-      const saved = recorder.uri && durationSec >= 1 ? { uri: recorder.uri, durationSec } : null;
-      completed.current = saved; setResult(saved); setRecording(false); setSeconds(durationSec);
-      return saved;
-    } catch { if (live.current && generation.current === operation) { setRecording(false); setError('Could not save the recording.'); } return null; }
-    finally { busy.current = false; }
+    const task = (async () => {
+      let failure = false;
+      try {
+        // The native duration limit may already have finalized a valid file.
+        try { await recorder.stop(); } catch {
+          if (!recorder.uri || recorder.isRecording) throw Error('No finalized recording');
+        }
+      } catch { failure = true; }
+      finally { await resetMode(); }
+      try {
+        if (!live.current || generation.current !== operation) return null;
+        setRecording(false);
+        if (failure) { setError('Could not save the recording.'); return null; }
+        const durationSec = Math.min(MAX_VOICE_SECONDS, Math.max(0, Math.floor((Date.now() - began.current) / 1000)));
+        const saved = recorder.uri && durationSec >= 1 ? { uri: recorder.uri, durationSec } : null;
+        completed.current = saved; setResult(saved); setSeconds(durationSec);
+        return saved;
+      } finally { busy.current = false; stopping.current = null; }
+    })();
+    stopping.current = task;
+    return task;
   }, [recorder]);
+
   const clearResult = useCallback(() => { completed.current = null; setResult(null); setSeconds(0); }, []);
   const cancel = useCallback(async () => {
     ++generation.current; stopTick(); completed.current = null;

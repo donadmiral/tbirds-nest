@@ -1,7 +1,73 @@
 #!/usr/bin/env node
 // Compatibility smoke only. A blank image is not a device/recognition benchmark.
-const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
-const root=path.resolve(__dirname,'..'),ts=require(path.join(root,'node_modules/typescript'));
-const exportsObject={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root,'shared/privateCameraModel.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:exportsObject});
-async function main(){const folder=path.resolve(process.argv[2]||'');if(!process.argv[2])throw Error('Pass the directory containing the eight public model assets.');for(const item of exportsObject.PRIVATE_CAMERA_MODEL){const b=fs.readFileSync(path.join(folder,item.name));if(b.length!==item.bytes||crypto.createHash('sha256').update(b).digest('hex')!==item.sha256)throw Error('Asset mismatch: '+item.name);}const tf=require(path.join(root,'web/node_modules/@tensorflow/tfjs')),coco=require(path.join(root,'web/node_modules/@tensorflow-models/coco-ssd'));const definition=JSON.parse(fs.readFileSync(path.join(folder,'model.json'),'utf8'));const buffers=definition.weightsManifest.flatMap(g=>g.paths).map(p=>fs.readFileSync(path.join(folder,p))),weights=Buffer.concat(buffers);const handler=tf.io.fromMemory({...definition,weightSpecs:definition.weightsManifest.flatMap(g=>g.weights),weightData:weights.buffer.slice(weights.byteOffset,weights.byteOffset+weights.byteLength)});tf.io.registerLoadRouter(url=>url==='platinum-private-camera'?handler:null);await tf.setBackend('cpu');const start=Date.now(),model=await coco.load({base:'lite_mobilenet_v2',modelUrl:'platinum-private-camera'}),input=tf.zeros([320,320,3],'int32');const detections=await model.detect(input);input.dispose();model.dispose();console.log(JSON.stringify({assetsVerified:8,blankDetections:detections.length,durationMs:Date.now()-start,physicalDeviceAcceptance:false}));}
-main().catch(error=>{console.error(error.message);process.exitCode=1;});
+const fs = require("node:fs"),
+  path = require("node:path"),
+  crypto = require("node:crypto"),
+  vm = require("node:vm");
+const root = path.resolve(__dirname, ".."),
+  ts = require(path.join(root, "node_modules/typescript"));
+const exportsObject = {};
+vm.runInNewContext(
+  ts.transpileModule(
+    fs.readFileSync(path.join(root, "shared/privateCameraModel.ts"), "utf8"),
+    { compilerOptions: { module: ts.ModuleKind.CommonJS } },
+  ).outputText,
+  { exports: exportsObject },
+);
+async function main() {
+  const folder = path.resolve(process.argv[2] || "");
+  if (!process.argv[2])
+    throw Error("Pass the directory containing the eight public model assets.");
+  for (const item of exportsObject.PRIVATE_CAMERA_MODEL) {
+    const b = fs.readFileSync(path.join(folder, item.name));
+    if (
+      b.length !== item.bytes ||
+      crypto.createHash("sha256").update(b).digest("hex") !== item.sha256
+    )
+      throw Error("Asset mismatch: " + item.name);
+  }
+  const tf = require(path.join(root, "web/node_modules/@tensorflow/tfjs")),
+    coco = require(
+      path.join(root, "web/node_modules/@tensorflow-models/coco-ssd"),
+    );
+  const definition = JSON.parse(
+    fs.readFileSync(path.join(folder, "model.json"), "utf8"),
+  );
+  const buffers = definition.weightsManifest
+      .flatMap((g) => g.paths)
+      .map((p) => fs.readFileSync(path.join(folder, p))),
+    weights = Buffer.concat(buffers);
+  const handler = tf.io.fromMemory({
+    ...definition,
+    weightSpecs: definition.weightsManifest.flatMap((g) => g.weights),
+    weightData: weights.buffer.slice(
+      weights.byteOffset,
+      weights.byteOffset + weights.byteLength,
+    ),
+  });
+  tf.io.registerLoadRouter((url) =>
+    url === "platinum-private-camera" ? handler : null,
+  );
+  await tf.setBackend("cpu");
+  const start = Date.now(),
+    model = await coco.load({
+      base: "lite_mobilenet_v2",
+      modelUrl: "platinum-private-camera",
+    }),
+    input = tf.zeros([320, 320, 3], "int32");
+  const detections = await model.detect(input);
+  input.dispose();
+  model.dispose();
+  console.log(
+    JSON.stringify({
+      assetsVerified: 8,
+      blankDetections: detections.length,
+      durationMs: Date.now() - start,
+      physicalDeviceAcceptance: false,
+    }),
+  );
+}
+main().catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});

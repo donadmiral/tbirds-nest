@@ -41,6 +41,25 @@ export function StoryEditor({ children, value, onChange }: { children: ReactNode
   const [future, setFuture] = useState<StoryTextSticker[][]>([]);
   const drag = useRef<{ id: string; start: StoryTextSticker[]; box: DOMRect; x: number; y: number; moved: boolean } | null>(null);
   const [guides, setGuides] = useState({ vertical: false, horizontal: false });
+  const latestValue = useRef(value); latestValue.current = value;
+  const latestChange = useRef(onChange); latestChange.current = onChange;
+  const textSignature = value.filter(s => !s.kind || s.kind === "text").map(s => `${s.id}:${s.text}`).join("\n");
+  useEffect(() => {
+    let cancelled = false;
+    const textStickers = latestValue.current.filter(s => !s.kind || s.kind === "text");
+    const handles = [...new Set(textStickers.flatMap(s => storyHandles(s.text)))];
+    if (!handles.length) return;
+    const timer = setTimeout(() => {
+      void createClient().from("profiles").select("id,username").in("username", handles).then(({ data, error }) => {
+        if (cancelled || error) return;
+        latestChange.current(latestValue.current.map(s => {
+          if (!textStickers.some(original => original.id === s.id && original.text === s.text)) return s;
+          return { ...s, mentions: currentTextMentions({ text: s.text, mentions: data || [] }) };
+        }));
+      });
+    }, 250);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [textSignature]);
   const active = value.find(s => s.id === selected);
   const commit = (next: StoryTextSticker[]) => { setHistory(h => [...h.slice(-29), value]); setFuture([]); onChange(next); };
   const update = (patch: Partial<StoryTextSticker>) => commit(value.map(s => s.id === selected ? { ...s, ...patch } : s));

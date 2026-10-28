@@ -1,8 +1,117 @@
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');const exportsObject={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../supabase/functions/private-media-cleanup/handler.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:exportsObject,Response,AbortSignal});const make=exportsObject.createPrivateMediaCleanup;
-const W='10000000-0000-4000-8000-000000000001',I='20000000-0000-4000-8000-000000000001',U='30000000-0000-4000-8000-000000000001';
-function harness(o={}){const calls=[],deletes=[];return{calls,deletes,handler:make({uuid:()=>W,env:n=>({SUPABASE_URL:'https://qa.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'service-secret'})[n],client:()=>({rpc:async(name,args)=>{calls.push({name,args});return{error:null,data:name==='validate_private_media_cleanup_token'?o.authorized!==false:name==='claim_private_media_cleanup'?[{id:I,bucket:'chat-media',path:o.path||`${U}/one.jpg`,lease_token:W}]:name==='private_media_erasure_safe'?o.safe!==false:true};}}),fetch:async(url,init)=>{deletes.push({url,init});if(o.failure)throw Error('offline');return new Response('{}');}})};}
-const req=(token='dedicated-scoped-credential-longer-than-32')=>new Request('https://worker.test',{method:'POST',headers:{Authorization:'Bearer '+token}});
-test('cleanup authenticates dedicated credential then removes the exact approved object',async()=>{const h=harness(),r=await h.handler(req());assert.equal(r.status,200);assert.equal((await r.json()).completed,1);assert.equal(h.calls[0].name,'validate_private_media_cleanup_token');assert.deepEqual(JSON.parse(h.deletes[0].init.body),{prefixes:[`${U}/one.jpg`]});});
-test('ordinary credentials, forged paths and live references never delete files',async()=>{for(const o of [{authorized:false},{path:'../other/file'},{safe:false}]){const h=harness(o);await h.handler(req());assert.equal(h.deletes.length,0);}const h=harness();assert.equal((await h.handler(req('service-secret'))).status,401);assert.equal(h.calls.length,0);});
-test('storage failure releases a retryable result instead of claiming deletion',async()=>{const h=harness({failure:true});const r=await h.handler(req());assert.equal((await r.json()).completed,0);assert.equal(h.calls.at(-1).args.p_success,false);});
-test('background remux never rewrites private chat objects',()=>{const source=fs.readFileSync(path.join(__dirname,'../supabase/functions/faststart-video/index.ts'),'utf8');const buckets=source.match(/const VIDEO_BUCKETS = new Set\(([^;]+)\);/)[1];assert.ok(!buckets.includes('chat-media'));assert.ok(!buckets.includes('chat-files'));});
+const test = require("node:test"),
+  assert = require("node:assert/strict"),
+  fs = require("node:fs"),
+  path = require("node:path"),
+  vm = require("node:vm"),
+  ts = require("typescript");
+const exportsObject = {};
+vm.runInNewContext(
+  ts.transpileModule(
+    fs.readFileSync(
+      path.join(
+        __dirname,
+        "../supabase/functions/private-media-cleanup/handler.ts",
+      ),
+      "utf8",
+    ),
+    {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2022,
+      },
+    },
+  ).outputText,
+  { exports: exportsObject, Response, AbortSignal },
+);
+const make = exportsObject.createPrivateMediaCleanup;
+const W = "10000000-0000-4000-8000-000000000001",
+  I = "20000000-0000-4000-8000-000000000001",
+  U = "30000000-0000-4000-8000-000000000001";
+function harness(o = {}) {
+  const calls = [],
+    deletes = [];
+  return {
+    calls,
+    deletes,
+    handler: make({
+      uuid: () => W,
+      env: (n) =>
+        ({
+          SUPABASE_URL: "https://qa.supabase.co",
+          SUPABASE_SERVICE_ROLE_KEY: "service-secret",
+        })[n],
+      client: () => ({
+        rpc: async (name, args) => {
+          calls.push({ name, args });
+          return {
+            error: null,
+            data:
+              name === "validate_private_media_cleanup_token"
+                ? o.authorized !== false
+                : name === "claim_private_media_cleanup"
+                  ? [
+                      {
+                        id: I,
+                        bucket: "chat-media",
+                        path: o.path || `${U}/one.jpg`,
+                        lease_token: W,
+                      },
+                    ]
+                  : name === "private_media_erasure_safe"
+                    ? o.safe !== false
+                    : true,
+          };
+        },
+      }),
+      fetch: async (url, init) => {
+        deletes.push({ url, init });
+        if (o.failure) throw Error("offline");
+        return new Response("{}");
+      },
+    }),
+  };
+}
+const req = (token = "dedicated-scoped-credential-longer-than-32") =>
+  new Request("https://worker.test", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token },
+  });
+test("cleanup authenticates dedicated credential then removes the exact approved object", async () => {
+  const h = harness(),
+    r = await h.handler(req());
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).completed, 1);
+  assert.equal(h.calls[0].name, "validate_private_media_cleanup_token");
+  assert.deepEqual(JSON.parse(h.deletes[0].init.body), {
+    prefixes: [`${U}/one.jpg`],
+  });
+});
+test("ordinary credentials, forged paths and live references never delete files", async () => {
+  for (const o of [
+    { authorized: false },
+    { path: "../other/file" },
+    { safe: false },
+  ]) {
+    const h = harness(o);
+    await h.handler(req());
+    assert.equal(h.deletes.length, 0);
+  }
+  const h = harness();
+  assert.equal((await h.handler(req("service-secret"))).status, 401);
+  assert.equal(h.calls.length, 0);
+});
+test("storage failure releases a retryable result instead of claiming deletion", async () => {
+  const h = harness({ failure: true });
+  const r = await h.handler(req());
+  assert.equal((await r.json()).completed, 0);
+  assert.equal(h.calls.at(-1).args.p_success, false);
+});
+test("background remux never rewrites private chat objects", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "../supabase/functions/faststart-video/index.ts"),
+    "utf8",
+  );
+  const buckets = source.match(/const VIDEO_BUCKETS = new Set\(([^;]+)\);/)[1];
+  assert.ok(!buckets.includes("chat-media"));
+  assert.ok(!buckets.includes("chat-files"));
+});

@@ -34,7 +34,7 @@ function playback(mediaType = 'image') {
   const ready = { current: null };
   const player = { currentTime: 0, paused: true, ended: false };
   const globals = {
-    document: { hidden: false }, callActive: () => false, playbackPausedRef: { current: false }, overlayPausedRef: { current: false }, pauseNow() {},
+    document: { hidden: false }, callActive: () => false, playbackPausedRef: { current: false }, inputFocusedRef: { current: false }, overlayPausedRef: { current: false }, pauseNow() {},
     useEffect: fn => fn(), story: { id: 'story-1', media_type: mediaType, media_url: 'synthetic', duration_sec: 5 }, uid: 'viewer',
     setProgress: p => progress = p, stopTimer() {}, setMuted() {}, setClock() {},
     videoRef: { current: mediaType === 'video' ? player : null }, audioRef: { current: null },
@@ -57,7 +57,7 @@ test('resuming a paused video does not fall back to wall time or leak another ti
   const h = playback('video'); h.ready.current = 'story-1'; let tick, stopped = 0;
   const start = viewer.indexOf('  const resumeNow = useCallback('), end = viewer.indexOf('  const togglePlayback', start);
   execute(viewer.slice(start, end) + '\nresumeNow();', { ...h.globals,
-    overlayPausedRef: { current: false }, callActive: () => false,
+    inputFocusedRef: { current: false }, overlayPausedRef: { current: false }, callActive: () => false,
     useCallback: fn => fn, playbackPausedRef: { current: true }, manualPauseRef: { current: false }, document: { hidden: false }, setPlaybackPaused() {}, heldRef: { current: true }, pausedAtRef: { current: 0.2 }, resumeDelayRef: { current: null },
     stopTimer: () => stopped++, setInterval: fn => { tick = fn; return 1; }, setTimeout: () => 1, clearTimeout() {},
     videoRef: { current: { ...h.player, play: async () => {} } },
@@ -80,7 +80,7 @@ test('failed story recipient search is handled with a recoverable message', asyn
 function replyHarness({ messageError, changedSession = false } = {}) {
   let sendReply, messages = 0, text = 'My reply', error, resumed = 0, checks = 0;
   const globals = {
-    overlayPausedRef: { current: false },
+    inputFocusedRef: { current: false }, overlayPausedRef: { current: false },
     useCallback: fn => { sendReply = fn; return fn; }, story: { id: 'story-1', user_id: 'owner' }, uid: 'viewer', canReply: true,
     replyText: text, sendingReply: false, sendingReplyRef: { current: false }, currentStoryRef: { current: 'story-1' },
     setSendingReply() {}, setActionError: value => error = value, setReplyText: value => text = value, setReplyToast() {}, setTimeout: () => 1,

@@ -6,6 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from '../SafeArea';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import CommentsSheet from './CommentsSheet';
+import PostSoundtrack from '../PostSoundtrack';
 import { FilterLayer } from '../stories/StoryFilters';
 import { AdjustLayer } from '../stories/storyPanels';
 import { supabase } from '../../services/supabase';
@@ -30,7 +31,7 @@ function DiscoverVideo({ item, postId, active, soundtrack, width, height, onRetr
   const watch = useRef(0), last = useRef<number | null>(null);
   const uid = useAuthStore(s => s.profile?.id);
   const owner = useRef(uid);
-  useSoundtrackPlayer({ selection: soundtrack, use: 'post', active: active && !muted && playing, clock: { time: Math.max(0, time-start), playing, rate } });
+  const song = useSoundtrackPlayer({ selection: soundtrack, use: 'post', active: active && !muted && playing, clock: { time: Math.max(0, time-start), playing, rate } });
   useEffect(() => {
     player.muted = muted;
     player.volume = item.edit?.muted ? 0 : (soundtrack?.originalVolume ?? 1);
@@ -50,6 +51,9 @@ function DiscoverVideo({ item, postId, active, soundtrack, width, height, onRetr
       if(e.currentTime < start || (end>start && e.currentTime>=end)) player.currentTime=start;
       setTime(e.currentTime);
     });
+    // A ready cached player can start before the listener is attached.
+    setPlaying(player.playing);
+    if (player.playing && active) last.current = Date.now();
     const timer = setTimeout(() => { if(player.status==='loading') setFailed(true); }, 15000);
     return () => {
       clearTimeout(timer); accumulate(); a.remove(); b.remove(); c.remove(); mute.remove();
@@ -64,6 +68,7 @@ function DiscoverVideo({ item, postId, active, soundtrack, width, height, onRetr
     {item.edit?.filterId ? <FilterLayer filterId={item.edit.filterId} amt={item.edit.filterAmt??100}/> : null}
     {item.edit?.adjust ? <AdjustLayer adjust={item.edit.adjust}/> : null}
     <TouchableOpacity accessibilityLabel={muted?'Unmute video':'Mute video'} style={s.sound} onPress={()=>setMuted(v=>!v)}><Feather name={muted?'volume-x':'volume-2'} size={22} color="#fff"/></TouchableOpacity>
+    {song.error ? <TouchableOpacity accessibilityLabel="Retry music" style={[s.failure,{bottom:60}]} onPress={song.retry}><Text style={s.white}>{song.error}</Text></TouchableOpacity> : null}
     {!requested && !failed ? <TouchableOpacity accessibilityLabel="Play video" style={s.play} onPress={()=>setRequested(true)}><Feather name="play" size={32} color="#fff"/></TouchableOpacity> : null}
     {failed ? <View style={s.failure}><Text style={s.white}>Video could not play</Text><TouchableOpacity onPress={()=>{setFailed(false);onRetry();void player.replaceAsync(item.url).then(()=>{if(active)player.play();}).catch(()=>setFailed(true));}}><Text style={s.white}>Try again</Text></TouchableOpacity></View>:null}
   </View>;
@@ -73,7 +78,7 @@ function DiscoverCell({ post, active, width, height, onRetry }: { post: Discover
   const media=post.media??[]; const item=media[slide]; const soundtrack=readSoundtrack(media[0]?.edit?.soundtrack);
   const sensitive=media.some(m=>m.is_sensitive || m.edit?.sensitive);
   const hidden=sensitive&&!revealed;
-  useSoundtrackPlayer({selection:soundtrack,use:'post',active:active && !hidden && item?.media_type!=='video'});
+
   useEffect(()=>{setFailed(false);},[item?.url]);
   const swipe=useMemo(()=>PanResponder.create({onMoveShouldSetPanResponder:(_,g)=>media.length>1&&Math.abs(g.dx)>15&&Math.abs(g.dx)>Math.abs(g.dy)*1.5,onPanResponderRelease:(_,g)=>{if(Math.abs(g.dx)>40)setSlide(n=>Math.max(0,Math.min(media.length-1,n+(g.dx<0?1:-1))));}}),[media.length]);
   const rotation=Number(item?.edit?.rotation)||0;
@@ -82,6 +87,7 @@ function DiscoverCell({ post, active, width, height, onRetry }: { post: Discover
     {hidden ? <TouchableOpacity accessibilityLabel="Show sensitive content" style={s.failure} onPress={()=>setRevealed(true)}><Text style={s.white}>Sensitive content</Text><Text style={s.white}>Tap to view</Text></TouchableOpacity> : item?.media_type==='video' ? <DiscoverVideo key={item.url} item={item} postId={post.id} active={active} soundtrack={soundtrack} width={width} height={height} onRetry={onRetry}/>
     : item ? <><Image source={{uri:item.url}} accessibilityLabel={item.alt_text||undefined} contentFit="contain" onError={()=>setFailed(true)} style={{...frame,transform:[{translateX:(item.edit?.translateNX||0)*width},{translateY:(item.edit?.translateNY||0)*height},{rotate:`${rotation}deg`},{scaleX:(item.edit?.flipX?-1:1)*(item.edit?.scale||1)},{scaleY:(item.edit?.flipV?-1:1)*(item.edit?.scale||1)}]}}/>{item.edit?.filterId?<FilterLayer filterId={item.edit.filterId} amt={item.edit.filterAmt??100}/>:null}{item.edit?.adjust?<AdjustLayer adjust={item.edit.adjust}/>:null}</>
     : <Text style={[s.white,{padding:28,fontSize:22}]}>{post.article_title||post.content}</Text>}
+    {!hidden&&item?.media_type!=='video'?<PostSoundtrack selection={soundtrack} active={active} controls/>:null}
     {failed?<TouchableOpacity style={s.failure} onPress={onRetry}><Text style={s.white}>Could not load image. Try again.</Text></TouchableOpacity>:null}
     {media.length>1 ? <View style={s.pages}><TouchableOpacity accessibilityLabel="Previous photo" disabled={slide===0} onPress={()=>setSlide(v=>v-1)}><Feather name="chevron-left" size={25} color={slide?'#fff':'#666'}/></TouchableOpacity><Text style={s.white}>{slide+1}/{media.length}</Text><TouchableOpacity accessibilityLabel="Next photo" disabled={slide===media.length-1} onPress={()=>setSlide(v=>v+1)}><Feather name="chevron-right" size={25} color={slide<media.length-1?'#fff':'#666'}/></TouchableOpacity></View>:null}
   </View>;

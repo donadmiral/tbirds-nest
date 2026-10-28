@@ -585,13 +585,13 @@ export const storiesService = {
     if (error || !data) throw new Error('This sound is no longer available. Choose another sound.');
     const [sound] = await hydrateSoundMedia([data as StorySound]);
     if (!sound.url) throw new Error('This sound could not load. Please retry.');
-    return sound;
+    return { ...sound, duration_sec: Math.min(sound.duration_sec || 30, (data as any).max_excerpt_sec || 30, 30) };
   },
 
   async listStorySounds(source: 'original' | 'library', limit = 50): Promise<StorySound[]> {
     const { data, error } = await supabase.rpc('list_playable_sounds', { p_use: 'story', p_limit: Math.min(100, Math.max(1, Math.trunc(limit) || 50)), p_query: '' });
     if (error) throw new Error('Sounds could not be loaded. Please try again.');
-    return hydrateSoundMedia(((data || []) as StorySound[]).filter(sound => sound.source === source));
+    return hydrateSoundMedia(((data || []) as (StorySound & { max_excerpt_sec?: number })[]).filter(sound => sound.source === source).map(sound => ({...sound, duration_sec: Math.min(sound.duration_sec || 30, sound.max_excerpt_sec || 30, 30)})));
   },
 
   async getCatchupFeed(mode: CatchupMode = 'all', limit = 30): Promise<CatchupUser[]> {

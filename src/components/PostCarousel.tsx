@@ -132,11 +132,12 @@ function CarouselVideo({
       const d = player.duration;
       const start=edit?.trimStart||0,end=edit?.trimEnd||d;
       if(player.currentTime<start||end>start&&player.currentTime>=end)player.currentTime=start;
-      setMusicClock({time:Math.max(0,player.currentTime-start),playing:player.playing,rate:edit?.speed||1});
+      setMusicClock({time:Math.max(0,player.currentTime-start),playing:player.playing&&player.status==='readyToPlay',rate:edit?.speed||1});
       if (d > 0) setProgress((e?.currentTime ?? player.currentTime) / d);
     });
-    const changes=player.addListener('playingChange',(e)=>setMusicClock(c=>({...c,playing:e.isPlaying})));
-    return () => { sub.remove(); changes.remove(); };
+    const changes=player.addListener('playingChange',(e)=>setMusicClock(c=>({...c,playing:e.isPlaying&&player.status==='readyToPlay'})));
+    const status=player.addListener('statusChange', e=>setMusicClock(c=>({...c,playing:e.status==='readyToPlay'&&player.playing})));
+    return () => { sub.remove(); changes.remove(); status.remove(); };
   }, [owns, player, edit?.trimStart, edit?.trimEnd, edit?.speed]);
 
   // Auto-hide controls after 3 seconds
@@ -283,6 +284,7 @@ async function loadSensitiveMode() {
 
 export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress, postId, flush, holdView }: Props) {
   const [revealed, setRevealed] = useState(false);
+  useEffect(() => setRevealed(false), [postId]);
   const [, bump] = useState(0);
   useEffect(() => { loadSensitiveMode().then(() => bump((n) => n + 1)); }, []);
   const isSensitive = (media || []).some((m: any) => !!m?.is_sensitive || !!m?.edit?.sensitive);
@@ -342,10 +344,21 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
         <TagLayer tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
       </View>
     );
-  }, [containerWidth, slideHeight, activeIndex, isActive, onMediaPress, media, tagMap, soundtrack, veil]);
+  }, [containerWidth, slideHeight, activeIndex, isActive, onMediaPress, media, tagMap, soundtrack, veil, postId, holdView]);
 
 
   if (total === 0) return null;
+  // After every hook, never before one.
+  if (isSensitive && sensitiveMode === 'hide') return null;
+  if (veil) {
+    return (
+      <TouchableOpacity activeOpacity={0.9} onPress={() => setRevealed(true)} style={{ width: containerWidth, height: slideHeight, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>Sensitive content</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>This photo or video may be sensitive. Tap to view.</Text>
+      </TouchableOpacity>
+    );
+  }
+
 
   // Single media item: same 4:5 container, no dots, no counter
   if (total === 1) {
@@ -390,16 +403,6 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
     );
   }
 
-  // After every hook, never before one.
-  if (isSensitive && sensitiveMode === 'hide') return null;
-  if (veil) {
-    return (
-      <TouchableOpacity activeOpacity={0.9} onPress={() => setRevealed(true)} style={{ width: containerWidth, height: slideHeight, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>Sensitive content</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>This photo or video may be sensitive. Tap to view.</Text>
-      </TouchableOpacity>
-    );
-  }
 
   return (
     <View style={[st.carouselWrap, flush && { marginTop: 0, width: containerWidth }]}>

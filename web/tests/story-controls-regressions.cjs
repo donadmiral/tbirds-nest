@@ -93,3 +93,11 @@ test('cancelling a surface hold or dragging a slider does not leave the viewer p
   surface.props.onPointerDownCapture({button:0,isPrimary:true,clientX:10,clientY:10});h.timeout(200);assert.equal(h.intervals,0);
   surface.props.onPointerCancelCapture();assert.equal(h.intervals,1);h.unmount();
 });
+
+test('typing into a question sticker pauses playback until focus leaves the field', async () => {
+  const h=scenario('StoryViewer',{video:true});await h.flush();
+  const surface=nodes(h.tree).find(n=>n.props?.onFocusCapture);
+  surface.props.onFocusCapture({target:{closest:()=>({})}});assert.equal(h.intervals,0);
+  surface.props.onPointerDownCapture({button:0,isPrimary:true,clientX:10,clientY:10});h.timeout(200);surface.props.onPointerUpCapture();assert.equal(h.intervals,0);
+  surface.props.onBlurCapture({relatedTarget:null});assert.equal(h.intervals,1);h.unmount();
+});

@@ -274,6 +274,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const story = stories[itemIdx];
   const currentStoryRef = useRef(story?.id);
   currentStoryRef.current = story?.id;
+  const inputFocusedRef = useRef(false);
   const overlayPausedRef = useRef(false);
   overlayPausedRef.current = viewersOpen || emojiOpen || !!replyText.trim();
   const mediaReady = !story?.media_url || loadedStoryId === story.id;
@@ -376,7 +377,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [stopTimer]);
 
   const resumeNow = useCallback(() => {
-    if (!playbackPausedRef.current || manualPauseRef.current || overlayPausedRef.current || document.hidden || callActive()) return;
+    if (!playbackPausedRef.current || manualPauseRef.current || overlayPausedRef.current || inputFocusedRef.current || document.hidden || callActive()) return;
     playbackPausedRef.current = false;
     setPlaybackPaused(false);
     stopTimer();
@@ -684,6 +685,9 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       </button>
 
       <div className="relative aspect-[9/16] h-[92vh] max-w-[94vw] overflow-hidden rounded-xl bg-ink" style={bg ? { background: bg } : undefined}
+        onFocusCapture={event => { const target = event.target as HTMLElement; if (target.closest("input,textarea,select,[contenteditable='true']")) { inputFocusedRef.current = true; pauseNow(); } }}
+        onBlurCapture={event => { const next = event.relatedTarget as HTMLElement | null; if (!next?.closest("input,textarea,select,[contenteditable='true']")) { inputFocusedRef.current = false; resumeNow(); } }}
+        onContextMenu={event => { if (holdConsumedClickRef.current) event.preventDefault(); }}
         onPointerDownCapture={event => { if (event.button === 0 && event.isPrimary !== false) { holdOrigin.current = { x: event.clientX, y: event.clientY }; holdStart(); } }}
         onPointerMoveCapture={event => { const origin = holdOrigin.current; if (origin && Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 12) { holdOrigin.current = null; holdEnd(); } }}
         onPointerUpCapture={holdEnd} onPointerCancelCapture={holdEnd} onPointerLeave={holdEnd}
@@ -760,7 +764,10 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             <DrawSvg stickers={story.stickers_json} />
             <style dangerouslySetInnerHTML={{ __html: STICKER_ANIM_CSS }} />
             {storyAudioUrl ? (
-              <audio ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} loop muted={muted} onError={() => setFailedStoryId(story.id)} />
+              <audio onPlay={() => { if (playbackPausedRef.current || document.hidden || callActive()) audioRef.current?.pause(); }}
+                onTimeUpdate={event => { const limit = Number(story.audio_duration_sec); if (limit > 0 && event.currentTarget.currentTime >= limit) event.currentTarget.currentTime = 0; }}
+                onSeeking={event => { const limit = Number(story.audio_duration_sec); if (limit > 0 && event.currentTarget.currentTime >= limit) event.currentTarget.currentTime = 0; }}
+                ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} loop muted={muted} onError={() => setFailedStoryId(story.id)} />
             ) : null}
             {storyAudioUrl && story.audio_title ? (
               <span className="absolute left-3 top-14 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white">

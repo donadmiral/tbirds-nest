@@ -6,7 +6,7 @@ export type StorySound = { id: string; title: string; url: string; duration_sec:
 export async function listStorySounds(client = createClient()) {
   const { data, error } = await client.rpc('list_playable_sounds', { p_use: 'story', p_query: '', p_limit: 100 });
   if (error) throw new Error('Sounds could not load. Please retry.');
-  return (data ?? []) as StorySound[];
+  return ((data ?? []) as (StorySound & { max_excerpt_sec?: number })[]).map(sound => ({...sound, duration_sec: Math.min(sound.duration_sec || 30, sound.max_excerpt_sec || 30, 30)}));
 }
 export async function storyAudioPreview(audio: StoryAudioDraft, client = createClient()): Promise<string | null> {
   if (audio.kind === 'voiceover') {

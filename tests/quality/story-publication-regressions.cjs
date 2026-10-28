@@ -32,7 +32,7 @@ function harness(options = {}) {
     from(table) {
       const builder = {
         insert(row) { calls.push({ table, row }); return builder; },
-        select() { return builder; }, single() { return builder; },
+        select() { return builder; }, in() { return builder; }, single() { return builder; },
         then(resolve, reject) {
           const response = queues[table]?.shift();
           const last = calls.filter((c) => c.table === table).at(-1)?.row;
@@ -243,4 +243,15 @@ test('native whole-surface hold ends only its own pause and clears cancelled tim
   exported.beginSurfaceHold({nativeEvent:{touches:[{}],pageX:10,pageY:10}});for(const fn of timers.values())fn();
   assert.deepEqual([...reasons],['reply','surfaceHold']);exported.endSurfaceHold();assert.deepEqual([...reasons],['reply']);
   timers.clear();exported.beginSurfaceHold({nativeEvent:{touches:[{}],pageX:10,pageY:10}});exported.endSurfaceHold();assert.equal(timers.size,0);
+});
+
+test('publishing resolves newly typed handles before saving even when editor lookup has not returned', async () => {
+  const h=harness({drafts:[draft('a',{stickers:[{id:'text',kind:'text',text:'Hello @musa',mentions:[]} ]})],responses:{profiles:[{data:[{id:'m',username:'musa'}],error:null}]}});
+  await h.render().publishAll();
+  assert.equal(tableCalls(h,'stories')[0].row.stickers_json[0].mentions[0].id,'m');
+  assert.equal(tableCalls(h,'story_mentions')[0].row[0].mentioned_user_id,'m');
+});
+test('mention lookup failure creates no partial story and remains retryable', async () => {
+  const h=harness({drafts:[draft('a',{caption:'Hello @musa'})],responses:{profiles:[{data:null,error:{message:'offline'}}]}});
+  await h.render().publishAll();assert.equal(tableCalls(h,'stories').length,0);assert.equal(h.drafts[0].uploadState,'error');
 });

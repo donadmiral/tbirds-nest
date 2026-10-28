@@ -520,7 +520,7 @@ export default function StoryComposerScreen() {
   const soundPreview = useStorySoundPreview(active?.audio, myId);
   const previewAudioUrl = soundPreview.url;
   const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
-  const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen, previewMusicVol);
+  const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen, previewMusicVol, active?.audio?.durationSec);
   useEffect(() => { if (musicOpen) { try { vidPlayer?.pause?.(); } catch {} } }, [musicOpen, vidPlayer]);
   // Video drafts picked without dimensions: probe the first frame so canvas
   // gestures work and the story publishes with a real thumbnail.

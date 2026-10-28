@@ -445,7 +445,7 @@ export default function StoryViewerScreen() {
     return () => clearTimeout(timer);
   }, [currentStory?.id, currentStory?.expires_at, params?.highlightId, pauseFor]);
 
-  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, musicVol);
+  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, musicVol, currentStory?.audio_duration_sec);
   useEffect(() => { if (storyAudio.error) setMediaError(true); }, [storyAudio.error]);
   // Creative engine: playback clock for timed stickers + trim-end guard
   useEffect(() => {

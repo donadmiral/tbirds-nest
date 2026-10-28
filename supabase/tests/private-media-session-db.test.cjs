@@ -1,21 +1,348 @@
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {PGlite}=require(process.env.PGLITE_MODULE||'./rpc-authorization/node_modules/@electric-sql/pglite');
-const A='10000000-0000-4000-8000-000000000001',B='10000000-0000-4000-8000-000000000002',X='10000000-0000-4000-8000-000000000003',C='20000000-0000-4000-8000-000000000001',M='30000000-0000-4000-8000-000000000001',S='40000000-0000-4000-8000-000000000001',R='50000000-0000-4000-8000-000000000001',W='60000000-0000-4000-8000-000000000001';
-const loc=`chat-media/${A}/test.jpg`,url=`https://qa.supabase.co/storage/v1/object/public/${loc}`;let db;
-async function as(uid,sql,args=[],role='authenticated',session=S){await db.exec('begin');try{await db.exec(`set local role ${role}`);await db.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:uid,session_id:session})]);const out=(await db.query(sql,args)).rows;await db.exec('commit');return out;}catch(e){await db.exec('rollback');throw e;}}
-async function open(uid=B,id=R,session=S){return(await as(uid,'select open_private_media($1,$2) value',[M,id],'authenticated',session))[0].value;}
-async function close(reason='closed',id=R){return(await as(B,'select close_private_media($1,$2,$3) value',[M,id,reason]))[0].value;}
-async function read(uid=B,session=S){return(await as(uid,'select read_private_media($1,$2) value',[M,R],'authenticated',session))[0].value;}
-test.before(async()=>{db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create schema storage;create table auth.users(id uuid primary key,deleted_at timestamptz,banned_until timestamptz);create table auth.sessions(id uuid primary key,user_id uuid,not_after timestamptz);create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;create function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;grant usage on schema auth to authenticated,service_role;create table profiles(id uuid primary key,deactivated_at timestamptz);create table conversations(id uuid primary key,user_1 uuid,user_2 uuid,is_group boolean default false,group_avatar_url text);create table conversation_members(conversation_id uuid,user_id uuid);create table blocked_users(blocker_id uuid,blocked_id uuid);create table messages(id uuid primary key,conversation_id uuid,sender_id uuid,receiver_id uuid,created_at timestamptz default now(),media_url text,thumbnail_url text,media_type text,view_limit smallint,deleted_at timestamptz,forwarded_from_id uuid);create table message_views(message_id uuid,user_id uuid,views int,first_viewed_at timestamptz,primary key(message_id,user_id));create table channel_messages(media_url text);create table job_applications(cv_url text);create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text);create function chat_object_path(v text) returns text language sql immutable as $$select substring(v from '/storage/v1/object/public/((?:chat-media|chat-files)/[^?]+)')$$;grant all on all tables in schema public to authenticated;grant usage on schema storage to authenticated;grant all on storage.objects to authenticated;`);await db.exec(fs.readFileSync(path.join(__dirname,'../migrations/20261028150938_private_media_sessions.sql'),'utf8'));});
-test.beforeEach(async()=>{await db.exec(`truncate messages cascade;truncate private_media.erasure,private_media.events,profiles,auth.users,auth.sessions,conversations,conversation_members,blocked_users,message_views,channel_messages,job_applications,storage.objects;insert into profiles(id) values('${A}'),('${B}'),('${X}');insert into auth.users(id) values('${A}'),('${B}'),('${X}');insert into auth.sessions(id,user_id) values('${S}','${B}');insert into conversations(id,user_1,user_2) values('${C}','${A}','${B}');insert into storage.objects(bucket_id,name) values('chat-media','${A}/test.jpg');insert into messages(id,conversation_id,sender_id,receiver_id,media_url,media_type,view_limit) values('${M}','${C}','${A}','${B}','${url}','image',1);`);});test.after(()=>db.close());
-test('recipient session opens once; same request retries, other accounts and another session cannot read',async()=>{const g=await open();assert.equal(g.remaining,0);assert.ok(g.watermark.includes(B));assert.equal((await open()).requestId,R);assert.equal((await read()).url,url);assert.equal(await read(X),null);assert.equal(await read(B,W),null);assert.equal(await open(B,W),null);assert.equal((await db.query('select views from private_media.recipients')).rows[0].views,1);});
-test('close consumes permanently; delayed open after close creates no bytes or view',async()=>{await close('camera_detected');assert.equal(await open(),null);assert.equal(await read(),null);assert.equal((await db.query('select views from private_media.recipients')).rows[0].views,0);});
-test('new request can open after pre-open cancellation but never after a consumed view closes',async()=>{await close();assert.ok(await open(B,W));await close('closed',W);assert.equal(await open(B,'50000000-0000-4000-8000-000000000004'),null);});
-test('blocks, deactivated accounts and revoked authentication immediately stop reads',async()=>{await open();await db.exec(`insert into blocked_users values('${B}','${A}')`);assert.equal(await read(),null);await db.exec('truncate blocked_users');await db.exec(`update profiles set deactivated_at=now() where id='${A}'`);assert.equal(await read(),null);await db.exec('update profiles set deactivated_at=null;delete from auth.sessions');assert.equal(await read(),null);});
-test('late group members never inherit private recipients; removing membership revokes reads',async()=>{await db.exec(`update conversations set is_group=true;insert into conversation_members values('${C}','${B}'),('${C}','${X}')`);await db.exec(`insert into auth.sessions(id,user_id) values('${W}','${X}')`);assert.equal(await open(X,R,W),null);await open();await db.exec(`delete from conversation_members where user_id='${B}'`);assert.equal(await read(),null);});
-test('expiry and invalid media never leak bytes',async()=>{await open();await db.exec('update private_media.grants set expires_at=now()');assert.equal(await read(),null);await assert.rejects(()=>db.exec(`insert into messages(id,conversation_id,sender_id,media_type,view_limit,thumbnail_url) values('${W}','${C}','${A}','image',1,'preview')`),/INVALID_PRIVATE_ATTACHMENT/);});
-test('old signed-URL consumption API is inaccessible',async()=>{await assert.rejects(()=>as(B,'select * from claim_chat_media_view($1,$2)',[M,R]),/permission denied/);});
-test('cleanup waits for active viewing and preserves other live references',async()=>{assert.equal((await as(null,'select * from claim_private_media_cleanup($1)',[W],'service_role')).length,0);await open();assert.equal((await as(null,'select * from claim_private_media_cleanup($1)',[W],'service_role')).length,0);await close();await db.exec('update private_media.erasure set available_at=now()');const job=(await as(null,'select * from claim_private_media_cleanup($1)',[W],'service_role'))[0];assert.equal(job.path,`${A}/test.jpg`);assert.equal(job.bucket,'chat-media');assert.equal((await as(null,'select finish_private_media_cleanup($1,$2,true) done',[job.id,R],'service_role'))[0].done,false);assert.equal((await as(null,'select finish_private_media_cleanup($1,$2,true) done',[job.id,W],'service_role'))[0].done,true);});
-test('pending/deleted object reservations block replacement uploads and new external references',async()=>{await assert.rejects(()=>db.exec(`insert into storage.objects(bucket_id,name) values('chat-media','${A}/test.jpg')`),/PRIVATE_OBJECT_RESERVED/);await assert.rejects(()=>db.exec(`insert into channel_messages values('${url}')`),/PRIVATE_OBJECT_RESERVED/);await assert.rejects(()=>db.exec(`insert into job_applications values('${url}')`),/PRIVATE_OBJECT_RESERVED/);});
-test('legacy unenrolled attachment is not queued by a close-before-open tombstone',async()=>{await db.exec('truncate private_media.erasure');await close();assert.equal((await db.query('select count(*)::int n from private_media.erasure')).rows[0].n,0);});
-test('genuine legacy open enrolls it and deleted attachment retains cleanup locator',async()=>{await db.exec('truncate private_media.erasure');await open();assert.equal((await db.query('select count(*)::int n from private_media.erasure')).rows[0].n,1);await db.exec(`update messages set media_url=null,deleted_at=now() where id='${M}'`);assert.equal((await as(null,'select * from claim_private_media_cleanup($1)',[W],'service_role')).length,1);});
+const test = require("node:test"),
+  assert = require("node:assert/strict"),
+  fs = require("node:fs"),
+  path = require("node:path");
+const { PGlite } = require(
+  process.env.PGLITE_MODULE ||
+    "./rpc-authorization/node_modules/@electric-sql/pglite",
+);
+const A = "10000000-0000-4000-8000-000000000001",
+  B = "10000000-0000-4000-8000-000000000002",
+  X = "10000000-0000-4000-8000-000000000003",
+  C = "20000000-0000-4000-8000-000000000001",
+  M = "30000000-0000-4000-8000-000000000001",
+  S = "40000000-0000-4000-8000-000000000001",
+  R = "50000000-0000-4000-8000-000000000001",
+  W = "60000000-0000-4000-8000-000000000001";
+const loc = `chat-media/${A}/test.jpg`,
+  url = `https://qa.supabase.co/storage/v1/object/public/${loc}`;
+let db;
+async function as(uid, sql, args = [], role = "authenticated", session = S) {
+  await db.exec("begin");
+  try {
+    await db.exec(`set local role ${role}`);
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: uid, session_id: session }),
+    ]);
+    const out = (await db.query(sql, args)).rows;
+    await db.exec("commit");
+    return out;
+  } catch (e) {
+    await db.exec("rollback");
+    throw e;
+  }
+}
+async function open(uid = B, id = R, session = S) {
+  return (
+    await as(
+      uid,
+      "select open_private_media($1,$2) value",
+      [M, id],
+      "authenticated",
+      session,
+    )
+  )[0].value;
+}
+async function close(reason = "closed", id = R) {
+  return (
+    await as(B, "select close_private_media($1,$2,$3) value", [M, id, reason])
+  )[0].value;
+}
+async function read(uid = B, session = S) {
+  return (
+    await as(
+      uid,
+      "select read_private_media($1,$2) value",
+      [M, R],
+      "authenticated",
+      session,
+    )
+  )[0].value;
+}
+test.before(async () => {
+  db = new PGlite();
+  await db.exec(
+    `create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create schema storage;create table auth.users(id uuid primary key,deleted_at timestamptz,banned_until timestamptz);create table auth.sessions(id uuid primary key,user_id uuid,not_after timestamptz);create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;create function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;grant usage on schema auth to authenticated,service_role;create table profiles(id uuid primary key,deactivated_at timestamptz);create table conversations(id uuid primary key,user_1 uuid,user_2 uuid,is_group boolean default false,group_avatar_url text);create table conversation_members(conversation_id uuid,user_id uuid);create table blocked_users(blocker_id uuid,blocked_id uuid);create table messages(id uuid primary key,conversation_id uuid,sender_id uuid,receiver_id uuid,created_at timestamptz default now(),media_url text,thumbnail_url text,media_type text,view_limit smallint,deleted_at timestamptz,forwarded_from_id uuid);create table message_views(message_id uuid,user_id uuid,views int,first_viewed_at timestamptz,primary key(message_id,user_id));create table channel_messages(media_url text);create table job_applications(cv_url text);create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text);create function chat_object_path(v text) returns text language sql immutable as $$select substring(v from '/storage/v1/object/public/((?:chat-media|chat-files)/[^?]+)')$$;grant all on all tables in schema public to authenticated;grant usage on schema storage to authenticated;grant all on storage.objects to authenticated;`,
+  );
+  await db.exec(
+    fs.readFileSync(
+      path.join(
+        __dirname,
+        "../migrations/20261028150938_private_media_sessions.sql",
+      ),
+      "utf8",
+    ),
+  );
+});
+test.beforeEach(async () => {
+  await db.exec(
+    `truncate messages cascade;truncate private_media.erasure,private_media.events,profiles,auth.users,auth.sessions,conversations,conversation_members,blocked_users,message_views,channel_messages,job_applications,storage.objects;insert into profiles(id) values('${A}'),('${B}'),('${X}');insert into auth.users(id) values('${A}'),('${B}'),('${X}');insert into auth.sessions(id,user_id) values('${S}','${B}');insert into conversations(id,user_1,user_2) values('${C}','${A}','${B}');insert into storage.objects(bucket_id,name) values('chat-media','${A}/test.jpg');insert into messages(id,conversation_id,sender_id,receiver_id,media_url,media_type,view_limit) values('${M}','${C}','${A}','${B}','${url}','image',1);`,
+  );
+});
+test.after(() => db.close());
+test("recipient session opens once; same request retries, other accounts and another session cannot read", async () => {
+  const g = await open();
+  assert.equal(g.remaining, 0);
+  assert.ok(g.watermark.includes(B));
+  assert.equal((await open()).requestId, R);
+  assert.equal((await read()).url, url);
+  assert.equal(await read(X), null);
+  assert.equal(await read(B, W), null);
+  assert.equal(await open(B, W), null);
+  assert.equal(
+    (await db.query("select views from private_media.recipients")).rows[0]
+      .views,
+    1,
+  );
+});
+test("close consumes permanently; delayed open after close creates no bytes or view", async () => {
+  await close("camera_detected");
+  assert.equal(await open(), null);
+  assert.equal(await read(), null);
+  assert.equal(
+    (await db.query("select views from private_media.recipients")).rows[0]
+      .views,
+    0,
+  );
+});
+test("new request can open after pre-open cancellation but never after a consumed view closes", async () => {
+  await close();
+  assert.ok(await open(B, W));
+  await close("closed", W);
+  assert.equal(await open(B, "50000000-0000-4000-8000-000000000004"), null);
+});
+test("blocks, deactivated accounts and revoked authentication immediately stop reads", async () => {
+  await open();
+  await db.exec(`insert into blocked_users values('${B}','${A}')`);
+  assert.equal(await read(), null);
+  await db.exec("truncate blocked_users");
+  await db.exec(`update profiles set deactivated_at=now() where id='${A}'`);
+  assert.equal(await read(), null);
+  await db.exec(
+    "update profiles set deactivated_at=null;delete from auth.sessions",
+  );
+  assert.equal(await read(), null);
+});
+test("late group members never inherit private recipients; removing membership revokes reads", async () => {
+  await db.exec(
+    `update conversations set is_group=true;insert into conversation_members values('${C}','${B}'),('${C}','${X}')`,
+  );
+  await db.exec(`insert into auth.sessions(id,user_id) values('${W}','${X}')`);
+  assert.equal(await open(X, R, W), null);
+  await open();
+  await db.exec(`delete from conversation_members where user_id='${B}'`);
+  assert.equal(await read(), null);
+});
+test("expiry and invalid media never leak bytes", async () => {
+  await open();
+  await db.exec("update private_media.grants set expires_at=now()");
+  assert.equal(await read(), null);
+  await assert.rejects(
+    () =>
+      db.exec(
+        `insert into messages(id,conversation_id,sender_id,media_type,view_limit,thumbnail_url) values('${W}','${C}','${A}','image',1,'preview')`,
+      ),
+    /INVALID_PRIVATE_ATTACHMENT/,
+  );
+});
+test("old signed-URL consumption API is inaccessible", async () => {
+  await assert.rejects(
+    () => as(B, "select * from claim_chat_media_view($1,$2)", [M, R]),
+    /permission denied/,
+  );
+});
+test("cleanup waits for active viewing and preserves other live references", async () => {
+  assert.equal(
+    (
+      await as(
+        null,
+        "select * from claim_private_media_cleanup($1)",
+        [W],
+        "service_role",
+      )
+    ).length,
+    0,
+  );
+  await open();
+  assert.equal(
+    (
+      await as(
+        null,
+        "select * from claim_private_media_cleanup($1)",
+        [W],
+        "service_role",
+      )
+    ).length,
+    0,
+  );
+  await close();
+  await db.exec("update private_media.erasure set available_at=now()");
+  const job = (
+    await as(
+      null,
+      "select * from claim_private_media_cleanup($1)",
+      [W],
+      "service_role",
+    )
+  )[0];
+  assert.equal(job.path, `${A}/test.jpg`);
+  assert.equal(job.bucket, "chat-media");
+  assert.equal(
+    (
+      await as(
+        null,
+        "select finish_private_media_cleanup($1,$2,true) done",
+        [job.id, R],
+        "service_role",
+      )
+    )[0].done,
+    false,
+  );
+  assert.equal(
+    (
+      await as(
+        null,
+        "select finish_private_media_cleanup($1,$2,true) done",
+        [job.id, W],
+        "service_role",
+      )
+    )[0].done,
+    true,
+  );
+});
+test("pending/deleted object reservations block replacement uploads and new external references", async () => {
+  await assert.rejects(
+    () =>
+      db.exec(
+        `insert into storage.objects(bucket_id,name) values('chat-media','${A}/test.jpg')`,
+      ),
+    /PRIVATE_OBJECT_RESERVED/,
+  );
+  await assert.rejects(
+    () => db.exec(`insert into channel_messages values('${url}')`),
+    /PRIVATE_OBJECT_RESERVED/,
+  );
+  await assert.rejects(
+    () => db.exec(`insert into job_applications values('${url}')`),
+    /PRIVATE_OBJECT_RESERVED/,
+  );
+});
+test("legacy unenrolled attachment is not queued by a close-before-open tombstone", async () => {
+  await db.exec("truncate private_media.erasure");
+  await close();
+  assert.equal(
+    (await db.query("select count(*)::int n from private_media.erasure"))
+      .rows[0].n,
+    0,
+  );
+});
+test("genuine legacy open enrolls it and deleted attachment retains cleanup locator", async () => {
+  await db.exec("truncate private_media.erasure");
+  await open();
+  assert.equal(
+    (await db.query("select count(*)::int n from private_media.erasure"))
+      .rows[0].n,
+    1,
+  );
+  await db.exec(
+    `update messages set media_url=null,deleted_at=now() where id='${M}'`,
+  );
+  assert.equal(
+    (
+      await as(
+        null,
+        "select * from claim_private_media_cleanup($1)",
+        [W],
+        "service_role",
+      )
+    ).length,
+    1,
+  );
+});
+test("two-view media permits exactly two distinct sessions, never a third", async () => {
+  await db.exec("update messages set view_limit=2");
+  assert.equal((await open()).remaining, 1);
+  await close();
+  assert.equal((await open(B, W)).remaining, 0);
+  await close("closed", W);
+  assert.equal(await open(B, "50000000-0000-4000-8000-000000000003"), null);
+});
+test("historical channel/CV/group and ordinary message references keep enrolled originals alive", async () => {
+  await db.exec("truncate private_media.erasure");
+  await db.exec(
+    `insert into channel_messages values('${url}');insert into job_applications values('${url}');update conversations set group_avatar_url='${url}';insert into messages(id,conversation_id,sender_id,media_url,media_type) values('${W}','${C}','${A}','${url}','image')`,
+  );
+  await open();
+  await close();
+  for (const remove of [
+    "truncate channel_messages",
+    "truncate job_applications",
+    "update conversations set group_avatar_url=null",
+    `delete from messages where id='${W}'`,
+  ]) {
+    assert.equal(
+      (
+        await as(
+          null,
+          "select private_media_erasure_safe($1) ok",
+          [loc],
+          "service_role",
+        )
+      )[0].ok,
+      false,
+    );
+    await db.exec(remove);
+  }
+  assert.equal(
+    (
+      await as(
+        null,
+        "select private_media_erasure_safe($1) ok",
+        [loc],
+        "service_role",
+      )
+    )[0].ok,
+    true,
+  );
+});
+test("a new private message cannot turn an already-referenced upload into a supposedly private copy", async () => {
+  await db.exec("truncate private_media.erasure");
+  await assert.rejects(
+    () =>
+      db.exec(
+        `insert into messages(id,conversation_id,sender_id,media_url,media_type,view_limit) values('${W}','${C}','${A}','${url}','image',1)`,
+      ),
+    /PRIVATE_REQUIRES_NEW_UPLOAD/,
+  );
+});
+test("private recipient counters and audit records cannot be changed by a recipient", async () => {
+  await assert.rejects(
+    () => as(B, "update private_media.recipients set views=0"),
+    /permission denied/,
+  );
+  await open();
+  await as(B, "update message_views set views=0");
+  await close();
+  await close();
+  assert.equal(await open(B, W), null);
+  assert.equal(
+    (
+      await db.query(
+        "select count(*)::int n from private_media.events where event='closed'",
+      )
+    ).rows[0].n,
+    1,
+  );
+});
+test("expired legacy attachment is not enrolled by a denied read or close", async () => {
+  await db.exec(
+    "truncate private_media.erasure;alter table messages disable trigger private_message_guard;update messages set private_expires_at=now()-interval '1 day';alter table messages enable trigger private_message_guard",
+  );
+  assert.equal(await open(), null);
+  await close();
+  assert.equal(
+    (await db.query("select count(*)::int n from private_media.erasure"))
+      .rows[0].n,
+    0,
+  );
+});

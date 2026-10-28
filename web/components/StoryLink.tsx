@@ -29,7 +29,7 @@ export function StoryLink({ storyId }: { storyId: string }) {
     };
     const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => { authVersion++; void load(session?.user.id ?? null); });
     const initialVersion = authVersion;
-    void client.auth.getSession().then(({ data, error }) => { if (alive && authVersion === initialVersion) void load(error ? null : data.session?.user.id ?? null); });
+    void client.auth.getSession().then(({ data, error }) => { if (alive && authVersion === initialVersion) void load(error ? null : data.session?.user.id ?? null); }, () => { if (alive && authVersion === initialVersion) void load(null); });
     return () => { alive = false; ++generation.current; subscription.unsubscribe(); };
   }, [storyId]);
   if (state.status === 'ready' && state.user) return <StoryViewer key={storyId} users={[state.user]} startIndex={0} initialStoryId={storyId} onClose={() => router.push('/home')} />;

@@ -10,6 +10,17 @@ export class PublicationAttempt {
 
   get<T>(key: string): T | undefined { return this.completed.get(key) as T | undefined; }
 
+  /** Only for operations carrying stable row IDs or a server idempotency key. */
+  async writeIdempotent<T>(key: string, work: () => PromiseLike<{ data: T; error: unknown }>): Promise<T> {
+    await this.check();
+    if (this.completed.has(key)) return this.completed.get(key) as T;
+    const result = await work();
+    if (result.error) throw result.error;
+    await this.check();
+    this.completed.set(key, result.data);
+    return result.data;
+  }
+
   async write<T>(key: string, work: () => PromiseLike<{ data: T; error: unknown }>): Promise<T> {
     await this.check();
     if (this.completed.has(key)) return this.completed.get(key) as T;

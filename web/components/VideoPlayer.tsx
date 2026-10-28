@@ -248,7 +248,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
           if (!allowPlayback || !wantsPlayback.current || (activeStop && activeStop !== stop)) { ref.current?.pause(); return; }
           activeStop = stop;
         }}
-        onPlaying={()=>{clearStall();if(document.documentElement.dataset.platinumCallActive==='true'){stop();return;}setPlaying(true);if(dwellStart.current===null)dwellStart.current=Date.now();}}
+        onPlaying={()=>{clearStall();if(!allowPlayback||!wantsPlayback.current||document.documentElement.dataset.platinumCallActive==='true'){stop();return;}setPlaying(true);if(dwellStart.current===null)dwellStart.current=Date.now();}}
         onWaiting={waitForData}
         onStalled={waitForData}
         onPause={() => { clearStall(); setPlaying(false); void reportDwell(); }}

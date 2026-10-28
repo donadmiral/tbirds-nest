@@ -1,16 +1,320 @@
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
-function load(file){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,Request,Response,Headers,URL,AbortSignal,encodeURIComponent,Date,JSON,console});return exports;}
-const create=load('supabase/functions/private-media-session/handler.ts').createPrivateMediaSession;
-const M='10000000-0000-4000-8000-000000000001',R='20000000-0000-4000-8000-000000000001',U='30000000-0000-4000-8000-000000000001';
-function harness(opts={}){const rpcs=[],reads=[];return {rpcs,reads,handle:create({env:n=>({SUPABASE_URL:'https://qa.supabase.co',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'secret'})[n],client:()=>({auth:{getUser:async()=>({data:{user:opts.noAuth?null:{id:U}},error:null})},rpc:async(name,args)=>{rpcs.push({name,args});return {data:opts.denied?null:name==='read_private_media'?{url:opts.url||`https://qa.supabase.co/storage/v1/object/public/chat-media/${U}/one.jpg`,mediaType:'image'}:{requestId:R},error:opts.error?{}:null};}}),fetch:async(url,init)=>{reads.push({url,init});return new Response('bytes',{headers:{'Content-Type':opts.mime||'image/jpeg'}});}})};}
-const request=(action='open')=>new Request('https://qa.supabase.co/functions/v1/private-media-session',{method:'POST',headers:{Authorization:'Bearer user'},body:JSON.stringify({action,messageId:M,requestId:R})});
-test('open returns only bounded grant metadata and never fetches object bytes',async()=>{const h=harness(),r=await h.handle(request());assert.equal(r.status,200);assert.equal(h.reads.length,0);assert.equal(h.rpcs[0].name,'open_private_media');});
-test('media reads reauthorize every request, preserve range, and stream no-store without a capability URL',async()=>{const h=harness();for(let i=0;i<2;i++){const r=await h.handle(new Request(`https://qa.supabase.co/functions/v1/private-media-session?messageId=${M}&requestId=${R}`,{headers:{Authorization:'Bearer user',Range:'bytes=0-100'}}));assert.equal(r.status,200);assert.match(r.headers.get('Cache-Control'),/no-store/);assert.equal(await r.text(),'bytes');}assert.equal(h.rpcs.length,2);assert.equal(h.reads[0].init.headers.Range,'bytes=0-100');assert.equal(h.reads[0].init.headers.Authorization,'Bearer secret');assert.ok(!h.reads[0].url.includes('sign/'));});
-test('denied, expired and unauthenticated requests never reach storage',async()=>{for(const opts of [{denied:true},{noAuth:true},{error:true}]){const h=harness(opts),r=await h.handle(new Request(`https://qa.supabase.co/functions/v1/private-media-session?messageId=${M}&requestId=${R}`,{headers:{Authorization:'Bearer user'}}));assert.ok(r.status>=400);assert.equal(h.reads.length,0);}});
-test('forged origins, traversal and unsupported content cannot be streamed',async()=>{for(const opts of [{url:`https://evil.test/storage/v1/object/public/chat-media/${U}/one.jpg`},{url:`https://qa.supabase.co/storage/v1/object/public/chat-media/${U}/%2e%2e/one.jpg`},{mime:'text/html'}]){const h=harness(opts),r=await h.handle(new Request(`https://qa.supabase.co/functions/v1/private-media-session?messageId=${M}&requestId=${R}`,{headers:{Authorization:'Bearer user'}}));assert.ok(r.status>=400);}});
-test('close uses the request identity and never exposes an internal error',async()=>{const h=harness();assert.equal((await h.handle(request('close'))).status,200);assert.equal(h.rpcs[0].name,'close_private_media');assert.equal(h.rpcs[0].args.p_message_id,M);});
-const session=load('shared/privateMedia.ts').createPrivateViewSession;
-function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{resolve,promise};}
-test('closing during a pending open hides synchronously and revokes the late grant under original credentials',async()=>{const pending=deferred(),calls=[];let hidden=0;const s=session({endpoint:'https://qa.test',token:'original',apiKey:'anon',messageId:M,requestId:R,current:()=>true,hide:()=>hidden++,fetch:async(_url,init)=>{calls.push(init);return JSON.parse(init.body).action==='open'?pending.promise:new Response('{}');}});const open=s.open();const closing=s.close('camera_detected');assert.equal(s.closed,true);assert.equal(hidden,1);pending.resolve(new Response(JSON.stringify({requestId:R,expiresAt:new Date(Date.now()+10000).toISOString(),remaining:0,mediaType:'image',watermark:U})));assert.equal(await open,null);await closing;assert.equal(calls.length,3);assert.ok(calls.every(c=>c.headers.Authorization==='Bearer original'));});
-test('account switch cannot publish a late private grant',async()=>{let current=true,hidden=0;const pending=deferred();const s=session({endpoint:'https://qa.test',token:'original',apiKey:'anon',messageId:M,requestId:R,current:()=>current,hide:()=>hidden++,fetch:async(_url,init)=>JSON.parse(init.body).action==='open'?pending.promise:new Response('{}')});const open=s.open();current=false;pending.resolve(new Response(JSON.stringify({requestId:R,expiresAt:new Date(Date.now()+10000).toISOString(),remaining:0,mediaType:'image',watermark:U})));assert.equal(await open,null);assert.equal(hidden,1);});
-test('expired or mismatched grants are rejected before any content is displayed',async()=>{for(const bad of [{expiresAt:'2000-01-01'},{requestId:M}]){const s=session({endpoint:'https://qa.test',token:'original',apiKey:'anon',messageId:M,requestId:R,current:()=>true,hide:()=>{},fetch:async()=>new Response(JSON.stringify({requestId:R,expiresAt:new Date(Date.now()+10000).toISOString(),mediaType:'image',...bad}))});await assert.rejects(()=>s.open(),/ended/);}});
+const test = require("node:test"),
+  assert = require("node:assert/strict"),
+  fs = require("node:fs"),
+  path = require("node:path"),
+  vm = require("node:vm"),
+  ts = require("typescript");
+function load(file) {
+  const exports = {};
+  vm.runInNewContext(
+    ts.transpileModule(
+      fs.readFileSync(path.join(__dirname, "..", file), "utf8"),
+      {
+        compilerOptions: {
+          module: ts.ModuleKind.CommonJS,
+          target: ts.ScriptTarget.ES2022,
+        },
+      },
+    ).outputText,
+    {
+      exports,
+      Request,
+      Response,
+      Headers,
+      URL,
+      AbortSignal,
+      AbortController,
+      setTimeout,
+      clearTimeout,
+      encodeURIComponent,
+      Date,
+      JSON,
+      console,
+    },
+  );
+  return exports;
+}
+const create = load(
+  "supabase/functions/private-media-session/handler.ts",
+).createPrivateMediaSession;
+const M = "10000000-0000-4000-8000-000000000001",
+  R = "20000000-0000-4000-8000-000000000001",
+  U = "30000000-0000-4000-8000-000000000001";
+function harness(opts = {}) {
+  const rpcs = [],
+    reads = [];
+  return {
+    rpcs,
+    reads,
+    handle: create({
+      env: (n) =>
+        ({
+          SUPABASE_URL: "https://qa.supabase.co",
+          SUPABASE_ANON_KEY: "anon",
+          SUPABASE_SERVICE_ROLE_KEY: "secret",
+        })[n],
+      client: () => ({
+        auth: {
+          getUser: async () => ({
+            data: { user: opts.noAuth ? null : { id: U } },
+            error: null,
+          }),
+        },
+        rpc: async (name, args) => {
+          rpcs.push({ name, args });
+          return {
+            data: opts.denied
+              ? null
+              : name === "read_private_media"
+                ? {
+                    url:
+                      opts.url ||
+                      `https://qa.supabase.co/storage/v1/object/public/chat-media/${U}/one.jpg`,
+                    mediaType: "image",
+                  }
+                : { requestId: R },
+            error: opts.error ? {} : null,
+          };
+        },
+      }),
+      fetch: async (url, init) => {
+        reads.push({ url, init });
+        return new Response("bytes", {
+          headers: { "Content-Type": opts.mime || "image/jpeg" },
+        });
+      },
+    }),
+  };
+}
+const request = (action = "open") =>
+  new Request("https://qa.supabase.co/functions/v1/private-media-session", {
+    method: "POST",
+    headers: { Authorization: "Bearer user" },
+    body: JSON.stringify({ action, messageId: M, requestId: R }),
+  });
+test("open returns only bounded grant metadata and never fetches object bytes", async () => {
+  const h = harness(),
+    r = await h.handle(request());
+  assert.equal(r.status, 200);
+  assert.equal(h.reads.length, 0);
+  assert.equal(h.rpcs[0].name, "open_private_media");
+});
+test("media reads reauthorize every request, preserve range, and stream no-store without a capability URL", async () => {
+  const h = harness();
+  for (let i = 0; i < 2; i++) {
+    const r = await h.handle(
+      new Request(
+        `https://qa.supabase.co/functions/v1/private-media-session?messageId=${M}&requestId=${R}`,
+        { headers: { Authorization: "Bearer user", Range: "bytes=0-100" } },
+      ),
+    );
+    assert.equal(r.status, 200);
+    assert.match(r.headers.get("Cache-Control"), /no-store/);
+    assert.equal(await r.text(), "bytes");
+  }
+  assert.equal(h.rpcs.length, 4);
+  assert.equal(h.reads[0].init.headers.Range, "bytes=0-100");
+  assert.equal(h.reads[0].init.headers.Authorization, "Bearer secret");
+  assert.ok(!h.reads[0].url.includes("sign/"));
+});
+test("denied, expired and unauthenticated requests never reach storage", async () => {
+  for (const opts of [{ denied: true }, { noAuth: true }, { error: true }]) {
+    const h = harness(opts),
+      r = await h.handle(
+        new Request(
+          `https://qa.supabase.co/functions/v1/private-media-session?messageId=${M}&requestId=${R}`,
+          { headers: { Authorization: "Bearer user" } },
+        ),
+      );
+    assert.ok(r.status >= 400);
+    assert.equal(h.reads.length, 0);
+  }
+});
+test("forged origins, traversal and unsupported content cannot be streamed", async () => {
+  for (const opts of [
+    {
+      url: `https://evil.test/storage/v1/object/public/chat-media/${U}/one.jpg`,
+    },
+    {
+      url: `https://qa.supabase.co/storage/v1/object/public/chat-media/${U}/%2e%2e/one.jpg`,
+    },
+    { mime: "text/html" },
+  ]) {
+    const h = harness(opts),
+      r = await h.handle(
+        new Request(
+          `https://qa.supabase.co/functions/v1/private-media-session?messageId=${M}&requestId=${R}`,
+          { headers: { Authorization: "Bearer user" } },
+        ),
+      );
+    assert.ok(r.status >= 400);
+  }
+});
+test("close uses the request identity and never exposes an internal error", async () => {
+  const h = harness();
+  assert.equal((await h.handle(request("close"))).status, 200);
+  assert.equal(h.rpcs[0].name, "close_private_media");
+  assert.equal(h.rpcs[0].args.p_message_id, M);
+});
+const session = load("shared/privateMedia.ts").createPrivateViewSession;
+function deferred() {
+  let resolve;
+  const promise = new Promise((r) => (resolve = r));
+  return { resolve, promise };
+}
+test("closing during a pending open hides synchronously and revokes the late grant under original credentials", async () => {
+  const pending = deferred(),
+    calls = [];
+  let hidden = 0;
+  const s = session({
+    endpoint: "https://qa.test",
+    token: "original",
+    apiKey: "anon",
+    messageId: M,
+    requestId: R,
+    current: () => true,
+    hide: () => hidden++,
+    fetch: async (_url, init) => {
+      calls.push(init);
+      return JSON.parse(init.body).action === "open"
+        ? pending.promise
+        : new Response("{}");
+    },
+  });
+  const open = s.open();
+  const closing = s.close("camera_detected");
+  assert.equal(s.closed, true);
+  assert.equal(hidden, 1);
+  pending.resolve(
+    new Response(
+      JSON.stringify({
+        requestId: R,
+        expiresAt: new Date(Date.now() + 10000).toISOString(),
+        remaining: 0,
+        mediaType: "image",
+        watermark: U,
+      }),
+    ),
+  );
+  assert.equal(await open, null);
+  await closing;
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every((c) => c.headers.Authorization === "Bearer original"));
+});
+test("account switch cannot publish a late private grant", async () => {
+  let current = true,
+    hidden = 0;
+  const pending = deferred();
+  const s = session({
+    endpoint: "https://qa.test",
+    token: "original",
+    apiKey: "anon",
+    messageId: M,
+    requestId: R,
+    current: () => current,
+    hide: () => hidden++,
+    fetch: async (_url, init) =>
+      JSON.parse(init.body).action === "open"
+        ? pending.promise
+        : new Response("{}"),
+  });
+  const open = s.open();
+  current = false;
+  pending.resolve(
+    new Response(
+      JSON.stringify({
+        requestId: R,
+        expiresAt: new Date(Date.now() + 10000).toISOString(),
+        remaining: 0,
+        mediaType: "image",
+        watermark: U,
+      }),
+    ),
+  );
+  assert.equal(await open, null);
+  assert.equal(hidden, 1);
+});
+test("expired or mismatched grants are rejected before any content is displayed", async () => {
+  for (const bad of [{ expiresAt: "2000-01-01" }, { requestId: M }]) {
+    const s = session({
+      endpoint: "https://qa.test",
+      token: "original",
+      apiKey: "anon",
+      messageId: M,
+      requestId: R,
+      current: () => true,
+      hide: () => {},
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            requestId: R,
+            expiresAt: new Date(Date.now() + 10000).toISOString(),
+            mediaType: "image",
+            ...bad,
+          }),
+        ),
+    });
+    await assert.rejects(() => s.open(), /ended/);
+  }
+});
+test("malformed IDs and invalid range requests do not reach storage", async () => {
+  const h = harness();
+  const badId = new Request("https://qa.test", {
+    method: "POST",
+    headers: { Authorization: "Bearer user" },
+    body: JSON.stringify({ action: "open", messageId: [M], requestId: R }),
+  });
+  assert.equal((await h.handle(badId)).status, 400);
+  for (const range of ["bytes=-", "bytes=0-1,3-4", "wrong"]) {
+    const r = await h.handle(
+      new Request(`https://qa.test?messageId=${M}&requestId=${R}`, {
+        headers: { Authorization: "Bearer user", Range: range },
+      }),
+    );
+    assert.equal(r.status, 416);
+  }
+  assert.equal(h.reads.length, 0);
+});
+test("close received while storage is preparing bytes prevents the response from being delivered", async () => {
+  let checks = 0,
+    cancelled = false;
+  const handle = create({
+    env: (n) =>
+      ({
+        SUPABASE_URL: "https://qa.supabase.co",
+        SUPABASE_ANON_KEY: "anon",
+        SUPABASE_SERVICE_ROLE_KEY: "service",
+      })[n],
+    client: () => ({
+      auth: {
+        getUser: async () => ({ data: { user: { id: U } }, error: null }),
+      },
+      rpc: async () => ({
+        data:
+          ++checks === 1
+            ? {
+                url: `https://qa.supabase.co/storage/v1/object/public/chat-media/${U}/one.jpg`,
+                mediaType: "image",
+              }
+            : null,
+        error: null,
+      }),
+    }),
+    fetch: async () =>
+      new Response(
+        new ReadableStream({
+          cancel() {
+            cancelled = true;
+          },
+        }),
+        { headers: { "Content-Type": "image/jpeg" } },
+      ),
+  });
+  const response = await handle(
+    new Request(`https://qa.test?messageId=${M}&requestId=${R}`, {
+      headers: { Authorization: "Bearer user" },
+    }),
+  );
+  assert.equal(response.status, 410);
+  assert.equal(cancelled, true);
+});

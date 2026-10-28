@@ -68,6 +68,7 @@ function harness(responses) {
     from(table) {
       const builder = {
         insert(payload) { calls.push({ table, payload }); return builder; },
+        upsert(payload, options) { calls.push({ table, payload, options }); return builder; },
         select() { return builder; }, single() { return builder; },
         then(resolve, reject) {
           const queue = responses[table] || [];
@@ -84,7 +85,7 @@ function harness(responses) {
     '@/lib/categories': { CATEGORIES: [] },
     '@/lib/stories': { STORY_FILTERS: [] },
   }, { get: (target, key) => target[key] ?? {} });
-  const globals = { localStorage: { getItem: (key) => draft.get(key), setItem: (key, value) => draft.set(key, value), removeItem: (key) => draft.delete(key) }, URL: { revokeObjectURL() {} } };
+  const globals = { crypto: require('node:crypto').webcrypto, localStorage: { getItem: (key) => draft.get(key), setItem: (key, value) => draft.set(key, value), removeItem: (key) => draft.delete(key) }, URL: { revokeObjectURL() {} } };
   let posted = 0;
   const { Composer } = load(path.join(root, 'components/Composer.tsx'), imports, globals);
   const render = () => { slot = 0; return Composer({ onPosted: () => { posted++; } }); };
@@ -119,12 +120,17 @@ test('Composer refuses same-tick duplicate submissions', async () => {
   assert.equal(h.calls.filter((x) => x.table === 'posts').length, 1);
   assert.equal(h.posted(), 1);
 });
-test('Composer does not announce success or replay when server response is lost', async () => {
+test('Composer retains stable IDs when a lost response is safely retried', async () => {
   const h = harness({ posts: [{ data: null, error: { message: 'Failed to fetch' } }] });
   h.button(h.render(), 'Post').props.onClick();
   h.input(h.render(), 'What is happening?').props.onChange({ target: { value: 'Keep this draft' } });
   await h.button(h.render(), 'Post').props.onClick();
   assert.equal(h.posted(), 0);
   assert.equal(h.input(h.render(), 'What is happening?').props.value, 'Keep this draft');
-  assert.equal(h.button(h.render(), 'Post').props.disabled, true);
+  await h.button(h.render(), 'Retry').props.onClick();
+  assert.equal(h.posted(), 1);
+  assert.equal(h.calls[0].payload[0].id, h.calls[1].payload[0].id);
+  assert.equal(h.calls[1].options.ignoreDuplicates, true);
 });
+
+test('idempotent writes can retry lost responses but keep confirmed checkpoints', async()=>{const {PublicationAttempt}=webPublication;const p=new PublicationAttempt();let calls=0;await assert.rejects(()=>p.writeIdempotent('stable',async()=>{calls++;throw Error('lost');}));assert.equal(p.uncertain,false);await p.writeIdempotent('stable',async()=>{calls++;return{data:'same-id',error:null};});assert.equal(await p.writeIdempotent('stable',async()=>{throw Error('must not replay');}),'same-id');assert.equal(calls,2);});

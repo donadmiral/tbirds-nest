@@ -250,6 +250,15 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
     setError(null);
     if (!publication.current) {
       let author: string | null = null;
+      const stablePostId = crypto.randomUUID();
+      const mediaIds = items.map(() => crypto.randomUUID());
+      const tagIds = items.map(item => (item.tags || []).map(() => crypto.randomUUID()));
+      const pollIds = pollOpts.map(() => crypto.randomUUID());
+      const pollEnds = new Date(Date.now() + pollDays * 86400000).toISOString();
+      const saveRows = async (table: string, rows: any[], conflict = 'id') => {
+        const { error } = await supabase.from(table).upsert(rows, { onConflict: conflict, ignoreDuplicates: true });
+        return { data: rows, error };
+      };
       const progress = new PublicationAttempt(async () => {
         const { data, error: sessionError } = await supabase.auth.getSession();
         if (sessionError || !author || data.session?.user.id !== author) throw new Error("Return to the account that started this post to finish it.");
@@ -266,10 +275,12 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         for (let i = media.length; i < items.length; i++) {
           const p = items[i];
           const ext = (p.file.name.split(".").pop() || (p.isVideo ? "mp4" : "jpg")).toLowerCase();
-          const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+          const path = uid + "/" + stablePostId + "_" + i + "." + ext;
           const bad = await checkUploadableBytes(p.file);
           if (bad) throw new Error(bad);
-          const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type });
+          await progress.check();
+          const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type, upsert: true });
+          await progress.check();
           if (upErr) {
             throw new Error("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message);
           }
@@ -277,8 +288,10 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           let recipe: PostMediaEditRecipe = {...p.edit,...(i===0&&soundtrack?{soundtrack}:{})};
           if(p.isVideo) {
             const cover=await capturePostCover(p.preview,recipe.coverAt??recipe.trimStart??0);
-            const coverPath=uid+"/"+crypto.randomUUID()+"_cover.jpg";
-            const {error:coverError}=await supabase.storage.from("post-media").upload(coverPath,cover,{contentType:"image/jpeg",upsert:false});
+            const coverPath=uid+"/"+stablePostId+"_"+i+"_cover.jpg";
+            await progress.check();
+            const {error:coverError}=await supabase.storage.from("post-media").upload(coverPath,cover,{contentType:"image/jpeg",upsert:true});
+            await progress.check();
             if(coverError)throw new Error("The video cover could not upload. Retry this post.");
             recipe={...recipe,coverUrl:supabase.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl};
           }
@@ -286,6 +299,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         }
 
         const insertData: Record<string, unknown> = {
+          id: stablePostId,
           user_id: uid,
           content: content || null,
           audience,
@@ -307,21 +321,22 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         if (postCategory) insertData.category = postCategory;
         if (preview?.url) insertData.link_url = preview.url;
 
-        const newPost = await progress.write("post", () => supabase.from("posts").insert(insertData).select("id").single());
+        progress.postId = stablePostId;
+        const [newPost] = await progress.writeIdempotent("post", () => saveRows("posts", [insertData]));
         if (!newPost) { progress.uncertain = true; throw new Error("Could not confirm the post."); }
         progress.postId = newPost.id;
         if (preview?.url) {
-          supabase.rpc("upsert_link_preview", {
+          await progress.writeIdempotent("link-preview", () => supabase.rpc("upsert_link_preview", {
             p_url: preview.url,
             p_title: preview.title ?? null,
             p_description: preview.description ?? null,
             p_image_url: preview.image_url ?? null,
             p_domain: preview.domain ?? null,
-          }).then(() => {});
+          }));
         }
 
         if (products.length > 0) {
-          await progress.write("products", () => supabase.rpc("set_post_products", {
+          await progress.writeIdempotent("products", () => supabase.rpc("set_post_products", {
             p_post_id: newPost.id,
             p_products: products.map((c, i) => ({ ...c, sort_order: i })),
           }));
@@ -330,20 +345,19 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         if (pollOn) {
           const labels = pollOpts.map((x) => x.trim()).filter(Boolean);
           if (labels.length >= 2) {
-            const ends = new Date(Date.now() + pollDays * 86400000).toISOString();
-            await progress.write("poll", () => supabase.from("post_polls").insert({ post_id: newPost.id, ends_at: ends }));
-            await progress.write("poll-options", () => supabase.from("post_poll_options").insert(labels.map((label, i) => ({ post_id: newPost.id, label, sort_order: i }))));
+            await progress.writeIdempotent("poll", () => saveRows("post_polls", [{ post_id: newPost.id, ends_at: pollEnds }], "post_id"));
+            await progress.writeIdempotent("poll-options", () => saveRows("post_poll_options", labels.map((label, i) => ({ id: pollIds[i], post_id: newPost.id, label, sort_order: i }))));
           }
         }
         if (media.length > 0) {
-          const rows = media.map((m) => ({ post_id: newPost.id, ...m }));
-          const inserted = await progress.write("media", () => supabase.from("post_media").insert(rows).select("id, sort_order"));
+          const rows = media.map((m,i) => ({ id: mediaIds[i], post_id: newPost.id, is_sensitive: sensitiveMark, ...m }));
+          const inserted = await progress.writeIdempotent("media", () => saveRows("post_media", rows));
           if (!inserted || inserted.length !== media.length) { progress.uncertain = true; throw new Error("Could not confirm every media attachment."); }
           {
             // Tagged people, anchored to the media row each tag was placed on.
             const tagRows: any[] = [];
-            items.forEach((it, i) => { const row = (inserted || []).find((r: any) => r.sort_order === i); (it.tags || []).forEach((t) => { if (row) tagRows.push({ post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
-            if (tagRows.length) await progress.write("media-tags", () => supabase.from("post_media_tags").insert(tagRows));
+            items.forEach((it, i) => { const row = (inserted || []).find((r: any) => r.sort_order === i); (it.tags || []).forEach((t,j) => { if (row) tagRows.push({ id: tagIds[i][j], post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
+            if (tagRows.length) await progress.writeIdempotent("media-tags", () => saveRows("post_media_tags", tagRows));
           }
         }
 
@@ -385,13 +399,9 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       const prefix = progress?.uncertain
         ? "We could not confirm the last save. Check your profile before posting again. Your draft remains open here; keep this page open. "
         : progress?.postId
-          ? "Your post exists, but some attachments did not save. Keep this page open; retry finishes this same post. "
+          ? "Your post is not fully confirmed. Keep this page open; retry continues this same post. "
           : "Your draft remains open here; keep this page open. ";
       setError(prefix + publicationError(failure));
-      if (!progress?.postId && !progress?.uncertain) {
-        publication.current = null;
-        setPublicationLocked(false);
-      }
     } finally {
       publishing.current = false;
       setPending(false);
@@ -674,6 +684,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           ))}
         </div>
       ) : null}
+      {error && publicationLocked && !publicationStatus.postId ? <button type="button" onClick={() => { publication.current=null; setPublicationLocked(false); setError(null); }} className="ml-14 mt-2 text-sm underline">Edit draft</button> : null}
       {error ? <p role="alert" className="ml-14 mt-3 text-[13px] text-danger">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View post</Link></> : null}</p> : null}
       </div>
       <div className="mt-4 flex shrink-0 flex-wrap items-center gap-1 border-t border-ink/10 pt-4">
@@ -723,7 +734,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         </select>        <div className="ml-auto flex gap-2">
           <button disabled={pending} onClick={() => { setOpen(false); onQuoteDone?.(); }} className="rounded-full bg-surface px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Cancel</button>
           <button onClick={post} disabled={pending || preparing || publicationStatus.uncertain || (!text.trim() && items.length === 0)} className="rounded-full bg-pearl px-6 py-2 text-[13.5px] font-bold text-on-pearl shadow-sm transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
-            {pending ? "Posting" : publicationStatus.postId ? "Retry" : "Post"}
+            {pending ? "Posting" : publicationLocked ? "Retry" : "Post"}
           </button>
         </div>
       </div>
@@ -740,6 +751,12 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
   const [dur, setDur] = useState(0);
   const video=useRef<HTMLVideoElement|null>(null);
   useEffect(()=>{if(video.current)video.current.playbackRate=e.speed||1;},[e.speed]);
+  useEffect(()=>{
+    const pause=()=>video.current?.pause();
+    const visibility=()=>{if(document.hidden)pause();};
+    window.addEventListener('platinum:stop-media',pause);document.addEventListener('visibilitychange',visibility);
+    return()=>{window.removeEventListener('platinum:stop-media',pause);document.removeEventListener('visibilitychange',visibility);};
+  },[]);
   const adj = e.adjust || {};
   const setAdj = (k: string, v: number) => setE((p) => ({ ...p, adjust: { ...(p.adjust || {}), [k]: v } }));
   const filterStyle = filterCss(e.filterId, (e.filterAmt ?? 100) / 100);
@@ -766,7 +783,7 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
       <div className="flex max-h-[92vh] w-full max-w-[920px] flex-col gap-4 overflow-auto rounded-2xl bg-white p-4 md:flex-row" onClick={(ev) => ev.stopPropagation()}>
         <div className="relative flex min-h-[260px] flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">
           {item.isVideo ? (
-            <video ref={video} src={item.preview} muted={!!e.muted} controls playsInline onTimeUpdate={ev=>{const v=ev.currentTarget;if(v.currentTime<(e.trimStart||0)||e.trimEnd&&v.currentTime>=e.trimEnd)v.currentTime=e.trimStart||0;}} className={"max-h-[70vh] w-full " + fit} style={previewStyle}
+            <video ref={video} src={item.preview} muted={!!e.muted} controls playsInline onPlay={ev=>{if(document.hidden||document.documentElement.dataset.platinumCallActive==='true')ev.currentTarget.pause();}} onTimeUpdate={ev=>{const v=ev.currentTarget;if(v.currentTime<(e.trimStart||0)||e.trimEnd&&v.currentTime>=e.trimEnd)v.currentTime=e.trimStart||0;}} className={"max-h-[70vh] w-full " + fit} style={previewStyle}
               onLoadedMetadata={(ev) => { const d = ev.currentTarget.duration || 0; setDur(d); if (typeof e.trimEnd !== "number") setE((p) => ({ ...p, trimEnd: Math.round(d * 10) / 10 })); }} />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
@@ -818,9 +835,9 @@ function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () =
 /** Decode the selected frame with a deadline; a failed cover never becomes silent success. */
 function capturePostCover(url:string,at:number):Promise<Blob> {
  return new Promise((resolve,reject)=>{const video=document.createElement('video');let done=false;
- const finish=(blob?:Blob|null)=>{if(done)return;done=true;clearTimeout(timer);video.pause();video.removeAttribute('src');video.load();blob?resolve(blob):reject(new Error('The selected video cover could not be prepared.'));};
+ const finish=(blob?:Blob|null)=>{if(done)return;done=true;clearTimeout(timer);video.onloadeddata=null;video.onseeked=null;video.onerror=null;video.pause();video.removeAttribute('src');video.load();blob?resolve(blob):reject(new Error('The selected video cover could not be prepared.'));};
  const timer=setTimeout(()=>finish(),15000);video.muted=true;video.preload='auto';video.playsInline=true;video.onerror=()=>finish();
- const draw=()=>{try{const canvas=document.createElement('canvas');const scale=Math.min(1,1200/(video.videoWidth||1));canvas.width=Math.max(1,Math.round(video.videoWidth*scale));canvas.height=Math.max(1,Math.round(video.videoHeight*scale));canvas.getContext('2d')?.drawImage(video,0,0,canvas.width,canvas.height);canvas.toBlob(finish,'image/jpeg',.88);}catch{finish();}};
+ const draw=()=>{if(done)return;try{if(!video.videoWidth||!video.videoHeight)throw new Error('Video dimensions unavailable');const canvas=document.createElement('canvas');const scale=Math.min(1,1200/(video.videoWidth||1));canvas.width=Math.max(1,Math.round(video.videoWidth*scale));canvas.height=Math.max(1,Math.round(video.videoHeight*scale));const context=canvas.getContext('2d');if(!context)throw new Error('Canvas unavailable');context.drawImage(video,0,0,canvas.width,canvas.height);canvas.toBlob(finish,'image/jpeg',.88);}catch{finish();}};
  video.onloadeddata=()=>{const next=Math.min(Math.max(0,at),Math.max(0,video.duration-.05));if(next>.02){video.onseeked=draw;video.currentTime=next;}else draw();};video.src=url;
  });
 }

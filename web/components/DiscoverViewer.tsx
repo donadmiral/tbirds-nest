@@ -51,7 +51,7 @@ function DiscoverItem({post,active,expanded,onComments}:{post:FeedRow;active:boo
   </article>;
 }
 export function DiscoverViewer({posts,initialId,hasMore,loading,error,loadMore,onClose}:{posts:FeedRow[];initialId:string;hasMore:boolean;loading:boolean;error:string|null;loadMore:()=>Promise<void>;onClose:()=>void}) {
-  const [activeId,setActiveId]=useState(initialId),[comments,setComments]=useState<string|null>(null),[expanded,setExpanded]=useState(false),[visible,setVisible]=useState(true);
+  const [activeId,setActiveId]=useState(initialId),[comments,setComments]=useState<string|null>(null),[expanded,setExpanded]=useState(false),[visible,setVisible]=useState(()=>document.visibilityState!=='hidden');
   const scroller=useRef<HTMLDivElement>(null),dialog=useRef<HTMLDivElement>(null),didPosition=useRef(false);
   const current=useRef({onClose,comments,posts,activeId});current.current={onClose,comments,posts,activeId};
   const index=discoverIndex(posts.map(p=>p.post_id),activeId);
