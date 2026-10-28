@@ -13,7 +13,7 @@ function scenario(platform) {
   assert.ok(start >= 0 && end > start);
   const request = deferred(), albums = [], errors = [];
   const scope = {
-    useCallback: fn => fn, ownerId: 'album-owner', uid: 'viewer', viewerId: 'viewer', albumIdParam: 'album-id',
+    useCallback: fn => fn, authReady: true, ownerId: 'album-owner', uid: 'viewer', viewerId: 'viewer', albumIdParam: 'album-id',
     loadGeneration: { current: 0 }, viewerRef: { current: 'viewer' },
     getMemoryBook: () => request.promise,
     supabase: { rpc: () => request.promise }, hydrateMemoryAlbumMedia: async rows => rows.map(row => ({...row, signed: true})),

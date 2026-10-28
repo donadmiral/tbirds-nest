@@ -136,24 +136,27 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
           );
         }
         if (kind === "post" && st.postId) {
-          // Mirrors the phone's shared-post card: media hero, author row,
-          // text, actions, "View original post". Every field is already on
-          // the sticker (see the phone's addPostToStory), so no fetch.
+          // Caption above an uncropped image, then the creator and post link.
+          // The phone stores the carousel count alongside the shared media.
           const ps: any = st;
           const dt = ps.postCreatedAt ? new Date(ps.postCreatedAt) : null;
           const dateStr = dt && !isNaN(dt.getTime()) ? dt.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : null;
           const badgeColor = ps.postVerified ? (TIER_COLORS[ps.postVerifiedTier] || TIER_COLORS.official) : null;
           const isVideo = ps.postMediaType === "video";
           return (
-            <a key={st.id} href={"/post/" + st.postId} style={{ ...pos, width: "86%", maxWidth: "86%" }} className="pointer-events-auto block overflow-hidden rounded-[20px] bg-white text-left shadow-2xl">
+            <a key={st.id} href={"/post/" + st.postId} style={{ ...pos, width: "86%", maxWidth: "86%" }} className="pointer-events-auto block overflow-hidden rounded-[20px] bg-white text-left shadow-2xl" aria-label={"View post by " + (ps.postAuthorName || ps.postUsername || "this creator")}>
+              {ps.postArticleTitle ? <span className="block px-4 pt-3 text-[16px] font-bold leading-snug text-[#0B1E3D]">{ps.postArticleTitle}</span> : null}
+              {ps.postText ? <span className="line-clamp-3 px-4 py-3 text-[14px] leading-snug text-[#0B1E3D]">{ps.postText}</span> : null}
               {ps.postMediaUrl ? (
-                <span className="relative block w-full overflow-hidden bg-black/5" style={{ aspectRatio: "1 / 1.1" }}>
+                <span className="relative block w-full overflow-hidden bg-[#0B1E3D]" style={{ height: "clamp(140px, 38dvh, 330px)" }}>
+                  {!isVideo ? <img aria-hidden alt="" src={ps.postMediaUrl} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl" /> : null}
                   {isVideo ? (
                     <SharedStoryVideo src={ps.postMediaUrl} paused={paused} />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={ps.postMediaUrl} alt="" className="h-full w-full object-contain" />
+                    <img src={ps.postMediaUrl} alt="Shared post" className="relative h-full w-full object-contain" />
                   )}
+                  {Number(ps.postMediaCount) > 1 ? <span className="absolute right-2.5 top-2.5 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-bold text-white">1/{Math.floor(Number(ps.postMediaCount))}</span> : null}
                   {isVideo ? <span className="absolute bottom-3 right-3 rounded-full bg-black/60 p-2 text-white"><VolumeX size={14} /></span> : null}
                 </span>
               ) : null}
@@ -172,15 +175,13 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
                   <span className="block truncate text-[12.5px] text-[#687387]">{ps.postUsername ? "@" + ps.postUsername : ""}{ps.postUsername && dateStr ? " \u00B7 " : ""}{dateStr || ""}</span>
                 </span>
               </span>
-              {ps.postArticleTitle ? <span className="mt-2 block px-4 text-[16px] font-bold leading-snug text-[#0B1E3D]">{ps.postArticleTitle}</span> : null}
-              {ps.postText ? <span className="mt-1.5 block max-h-24 overflow-hidden px-4 text-[15px] leading-snug text-[#0B1E3D]">{ps.postText}</span> : null}
               <span className="mt-3 flex items-center gap-5 px-4">
                 <Heart size={20} style={{ color: "#E0245E" }} />
                 <MessageCircle size={20} className="text-[#0B1E3D]" />
                 <Repeat2 size={20} style={{ color: "#17BF63" }} />
                 <Bookmark size={20} className="ml-auto text-[#0B1E3D]" />
               </span>
-              <span className="mt-3 block border-t px-4 py-3 text-center text-[15px] font-bold text-[#0B1E3D]" style={{ borderColor: "rgba(11,30,61,0.08)" }}>View original post {"\u203A"}</span>
+              <span className="mt-3 block border-t px-4 py-3 text-center text-[15px] font-bold text-[#0B1E3D]" style={{ borderColor: "rgba(11,30,61,0.08)" }}>View post {"\u203A"}</span>
             </a>
           );
         }

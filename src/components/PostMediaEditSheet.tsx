@@ -6,7 +6,7 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, Dimensions, TextInput, Image, FlatList, KeyboardAvoidingView, PanResponder, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, TextInput, Image, FlatList, KeyboardAvoidingView, PanResponder, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import TierName from './TierName';
 import VerifiedBadge from './VerifiedBadge';
 import { supabase } from '../services/supabase';
@@ -25,54 +25,82 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
  *  every frame from local state; the recipe is committed at most every 60ms
  *  and once on release, and the frame under the selector is regenerated only
  *  when the finger stops. */
-function CoverStrip({ uri, durationSec, start, end, at, width, onChange }: {
+export function CoverStrip({ uri, durationSec, start, end, at, width, onChange }: {
   uri: string; durationSec: number; start: number; end: number; at: number; width: number; onChange: (sec: number) => void;
 }) {
   const N = 8;
   const SEL = 46;
-  const trackW = width;
-  const s = Math.max(0, start);
-  const e = Math.max(s + 0.5, Math.min(durationSec || s + 1, end));
-  const span = Math.max(0.5, e - s);
+  const trackW = Math.max(SEL + 1, width);
+  const duration = Number.isFinite(durationSec) && durationSec > 0 ? durationSec : Math.max(1, end);
+  const s = Math.max(0, Math.min(Math.max(0, duration - 0.05), start));
+  // An exact end-of-file seek can fail to decode a poster on iPhone.
+  const e = Math.max(s, Math.min(duration, end) - 0.05);
+  const span = Math.max(0, e - s);
   const [thumbs, setThumbs] = useState<string[]>([]);
   const [frame, setFrame] = useState<string | null>(null);
   const [live, setLive] = useState<number | null>(null);
   const liveRef = useRef(at);
   const grab = useRef(0);
   const lastCommit = useRef(0);
-  const stopTimer = useRef<any>(null);
+  const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const frameRequest = useRef(0);
+  // PanResponder is stable during a drag, but its geometry and callback must
+  // follow a changed trim window, orientation or selected media item.
+  const current = useRef({ s, e, span, trackW, onChange });
+  current.current = { s, e, span, trackW, onChange };
 
   useEffect(() => {
     let alive = true;
-    (async () => {
+    setThumbs([]);
+    setFrame(null);
+    setLive(null);
+    void (async () => {
       const out: string[] = [];
       for (let i = 0; i < N; i++) {
         try {
-          const t = s + (i / N) * span;
+          const t = s + (i / (N - 1)) * span;
           const th = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.max(0, Math.round(t * 1000)), quality: 0.3 });
-          if (!alive) return; out.push(th.uri); setThumbs([...out]);
-        } catch { out.push(''); }
+          if (!alive) return;
+          out.push(th.uri);
+        } catch { if (!alive) return; out.push(''); }
+        setThumbs([...out]);
       }
     })();
     return () => { alive = false; };
   }, [uri, s, span]);
 
-  const regen = (sec: number) => {
+  useEffect(() => {
+    const selected = Math.max(s, Math.min(e, at));
+    if (selected !== at) current.current.onChange(selected);
+    const request = ++frameRequest.current;
     if (stopTimer.current) clearTimeout(stopTimer.current);
     stopTimer.current = setTimeout(async () => {
-      try { const r = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.max(0, Math.round(sec * 1000)), quality: 0.6 }); setFrame(r.uri); } catch {}
+      stopTimer.current = null;
+      try {
+        const result = await VideoThumbnails.getThumbnailAsync(uri, { time: Math.max(0, Math.round(selected * 1000)), quality: 0.6 });
+        if (request === frameRequest.current) setFrame(result.uri);
+      } catch { if (request === frameRequest.current) setFrame(null); }
     }, 260);
-  };
-  useEffect(() => { regen(at); return () => { if (stopTimer.current) clearTimeout(stopTimer.current); }; }, [uri]);
+    return () => {
+      ++frameRequest.current;
+      if (stopTimer.current) clearTimeout(stopTimer.current);
+    };
+  }, [uri, s, e, at]);
 
-  const toX = (sec: number) => ((Math.max(s, Math.min(e, sec)) - s) / span) * (trackW - SEL);
-  const toSec = (x: number) => s + (Math.max(0, Math.min(trackW - SEL, x)) / (trackW - SEL)) * span;
+  const toX = (sec: number) => {
+    const g = current.current;
+    return g.span > 0 ? ((Math.max(g.s, Math.min(g.e, sec)) - g.s) / g.span) * (g.trackW - SEL) : 0;
+  };
+  const toSec = (x: number) => {
+    const g = current.current;
+    return g.s + (Math.max(0, Math.min(g.trackW - SEL, x)) / (g.trackW - SEL)) * g.span;
+  };
   const commit = (sec: number, force: boolean) => {
     const now = Date.now();
     if (!force && now - lastCommit.current < 60) return;
-    lastCommit.current = now; onChange(sec); regen(sec);
+    lastCommit.current = now;
+    current.current.onChange(Math.max(current.current.s, Math.min(current.current.e, sec)));
   };
-
   const pan = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_e2, g) => Math.abs(g.dx) > 2,
@@ -82,13 +110,17 @@ function CoverStrip({ uri, durationSec, start, end, at, width, onChange }: {
     onPanResponderRelease: () => { commit(liveRef.current, true); setLive(null); },
     onPanResponderTerminate: () => { commit(liveRef.current, true); setLive(null); },
   })).current;
-  liveRef.current = live ?? at;
-  const vx = toX(live ?? at);
+  liveRef.current = Math.max(s, Math.min(e, live ?? at));
+  const vx = toX(liveRef.current);
 
   return (
-    <View style={{ width, marginTop: 12 }}>
+    <View style={{ width: trackW, marginTop: 12 }}>
       <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>Cover</Text>
-      <View {...pan.panHandlers} style={{ width: trackW, height: 52, borderRadius: 10, overflow: 'hidden', backgroundColor: '#12141B' }}>
+      <View {...pan.panHandlers} accessibilityRole="adjustable" accessibilityLabel="Video cover frame"
+        accessibilityValue={{ min: s, max: e, now: liveRef.current, text: `${liveRef.current.toFixed(1)} seconds` }}
+        accessibilityActions={[{ name: 'increment', label: 'Next frame' }, { name: 'decrement', label: 'Previous frame' }]}
+        onAccessibilityAction={event => commit(liveRef.current + (event.nativeEvent.actionName === 'increment' ? 0.5 : -0.5), true)}
+        style={{ width: trackW, height: 52, borderRadius: 10, overflow: 'hidden', backgroundColor: '#12141B' }}>
         <View style={{ flexDirection: 'row', height: 52 }}>
           {thumbs.map((t, i) => t ? <Image key={i} source={{ uri: t }} style={{ width: trackW / N, height: 52 }} resizeMode="cover" /> : <View key={i} style={{ width: trackW / N, height: 52 }} />)}
         </View>
@@ -117,13 +149,12 @@ export type PostMediaEdit = {
 };
 export type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name?: string | null; username?: string | null; avatar_url?: string | null };
 
-const SCREEN_W = Dimensions.get('window').width;
-
 export default function PostMediaEditSheet({ visible, uri, mediaType, width, height, durationSec, initial, onDone, onCancel }: {
   visible: boolean; uri: string | null; mediaType: 'image' | 'video'; width?: number; height?: number; durationSec?: number;
   initial?: PostMediaEdit | null; onDone: (edit: PostMediaEdit) => void; onCancel: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [edit, setEdit] = useState<PostMediaEdit>(initial || {});
   const [filterOpen, setFilterOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
@@ -159,8 +190,9 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   const opacityAnim = useRef(new Animated.Value(1)).current;
   React.useEffect(() => { if (visible) { setEdit(initial || {}); setDur(durationSec || 0); } }, [visible]);
   const ratio = width && height && width > 0 && height > 0 ? width / height : 4 / 5;
-  const canvasW = SCREEN_W;
-  const canvasH = Math.max(240, Math.min(SCREEN_W * 1.25, canvasW / ratio));
+  const canvasW = windowWidth;
+  const previewRoom = Math.max(120, windowHeight - insets.top - Math.max(insets.bottom, 14) - 48 - 88 - (mediaType === 'video' ? 184 : 0) - (speedOpen ? 50 : 0));
+  const canvasH = Math.max(120, Math.min(canvasW * 1.25, canvasW / ratio, previewRoom));
   const tx: MediaTransform = { scale: edit.scale ?? 1, translateNX: edit.translateNX ?? 0, translateNY: edit.translateNY ?? 0 } as MediaTransform;
   const fit: MediaFit = (edit.fit || 'cover') as MediaFit;
   const setTx = useCallback((t: MediaTransform) => setEdit(e => ({ ...e, scale: t.scale, translateNX: t.translateNX, translateNY: t.translateNY })), []);
@@ -170,11 +202,11 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
     <Modal visible={visible} animationType="slide" onRequestClose={onCancel} presentationStyle="fullScreen">
       <View style={[st.root, { paddingTop: insets.top }]}>
         <View style={st.top}>
-          <TouchableOpacity onPress={onCancel} style={st.topBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={22} color="#FFF" /></TouchableOpacity>
-          <Text style={st.title}>Edit</Text>
-          <TouchableOpacity onPress={() => onDone(edit)} style={st.done} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.doneTxt}>Done</Text></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel media editing" onPress={onCancel} style={st.topBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={22} color="#FFF" /></TouchableOpacity>
+          <Text style={st.title}>Edit {mediaType === 'video' ? 'video' : 'photo'}</Text>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Apply media edits" onPress={() => onDone(edit)} style={st.done} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.doneTxt}>Done</Text></TouchableOpacity>
         </View>
-        <View style={{ flex: 1, justifyContent: 'center' }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }} keyboardShouldPersistTaps="handled" bounces={false}>
           <View style={{ width: canvasW, height: canvasH, backgroundColor: '#000', overflow: 'hidden' }}>
             <MediaCanvas localUri={uri} mediaType={mediaType} uploadState="idle" onRetry={() => {}} onLayout={() => {}} scaleAnim={scaleAnim} opacityAnim={opacityAnim}
               imageW={width} imageH={height} mediaFit={fit} postRotation={edit.rotation} postFlipX={edit.flipX} mediaTransform={tx} onTransformChange={setTx}
@@ -221,12 +253,12 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
             <View style={{ alignItems: 'center', marginTop: 12 }}>
               <TrimStrip uri={uri} durationSec={dur || 15} start={edit.trimStart ?? 0} end={trimEnd ?? Math.min(dur || 15, 600)}
                 onChange={(s2, e2) => setEdit(e => ({ ...e, trimStart: Math.round(s2 * 10) / 10, trimEnd: Math.round(e2 * 10) / 10 }))}
-                onDuration={(d) => setDur(d)} player={player} width={SCREEN_W - 24} />
-              <CoverStrip uri={uri} durationSec={dur || 15} start={edit.trimStart ?? 0} end={trimEnd ?? (dur || 15)} at={(edit as any).coverAt ?? edit.trimStart ?? 0} width={SCREEN_W - 24}
-                onChange={(sec) => setEdit(e => ({ ...e, coverAt: Math.round(sec * 10) / 10 } as any))} />
+                onDuration={(d) => setDur(d)} player={player} width={windowWidth - 24} />
+              <CoverStrip uri={uri} durationSec={dur || 15} start={edit.trimStart ?? 0} end={trimEnd ?? (dur || 15)} at={(edit as any).coverAt ?? edit.trimStart ?? 0} width={windowWidth - 24}
+                onChange={(sec) => setEdit(e => ({ ...e, coverAt: Math.round(sec * 100) / 100 } as any))} />
             </View>
           )}
-        </View>
+        </ScrollView>
         {speedOpen && isVideo ? (
           <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, paddingBottom: 10 }}>
             {[0.5, 1, 1.5, 2, 3].map(sp => (
@@ -237,7 +269,8 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
             ))}
           </View>
         ) : null}
-        <View style={[st.tools, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+        <View style={{ paddingBottom: Math.max(insets.bottom, 14) }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} keyboardShouldPersistTaps="handled" contentContainerStyle={st.tools}>
           {([
             { id: 'rotate', label: 'Rotate', icon: 'rotate-cw', on: !!edit.rotation, run:()=>setEdit(e=>({...e,rotation:((e.rotation||0)+90)%360})) },
             { id: 'flip', label: 'Flip', icon: 'repeat', on: !!edit.flipX, run:()=>setEdit(e=>({...e,flipX:!e.flipX})) },
@@ -249,11 +282,12 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
             ...(isVideo ? [{ id: 'speed', label: (edit.speed && edit.speed !== 1) ? edit.speed + 'x' : 'Speed', icon: 'fast-forward', on: !!(edit.speed && edit.speed !== 1), run: () => setSpeedOpen(v => !v) }] : []),
             { id: 'reset', label: 'Reset', icon: 'rotate-ccw', on: false, run: () => setEdit({}) },
           ] as { id: string; label: string; icon: any; on: boolean; run: () => void }[]).map(t => (
-            <TouchableOpacity key={t.id} style={st.tool} onPress={t.run} activeOpacity={0.75}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t.label} accessibilityState={{ selected: t.on }} key={t.id} style={st.tool} onPress={t.run} activeOpacity={0.75}>
               <View style={[st.toolIcon, t.on && st.toolIconOn]}><Feather name={t.icon} size={20} color="#FFF" /></View>
               <Text style={st.toolLabel}>{t.label}</Text>
             </TouchableOpacity>
           ))}
+        </ScrollView>
         </View>
         <Modal visible={!!tagAt} transparent animationType="fade" onRequestClose={() => setTagAt(null)}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -290,14 +324,14 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   );
 }
 
-const st = themedSheet((t) => ({
+const st = themedSheet(() => ({
   root: { flex: 1, backgroundColor: '#0B0D12' },
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, height: 48 },
-  topBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
-  title: { flex: 1, textAlign: 'center', color: t.ink.inverse, fontSize: 16, fontWeight: '800' },
-  done: { backgroundColor: '#C9BFB0', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 8 },
-  doneTxt: { color: t.ink.primary, fontSize: 14, fontWeight: '800' },
-  tools: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 12, paddingHorizontal: 8 },
+  topBtn: { width: 44, height: 44, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
+  title: { flex: 1, textAlign: 'center', color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
+  done: { minHeight: 44, justifyContent: 'center', backgroundColor: '#C9BFB0', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 8 },
+  doneTxt: { color: '#0B1E3D', fontSize: 14, fontWeight: '800' },
+  tools: { flexDirection: 'row', gap: 8, paddingTop: 12, paddingHorizontal: 12 },
   tool: { alignItems: 'center', width: 64 },
   toolIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   toolIconOn: { backgroundColor: 'rgba(201,191,176,0.35)' },

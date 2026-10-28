@@ -1,3 +1,4 @@
+import StoryTextEditorToolbar from '../../components/stories/StoryTextEditorToolbar';
 import { storyHandles } from '../../../shared/storyMentions';
 import SaveToMemorySheet from '../../components/stories/SaveToMemorySheet';
 import StoryAudienceSheet from '../../components/stories/StoryAudienceSheet';
@@ -1011,7 +1012,7 @@ export default function StoryComposerScreen() {
             { id: 'rfilter', label: 'Filter', icon: 'filter', on: !!active?.filterId, run: () => openFilterSheet() },
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
-            { id: 'rbg', label: 'Backdrop', icon: 'bg', on: false, run: () => Alert.alert('Coming soon', 'Backdrop arrives in a later update.') },
+            { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') handleFitToggle(); setBgOpen(true); } },
             { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) },
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
             { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },
@@ -1063,7 +1064,7 @@ export default function StoryComposerScreen() {
 
         {/* Close button */}
         {!drawMode && !previewOn && (
-        <TouchableOpacity style={[st.closeBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={publish.publishing} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close story editor" style={[st.closeBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={publish.publishing} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <View style={st.closeBtnInner}><Feather name="x" size={18} color={textColor.primary} /></View>
         </TouchableOpacity>
         )}
@@ -1072,10 +1073,10 @@ export default function StoryComposerScreen() {
         {!drawMode && !previewOn && (
         <View style={[st.undoRedoWrap, { top: insets.top + 8 }]}>
           {(undoCount > 0 || redoCount > 0) && <>
-            <TouchableOpacity style={st.undoBtn} onPress={undo} disabled={undoCount === 0 || publish.publishing} activeOpacity={0.6}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Undo story edit" style={st.undoBtn} onPress={undo} disabled={undoCount === 0 || publish.publishing} activeOpacity={0.6}>
               <Feather name="corner-up-left" size={14} color={undoCount > 0 ? textColor.muted : textColor.whisper} />
             </TouchableOpacity>
-            <TouchableOpacity style={st.undoBtn} onPress={redo} disabled={redoCount === 0 || publish.publishing} activeOpacity={0.6}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Redo story edit" style={st.undoBtn} onPress={redo} disabled={redoCount === 0 || publish.publishing} activeOpacity={0.6}>
               <Feather name="corner-up-right" size={14} color={redoCount > 0 ? textColor.muted : textColor.whisper} />
             </TouchableOpacity>
             <View style={st.toolRowGap} />
@@ -1104,14 +1105,14 @@ export default function StoryComposerScreen() {
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 52 }]}>
           <TouchableOpacity onPress={() => setAudienceSheetOpen(true)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
             <Feather name={(audience === 'close_friends' ? 'star' : audience === 'only_with' ? 'user-check' : audience === 'followers' ? 'users' : 'globe') as any} size={13} color="#FFFFFF" />
-            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{audience === 'close_friends' ? 'Close friends' : 'Everyone'}</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{audience === 'close_friends' ? 'Close friends' : audience === 'followers' ? 'Followers' : audience === 'only_with' ? 'Selected people' : 'Everyone'}</Text>
           </TouchableOpacity>
         </Animated.View>
         )}
         {/* Post button */}
         {!drawMode && !previewOn && (
         <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) }]}>
-          <TouchableOpacity onPress={publish.publishAll} disabled={!canPublish} style={[st.postPillInner, !canPublish && { opacity: 0.4 }]} activeOpacity={0.85}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Publish story" onPress={publish.publishAll} disabled={!canPublish} style={[st.postPillInner, !canPublish && { opacity: 0.4 }]} activeOpacity={0.85}>
             {publish.publishing ? <ActivityIndicator color="#0A0A0A" size={14} /> : <><Text style={st.postPillTxt}>Post</Text><Feather name="arrow-up" size={13} color="#0A0A0A" /></>}
           </TouchableOpacity>
         </Animated.View>
@@ -1151,24 +1152,17 @@ export default function StoryComposerScreen() {
       <Modal visible={textEditorOpen} transparent animationType="fade" onRequestClose={closeTextEditor}>
         <View style={[st.textEditorOverlay, { paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }]}>
           {isTextStory && active?.textBackground && <View style={StyleSheet.absoluteFill} pointerEvents="none">{renderTextBg(active.textBackground)}<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)' }]} /></View>}
-          <View style={[st.textEditorHeader, { paddingTop: Math.max(insets.top, 12) }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <TouchableOpacity onPress={closeTextEditor} style={st.editorActionBtn}><Feather name="x" size={16} color="#FFF" /></TouchableOpacity>
-              <TouchableOpacity style={st.editorActionBtn} onPress={() => setStickerTextAlign(a => a === 'center' ? 'left' : a === 'left' ? 'right' : 'center')}>
-                <Feather name={`align-${stickerTextAlign}` as any} size={16} color="#FFF" />
-              </TouchableOpacity>
-              <TouchableOpacity style={[st.editorActionBtn, stickerBgEnabled && st.editorActionBtnOn]} onPress={() => setStickerBgEnabled(b => !b)}>
-                <Feather name="square" size={16} color={stickerBgEnabled ? '#020408' : '#FFF'} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setStickerFontSize(p => Math.max(0, (p || BASE_FONT_SIZES[stickerStyle] || 28) - 2))} style={st.editorActionBtn}><Text style={st.fontSizeBtnTxt}>A-</Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => setStickerFontSize(p => Math.min(72, (p || BASE_FONT_SIZES[stickerStyle] || 28) + 2))} style={st.editorActionBtn}><Text style={st.fontSizeBtnTxt}>A+</Text></TouchableOpacity>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              {editingStickerId && <TouchableOpacity onPress={() => duplicateSticker(editingStickerId)} style={st.editorActionBtn}><Feather name="copy" size={16} color="#FFF" /></TouchableOpacity>}
-              {editingStickerId && <TouchableOpacity onPress={deleteEditingSticker} style={st.editorActionBtn}><Feather name="trash-2" size={16} color="#FF3B30" /></TouchableOpacity>}
-              <TouchableOpacity onPress={saveSticker}><Text style={st.textEditorDone}>Done</Text></TouchableOpacity>
-            </View>
-          </View>
+          <StoryTextEditorToolbar
+            topInset={insets.top} alignment={stickerTextAlign} background={stickerBgEnabled}
+            onClose={closeTextEditor} onSave={saveSticker}
+            onAlign={() => setStickerTextAlign(a => a === 'center' ? 'left' : a === 'left' ? 'right' : 'center')}
+            onBackground={() => setStickerBgEnabled(b => !b)}
+            onDecreaseSize={() => setStickerFontSize(p => Math.max(12, (p || BASE_FONT_SIZES[stickerStyle] || 28) - 2))}
+            onIncreaseSize={() => setStickerFontSize(p => Math.min(72, (p || BASE_FONT_SIZES[stickerStyle] || 28) + 2))}
+            onDuplicate={editingStickerId ? () => duplicateSticker(editingStickerId) : undefined}
+            onDelete={editingStickerId ? deleteEditingSticker : undefined}
+          />
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="always" bounces={false}>
           <View style={st.editorCenter}>
             {(() => { const p = stickerTextStyle(stickerStyle, stickerColor, stickerBgEnabled, stickerFontSize > 0 ? stickerFontSize : undefined); return (
               <View style={[p.wrapperStyle, stickerOpacity < 1 && { opacity: stickerOpacity }]}>
@@ -1179,14 +1173,14 @@ export default function StoryComposerScreen() {
           <View style={st.editorBottom}>
             <ScrollView ref={stylePickerRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.stylePickerScroll} keyboardShouldPersistTaps="always">
               {([...STICKER_STYLES, ...EXTRA_TEXT_STYLES.filter(x => !(STICKER_STYLES as any[]).includes(x))] as any[]).map(ss => { const fp = composedTextStyle(ss, '#FFFFFF', false); return (
-                <TouchableOpacity key={ss} style={[st.fontPill, stickerStyle === ss && st.fontPillActive]} onPress={() => setStickerStyle(ss)}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={(STICKER_STYLE_LABELS as any)[ss] || (EXTRA_TEXT_LABELS as any)[ss] || ss} accessibilityState={{ selected: stickerStyle === ss }} key={ss} style={[st.fontPill, stickerStyle === ss && st.fontPillActive]} onPress={() => setStickerStyle(ss)}>
                   <Text style={[{ color: '#FFF', fontFamily: (fp.textStyle as any).fontFamily, fontWeight: (fp.textStyle as any).fontWeight, fontStyle: (fp.textStyle as any).fontStyle }, st.fontPillTxt, stickerStyle === ss && st.fontPillTxtActive]} numberOfLines={1}>{(STICKER_STYLE_LABELS as any)[ss] || (EXTRA_TEXT_LABELS as any)[ss] || ss}</Text>
                 </TouchableOpacity>
               ); })}
             </ScrollView>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
               {STICKER_COLORS.map(c => (
-                <TouchableOpacity key={c} style={[st.colorSwatch, stickerColor === c && st.colorSwatchActive]} onPress={() => setStickerColor(c)}><View style={[st.colorSwatchInner, { backgroundColor: c }]} /></TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Text color ${c}`} accessibilityState={{ selected: stickerColor === c }} key={c} style={[st.colorSwatch, stickerColor === c && st.colorSwatchActive]} onPress={() => setStickerColor(c)}><View style={[st.colorSwatchInner, { backgroundColor: c }]} /></TouchableOpacity>
               ))}
               <View style={{ width: 10 }} />
               {[0.3, 0.5, 0.7, 1.0].map(v => (
@@ -1217,6 +1211,7 @@ export default function StoryComposerScreen() {
               </View>
             )}
           </View>
+          </ScrollView>
         </View>
       </Modal>
 
@@ -1589,7 +1584,7 @@ const st = StyleSheet.create({
   textEditorDone: { color: accent.warm, fontSize: typeSize.body, fontWeight: fontWeight.bold },
   editorActionBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: surface.secondary, alignItems: 'center', justifyContent: 'center' },
   editorActionBtnOn: { backgroundColor: '#FFFFFF' },
-  editorCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
+  editorCenter: { flexGrow: 1, minHeight: 120, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 12 },
   editorBottom: { paddingBottom: 10 },
   fontPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.14)' },
   fontPillActive: { backgroundColor: '#FFFFFF' },

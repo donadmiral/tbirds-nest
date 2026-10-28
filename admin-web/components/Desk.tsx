@@ -1,5 +1,6 @@
 'use client';
 import CommandForm from '@/components/CommandForm';
+import MediaPreview from '@/components/MediaPreview';
 
 /**
  * The operations desk kit. One master-detail table used by every desk:
@@ -142,12 +143,10 @@ function CellView({ c }: { c: Cell }) {
       <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         <span style={{ width: 42, height: 42, flex: '0 0 42px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           {c.thumb
-            ? (c.video
-              ? <video src={c.thumb} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <img src={c.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+            ? <MediaPreview key={c.thumb} url={c.thumb} video={c.video} thumbnail />
             : <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>}
           {c.video && c.thumb ? (
-            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
+            <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
               <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: '#fff' }}><path d="M8 5v14l11-7z" /></svg>
             </span>
           ) : null}
@@ -314,9 +313,7 @@ export function Desk({
           <div style={{ padding: 16 }}>
             {selected.detail.media ? (
               <div style={{ marginBottom: 14, borderRadius: 11, overflow: 'hidden', background: 'rgba(var(--on),0.05)', border: '1px solid rgba(var(--on),0.10)' }}>
-                {selected.detail.media.video
-                  ? <video key={selected.detail.media.url} src={selected.detail.media.url} controls playsInline preload="metadata" style={{ display: 'block', width: '100%', maxHeight: 320, objectFit: 'contain', background: '#000' }} />
-                  : <img key={selected.detail.media.url} src={selected.detail.media.url} alt="" style={{ display: 'block', width: '100%', maxHeight: 320, objectFit: 'contain' }} />}
+                <MediaPreview key={selected.detail.media.url} url={selected.detail.media.url} video={selected.detail.media.video} />
               </div>
             ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>

@@ -2,13 +2,14 @@ import { completeRead } from '@/lib/completeRead';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
-import { allowedDesks, hasFullOverview } from '@/lib/permissions';
+import { allowedDesks, hasFullOverview, canPerform } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import Seal from '@/components/Seal';
 import { SeriesChart, Spark, Greeting, Empty } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
 import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
+import { resolveModerationMedia } from '@/lib/moderationMedia';
 
 export const dynamic = 'force-dynamic';
 
@@ -168,7 +169,9 @@ export default async function DashboardPage() {
     ((pm ?? []) as { post_id: string; url: string }[]).forEach(m => { if (!postMedia[m.post_id]) postMedia[m.post_id] = m.url; });
   }
   postRows.forEach(p => { if (!postMedia[p.id]) { const f = pickMedia(p.raw); if (f) postMedia[p.id] = f; } });
-  const postUrls = await resolveMedia(Object.values(postMedia));
+  const postUrls = canPerform(admin.role, 'post_moderate')
+    ? await resolveModerationMedia(Object.values(postMedia), 'post', postRows.map(p => p.id))
+    : await resolveMedia(Object.values(postMedia));
 
   const postAuthors: Record<string, { username: string | null; avatar_url: string | null }> = {};
   const pids = Array.from(new Set(postRows.map(p => p.user_id)));

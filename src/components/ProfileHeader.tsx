@@ -1,5 +1,5 @@
 import TierName from './TierName';
-import { themedSheet, getTheme } from '../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../theme/useTheme';
 import { getTierColor } from './VerifiedBadge';
 import VerifiedBadge from './VerifiedBadge';
 /**
@@ -111,6 +111,7 @@ export default function ProfileHeader({
   onSettings, onEdit, onChangePhoto, onOpenStats, onOpenInsights, actions,
   hasStory, onOpenStory,
 }: Props) {
+  const { t } = useTheme();
   const business = profile?.account_type === 'business' ? (profile.business || null) : null;
   const joined = joinedLabel(profile?.created_at || profile?.joined_at);
   const [ctxMutual, setCtxMutual] = useState<string | null>(null);
@@ -194,7 +195,7 @@ export default function ProfileHeader({
               {uploadingPhoto ? (
                 <View style={[s.avatar, s.avatarLoading]}><ActivityIndicator color={getTheme().brand.base} /></View>
               ) : profile?.avatar_url ? (
-                ((!isSelf) ? (<TouchableOpacity activeOpacity={0.9} onPress={() => setAvatarOpen(true)}><ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /></TouchableOpacity>) : (<ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />))
+                ((!isSelf) ? (<TouchableOpacity activeOpacity={0.9} onPress={hasStory && onOpenStory ? onOpenStory : () => setAvatarOpen(true)}><ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} /></TouchableOpacity>) : (<ExpoImage source={{ uri: profile.avatar_url }} style={s.avatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />))
               ) : (
                 <View style={[s.avatar, s.avatarFallback]}>
                   <Text style={s.avatarTxt}>{initials(profile?.full_name)}</Text>
@@ -214,9 +215,9 @@ export default function ProfileHeader({
           {(profile?.verified_tier || profile?.is_verified) ? <VerifiedBadge userId={profile?.id} tier={profile?.verified_tier} size={17} /> : null}
         </View>
         {profile?.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
-        {ctxMutual ? <Text style={{ fontSize: 13, color: 'rgba(11,30,61,0.42)', marginTop: 5, textAlign: 'center', paddingHorizontal: 24 }}>{ctxMutual}</Text> : null}
-        {isSelf && ctxInsights ? <Text style={{ fontSize: 12.5, color: 'rgba(11,30,61,0.42)', marginTop: 5, textAlign: 'center' }}>{ctxInsights}</Text> : null}
-        {profile?.username ? <TouchableOpacity onPress={shareProfile} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'center', marginTop: 8, paddingHorizontal: 13, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}><Feather name="share" size={12} color="#0B1E3D" /><Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0B1E3D' }}>Share profile</Text></TouchableOpacity> : null}
+        {ctxMutual ? <Text style={{ fontSize: 13, color: t.ink.muted, marginTop: 5, textAlign: 'center', paddingHorizontal: 24 }}>{ctxMutual}</Text> : null}
+        {isSelf && ctxInsights ? <Text style={{ fontSize: 12.5, color: t.ink.muted, marginTop: 5, textAlign: 'center' }}>{ctxInsights}</Text> : null}
+        {profile?.username ? <TouchableOpacity onPress={shareProfile} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'center', marginTop: 8, paddingHorizontal: 13, paddingVertical: 6, borderRadius: 999, backgroundColor: t.brand.tintBg }}><Feather name="share" size={12} color={t.brand.base} /><Text style={{ fontSize: 12.5, fontWeight: '700', color: t.ink.primary }}>Share profile</Text></TouchableOpacity> : null}
         <Modal visible={avatarOpen} transparent animationType="fade" onRequestClose={() => setAvatarOpen(false)}>
           <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center' }} activeOpacity={1} onPress={() => setAvatarOpen(false)}>
             {profile?.avatar_url ? <ExpoImage source={{ uri: profile.avatar_url }} style={{ width: '92%', height: '70%' }} contentFit="contain" /> : null}
@@ -237,7 +238,7 @@ export default function ProfileHeader({
         {business?.category ? <Text style={s.category}>{business.category}</Text> : null}
         {(() => { const c = (profile as any)?.account_class; const lb = (profile as any)?.account_labels || {}; const chips: string[] = []; if (c === 'creator') chips.push('Creator'); if (c === 'organization' || (profile as any)?.account_type === 'business') chips.push('Business'); if (lb?.parody) chips.push('Parody'); if (lb?.fan) chips.push('Fan account'); if (lb?.commentary) chips.push('Commentary'); if (lb?.memorialized) chips.push('Remembering'); if (!chips.length) return null; return (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-            {chips.map(ch => <View key={ch} style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: 'rgba(201,191,176,0.28)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.14)' }}><Text style={{ fontSize: 11, fontWeight: '700', color: '#0B1E3D', letterSpacing: 0.2 }}>{ch}</Text></View>)}
+            {chips.map(ch => <View key={ch} style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: 'rgba(201,191,176,0.28)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline }}><Text style={{ fontSize: 11, fontWeight: '700', color: t.ink.primary, letterSpacing: 0.2 }}>{ch}</Text></View>)}
           </View>
         ); })()}
         {profile?.headline ? <Text style={s.headline}>{profile.headline}</Text> : null}
@@ -273,7 +274,7 @@ export default function ProfileHeader({
           <View style={[s.metaRow, { marginTop: space.sm }]}>
             {profileLinks.map((l, i) => (
               <TouchableOpacity key={i} onPress={() => Linking.openURL(l.url).catch(() => {})} activeOpacity={0.8}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(11,30,61,0.16)', backgroundColor: '#FFFFFF' }}>
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: t.surface.hairline, backgroundColor: t.surface.raised }}>
                 <Feather name="link" size={12} color={getTheme().ink.primary} />
                 <Text style={{ fontSize: 12.5, fontWeight: '600', color: getTheme().ink.primary }} numberOfLines={1}>{l.title || hostOf(l.url)}</Text>
               </TouchableOpacity>

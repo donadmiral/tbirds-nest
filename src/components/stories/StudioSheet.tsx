@@ -5,8 +5,8 @@
  * Tiles are supplied by the composer and run its handlers; the sheet owns
  * only favorites and recents, persisted locally.
  */
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet, Keyboard, Platform } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet, Keyboard, Platform, Pressable, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import StickerIcon from './StickerIcons';
 
@@ -22,7 +22,29 @@ const SECTIONS: { key: string; title: string }[] = [
   { key: 'interactive', title: 'Interactive' }, { key: 'sharing', title: 'Social' }, { key: 'media', title: 'Media' }, { key: 'fun', title: 'Information and fun' },
 ];
 
+export function parseStudioIds(value: string | null): string[] {
+  try {
+    const parsed: unknown = value ? JSON.parse(value) : [];
+    return Array.isArray(parsed) ? [...new Set(parsed.filter((id): id is string => typeof id === 'string' && id.length > 0))].slice(0, 64) : [];
+  } catch { return []; }
+}
+
+export function studioSheetHeight(windowHeight: number, keyboardHeight: number, ios: boolean): number {
+  // Android resizes the window for its keyboard; iOS overlays it.
+  return Math.max(1, windowHeight - (ios ? Math.max(0, keyboardHeight) : 0) - 48);
+}
+
 export default function StudioSheet({ visible, onClose, tiles, extra, bottomInset }: { visible: boolean; onClose: () => void; tiles: StudioTile[]; extra?: React.ReactNode; bottomInset: number }) {
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const pickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingPick = useRef<StudioTile | null>(null);
+  useEffect(() => () => { if (pickTimer.current) clearTimeout(pickTimer.current); pendingPick.current = null; }, []);
+  const runPendingPick = () => {
+    if (pickTimer.current) clearTimeout(pickTimer.current);
+    pickTimer.current = null;
+    const tile = pendingPick.current; pendingPick.current = null;
+    tile?.run();
+  };
   const [tab, setTab] = useState<Tab>('stickers');
   const [q, setQ] = useState('');
   // The sheet is a plain modal at the bottom of the screen, so the keyboard
@@ -39,23 +61,28 @@ export default function StudioSheet({ visible, onClose, tiles, extra, bottomInse
   const [recents, setRecents] = useState<string[]>([]);
   useEffect(() => {
     if (!AsyncStorage) return;
-    AsyncStorage.getItem(KEY_FAV).then((v: string | null) => { try { if (v) setFavs(JSON.parse(v)); } catch {} }).catch(() => {});
-    AsyncStorage.getItem(KEY_REC).then((v: string | null) => { try { if (v) setRecents(JSON.parse(v)); } catch {} }).catch(() => {});
+    AsyncStorage.getItem(KEY_FAV).then((v: string | null) => { try { setFavs(parseStudioIds(v)); } catch {} }).catch(() => {});
+    AsyncStorage.getItem(KEY_REC).then((v: string | null) => { try { setRecents(parseStudioIds(v)); } catch {} }).catch(() => {});
   }, []);
   const byId = useMemo(() => { const m: Record<string, StudioTile> = {}; for (const t of tiles) m[t.id] = t; return m; }, [tiles]);
   const pick = (t: StudioTile) => {
     const next = [t.id, ...recents.filter(x => x !== t.id)].slice(0, 8);
-    setRecents(next); try { AsyncStorage?.setItem(KEY_REC, JSON.stringify(next)); } catch {}
-    onClose(); setTimeout(() => t.run(), 220);
+    setRecents(next); try { AsyncStorage?.setItem(KEY_REC, JSON.stringify(next))?.catch(() => {}); } catch {}
+    pendingPick.current = t;
+    Keyboard.dismiss(); onClose();
+    if (pickTimer.current) clearTimeout(pickTimer.current);
+    // iOS cannot present the next editor while this modal is dismissing.
+    // Its native onDismiss signal is the reliable handoff point.
+    if (Platform.OS !== 'ios') pickTimer.current = setTimeout(runPendingPick, 350);
   };
   const toggleFav = (t: StudioTile) => {
     const next = favs.includes(t.id) ? favs.filter(x => x !== t.id) : [...favs, t.id];
-    setFavs(next); try { AsyncStorage?.setItem(KEY_FAV, JSON.stringify(next)); } catch {}
+    setFavs(next); try { AsyncStorage?.setItem(KEY_FAV, JSON.stringify(next))?.catch(() => {}); } catch {}
   };
   const query = q.trim().toLowerCase();
   const matches = (t: StudioTile) => !query || t.label.toLowerCase().includes(query) || t.id.includes(query);
-  const Tile = ({ t }: { t: StudioTile }) => (
-    <TouchableOpacity style={ss.tile} activeOpacity={0.75} onPress={() => pick(t)} onLongPress={() => toggleFav(t)} delayLongPress={350}>
+  const renderTile = (t: StudioTile) => (
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel={t.label} accessibilityHint="Double tap to add. Long press to change favorites." accessibilityState={{ selected: t.on }} key={t.id} style={[ss.tile, { width: Math.max(44, (windowWidth - 64) / 4) }]} activeOpacity={0.75} onPress={() => pick(t)} onLongPress={() => toggleFav(t)} delayLongPress={350}>
       <View style={[ss.tileIcon, t.on && { borderWidth: 1.5, borderColor: t.tint }]}>
         <StickerIcon name={t.id as any} size={22} color={t.tint} bg="transparent" />
         {favs.includes(t.id) && <View style={ss.star}><Feather name="star" size={9} color="#0B1E3D" /></View>}
@@ -63,20 +90,24 @@ export default function StudioSheet({ visible, onClose, tiles, extra, bottomInse
       <Text style={ss.tileLabel} numberOfLines={1}>{t.label}</Text>
     </TouchableOpacity>
   );
-  const Grid = ({ list }: { list: StudioTile[] }) => (
-    <View style={ss.grid}>{list.map(t => <Tile key={t.id} t={t} />)}</View>
-  );
+  const renderGrid = (list: StudioTile[]) => <View style={ss.grid}>{list.map(renderTile)}</View>;
   const featured = FEATURED.map(id => byId[id]).filter(Boolean).filter(matches);
   const rest = tiles.filter(t => !FEATURED.includes(t.id)).filter(matches);
+  const availableHeight = studioSheetHeight(windowHeight, kb, Platform.OS === 'ios');
+  const hasMatches = tiles.some(matches);
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableOpacity style={ss.overlay} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-          <View style={[ss.sheet, { paddingBottom: kb > 0 ? kb + 12 : Math.max(bottomInset, 16) }]}>
-            <View style={ss.handle} />
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} onDismiss={runPendingPick}>
+      <View style={ss.overlay}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Close sticker studio" style={StyleSheet.absoluteFill} onPress={onClose} />
+          <View accessibilityViewIsModal style={[ss.sheet, { maxHeight: availableHeight, marginBottom: Platform.OS === 'ios' ? kb : 0, paddingBottom: kb > 0 ? 12 : Math.max(bottomInset, 16) }]}>
+            <View style={ss.sheetHeader}>
+              <Text style={ss.title}>Sticker studio</Text>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close sticker studio" onPress={onClose} style={ss.closeButton}><Feather name="x" size={20} color="#FFFFFF" /></TouchableOpacity>
+            </View>
+            <ScrollView style={{ maxHeight: 480, flexShrink: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
             <View style={ss.tabs}>
               {([['stickers', 'Stickers'], ['collections', 'Collections'], ['favorites', 'Favorites'], ['recents', 'Recents']] as [Tab, string][]).map(([k, lb]) => (
-                <TouchableOpacity key={k} onPress={() => setTab(k)} style={[ss.tab, tab === k && ss.tabOn]} activeOpacity={0.8}>
+                <TouchableOpacity accessibilityRole="tab" accessibilityLabel={lb} accessibilityState={{ selected: tab === k }} key={k} onPress={() => setTab(k)} style={[ss.tab, tab === k && ss.tabOn]} activeOpacity={0.8}>
                   <Text style={[ss.tabTxt, tab === k && ss.tabTxtOn]}>{lb}</Text>
                 </TouchableOpacity>
               ))}
@@ -84,34 +115,33 @@ export default function StudioSheet({ visible, onClose, tiles, extra, bottomInse
             <View style={ss.searchRow}>
               <View style={ss.search}>
                 <Feather name="search" size={15} color="rgba(255,255,255,0.45)" />
-                <TextInput value={q} onChangeText={setQ} placeholder="Search stickers" placeholderTextColor="rgba(255,255,255,0.5)" style={ss.searchInput} keyboardAppearance="dark" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => Keyboard.dismiss()} />
+                <TextInput accessibilityLabel="Search stickers" value={q} onChangeText={setQ} placeholder="Search stickers" placeholderTextColor="rgba(255,255,255,0.5)" style={ss.searchInput} keyboardAppearance="dark" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => Keyboard.dismiss()} />
               </View>
             </View>
-            <ScrollView style={{ maxHeight: kb > 0 ? 240 : 380 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {query && !hasMatches ? <Text accessibilityLiveRegion="polite" style={ss.empty}>No stickers found. Try another name.</Text> : null}
               {tab === 'stickers' && (
                 <>
                   {featured.length > 0 && <Text style={ss.section}>Featured</Text>}
-                  <Grid list={featured} />
+                  {renderGrid(featured)}
                   {rest.length > 0 && <Text style={ss.section}>Everything</Text>}
-                  <Grid list={rest} />
+                  {renderGrid(rest)}
                 </>
               )}
-              {tab === 'collections' && SECTIONS.map(sec => { const list = tiles.filter(t => t.cat === sec.key).filter(matches); if (!list.length) return null; return (<View key={sec.key}><Text style={ss.section}>{sec.title}</Text><Grid list={list} /></View>); })}
-              {tab === 'favorites' && (favs.length ? <Grid list={favs.map(id => byId[id]).filter(Boolean).filter(matches)} /> : <Text style={ss.empty}>Long-press any sticker to add it here.</Text>)}
-              {tab === 'recents' && (recents.length ? <Grid list={recents.map(id => byId[id]).filter(Boolean).filter(matches)} /> : <Text style={ss.empty}>Stickers you use show up here.</Text>)}
+              {tab === 'collections' && SECTIONS.map(sec => { const list = tiles.filter(t => t.cat === sec.key).filter(matches); if (!list.length) return null; return (<View key={sec.key}><Text style={ss.section}>{sec.title}</Text>{renderGrid(list)}</View>); })}
+              {tab === 'favorites' && (favs.length ? renderGrid(favs.map(id => byId[id]).filter(Boolean).filter(matches)) : <Text style={ss.empty}>Long-press any sticker to add it here.</Text>)}
+              {tab === 'recents' && (recents.length ? renderGrid(recents.map(id => byId[id]).filter(Boolean).filter(matches)) : <Text style={ss.empty}>Stickers you use show up here.</Text>)}
               {extra}
               <View style={{ height: 8 }} />
-            </ScrollView>
             <View style={ss.iconRow}>
-              <TouchableOpacity onPress={() => setTab('recents')} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="clock" size={20} color={tab === 'recents' ? '#C9BFB0' : 'rgba(255,255,255,0.75)'} /></TouchableOpacity>
-              <TouchableOpacity onPress={() => setTab('favorites')} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="star" size={20} color={tab === 'favorites' ? '#C9BFB0' : 'rgba(255,255,255,0.75)'} /></TouchableOpacity>
-              {byId.emoji && <TouchableOpacity onPress={() => pick(byId.emoji)} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="smile" size={20} color="rgba(255,255,255,0.75)" /></TouchableOpacity>}
-              {byId.gif && <TouchableOpacity onPress={() => pick(byId.gif)} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><StickerIcon name={'gif' as any} size={22} color="rgba(255,255,255,0.75)" bg="transparent" /></TouchableOpacity>}
-              {byId.photo && <TouchableOpacity onPress={() => pick(byId.photo)} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="image" size={20} color="rgba(255,255,255,0.75)" /></TouchableOpacity>}
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Recent stickers" onPress={() => setTab('recents')} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="clock" size={20} color={tab === 'recents' ? '#C9BFB0' : 'rgba(255,255,255,0.75)'} /></TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Favorite stickers" onPress={() => setTab('favorites')} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="star" size={20} color={tab === 'favorites' ? '#C9BFB0' : 'rgba(255,255,255,0.75)'} /></TouchableOpacity>
+              {byId.emoji && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add emoji" onPress={() => pick(byId.emoji)} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="smile" size={20} color="rgba(255,255,255,0.75)" /></TouchableOpacity>}
+              {byId.gif && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add GIF" onPress={() => pick(byId.gif)} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><StickerIcon name={'gif' as any} size={22} color="rgba(255,255,255,0.75)" bg="transparent" /></TouchableOpacity>}
+              {byId.photo && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add photo" onPress={() => pick(byId.photo)} style={ss.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="image" size={20} color="rgba(255,255,255,0.75)" /></TouchableOpacity>}
             </View>
+            </ScrollView>
           </View>
-        </TouchableOpacity>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 }
@@ -119,9 +149,12 @@ export default function StudioSheet({ visible, onClose, tiles, extra, bottomInse
 const ss = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: { backgroundColor: 'rgba(13,20,38,0.98)', borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingTop: 8, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48, marginBottom: 6 },
+  title: { color: '#FFFFFF', fontSize: 18, fontWeight: '800' },
+  closeButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   handle: { alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.24)', marginBottom: 12 },
   tabs: { flexDirection: 'row', gap: 6, marginBottom: 12 },
-  tab: { flex: 1, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
+  tab: { flex: 1, minHeight: 44, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
   tabOn: { backgroundColor: '#C9BFB0' },
   tabTxt: { color: 'rgba(255,255,255,0.8)', fontSize: 12.5, fontWeight: '700' },
   tabTxtOn: { color: '#0B1E3D' },
@@ -136,5 +169,5 @@ const ss = StyleSheet.create({
   tileLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 11.5, fontWeight: '600' },
   empty: { color: 'rgba(255,255,255,0.5)', fontSize: 13, textAlign: 'center', marginVertical: 24 },
   iconRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingTop: 10, marginTop: 4, borderTopWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
-  iconBtn: { width: 44, height: 40, alignItems: 'center', justifyContent: 'center' },
+  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });

@@ -44,7 +44,7 @@ export type PostMedia = {
   id: string;
   url: string;
   media_type: 'image' | 'video';
-  edit?: { scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; trimStart?: number | null; trimEnd?: number | null; muted?: boolean } | null;
+  edit?: { coverUrl?: string | null; scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; trimStart?: number | null; trimEnd?: number | null; muted?: boolean } | null;
   width?: number | null;
   height?: number | null;
   sort_order?: number;

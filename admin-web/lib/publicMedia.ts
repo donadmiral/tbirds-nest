@@ -1,6 +1,6 @@
 /** Explicit public content buckets. Chat files and identity documents are excluded. */
 const CONTENT_BUCKETS = new Set(['media', 'avatars', 'mingle-images', 'mingle-media', 'business-media', 'startup-media', 'story-media', 'post-media', 'market-media']);
-export function publicMediaUrl(raw: string, base: string, publicBuckets: ReadonlySet<string>): string | null {
+export function contentMediaLocation(raw: string, base: string): { bucket: string; path: string; origin: string } | null {
   if (!raw || raw.length > 4096) return null;
   try {
     const origin = new URL(base);
@@ -21,8 +21,14 @@ export function publicMediaUrl(raw: string, base: string, publicBuckets: Readonl
       bucket = value.slice(0, slash);
       path = decodeURIComponent(value.slice(slash + 1));
     }
-    if (!CONTENT_BUCKETS.has(bucket) || !publicBuckets.has(bucket)) return null;
+    if (!CONTENT_BUCKETS.has(bucket)) return null;
     if (/[\\\x00-\x1f\x7f]/.test(path) || path.split('/').some(part => !part || part === '.' || part === '..')) return null;
-    return origin.origin + '/storage/v1/object/public/' + encodeURIComponent(bucket) + '/' + path.split('/').map(encodeURIComponent).join('/');
+    return { bucket, path, origin: origin.origin };
   } catch { return null; }
+}
+
+export function publicMediaUrl(raw: string, base: string, publicBuckets: ReadonlySet<string>): string | null {
+  const location = contentMediaLocation(raw, base);
+  if (!location || !publicBuckets.has(location.bucket)) return null;
+  return location.origin + '/storage/v1/object/public/' + encodeURIComponent(location.bucket) + '/' + location.path.split('/').map(encodeURIComponent).join('/');
 }

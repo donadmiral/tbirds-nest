@@ -17,9 +17,9 @@ export default function StudioRail({ items, top, maxHeight }: { items: RailItem[
   const shown = open ? [...primary, ...rest] : primary;
   return (
     <View style={[r.wrap, { top }]} pointerEvents="box-none">
-      <ScrollView style={[r.rail, { maxHeight: Math.max(120, maxHeight) }]} contentContainerStyle={r.railContent} showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView style={[r.rail, { maxHeight: Math.max(120, maxHeight) }]} contentContainerStyle={r.railContent} showsVerticalScrollIndicator={false} bounces={false} keyboardShouldPersistTaps="handled">
         {shown.map(it => (
-          <TouchableOpacity key={it.id} style={r.btn} onPress={it.run} activeOpacity={0.7} hitSlop={{ top: 4, bottom: 4, left: 8, right: 8 }}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel={it.label} accessibilityState={{ selected: !!it.on }} key={it.id} style={r.btn} onPress={it.run} activeOpacity={0.7} hitSlop={{ top: 4, bottom: 4, left: 8, right: 8 }}>
             <View style={[r.iconWrap, it.on && r.iconWrapOn]}>
               {it.icon ? <StickerIcon name={it.icon} size={20} color="#FFFFFF" bg="transparent" /> : <Feather name={it.feather || 'circle'} size={20} color="#FFFFFF" />}
             </View>
@@ -27,7 +27,7 @@ export default function StudioRail({ items, top, maxHeight }: { items: RailItem[
           </TouchableOpacity>
         ))}
         {rest.length > 0 && (
-          <TouchableOpacity style={r.chev} onPress={() => setOpen(o => !o)} activeOpacity={0.7} hitSlop={{ top: 6, bottom: 6, left: 10, right: 10 }}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel={open ? "Show fewer story tools" : "Show more story tools"} accessibilityState={{ expanded: open }} style={r.chev} onPress={() => setOpen(o => !o)} activeOpacity={0.7} hitSlop={{ top: 6, bottom: 6, left: 10, right: 10 }}>
             <Feather name={open ? 'chevron-up' : 'chevron-down'} size={18} color="#FFFFFF" />
           </TouchableOpacity>
         )}
@@ -44,5 +44,5 @@ const r = StyleSheet.create({
   iconWrap: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   iconWrapOn: { backgroundColor: 'rgba(201,191,176,0.28)' },
   label: { color: 'rgba(255,255,255,0.92)', fontSize: 10, fontWeight: '600', marginTop: 1 },
-  chev: { width: 32, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 2, backgroundColor: 'rgba(255,255,255,0.1)' },
+  chev: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 2, backgroundColor: 'rgba(255,255,255,0.1)' },
 });

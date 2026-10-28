@@ -6,7 +6,8 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
-import { pickMedia, pickAllMedia, resolveMedia, isVideoUrl } from '@/lib/media';
+import { pickMedia, pickAllMedia, isVideoUrl } from '@/lib/media';
+import { resolveModerationMedia } from '@/lib/moderationMedia';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +46,7 @@ export default async function StoriesPage() {
   const stories = (storiesRes.data ?? []) as Record<string, unknown>[];
 
   const rawMedia = stories.map(s => pickMedia(s));
-  const urlMap = await resolveMedia(rawMedia);
+  const urlMap = await resolveModerationMedia(rawMedia, 'story', stories.map(s => String(s.id)));
 
   const uids = Array.from(new Set(stories.map(s => String(s.user_id || '')).filter(Boolean)));
   const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }> = {};

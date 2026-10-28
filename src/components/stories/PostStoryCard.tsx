@@ -7,7 +7,7 @@
  * pauses the story via the handlers the viewer provides.
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, Pressable, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Pressable, StyleSheet, Dimensions, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import VerifiedBadge from '../VerifiedBadge';
@@ -50,6 +50,10 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   paused?: boolean;
 }) {
   const isVideo = sticker.postMediaType === 'video' && !!sticker.postMediaUrl;
+  const { height: windowHeight } = useWindowDimensions();
+  const frameHeight = Math.min(Math.round(POST_CARD_W * 1.05), Math.max(140, windowHeight * 0.38), 330);
+  const mediaCount = Math.max(1, Number(sticker.postMediaCount) || 1);
+  const carousel = mediaCount > 1 ? <View pointerEvents="none" style={st.carousel}><Feather name="layers" size={12} color="#FFFFFF" /><Text style={st.carouselText}>1/{mediaCount}</Text></View> : null;
   const [muted, setMuted] = useState(true);
   const [likes, setLikes] = useState<number>(Number(sticker.postLikes) || 0);
   const [liked, setLiked] = useState(false);
@@ -98,16 +102,21 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
 
   const mediaBlock = sticker.postMediaUrl ? (
     isVideo ? (
-      <View style={st.mediaWrap}>
-        <VideoView player={player} style={st.media} contentFit="contain" nativeControls={false} />
+      <View style={[st.mediaWrap, { height: frameHeight }]}>
+        <VideoView pointerEvents="none" player={player} style={st.media} contentFit="contain" nativeControls={false} />
+        {carousel}
         {interactive ? (
           <Pressable style={StyleSheet.absoluteFill} onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160} />
         ) : null}
-        <Pressable accessibilityLabel={muted ? "Unmute shared video" : "Mute shared video"} onPress={toggleMute} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160} style={st.soundChip}><Feather name={muted ? 'volume-x' : 'volume-2'} size={13} color="#FFF" /></Pressable>
+        <Pressable accessibilityRole="button" disabled={!interactive} accessibilityLabel={muted ? "Unmute shared video" : "Mute shared video"} onPress={toggleMute} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160} style={st.soundChip}><Feather name={muted ? 'volume-x' : 'volume-2'} size={13} color="#FFF" /></Pressable>
       </View>
     ) : (
-      <Pressable onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160} style={st.mediaWrap}>
-        <Image source={{ uri: sticker.postMediaUrl }} style={st.media} resizeMode="contain" />
+      <Pressable onPress={go(openPost)} onLongPress={onHoldStart} onPressOut={onHoldEnd} delayLongPress={160} disabled={!interactive} style={[st.mediaWrap, { height: frameHeight }]}>
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <Image accessible={false} source={{ uri: sticker.postMediaUrl }} style={[StyleSheet.absoluteFill, { opacity: 0.42 }]} resizeMode="cover" blurRadius={24} />
+          <Image source={{ uri: sticker.postMediaUrl }} style={st.media} resizeMode="contain" />
+        </View>
+        {carousel}
       </Pressable>
     )
   ) : null;
@@ -145,10 +154,10 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
 
   const inner = (
     <View style={st.card}>
-      {isVideo ? mediaBlock : header}
-      {isVideo ? header : caption}
       {articleTitle}
-      {isVideo ? caption : mediaBlock}
+      {caption}
+      {mediaBlock}
+      {header}
       <View style={st.engage}>
         <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.engItem} disabled={!interactive} onPress={toggleLike} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
           <Feather name="heart" size={16} color={liked ? '#E0245E' : '#E0245E'} style={liked ? { opacity: 1 } : { opacity: 0.75 }} />
@@ -166,7 +175,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
         </TouchableOpacity>
       </View>
       <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.foot} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.75}>
-        <Text style={st.footTxt}>{sticker.postArticleTitle ? 'Read the full article' : 'View original post'}</Text>
+        <Text style={st.footTxt}>{sticker.postArticleTitle ? 'Read the full article' : 'View post'}</Text>
         <Feather name="chevron-right" size={14} color={NAVY} />
       </TouchableOpacity>
     </View>
@@ -189,10 +198,12 @@ const st = StyleSheet.create({
   body: { color: '#111827', paddingHorizontal: 14, paddingTop: 8, paddingBottom: 4, fontWeight: '500' },
   mediaWrap: { width: '100%', height: Math.min(Math.round(POST_CARD_W * 1.05), 330), backgroundColor: '#0B1E3D', marginTop: 0 },
   media: { width: '100%', height: '100%' },
-  soundChip: { position: 'absolute', right: 10, bottom: 10, width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
+  soundChip: { position: 'absolute', right: 10, bottom: 10, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
+  carousel: { position: 'absolute', top: 10, right: 10, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(0,0,0,0.65)', borderRadius: 14, paddingHorizontal: 9, paddingVertical: 5 },
+  carouselText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
   engage: { flexDirection: 'row', alignItems: 'center', gap: 20, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 3 },
   engItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   engTxt: { fontSize: 12.5, fontWeight: '700', color: '#425063' },
-  foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 11, marginTop: 6, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E7EAF0' },
+  foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 44, paddingVertical: 11, marginTop: 6, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E7EAF0' },
   footTxt: { fontSize: 13, fontWeight: '800', color: NAVY },
 });

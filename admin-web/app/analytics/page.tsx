@@ -7,6 +7,8 @@ import Shell from '@/components/Shell';
 import { SeriesChart, Donut, Bars, StackBars, Spark, Empty, type Slice } from '@/components/Viz';
 import { fmt } from '@/lib/fmt';
 import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
+import { resolveModerationMedia } from '@/lib/moderationMedia';
+import { canPerform } from '@/lib/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -133,7 +135,9 @@ export default async function AnalyticsPage() {
     ((pm ?? []) as { post_id: string; url: string }[]).forEach(m => { if (!mediaByPost[m.post_id]) mediaByPost[m.post_id] = m.url; });
   }
   posts.forEach(p => { if (!mediaByPost[p.id]) { const f = pickMedia(p.raw); if (f) mediaByPost[p.id] = f; } });
-  const postUrlMap = await resolveMedia(Object.values(mediaByPost));
+  const postUrlMap = canPerform(admin.role, 'post_moderate')
+    ? await resolveModerationMedia(Object.values(mediaByPost), 'post', postIds)
+    : await resolveMedia(Object.values(mediaByPost));
 
   const authorIds = Array.from(new Set(posts.map(p => p.user_id)));
   const authors: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null }> = {};

@@ -58,6 +58,9 @@ export type StoryTextSticker = {
   postAuthorAvatar?: string | null;
   postMediaUrl?: string | null;
   postMediaType?: string | null;
+  postMediaCount?: number;
+  postMediaWidth?: number | null;
+  postMediaHeight?: number | null;
   postUsername?: string | null;
   postVerified?: boolean;
   postVerifiedTier?: string | null;

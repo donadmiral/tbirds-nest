@@ -2,7 +2,7 @@ import { takePrefetched } from '../../lib/screenTransition';
 import { useAfterTransition } from '../../lib/screenTransition';
 import { ProfileSkeleton } from '../../components/skeletons';
 import TierName from '../../components/TierName';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
 /**
  * UserProfileScreen.tsx
@@ -11,7 +11,7 @@ import VideoThumb from '../../components/VideoThumb';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
-  ActivityIndicator, StatusBar, Alert, Share, RefreshControl, Dimensions,
+  ActivityIndicator, StatusBar, Alert, Share, RefreshControl, useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
@@ -19,6 +19,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import ProfileHeader from '../../components/ProfileHeader';
 import { BusinessProducts, BusinessReviews, SellerListings } from '../../components/BusinessTabs';
 import { supabase } from '../../services/supabase';
+import { hydratePostMedia } from '../../services/contentMedia';
+import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
 import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
@@ -27,14 +29,7 @@ import VerifiedBadge from '../../components/VerifiedBadge';
 
 import { reportAccount } from '../../../shared/accountReporting';
 
-const SCREEN_W = Dimensions.get('window').width;
 
-const NAVY = '#0B1E3D';
-const NAVY_SOFT = '#1A3560';
-const BG_GREY = '#F7F7F9';
-const TEXT_PRIMARY = '#000000';
-const TEXT_SECONDARY = 'rgba(11,30,61,0.42)';
-const HAIRLINE = 'rgba(11,30,61,0.08)';
 
 type UserProfile = {
   id: string; full_name: string; username: string; bio: string;
@@ -54,6 +49,7 @@ type Post = {
   created_at: string;
   media_url: string | null;
   media: PostMedia[];
+  mediaUnavailable?: boolean;
 };
 
 function initials(n?: string | null) {
@@ -74,10 +70,19 @@ export default function UserProfileScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
-  const { profile: authProfile } = useAuthStore();
+  const { t, isDark } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const contentWidth = Math.max(0, windowWidth - insets.left - insets.right);
+  const authProfile = useAuthStore(state => state.profile);
   const myId = authProfile?.id ?? null;
 
   const targetId: string = route.params?.userId ?? route.params?.user?.id;
+  const scope = useRef({ targetId, myId });
+  if (scope.current.targetId !== targetId || scope.current.myId !== myId) scope.current = { targetId, myId };
+  const loadRequest = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const [contentError, setContentError] = useState<string | null>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(route.params?.user ?? null);
   const [stats, setStats] = useState<Stats>({ posts: 0, followers: 0 });
@@ -134,12 +139,17 @@ export default function UserProfileScreen() {
   };
 
   const load = useCallback(async () => {
-    if (!targetId) return;
+    const owner = scope.current, request = ++loadRequest.current;
+    const current = () => mounted.current && scope.current === owner && request === loadRequest.current;
+    if (!targetId) { setLoading(false); return; }
+    setContentError(null);
     try {
       // The tap that brought us here may have started this call already; use its result when it has landed.
     const pre = takePrefetched<any>('profile:' + targetId);
     const { data: pj, error: pErr } = pre ? { data: pre, error: null as any } : await supabase.rpc('get_profile', { p_profile_id: targetId });
-      if (pErr) { console.log('USER_PROFILE_LOAD', pErr.message); setLoadError(pErr.message); return; }
+      if (!current()) return;
+      if (pErr) throw pErr;
+      if (!pj || (pj as any).id !== targetId) throw new Error('Profile is unavailable. Please retry.');
       setLoadError(null);
       const pd: any = pj || {};
       setProfile({
@@ -158,58 +168,55 @@ export default function UserProfileScreen() {
       setFollowing(!!pd.viewer_follows);
       setFollowRequested(!!pd.viewer_requested);
 
+      const mayRead = myId === targetId || pd.can_view_content === true;
+      if (!mayRead) { setPosts([]); return; }
       let postsData: any[] = [];
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('posts')
-          .select('id, content, likes_count, comments_count, created_at, media_url, post_media(id, url, media_type, width, height, sort_order)')
+          .select('*, post_media(id, url, media_type, width, height, sort_order, edit)')
           .eq('user_id', targetId)
           .order('created_at', { ascending: false })
           .limit(20);
-        postsData = data || [];
+        if (error) throw error; postsData = data || [];
       } catch {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('posts')
-          .select('id, content, likes_count, comments_count, created_at, media_url')
+          .select('*')
           .eq('user_id', targetId)
           .order('created_at', { ascending: false })
           .limit(20);
-        postsData = data || [];
+        if (error) throw error; postsData = data || [];
       }
-      const shaped: Post[] = postsData.map((p: any) => {
-        const mediaArr: PostMedia[] = Array.isArray(p.post_media) && p.post_media.length > 0
-          ? (p.post_media as PostMedia[]).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-          : (p.media_url ? [{ id: '0', url: p.media_url, media_type: 'image', sort_order: 0 }] : []);
-        return {
-          id: p.id,
-          content: p.content || '',
-          likes_count: p.likes_count ?? 0,
-          comments_count: p.comments_count ?? 0,
-          created_at: p.created_at,
-          media_url: p.media_url || null,
-          media: mediaArr,
-        };
-      });
-      setPosts(shaped);
+      const authorized = await hydratePostMedia(postsData.filter(row => !row.archived_at));
+      if (!current()) return;
+      setPosts(authorized.map(normalizeProfilePost));
 
       if (myId && myId !== targetId) {
         const { data: orb } = await supabase.from('follows').select('id')
           .eq('follower_id', myId).eq('following_id', targetId).maybeSingle();
+        if (!current()) return;
         setFollowing(!!orb);
 
         if (!orb) {
           const { data: fr } = await supabase.from('follow_requests').select('id, status')
             .eq('requester_id', myId).eq('target_id', targetId).eq('status', 'pending').maybeSingle();
+          if (!current()) return;
           setFollowRequested(!!fr);
         } else {
           setFollowRequested(false);
         }
       }
-    } catch (e) { console.log('USER_PROFILE_LOAD', e); }
-    finally { setLoading(false); setRefreshing(false); }
+    } catch (e: any) { if (current()) { setLoadError(e?.message || 'Could not load this profile. Please retry.'); setContentError(e?.message || 'Could not load posts. Please retry.'); } }
+    finally { if (current()) { setLoading(false); setRefreshing(false); } }
   }, [targetId, myId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    setProfile(null); setPosts([]); setFollowing(false); setFollowRequested(false);
+    setLoadError(null); setContentError(null); setLoading(!!targetId);
+    void load();
+    return () => { loadRequest.current++; };
+  }, [load]);
   const [hasStory, setHasStory] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -274,9 +281,9 @@ export default function UserProfileScreen() {
 
   const isOwnProfile = myId === targetId;
   const isPrivate = profile?.profile_visibility === 'private';
-  const canViewContent = isOwnProfile || !isPrivate || following;
+  const canViewContent = isOwnProfile || profile?.can_view_content === true;
 
-  if (loading || !afterSlide) return (
+  if (loading || !afterSlide || (profile && profile.id !== targetId)) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
       <ProfileSkeleton />
     </SafeAreaView>
@@ -285,8 +292,8 @@ export default function UserProfileScreen() {
   if (!profile) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
       <View style={s.loader}>
-        <Feather name="user-x" size={40} color="rgba(11,30,61,0.08)" />
-        <Text style={s.notFoundTxt}>Profile not found</Text>
+        <Feather name="user-x" size={40} color={t.ink.faint} />
+        <Text style={s.notFoundTxt}>{loadError || 'Profile not found'}</Text><TouchableOpacity style={s.goBackBtn} onPress={() => { setLoading(true); void load(); }}><Text style={s.goBackBtnTxt}>Retry profile</Text></TouchableOpacity>
         <TouchableOpacity style={s.goBackBtn} onPress={() => navigation.goBack()}>
           <Text style={s.goBackBtnTxt}>Go back</Text>
         </TouchableOpacity>
@@ -296,18 +303,18 @@ export default function UserProfileScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="chevron-left" size={26} color={NAVY} />
+          <Feather name="chevron-left" size={26} color={t.brand.base} />
         </TouchableOpacity>
         <Text style={s.headerTitle} numberOfLines={1}><TierName userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} baseStyle={s.headerTitle} text={profile.full_name || 'Profile' || ''} numberOfLines={1} /> <VerifiedBadge userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} size={12} /></Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView automaticallyAdjustKeyboardInsets={true}
+      <ScrollView contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={NAVY} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={t.brand.base} />}
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 40, 60) }}
       >
         <ProfileHeader
@@ -335,15 +342,15 @@ export default function UserProfileScreen() {
           onEdit={isOwnProfile ? () => navigation.navigate('Profile', { screen: 'EditProfile' }) : undefined}
           actions={isOwnProfile ? undefined : (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <TouchableOpacity onPress={moreMenu} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="More options" style={{ width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}><Feather name="more-horizontal" size={16} color={NAVY} /></TouchableOpacity>
+              <TouchableOpacity onPress={moreMenu} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="More options" style={{ width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' }}><Feather name="more-horizontal" size={16} color={t.brand.base} /></TouchableOpacity>
               <TouchableOpacity
                 onPress={openMessage}
                 activeOpacity={0.8}
                 accessibilityRole="button"
                 accessibilityLabel="Message"
-                style={{ width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.08)', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' }}
               >
-                <Feather name="message-circle" size={16} color={NAVY} />
+                <Feather name="message-circle" size={16} color={t.brand.base} />
               </TouchableOpacity>
               {(useAuthStore.getState().profile as any)?.is_verified && !profile?.is_verified && targetId !== useAuthStore.getState().profile?.id && (
                 <TouchableOpacity activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Vouch for this member"
@@ -365,9 +372,9 @@ export default function UserProfileScreen() {
                 disabled={actionBusy}
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                style={{ paddingHorizontal: 18, paddingVertical: 9, borderRadius: 999, backgroundColor: (following || followRequested) ? 'rgba(11,30,61,0.05)' : NAVY, borderWidth: StyleSheet.hairlineWidth, borderColor: (following || followRequested) ? 'rgba(11,30,61,0.08)' : NAVY }}
+                style={{ paddingHorizontal: 18, paddingVertical: 9, borderRadius: 999, backgroundColor: (following || followRequested) ? t.brand.tintBg : t.brand.base, borderWidth: StyleSheet.hairlineWidth, borderColor: (following || followRequested) ? t.surface.hairline : t.brand.base }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '800', color: (following || followRequested) ? NAVY : '#FFFFFF' }}>
+                <Text style={{ fontSize: 13, fontWeight: '800', color: (following || followRequested) ? t.brand.base : t.ink.inverse }}>
                   {following ? 'Following' : followRequested ? 'Requested' : 'Follow'}
                 </Text>
               </TouchableOpacity>
@@ -375,6 +382,7 @@ export default function UserProfileScreen() {
           )}
         />
 
+        {loadError || contentError ? <View style={{padding:16}}><Text accessibilityRole="alert" style={{color:t.brand.base}}>{loadError || contentError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => void load()}><Text style={{color:t.brand.base,paddingVertical:12}}>Retry profile</Text></TouchableOpacity></View> : null}
         {canViewContent ? <MemoryAlbumCard ownerId={targetId} navigation={navigation} /> : null}
         {canViewContent && bizTab === 'listings' ? (
           <SellerListings sellerId={targetId} navigation={navigation} isSelf={isOwnProfile} />
@@ -391,7 +399,7 @@ export default function UserProfileScreen() {
                 {profile.location ? (
                   <View style={s.itm}>
                     <View style={s.itmIconBg}>
-                      <Feather name="map-pin" size={16} color={NAVY} />
+                      <Feather name="map-pin" size={16} color={t.brand.base} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={s.itmTxt}>{profile.location}</Text>
@@ -401,7 +409,7 @@ export default function UserProfileScreen() {
                 {profile.role ? (
                   <View style={s.itm}>
                     <View style={s.itmIconBg}>
-                      <Feather name="briefcase" size={16} color={NAVY} />
+                      <Feather name="briefcase" size={16} color={t.brand.base} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={s.itmTxt}>{profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}</Text>
@@ -416,20 +424,20 @@ export default function UserProfileScreen() {
                 <Text style={s.sectionTitle}>Posts</Text>
                 {posts.length > 0 && <Text style={s.sectionMeta}>{posts.length}</Text>}
               </View>
-              {posts.length === 0 ? (
+              {posts.length === 0 && contentError ? null : posts.length === 0 ? (
                 <View style={s.emptyPosts}>
-                  <Feather name="edit-3" size={28} color="rgba(11,30,61,0.08)" />
+                  <Feather name="edit-3" size={28} color={t.ink.faint} />
                   <Text style={s.emptyPostsTxt}>No posts yet</Text>
                 </View>
               ) : (
                 posts.map((post, idx) => (
                   <View
                     key={post.id}
-                    style={[s.postCard, { marginBottom: 10, borderBottomWidth: 6, borderBottomColor: '#F4F3F1' }, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
+                    style={[s.postCard, { marginBottom: 10, borderBottomWidth: 6, borderBottomColor: t.surface.sunken }, idx === posts.length - 1 && { borderBottomWidth: 0 }]}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <TouchableOpacity style={{ flex: 1 }} activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
-                        <Text style={{ fontSize: 12, color: TEXT_SECONDARY }}>{relTime(post.created_at)}</Text>
+                        <Text style={{ fontSize: 12, color: t.ink.muted }}>{relTime(post.created_at)}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => {
@@ -461,19 +469,20 @@ export default function UserProfileScreen() {
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         style={{ padding: 4 }}
                       >
-                        <Feather name="more-horizontal" size={18} color={TEXT_SECONDARY} />
+                        <Feather name="more-horizontal" size={18} color={t.ink.muted} />
                       </TouchableOpacity>
                     </View>
                     <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
-                      {post.media.length > 0 ? (
+                      {post.mediaUnavailable ? <Text style={{color:t.ink.muted,paddingVertical:12}}>Some media is unavailable.</Text> : null}
+                    {post.media.length > 0 ? (
                         <View style={{ marginBottom: 10 }}>
-                          <ScrollView automaticallyAdjustKeyboardInsets={true} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                          <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                             {post.media.map((m, mIdx) => (
-                              <View key={m.id || mIdx} style={{ width: post.media.length === 1 ? SCREEN_W - 64 : 192, height: post.media.length === 1 ? 150 : 128, borderRadius: 12, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
+                              <View key={m.id || mIdx} style={{ width: post.media.length === 1 ? contentWidth - 64 : 192, height: post.media.length === 1 ? 150 : 128, borderRadius: 12, overflow: 'hidden', backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}>
                                 {m.media_type === 'video' ? (
-                                  <VideoThumb uri={m.url} size={post.media.length === 1 ? SCREEN_W - 64 : 128} height={post.media.length === 1 ? 150 : 128} radius={0} />
+                                  <VideoThumb uri={m.url} posterUri={m.edit?.coverUrl} fill radius={0} />
                                 ) : (
-                                  <ExpoImage source={{ uri: m.url }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={200} />
+                                  <ExpoImage source={{ uri: m.url }} onError={() => setContentError('A media preview could not load. Retry to refresh access.')} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" transition={200} />
                                 )}
                               </View>
                             ))}
@@ -484,11 +493,11 @@ export default function UserProfileScreen() {
                       {post.content ? <Text style={s.postContent} numberOfLines={3}>{post.content}</Text> : null}
                       <View style={s.postFooter}>
                         <View style={s.postFooterItem}>
-                          <Feather name="heart" size={13} color={TEXT_SECONDARY} />
+                          <Feather name="heart" size={13} color={t.ink.muted} />
                           <Text style={s.postFooterTxt}>{post.likes_count}</Text>
                         </View>
                         <View style={s.postFooterItem}>
-                          <Feather name="message-circle" size={13} color={TEXT_SECONDARY} />
+                          <Feather name="message-circle" size={13} color={t.ink.muted} />
                           <Text style={s.postFooterTxt}>{post.comments_count}</Text>
                         </View>
                         <Text style={s.postTime}>{relTime(post.created_at)}</Text>
@@ -502,7 +511,7 @@ export default function UserProfileScreen() {
         ) : (
           <View style={s.lockedSection}>
             <View style={s.lockedIcon}>
-              <Feather name="lock" size={32} color="rgba(11,30,61,0.24)" />
+              <Feather name="lock" size={32} color={t.ink.faint} />
             </View>
             <Text style={s.lockedTitle}>This account is private</Text>
             <Text style={s.lockedSub}>Follow this account to see their posts and activity.</Text>
@@ -514,78 +523,78 @@ export default function UserProfileScreen() {
 }
 
 const s = themedSheet((t) => ({
-  safe: { flex: 1, backgroundColor: BG_GREY },
+  safe: { flex: 1, backgroundColor: t.surface.sunken },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: t.surface.canvas },
   notFoundTxt: { fontSize: 16, fontWeight: '600', color: t.ink.secondary },
-  goBackBtn: { backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
+  goBackBtn: { backgroundColor: t.brand.base, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
   goBackBtnTxt: { color: t.ink.inverse, fontSize: 14, fontWeight: '600' },
 
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 12, paddingVertical: 10,
     backgroundColor: t.surface.canvas,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
-  headerTitle: { fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY, flex: 1, textAlign: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: '600', color: t.ink.primary, flex: 1, textAlign: 'center' },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 
   hero: {
     alignItems: 'center',
     paddingTop: 28, paddingHorizontal: 20, paddingBottom: 24,
     backgroundColor: t.surface.canvas,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
   avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 12, backgroundColor: '#EFF6FF' },
-  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: NAVY },
+  avatarFb: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.base },
   avatarFbTxt: { fontSize: 36, fontWeight: '700', color: t.ink.inverse },
-  name: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, letterSpacing: -0.4 },
-  handle: { fontSize: 14, color: NAVY, fontWeight: '500', marginTop: 4 },
-  privateBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, backgroundColor: '#F2F2F7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  privateBadgeTxt: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
+  name: { fontSize: 22, fontWeight: '700', color: t.ink.primary, letterSpacing: -0.4 },
+  handle: { fontSize: 14, color: t.brand.base, fontWeight: '500', marginTop: 4 },
+  privateBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, backgroundColor: t.surface.sunken, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  privateBadgeTxt: { fontSize: 12, color: t.ink.muted, fontWeight: '500' },
 
-  statsRow: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingHorizontal: 20, marginTop: 20, paddingVertical: 14, backgroundColor: BG_GREY, borderRadius: 16 },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingHorizontal: 20, marginTop: 20, paddingVertical: 14, backgroundColor: t.surface.sunken, borderRadius: 16 },
   statItem: { alignItems: 'center', flex: 1 },
-  statValue: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY },
-  statLabel: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 2, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
+  statValue: { fontSize: 18, fontWeight: '700', color: t.ink.primary },
+  statLabel: { fontSize: 11, color: t.ink.muted, marginTop: 2, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
 
   heroActions: { flexDirection: 'row', gap: 20, marginTop: 22 },
   heroAction: { alignItems: 'center', gap: 6, minWidth: 70 },
-  heroActionInner: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  heroActionInnerActive: { backgroundColor: NAVY },
-  heroActionLbl: { fontSize: 11, fontWeight: '500', color: TEXT_PRIMARY },
+  heroActionInner: { width: 48, height: 48, borderRadius: 16, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
+  heroActionInnerActive: { backgroundColor: t.brand.base },
+  heroActionLbl: { fontSize: 11, fontWeight: '500', color: t.ink.primary },
 
-  editOwnBtn: { marginTop: 18, paddingVertical: 11, paddingHorizontal: 28, borderRadius: 22, borderWidth: 1, borderColor: HAIRLINE },
-  editOwnBtnTxt: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
+  editOwnBtn: { marginTop: 18, paddingVertical: 11, paddingHorizontal: 28, borderRadius: 22, borderWidth: 1, borderColor: t.surface.hairline },
+  editOwnBtnTxt: { fontSize: 14, fontWeight: '600', color: t.ink.primary },
 
   section: {
     backgroundColor: t.surface.canvas,
     marginTop: 10,
     paddingHorizontal: 16, paddingVertical: 14,
     borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: HAIRLINE, borderBottomColor: HAIRLINE,
+    borderTopColor: t.surface.hairline, borderBottomColor: t.surface.hairline,
   },
-  sectionTitle: { fontSize: 11, fontWeight: '600', color: TEXT_SECONDARY, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
+  sectionTitle: { fontSize: 11, fontWeight: '600', color: t.ink.muted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionMeta: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
+  sectionMeta: { fontSize: 12, color: t.ink.muted, fontWeight: '500' },
 
   bio: { fontSize: 14, color: t.ink.secondary, lineHeight: 21, marginBottom: 12 },
 
   itm: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
   itmIconBg: { width: 32, height: 32, borderRadius: 10, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
-  itmTxt: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '500' },
-  itmSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 1 },
+  itmTxt: { fontSize: 14, color: t.ink.primary, fontWeight: '500' },
+  itmSub: { fontSize: 12, color: t.ink.muted, marginTop: 1 },
 
   emptyPosts: { alignItems: 'center', paddingVertical: 40, gap: 8 },
-  emptyPostsTxt: { fontSize: 14, color: TEXT_SECONDARY },
-  postCard: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F4F3F1' },
+  emptyPostsTxt: { fontSize: 14, color: t.ink.muted },
+  postCard: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.sunken },
   postContent: { fontSize: 14, color: t.ink.primary, lineHeight: 20, marginBottom: 10 },
   postFooter: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   postFooterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  postFooterTxt: { fontSize: 12, color: TEXT_SECONDARY },
+  postFooterTxt: { fontSize: 12, color: t.ink.muted },
   postTime: { fontSize: 12, color: t.ink.faint, marginLeft: 'auto' },
 
   lockedSection: { alignItems: 'center', paddingVertical: 80, paddingHorizontal: 32, gap: 10 },
-  lockedIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  lockedTitle: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY },
-  lockedSub: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
+  lockedIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  lockedTitle: { fontSize: 18, fontWeight: '700', color: t.ink.primary },
+  lockedSub: { fontSize: 14, color: t.ink.muted, textAlign: 'center', lineHeight: 20 },
 }));

@@ -69,6 +69,9 @@ export type StoryTextSticker = {
   postText?: string;
   postMediaUrl?: string | null;
   postMediaType?: string | null;
+  postMediaCount?: number;
+  postMediaWidth?: number | null;
+  postMediaHeight?: number | null;
   mentionUsername?: string;
   questionPrompt?: string;
   sliderEmoji?: string;

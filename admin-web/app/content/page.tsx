@@ -6,7 +6,8 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
-import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
+import { pickMedia, isVideoUrl } from '@/lib/media';
+import { resolveModerationMedia } from '@/lib/moderationMedia';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,8 +58,7 @@ export default async function ContentPage() {
     });
   }
 
-  // media lives in post_media, with media_url as a fallback, and every path is
-  // signed so a private bucket still renders
+  // Resolve verified post media for the authenticated moderation desk.
   posts.forEach(p => {
     if (!mediaByPost[p.id]?.length) {
       const found = pickMedia(p as unknown as Record<string, unknown>);
@@ -68,7 +68,7 @@ export default async function ContentPage() {
   // only real pictures and videos become tiles; a link inside a caption is not a picture
   const renderableMedia = (u: string) => /supabase\.co\/storage\/|\.(jpe?g|png|webp|gif|heic|heif|mp4|mov|m4v|webm)(\?|$)/i.test(u);
   Object.keys(mediaByPost).forEach(k => { mediaByPost[k] = mediaByPost[k].filter(renderableMedia); if (!mediaByPost[k].length) delete mediaByPost[k]; });
-  const urlMap = await resolveMedia(Object.values(mediaByPost).flat());
+  const urlMap = await resolveModerationMedia(Object.values(mediaByPost).flat(), 'post', posts.map(p => p.id));
 
   const uids = Array.from(new Set(posts.map(p => p.user_id)));
   const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }> = {};
@@ -126,14 +126,16 @@ export default async function ContentPage() {
 
   const rows: DeskRow[] = posts.map(p => {
     const a = people[p.user_id] || { full_name: null, username: null, avatar_url: null, is_verified: false };
-    const urls = (mediaByPost[p.id] || []).map(u => urlMap[u]).filter(Boolean);
+    const resolvedRaw = (mediaByPost[p.id] || []).filter(u => !!urlMap[u]);
+    const urls = resolvedRaw.map(u => urlMap[u]);
     const first = urls[0] || null;
-    const video = isVideo(first);
+    const video = isVideo(resolvedRaw[0] || (mediaByPost[p.id] || [])[0]);
     const rep = reportsByPost[p.id];
     const trend = trendRank[p.id];
     const text = (p.content || p.body || '').trim();
     const score = (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0);
-    const kind = urls.length === 0 ? 'Text' : video ? 'Video' : urls.length > 1 ? 'Gallery' : 'Photo';
+    const mediaCount = (mediaByPost[p.id] || []).length;
+    const kind = mediaCount === 0 ? 'Text' : video ? 'Video' : mediaCount > 1 ? 'Gallery' : 'Photo';
     const status: { v: string; tone: Tone } = rep?.open
       ? { v: 'Reported', tone: 'bad' }
       : trend ? { v: 'Trending', tone: 'warn' } : { v: 'Published', tone: 'ok' };
@@ -141,14 +143,14 @@ export default async function ContentPage() {
       id: p.id,
       tabs: [
         rep?.open ? 'reported' : 'clean',
-        urls.length ? 'media' : 'text',
+        mediaCount ? 'media' : 'text',
         ...(video ? ['video'] : []),
         ...(trend ? ['trending'] : []),
       ],
       search: [text, a.full_name, a.username, kind].map(x => String(x || '').toLowerCase()).join(' '),
       facets: { type: kind, status: status.v },
       cells: [
-        { t: 'media', v: text || (urls.length ? kind + ' post' : 'Empty post'), sub: '@' + (a.username || 'member'), thumb: first, video },
+        { t: 'media', v: text || (mediaCount ? kind + ' post' : 'Empty post'), sub: '@' + (a.username || 'member'), thumb: first, video },
         { t: 'user', v: a.full_name || 'Unnamed', sub: '@' + (a.username || 'member'), img: a.avatar_url },
         { t: 'pill', v: kind, tone: kind === 'Video' ? 'info' : kind === 'Text' ? 'neutral' : 'accent' },
         { t: 'pill', v: status.v, tone: status.tone },
@@ -178,7 +180,7 @@ export default async function ContentPage() {
           { label: 'Post id', value: p.id },
           { label: 'Author', value: (a.full_name || 'Unnamed') + ' (@' + (a.username || 'member') + ')' },
           { label: 'Type', value: kind },
-          { label: 'Media items', value: String(urls.length) },
+          { label: 'Media items', value: String(mediaCount) },
           { label: 'Posted', value: new Date(p.created_at).toLocaleString() },
           ...(rep ? [{ label: 'Reports', value: rep.open + ' open of ' + rep.total + ' total' }] : []),
           ...(trend ? [{ label: 'Trending', value: 'rank ' + trend.rank + ', ' + trend.engagers + ' unique engagers' }] : []),
