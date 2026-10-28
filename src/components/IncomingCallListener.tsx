@@ -442,7 +442,7 @@ const st = themedSheet((t) => ({
   avatarFb: { backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
   mid: { flex: 1 },
   name: { color: t.ink.inverse, fontSize: 15, fontWeight: '700' },
-  sub: { color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 1 },
+  sub: { color: t.ink.inverse, fontSize: 12, marginTop: 1 },
   circle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   decline: { backgroundColor: '#EF4444' },
   accept: { backgroundColor: '#10B981' },

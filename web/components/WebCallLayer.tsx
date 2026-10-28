@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { startOneToOneCall, startGroupCall, getDailyRoom, setCallStatus, endCall, joinGroupCall, leaveGroupCall, declineGroupCall, getPendingIncomingCalls, isCallInvitationOpen, type CallSession } from "@/lib/calls";
 import { flushPendingCallCloses, queueCallClose, type CallCloseIntent } from "@/lib/callRecovery";
 
+import { acquireCallMedia } from "@/lib/callMedia";
+
 type Incoming = CallSession & { caller_name?: string };
 const ringing = isCallInvitationOpen;
 const CLOSE_PENDING = 'The call closed on this device. Its status will update when your connection returns.';
@@ -39,6 +41,11 @@ export function WebCallLayer() {
   const busy = useRef(false);
   const live = useRef(true);
   const incomingGeneration = useRef(0);
+  const mediaRelease = useRef<(() => void) | null>(null);
+  const lockMedia = useCallback(() => { if (!mediaRelease.current) mediaRelease.current = acquireCallMedia(); }, []);
+  const unlockMedia = useCallback((release = mediaRelease.current) => {
+    release?.(); if (mediaRelease.current === release) mediaRelease.current = null;
+  }, []);
 
   const teardownFrame = useCallback(async () => {
     const frame = frameRef.current;
@@ -72,6 +79,7 @@ export function WebCallLayer() {
 
   const hangup = useCallback(async (record: boolean) => {
     const operation = ++generation.current;
+    const release = mediaRelease.current; mediaRelease.current = null;
     const session = activeCallRef.current;
     const account = uidRef.current;
     activeCallRef.current = null;
@@ -80,10 +88,11 @@ export function WebCallLayer() {
     // Record and send closure independently of a stalled media teardown.
     const closing = session && account && (record || session.is_group_call) ? closeSession(session, account) : Promise.resolve(true);
     const [, closed] = await Promise.all([teardownFrame(), closing]);
+    unlockMedia(release);
     if (!closed && live.current && uidRef.current === account && generation.current === operation) {
       setCallError(CLOSE_PENDING);
     }
-  }, [teardownFrame, closeSession]);
+  }, [teardownFrame, closeSession, unlockMedia]);
 
   useEffect(() => {
     live.current = true;
@@ -98,7 +107,8 @@ export function WebCallLayer() {
         ++generation.current; ++incomingGeneration.current;
         busy.current = false; activeCallRef.current = null; incomingRef.current = null;
         setActiveCall(null); setIncoming(null); setConnecting(false); setReconnecting(false); setCallError(null);
-        void teardownFrame();
+        const release = mediaRelease.current; mediaRelease.current = null;
+        void teardownFrame().finally(() => unlockMedia(release));
       }
       uidRef.current = next; setUid(next); tokenRef.current = session?.access_token ?? null;
     };
@@ -110,9 +120,9 @@ export function WebCallLayer() {
         queueCallClose(uidRef.current, activeCallRef.current);
         sendCloseKeepalive(activeCallRef.current, tokenRef.current);
       }
-      live.current = false; ++generation.current; ++incomingGeneration.current; subscription.unsubscribe(); void teardownFrame();
+      live.current = false; ++generation.current; ++incomingGeneration.current; subscription.unsubscribe(); const release = mediaRelease.current; mediaRelease.current = null; void teardownFrame().finally(() => unlockMedia(release));
     };
-  }, [supabase, teardownFrame]);
+  }, [supabase, teardownFrame, unlockMedia]);
 
   useEffect(() => {
     if (!uid) return;
@@ -135,7 +145,7 @@ export function WebCallLayer() {
 
   const begin = useCallback(async (create: () => Promise<CallSession | null>, isVideo: boolean) => {
     if (busy.current || activeCallRef.current || !uidRef.current) return;
-    busy.current = true;
+    busy.current = true; lockMedia();
     const operation = ++generation.current, account = uidRef.current;
     const current = () => live.current && generation.current === operation && uidRef.current === account;
     let session: CallSession | null = null;
@@ -178,7 +188,8 @@ export function WebCallLayer() {
     } catch (error) {
       if (current()) {
         const closing = session ? closeSession(session, account) : Promise.resolve(true);
-        void teardownFrame();
+        const release = mediaRelease.current; mediaRelease.current = null;
+        void teardownFrame().finally(() => unlockMedia(release));
         activeCallRef.current = null; setActiveCall(null); setConnecting(false);
         const name = error instanceof Error ? error.name : '';
         setCallError(name === 'NotAllowedError' || name === 'SecurityError'
@@ -189,7 +200,7 @@ export function WebCallLayer() {
         await closing;
       }
     } finally { if (current()) busy.current = false; }
-  }, [hangup, closeSession, teardownFrame]);
+  }, [hangup, closeSession, teardownFrame, lockMedia, unlockMedia]);
 
   useEffect(() => {
     const join = async (sessionId: string, account: string, admittedIdentity?: string) => {
@@ -264,7 +275,7 @@ export function WebCallLayer() {
       if (!valid || uidRef.current !== uid || !ringing(session) || busy.current || activeCallRef.current || incomingRef.current) return;
       if (!session.is_group_call && session.receiver_id !== uid) return;
       const operation = ++incomingGeneration.current;
-      incomingRef.current = session; setIncoming(session);
+      lockMedia(); incomingRef.current = session; setIncoming(session);
       const { data } = await supabase.from('profiles').select('full_name').eq('id', session.initiator_id).maybeSingle();
       if (valid && incomingGeneration.current === operation && incomingRef.current?.id === session.id && ringing(session)) {
         const invite = { ...session, caller_name: (data?.full_name || 'Someone') + (session.is_group_call ? ' · group call' : '') };
@@ -302,13 +313,13 @@ export function WebCallLayer() {
         .eq('call_session_id', invite.id).eq('user_id', uid).maybeSingle() : null;
       if (valid && uidRef.current === uid && incomingRef.current?.id === invite.id && (!ringing(invite)
         || (!error && (!data || !ringing(data as CallSession))) || (participant && !participant.error && participant.data?.status !== 'invited'))) {
-        ++incomingGeneration.current; incomingRef.current = null; setIncoming(null);
+        ++incomingGeneration.current; incomingRef.current = null; setIncoming(null); unlockMedia();
       }
       } catch { /* Retry status without hiding a still-valid invitation on a network failure. */ }
       finally { checking = false; }
     }, 5000);
     return () => { valid = false; clearInterval(timer); clearInterval(recoveryTimer); window.removeEventListener('online', refresh); window.removeEventListener('focus', refresh); void supabase.removeChannel(ch); };
-  }, [supabase, uid]);
+  }, [supabase, uid, lockMedia, unlockMedia]);
 
   function answer() {
     const session = incomingRef.current;
@@ -323,7 +334,7 @@ export function WebCallLayer() {
   async function decline() {
     const session = incomingRef.current;
     if (!session || busy.current) return;
-    incomingRef.current = null; ++incomingGeneration.current; setIncoming(null);
+    incomingRef.current = null; ++incomingGeneration.current; setIncoming(null); unlockMedia();
     try { if (session.is_group_call) await declineGroupCall(session.id); else await setCallStatus(session.id, 'declined'); }
     catch { setCallError('The invitation is no longer available.'); }
   }

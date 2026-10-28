@@ -1,3 +1,4 @@
+import { storyMentionIds } from '../../../shared/storyMentions';
 /**
  * usePublishOrchestrator.ts
  *
@@ -57,6 +58,7 @@ export interface PublishOrchestratorInput {
   closeBloom: () => void;
   mediaOpacity: Animated.Value;
   mediaScale: Animated.Value;
+  onPublished?: (storyIds: string[]) => void;
 }
 
 export interface PublishOrchestratorOutput {
@@ -73,7 +75,7 @@ function draftContent(draft: Draft): string {
 export function usePublishOrchestrator(input: PublishOrchestratorInput): PublishOrchestratorOutput {
   const {
     drafts, setDrafts, myId, navigation,
-    closeBloom, mediaOpacity, mediaScale,
+    closeBloom, mediaOpacity, mediaScale, onPublished,
   } = input;
 
   const [publishing, setPublishing] = useState(false);
@@ -181,9 +183,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
         // Mentions: visible ones come from mention stickers, hidden ones from
         // the draft's hidden list. One story_mentions row per person; the DB
         // trigger writes the notification, so there is a single source.
-        const visibleIds: string[] = Array.from(new Set(
-          (stickerPayload || []).filter((s: any) => s.kind === 'mention' && s.mentionUserId).map((s: any) => String(s.mentionUserId))
-        ));
+        const visibleIds = storyMentionIds(stickerPayload || []);
         const hiddenIds: string[] = Array.from(new Set(
           (((d as any).hiddenMentions || []) as any[]).map((h: any) => h?.id).filter(Boolean).map(String)
         ));
@@ -232,6 +232,11 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
 
     if (failCount === 0) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      if (onPublished) {
+        const ids = [...attempts.current.values()].map(attempt => attempt.progress.postId).filter((id): id is string => !!id);
+        onPublished([...new Set(ids)]);
+        return;
+      }
       Animated.parallel([
         Animated.timing(mediaOpacity, { toValue: 0, duration: duration.medium, useNativeDriver: true }),
         Animated.timing(mediaScale, { toValue: 0.96, duration: duration.medium, useNativeDriver: true }),
@@ -243,7 +248,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
     } else {
       Alert.alert('Partial upload', `${successCount} uploaded, ${failCount} failed.`);
     }
-  }, [myId, drafts, setDrafts, navigation, closeBloom, mediaOpacity, mediaScale, publishing]);
+  }, [myId, drafts, setDrafts, navigation, closeBloom, mediaOpacity, mediaScale, publishing, onPublished]);
 
   return {
     publishing,

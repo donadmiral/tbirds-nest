@@ -302,7 +302,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       .channel("web_typing_" + active.id)
       .on("postgres_changes", { event: "*", schema: "public", table: "conversation_typing", filter: "conversation_id=eq." + active.id }, fetchTyping)
       .subscribe();
-    const typePoll = setInterval(fetchTyping, 10000);
+    const typePoll = setInterval(fetchTyping, 3000);
     void fetchTyping();
     const reactionChannel = supabase.channel('web_reactions_' + active.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, (payload) => { const messageId = (payload.new as { message_id?: string }).message_id || (payload.old as { message_id?: string }).message_id; const rows = messageId ? msgsRef.current.filter(row => row.id === messageId) : msgsRef.current; for (let i = 0; i < rows.length; i += MESSAGE_PAGE_SIZE) void loadReactions(rows.slice(i, i + MESSAGE_PAGE_SIZE), active.id); })
@@ -770,7 +770,7 @@ function OfferCardView({ m, uid, offers, countering, counterAmt, setCountering, 
     const canRespond = status === "pending" && uid !== null && uid !== proposer;
     const color = status === "accepted" ? "text-success" : status === "pending" ? "text-accent" : "text-muted";
     return (
-      <div className="min-w-48 rounded-lg border border-ink/15 bg-white p-3">
+      <div className="min-w-48 rounded-lg border border-ink/15 bg-surface p-3">
         <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted"><Tag size={12} /> Offer</p>
         <p className="mt-0.5 text-[18px] font-semibold text-ink">{(currency === "USD" ? "$" : currency + " ") + Number(amount).toLocaleString()}</p>
         <p className={"text-[12px] font-semibold capitalize " + color}>{status}</p>

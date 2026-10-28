@@ -537,6 +537,13 @@ export default function ChatScreen() {
   const startingCallRef = useRef(false);
   const voice = useVoiceRecorder();
   const [sendingVoice, setSendingVoice] = useState(false);
+  const voiceSending = useRef(false);
+  const voiceScope = `${session?.user.id || ''}:${currentUserId || ''}:${conversationId || passedUserId || ''}`;
+  const voiceScopeRef = useRef(voiceScope); voiceScopeRef.current = voiceScope;
+  const voiceControl = useRef(voice); voiceControl.current = voice;
+  useEffect(() => {
+    return () => { voiceSending.current = false; void voiceControl.current.cancel(); };
+  }, [voiceScope]);
   const [otherOnline, setOtherOnline] = useState(false);
 
   const mountedRef = useRef(true);
@@ -573,6 +580,7 @@ export default function ChatScreen() {
   }, [conversationId]);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingRef = useRef(false);
+  const typingSentAt = useRef(0);
   const inputRef = useRef<TextInput>(null);
   const [pinnedMsg, setPinnedMsg] = useState<any | null>(null);
   useEffect(() => {
@@ -884,6 +892,7 @@ export default function ChatScreen() {
     if (!conversationId || !currentUserId) return;
     try {
       const { data } = await supabase.from('conversation_typing').select('*').eq('conversation_id', conversationId);
+      if (activeConversation.current !== conversationId || !mountedRef.current) return;
       const freshTypers = (data || []).filter((r: any) => r.user_id !== currentUserId && r.is_typing && (Date.now() - new Date(r.updated_at).getTime() < 7000));
       setTypingUserId(freshTypers[0]?.user_id ?? null);
       setOtherTyping(freshTypers.length > 0);
@@ -891,26 +900,30 @@ export default function ChatScreen() {
   }, [conversationId, currentUserId]);
 
   const setTyping = useCallback(async (isTyping: boolean) => {
-    if (!conversationId || !currentUserId || lastTypingRef.current === isTyping) return;
-    lastTypingRef.current = isTyping;
+    if (!conversationId || !currentUserId) return;
+    const now = Date.now();
+    if (lastTypingRef.current === isTyping && (!isTyping || now - typingSentAt.current < 2000)) return;
+    lastTypingRef.current = isTyping; typingSentAt.current = now;
     try { await supabase.from('conversation_typing').upsert({ conversation_id: conversationId, user_id: currentUserId, is_typing: isTyping, updated_at: new Date().toISOString() }, { onConflict: 'conversation_id,user_id' }); } catch {}
   }, [conversationId, currentUserId]);
 
   useEffect(() => {
-    if (!isGroup && otherUser?.id) {
-      const isRecent = (lastSeen: string | null) => !!lastSeen && (Date.now() - new Date(lastSeen).getTime() < 120000);
-      supabase.from('user_presence').select('is_online, last_seen').eq('user_id', otherUser.id).maybeSingle()
-        .then(({ data }) => { if (data) setOtherOnline(!!data.is_online && isRecent(data.last_seen)); });
-      const presSub = supabase.channel(`presence_${otherUser.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence', filter: `user_id=eq.${otherUser.id}` },
-          (payload) => {
-            const p = payload.new as any;
-            if (isGroup && p?.is_system_message && !p?.payment_id) loadGroupMembers();
-            setOtherOnline(!!p?.is_online && isRecent(p?.last_seen));
-          })
-        .subscribe();
-      return () => { supabase.removeChannel(presSub); };
-    }
+    setOtherOnline(false);
+    if (isGroup || !otherUser?.id) return;
+    let live = true;
+    let presence: { is_online?: boolean; last_seen?: string | null } | null = null;
+    const refresh = () => {
+      if (!live) return;
+      const age = presence?.last_seen ? Date.now() - Date.parse(presence.last_seen) : Infinity;
+      setOtherOnline(!!presence?.is_online && age >= 0 && age < 120000);
+    };
+    void supabase.from('user_presence').select('is_online, last_seen').eq('user_id', otherUser.id).maybeSingle()
+      .then(({ data }) => { if (live) { presence = data; refresh(); } });
+    const channel = supabase.channel(`presence_${otherUser.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence', filter: `user_id=eq.${otherUser.id}` },
+        payload => { presence = payload.new; refresh(); }).subscribe();
+    const timer = setInterval(refresh, 5000);
+    return () => { live = false; clearInterval(timer); void supabase.removeChannel(channel); };
   }, [isGroup, otherUser?.id]);
 
   useEffect(() => {
@@ -1902,21 +1915,24 @@ const pickAndSendDocument = useCallback(async () => {
   // Stop, upload, then send. The recording is only discarded once the message
   // exists, so a failed upload does not lose what was said.
   const sendVoiceNote = useCallback(async () => {
-    const result = await voice.stop();
-    if (!result) return;
-    setSendingVoice(true);
+    if (voiceSending.current || !currentUserId) return;
+    voiceSending.current = true; setSendingVoice(true);
+    const scope = voiceScopeRef.current;
     try {
-      const { url } = await uploadMedia('chat-media', currentUserId!, {
+      const result = await voice.stop();
+      if (!result || voiceScopeRef.current !== scope) return;
+      const { url } = await uploadMedia('chat-media', currentUserId, {
         uri: result.uri, kind: 'audio', ext: 'm4a', mimeType: 'audio/m4a', base64: null,
       }, { filename: 'voice_' + Date.now() + '.m4a' });
-      await doSend('', url, 'audio', null, replyTo?.id ?? null, result.durationSec, undefined);
-    } catch (e: any) {
-      console.log('[VOICE] send failed:', e?.message);
-      Alert.alert('Could not send', 'Your voice message did not send. Please try again.');
+      if (voiceScopeRef.current !== scope) return;
+      const queued = await doSend('', url, 'audio', null, replyTo?.id ?? null, result.durationSec, undefined);
+      if (queued && voiceScopeRef.current === scope) voice.clearResult();
+    } catch {
+      if (voiceScopeRef.current === scope) Alert.alert('Could not send', 'Your recording is saved here. Tap Send to retry.');
     } finally {
-      setSendingVoice(false);
+      if (voiceScopeRef.current === scope) { voiceSending.current = false; setSendingVoice(false); }
     }
-  }, [voice, currentUserId, replyTo]);
+  }, [voice, currentUserId, replyTo, doSend]);
   const toolbarMaxH = toolbarH.interpolate({ inputRange: [0, 1], outputRange: [0, 160] });
 
   const renderInfoMediaTab = () => {
@@ -2279,7 +2295,7 @@ const pickAndSendDocument = useCallback(async () => {
             )}
         </Animated.View>
 
-        {voice.recording ? (
+        {voice.recording || voice.result ? (
             <View style={[s.voiceBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
               <TouchableOpacity
                 onPress={() => voice.cancel()}
@@ -2293,7 +2309,7 @@ const pickAndSendDocument = useCallback(async () => {
               <View style={s.voiceDot} />
               <Text style={s.voiceTimer}>{formatVoiceDuration(voice.seconds)}</Text>
               <Text style={s.voiceHint} numberOfLines={1}>
-                {voice.atLimit ? 'Maximum length reached' : 'Recording'}
+                {voice.result ? 'Ready to send' : voice.atLimit ? 'Maximum length reached' : 'Recording'}
               </Text>
 
               <TouchableOpacity

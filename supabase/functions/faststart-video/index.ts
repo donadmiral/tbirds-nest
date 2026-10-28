@@ -128,7 +128,8 @@ function faststartRemux(buf: Uint8Array, maxBytes = 200 * 1024 * 1024): { ok: tr
   return { ok: true, buf: out };
 }
 
-const VIDEO_BUCKETS = new Set(['post-media', 'chat-media', 'story-media', 'chat-files']);
+// Private chat originals are immutable. A delayed remux must never resurrect an erased object.
+const VIDEO_BUCKETS = new Set(['post-media', 'story-media']);
 const MAX_BYTES = 200 * 1024 * 1024;
 
 Deno.serve(async (req) => {

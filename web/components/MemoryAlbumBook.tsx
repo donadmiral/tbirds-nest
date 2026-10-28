@@ -1,52 +1,20 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Heart, Plus } from "lucide-react";
-import { COVER_COLORS, getMemoryBooks, type MemoryBookInfo } from "@/lib/memoryAlbum";
-
-export function MemoryAlbumBook({ profileId }: { profileId: string }) {
-  const [books, setBooks] = useState<MemoryBookInfo[]>([]);
-  const [isOwner, setIsOwner] = useState(false);
-
-  useEffect(() => {
-    let on = true;
-    getMemoryBooks(profileId).then((shelf) => {
-      if (!on) return;
-      setIsOwner(shelf.is_owner);
-      setBooks(shelf.is_owner ? shelf.books : shelf.books.filter(b => (b.count ?? 0) > 0));
-    });
-    return () => { on = false; };
-  }, [profileId]);
-
-  if (books.length === 0) return null;
-
-  return (
-    <div className="px-1 pb-5">
-      <p className="mb-2 text-[13px] font-semibold text-ink">Memory books</p>
-      <div className="flex gap-4 overflow-x-auto pb-1">
-        {books.map(b => {
-          const c = COVER_COLORS[b.cover_color] ?? COVER_COLORS.blush;
-          return (
-            <Link key={b.id} href={"/album/" + b.id} className="group shrink-0 text-center">
-              <span className="relative block h-[92px] w-[74px]">
-                <span className="absolute left-[4px] top-[4px] block h-[84px] w-[66px] rounded-r-[10px] rounded-l-[6px]" style={{ background: c.spine, opacity: 0.55 }} />
-                <span className="absolute left-0 top-0 flex h-[84px] w-[66px] overflow-hidden rounded-r-[10px] rounded-l-[6px] border border-ink/10 transition-transform group-hover:-translate-y-0.5" style={{ background: c.cover }}>
-                  <span className="block h-full w-[12px]" style={{ background: c.spine }} />
-                  <span className="flex flex-1 flex-col items-center justify-center gap-1 px-1">
-                    <Heart size={13} style={{ color: c.text }} />
-                    <span className="line-clamp-2 text-center font-display text-[10.5px] leading-tight" style={{ color: c.text }}>{b.title}</span>
-                  </span>
-                </span>
-              </span>
-              <span className="mt-1 block w-[74px] truncate text-[11px] text-muted">{b.count === 1 ? "1 memory" : String(b.count ?? 0) + " memories"}</span>
-            </Link>
-          );
-        })}
-        {isOwner ? (
-          <span className="flex h-[92px] w-[74px] shrink-0 items-center justify-center rounded-[10px] border border-dashed border-ink/20 text-muted" title="Create books in the app"><Plus size={18} /></span>
-        ) : null}
-      </div>
-    </div>
-  );
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import Link from 'next/link';
+import {useRouter} from 'next/navigation';
+import {Plus,X} from 'lucide-react';
+import {getMemoryBooks,type MemoryBookInfo,COVER_COLORS} from '@/lib/memoryAlbum';
+import {createClient} from '@/lib/supabase/client';
+import {MEMORY_DESIGNS} from '../../shared/memoryBookDesign';
+import {MemoryBookCover} from './memory/MemoryBookCover';
+export function MemoryAlbumBook({profileId}:{profileId:string}) {
+ const router=useRouter(),client=useRef(createClient()).current;
+ const [books,setBooks]=useState<MemoryBookInfo[]>([]),[isOwner,setIsOwner]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[creating,setCreating]=useState(false),[title,setTitle]=useState(''),[color,setColor]=useState('blush'),[design,setDesign]=useState('keepsake'),[busy,setBusy]=useState(false);const epoch=useRef(0),lock=useRef(false);
+ useEffect(()=>{const g=++epoch.current;setBooks([]);setIsOwner(false);setError('');void getMemoryBooks(profileId).then(s=>{if(g!==epoch.current)return;setIsOwner(s.is_owner);setBooks(s.books.filter(b=>s.is_owner||b.count>0));}).catch(()=>{if(g===epoch.current)setError('Memory books could not load. Retry.');});return()=>{epoch.current++;};},[profileId,attempt]);
+ useEffect(()=>{const {data:{subscription}}=client.auth.onAuthStateChange(()=>{epoch.current++;setCreating(false);setBooks([]);setAttempt(x=>x+1);});return()=>subscription.unsubscribe();},[client]);
+ const create=async()=>{if(lock.current||!title.trim())return;lock.current=true;setBusy(true);setError('');const g=epoch.current;try{const {data:session}=await client.auth.getSession();if(session.session?.user.id!==profileId)throw Error();const {data:id,error:e}=await client.rpc('create_memory_book_design',{p_title:title.trim(),p_cover_color:color,p_cover_design:design});if(e||!id)throw e||Error();if(g===epoch.current){setCreating(false);router.push('/album/'+id);}}catch{if(g===epoch.current)setError('Book could not save. Your choices are kept.');}finally{lock.current=false;setBusy(false);}};
+ if(!books.length&&!isOwner&&!error)return null;
+ return <div className="px-1 pb-5"><p className="mb-2 text-[13px] font-semibold text-ink">Memory books</p>{error&&!creating&&<button className="text-xs text-muted underline" onClick={()=>setAttempt(x=>x+1)}>{error}</button>}<div className="flex gap-4 overflow-x-auto pb-1">{books.map(b=><Link key={b.id} href={'/album/'+b.id} className="group shrink-0 text-center" aria-label={`${b.title}, ${b.count} memories`}><span className="relative block h-[92px] w-[74px] transition-transform group-hover:-translate-y-0.5"><MemoryBookCover title={b.title} color={b.cover_color} design={b.cover_design}/></span><span className="mt-1 block w-[74px] truncate text-[11px] text-muted">{b.count} {b.count===1?'memory':'memories'}</span></Link>)}{isOwner&&<button onClick={()=>{setCreating(true);setError('');}} aria-label="Create memory book" className="flex h-[92px] w-[74px] shrink-0 items-center justify-center rounded-[10px] border border-dashed border-ink/20 text-muted"><Plus size={18}/></button>}</div>
+ {creating&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="New memory book" onKeyDown={e=>{if(e.key==='Escape'&&!busy)setCreating(false);}}><div className="max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-2xl bg-[var(--canvas)] p-5 text-ink"><div className="flex items-center justify-between"><h2 className="font-semibold">New memory book</h2><button disabled={busy} onClick={()=>setCreating(false)} aria-label="Close"><X size={18}/></button></div><input autoFocus aria-label="Book title" value={title} onChange={e=>setTitle(e.target.value)} maxLength={40} placeholder="Happy moments" className="my-4 w-full rounded-lg border border-ink/15 bg-transparent p-3"/><div className="flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} onClick={()=>setDesign(d.id)} aria-pressed={design===d.id} className={design===d.id?'':'opacity-50'}><MemoryBookCover title={title||'Memories'} color={color} design={d.id}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div><div className="my-4 flex gap-3">{Object.entries(COVER_COLORS).map(([key,c])=><button key={key} aria-label={`${key} cover`} aria-pressed={color===key} onClick={()=>setColor(key)} className={`h-7 w-7 rounded-full border-2 ${color===key?'border-ink':'border-ink/15'}`} style={{background:c.cover}}/>)}</div>{error&&<p role="alert" className="mb-3 text-sm">{error}</p>}<button disabled={busy||!title.trim()} onClick={()=>void create()} className="w-full rounded-lg bg-pearl py-3 font-semibold text-on-pearl disabled:opacity-50">{busy?'Creating…':'Create book'}</button></div></div>}
+ </div>;
 }

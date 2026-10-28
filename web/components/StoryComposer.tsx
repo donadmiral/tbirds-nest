@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, ImagePlus, Plus, Trash2, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import SaveToMemory from "@/components/SaveToMemory";
 import { STORY_FILTERS, STORY_FILTER_FAMILIES, filterCss, type StoryTextSticker, type StoryMediaTransform } from "@/lib/stories";
 import { searchPeople, type AccessPerson } from "@/lib/memoryAlbum";
 import { publicationError } from "@/lib/publication";
@@ -340,7 +341,7 @@ function ComposerInner() {
       sessionStorage.removeItem("platinum:story-publish:" + owner);
       publishedRef.current = true;
       setPublicationStatus({ postId: data, uncertain: false, locked: true, published: true });
-      router.push("/home");
+
     } catch (failure) {
       if (!isCurrent(owner, version)) return;
       const code = failure && typeof failure === "object" && "code" in failure ? String(failure.code) : "";
@@ -400,6 +401,7 @@ function ComposerInner() {
         <Link href="/archive" className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-secondary">Archive</Link>
       </div>
 
+      {publicationStatus.published && publicationStatus.postId && uid ? <section className="mb-5 space-y-3 rounded-2xl border border-ink/10 bg-white p-4"><p role="status" className="font-semibold text-ink">Your story is shared.</p><SaveToMemory storyId={publicationStatus.postId} ownerId={uid} inline /><Link href="/home" className="block rounded-full bg-ink px-4 py-3 text-center text-sm font-semibold text-white">Done</Link></section> : null}
       <fieldset disabled={!uid || !!busy || publicationStatus.locked} className="contents">
       {drafts.length > 0 && !mediaUrl && mediaType !== "text" ? (
         <div className="mb-5">
@@ -520,7 +522,7 @@ function ComposerInner() {
         </button>
         <button onClick={publish} disabled={!uid || (!mediaUrl && mediaType !== "text") || audience === "only_with" && people.length === 0 || !!busy || publicationStatus.published}
           className="flex-1 rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl disabled:opacity-40">
-          {busy === "publish" ? "Posting" : publicationStatus.postId || publicationStatus.uncertain ? "Retry safely" : "Share to story"}
+          {publicationStatus.published ? "Story shared" : busy === "publish" ? "Posting" : publicationStatus.postId || publicationStatus.uncertain ? "Retry safely" : "Share to story"}
         </button>
       </div>
     </div>

@@ -13,14 +13,13 @@
  * Aligned with warm nocturnal calm temperature.
  */
 
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 
 const PULSE_MIN = 0.3;
 const PULSE_MAX = 0.6;
 const PULSE_DURATION = 900;
-const SKELETON_COLOR = '#E8E8ED';
 
 function usePulse() {
   const anim = useRef(new Animated.Value(PULSE_MIN)).current;
@@ -39,10 +38,11 @@ function usePulse() {
 
 export function SkeletonLine({ width = 100, height = 12, style }: { width?: number | string; height?: number; style?: any }) {
   const opacity = usePulse();
+  const { t } = useTheme();
   return (
     <Animated.View
       style={[
-        { width, height, borderRadius: height / 2, backgroundColor: SKELETON_COLOR, opacity },
+        { width, height, borderRadius: height / 2, backgroundColor: t.surface.hairline, opacity },
         style,
       ]}
     />
@@ -51,10 +51,11 @@ export function SkeletonLine({ width = 100, height = 12, style }: { width?: numb
 
 export function SkeletonCircle({ size = 42, style }: { size?: number; style?: any }) {
   const opacity = usePulse();
+  const { t } = useTheme();
   return (
     <Animated.View
       style={[
-        { width: size, height: size, borderRadius: size / 2, backgroundColor: SKELETON_COLOR, opacity },
+        { width: size, height: size, borderRadius: size / 2, backgroundColor: t.surface.hairline, opacity },
         style,
       ]}
     />
@@ -63,10 +64,11 @@ export function SkeletonCircle({ size = 42, style }: { size?: number; style?: an
 
 export function SkeletonBlock({ width = '100%', height = 200, radius = 12, style }: { width?: number | string; height?: number; radius?: number; style?: any }) {
   const opacity = usePulse();
+  const { t } = useTheme();
   return (
     <Animated.View
       style={[
-        { width, height, borderRadius: radius, backgroundColor: SKELETON_COLOR, opacity },
+        { width, height, borderRadius: radius, backgroundColor: t.surface.hairline, opacity },
         style,
       ]}
     />

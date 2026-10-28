@@ -54,6 +54,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
 import * as Clipboard from 'expo-clipboard';
 import DiscoverTile from '../../components/feed/DiscoverTile';
+import DiscoverViewer from '../../components/feed/DiscoverViewer';
 import * as Haptics from 'expo-haptics';
 import { supabase } from '../../services/supabase';
 import { sharePostToConversation } from '../../services/postSharing';
@@ -264,6 +265,8 @@ export default function FeedScreen({ navigation }: any) {
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'discover' | 'trending'>('forYou');
   const [discoverCat, setDiscoverCat] = useState('all');
+  const [discoverOpen, setDiscoverOpen] = useState<string | null>(null);
+  const discoverPageRef = useRef({ asOf: new Date().toISOString(), offset: 0 });
   const [pendingPostCount, setPendingPostCount] = useState(0);
   const feedRequestRef = useRef(0);
   const resolvedFeedRequestRef = useRef(0);
@@ -567,14 +570,14 @@ export default function FeedScreen({ navigation }: any) {
     if (videoDwellRef.current && (!screenFocused || !appActive || videoDwellRef.current.postId !== activePostId)) {
       closeVideoDwell();
     }
-    if (!screenFocused || !appActive || !activePostId || !userId) return;
+    if (feedMode === 'discover' || !screenFocused || !appActive || !activePostId || !userId) return;
     const active = posts.find(x => x.id === activePostId);
     if (!active) return;
     const isVideo = !!active.media?.some((m: any) => m.media_type === 'video');
     if (isVideo && videoDwellRef.current?.postId !== activePostId) {
       videoDwellRef.current = { postId: activePostId, start: Date.now() };
     }
-  }, [activePostId, posts, userId, screenFocused, appActive, closeVideoDwell]);
+  }, [activePostId, posts, userId, screenFocused, appActive, feedMode, closeVideoDwell]);
 
   useEffect(() => closeVideoDwell, [closeVideoDwell]);
 
@@ -608,90 +611,14 @@ export default function FeedScreen({ navigation }: any) {
     }, 12_000);
     try {
       if (showLoader && !postsRef.current.length) setLoading(true);
-      // get_feed already enforces hidden posts, blocks and audience access.
-      // Category reads bypass that RPC, so their exclusions load concurrently.
-      const hiddenRead = mode === 'discover'
-        ? Promise.resolve(supabase.from('hidden_posts').select('post_id').eq('user_id', userId))
-        : Promise.resolve(null);
-
       let feedRows: any[] | null = null; let feedErr: any = null;
+      const discoverAsOf = background ? discoverPageRef.current.asOf : new Date().toISOString();
       if (mode === 'discover') {
-        const [dA, dB, dC, ...rest] = await Promise.all([
-          supabase.rpc('get_feed', { p_mode: 'latest', p_cursor_key: null, p_cursor_id: null, p_limit: 50 }),
-          supabase.rpc('get_feed', { p_mode: 'trending', p_cursor_key: null, p_cursor_id: null, p_limit: 20 }),
-          supabase.rpc('get_feed', { p_mode: 'innovation', p_cursor_key: null, p_cursor_id: null, p_limit: 30 }),
-          // Exact: the chosen category as the author filed it in the composer.
-          // The keyword guessing that used to fill these chips is gone.
-          (category === 'innovation' || category === 'all')
-            ? Promise.resolve({ data: [], error: null })
-            : supabase.from('posts')
-                .select('id, user_id, content, body, category, channel, article_title, read_minutes, created_at, likes_count, comments_count, reposts_count, bookmarks_count, views_count, media_url')
-                .eq('category', category).is('community_id', null)
-                .order('created_at', { ascending: false }).limit(40),
-        ]);
-        const dD = (rest as any[])[0];
-        if (!isCurrent()) return;
-        feedErr = dA.error || dB.error || dC.error || dD?.error || null;
-        const seenIds = new Set<string>(); const merged: any[] = [];
-        const innoIds = new Set<string>(); const catMeta = new Map<string, string | null>();
-        ((dC.data ?? []) as any[]).forEach((r: any) => innoIds.add(r.post_id));
-        for (const r of ([...(dB.data ?? []), ...(dA.data ?? []), ...(dC.data ?? [])] as any[])) {
-          if (r.reposted_by_id || seenIds.has(r.post_id)) continue;
-          seenIds.add(r.post_id); merged.push(r); catMeta.set(r.post_id, r.category ?? null);
-        }
-        // Category rows arrive as raw posts; shape them like feed rows and
-        // fetch their media and authors so the card draws them fully.
-        const catRows = ((dD?.data ?? []) as any[]);
-        if (catRows.length) {
-          const ids = catRows.map((p: any) => p.id);
-          const authorIds = Array.from(new Set(catRows.map((p: any) => p.user_id)));
-          const [{ data: med }, { data: auth }] = await Promise.all([
-            supabase.from('post_media').select('id, post_id, url, media_type, width, height, sort_order, edit').in('post_id', ids),
-            supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier, account_type').in('id', authorIds),
-          ]);
-          if (!isCurrent()) return;
-          const mediaBy = new Map<string, any[]>();
-          ((med ?? []) as any[]).forEach((m: any) => { const a = mediaBy.get(m.post_id) ?? []; a.push(m); mediaBy.set(m.post_id, a); });
-          const authorBy = new Map<string, any>();
-          ((auth ?? []) as any[]).forEach((a: any) => authorBy.set(a.id, a));
-          for (const p of catRows) {
-            if (seenIds.has(p.id)) { catMeta.set(p.id, p.category ?? null); continue; }
-            const a = authorBy.get(p.user_id) ?? {};
-            seenIds.add(p.id);
-            merged.push({
-              post_id: p.id, author_id: p.user_id, content: p.content, body: p.body, media_url: p.media_url,
-              media: (mediaBy.get(p.id) ?? []).sort((x: any, y: any) => (x.sort_order ?? 0) - (y.sort_order ?? 0)),
-              products: [], link: null, channel: p.channel, article_title: p.article_title, read_minutes: p.read_minutes,
-              created_at: p.created_at, likes_count: p.likes_count ?? 0, comments_count: p.comments_count ?? 0,
-              reposts_count: p.reposts_count ?? 0, bookmarks_count: p.bookmarks_count ?? 0, views_count: p.views_count ?? 0,
-              author_name: a.full_name ?? null, author_username: a.username ?? null, author_avatar: a.avatar_url ?? null,
-              author_verified: a.is_verified ?? false, author_verified_tier: a.verified_tier ?? null, author_kind: a.account_type ?? null,
-              category: p.category,
-            });
-            catMeta.set(p.id, p.category ?? null);
-          }
-        }
-        discoverInnoIdsRef.current = innoIds; discoverMetaRef.current = catMeta;
-        // Discover order comes from the server: engagement with recency decay,
-        // a media bonus, what you already saw pushed down, and a daily rotation
-        // so the page is not the same list tomorrow. Then author spacing.
-        try {
-          const { data: ranked } = await supabase.rpc('rank_discover', { p_ids: merged.map((r: any) => r.post_id) });
-          if (!isCurrent()) return;
-          const scoreBy = new Map<string, number>();
-          ((ranked ?? []) as any[]).forEach((x: any) => scoreBy.set(x.id, Number(x.score) || 0));
-          if (scoreBy.size > 0) {
-            merged.sort((a: any, b: any) => (scoreBy.get(b.post_id) ?? 0) - (scoreBy.get(a.post_id) ?? 0));
-            const spaced: any[] = []; const deferred: any[] = []; let lastAuthor: string | null = null; let run = 0;
-            for (const r of merged) {
-              const au = r.author_id ?? null;
-              if (au && au === lastAuthor && run >= 2) { deferred.push(r); continue; }
-              if (au === lastAuthor) run += 1; else { lastAuthor = au; run = 1; }
-              spaced.push(r);
-            }
-            feedRows = [...spaced, ...deferred];
-          } else { feedRows = merged; }
-        } catch { feedRows = merged; }
+        const page = await supabase.rpc('get_discover_page', {
+          p_category: category === 'all' || category === 'videos' ? null : category,
+          p_video: category === 'videos', p_limit: PAGE_SIZE, p_offset: 0, p_as_of: discoverAsOf,
+        });
+        feedRows = page.data as any[] | null; feedErr = page.error;
       } else {
         const fr = await supabase.rpc('get_feed', {
           p_mode: feedModeToServer(mode),
@@ -701,10 +628,7 @@ export default function FeedScreen({ navigation }: any) {
         });
         feedRows = (fr.data ?? null) as any[] | null; feedErr = fr.error;
       }
-      const hiddenResult = await hiddenRead;
       if (!isCurrent()) return;
-      if (hiddenResult?.error) throw hiddenResult.error;
-      if (hiddenResult) (hiddenResult.data ?? []).forEach((row: any) => hiddenIdsRef.current.add(row.post_id));
       if (feedErr) { setFeedError('Your feed could not load. Please try again.'); return; }
       setFeedError(null);
 
@@ -732,7 +656,8 @@ export default function FeedScreen({ navigation }: any) {
         cursorRef.current = rows.length
           ? { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id }
           : null;
-        hasMoreRef.current = mode === 'discover' ? false : rows.length >= PAGE_SIZE;
+        hasMoreRef.current = rows.length >= PAGE_SIZE;
+        if (mode === 'discover') discoverPageRef.current = { asOf: discoverAsOf, offset: rows.length };
       }
       restoredSnapshotRef.current = false;
       // Content is usable now. Profiles/comments below are optional enrichment.
@@ -1799,14 +1724,14 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const loadMore = useCallback(async () => {
-    if (!userId || feedModeRef.current === 'discover') return;
+    if (!userId) return;
     const request = feedRequestRef.current;
     let pageRequest = pageRequestRef.current;
     const scope = feedScopeRef.current;
     const mode = feedModeRef.current;
     const isCurrent = () => request === feedRequestRef.current && pageRequest === pageRequestRef.current && scope === feedScopeRef.current
       && useAuthStore.getState().profile?.id === userId;
-    if (loadingMoreRef.current || !hasMoreRef.current || posts.length === 0) return;
+    if (loadingMoreRef.current || !hasMoreRef.current || (posts.length === 0 && mode !== 'discover')) return;
     loadingMoreRef.current = true;
     pageRequest = ++pageRequestRef.current;
     setLoadingMore(true);
@@ -1818,13 +1743,15 @@ export default function FeedScreen({ navigation }: any) {
     }, 12_000);
     try {
       const cur = cursorRef.current;
-      if (!cur) { hasMoreRef.current = false; return; }
-      const { data: moreRows, error: moreErr } = await supabase.rpc('get_feed', {
-        p_mode: feedModeToServer(mode),
-        p_cursor_key: cur.key,
-        p_cursor_id: cur.id,
-        p_limit: PAGE_SIZE,
-      });
+      if (mode !== 'discover' && !cur) { hasMoreRef.current = false; return; }
+      const category = discoverCatRef.current;
+      const { data: moreRows, error: moreErr } = mode === 'discover'
+        ? await supabase.rpc('get_discover_page', {
+            p_category: category === 'all' || category === 'videos' ? null : category,
+            p_video: category === 'videos', p_limit: PAGE_SIZE,
+            p_offset: discoverPageRef.current.offset, p_as_of: discoverPageRef.current.asOf,
+          })
+        : await supabase.rpc('get_feed', { p_mode: feedModeToServer(mode), p_cursor_key: cur!.key, p_cursor_id: cur!.id, p_limit: PAGE_SIZE });
       if (!isCurrent()) return;
       if (moreErr) { setFeedError('Could not load more posts. Please try again.'); return; }
       setFeedError(null);
@@ -1835,6 +1762,7 @@ export default function FeedScreen({ navigation }: any) {
       const scored = overlayCounts(hydrated.map(mapFeedRow)).filter(pp => !hiddenIdsRef.current.has(pp.id) && !isMuted(pp));
       hasMoreRef.current = rows.length >= PAGE_SIZE;
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
+      if (mode === 'discover') discoverPageRef.current.offset += rows.length;
       hydrateShares(scored.map(pp => pp.id));
       hydrateCollabs(scored.map(pp => pp.id));
       hydratePolls(scored.map(pp => pp.id));
@@ -1886,18 +1814,6 @@ export default function FeedScreen({ navigation }: any) {
   const displayPosts = useMemo(() => {
     if (feedOwner !== userId) return [];
     let list = posts.filter(post => !isMuted(post) && !hiddenIdsRef.current.has(post.id));
-    if (feedMode === 'discover' && discoverCat !== 'all') {
-      if (discoverCat === 'innovation') {
-        list = list.filter(p => discoverInnoIdsRef.current.has(p.id) || (p as any).channel === 'innovation');
-      } else {
-        list = list.filter(p => discoverMetaRef.current.get(p.id) === discoverCat);
-        const density = (p: any) => {
-          const hours = Math.max(1, (Date.now() - new Date(p.created_at || 0).getTime()) / 3600000);
-          return ((p.likes_count ?? 0) + (p.comments_count ?? 0) * 2.5 + (p.reposts_count ?? 0) * 2) / Math.pow(hours + 2, 1.2);
-        };
-        list.sort((a, b) => density(b) - density(a));
-      }
-    }
     const term = search.trim().toLowerCase();
     if (term) list = list.filter(p => (p.content || '').toLowerCase().includes(term));
     // No client-side re-sort. get_feed already returns rows in sort_key order,
@@ -1998,7 +1914,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     // Discover is a grid of tiles, the web Discover's twin, not a feed.
     if (feedModeRef.current === 'discover' && !(post as any).__suggestions && !(post as any)._promo && !String(post.id).startsWith('__')) {
       return (
-        <DiscoverTile post={post as any} author={profilesMap[post.user_id]} width={TILE_W} onPress={() => navigation.navigate('Post', { postId: post.id })} />
+        <DiscoverTile post={post as any} author={profilesMap[post.user_id]} width={TILE_W} onPress={() => setDiscoverOpen(post.id)} />
       );
     }
     if ((post as any).__suggestions) {
@@ -2888,6 +2804,13 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         doubleTapToZoomEnabled
       />
 
+      {discoverOpen && feedMode === 'discover' ? <DiscoverViewer
+        posts={displayPosts as any} initialId={discoverOpen} profiles={profilesMap} liked={likedPosts} saved={bookmarkedPosts}
+        hasMore={hasMoreRef.current} loading={loadingMore} error={feedError} loadMore={loadMore}
+        onClose={() => setDiscoverOpen(null)} onLike={toggleLike} onSave={toggleBookmark}
+        onRefreshMedia={() => { void loadFeed(false, true); }}
+        onOpenPost={id => { setDiscoverOpen(null); navigation.navigate('Post', { postId: id }); }}
+      /> : null}
       <CommentsSheet
         visible={!!commentsFor}
         postId={commentsFor?.id ?? ''}

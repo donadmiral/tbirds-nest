@@ -18,6 +18,7 @@ type State = {
 };
 
 const KEY = 'pc.theme.mode';
+let preferenceRevision = 0;
 const systemNow = (): Resolved => (Appearance.getColorScheme() === 'dark' ? 'dark' : 'light');
 const resolve = (mode: ThemeMode, system: Resolved): Resolved => (mode === 'system' ? system : mode);
 
@@ -26,13 +27,16 @@ export const useThemeStore = create<State>((set, get) => ({
   system: systemNow(),
   resolved: systemNow(),
   init: async () => {
+    const revision = preferenceRevision;
     try {
       const v = await AsyncStorage.getItem(KEY);
+      if (revision !== preferenceRevision) return;
       const mode: ThemeMode = v === 'light' || v === 'dark' ? v : 'system';
       set({ mode, resolved: resolve(mode, get().system) });
     } catch {}
   },
   setMode: async (m) => {
+    ++preferenceRevision;
     set({ mode: m, resolved: resolve(m, get().system) });
     try { await AsyncStorage.setItem(KEY, m); } catch {}
   },
