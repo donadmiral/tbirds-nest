@@ -150,3 +150,16 @@ test('native right-angle rotations keep the straighten slider bounded and preser
  let tree=view.render(props);for(let i=0;i<3;i++){walk(tree).find(n=>n.props.accessibilityLabel==='Rotate 90 degrees').props.onPress();tree=view.render(props);const slider=walk(tree).find(n=>n.props.label==='Straighten');assert.equal(slider.props.value,0);assert.ok(slider.props.value>=slider.props.min&&slider.props.value<=slider.props.max);}
  walk(tree).find(n=>n.props.label==='Straighten').props.onChange(12);tree=view.render(props);walk(tree).find(n=>n.props.accessibilityLabel==='Apply media edits').props.onPress();assert.equal(saved[0].rotation,-78);view.unmount();
 });
+
+for(const [width,height,preset] of [[800,1000,'4:5'],[1000,1000,'1:1'],[1600,900,'16:9']]){
+ test(`native Original and ${preset} remain mutually exclusive for a ${width}×${height} source`,()=>{
+  const saved=[],view=load(editorFile),props={visible:true,uri:'photo.jpg',mediaType:'image',width,height,onCancel(){},onDone:edit=>saved.push(edit)};
+  const render=()=>view.render(props);render();
+  const selected=tree=>walk(tree).filter(n=>['Original crop','1:1 crop','4:5 crop','16:9 crop'].includes(n.props.accessibilityLabel)&&n.props.accessibilityState?.selected).map(n=>n.props.accessibilityLabel);
+  assert.deepEqual(selected(render()),['4:5 crop']);walk(render()).find(n=>n.props.accessibilityLabel===preset+' crop').props.onPress();assert.deepEqual(selected(render()),[preset+' crop']);
+  walk(render()).find(n=>n.props.accessibilityLabel==='Original crop').props.onPress();assert.deepEqual(selected(render()),['Original crop']);walk(render()).find(n=>n.props.accessibilityLabel==='Apply media edits').props.onPress();assert.equal(saved[0].aspect,'original');assert.equal(saved[0].aspectRatio,width/height);view.unmount();
+  const reopened=load(editorFile),next={...props,initial:saved[0]};reopened.render(next);assert.deepEqual(selected(reopened.render(next)),['Original crop']);
+  walk(reopened.render(next)).find(n=>n.props.accessibilityLabel===preset+' crop').props.onPress();assert.deepEqual(selected(reopened.render(next)),[preset+' crop']);
+  walk(reopened.render(next)).find(n=>n.props.accessibilityLabel==='Original crop').props.onPress();const reset=walk(reopened.render(next)).find(n=>n.type==='TouchableOpacity'&&walk(n).some(child=>child.type==='Text'&&Array.isArray(child.props.children)&&child.props.children[0]==='Reset '&&child.props.children[1]==='crop'));assert.ok(reset);reset.props.onPress();assert.deepEqual(selected(reopened.render(next)),['4:5 crop']);reopened.unmount();
+ });
+}

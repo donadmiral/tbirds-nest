@@ -45,3 +45,14 @@ test('web repeated right-angle rotation leaves straighten at zero until an expli
  const h=harness({preview:'blob:photo',width:900,height:1200,isVideo:false});for(let i=0;i<3;i++){h.click('Rotate');const slider=h.find(n=>n.props?.label==='Straighten');assert.equal(slider.props.value,0);assert.equal(slider.props.min,-45);assert.equal(slider.props.max,45);}
  h.find(n=>n.props?.label==='Straighten').props.onChange(12);h.click('Apply');assert.equal(h.saved[0][0].rotation,-78);
 });
+
+for(const [width,height,preset] of [[800,1000,'4:5'],[1000,1000,'1:1'],[1600,900,'16:9']]){
+ test(`web Original and ${preset} remain mutually exclusive for a ${width}×${height} source`,()=>{
+  const item={preview:'blob:photo',width,height,isVideo:false};const h=harness(item);
+  const selected=view=>view.all().filter(n=>n.type==='button'&&['Original','1:1','4:5','16:9'].includes(content(n))&&n.props['aria-pressed']).map(content);
+  assert.deepEqual(selected(h),['4:5']);h.click(preset);assert.deepEqual(selected(h),[preset]);
+  h.click('Original');assert.deepEqual(selected(h),['Original']);h.click('Apply');const recipe=h.saved[0][0];assert.equal(recipe.aspect,'original');assert.equal(recipe.aspectRatio,width/height);
+  const reopened=harness({...item,edit:recipe});assert.deepEqual(selected(reopened),['Original']);reopened.click(preset);assert.deepEqual(selected(reopened),[preset]);reopened.click('Apply');assert.equal(reopened.saved[0][0].aspect,undefined);
+  reopened.click('Original');reopened.click('Reset crop');assert.deepEqual(selected(reopened),['4:5']);
+ });
+}
