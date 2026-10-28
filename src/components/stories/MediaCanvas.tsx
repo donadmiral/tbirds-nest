@@ -28,9 +28,10 @@ try {
   useExpoVideoPlayer = vm.useVideoPlayer;
 } catch {}
 
-function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, trimStart = null, trimEnd = null, onPlayer }: { uri: string; fit: 'cover' | 'contain'; muted: boolean; volume?: number; speed?: number; trimStart?: number | null; trimEnd?: number | null; onPlayer?: (p: any) => void }) {
-  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.volume = volume; try { p.timeUpdateEventInterval = 0.1; } catch {} try { p.playbackRate = speed; } catch {} p.play(); });
+function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, trimStart = null, trimEnd = null, paused = false, onPlayer }: { uri: string; fit: 'cover' | 'contain'; muted: boolean; volume?: number; speed?: number; trimStart?: number | null; trimEnd?: number | null; paused?: boolean; onPlayer?: (p: any) => void }) {
+  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.volume = volume; try { p.timeUpdateEventInterval = 0.1; } catch {} try { p.playbackRate = speed; } catch {} if (!paused) p.play(); });
   useEffect(() => { try { (player as any).muted = muted; (player as any).volume = volume; (player as any).playbackRate = speed; } catch {} }, [muted, volume, speed, player]);
+  useEffect(() => { try { if (paused) player.pause(); else player.play(); } catch {} }, [paused, player]);
   useEffect(() => { onPlayer?.(player); return () => { onPlayer?.(null); }; }, [player, onPlayer]);
   // Trim preview: play only the selected window and loop inside it, so the
   // editor shows exactly what the viewer will play. Handle drags seek live.
@@ -127,6 +128,7 @@ type MediaCanvasProps = {
   bottomInset?: number;
   bg?: StoryBg | null;
   videoMuted?: boolean;
+  videoPaused?: boolean;
   videoVolume?: number;
   videoSpeed?: number;
   trimStart?: number | null;
@@ -156,6 +158,7 @@ export default function MediaCanvas({
   bottomInset = 0,
   bg = null,
   videoMuted = false,
+  videoPaused = false,
   videoVolume = 1,
   videoSpeed = 1,
   trimStart = null,
@@ -397,7 +400,7 @@ export default function MediaCanvas({
       ]}
     >
       {mediaType === 'video' && ExpoVideoView && useExpoVideoPlayer ? (
-        <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} volume={videoVolume} speed={videoSpeed} trimStart={trimStart} trimEnd={trimEnd} onPlayer={onVideoPlayer} />
+        <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} paused={videoPaused} volume={videoVolume} speed={videoSpeed} trimStart={trimStart} trimEnd={trimEnd} onPlayer={onVideoPlayer} />
       ) : (
         <Image
           source={{ uri: localUri }}

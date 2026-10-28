@@ -18,7 +18,7 @@ function scenario(platform) {
     getMemoryBook: () => request.promise,
     supabase: { rpc: () => request.promise }, hydrateMemoryAlbumMedia: async rows => rows.map(row => ({...row, signed: true})),
     setAlbum: value => albums.push(value), setLoadError: value => errors.push(value), setLoading() {}, setPlayingUrl() {},
-    setTitle() {}, setColor() {}, setAud() {}, setBookId() {},
+    setTitle() {}, setSubtitle() {}, setCoverStoryId() {}, setColor() {}, setAud() {}, setBookId() {},
   };
   const compiled = ts.transpileModule(source.slice(start, end) + '\nthis.load = load;', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(compiled, scope);

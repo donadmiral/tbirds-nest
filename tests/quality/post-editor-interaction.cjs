@@ -26,14 +26,15 @@ function load(file, { width = 320, height = 568, thumbnail = async () => ({ uri:
   let source = fs.readFileSync(path.join(root, file), 'utf8'); if (transform) source = transform(source);
   vm.runInNewContext(compile(source), { module, exports: module.exports,
     require(name) {
+      if(name.endsWith('/postMediaEditing')){const shared={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postMediaEditing.ts'),'utf8')),shared);return shared.exports;}
       if (name === 'react') return hooks;
       if (name === 'react/jsx-runtime') return runtime;
       if (name === 'react-native') return native;
       if (name === '@expo/vector-icons') return { Feather: 'Feather' };
       if (name.endsWith('/useTheme')) return { themedSheet: fn => fn({ ink: { inverse: '#000', primary: '#FFF' } }) };
       if (name.endsWith('/SafeArea')) return { useSafeAreaInsets: () => ({ top: 20, bottom: 0 }) };
-      if (name.endsWith('/StoryFilters')) return { FilterLayer: 'FilterLayer', FilterPickerSheet: 'FilterPickerSheet' };
-      if (name.endsWith('/storyPanels')) return { AdjustLayer: 'AdjustLayer', AdjustPanel: 'AdjustPanel' };
+      if (name.endsWith('/StoryFilters')) return { STORY_FILTERS:[],FilterLayer: 'FilterLayer', FilterPickerSheet: 'FilterPickerSheet' };
+      if (name.endsWith('/storyPanels')) return { MiniSlider:'MiniSlider',AdjustLayer: 'AdjustLayer', AdjustPanel: 'AdjustPanel' };
       if (name === 'expo-video-thumbnails') return { getThumbnailAsync: thumbnail };
       if (name === 'expo-video') return { VideoView: 'VideoView', useVideoPlayer: () => ({ play() {}, pause() {} }) };
       if (name.endsWith('/supabase')) return { supabase: {} };
@@ -85,14 +86,16 @@ test('short iPhones keep post editor actions pinned and all media tools horizont
   const nodes = walk(tree), tools = nodes.find(n => n.type === 'ScrollView' && n.props.horizontal), content = nodes.find(n => n.type === 'ScrollView' && !n.props.horizontal);
   assert.ok(content && tools);
   const toolButtons = walk(tools).filter(n => n.type === 'TouchableOpacity');
-  assert.equal(toolButtons.length, 8);
+  assert.equal(toolButtons.length, 6);
   assert.ok(!walk(content).some(n => n.props.accessibilityLabel === 'Apply media edits'));
   const canvas = walk(content).find(n => n.props?.localUri === 'clip.mp4');
   const frame = walk(content).find(n => n.type === 'View' && n.props?.children?.[0] === canvas);
   assert.ok(frame); assert.ok(flat(frame.props.style).height <= 234);
-  toolButtons.find(n => n.props.accessibilityLabel === 'Rotate').props.onPress();
+  toolButtons.find(n => n.props.accessibilityLabel === 'Crop').props.onPress();
+  tree=view.render(props);walk(tree).find(n=>n.props.accessibilityLabel==='Rotate 90 degrees').props.onPress();
   tree = view.render(props); walk(tree).find(n => n.props.accessibilityLabel === 'Apply media edits').props.onPress();
   assert.equal(saved[0].rotation, 90);
+  walk(tree).find(n=>n.props.accessibilityLabel==='Cover').props.onPress();tree=view.render(props);
   walk(tree).find(n => typeof n.props?.at === 'number' && typeof n.props?.onChange === 'function').props.onChange(9.95);
   tree = view.render(props); walk(tree).find(n => n.props.accessibilityLabel === 'Apply media edits').props.onPress();
   assert.equal(saved[1].coverAt, 9.95);
@@ -100,26 +103,50 @@ test('short iPhones keep post editor actions pinned and all media tools horizont
   assert.equal(flat(doneText.props.style).color, '#0B1E3D');
   view.unmount();
 });
-test('native shared-post stories show caption then full image, blur, creator, carousel and working post link', () => {
+test('native shared-post stories show creator, full image, caption, carousel and working post link', () => {
   const view = load('src/components/stories/PostStoryCard.tsx'), opened = [];
   const tree = view.render({ sticker: { postId: 'post', postText: 'Caption above', postMediaUrl: 'photo.jpg', postMediaType: 'image', postMediaCount: 4, postAuthorName: 'Creator', postUsername: 'creator' }, interactive: true, onOpenPost: () => opened.push('post') });
   const nodes = walk(tree), caption = nodes.findIndex(n => n.props.children === 'Caption above'), image = nodes.findIndex(n => n.type === 'Image' && n.props.resizeMode === 'contain'), author = nodes.findIndex(n => n.props.children === 'Creator');
-  assert.ok(caption < image && image < author);
+  assert.ok(author < image && image < caption);
   assert.ok(nodes.some(n => n.type === 'Image' && n.props.blurRadius > 0));
   assert.ok(nodes.some(n => n.props.children?.[0] === '1/' && n.props.children?.[1] === 4));
   const footer = nodes.find(n => n.type === 'TouchableOpacity' && walk(n).some(c => c.props.children === 'View post'));
   footer.props.onPress(); assert.deepEqual(opened, ['post']);
 });
-test('web shared-post stories use the same caption-first uncropped card and preserve post navigation', () => {
+test('web shared-post stories use the same creator-first uncropped card and preserve post navigation', () => {
   const view = load('web/components/StoryViewer.tsx', { transform(source) {
     const ast = ts.createSourceFile('viewer.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     const fn = ast.statements.find(n => ts.isFunctionDeclaration(n) && n.name?.text === 'StickerLayer');
-    return fn.getText(ast).replace('function StickerLayer', 'export default function StickerLayer');
+    return "const ChevronRight = 'ChevronRight';\n" + fn.getText(ast).replace('function StickerLayer', 'export default function StickerLayer');
   } });
   const tree = view.render({ stickers: [{ id: 'share', nx: .5, ny: .5, kind: 'post', postId: 'post-id', postText: 'Caption above', postMediaType: 'image', postMediaUrl: 'photo.jpg', postMediaCount: 3, postAuthorName: 'Creator' }], storyId: 'story', isOwn: false, paused: false });
   const nodes = walk(tree), caption = nodes.findIndex(n => n.props.children === 'Caption above'), image = nodes.findIndex(n => n.type === 'img' && n.props.alt === 'Shared post'), creator = nodes.findIndex(n => n.props.children === 'Creator');
-  assert.ok(caption < image && image < creator);
+  assert.ok(creator < image && image < caption);
   assert.match(nodes[image].props.className, /object-contain/);
   assert.ok(nodes.some(n => n.type === 'img' && n.props.className.includes('blur-xl')));
   assert.equal(nodes.find(n => n.type === 'a').props.href, '/post/post-id');
+});
+
+test('completed video cover decoding follows the edited attachment through reorder and ignores a newer edit',async()=>{
+ const source=fs.readFileSync(path.join(root,'src/screens/feed/FeedScreen.tsx'),'utf8');
+ const ast=ts.createSourceFile('FeedScreen.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let handler;
+ const visit=node=>{if(ts.isJsxSelfClosingElement(node)&&node.tagName.getText(ast)==='PostMediaEditSheet'){const attr=node.attributes.properties.find(p=>ts.isJsxAttribute(p)&&p.name.getText(ast)==='onDone');handler=attr.initializer.expression.getText(ast);}ts.forEachChild(node,visit);};visit(ast);assert.ok(handler);
+ const pending=[];let items=[{uri:'clip-a',type:'video',thumbnail:'old-a'},{uri:'clip-b',type:'video',thumbnail:'old-b'}];
+ const context={editMediaIdx:0,composerMedia:items,setEditMediaIdx(){},setComposerMedia:update=>{items=update(items);},VideoThumbnails:{getThumbnailAsync:uri=>new Promise(resolve=>pending.push({uri,resolve}))}};
+ vm.runInNewContext(compile('this.completeEdit='+handler),context);
+ const edit={coverAt:2};context.completeEdit(edit);items.reverse();pending.shift().resolve({uri:'chosen-a'});await ticks();
+ assert.equal(items[0].uri,'clip-b');assert.equal(items[0].thumbnail,'old-b');assert.equal(items[1].thumbnail,'chosen-a');
+ context.composerMedia=items;context.editMediaIdx=1;context.completeEdit({coverAt:4});const late=pending.shift();items[1]={...items[1],edit:{coverAt:6},thumbnail:'newer-a'};late.resolve({uri:'stale-a'});await ticks();assert.equal(items[1].thumbnail,'newer-a');
+});
+
+test('native caption decimal drafts survive typing and Apply without requiring blur',()=>{
+ const view=load(editorFile),saved=[],props={visible:true,uri:'clip.mp4',mediaType:'video',width:1080,height:1920,durationSec:10,onCancel(){},onDone:edit=>saved.push(edit)};
+ let tree=view.render(props);walk(tree).find(n=>n.props.accessibilityLabel==='Captions').props.onPress();tree=view.render(props);walk(tree).find(n=>n.type==='TextInput'&&n.props.maxLength===160).props.onChangeText('Half seconds');
+ for(const text of ['2','2.','2.5']){tree=view.render(props);walk(tree).find(n=>n.props.accessibilityLabel==='Caption start in seconds').props.onChangeText(text);tree=view.render(props);assert.equal(walk(tree).find(n=>n.props.accessibilityLabel==='Caption start in seconds').props.value,text);}
+ walk(tree).find(n=>n.props.accessibilityLabel==='Caption end in seconds').props.onChangeText('9.25');tree=view.render(props);walk(tree).find(n=>n.props.accessibilityLabel==='Apply media edits').props.onPress();assert.equal(saved[0].captions[0].start,2.5);assert.equal(saved[0].captions[0].end,9.25);view.unmount();
+});
+test('native right-angle rotations keep the straighten slider bounded and preserve its offset',()=>{
+ const view=load(editorFile),saved=[],props={visible:true,uri:'photo.jpg',mediaType:'image',width:900,height:1200,onCancel(){},onDone:edit=>saved.push(edit)};
+ let tree=view.render(props);for(let i=0;i<3;i++){walk(tree).find(n=>n.props.accessibilityLabel==='Rotate 90 degrees').props.onPress();tree=view.render(props);const slider=walk(tree).find(n=>n.props.label==='Straighten');assert.equal(slider.props.value,0);assert.ok(slider.props.value>=slider.props.min&&slider.props.value<=slider.props.max);}
+ walk(tree).find(n=>n.props.label==='Straighten').props.onChange(12);tree=view.render(props);walk(tree).find(n=>n.props.accessibilityLabel==='Apply media edits').props.onPress();assert.equal(saved[0].rotation,-78);view.unmount();
 });

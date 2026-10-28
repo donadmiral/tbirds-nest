@@ -84,6 +84,7 @@ function harness(responses) {
     '@/lib/publication': webPublication,
     '@/lib/categories': { CATEGORIES: [] },
     '@/lib/stories': { STORY_FILTERS: [] },
+    './PostComposer.module.css':{default:{}},
   }, { get: (target, key) => target[key] ?? {} });
   const globals = { crypto: require('node:crypto').webcrypto, localStorage: { getItem: (key) => draft.get(key), setItem: (key, value) => draft.set(key, value), removeItem: (key) => draft.delete(key) }, URL: { revokeObjectURL() {} } };
   let posted = 0;
@@ -95,9 +96,10 @@ function harness(responses) {
   const input = (tree, placeholder) => all(tree).find((n) => n.props?.placeholder === placeholder);
   const preparePoll = () => {
     button(render(), ' Poll').props.onClick();
-    input(render(), 'What is happening?').props.onChange({ target: { value: 'Question' } });
+    input(render(), 'Write a caption…').props.onChange({ target: { value: 'Question' } });
     input(render(), 'Option 1').props.onChange({ target: { value: 'One' } });
     input(render(), 'Option 2').props.onChange({ target: { value: 'Two' } });
+    button(render(),'Review').props.onClick();
   };
   return { render, button, input, preparePoll, calls, posted: () => posted, all, text };
 }
@@ -106,7 +108,7 @@ test('Composer retains poll draft on child failure; Retry only saves missing opt
   h.preparePoll();
   await h.button(h.render(), 'Post').props.onClick();
   assert.equal(h.posted(), 0);
-  assert.equal(h.input(h.render(), 'What is happening?').props.value, 'Question');
+  assert.equal(h.input(h.render(), 'Write a caption…').props.value, 'Question');
   await h.button(h.render(), 'Retry').props.onClick();
   assert.equal(h.posted(), 1);
   assert.deepEqual(h.calls.map((x) => x.table), ['posts', 'post_polls', 'post_poll_options', 'post_poll_options']);
@@ -114,7 +116,8 @@ test('Composer retains poll draft on child failure; Retry only saves missing opt
 test('Composer refuses same-tick duplicate submissions', async () => {
   const h = harness({ posts: [{ data: { id: 'post-1' }, error: null }] });
   h.button(h.render(), 'Post').props.onClick();
-  h.input(h.render(), 'What is happening?').props.onChange({ target: { value: 'Text' } });
+  h.input(h.render(), 'Write a caption…').props.onChange({ target: { value: 'Text' } });
+  h.button(h.render(),'Review').props.onClick();
   const submit = h.button(h.render(), 'Post').props.onClick;
   await Promise.all([submit(), submit()]);
   assert.equal(h.calls.filter((x) => x.table === 'posts').length, 1);
@@ -123,10 +126,11 @@ test('Composer refuses same-tick duplicate submissions', async () => {
 test('Composer retains stable IDs when a lost response is safely retried', async () => {
   const h = harness({ posts: [{ data: null, error: { message: 'Failed to fetch' } }] });
   h.button(h.render(), 'Post').props.onClick();
-  h.input(h.render(), 'What is happening?').props.onChange({ target: { value: 'Keep this draft' } });
+  h.input(h.render(), 'Write a caption…').props.onChange({ target: { value: 'Keep this draft' } });
+  h.button(h.render(),'Review').props.onClick();
   await h.button(h.render(), 'Post').props.onClick();
   assert.equal(h.posted(), 0);
-  assert.equal(h.input(h.render(), 'What is happening?').props.value, 'Keep this draft');
+  assert.equal(h.input(h.render(), 'Write a caption…').props.value, 'Keep this draft');
   await h.button(h.render(), 'Retry').props.onClick();
   assert.equal(h.posted(), 1);
   assert.equal(h.calls[0].payload[0].id, h.calls[1].payload[0].id);

@@ -8,6 +8,8 @@ import { PLAYBACK_SPEEDS, playbackWindow, clampVideoTime, formatVideoTime } from
 
 import {PostSoundtrack} from './PostSoundtrack';
 import type {SoundtrackSelection} from '../../shared/soundtrack';
+import { PostCaption } from './PostCaption';
+import type { PostFrameRecipe } from '../../shared/postMediaEditing';
 import { discoverFrame } from '../../shared/discover';
 
 let activeStop: (() => void) | null = null;
@@ -31,7 +33,7 @@ function remember(src: string, time: number) {
 const viewSession = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
 
 type WebVideo = HTMLVideoElement & { webkitEnterFullscreen?: () => void };
-export type PostMediaEditRecipe = { rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
+export type PostMediaEditRecipe = PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?:number|null; coverAt?:number|null; coverUrl?:string|null; soundtrack?:SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: "cover" | "contain"; filterId?: string | null; filterAmt?: number; adjust?: { con?: number; hi?: number; sh?: number; grain?: number; bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean };
 type Props = {
   src: string; postId: string; viewsCount?: number | null;
   width?: number; height?: number; onDims?: (w: number, h: number) => void;
@@ -57,6 +59,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(() => readPrefs().muted);
   const [speed, setSpeed] = useState(() => edit?.speed || readPrefs().speed);
+  useEffect(()=>{if(typeof edit?.speed==='number'&&edit.speed>0){setSpeed(edit.speed);if(ref.current)ref.current.playbackRate=edit.speed;}},[edit?.speed]);
   const [duration, setDuration] = useState(0);
   const [time, setTime] = useState(0);
   const [fs, setFs] = useState(false);
@@ -277,6 +280,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
         className="block h-full w-full"
       />
       {mediaOverlay}
+      <PostCaption captions={edit?.captions} time={time} />
       </div>
       {soundtrack?<PostSoundtrack selection={soundtrack} active={allowPlayback&&playing&&!muted} clock={{time:Math.max(0,time-range.start),playing,rate:speed}} autoPlay className="absolute right-3 top-3 z-10"/>:null}
       {!playing && !failed && allowPlayback ? <button type="button" onClick={() => playNow(true)} aria-label="Play video" className={"absolute left-1/2 top-1/2 z-[5] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-ink/70 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl"}><Play size={24} /></button> : null}

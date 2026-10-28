@@ -6,7 +6,7 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, TextInput, Image, FlatList, KeyboardAvoidingView, PanResponder, Platform, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet, Animated, TextInput, Image, FlatList, KeyboardAvoidingView, PanResponder, Platform, ScrollView, useWindowDimensions, Alert } from 'react-native';
 import TierName from './TierName';
 import VerifiedBadge from './VerifiedBadge';
 import { supabase } from '../services/supabase';
@@ -14,11 +14,14 @@ import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import MediaCanvas from './stories/MediaCanvas';
 import type { MediaTransform, MediaFit } from '../services/storiesService';
-import { FilterPickerSheet, FilterLayer } from './stories/StoryFilters';
-import { AdjustPanel, AdjustLayer, type StoryAdjust } from './stories/storyPanels';
+import { STORY_FILTERS, FilterLayer } from './stories/StoryFilters';
+import { MiniSlider, AdjustLayer, type StoryAdjust } from './stories/storyPanels';
 import TrimStrip from './stories/TrimStrip';
  
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import * as ImagePicker from 'expo-image-picker';
+import PostCaption from './PostCaption';
+import { postAspectRatio, postTimeLabel, postTrimWindow, normalizePostCaptions, normalizePostRotation, postRotationParts, applyPostCaptionTiming, type PostCaptionCue } from '../../shared/postMediaEditing';
 
 /** Cover strip: a filmstrip of the trimmed window with a draggable frame
  *  selector, the way Instagram picks a cover. The selector follows the finger
@@ -135,6 +138,10 @@ export function CoverStrip({ uri, durationSec, start, end, at, width, onChange }
 }
 
 export type PostMediaEdit = {
+  aspectRatio?: number; aspect?: 'original' | 'square' | 'portrait' | 'landscape';
+  captions?: PostCaptionCue[];
+  /** A local draft only. Publishing uploads it and removes this field. */
+  coverLocalUri?: string | null;
   rotation?: number; flipX?: boolean;
   soundtrack?: import("../../shared/soundtrack").SoundtrackSelection|null;
   scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain';
@@ -149,15 +156,23 @@ export type PostMediaEdit = {
 };
 export type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name?: string | null; username?: string | null; avatar_url?: string | null };
 
-export default function PostMediaEditSheet({ visible, uri, mediaType, width, height, durationSec, initial, onDone, onCancel }: {
+export default function PostMediaEditSheet({ visible, uri, mediaType, width, height, durationSec, initial, itemIndex = 0, itemCount = 1, onDone, onCancel }: {
   visible: boolean; uri: string | null; mediaType: 'image' | 'video'; width?: number; height?: number; durationSec?: number;
-  initial?: PostMediaEdit | null; onDone: (edit: PostMediaEdit) => void; onCancel: () => void;
+  initial?: PostMediaEdit | null; itemIndex?: number; itemCount?: number; onDone: (edit: PostMediaEdit) => void; onCancel: () => void;
 }) {
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [edit, setEdit] = useState<PostMediaEdit>(initial || {});
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [adjustOpen, setAdjustOpen] = useState(false);
+  const [mode, setMode] = useState<'crop' | 'filter' | 'adjust' | 'trim' | 'captions' | 'cover'>(mediaType === 'video' ? 'trim' : 'crop');
+  const [comparing, setComparing] = useState(false);
+  const [sliderDragging, setSliderDragging] = useState(false);
+  const [adjustKey, setAdjustKey] = useState<keyof StoryAdjust>('bri');
+  const [clock, setClock] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [selectedCaption, setSelectedCaption] = useState(0);
+  const [captionTimingDrafts,setCaptionTimingDrafts]=useState<Record<string,{start?:string;end?:string}>>({});
+  const captionTimingDraftsRef=useRef<Record<string,{start?:string;end?:string}>>({});
   const [player, setPlayer] = useState<any>(null);
   const [speedOpen, setSpeedOpen] = useState(false);
   useEffect(() => { if (player) { try { player.playbackRate = edit.speed || 1; } catch {} } }, [player, edit.speed]);
@@ -188,33 +203,88 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   const [dur, setDur] = useState(durationSec || 0);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
-  React.useEffect(() => { if (visible) { setEdit(initial || {}); setDur(durationSec || 0); } }, [visible]);
-  const ratio = width && height && width > 0 && height > 0 ? width / height : 4 / 5;
-  const canvasW = windowWidth;
-  const previewRoom = Math.max(120, windowHeight - insets.top - Math.max(insets.bottom, 14) - 48 - 88 - (mediaType === 'video' ? 184 : 0) - (speedOpen ? 50 : 0));
-  const canvasH = Math.max(120, Math.min(canvasW * 1.25, canvasW / ratio, previewRoom));
+  React.useEffect(() => { if (visible) { setEdit(initial?.aspectRatio||initial?.aspect?{...initial}:{ aspectRatio: 4 / 5, ...initial }); setDur(durationSec || 0); setMode(mediaType === 'video' ? 'trim' : 'crop'); setTagMode(false); setSelectedCaption(0); setComparing(false);captionTimingDraftsRef.current={};setCaptionTimingDrafts({}); } }, [visible, uri]);
+  useEffect(() => {
+    if (!player || !visible) return;
+    try { player.timeUpdateEventInterval = .1; } catch {}
+    const time = player.addListener?.('timeUpdate', (event: any) => { setClock(event.currentTime ?? player.currentTime ?? 0); if (player.duration > 0) setDur(player.duration); });
+    const state = player.addListener?.('playingChange', (event: any) => setPlaying(!!event.isPlaying));
+    return () => { time?.remove?.(); state?.remove?.(); try { player.pause(); } catch {} };
+  }, [player, visible]);
+  useEffect(() => {
+    if ((mode !== 'cover' && mode !== 'filter') || mediaType !== 'video' || !uri) return;
+    let alive = true;
+    try { player?.pause(); } catch {}
+    if (edit.coverLocalUri) { setCoverPreview(edit.coverLocalUri); return; }
+    const range = postTrimWindow(dur || durationSec || 15, edit.trimStart, edit.trimEnd);
+    const at = Math.min(range.coverEnd, Math.max(range.start, edit.coverAt ?? range.start));
+    setCoverPreview(null);
+    VideoThumbnails.getThumbnailAsync(uri, {time: Math.round(at * 1000), quality: .7}).then(result => { if (alive) setCoverPreview(result.uri); }).catch(() => {});
+    return () => { alive = false; };
+  }, [mode, uri, edit.coverAt, edit.coverLocalUri, edit.trimStart, edit.trimEnd, dur, player]);
+  const chooseCover = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({mediaTypes: ['images'], quality: 1});
+      if (!result.canceled && result.assets[0]?.uri) setEdit(value => ({...value, coverLocalUri: result.assets[0].uri}));
+    } catch { Alert.alert('Cover unavailable', 'That photo could not be opened. Please choose another photo.'); }
+  };
+  const ratio = postAspectRatio(edit, width, height);
+  // Keep the actual chosen frame ratio on short screens too. Shrink the
+  // stage, never change the crop merely to fit the controls underneath it.
+  const previewRoom = Math.max(180, windowHeight - insets.top - Math.max(insets.bottom, 14) - 325);
+  const canvasW = Math.min(windowWidth - 32, 680, previewRoom * ratio);
+  const canvasH = canvasW / ratio;
+  const panelW = Math.min(windowWidth - 32, 680);
   const tx: MediaTransform = { scale: edit.scale ?? 1, translateNX: edit.translateNX ?? 0, translateNY: edit.translateNY ?? 0 } as MediaTransform;
   const fit: MediaFit = (edit.fit || 'cover') as MediaFit;
   const setTx = useCallback((t: MediaTransform) => setEdit(e => ({ ...e, scale: t.scale, translateNX: t.translateNX, translateNY: t.translateNY })), []);
   const isVideo = mediaType === 'video';
   const trimEnd = edit.trimEnd ?? (dur > 0 ? dur : null);
+  const range = postTrimWindow(dur || 15, edit.trimStart, trimEnd);
+  const captions = edit.captions ?? [];
+  const cue = captions[selectedCaption];
+  const updateCue = (patch: Partial<PostCaptionCue>) => setEdit(value => ({...value, captions: (value.captions ?? []).map((c, i) => i === selectedCaption ? {...c, ...patch} : c)}));
+  const addCaption = () => {
+    if (captions.length >= 8) return;
+    setSelectedCaption(captions.length);
+    setEdit(value => ({...value, captions: [...(value.captions ?? []), {id: `caption-${Date.now()}`, text: '', start: range.start, end: range.end, style: 'clean', position: 'bottom'}]}));
+    try { player?.pause(); } catch {}
+  };
+  const selectMode = (next: typeof mode) => { setMode(next); setTagMode(false); if (next === 'captions' && !captions.length) addCaption(); };
+  const adjustments: {key:keyof StoryAdjust;label:string;icon:any;min?:number}[] = [
+    {key:'bri',label:'Light',icon:'sun'}, {key:'con',label:'Contrast',icon:'circle'}, {key:'warm',label:'Warmth',icon:'thermometer'}, {key:'sat',label:'Color',icon:'droplet'}, {key:'hi',label:'Highlights',icon:'sunrise'}, {key:'sh',label:'Shadows',icon:'moon'}, {key:'tint',label:'Tint',icon:'aperture'}, {key:'fade',label:'Fade',icon:'cloud',min:0}, {key:'grain',label:'Grain',icon:'grid',min:0}, {key:'vig',label:'Vignette',icon:'disc',min:0},
+  ];
+  const activeAdjustment = adjustments.find(a => a.key === adjustKey)!;
+  const rotationParts=postRotationParts(edit.rotation);
+  const draftCaptionTime=(id:string,key:'start'|'end',text:string)=>{const next={...captionTimingDraftsRef.current,[id]:{...captionTimingDraftsRef.current[id],[key]:text}};captionTimingDraftsRef.current=next;setCaptionTimingDrafts(next);};
+  const commitCaptionTime=(caption:PostCaptionCue)=>{const next=applyPostCaptionTiming(caption,captionTimingDraftsRef.current[caption.id],range.start,range.end);setEdit(previous=>({...previous,captions:(previous.captions??[]).map(c=>c.id===caption.id?next:c)}));const drafts={...captionTimingDraftsRef.current};delete drafts[caption.id];captionTimingDraftsRef.current=drafts;setCaptionTimingDrafts(drafts);};
+  const modes: {id: typeof mode; label:string; icon:any}[] = isVideo
+    ? [{id:'trim',label:'Trim',icon:'scissors'},{id:'crop',label:'Crop',icon:'crop'},{id:'captions',label:'Captions',icon:'type'},{id:'cover',label:'Cover',icon:'image'},{id:'filter',label:'Filters',icon:'aperture'},{id:'adjust',label:'Adjust',icon:'sliders'}]
+    : [{id:'crop',label:'Crop',icon:'crop'},{id:'filter',label:'Filters',icon:'aperture'},{id:'adjust',label:'Adjust',icon:'sliders'}];
+  const title = modes.find(tool => tool.id === mode)?.label ?? 'Edit';
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onCancel} presentationStyle="fullScreen">
-      <View style={[st.root, { paddingTop: insets.top }]}>
+      <KeyboardAvoidingView behavior={Platform.OS==='ios'?'padding':'height'} style={[st.root, { paddingTop: insets.top }]}>
         <View style={st.top}>
           <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel media editing" onPress={onCancel} style={st.topBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={22} color="#FFF" /></TouchableOpacity>
-          <Text style={st.title}>Edit {mediaType === 'video' ? 'video' : 'photo'}</Text>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Apply media edits" onPress={() => onDone(edit)} style={st.done} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.doneTxt}>Done</Text></TouchableOpacity>
+          <Text style={st.title}>{title}{itemCount > 1 ? ` · ${itemIndex + 1} of ${itemCount}` : ''}</Text>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Apply media edits" onPress={() => { try { player?.pause(); } catch {} onDone({...edit, captions: normalizePostCaptions((edit.captions??[]).map(c=>applyPostCaptionTiming(c,captionTimingDraftsRef.current[c.id],range.start,range.end)), dur || 600)}); }} style={st.done} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.doneTxt}>{mode === 'crop' ? 'Apply' : 'Done'}</Text></TouchableOpacity>
         </View>
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }} keyboardShouldPersistTaps="handled" bounces={false}>
-          <View style={{ width: canvasW, height: canvasH, backgroundColor: '#000', overflow: 'hidden' }}>
+        <ScrollView style={{ flex: 1 }} scrollEnabled={!sliderDragging} contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingTop: 12, paddingBottom: 20 }} keyboardShouldPersistTaps="handled" bounces={false}>
+          <View style={{ width: canvasW, height: canvasH, backgroundColor: '#000', borderRadius: 12, overflow: 'hidden' }}>
             <MediaCanvas localUri={uri} mediaType={mediaType} uploadState="idle" onRetry={() => {}} onLayout={() => {}} scaleAnim={scaleAnim} opacityAnim={opacityAnim}
-              imageW={width} imageH={height} mediaFit={fit} postRotation={edit.rotation} postFlipX={edit.flipX} mediaTransform={tx} onTransformChange={setTx}
-              onFitToggle={() => setEdit(e => ({ ...e, fit: (e.fit || 'cover') === 'cover' ? 'contain' : 'cover' }))} interactive
+              imageW={width} imageH={height} mediaFit={fit} postRotation={comparing ? 0 : edit.rotation} postFlipX={!comparing && edit.flipX} mediaTransform={comparing ? {fit,scale:1,translateNX:0,translateNY:0} : tx} onTransformChange={setTx}
+              onFitToggle={() => setEdit(e => ({ ...e, fit: (e.fit || 'cover') === 'cover' ? 'contain' : 'cover' }))} interactive={mode === 'crop' && !comparing}
               videoMuted={!!edit.muted} videoVolume={edit.muted ? 0 : 1} trimStart={edit.trimStart ?? null} trimEnd={edit.trimEnd ?? null} onVideoPlayer={setPlayer}>
-              <FilterLayer filterId={edit.filterId || null} amt={edit.filterAmt ?? 100} />
-              <AdjustLayer adjust={edit.adjust || null} />
+              {!comparing && <><FilterLayer filterId={edit.filterId || null} amt={edit.filterAmt ?? 100} /><AdjustLayer adjust={edit.adjust || null} /></>}
             </MediaCanvas>
+            {mode === 'cover' && coverPreview ? <View pointerEvents="none" style={StyleSheet.absoluteFill}><Image source={{uri:coverPreview}} style={[StyleSheet.absoluteFill, {transform:[{translateX:(edit.translateNX ?? 0)*canvasW},{translateY:(edit.translateNY ?? 0)*canvasH},{scale:edit.scale ?? 1},{rotate:`${edit.rotation ?? 0}deg`},{scaleX:edit.flipX?-1:1}]}]} resizeMode={fit === 'contain' ? 'contain' : 'cover'} /><FilterLayer filterId={edit.filterId || null} amt={edit.filterAmt ?? 100} /><AdjustLayer adjust={edit.adjust} /></View> : null}
+            {mode !== 'cover' && !comparing ? <PostCaption captions={captions} time={clock} preview={mode === 'captions' ? cue : undefined} /> : null}
+            {(mode === 'crop' || mode === 'cover') && !tagMode ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, {borderColor:'rgba(255,255,255,.8)',borderWidth:1, margin:8, borderRadius:4}]}>
+              {mode === 'crop' ? <>{[1,2].map(n => <React.Fragment key={n}><View style={{position:'absolute',left:0,right:0,top:`${n*100/3}%`,height:StyleSheet.hairlineWidth,backgroundColor:'rgba(255,255,255,.6)'}} /><View style={{position:'absolute',top:0,bottom:0,left:`${n*100/3}%`,width:StyleSheet.hairlineWidth,backgroundColor:'rgba(255,255,255,.6)'}} /></React.Fragment>)}</> : null}
+              {(['tl','tr','bl','br'] as const).map(corner => <View key={corner} style={{position:'absolute',width:20,height:20,borderColor:'#FFF',borderTopWidth:corner.startsWith('t')?4:0,borderBottomWidth:corner.startsWith('b')?4:0,borderLeftWidth:corner.endsWith('l')?4:0,borderRightWidth:corner.endsWith('r')?4:0,top:corner.startsWith('t')?-2:undefined,bottom:corner.startsWith('b')?-2:undefined,left:corner.endsWith('l')?-2:undefined,right:corner.endsWith('r')?-2:undefined,borderRadius:3}} />)}
+            </View> : null}
+            {(mode === 'filter' || mode === 'adjust') ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Hold to compare with original" onPressIn={() => setComparing(true)} onPressOut={() => setComparing(false)} style={st.compare}><Feather name="eye" size={16} color="#FFF" /><Text style={st.compareText}>Hold to compare</Text></TouchableOpacity> : null}
             {tagMode ? (
               <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill}
                 onPress={(ev) => { const { locationX, locationY } = ev.nativeEvent; setTagAt({ nx: Math.max(0.02, Math.min(0.98, locationX / canvasW)), ny: Math.max(0.02, Math.min(0.98, locationY / canvasH)) }); }}>
@@ -249,46 +319,46 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
               ));
             })()}
           </View>
-          {isVideo && !!uri && (
-            <View style={{ alignItems: 'center', marginTop: 12 }}>
-              <TrimStrip uri={uri} durationSec={dur || 15} start={edit.trimStart ?? 0} end={trimEnd ?? Math.min(dur || 15, 600)}
-                onChange={(s2, e2) => setEdit(e => ({ ...e, trimStart: Math.round(s2 * 10) / 10, trimEnd: Math.round(e2 * 10) / 10 }))}
-                onDuration={(d) => setDur(d)} player={player} width={windowWidth - 24} />
-              <CoverStrip uri={uri} durationSec={dur || 15} start={edit.trimStart ?? 0} end={trimEnd ?? (dur || 15)} at={(edit as any).coverAt ?? edit.trimStart ?? 0} width={windowWidth - 24}
-                onChange={(sec) => setEdit(e => ({ ...e, coverAt: Math.round(sec * 100) / 100 } as any))} />
-            </View>
-          )}
-        </ScrollView>
-        {speedOpen && isVideo ? (
-          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, paddingBottom: 10 }}>
-            {[0.5, 1, 1.5, 2, 3].map(sp => (
-              <TouchableOpacity key={sp} onPress={() => { setEdit(e => ({ ...e, speed: sp === 1 ? undefined : sp })); setSpeedOpen(false); }}
-                style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: (edit.speed || 1) === sp ? '#C9BFB0' : 'rgba(255,255,255,0.1)' }}>
-                <Text style={{ color: (edit.speed || 1) === sp ? '#0B1E3D' : '#FFF', fontSize: 13, fontWeight: '800' }}>{sp}x</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={{width:panelW, paddingTop:16}}>
+            {mode === 'crop' ? <>
+              <View style={st.ratioRow}>{[{label:'Original',ratio:width && height ? Math.max(.25,Math.min(4,width/height)) : 4/5},{label:'1:1',ratio:1},{label:'4:5',ratio:4/5},{label:'16:9',ratio:16/9}].map(option => <TouchableOpacity key={option.label} accessibilityRole="button" accessibilityLabel={`${option.label} crop`} accessibilityState={{selected:Math.abs(ratio-option.ratio)<.001}} onPress={() => setEdit(e => ({...e,aspectRatio:option.ratio,aspect:undefined,scale:1,translateNX:0,translateNY:0}))} style={[st.ratioOption,Math.abs(ratio-option.ratio)<.001 && st.selected]}><View style={{width:option.ratio>=1?28:22,height:option.ratio>=1?28/option.ratio:28,borderWidth:1.5,borderColor:'#F5F1E9',borderRadius:4}} /><Text style={st.smallLabel}>{option.label}</Text></TouchableOpacity>)}</View>
+              <EditorSlider label="Straighten" value={rotationParts.straighten} min={-45} max={45} width={panelW-32} onChange={straighten => setEdit(e=>({...e,rotation:normalizePostRotation(postRotationParts(e.rotation).base+straighten)}))} onDrag={setSliderDragging} unit="°" />
+              <View style={st.actionRow}><TouchableOpacity accessibilityLabel="Rotate 90 degrees" style={st.action} onPress={()=>setEdit(e=>({...e,rotation:normalizePostRotation((e.rotation||0)+90)}))}><Feather name="rotate-cw" size={19} color="#FFF"/><Text style={st.smallLabel}>Rotate</Text></TouchableOpacity><TouchableOpacity accessibilityLabel="Flip horizontally" style={st.action} onPress={()=>setEdit(e=>({...e,flipX:!e.flipX}))}><Feather name="repeat" size={19} color="#FFF"/><Text style={st.smallLabel}>Flip</Text></TouchableOpacity><View style={st.segment}>{(['contain','cover'] as const).map(v=><TouchableOpacity key={v} accessibilityRole="button" accessibilityLabel={v==='contain'?'Fit full image':'Fill crop frame'} accessibilityState={{selected:fit===v}} style={[st.segmentButton,fit===v&&st.segmentSelected]} onPress={()=>setEdit(e=>({...e,fit:v}))}><Text style={[st.smallLabel,fit===v&&{color:'#0B1E3D'}]}>{v==='contain'?'Fit':'Fill'}</Text></TouchableOpacity>)}</View></View>
+              {!isVideo ? <TouchableOpacity style={st.rowButton} onPress={()=>setTagMode(m=>!m)}><Feather name="user-plus" size={19} color="#E9DCC7"/><Text style={st.rowButtonText}>{tagMode?'Done tagging':'Tag people'}</Text><Text style={st.mutedLabel}>{edit.tags?.length||''}</Text><Feather name="chevron-right" size={17} color="#99A0AB"/></TouchableOpacity>:null}
+              <Text style={st.hint}>Pinch to zoom. Drag to position your photo inside the frame.</Text>
+            </> : null}
+            {mode === 'filter' ? <>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:12,paddingVertical:4}}>{[{id:null,label:'Original'},...STORY_FILTERS].map(filter=><TouchableOpacity key={filter.id??'original'} accessibilityRole="button" accessibilityLabel={`${filter.label} filter`} accessibilityState={{selected:(edit.filterId??null)===filter.id}} onPress={()=>setEdit(e=>({...e,filterId:filter.id}))} style={{width:76,alignItems:'center',gap:7}}><View style={[{width:76,height:88,borderRadius:12,overflow:'hidden',borderWidth:2,borderColor:'transparent'},(edit.filterId??null)===filter.id&&{borderColor:'#E8D4AE'}]}>{uri?<Image source={{uri:mediaType==='video'?(coverPreview??edit.coverLocalUri??uri):uri}} style={StyleSheet.absoluteFill} resizeMode="cover"/>:null}<FilterLayer filterId={filter.id}/></View><Text numberOfLines={1} style={st.smallLabel}>{filter.label}</Text></TouchableOpacity>)}</ScrollView>
+              <EditorSlider label="Strength" value={edit.filterAmt??100} min={0} max={100} width={panelW-32} onChange={filterAmt=>setEdit(e=>({...e,filterAmt}))} onDrag={setSliderDragging}/>
+            </>:null}
+            {mode === 'adjust' ? <>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:14}}>{adjustments.map(a=><TouchableOpacity key={a.key} accessibilityRole="button" accessibilityLabel={a.label} accessibilityState={{selected:adjustKey===a.key}} style={st.tool} onPress={()=>setAdjustKey(a.key)}><View style={[st.toolIcon,adjustKey===a.key&&st.toolIconOn]}><Feather name={a.icon} size={22} color={adjustKey===a.key?'#0B1E3D':'#FFF'}/></View><Text style={st.toolLabel}>{a.label}</Text></TouchableOpacity>)}</ScrollView>
+              <EditorSlider label={activeAdjustment.label} value={edit.adjust?.[adjustKey]??0} min={activeAdjustment.min??-100} max={100} width={panelW-32} onChange={value=>setEdit(e=>({...e,adjust:{...e.adjust,[adjustKey]:value}}))} onDrag={setSliderDragging}/>
+              <TouchableOpacity style={st.reset} onPress={()=>setEdit(e=>({...e,adjust:null}))}><Feather name="rotate-ccw" size={17} color="#FFF"/><Text style={st.smallLabel}>Reset adjustments</Text></TouchableOpacity>
+            </>:null}
+            {mode === 'trim' && uri ? <>
+              <View style={st.playRow}><TouchableOpacity accessibilityRole="button" accessibilityLabel={playing?'Pause video':'Play video'} style={st.playButton} onPress={()=>{try{playing?player?.pause():player?.play();}catch{}}}><Feather name={playing?'pause':'play'} size={22} color="#FFF"/></TouchableOpacity><Text style={st.smallLabel}>{postTimeLabel(clock)} / {postTimeLabel(dur)}</Text></View>
+              <TrimStrip uri={uri} durationSec={dur || 15} start={range.start} end={range.end} onChange={(start,end)=>setEdit(e=>({...e,trimStart:Math.round(start*100)/100,trimEnd:Math.round(end*100)/100,coverAt:Math.max(start,Math.min(end-.05,e.coverAt??start))}))} onDuration={setDur} player={player} width={panelW}/>
+              <View style={st.timeLabels}><Text style={st.mutedLabel}>Start {postTimeLabel(range.start)}</Text><Text style={st.smallLabel}>{range.duration.toFixed(1)} sec selected</Text><Text style={st.mutedLabel}>End {postTimeLabel(range.end)}</Text></View>
+              <TouchableOpacity style={st.rowButton} onPress={()=>setEdit(e=>({...e,muted:!e.muted}))}><Feather name={edit.muted?'volume-x':'volume-2'} size={19} color="#E9DCC7"/><Text style={st.rowButtonText}>Original audio</Text><Text style={st.mutedLabel}>{edit.muted?'Muted':'On'}</Text></TouchableOpacity>
+              <TouchableOpacity style={st.rowButton} onPress={()=>setSpeedOpen(v=>!v)}><Feather name="fast-forward" size={19} color="#E9DCC7"/><Text style={st.rowButtonText}>Speed</Text><Text style={st.mutedLabel}>{edit.speed||1}×</Text><Feather name="chevron-right" size={17} color="#99A0AB"/></TouchableOpacity>
+              {speedOpen ? <View style={st.speedRow}>{[.5,1,1.5,2,3].map(speed=><TouchableOpacity key={speed} style={[st.speedChoice,(edit.speed||1)===speed&&st.selected]} onPress={()=>setEdit(e=>({...e,speed}))}><Text style={st.smallLabel}>{speed}×</Text></TouchableOpacity>)}</View>:null}
+            </>:null}
+            {mode === 'cover' && uri ? <>
+              <Text style={[st.mutedLabel,{textAlign:'center',marginBottom:12}]}>Feed preview · {Math.abs(ratio-.8)<.001?'4:5':Math.abs(ratio-1)<.001?'1:1':Math.abs(ratio-16/9)<.001?'16:9':'Original'}</Text>
+              {!edit.coverLocalUri ? <CoverStrip uri={uri} durationSec={dur||15} start={range.start} end={range.end} at={edit.coverAt??range.start} width={panelW} onChange={coverAt=>setEdit(e=>({...e,coverAt}))}/>:null}
+              <View style={st.coverChoices}><TouchableOpacity style={[st.coverChoice,!edit.coverLocalUri&&st.selected]} onPress={()=>setEdit(e=>({...e,coverLocalUri:null}))}><Feather name="image" size={23} color="#F6F2EB"/><Text style={st.smallLabel}>Video frame</Text><Feather name={!edit.coverLocalUri?'check-circle':'circle'} size={17} color="#E6D2AB"/></TouchableOpacity><TouchableOpacity style={[st.coverChoice,!!edit.coverLocalUri&&st.selected]} onPress={chooseCover}><Feather name="upload" size={23} color="#F6F2EB"/><Text style={st.smallLabel}>Upload cover</Text><Feather name={edit.coverLocalUri?'check-circle':'circle'} size={17} color="#E6D2AB"/></TouchableOpacity></View>
+              <TouchableOpacity style={st.rowButton} onPress={()=>selectMode('crop')}><Feather name="crop" size={20} color="#E9DCC7"/><Text style={st.rowButtonText}>Adjust crop</Text><Feather name="chevron-right" size={17} color="#99A0AB"/></TouchableOpacity>
+            </>:null}
+            {mode === 'captions' ? <>
+              {cue ? <><Text style={st.sectionLabel}>Edit text</Text><TextInput multiline maxLength={160} value={cue.text} onChangeText={text=>updateCue({text})} placeholder="Add a caption to your video" placeholderTextColor="#8E96A4" style={st.captionInput}/><Text style={[st.mutedLabel,{textAlign:'right'}]}>{cue.text.length}/160</Text><View style={st.speedRow}>{(['clean','bold','highlight'] as const).map(style=><TouchableOpacity key={style} style={[st.captionStyle,cue.style===style&&st.selected]} onPress={()=>updateCue({style})}><Text style={{color:'#FFF',fontSize:23,fontFamily:style==='clean'?'Georgia':undefined,fontWeight:style==='bold'?'800':'400'}}>Aa</Text><Text style={st.smallLabel}>{style[0].toUpperCase()+style.slice(1)}</Text></TouchableOpacity>)}</View><View style={st.timeFields}><View style={{flex:1}}><Text style={st.mutedLabel}>Start (seconds)</Text><TextInput accessibilityLabel="Caption start in seconds" keyboardType="decimal-pad" value={captionTimingDrafts[cue.id]?.start??String(cue.start)} onChangeText={text=>draftCaptionTime(cue.id,'start',text)} onBlur={()=>commitCaptionTime(cue)} style={st.timeInput}/></View><View style={{flex:1}}><Text style={st.mutedLabel}>End (seconds)</Text><TextInput accessibilityLabel="Caption end in seconds" keyboardType="decimal-pad" value={captionTimingDrafts[cue.id]?.end??String(cue.end)} onChangeText={text=>draftCaptionTime(cue.id,'end',text)} onBlur={()=>commitCaptionTime(cue)} style={st.timeInput}/></View></View><View style={st.actionRow}>{(['top','middle','bottom'] as const).map(position=><TouchableOpacity key={position} style={[st.speedChoice,cue.position===position&&st.selected]} onPress={()=>updateCue({position})}><Text style={st.smallLabel}>{position[0].toUpperCase()+position.slice(1)}</Text></TouchableOpacity>)}</View></>:null}
+              {captions.map((caption,i)=><TouchableOpacity key={caption.id} style={[st.captionRow,i===selectedCaption&&st.selected]} onPress={()=>{setSelectedCaption(i);try{player.pause();player.currentTime=caption.start;}catch{}}}><Text style={st.mutedLabel}>{postTimeLabel(caption.start)}</Text><Text numberOfLines={1} style={[st.smallLabel,{flex:1}]}>{caption.text||'New caption'}</Text><TouchableOpacity accessibilityLabel={`Remove caption ${i+1}`} style={st.removeCaption} onPress={()=>{setEdit(e=>({...e,captions:(e.captions??[]).filter((_,x)=>x!==i)}));setSelectedCaption(0);}}><Feather name="x" size={17} color="#FFF"/></TouchableOpacity></TouchableOpacity>)}
+              {captions.length<8?<TouchableOpacity style={st.rowButton} onPress={addCaption}><Feather name="plus" size={19} color="#E9DCC7"/><Text style={st.rowButtonText}>Add another caption</Text></TouchableOpacity>:null}
+            </>:null}
+            {mode === 'crop' || mode === 'filter' ? <TouchableOpacity style={st.reset} onPress={()=>setEdit(e=>({...e, ...(mode==='crop'?{scale:1,translateNX:0,translateNY:0,rotation:0,flipX:false,fit:'cover' as const,aspectRatio:4/5}:{filterId:null,filterAmt:100})}))}><Feather name="rotate-ccw" size={17} color="#FFF"/><Text style={st.smallLabel}>Reset {mode==='crop'?'crop':'filter'}</Text></TouchableOpacity>:null}
           </View>
-        ) : null}
-        <View style={{ paddingBottom: Math.max(insets.bottom, 14) }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} keyboardShouldPersistTaps="handled" contentContainerStyle={st.tools}>
-          {([
-            { id: 'rotate', label: 'Rotate', icon: 'rotate-cw', on: !!edit.rotation, run:()=>setEdit(e=>({...e,rotation:((e.rotation||0)+90)%360})) },
-            { id: 'flip', label: 'Flip', icon: 'repeat', on: !!edit.flipX, run:()=>setEdit(e=>({...e,flipX:!e.flipX})) },
-            { id: 'filter', label: 'Filter', icon: 'droplet', on: !!edit.filterId, run: () => setFilterOpen(true) },
-            { id: 'adjust', label: 'Adjust', icon: 'sliders', on: !!edit.adjust, run: () => setAdjustOpen(true) },
-            { id: 'fit', label: fit === 'contain' ? 'Fill' : 'Fit', icon: 'crop', on: fit === 'contain', run: () => setEdit(e => ({ ...e, fit: (e.fit || 'cover') === 'cover' ? 'contain' : 'cover' })) },
-            ...(!isVideo ? [{ id: 'tag', label: tagMode ? 'Done tagging' : 'Tag people', icon: 'user-plus', on: tagMode || !!(edit.tags && edit.tags.length), run: () => setTagMode(m => !m) }] : []),
-            ...(isVideo ? [{ id: 'mute', label: edit.muted ? 'Unmute' : 'Mute', icon: edit.muted ? 'volume-x' : 'volume-2', on: !!edit.muted, run: () => setEdit(e => ({ ...e, muted: !e.muted })) }] : []),
-            ...(isVideo ? [{ id: 'speed', label: (edit.speed && edit.speed !== 1) ? edit.speed + 'x' : 'Speed', icon: 'fast-forward', on: !!(edit.speed && edit.speed !== 1), run: () => setSpeedOpen(v => !v) }] : []),
-            { id: 'reset', label: 'Reset', icon: 'rotate-ccw', on: false, run: () => setEdit({}) },
-          ] as { id: string; label: string; icon: any; on: boolean; run: () => void }[]).map(t => (
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t.label} accessibilityState={{ selected: t.on }} key={t.id} style={st.tool} onPress={t.run} activeOpacity={0.75}>
-              <View style={[st.toolIcon, t.on && st.toolIconOn]}><Feather name={t.icon} size={20} color="#FFF" /></View>
-              <Text style={st.toolLabel}>{t.label}</Text>
-            </TouchableOpacity>
-          ))}
         </ScrollView>
-        </View>
+        <View style={{paddingBottom:Math.max(insets.bottom,12),borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#29313C'}}><ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} contentContainerStyle={[st.tools,{minWidth:windowWidth,justifyContent:'space-evenly'}]}>{modes.map(tool=><TouchableOpacity accessibilityRole="button" accessibilityLabel={tool.label} accessibilityState={{selected:mode===tool.id}} key={tool.id} style={st.tool} onPress={()=>selectMode(tool.id)}><View style={[st.toolIcon,mode===tool.id&&st.toolIconOn]}><Feather name={tool.icon} size={22} color={mode===tool.id?'#10213E':'#FFFFFF'}/></View><Text style={[st.toolLabel,mode===tool.id&&{color:'#E9DCC7'}]}>{tool.label}</Text></TouchableOpacity>)}</ScrollView></View>
         <Modal visible={!!tagAt} transparent animationType="fade" onRequestClose={() => setTagAt(null)}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setTagAt(null)} />
@@ -316,24 +386,59 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
             </View>
           </KeyboardAvoidingView>
         </Modal>
-        <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={edit.filterId || null} onSelect={(id: string | null) => setEdit(e => ({ ...e, filterId: id }))} previewUri={uri} />
-        <AdjustPanel visible={adjustOpen} onClose={() => setAdjustOpen(false)} adjust={edit.adjust || {}} onChange={(a) => setEdit(e => ({ ...e, adjust: Object.keys(a).some(k => (a as any)[k] != null) ? a : null }))}
-          filterOn={!!edit.filterId} filterAmt={edit.filterAmt ?? 100} onFilterAmt={(v) => setEdit(e => ({ ...e, filterAmt: v }))} />
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
+function EditorSlider({label,value,min,max,width,onChange,onDrag,unit=''}:{label:string;value:number;min:number;max:number;width:number;onChange:(v:number)=>void;onDrag:(v:boolean)=>void;unit?:string}) {
+  return <View style={{paddingHorizontal:16,paddingVertical:14,alignItems:'center',gap:16}} accessibilityRole="adjustable" accessibilityLabel={label} accessibilityValue={{min,max,now:value,text:`${value}${unit}`}} accessibilityActions={[{name:'increment'},{name:'decrement'}]} onAccessibilityAction={e=>onChange(Math.max(min,Math.min(max,value+(e.nativeEvent.actionName==='increment'?1:-1))))}>
+    <Text style={{color:'#F5F1E9',fontSize:14,fontWeight:'600'}}>{label}  {value>0?'+':''}{Math.round(value)}{unit}</Text>
+    <MiniSlider value={value} min={min} max={max} width={width} onChange={onChange} onDragStateChange={onDrag}/>
+  </View>;
+}
+
 const st = themedSheet(() => ({
-  root: { flex: 1, backgroundColor: '#0B0D12' },
-  top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, height: 48 },
+  root: { flex: 1, backgroundColor: '#0B1118' },
+  top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, height: 58, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#29313C' },
   topBtn: { width: 44, height: 44, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
   title: { flex: 1, textAlign: 'center', color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
-  done: { minHeight: 44, justifyContent: 'center', backgroundColor: '#C9BFB0', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 8 },
+  done: { minHeight: 44, justifyContent: 'center', backgroundColor: '#E8D7BC', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 8 },
   doneTxt: { color: '#0B1E3D', fontSize: 14, fontWeight: '800' },
   tools: { flexDirection: 'row', gap: 8, paddingTop: 12, paddingHorizontal: 12 },
-  tool: { alignItems: 'center', width: 64 },
-  toolIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  toolIconOn: { backgroundColor: 'rgba(201,191,176,0.35)' },
+  tool: { alignItems: 'center', width: 64, minHeight: 76 },
+  toolIcon: { width: 52, height: 52, borderRadius: 26, borderWidth: 1, borderColor: '#35404D', backgroundColor: '#161E28', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  toolIconOn: { backgroundColor: '#E8D7BC' },
+
+  selected: { borderColor: '#E8D4AE', borderWidth: 2, backgroundColor: '#18222D' },
+  ratioRow: { flexDirection:'row',justifyContent:'space-between',gap:8 },
+  ratioOption: { flex:1,minHeight:78,borderWidth:2,borderColor:'transparent',borderRadius:13,alignItems:'center',justifyContent:'center',gap:9 },
+  smallLabel: { color:'#F6F2EC',fontSize:12.5,fontWeight:'600' },
+  mutedLabel: { color:'#9FA8B6',fontSize:12 },
+  actionRow: { flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:8,marginTop:12 },
+  action: { flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,minHeight:44,paddingHorizontal:6 },
+  segment: { flexDirection:'row',backgroundColor:'#161E28',borderRadius:12,borderWidth:1,borderColor:'#35404D',padding:3 },
+  segmentButton: { minWidth:58,minHeight:40,alignItems:'center',justifyContent:'center',borderRadius:9 },
+  segmentSelected: { backgroundColor:'#E8D7BC' },
+  hint: { color:'#8E98A6',fontSize:11.5,textAlign:'center',lineHeight:17,marginTop:14 },
+  compare: { position:'absolute',bottom:14,alignSelf:'center',backgroundColor:'rgba(0,0,0,.68)',borderRadius:22,paddingHorizontal:15,minHeight:44,flexDirection:'row',alignItems:'center',gap:8,zIndex:6 },
+  compareText: { color:'#FFF',fontSize:12,fontWeight:'600' },
+  rowButton: { flexDirection:'row',alignItems:'center',gap:12,minHeight:56,paddingHorizontal:14,paddingVertical:10,marginTop:10,backgroundColor:'#141D27',borderWidth:1,borderColor:'#323D4B',borderRadius:14 },
+  rowButtonText: { flex:1,color:'#F6F2EC',fontSize:14,fontWeight:'600' },
+  reset: { minHeight:48,marginTop:16,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#35404D',flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8 },
+  playRow: { flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:10 },
+  playButton: { width:44,height:44,alignItems:'center',justifyContent:'center' },
+  timeLabels: { flexDirection:'row',justifyContent:'space-between',gap:8,marginTop:10,marginBottom:4 },
+  speedRow: { flexDirection:'row',gap:8,marginTop:12 },
+  speedChoice: { flex:1,minHeight:44,paddingHorizontal:10,borderWidth:1,borderColor:'#35404D',borderRadius:12,alignItems:'center',justifyContent:'center' },
+  coverChoices: { flexDirection:'row',gap:10,marginTop:18 },
+  coverChoice: { flex:1,minHeight:85,borderWidth:1,borderColor:'#35404D',borderRadius:14,alignItems:'center',justifyContent:'center',gap:8,padding:10 },
+  sectionLabel: { color:'#F6F2EC',fontSize:14,fontWeight:'700',marginBottom:8 },
+  captionInput: { minHeight:76,color:'#F6F2EC',fontSize:15,lineHeight:21,textAlignVertical:'top',backgroundColor:'#141D27',borderWidth:1,borderColor:'#35404D',borderRadius:13,padding:13 },
+  captionStyle: { flex:1,minHeight:72,alignItems:'center',justifyContent:'center',gap:4,borderWidth:1,borderColor:'#35404D',borderRadius:13 },
+  timeFields: { flexDirection:'row',gap:12,marginTop:14 },
+  timeInput: { minHeight:44,borderWidth:1,borderColor:'#35404D',borderRadius:10,color:'#FFF',paddingHorizontal:12,marginTop:5 },
+  captionRow: { flexDirection:'row',alignItems:'center',gap:12,minHeight:48,paddingLeft:12,borderRadius:12,borderWidth:1,borderColor:'#35404D',marginTop:10 },
+  removeCaption: { width:44,height:44,alignItems:'center',justifyContent:'center' },
   toolLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 11, fontWeight: '600' },
 }));

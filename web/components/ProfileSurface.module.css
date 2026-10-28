@@ -1,0 +1,19 @@
+.profile { width: 100%; min-width: 0; padding-bottom: 24px; }
+.topline { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.back { display: inline-flex; width: 44px; height: 44px; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid var(--chrome-border); border-radius: 50%; background: var(--surface-raised); color: var(--color-ink); }
+.eyebrow { font-size: 10px; line-height: 1.5; letter-spacing: .2em; text-transform: uppercase; color: var(--color-muted); font-weight: 700; }
+.header { overflow: hidden; border: 1px solid var(--chrome-border); border-radius: 24px; background: var(--surface-raised); padding-bottom: 20px; box-shadow: 0 12px 38px rgba(11,30,61,.035); }
+.banner { height: clamp(130px, 24vw, 186px); border-bottom: 1px solid var(--editorial-gold); background: radial-gradient(ellipse at 85% 0%, rgba(201,191,176,.3), transparent 56%), linear-gradient(120deg, #0b1e3d, #263d5c); }
+.body { padding: 0 22px; }
+.avatar { position: relative; display: flex; justify-content: center; margin-top: -53px; margin-bottom: 7px; }
+.avatarRing { display: flex; width: 106px; height: 106px; align-items: center; justify-content: center; border-radius: 50%; background: var(--surface-raised); border: 1px solid var(--editorial-gold); box-shadow: 0 3px 12px rgba(11,30,61,.08); }
+.name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 25px; font-weight: 750; letter-spacing: -.045em; line-height: 1.25; color: var(--color-ink); }
+.metadata { display: flex; justify-content: center; flex-wrap: wrap; gap: 7px 16px; margin-top: 13px; font-size: 12px; line-height: 1.6; color: var(--color-muted); }
+.metadata span { display: inline-flex; align-items: center; gap: 6px; }
+.stats { display: flex; width: 100%; max-width: 430px; margin: 18px auto 0; overflow: hidden; border: 1px solid var(--chrome-border); border-radius: 20px; background: var(--canvas); }
+.stat { flex: 1; display: flex; min-width: 0; min-height: 64px; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 10px 8px; transition: background 140ms; }
+.stat + .stat { border-left: 1px solid var(--chrome-border); }
+a.stat:hover { background: var(--color-surface); }
+.actions { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px 10px; }
+.posts { margin-top: 16px; }
+@media (max-width: 480px) { .header { border-radius: 18px; } .body { padding: 0 16px; } .name { font-size: 23px; } .eyebrow { letter-spacing: .16em; } }

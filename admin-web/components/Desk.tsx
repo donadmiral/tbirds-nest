@@ -1,13 +1,14 @@
 'use client';
 import CommandForm from '@/components/CommandForm';
-import MediaPreview from '@/components/MediaPreview';
+import MediaPreview, { type ReviewMedia } from '@/components/MediaPreview';
+import ReviewMediaGallery from '@/components/ReviewMediaGallery';
 
 /**
  * The operations desk kit. One master-detail table used by every desk:
  * stat strip, tabs with counts, search, facet filters, paging, detail panel.
  * Rows arrive as plain data from the server, so no desk repeats this markup.
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { fmt } from '@/lib/fmt';
 import { Spark } from '@/components/Viz';
@@ -38,7 +39,8 @@ export type Detail = {
   subtitle?: string;
   img?: string | null;
   /** full width media preview at the top of the panel */
-  media?: { url: string; video?: boolean } | null;
+  media?: ReviewMedia | null;
+  gallery?: ReviewMedia[];
   pills?: { v: string; tone: Tone }[];
   stats?: { label: string; value: string }[];
   fields?: { label: string; value: string }[];
@@ -75,27 +77,27 @@ export type StatCard = {
   label: string; value: string; delta?: string; deltaTone?: Tone; note?: string; spark?: number[]; color?: string; icon?: string;
 };
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { minWidth: 0, borderRadius: 20, background: 'var(--panel)', border: '1px solid var(--line)', boxShadow: '0 6px 24px rgba(11,30,61,0.035)', overflow: 'hidden' };
 
 export function StatStrip({ cards, page }: { cards: StatCard[]; page?: string }) {
   const label = page || deskName();
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-5">
       {cards.map(c => (
-        <div key={c.label} className="pc-collect" style={{ ...PANEL, padding: '14px 15px 12px', position: 'relative' }}>
+        <div key={c.label} className="pc-collect" style={{ ...PANEL, padding: '18px 18px 16px', position: 'relative' }}>
           <CollectButton title={c.label} onAdd={() => trayAdd({
             kind: 'stat', title: c.label, page: label, path: here(),
             stat: { value: c.value, delta: c.delta, note: c.note },
           })} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 11.3, fontWeight: 600, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.label}</span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.label}</span>
             {c.icon ? (
               <span style={{ width: 26, height: 26, flex: '0 0 26px', borderRadius: 8, background: 'rgba(var(--on),0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: c.color || 'var(--accent)' }}><path d={c.icon} /></svg>
               </span>
             ) : null}
           </div>
-          <div className="pc-num" style={{ marginTop: 9, fontSize: 25, lineHeight: 1, color: 'var(--txt-strong)' }}>{c.value}</div>
+          <div className="pc-num" style={{ marginTop: 12, fontSize: 30, lineHeight: 1.1, letterSpacing: '-0.04em', color: 'var(--txt-strong)' }}>{c.value}</div>
           <div style={{ marginTop: 9, display: 'flex', alignItems: 'baseline', gap: 7, whiteSpace: 'nowrap', overflow: 'hidden' }}>
             {c.delta ? <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, fontWeight: 600, color: TONE[c.deltaTone || 'neutral'].fg }}>{c.delta}</span> : null}
             <span style={{ flex: 1, minWidth: 0, fontSize: 10, color: 'var(--txt-muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.note || ''}</span>
@@ -182,7 +184,7 @@ function CellView({ c }: { c: Cell }) {
 }
 
 export function Desk({
-  tabs, columns, grid, rows, searchHint, filters = [], pageSize = 10, minWidth = 720, detailTitle = 'Details', actions = [], pageLabel,
+  tabs, columns, grid, rows, searchHint, filters = [], pageSize = 10, minWidth = 720, detailTitle = 'Details', actions = [], pageLabel, presentation = 'table',
 }: {
   tabs: { key: string; label: string; count: number }[];
   columns: { label: string; align?: 'left' | 'right' }[];
@@ -196,12 +198,23 @@ export function Desk({
   actions?: DeskAction[];
   /** desk label carried onto anything shared from this table */
   pageLabel?: string;
+  presentation?: 'table' | 'media';
 }) {
   const [tab, setTab] = useState(tabs[0]?.key ?? 'all');
   const [q, setQ] = useState('');
   const [page, setPage] = useState(0);
   const [facet, setFacet] = useState<Record<string, string>>({});
   const [sel, setSel] = useState<string | null>(rows[0]?.id ?? null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  const selectRecord = (id: string) => {
+    setSel(id);
+    if (window.innerWidth < 1280) {
+      requestAnimationFrame(() => {
+        detailRef.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        detailRef.current?.focus({ preventScroll: true });
+      });
+    }
+  };
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -222,14 +235,14 @@ export function Desk({
   const selected = filtered.find(r => r.id === sel) || null;
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[1fr_368px]">
+    <div className="pc-desk-grid">
       <div style={PANEL}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px 0', borderBottom: '1px solid rgba(var(--on),0.10)', overflowX: 'auto' }}>
           {tabs.map(t => {
             const on = t.key === tab;
             return (
-              <button key={t.key} type="button" aria-pressed={on} onClick={() => { setTab(t.key); setPage(0); }}
+              <button key={t.key} type="button" aria-pressed={on} className="pc-desk-tab" onClick={() => { setTab(t.key); setPage(0); }}
                 style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 12px 10px', background: 'none', border: 'none', borderBottom: '2px solid ' + (on ? 'var(--accent)' : 'transparent'), cursor: 'pointer', fontSize: 12.3, fontWeight: on ? 600 : 500, color: on ? 'var(--txt-strong)' : 'var(--txt-muted)', whiteSpace: 'nowrap' }}>
                 {t.label}
                 {t.count > 0 ? <span className="pc-num" style={{ fontSize: 10, fontWeight: 600, padding: '1px 5px', borderRadius: 5, background: on ? 'rgba(var(--accent-rgb),0.14)' : 'rgba(var(--on),0.07)', color: on ? 'var(--accent)' : 'var(--txt-muted)' }}>{t.count}</span> : null}
@@ -238,7 +251,7 @@ export function Desk({
           })}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 13px', borderBottom: '1px solid rgba(var(--on),0.10)', flexWrap: 'wrap' }}>
+        <div className="pc-desk-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', flexWrap: 'wrap' }}>
           <div className="pc-search" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6.5px 10px', borderRadius: 8, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.10)', minWidth: 200 }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--txt-muted)', flex: '0 0 12px' }} strokeWidth="2.4"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.6-3.6" /></svg>
             <input aria-label={searchHint || 'Search records'} value={q} onChange={e => { setQ(e.target.value); setPage(0); }} placeholder={searchHint}
@@ -257,7 +270,21 @@ export function Desk({
               ...filters.map(f => (facet[f.key] && facet[f.key] !== 'All' ? f.label + ': ' + facet[f.key] : ''))].filter(Boolean)} />
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
+        {presentation === 'media' ? <div className="pc-media-review-grid">
+          {shown.length === 0 ? <p className="pc-media-empty">Nothing matches this view. Try another filter or search.</p> : shown.map(r => (
+            <article key={r.id} className="pc-media-review-card" data-selected={r.id === sel} onClick={() => selectRecord(r.id)}>
+              <div className="pc-media-review-cover">
+                {r.detail.media ? <MediaPreview key={r.detail.media.url} {...r.detail.media} thumbnail /> : <div className="pc-media-text-preview"><span>Text</span><p>{r.detail.body?.find(b => b.label === 'Caption')?.text || r.detail.title}</p></div>}
+                {r.detail.media?.video ? <span className="pc-media-kind">Video</span> : null}
+              </div>
+              <button type="button" className="pc-media-review-open" aria-pressed={r.id === sel} onClick={event => { event.stopPropagation(); selectRecord(r.id); }}>
+                <strong>{r.detail.title}</strong>
+                {r.detail.subtitle ? <span>{r.detail.subtitle}</span> : null}
+                <small>{r.id === sel ? 'Selected' : 'Review content'} <span aria-hidden>↗</span></small>
+              </button>
+            </article>
+          ))}
+        </div> : <div style={{ overflowX: 'auto' }}>
           <div role="grid" aria-label={detailTitle + ' records'} style={{ minWidth }}>
             <div role="row" style={{ display: 'grid', gridTemplateColumns: grid, padding: '0 13px', borderBottom: '1px solid rgba(var(--on),0.10)', background: 'rgba(var(--on),0.015)' }}>
               {columns.map((c, i) => (
@@ -269,17 +296,17 @@ export function Desk({
             ) : shown.map(r => {
               const on = r.id === sel;
               return (
-                <div key={r.id} role="row" tabIndex={0} aria-selected={on} aria-label={r.detail.title} onClick={() => setSel(r.id)} className="pc-nav"
+                <div key={r.id} role="row" tabIndex={0} aria-selected={on} aria-label={r.detail.title} onClick={() => selectRecord(r.id)} className="pc-nav"
                   onKeyDown={event => {
                     if (event.target !== event.currentTarget) return;
-                    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSel(r.id); }
+                    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectRecord(r.id); }
                     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
                       event.preventDefault();
                       const sibling = event.key === 'ArrowDown' ? event.currentTarget.nextElementSibling : event.currentTarget.previousElementSibling;
                       if (sibling instanceof HTMLElement && sibling.tabIndex === 0) sibling.focus();
                     }
                   }}
-                  style={{ display: 'grid', gridTemplateColumns: grid, padding: '0 13px', cursor: 'pointer', borderBottom: '1px solid rgba(var(--on),0.10)', background: on ? 'rgba(var(--on),0.05)' : 'transparent', boxShadow: on ? 'inset 2px 0 0 var(--accent)' : 'none' }}>
+                  style={{ display: 'grid', gridTemplateColumns: grid, minHeight: 64, padding: '0 13px', cursor: 'pointer', borderBottom: '1px solid var(--line)', background: on ? 'rgba(174,139,73,0.09)' : 'transparent', boxShadow: on ? 'inset 3px 0 0 var(--pearl)' : 'none' }}>
                   {r.cells.map((c, i) => (
                     <div role="gridcell" key={i} style={{ padding: '10px 8px', display: 'flex', alignItems: 'center', minWidth: 0, justifyContent: columns[i]?.align === 'right' ? 'flex-end' : 'flex-start' }}>
                       <CellView c={c} />
@@ -289,7 +316,7 @@ export function Desk({
               );
             })}
           </div>
-        </div>
+        </div>}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 13px' }}>
           <span className="pc-num" style={{ flex: 1, fontSize: 10.8, color: 'var(--txt-muted)' }}>
@@ -303,17 +330,17 @@ export function Desk({
         </div>
       </div>
 
-      <div style={PANEL}>
+      <div ref={detailRef} role="region" aria-label={detailTitle} tabIndex={-1} className="pc-review-detail" style={PANEL}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
           <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' }}>{detailTitle}</span>
         </div>
         {!selected ? (
-          <div style={{ padding: '44px 16px', textAlign: 'center', fontSize: 12.4, color: 'var(--txt-muted)' }}>Pick a row to open it.</div>
+          <div style={{ padding: '44px 16px', textAlign: 'center', fontSize: 12.4, color: 'var(--txt-muted)' }}>Select an item to review its details.</div>
         ) : (
           <div style={{ padding: 16 }}>
             {selected.detail.media ? (
               <div style={{ marginBottom: 14, borderRadius: 11, overflow: 'hidden', background: 'rgba(var(--on),0.05)', border: '1px solid rgba(var(--on),0.10)' }}>
-                <MediaPreview key={selected.detail.media.url} url={selected.detail.media.url} video={selected.detail.media.video} />
+                <ReviewMediaGallery key={selected.id} media={selected.detail.gallery?.length ? selected.detail.gallery : [selected.detail.media]} />
               </div>
             ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>

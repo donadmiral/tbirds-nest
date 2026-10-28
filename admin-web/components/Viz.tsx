@@ -64,7 +64,7 @@ export function SeriesChart({ rows, series, height = 250 }: { rows: Row[]; serie
   const hoverX = hover !== null && n > 1 ? (hover / (n - 1)) * w : null;
   const ticks = [0, 0.25, 0.5, 0.75, 1];
 
-  if (!rows.length) return <Empty note="No days recorded in daily_stats yet." />;
+  if (!rows.length) return <Empty note="Your activity chart will appear after the first daily summary." />;
 
   return (
     <div>

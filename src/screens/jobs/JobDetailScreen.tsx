@@ -69,7 +69,7 @@ function daysLeft(deadline?: string | null) {
 }
 
 export default function JobDetailScreen() {
-  useTheme();
+  const { isDark } = useTheme();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
@@ -211,7 +211,7 @@ export default function JobDetailScreen() {
 
   return (
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle={getTheme().surface.canvas === '#FFFFFF' ? 'dark-content' : 'light-content'} backgroundColor={getTheme().surface.canvas} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={getTheme().surface.canvas} />
       <View style={st.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />

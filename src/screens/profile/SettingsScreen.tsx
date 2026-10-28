@@ -67,7 +67,7 @@ function Row({ icon, label, sublabel, onPress, danger, right, chevron = true }: 
 }
 
 export default function SettingsScreen() {
-  useTheme();
+  const { isDark } = useTheme();
   const navigation = useNavigation<any>();
   const exportBusy = React.useRef(false);
   const insets = useSafeAreaInsets();
@@ -509,7 +509,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle={getTheme().surface.canvas === '#FFFFFF' ? 'dark-content' : 'light-content'} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text>

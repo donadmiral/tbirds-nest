@@ -1,3 +1,5 @@
+import { postAspectRatio, type PostFrameRecipe } from '../../shared/postMediaEditing';
+import PostCaption from './PostCaption';
 /**
  * PostCarousel.tsx
  * Instagram-style horizontal media carousel for multi-photo/video posts.
@@ -41,7 +43,7 @@ export type CarouselMedia = {
   sort_order: number;
   width?: number | null;
   height?: number | null;
-  edit?: { rotation?: number; flipX?: boolean; speed?: number|null; soundtrack?: SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; coverUrl?: string | null; muted?: boolean; trimStart?: number | null; trimEnd?: number | null } | null;
+  edit?: PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?: number|null; soundtrack?: SoundtrackSelection|null; scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; coverUrl?: string | null; muted?: boolean; trimStart?: number | null; trimEnd?: number | null } | null;
 };
 
 type Props = {
@@ -209,9 +211,10 @@ function CarouselVideo({
       onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
       {owns || holdView ? <VideoView style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={player} contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
-      {poster && !owns && !holdView ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height }} contentFit="cover" /> : null}
+      {poster && !owns && !holdView ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height,transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} contentFit={edit?.fit==='contain'?'contain':'cover'} /> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
+      <PostCaption captions={edit?.captions} time={musicClock.time + (edit?.trimStart ?? 0)} />
 
       <PostSoundtrack selection={soundtrack} active={owns&&shouldPlay&&!muted} clock={musicClock}/>
       {/* Playback progress bar */}
@@ -291,10 +294,9 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   const veil = isSensitive && sensitiveMode === 'blur' && !revealed;
   const tagMap = useMediaTags((media || []).map((m: any) => m.id).filter(Boolean));
   const [activeIndex, setActiveIndex] = useState(0);
-  // The frame the composer chose for this post: square, 4:5 or 1.91:1.
-  // Posts made before the choice existed keep 4:5.
-  const aspect = (media[0]?.edit as any)?.aspect as ('square' | 'portrait' | 'landscape' | undefined);
-  const ratio = aspect === 'square' ? 1 : aspect === 'landscape' ? 1 / 1.91 : HEIGHT_RATIO;
+  // Every attachment keeps the exact frame shown in its editor.
+  const currentMedia=media[Math.min(activeIndex,media.length-1)];
+  const ratio = 1 / postAspectRatio(currentMedia?.edit,currentMedia?.width,currentMedia?.height);
   const slideHeight = Math.round(containerWidth * ratio);
   const total = media.length;
   const soundtrack=readSoundtrack(media[0]?.edit?.soundtrack);

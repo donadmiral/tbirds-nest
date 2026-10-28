@@ -162,7 +162,7 @@ test('advancing a story clears its private reply and viewer sheet', () => {
   execute(effect(viewer, '    readyStoryRef.current = null;', '  }, [story?.id]);'), {
     useEffect: fn => fn(), playbackPausedRef: { current: true }, manualPauseRef: { current: true }, holdPausedRef: { current: true }, holdConsumedClickRef: { current: false }, setPlaybackPaused() {}, story: { id: 'story-b' }, readyStoryRef: { current: 'story-a' }, heldRef: { current: true },
     holdRef: { current: null }, resumeDelayRef: { current: null }, setLoadedStoryId() {}, setFailedStoryId() {}, setActionError() {},
-    setReplyText: value => reply = value, setReplyToast: value => toast = value, setViewersOpen: value => sheet = value, setHeartBurst() {},
+    setReplyText: value => reply = value, setReplyToast: value => toast = value, setViewersOpen: value => sheet = value, setMoreOpen() {}, setMemoryOpen() {}, setHeartBurst() {},
   });
   assert.equal(reply, ''); assert.equal(sheet, false); assert.equal(toast, false);
 });
@@ -175,7 +175,7 @@ function draftHarness(rows) {
     uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, assertOwner() {}, runBounded: value => value, busyRef: lock, publication: { current: null }, draftRequest: request,
     setBusy: value => busy = value, setError: value => error = value, setPeople: value => people = value,
     hydrateStoryDraftMedia: async rows => rows, replacePreview() {}, setAudioDraft() {},
-    setStickers() {}, setTransform() {}, setBackground() {}, setEditorKey() {}, setFilterId() {}, setDraftId() {}, setMediaUrl() {}, setMediaType() {}, setDurationSec() {}, setCaption() {}, setAudience() {},
+    setComposeStep() {}, setStickers() {}, setTransform() {}, setBackground() {}, setEditorKey() {}, setFilterId() {}, setDraftId() {}, setMediaUrl() {}, setMediaType() {}, setDurationSec() {}, setCaption() {}, setAudience() {},
     publicationError: failure => failure.message,
     supabase: { from: () => ({ select: () => ({ in: async () => ({ data: rows, error: null }) }) }) },
   };

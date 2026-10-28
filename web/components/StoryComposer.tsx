@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, ImagePlus, Plus, Trash2, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Globe2, ImagePlus, Plus, SlidersHorizontal, Type, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SaveToMemory } from "@/components/SaveToMemory";
@@ -13,6 +13,9 @@ import { publicationError } from "@/lib/publication";
 import { checkUploadableBytes } from "@/lib/media";
 import { hydrateStoryDraftMedia } from "@/lib/contentMedia";
 import { StoryEditor } from "@/components/StoryEditor";
+import { StoryStickerPreview } from "@/components/StoryStickerPreview";
+import { AdjustOverlay, BgLayer } from "@/components/StoryEngine";
+import studio from "./StoryStudio.module.css";
 import { StoryAudioEditor } from "@/components/StoryAudioEditor";
 import type { StoryAudioDraft } from "@/lib/storyAudio";
 
@@ -52,9 +55,13 @@ function ComposerInner() {
   const [durationSec, setDurationSec] = useState<number | null>(null);
   const [caption, setCaption] = useState("");
   const [stickers, setStickers] = useState<StoryTextSticker[]>([]);
-  const [transform, setTransform] = useState<StoryMediaTransform>({ scale: 1, translateNX: 0, translateNY: 0 });
+  const [transform, setTransform] = useState<StoryMediaTransform>({ scale: 1, translateNX: 0, translateNY: 0, fit: "contain" });
   const [background, setBackground] = useState({ colors: ["#0B1E3D", "#594D71"] });
   const [editorKey, setEditorKey] = useState(0);
+  const [composeStep, setComposeStep] = useState<"edit" | "share">("edit");
+  const [editToolsOpen, setEditToolsOpen] = useState(false);
+  const [audienceOpen, setAudienceOpen] = useState(false);
+  const [editTab, setEditTab] = useState<"look" | "adjust" | "frame">("look");
   const [filterId, setFilterId] = useState<string | null>(null);
   const [audience, setAudience] = useState("everyone");
   const [people, setPeople] = useState<AccessPerson[]>([]);
@@ -120,9 +127,9 @@ function ComposerInner() {
         publication.current = null;
         publishedRef.current = false;
         appliedRouteDraft.current = null;
-        setDrafts([]); setDraftId(null); setMediaUrl(null); replacePreview(null); setMediaType("image");
+        setComposeStep("edit"); setEditToolsOpen(false); setAudienceOpen(false); setDrafts([]); setDraftId(null); setMediaUrl(null); replacePreview(null); setMediaType("image");
         setCaption(""); setAudioDraft(null); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null);
-        setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0 }); setEditorKey(k => k + 1);
+        setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0, fit: "contain" }); setEditorKey(k => k + 1);
         if (previous) { try { sessionStorage.removeItem("platinum:story-publish:" + previous); } catch {} }
         setQ(""); setResults([]); setBusy(null);
         setPublicationStatus({ postId: null, uncertain: false, locked: false, published: false });
@@ -167,7 +174,7 @@ function ComposerInner() {
       setAudioDraft(p.audio_draft ?? null);
       setMediaUrl(p.media_url ?? null); setMediaType(p.media_type);
       setCaption(p.caption ?? ""); setAudience(p.audience); setFilterId(p.filter_id);
-      setStickers(p.stickers_json ?? []); setTransform(p.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0 });
+      setStickers(p.stickers_json ?? []); setTransform(p.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0, fit: "contain" });
       if (p.text_background) setBackground(p.text_background);
       setPeople((p.shared_with ?? []).map((id: string) => ({ id, full_name: "Selected recipient", username: null, avatar_url: null })));
       setDraftId(p.draft_id ?? null); setEditorKey(k => k + 1);
@@ -234,12 +241,13 @@ function ComposerInner() {
     if (!uid || busyRef.current || publication.current || !isCurrent(uid, ownerVersion.current) || d.user_id !== uid) return;
     const owner = uid, version = ownerVersion.current;
     const request = ++draftRequest.current;
+    setComposeStep("edit");
     busyRef.current = true;
     setBusy("draft-load");
     setError(null);
     setPeople([]);
     setFilterId(d.filter_id ?? null);
-    setStickers(d.stickers_json ?? []); setTransform(d.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0 });
+    setStickers(d.stickers_json ?? []); setTransform(d.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0, fit: "contain" });
     if (d.text_background) setBackground(d.text_background);
     setEditorKey(k => k + 1);
     setAudioDraft(d.audio_draft ?? null);
@@ -373,7 +381,7 @@ function ComposerInner() {
       assertOwner(owner, version);
       if (r.error || !r.data) throw r.error || new Error("Could not confirm the saved draft.");
       saved = true;
-      setDraftId(null); setMediaUrl(null); setMediaType("image"); setCaption(""); setAudioDraft(null); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null); setStickers([]); setEditorKey(k => k + 1); setTransform({ scale: 1, translateNX: 0, translateNY: 0 });
+      setComposeStep("edit"); setDraftId(null); setMediaUrl(null); replacePreview(null); setMediaType("image"); setCaption(""); setAudioDraft(null); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null); setStickers([]); setEditorKey(k => k + 1); setTransform({ scale: 1, translateNX: 0, translateNY: 0, fit: "contain" });
       await loadDrafts(owner, version);
     } catch (failure) { if (isCurrent(owner, version)) setError((saved ? "Draft saved, but the draft list could not reload. " : "Your draft remains open here; keep this page open. ") + publicationError(failure)); }
     finally { if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); } }
@@ -393,146 +401,81 @@ function ComposerInner() {
     finally { if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); } }
   }
 
-  return (
-    <div className="mx-auto w-full max-w-[560px] px-4 pb-16">
-      <div className="sticky top-0 z-20 -mx-4 mb-4 flex items-center gap-2 border-b border-ink/10 bg-white/75 px-4 py-2.5 backdrop-blur-md">
-        <Link href="/home" className="rounded-full p-2 text-muted hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></Link>
-        <p className="flex-1 font-display text-[17px] text-ink">New story</p>
-        <Link href="/archive" className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-secondary">Archive</Link>
-      </div>
-
-      {publicationStatus.published && publicationStatus.postId && uid ? <section className="mb-5 space-y-3 rounded-2xl border border-ink/10 bg-white p-4"><p role="status" className="font-semibold text-ink">Your story is shared.</p><SaveToMemory storyId={publicationStatus.postId} ownerId={uid} inline /><Link href="/home" className="block rounded-full bg-ink px-4 py-3 text-center text-sm font-semibold text-white">Done</Link></section> : null}
+  const hasMedia = !!mediaUrl || mediaType === "text";
+  const audienceLabel = AUD.find(option => option.key === audience)?.label || "Everyone";
+  const review = () => { videoPreview.current?.pause(); setComposeStep("share"); };
+  const removeMedia = () => { videoPreview.current?.pause(); setMediaUrl(null); replacePreview(null); setMediaType("image"); setDraftId(null); setAudioDraft(null); setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0, fit: "contain" }); setEditorKey(k => k + 1); setComposeStep("edit"); };
+  const mediaStyle = { objectFit: transform.fit === "contain" ? "contain" as const : "cover" as const, transform: `translate(${(transform.translateNX || 0) * 100}%, ${(transform.translateNY || 0) * 100}%) scale(${transform.scale || 1})` };
+  const mediaPreview = (reviewOnly = false) => <>
+    {mediaType === "text" ? <div className="h-full w-full" style={{ background: `linear-gradient(160deg,${background.colors.join(",")})` }} /> : <>
+      {transform.bg && transform.fit === "contain" ? <BgLayer bg={transform.bg} mediaUrl={mediaType === "image" ? previewUrl : null} /> : null}
+      {mediaType === "video" ? <video ref={reviewOnly ? undefined : videoPreview} src={previewUrl ?? undefined} controls={!reviewOnly} playsInline muted={reviewOnly} preload="metadata" className="relative h-full w-full" style={mediaStyle} onLoadedMetadata={e => { e.currentTarget.playbackRate = transform.speed || 1; if ((transform.trimStart || 0) > 0) e.currentTarget.currentTime = transform.trimStart || 0; }} onTimeUpdate={e => { const v = e.currentTarget; if (transform.trimEnd && v.currentTime >= transform.trimEnd) { v.pause(); v.currentTime = transform.trimStart ?? 0; } }} onPlay={e => { e.currentTarget.playbackRate = transform.speed || 1; if (e.currentTarget.currentTime < (transform.trimStart ?? 0)) e.currentTarget.currentTime = transform.trimStart ?? 0; }} /> :
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={previewUrl ?? undefined} alt="" className="relative h-full w-full" style={mediaStyle} />}
+      {filterId ? (() => { const f = STORY_FILTERS.find(x => x.id === filterId); return f ? <div className="pointer-events-none absolute inset-0" style={{ opacity: (transform.filterAmt ?? 100) / 100, backdropFilter: filterCss(filterId), WebkitBackdropFilter: filterCss(filterId) }}>{f.layers.map((layer, i) => <div key={i} className="absolute inset-0" style={{ backgroundColor: layer.color, opacity: layer.opacity }} />)}</div> : null; })() : null}
+      <AdjustOverlay adjust={transform.adjust} />
+    </>}
+  </>;
+  const audienceControls = <>
+    <div className={studio.audienceGrid}>{AUD.map(option => <button type="button" key={option.key} className={studio.button} aria-pressed={audience === option.key} onClick={() => setAudience(option.key)}>{option.label}{audience === option.key ? <Check size={16} /> : null}</button>)}</div>
+    {audience === "only_with" ? <div className="mt-5">
+      <label className={studio.field}><span className="flex items-center gap-2"><Users size={15} />Share with</span><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search people" /></label>
+      <div className={studio.row}>{results.map(person => <button type="button" key={person.id} onClick={() => { setPeople(current => current.some(p => p.id === person.id) ? current : [...current, person]); setQ(""); setResults([]); }} className={studio.button}>{person.full_name} <VerifiedBadge userId={person.id} size={12} />@{person.username}<Plus size={14} /></button>)}</div>
+      <div className={studio.row}>{people.map(person => <span key={person.id} className={studio.button}>{person.full_name}<VerifiedBadge userId={person.id} size={11} /><button type="button" aria-label={`Remove ${person.full_name || person.username} from story audience`} className="flex h-8 w-8 items-center justify-center" onClick={() => setPeople(current => current.filter(x => x.id !== person.id))}><X size={14} /></button></span>)}</div>
+    </div> : null}
+  </>;
+  return <div className={studio.composer}>
+    <header className={studio.composerHeader}>
+      {composeStep === "share" && !publicationStatus.published ? <button type="button" onClick={() => setComposeStep("edit")} className={studio.icon} aria-label="Back to story editing"><ArrowLeft size={20} /></button> : <Link href="/home" className={studio.icon} aria-label="Back to home"><ArrowLeft size={20} /></Link>}
+      <h1 className={studio.composerTitle}>{publicationStatus.published ? "Story shared" : composeStep === "share" ? "Share story" : "Your story"}</h1>
+      <Link href="/archive" className={studio.quietLink}>Archive</Link>
+    </header>
+    {publicationStatus.published && publicationStatus.postId && uid ? <section className="mx-4 space-y-4 rounded-2xl bg-[#faf6ee] p-5 text-[#0B1E3D]"><p role="status" className="text-lg font-semibold">Your moment is shared.</p><p className="text-sm text-[#69717a]">Keep it in a memory book to revisit it later.</p><SaveToMemory storyId={publicationStatus.postId} ownerId={uid} inline /><Link href="/home" className="block rounded-full bg-[#0B1E3D] px-4 py-3 text-center text-sm font-semibold text-white">Done</Link></section> : null}
+    {!publicationStatus.published ? <>
       <fieldset disabled={!uid || !!busy || publicationStatus.locked} className="contents">
-      {drafts.length > 0 && !mediaUrl && mediaType !== "text" ? (
-        <div className="mb-5">
-          <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Drafts</p>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {drafts.map((d) => (
-              <div key={d.id} className="relative w-20 shrink-0">
-                <button onClick={() => applyDraft(d)} className="block aspect-[9/14] w-full overflow-hidden rounded-lg border border-ink/10 bg-ink/5">
-                  {d.media_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    d.media_type === "video" ? <video src={d.preview_media_url ?? undefined} muted className="h-full w-full object-cover" /> : <img src={d.preview_media_url ?? undefined} alt="" className="h-full w-full object-cover" />
-                  ) : null}
-                </button>
-                <button onClick={() => deleteDraft(d)}
-                  className="absolute -right-1 -top-1 rounded-full bg-white p-1 text-muted shadow" aria-label="Delete draft"><X size={11} /></button>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {!mediaUrl && mediaType !== "text" ? (
-        <><button onClick={() => fileRef.current?.click()} disabled={busy === "upload"}
-          className="flex aspect-[9/14] w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-ink/15 text-ink/45 hover:border-ink/30">
-          <ImagePlus size={26} />
-          <span className="text-[13px] font-semibold">{busy === "upload" ? "Uploading" : "Add a photo or video"}</span>
-        </button><button type="button" onClick={() => setMediaType("text")} className="mt-3 w-full rounded-lg border border-ink/15 p-3 text-sm text-ink">Create a text story</button></>
-      ) : (
-        <>
-        <StoryEditor key={editorKey} value={stickers} onChange={setStickers}>
-          {mediaType === "text" ? <div className="h-full w-full" style={{ background: `linear-gradient(160deg,${background.colors.join(",")})` }} /> : mediaType === "video" ? (
-            <video ref={videoPreview} src={previewUrl ?? undefined} controls playsInline className="h-full w-full object-contain" onTimeUpdate={e => { const v = e.currentTarget; if (transform.trimEnd && v.currentTime >= transform.trimEnd) { v.pause(); v.currentTime = transform.trimStart ?? 0; } }} onPlay={e => { if (e.currentTarget.currentTime < (transform.trimStart ?? 0)) e.currentTarget.currentTime = transform.trimStart ?? 0; }} />
-          ) : (
+        {!hasMedia ? <>
+          {drafts.length ? <section className="px-4"><h2 className={studio.sectionTitle}>Your drafts</h2><div className={studio.drafts}>{drafts.map(draft => <div key={draft.id} className={studio.draft}><button type="button" aria-label="Continue saved story" onClick={() => void applyDraft(draft)} className={studio.draftMedia}>{draft.preview_media_url ? draft.media_type === "video" ? <video src={draft.preview_media_url} muted playsInline preload="metadata" /> :
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl ?? undefined} alt="" className="h-full w-full object-contain" />
-          )}
-          {/* The chosen look, drawn exactly as the viewer draws it. */}
-          {filterId ? (() => { const f = STORY_FILTERS.find((x) => x.id === filterId); return f ? (
-            <div className="pointer-events-none absolute inset-0" style={{ backdropFilter: filterCss(filterId), WebkitBackdropFilter: filterCss(filterId) }}>
-              {f.layers.map((l, i) => <div key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />)}
-            </div>) : null; })() : null}
-          <button onClick={() => { setMediaUrl(null); replacePreview(null); setMediaType("image"); setDraftId(null); setAudioDraft(null); setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0 }); setEditorKey(k => k + 1); }} className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white" aria-label="Remove media"><X size={14} /></button>
-        </StoryEditor>
-        {uid && <StoryAudioEditor key={uid} owner={uid} value={audioDraft} onChange={setAudioDraft} mix={transform.mix ?? {}} onMixChange={mix => setTransform(t => ({ ...t, mix }))} isVideo={mediaType === "video"} disabled={!!busy || publicationStatus.locked} onBusyChange={active => { busyRef.current = active; setBusy(active ? "audio-upload" : null); if (active) videoPreview.current?.pause(); }} />}
-        {mediaType === "video" && durationSec ? <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-muted"><label>Start, seconds<input type="number" min={0} max={Math.max(0, durationSec - 1)} value={transform.trimStart ?? 0} onChange={e => { const start = Math.max(0, Math.min(durationSec - 1, Number(e.target.value))); setTransform(t => ({ ...t, trimStart: start, trimEnd: Math.min(durationSec, start + 60) })); }} className="mt-1 w-full rounded-lg border border-ink/15 p-2 text-ink" /></label><label>End, seconds<input type="number" min={(transform.trimStart ?? 0) + 1} max={Math.min(durationSec, (transform.trimStart ?? 0) + 60)} value={transform.trimEnd ?? Math.min(durationSec, 60)} onChange={e => setTransform(t => ({ ...t, trimEnd: Math.max((t.trimStart ?? 0) + 1, Math.min(durationSec, (t.trimStart ?? 0) + 60, Number(e.target.value))) }))} className="mt-1 w-full rounded-lg border border-ink/15 p-2 text-ink" /></label></div> : null}
-        {mediaType === "image" ? (
-          <div className="mt-3">
-            {STORY_FILTER_FAMILIES.map((fam) => (
-              <div key={fam.key} className="mb-2">
-                <p className="mb-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-muted">{fam.label}</p>
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {(fam.key === "classic" ? [{ id: null as string | null, label: "None", layers: [] as { color: string; opacity: number }[], css: undefined as string | undefined }, ...STORY_FILTERS.filter((f) => f.family === fam.key)] : STORY_FILTERS.filter((f) => f.family === fam.key)).map((f) => {
-                    const on = filterId === f.id;
-                    return (
-                      <button key={f.id ?? "none"} type="button" onClick={() => setFilterId(f.id)} className="flex w-[64px] shrink-0 flex-col items-center gap-1">
-                        <span className={"relative block h-[64px] w-[64px] overflow-hidden rounded-xl border-2 " + (on ? "border-pearl" : "border-transparent")}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={previewUrl ?? undefined} alt="" className="h-full w-full object-cover" style={{ filter: filterCss(f.id) }} />
-                          {f.layers.map((l, i) => <span key={i} className="absolute inset-0" style={{ backgroundColor: l.color, opacity: l.opacity }} />)}
-                        </span>
-                        <span className={"text-[11px] " + (on ? "font-semibold text-ink" : "text-muted")}>{f.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
-        </>
-      )}
-      <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) pickFile(f); e.target.value = ""; }} />
-
-      <input value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={120} placeholder="Write a caption"
-        className="mt-4 w-full rounded-lg border border-ink/15 px-3 py-2.5 text-[14px] text-ink outline-none focus:border-ink/40" />
-
-      <p className="mb-1.5 mt-4 text-[12px] font-semibold uppercase tracking-wide text-muted">Audience</p>
-      <div className="grid grid-cols-2 gap-1.5">
-        {AUD.map((a) => (
-          <button key={a.key} onClick={() => setAudience(a.key)}
-            className={"flex items-center justify-between rounded-lg border px-3 py-2.5 text-left text-[13px] " + (audience === a.key ? "border-ink bg-black/[0.03] font-semibold text-ink" : "border-ink/10 text-secondary")}>
-            {a.label}{audience === a.key ? <Check size={14} /> : null}
-          </button>
-        ))}
-      </div>
-
-      {audience === "only_with" ? (
-        <div className="mt-3">
-          <div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted"><Users size={13} /> Share with</div>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people"
-            className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none focus:border-ink/40" />
-          {results.map((r) => (
-            <button key={r.id} onClick={() => { setPeople(current => current.some(p => p.id === r.id) ? current : [...current, r]); setQ(""); setResults([]); }}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-black/5">
-              <span className="text-[13px] text-ink">{r.full_name} <VerifiedBadge userId={r.id} size={12} /> <span className="text-muted">@{r.username}</span></span>
-              <Plus size={13} className="ml-auto text-muted" />
-            </button>
-          ))}
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {people.map((p) => (
-              <span key={p.id} className="flex items-center gap-1 rounded-full bg-black/5 px-2.5 py-1 text-[12px] text-ink">
-                {p.full_name}
-                <VerifiedBadge userId={p.id} size={11} />
-                <button onClick={() => setPeople(current => current.filter((x) => x.id !== p.id))} aria-label="Remove"><X size={11} /></button>
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
+            <img src={draft.preview_media_url} alt="" /> : "Aa"}</button><button type="button" onClick={() => void deleteDraft(draft)} className={studio.draftRemove} aria-label="Delete draft"><X size={15} /></button></div>)}</div></section> : null}
+          <section className={studio.capture}><span className="mb-1 flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-white/5"><ImagePlus size={32} strokeWidth={1.3} /></span><h2 className={studio.captureTitle}>A moment worth sharing.</h2><p className={studio.captureHint}>Choose a photo or video, then make it your own.</p><button type="button" onClick={() => fileRef.current?.click()} disabled={busy === "upload"} className={studio.primary}><ImagePlus size={18} />{busy === "upload" ? "Uploading…" : "Add photo or video"}</button><button type="button" onClick={() => { setMediaType("text"); setComposeStep("edit"); }} className={studio.button}><Type size={18} />Create with text</button></section>
+        </> : <>
+          <div hidden={composeStep !== "edit"}><StoryEditor key={editorKey} value={stickers} onChange={setStickers} onNext={review} onOpenEdit={() => { videoPreview.current?.pause(); setEditToolsOpen(true); }} onClose={removeMedia} audience={audienceLabel} onAudience={() => setAudienceOpen(true)} thumbnail={mediaType === "text" ? "Aa" : mediaType === "video" ? <video src={previewUrl ?? undefined} playsInline muted preload="metadata" /> :
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={previewUrl ?? undefined} alt="" />}>{mediaPreview()}</StoryEditor></div>
+          {composeStep === "share" ? <section className={studio.share}>
+            <div className={studio.sharePreview} aria-label="Story preview"><div style={{ position: "absolute", width: 390, height: 693.33, transform: "scale(0.348718)", transformOrigin: "top left" }}>{mediaPreview(true)}<div className="pointer-events-none absolute inset-0">{stickers.map(sticker => <span key={sticker.id} style={{ position: "absolute", maxWidth: "80%", left: `${sticker.nx * 100}%`, top: `${sticker.ny * 100}%`, transform: `translate(-50%, -50%) rotate(${sticker.rotation}rad) scale(${sticker.scale})` }}><StoryStickerPreview sticker={sticker} /></span>)}</div></div></div>
+            <button type="button" className={`${studio.shareInfo} w-full text-left`} onClick={() => setAudienceOpen(true)}><Globe2 size={23} /><span className="flex-1"><span className="block text-xs text-[#a9adb0]">Who can see this?</span><span className="mt-1 block text-sm font-semibold">{audienceLabel}</span></span><ChevronRight size={20} /></button>
+            <label className={studio.field}>Add a caption<textarea value={caption} maxLength={120} onChange={e => setCaption(e.target.value)} placeholder="A moment worth sharing…" /></label>
+            <p className={studio.note}>Your story is available for 24 hours. You can keep it in a memory book after sharing.</p>
+          </section> : null}
+        </>}
+        <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={e => { const file = e.target.files?.[0]; if (file) void pickFile(file); e.target.value = ""; }} />
+        {audienceOpen ? <div className={studio.overlay} onClick={e => { if (e.target === e.currentTarget) setAudienceOpen(false); }}><section role="dialog" aria-modal="true" aria-label="Story audience" className={studio.sheet}><div className={studio.handle} /><div className={studio.sheetHeader}><h2 className={studio.sheetTitle}>Who can see this?</h2><button type="button" className={studio.primary} onClick={() => setAudienceOpen(false)}>Done</button></div>{audienceControls}<p className={studio.note}>Choose the audience for this story.</p></section></div> : null}
+        {editToolsOpen ? <div className={studio.overlay} onClick={e => { if (e.target === e.currentTarget) setEditToolsOpen(false); }}><section role="dialog" aria-modal="true" aria-label="Edit story media" className={studio.sheet}><div className={studio.handle} /><div className={studio.sheetHeader}><h2 className={studio.sheetTitle}>Make it yours</h2><button type="button" className={studio.primary} onClick={() => setEditToolsOpen(false)}>Done</button></div>
+          {mediaType === "text" ? <><h3 className={studio.sectionTitle}>Canvas color</h3><div className={studio.row}>{[["#0B1E3D", "#594D71"], ["#4A413A", "#BBA186"], ["#50634D", "#C5CEB4"], ["#A76854", "#F3B49E"], ["#111518", "#41474F"]].map(colors => <button type="button" key={colors[0]} aria-label={`Canvas ${colors.join(" to ")}`} aria-pressed={background.colors[0] === colors[0]} onClick={() => setBackground({ colors })} className={studio.swatch} style={{ background: `linear-gradient(140deg,${colors.join(",")})` }} />)}</div></> : <>
+            <div role="tablist" aria-label="Media tools" className={studio.tabs}>{([['look','Filters'],['adjust','Adjust'],['frame',mediaType === "video" ? 'Frame & trim' : 'Frame']] as const).map(([id,label]) => <button type="button" key={id} role="tab" aria-selected={editTab === id} onClick={() => setEditTab(id)} className={studio.tab}>{label}</button>)}</div>
+            {editTab === "look" ? <>{STORY_FILTER_FAMILIES.map(family => <div key={family.key}><h3 className={studio.sectionTitle}>{family.label}</h3><div className={studio.filterList}>{(family.key === "classic" ? [{ id: null as string | null, label: "Original", layers: [] as { color: string; opacity: number }[] }, ...STORY_FILTERS.filter(f => f.family === family.key)] : STORY_FILTERS.filter(f => f.family === family.key)).map(filter => <button type="button" key={filter.id ?? "none"} onClick={() => setFilterId(filter.id)} aria-pressed={filterId === filter.id} className={studio.filter}><span className={studio.filterImage}>{mediaType === "video" ? <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#d7c8b0] to-[#50634D]" style={{ filter: filterCss(filter.id) }}><SlidersHorizontal size={20} /></span> :
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={previewUrl ?? undefined} alt="" style={{ filter: filterCss(filter.id) }} />}{filter.layers.map((layer, i) => <span key={i} className="absolute inset-0" style={{ backgroundColor: layer.color, opacity: layer.opacity }} />)}</span>{filter.label}</button>)}</div></div>)}{filterId ? <label className={studio.field}>Intensity<input aria-label="Filter intensity" type="range" min={0} max={100} value={transform.filterAmt ?? 100} onChange={e => setTransform(t => ({ ...t, filterAmt: Number(e.target.value) }))} /></label> : null}</> : null}
+            {editTab === "adjust" ? <>{([['bri','Brightness'],['warm','Warmth'],['tint','Tint'],['sat','Saturation'],['fade','Fade'],['vig','Vignette']] as const).map(([key,label]) => <label key={key} className={studio.field}><span className="flex justify-between">{label}<span>{transform.adjust?.[key] || 0}</span></span><input aria-label={label} type="range" min={key === "fade" || key === "vig" ? 0 : -100} max={100} value={transform.adjust?.[key] || 0} onChange={e => setTransform(t => ({ ...t, adjust: { ...t.adjust, [key]: Number(e.target.value) } }))} /></label>)}<button type="button" className={studio.button} onClick={() => setTransform(t => ({ ...t, adjust: null }))}>Reset adjustments</button></> : null}
+            {editTab === "frame" ? <><div className={studio.row}><button type="button" className={studio.button} aria-pressed={transform.fit === "contain"} onClick={() => setTransform(t => ({ ...t, fit: "contain" }))}>Fit full image</button><button type="button" className={studio.button} aria-pressed={transform.fit !== "contain"} onClick={() => setTransform(t => ({ ...t, fit: "cover" }))}>Fill canvas</button></div><label className={studio.field}>Zoom<input aria-label="Media zoom" type="range" min={1} max={3} step={.05} value={transform.scale} onChange={e => setTransform(t => ({ ...t, scale: Number(e.target.value) }))} /></label>{([['translateNX','Horizontal position'],['translateNY','Vertical position']] as const).map(([key,label]) => <label key={key} className={studio.field}>{label}<input aria-label={label} type="range" min={-.5} max={.5} step={.01} value={transform[key]} onChange={e => setTransform(t => ({ ...t, [key]: Number(e.target.value) }))} /></label>)}
+              {mediaType === "video" && durationSec ? <><div className="grid grid-cols-2 gap-3"><label className={studio.field}>Start, seconds<input type="number" min={0} max={Math.max(0, durationSec - 1)} value={transform.trimStart ?? 0} onChange={e => { const start = Math.max(0, Math.min(durationSec - 1, Number(e.target.value))); setTransform(t => ({ ...t, trimStart: start, trimEnd: Math.min(durationSec, start + 60) })); }} /></label><label className={studio.field}>End, seconds<input type="number" min={(transform.trimStart ?? 0) + 1} max={Math.min(durationSec, (transform.trimStart ?? 0) + 60)} value={transform.trimEnd ?? Math.min(durationSec, 60)} onChange={e => setTransform(t => ({ ...t, trimEnd: Math.max((t.trimStart ?? 0) + 1, Math.min(durationSec, (t.trimStart ?? 0) + 60, Number(e.target.value))) }))} /></label></div><label className={studio.field}>Playback speed<select value={transform.speed || 1} onChange={e => setTransform(t => ({ ...t, speed: Number(e.target.value) }))}>{[.5,1,1.5,2].map(speed => <option key={speed} value={speed}>{speed}×</option>)}</select></label></> : null}
+              <button type="button" className={studio.button} onClick={() => setTransform(t => ({ ...t, scale: 1, translateNX: 0, translateNY: 0, fit: "contain" }))}>Reset frame</button>
+            </> : null}
+          </>}
+          {uid ? <details className="mt-5 border-t border-white/10 pt-4"><summary className="cursor-pointer py-2 text-sm text-white/75">Original audio & voiceover</summary><div className="rounded-2xl bg-[#faf8f4] p-3 text-[#0B1E3D] [color-scheme:light]"><StoryAudioEditor key={uid} owner={uid} value={audioDraft} onChange={setAudioDraft} mix={transform.mix ?? {}} onMixChange={mix => setTransform(t => ({ ...t, mix }))} isVideo={mediaType === "video"} disabled={!!busy || publicationStatus.locked} onBusyChange={active => { busyRef.current = active; setBusy(active ? "audio-upload" : null); if (active) videoPreview.current?.pause(); }} /></div></details> : null}
+        </section></div> : null}
       </fieldset>
-      {error ? <p role="alert" className="mt-3 text-[13px] text-red-700">{error}</p> : null}
-      <div className="mt-5 flex gap-2">
-        <button onClick={saveDraft} disabled={!uid || (!mediaUrl && mediaType !== "text") || !!busy || publicationStatus.locked}
-          className="flex-1 rounded-md border border-ink/15 py-2.5 text-sm font-semibold text-secondary disabled:opacity-40">
-          {busy === "draft" ? "Saving" : draftId ? "Update draft" : "Save as draft"}
-        </button>
-        <button onClick={publish} disabled={!uid || (!mediaUrl && mediaType !== "text") || audience === "only_with" && people.length === 0 || !!busy || publicationStatus.published}
-          className="flex-1 rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl disabled:opacity-40">
-          {publicationStatus.published ? "Story shared" : busy === "publish" ? "Posting" : publicationStatus.postId || publicationStatus.uncertain ? "Retry safely" : "Share to story"}
-        </button>
-      </div>
-    </div>
-  );
+      {error ? <p role="alert" className={`${studio.error} px-5`}>{error}</p> : null}
+      {busy === "upload" || busy === "draft-load" ? <p role="status" className="px-5 py-4 text-center text-sm text-[#d9c5a7]">{busy === "upload" ? "Preparing your story…" : "Opening your draft…"}</p> : null}
+      {hasMedia && composeStep === "share" ? <div className={`${studio.share} ${studio.shareActions}`}>
+        <button type="button" onClick={() => void publish()} disabled={!uid || audience === "only_with" && people.length === 0 || !!busy || publicationStatus.published} className={studio.primary}>{busy === "publish" ? "Sharing…" : publicationStatus.postId || publicationStatus.uncertain ? "Retry safely" : "Share story"}<ArrowRight size={18} /></button>
+        <button type="button" onClick={() => void saveDraft()} disabled={!uid || !!busy || publicationStatus.locked} className={studio.button}>{busy === "draft" ? "Saving…" : draftId ? "Update draft" : "Save as draft"}</button>
+      </div> : null}
+    </> : null}
+  </div>;
 }
 
 export function StoryComposer() {
-  return (
-    <Suspense fallback={<p className="py-24 text-center text-sm text-muted">Opening</p>}>
-      <ComposerInner />
-    </Suspense>
-  );
+  return <Suspense fallback={<p className="py-24 text-center text-sm text-muted">Opening story studio…</p>}><ComposerInner /></Suspense>;
 }

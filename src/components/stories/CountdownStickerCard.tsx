@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-const AMBER = '#F59E0B';
+const AMBER = '#34422D';
 
 function parts(target: string | null) {
   if (!target) return null;
@@ -81,7 +81,7 @@ export default function CountdownStickerCard({ title, target, interactive, isOwn
         )
       ) : null}
       {interactive && !isOwn && onShare ? (
-        <TouchableOpacity onPress={onShare} activeOpacity={0.8} style={{ marginTop: 8 }}><Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11.5, fontWeight: '800' }}>Add to your story</Text></TouchableOpacity>
+        <TouchableOpacity onPress={onShare} activeOpacity={0.8} style={{ marginTop: 8 }}><Text style={{ color: '#34422D', fontSize: 11.5, fontWeight: '800' }}>Add to your story</Text></TouchableOpacity>
       ) : null}
       {isOwn && (reminderCount ?? 0) > 0 ? (
         <Text style={cs.ownCount}>{reminderCount} {reminderCount === 1 ? 'reminder' : 'reminders'} set</Text>
@@ -91,16 +91,16 @@ export default function CountdownStickerCard({ title, target, interactive, isOwn
 }
 
 const cs = StyleSheet.create({
-  card: { width: 236, backgroundColor: 'rgba(10,14,26,0.92)', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 13, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 6 },
+  card: { width: 236, backgroundColor: '#C5CEB4', borderRadius: 22, paddingHorizontal: 14, paddingVertical: 13, borderWidth: 1, borderColor: 'rgba(52,66,45,0.12)', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 6 },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 9 },
-  title: { color: '#FFFFFF', fontSize: 13.5, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
+  title: { color: '#263522', fontSize: 13.5, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
   cells: { flexDirection: 'row', gap: 7 },
-  cell: { backgroundColor: 'rgba(255,255,255,0.09)', borderRadius: 10, paddingHorizontal: 9, paddingVertical: 6, alignItems: 'center', minWidth: 46 },
-  cellV: { color: '#FFFFFF', fontSize: 19, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  cellL: { color: 'rgba(255,255,255,0.55)', fontSize: 8.5, fontWeight: '800', letterSpacing: 0.8, marginTop: 1 },
+  cell: { backgroundColor: '#FAF6EE', borderRadius: 10, paddingHorizontal: 9, paddingVertical: 6, alignItems: 'center', minWidth: 46 },
+  cellV: { color: '#263522', fontSize: 19, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  cellL: { color: '#64735D', fontSize: 8.5, fontWeight: '800', letterSpacing: 0.8, marginTop: 1 },
   ended: { color: AMBER, fontSize: 15, fontWeight: '800', paddingVertical: 4 },
-  remindBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 11, backgroundColor: 'rgba(245,158,11,0.14)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.5)', borderRadius: 999, paddingHorizontal: 13, paddingVertical: 7 },
-  remindOn: { backgroundColor: AMBER, borderColor: AMBER },
+  remindBtn: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 11, backgroundColor: '#FAF6EE', borderWidth: 1, borderColor: '#A3B294', borderRadius: 999, paddingHorizontal: 13, paddingVertical: 7 },
+  remindOn: { backgroundColor: '#E9EEDF', borderColor: '#8B9D7E' },
   remindTxt: { color: AMBER, fontSize: 12, fontWeight: '800' },
-  ownCount: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '700', marginTop: 9 },
+  ownCount: { color: '#64735D', fontSize: 11, fontWeight: '700', marginTop: 9 },
 });

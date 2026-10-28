@@ -20,6 +20,9 @@ for (const file of ['components/PostCard.tsx', 'components/MediaGallery.tsx', 'l
 sources.set('../../shared/soundtrack', ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/soundtrack.ts'), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText);
+sources.set('../../shared/postMediaEditing', ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/postMediaEditing.ts'), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText);
 const text = node => typeof node === 'string' || typeof node === 'number' ? String(node)
   : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
 const nodes = tree => {

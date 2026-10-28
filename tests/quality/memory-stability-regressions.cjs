@@ -5,7 +5,7 @@ const compile=s=>ts.transpileModule(s,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return{promise,resolve,reject};};
 function shelf(owner='owner',previous='owner'){
  const src=read('src/components/MemoryAlbumCard.tsx'),start=src.indexOf(' const refresh=useCallback'),end=src.indexOf(' useFocusEffect',start),request=deferred(),writes=[],errors=[],loading=[];
- const scope={ownerId:owner,loadedOwner:{current:previous},epoch:{current:0},useCallback:f=>f,setData:x=>writes.push(x),setError:x=>errors.push(x),setLoading:x=>loading.push(x),supabase:{rpc:()=>request.promise}};
+ const scope={ownerId:owner,loadedOwner:{current:previous},epoch:{current:0},useCallback:f=>f,setData:x=>writes.push(x),setError:x=>errors.push(x),setLoading:x=>loading.push(x),supabase:{rpc:()=>request.promise},hydrateMemoryAlbumMedia:async rows=>rows};
  vm.runInNewContext(compile(src.slice(start,end)+'\nthis.refresh=refresh;'),scope);
  return{scope,request,writes,errors,loading};
 }
@@ -47,7 +47,7 @@ test('a completed flip updates the synchronous page reference and releases its o
  const h=flipHarness();h.scope.flipTo(1);h.callbacks.shift()({finished:true});assert.deepEqual(h.indices,[1]);assert.equal(h.scope.idxRef.current,1);h.callbacks.shift()({finished:true});assert.equal(h.scope.flipping.current,false);
 });
 test('page-turn touch regions leave bottom video and caption controls unobstructed',()=>{
- const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('const st = themedSheet'),end=src.indexOf('\nfunction PageVideo',start),scope={themedSheet:f=>f({surface:{canvas:'#fff'},ink:{primary:'#000'},brand:{}}),StyleSheet:{hairlineWidth:1},SW:390,SH:844,PAGE_CREAM:'#fff',TAPE:'#fff'};
+ const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('const st = themedSheet'),end=src.indexOf('\nfunction PageVideo',start),scope={themedSheet:f=>f({surface:{canvas:'#fff'},ink:{primary:'#000'},brand:{}}),StyleSheet:{hairlineWidth:1},Platform:{OS:'ios'},SW:390,SH:844,PAGE_CREAM:'#fff',TAPE:'#fff'};
  vm.runInNewContext(compile(src.slice(start,end)+'\nthis.styles=st;'),scope);
  for(const key of ['edgeL','edgeR']){const style=scope.styles[key];assert.equal(typeof style.bottom,'string');const regionEnd=600*(1-parseFloat(style.bottom)/100);const bottomButtonTop=600-8-34;assert.ok(regionEnd<bottomButtonTop,'edge must not cover video controls');assert.ok(parseFloat(style.top)>0,'edge must not cover top controls');}
 });
@@ -79,6 +79,6 @@ test('leaving a book during add does not add subsequent selected stories or upda
 });
 test('closing a book cancels its pending page animation before it can change the page',()=>{
  const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const closeBook = useCallback'),end=src.indexOf('  const flipTo',start),stops=[],values=[],opened=[];
- const scope={bookGeneration:{current:3},flipAnim:{stopAnimation:()=>stops.push(true),setValue:v=>values.push(v)},flipping:{current:true},setOpened:v=>opened.push(v),coverAnim:{},reduceMotion:false,Animated:{timing:()=>({start(){}})},Easing:{out:x=>x,cubic:x=>x},useCallback:f=>f};
+ const scope={bookGeneration:{current:3},flipAnim:{stopAnimation:()=>stops.push(true),setValue:v=>values.push(v)},flipping:{current:true},setOpened:v=>opened.push(v),setGrid(){},coverAnim:{},reduceMotion:false,Animated:{timing:()=>({start(){}})},Easing:{out:x=>x,cubic:x=>x},useCallback:f=>f};
  vm.runInNewContext(compile(src.slice(start,end)+'\nthis.closeBook=closeBook;'),scope);scope.closeBook();assert.equal(scope.bookGeneration.current,4);assert.deepEqual(stops,[true]);assert.deepEqual(values,[0]);assert.deepEqual(opened,[false]);assert.equal(scope.flipping.current,false);
 });

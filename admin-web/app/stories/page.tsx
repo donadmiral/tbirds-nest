@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
 const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
   ring: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a7 7 0 110 14 7 7 0 010-14zm0 2.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z',
@@ -163,12 +163,13 @@ export default async function StoriesPage() {
   ];
 
   return (
-    <Shell admin={admin} active="/stories" title="Stories" sub="Every story with its real media. Live ones expire on their own, violations go now, and removal is written to the audit log.">
+    <Shell admin={admin} active="/stories" title="Stories" sub="A clear view of the stories your community shares. Review the original media, activity and moderation history.">
       <StatStrip cards={cards} />
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_336px]">
+      <div className="mt-5 flex min-w-0 flex-col gap-5">
         <div>
           <Desk
+            presentation="media"
             tabs={tabs}
             columns={[{ label: 'Story' }, { label: 'Author' }, { label: 'Type' }, { label: 'State' }, { label: 'Views', align: 'right' }, { label: 'Posted', align: 'right' }]}
             grid="minmax(220px,2.4fr) minmax(150px,1.3fr) 96px 108px 84px 92px"
@@ -185,11 +186,11 @@ export default async function StoriesPage() {
           />
         </div>
 
-        <div>
+        <div className="pc-content-insights">
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>What gets posted</div>
-              <div style={H_SUB}>Story type across every row</div>
+              <div style={H_SUB}>Photos, videos and text stories</div>
             </div>
             <div style={{ padding: 16 }}>
               {typeSlices.length === 0 ? <Empty note="No story on file yet." /> : <Donut slices={typeSlices} centerLabel="stories" size={148} />}

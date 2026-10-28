@@ -11,6 +11,7 @@ export type MemoryPage = {
   duration_sec?: number | null; dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null;
 };
 export type MemoryAlbum = {
+  subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null;
   id: string; user_id?: string; is_default?: boolean; cover_design?: string; soundtrack?: import("../../shared/soundtrack").SoundtrackSelection | null;
   is_owner: boolean; can_view: boolean; title: string;
   cover_color: string; audience: string; count: number; pages: MemoryPage[];
@@ -28,7 +29,7 @@ export async function getMemoryAlbum(ownerId: string): Promise<MemoryAlbum | nul
   return album;
 }
 
-export type MemoryBookInfo = { id: string; title: string; cover_color: string; cover_design?: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
+export type MemoryBookInfo = { id: string; title: string; subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null; cover_color: string; cover_design?: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
 
 export type MemoryShelf = { is_owner: boolean; books: MemoryBookInfo[] };
 
@@ -38,8 +39,13 @@ export async function getMemoryBooks(ownerId: string): Promise<MemoryShelf> {
   if (error) throw error;
   if (!data) throw new Error("Memory books unavailable");
   const env = data as any;
-  if (Array.isArray(env)) return { is_owner: false, books: env as MemoryBookInfo[] };
-  return { is_owner: !!env.is_owner, books: (env.books ?? []) as MemoryBookInfo[] };
+  if (Array.isArray(env)) return { is_owner: false, books: await hydrateMemoryAlbumMedia(env as MemoryBookInfo[], supabase) };
+  return { is_owner: !!env.is_owner, books: await hydrateMemoryAlbumMedia((env.books ?? []) as MemoryBookInfo[], supabase) };
+}
+
+export async function saveBookPresentation(albumId:string,title:string,color:string,audience:string,design:string,subtitle:string,coverStoryId:string|null):Promise<boolean> {
+  const {error}=await createClient().rpc('save_memory_book_presentation',{p_album:albumId,p_title:title,p_cover_color:color,p_audience:audience,p_cover_design:design,p_subtitle:subtitle,p_cover_story_id:coverStoryId});
+  return !error;
 }
 
 export async function getMemoryBook(albumId: string): Promise<MemoryAlbum | null> {

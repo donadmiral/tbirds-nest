@@ -77,11 +77,10 @@ export default function StoryCameraScreen({ navigation }: any) {
           <Feather name="camera-off" size={48} color="rgba(255,255,255,0.4)" />
           <Text style={s.fallbackTitle}>Camera not available</Text>
           <Text style={s.fallbackSub}>
-            This feature requires a new app build. Run:{'\n'}
-            eas build --profile development --platform ios
+            The camera is unavailable in this app version. You can still create a story with text.
           </Text>
-          <TouchableOpacity style={s.fallbackBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-            <Text style={s.fallbackBtnTxt}>Go back</Text>
+          <TouchableOpacity accessibilityRole="button" style={s.fallbackBtn} onPress={() => navigation.navigate('StoryComposer', { mode: 'text', assets: [] })} activeOpacity={0.8}>
+            <Text style={s.fallbackBtnTxt}>Create with text</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </View>
@@ -445,13 +444,13 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
 
       {/* Top controls */}
       <View style={[s.topControls, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
-        <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close story camera" style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="x" size={24} color="#FFF" />
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity style={s.topBtn} onPress={() => setTimerSec(t => (t === 0 ? 3 : t === 3 ? 10 : 0))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="clock" size={20} color={timerSec ? '#FFD60A' : '#FFF'} />
-          {timerSec > 0 && <Text style={{ position: 'absolute', bottom: 2, right: 2, color: '#FFD60A', fontSize: 9, fontWeight: '800' }}>{timerSec}</Text>}
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Camera timer: ${timerSec ? timerSec + ' seconds' : 'off'}`} style={s.topBtn} onPress={() => setTimerSec(t => (t === 0 ? 3 : t === 3 ? 10 : 0))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="clock" size={20} color={timerSec ? '#E8D3B6' : '#FFF'} />
+          {timerSec > 0 && <Text style={{ position: 'absolute', bottom: 2, right: 2, color: '#E8D3B6', fontSize: 9, fontWeight: '800' }}>{timerSec}</Text>}
         </TouchableOpacity>
         {zoom > 0.02 && !recording ? (
           <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 64, alignItems: 'center', zIndex: 20 }} testID="zoomReadout">
@@ -460,10 +459,10 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             </View>
           </View>
         ) : null}
-        <TouchableOpacity style={s.topBtn} onPress={() => setHandsFree(h => !h)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="video" size={20} color={handsFree ? '#FFD60A' : '#FFF'} />
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Hands-free recording" accessibilityState={{ selected: handsFree }} style={s.topBtn} onPress={() => setHandsFree(h => !h)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="video" size={20} color={handsFree ? '#E8D3B6' : '#FFF'} />
         </TouchableOpacity>
-        <TouchableOpacity style={s.topBtn} onPress={() => setFlash(f => (f === 'off' ? 'on' : 'off'))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Flash ${flash}`} style={s.topBtn} onPress={() => setFlash(f => (f === 'off' ? 'on' : 'off'))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name={flash === 'on' ? 'zap' : 'zap-off'} size={20} color="#FFF" />
         </TouchableOpacity>
       </View>
@@ -471,7 +470,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       {/* Bottom controls: gallery | capture | flip */}
       <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 18, 32) }]}>
         <View style={s.captureRow}>
-          <TouchableOpacity style={s.galleryBtn} onPress={openGallery} activeOpacity={0.8} disabled={recording}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story photo or video" style={s.galleryBtn} onPress={openGallery} activeOpacity={0.8} disabled={recording}>
             {lastThumb ? (
               <Image source={{ uri: lastThumb }} style={s.galleryThumb} />
             ) : (
@@ -503,7 +502,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             </View>
           </View>
 
-          <TouchableOpacity style={s.flipBtn} onPress={toggleFacing} activeOpacity={0.7} disabled={recording}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Switch story camera" style={s.flipBtn} onPress={toggleFacing} activeOpacity={0.7} disabled={recording}>
             <Feather name="refresh-cw" size={22} color="#FFF" />
           </TouchableOpacity>
         </View>
@@ -513,9 +512,9 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             <TouchableOpacity onPress={() => navigation.navigate('StoryComposer', { mode: 'text', assets: [] })} activeOpacity={0.7} style={s.modeItem}>
               <Text style={s.modeRowTxt}>TEXT</Text>
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={1} style={s.modeItem}>
+            <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: true }} activeOpacity={1} style={[s.modeItem, { backgroundColor: '#E8D3B6' }]}>
               <Text style={[s.modeRowTxt, s.modeRowTxtOn]}>STORY</Text>
-              <View style={s.modeDot} />
+
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('StoryDualCapture')} activeOpacity={0.7} style={s.modeItem}>
               <Text style={s.modeRowTxt}>DUAL</Text>
@@ -547,10 +546,10 @@ const s = StyleSheet.create({
   fallbackBtn: { marginTop: 20, backgroundColor: '#FFF', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 14, alignItems: 'center', width: '100%' },
   fallbackBtnTxt: { color: '#000', fontSize: 15, fontWeight: '700' },
 
-  topControls: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, zIndex: 10 },
+  topControls: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, gap: 7, zIndex: 10 },
   topBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
 
-  bottomControls: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', paddingTop: 16 },
+  bottomControls: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', paddingTop: 20, backgroundColor: 'rgba(17,21,24,0.84)', borderTopLeftRadius: 28, borderTopRightRadius: 28 },
   captureRow: { width: SCREEN_W, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 36 },
 
   galleryBtn: { width: 44, height: 44, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.5)' },
@@ -563,10 +562,10 @@ const s = StyleSheet.create({
   flipBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
 
   modeScroll: { marginTop: 14, alignSelf: 'stretch', flexGrow: 0 },
-  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 12, flexGrow: 1 },
-  modeItem: { alignItems: 'center', paddingHorizontal: 3, paddingVertical: 4 },
-  modeRowTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 12.5, fontWeight: '700', letterSpacing: 1.2 },
-  modeRowTxtOn: { color: '#FFFFFF' },
+  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 12, flexGrow: 1 },
+  modeItem: { alignItems: 'center', justifyContent: 'center', minHeight: 44, paddingHorizontal: 12, borderRadius: 23, paddingVertical: 7 },
+  modeRowTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  modeRowTxtOn: { color: '#171B1E' },
   modeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#FFFFFF', marginTop: 5 },
   hintTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '500', marginTop: 12 },
 });

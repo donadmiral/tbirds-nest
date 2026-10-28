@@ -204,6 +204,8 @@ export default function StoryViewerScreen() {
   const [storyUser, setStoryUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
+  const [viewerMuted, setViewerMuted] = useState(false);
+  const viewerMutedRef = useRef(false); viewerMutedRef.current = viewerMuted;
   const playbackBlockedRef = useRef(false);
   playbackBlockedRef.current = paused || !appActive || !['idle', 'ended'].includes(callState);
   const [mediaReady, setMediaReady] = useState(false);
@@ -228,6 +230,14 @@ export default function StoryViewerScreen() {
   const mediaOriginRef = useRef({ x: 0, y: 0 });
 
   const [viewersOpen, setViewersOpen] = useState(false);
+  const [activityTab, setActivityTab] = useState<'viewers' | 'reactions'>('viewers');
+  const [activityAudience, setActivityAudience] = useState<string | null>(null);
+  const [activityError, setActivityError] = useState(false);
+  const activityRequest = useRef(0);
+  useEffect(() => () => { activityRequest.current += 1; }, []);
+  const pendingActivitySettings = useRef(false);
+  const activityHandoffTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (activityHandoffTimer.current) clearTimeout(activityHandoffTimer.current); }, []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [viewers, setViewers] = useState<StoryViewer[]>([]);
   const [loadingViewers, setLoadingViewers] = useState(false);
@@ -324,7 +334,7 @@ export default function StoryViewerScreen() {
   const isVideo = currentStory?.media_type === 'video';
   const isText = currentStory?.media_type === 'text';
   const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; } });
-  useEffect(() => { const u = isVideo && !isText ? currentStory?.media_url : null; if (!u) return; const p: any = videoPlayer; let sub: any = null; let alive = true; let timer: ReturnType<typeof setTimeout> | undefined; try { if (p?.replaceAsync) void Promise.resolve(p.replaceAsync(u)).catch(() => { if (alive) setMediaError(true); }); else p?.replace?.(u); sub = p?.addListener?.('statusChange', (s2: any) => { if (!alive) return; const stt = s2?.status ?? s2; if (stt === 'error' || s2?.error) setMediaError(true); if (stt === 'readyToPlay') { try { const mtx: any = (storiesRef.current[storyIndexRef.current] as any)?.media_transform; const t0 = Number(mtx?.trimStart) || 0; if (t0 > 0.05) { try { p.currentTime = t0; } catch {} } const ov = mtx?.mix?.orig; const vol = typeof ov === 'number' ? Math.max(0, Math.min(1, ov / 100)) : 1; try { p.muted = vol <= 0.001; p.volume = vol; } catch {} try { p.playbackRate = Number(mtx?.speed) || 1; } catch {} } catch {} try { if (!playbackBlockedRef.current) p?.play?.(); } catch {} } }); timer = setTimeout(() => { if (alive) { try { if (!playbackBlockedRef.current) p?.play?.(); } catch {} } }, 60); } catch { if (alive) setMediaError(true); } return () => { alive = false; if (timer) clearTimeout(timer); try { sub?.remove?.(); } catch {} }; }, [isVideo, isText, currentStory?.media_url, videoPlayer]);
+  useEffect(() => { const u = isVideo && !isText ? currentStory?.media_url : null; if (!u) return; const p: any = videoPlayer; let sub: any = null; let alive = true; let timer: ReturnType<typeof setTimeout> | undefined; try { if (p?.replaceAsync) void Promise.resolve(p.replaceAsync(u)).catch(() => { if (alive) setMediaError(true); }); else p?.replace?.(u); sub = p?.addListener?.('statusChange', (s2: any) => { if (!alive) return; const stt = s2?.status ?? s2; if (stt === 'error' || s2?.error) setMediaError(true); if (stt === 'readyToPlay') { try { const mtx: any = (storiesRef.current[storyIndexRef.current] as any)?.media_transform; const t0 = Number(mtx?.trimStart) || 0; if (t0 > 0.05) { try { p.currentTime = t0; } catch {} } const ov = mtx?.mix?.orig; const vol = typeof ov === 'number' ? Math.max(0, Math.min(1, ov / 100)) : 1; try { p.muted = viewerMutedRef.current || vol <= 0.001; p.volume = vol; } catch {} try { p.playbackRate = Number(mtx?.speed) || 1; } catch {} } catch {} try { if (!playbackBlockedRef.current) p?.play?.(); } catch {} } }); timer = setTimeout(() => { if (alive) { try { if (!playbackBlockedRef.current) p?.play?.(); } catch {} } }, 60); } catch { if (alive) setMediaError(true); } return () => { alive = false; if (timer) clearTimeout(timer); try { sub?.remove?.(); } catch {} }; }, [isVideo, isText, currentStory?.media_url, videoPlayer]);
   // Dual viewer swap state (viewer-only, does not persist)
   const [dualSwapped, setDualSwapped] = useState(false);
   const dualSwapOpacity = useSharedValue(1);
@@ -398,7 +408,7 @@ export default function StoryViewerScreen() {
     finally { if (current()) setLoading(false); }
   }, [currentUserId, myId, highlightId, resumeStoryIndex, startStoryId, startUserId]);
   useEffect(() => { void loadForCurrentUser(); return () => { loadGeneration.current++; }; }, [loadForCurrentUser]);
-  useEffect(() => { nextUserCache.current.clear(); preloadStatus.current.clear(); setHoldoverMedia(null); setViewers([]); setViewersOpen(false); setReplyText(''); }, [myId]);
+  useEffect(() => { activityRequest.current += 1; nextUserCache.current.clear(); preloadStatus.current.clear(); setHoldoverMedia(null); setViewers([]); setViewersOpen(false); setReplyText(''); }, [myId]);
 
   useEffect(() => { let cancelled = false; const preloadUser = async (userId: string) => { const cacheKey = myId + ':' + userId; if (!myId || !userId || nextUserCache.current.has(cacheKey)) return; try { const [userStories, profileRes] = await Promise.all([storiesService.getUserStories(userId), supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', userId).maybeSingle()]); if (cancelled) return; if (nextUserCache.current.size >= 3) { const firstKey = nextUserCache.current.keys().next().value; if (firstKey) nextUserCache.current.delete(firstKey); } nextUserCache.current.set(cacheKey, { stories: userStories, profile: profileRes.data || null }); if (userStories.length > 0) { const first = userStories[0]; const firstPoster = (first as any).thumbnail_url as string | undefined; if (first.media_type !== 'image' && firstPoster) { ExpoImage.prefetch(firstPoster).catch(() => {}); } if (first.media_type === 'image' && first.media_url) { preloadStatus.current.set(first.media_url, 'pending'); ExpoImage.prefetch(first.media_url).then((ok: any) => { if (!cancelled) preloadStatus.current.set(first.media_url!, ok === false ? 'failed' : 'done'); }).catch(() => { if (!cancelled) preloadStatus.current.set(first.media_url!, 'failed'); }); } } } catch (e) { console.log('[StoryViewer.preloadUser]', e); } }; const n1Id = userIds[userIndex + 1]; const n2Id = userIds[userIndex + 2]; (async () => { if (n1Id) await preloadUser(n1Id); if (cancelled) return; if (n2Id) await preloadUser(n2Id); })(); return () => { cancelled = true; }; }, [userIndex, userIds, myId]);
 
@@ -445,7 +455,8 @@ export default function StoryViewerScreen() {
     return () => clearTimeout(timer);
   }, [currentStory?.id, currentStory?.expires_at, params?.highlightId, pauseFor]);
 
-  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, musicVol, currentStory?.audio_duration_sec);
+  useEffect(() => { try { videoPlayer.muted = viewerMuted || (((currentStory as any)?.media_transform?.mix?.orig ?? 100) <= 0); } catch {} }, [viewerMuted, videoPlayer, currentStory?.id]);
+  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, viewerMuted ? 0 : musicVol, currentStory?.audio_duration_sec);
   useEffect(() => { if (storyAudio.error) setMediaError(true); }, [storyAudio.error]);
   // Creative engine: playback clock for timed stickers + trim-end guard
   useEffect(() => {
@@ -531,12 +542,46 @@ export default function StoryViewerScreen() {
   const sendReply = useCallback(async () => { if (!currentStory || !myId) return; const storyOwnerId = currentStory.user_id; const trimmed = replyText.trim(); if (!trimmed || sendingReply) return; setSendingReply(true); try { const sorted = [myId, storyOwnerId].sort(); const messageText = `Replied to your story:\n${trimmed}`; const { data: existing, error: findErr } = await supabase.from('conversations').select('id').or(`and(user_1.eq.${myId},user_2.eq.${storyOwnerId}),and(user_1.eq.${storyOwnerId},user_2.eq.${myId})`).eq('type', 'direct').eq('is_group', false).maybeSingle(); if (findErr) { Alert.alert('Error', 'Could not find conversation.'); setSendingReply(false); return; } let convId: string; if (existing) { convId = existing.id; } else { const { data: created, error: createErr } = await supabase.from('conversations').insert({ user_1: sorted[0], user_2: sorted[1], last_message: '', last_message_time: new Date().toISOString() }).select('id').single(); if (createErr || !created) { Alert.alert('Error', 'Could not create conversation.'); setSendingReply(false); return; } convId = created.id; } const { error: msgErr } = await supabase.from('messages').insert({ conversation_id: convId, sender_id: myId, receiver_id: storyOwnerId, text: messageText }); if (msgErr) { Alert.alert('Error', 'Could not send reply.'); setSendingReply(false); return; } try { await supabase.from('conversations').update({ last_message: messageText, last_message_time: new Date().toISOString() }).eq('id', convId); } catch {} setReplyText(''); setReplyMode(false); Keyboard.dismiss(); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); setReplyToast(true); if (replyToastTimer.current) clearTimeout(replyToastTimer.current); replyToastTimer.current = setTimeout(() => setReplyToast(false), 2000); resumeFrom('reply'); } catch (e) { console.log('[sendReply]', e); Alert.alert('Error', 'Something went wrong.'); } finally { setSendingReply(false); } }, [currentStory, myId, replyText, sendingReply, resumeFrom]);
 
   const handlePollVote = useCallback(async (optionId: string) => { if (!poll || votingOptionId) return; setVotingOptionId(optionId); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); try { const updated = await storiesService.voteStoryPoll(poll.poll_id, optionId); setPoll(updated); } catch (e) { console.log('[StoryPoll.vote]', e); Alert.alert('Error', 'Could not submit vote.'); } finally { setVotingOptionId(null); } }, [poll, votingOptionId]);
-  const closeViewersList = () => { setViewersOpen(false); setViewers([]); setViewerReactions(new Map()); setReactionsCount(0); resumeFrom('viewers'); };
+  const closeViewersList = () => { activityRequest.current += 1; setViewersOpen(false); setViewers([]); setViewerReactions(new Map()); setReactionsCount(0); resumeFrom('viewers'); };
+  const finishActivityHandoff = () => {
+    if (activityHandoffTimer.current) clearTimeout(activityHandoffTimer.current);
+    activityHandoffTimer.current = null;
+    if (!pendingActivitySettings.current) return;
+    pendingActivitySettings.current = false;
+    setSettingsOpen(true);
+  };
+  const openSettingsFromActivity = () => {
+    pendingActivitySettings.current = true;
+    pauseFor('settings');
+    closeViewersList();
+    // iOS must finish dismissing its current native modal before presenting another.
+    if (Platform.OS !== 'ios') activityHandoffTimer.current = setTimeout(finishActivityHandoff, 300);
+  };
   const openPollVoters = useCallback(async (optionId: string) => { if (!poll) return; if (viewersOpen) closeViewersList(); pauseFor('pollVoters'); setPollVotersOptionId(optionId); setPollVotersOpen(true); setLoadingPollVoters(true); try { const voters = await storiesService.getStoryPollVoters(poll.poll_id, optionId); setPollVoters(voters); } catch (e) { console.log('[StoryPoll.voters]', e); setPollVoters([]); } finally { setLoadingPollVoters(false); } }, [poll, viewersOpen, closeViewersList, pauseFor]);
   const closePollVoters = useCallback(() => { setPollVotersOpen(false); setPollVoters([]); setPollVotersOptionId(null); resumeFrom('pollVoters'); }, [resumeFrom]);
   useEffect(() => { return () => { if (toastTimer.current) clearTimeout(toastTimer.current); if (replyToastTimer.current) clearTimeout(replyToastTimer.current); if (caughtUpTimer.current) clearTimeout(caughtUpTimer.current); }; }, []);
 
-  const openViewersList = async () => { if (!currentStory) return; if (pollVotersOpen) closePollVoters(); pauseFor('viewers'); setViewersOpen(true); setLoadingViewers(true); try { const isOwnStory = currentStory.user_id === myId; const [list, reactions] = await Promise.all([storiesService.getViewers(currentStory.id), isOwnStory ? storiesService.getReactions(currentStory.id) : Promise.resolve([])]); setViewers(list); const rMap = new Map<string, string[]>(); (reactions || []).forEach((r: StoryReaction) => { const existing = rMap.get(r.user_id) || []; existing.push(r.emoji); rMap.set(r.user_id, existing); }); setViewerReactions(rMap); setReactionsCount(rMap.size); } catch (e) { console.log('[getViewers]', e); } finally { setLoadingViewers(false); } };
+  const openViewersList = async () => {
+    if (!currentStory || currentStory.user_id !== myId) return;
+    const request = ++activityRequest.current;
+    if (pollVotersOpen) closePollVoters();
+    pauseFor('viewers'); setViewersOpen(true); setLoadingViewers(true); setActivityError(false); setActivityAudience(null);
+    try {
+      const [views, reacted, settings] = await Promise.all([
+        supabase.rpc('get_story_viewers', { p_story_id: currentStory.id }),
+        supabase.rpc('get_story_reactions', { p_story_id: currentStory.id }),
+        supabase.from('stories').select('audience').eq('id', currentStory.id).eq('user_id', myId).maybeSingle(),
+      ]);
+      if (request !== activityRequest.current) return;
+      if (views.error || reacted.error) throw views.error || reacted.error;
+      setViewers((views.data || []) as StoryViewer[]);
+      setActivityAudience(settings.error ? null : settings.data?.audience || null);
+      const rMap = new Map<string, string[]>();
+      (reacted.data || []).forEach((reaction: StoryReaction) => { const current = rMap.get(reaction.user_id) || []; current.push(reaction.emoji); rMap.set(reaction.user_id, current); });
+      setViewerReactions(rMap); setReactionsCount((reacted.data || []).length);
+    } catch { if (request === activityRequest.current) setActivityError(true); }
+    finally { if (request === activityRequest.current) setLoadingViewers(false); }
+  };
   const openViewerProfile = (userId: string) => { closeViewersList(); setTimeout(() => { navigation.navigate('UserProfile', { userId }); }, 300); };
 
   // Questions box: the answer sheet. The field on the card opens it; Send records the answer.
@@ -751,7 +796,7 @@ export default function StoryViewerScreen() {
       {engagementError ? <TouchableOpacity accessibilityRole="button" onPress={() => setEngagementRetry(value => value + 1)} style={{ position: 'absolute', top: insets.top + 80, alignSelf: 'center', zIndex: 10, backgroundColor: '#0B1E3D', padding: 10, borderRadius: 10 }}><Text style={{ color: '#FFF' }}>Responses could not load. Tap to retry.</Text></TouchableOpacity> : null}
       <StoryProgressBar progressSV={progressSV} currentIndex={storyIndex} totalStories={stories.length} chromeOpacity={chromeOpacity} topInset={insets.top} isPaused={paused} bottomInset={insets.bottom} />
       <MemoryCaption caption={currentStory.caption} chromeOpacity={chromeOpacity} bottomOffset={isOwn ? 130 : 125 + insets.bottom} />
-      <IdentityPresence user={storyUser} isOwn={isOwn ?? false} timeAgo={timeAgo(currentStory.created_at)} scope={currentStory.scope} category={(currentStory as any).category} viewsCount={currentStory.views_count} chromeOpacity={chromeOpacity} topInset={insets.top} onOpenViewers={isOwn ? openViewersList : undefined} onSaveHighlight={isOwn ? () => { pauseFor('highlight'); setHighlightSheetOpen(true); } : undefined} onOpenSettings={isOwn ? () => { pauseFor('settings'); setSettingsOpen(true); } : undefined} onDelete={isOwn ? handleDelete : undefined} onClose={saveAndGoBack} bottomInset={insets.bottom} />
+      <IdentityPresence user={storyUser} isOwn={isOwn ?? false} timeAgo={timeAgo(currentStory.created_at)} scope={currentStory.scope} category={(currentStory as any).category} viewsCount={currentStory.views_count} chromeOpacity={chromeOpacity} topInset={insets.top} onOpenViewers={isOwn ? openViewersList : undefined} onSaveHighlight={isOwn ? () => { pauseFor('highlight'); setHighlightSheetOpen(true); } : undefined} onOpenSettings={isOwn ? () => { pauseFor('settings'); setSettingsOpen(true); } : undefined} onDelete={isOwn ? handleDelete : undefined} onOpenMore={isOwn ? () => { pauseFor('options'); setOptionsOpen(true); } : undefined} paused={paused} onTogglePause={() => { if (pauseStackRef.current.has('manual')) resumeFrom('manual'); else pauseFor('manual'); }} muted={viewerMuted} onToggleMute={isVideo || storyAudioUrl ? () => setViewerMuted(v => !v) : undefined} onClose={saveAndGoBack} bottomInset={insets.bottom} />
       {/* Owners already get viewers, highlights, settings and delete from
           IdentityPresence. Everyone else previously had nothing at all: no
           mute, no report, no share. */}
@@ -775,7 +820,10 @@ export default function StoryViewerScreen() {
         authorId={currentStory?.user_id ?? null}
         authorName={storyUser?.full_name || 'this person'}
         mediaUrl={currentStory?.media_url}
-        onManageMentions={() => { pauseFor('mentions'); setMentionsOpen(true); }}
+        onBeforeHandoff={() => pauseFor('sheetHandoff')}
+        onOpenInsights={() => { void openViewersList(); resumeFrom('sheetHandoff'); }}
+        onManageMentions={() => { pauseFor('mentions'); setMentionsOpen(true); resumeFrom('sheetHandoff'); }}
+        onDeleted={() => { const remaining = stories.filter(item => item.id !== currentStory.id); if (!remaining.length) saveAndGoBack(); else { setStories(remaining); setStoryIndex(Math.min(storyIndex, remaining.length - 1)); } }}
       />
       {!isOwn && (currentStory as any).allow_replies !== false && (<ImmersiveReplyField replyMode={replyMode} replyText={replyText} onChangeText={setReplyText} sendingReply={sendingReply} heartActive={heartActive} chromeOpacity={chromeOpacity} onOpenReply={openReplyInput} onCloseReply={closeReplyInput} onSendReply={sendReply} onHeartTap={handleHeartTap} onLongPressHeart={openPicker} canSend={canSendReply} keyboardHeight={keyboardHeight} bottomInset={insets.bottom} inputRef={replyInputRef} />)}
 
@@ -796,23 +844,25 @@ export default function StoryViewerScreen() {
         />
       )}
 
-      <Modal visible={viewersOpen} transparent animationType="slide" onRequestClose={closeViewersList}>
+      <Modal visible={viewersOpen} transparent animationType="slide" onRequestClose={closeViewersList} onDismiss={finishActivityHandoff}>
         <TouchableOpacity style={s.viewersOverlay} activeOpacity={1} onPress={closeViewersList}>
           <TouchableOpacity activeOpacity={1} style={s.viewersSheet}>
             <View style={s.viewersHandle} />
+            <View style={s.activityHeader}><Text style={s.activityTitle}>Story activity</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Close story activity" style={s.activityClose} onPress={closeViewersList}><Feather name="x" size={21} color={NAVY} /></TouchableOpacity></View>
             <View style={s.insightsStatsRow}>
               <View style={s.insightStat}><View style={s.insightStatIcon}><Feather name="eye" size={15} color={NAVY} /></View><View><Text style={s.insightStatVal}>{currentStory.views_count}</Text><Text style={s.insightStatLbl}>Views</Text></View></View>
               <View style={s.insightStat}><View style={s.insightStatIcon}><Feather name="heart" size={15} color={NAVY} /></View><View><Text style={s.insightStatVal}>{reactionsCount}</Text><Text style={s.insightStatLbl}>Reactions</Text></View></View>
-              <View style={s.insightStat}><View style={s.insightStatIcon}><Feather name={AUD_ICON[(currentStory as any).audience || 'everyone']} size={15} color={NAVY} /></View><View><Text style={s.insightStatVal}>{AUD_LABEL[(currentStory as any).audience || 'everyone']}</Text><Text style={s.insightStatLbl}>Audience</Text></View></View>
+              <View style={s.insightStat}><View style={s.insightStatIcon}><Feather name={AUD_ICON[activityAudience || 'everyone']} size={15} color={NAVY} /></View><View><Text style={s.insightStatVal}>{activityAudience ? AUD_LABEL[activityAudience] || 'Custom' : '—'}</Text><Text style={s.insightStatLbl}>Audience</Text></View></View>
             </View>
-              <Text style={s.viewersHeading}>Viewers</Text>
-            {loadingViewers ? (<View style={s.viewersLoader}><ActivityIndicator size="small" color={NAVY} /></View>) : viewers.length === 0 ? (<View style={s.viewersEmpty}><View style={s.viewersEmptyIcon}><Feather name="users" size={20} color="#C7C7CC" /></View><Text style={s.viewersEmptyTxt}>No one yet</Text><Text style={s.viewersEmptySub}>Your circle will appear here.</Text></View>) : (
-              <FlatList data={viewers} keyExtractor={(v) => v.user_id} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} renderItem={({ item }) => { const userEmojis = viewerReactions.get(item.user_id); return (
+            <View style={s.viewersTabRow}>{(['viewers', 'reactions'] as const).map(tab => <TouchableOpacity key={tab} accessibilityRole="tab" accessibilityState={{ selected: activityTab === tab }} onPress={() => setActivityTab(tab)} style={[s.viewersTab, activityTab === tab && s.viewersTabActive]}><Text style={[s.viewersTabTxtActive, activityTab !== tab && { color: '#7A8390' }]}>{tab === 'viewers' ? 'Viewers' : 'Reactions'}</Text></TouchableOpacity>)}</View>
+            {loadingViewers ? (<View style={s.viewersLoader}><ActivityIndicator size="small" color={NAVY} /></View>) : activityError ? <View style={s.viewersEmpty}><Text style={s.viewersEmptyTxt}>Activity could not load</Text><TouchableOpacity accessibilityRole="button" onPress={openViewersList} style={s.activityClose}><Text style={{ color: NAVY, fontWeight: '700' }}>Retry</Text></TouchableOpacity></View> : (activityTab === 'viewers' ? viewers : viewers.filter(person => viewerReactions.has(person.user_id))).length === 0 ? (<View style={s.viewersEmpty}><View style={s.viewersEmptyIcon}><Feather name="users" size={20} color="#C7C7CC" /></View><Text style={s.viewersEmptyTxt}>{activityTab === 'viewers' ? 'No views yet' : 'No reactions yet'}</Text><Text style={s.viewersEmptySub}>{activityTab === 'viewers' ? 'People who view your story will appear here.' : 'Reactions from your circle will appear here.'}</Text></View>) : (
+              <FlatList data={activityTab === 'viewers' ? viewers : viewers.filter(person => viewerReactions.has(person.user_id))} keyExtractor={(v) => v.user_id} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} renderItem={({ item }) => { const userEmojis = viewerReactions.get(item.user_id); return (
                 <TouchableOpacity style={s.viewerRow} activeOpacity={0.7} onPress={() => openViewerProfile(item.user_id)}>
                   {item.avatar_url ? (<Image source={{ uri: item.avatar_url }} style={s.viewerAvatar} />) : (<View style={[s.viewerAvatar, s.viewerAvatarFb]}><Text style={s.viewerAvatarTxt}>{initials(item.full_name)}</Text></View>)}
                   <View style={{ flex: 1, minWidth: 0 }}><View style={{ flexDirection: 'row', alignItems: 'center' }}><TierName userId={(item as any).user_id ?? (item as any).id} baseStyle={[s.viewerName, { flexShrink: 1 }]} text={item.full_name || 'User'} /><VerifiedBadge userId={(item as any).user_id ?? (item as any).id} size={12} /></View>{item.username ? (<Text style={s.viewerUsername} numberOfLines={1}>@{item.username}</Text>) : null}</View>
                   {userEmojis && userEmojis.length > 0 && (<Text style={s.viewerEmojis}>{userEmojis.join('')}</Text>)}<Text style={s.viewerTime}>{timeAgo(item.viewed_at)}</Text>
                 </TouchableOpacity>); }} />)}
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Story settings" style={s.activitySettings} onPress={openSettingsFromActivity}><Feather name="settings" size={21} color={NAVY} /><Text style={{ flex: 1, color: NAVY, fontSize: 15, fontWeight: '700' }}>Story settings</Text><Feather name="chevron-right" size={20} color={NAVY} /></TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -882,14 +932,15 @@ const s = StyleSheet.create({
   pickerEmoji: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
   pickerEmojiActive: { backgroundColor: 'rgba(245,240,235,0.08)' },
   pickerEmojiText: { fontSize: 26 },
+  activityHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 }, activityTitle: { flex: 1, fontSize: 22, fontWeight: '700', color: NAVY }, activityClose: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#F5F3F0', alignItems: 'center', justifyContent: 'center' }, activitySettings: { minHeight: 56, borderRadius: 18, backgroundColor: '#F2F1EF', margin: 20, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, gap: 12 },
   viewersOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  viewersSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, maxHeight: '80%' },
+  viewersSheet: { backgroundColor: '#FFFEFC', borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingTop: 10, maxHeight: '80%' },
   viewersHandle: { width: 32, height: 4, borderRadius: 2, backgroundColor: '#E0E0E0', alignSelf: 'center', marginBottom: 12 },
   insightsStatsRow: { flexDirection: 'row', paddingHorizontal: 20, paddingBottom: 16, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  insightStat: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  insightStat: { flex: 1, alignItems: 'center', gap: 6, borderRadius: 18, backgroundColor: '#F5F3F0', paddingVertical: 14 },
   insightStatIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' },
-  insightStatVal: { fontSize: 15, fontWeight: '700', color: '#000', letterSpacing: -0.2 },
-  insightStatLbl: { fontSize: 11, color: '#8E8E93', marginTop: 1 },
+  insightStatVal: { fontSize: 15, fontWeight: '700', color: NAVY, textAlign: 'center' },
+  insightStatLbl: { fontSize: 11, color: '#7A8390', marginTop: 3, textAlign: 'center' },
   viewersTabRow: { flexDirection: 'row', paddingHorizontal: 20, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   viewersHeading: { fontSize: 12, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase', color: '#8E8E93', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 6 },
   viewersTab: { paddingVertical: 10, paddingHorizontal: 2, marginRight: 20 },

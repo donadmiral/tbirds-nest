@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircle, Repeat2 } from "lucide-react";
+import { postAspectRatio } from '../../shared/postMediaEditing';
 import { VideoPlayer, type PostMediaEditRecipe } from "@/components/VideoPlayer";
 import { STORY_FILTERS, filterCss } from "@/lib/stories";
 import { AdjustOverlay } from "@/components/StoryEngine";
@@ -342,7 +343,10 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
   // Video takes the whole card width and caps its height at 4:5, exactly as
   // Instagram's feed does. A tall clip is cover-cropped to that box in the
   // feed; post detail opts into fitting the full frame inside the same box.
-  const dims = item.media_type === "video" && availW
+  const explicitFrame = !!(editOf(item)?.aspectRatio || editOf(item)?.aspect);
+  const chosenRatio = postAspectRatio(editOf(item),known?.w,known?.h);
+  const chosenWidth = Math.min(availW,maxH*chosenRatio);
+  const dims = explicitFrame && availW ? {w:chosenWidth,h:Math.round(chosenWidth/chosenRatio)} : item.media_type === "video" && availW
     ? { w: availW, h: Math.round(Math.min(known?.w && known?.h ? availW * (known.h / known.w) : availW * 1.25, availW * 1.25)) }
     : fittedDims;
   const altOf = (m: MediaItem, i: number) => m.alt_text || "Post media " + (i + 1);
@@ -452,7 +456,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
           {item.media_type === "video" ? (
             <div style={dims ? { width: dims.w + "px", height: dims.h + "px" } : { width: "100%" }}>
               <div className="relative h-full w-full overflow-hidden"><VideoPlayer src={item.url} postId={postId} viewsCount={viewsCount}
-                fullFrame={fullFrame}
+                fullFrame={fullFrame && !explicitFrame}
                 width={known?.w} height={known?.h}
                 onDims={(w, h) => measure(item.id, w, h)}
                 edit={editOf(item)} soundtrack={readSoundtrack(editOf(media[0])?.soundtrack)} mediaOverlay={<EditPlanes e={editOf(item)} />}
@@ -475,7 +479,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
               aria-label={"Open " + altOf(item, idx)}
               alt={altOf(item, idx)}
               loading="lazy"
-              style={fittedDims ? { width: fittedDims.sourceW, height: fittedDims.sourceH, maxWidth: 'none', maxHeight: 'none', flexShrink: 0, ...editStyle(editOf(item)) } : editStyle(editOf(item))}
+              style={explicitFrame && dims ? {width:dims.w,height:dims.h,objectFit:editOf(item)?.fit||'cover',...editStyle(editOf(item))} : fittedDims ? { width: fittedDims.sourceW, height: fittedDims.sourceH, maxWidth: 'none', maxHeight: 'none', flexShrink: 0, ...editStyle(editOf(item)) } : editStyle(editOf(item))}
               className={"cursor-zoom-in object-contain " + (dims ? "" : "max-h-[80vh] w-full")}
             />
               <EditPlanes e={editOf(item)} />

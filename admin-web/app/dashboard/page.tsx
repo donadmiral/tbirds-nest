@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 const TIER_LABEL: Record<string, string> = { public_figure: 'Green', business: 'Space grey', official: 'Platinum' };
 const ACTIVE_WINDOW_MIN = 5;
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { minWidth: 0, borderRadius: 20, background: 'var(--panel)', border: '1px solid var(--line)', boxShadow: '0 6px 24px rgba(11,30,61,0.035)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
 const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
 const ROW: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' };
@@ -201,9 +201,9 @@ export default async function DashboardPage() {
 
   const health = [
     { label: 'Dashboard data reads', state: 'Succeeded', ok: true, meta: `current page queries completed in ${readsElapsedMs} ms; not a service-wide health check` },
-    { label: 'Nightly statistics', state: statsFresh ? 'Current' : 'Stale', ok: statsFresh, meta: lastStatDay ? 'last day computed ' + lastStatDay : 'no rows in daily_stats' },
-    { label: 'Client errors, 24 hours', state: errors24 === 0 ? 'Clear' : String(errors24), ok: errors24 === 0, meta: 'client_errors' },
-    { label: 'Feature flags on', state: flagRows.filter(f => f.enabled).length + ' of ' + flagRows.length, ok: true, meta: 'feature_flags' },
+    { label: 'Daily activity summary', state: statsFresh ? 'Current' : 'Awaiting update', ok: statsFresh, meta: lastStatDay ? 'Last updated ' + lastStatDay : 'The first daily summary is not available yet' },
+    { label: 'App errors, 24 hours', state: errors24 === 0 ? 'Clear' : String(errors24), ok: errors24 === 0, meta: 'Reported by the app' },
+    { label: 'Enabled features', state: flagRows.filter(f => f.enabled).length + ' of ' + flagRows.length, ok: true, meta: 'Current feature settings' },
   ];
 
   const funnel = [
@@ -246,7 +246,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Platform activity</div>
-              <div style={{ fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 }}>daily_stats, rebuilt nightly. Click a series to fold it away.</div>
+              <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 4 }}>Daily activity across your community. Select a series to show or hide it.</div>
             </div>
             <Link href="/analytics" className="pc-crumb" style={LINK_SM}>Full analytics</Link>
           </div>
@@ -344,7 +344,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Top locations</div>
-              <div style={{ fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 }}>profiles.location, as members typed it</div>
+              <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 4 }}>Locations shared by your members</div>
             </div>
           </div>
           <div style={{ padding: 16 }}>
@@ -422,7 +422,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Verification funnel</div>
-              <div style={{ fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 }}>All time, verification_applications</div>
+              <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 4 }}>Verification applications, all time</div>
             </div>
           </div>
           <div style={{ padding: 16 }}>

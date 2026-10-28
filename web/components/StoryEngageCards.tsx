@@ -49,13 +49,13 @@ export function QuestionCard({ st, storyId, isOwn }: { st: StoryTextSticker; sto
     try { if (await submitStickerResponse(storyId, st.id, "question", { text_value: v })) { setMine({ text_value: v }); setText(""); } } catch { setError("Your response was not confirmed. Please retry."); } finally { setBusy(false); }
   };
   return (
-    <div className="pointer-events-auto" style={CARD}>
+    <div className="pointer-events-auto" style={{ ...CARD, background: "#F5B09A" }}>
       <div style={{ ...TITLE, marginBottom: 8 }}>{st.questionPrompt || st.text || "Ask me anything"}</div>
       {isOwn ? <div style={HINT}>{(summary?.count ?? all.length) === 1 ? "1 answer" : (summary?.count ?? all.length) + " answers"}</div>
         : mine?.text_value ? <div style={{ ...HINT, color: "#0B1E3D", fontWeight: 700 }}>Sent: {mine.text_value}</div>
         : (
           <div style={{ display: "flex", gap: 6 }}>
-            <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(); }} aria-label="Your answer" maxLength={1000} placeholder="Type something..." style={{ flex: 1, minWidth: 0, border: "1.5px solid rgba(11,30,61,0.14)", borderRadius: 12, padding: "9px 11px", fontSize: 14, color: "#0B1E3D", background: "#F6F5F2", outline: "none" }} />
+            <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(); }} aria-label="Your answer" maxLength={1000} placeholder="Type something..." style={{ flex: 1, minWidth: 0, border: "1.5px solid rgba(11,30,61,0.14)", borderRadius: 12, padding: "9px 11px", fontSize: 14, color: "#0B1E3D", background: "rgba(255,255,255,0.55)", outline: "none" }} />
             <button type="button" onClick={send} disabled={!text.trim() || busy || !ready} style={{ border: 0, borderRadius: 12, padding: "0 14px", background: "#0B1E3D", color: "#FFF", fontWeight: 800, fontSize: 13, cursor: "pointer", opacity: text.trim() ? 1 : 0.4 }}>Send</button>
           </div>
         )}
@@ -129,9 +129,9 @@ export function CountdownCard({ st }: { st: StoryTextSticker }) {
   const target = st.countdownTarget ? new Date(st.countdownTarget).getTime() : NaN;
   const left = Number.isFinite(target) ? Math.max(0, target - now) : 0;
   const d = Math.floor(left / 86400000), h = Math.floor((left % 86400000) / 3600000), m = Math.floor((left % 3600000) / 60000), s = Math.floor((left % 60000) / 1000);
-  const cell = (n: number, lb: string) => (<div key={lb} style={{ textAlign: "center", minWidth: 44 }}><div style={{ fontSize: 24, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: "28px" }}>{String(n).padStart(2, "0")}</div><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: "rgba(11,30,61,0.55)" }}>{lb}</div></div>);
+  const cell = (n: number, lb: string) => (<div key={lb} style={{ textAlign: "center", minWidth: 44, borderRadius: 10, padding: "8px 4px", background: "#FAF6EE" }}><div style={{ fontSize: 24, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: "28px" }}>{String(n).padStart(2, "0")}</div><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: "rgba(11,30,61,0.55)" }}>{lb}</div></div>);
   return (
-    <div className="pointer-events-auto" style={{ ...CARD, width: 236 }}>
+    <div className="pointer-events-auto" style={{ ...CARD, width: 236, background: "#C5CEB4", color: "#263522" }}>
       <div style={{ ...TITLE, marginBottom: 6 }}>{st.countdownTitle || st.text || "Countdown"}</div>
       {!Number.isFinite(target) ? <div style={HINT}>No date set</div> : left <= 0 ? <div style={{ ...HINT, color: "#0B1E3D", fontWeight: 800 }}>It's here</div> : (
         <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>{[cell(d, "DAYS"), cell(h, "HRS"), cell(m, "MIN"), cell(s, "SEC")]}</div>

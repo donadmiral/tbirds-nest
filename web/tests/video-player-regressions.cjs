@@ -17,7 +17,7 @@ const helperModule = { exports: {} };
 vm.runInNewContext(helperCode, { module: helperModule, exports: helperModule.exports });
 const helper = helperModule.exports;
 function sharedModule(file) { const module={exports:{}}; const code=ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText; vm.runInNewContext(code,{module,exports:module.exports});return module.exports; }
-const soundtrackHelpers=sharedModule('soundtrack.ts'),discoverHelpers=sharedModule('discover.ts');
+const soundtrackHelpers=sharedModule('soundtrack.ts'),discoverHelpers=sharedModule('discover.ts'),postEditingHelpers=sharedModule('postMediaEditing.ts');
 const allNodes = tree => {
   const found = [];
   const walk = node => { if (Array.isArray(node)) return node.forEach(walk); if (!node || typeof node !== 'object') return;
@@ -50,6 +50,7 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === '@/lib/videoPlayback') return helper;
     if (name.includes('shared/soundtrack')) return soundtrackHelpers;
     if (name.includes('shared/discover')) return discoverHelpers;
+    if (name.includes('shared/postMediaEditing')) return postEditingHelpers;
     if (name === '@/lib/mediaPrefs') return { dataSaverEnabled: () => saver, autoplayEnabled: () => autoplay };
     if (name === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };
     if (name === '@/lib/supabase/client') return { createClient: () => client };

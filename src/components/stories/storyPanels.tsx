@@ -449,12 +449,12 @@ const vg = StyleSheet.create({
 
 const pp = StyleSheet.create({
   dockWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 60 },
-  dock: { backgroundColor: 'rgba(12,14,20,0.96)', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10, paddingBottom: 30, borderTopWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
+  dock: { backgroundColor: '#191C1F', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 10, paddingBottom: 30, borderTopWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
   dockHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 6, gap: 10 },
-  dockTitle: { color: '#FFF', fontSize: 15.5, fontWeight: '800', flex: 1 },
-  dockResetBtn: { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.10)' },
+  dockTitle: { color: '#FFF', fontSize: 19, fontWeight: '800', flex: 1 },
+  dockResetBtn: { minHeight: 44, justifyContent: 'center', borderRadius: 22, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.10)' },
   dockReset: { color: '#FFF', fontSize: 13, fontWeight: '700' },
-  dockDone: { backgroundColor: '#C9BFB0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 },
+  dockDone: { minHeight: 44, justifyContent: 'center', backgroundColor: '#E8D3B6', borderRadius: 22, paddingHorizontal: 14, paddingVertical: 6 },
   dockDoneTxt: { color: '#0B1E3D', fontSize: 13, fontWeight: '800' },
   dockHint: { color: 'rgba(255,255,255,0.5)', fontSize: 11.5, paddingHorizontal: 16, paddingTop: 2, paddingBottom: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 7 },

@@ -116,7 +116,7 @@ function initials(name?: string | null): string {
 }
 
 export default function JobsScreen({ navigation }: any) {
-  useTheme();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
@@ -462,7 +462,7 @@ export default function JobsScreen({ navigation }: any) {
   };
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle={getTheme().surface.canvas === '#FFFFFF' ? 'dark-content' : 'light-content'} backgroundColor={getTheme().surface.canvas} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={getTheme().surface.canvas} />
       <View style={s.container}>
 
         <View style={s.header}>

@@ -77,9 +77,9 @@ function scenario(options = {}) {
     changeOwner(next){owner=next;listener?.('SIGNED_IN',next?{user:{id:next}}:null);render();},
     pick(type='image/jpeg'){nodes(render()).find(n=>n.type==='input'&&n.props.type==='file').props.onChange({target:{files:[{type,name:type.startsWith('video')?'video.mp4':'photo.jpg'}],value:''}});render();},
     openDraft(name='draft-a'){const button=nodes(render()).find(n=>n.type==='button'&&nodes(n).some(child=>child.type==='img'&&child.props.src==='https://media.test/'+name));assert.ok(button);const result=button.props.onClick();render();return result;},
-    sound(){return nodes(render()).find(n=>n.type==='StoryAudioEditor');},
-    input(){return nodes(render()).find(n=>n.props?.placeholder==='Write a caption');},
-    button(label){return nodes(render()).find(n=>n.type==='button'&&text(n)===label);},
+    sound(){let sound=nodes(render()).find(n=>n.type==='StoryAudioEditor');if(!sound){nodes(render()).find(n=>n.type==='StoryEditor')?.props.onOpenEdit();sound=nodes(render()).find(n=>n.type==='StoryAudioEditor');}return sound;},
+    input(){return nodes(render()).find(n=>n.type==='textarea'&&n.props.placeholder==='A moment worth sharing…');},
+    button(label){if(label==='Share to story')label='Share story';let found=nodes(render()).find(n=>n.type==='button'&&text(n)===label);if(!found&&['Share story','Update draft','Save as draft','Retry safely'].includes(label)){nodes(render()).find(n=>n.type==='StoryEditor')?.props.onNext();found=nodes(render()).find(n=>n.type==='button'&&text(n)===label);}return found;},
     fireTimeout(ms){for(const[id,timer]of [...timers])if(timer.ms===ms){timers.delete(id);timer.callback();}render();},
     unmount(){mounted=false;slots.forEach(slot=>slot?.cleanup?.());},
     get updatesAfterUnmount(){return updatesAfterUnmount;},get timerCount(){return timers.size;},get listener(){return listener;},
@@ -94,12 +94,12 @@ test('late initial session cannot restore the previous account after an auth eve
 test('late draft list from account A never becomes visible in account B',async()=>{
   const pending=defer();const h=scenario({loadDrafts:owner=>owner==='a'?pending.promise:{data:[],error:null}});await h.flush();
   h.changeOwner('b');pending.resolve({data:[draft('a')],error:null});await h.flush();
-  assert.ok(!nodes(h.tree).some(n=>n.props?.src==='https://media.test/draft-a'));assert.equal(h.input().props.value,'');h.unmount();
+  assert.ok(!nodes(h.tree).some(n=>n.props?.src==='https://media.test/draft-a'));assert.equal(h.input(),undefined);h.unmount();
 });
 test('recipient hydration cannot repopulate a cleared draft after account change',async()=>{
   const pending=defer();const h=scenario({loadDrafts:owner=>({data:owner==='a'?[draft('a')]:[],error:null}),loadPeople:()=>pending.promise});await h.flush();
   const opening=h.openDraft();h.changeOwner('b');pending.resolve({data:[{id:'friend-a',full_name:'Private A contact'}],error:null});await opening;await h.flush();
-  assert.equal(h.input().props.value,'');assert.ok(!h.text.includes('Private A contact'));assert.ok(!nodes(h.tree).some(n=>n.props?.src==='https://media.test/draft-a'));h.unmount();
+  assert.equal(h.input(),undefined);assert.ok(!h.text.includes('Private A contact'));assert.ok(!nodes(h.tree).some(n=>n.props?.src==='https://media.test/draft-a'));h.unmount();
 });
 test('upload completion from A cannot populate B and cannot release B upload lock',async()=>{
   const a=defer(),b=defer();const h=scenario({upload:path=>path.startsWith('a/')?a.promise:b.promise});await h.flush();
@@ -117,7 +117,7 @@ test('account change cleans a pending video metadata object immediately',async()
 });
 test('failed or stalled initial session leaves publishing disabled and shows recovery',async()=>{
   const h=scenario({session:()=>new Promise(()=>{})});h.fireTimeout(15000);await h.flush();
-  assert.match(h.text,/account could not be loaded/);assert.equal(h.button('Share to story').props.disabled,true);h.unmount();
+  assert.match(h.text,/account could not be loaded/);assert.equal(h.button('Share to story'),undefined);h.unmount();
 });
 test('a stalled upload releases its button with a recoverable error',async()=>{
   const h=scenario({upload:()=>new Promise(()=>{})});await h.flush();h.pick();await h.flush();h.fireTimeout(120000);await h.flush();
@@ -127,19 +127,19 @@ test('a stalled upload releases its button with a recoverable error',async()=>{
 
 test('an explicit initial session error is caught and keeps the composer disabled',async()=>{
   const h=scenario({session:async()=>({data:{session:null},error:{message:'session unavailable'}})});await h.flush();
-  assert.match(h.text,/account could not be loaded/);assert.equal(h.button('Share to story').props.disabled,true);assert.equal(h.reads.length,0);h.unmount();
+  assert.match(h.text,/account could not be loaded/);assert.equal(h.button('Share to story'),undefined);assert.equal(h.reads.length,0);h.unmount();
 });
 test('account change during publication authentication prevents the story insert',async()=>{
   const pending=defer();const h=scenario({user:()=>pending.promise});await h.flush();h.pick();await h.flush();
   const publishing=h.button('Share to story').props.onClick();await h.flush();h.changeOwner('b');
   pending.resolve({data:{user:{id:'a'}},error:null});await publishing;await h.flush();
-  assert.equal(h.writes.length,0);assert.equal(h.button('Share to story').props.disabled,true);assert.equal(h.navigation.length,0);h.unmount();
+  assert.equal(h.writes.length,0);assert.equal(h.button('Share to story'),undefined);assert.equal(h.navigation.length,0);h.unmount();
 });
 test('a committed story from A never sends child writes or changes navigation after switching to B',async()=>{
   const pending=defer();const h=scenario({loadDrafts:owner=>({data:owner==='a'?[draft('a')]:[],error:null}),write:()=>pending.promise});await h.flush();await h.openDraft();await h.flush();
   const publishing=h.button('Share to story').props.onClick();await h.flush();assert.equal(h.writes.length,1);assert.equal(h.writes[0].table,'publish_story_v2');
   h.changeOwner('b');pending.resolve({data:{id:'story-a'},error:null});await publishing;await h.flush();
-  assert.equal(h.writes.length,1);assert.equal(h.navigation.length,0);assert.equal(h.input().props.value,'');h.unmount();
+  assert.equal(h.writes.length,1);assert.equal(h.navigation.length,0);assert.equal(h.input(),undefined);h.unmount();
 });
 test('a stale submit handler captured for A cannot publish from B',async()=>{
   const h=scenario();await h.flush();h.pick();await h.flush();const submit=h.button('Share to story').props.onClick;
@@ -160,7 +160,7 @@ test('lost story response retries the same atomic request and never creates a fr
   const picker = nodes(h.tree).find(node => node.type === 'SaveToMemory');
   assert.equal(picker.props.storyId, 'story-confirmed'); assert.equal(picker.props.ownerId, 'a'); assert.equal(picker.props.inline, true);
   assert.ok(nodes(h.tree).some(node => node.type === 'Link' && node.props.href === '/home' && text(node) === 'Done'));
-  assert.equal(h.button('Story shared').props.disabled, true); h.unmount();
+  assert.equal(h.button('Share to story'), undefined); h.unmount();
 });
 test('saved story draft keeps its filter and stickers in the owner-scoped write',async()=>{
   const row={...draft('a'),filter_id:'warm',stickers_json:[{id:'a',kind:'question',text:'Ask',nx:.5,ny:.4}],media_transform:{scale:1,translateNX:0,translateNY:0,trimStart:2,trimEnd:8}};

@@ -1,23 +1,53 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, {useState} from 'react';
+import { View, Text, Platform, type ViewStyle } from 'react-native';
+import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
-import { memoryColors, memoryDesign } from '../../../shared/memoryBookDesign';
-
-export default function MemoryBookCover({ title, color, design, width = 62, height = 78 }: { title: string; color?: string; design?: string; width?: number; height?: number }) {
-  const c = memoryColors(color), d = memoryDesign(design), unit = width / 62;
-  const serif = ['editorial','classic','field_notes'].includes(d.id);
-  return <View accessible accessibilityLabel={`${d.label} book cover: ${title}`} style={{ width, height, borderRadius: 8 * unit, backgroundColor: c.spine, padding: 3 * unit, paddingLeft: 7 * unit, shadowColor: '#000', shadowOpacity: .13, shadowRadius: 4 * unit, shadowOffset: { width: 0, height: 2 }, elevation: 3 }}>
-    <View style={{ flex: 1, overflow: 'hidden', borderRadius: 5 * unit, backgroundColor: c.cover, borderWidth: d.id === 'editorial' ? 0 : 1, borderStyle: ['keepsake','postcard','field_notes'].includes(d.id) ? 'dashed' : 'solid', borderColor: c.text + '50', alignItems: 'center', justifyContent: 'center', padding: 4 * unit }}>
-      {d.id === 'night_film' && [0,1,2,3,4].map(i => <View key={i} style={{ position:'absolute', left:2*unit, top:(6+i*12)*unit,width:3*unit,height:5*unit,backgroundColor:c.text,opacity:.25 }}/>) }
-      {d.id === 'daybook' && [0,1,2,3,4,5].map(i => <View key={i} style={{position:'absolute',left:0,right:0,top:(10+i*10)*unit,height:1,backgroundColor:c.spine,opacity:.6}}/>)}
-      {d.id === 'postcard' && <View style={{ position:'absolute',right:3*unit,top:3*unit,width:10*unit,height:12*unit,borderWidth:1,borderStyle:'dashed',borderColor:c.text,opacity:.5 }}/>} 
-      {d.id === 'botanical' && <><Feather name="feather" size={32*unit} color={c.spine} style={{position:'absolute',top:0,left:-8*unit,transform:[{rotate:'-28deg'}]}}/><Feather name="feather" size={28*unit} color={c.spine} style={{position:'absolute',bottom:0,right:-7*unit,transform:[{rotate:'160deg'}]}}/></>}
-      {d.id === 'classic' && <View style={{position:'absolute',top:5*unit,bottom:5*unit,left:3*unit,right:3*unit,borderWidth:1,borderColor:c.text,opacity:.3}}/>}
-      <Feather name={d.mark} size={(d.id === 'editorial' ? 15 : 12)*unit} color={c.text} style={{ marginBottom:5*unit }}/>
-      <Text numberOfLines={3} adjustsFontSizeToFit minimumFontScale={.7} style={{ textAlign:'center',fontSize:(d.id === 'editorial' ? 11 : 9.5)*unit,lineHeight:11.5*unit,fontWeight:serif?'600':'800',fontFamily:serif?'Georgia':undefined,color:c.text }}>{title}</Text>
-      <View style={{height:1,width:17*unit,backgroundColor:c.text,opacity:.35,marginTop:5*unit}}/>
-    </View>
-    {d.id === 'keepsake' && <View style={{position:'absolute',right:-4*unit,top:height*.4,width:10*unit,height:15*unit,borderRadius:3*unit,backgroundColor:'#DFC58E',borderWidth:1,borderColor:'#B89A5F'}}/>}
-    {d.id === 'field_notes' && <View style={{position:'absolute',right:7*unit,top:0,bottom:0,width:2*unit,backgroundColor:c.text,opacity:.25}}/>}
-  </View>;
+import VideoThumb from '../VideoThumb';
+import { memoryArtwork, memoryDesign, memoryCoverTitleSize } from '../../../shared/memoryBookDesign';
+type Props = { title: string; subtitle?: string | null; color?: string; design?: string; photoUrl?: string; fallbackPhotoUrl?: string; videoUrl?: string; width?: number; height?: number };
+const serif = Platform.OS === 'ios' ? 'Georgia' : 'serif';
+function CoverPhoto({photoUrl,fallbackPhotoUrl,videoUrl,ink,scale}:{photoUrl?:string;fallbackPhotoUrl?:string;videoUrl?:string;ink:string;scale:number}) {
+ const [failed,setFailed]=useState<string[]>([]);
+ const src=[photoUrl,fallbackPhotoUrl].find(url=>url&&!failed.includes(url));
+ if(src)return <Image source={{uri:src}} contentFit="cover" style={{width:'100%',height:'100%'}} onError={()=>setFailed(prev=>[...prev.slice(-3),src])}/>;
+ if(videoUrl)return <VideoThumb uri={videoUrl} fill chip={false}/>;
+ return <View style={{flex:1,alignItems:'center',justifyContent:'center',borderWidth:1,borderColor:ink+'30',margin:5*scale}}><Feather name="image" size={25*scale} color={ink+'80'}/><Text style={{fontFamily:serif,fontSize:9*scale,color:ink+'A0',marginTop:5*scale}}>{photoUrl?'Open to view':'Your memories'}</Text></View>;
+}
+/** Actual cover layouts using already-authorized book media. */
+export default function MemoryBookCover({ title, subtitle, color, design, photoUrl, fallbackPhotoUrl, videoUrl, width = 144, height = 188 }: Props) {
+ const d=memoryDesign(design), a=memoryArtwork(design,color), u=width/200, dark=d.id==='editorial'||d.id==='night_film',titleSize=memoryCoverTitleSize(title,design)*u;
+ const photo=(extra:ViewStyle={})=><View style={[{position:'absolute',overflow:'hidden',backgroundColor:dark?'#343632':'#D5CDBA'},extra]}>
+  <CoverPhoto photoUrl={photoUrl} fallbackPhotoUrl={fallbackPhotoUrl} videoUrl={videoUrl} ink={a.ink} scale={u}/>
+ </View>;
+ return <View accessible accessibilityLabel={d.label+' book cover: '+title+(subtitle?'. '+subtitle:'')} style={{width,height,borderRadius:2*u,backgroundColor:a.paper,shadowColor:'#2C251B',shadowOpacity:.22,shadowRadius:7*u,shadowOffset:{width:2,height:5*u},elevation:5}}>
+  <View style={{position:'absolute',left:0,top:0,bottom:0,width:12*u,backgroundColor:a.spine,borderTopLeftRadius:2*u,borderBottomLeftRadius:2*u}}/>
+  <View style={{position:'absolute',left:5*u,top:0,bottom:0,width:2*u,backgroundColor:'#FFFFFF',opacity:.12}}/>
+  <View style={{position:'absolute',left:12*u,right:0,top:0,bottom:0,overflow:'hidden',borderWidth:.6,borderColor:'#493D2925'}}>
+   {dark?<>
+    {photo({left:0,right:0,top:0,bottom:0})}<View style={{position:'absolute',left:0,right:0,top:0,bottom:0,backgroundColor:'rgba(0,0,0,.35)'}}/>
+    <Text numberOfLines={3} adjustsFontSizeToFit style={{position:'absolute',left:12*u,right:(d.id==='night_film'?40:14)*u,top:12*u,fontFamily:serif,fontSize:titleSize,lineHeight:titleSize*1.05,color:a.ink}}>{title}</Text>
+    {!!subtitle&&<Text numberOfLines={2} style={{position:'absolute',left:14*u,right:15*u,bottom:14*u,fontSize:8*u,letterSpacing:1.2*u,color:a.ink}}>{subtitle}</Text>}
+    {d.id==='night_film'&&<View style={{position:'absolute',right:0,top:0,bottom:0,width:31*u,backgroundColor:'#171717',paddingHorizontal:5*u,paddingVertical:7*u,gap:5*u}}>{[0,1,2].map(n=><View key={n} style={{flex:1,borderLeftWidth:2,borderColor:'#B7AA8B77'}}>{photo({left:3*u,right:0,top:0,bottom:0})}</View>)}</View>}
+   </>:d.id==='keepsake'||d.id==='botanical'||d.id==='classic'?<>
+    {photo({left:33*u,right:23*u,top:height*.18,height:height*.49,borderWidth:3*u,borderColor:'#C8BCA3'})}
+    <Text numberOfLines={2} adjustsFontSizeToFit style={{position:'absolute',left:16*u,right:16*u,top:height*.70,fontFamily:serif,fontSize:titleSize,lineHeight:titleSize*1.05,textAlign:'center',color:a.ink}}>{title}</Text>
+    {!!subtitle&&<Text numberOfLines={2} style={{position:'absolute',left:18*u,right:18*u,bottom:12*u,fontFamily:serif,fontSize:9*u,textAlign:'center',color:a.accent}}>{subtitle}</Text>}
+   </>:d.id==='field_notes'?<>
+    <Text numberOfLines={2} adjustsFontSizeToFit style={{position:'absolute',left:15*u,right:12*u,top:18*u,fontSize:titleSize,lineHeight:titleSize*1.05,fontWeight:'800',color:a.ink}}>{title}</Text>
+    {photo({left:0,right:0,top:height*.29,height:height*.47})}
+    <Text numberOfLines={3} style={{position:'absolute',left:16*u,right:16*u,bottom:18*u,fontSize:8*u,letterSpacing:1*u,color:a.ink}}>{subtitle||'A COLLECTION OF MOMENTS'}</Text>
+   </>:d.id==='daybook'?<>
+    <Text numberOfLines={2} adjustsFontSizeToFit style={{position:'absolute',left:12*u,right:15*u,top:8*u,fontFamily:serif,fontSize:titleSize,lineHeight:titleSize*1.05,color:a.ink}}>{title}</Text>
+    {photo({left:9*u,width:96*u,top:height*.48,bottom:20*u})}{photo({right:8*u,width:65*u,top:height*.39,bottom:height*.19})}
+    <Text numberOfLines={2} style={{position:'absolute',right:10*u,width:65*u,bottom:10*u,fontFamily:serif,fontStyle:'italic',fontSize:12*u,color:a.ink}}>{subtitle||'The good days'}</Text>
+   </>:<>
+    <Text numberOfLines={2} adjustsFontSizeToFit style={{position:'absolute',left:12*u,right:16*u,top:12*u,fontFamily:serif,fontSize:titleSize,lineHeight:titleSize*1.05,color:a.ink}}>{title}</Text>
+    {!!subtitle&&<Text numberOfLines={1} style={{position:'absolute',left:13*u,right:12*u,top:height*.30,fontFamily:serif,fontSize:11*u,color:a.accent}}>{subtitle}</Text>}
+    {photo({left:10*u,right:10*u,top:height*(subtitle ? .38 : .30),bottom:24*u})}
+    <View style={{position:'absolute',left:8*u,bottom:9*u,width:44*u,height:38*u,backgroundColor:'#BDD5DF',transform:[{rotate:'-7deg'}],padding:5*u}}><Feather name="send" size={12*u} color={a.accent}/><Text style={{fontSize:5.5*u,letterSpacing:1*u,color:a.accent,marginTop:4*u}}>MOMENTS KEPT</Text></View>
+    <Text style={{position:'absolute',right:10*u,bottom:7*u,fontSize:6*u,letterSpacing:1*u,color:a.accent}}>VOL. 01</Text>
+   </>}
+   <View pointerEvents="none" style={{position:'absolute',left:0,top:0,bottom:0,width:5*u,backgroundColor:'#0000000B'}}/>
+  </View>
+ </View>;
 }

@@ -138,10 +138,11 @@ export default async function Shell({ admin, active, title, crumb, sub, children
         </header>
 
         <Workspace>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 19 }}>
+          <div className="pc-page-heading">
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: 25, fontWeight: 400, letterSpacing: '0.005em', color: 'var(--txt-strong)' }}>{title}</h1>
-              {sub ? <p style={{ margin: '5px 0 0', fontSize: 12.8, color: 'var(--txt-muted)', maxWidth: 640, textWrap: 'pretty' }}>{sub}</p> : null}
+              <p className="pc-page-kicker">Platinum Circles / Operations</p>
+              <h1 className="pc-page-title">{title}</h1>
+              {sub ? <p className="pc-page-subtitle">{sub}</p> : null}
             </div>
           </div>
           {countError ? <p role="status" style={{ color: 'var(--warn)', marginBottom: 12 }}>Queue counts are unavailable. Refresh to try again.</p> : null}

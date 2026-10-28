@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
-import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark, Play, Pause } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark, Play, Pause, MoreHorizontal, Settings2, Globe2 } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
 import { hydrateStoryMedia } from "@/lib/contentMedia";
@@ -12,6 +12,8 @@ import { SaveToMemory } from "@/components/SaveToMemory";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, animStyle, extraFontCss, STICKER_ANIM_CSS } from "@/components/StoryEngine";
+
+import { stickerCss } from "./storyTextAppearance";
 
 import { currentTextMentions } from "../../shared/storyMentions";
 
@@ -26,33 +28,6 @@ function SharedStoryVideo({ src, paused }: { src: string; paused: boolean }) {
 const IMAGE_DURATION_MS = 5000;
 const MAX_AUDIO_MS = 30000;
 
-function isColorLight(hex: string): boolean {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
-  if (!m) return false;
-  const v = parseInt(m[1], 16);
-  const r = (v >> 16) & 255, g = (v >> 8) & 255, b = v & 255;
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6;
-}
-
-function stickerCss(st: StoryTextSticker): React.CSSProperties {
-  const fs = st.fontSizeOverride || 28;
-  const pill = !!st.bgEnabled && st.style !== "highlight";
-  const base: React.CSSProperties = { fontSize: fs, fontWeight: 700, color: st.color, lineHeight: 1.25, whiteSpace: "pre-wrap", textAlign: st.textAlign || "center" };
-  if (pill) {
-    return { ...base, background: st.color, color: isColorLight(st.color) ? "#000000" : "#FFFFFF", padding: "6px 12px", borderRadius: 20 };
-  }
-  switch (st.style) {
-    case "bold": return { ...base, fontWeight: 800, letterSpacing: -0.5, textShadow: "0 2px 4px rgba(0,0,0,0.35)" };
-    case "typewriter": return { ...base, fontWeight: 400, fontFamily: "ui-monospace, monospace", letterSpacing: 0.5, background: "rgba(0,0,0,0.55)", padding: "6px 10px", borderRadius: 6 };
-    case "neon": return { ...base, fontWeight: 800, textShadow: "0 0 14px " + st.color + ", 0 0 26px " + st.color };
-    case "highlight": return { ...base, background: st.color, color: isColorLight(st.color) ? "#000000" : "#FFFFFF", padding: "4px 10px", borderRadius: 8, boxDecorationBreak: "clone" as const, WebkitBoxDecorationBreak: "clone" as const };
-    case "outline": return { ...base, color: "#FFFFFF", WebkitTextStroke: "1.5px " + st.color } as React.CSSProperties;
-    case "shadow3d": return { ...base, fontWeight: 800, textShadow: "2px 2px 0 rgba(0,0,0,0.5), 4px 4px 0 rgba(0,0,0,0.25)" };
-    case "retro": return { ...base, letterSpacing: 1, textShadow: "2px 2px 0 rgba(0,0,0,0.6)" };
-    case "script": return { ...base, fontFamily: "Georgia, serif", fontStyle: "italic", fontWeight: 400 };
-    default: return { ...base, textShadow: "0 1px 3px rgba(0,0,0,0.45)" };
-  }
-}
 
 const TIER_COLORS: Record<string, string> = { public_figure: "#22C55E", business: "#8E8E93", official: "#C9BFB0" };
 const tierCache = new Map<string, string | null>();
@@ -96,11 +71,11 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
             const m = part.startsWith("@") ? ms.find((x) => x.username.toLowerCase() === part.slice(1).toLowerCase()) : null;
             return m ? <a key={i} href={"/" + m.username} onClick={(e) => e.stopPropagation()} className="pointer-events-auto font-extrabold underline">{part}</a> : <span key={i}>{part}</span>;
           }) : st.text;
-          return <div key={st.id} style={{ ...pos, ...stickerCss(st), ...extraFontCss(st.style), ...animStyle(st.anim) }}>{body}</div>;
+          return <div key={st.id} style={pos}><div style={{ ...stickerCss(st), ...extraFontCss(st.style), ...animStyle(st.anim) }}>{body}</div></div>;
         }
         if (kind === "gif" || kind === "photo" || kind === "time" || kind === "date" || kind === "weather" || kind === "entity") {
           const cell = kind === "photo" && (st as any).photoShape === "cell" && typeof (st as any).photoFw === "number" ? { width: ((st as any).photoFw * 100) + "%", height: ((st as any).photoFh * 100) + "%" } : null;
-          return <div key={st.id} style={{ ...pos, ...(cell || {}), ...animStyle(st.anim) }}><EngineSticker st={st} /></div>;
+          return <div key={st.id} style={{ ...pos, ...(cell || {}) }}><div style={{ ...animStyle(st.anim), ...(cell ? { width: "100%", height: "100%" } : {}) }}><EngineSticker st={st} /></div></div>;
         }
         // Pill looks mirror the phone StickerPill: 0 white, 1 ink, 2 gradient, 3 glass.
         const pv = (((st as any).pillVariant || 0) % 4 + 4) % 4;
@@ -136,7 +111,7 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
           );
         }
         if (kind === "post" && st.postId) {
-          // Caption above an uncropped image, then the creator and post link.
+          // Author, uncropped media, caption and a clear post action match the viewing board.
           // The phone stores the carousel count alongside the shared media.
           const ps: any = st;
           const dt = ps.postCreatedAt ? new Date(ps.postCreatedAt) : null;
@@ -145,22 +120,7 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
           const isVideo = ps.postMediaType === "video";
           return (
             <a key={st.id} href={"/post/" + st.postId} style={{ ...pos, width: "86%", maxWidth: "86%" }} className="pointer-events-auto block overflow-hidden rounded-[20px] bg-white text-left shadow-2xl" aria-label={"View post by " + (ps.postAuthorName || ps.postUsername || "this creator")}>
-              {ps.postArticleTitle ? <span className="block px-4 pt-3 text-[16px] font-bold leading-snug text-[#0B1E3D]">{ps.postArticleTitle}</span> : null}
-              {ps.postText ? <span className="line-clamp-3 px-4 py-3 text-[14px] leading-snug text-[#0B1E3D]">{ps.postText}</span> : null}
-              {ps.postMediaUrl ? (
-                <span className="relative block w-full overflow-hidden bg-[#0B1E3D]" style={{ height: "clamp(140px, 38dvh, 330px)" }}>
-                  {!isVideo ? <img aria-hidden alt="" src={ps.postMediaUrl} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl" /> : null}
-                  {isVideo ? (
-                    <SharedStoryVideo src={ps.postMediaUrl} paused={paused} />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={ps.postMediaUrl} alt="Shared post" className="relative h-full w-full object-contain" />
-                  )}
-                  {Number(ps.postMediaCount) > 1 ? <span className="absolute right-2.5 top-2.5 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-bold text-white">1/{Math.floor(Number(ps.postMediaCount))}</span> : null}
-                  {isVideo ? <span className="absolute bottom-3 right-3 rounded-full bg-black/60 p-2 text-white"><VolumeX size={14} /></span> : null}
-                </span>
-              ) : null}
-              <span className="flex items-center gap-2.5 px-4 pt-3.5">
+              <span className="flex items-center gap-2.5 px-4 py-3.5">
                 {ps.postAuthorAvatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={ps.postAuthorAvatar} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
@@ -175,13 +135,22 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
                   <span className="block truncate text-[12.5px] text-[#687387]">{ps.postUsername ? "@" + ps.postUsername : ""}{ps.postUsername && dateStr ? " \u00B7 " : ""}{dateStr || ""}</span>
                 </span>
               </span>
-              <span className="mt-3 flex items-center gap-5 px-4">
-                <Heart size={20} style={{ color: "#E0245E" }} />
-                <MessageCircle size={20} className="text-[#0B1E3D]" />
-                <Repeat2 size={20} style={{ color: "#17BF63" }} />
-                <Bookmark size={20} className="ml-auto text-[#0B1E3D]" />
-              </span>
-              <span className="mt-3 block border-t px-4 py-3 text-center text-[15px] font-bold text-[#0B1E3D]" style={{ borderColor: "rgba(11,30,61,0.08)" }}>View post {"\u203A"}</span>
+              {ps.postMediaUrl ? (
+                <span className="relative block w-full overflow-hidden bg-[#0B1E3D]" style={{ height: "clamp(140px, 38dvh, 330px)" }}>
+                  {!isVideo ? <img aria-hidden alt="" src={ps.postMediaUrl} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl" /> : null}
+                  {isVideo ? (
+                    <SharedStoryVideo src={ps.postMediaUrl} paused={paused} />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={ps.postMediaUrl} alt="Shared post" className="relative h-full w-full object-contain" />
+                  )}
+                  {Number(ps.postMediaCount) > 1 ? <span className="absolute right-2.5 top-2.5 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-bold text-white">1/{Math.floor(Number(ps.postMediaCount))}</span> : null}
+                  {isVideo ? <span className="absolute bottom-3 right-3 rounded-full bg-black/60 p-2 text-white"><VolumeX size={14} /></span> : null}
+                </span>
+              ) : null}
+              {ps.postArticleTitle ? <span className="block px-4 pt-3 text-[16px] font-bold leading-snug text-[#0B1E3D]">{ps.postArticleTitle}</span> : null}
+              {ps.postText ? <span className="line-clamp-3 px-4 py-3 text-[14px] leading-snug text-[#0B1E3D]">{ps.postText}</span> : null}
+              <span className="mx-4 mb-4 mt-1 flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#0B1E3D] px-4 py-3 text-center text-[15px] font-semibold text-white">View post <ChevronRight size={18} /></span>
             </a>
           );
         }
@@ -247,6 +216,10 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const [clock, setClock] = useState<number | null>(null);
   const [poll, setPoll] = useState<StoryPoll | null>(null);
   const [viewersOpen, setViewersOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [memoryOpen, setMemoryOpen] = useState(false);
+  const [settingsBusy, setSettingsBusy] = useState(false);
+  const settingsBusyRef = useRef(false);
   const [storyMentions, setStoryMentions] = useState<{ id: string; mentioned_user_id: string; visible: boolean; username?: string | null }[]>([]);
   const holdOrigin = useRef<{ x: number; y: number } | null>(null);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -277,7 +250,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   currentStoryRef.current = story?.id;
   const inputFocusedRef = useRef(false);
   const overlayPausedRef = useRef(false);
-  overlayPausedRef.current = viewersOpen || emojiOpen || !!replyText.trim();
+  overlayPausedRef.current = viewersOpen || moreOpen || memoryOpen || emojiOpen || !!replyText.trim();
   const mediaReady = !story?.media_url || loadedStoryId === story.id;
 
   // Reset on every advance, otherwise the previous story's ready flag hides the
@@ -290,6 +263,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     setReplyText("");
     setReplyToast(false);
     setViewersOpen(false);
+    setMoreOpen(false); setMemoryOpen(false);
     setHeartBurst(0);
     playbackPausedRef.current = false;
     manualPauseRef.current = false;
@@ -670,10 +644,42 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         : undefined
     : undefined;
 
+  const deleteCurrentStory = async () => {
+    if (!uid || !story || uid !== story.user_id) return;
+                if (deletingRef.current || !confirm("Delete this story everywhere?")) return;
+                deletingRef.current = true;
+                setActionError(null);
+                try {
+                  const { data, error } = await createClient().from("stories").delete().eq("id", story.id).eq("user_id", uid).select("id").maybeSingle();
+                  if (error || !data) throw error || new Error("Deletion was not confirmed");
+                  if (currentStoryRef.current !== story.id) return;
+                  const rest = stories.filter((s) => s.id !== story.id);
+                  setStories(rest);
+                  if (rest.length === 0) nextUser(); else setItemIdx(Math.min(itemIdx, rest.length - 1));
+                } catch { if (currentStoryRef.current === story.id) setActionError("The story could not be deleted. Please try again."); }
+                finally { deletingRef.current = false; }
+  };
+  const openActivity = () => { setMoreOpen(false); setViewersOpen(true); overlayPausedRef.current = true; pauseNow(); };
+  const closeMore = () => { setMoreOpen(false); overlayPausedRef.current = memoryOpen || viewersOpen || emojiOpen || !!replyText.trim(); resumeNow(); };
+  const updateStorySettings = async (patch: Partial<Pick<StoryRow, "allow_replies" | "allow_reactions" | "allow_sharing">>) => {
+    if (!story || !uid || story.user_id !== uid || settingsBusyRef.current) return;
+    const id = story.id, owner = uid;
+    settingsBusyRef.current = true; setSettingsBusy(true); setActionError(null);
+    try {
+      const client = createClient();
+      const session = await client.auth.getSession();
+      if (session.error || session.data.session?.user.id !== owner) throw new Error("Account changed");
+      const { data, error } = await client.from("stories").update(patch).eq("id", id).eq("user_id", owner).select("id,allow_replies,allow_reactions,allow_sharing").maybeSingle();
+      if (error || !data) throw error || new Error("Settings were not confirmed");
+      if (viewerRef.current === owner && currentStoryRef.current === id) setStories(current => current.map(item => item.id === id ? { ...item, ...data } : item));
+    } catch { if (viewerRef.current === owner && currentStoryRef.current === id) setActionError("Story settings could not be saved. Try again."); }
+    finally { settingsBusyRef.current = false; setSettingsBusy(false); }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
       <style>{"@keyframes heartpop { 0% { transform: scale(0.3); opacity: 0; } 30% { transform: scale(1.18); opacity: 1; } 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.05); opacity: 0; } }"}</style>
-      <button onClick={onClose} className="absolute right-4 top-4 z-30 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" title="Close">
+      <button onClick={onClose} className="absolute right-4 top-4 z-30 hidden h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 md:flex" aria-label="Close story viewer">
         <X size={20} />
       </button>
       {userIdx > 0 || itemIdx > 0 ? (
@@ -685,7 +691,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         <ChevronRight size={22} />
       </button>
 
-      <div className="relative aspect-[9/16] h-[92vh] max-w-[94vw] overflow-hidden rounded-xl bg-ink" style={bg ? { background: bg } : undefined}
+      <div className="relative aspect-[9/16] h-[92vh] max-w-[94vw] overflow-hidden rounded-[28px] bg-[#111518]" style={bg ? { background: bg } : undefined}
         onFocusCapture={event => { const target = event.target as HTMLElement; if (target.closest("input,textarea,select,[contenteditable='true']")) { inputFocusedRef.current = true; pauseNow(); } }}
         onBlurCapture={event => { const next = event.relatedTarget as HTMLElement | null; if (!next?.closest("input,textarea,select,[contenteditable='true']")) { inputFocusedRef.current = false; resumeNow(); } }}
         onContextMenu={event => { if (holdConsumedClickRef.current) event.preventDefault(); }}
@@ -704,14 +710,16 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         <div className="absolute inset-x-0 top-5 z-10 flex items-center gap-2 px-3">
           {user.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(user.avatar_url, 100) ?? user.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+            <img src={displayImageUrl(user.avatar_url, 100) ?? user.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full border border-[#E8D3B6]/60 p-0.5 object-cover" />
           ) : (
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-xs font-semibold text-white">
               {(user.full_name ?? "?").charAt(0).toUpperCase()}
             </span>
           )}
-          <span className="text-[13px] font-semibold text-white drop-shadow">{user.full_name}</span> <VerifiedBadge userId={user.user_id} size={13} />
-          {story ? <span className="text-[12px] text-white/70 drop-shadow"><RelativeTime dateTime={story.created_at} /></span> : null}
+          <div className="min-w-0 flex-1"><span className="flex items-center gap-1 truncate text-[13px] font-semibold text-white drop-shadow">{isOwn ? "Your story" : user.full_name}<VerifiedBadge userId={user.user_id} size={13} /></span>{story ? <span className="text-[11px] text-white/75 drop-shadow"><RelativeTime dateTime={story.created_at} /></span> : null}</div>
+          {story ? <button type="button" onClick={togglePlayback} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white focus-visible:outline-2 focus-visible:outline-white" aria-label={playbackPaused ? "Play story" : "Pause story"}>{playbackPaused ? <Play size={18} /> : <Pause size={18} />}</button> : null}
+          {story?.media_type === "video" || storyAudioUrl ? <button type="button" onClick={() => setMuted(!muted)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white" aria-label={muted ? "Unmute story" : "Mute story"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button> : null}
+          <button type="button" onClick={onClose} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white" aria-label="Close story"><X size={21} /></button>
         </div>
 
         {story ? (
@@ -807,7 +815,6 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
           </div>
         )}
 
-        {story ? <SaveToMemory story={story} /> : null}
         <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onClick={(event) => { const consumed = holdConsumedClickRef.current; holdConsumedClickRef.current = false; if (event.detail === 0 || !consumed) back(); }} className="absolute inset-y-0 left-0 z-[3] w-1/3" aria-label="Previous" />
         <div onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onDoubleClick={() => react(REACTION_EMOJIS[0])} className="absolute inset-y-0 left-1/3 z-[3] w-1/3" aria-hidden="true" />
         <button onPointerDown={holdStart} onPointerUp={holdEnd} onPointerLeave={holdEnd} onPointerCancel={holdEnd} onClick={(event) => { const consumed = holdConsumedClickRef.current; holdConsumedClickRef.current = false; if (event.detail === 0 || !consumed) advance(); }} className="absolute inset-y-0 right-0 z-[3] w-1/3" aria-label="Next" />
@@ -853,68 +860,63 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
           <span className="absolute inset-x-0 bottom-20 z-30 mx-auto w-fit rounded-full bg-white px-4 py-1.5 text-[12px] font-semibold text-ink">Reply sent</span>
         ) : null}
 
-        <div className="absolute right-2 top-[68px] z-20 flex flex-col gap-2">
-          {story ? <button type="button" onClick={togglePlayback} className="flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" aria-label={playbackPaused ? "Play story" : "Pause story"} title={playbackPaused ? "Play story" : "Pause story"}>
-            {playbackPaused ? <Play size={18} /> : <Pause size={18} />}
-          </button> : null}
-          {story?.media_type === "video" || storyAudioUrl ? (
-            <button onClick={() => setMuted(!muted)} className="rounded-full bg-black/40 p-2 text-white" aria-label="Mute">
-              {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
-            </button>
-          ) : null}
-          {uid && story && uid === story.user_id ? (
-            <>
-              <button onClick={() => { setViewersOpen(true); overlayPausedRef.current = true; pauseNow(); }} className="rounded-full bg-black/40 p-2 text-white" title="Viewers"><Eye size={15} /></button>
-              <button onClick={async () => {
-                if (deletingRef.current || !confirm("Delete this story everywhere?")) return;
-                deletingRef.current = true;
-                setActionError(null);
-                try {
-                  const { data, error } = await createClient().from("stories").delete().eq("id", story.id).eq("user_id", uid).select("id").maybeSingle();
-                  if (error || !data) throw error || new Error("Deletion was not confirmed");
-                  if (currentStoryRef.current !== story.id) return;
-                  const rest = stories.filter((s) => s.id !== story.id);
-                  setStories(rest);
-                  if (rest.length === 0) nextUser(); else setItemIdx(Math.min(itemIdx, rest.length - 1));
-                } catch { if (currentStoryRef.current === story.id) setActionError("The story could not be deleted. Please try again."); }
-                finally { deletingRef.current = false; }
-              }} className="rounded-full bg-black/40 p-2 text-white" title="Delete story"><Trash2 size={15} /></button>
-            </>
-          ) : null}
-        </div>
+        {uid && story && uid === story.user_id ? <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-[#111518] via-[#111518]/75 to-transparent px-6 pb-3 pt-5">
+          <button type="button" className="mb-2 flex min-h-6 items-center gap-2 text-[11px] text-white/65" onClick={openActivity} aria-label="Story views"><Eye size={13} />{story.views_count || 0} views</button>
+          <div className="flex items-end justify-between">
+            <button type="button" onClick={openActivity} className="flex min-h-14 min-w-16 flex-col items-center gap-1.5 text-[10px] text-white" aria-label="Story activity"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10"><Eye size={21} /></span>Activity</button>
+            <SaveToMemory story={story} triggerLabel="Keep" triggerClassName="flex min-h-14 min-w-16 flex-col items-center gap-1.5 rounded-none bg-transparent px-0 py-0 text-[10px] text-white [&_svg]:h-10 [&_svg]:w-10 [&_svg]:rounded-full [&_svg]:bg-white/10 [&_svg]:p-2.5" onOpenChange={open => { setMemoryOpen(open); overlayPausedRef.current = open || viewersOpen || moreOpen || emojiOpen || !!replyText.trim(); if (open) pauseNow(); else resumeNow(); }} />
+            <button type="button" onClick={() => { setMoreOpen(true); overlayPausedRef.current = true; pauseNow(); }} className="flex min-h-14 min-w-16 flex-col items-center gap-1.5 text-[10px] text-white" aria-label="Story options"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10"><MoreHorizontal size={21} /></span>More</button>
+          </div>
+        </div> : null}
+        {moreOpen && isOwn && story ? <div className="absolute inset-0 z-30 flex items-end bg-black/30" onClick={closeMore}><section role="dialog" aria-modal="true" aria-label="Story settings" className="w-full rounded-t-[28px] bg-[#FBF9F5] p-5 text-[#0B1E3D]" onClick={e => e.stopPropagation()}>
+          <div className="mx-auto mb-5 h-1 w-9 rounded-full bg-black/20" /><div className="mb-4 flex items-center"><Settings2 size={21} /><h2 className="ml-2 flex-1 text-lg font-semibold">Story settings</h2><button type="button" aria-label="Close story settings" className="flex h-11 w-11 items-center justify-center rounded-full bg-black/5" onClick={closeMore}><X size={19} /></button></div>
+          {([['allow_replies','Allow replies'],['allow_reactions','Allow reactions'],['allow_sharing','Allow sharing']] as const).map(([key,label]) => <button key={key} type="button" role="switch" aria-checked={story[key] !== false} disabled={settingsBusy} onClick={() => void updateStorySettings({ [key]: story[key] === false })} className="flex min-h-14 w-full items-center justify-between border-b border-black/5 text-sm disabled:opacity-50">{label}<span className={"flex h-7 w-12 items-center rounded-full p-1 transition-colors " + (story[key] !== false ? "justify-end bg-[#0B1E3D]" : "justify-start bg-[#d6d7d9]")}><span className="h-5 w-5 rounded-full bg-white" /></span></button>)}
+          <button type="button" className="mt-3 flex min-h-12 w-full items-center gap-3 text-sm font-semibold" onClick={openActivity}><Eye size={19} />View story activity<ChevronRight size={18} className="ml-auto" /></button>
+          <button type="button" className="flex min-h-12 w-full items-center gap-3 text-sm font-semibold text-[#AD4339]" onClick={() => void deleteCurrentStory()}><Trash2 size={19} />Delete story</button>
+        </section></div> : null}
         {actionError ? <p role="alert" className="absolute inset-x-4 bottom-24 z-30 rounded-lg bg-black/80 px-3 py-2 text-center text-sm text-white">{actionError}</p> : null}
-        {viewersOpen && story ? <ViewersSheet storyId={story.id} onClose={() => { setViewersOpen(false); overlayPausedRef.current = false; resumeNow(); }} /> : null}
+        {viewersOpen && story ? <ViewersSheet storyId={story.id} viewsCount={story.views_count} audience={story.audience} onSettings={() => { setViewersOpen(false); setMoreOpen(true); overlayPausedRef.current = true; }} onClose={() => { setViewersOpen(false); overlayPausedRef.current = false; resumeNow(); }} /> : null}
       </div>
     </div>
   );
 }
 
-function ViewersSheet({ storyId, onClose }: { storyId: string; onClose: () => void }) {
-  const [people, setPeople] = useState<{ id: string; full_name: string | null; username: string | null; avatar_url: string | null }[]>([]);
+type ActivityPerson = { user_id: string; full_name: string | null; username: string | null; avatar_url: string | null; viewed_at?: string; emoji?: string; created_at?: string };
+function ViewersSheet({ storyId, viewsCount, audience, onClose, onSettings }: { storyId: string; viewsCount?: number; audience?: string | null; onClose: () => void; onSettings: () => void }) {
+  const [people, setPeople] = useState<ActivityPerson[]>([]);
+  const [reactions, setReactions] = useState<ActivityPerson[]>([]);
+  const [tab, setTab] = useState<"viewers" | "reactions">("viewers");
+  const [loading, setLoading] = useState(true);
+  const [loadedAudience, setLoadedAudience] = useState<string | null>(audience || null);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
-    const supabase = createClient();
-    supabase.from("story_views").select("user_id").eq("story_id", storyId).then(async ({ data }) => {
-      const ids = (data ?? []).map((r) => r.user_id);
-      if (ids.length === 0) { setPeople([]); return; }
-      const { data: profs } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
-      setPeople(profs ?? []);
-    });
-  }, [storyId]);
-  return (
-    <div className="absolute inset-x-0 bottom-0 z-30 max-h-[55%] overflow-y-auto rounded-t-2xl bg-white p-4" onClick={(e) => e.stopPropagation()}>
-      <div className="mb-2 flex items-center justify-between">
-        <p className="text-[14px] font-semibold text-ink">Viewers · {people.length}</p>
-        <button onClick={onClose} className="rounded-full p-1.5 text-muted" aria-label="Close"><X size={16} /></button>
-      </div>
-      {people.length === 0 ? <p className="py-6 text-center text-[13px] text-muted">No views yet.</p> : people.map((p) => (
-        <div key={p.id} className="flex items-center gap-2.5 py-1.5">
-          {p.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(p.avatar_url, 200) ?? p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-          ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-pearl text-[12px] font-semibold text-on-pearl">{(p.full_name ?? "?").charAt(0)}</span>}
-          <span className="text-[13px] text-ink">{p.full_name} <VerifiedBadge userId={p.id} size={12} /> <span className="text-muted">@{p.username}</span></span>
-        </div>
-      ))}
-    </div>
-  );
+    let cancelled = false;
+    const client = createClient();
+    setPeople([]); setReactions([]); setLoading(true); setError(false);
+    void Promise.all([client.rpc("get_story_viewers", { p_story_id: storyId }), client.rpc("get_story_reactions", { p_story_id: storyId }), client.from("stories").select("audience").eq("id", storyId).maybeSingle()]).then(([views, reacted, settings]) => {
+      if (cancelled) return;
+      if (views.error || reacted.error) throw views.error || reacted.error;
+      setPeople((views.data || []) as ActivityPerson[]); setReactions((reacted.data || []) as ActivityPerson[]); setLoadedAudience(settings.error ? null : settings.data?.audience || null);
+    }).catch(() => { if (!cancelled) setError(true); }).finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [storyId, attempt]);
+  const audienceLabel = ({ everyone: "Everyone", followers: "Followers", close_friends: "Close friends", only_with: "Selected", except: "Custom" } as Record<string, string>)[loadedAudience || ""] || (loadedAudience ? "Custom" : "—");
+  const reactionMap = new Map<string, ActivityPerson & { emojis: string[] }>();
+  reactions.forEach(person => { const current = reactionMap.get(person.user_id); if (current) { if (person.emoji) current.emojis.push(person.emoji); } else reactionMap.set(person.user_id, { ...person, emojis: person.emoji ? [person.emoji] : [] }); });
+  const rows = tab === "viewers" ? people : [...reactionMap.values()];
+  return <div className="absolute inset-0 z-30 flex items-end bg-black/30" onClick={onClose}>
+    <section role="dialog" aria-modal="true" aria-label="Story activity" className="max-h-[78%] w-full overflow-y-auto rounded-t-[28px] bg-[#FBF9F5] px-5 pb-5 pt-3 text-[#0B1E3D]" onClick={e => e.stopPropagation()}>
+      <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-black/20" /><div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-semibold tracking-tight">Story activity</h2><button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-full bg-black/5" aria-label="Close story activity"><X size={20} /></button></div>
+      <div className="mb-5 grid grid-cols-3 gap-2">{[{ icon: Eye, value: viewsCount ?? people.length, label: "Views" }, { icon: Heart, value: reactions.length, label: "Reactions" }, { icon: Globe2, value: audienceLabel, label: "Audience" }].map(stat => <div key={stat.label} className="flex min-h-24 flex-col items-center justify-center gap-1 rounded-2xl bg-[#F0EDE7] px-1 py-3 text-center"><stat.icon size={16} /><strong className="text-sm">{loading && stat.label === "Reactions" ? "—" : stat.value}</strong><span className="text-[10px] text-[#78808a]">{stat.label}</span></div>)}</div>
+      <div role="tablist" aria-label="Story activity" className="mb-3 flex border-b border-[#dedbd6]">{([['viewers','Viewers'],['reactions','Reactions']] as const).map(([key,label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} onClick={() => setTab(key)} className={"min-h-11 flex-1 border-b-2 text-sm font-semibold " + (tab === key ? "border-[#0B1E3D] text-[#0B1E3D]" : "border-transparent text-[#8c929a]")}>{label}</button>)}</div>
+      {loading ? <p role="status" className="py-8 text-center text-sm text-[#78808a]">Loading activity…</p> : error ? <div role="alert" className="py-6 text-center text-sm text-[#78808a]">Activity could not load.<button type="button" className="mx-auto mt-3 block min-h-11 rounded-full bg-[#0B1E3D] px-5 text-xs font-semibold text-white" onClick={() => setAttempt(n => n + 1)}>Try again</button></div> : !rows.length ? <p className="py-8 text-center text-sm text-[#78808a]">{tab === "viewers" ? "No views yet." : "No reactions yet."}</p> : rows.map(person => <div key={person.user_id} className="flex min-h-16 items-center gap-3 border-b border-black/5 py-2">
+        {person.avatar_url ?
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={displayImageUrl(person.avatar_url, 100) ?? person.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" /> : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8DDCA] text-sm font-semibold">{(person.full_name || person.username || "?").charAt(0)}</span>}
+        <div className="min-w-0 flex-1"><p className="flex items-center gap-1 text-sm font-semibold">{person.username ? <a href={"/" + person.username} className="truncate">{person.full_name || person.username}</a> : person.full_name || "Member"}<VerifiedBadge userId={person.user_id} size={12} /></p>{person.username ? <p className="truncate text-xs text-[#8b9199]">@{person.username}</p> : null}</div><span className="text-lg">{reactionMap.get(person.user_id)?.emojis.join("")}</span>
+      </div>)}
+      <button type="button" onClick={onSettings} className="mt-5 flex min-h-12 w-full items-center gap-3 text-sm font-semibold"><Settings2 size={21} />Story settings<ChevronRight size={20} className="ml-auto" /></button>
+    </section>
+  </div>;
 }

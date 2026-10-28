@@ -21,7 +21,7 @@ const KIND_META: Record<string, { label: string; color: string; bg: string }> = 
 };
 
 export default function AccountStandingScreen() {
-  useTheme();
+  const { isDark } = useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
@@ -50,7 +50,7 @@ export default function AccountStandingScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle={getTheme().surface.canvas === '#FFFFFF' ? 'dark-content' : 'light-content'} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>

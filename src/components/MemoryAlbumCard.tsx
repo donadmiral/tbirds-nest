@@ -1,49 +1,58 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityIndicator, useWindowDimensions, Platform, AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
+import { hydrateMemoryAlbumMedia } from '../services/contentMedia';
 import { useTheme } from '../theme/useTheme';
+import { SafeAreaView } from './SafeArea';
 import MemoryBookCover from './memory/MemoryBookCover';
-import { MEMORY_COVER_COLORS, MEMORY_DESIGNS } from '../../shared/memoryBookDesign';
+import MemoryBookDesigner from './memory/MemoryBookDesigner';
+import { MEMORY_COVER_COLORS, memoryCoverMedia, memoryAudienceLabel } from '../../shared/memoryBookDesign';
 export const COVER_COLORS = MEMORY_COVER_COLORS;
 
 export default function MemoryAlbumCard({ownerId,navigation}:{ownerId?:string|null;navigation:any}) {
- const {t}=useTheme();
- const [data,setData]=useState<any>(null),[error,setError]=useState(''),[creating,setCreating]=useState(false),[title,setTitle]=useState(''),[color,setColor]=useState('blush'),[design,setDesign]=useState('keepsake'),[busy,setBusy]=useState(false);
- const epoch=useRef(0),saving=useRef(false),viewer=useRef<string|null|undefined>(undefined),loadedOwner=useRef<string|null>(null);
+ const {t,isDark}=useTheme(),{width}=useWindowDimensions();
+ const [data,setData]=useState<any>(null),[error,setError]=useState(''),[creating,setCreating]=useState(false),[collection,setCollection]=useState(false),[query,setQuery]=useState(''),[filter,setFilter]=useState('All');
+ const pendingCreate=useRef(false),pendingDestination=useRef<{ownerId:string;albumId:string}|null>(null);
+ const epoch=useRef(0),viewer=useRef<string|null|undefined>(undefined),loadedOwner=useRef<string|null>(null);
  const [loading,setLoading]=useState(true);
  const refresh=useCallback(async()=>{
   const id=++epoch.current;
-  // Keep an authorized shelf in place while it refreshes. Removing it changes
-  // the profile's content height underneath an in-progress scroll or tap.
+  // Keep the same owner's shelf mounted during refresh so profile taps and
+  // scroll positions do not move under the finger.
   if(loadedOwner.current!==ownerId){loadedOwner.current=ownerId??null;setData(null);}
   setLoading(true);setError('');
   if(!ownerId){setLoading(false);return;}
-  try{const {data:result,error:e}=await supabase.rpc('get_memory_albums',{p_owner:ownerId});if(e||!result||!Array.isArray(result.books))throw e||Error();if(id===epoch.current)setData(result);}
+  try{const {data:result,error:e}=await supabase.rpc('get_memory_albums',{p_owner:ownerId});if(e||!result||!Array.isArray(result.books))throw e||Error();const books=await hydrateMemoryAlbumMedia(result.books);if(id===epoch.current)setData({...result,books});}
   catch{if(id===epoch.current)setError('Memory books could not load. Tap to retry.');}
   finally{if(id===epoch.current)setLoading(false);}
  },[ownerId]);
- useFocusEffect(useCallback(()=>{void refresh();return()=>{epoch.current++;};},[refresh]));
- useEffect(()=>{const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(viewer.current===next)return;viewer.current=next;epoch.current++;setData(null);setCreating(false);void refresh();});return()=>subscription.unsubscribe();},[refresh]);
- const create=async()=>{if(!title.trim()||saving.current)return;saving.current=true;setBusy(true);setError('');const id=epoch.current;try{const {data:session}=await supabase.auth.getSession();if(session.session?.user.id!==ownerId)throw Error();const {data:book,error:e}=await supabase.rpc('create_memory_book_design',{p_title:title.trim(),p_cover_color:color,p_cover_design:design});if(e||!book)throw e||Error();if(id!==epoch.current)return;setCreating(false);setTitle('');void refresh();navigation.navigate('MemoryAlbum',{ownerId,albumId:book});}catch{if(id===epoch.current)setError('Could not create the book. Your choices are kept.');}finally{saving.current=false;setBusy(false);}};
+ useFocusEffect(useCallback(()=>{void refresh();const timer=setInterval(()=>{if(AppState.currentState==='active')void refresh();},240000);const sub=AppState.addEventListener('change',state=>{if(state==='active')void refresh();});return()=>{epoch.current++;clearInterval(timer);sub.remove();};},[refresh]));
+ useEffect(()=>{pendingCreate.current=false;pendingDestination.current=null;setCreating(false);setCollection(false);},[ownerId]);
+ useEffect(()=>{const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(viewer.current===next)return;viewer.current=next;pendingCreate.current=false;pendingDestination.current=null;epoch.current++;setData(null);setCreating(false);setCollection(false);void refresh();});return()=>subscription.unsubscribe();},[refresh]);
  if(!ownerId)return null;
  const shelf=loadedOwner.current===ownerId?data:null;
  const books=(shelf?.books??[]).filter((b:any)=>shelf.is_owner||b.count>0);
  if(shelf&&!error&&!shelf.is_owner&&!books.length)return null;
- return <View style={{paddingVertical:10}}>
-  <Text style={{fontSize:13.5,fontWeight:'800',color:t.ink.primary,paddingHorizontal:16,marginBottom:8}}>Memory books</Text>
+ const coverW=Math.min(280,(width-48)/2),coverH=coverW*1.31,serif=Platform.OS==='ios'?'Georgia':'serif';
+ const finishNavigation=()=>{const target=pendingDestination.current;pendingDestination.current=null;if(target&&target.ownerId===ownerId)navigation.navigate('MemoryAlbum',target);};
+ const open=(b:any)=>{if(collection&&Platform.OS==='ios'){pendingDestination.current={ownerId,albumId:b.id};setCollection(false);}else{setCollection(false);navigation.navigate('MemoryAlbum',{ownerId,albumId:b.id});}};
+ const card=(b:any,audience=false)=><TouchableOpacity key={b.id} accessibilityRole="button" accessibilityLabel={`${b.title}, ${b.count} memories`} onPress={()=>open(b)} style={{width:coverW,marginBottom:12}}><MemoryBookCover title={b.title} subtitle={b.subtitle} color={b.cover_color} design={b.cover_design} {...memoryCoverMedia(b.cover_page)} width={coverW} height={coverH}/><Text numberOfLines={1} style={{fontFamily:serif,fontSize:17,color:t.ink.primary,marginTop:10}}>{b.title}</Text><Text style={{fontSize:12,color:t.ink.secondary,marginTop:4}}>{audience?memoryAudienceLabel(b.audience):b.count+' '+(b.count===1?'memory':'memories')}</Text></TouchableOpacity>;
+ const filtered=books.filter((b:any)=>(b.title+' '+(b.subtitle??'')).toLowerCase().includes(query.toLowerCase())&&(filter==='All'||(filter==='Public'?b.audience==='profile':b.audience!=='profile')));
+ return <View style={{paddingTop:18,paddingBottom:14}}>
+  <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,marginBottom:12}}><Text style={{fontSize:19,fontWeight:'700',color:t.ink.primary}}>Memory books</Text>{!!books.length&&<TouchableOpacity onPress={()=>setCollection(true)} accessibilityLabel="View all memory books" style={{minHeight:44,justifyContent:'center'}}><Text style={{fontSize:13,color:t.ink.secondary}}>View all</Text></TouchableOpacity>}</View>
   {!!error&&!creating&&<TouchableOpacity onPress={()=>void refresh()}><Text style={{color:t.ink.secondary,padding:16}}>{error}</Text></TouchableOpacity>}
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingHorizontal:16,gap:16,alignItems:'flex-start',minHeight:112}} keyboardShouldPersistTaps="handled">
-   {!shelf&&loading&&<View accessibilityLabel="Loading memory books" style={{width:70,height:112,alignItems:'center'}}><View style={{width:62,height:78,borderRadius:8,backgroundColor:t.surface.hairline,alignItems:'center',justifyContent:'center'}}><ActivityIndicator color={t.ink.secondary}/></View></View>}
-   {books.map((b:any)=><TouchableOpacity key={b.id} accessibilityRole="button" accessibilityLabel={`${b.title}, ${b.count} memories`} onPress={()=>navigation.navigate('MemoryAlbum',{ownerId,albumId:b.id})} style={{alignItems:'center',width:70}}><MemoryBookCover title={b.title} color={b.cover_color} design={b.cover_design}/><Text numberOfLines={1} style={{fontSize:10.5,fontWeight:'700',color:t.ink.primary,marginTop:6,maxWidth:70}}>{b.title}</Text><Text style={{fontSize:9.5,color:t.ink.secondary,marginTop:1}}>{b.count} {b.count===1?'memory':'memories'}</Text></TouchableOpacity>)}
-   {shelf?.is_owner&&<TouchableOpacity onPress={()=>{setCreating(true);setError('');}} accessibilityLabel="Create memory book" style={{width:70,alignItems:'center'}}><View style={{width:62,height:78,borderRadius:8,borderWidth:1.5,borderStyle:'dashed',borderColor:t.surface.hairline,alignItems:'center',justifyContent:'center'}}><Feather name="plus" size={18} color={t.ink.secondary}/></View><Text style={{fontSize:10.5,color:t.ink.secondary,marginTop:6}}>New book</Text></TouchableOpacity>}
-  </ScrollView>
-  <Modal visible={creating} transparent animationType="fade" onRequestClose={()=>{if(!busy)setCreating(false);}}><View style={{flex:1,backgroundColor:'rgba(0,0,0,.5)',justifyContent:'center',padding:24}}><View style={{backgroundColor:t.surface.canvas,borderRadius:20,padding:18,maxHeight:'85%'}}><ScrollView keyboardShouldPersistTaps="handled"><Text style={{fontSize:18,fontWeight:'800',color:t.ink.primary}}>New memory book</Text><TextInput value={title} onChangeText={setTitle} maxLength={40} placeholder="Happy moments" placeholderTextColor={t.ink.secondary} style={{color:t.ink.primary,borderWidth:1,borderColor:t.surface.hairline,borderRadius:10,padding:12,marginVertical:14}}/>
-   <ScrollView horizontal contentContainerStyle={{gap:14,padding:7}}>{MEMORY_DESIGNS.map(d=><TouchableOpacity key={d.id} onPress={()=>setDesign(d.id)} accessibilityRole="button" accessibilityLabel={`${d.label} cover design`} accessibilityState={{selected:design===d.id}} style={{opacity:design===d.id?1:.55}}><MemoryBookCover title={title||'Memories'} color={color} design={d.id}/><Text style={{fontSize:10,color:t.ink.primary,marginTop:6}}>{d.label}</Text></TouchableOpacity>)}</ScrollView>
-   <View style={{flexDirection:'row',flexWrap:'wrap',gap:12,marginVertical:18}}>{Object.entries(COVER_COLORS).map(([k,c])=><TouchableOpacity key={k} onPress={()=>setColor(k)} accessibilityRole="button" accessibilityLabel={`${k} cover color`} accessibilityState={{selected:color===k}} style={{width:28,height:28,borderRadius:14,backgroundColor:c.cover,borderWidth:color===k?3:1,borderColor:color===k?t.ink.primary:t.surface.hairline}}/>)}</View>
-   {!!error&&<Text style={{color:t.ink.secondary,marginBottom:12}}>{error}</Text>}
-   <View style={{flexDirection:'row',justifyContent:'flex-end',gap:24}}><TouchableOpacity disabled={busy} onPress={()=>setCreating(false)}><Text style={{color:t.ink.secondary}}>Cancel</Text></TouchableOpacity><TouchableOpacity disabled={busy||!title.trim()} onPress={()=>void create()}>{busy?<ActivityIndicator/>:<Text style={{fontWeight:'800',color:t.ink.primary}}>Create</Text>}</TouchableOpacity></View>
-  </ScrollView></View></View></Modal>
+  <View style={{flexDirection:'row',gap:16,paddingHorizontal:16,minHeight:!shelf&&loading?coverH+48:undefined}}>
+   {!shelf&&loading&&<View accessibilityLabel="Loading memory books" style={{width:coverW,height:coverH,backgroundColor:t.surface.hairline,borderRadius:4,alignItems:'center',justifyContent:'center'}}><ActivityIndicator color={t.ink.secondary}/></View>}
+   {books.slice(0,2).map((b:any)=>card(b))}
+  </View>
+  {shelf?.is_owner&&<TouchableOpacity onPress={()=>{setCreating(true);setError('');}} accessibilityLabel="Create memory book" style={{marginHorizontal:16,marginTop:4,minHeight:48,borderRadius:13,borderWidth:1,borderStyle:'dashed',borderColor:t.surface.hairline,flexDirection:'row',gap:8,alignItems:'center',justifyContent:'center'}}><Feather name="plus" size={20} color={t.ink.primary}/><Text style={{color:t.ink.primary,fontSize:14}}>New book</Text></TouchableOpacity>}
+  <Modal visible={collection} animationType="slide" onRequestClose={()=>setCollection(false)} onDismiss={()=>{if(pendingCreate.current){pendingCreate.current=false;setCreating(true);}else finishNavigation();}}><SafeAreaView style={{flex:1,backgroundColor:isDark?t.surface.canvas:'#FCFAF5'}}><View style={{flexDirection:'row',paddingHorizontal:16,alignItems:'center',justifyContent:'space-between',height:58}}><TouchableOpacity accessibilityLabel="Back to profile" onPress={()=>setCollection(false)} style={{padding:10}}><Feather name="chevron-left" size={24} color={t.ink.primary}/></TouchableOpacity><Text style={{fontFamily:serif,fontSize:24,color:t.ink.primary}}>Memory books</Text>{shelf?.is_owner?<TouchableOpacity accessibilityLabel="New memory book" onPress={()=>{if(Platform.OS==='ios')pendingCreate.current=true;setCollection(false);if(Platform.OS!=='ios')setCreating(true);}} style={{padding:10}}><Feather name="plus" size={24} color={t.ink.primary}/></TouchableOpacity>:<View style={{width:44}}/>}</View>
+   <TextInput accessibilityLabel="Search memory books" value={query} onChangeText={setQuery} placeholder="Search your books" placeholderTextColor={t.ink.secondary} style={{marginHorizontal:18,marginBottom:16,borderRadius:24,paddingHorizontal:18,paddingVertical:12,backgroundColor:t.surface.hairline,color:t.ink.primary}}/>
+   <View style={{marginHorizontal:18,marginBottom:20,flexDirection:'row',backgroundColor:t.surface.hairline,borderRadius:22}}>{['All','Public','Private'].map(f=><TouchableOpacity key={f} onPress={()=>setFilter(f)} accessibilityRole="tab" accessibilityState={{selected:filter===f}} style={{flex:1,alignItems:'center',padding:11,borderRadius:22,backgroundColor:filter===f?(isDark?t.brand.base:'#E7DDC7'):'transparent'}}><Text style={{color:filter===f&&isDark?'#FFF':t.ink.primary,fontWeight:filter===f?'700':'400'}}>{f}</Text></TouchableOpacity>)}</View>
+   <ScrollView contentContainerStyle={{paddingHorizontal:16,paddingBottom:30}}><View style={{flexDirection:'row',flexWrap:'wrap',gap:16}}>{filtered.map((b:any)=>card(b,true))}</View>{!filtered.length&&<Text style={{textAlign:'center',color:t.ink.secondary,padding:30}}>No books match your search.</Text>}</ScrollView>
+  </SafeAreaView></Modal>
+  <MemoryBookDesigner visible={creating} ownerId={ownerId} onClose={()=>setCreating(false)} onDismiss={finishNavigation} onCreated={id=>{if(Platform.OS==='ios')pendingDestination.current={ownerId,albumId:id};setCreating(false);void refresh();if(Platform.OS!=='ios')navigation.navigate('MemoryAlbum',{ownerId,albumId:id});}}/>
  </View>;
 }

@@ -132,7 +132,7 @@ export default function FollowsPage() {
   const isSelf = !!me && !!target && me === target.id;
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[560px] px-4 py-6">
+    <section className="mx-auto min-h-[65vh] w-full max-w-[560px] px-2 py-4">
       <div className="mb-4 flex items-center gap-3">
         <Link href={"/" + encodeURIComponent(username)} aria-label="Back to profile" className="rounded-full p-1.5 text-ink/60 hover:bg-ink/5 hover:text-ink"><ArrowLeft size={20} /></Link>
         <h1 className="text-lg font-semibold text-ink">{target?.username ? "@" + target.username : target?.full_name || "Connections"}</h1>
@@ -192,6 +192,6 @@ export default function FollowsPage() {
       {!loading && hasMore ? (
         <button disabled={loadingMore} aria-busy={loadingMore} onClick={() => void load(tab, page + 1, false)} className="mx-auto mt-4 block rounded-full bg-ink/5 px-5 py-2 text-[13px] font-semibold text-ink hover:bg-ink/10 disabled:opacity-50">{loadingMore ? "Loading…" : "Show more"}</button>
       ) : null}
-    </main>
+    </section>
   );
 }

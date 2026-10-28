@@ -9,9 +9,9 @@
  * report a story at all, and a public network where you can only block and
  * never report is half a safety story.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, Modal, TouchableOpacity, Alert, ActivityIndicator, Share,
+  View, Text, StyleSheet, Modal, TouchableOpacity, Alert, ActivityIndicator, Share, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from '../SafeArea';
 import { Feather } from '@expo/vector-icons';
@@ -28,6 +28,7 @@ type Props = {
   onDeleted?: () => void;
   onManageMentions?: () => void;
   onOpenInsights?: () => void;
+  onBeforeHandoff?: () => void;
 };
 
 const REPORT_REASONS = [
@@ -41,10 +42,23 @@ const REPORT_REASONS = [
 
 export default function StoryOptionsSheet({
   visible, onClose, isMine, storyId, authorId, authorName, mediaUrl,
-  onDeleted, onOpenInsights, onManageMentions,
+  onDeleted, onOpenInsights, onManageMentions, onBeforeHandoff,
 }: Props) {
   const insets = useSafeAreaInsets();
   const [busy, setBusy] = useState(false);
+  const pending = useRef<(() => void) | null>(null);
+  const handoffTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (handoffTimer.current) clearTimeout(handoffTimer.current); pending.current = null; }, []);
+  const finishHandoff = () => {
+    if (handoffTimer.current) clearTimeout(handoffTimer.current);
+    handoffTimer.current = null;
+    const action = pending.current; pending.current = null; action?.();
+  };
+  const handoff = (action?: () => void) => {
+    if (!action) return;
+    pending.current = action; onBeforeHandoff?.(); onClose();
+    if (Platform.OS !== 'ios') handoffTimer.current = setTimeout(finishHandoff, 300);
+  };
 
   const run = async (fn: () => Promise<void>) => {
     if (busy) return;
@@ -111,8 +125,8 @@ export default function StoryOptionsSheet({
 
   const rows = isMine
     ? [
-        { icon: 'bar-chart-2', label: 'View insights', tone: 'normal', run: () => { onClose(); onOpenInsights?.(); } },
-        { icon: 'at-sign', label: 'Manage mentions', tone: 'normal', run: () => { onClose(); onManageMentions?.(); } },
+        ...(onOpenInsights ? [{ icon: 'bar-chart-2', label: 'Story activity', tone: 'normal', run: () => handoff(onOpenInsights) }] : []),
+        ...(onManageMentions ? [{ icon: 'at-sign', label: 'Manage mentions', tone: 'normal', run: () => handoff(onManageMentions) }] : []),
         { icon: 'share', label: 'Share', tone: 'normal', run: shareStory },
         { icon: 'trash-2', label: 'Delete story', tone: 'danger', run: deleteStory },
       ]
@@ -123,7 +137,7 @@ export default function StoryOptionsSheet({
       ];
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} onDismiss={finishHandoff}>
       <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={[s.sheet, { paddingBottom: Math.max(insets.bottom, 14) }]}>
           <View style={s.handle} />
@@ -148,7 +162,7 @@ export default function StoryOptionsSheet({
 
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#16181C', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10 },
+  sheet: { backgroundColor: '#191C1F', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 10 },
   handle: { width: 38, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)', alignSelf: 'center', marginBottom: 10 },
   busy: { paddingVertical: 34, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 22, paddingVertical: 16 },

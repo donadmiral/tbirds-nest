@@ -20,8 +20,8 @@ type Props = {
 export default function StoryTextEditorToolbar(props: Props) {
   return <View style={{ paddingTop: Math.max(props.topInset, 12) }}>
     <View style={s.header}>
-      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel text editing" onPress={props.onClose} style={s.button}>
-        <Feather name="x" size={20} color="#FFFFFF" />
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel text editing" onPress={props.onClose} style={[s.button, { width: 65, backgroundColor: 'transparent' }]}>
+        <Text style={{ color: '#FFFFFF', fontSize: 15 }}>Cancel</Text>
       </TouchableOpacity>
       <Text style={s.title}>Edit text</Text>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Save text sticker" onPress={props.onSave} style={s.done}>
@@ -43,7 +43,7 @@ const s = StyleSheet.create({
   title: { flex: 1, color: '#FFFFFF', fontSize: 16, fontWeight: '700', textAlign: 'center' },
   button: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
   selected: { backgroundColor: '#FFFFFF' },
-  done: { minWidth: 60, minHeight: 44, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', borderRadius: 22, backgroundColor: '#C9BFB0' },
+  done: { minWidth: 60, minHeight: 44, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', borderRadius: 22, backgroundColor: '#E8D3B6' },
   doneText: { color: '#0B1E3D', fontSize: 15, fontWeight: '800' },
   tools: { paddingHorizontal: 16, paddingVertical: 10, gap: 10 },
   size: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },

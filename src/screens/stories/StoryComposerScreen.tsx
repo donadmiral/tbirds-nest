@@ -17,6 +17,7 @@ import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { useStorySoundPreview } from '../../hooks/useStorySoundPreview';
+import VideoThumb from '../../components/VideoThumb';
 import StudioRail, { type RailItem } from '../../components/stories/StudioRail';
 import TrimStrip from '../../components/stories/TrimStrip';
 import StudioSheet, { type StudioTile } from '../../components/stories/StudioSheet';
@@ -83,7 +84,7 @@ const DELETE_ZONE_HEIGHT = 80;
 const SAFE_TOP_PX = 70;
 const SAFE_BOTTOM_PX = 20;
 
-const STICKER_COLORS = ['#FFFFFF','#0A0A0A','#E8A13A','#C62F1D','#8B7BB8','#2F9E63','#0B1E3D','#C9BFB0'];
+const STICKER_COLORS = ['#FFFFFF','#0A0A0A','#E8D3B6','#F2AF99','#C5CEB4','#A7C3D0','#0B1E3D','#8B7BB8'];
 const EMOJI_LIST = [
   '😀','😍','😂','😭','😎','🥳','😮','😡','🤯','🥹',
   '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💯',
@@ -120,6 +121,24 @@ type Draft = {
   audio?: StoryAudioDraft | null; filterId?: string | null;
   hiddenMentions?: { id: string; username: string }[] | null; allowMentionReshare?: boolean;
 };
+
+/** Review uses the same media, filters, drawing and sticker renderers as the canvas. */
+function StoryReviewPreview({ draft, width, height, textBackground, strokes }: { draft: Draft; width: number; height: number; textBackground: React.ReactNode; strokes: DrawStroke[] }) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+  const frameW = Math.max(1, width), frameH = Math.max(1, height), ratio = 132 / frameW;
+  const tx = draft.mediaTransform as any;
+  const overlays = <>
+    <FilterLayer filterId={draft.filterId || null} amt={tx?.filterAmt} />
+    <AdjustLayer adjust={tx?.adjust || null} />
+    <DrawingLayer strokes={strokes.length ? strokes : null} width={frameW} height={frameH} />
+    <StickerOverlay stickers={draft.stickers || []} containerW={frameW} containerH={frameH} interactive={false} storyPaused />
+    {draft.pollData ? <PollDragWrap containerW={frameW} containerH={frameH} nx={draft.pollData.nx ?? .5} ny={draft.pollData.ny ?? .4} scale={draft.pollData.scale ?? 1} onChange={() => {}} onTap={() => {}}><PollCard poll={{ poll_id: 'preview', question: draft.pollData.question, options: draft.pollData.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={false} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap> : null}
+  </>;
+  return <View style={[st.sharePreview, { height: frameH * ratio }]} pointerEvents="none"><View style={{ position: 'absolute', width: frameW, height: frameH, left: (132 - frameW) / 2, top: (frameH * ratio - frameH) / 2, transform: [{ scale: ratio }] }}>
+    {draft.mediaType === 'text' ? <View style={{ flex: 1 }}>{textBackground}{overlays}</View> : <MediaCanvas localUri={draft.localUri} mediaType={draft.mediaType} uploadState="idle" onRetry={() => {}} onLayout={() => {}} scaleAnim={scale} opacityAnim={opacity} imageW={draft.imageW} imageH={draft.imageH} mediaFit={draft.mediaFit} mediaTransform={draft.mediaTransform} onTransformChange={() => {}} onFitToggle={() => {}} interactive={false} bg={tx?.bg || null} videoMuted videoPaused trimStart={tx?.trimStart} trimEnd={tx?.trimEnd}>{overlays}</MediaCanvas>}
+  </View></View>;
+}
 
 function newDraftId() { return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
 function newStickerId() { return `stk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`; }
@@ -259,6 +278,8 @@ export default function StoryComposerScreen() {
   // writes story_shared_with, and this line refused to hold the value.
   const [audience, setAudienceState] = useState<'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except'>('everyone');
   const [audienceSheetOpen, setAudienceSheetOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [textPanel, setTextPanel] = useState<'font' | 'color' | 'style' | 'animate'>('font');
   const isBusiness = (profile as any)?.account_type === 'business';
   const [reach, setReachState] = useState<'followers' | 'wider'>('followers');
   const toggleReach = useCallback(() => { setReachState(prev => { const next = prev === 'followers' ? 'wider' : 'followers'; setDrafts(ds => ds.map(d => ({ ...d, reach: next } as any))); return next; }); }, []);
@@ -521,7 +542,7 @@ export default function StoryComposerScreen() {
   const soundPreview = useStorySoundPreview(active?.audio, myId);
   const previewAudioUrl = soundPreview.url;
   const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
-  const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen, previewMusicVol, active?.audio?.durationSec);
+  const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen && !shareOpen, previewMusicVol, active?.audio?.durationSec);
   useEffect(() => { if (musicOpen) { try { vidPlayer?.pause?.(); } catch {} } }, [musicOpen, vidPlayer]);
   // Video drafts picked without dimensions: probe the first frame so canvas
   // gestures work and the story publishes with a real thumbnail.
@@ -694,12 +715,13 @@ export default function StoryComposerScreen() {
 
   // ── Draft management ──
   const removeDraft = useCallback((index: number) => { setDrafts(prev => { const next = prev.filter((_, i) => i !== index); if (next.length === 0) { setActiveIndex(0); return next; } if (activeIndex >= next.length) setActiveIndex(next.length - 1); else if (activeIndex > index) setActiveIndex(activeIndex - 1); return next; }); }, [activeIndex]);
-  const handleFitToggle = useCallback(() => { if (!active) return; const nf: MediaFit = active.mediaFit === 'cover' ? 'contain' : 'cover'; updateActive({ mediaFit: nf, mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: nf } }); }, [active, updateActive]);
+  const handleFitToggle = useCallback(() => { if (!active) return; const nf: MediaFit = (active.mediaFit || 'cover') === 'cover' ? 'contain' : 'cover'; updateActive({ mediaFit: nf, mediaTransform: { ...active.mediaTransform, scale: 1, translateNX: 0, translateNY: 0, fit: nf } }); }, [active, updateActive]);
   const handleTransformChange = useCallback((t: MediaTransform) => { updateActive({ mediaTransform: t }); }, [updateActive]);
   const nextStickerNy = useCallback((base: number = 0.4) => { const c = active?.stickers?.length ?? 0; return c === 0 ? base : Math.min(0.76, base + c * 0.12); }, [active]);
 
   // ── Text editor ──
   const openTextEditor = useCallback((existingId?: string) => {
+    setTextPanel('font');
     if (existingId && active?.stickers) { const ex = active.stickers.find(s => s.id === existingId); if (ex) { setEditingStickerId(existingId); setStickerText(ex.text); setStickerStyle(ex.style); setStickerColor(ex.color); setStickerBgEnabled(!!ex.bgEnabled); setStickerFontSize(ex.fontSizeOverride ?? 0); setStickerOpacity(ex.opacity ?? 1.0); setStickerTextAlign(ex.textAlign ?? 'center'); setStickerAnim((ex as any).anim || 'none'); setStickerStartSec(typeof (ex as any).startSec === 'number' ? (ex as any).startSec : null); setStickerEndSec(typeof (ex as any).endSec === 'number' ? (ex as any).endSec : null); setTextEditorOpen(true); const si = STICKER_STYLES.indexOf(ex.style); if (si > 0) setTimeout(() => stylePickerRef.current?.scrollTo({ x: si * 72, animated: false }), 100); setTimeout(() => stickerInputRef.current?.focus(), 200); return; } }
     if ((active?.stickers?.length ?? 0) >= MAX_STICKERS) { Alert.alert('Limit reached', `Maximum ${MAX_STICKERS} text overlays per story.`); return; }
     setEditingStickerId(null); setStickerText(''); setStickerStyle('classic'); setStickerColor(active?.mediaType === 'text' ? getDefaultStickerColor(active.textBgId) : '#FFFFFF'); setStickerBgEnabled(false); setStickerFontSize(0); setStickerOpacity(1.0); setStickerTextAlign('center'); setStickerAnim('none'); setStickerStartSec(null); setStickerEndSec(null); setTextEditorOpen(true); setTimeout(() => stickerInputRef.current?.focus(), 200);
@@ -904,7 +926,7 @@ export default function StoryComposerScreen() {
   if (drafts.length === 0) {
     return (
       <SafeAreaView style={st.safe} edges={['top', 'bottom']}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
       {myId && <SaveToMemorySheet visible={publishedStoryIds.length > 0} storyIds={publishedStoryIds} userId={myId} onClose={finishPublishing} />}
         <View style={st.emptyFallback}>
           <Feather name="image" size={40} color={accent.warmMuted} />
@@ -964,7 +986,7 @@ export default function StoryComposerScreen() {
 
   return (
     <TouchableOpacity style={st.root} activeOpacity={1} onPress={() => Keyboard.dismiss()}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
 
       <Animated.View style={[st.canvasFrame, { opacity: mediaOpacity, transform: [{ scale: mediaScale }] }]}>
         {isTextStory ? (
@@ -984,7 +1006,7 @@ export default function StoryComposerScreen() {
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
             imageW={active?.imageW} imageH={active?.imageH} mediaFit={active?.mediaFit || 'cover'}
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
-            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
+            bg={((getTx() as any).bg ?? null)} videoPaused={shareOpen || textEditorOpen || musicOpen || publish.publishing} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
             bottomInset={Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 66 : 0)}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
@@ -1001,7 +1023,7 @@ export default function StoryComposerScreen() {
 
         {/* Studio rail: primary tools on the canvas, the rest behind the chevron */}
         {!drawMode && !previewOn && active?.uploadState === 'idle' && (
-          <StudioRail top={insets.top + 64} maxHeight={previewSize.h - (insets.top + 64) - (Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 92 : 0) + 10)} items={([
+          <StudioRail top={insets.top + 8} maxHeight={previewSize.h - (insets.top + 64) - (Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 92 : 0) + 10)} items={([
             { id: 'rtext', label: 'Text', feather: 'type', primary: true, run: () => openTextEditor() },
             { id: 'rsticker', label: 'Sticker', feather: 'smile', primary: true, on: (active?.stickers || []).length > 0, run: () => setOverflowOpen(true) },
             { id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', primary: true, on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() },
@@ -1065,87 +1087,60 @@ export default function StoryComposerScreen() {
         {/* Close button */}
         {!drawMode && !previewOn && (
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close story editor" style={[st.closeBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={publish.publishing} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <View style={st.closeBtnInner}><Feather name="x" size={18} color={textColor.primary} /></View>
+          <View style={st.closeBtnInner}><Feather name="x" size={18} color="#FFFFFF" /></View>
         </TouchableOpacity>
         )}
 
         {/* Top tool row — Instagram construction */}
         {!drawMode && !previewOn && (
-        <View style={[st.undoRedoWrap, { top: insets.top + 8 }]}>
+        <View style={[st.undoRedoWrap, { top: insets.top + 62 }]}>
           {(undoCount > 0 || redoCount > 0) && <>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Undo story edit" style={st.undoBtn} onPress={undo} disabled={undoCount === 0 || publish.publishing} activeOpacity={0.6}>
-              <Feather name="corner-up-left" size={14} color={undoCount > 0 ? textColor.muted : textColor.whisper} />
+              <Feather name="corner-up-left" size={14} color={undoCount > 0 ? "#FFFFFF" : "rgba(255,255,255,0.35)"} />
             </TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Redo story edit" style={st.undoBtn} onPress={redo} disabled={redoCount === 0 || publish.publishing} activeOpacity={0.6}>
-              <Feather name="corner-up-right" size={14} color={redoCount > 0 ? textColor.muted : textColor.whisper} />
+              <Feather name="corner-up-right" size={14} color={redoCount > 0 ? "#FFFFFF" : "rgba(255,255,255,0.35)"} />
             </TouchableOpacity>
             <View style={st.toolRowGap} />
           </>}
         </View>
         )}
 
-        {/* Business reach switch */}
-        {isBusiness && !drawMode && !previewOn && (
-        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 96 }]}>
-          <TouchableOpacity onPress={toggleReach} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: reach === 'wider' ? '#0B1E3D' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: reach === 'wider' ? '#E8A13A' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
-            <Feather name={reach === 'wider' ? 'trending-up' : 'users'} size={13} color={reach === 'wider' ? '#E8A13A' : '#FFFFFF'} />
-            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{reach === 'wider' ? 'Wider reach' : 'Followers'}</Text>
-          </TouchableOpacity>
-        </Animated.View>
-        )}
-        <StoryAudienceSheet
-          visible={audienceSheetOpen}
-          onClose={() => setAudienceSheetOpen(false)}
-          audience={audience}
-          onChange={(a, people) => { setAudienceState(a as any); setDrafts(ds => ds.map(d => ({ ...d, audience: a, sharedWith: people || null } as any))); }}
-        />
-
-        {/* Audience picker */}
-        {!drawMode && !previewOn && (
-        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 52 }]}>
-          <TouchableOpacity onPress={() => setAudienceSheetOpen(true)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
-            <Feather name={(audience === 'close_friends' ? 'star' : audience === 'only_with' ? 'user-check' : audience === 'followers' ? 'users' : 'globe') as any} size={13} color="#FFFFFF" />
-            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{audience === 'close_friends' ? 'Close friends' : audience === 'followers' ? 'Followers' : audience === 'only_with' ? 'Selected people' : 'Everyone'}</Text>
-          </TouchableOpacity>
-        </Animated.View>
-        )}
-        {/* Post button */}
-        {!drawMode && !previewOn && (
-        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) }]}>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Publish story" onPress={publish.publishAll} disabled={!canPublish} style={[st.postPillInner, !canPublish && { opacity: 0.4 }]} activeOpacity={0.85}>
-            {publish.publishing ? <ActivityIndicator color="#0A0A0A" size={14} /> : <><Text style={st.postPillTxt}>Post</Text><Feather name="arrow-up" size={13} color="#0A0A0A" /></>}
-          </TouchableOpacity>
-        </Animated.View>
-        )}
-
-
-
+        <StoryAudienceSheet visible={audienceSheetOpen} onClose={() => setAudienceSheetOpen(false)} audience={audience}
+          onChange={(a, people) => { setAudienceState(a as any); setDrafts(ds => ds.map(d => ({ ...d, audience: a, sharedWith: people || null } as any))); }} />
+        {!drawMode && !previewOn && !shareOpen ? <View style={[st.creationDock, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+          <View style={st.dockTop}>
+            <FlatList style={{ flex: 1 }} data={drafts} keyExtractor={d => d.id} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7, paddingRight: 8 }} renderItem={({ item, index }) => <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit story clip ${index + 1}`} accessibilityState={{ selected: index === activeIndex }} style={[st.thumbWrap, index === activeIndex && st.thumbWrapActive]} onPress={() => { setActiveIndex(index); undoStackRef.current = []; redoStackRef.current = []; setUndoCount(0); setRedoCount(0); }} disabled={publish.publishing}>
+              {item.mediaType === 'text' ? <View style={[st.thumb, { backgroundColor: (item.textBackground as any)?.color || '#0B1E3D', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ color: '#FFFFFF', fontSize: 20 }}>Aa</Text></View> : item.localUri ? item.mediaType === 'video' ? <VideoThumb uri={item.localUri} posterUri={item.thumbnailUri || undefined} fill /> : <Image source={{ uri: item.localUri }} style={st.thumb} /> : <View style={st.thumb} />}
+              {item.uploadState === 'done' ? <View style={st.thumbDone}><Feather name="check" size={16} color="#FFF" /></View> : null}
+              {item.uploadState === 'error' ? <View style={st.thumbError}><Feather name="alert-circle" size={16} color="#FFF" /></View> : null}
+              {!publish.publishing && item.uploadState !== 'done' && drafts.length > 1 ? <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Remove story clip ${index + 1}`} style={st.thumbRemove} onPress={() => removeDraft(index)} hitSlop={8}><Feather name="x" size={11} color="#FFF" /></TouchableOpacity> : null}
+            </TouchableOpacity>} />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story audience" onPress={() => setAudienceSheetOpen(true)} style={st.audiencePill} disabled={publish.publishing}><Feather name={audience === 'close_friends' ? 'star' : 'globe'} size={16} color="#FFFFFF" /><Text numberOfLines={1} style={st.audiencePillText}>{audience === 'close_friends' ? 'Close friends' : audience === 'followers' ? 'Followers' : audience === 'only_with' ? 'People' : 'Everyone'}</Text><Feather name="chevron-down" size={13} color="#FFFFFF" /></TouchableOpacity>
+          </View>
+          <View style={st.dockActions}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add story text" style={st.dockTool} onPress={() => openTextEditor()}><Feather name="type" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Text</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open story stickers" style={st.dockTool} onPress={() => setOverflowOpen(true)}><Feather name="smile" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Stickers</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Edit story media" style={st.dockTool} onPress={() => setAdjustOpen(true)}><Feather name="sliders" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Edit</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Review story before sharing" style={st.nextPill} onPress={() => { Keyboard.dismiss(); setShareOpen(true); }} disabled={publish.publishing}><Text style={st.nextText}>Next</Text><Feather name="arrow-right" size={18} color="#181B1E" /></TouchableOpacity>
+          </View>
+        </View> : null}
       </Animated.View>
 
-      {/* Caption */}
-      {active?.uploadState === 'idle' && !arrangement.arrangementOpen && !drawMode && !previewOn && (
-        <Animated.View style={[st.captionFloating, { bottom: keyboard.captionBottomAnim }]}>
-          <TextInput value={active?.caption || ''} onChangeText={t => updateActive({ caption: t })} placeholder="Add a caption..." placeholderTextColor={textColor.faint} style={st.captionInput} maxLength={200} editable={!publish.publishing} keyboardAppearance="dark" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} blurOnSubmit />
-        </Animated.View>
-      )}
-
-      {/* Draft strip */}
-      {drafts.length > 1 && (
-        <View style={st.stripWrap}>
-          <FlatList data={drafts} keyExtractor={d => d.id} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12, gap: 8 }} renderItem={({ item, index }) => {
-            const isAct = index === activeIndex;
-            return (
-              <TouchableOpacity style={[st.thumbWrap, isAct && st.thumbWrapActive]} activeOpacity={0.7} onPress={() => { setActiveIndex(index); undoStackRef.current = []; redoStackRef.current = []; setUndoCount(0); setRedoCount(0); }} disabled={publish.publishing}>
-                {item.mediaType === 'text' ? <View style={[st.thumb, { backgroundColor: (item.textBackground as any)?.color || '#0B1E3D' }]} /> : item.localUri ? <Image source={{ uri: item.localUri }} style={st.thumb} /> : <View style={[st.thumb, { backgroundColor: surface.immersive }]} />}
-                {item.mediaType === 'video' && <View style={st.videoIndicator}><Feather name="play" size={10} color="#FFF" /></View>}
-                {item.uploadState === 'done' && <View style={st.thumbDone}><Feather name="check" size={14} color="#FFF" /></View>}
-                {item.uploadState === 'error' && <View style={st.thumbError}><Feather name="alert-circle" size={14} color="#FFF" /></View>}
-                {!publish.publishing && item.uploadState !== 'done' && drafts.length > 1 && <TouchableOpacity style={st.thumbRemove} onPress={() => removeDraft(index)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="x" size={11} color="#FFF" /></TouchableOpacity>}
-              </TouchableOpacity>
-            );
-          }} />
-        </View>
-      )}
+      {shareOpen ? <View accessibilityViewIsModal style={[st.shareScreen, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <View style={st.shareHeader}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to story editing" style={st.shareBack} onPress={() => setShareOpen(false)} disabled={publish.publishing}><Feather name="chevron-left" size={25} color="#FFFFFF" /></TouchableOpacity><Text style={st.shareTitle}>Share story</Text><View style={{ width: 44 }} /></View>
+        <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
+          {active ? <StoryReviewPreview draft={active} width={previewSize.w} height={previewSize.h} textBackground={renderTextBg(active.textBackground || null)} strokes={drawStrokes} /> : null}
+          <Text style={st.clipCount}>{drafts.length} {drafts.length === 1 ? 'story clip' : 'story clips'}</Text>
+          <Text style={st.shareSection}>Who can see this?</Text>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story audience" onPress={() => setAudienceSheetOpen(true)} style={st.shareRow} disabled={publish.publishing}><Feather name="globe" size={22} color="#FFFFFF" /><Text style={st.shareRowText}>{audience === 'close_friends' ? 'Close friends' : audience === 'followers' ? 'Followers' : audience === 'only_with' ? 'Selected people' : audience === 'except' ? 'Everyone except selected people' : 'Everyone'}</Text><Feather name="chevron-right" size={20} color="#E8D3B6" /></TouchableOpacity>
+          {isBusiness ? <TouchableOpacity accessibilityRole="button" onPress={toggleReach} style={st.shareRow} disabled={publish.publishing}><Feather name="trending-up" size={22} color="#FFFFFF" /><Text style={st.shareRowText}>{reach === 'wider' ? 'Wider reach' : 'Followers'}</Text><Feather name="chevron-right" size={20} color="#E8D3B6" /></TouchableOpacity> : null}
+          <Text style={st.shareSection}>Add a caption</Text>
+          <TextInput accessibilityLabel="Story caption" value={active?.caption || ''} onChangeText={t => updateActive({ caption: t })} placeholder="A moment worth sharing…" placeholderTextColor="#93989E" style={st.shareCaption} maxLength={200} multiline editable={!publish.publishing} keyboardAppearance="dark" />
+          <Text style={st.shareHint}>Your story will be available for 24 hours. You can keep it in a memory book after sharing.</Text>
+        </ScrollView>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Publish story" onPress={publish.publishAll} disabled={!canPublish} style={[st.shareButton, !canPublish && { opacity: 0.45 }]}>{publish.publishing ? <ActivityIndicator color="#181B1E" /> : <Text style={st.nextText}>Share story</Text>}</TouchableOpacity>
+      </View> : null}
 
       {/* ── MODALS (text editor, emoji, poll, link, location, mention, question, slider, quiz, overflow, preview) ── */}
       {/* Text Editor Modal — Instagram construction */}
@@ -1171,14 +1166,15 @@ export default function StoryComposerScreen() {
             ); })()}
           </View>
           <View style={st.editorBottom}>
-            <ScrollView ref={stylePickerRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.stylePickerScroll} keyboardShouldPersistTaps="always">
+            <View style={st.textPanelTabs}>{(['font', 'color', 'style', 'animate'] as const).map(panel => <TouchableOpacity key={panel} accessibilityRole="tab" accessibilityState={{ selected: textPanel === panel }} onPress={() => setTextPanel(panel)} style={[st.textPanelTab, textPanel === panel && st.textPanelTabOn]}><Text style={[st.textPanelLabel, textPanel === panel && { color: '#181B1E' }]}>{panel[0].toUpperCase() + panel.slice(1)}</Text></TouchableOpacity>)}</View>
+            {textPanel === 'font' ? <ScrollView ref={stylePickerRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.stylePickerScroll} keyboardShouldPersistTaps="always">
               {([...STICKER_STYLES, ...EXTRA_TEXT_STYLES.filter(x => !(STICKER_STYLES as any[]).includes(x))] as any[]).map(ss => { const fp = composedTextStyle(ss, '#FFFFFF', false); return (
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel={(STICKER_STYLE_LABELS as any)[ss] || (EXTRA_TEXT_LABELS as any)[ss] || ss} accessibilityState={{ selected: stickerStyle === ss }} key={ss} style={[st.fontPill, stickerStyle === ss && st.fontPillActive]} onPress={() => setStickerStyle(ss)}>
                   <Text style={[{ color: '#FFF', fontFamily: (fp.textStyle as any).fontFamily, fontWeight: (fp.textStyle as any).fontWeight, fontStyle: (fp.textStyle as any).fontStyle }, st.fontPillTxt, stickerStyle === ss && st.fontPillTxtActive]} numberOfLines={1}>{(STICKER_STYLE_LABELS as any)[ss] || (EXTRA_TEXT_LABELS as any)[ss] || ss}</Text>
                 </TouchableOpacity>
               ); })}
-            </ScrollView>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
+            </ScrollView> : null}
+            {textPanel === 'color' ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
               {STICKER_COLORS.map(c => (
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Text color ${c}`} accessibilityState={{ selected: stickerColor === c }} key={c} style={[st.colorSwatch, stickerColor === c && st.colorSwatchActive]} onPress={() => setStickerColor(c)}><View style={[st.colorSwatchInner, { backgroundColor: c }]} /></TouchableOpacity>
               ))}
@@ -1186,15 +1182,16 @@ export default function StoryComposerScreen() {
               {[0.3, 0.5, 0.7, 1.0].map(v => (
                 <TouchableOpacity key={v} style={[st.opacityDot, stickerOpacity === v && st.opacityDotActive]} onPress={() => setStickerOpacity(v)}><Text style={[st.opacityDotTxt, stickerOpacity === v && st.opacityDotTxtActive]}>{Math.round(v * 100)}%</Text></TouchableOpacity>
               ))}
-            </ScrollView>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
+            </ScrollView> : null}
+            {textPanel === 'animate' ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
               {TEXT_ANIMS.map(an => (
                 <TouchableOpacity key={an} style={[st.opacityDot, stickerAnim === an && st.opacityDotActive]} onPress={() => setStickerAnim(an)}>
                   <Text style={[st.opacityDotTxt, stickerAnim === an && st.opacityDotTxtActive]}>{an === 'none' ? 'No anim' : an}</Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
-            {active?.mediaType === 'video' && (
+            </ScrollView> : null}
+            {textPanel === 'style' ? <View style={st.textStyleRow}><TouchableOpacity accessibilityRole="button" accessibilityState={{ selected: stickerBgEnabled }} onPress={() => setStickerBgEnabled(b => !b)} style={st.fontPill}><Text style={st.textPanelLabel}>{stickerBgEnabled ? 'Background on' : 'Background off'}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setStickerTextAlign(a => a === 'center' ? 'left' : a === 'left' ? 'right' : 'center')} style={st.fontPill}><Text style={st.textPanelLabel}>Align {stickerTextAlign}</Text></TouchableOpacity></View> : null}
+            {textPanel === 'animate' && active?.mediaType === 'video' && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 8 }}>
                 <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12.5, fontWeight: '700' }}>Timing</Text>
                 {([['start', stickerStartSec, setStickerStartSec], ['end', stickerEndSec, setStickerEndSec]] as any[]).map(([lb, val, setV]: any) => (
@@ -1537,8 +1534,18 @@ export default function StoryComposerScreen() {
 // ════════════════════════════════════════════════════════════
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.warmWhite },
-  safe: { flex: 1, backgroundColor: palette.warmWhite },
+  creationDock: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingTop: 14, paddingHorizontal: 16, backgroundColor: 'rgba(17,21,24,0.94)', borderTopLeftRadius: 28, borderTopRightRadius: 28, zIndex: 35, borderTopWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
+  dockTop: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64 },
+  audiencePill: { maxWidth: 145, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 24, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }, audiencePillText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600', flexShrink: 1 },
+  dockActions: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 14 }, dockTool: { flex: 1, minHeight: 50, alignItems: 'center', justifyContent: 'center', gap: 5 }, dockToolText: { color: '#FFFFFF', fontSize: 11 },
+  nextPill: { minWidth: 98, minHeight: 50, paddingHorizontal: 19, borderRadius: 28, backgroundColor: '#E8D3B6', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }, nextText: { fontSize: 16, fontWeight: '800', color: '#181B1E' },
+  shareScreen: { ...StyleSheet.absoluteFillObject, zIndex: 80, backgroundColor: '#111518' }, shareHeader: { minHeight: 60, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 }, shareBack: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }, shareTitle: { flex: 1, color: '#FFFFFF', fontSize: 21, fontWeight: '700', textAlign: 'center' },
+  sharePreview: { alignSelf: 'center', width: 132, height: 194, borderRadius: 17, overflow: 'hidden', backgroundColor: '#252A2E', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }, clipCount: { color: '#C5C8CC', fontSize: 13, marginTop: 12, textAlign: 'center', marginBottom: 24 },
+  shareSection: { color: '#FFFFFF', fontWeight: '700', fontSize: 16, marginTop: 18, marginBottom: 12 }, shareRow: { minHeight: 58, borderRadius: 17, backgroundColor: '#22272B', borderWidth: 1, borderColor: '#353B40', paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }, shareRowText: { flex: 1, fontSize: 15, color: '#FFFFFF', fontWeight: '600' },
+  shareCaption: { minHeight: 96, borderRadius: 18, backgroundColor: '#22272B', borderWidth: 1, borderColor: '#353B40', paddingHorizontal: 16, paddingVertical: 14, color: '#FFFFFF', fontSize: 15, textAlignVertical: 'top' }, shareHint: { color: '#A0A6AC', fontSize: 12, lineHeight: 18, marginTop: 16 }, shareButton: { minHeight: 54, marginHorizontal: 22, borderRadius: 29, backgroundColor: '#E8D3B6', alignItems: 'center', justifyContent: 'center' },
+
+  root: { flex: 1, backgroundColor: '#111518' },
+  safe: { flex: 1, backgroundColor: '#111518' },
   canvasFrame: { flex: 1, overflow: 'hidden', position: 'relative', backgroundColor: surface.immersive, ...SHADOW_CANVAS },
   canvasInner: { flex: 1, position: 'relative' },
   topScrim: { position: 'absolute', top: 0, left: 0, right: 0, height: 120, zIndex: Z_SCRIM, pointerEvents: 'none' as const },
@@ -1546,8 +1553,8 @@ const st = StyleSheet.create({
   dualBubble: { position: 'absolute', zIndex: Z_BUBBLE, borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)', ...SHADOW_BUBBLE },
   dualBubbleImg: { width: '100%', height: '100%' },
   closeBtn: { position: 'absolute', left: 12, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', zIndex: Z_CHROME },
-  closeBtnInner: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  undoRedoWrap: { position: 'absolute', right: 12, flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: Z_CHROME },
+  closeBtnInner: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  undoRedoWrap: { position: 'absolute', left: 14, flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: Z_CHROME },
   undoBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
   topToolBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
   toolRowGap: { width: 6 },
@@ -1571,23 +1578,24 @@ const st = StyleSheet.create({
   emptyFallbackBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 24, backgroundColor: accent.warm, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
   emptyFallbackBtnTxt: { color: '#FFF', fontSize: typeSize.caption, fontWeight: fontWeight.semibold },
   stripWrap: { paddingVertical: 8, backgroundColor: palette.warmWhite },
-  thumbWrap: { width: 48, height: 64, borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', position: 'relative' },
-  thumbWrapActive: { borderColor: accent.warmMuted },
+  thumbWrap: { width: 48, height: 62, borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', position: 'relative' },
+  thumbWrapActive: { borderColor: '#E8D3B6' },
   thumb: { width: '100%', height: '100%', backgroundColor: surface.immersive },
   videoIndicator: { position: 'absolute', bottom: 2, left: 2, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 4, padding: 2 },
   thumbDone: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(52,199,89,0.5)', alignItems: 'center', justifyContent: 'center' } as any,
   thumbError: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,59,48,0.5)', alignItems: 'center', justifyContent: 'center' } as any,
   thumbRemove: { position: 'absolute', top: -1, right: -1, backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 8, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
-  textEditorOverlay: { flex: 1, backgroundColor: 'rgba(2,4,8,0.92)' },
+  textEditorOverlay: { flex: 1, backgroundColor: 'rgba(14,17,20,0.48)' },
   textEditorHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8 },
   textEditorCancel: { color: textColor.secondary, fontSize: typeSize.body, fontWeight: fontWeight.medium },
   textEditorDone: { color: accent.warm, fontSize: typeSize.body, fontWeight: fontWeight.bold },
   editorActionBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: surface.secondary, alignItems: 'center', justifyContent: 'center' },
   editorActionBtnOn: { backgroundColor: '#FFFFFF' },
   editorCenter: { flexGrow: 1, minHeight: 120, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 12 },
-  editorBottom: { paddingBottom: 10 },
-  fontPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.14)' },
-  fontPillActive: { backgroundColor: '#FFFFFF' },
+  textPanelTabs: { flexDirection: 'row', backgroundColor: '#25292D', borderRadius: 22, marginHorizontal: 14, padding: 3, marginBottom: 10 }, textPanelTab: { flex: 1, minHeight: 40, borderRadius: 21, alignItems: 'center', justifyContent: 'center' }, textPanelTabOn: { backgroundColor: '#E8D3B6' }, textPanelLabel: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' }, textStyleRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 12 },
+  editorBottom: { paddingTop: 14, paddingBottom: 10, backgroundColor: '#191C1F', borderTopLeftRadius: 26, borderTopRightRadius: 26 },
+  fontPill: { minHeight: 46, justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.14)' },
+  fontPillActive: { backgroundColor: '#E8D3B6' },
   fontPillTxt: { fontSize: 13 },
   fontPillTxtActive: { color: '#020408' },
   colorRowScroll: { paddingHorizontal: 12, gap: 8, alignItems: 'center', paddingVertical: 8 },

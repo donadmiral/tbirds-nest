@@ -174,7 +174,7 @@ export default function ProfileHeader({
             accessibilityRole="button"
             accessibilityLabel="Settings"
           >
-            <Feather name="settings" size={17} color={getTheme().ink.inverse} />
+            <Feather name="settings" size={18} color="#FFFFFF" />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -217,21 +217,22 @@ export default function ProfileHeader({
         {profile?.username ? <Text style={s.handle}>@{profile.username}</Text> : null}
         {ctxMutual ? <Text style={{ fontSize: 13, color: t.ink.muted, marginTop: 5, textAlign: 'center', paddingHorizontal: 24 }}>{ctxMutual}</Text> : null}
         {isSelf && ctxInsights ? <Text style={{ fontSize: 12.5, color: t.ink.muted, marginTop: 5, textAlign: 'center' }}>{ctxInsights}</Text> : null}
-        {profile?.username ? <TouchableOpacity onPress={shareProfile} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'center', marginTop: 8, paddingHorizontal: 13, paddingVertical: 6, borderRadius: 999, backgroundColor: t.brand.tintBg }}><Feather name="share" size={12} color={t.brand.base} /><Text style={{ fontSize: 12.5, fontWeight: '700', color: t.ink.primary }}>Share profile</Text></TouchableOpacity> : null}
         <Modal visible={avatarOpen} transparent animationType="fade" onRequestClose={() => setAvatarOpen(false)}>
           <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center' }} activeOpacity={1} onPress={() => setAvatarOpen(false)}>
             {profile?.avatar_url ? <ExpoImage source={{ uri: profile.avatar_url }} style={{ width: '92%', height: '70%' }} contentFit="contain" /> : null}
           </TouchableOpacity>
         </Modal>
 
-        {actions ? (
-          <View style={s.actionsCenter}>{actions}</View>
-        ) : onEdit ? (
+        {actions || onEdit || profile?.username ? (
           <View style={s.actionsCenter}>
-            <TouchableOpacity style={s.editBtn} onPress={onEdit} activeOpacity={0.8} accessibilityRole="button">
-              <Feather name="edit-2" size={12} color={getTheme().ink.primary} />
+            {actions || (onEdit ? <TouchableOpacity style={s.editBtn} onPress={onEdit} activeOpacity={0.8} accessibilityRole="button">
+              <Feather name="edit-2" size={15} color={t.ink.primary} />
               <Text style={s.editTxt}>Edit profile</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> : null)}
+            {profile?.username ? <TouchableOpacity onPress={shareProfile} activeOpacity={0.8} style={s.shareBtn} accessibilityRole="button" accessibilityLabel="Share profile">
+              <Feather name="share" size={15} color={t.ink.primary} />
+              <Text style={s.editTxt}>Share profile</Text>
+            </TouchableOpacity> : null}
           </View>
         ) : null}
 
@@ -355,17 +356,17 @@ export default function ProfileHeader({
 const HAIR = StyleSheet.hairlineWidth;
 
 const s = themedSheet((t) => ({
-  banner: { height: BANNER_H, backgroundColor: t.brand.base, borderBottomWidth: 2, borderBottomColor: t.brand.warm },
+  banner: { height: BANNER_H, backgroundColor: t.brand.base, borderBottomWidth: 1, borderBottomColor: t.brand.warm },
   bannerImg: { width: '100%', height: '100%' },
   bannerFallback: { backgroundColor: t.brand.base },
   settingsBtn: {
     position: 'absolute', top: 12, right: 14,
-    width: 34, height: 34, borderRadius: 17,
-    backgroundColor: t.ink.muted,
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(11,30,61,0.64)',
     alignItems: 'center', justifyContent: 'center',
   },
 
-  body: { paddingHorizontal: 14 },
+  body: { paddingHorizontal: 20, paddingBottom: 4 },
   medallionWrap: { alignItems: 'center', marginTop: -(RING / 2) - 2, marginBottom: space.xs },
   ringHolder: { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
   ringSvg: { position: 'absolute', top: 0, left: 0 },
@@ -380,17 +381,18 @@ const s = themedSheet((t) => ({
   },
   avatarLoading: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface.canvas },
   avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: t.brand.warm },
-  avatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: t.brand.base },
-  actionsCenter: { alignItems: 'center', marginTop: space.sm },
+  avatarTxt: { fontSize: typeSize.title, fontWeight: fontWeight.heavy, color: '#0B1E3D' },
+  actionsCenter: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 12, marginBottom: 4 },
   editBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: space.md, paddingVertical: 7,
-    borderRadius: radius.full, borderWidth: HAIR, borderColor: t.surface.hairline,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    minHeight: 44, paddingHorizontal: 18, paddingVertical: 10,
+    borderRadius: radius.full, borderWidth: 1, borderColor: t.surface.hairline, backgroundColor: t.surface.raised,
   },
-  editTxt: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.ink.primary },
+  shareBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, paddingHorizontal: 18, paddingVertical: 10, borderRadius: radius.full, backgroundColor: t.brand.tintBg },
+  editTxt: { fontSize: 13, fontWeight: fontWeight.semibold, color: t.ink.primary },
 
   nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 },
-  name: { fontSize: 22, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.6, textAlign: 'center' },
+  name: { fontSize: 24, fontWeight: fontWeight.heavy, color: t.ink.primary, letterSpacing: -0.7, textAlign: 'center' },
   handle: { fontSize: typeSize.caption, color: t.ink.muted, marginTop: 1, textAlign: 'center' },
 
   category: {
@@ -398,10 +400,10 @@ const s = themedSheet((t) => ({
     textTransform: 'uppercase', color: t.brand.warm, marginTop: 5, textAlign: 'center',
   },
   headline: { fontSize: typeSize.body, fontWeight: fontWeight.semibold, color: t.ink.primary, marginTop: 5, textAlign: 'center' },
-  bio: { fontSize: typeSize.body, color: t.ink.secondary, lineHeight: 20, marginTop: 5 },
+  bio: { fontSize: typeSize.body, color: t.ink.secondary, lineHeight: 22, marginTop: 8, textAlign: 'center' },
   bioEmpty: { fontSize: typeSize.body, color: t.status.link, fontWeight: fontWeight.semibold, marginTop: 5 },
 
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.xs },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space.sm, marginTop: 9 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: 230 },
   meta: { fontSize: typeSize.caption, color: t.ink.muted },
 
@@ -417,12 +419,12 @@ const s = themedSheet((t) => ({
 
   rail: { flexGrow: 1, justifyContent: 'center', paddingTop: space.sm, paddingBottom: space.sm },
   capsule: {
-    flexDirection: 'row', borderRadius: radius.full, overflow: 'hidden',
-    borderWidth: HAIR, borderColor: t.surface.hairline, backgroundColor: t.brand.tintBg,
+    flexDirection: 'row', flexGrow: 1, borderRadius: 20, overflow: 'hidden',
+    borderWidth: 1, borderColor: t.surface.hairline, backgroundColor: t.surface.raised,
   },
   seg: {
-    alignItems: 'center', minWidth: 84,
-    paddingHorizontal: space.sm, paddingVertical: space.xs,
+    alignItems: 'center', justifyContent: 'center', flex: 1, minWidth: 84, minHeight: 62,
+    paddingHorizontal: space.sm, paddingVertical: 10,
     borderLeftWidth: HAIR, borderLeftColor: t.surface.hairline,
   },
   segAccent: { backgroundColor: 'rgba(201,191,176,0.30)' },
@@ -430,8 +432,8 @@ const s = themedSheet((t) => ({
   pillLbl: { fontSize: typeSize.micro, color: t.ink.muted, marginTop: 1 },
 
   tabRow: { flexDirection: 'row', borderBottomWidth: HAIR, borderBottomColor: t.surface.hairline },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: space.sm },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 50, paddingVertical: 14 },
   tabTxt: { fontSize: typeSize.caption, fontWeight: fontWeight.semibold, color: t.ink.muted },
   tabTxtOn: { color: t.ink.primary, fontWeight: fontWeight.heavy },
-  tabBar: { position: 'absolute', bottom: -1, height: 2.5, width: 34, borderRadius: 2, backgroundColor: t.brand.warm },
+  tabBar: { position: 'absolute', bottom: -1, height: 3, width: 34, borderRadius: 2, backgroundColor: t.brand.warm },
 }));

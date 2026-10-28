@@ -2,7 +2,7 @@
  * PostStoryCard — the shared post as the hero object of a story.
  * Rendered by DraggableSticker (composer, non-interactive) and
  * StickerOverlay (viewer, interactive). Video posts autoplay muted with
- * tap-to-unmute; the heart likes the ORIGINAL post; header opens the
+ * tap-to-unmute; header opens the
  * author's profile; caption/footer open the original post; long-press
  * pauses the story via the handlers the viewer provides.
  */
@@ -11,7 +11,6 @@ import { View, Text, Image, TouchableOpacity, Pressable, StyleSheet, Dimensions,
 import { Feather } from '@expo/vector-icons';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import VerifiedBadge from '../VerifiedBadge';
-import { supabase } from '../../services/supabase';
 
 const NAVY = '#0B1E3D';
 export const POST_CARD_W = Math.min(Math.round(Dimensions.get('window').width * 0.88), 360);
@@ -31,13 +30,6 @@ function shortDate(d?: string | null) {
   try { return new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return ''; }
 }
 
-function nCount(v: any) {
-  const n = Number(v);
-  if (!Number.isFinite(n) || n <= 0) return null;
-  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  return String(n);
-}
 
 export default function PostStoryCard({ sticker, onPress, interactive, onOpenPost, onOpenProfile, onHoldStart, onHoldEnd, paused }: {
   sticker: any;
@@ -55,9 +47,6 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   const mediaCount = Math.max(1, Number(sticker.postMediaCount) || 1);
   const carousel = mediaCount > 1 ? <View pointerEvents="none" style={st.carousel}><Feather name="layers" size={12} color="#FFFFFF" /><Text style={st.carouselText}>1/{mediaCount}</Text></View> : null;
   const [muted, setMuted] = useState(true);
-  const [likes, setLikes] = useState<number>(Number(sticker.postLikes) || 0);
-  const [liked, setLiked] = useState(false);
-  const [likeBusy, setLikeBusy] = useState(false);
   const player = useVideoPlayer(isVideo ? sticker.postMediaUrl : null, (p) => {
     if (p) { p.loop = true; p.muted = true; try { p.play(); } catch {} }
   });
@@ -78,27 +67,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
     });
   };
 
-  const toggleLike = async () => {
-    if (!interactive || !sticker.postId || likeBusy) return;
-    setLikeBusy(true);
-    const wasLiked = liked;
-    setLiked(!wasLiked);
-    setLikes(v => Math.max(0, v + (wasLiked ? -1 : 1)));
-    try {
-      const { data, error } = await supabase.rpc('toggle_post_like', { p_post_id: sticker.postId });
-      if (error) throw error;
-      const r = Array.isArray(data) ? data[0] : data;
-      if (r) { setLiked(!!r.liked); setLikes(Math.max(0, Number(r.likes_count ?? 0))); }
-    } catch {
-      setLiked(wasLiked);
-      setLikes(v => Math.max(0, v + (wasLiked ? 1 : -1)));
-    } finally { setLikeBusy(false); }
-  };
-
   const f = bodyFont(sticker.postText || '', !!sticker.postMediaUrl);
-  const likeC = nCount(likes);
-  const comC = nCount(sticker.postComments);
-  const repC = nCount(sticker.postReposts);
 
   const mediaBlock = sticker.postMediaUrl ? (
     isVideo ? (
@@ -154,29 +123,13 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
 
   const inner = (
     <View style={st.card}>
-      {articleTitle}
-      {caption}
-      {mediaBlock}
       {header}
-      <View style={st.engage}>
-        <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.engItem} disabled={!interactive} onPress={toggleLike} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Feather name="heart" size={16} color={liked ? '#E0245E' : '#E0245E'} style={liked ? { opacity: 1 } : { opacity: 0.75 }} />
-          {likeC ? <Text style={[st.engTxt, liked && { color: '#E0245E' }]}>{likeC}</Text> : null}
-        </TouchableOpacity>
-        <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.engItem} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Feather name="message-circle" size={15} color="#5B6B84" />{comC ? <Text style={st.engTxt}>{comC}</Text> : null}
-        </TouchableOpacity>
-        <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.engItem} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Feather name="repeat" size={15} color="#1D7A38" />{repC ? <Text style={st.engTxt}>{repC}</Text> : null}
-        </TouchableOpacity>
-        <View style={{ flex: 1 }} />
-        <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} disabled={!interactive || !openPost} onPress={go(openPost)} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-          <Feather name="bookmark" size={15} color="#5B6B84" />
-        </TouchableOpacity>
-      </View>
+      {articleTitle}
+      {mediaBlock}
+      {caption}
       <TouchableOpacity delayLongPress={160} onLongPress={() => onHoldStart?.()} onPressOut={() => onHoldEnd?.()} style={st.foot} disabled={!interactive || !openPost} onPress={go(openPost)} activeOpacity={0.75}>
         <Text style={st.footTxt}>{sticker.postArticleTitle ? 'Read the full article' : 'View post'}</Text>
-        <Feather name="chevron-right" size={14} color={NAVY} />
+        <Feather name="chevron-right" size={17} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );
@@ -188,14 +141,14 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
 
 const st = StyleSheet.create({
   card: { width: POST_CARD_W, backgroundColor: '#FFFFFF', borderRadius: 24, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.28, shadowRadius: 18, shadowOffset: { width: 0, height: 9 }, elevation: 9, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.35)' },
-  head: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 4 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 13 },
   avatar: { width: 38, height: 38, borderRadius: 19 },
   avatarFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { color: '#FFF', fontSize: 16, fontWeight: '800' },
   name: { fontSize: 15, fontWeight: '800', color: '#111827', flexShrink: 1 },
   handle: { fontSize: 12.5, color: '#7A8699', marginTop: 1 },
   articleTitle: { fontSize: 17, lineHeight: 23, fontWeight: '800', color: '#111827', paddingHorizontal: 14, paddingTop: 8 },
-  body: { color: '#111827', paddingHorizontal: 14, paddingTop: 8, paddingBottom: 4, fontWeight: '500' },
+  body: { color: '#111827', paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, fontWeight: '500' },
   mediaWrap: { width: '100%', height: Math.min(Math.round(POST_CARD_W * 1.05), 330), backgroundColor: '#0B1E3D', marginTop: 0 },
   media: { width: '100%', height: '100%' },
   soundChip: { position: 'absolute', right: 10, bottom: 10, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
@@ -204,6 +157,6 @@ const st = StyleSheet.create({
   engage: { flexDirection: 'row', alignItems: 'center', gap: 20, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 3 },
   engItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   engTxt: { fontSize: 12.5, fontWeight: '700', color: '#425063' },
-  foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 44, paddingVertical: 11, marginTop: 6, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E7EAF0' },
-  footTxt: { fontSize: 13, fontWeight: '800', color: NAVY },
+  foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 46, paddingVertical: 11, margin: 14, marginTop: 3, borderRadius: 15, backgroundColor: NAVY },
+  footTxt: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
 });

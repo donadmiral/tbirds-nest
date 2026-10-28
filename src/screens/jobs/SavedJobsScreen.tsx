@@ -14,7 +14,7 @@ import JobListRow from '../../components/jobs/JobListRow';
 const NAVY = '#0B1E3D';
 
 export default function SavedJobsScreen() {
-  useTheme();
+  const { isDark } = useTheme();
   const navigation = useNavigation<any>();
   const userId = useAuthStore(st => st.profile?.id);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -44,7 +44,7 @@ export default function SavedJobsScreen() {
 
   return (
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle={getTheme().surface.canvas === '#FFFFFF' ? 'dark-content' : 'light-content'} backgroundColor={getTheme().surface.canvas} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={getTheme().surface.canvas} />
       <View style={st.header}>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />

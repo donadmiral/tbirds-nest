@@ -42,7 +42,7 @@ function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable}={})
    feedListRef:{current:null},Keyboard:{dismiss(){}},loadFeed(){},Alert:{alert:(...args)=>alerts.push(args)},
    setTimeout:()=>1,clearTimeout(){},
  };
- for(const name of ['setPosting','setPublicationLocked','setMusicOpen','setComposerOpen','setComposerText','setComposerMedia','setComposerSoundtrack','setExclusivePost','setComposerProducts','setInnovationPost','setPostAudience','setCommentPolicy','setComposerSensitive','setCollabPicks','setPollOpts','setPollDays','setQuotingPost','setThreadingPost'])context[name]=()=>{};
+ for(const name of ['setPostProgress','setComposerReview','setSelectedComposerMedia','setPosting','setPublicationLocked','setMusicOpen','setComposerOpen','setComposerText','setComposerMedia','setComposerSoundtrack','setExclusivePost','setComposerProducts','setInnovationPost','setPostAudience','setCommentPolicy','setComposerSensitive','setCollabPicks','setPollOpts','setPollDays','setQuotingPost','setThreadingPost'])context[name]=()=>{};
  vm.runInNewContext(compile(text.slice(start,end)+'\nthis.publish=createPost;'),context);
  return{context,rows,calls,alerts,uploads,restoreOwner(){owner='owner';},switchAuthor(){author='business';}};
 }
@@ -63,4 +63,18 @@ test('account change after post write halts subsequent attachments until origina
 });
 test('same-tick double tap starts only one publisher',async()=>{
  const h=publicationFixture();await Promise.all([h.context.publish(),h.context.publish()]);assert.equal(h.rows.posts.size,1);assert.equal(h.uploads.length,1);assert.equal(h.rows.post_poll_options.size,2);
+});
+
+test('a custom video cover uploads with the post and local draft URIs never enter the saved recipe',async()=>{
+ const h=publicationFixture();h.context.composerSoundtrack=null;h.context.pollOpts=null;
+ h.context.composerMedia=[{uri:'file://clip.mp4',type:'video',ext:'mp4',width:1080,height:1920,edit:{aspectRatio:.8,coverAt:2,coverLocalUri:'file://chosen-cover.jpg',captions:[{id:'cue',text:'Our weekend',start:1,end:4,style:'clean',position:'bottom'}]}}];
+ h.context.VideoThumbnails.getThumbnailAsync=async()=>{throw Error('A chosen cover must not be replaced by a frame');};
+ await h.context.publish();assert.equal(h.alerts.length,0);assert.equal(h.uploads.length,2);
+ const row=[...h.rows.post_media.values()][0];assert.equal(row.edit.coverLocalUri,undefined);assert.equal(row.edit.aspectRatio,.8);assert.equal(row.edit.captions[0].text,'Our weekend');assert.match(row.edit.coverUrl,/storage\/v1\/object\/public\/post-media\/owner\/.+_cover\.jpg$/);assert.equal(h.context.publicationAttempt.current,null);
+});
+test('a cover upload failure cannot publish a video with a broken preview, and retry keeps its identity',async()=>{
+ const h=publicationFixture({failUpload:2});h.context.composerSoundtrack=null;h.context.pollOpts=null;
+ h.context.composerMedia=[{uri:'file://clip.mp4',type:'video',ext:'mp4',edit:{aspectRatio:.8,coverAt:2}}];
+ await h.context.publish();assert.equal(h.rows.posts,undefined);assert.equal(h.rows.post_media,undefined);const originalId=h.context.publicationAttempt.current.postId;
+ await h.context.publish();assert.equal(h.rows.posts.size,1);assert.equal([...h.rows.posts.values()][0].id,originalId);assert.equal(h.rows.post_media.size,1);assert.ok([...h.rows.post_media.values()][0].edit.coverUrl);
 });

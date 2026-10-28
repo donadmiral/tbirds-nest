@@ -48,9 +48,10 @@ import { useSafeAreaInsets, SafeAreaView } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import PostMediaEditSheet, { type PostMediaEdit } from '../../components/PostMediaEditSheet';
+import PostDraftPreview from '../../components/PostDraftPreview';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import * as Crypto from 'expo-crypto';
-import SoundtrackPicker from '../../components/SoundtrackPicker';
+
 import type { SoundtrackSelection } from '../../../shared/soundtrack';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -310,15 +311,12 @@ export default function FeedScreen({ navigation }: any) {
   const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [composerOpen, setComposerOpen] = useState(false);
-  const [kbH, setKbH] = useState(0);
-  useEffect(() => {
-    const sh = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e: any) => setKbH(e?.endCoordinates?.height ?? 0));
-    const hd = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKbH(0));
-    return () => { sh.remove(); hd.remove(); };
-  }, []);
   const [composerText, setComposerText] = useState('');
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
   const [editMediaIdx, setEditMediaIdx] = useState<number | null>(null);
+  const [selectedComposerMedia,setSelectedComposerMedia]=useState(0);
+  const [composerReview,setComposerReview]=useState(false);
+  const [postProgress,setPostProgress]=useState({completed:0,total:0,label:''});
   const [posting, setPosting] = useState(false);
   const [composerSoundtrack, setComposerSoundtrack] = useState<SoundtrackSelection | null>(null);
   const [musicOpen, setMusicOpen] = useState(false);
@@ -1461,7 +1459,7 @@ export default function FeedScreen({ navigation }: any) {
             }
           }
 
-          picked.push({ uri: a.uri, type: mediaType, ext, width: a.width ?? undefined, height: a.height ?? undefined, fileSize, thumbnail });
+          picked.push({ uri: a.uri, type: mediaType, ext, width: a.width ?? undefined, height: a.height ?? undefined, fileSize, thumbnail, edit:{aspectRatio:4/5} });
         } catch (assetErr: any) {
           console.log('[PICK_ASSET_ERR]', assetErr?.message || assetErr);
         }
@@ -1469,6 +1467,7 @@ export default function FeedScreen({ navigation }: any) {
 
       if (picked.length > 0) {
         setComposerMedia(p => [...p, ...picked].slice(0, 10));
+        setSelectedComposerMedia(Math.min(composerMedia.length,9));setComposerReview(false);
       }
     } catch (outerErr: any) {
       const msg = outerErr?.message || String(outerErr);
@@ -1497,13 +1496,14 @@ export default function FeedScreen({ navigation }: any) {
           console.log('[FUNCAM_THUMB_ERR]', e);
         }
       }
-      setComposerMedia(p => [...p, { uri: cm.uri, type: isVideo ? 'video' : 'image', ext, width: cm.width ?? undefined, height: cm.height ?? undefined, thumbnail }]);
+      setComposerMedia(p => [...p, { uri: cm.uri, type: isVideo ? 'video' : 'image', ext, width: cm.width ?? undefined, height: cm.height ?? undefined, thumbnail, edit:{aspectRatio:4/5} }].slice(0,10) as LocalMedia[]);
       setComposerOpen(true);
     })();
   }, []));
 
   const openCamera = () => {
-    funCamNav.navigate('StoryFunCamera', { returnTo: 'feed', feedParams: {} });
+    Keyboard.dismiss();setComposerOpen(false);setComposerReview(false);
+    setTimeout(()=>funCamNav.navigate('StoryFunCamera', { returnTo: 'feed', feedParams: {} }),300);
   };
 
   const reactToVideo = async (post: Post) => {
@@ -1610,18 +1610,21 @@ export default function FeedScreen({ navigation }: any) {
           run: async () => {
             for (let i = 0; i < media.length; i++) await step(`upload-${i}`, async () => {
               const m = media[i], video = m.type === 'video';
+              setPostProgress({completed:i,total:media.length,label:`Uploading ${video?'video':'photo'} ${i+1} of ${media.length}`});
               const safe = await ensureUploadSafe(m.uri, video ? 'video' : 'image', safeExtFromUri(m.uri, video ? 'mp4' : 'jpg'));
               const url = await upload(safe.uri, safe.mime, `${owner}/${postId}_${i}.${safe.ext}`);
-              const { tags: _tags, ...recipe } = m.edit ?? {};
+              const { tags: _tags, coverLocalUri, ...recipe } = m.edit ?? {};
               const edit: any = { ...recipe, ...(i === 0 && composerSoundtrack ? { soundtrack: composerSoundtrack } : {}) };
               if (video) {
                 const at = Math.max(0, Number(m.edit?.coverAt ?? m.edit?.trimStart ?? 0));
-                const thumb = await VideoThumbnails.getThumbnailAsync(m.uri, { time: Math.round(at * 1000), quality: 0.9 });
+                const thumb = coverLocalUri ? {uri:coverLocalUri} : await VideoThumbnails.getThumbnailAsync(m.uri, { time: Math.round(at * 1000), quality: 0.9 });
+                const safeCover=await ensureUploadSafe(thumb.uri,'image',safeExtFromUri(thumb.uri,'jpg'));
                 edit.coverAt = at;
-                edit.coverUrl = await upload(thumb.uri, 'image/jpeg', `${owner}/${postId}_${i}_cover.jpg`);
+                edit.coverUrl = await upload(safeCover.uri, safeCover.mime, `${owner}/${postId}_${i}_cover.${safeCover.ext}`);
               }
               uploaded[i] = { id: m.id, post_id: postId, url, media_type: m.type, sort_order: i, width: m.width ?? null, height: m.height ?? null, edit: Object.keys(edit).length ? edit : null, is_sensitive: composerSensitive };
             });
+            setPostProgress({completed:media.length,total:media.length,label:"Publishing your post"});
             publicationAttempt.current!.started = true;
             await step('post', () => saveRows('posts', [{ ...post, ...(uploaded[0] ? { media_url: uploaded[0].url } : {}) }]));
             await step('media', () => saveRows('post_media', uploaded));
@@ -1645,7 +1648,7 @@ export default function FeedScreen({ navigation }: any) {
       publicationAttempt.current = null; setPublicationLocked(false);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setTimeout(() => feedListRef.current?.scrollToOffset({ offset: 0, animated: true }), 150);
-      setComposerOpen(false); setComposerText(''); setComposerMedia([]); setComposerSoundtrack(null);
+      setComposerOpen(false); setComposerText(''); setComposerMedia([]); setComposerSoundtrack(null);setComposerReview(false);setSelectedComposerMedia(0);
       setExclusivePost(false); setComposerProducts([]); setInnovationPost(false);
       setPostAudience('everyone'); setCommentPolicy('everyone'); setComposerSensitive(false);
       setCollabPicks([]); setPollOpts(null); setPollDays(1); setQuotingPost(null); setThreadingPost(null);
@@ -2351,7 +2354,11 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           )}
 
           {composerOpen && (
-            <View style={[s.composerContainer, { bottom: insets.bottom + 16 + kbH, maxHeight: Dimensions.get('window').height - kbH - insets.top - 48 }]}>
+            <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={()=>{if(!posting){setComposerOpen(false);Keyboard.dismiss();}}}>
+            <KeyboardAvoidingView style={[s.composerContainer,{paddingTop:insets.top,paddingBottom:Math.max(insets.bottom,12)}]} behavior={Platform.OS==='ios'?'padding':'height'}>
+              <View style={s.cHeader}><TouchableOpacity disabled={posting} style={s.cHeaderCancel} onPress={()=>{if(composerReview&&!publicationLocked)setComposerReview(false);else{setComposerOpen(false);Keyboard.dismiss();}}}><Text style={s.cHeaderCancelText}>{composerReview&&!publicationLocked?'Edit':'Cancel'}</Text></TouchableOpacity><Text style={s.cHeaderTitle}>{posting?'Sharing your moment':composerReview?'Review post':'New post'}</Text><TouchableOpacity accessibilityRole="button" disabled={posting||(!composerText.trim()&&!composerMedia.length)} onPress={()=>{Keyboard.dismiss();if(composerReview||publicationLocked)void createPost();else setComposerReview(true);}} style={[s.postBtn,(posting||(!composerText.trim()&&!composerMedia.length))&&s.postBtnOff]}>{posting?<ActivityIndicator color="#FFF"/>:<Text style={s.postBtnTxt}>{publicationLocked?'Retry':composerReview?'Post':'Review'}</Text>}</TouchableOpacity></View>
+              {composerReview&&!posting?<View style={s.cReviewHint}><Text style={s.cReviewHintText}>Ready to share with {AUD_META[postAudience].label.toLowerCase()}? Check your media and caption, then tap Post.</Text></View>:null}
+              {posting?<View accessibilityLiveRegion="polite" style={s.cProgress}><View style={{flexDirection:'row',justifyContent:'space-between',gap:12}}><Text style={s.cProgressTitle}>{postProgress.label||'Preparing your post'}</Text><Text style={s.cProgressTitle}>{postProgress.completed}/{postProgress.total}</Text></View><View style={s.cProgressTrack}><View style={[s.cProgressFill,{width:`${postProgress.total?postProgress.completed/postProgress.total*100:0}%`}]}/></View><Text style={s.cProgressText}>Keep this screen open while your media uploads. We will confirm when your post is ready.</Text></View>:null}
               {threadingPost && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: getTheme().surface.canvas, borderColor: getTheme().surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: getTheme().ink.secondary }}>Adding to your thread</Text>
@@ -2382,34 +2389,10 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               {publicationLocked && !posting && !publicationAttempt.current?.started && <TouchableOpacity onPress={() => { publicationAttempt.current = null; setPublicationLocked(false); }} style={{ padding: 10 }}><Text style={{ color: getTheme().ink.primary }}>Edit draft</Text></TouchableOpacity>}
               <View style={s.composerCard} pointerEvents={publicationLocked ? 'none' : 'auto'}>
                 <View style={s.cAuthorRow}>
-                  {profile?.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.cAvatar} fadeDuration={200} /> : <View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name || profile?.username)}</Text></View>}
-                  <Text style={s.cName} numberOfLines={1}><TierName userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} baseStyle={s.cName} text={profile?.full_name || 'You' || ''} numberOfLines={1} /> <VerifiedBadge userId={((profile) as any)?.id ?? ((profile) as any)?.user_id} size={12} /></Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipScroller} contentContainerStyle={{ gap: 8, alignItems: 'center', paddingRight: 8 }} keyboardShouldPersistTaps="handled">
-                  <TouchableOpacity style={s.audChip} onPress={pickAudience} activeOpacity={0.75}>
-                    <Feather name={AUD_META[postAudience].icon} size={12} color={NAVY} />
-                    <Text style={s.audChipTxt}>{AUD_META[postAudience].label}</Text>
-                    <Feather name="chevron-down" size={12} color={NAVY} />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={s.audChip} onPress={pickCommentPolicy} activeOpacity={0.75}>
-                    <Feather name={COMMENT_META[commentPolicy].icon as any} size={12} color={NAVY} />
-                    <Text style={s.audChipTxt}>{COMMENT_META[commentPolicy].label}</Text>
-                    <Feather name="chevron-down" size={12} color={NAVY} />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[s.audChip, composerSensitive && { backgroundColor: '#0B1E3D' }]} onPress={() => setComposerSensitive(v => !v)} activeOpacity={0.75}>
-                    <Feather name="alert-triangle" size={12} color={composerSensitive ? '#FFFFFF' : NAVY} />
-                    <Text style={[s.audChipTxt, composerSensitive && { color: '#FFFFFF' }]}>{composerSensitive ? 'Sensitive' : 'Mark sensitive'}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[s.audChip, collabPicks.length > 0 && { backgroundColor: '#0B1E3D' }]} onPress={askCollaborator} activeOpacity={0.75}>
-                    <Feather name="users" size={12} color={collabPicks.length ? '#FFFFFF' : NAVY} />
-                    <Text style={[s.audChipTxt, collabPicks.length > 0 && { color: '#FFFFFF' }]}>{collabPicks.length ? 'With ' + collabPicks.map(x => '@' + (x.username || x.full_name)).join(', ') : 'Invite collaborators'}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[s.audChip, !!pollOpts && { backgroundColor: '#0B1E3D' }]} onPress={() => setPollOpts(p => p ? null : ['', ''])} activeOpacity={0.75}>
-                    <Feather name="bar-chart-2" size={12} color={pollOpts ? '#FFFFFF' : NAVY} />
-                    <Text style={[s.audChipTxt, !!pollOpts && { color: '#FFFFFF' }]}>{pollOpts ? 'Poll on' : 'Poll'}</Text>
-                  </TouchableOpacity>
-                  </ScrollView>
+                  {profile?.avatar_url?<Image source={{uri:profile.avatar_url}} style={s.cAvatar}/>:<View style={s.cAvatarFb}><Text style={s.cAvatarTxt}>{initials(profile?.full_name||profile?.username)}</Text></View>}
+                  <View style={{flex:1,gap:5}}><View style={{flexDirection:'row',alignItems:'center',gap:4}}><TierName userId={profile?.id} baseStyle={s.cName} text={profile?.full_name||profile?.username||'You'} numberOfLines={1}/><VerifiedBadge userId={profile?.id} size={13}/></View><TouchableOpacity style={[s.audChip,{alignSelf:'flex-start'}]} onPress={pickAudience}><Feather name={AUD_META[postAudience].icon} size={12} color={NAVY}/><Text style={s.audChipTxt}>{AUD_META[postAudience].label}</Text><Feather name="chevron-down" size={12} color={NAVY}/></TouchableOpacity></View>
                 </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
+                {!composerReview ?                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
                   <TouchableOpacity style={[s.kindChip, !innovationPost && s.kindChipOn]} onPress={() => setInnovationPost(false)} accessibilityLabel="Regular post">
                     <Feather name="edit-3" size={15} color={!innovationPost ? '#FFFFFF' : 'rgba(11,30,61,0.55)'} />
                     <Text numberOfLines={1} style={[s.kindTxt, !innovationPost && s.kindTxtOn]}>Post</Text>
@@ -2426,9 +2409,9 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     <Ionicons name="bulb-outline" size={16} color={getTheme().brand.base} />
                     <Text numberOfLines={1} style={[s.kindTxt, { color: getTheme().brand.base }, innovationPost && { fontWeight: '800' }]}>Innovation</Text>
                   </TouchableOpacity>
-                </ScrollView>
-                <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
-                <TextInput ref={composerRef} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="What's on your mind?" placeholderTextColor={getTheme().ink.secondary} multiline autoFocus maxLength={2000} />
+                </ScrollView>:null}
+                <ScrollView style={{ flex: 1 }} contentContainerStyle={{paddingBottom:12}} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={false}>{/* composer middle scrolls */}
+                <TextInput ref={composerRef} editable={!composerReview} style={s.cInput} value={composerText} onChangeText={handleComposerChange} placeholder="Write a caption…" placeholderTextColor={getTheme().ink.secondary} multiline autoFocus maxLength={2000} />
                 {pollOpts ? (
                 <View style={{ marginTop: 10, gap: 8 }}>
                 {pollOpts.map((o, i) => (
@@ -2509,87 +2492,17 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     </TouchableOpacity>
                   </View>
                 )}
-                {composerMedia.length > 0 && (() => {
-                  // Instagram's frame: square by default; the expand icon opens it to the
-                  // closest supported ratio for the media, 4:5 or 1.91:1, and back.
-                  const m0 = composerMedia[0];
-                  const asp = (((m0.edit as any)?.aspect) || 'square') as 'square' | 'portrait' | 'landscape';
-                  const ratio = asp === 'square' ? 1 : asp === 'landscape' ? 1 / 1.91 : 1.25;
-                  const natural: 'portrait' | 'landscape' = ((m0.height || 1) / (m0.width || 1)) >= 1 ? 'portrait' : 'landscape';
-                  return (
-                    <View style={{ width: '100%', aspectRatio: 1 / ratio, borderRadius: 14, overflow: 'hidden', backgroundColor: '#F2F2F7', marginBottom: 8 }}>
-                      <Image source={{ uri: m0.type === 'video' ? (m0.thumbnail || m0.uri) : m0.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                      <TouchableOpacity accessibilityLabel="Expand or crop" activeOpacity={0.8}
-                        onPress={() => setComposerMedia(p => p.map((x, j) => j === 0 ? { ...x, edit: { ...(((x.edit as any)) || {}), aspect: asp === 'square' ? natural : 'square' } as any } : x))}
-                        style={{ position: 'absolute', left: 10, bottom: 10, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' }}>
-                        <Feather name={asp === 'square' ? 'maximize-2' : 'minimize-2'} size={14} color="#FFF" />
-                      </TouchableOpacity>
-                      <View pointerEvents="none" style={{ position: 'absolute', right: 10, bottom: 10, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
-                        <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{asp === 'square' ? '1:1' : asp === 'portrait' ? '4:5' : '1.91:1'}</Text>
-                      </View>
-                    </View>
-                  );
-                })()}
-                {composerMedia.length > 0 && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.cMediaScroll} keyboardShouldPersistTaps="handled">
-                    {composerMedia.map((m, i) => (
-                      <View key={i} style={s.cThumb}>
-                        <Image source={{ uri: m.type === 'video' ? (m.thumbnail || m.uri) : m.uri }} style={s.cThumbImg} resizeMode="cover" />
-                        {m.type === 'video' && (
-                          <View style={s.cVideoOverlay}><Text style={s.cVideoPlayIcon}>▶</Text></View>
-                        )}
-                        <TouchableOpacity style={s.cRemove} onPress={() => setComposerMedia(p => p.filter((_, j) => j !== i))}><Text style={s.cRemoveTxt}>×</Text></TouchableOpacity>
-                        <TouchableOpacity style={{ position: 'absolute', left: 4, bottom: 4, backgroundColor: 'rgba(11,30,61,0.85)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={() => setEditMediaIdx(i)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="sliders" size={11} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{m.edit ? 'Edited' : 'Edit'}</Text></TouchableOpacity>
-                        {m.type === 'video' ? (
-                          <TouchableOpacity accessibilityLabel={(m.edit as any)?.muted ? 'Post with sound' : 'Post without sound'} style={{ position: 'absolute', right: 4, bottom: 4, width: 26, height: 26, borderRadius: 13, backgroundColor: (m.edit as any)?.muted ? '#D64545' : 'rgba(11,30,61,0.85)', alignItems: 'center', justifyContent: 'center' }}
-                            onPress={() => setComposerMedia(p => p.map((x, j) => j === i ? { ...x, edit: { ...((x.edit as any) || {}), muted: !((x.edit as any)?.muted) } as any } : x))} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                            <Feather name={(m.edit as any)?.muted ? 'volume-x' : 'volume-2'} size={12} color="#FFF" />
-                          </TouchableOpacity>
-                        ) : null}
-                      </View>
-                    ))}
-                    {composerMedia.length < 10 && <TouchableOpacity style={s.cAddMore} onPress={() => pickMedia()}><Text style={s.cAddMoreTxt}>+</Text></TouchableOpacity>}
-                  </ScrollView>
-                )}
-                {composerMedia.length > 0 && <TouchableOpacity onPress={() => setMusicOpen(true)} accessibilityRole="button" style={{ paddingVertical: 12, flexDirection: 'row', gap: 8, alignItems: 'center' }}><Feather name="music" size={18} color={getTheme().ink.primary} /><Text style={{ color: getTheme().ink.primary }}>{composerSoundtrack ? 'Edit post soundtrack' : 'Add music'}</Text></TouchableOpacity>}
-                <SoundtrackPicker visible={musicOpen && !publicationLocked} value={composerSoundtrack} use="post" onChange={setComposerSoundtrack} onClose={() => setMusicOpen(false)} />
-                {editMediaIdx != null && composerMedia[editMediaIdx] ? (
-                  <PostMediaEditSheet visible uri={composerMedia[editMediaIdx].uri} mediaType={composerMedia[editMediaIdx].type} width={composerMedia[editMediaIdx].width} height={composerMedia[editMediaIdx].height}
-                    initial={composerMedia[editMediaIdx].edit || null}
-                    onCancel={() => setEditMediaIdx(null)}
-                    onDone={(ed) => { const idx = editMediaIdx; setComposerMedia(p => p.map((x, j) => { if (j !== idx) return x; const keep = (x.edit as any)?.aspect ? { aspect: (x.edit as any).aspect } : {}; const merged = { ...keep, ...(ed as any) }; return { ...x, edit: Object.keys(merged).length ? merged as any : null }; })); setEditMediaIdx(null); }} />
-                ) : null}
+                {composerMedia.length>0?(()=>{const idx=Math.min(selectedComposerMedia,composerMedia.length-1),media=composerMedia[idx];return <><View style={{position:'relative'}}><PostDraftPreview key={media.uri} media={media} active={composerOpen&&editMediaIdx===null}/><View pointerEvents="none" style={s.cSelectedCount}><Text style={{color:'#FFF',fontSize:11,fontWeight:'700'}}>{idx+1} / {composerMedia.length}</Text></View></View>{!composerReview?<View style={s.cMediaActions}><TouchableOpacity style={s.cMediaAction} onPress={()=>{Keyboard.dismiss();setEditMediaIdx(idx);}}><Feather name="sliders" size={16} color={NAVY}/><Text style={s.cMediaActionText}>Edit {media.type==='video'?'video':'photo'}</Text></TouchableOpacity>{[-1,1].map(direction=><TouchableOpacity key={direction} accessibilityLabel={direction<0?'Move media earlier':'Move media later'} disabled={idx+direction<0||idx+direction>=composerMedia.length} style={[s.cMediaAction,(idx+direction<0||idx+direction>=composerMedia.length)&&{opacity:.35}]} onPress={()=>{const to=idx+direction;setComposerMedia(prev=>{const next=[...prev];[next[idx],next[to]]=[next[to],next[idx]];return next;});setSelectedComposerMedia(to);}}><Feather name={direction<0?'chevron-left':'chevron-right'} size={18} color={NAVY}/></TouchableOpacity>)}<TouchableOpacity accessibilityLabel="Remove selected media" style={s.cMediaAction} onPress={()=>{setComposerMedia(prev=>prev.filter((_,i)=>i!==idx));setSelectedComposerMedia(Math.max(0,idx-1));}}><Feather name="trash-2" size={17} color={NAVY}/></TouchableOpacity></View>:null}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[s.cMediaScroll,{marginTop:composerReview?12:0}]} contentContainerStyle={{gap:10,padding:2}} keyboardShouldPersistTaps="handled">{composerMedia.map((m,i)=><TouchableOpacity key={m.uri} accessibilityRole="button" accessibilityLabel={`Select media ${i+1}`} accessibilityState={{selected:i===idx}} style={[s.cThumb,i===idx&&s.cThumbSelected]} onPress={()=>setSelectedComposerMedia(i)}><Image source={{uri:m.type==='video'?(m.edit?.coverLocalUri||m.thumbnail||m.uri):m.uri}} style={s.cThumbImg} resizeMode="cover"/><View style={s.cThumbNumber}><Text style={{color:'#FFF',fontSize:10,fontWeight:'700'}}>{i+1}</Text></View>{m.type==='video'?<View style={{position:'absolute',left:6,bottom:6}}><Feather name="play" color="#FFF" size={14}/></View>:null}</TouchableOpacity>)}{!composerReview&&composerMedia.length<10?<TouchableOpacity accessibilityLabel="Add more media" style={s.cAddMore} onPress={()=>pickMedia()}><Feather name="plus" size={25} color={NAVY}/></TouchableOpacity>:null}</ScrollView></>})():null}
+                {editMediaIdx!=null&&composerMedia[editMediaIdx]?<PostMediaEditSheet visible uri={composerMedia[editMediaIdx].uri} mediaType={composerMedia[editMediaIdx].type} width={composerMedia[editMediaIdx].width} height={composerMedia[editMediaIdx].height} itemIndex={editMediaIdx} itemCount={composerMedia.length} initial={composerMedia[editMediaIdx].edit||null} onCancel={()=>setEditMediaIdx(null)} onDone={ed=>{const idx=editMediaIdx;setComposerMedia(prev=>prev.map((m,i)=>i===idx?{...m,edit:ed}:m));setEditMediaIdx(null);if(composerMedia[idx].type==='video'&&!ed.coverLocalUri){const editedUri=composerMedia[idx].uri;void VideoThumbnails.getThumbnailAsync(editedUri,{time:Math.round((ed.coverAt??ed.trimStart??0)*1000),quality:.7}).then(result=>setComposerMedia(prev=>prev.map(m=>m.uri===editedUri&&m.edit===ed?{...m,thumbnail:result.uri}:m))).catch(()=>{});}}}/>:null}
+                <View style={s.cSettings}><TouchableOpacity style={s.cSettingRow} onPress={pickCommentPolicy}><Feather name="message-circle" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Comments</Text><Text style={s.cSettingValue}>{COMMENT_META[commentPolicy].label}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={askCollaborator}><Feather name="users" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Collaborators</Text><Text numberOfLines={1} style={s.cSettingValue}>{collabPicks.length?`${collabPicks.length} selected`:'Invite people'}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={()=>setComposerSensitive(v=>!v)}><Feather name="shield" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Sensitive content</Text><Feather name={composerSensitive?'check-circle':'circle'} size={20} color={composerSensitive?'#AE8B49':'#9AA1AD'}/></TouchableOpacity></View>
                 </ScrollView>
-                <View style={s.cToolbar}>
-                  <View style={s.cToolbarLeft}>
-                    <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={() => pickMedia()} accessibilityLabel="Add photos or videos"><Feather name="image" size={20} color={getTheme().ink.muted} /></TouchableOpacity>
-                      <Text style={s.toolCap}>Photo</Text>
-                    </View>
-                    <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={() => pickMedia('videos')} accessibilityLabel="Add a video"><Feather name="video" size={20} color={getTheme().ink.muted} /></TouchableOpacity>
-                      <Text style={s.toolCap}>Video</Text>
-                    </View>
-                    <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={s.toolBtn} onPress={openCamera} accessibilityLabel="Open camera"><Feather name="camera" size={20} color={getTheme().ink.muted} /></TouchableOpacity>
-                      <Text style={s.toolCap}>Camera</Text>
-                    </View>
-                    
-                    <View style={{ alignItems: 'center' }}>
-                      <TouchableOpacity style={[s.toolBtn, composerProducts.length > 0 && s.toolBtnActive]} onPress={() => setProductPickerOpen(true)} accessibilityLabel="Attach products from your business"><Feather name="tag" size={20} color={composerProducts.length > 0 ? getTheme().brand.base : getTheme().ink.muted} /></TouchableOpacity>
-                      <Text style={[s.toolCap, composerProducts.length > 0 && { color: getTheme().brand.base, fontWeight: '800' }]}>Products</Text>
-                    </View>
-                    {composerProducts.length > 0 && <Text style={s.mediaCount}>{composerProducts.length}</Text>}{composerMedia.length > 0 && <Text style={s.mediaCount}>{composerMedia.length}/10</Text>}
-                  </View>
-                  <View style={s.cToolbarRight}>
-                    <TouchableOpacity onPress={() => { setComposerOpen(false); setComposerMedia([]); setComposerProducts([]); setQuotingPost(null); setThreadingPost(null); setMentionActive(false); setComposerText(''); setCollabPicks([]); setPollOpts(null); setComposerSensitive(false); AsyncStorage.removeItem('pc_draft:' + (userId || 'anon')).catch(() => {}); Keyboard.dismiss(); }} style={s.cancelBtn}><Text style={s.cancelTxt}>Cancel</Text></TouchableOpacity>
-                    <TouchableOpacity onPress={createPost} disabled={(!composerText.trim() && !composerMedia.length) || posting} style={[s.postBtn, ((!composerText.trim() && !composerMedia.length) || posting) && s.postBtnOff]}>
-                      {posting ? <ActivityIndicator color="#fff" size={14} /> : <Text style={s.postBtnTxt}>Post</Text>}
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                {!composerReview?<View style={s.cToolbar}><TouchableOpacity style={s.cToolTile} onPress={()=>pickMedia()}><Feather name="image" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Media</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={openCamera}><Feather name="camera" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Camera</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={()=>setProductPickerOpen(true)}><Feather name="tag" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Products</Text></TouchableOpacity><TouchableOpacity style={[s.cToolTile,composerMedia.length>0&&{opacity:.4}]} disabled={composerMedia.length>0} onPress={()=>setPollOpts(p=>p?null:['',''])}><Feather name="bar-chart-2" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Poll</Text></TouchableOpacity></View>:null}
               </View>
-            </View>
+              <ProductPickerSheet visible={productPickerOpen} sellerId={userId} selected={composerProducts} onClose={()=>setProductPickerOpen(false)} onSave={setComposerProducts}/>
+              <PeoplePickerSheet visible={!!collabPicker} title="Invite a collaborator" excludeId={userId} onClose={()=>setCollabPicker(null)} onPick={p=>{setCollabPicks(prev=>(prev.some(x=>x.id===p.id)||prev.length>=5)?prev:[...prev,{id:p.id,username:p.username,full_name:p.full_name}]);}}/>
+            </KeyboardAvoidingView>
+            </Modal>
           )}
 
           {!composerOpen && (
@@ -2798,7 +2711,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       </Modal>
 
 
-      <ProductPickerSheet visible={productPickerOpen} sellerId={userId} selected={composerProducts} onClose={() => setProductPickerOpen(false)} onSave={setComposerProducts} />
+      <ProductPickerSheet visible={productPickerOpen && !composerOpen} sellerId={userId} selected={composerProducts} onClose={() => setProductPickerOpen(false)} onSave={setComposerProducts} />
 
       <PostInsightsSheet
         postId={insightsPostId}
@@ -2807,7 +2720,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       />
 
       <CollaboratorsSheet visible={!!collabSheet} people={collabSheet || []} onClose={() => setCollabSheet(null)} />
-      <PeoplePickerSheet visible={!!collabPicker} title="Invite a collaborator" excludeId={userId}
+      <PeoplePickerSheet visible={!!collabPicker && !composerOpen} title="Invite a collaborator" excludeId={userId}
         onClose={() => setCollabPicker(null)}
         onPick={(p) => { setCollabPicks(prev => (prev.some(x => x.id === p.id) || prev.length >= 5) ? prev : [...prev, { id: p.id, username: p.username, full_name: p.full_name }]); }} />
       <Modal visible={!!menuPost} transparent animationType="slide" onRequestClose={() => setMenuPost(null)}>
@@ -3099,7 +3012,7 @@ const s = themedSheet((t) => ({
   cpAuthor: { fontWeight: '700', color: t.ink.primary, fontSize: 13 },
   cpTxt: { fontSize: 13, lineHeight: 18, color: t.ink.secondary },
   viewAll: { fontSize: 12, color: t.ink.muted, marginTop: 3 },
-  composerContainer: { position: 'absolute', left: 12, right: 12, zIndex: 100, maxHeight: '80%' },
+  composerContainer: { flex:1,backgroundColor:t.surface.canvas,paddingHorizontal:18 },
   mentionDropdown: { backgroundColor: t.surface.canvas, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, marginBottom: 6, overflow: 'hidden' },
   mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
   mAvatar: { width: 34, height: 34, borderRadius: 17 },
@@ -3107,27 +3020,49 @@ const s = themedSheet((t) => ({
   mAvatarTxt: { fontSize: 12, fontWeight: '700', color: t.status.link },
   mName: { fontSize: 14, fontWeight: '600', color: t.ink.primary },
   mUser: { fontSize: 12, color: t.ink.muted },
-  composerCard: { backgroundColor: t.surface.canvas, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, padding: 16, shadowColor: t.ink.primary, shadowOpacity: 0.12, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 10 },
+  cHeader: { minHeight:66,flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:16,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:t.surface.hairline },
+  cHeaderCancel: { minHeight:44,justifyContent:'center',minWidth:58 },
+  cHeaderCancelText: { color:t.ink.secondary,fontSize:13 },
+  cHeaderTitle: { flex:1,textAlign:'center',fontSize:17,fontWeight:'700',color:t.ink.primary },
+  cReviewHint: { padding:13,borderRadius:13,backgroundColor:'#F3EDE2',marginBottom:12 },
+  cReviewHintText: { fontSize:12,color:'#716856',lineHeight:18 },
+  cProgress: { padding:16,borderRadius:16,backgroundColor:'#F3EDE2',marginBottom:12 },
+  cProgressTitle: { fontSize:13,fontWeight:'700',color:NAVY },
+  cProgressText: { fontSize:12,color:'#716856',lineHeight:18 },
+  cProgressTrack: { height:5,backgroundColor:'#DED5C6',borderRadius:8,overflow:'hidden',marginVertical:12 },
+  cProgressFill: { height:'100%',backgroundColor:'#AE8B49' },
+  cSelectedCount: { position:'absolute',top:12,right:12,paddingHorizontal:10,paddingVertical:5,borderRadius:20,backgroundColor:'rgba(16,33,61,.7)' },
+  cMediaActions: { flexDirection:'row',alignItems:'center',gap:8,marginVertical:12 },
+  cMediaAction: { minHeight:44,paddingHorizontal:13,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,borderWidth:1,borderColor:'#E2DBD0',borderRadius:12,backgroundColor:t.surface.raised },
+  cMediaActionText: { fontSize:11.5,color:NAVY,fontWeight:'600' },
+  cThumbSelected: { borderColor:'#AE8B49' },
+  cThumbNumber: { position:'absolute',right:3,top:3,width:21,height:21,borderRadius:11,backgroundColor:'rgba(16,33,61,.8)',alignItems:'center',justifyContent:'center' },
+  cToolTile: { flex:1,minHeight:56,borderWidth:1,borderColor:'#E4DDD2',borderRadius:13,backgroundColor:t.surface.raised,alignItems:'center',justifyContent:'center',gap:6 },
+  cSettings: { marginTop:12,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:t.surface.hairline },
+  cSettingRow: { flexDirection:'row',alignItems:'center',gap:11,minHeight:54,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:t.surface.hairline },
+  cSettingLabel: { flex:1,fontSize:13,color:t.ink.primary },
+  cSettingValue: { fontSize:11.5,color:t.ink.secondary,maxWidth:'45%' },
+  composerCard: { flex:1,backgroundColor:t.surface.canvas },
   cAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   chipScroller: { flex: 1, marginLeft: 6 },
-  cAvatar: { width: 36, height: 36, borderRadius: 18 },
-  cAvatarFb: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
+  cAvatar: { width: 44, height: 44, borderRadius: 22 },
+  cAvatarFb: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
   cAvatarTxt: { fontSize: 13, fontWeight: '700', color: t.status.link },
   cName: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
-  cInput: { minHeight: 80, maxHeight: 160, fontSize: 15, color: t.ink.primary, textAlignVertical: 'top', lineHeight: 22, marginBottom: 8 },
+  cInput: { minHeight: 88, maxHeight: 180, fontSize: 16, color: t.ink.primary, textAlignVertical: 'top', lineHeight: 25, marginBottom: 12 },
   charCount: { fontSize: 12, color: t.status.danger, textAlign: 'right', marginBottom: 4 },
   exclusiveBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.status.linkBg, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 8 },
   exclusiveBannerTxt: { fontSize: 12, color: t.status.link, fontWeight: '500', flex: 1 },
   cMediaScroll: { marginBottom: 10 },
-  cThumb: { width: 80, height: 80, borderRadius: 10, marginRight: 8, overflow: 'hidden' },
+  cThumb: { width: 70, height: 80, borderRadius: 12,borderWidth:2,borderColor:'transparent', overflow: 'hidden' },
   cThumbImg: { width: '100%', height: '100%' },
   cVideoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.25)' },
   cVideoPlayIcon: { fontSize: 22, color: t.ink.inverse },
   cRemove: { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   cRemoveTxt: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  cAddMore: { width: 80, height: 80, borderRadius: 10, backgroundColor: t.surface.raised, borderWidth: 1.5, borderColor: t.surface.hairline, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  cAddMore: { width: 70, height: 80, borderRadius: 10, backgroundColor: t.surface.raised, borderWidth: 1.5, borderColor: t.surface.hairline, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   cAddMoreTxt: { fontSize: 28, color: t.ink.primary, fontWeight: '300' },
-  cToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, gap: 8 },
+  cToolbar: { flexDirection: 'row', alignItems: 'center', marginTop: 8,paddingTop:12,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:t.surface.hairline,gap: 8 },
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0, overflow: 'hidden' },
   kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' },
   kindChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingHorizontal: 12, borderRadius: 12, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, flexShrink: 0 },
@@ -3136,7 +3071,7 @@ const s = themedSheet((t) => ({
   kindChipGoldOn: { backgroundColor: 'rgba(201,191,176,0.55)' },
   kindTxt: { fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.7)' },
   kindTxtOn: { color: t.ink.inverse },
-  audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: '#D7DEE9', backgroundColor: '#F4F6FA' },
+  audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight:30,paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: '#E4DED3', backgroundColor: '#F5F1E9' },
   audChipTxt: { fontSize: 12, fontWeight: '700', color: NAVY },
   cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
   toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
@@ -3145,7 +3080,7 @@ const s = themedSheet((t) => ({
   mediaCount: { fontSize: 12, color: t.ink.muted, fontWeight: '600' },
   cancelBtn: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
   cancelTxt: { color: t.ink.secondary, fontSize: 14, fontWeight: '500' },
-  postBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 9, minWidth: 64, alignItems: 'center' },
+  postBtn: { backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 20, minHeight:44, minWidth: 80, alignItems: 'center',justifyContent:'center' },
   postBtnOff: { opacity: 0.3 },
   postBtnTxt: { color: t.ink.inverse, fontSize: 14, fontWeight: '700' },
   fabRing: { position: 'absolute', right: 18, width: 62, height: 62, borderRadius: 31, borderWidth: 1.5, borderColor: 'rgba(201,191,176,0.9)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' },
