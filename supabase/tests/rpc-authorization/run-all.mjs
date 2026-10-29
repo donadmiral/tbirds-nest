@@ -22,6 +22,7 @@ for (const {script, env = {}} of [
   {script: './test-production-rollout-chain.mjs'},
   {script: './test-parity-release-chain.mjs'},
   {script: './test-app-quality-hiring-chain.mjs'},
+  {script: './test-admin-support-review-chain.mjs'},
   {script: './test-legacy-chat-media-compatibility.mjs'},
   {script: './test-legacy-public-media-snapshots.mjs'},
   {script: './test-memory-book-visual-presentation.mjs'},

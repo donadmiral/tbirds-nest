@@ -24,7 +24,7 @@ import { MemoryStoryFrame } from './memory/MemoryStoryFrame';
 import { memoryStoryRecipe, memoryStorySeek, memoryStoryStickers } from '../../shared/memoryStoryPresentation';
 
 import { memoryPhotoDuration } from '../../shared/memoryPlayback';
-import { useMemoryPlayback } from '../../shared/useMemoryPlayback';
+import { useMemoryPlayback } from '@/lib/useMemoryPlayback';
 
 const AUDIENCES = [
   { key: "profile", label: "Everyone who can view my profile" },

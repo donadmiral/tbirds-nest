@@ -7,6 +7,7 @@ export type TicketTriage = {
   priority: 'urgent' | 'high' | 'normal' | 'low';
   queue: 'general' | 'account' | 'payments' | 'safety' | 'marketplace';
   escalated: boolean; version: number; response_due_at: string | null;
+  support_commands_available?: boolean;
 };
 
 export type SupportTriageRead = { available: true; tickets: Map<string, TicketTriage> } | { available: false };

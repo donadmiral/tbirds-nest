@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-29",
+  "source_review": {
+    "repository": "donadmiral/tbirds-nest",
+    "branch": "codex/app-quality-20261029",
+    "pull_request": "https://github.com/donadmiral/tbirds-nest/pull/3",
+    "state": "draft; broader app feature changes are not promoted to production"
+  },
+  "iphone": {
+    "testflight": "on hold by user instruction",
+    "new_build_started": false,
+    "new_submission_started": false,
+    "installed_build_has_new_client_fixes": false
+  },
+  "security_rollout": {
+    "pull_request": "https://github.com/donadmiral/tbirds-nest/pull/4",
+    "merge_commit": "a692fbc4d05ecc130bb1a7f0e22501836a6e1328",
+    "ci_run": "https://github.com/donadmiral/tbirds-nest/actions/runs/40945482351",
+    "ci_jobs": "all three success",
+    "files_changed": 4,
+    "next_version": "16.4.3",
+    "web_deployment": "dpl_Pgr8EUCSGmb1r41PsAGGgZmTFRy5",
+    "initial_admin_deployment": "dpl_FykSTqA7qdfEmdZqYiT2PvKNW8mQ",
+    "state": "READY"
+  },
+  "admin_compatibility_rollout": {
+    "pull_request": "https://github.com/donadmiral/tbirds-nest/pull/5",
+    "merge_commit": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "ci_run": "https://github.com/donadmiral/tbirds-nest/actions/runs/40947592056",
+    "ci_jobs": "all three success",
+    "files_changed": 3,
+    "admin_deployment": "dpl_EtZFdDQDsaZ7V6pifpjSLt3SttCL",
+    "state": "READY",
+    "alias": "admin.platinumcircles.app",
+    "unneeded_web_build": "dpl_BmBR6hnrf5VhF3uX8ogkkkUhm1nG skipped by unchanged-source build guard"
+  },
+  "database_migrations": [
+    {
+      "version": "20261029190648",
+      "name": "platinum_app_quality_applicant_self_service_20261029"
+    },
+    {
+      "version": "20261029190700",
+      "name": "platinum_app_quality_comment_author_highlights_20261029"
+    },
+    {
+      "version": "20261029192351",
+      "name": "platinum_app_quality_redacted_client_diagnostics_20261029"
+    },
+    {
+      "version": "20261029202457",
+      "name": "platinum_app_quality_admin_support_reviews_20261029"
+    }
+  ],
+  "admin_database_postflight": "ADMIN_SUPPORT_REVIEW_POSTFLIGHT_20261029.json",
+  "public_http_checks": {
+    "web": [
+      "/",
+      "/login",
+      "/privacy",
+      "/terms"
+    ],
+    "web_status": 200,
+    "admin_requests": [
+      "/signin",
+      "/dashboard"
+    ],
+    "admin_final": "public Operations entry /",
+    "admin_status": 200
+  },
+  "qa_environment": {
+    "supabase_project": "uaulhuelcfkjwojtymmw",
+    "status": "Project not found through current connected Supabase account",
+    "preview_branch_variables": "Only old QA branch has the backend settings; new quality branch previews fail required-environment validation",
+    "production_service_credentials_copied_to_preview": false
+  },
+  "acceptance_limits": [
+    "No authenticated end-to-end browser walkthrough.",
+    "No physical iPhone walkthrough.",
+    "Static action bindings are a pending acceptance inventory, not clicked controls."
+  ]
+}
+

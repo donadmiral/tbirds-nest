@@ -32,7 +32,7 @@ import { MemoryStoryTile } from '../../components/memory/MemoryBookDesigner';
 import MemoryAudienceEditor from '../../components/memory/MemoryAudienceEditor';
 import { memoryArtwork, memoryCoverMedia, memoryCoverPage, MEMORY_FEATURED_DESIGNS as MEMORY_DESIGNS } from '../../../shared/memoryBookDesign';
 import { memoryPhotoDuration } from '../../../shared/memoryPlayback';
-import { useMemoryPlayback } from '../../../shared/useMemoryPlayback';
+import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
 const PAGE_CREAM = '#FBF6EC';
 

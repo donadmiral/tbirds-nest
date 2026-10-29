@@ -8,7 +8,7 @@ const source = fs.readFileSync(path.join(__dirname, '../../src/components/feed/C
 const ast = ts.createSourceFile('CommentsPanel.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const actions = new Map();
 function visit(node) {
-  if (ts.isVariableDeclaration(node) && ['submitComment', 'moderateComment', 'deleteComment', 'pinComment'].includes(node.name.getText(ast))) actions.set(node.name.getText(ast), node.initializer.getText(ast));
+  if (ts.isVariableDeclaration(node) && ['submitComment', 'moderateComment', 'deleteComment', 'pinComment', 'commentMenu', 'restrictCommentAuthor'].includes(node.name.getText(ast))) actions.set(node.name.getText(ast), node.initializer.getText(ast));
   ts.forEachChild(node, visit);
 }
 visit(ast);
@@ -89,6 +89,52 @@ test('an old native comment action cannot run after leaving a thread, including 
       assert.equal(h.calls.length, 0, name + ' must reject a callback retained by an old native alert');
       assert.equal(h.scope.pendingActions.current.size, 0);
       assert.equal(h.state.pinned, null);
+    }
+  }
+});
+
+
+function restrictionConfirmation(h) {
+  if (actions.has('restrictCommentAuthor')) h.scope.restrictCommentAuthor = h.run('restrictCommentAuthor');
+  h.run('commentMenu')({ id: 'comment', user_id: 'commenter', author: { full_name: 'Commenter' } });
+  const open = h.alerts.at(-1)[2].find(button => button.text === 'Restrict Commenter').onPress;
+  open();
+  return { open, confirm: h.alerts.at(-1)[2].find(button => button.text === 'Restrict').onPress };
+}
+
+test('native Restrict rejects an old nested confirmation and an old outer menu after identity changes', async () => {
+  for (const key of ['other-post:author', 'post:someone-else', 'post:author']) {
+    const h = harness(), { open, confirm } = restrictionConfirmation(h);
+    h.scope.activeScope.current = { key, generation: 3 };
+    await confirm(); open();
+    assert.equal(h.calls.length, 0, 'the old confirmation must not restrict under a replacement context');
+    assert.equal(h.alerts.length, 2, 'the old outer menu must not open a new confirmation');
+  }
+});
+
+test('native Restrict sends once, waits for confirmation and exposes a rejected write', async () => {
+  const pending = deferred(), h = harness({ rpcResult: pending.promise }), { confirm } = restrictionConfirmation(h);
+  const first = confirm(), second = confirm();
+  assert.equal(h.calls.length, 1); assert.equal(h.calls[0].name, 'set_restriction'); assert.equal(h.calls[0].args.p_user, 'commenter');
+  assert.equal(h.calls[0].args.p_on, true); assert.equal(h.alerts.length, 2);
+  pending.resolve({ error: null }); await Promise.all([first, second]);
+  assert.equal(h.alerts.at(-1)[0], 'Restricted'); assert.equal(h.scope.pendingActions.current.size, 0);
+  const denied = harness({ rpcResult: { error: { message: 'permission denied' } } });
+  await restrictionConfirmation(denied).confirm(); assert.equal(denied.alerts.at(-1)[0], 'Could not restrict');
+  assert.equal(denied.scope.pendingActions.current.size, 0);
+  const offline = harness(); offline.scope.supabase.rpc = async () => { throw Error('connection lost'); };
+  await restrictionConfirmation(offline).confirm();
+  assert.match(offline.alerts.at(-1)[1], /could not be confirmed/); assert.equal(offline.scope.pendingActions.current.size, 0);
+});
+
+test('an in-flight native Restrict response cannot notify or unlock a replacement context', async () => {
+  for (const key of ['other-post:author', 'post:someone-else', 'post:author']) {
+    for (const result of [{ error: null }, { error: { message: 'denied' } }]) {
+      const pending = deferred(), h = harness({ rpcResult: pending.promise }), { confirm } = restrictionConfirmation(h);
+      const first = confirm(); h.scope.activeScope.current = { key, generation: 3 };
+      h.scope.pendingActions.current = new Set(['restrict:commenter']);
+      pending.resolve(result); await first;
+      assert.equal(h.alerts.length, 2); assert.equal(h.scope.pendingActions.current.has('restrict:commenter'), true);
     }
   }
 });

@@ -1,0 +1,136 @@
+{
+  "candidate": "supabase/migrations/20261029213000_admin_support_review_contracts.sql",
+  "sha256": "db5e56166965decc7b9dd873c28b40cfa322e07e909297da03d8a6c10f0dd759",
+  "baselineUnits": 25,
+  "appliedQualityFixes": 3,
+  "localPreflightMatchesProduction": true,
+  "functions": [
+    {
+      "schema": "admin_ops",
+      "name": "require_session",
+      "signature": "admin_ops.require_session(uuid,uuid,text)",
+      "definition_md5": "724b53f1cb512e9ad043cbe52175c9e9",
+      "security_definer": true,
+      "config": [
+        "search_path=\"\""
+      ],
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "schema": "public",
+      "name": "admin_seller_review_reports",
+      "signature": "admin_seller_review_reports(uuid,uuid,timestamp with time zone,uuid,text)",
+      "definition_md5": "1d53c63fc9a4e88440c7b6ca4e302b4a",
+      "security_definer": true,
+      "config": [
+        "search_path=\"\""
+      ],
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "schema": "public",
+      "name": "admin_support_triage_read",
+      "signature": "admin_support_triage_read(uuid[])",
+      "definition_md5": "ff3a047eb910180de72828b0e985f335",
+      "security_definer": true,
+      "config": [
+        "search_path=\"\""
+      ],
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "schema": "public",
+      "name": "admin_support_triage_update",
+      "signature": "admin_support_triage_update(uuid,uuid,uuid,uuid,integer,uuid,text,text,boolean,text)",
+      "definition_md5": "1e8322e592c38888439cc442a56dc874",
+      "security_definer": true,
+      "config": [
+        "search_path=\"\""
+      ],
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "schema": "public",
+      "name": "moderate_seller_review",
+      "signature": "moderate_seller_review(uuid,uuid,uuid,uuid,text,text,integer)",
+      "definition_md5": "b4d0a3bc989f29d8f8426ea490354014",
+      "security_definer": true,
+      "config": [
+        "search_path=\"\""
+      ],
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    }
+  ],
+  "date": "2026-10-29",
+  "database_gate": {
+    "command": "ADMIN_CONTRACT_CATALOG_OUTPUT=/tmp/platinum-admin-support-review-local-catalog.json node supabase/tests/rpc-authorization/test-admin-support-review-chain.mjs",
+    "registered": 16,
+    "pass": 16,
+    "fail": 0,
+    "skip": 0,
+    "exit_code": 0,
+    "log": "/tmp/platinum-admin-support-review-chain.log"
+  },
+  "main_admin_capability_tests": {
+    "registered": 13,
+    "pass": 13,
+    "fail": 0,
+    "skip": 0
+  },
+  "production_ui_backport": {
+    "base": "a692fbc4",
+    "branch": "codex/admin-capability-20261029",
+    "worktree": "/workspace/scratch/f1b31bf6880a/platinum-web-security",
+    "paths": [
+      "admin-web/app/support/[tid]/page.tsx",
+      "admin-web/lib/supportTriage.ts",
+      "admin-web/tests/missing-capabilities.cjs"
+    ],
+    "tests": 10,
+    "pass": 10,
+    "fail": 0,
+    "skip": 0,
+    "tsc_exit_code": 0,
+    "build_exit_code": 0,
+    "logs": [
+      "/tmp/platinum-admin-capability-backport-tests.log",
+      "/tmp/platinum-admin-capability-backport-types.log",
+      "/tmp/platinum-admin-capability-backport-build.log"
+    ],
+    "pull_request": 5,
+    "published_commit": "ff108574ef6a0a0ece8fdfb4de214e4e174491af",
+    "merge_commit": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "ci_run": "https://github.com/donadmiral/tbirds-nest/actions/runs/40947592056",
+    "ci_status": "all three success",
+    "deployment": "dpl_EtZFdDQDsaZ7V6pifpjSLt3SttCL",
+    "deployment_state": "READY",
+    "alias": "admin.platinumcircles.app"
+  },
+  "rollout_order": [
+    "deploy admin support capability UI backport and verify READY",
+    "repeat read-only preflight",
+    "review and apply exactly this migration",
+    "run read-only postflight and compare function hashes/ACLs"
+  ],
+  "current_snapshot": {
+    "status": "applied-and-postflight-verified",
+    "database_applied": true,
+    "migration": {
+      "version": "20261029202457",
+      "name": "platinum_app_quality_admin_support_reviews_20261029"
+    },
+    "ui_pr": 5,
+    "ui_merge_commit": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "ui_deployment": "dpl_EtZFdDQDsaZ7V6pifpjSLt3SttCL",
+    "ui_state": "READY",
+    "ui_ci_status": "all three success",
+    "candidate_sha256_verified": true,
+    "preflight_matches_tested_catalog": true,
+    "all_function_hashes_match": true,
+    "expected_privileges_match": true,
+    "postflight_receipt": "ADMIN_SUPPORT_REVIEW_POSTFLIGHT_20261029.json",
+    "staff_browser_acceptance": "pending",
+    "general_commands_provisioning_deletion_queue": "remain absent"
+  },
+  "preparation_lane_was_read_only": true
+}

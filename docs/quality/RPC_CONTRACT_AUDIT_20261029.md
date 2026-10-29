@@ -34,7 +34,7 @@ The TypeScript AST scan covers production `.ts`/`.tsx` under `src`, `web/app`, `
 | Admin | 15 | 14 |
 | Combined, deduplicating names across areas | 524 | 278 |
 
-At the initial snapshot, 16 distinct literal names were absent from production: the diagnostics function awaiting deployment, six deliberately disabled music/creator functions, and nine admin functions described below. The subsequent diagnostics deployment reduces this to 15. All matched native/web functions grant authenticated execution. All matched admin functions grant service-role execution. There were **zero incompatible named-argument sets among present functions with statically readable argument objects**. This includes optional argument defaults and the distinct installed overload signatures.
+At the initial snapshot, 16 distinct literal names were absent from production: the diagnostics function awaiting deployment, six deliberately disabled music/creator functions, and nine admin functions described below. The diagnostics deployment and subsequent four-contract admin restoration reduce this to **11 missing names: six disabled user-facing provider contracts, three active admin gaps and two disabled finance-admin contracts**. All matched native/web functions grant authenticated execution. All matched admin functions grant service-role execution. There were **zero incompatible named-argument sets among present functions with statically readable argument objects**. This includes optional argument defaults and the distinct installed overload signatures.
 
 Six native/web call sites assemble their arguments through variables or spreads: marketplace order creation on both clients, web promotion creation, native Studio listing updates, and the two Studio draft-save paths. These were inspected at the argument builders: order identity includes `p_request_key`; the promotion adds its request key; listing patches use optional `p_status`; draft save supplies either `p_id` or the owner/request-key pair plus the shared draft fields. Their named keys match live metadata. The two admin provisioning spread calls target an absent function and remain unavailable.
 
@@ -70,21 +70,19 @@ These names should not be “fixed” by silently turning on unfinished services
 
 ### Admin deployment gaps
 
+Four formerly missing contracts are now installed: `admin_support_triage_read`, `admin_support_triage_update`, `admin_seller_review_reports` and `moderate_seller_review`. Production migration `20261029202457` (`platinum_app_quality_admin_support_reviews_20261029`) restored only those operations, two private tables and the narrowly scoped current-policy session helper. The deployed [PR #5](https://github.com/donadmiral/tbirds-nest/pull/5) support page independently guards reply/status commands, which remain unavailable. Postflight matches all five tested function hashes, service-only execution, denied app-role execution, denied direct private-table access and the unchanged native-session helper. See [the installed receipt](ADMIN_SUPPORT_REVIEW_POSTFLIGHT_20261029.json). Actual staff-browser acceptance remains outstanding.
+
 | Missing contract | Current consequence |
 | --- | --- |
-| `admin_seller_review_reports` | The reports page explicitly displays that seller review reporting is unavailable. |
-| `moderate_seller_review` | Review moderation decisions cannot be completed through the new workflow. Direct stale-form submissions now explicitly state that the capability is unavailable and no review was changed. |
 | `triniti_platinum_admin_command` | Centralized admin mutations report that no change was made because the action is unavailable. |
 | `triniti_admin_provision` | New staff/business provisioning cannot reserve or complete its protected workflow. An absent reservation endpoint now states that no account was created, instead of suggesting repeated retries. If the endpoint disappears after reservation, the error preserves the possibility of an existing reserved identity. |
 | `triniti_admin_deletion_requests` | The queue now renders an explicit unavailable state, Back to users and Check availability again. It does not crash on a specifically absent function, imply the queue is empty or claim erasure occurred. This remains separate from the app's older account deletion behavior. |
-| `admin_support_triage_read` | Support assignment metadata returns an unavailable capability; ordinary ticket reading is a separate path. |
-| `admin_support_triage_update` | The new assignment/priority/escalation workflow is not deployed. A stale direct form now states unavailable/no assignment changed instead of suggesting a retry loop. |
 | `creator_finance_admin_snapshot` | Intentionally hidden behind the disabled finance operations gate. |
 | `creator_finance_review` | Same finance gate; creator approvals are not activated by this pass. |
 
-The broad admin/provisioning migration had been rejected by automatic approval review earlier in the release. This audit does not retry or bypass that rejection. These are explicit remaining operations gaps, not a claim that the admin app is complete because its public login page responds.
+The broad admin/provisioning migration remains undeployed; the four selected support/review operations were extracted into a new exact-baseline candidate and installed separately. This audit has no recorded automatic-review rejection specific to that admin migration; the documented rejected units are music rights and creator finance. Central commands, provisioning, the deletion queue and associated broader guards still need completion and acceptance. The public login page responding does not establish those workflows are ready.
 
-Missing-capability classification remains narrow: only an explicit missing-function response naming the requested endpoint takes this branch. Network failures, permission errors and missing internal dependencies retain their error/uncertainty behavior. Staff authorization still runs before reads or actions. Existing account/report/ticket data remains readable where its separate read contract is present. The installed Next.js 16.2.12 error-handling guide was read before changing the expected-error rendering.
+Missing-capability classification remains narrow: only an explicit missing-function response naming the requested endpoint takes this branch. Network failures, permission errors and missing internal dependencies retain their error/uncertainty behavior. Staff authorization still runs before reads or actions. Existing account/report/ticket data remains readable where its separate read contract is present. The error-handling guide in the then-installed Next.js 16.2.12 was read before changing expected-error rendering; the subsequent dependency security patch upgrades both web and admin to Next.js 16.4.3.
 
 ## Database verification
 
@@ -108,6 +106,8 @@ Applicant checks cover the original missing function, anonymous/signed-out denia
 Diagnostics checks cover schema compatibility, anonymous/signed-out denial, identity derived from auth, discarded raw message/stack/arbitrary payload fields, allowed fields, duplicate and oversized report rejection, denied direct table reads/writes, a ten-per-ten-minute server budget and independent account budgets. The candidate preserves existing diagnostic rows.
 
 Comment-pin checks cover author permission, denied commenter/stranger writes, visible read policy, one pin per post, safe replacement/stale unpin, top-level eligibility, hidden/spam handling, denied direct table writes, author reaction reads, cascade cleanup and nullable historical attribution when the pinner account is deleted.
+
+The fourth candidate has a separate **16/16 registered-case** gate in `supabase/tests/rpc-authorization/test-admin-support-review-chain.mjs`. It loads the exact 25 baseline units and the three earlier repairs, validates the fresh live preflight, and exercises the real current session policy and all 11 role mappings. Cases cover forged/expired/revoked/invalid sessions, banned/deleted/inactive accounts, ACLs, denied direct table access, stale versions, identical replay, cross-actor/operation receipt isolation, audit rollback, review visibility/pagination and an Auth-user deletion that leaves the ticket intact and its assignee null. These cases are distinct from the 42 custom groups above and are included in the final registered RPC total.
 
 Live metadata inspection also confirms:
 
@@ -136,13 +136,13 @@ The complete `supabase/tests/rpc-authorization/run-all.mjs` runner and every roo
 | Gate | Registered cases | Passed | Failed | Conditional skips |
 | --- | ---: | ---: | ---: | ---: |
 | All 27 root database/payment test files | 278 | 275 | 0 | 3 |
-| Complete RPC runner's registered suites | 96 | 95 | 0 | 1 |
+| Final RPC registered suites, including final candidate rerun | 112 | 111 | 0 | 1 |
 | Updated admin command contracts | 13 | 13 | 0 | 0 |
-| Updated admin unavailable-capability rendering/actions | 11 | 11 | 0 | 0 |
+| Updated admin unavailable-capability rendering/actions | 13 | 13 | 0 | 0 |
 
 The three root-suite skips are visual-release-specific book signing, visual-only manifests and visual-only story publishing. All three execute and pass in the RPC runner's `PLATINUM_VISUAL_RELEASE=1` mode. Conversely, the RPC runner skips soundtrack publication in that mode, and the same case executes and passes in the root suite's default mode. These are complementary mode conditions, not uninvestigated missing coverage.
 
-The RPC runner also passes **117 named custom checks/scenarios**, reported separately from registered `node:test` cases: push authorization 13, community/group authorization 19, combined atomicity 4, admin commands 22, verification integrity 8, parity chain 9, and the three narrow candidates' 42 groups. Additional successful structural gates apply 41 pending migrations locally, verify the 18 production and seven parity units, and run exact-definition/ACL postflight with six expected role denials. The held admin, music and finance migrations remain local fixtures; their test results do not mean those migrations were deployed.
+The RPC runner also passes **117 named custom checks/scenarios**, reported separately from registered `node:test` cases: push authorization 13, community/group authorization 19, combined atomicity 4, admin commands 22, verification integrity 8, parity chain 9, and the three earlier candidates' 42 groups. Additional successful structural gates apply 41 pending migrations locally, verify the 18 production and seven parity units, and run exact-definition/ACL postflight with six expected role denials. The complete run had 111 registered cases; the final 16-case admin candidate rerun supersedes its earlier 15-case result, producing the 112-case final gate above. Historical broad admin, music and finance migration fixtures are not evidence that those broader scopes were deployed; only the four explicitly recorded narrow repairs are live.
 
 Admin TypeScript checking passes after the capability UX changes. The machine-readable [RPC_DATABASE_GATE_20261029.json](RPC_DATABASE_GATE_20261029.json) records per-file results and SHA-256 test-source hashes. These counts describe executions in each runner; overlapping test suites are not counted as distinct device journeys.
 
@@ -152,7 +152,7 @@ Admin TypeScript checking passes after the capability UX changes. The machine-re
 2. Exercise new message, create group, Cancel, keyboard dismissal, Chat Back, a deep link into Chat and rapid recipient changes on a real iPhone.
 3. Check My Applications with a real applicant account and existing records. A real withdrawal should only be performed when that user intends to withdraw; the isolated test already verifies the write semantics.
 4. Verify Studio device management with a real authorized owner/admin session and an intentionally disposable device entry.
-5. Complete the separately reviewed admin operations deployment before claiming those staff workflows are ready.
+5. Exercise restored support assignment and seller-review moderation with an authorized staff session and intentional test records. Complete the remaining central command, provisioning and deletion-queue contracts and their associated guards before claiming the full admin workflow is ready.
 6. Keep music and finance provider gates explicit until their contracts, access and acceptance checks are complete.
 
 No real user message, job withdrawal, device approval/removal, review moderation or provisioning action was used as a test in this audit.

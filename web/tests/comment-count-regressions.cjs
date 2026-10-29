@@ -49,7 +49,7 @@ function scenario(initialCount = 0) {
     confirm: () => true,
   };
   const client = {
-    auth: { getSession: async () => ({ data: { session: { user: { id: 'author' } } } }) },
+    auth: { getSession: async () => ({ data: { session: { user: { id: 'author' } } } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
     from(table) {
       let selection = '', operation = 'select', input;
       const chain = {

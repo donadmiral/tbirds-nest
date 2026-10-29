@@ -341,8 +341,24 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
     finally { if (scope === activeScope.current) { pendingActions.current.delete('submit'); setSubmitting(false); } }
   };
 
+  const restrictCommentAuthor = async (c: Comment, who: string) => {
+    const action = `restrict:${c.user_id}`;
+    if (actionScope !== activeScope.current || !userId || pendingActions.current.has(action)) return;
+    const scope = actionScope;
+    pendingActions.current.add(action);
+    try {
+      const { error } = await supabase.rpc('set_restriction', { p_user: c.user_id, p_on: true });
+      if (scope !== activeScope.current) return;
+      if (error) Alert.alert('Could not restrict', error.message);
+      else Alert.alert('Restricted', who + ' is restricted. Undo it in Settings, under Restricted accounts.');
+    } catch {
+      if (scope === activeScope.current) Alert.alert('Could not restrict', 'The restriction could not be confirmed. Check Restricted accounts in Settings before trying again.');
+    } finally { if (scope === activeScope.current) pendingActions.current.delete(action); }
+  };
+
   // Long-press on a comment: the post author moderates from here (hide, spam, restrict); a writer can delete their own.
   const commentMenu = (c: Comment) => {
+    if (actionScope !== activeScope.current) return;
     const isOwn = c.user_id === userId;
     const isPostAuthor = !!ownerId && ownerId === userId;
     const who = c.author?.full_name || (c.author?.username ? '@' + c.author.username : 'this person');
@@ -351,10 +367,13 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
     if (isPostAuthor && !isOwn) {
       buttons.push({ text: c.hidden ? 'Unhide comment' : 'Hide comment', onPress: () => moderateComment(c, 'hidden') });
       buttons.push({ text: c.spam ? 'Not spam' : 'Mark as spam', onPress: () => moderateComment(c, 'spam') });
-      buttons.push({ text: 'Restrict ' + who, onPress: () => Alert.alert('Restrict ' + who + '?', 'Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Restrict', style: 'destructive', onPress: () => supabase.rpc('set_restriction', { p_user: c.user_id, p_on: true }).then(({ error }) => { if (error) Alert.alert('Could not restrict', error.message); else Alert.alert('Restricted', who + ' is restricted. Undo it in Settings, under Restricted accounts.'); }) },
-      ]) });
+      buttons.push({ text: 'Restrict ' + who, onPress: () => {
+        if (actionScope !== activeScope.current || pendingActions.current.has(`restrict:${c.user_id}`)) return;
+        Alert.alert('Restrict ' + who + '?', 'Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Restrict', style: 'destructive', onPress: () => restrictCommentAuthor(c, who) },
+        ]);
+      } });
     }
     if (isOwn) buttons.push({ text: 'Delete comment', style: 'destructive', onPress: () => deleteComment(c) });
     if (!buttons.length) return;

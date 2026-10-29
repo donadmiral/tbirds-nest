@@ -1,0 +1,38 @@
+{
+  "project": "prlkikhckbifseosbukl",
+  "date": "2026-10-29",
+  "read_only": true,
+  "preflight": {
+    "support_index": null,
+    "required_columns": {
+      "auth.users": true,
+      "auth.sessions": true,
+      "public.profiles": true,
+      "public.admin_users": true,
+      "public.seller_reviews": true,
+      "public.admin_audit_log": true,
+      "public.support_tickets": true,
+      "public.support_messages": true,
+      "public.seller_review_reports": true
+    },
+    "native_session_check": {
+      "signature": "triniti_admin_session_check(uuid,uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.triniti_admin_session_check(p_user_id uuid, p_session_id uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\n  SELECT EXISTS (\r\n    SELECT 1\r\n    FROM auth.sessions s\r\n    JOIN auth.users u ON u.id = s.user_id\r\n    JOIN public.admin_users a ON a.user_id = s.user_id\r\n    WHERE s.id = p_session_id AND s.user_id = p_user_id\r\n      AND (s.not_after IS NULL OR s.not_after > now())\r\n      AND u.deleted_at IS NULL\r\n      AND (u.banned_until IS NULL OR u.banned_until <= now())\r\n      AND a.active IS TRUE\r\n      AND a.role IN ('super_admin','platform_admin','trust_safety','support_agent','ops_engineer',\r\n                     'market_reviewer','jobs_reviewer','verification_reviewer','finance_admin','analyst','auditor_readonly')\r\n  );\r\n$function$\n",
+      "definition_md5": "ba2e1c694288129ee94d8b6d06746eef",
+      "service_execute": true,
+      "security_definer": true
+    },
+    "admin_namespace_absent": true,
+    "target_contracts_absent": {
+      "public.admin_support_triage_read(uuid[])": true,
+      "public.moderate_seller_review(uuid,uuid,uuid,uuid,text,text,integer)": true,
+      "public.admin_seller_review_reports(uuid,uuid,timestamp with time zone,uuid,text)": true,
+      "public.admin_support_triage_update(uuid,uuid,uuid,uuid,integer,uuid,text,text,boolean,text)": true
+    },
+    "applied_quality_contracts": {
+      "public.report_client_error(jsonb)": true,
+      "public.set_comment_pinned(uuid,boolean)": true,
+      "public.my_application_page(text,timestamp with time zone,uuid,integer)": true
+    }
+  }
+}

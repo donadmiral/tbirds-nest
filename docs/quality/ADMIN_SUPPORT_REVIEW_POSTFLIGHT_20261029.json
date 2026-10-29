@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-29",
+  "project": "prlkikhckbifseosbukl",
+  "status": "applied and verified",
+  "migration": {
+    "version": "20261029202457",
+    "name": "platinum_app_quality_admin_support_reviews_20261029"
+  },
+  "candidate": "supabase/migrations/20261029213000_admin_support_review_contracts.sql",
+  "candidate_sha256": "db5e56166965decc7b9dd873c28b40cfa322e07e909297da03d8a6c10f0dd759",
+  "safe_ui": {
+    "deployment": "dpl_EtZFdDQDsaZ7V6pifpjSLt3SttCL",
+    "state": "READY",
+    "sha": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "alias": "admin.platinumcircles.app"
+  },
+  "preflight": "Fresh production catalog exactly matched the tested snapshot before apply",
+  "postflight": {
+    "functions": [
+      {
+        "config": [
+          "search_path=\"\""
+        ],
+        "exists": true,
+        "signature": "admin_ops.require_session(uuid,uuid,text)",
+        "anon_execute": false,
+        "definition_md5": "724b53f1cb512e9ad043cbe52175c9e9",
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "config": [
+          "search_path=\"\""
+        ],
+        "exists": true,
+        "signature": "public.admin_seller_review_reports(uuid,uuid,timestamp with time zone,uuid,text)",
+        "anon_execute": false,
+        "definition_md5": "1d53c63fc9a4e88440c7b6ca4e302b4a",
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "config": [
+          "search_path=\"\""
+        ],
+        "exists": true,
+        "signature": "public.admin_support_triage_read(uuid[])",
+        "anon_execute": false,
+        "definition_md5": "ff3a047eb910180de72828b0e985f335",
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "config": [
+          "search_path=\"\""
+        ],
+        "exists": true,
+        "signature": "public.admin_support_triage_update(uuid,uuid,uuid,uuid,integer,uuid,text,text,boolean,text)",
+        "anon_execute": false,
+        "definition_md5": "1e8322e592c38888439cc442a56dc874",
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "config": [
+          "search_path=\"\""
+        ],
+        "exists": true,
+        "signature": "public.moderate_seller_review(uuid,uuid,uuid,uuid,text,text,integer)",
+        "anon_execute": false,
+        "definition_md5": "b4d0a3bc989f29d8f8426ea490354014",
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      }
+    ],
+    "private_tables": [
+      {
+        "rls": true,
+        "name": "admin_ops.commands",
+        "exists": true,
+        "anon_access": false,
+        "authenticated_access": false,
+        "service_direct_access": false
+      },
+      {
+        "rls": true,
+        "name": "admin_ops.support_triage",
+        "exists": true,
+        "anon_access": false,
+        "authenticated_access": false,
+        "service_direct_access": false
+      }
+    ],
+    "held_contracts_absent": {
+      "public.triniti_admin_deletion_requests(uuid,uuid,integer)": true,
+      "public.triniti_admin_provision(uuid,uuid,uuid,text,jsonb,text)": true,
+      "public.triniti_platinum_admin_command(uuid,uuid,uuid,text,jsonb)": true
+    },
+    "native_session_check_md5": "ba2e1c694288129ee94d8b6d06746eef",
+    "assignee_delete_sets_null": true,
+    "support_commands_available": false
+  },
+  "local_candidate_tests": {
+    "registered": 16,
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0
+  },
+  "actual_user_mutations": "None; no real support reply, review moderation, staff provisioning or account deletion used as a test",
+  "limitations": [
+    "Staff browser acceptance requires an authenticated session.",
+    "General commands, provisioning and deletion queue remain absent."
+  ]
+}
+

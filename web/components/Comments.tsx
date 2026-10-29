@@ -34,6 +34,7 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
   const supabase = useRef(createClient()).current;
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
+  const authUserRef = useRef(uid); authUserRef.current = uid;
   const [items, setItems] = useState<CommentRow[]>([]);
   const [reactions, setReactions] = useState<Record<string, number>>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -108,12 +109,25 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
   }, [supabase, postId]);
 
   useEffect(() => {
-    pendingActions.current.clear(); setBusy(false); setMenuFor(null);
-    setCollabInvite(false); setPostAuthor(null); setOff(false); setExpanded(new Set()); setShowSpam(false);
-    setLoaded(false); setItems([]); setLoadError(null); setPinnedId(null); setAuthorLikes(new Set()); setReactions({}); setReplyTo(null); setDraft('');
-    void load();
-    return () => { ++loadRevision.current; activeScope.current = { ...activeScope.current, generation: activeScope.current.generation + 1 }; };
-  }, [load]);
+    let alive = true;
+    const reset = () => {
+      pendingActions.current.clear(); setBusy(false); setMenuFor(null);
+      setCollabInvite(false); setPostAuthor(null); setOff(false); setExpanded(new Set()); setShowSpam(false);
+      setLoaded(false); setItems([]); setLoadError(null); setPinnedId(null); setAuthorLikes(new Set()); setReactions({}); setReplyTo(null); setDraft('');
+    };
+    reset(); void load();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id ?? null;
+      if (!alive || next === authUserRef.current) return;
+      authUserRef.current = next;
+      // Fence old confirmations immediately, even before the account render commits.
+      const scope = { key: `${postId}:${next ?? ''}`, generation: activeScope.current.generation + 1 };
+      activeScope.current = scope; ++loadRevision.current;
+      setUid(next); reset();
+      queueMicrotask(() => { if (alive && scope === activeScope.current) void load(); });
+    });
+    return () => { alive = false; subscription.unsubscribe(); ++loadRevision.current; activeScope.current = { ...activeScope.current, generation: activeScope.current.generation + 1 }; };
+  }, [load, postId, supabase]);
   useEffect(() => { if (autoFocus) { const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 80); return () => clearTimeout(t); } }, [autoFocus]);
 
   async function react(commentId: string, value: 1 | -1) {
@@ -168,6 +182,25 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
       if (scope === activeScope.current) { setMenuFor(null); await load(); }
     } catch { if (scope === activeScope.current) setLoadError('The moderation change could not be saved. Please try again.'); }
     finally { if (scope === activeScope.current) pendingActions.current.delete(action); }
+  }
+
+  async function restrictCommentAuthor(c: CommentRow) {
+    const action = `restrict:${c.user_id}`;
+    if (actionScope !== activeScope.current || !uid || pendingActions.current.has(action)) return;
+    const who = c.author?.full_name || "this person";
+    if (!window.confirm("Restrict " + who + "? Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.")) return;
+    if (actionScope !== activeScope.current) return;
+    const scope = actionScope;
+    pendingActions.current.add(action);
+    try {
+      const { error } = await supabase.rpc("set_restriction", { p_user: c.user_id, p_on: true });
+      if (scope !== activeScope.current) return;
+      setMenuFor(null);
+      if (error) alert(error.message);
+      else alert(who + " is restricted. Undo it in Settings, under Restricted accounts.");
+    } catch {
+      if (scope === activeScope.current) setLoadError('The restriction could not be confirmed. Check Restricted accounts in Settings before trying again.');
+    } finally { if (scope === activeScope.current) pendingActions.current.delete(action); }
   }
 
   async function remove(c: CommentRow) {
@@ -292,7 +325,7 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
                       <>
                         <button onClick={() => moderate(c, 'hidden')} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-ink/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><EyeOff size={13} /> {c.hidden ? "Unhide" : "Hide"}</button>
                         <button onClick={() => moderate(c, 'spam')} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-ink/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><ShieldAlert size={13} /> {c.spam ? "Not spam" : "Mark as spam"}</button>
-                        <button onClick={() => { const who = c.author?.full_name || "this person"; if (!confirm("Restrict " + who + "? Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.")) return; void supabase.rpc("set_restriction", { p_user: c.user_id, p_on: true }).then(({ error }) => { setMenuFor(null); if (error) alert(error.message); else alert(who + " is restricted. Undo it in Settings, under Restricted accounts."); }); }} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-ink/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><UserMinus size={13} /> Restrict</button>
+                        <button onClick={() => restrictCommentAuthor(c)} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-ink/90 transition-colors duration-[140ms] hover:bg-surface-elevated"><UserMinus size={13} /> Restrict</button>
                       </>
                     ) : null}
                     {uid === c.user_id ? (

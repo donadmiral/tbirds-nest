@@ -288,8 +288,8 @@
   "rpc_authorization_runner": {
     "file": "supabase/tests/rpc-authorization/run-all.mjs",
     "exit": 0,
-    "registered": 96,
-    "passed": 95,
+    "registered": 112,
+    "passed": 111,
     "failed": 0,
     "conditional_skips": 1,
     "named_custom_checks": {
@@ -309,6 +309,14 @@
       "parity_units_validated": 7,
       "postflight_role_denials": 6,
       "postflight_definitions_and_acls": "pass"
+    },
+    "final_candidate_check": {
+      "script": "supabase/tests/rpc-authorization/test-admin-support-review-chain.mjs",
+      "registered": 16,
+      "passed": 16,
+      "skipped": 0,
+      "candidate_sha256": "db5e56166965decc7b9dd873c28b40cfa322e07e909297da03d8a6c10f0dd759",
+      "basis": "Full runner passed with the initial 15-case candidate; the final 16-case candidate rerun supersedes that script after the assignee cleanup fix."
     }
   },
   "conditional_coverage": [
@@ -335,10 +343,15 @@
       "passed": 13
     },
     "missing_capabilities": {
-      "registered": 11,
-      "passed": 11
+      "registered": 13,
+      "passed": 13
     },
-    "typescript": "pass"
+    "typescript": "pass",
+    "production_backport": {
+      "registered": 10,
+      "passed": 10,
+      "note": "Subset on production-derived branch; overlaps the draft cases and is not counted twice."
+    }
   },
   "limitations": [
     "PGlite fixtures are not a live PostgREST or provider integration test.",

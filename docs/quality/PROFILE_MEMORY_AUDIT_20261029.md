@@ -60,6 +60,16 @@ The following remain substantive limits:
 3. There is no complete downloadable MP4 pipeline that bakes every photo, video, sticker, text layer, transition and soundtrack into one movie. The app preserves editing recipes for app playback.
 4. Device audio interruptions, iOS mixing behavior, long albums, low-memory performance, video decoder failures and battery use need physical-device acceptance.
 
+## Packaging correction from isolated CI
+
+GitHub's isolated web job at commit `1a387bb` exposed a dependency-boundary error: `shared/useMemoryPlayback.ts` imported React from outside the web application. Local checks had both native/root and web dependencies installed, which masked the missing-module error that occurs when only `web/node_modules` exists.
+
+The shared module now exports a React-independent hook factory with structural hook ports. `src/hooks/useMemoryPlayback.ts` and `web/lib/useMemoryPlayback.ts` each import their own application's React and supply those hooks. The web wrapper is explicitly a client module. The playback clock, timer cleanup, pause/resume behavior and current completion callback remain shared. No root Expo installation, runtime-to-declaration alias or dependency-path workaround was added to the web job.
+
+The new `web/tests/memory-hook-boundary.cjs` regression copies the actual shared factory, clock and web wrapper into a fresh temporary tree containing only real web React, its types and `csstype`. It checks successful TypeScript compilation and actual JavaScript runtime resolution from the web wrapper. Its negative control restores a React import under `shared/` and requires the original TS2307 failure, proving that root dependencies cannot mask this regression. Two additional playback-hook cases verify progress, current callback selection, timer disposal and pause/page-change behavior through the structural ports.
+
+The complete web project also passed `tsc --noEmit --incremental false` in a fresh source checkout with only `web/node_modules`, using the approved Next.js 16.4.3 patch and the existing React 19.2.8 version. The checkout contained no root `node_modules`, and the boundary regression passed there as well. Normal native/web typechecks and 68 memory/player/page-turn/shelf cases passed after the source correction, with no skips or failures.
+
 ## Automated verification
 
 Run individual test files with `node path/to/file.cjs` in this environment. The observed `node --test` wrapper could report a file-level success without reporting its contained registered cases, so this audit counts the named cases actually executed.
@@ -71,14 +81,15 @@ Run individual test files with `node path/to/file.cjs` in this environment. The 
 | `tests/quality/memory-page-turn.cjs` | 14 |
 | `tests/quality/profile-content-regressions.cjs` | 15 |
 | `tests/quality/memory-media-regressions.cjs` | 6 |
-| `tests/quality/memory-playback.cjs` | 4 |
+| `tests/quality/memory-playback.cjs` | 6 |
 | `tests/quality/profile-shelf-lifecycle.cjs` | 4 |
 | `tests/quality/memory-picker-accessibility.cjs` | 4 |
 | `tests/quality/edit-profile-save.cjs` | 4 |
 | `tests/quality/profile-media-renewal.cjs` | 3 |
 | `tests/quality/directory-media-sweep.cjs` | 11 |
 | `tests/quality/dark-surfaces-sweep.cjs` | 8 |
-| **Total for this lane** | **104** |
+| `web/tests/memory-hook-boundary.cjs` | 1 |
+| **Total for this lane** | **107** |
 
 Native and web TypeScript checks pass for the combined source inspected by this lane. The main release report owns the final whole-repository test/build totals, because other agents continue changing related stories and message files. Tests use synthetic clients, rows and deferred responses; passing those tests does not mean authenticated production or iPhone UI actions were performed.
 

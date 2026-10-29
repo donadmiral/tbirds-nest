@@ -1,5 +1,20 @@
 import * as Linking from 'expo-linking';
-import type { LinkingOptions } from '@react-navigation/native';
+import { getStateFromPath, type LinkingOptions } from '@react-navigation/native';
+
+// Navigation 6's tolerant query decoder can perform unbounded work on malformed
+// percent escapes. Validate once with the native linear decoder before delegation.
+// Keep the original encoded path: decoding it here would change route boundaries.
+export const MAX_DEEP_LINK_PATH_LENGTH = 16 * 1024;
+export const getSafeStateFromPath: typeof getStateFromPath = (path, options) => {
+  if (typeof path !== 'string' || path.length > MAX_DEEP_LINK_PATH_LENGTH) return undefined;
+  try {
+    decodeURIComponent(path);
+  } catch {
+    return undefined;
+  }
+  return getStateFromPath(path, options);
+};
+
 /**
  * Deep linking config. Handles:
  *   - platinum-circles://auth/callback  (email verification redirect from Supabase)
@@ -14,6 +29,7 @@ import type { LinkingOptions } from '@react-navigation/native';
 export const linking: LinkingOptions<any> = {
   // Resolve the installed app's scheme so QA links cannot open production.
   prefixes: [Linking.createURL('/')],
+  getStateFromPath: getSafeStateFromPath,
   config: {
     screens: {
       // Unauthenticated

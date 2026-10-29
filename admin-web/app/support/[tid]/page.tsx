@@ -34,6 +34,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
   ]);
   if (messages.error || messages.count === null || profile.error) throw new Error('Support conversation could not be loaded.');
   const triage = assignments.available ? assignments.tickets.get(t.id) : undefined;
+  const supportCommandsAvailable = triage?.support_commands_available === true;
   const staff = triage ? await svc.from('admin_users').select('user_id,role').eq('active', true).in('role', ['super_admin', 'platform_admin', 'trust_safety', 'support_agent']).limit(100) : { data: [], error: null };
   if (staff.error) throw new Error('Support staff could not be loaded.');
   const staffIds = (staff.data ?? []).map(member => member.user_id as string);
@@ -98,7 +99,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
         ))}
       </div>
 
-      {triage ? <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
+      {supportCommandsAvailable ? <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
         <p className="mb-2 text-[10.5px] font-bold uppercase tracking-wider text-[#9A9DA4]">Reply to the member</p>
         <PermissionGate role={admin.role} permission="support"><CommandForm scope="sendTicketReply" action={sendTicketReply}>
           <input type="hidden" name="tid" value={t.id} />
@@ -117,7 +118,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
             {t.status !== 'solved' ? 'Mark solved' : 'Reopen'}
           </button>
         </CommandForm></PermissionGate>
-      </div> : <p className="rounded-[12px] border border-[#E5E4E0] bg-white p-5 text-sm">Support changes are unavailable on this deployment. This conversation is read-only.</p>}
+      </div> : <p role="status" className="rounded-[12px] border border-[#E5E4E0] bg-white p-5 text-sm">Replies and ticket status changes are unavailable on this deployment. This conversation is read-only.</p>}
     </Shell>
   );
 }
